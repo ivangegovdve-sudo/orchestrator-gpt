@@ -1,0 +1,880 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Prompt Builder – Fantasy Icon Lab v4</title>
+<style>
+:root {
+  --bg: #020617;
+  --panel: #020617;
+  --accent: #38bdf8;
+  --accent-soft: #0ea5e9;
+  --accent-soft2: #22c55e;
+  --text: #e5e7eb;
+  --muted: #9ca3af;
+  --border: #1f2937;
+  --field-bg: #020617;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  padding: 24px;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background: radial-gradient(circle at top left, #020617 0, #020617 40%, #020617 100%);
+  color: var(--text);
+}
+.shell {
+  max-width: 1120px;
+  margin: 0 auto;
+  background: linear-gradient(135deg, rgba(15,23,42,0.96), rgba(15,23,42,0.99));
+  border-radius: 18px;
+  border: 1px solid rgba(148,163,184,0.4);
+  box-shadow: 0 24px 60px rgba(15,23,42,0.95);
+  padding: 18px 20px 20px;
+}
+h1 {
+  margin: 0 0 6px;
+  font-size: 26px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.subtitle {
+  font-size: 13px;
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+small {
+  color: var(--muted);
+  font-size: 11px;
+}
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+}
+.col {
+  flex: 1;
+  min-width: 260px;
+}
+.label {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  margin-bottom: 4px;
+}
+textarea, select {
+  width: 100%;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--field-bg);
+  color: var(--text);
+  font-size: 13px;
+  padding: 8px 10px;
+  outline: none;
+}
+textarea {
+  resize: vertical;
+  min-height: 60px;
+}
+select {
+  height: 32px;
+}
+.group {
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: rgba(15,23,42,0.98);
+  padding: 10px;
+  margin-bottom: 10px;
+}
+.group-title {
+  font-size: 12px;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+.chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: rgba(15,23,42,0.98);
+  font-size: 11px;
+  cursor: pointer;
+}
+.chip input {
+  margin: 0;
+}
+.chip span {
+  white-space: nowrap;
+}
+.chip .weight {
+  color: var(--muted);
+  font-size: 10px;
+}
+.actions {
+  margin: 10px 0;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+button {
+  border-radius: 999px;
+  border: 1px solid var(--accent-soft);
+  padding: 6px 14px;
+  background: radial-gradient(circle at top left, rgba(56,189,248,0.24), rgba(15,23,42,1));
+  color: var(--text);
+  font-size: 12px;
+  cursor: pointer;
+}
+button.secondary {
+  border-color: #6b7280;
+  background: rgba(15,23,42,1);
+}
+button.green {
+  border-color: var(--accent-soft2);
+  background: radial-gradient(circle at top left, rgba(34,197,94,0.25), rgba(15,23,42,1));
+}
+.output-label {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+}
+.badge {
+  border-radius: 999px;
+  border: 1px solid rgba(156,163,175,0.7);
+  padding: 2px 8px;
+  font-size: 10px;
+  color: var(--muted);
+}
+.preset-note {
+  font-size: 11px;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+.toggle-row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+  font-size: 11px;
+  color: var(--muted);
+}
+.toggle-row label {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+}
+.toggle-row input {
+  margin: 0;
+}
+.health-box {
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.health-ok {
+  background: rgba(34,197,94,0.16);
+  border: 1px solid #22c55e;
+  color: #bbf7d0;
+}
+.health-warn {
+  background: rgba(250,204,21,0.16);
+  border: 1px solid #eab308;
+  color: #fef9c3;
+}
+.health-bad {
+  background: rgba(248,113,113,0.16);
+  border: 1px solid #f87171;
+  color: #fee2e2;
+}
+.info-group {
+  margin-top: 10px;
+}
+.info-group textarea {
+  min-height: 70px;
+}
+</style>
+</head>
+<body>
+<div class="shell">
+  <h1>Prompt Builder – Fantasy Icon Lab v4</h1>
+  <div class="subtitle">
+    Choose a preset or configure from scratch, then click <strong>Build Prompt</strong> and paste into Automatic1111.
+  </div>
+
+  <div class="row" style="margin-bottom:8px;">
+    <div class="col">
+      <div class="label">Prompt preset</div>
+      <select id="presetSelect">
+        <option value="">None (manual)</option>
+        <option value="arcaneHeart">Arcane Crystal Heart Relic</option>
+        <option value="dreamworksElemental">DreamWorks Elemental Heart</option>
+        <option value="bg3Ring">BG3 Legendary Ring Icon</option>
+        <option value="zeldaStone">Zelda Spiritual Stone Emblem</option>
+        <option value="egyptianScarab">Egyptian Sun Scarab Relic</option>
+        <option value="donBluthRelic">Don Bluth Relic Icon</option>
+        <option value="westernCartoonIcon">Western Cartoon Icon</option>
+        <option value="avatarRelic">Avatar Element Relic</option>
+        <option value="disneyLikeIcon">Disney-like Magical Icon</option>
+        <option value="backgroundScene">Background Asset – Fantasy Landscape</option>
+        <option value="rpgMap">Background Asset – RPG Map</option>
+        <option value="rpgIconCluster">RPG Item Icon Cluster</option>
+        <option value="coinIcon">Gold Coin Hoard Icon</option>
+        <option value="chestIcon">Treasure Chest Icon</option>
+        <option value="cardSuits">Dynamic – Playing Card Suits Icon</option>
+        <option value="dynamicRandomIcon">Dynamic – Random Icon Type</option>
+      </select>
+      <div class="preset-note">
+        Presets auto-fill description, style, and LoRAs. You can still tweak anything afterwards.
+      </div>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col">
+      <div class="label">Base description</div>
+      <textarea id="baseText">AAA fantasy game asset, heart-shaped magical icon, clean silhouette, game-ready readability.</textarea>
+      <small>You can change this per project (e.g. amulet, potion bottle, crystal core, playing card icon).</small>
+    </div>
+    <div class="col">
+      <div class="label">Global style</div>
+      <select id="styleSelect">
+        <option value="">None / keep model default</option>
+        <option value="DreamWorks_Style">DreamWorks cinematic</option>
+        <option value="Animated_Film_Style">Animated film / Disney-like</option>
+        <option value="Arcane_Offset">Arcane / Fortiche</option>
+        <option value="ATLA_Style">Avatar: The Last Airbender</option>
+        <option value="DonBluth_Style">Don Bluth</option>
+        <option value="Anastasia_1997_Style">Anastasia (1997)</option>
+        <option value="Western_Cartoon_Style">Western cartoon</option>
+        <option value="Blanclaus_Style">Blanclaus painterly</option>
+        <option value="SciFi_Animated_Style">Sci-fi animated (Titan A.E.)</option>
+        <option value="Castlevania_Animation_Style">Castlevania animation</option>
+        <option value="Western_Cartoon_Painterly">Western cartoon painterly</option>
+        <option value="HeavyMetal1981_style">1981 Heavy Metal</option>
+      </select>
+      <small>Applies one main shading / style LoRA on top of your base checkpoint.</small>
+    </div>
+  </div>
+
+  <div class="row" style="margin-top:12px;">
+    <div class="col">
+      <div class="group">
+        <div class="group-title">Game asset / icon LoRAs</div>
+        <div class="chip-row">
+          <label class="chip" title="General fantasy object base LoRA for icons and items."><input type="checkbox" data-key="fantasyV1.1" data-snippet="<lora:fantasyV1.1:0.48>"><span>fantasyV1.1</span><span class="weight">0.48</span></label>
+          <label class="chip" title="Hand-painted RPG icon style; works best via prompt editing with [rpgicondiff:X]."><input type="checkbox" data-key="rpgicondiff" data-snippet="[rpgicondiff:3]"><span>Handpainted RPG Icons</span><span class="weight">[3]</span></label>
+          <label class="chip" title="3D pedestal-style base for presenting items."><input type="checkbox" data-key="RPG_Pedestal" data-snippet="<lora:RPG_Pedestal:0.55>"><span>RPG Pedestal</span><span class="weight">0.55</span></label>
+          <label class="chip" title="Hand-drawn RPG map enhancement; great for full-map renders."><input type="checkbox" data-key="RPG_Maps" data-snippet="<lora:RPG_Maps:0.45>"><span>RPG Maps</span><span class="weight">0.45</span></label>
+          <label class="chip" title="Stylized game-ready material textures for props and icons."><input type="checkbox" data-key="Stylized_Textures" data-snippet="<lora:Stylized_Textures_zzStylizedTexture:0.55>"><span>Stylized Textures</span><span class="weight">0.55</span></label>
+          <label class="chip" title="Classic fantasy painting style (tanjoreai)."><input type="checkbox" data-key="Fantasy_Style_TanjoreAI" data-snippet="<lora:Fantasy_Style_TanjoreAI:0.55>"><span>Fantasy Style (tanjoreai)</span><span class="weight">0.55</span></label>
+          <label class="chip" title="Egyptian fantasy icon look; gold/blue jewels, no humans."><input type="checkbox" data-key="Egyptian_Icons" data-snippet="<lora:Egyptian_Icons:0.60>"><span>Egyptian Icons</span><span class="weight">0.60</span></label>
+          <label class="chip" title="Magic book / grimoire icon generator."><input type="checkbox" data-key="Grimoires_Books" data-snippet="<lora:Grimoires_Books:0.60>"><span>Grimoires &amp; Books</span><span class="weight">0.60</span></label>
+          <label class="chip" title="Fantasy mushroom assets and icons."><input type="checkbox" data-key="Mushrooms_Assets" data-snippet="<lora:Mushrooms_Assets:0.55>"><span>Mushrooms</span><span class="weight">0.55</span></label>
+          <label class="chip" title="Simple fantasy gem icons and stones."><input type="checkbox" data-key="Gemstones" data-snippet="<lora:Gemstones:0.34>"><span>Gemstones</span><span class="weight">0.34</span></label>
+          <label class="chip" title="Zelda Ocarina-of-Time style spiritual stones."><input type="checkbox" data-key="Spiritual_Stones_OoT" data-snippet="<lora:Spiritual_Stones_OoT:0.65>"><span>Spiritual Stones</span><span class="weight">0.65</span></label>
+          <label class="chip" title="Magic ring icons with glowing jewels."><input type="checkbox" data-key="Rings_Fantasy" data-snippet="<lora:Rings_Fantasy:0.60>"><span>Rings</span><span class="weight">0.60</span></label>
+          <label class="chip" title="Treasure boxes, containers, bags and chests."><input type="checkbox" data-key="Boxes_Bags_Containers" data-snippet="<lora:Boxes_Bags_Containers:0.60>"><span>Boxes / Chests</span><span class="weight">0.60</span></label>
+          <label class="chip" title="Fantasy gold coins and piles of coins."><input type="checkbox" data-key="Coins_Fantasy" data-snippet="<lora:Coins_Fantasy:0.60>"><span>Coins</span><span class="weight">0.60</span></label>
+          <label class="chip" title="Baldur's Gate 3 style item icons."><input type="checkbox" data-key="BaldursGate3_Item_Icons" data-snippet="<lora:BaldursGate3_Item_Icons:0.45>"><span>BG3 Item Icons</span><span class="weight">0.45</span></label>
+        </div>
+      </div>
+
+      <div class="group">
+        <div class="group-title">Background / environment</div>
+        <div class="chip-row">
+          <label class="chip" title="Soft fantasy cloud textures for skies."><input type="checkbox" data-key="as_cloud_04" data-snippet="<lora:as_cloud_04:0.35>"><span>as_cloud_04</span><span class="weight">0.35</span></label>
+          <label class="chip" title="Mystic clouds and seer-like mist."><input type="checkbox" data-key="PAseerCloudV1" data-snippet="<lora:PAseerCloudV1:0.34>"><span>PAseerCloudV1</span><span class="weight">0.34</span></label>
+          <label class="chip" title="Painterly landscape backgrounds (Shishkin)."><input type="checkbox" data-key="SHISHKIN" data-snippet="<lora:SHISHKIN(LANDSCAPE)_V1.2-000001:0.40>"><span>SHISHKIN Landscape</span><span class="weight">0.40</span></label>
+          <label class="chip" title="Soft pastel color palette for backgrounds."><input type="checkbox" data-key="Pastel_color" data-snippet="<lora:Pastel_color:0.38>"><span>Pastel color</span><span class="weight">0.38</span></label>
+          <label class="chip" title="Fantasy or cyberpunk themed backgrounds."><input type="checkbox" data-key="Background_Fantasy_Cyberpunk" data-snippet="<lora:Background_Fantasy_Cyberpunk:0.55>"><span>Fantasy &amp; Cyberpunk BG</span><span class="weight">0.55</span></label>
+          <label class="chip" title="Sci-fi environment generator."><input type="checkbox" data-key="Sci-fi_Environments" data-snippet="<lora:Sci-fi_Environments:0.40>"><span>Sci-fi Environments</span><span class="weight">0.40</span></label>
+          <label class="chip" title="Architectural environments and openings."><input type="checkbox" data-key="xsarchitectural" data-snippet="<lora:xsarchitectural-14Openingenvironment:0.40>"><span>xsarchitectural Env</span><span class="weight">0.40</span></label>
+          <label class="chip" title="Detailed mechanical parts and machinery."><input type="checkbox" data-key="Reel_mechanical_parts_v_1_3" data-snippet="<lora:Reel_mechanical_parts_v_1_3:0.40>"><span>Reel mechanical parts</span><span class="weight">0.40</span></label>
+        </div>
+      </div>
+    </div>
+
+    <div class="col">
+      <div class="group">
+        <div class="group-title">Ornament / materials / detail</div>
+        <div class="chip-row">
+          <label class="chip" title="Engraved motifs, filigree and mystical motifs."><input type="checkbox" data-key="Engraved_Detail" data-snippet="<lora:Engraved_Detail:0.55>"><span>Engraved Detail</span><span class="weight">0.55</span></label>
+          <label class="chip" title="High quality gemstone rendering (GemstoneAI)."><input type="checkbox" data-key="GemstoneAI_konyconi" data-snippet="<lora:GemstoneAI_konyconi:0.55>"><span>GemstoneAI</span><span class="weight">0.55</span></label>
+          <label class="chip" title="Gold, jewelry and diamond detailing."><input type="checkbox" data-key="Gold_Jewelry_Diamonds_Tang53" data-snippet="<lora:Gold_Jewelry_Diamonds_Tang53:0.60>"><span>Gold/Jewelry/Diamonds</span><span class="weight">0.60</span></label>
+          <label class="chip" title="Organic plant cell textures and patterns."><input type="checkbox" data-key="PlantCells_Style" data-snippet="<lora:PlantCells_Style:0.55>"><span>PlantCells</span><span class="weight">0.55</span></label>
+          <label class="chip" title="Stylized plant icon enhancement for maps and items."><input type="checkbox" data-key="GameIconResearch_PLANT2" data-snippet="<lora:GameIconResearch_PLANT2:0.55>"><span>GameIcon PLANT2</span><span class="weight">0.55</span></label>
+          <label class="chip" title="Faceted crystal structure and cores."><input type="checkbox" data-key="CrystallineAI-000009" data-snippet="<lora:CrystallineAI-000009:0.40>"><span>CrystallineAI</span><span class="weight">0.40</span></label>
+          <label class="chip" title="Crystal surface shine and reflections."><input type="checkbox" data-key="Crystal_Style_V1" data-snippet="<lora:Crystal_Style_V1:0.36>"><span>Crystal Style V1</span><span class="weight">0.36</span></label>
+          <label class="chip" title="Adds subtle extra micro-details."><input type="checkbox" data-key="more_details" data-snippet="<lora:more_details:0.22>"><span>more_details</span><span class="weight">0.22</span></label>
+          <label class="chip" title="Engraving-style additional detail lines."><input type="checkbox" data-key="add_detail" data-snippet="<lora:add_detail:0.20>"><span>add_detail</span><span class="weight">0.20</span></label>
+          <label class="chip" title="Strong hyper-detailing; use sparingly."><input type="checkbox" data-key="hyperedetailer_v095" data-snippet="<lora:hyperedetailer_v095:0.25>"><span>hyperedetailer</span><span class="weight">0.25</span></label>
+          <label class="chip" title="Contrast booster for punchier icons."><input type="checkbox" data-key="hotarucontrast_v100" data-snippet="<lora:hotarucontrast_v100:0.22>"><span>hotarucontrast</span><span class="weight">0.22</span></label>
+          <label class="chip" title="Traditional Chinese cloud motifs."><input type="checkbox" data-key="Chinese_Cloud_Pattern" data-snippet="<lora:Chinese_Cloud_Pattern:0.60>"><span>Chinese Cloud Pattern</span><span class="weight">0.60</span></label>
+          <label class="chip" title="Aztec ornamentation and geometry."><input type="checkbox" data-key="Aztec_Ornamentation" data-snippet="<lora:Aztec_Ornamentation:0.65>"><span>Aztec Ornamentation</span><span class="weight">0.65</span></label>
+          <label class="chip" title="Mayan glyph symbols and iconography."><input type="checkbox" data-key="Mayan_Glyphs" data-snippet="<lora:Mayan_Glyphs:0.65>"><span>Mayan Glyphs</span><span class="weight">0.65</span></label>
+          <label class="chip" title="Inca civilization symbols and motifs."><input type="checkbox" data-key="Inca_Symbols" data-snippet="<lora:Inca_Symbols:0.65>"><span>Inca Symbols</span><span class="weight">0.65</span></label>
+        </div>
+      </div>
+
+      <div class="group">
+        <div class="group-title">Extra style helpers / FX</div>
+        <div class="chip-row">
+          <label class="chip" title="Sharp anime-style outlines, good for icons."><input type="checkbox" data-key="animeoutlineV4_16" data-snippet="<lora:animeoutlineV4_16:0.40>"><span>animeoutlineV4_16</span><span class="weight">0.40</span></label>
+          <label class="chip" title="Heavier, saturated color composition."><input type="checkbox" data-key="Heavy_colours_concept" data-snippet="<lora:Heavy_colours_concept:0.40>"><span>Heavy colours concept</span><span class="weight">0.40</span></label>
+          <label class="chip" title="1981 Heavy Metal comic fantasy style."><input type="checkbox" data-key="HeavyMetal1981_style" data-snippet="<lora:HeavyMetal1981_style:0.45>"><span>1981 Heavy Metal</span><span class="weight">0.45</span></label>
+          <label class="chip" title="Surreal fantasy aura and glows."><input type="checkbox" data-key="surreal-fantasy-lora" data-snippet="<lora:surreal-fantasy-lora:0.38>"><span>surreal-fantasy-lora</span><span class="weight">0.38</span></label>
+          <label class="chip" title="Holographic / holo UI-style effects."><input type="checkbox" data-key="holov7" data-snippet="<lora:holov7:0.35>"><span>holov7</span><span class="weight">0.35</span></label>
+          <label class="chip" title="Dark fantasy Elden-style materials and runes."><input type="checkbox" data-key="ElderRing" data-snippet="<lora:ElderRing:0.45>"><span>ElderRing</span><span class="weight">0.45</span></label>
+          <label class="chip" title="Fine gem sparkle enhancer."><input type="checkbox" data-key="gem" data-snippet="<lora:gem:0.32>"><span>gem</span><span class="weight">0.32</span></label>
+          <label class="chip" title="Butterfly wings and organic shapes."><input type="checkbox" data-key="butterfly" data-snippet="<lora:butterfly:0.36>"><span>butterfly</span><span class="weight">0.36</span></label>
+          <label class="chip" title="Painterly icon style; good with UI props."><input type="checkbox" data-key="COOLKIDS_MERGE_V2.5" data-snippet="<lora:COOLKIDS_MERGE_V2.5:0.32>"><span>COOLKIDS_MERGE_V2.5</span><span class="weight">0.32</span></label>
+          <label class="chip" title="Flat icon style helper."><input type="checkbox" data-key="flat2" data-snippet="<lora:flat2:0.35>"><span>flat2</span><span class="weight">0.35</span></label>
+          <label class="chip" title="Stylized hybrid aesthetic; experimental."><input type="checkbox" data-key="futtora-01" data-snippet="<lora:futtora-01:0.38>"><span>futtora-01</span><span class="weight">0.38</span></label>
+          <label class="chip" title="Dragon variants: magma, bone, forest, etc."><input type="checkbox" data-key="Western_Dragon_Collection" data-snippet="<lora:Western_Dragon_Collection:0.80>"><span>Western Dragon Collection</span><span class="weight">0.80</span></label>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="actions">
+    <button class="green" onclick="buildPrompt()">Build Prompt</button>
+    <button class="secondary" onclick="clearSelections()">Clear LoRAs</button>
+    <button class="secondary" onclick="savePreset()">Save current as JSON preset</button>
+    <div class="toggle-row">
+      <label title="If checked, keep {option1|option2} braces for dynamic prompt extensions. If unchecked, only the first option is kept as plain text.">
+        <input type="checkbox" id="keepBraces" checked> Keep {dynamic|prompt} braces
+      </label>
+      <label title="If checked, assumes ControlNet Canny is active and halves LoRA weights in the prompt for safer control.">
+        <input type="checkbox" id="useCanny"> Use ControlNet Canny (halve LoRA weights)
+      </label>
+    </div>
+    <div id="healthBox" class="health-box health-ok">Prompt health: Healthy</div>
+  </div>
+
+  <div class="row">
+    <div class="col">
+      <div class="output-label">
+        <div class="label">Positive prompt</div>
+        <button class="secondary" onclick="copyOutput('posOut')">Copy</button>
+      </div>
+      <textarea id="posOut" class="code"></textarea>
+    </div>
+    <div class="col">
+      <div class="output-label">
+        <div class="label">Negative prompt</div>
+        <span class="badge">Auto-derived from positive</span>
+      </div>
+      <textarea id="negOut" class="code"></textarea>
+    </div>
+  </div>
+
+  <div class="info-group group">
+    <div class="group-title">Suggestions / Info</div>
+    <textarea id="infoBox" class="code" readonly>Build a prompt to see suggestions here.</textarea>
+  </div>
+</div>
+
+<script>
+const styleSnippets = {
+  "DreamWorks_Style": {
+    text: "DreamWorks-style magical shading, dreamworks artstyle,",
+    lora: "<lora:DreamWorks_Style:0.65>"
+  },
+  "Animated_Film_Style": {
+    text: "animated film style, Disney style,",
+    lora: "<lora:Animated_Film_Style:0.60>"
+  },
+  "Arcane_Offset": {
+    text: "Arcane-series painterly shading, arcane style,",
+    lora: "<lora:Arcane_Offset:0.40>"
+  },
+  "ATLA_Style": {
+    text: "Avatar: The Last Airbender style, the last airbender,",
+    lora: "<lora:ATLA_Style:0.70>"
+  },
+  "DonBluth_Style": {
+    text: "Don Bluth 90s animation, dbluth,",
+    lora: "<lora:DonBluth_Style:0.65>"
+  },
+  "Anastasia_1997_Style": {
+    text: "Anastasia (1997) film look, danastasia,",
+    lora: "<lora:Anastasia_1997_Style:0.60>"
+  },
+  "Western_Cartoon_Style": {
+    text: "western cartoon style, cartoon,",
+    lora: "<lora:Western_Cartoon_Style:0.70>"
+  },
+  "Blanclaus_Style": {
+    text: "western artstyle, blanclaus,",
+    lora: "<lora:Blanclaus_Style:0.60>"
+  },
+  "SciFi_Animated_Style": {
+    text: "Sci-fi animated film style, Sci-fi style,",
+    lora: "<lora:SciFi_Animated_Style:0.80>"
+  },
+  "Castlevania_Animation_Style": {
+    text: "Castlevania animation style, castlevania style,",
+    lora: "<lora:Castlevania_Animation_Style:1.00>"
+  },
+  "Western_Cartoon_Painterly": {
+    text: "western semi-painterly cartoon, vox machina style, dragonage style,",
+    lora: "<lora:Western_Cartoon_Painterly:1.00>"
+  },
+  "HeavyMetal1981_style": {
+    text: "1981 Heavy Metal fantasy illustration, HeavyMetal1981 style,",
+    lora: "<lora:HeavyMetal1981_style:0.45>"
+  }
+};
+
+const presets = {
+  arcaneHeart: {
+    base: "AAA Arcane-style crystal heart relic icon, intricate runes, soft magical glow, centered composition, game-ready readability.",
+    styleKey: "Arcane_Offset",
+    loras: [
+      "fantasyV1.1",
+      "CrystallineAI-000009",
+      "Crystal_Style_V1",
+      "PAseerCloudV1",
+      "more_details",
+      "hotarucontrast_v100"
+    ]
+  },
+  dreamworksElemental: {
+    base: "AAA DreamWorks-style elemental heart icon, swirling elemental energy (fire, frost, lightning, nature), soft painterly shading, centered, clean outline.",
+    styleKey: "DreamWorks_Style",
+    loras: [
+      "fantasyV1.1",
+      "as_cloud_04",
+      "surreal-fantasy-lora",
+      "Heavy_colours_concept"
+    ]
+  },
+  bg3Ring: {
+    base: "AAA Baldur's Gate 3-style legendary magic ring icon, glowing engraved jewel, dark vignette, centered item on subtle pedestal.",
+    styleKey: "",
+    loras: [
+      "BaldursGate3_Item_Icons",
+      "Rings_Fantasy",
+      "Gemstones",
+      "Gold_Jewelry_Diamonds_Tang53",
+      "RPG_Pedestal"
+    ]
+  },
+  zeldaStone: {
+    base: "AAA Zelda Ocarina-of-Time inspired spiritual stone emblem icon, clean bold shape, simple but powerful silhouette, centered on soft gradient background.",
+    styleKey: "",
+    loras: [
+      "Spiritual_Stones_OoT",
+      "Gemstones",
+      "CrystallineAI-000009",
+      "Pastel_color"
+    ]
+  },
+  egyptianScarab: {
+    base: "AAA Egyptian fantasy sun scarab relic icon, golden beetle with wings, inlaid gemstones, deep blue enamel, centered on subtle dark background.",
+    styleKey: "",
+    loras: [
+      "Egyptian_Icons",
+      "Engraved_Detail",
+      "GemstoneAI_konyconi",
+      "Gold_Jewelry_Diamonds_Tang53",
+      "Background_Fantasy_Cyberpunk"
+    ]
+  },
+  donBluthRelic: {
+    base: "AAA Don Bluth-style magical relic icon, warm 90s animation lighting, rich rim light, centered fantasy artifact.",
+    styleKey: "DonBluth_Style",
+    loras: [
+      "fantasyV1.1",
+      "Pastel_color",
+      "more_details"
+    ]
+  },
+  westernCartoonIcon: {
+    base: "AAA western cartoon-style fantasy item icon, bold outlines, simple shapes, very clean silhouette, centered on flat background.",
+    styleKey: "Western_Cartoon_Style",
+    loras: [
+      "fantasyV1.1",
+      "animeoutlineV4_16",
+      "flat2"
+    ]
+  },
+  avatarRelic: {
+    base: "AAA Avatar: The Last Airbender-inspired elemental relic icon, four nations motif, swirling air/water/fire/earth, centered, clean lineart.",
+    styleKey: "ATLA_Style",
+    loras: [
+      "fantasyV1.1",
+      "as_cloud_04",
+      "PAseerCloudV1"
+    ]
+  },
+  disneyLikeIcon: {
+    base: "AAA Disney-like magical heart icon, soft glow, saturated colors, charming fantasy feel, centered on subtle gradient background.",
+    styleKey: "Animated_Film_Style",
+    loras: [
+      "fantasyV1.1",
+      "COOLKIDS_MERGE_V2.5",
+      "Gemstones",
+      "Pastel_color"
+    ]
+  },
+  backgroundScene: {
+    base: "AAA fantasy environment background asset, wide landscape scene, mountains, forests and clouds, painterly lighting, game-ready concept art.",
+    styleKey: "Blanclaus_Style",
+    loras: [
+      "SHISHKIN",
+      "as_cloud_04",
+      "Background_Fantasy_Cyberpunk"
+    ]
+  },
+  rpgMap: {
+    base: "AAA hand-drawn fantasy RPG world map, continents, coastlines, mountains, forests, towns and roads, top-down cartography style.",
+    styleKey: "",
+    loras: [
+      "RPG_Maps",
+      "GameIconResearch_PLANT2",
+      "PlantCells_Style",
+      "as_cloud_04"
+    ]
+  },
+  rpgIconCluster: {
+    base: "AAA fantasy RPG item icon, {ring|potion|magic book|gemstone|scroll} as central subject, high readability, clean silhouette, centered on dark vignette.",
+    styleKey: "",
+    loras: [
+      "fantasyV1.1",
+      "rpgicondiff",
+      "Gemstones",
+      "Grimoires_Books",
+      "Rings_Fantasy"
+    ]
+  },
+  coinIcon: {
+    base: "AAA fantasy gold coin hoard icon, stacked and scattered coins, subtle depth, centered pile on dark background, game UI-ready.",
+    styleKey: "",
+    loras: [
+      "Coins_Fantasy",
+      "Gemstones",
+      "Gold_Jewelry_Diamonds_Tang53",
+      "hotarucontrast_v100"
+    ]
+  },
+  chestIcon: {
+    base: "AAA fantasy treasure chest icon, overflowing with gold coins and gems, strong silhouette, centered on simple dark backdrop.",
+    styleKey: "",
+    loras: [
+      "Boxes_Bags_Containers",
+      "Coins_Fantasy",
+      "Gold_Jewelry_Diamonds_Tang53",
+      "Engraved_Detail"
+    ]
+  },
+  cardSuits: {
+    base: "AAA fantasy playing card suit icon, {heart|spade|club|diamond} symbol, perfectly centered, strong silhouette on clean background, high readability, minimalist border.",
+    styleKey: "",
+    loras: [
+      "fantasyV1.1",
+      "as_cloud_04",
+      "animeoutlineV4_16"
+    ]
+  },
+  dynamicRandomIcon: {
+    base: "AAA fantasy game asset icon, {ring|amulet|crystal core|potion bottle|magic book|ancient coin|totem} as central subject, clean silhouette, centered composition, game UI-ready.",
+    styleKey: "",
+    loras: [
+      "fantasyV1.1",
+      "Background_Fantasy_Cyberpunk",
+      "more_details"
+    ]
+  }
+};
+
+function applyPreset(key) {
+  const preset = presets[key];
+  if (!preset) return;
+  document.getElementById('baseText').value = preset.base;
+  document.getElementById('styleSelect').value = preset.styleKey || "";
+  const chips = document.querySelectorAll('.chip input[type="checkbox"]');
+  chips.forEach(ch => ch.checked = false);
+  if (preset.loras && preset.loras.length) {
+    preset.loras.forEach(k => {
+      const chip = document.querySelector('.chip input[data-key="'+k+'"]');
+      if (chip) chip.checked = true;
+    });
+  }
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+  const presetSelect = document.getElementById('presetSelect');
+  presetSelect.addEventListener('change', function () {
+    const key = this.value;
+    if (!key) return;
+    applyPreset(key);
+  });
+});
+
+function stripDynamicBraces(text) {
+  // Replace {a|b|c} with just 'a'
+  return text.replace(/\{([^}|]+)[^}]*\}/g, "$1");
+}
+
+function applyCannyScaling(prompt, enabled) {
+  if (!enabled) return prompt;
+  // Halve all <lora:name:weight> weights
+  return prompt.replace(/<lora:([^:>]+):([0-9.]+)>/g, function(match, name, weightStr) {
+    const w = parseFloat(weightStr);
+    if (isNaN(w)) return match;
+    const newW = (w * 0.5).toFixed(3);
+    return "<lora:" + name + ":" + newW + ">";
+  });
+}
+
+function buildPrompt() {
+  let base = document.getElementById('baseText').value.trim();
+  const keepBraces = document.getElementById('keepBraces').checked;
+  const useCanny = document.getElementById('useCanny').checked;
+
+  if (!keepBraces && base) {
+    base = stripDynamicBraces(base);
+  }
+
+  const styleKey = document.getElementById('styleSelect').value;
+  let styleText = "";
+  let styleLora = "";
+  if (styleKey && styleSnippets[styleKey]) {
+    styleText = styleSnippets[styleKey].text + " ";
+    styleLora = styleSnippets[styleKey].lora + " ";
+  }
+
+  const chips = document.querySelectorAll('.chip input[type="checkbox"]');
+  const loras = [];
+  chips.forEach(ch => {
+    if (ch.checked) {
+      const snip = ch.getAttribute('data-snippet');
+      if (snip) loras.push(snip);
+    }
+  });
+
+  let loraBlock = (styleLora + loras.join(" ")).trim();
+
+  const posParts = [];
+  if (base) posParts.push(base);
+  if (styleText) posParts.push(styleText);
+  if (loraBlock) posParts.push("\n" + loraBlock);
+
+  let pos = posParts.join(" ").trim();
+  pos = applyCannyScaling(pos, useCanny);
+
+  document.getElementById('posOut').value = pos;
+
+  const neg = buildNegative(pos);
+  document.getElementById('negOut').value = neg;
+
+  evaluatePrompt(pos, (styleLora ? 1 : 0) + loras.length, base, useCanny);
+}
+
+function buildNegative(pos) {
+  const lower = pos.toLowerCase();
+  let parts = [];
+
+  // Base icon-safe negative
+  parts.push("lowres, blurry, muddy colors, grain, flat shading, bad materials,");
+  parts.push("messy glow, bad edges, distorted or warped shape, jagged outline,");
+  parts.push("text, watermark, signatures, UI, logos, symbols,");
+  parts.push("unwanted faces, people, bodies, creatures, characters,");
+  parts.push("broken geometry, random extra shapes, visual noise.");
+
+  // Contextual tweaks
+  if (lower.includes("map")) {
+    parts.push("overcrowded tiny details, unreadable labels, overlapping symbols, perspective distortion on map.");
+  }
+  if (lower.includes("playing card") || lower.includes("suit icon") || lower.includes("heart|spade|club|diamond")) {
+    parts.push("multiple cards, tilted camera, extra borders, numbers, letters, poker chips.");
+  }
+  if (lower.includes("ring") || lower.includes("jewel") || lower.includes("gem") || lower.includes("gemstone")) {
+    parts.push("deformed circles, melted metal, cloudy stones, noisy reflections.");
+  }
+  if (lower.includes("landscape") || lower.includes("background asset") || lower.includes("environment")) {
+    parts.push("tilted horizon, cluttered foreground, random character silhouettes.");
+  }
+  if (lower.includes("book") || lower.includes("grimoire")) {
+    parts.push("open book with unreadable pages, extra books overlapping, cut-off corners.");
+  }
+  if (lower.includes("chest") || lower.includes("treasure")) {
+    parts.push("half-open chest cropped off, missing lid, awkward perspective.");
+  }
+
+  // Standard model negatives
+  parts.push("BadDream, FastNegativeV2, UnrealisticDream");
+
+  return parts.join(" ").trim();
+}
+
+function evaluatePrompt(pos, loraCount, base, useCanny) {
+  const healthBox = document.getElementById('healthBox');
+  const infoBox = document.getElementById('infoBox');
+  let score = 0;
+  let warnings = [];
+
+  const baseWords = base ? base.split(/\s+/).filter(Boolean).length : 0;
+  const commaCount = (base.match(/,/g) || []).length;
+
+  if (loraCount > 7) {
+    score += 2;
+    warnings.push("Too many LoRAs stacked; consider reducing to 3–7.");
+  } else if (loraCount > 5) {
+    score += 1;
+    warnings.push("LoRA stack is heavy; if results look muddy, disable a few detail LoRAs.");
+  }
+
+  if (baseWords > 80) {
+    score += 2;
+    warnings.push("Base description is very long; trimming can improve consistency.");
+  } else if (baseWords > 50) {
+    score += 1;
+    warnings.push("Base description is quite long; consider simplifying phrases.");
+  }
+
+  if (baseWords > 40 && commaCount < 2) {
+    score += 1;
+    warnings.push("Long prompt with few commas; try separating concepts with commas.");
+  }
+
+  if (pos.length > 400) {
+    score += 1;
+    warnings.push("Prompt is very dense; consider removing redundant wording.");
+  }
+
+  const weightMatches = pos.match(/:(\d\.\d+)/g) || [];
+  let extremeHigh = false;
+  let extremeLow = false;
+  weightMatches.forEach(m => {
+    const v = parseFloat(m.slice(1));
+    if (v > 1.1) extremeHigh = true;
+    if (v < 0.1) extremeLow = true;
+  });
+  if (extremeHigh) {
+    score += 2;
+    warnings.push("One or more LoRA weights are above 1.1; this often causes overbaked results.");
+  }
+  if (extremeLow) {
+    score += 1;
+    warnings.push("One or more LoRA weights are below 0.1; they may effectively do nothing.");
+  }
+
+  let label = "Healthy";
+  let cls = "health-box health-ok";
+  if (score >= 3) {
+    label = "Overloaded";
+    cls = "health-box health-bad";
+  } else if (score === 2) {
+    label = "Heavy but OK";
+    cls = "health-box health-warn";
+  }
+
+  healthBox.className = cls;
+  healthBox.textContent = "Prompt health: " + label;
+
+  // Suggestions text
+  const lower = pos.toLowerCase();
+  let suggestions = [];
+
+  if (warnings.length) {
+    suggestions.push("Prompt checks:");
+    warnings.forEach(w => suggestions.push("• " + w));
+    suggestions.push("");
+  }
+
+  // Checkpoint suggestions
+  let ckptSuggestion = "Suggested checkpoint: DreamShaper_8_pruned.safetensors (general fantasy icons and game assets).";
+  if (lower.includes("realistic") || lower.includes("photoreal") || lower.includes("photo")) {
+    ckptSuggestion = "Suggested checkpoint: Realistic_Vision_V5.1_fp16-no-ema.safetensors for more realistic rendering.";
+  } else if (lower.includes("bg3") || lower.includes("baldur") || lower.includes("item icon")) {
+    ckptSuggestion = "Suggested checkpoint: DreamShaper_8_pruned.safetensors; optionally merge ~70/30 with v1-5-pruned-emaonly.safetensors for a more neutral base.";
+  } else if (lower.includes("map")) {
+    ckptSuggestion = "Suggested checkpoint: v1-5-pruned-emaonly.safetensors or DreamShaper_8_pruned.safetensors for clean RPG maps.";
+  } else if (lower.includes("arcane") || lower.includes("fortiche")) {
+    ckptSuggestion = "Suggested checkpoint: DreamShaper_8_pruned.safetensors with <lora:Arcane_Offset:0.40> applied.";
+  }
+
+  suggestions.push(ckptSuggestion);
+  suggestions.push("You can also experiment with merging DreamShaper_8_pruned with v1-5-pruned-emaonly (e.g. 70/30) to soften style bias.");
+
+  if (useCanny) {
+    suggestions.push("");
+    suggestions.push("ControlNet Canny: enabled – all LoRA weights in the prompt have been halved for safer control. If results look too weak, slightly raise only the key style LoRAs.");
+  } else {
+    suggestions.push("");
+    suggestions.push("ControlNet Canny: disabled – LoRA weights are at their full recommended values.");
+  }
+
+  infoBox.value = suggestions.join("\n");
+}
+
+function clearSelections() {
+  const chips = document.querySelectorAll('.chip input[type="checkbox"]');
+  chips.forEach(ch => ch.checked = false);
+}
+
+function copyOutput(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.select();
+  document.execCommand('copy');
+}
+
+function savePreset() {
+  const name = prompt("Preset name (used in JSON file):", "MyCustomPreset");
+  if (!name) return;
+
+  const base = document.getElementById('baseText').value.trim();
+  const styleKey = document.getElementById('styleSelect').value || "";
+  const keepBraces = document.getElementById('keepBraces').checked;
+  const useCanny = document.getElementById('useCanny').checked;
+
+  const chips = document.querySelectorAll('.chip input[type="checkbox"]');
+  const loras = [];
+  chips.forEach(ch => {
+    if (ch.checked) {
+      const key = ch.getAttribute('data-key');
+      if (key) loras.push(key);
+    }
+  });
+
+  const presetObj = {
+    name: name,
+    base: base,
+    styleKey: styleKey,
+    loras: loras,
+    keepBracesDefault: keepBraces,
+    assumeControlNetCanny: useCanny
+  };
+
+  const blob = new Blob([JSON.stringify(presetObj, null, 2)], {type: "application/json"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = name.replace(/\s+/g, "_") + "_preset.json";
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+</script>
+</body>
+</html>
