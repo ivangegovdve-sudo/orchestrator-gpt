@@ -179,6 +179,102 @@ button.green {
 .toggle-row input {
   margin: 0;
 }
+.input-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 10px;
+  margin-top: 8px;
+}
+.input-row label {
+  font-size: 11px;
+  color: var(--muted);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+input[type="text"],
+input[type="number"] {
+  width: 100%;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--field-bg);
+  color: var(--text);
+  font-size: 13px;
+  padding: 8px 10px;
+  outline: none;
+}
+.sd-actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-top: 10px;
+}
+.sd-note {
+  font-size: 11px;
+  color: var(--muted);
+}
+.sd-error {
+  background: rgba(248,113,113,0.12);
+  border: 1px solid rgba(248,113,113,0.4);
+  color: #fecdd3;
+  padding: 8px 10px;
+  border-radius: 10px;
+  font-size: 12px;
+  margin-top: 8px;
+}
+.sd-warning {
+  color: #fcd34d;
+  font-size: 12px;
+}
+.sd-gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 10px;
+}
+.sd-card {
+  background: rgba(2,6,23,0.8);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+  display: flex;
+  flex-direction: column;
+}
+.sd-card img {
+  width: 100%;
+  display: block;
+}
+.sd-card footer {
+  padding: 8px 10px;
+  font-size: 11px;
+  color: var(--muted);
+  border-top: 1px solid var(--border);
+  line-height: 1.4;
+}
+.button-primary {
+  background: radial-gradient(circle at top left, rgba(56,189,248,0.28), rgba(15,23,42,1));
+  border-color: var(--accent-soft);
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.button-primary.loading {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+.spinner {
+  width: 12px;
+  height: 12px;
+  border: 2px solid rgba(56,189,248,0.35);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.9s linear infinite;
+}
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
 .health-box {
   padding: 4px 10px;
   border-radius: 999px;
@@ -382,6 +478,50 @@ button.green {
       </div>
       <textarea id="negOut" class="code"></textarea>
     </div>
+  </div>
+
+  <div class="group" style="margin-top:12px;">
+    <div class="output-label">
+      <div class="label">Stable Diffusion Integration</div>
+      <span class="badge">Automatic1111 API</span>
+    </div>
+    <div class="input-row">
+      <label>API URL
+        <input type="text" id="sdApiUrl" value="http://127.0.0.1:7860" placeholder="http://127.0.0.1:7860">
+      </label>
+      <label>Steps
+        <input type="number" id="sdSteps" value="24" min="1" step="1">
+      </label>
+      <label>CFG scale
+        <input type="number" id="sdCfg" value="7" min="1" step="0.5">
+      </label>
+      <label>Width
+        <input type="number" id="sdWidth" value="512" min="64" step="64">
+      </label>
+      <label>Height
+        <input type="number" id="sdHeight" value="512" min="64" step="64">
+      </label>
+      <label>Sampler name
+        <input type="text" id="sdSampler" value="DPM++ 2M Karras" placeholder="DPM++ 2M Karras">
+      </label>
+      <label>Seed (blank = random)
+        <input type="number" id="sdSeed" placeholder="-1">
+      </label>
+    </div>
+    <div class="sd-actions">
+      <button id="sdGenerate" class="button-primary">Generate in Stable Diffusion</button>
+      <span id="sdWarning" class="sd-warning" style="display:none;">Build a prompt first.</span>
+    </div>
+    <div class="sd-note">This button calls your local Automatic1111 API (e.g., http://127.0.0.1:7860). No data is sent to external servers.</div>
+    <div id="sdError" class="sd-error" style="display:none;"></div>
+  </div>
+
+  <div class="group">
+    <div class="output-label" style="margin-bottom:6px;">
+      <div class="label">Stable Diffusion Output</div>
+      <span class="badge">Latest renders</span>
+    </div>
+    <div id="sdGallery" class="sd-gallery"></div>
   </div>
 
   <div class="info-group group">
@@ -725,6 +865,152 @@ function buildNegative(pos) {
   return parts.join(" ").trim();
 }
 
+function formatTimestamp(date = new Date()) {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const d = String(date.getDate()).padStart(2, '0');
+  const hh = String(date.getHours()).padStart(2, '0');
+  const mm = String(date.getMinutes()).padStart(2, '0');
+  const ss = String(date.getSeconds()).padStart(2, '0');
+  return `${y}-${m}-${d} ${hh}:${mm}:${ss}`;
+}
+
+function getSDConfig() {
+  const apiBase = (document.getElementById('sdApiUrl').value || 'http://127.0.0.1:7860').trim().replace(/\/$/, '');
+  const steps = parseInt(document.getElementById('sdSteps').value, 10);
+  const cfg = parseFloat(document.getElementById('sdCfg').value);
+  const width = parseInt(document.getElementById('sdWidth').value, 10);
+  const height = parseInt(document.getElementById('sdHeight').value, 10);
+  const samplerName = document.getElementById('sdSampler').value.trim() || 'DPM++ 2M Karras';
+  const seedInput = document.getElementById('sdSeed').value.trim();
+  const seedParsed = seedInput === '' ? -1 : parseInt(seedInput, 10);
+  const seed = Number.isFinite(seedParsed) ? seedParsed : -1;
+
+  return {
+    apiBase: apiBase || 'http://127.0.0.1:7860',
+    steps: Number.isFinite(steps) ? steps : 24,
+    cfg: Number.isFinite(cfg) ? cfg : 7,
+    width: Number.isFinite(width) ? width : 512,
+    height: Number.isFinite(height) ? height : 512,
+    samplerName,
+    seed
+  };
+}
+
+function setSDWarning(show) {
+  const el = document.getElementById('sdWarning');
+  if (!el) return;
+  el.style.display = show ? 'inline' : 'none';
+}
+
+function setSDError(message) {
+  const el = document.getElementById('sdError');
+  if (!el) return;
+  if (message) {
+    el.textContent = message;
+    el.style.display = 'block';
+  } else {
+    el.textContent = '';
+    el.style.display = 'none';
+  }
+}
+
+function toggleSDLoading(isLoading) {
+  const btn = document.getElementById('sdGenerate');
+  if (!btn) return;
+  if (isLoading) {
+    btn.classList.add('loading');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span> Generating...';
+  } else {
+    btn.classList.remove('loading');
+    btn.disabled = false;
+    btn.textContent = 'Generate in Stable Diffusion';
+  }
+}
+
+function appendToGallery(images, meta) {
+  const gallery = document.getElementById('sdGallery');
+  if (!gallery) return;
+  const { seed, steps, samplerName } = meta;
+  if (!Array.isArray(images) || !images.length) {
+    setSDError('The Stable Diffusion API returned no images.');
+    return;
+  }
+
+  setSDError('');
+
+  images.forEach(imgStr => {
+    const card = document.createElement('div');
+    card.className = 'sd-card';
+
+    const img = document.createElement('img');
+    img.src = 'data:image/png;base64,' + imgStr;
+    img.alt = 'Generated image';
+
+    const footer = document.createElement('footer');
+    const ts = formatTimestamp();
+    footer.textContent = `${ts} • seed: ${seed} • steps: ${steps} • sampler: ${samplerName}`;
+
+    card.appendChild(img);
+    card.appendChild(footer);
+    gallery.prepend(card);
+  });
+
+  const maxItems = 12;
+  while (gallery.children.length > maxItems) {
+    gallery.removeChild(gallery.lastChild);
+  }
+}
+
+async function generateWithStableDiffusion() {
+  const pos = (document.getElementById('posOut').value || '').trim();
+  const neg = (document.getElementById('negOut').value || '').trim();
+  if (!pos) {
+    setSDWarning(true);
+    return;
+  }
+  setSDWarning(false);
+  setSDError('');
+
+  const cfg = getSDConfig();
+  const payload = {
+    prompt: pos,
+    negative_prompt: neg,
+    steps: cfg.steps,
+    cfg_scale: cfg.cfg,
+    width: cfg.width,
+    height: cfg.height,
+    sampler_name: cfg.samplerName,
+    seed: cfg.seed
+  };
+
+  toggleSDLoading(true);
+  try {
+    const res = await fetch(cfg.apiBase + '/sdapi/v1/txt2img', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+
+    if (!res.ok) {
+      throw new Error('HTTP ' + res.status);
+    }
+
+    const data = await res.json();
+    if (!data || !Array.isArray(data.images)) {
+      throw new Error('Malformed response from API.');
+    }
+
+    appendToGallery(data.images, cfg);
+  } catch (err) {
+    console.error(err);
+    setSDError('Could not reach the Stable Diffusion API. Make sure Automatic1111 is running with --api, and CORS is configured if needed.');
+  } finally {
+    toggleSDLoading(false);
+  }
+}
+
 function evaluatePrompt(pos, loraCount, base, useCanny) {
   const healthBox = document.getElementById('healthBox');
   const infoBox = document.getElementById('infoBox');
@@ -875,6 +1161,13 @@ function savePreset() {
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
 }
+
+document.addEventListener('DOMContentLoaded', () => {
+  const sdBtn = document.getElementById('sdGenerate');
+  if (sdBtn) {
+    sdBtn.addEventListener('click', generateWithStableDiffusion);
+  }
+});
 </script>
 </body>
 </html>
