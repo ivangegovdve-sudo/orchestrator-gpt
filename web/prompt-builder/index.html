@@ -2,24 +2,82 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Temporary Image Display</title>
+  <title>Image Debug</title>
   <style>
     body {
       margin: 0;
       background: #000;
+      color: #0f0;
+      font-family: system-ui, sans-serif;
+      padding: 1rem;
       display: flex;
-      justify-content: center;
+      flex-direction: column;
+      gap: 1rem;
+    }
+    #img-wrap {
+      flex: 1;
+      display: flex;
       align-items: center;
-      height: 100vh;
+      justify-content: center;
+      background: #111;
     }
     img {
-      max-width: 100%;
-      max-height: 100%;
-      display: block;
+      max-width: 90vw;
+      max-height: 60vh;
+      background: #222;
+    }
+    pre {
+      white-space: pre-wrap;
+      word-break: break-word;
+      background: #111;
+      padding: 0.75rem;
+      border-radius: 6px;
     }
   </style>
 </head>
 <body>
-  <img alt="Temporary Image" src="data:image/jpeg;base64,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">
+  <div id="img-wrap">
+    <!-- back to the simple case: one image file at /data/... -->
+    <img id="test-img" src="/data/kTidsoptimist.jpg" alt="Debug image">
+  </div>
+  <pre id="log">Running diagnostics…</pre>
+
+  <script>
+    const logEl = document.getElementById('log');
+    const log = (msg) => {
+      logEl.textContent += '\n' + msg;
+      console.log(msg);
+    };
+
+    const img = document.getElementById('test-img');
+
+    log('Page loaded at: ' + window.location.href);
+
+    img.addEventListener('load', () => {
+      log('IMG EVENT: load');
+      log('IMG natural size: ' + img.naturalWidth + ' x ' + img.naturalHeight);
+    });
+
+    img.addEventListener('error', () => {
+      log('IMG EVENT: error');
+      log('IMG src seen by browser: ' + img.src);
+    });
+
+    (async () => {
+      try {
+        log('FETCH: starting GET /data/kTidsoptimist.jpg');
+        const res = await fetch('/data/kTidsoptimist.jpg', { method: 'GET' });
+        log('FETCH: status ' + res.status + ' ' + res.statusText);
+        log('FETCH: content-type = ' + (res.headers.get('content-type') || '(none)'));
+
+        if (res.ok) {
+          const blob = await res.blob();
+          log('FETCH: blob size = ' + blob.size + ' bytes');
+        }
+      } catch (e) {
+        log('FETCH ERROR: ' + (e && e.message ? e.message : String(e)));
+      }
+    })();
+  </script>
 </body>
 </html>
