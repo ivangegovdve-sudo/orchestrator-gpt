@@ -240,6 +240,7 @@ input[type="number"] {
   box-shadow: 0 10px 30px rgba(0,0,0,0.35);
   display: flex;
   flex-direction: column;
+  cursor: pointer;
 }
 .sd-card img {
   width: 100%;
@@ -251,6 +252,9 @@ input[type="number"] {
   color: var(--muted);
   border-top: 1px solid var(--border);
   line-height: 1.4;
+}
+.sd-card .caption-line {
+  display: block;
 }
 .button-primary {
   background: radial-gradient(circle at top left, rgba(56,189,248,0.28), rgba(15,23,42,1));
@@ -303,6 +307,86 @@ input[type="number"] {
 }
 .info-group textarea {
   min-height: 70px;
+}
+.sd-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.72);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+}
+.sd-modal.active { display: flex; }
+.sd-modal-card {
+  background: #0b1224;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  box-shadow: 0 25px 60px rgba(0,0,0,0.55);
+  max-width: 90vw;
+  max-height: 90vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+.sd-modal-card header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border);
+}
+.sd-modal-card header .close-btn {
+  font-size: 18px;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+}
+.sd-modal-card img {
+  max-width: 90vw;
+  max-height: 70vh;
+  object-fit: contain;
+  background: #0f172a;
+}
+.sd-modal-card footer {
+  padding: 10px 14px;
+  border-top: 1px solid var(--border);
+  color: var(--muted);
+  font-size: 12px;
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.sd-modal-card footer .actions {
+  margin: 0;
+}
+.cn-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 10px;
+}
+.cn-preview {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  color: var(--muted);
+}
+.cn-preview img {
+  width: 56px;
+  height: 56px;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+}
+.cn-warning {
+  color: #fcd34d;
+  font-size: 12px;
+  margin-top: 6px;
 }
 </style>
 </head>
@@ -508,6 +592,49 @@ input[type="number"] {
         <input type="number" id="sdSeed" placeholder="-1">
       </label>
     </div>
+
+    <div class="group" style="margin-top:8px;">
+      <div class="output-label" style="margin-bottom:6px;">
+        <div class="label">ControlNet (Optional)</div>
+        <span class="badge">Reference guided</span>
+      </div>
+      <div class="toggle-row" style="margin-bottom:6px;">
+        <label><input type="checkbox" id="cnEnabled"> Enable ControlNet</label>
+        <label><input type="checkbox" id="cnPixelPerfect" checked> Pixel-perfect</label>
+      </div>
+      <div class="cn-grid">
+        <label>Reference image
+          <input type="file" id="cnImageInput" accept="image/*">
+        </label>
+        <label>Preprocessor (module)
+          <select id="cnModule">
+            <option value="canny" selected>canny (default)</option>
+            <option value="none">none</option>
+            <option value="depth">depth</option>
+            <option value="lineart">lineart</option>
+            <option value="mlsd">mlsd</option>
+            <option value="openpose">openpose</option>
+            <option value="normal_map">normal map</option>
+            <option value="scribble">scribble</option>
+          </select>
+        </label>
+        <label>ControlNet model
+          <input type="text" id="cnModel" placeholder="control_sd15_canny">
+        </label>
+        <label>Weight
+          <input type="number" id="cnWeight" min="0" max="2" step="0.05" value="1.0">
+        </label>
+        <label>Guidance start (0-1)
+          <input type="number" id="cnGuidanceStart" min="0" max="1" step="0.05" value="0.0">
+        </label>
+        <label>Guidance end (0-1)
+          <input type="number" id="cnGuidanceEnd" min="0" max="1" step="0.05" value="1.0">
+        </label>
+      </div>
+      <div class="cn-preview" id="cnImagePreview">No image selected.</div>
+      <div id="cnWarning" class="cn-warning" style="display:none;"></div>
+    </div>
+
     <div class="sd-actions">
       <button id="sdGenerate" class="button-primary">Generate in Stable Diffusion</button>
       <span id="sdWarning" class="sd-warning" style="display:none;">Build a prompt first.</span>
@@ -522,6 +649,22 @@ input[type="number"] {
       <span class="badge">Latest renders</span>
     </div>
     <div id="sdGallery" class="sd-gallery"></div>
+  </div>
+
+  <div id="sdImageModal" class="sd-modal">
+    <div class="sd-modal-card">
+      <header>
+        <div id="sdModalCaption">Preview</div>
+        <div id="sdModalClose" class="close-btn" aria-label="Close modal">×</div>
+      </header>
+      <img id="sdModalImage" src="" alt="Preview">
+      <footer>
+        <div id="sdModalMeta"></div>
+        <div class="actions">
+          <a id="sdModalDownload" class="button-primary" href="#" download="generated.png">Download</a>
+        </div>
+      </footer>
+    </div>
   </div>
 
   <div class="info-group group">
@@ -878,7 +1021,7 @@ function formatTimestamp(date = new Date()) {
 function getSDConfig() {
   const apiBase = (document.getElementById('sdApiUrl').value || 'http://127.0.0.1:7860').trim().replace(/\/$/, '');
   const steps = parseInt(document.getElementById('sdSteps').value, 10);
-  const cfg = parseFloat(document.getElementById('sdCfg').value);
+  const cfgScale = parseFloat(document.getElementById('sdCfg').value);
   const width = parseInt(document.getElementById('sdWidth').value, 10);
   const height = parseInt(document.getElementById('sdHeight').value, 10);
   const samplerName = document.getElementById('sdSampler').value.trim() || 'DPM++ 2M Karras';
@@ -889,7 +1032,7 @@ function getSDConfig() {
   return {
     apiBase: apiBase || 'http://127.0.0.1:7860',
     steps: Number.isFinite(steps) ? steps : 24,
-    cfg: Number.isFinite(cfg) ? cfg : 7,
+    cfgScale: Number.isFinite(cfgScale) ? cfgScale : 7,
     width: Number.isFinite(width) ? width : 512,
     height: Number.isFinite(height) ? height : 512,
     samplerName,
@@ -915,6 +1058,18 @@ function setSDError(message) {
   }
 }
 
+function setCnWarning(message) {
+  const el = document.getElementById('cnWarning');
+  if (!el) return;
+  if (message) {
+    el.textContent = message;
+    el.style.display = 'block';
+  } else {
+    el.textContent = '';
+    el.style.display = 'none';
+  }
+}
+
 function toggleSDLoading(isLoading) {
   const btn = document.getElementById('sdGenerate');
   if (!btn) return;
@@ -929,37 +1084,185 @@ function toggleSDLoading(isLoading) {
   }
 }
 
-function appendToGallery(images, meta) {
-  const gallery = document.getElementById('sdGallery');
-  if (!gallery) return;
-  const { seed, steps, samplerName } = meta;
-  if (!Array.isArray(images) || !images.length) {
-    setSDError('The Stable Diffusion API returned no images.');
+const cnState = { base64: null, dataUrl: null };
+
+function handleControlNetFile(event) {
+  const file = event.target.files && event.target.files[0];
+  const preview = document.getElementById('cnImagePreview');
+  if (!file) {
+    cnState.base64 = null;
+    cnState.dataUrl = null;
+    if (preview) preview.textContent = 'No image selected.';
     return;
   }
+  const reader = new FileReader();
+  reader.onload = () => {
+    const dataUrl = reader.result;
+    const base64 = String(dataUrl).replace(/^data:image\/(png|jpg|jpeg|webp);base64,/, '');
+    cnState.base64 = base64;
+    cnState.dataUrl = dataUrl;
+    if (preview) {
+      preview.innerHTML = '';
+      const img = document.createElement('img');
+      img.src = dataUrl;
+      img.alt = file.name;
+      const span = document.createElement('span');
+      span.textContent = file.name;
+      preview.appendChild(img);
+      preview.appendChild(span);
+    }
+  };
+  reader.readAsDataURL(file);
+}
 
-  setSDError('');
+function clamp01(value, fallback) {
+  if (!Number.isFinite(value)) return fallback;
+  return Math.min(1, Math.max(0, value));
+}
 
-  images.forEach(imgStr => {
-    const card = document.createElement('div');
-    card.className = 'sd-card';
+function getControlNetConfig() {
+  const enabled = document.getElementById('cnEnabled')?.checked;
+  if (!enabled) {
+    setCnWarning('');
+    return null;
+  }
 
-    const img = document.createElement('img');
-    img.src = 'data:image/png;base64,' + imgStr;
-    img.alt = 'Generated image';
+  if (!cnState.base64) {
+    setCnWarning('Please upload a reference image for ControlNet.');
+    return { error: 'no-image' };
+  }
 
-    const footer = document.createElement('footer');
-    const ts = formatTimestamp();
-    footer.textContent = `${ts} • seed: ${seed} • steps: ${steps} • sampler: ${samplerName}`;
+  const module = document.getElementById('cnModule').value || 'none';
+  const model = document.getElementById('cnModel').value.trim();
+  const weightInput = parseFloat(document.getElementById('cnWeight').value);
+  const guidanceStartInput = parseFloat(document.getElementById('cnGuidanceStart').value);
+  const guidanceEndInput = parseFloat(document.getElementById('cnGuidanceEnd').value);
+  const pixelPerfect = document.getElementById('cnPixelPerfect').checked;
 
-    card.appendChild(img);
-    card.appendChild(footer);
-    gallery.prepend(card);
-  });
+  if (!model) {
+    setCnWarning('Enter a ControlNet model name.');
+    return { error: 'no-model' };
+  }
+
+  const weight = Number.isFinite(weightInput) ? weightInput : 1.0;
+  const guidance_start = clamp01(guidanceStartInput, 0.0);
+  const guidance_end = clamp01(guidanceEndInput, 1.0);
+
+  setCnWarning('');
+
+  return {
+    config: {
+      enabled: true,
+      module,
+      model,
+      weight,
+      guidance_start,
+      guidance_end,
+      pixel_perfect: pixelPerfect,
+      input_image: cnState.base64
+    },
+    summary: `CN: module=${module || 'none'}, model=${model || '?'}`
+  };
+}
+
+function createGalleryCard(data) {
+  const gallery = document.getElementById('sdGallery');
+  if (!gallery || !data?.dataUrl) return;
+
+  const card = document.createElement('div');
+  card.className = 'sd-card';
+  card.dataset.dataurl = data.dataUrl;
+  card.dataset.seed = data.seed ?? '';
+  card.dataset.steps = data.steps ?? '';
+  card.dataset.sampler = data.sampler ?? '';
+  card.dataset.path = data.savedPath || '';
+  card.dataset.timestamp = data.timestamp || formatTimestamp();
+  card.dataset.cnsum = data.cnSummary || '';
+
+  const img = document.createElement('img');
+  img.src = data.dataUrl;
+  img.alt = 'Generated image';
+
+  const footer = document.createElement('footer');
+  const lines = [];
+  lines.push(`<span class="caption-line">${card.dataset.timestamp}</span>`);
+  lines.push(`<span class="caption-line">steps: ${data.steps} • sampler: ${data.sampler} • seed: ${data.seed}</span>`);
+  if (data.cnSummary) {
+    lines.push(`<span class="caption-line">${data.cnSummary}</span>`);
+  }
+  if (data.savedPath) {
+    lines.push(`<span class="caption-line">Saved as ${data.savedPath}</span>`);
+  }
+  footer.innerHTML = lines.join('');
+
+  card.appendChild(img);
+  card.appendChild(footer);
+
+  card.addEventListener('click', () => openModalFromCard(card));
+  gallery.prepend(card);
 
   const maxItems = 12;
   while (gallery.children.length > maxItems) {
     gallery.removeChild(gallery.lastChild);
+  }
+}
+
+function openModalFromCard(card) {
+  const modal = document.getElementById('sdImageModal');
+  if (!modal) return;
+  const imgEl = document.getElementById('sdModalImage');
+  const captionEl = document.getElementById('sdModalCaption');
+  const metaEl = document.getElementById('sdModalMeta');
+  const downloadEl = document.getElementById('sdModalDownload');
+
+  const dataUrl = card.dataset.dataurl;
+  const seed = card.dataset.seed || 'RND';
+  const steps = card.dataset.steps || '';
+  const sampler = card.dataset.sampler || '';
+  const path = card.dataset.path || '';
+  const ts = card.dataset.timestamp || '';
+  const cn = card.dataset.cnsum || '';
+
+  imgEl.src = dataUrl;
+  captionEl.textContent = `Seed ${seed}`;
+  const metaLines = [`${ts}`, `steps: ${steps} • sampler: ${sampler} • seed: ${seed}`];
+  if (cn) metaLines.push(cn);
+  if (path) metaLines.push(path);
+  metaEl.innerHTML = metaLines.join('<br>');
+
+  const downloadName = path ? path.split('/').pop() : `generated_${ts.replace(/[^0-9]+/g, '') || 'image'}.png`;
+  downloadEl.href = dataUrl;
+  downloadEl.download = downloadName;
+
+  modal.classList.add('active');
+}
+
+function hideModal() {
+  const modal = document.getElementById('sdImageModal');
+  if (modal) modal.classList.remove('active');
+}
+
+async function saveImageToRepo(base64Data, meta = {}) {
+  try {
+    const res = await fetch('/api/save_image', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        image_data: base64Data,
+        seed: meta.seed ?? null,
+        steps: meta.steps ?? null,
+        sampler: meta.sampler ?? null
+      })
+    });
+    const data = await res.json();
+    if (res.ok && data.status === 'ok') {
+      return data.path || data.url || null;
+    }
+    console.warn('Save failed', data);
+    return null;
+  } catch (err) {
+    console.warn('Save failed', err);
+    return null;
   }
 }
 
@@ -978,12 +1281,23 @@ async function generateWithStableDiffusion() {
     prompt: pos,
     negative_prompt: neg,
     steps: cfg.steps,
-    cfg_scale: cfg.cfg,
+    cfg_scale: cfg.cfgScale,
     width: cfg.width,
     height: cfg.height,
     sampler_name: cfg.samplerName,
     seed: cfg.seed
   };
+
+  const cnResult = getControlNetConfig();
+  if (cnResult && cnResult.error) {
+    return;
+  }
+  let cnSummary = '';
+  if (cnResult && cnResult.config) {
+    payload.alwayson_scripts = payload.alwayson_scripts || {};
+    payload.alwayson_scripts.ControlNet = { args: [cnResult.config] };
+    cnSummary = cnResult.summary || '';
+  }
 
   toggleSDLoading(true);
   try {
@@ -1002,10 +1316,17 @@ async function generateWithStableDiffusion() {
       throw new Error('Malformed response from API.');
     }
 
-    appendToGallery(data.images, cfg);
+    const timestamp = formatTimestamp();
+    for (const imgStr of data.images) {
+      const base64Data = String(imgStr).replace(/^data:image\/png;base64,/, '');
+      const dataUrl = `data:image/png;base64,${base64Data}`;
+      const meta = { seed: cfg.seed, steps: cfg.steps, sampler: cfg.samplerName, timestamp, cnSummary };
+      const savedPath = await saveImageToRepo(base64Data, meta);
+      createGalleryCard({ dataUrl, seed: cfg.seed, steps: cfg.steps, sampler: cfg.samplerName, timestamp, savedPath, cnSummary });
+    }
   } catch (err) {
     console.error(err);
-    setSDError('Could not reach the Stable Diffusion API. Make sure Automatic1111 is running with --api, and CORS is configured if needed.');
+    setSDError('Could not reach the Stable Diffusion API. Make sure Automatic1111 is running with --api at the configured URL.');
   } finally {
     toggleSDLoading(false);
   }
@@ -1166,6 +1487,18 @@ document.addEventListener('DOMContentLoaded', () => {
   const sdBtn = document.getElementById('sdGenerate');
   if (sdBtn) {
     sdBtn.addEventListener('click', generateWithStableDiffusion);
+  }
+  const cnInput = document.getElementById('cnImageInput');
+  if (cnInput) {
+    cnInput.addEventListener('change', handleControlNetFile);
+  }
+  const modal = document.getElementById('sdImageModal');
+  const closeBtn = document.getElementById('sdModalClose');
+  if (closeBtn) closeBtn.addEventListener('click', hideModal);
+  if (modal) {
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) hideModal();
+    });
   }
 });
 </script>
