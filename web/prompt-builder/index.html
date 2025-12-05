@@ -2,82 +2,25 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Image Debug</title>
+  <title>Temporary Image Display</title>
   <style>
     body {
       margin: 0;
       background: #000;
-      color: #0f0;
-      font-family: system-ui, sans-serif;
-      padding: 1rem;
       display: flex;
-      flex-direction: column;
-      gap: 1rem;
-    }
-    #img-wrap {
-      flex: 1;
-      display: flex;
-      align-items: center;
       justify-content: center;
-      background: #111;
+      align-items: center;
+      height: 100vh;
     }
     img {
-      max-width: 90vw;
-      max-height: 60vh;
-      background: #222;
-    }
-    pre {
-      white-space: pre-wrap;
-      word-break: break-word;
-      background: #111;
-      padding: 0.75rem;
-      border-radius: 6px;
+      max-width: 100%;
+      max-height: 100%;
+      display: block;
     }
   </style>
 </head>
 <body>
-  <div id="img-wrap">
-    <!-- back to the simple case: one image file at /data/... -->
-    <img id="test-img" src="/data/kTidsoptimist.jpg" alt="Debug image">
-  </div>
-  <pre id="log">Running diagnostics…</pre>
-
-  <script>
-    const logEl = document.getElementById('log');
-    const log = (msg) => {
-      logEl.textContent += '\n' + msg;
-      console.log(msg);
-    };
-
-    const img = document.getElementById('test-img');
-
-    log('Page loaded at: ' + window.location.href);
-
-    img.addEventListener('load', () => {
-      log('IMG EVENT: load');
-      log('IMG natural size: ' + img.naturalWidth + ' x ' + img.naturalHeight);
-    });
-
-    img.addEventListener('error', () => {
-      log('IMG EVENT: error');
-      log('IMG src seen by browser: ' + img.src);
-    });
-
-    (async () => {
-      try {
-        log('FETCH: starting GET /data/kTidsoptimist.jpg');
-        const res = await fetch('/data/kTidsoptimist.jpg', { method: 'GET' });
-        log('FETCH: status ' + res.status + ' ' + res.statusText);
-        log('FETCH: content-type = ' + (res.headers.get('content-type') || '(none)'));
-
-        if (res.ok) {
-          const blob = await res.blob();
-          log('FETCH: blob size = ' + blob.size + ' bytes');
-        }
-      } catch (e) {
-        log('FETCH ERROR: ' + (e && e.message ? e.message : String(e)));
-      }
-    })();
-  </script>
+  <!-- Image is now served from the root /data folder -->
+  <img src="/data/kTidsoptimist.jpg" alt="Temporary Image">
 </body>
 </html>
