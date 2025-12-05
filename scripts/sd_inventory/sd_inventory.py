@@ -5,7 +5,8 @@
 Stable Diffusion Inventory Snapshot for Ivan's setup.
 
 Scans:
-  C:\\Ivan\\_StableDiffusion\\stable-diffusion-webui\\
+  - Stable Diffusion root: C:\\Ivan\\_StableDiffusion\\stable-diffusion-webui\\
+  - Orchestrator repo root: C:\\Ivan\\_StableDiffusion\\orchestrator-gpt\\
 
 Writes:
   C:\\Ivan\\_StableDiffusion\\orchestrator-gpt\\data\\sd_inventory.json
@@ -74,10 +75,26 @@ def categorize_file(rel_path, ext_lower):
     return None
 
 
-def scan_sd_tree():
-    print(f"Scanning SD root: {SD_ROOT}")
-    if not os.path.isdir(SD_ROOT):
-        raise RuntimeError(f"SD root does not exist: {SD_ROOT}")
+def scan_tree(
+    root_path,
+    categorize_func=None,
+    include_extension_summary=False,
+    label=None,
+    skip_paths=None,
+):
+    """
+    Generic tree scanner used for both the SD install tree and the Orchestrator repo.
+
+    - categorize_func: callable(rel_path, ext_lower) -> category or None. If provided,
+      category buckets will be included in the output.
+    - include_extension_summary: when True, collect data about `extensions/` subfolders
+      (used for SD tree only).
+    - label: optional string added to the summary to help downstream Markdown rendering.
+    """
+
+    print(f"Scanning root: {root_path}")
+    if not os.path.isdir(root_path):
+        raise RuntimeError(f"Root does not exist: {root_path}")
 
     all_files = []
     all_dirs = []
@@ -90,12 +107,12 @@ def scan_sd_tree():
     # Top-level stats
     top_level_stats = {}  # name -> {subdirs: set(), files: int}
 
-    # Extensions summary
+    # Extensions summary (optional)
     extension_dirs = set()
     extension_file_counts = {}
 
-    for dirpath, dirnames, filenames in os.walk(SD_ROOT):
-        rel_dir = os.path.relpath(dirpath, SD_ROOT)
+    for dirpath, dirnames, filenames in os.walk(root_path):
+        rel_dir = os.path.relpath(dirpath, root_path)
         if rel_dir == ".":
             rel_dir = ""
 
@@ -114,16 +131,22 @@ def scan_sd_tree():
             if len(parts) > 1:
                 entry["subdirs"].add(rel_dir)
 
-            # Extension root directories (extensions\name)
-            parent_rel = os.path.dirname(rel_dir)
-            if parent_rel == "extensions":
-                ext_name = os.path.basename(rel_dir)
-                extension_dirs.add(ext_name)
+            if include_extension_summary:
+                # Extension root directories (extensions\name)
+                parent_rel = os.path.dirname(rel_dir)
+                if parent_rel == "extensions":
+                    ext_name = os.path.basename(rel_dir)
+                    extension_dirs.add(ext_name)
 
         # Files in this directory
         for filename in filenames:
             rel_file = os.path.join(rel_dir, filename) if rel_dir else filename
-            full_path = os.path.join(SD_ROOT, rel_file)
+            full_path = os.path.join(root_path, rel_file)
+            rel_file_norm = rel_file.replace("\\", "/")
+
+            if skip_paths and rel_file_norm in skip_paths:
+                continue
+
             try:
                 size = os.path.getsize(full_path)
                 mtime = os.path.getmtime(full_path)
@@ -137,7 +160,6 @@ def scan_sd_tree():
                 max_mtime = mtime
 
             ext = os.path.splitext(filename)[1].lower()
-            rel_file_norm = rel_file.replace("\\", "/")
 
             file_entry = {
                 "rel_path": rel_file_norm,
@@ -156,7 +178,7 @@ def scan_sd_tree():
                 t_entry["files"] += 1
 
             # Extension file counts
-            if rel_file_norm.lower().startswith("extensions/") and len(parts_for_file) >= 2:
+            if include_extension_summary and rel_file_norm.lower().startswith("extensions/") and len(parts_for_file) >= 2:
                 ext_name = parts_for_file[1]
                 extension_file_counts[ext_name] = extension_file_counts.get(ext_name, 0) + 1
 
@@ -173,49 +195,61 @@ def scan_sd_tree():
         top_level_dirs.append({
             "name": name,
             "num_subdirs": len(data["subdirs"]),
-            "num_files": data["files"],
+            "num_files": data["files"]
         })
 
-    # Categorize files
-    categories = {
-        "checkpoints": [],
-        "loras": [],
-        "embeddings": [],
-        "controlnet": [],
-        "animatediff": [],
-        "upscalers": [],
-        "other_models": [],
-        "extensions": [],
-        "uncategorized": [],
-    }
+    categories = None
+    categories_counts = None
+    if categorize_func is not None:
+        categories = {
+            "checkpoints": [],
+            "loras": [],
+            "embeddings": [],
+            "controlnet": [],
+            "animatediff": [],
+            "upscalers": [],
+            "other_models": [],
+            "extensions": [],
+            "uncategorized": [],
+        }
 
-    for f in all_files:
-        cat = categorize_file(f["rel_path"], f["ext"])
-        if cat is None:
-            categories["uncategorized"].append(f)
-        else:
-            categories[cat].append(f)
+        for f in all_files:
+            cat = categorize_func(f["rel_path"], f["ext"])
+            if cat is None:
+                categories["uncategorized"].append(f)
+            else:
+                categories[cat].append(f)
+
+        categories_counts = {k: len(v) for k, v in categories.items()}
 
     summary = {
-        "schema": "sd-inventory-ivan-v1",
-        "sd_root": SD_ROOT,
+        "schema": "sd-inventory-tree-v1",
+        "root": root_path,
+        "label": label or "",
         "inventory_for_tree_last_modified": inventory_last_modified,
         "total_files": total_files,
         "total_dirs": total_dirs,
         "total_size_bytes": total_size_bytes,
         "top_level_dirs": top_level_dirs,
-        "categories_counts": {
-            k: len(v) for k, v in categories.items()
-        },
-        "extension_summary": {
+    }
+
+    if label == "sd_tree":
+        summary["sd_root"] = root_path
+    if label == "repo_tree":
+        summary["repo_root"] = root_path
+
+    if categories_counts is not None:
+        summary["categories_counts"] = categories_counts
+
+    if include_extension_summary:
+        summary["extension_summary"] = {
             "names": sorted(extension_dirs),
             "file_counts": dict(sorted(extension_file_counts.items())),
-        },
-    }
+        }
 
     inventory = {
         "summary": summary,
-        "categories": categories,
+        "categories": categories if categories is not None else {},
         "all_files": all_files,
         "all_dirs": all_dirs,
     }
@@ -257,35 +291,37 @@ def human_size(num_bytes):
 
 
 def build_markdown(inventory):
-    s = inventory["summary"]
-    cats = inventory["categories"]
+    sd_tree = inventory.get("sd_tree", {})
+    repo_tree = inventory.get("repo_tree", {})
 
-    total_size_human = human_size(s["total_size_bytes"])
+    def summarize_tree(tree, heading):
+        s = tree["summary"]
+        total_size_human = human_size(s["total_size_bytes"])
 
-    lines = []
-    lines.append("# Stable Diffusion Inventory Snapshot")
-    lines.append("")
-    lines.append(f"- SD root: `{s['sd_root']}`")
-    lines.append(f"- Inventory tree last modified: `{s['inventory_for_tree_last_modified']}`")
-    lines.append(f"- Total files: **{s['total_files']}**")
-    lines.append(f"- Total directories: **{s['total_dirs']}**")
-    lines.append(f"- Approx total size: **{total_size_human}**")
-    lines.append("")
+        lines = []
+        lines.append(f"## {heading}")
+        lines.append("")
+        lines.append(f"- Root: `{s['root']}`")
+        lines.append(f"- Inventory tree last modified: `{s['inventory_for_tree_last_modified']}`")
+        lines.append(f"- Total files: **{s['total_files']}**")
+        lines.append(f"- Total directories: **{s['total_dirs']}**")
+        lines.append(f"- Approx total size: **{total_size_human}**")
+        lines.append("")
 
-    # Top-level directories
-    lines.append("## Top-level directories")
-    lines.append("")
-    if s["top_level_dirs"]:
-        lines.append("| Directory | Subdirs | Files |")
-        lines.append("|-----------|---------|-------|")
-        for d in s["top_level_dirs"]:
-            lines.append(f"| `{d['name']}` | {d['num_subdirs']} | {d['num_files']} |")
-    else:
-        lines.append("_No top-level directories found?_")
-    lines.append("")
+        lines.append("### Top-level directories")
+        lines.append("")
+        if s.get("top_level_dirs"):
+            lines.append("| Directory | Subdirs | Files |")
+            lines.append("|-----------|---------|-------|")
+            for d in s["top_level_dirs"]:
+                lines.append(f"| `{d['name']}` | {d['num_subdirs']} | {d['num_files']} |")
+        else:
+            lines.append("_No top-level directories found?_")
+        lines.append("")
 
-    # Helper to add a table section for a category
-    def add_model_section(title, key):
+        return lines
+
+    def add_model_section(lines, title, key, cats):
         files = cats.get(key, [])
         lines.append(f"### {title} ({len(files)})")
         lines.append("")
@@ -295,7 +331,6 @@ def build_markdown(inventory):
             return
         lines.append("| Name | Relative path | Size |")
         lines.append("|------|---------------|------|")
-        # Show up to 50 entries to keep this readable
         for f in sorted(files, key=lambda x: x["name"])[:50]:
             size_h = human_size(f["size_bytes"])
             lines.append(f"| `{f['name']}` | `{f['rel_path']}` | {size_h} |")
@@ -303,22 +338,31 @@ def build_markdown(inventory):
             lines.append(f"…and {len(files) - 50} more.")
         lines.append("")
 
-    lines.append("## Models and Assets")
+    lines = []
+    lines.append("# Stable Diffusion Inventory Snapshot")
     lines.append("")
-    add_model_section("Checkpoint models", "checkpoints")
-    add_model_section("LoRA models", "loras")
-    add_model_section("Embeddings", "embeddings")
-    add_model_section("ControlNet / T2I models", "controlnet")
-    add_model_section("Animatediff / motion models", "animatediff")
-    add_model_section("Upscalers / ESRGAN", "upscalers")
-    add_model_section("Other models", "other_models")
+    lines.append(f"Generated at: `{inventory.get('generated_at', 'unknown')}`")
+    lines.append("")
 
-    # Extensions
-    ext_summary = s.get("extension_summary", {})
+    # Stable Diffusion tree details
+    lines.extend(summarize_tree(sd_tree, "Stable Diffusion webui tree"))
+
+    cats = sd_tree.get("categories", {})
+    lines.append("### Models and Assets")
+    lines.append("")
+    add_model_section(lines, "Checkpoint models", "checkpoints", cats)
+    add_model_section(lines, "LoRA models", "loras", cats)
+    add_model_section(lines, "Embeddings", "embeddings", cats)
+    add_model_section(lines, "ControlNet / T2I models", "controlnet", cats)
+    add_model_section(lines, "Animatediff / motion models", "animatediff", cats)
+    add_model_section(lines, "Upscalers / ESRGAN", "upscalers", cats)
+    add_model_section(lines, "Other models", "other_models", cats)
+
+    ext_summary = sd_tree.get("summary", {}).get("extension_summary", {})
     ext_names = ext_summary.get("names", [])
     ext_counts = ext_summary.get("file_counts", {})
 
-    lines.append("## Extensions")
+    lines.append("### Extensions")
     lines.append("")
     if not ext_names:
         lines.append("_No extensions folder or extensions not detected._")
@@ -330,9 +374,8 @@ def build_markdown(inventory):
             lines.append(f"| `{name}` | {cnt} |")
     lines.append("")
 
-    # Uncategorized
     unc = cats.get("uncategorized", [])
-    lines.append(f"## Uncategorized files ({len(unc)})")
+    lines.append(f"### Uncategorized files ({len(unc)})")
     lines.append("")
     if unc:
         lines.append("Only a small sample is shown below:")
@@ -347,6 +390,9 @@ def build_markdown(inventory):
     else:
         lines.append("_All files were categorized into known buckets._")
     lines.append("")
+
+    # Orchestrator repo summary
+    lines.extend(summarize_tree(repo_tree, "Orchestrator repo tree"))
 
     lines.append("---")
     lines.append("_This file is auto-generated by `sd_inventory.py`. Do not edit by hand._")
@@ -439,15 +485,39 @@ def main():
         return 2
 
     try:
-        inventory = scan_sd_tree()
+        sd_inventory = scan_tree(
+            SD_ROOT,
+            categorize_func=categorize_file,
+            include_extension_summary=True,
+            label="sd_tree",
+        )
+        repo_inventory = scan_tree(
+            REPO_ROOT,
+            categorize_func=None,
+            include_extension_summary=False,
+            label="repo_tree",
+            skip_paths={"data/sd_inventory.json", "docs/sd_inventory.md"},
+        )
     except Exception as e:
         print(f"ERROR during scan: {e}")
-        print("SUMMARY: Error while scanning Stable Diffusion root.")
+        print("SUMMARY: Error while scanning inventory roots.")
         return 2
 
+    generated_at = max(
+        sd_inventory["summary"]["inventory_for_tree_last_modified"],
+        repo_inventory["summary"]["inventory_for_tree_last_modified"],
+    )
+
+    combined_inventory = {
+        "schema": "sd-inventory-ivan-combined-v1",
+        "generated_at": generated_at,
+        "sd_tree": sd_inventory,
+        "repo_tree": repo_inventory,
+    }
+
     try:
-        json_changed = write_json_if_changed(JSON_PATH, inventory)
-        md_text = build_markdown(inventory)
+        json_changed = write_json_if_changed(JSON_PATH, combined_inventory)
+        md_text = build_markdown(combined_inventory)
         md_changed = write_markdown_if_changed(MD_PATH, md_text)
     except Exception as e:
         print(f"ERROR while writing inventory files: {e}")
