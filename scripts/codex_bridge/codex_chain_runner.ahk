@@ -38,41 +38,24 @@ JSON_Load(jsonText) {
 
 ; JXON by Coco (trimmed for basic objects/arrays)
 Jxon_Load(ByRef src, args*) {
-    static quot := Chr(34), esc := {b:"`b", f:"`f", n:"`n", r:"`r", t:"`t", "\"" : "`\"", "\\" : "`\\"}
-    key := ""
-    is_key := true
-    stack := []
-    arr := false
-    obj := {}
-    i := 1
+    static quot := Chr(34), esc := {b:"`b", f:"`f", n:"`n", r:"`r", t:"`t", """" : "`""", "\\" : "`\\"}
+    key := "", is_key := true, stack := [], arr := false, obj := {}, i := 1
     While, i := RegExMatch(src, "\s*(?:(" quot "(?:\\.|[^" quot "])*" quot ")|([\{\}\[\]:,])|(-?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?)|(true|false|null))", m, i)
     {
-        token := ""
-        m1 := m2 := m3 := m4 := ""
+        token := m1 := m2 := m3 := m4 := ""
         for k, v in m
-        {
-            if (k > 0) {
-                token := v
-                break
-            }
-        }
+            if (k > 0)
+                token := v, break
         if (token = "{" || token = "[") {
             val := (token = "{") ? {} : []
             if IsObject(obj)
                 obj[arr ? obj.Count()+1 : key] := val
             stack.Insert({obj: obj, arr: arr, key: key, is_key: is_key})
-            obj := val
-            arr := (token = "[")
-            key := ""
-            is_key := !arr
+            obj := val, arr := (token = "[")
+            key := "", is_key := !arr
         } else if (token = "}" || token = "]") {
-            if (stack.MaxIndex()) {
-                state := stack.Remove()
-                obj := state.obj
-                arr := state.arr
-                key := state.key
-                is_key := state.is_key
-            }
+            state := stack.Remove()
+            obj := state.obj, arr := state.arr, key := state.key, is_key := state.is_key
             is_key := !arr
         } else if (token = ":") {
             is_key := false
@@ -80,31 +63,25 @@ Jxon_Load(ByRef src, args*) {
             key := ""
             is_key := !arr
         } else if (m1 != "") {
-            val := StrReplace(SubStr(token, 2, -1), "\\\"", "\"")
-            for k, v in esc
+            val := StrReplace(SubStr(token, 2, -1), "\\""", """)
+            For k, v in esc
                 val := StrReplace(val, "\\" k, v)
             if (is_key)
                 key := val
             else {
                 obj[arr ? obj.Count()+1 : key] := val
-                is_key := !arr
-                key := ""
+                is_key := !arr, key := ""
             }
         } else if (m3 != "") {
             val := m3 + 0
             obj[arr ? obj.Count()+1 : key] := val
-            is_key := !arr
-            key := ""
+            is_key := !arr, key := ""
         } else if (m4 != "") {
-            if (m4 = "true")
-                val := true
-            else if (m4 = "false")
-                val := false
-            else
+            val := (m4 = "true") ? true : (m4 = "false") ? false : ""
+            if (m4 = "null")
                 val := ""
             obj[arr ? obj.Count()+1 : key] := val
-            is_key := !arr
-            key := ""
+            is_key := !arr, key := ""
         }
     }
     return obj
@@ -116,13 +93,13 @@ Jxon_Load(ByRef src, args*) {
 LoadChains() {
     Global Chains, ChainMap, ConfigPath, DefaultIdle
     if !FileExist(ConfigPath) {
-        ShowMessage("Cannot find configuration file:`n" . ConfigPath, 16)
+        MsgBox, 16, Codex Bridge, Cannot find configuration file:`n%ConfigPath%
         ExitApp
     }
     FileRead, jsonText, %ConfigPath%
     cfg := JSON_Load(jsonText)
     if !IsObject(cfg) {
-        ShowMessage("Failed to parse config JSON.", 16)
+        MsgBox, 16, Codex Bridge, Failed to parse config JSON.
         ExitApp
     }
     DefaultIdle := cfg.default_idle_threshold_ms ? cfg.default_idle_threshold_ms : 2000
@@ -181,8 +158,9 @@ return
 PopulateDropdown() {
     Global Chains
     choices := ""
-    for index, chain in Chains
+    for index, chain in Chains {
         choices .= chain.name . "|"
+    }
     choices := RTrim(choices, "|")
     GuiControl,, ChainChoice, %choices%
 }
@@ -206,7 +184,7 @@ LoadSelectedChain() {
 StartOrResume() {
     Global CurrentChain, CurrentStepIndex
     if !IsObject(CurrentChain) {
-        ShowMessage("Please select a chain first.", 48)
+        MsgBox, 48, Codex Bridge, Please select a chain first.
         return
     }
     if (CurrentStepIndex < 1)
@@ -231,15 +209,17 @@ RunCurrentStep() {
     UpdateStepLabels()
     UpdateStatus("Sending step " . CurrentStepIndex . " of " . total . " - " . CurrentStep.file)
 
+    ; Read prompt
     filePath := CurrentChain.step_files_dir . "\\" . CurrentStep.file
     if !FileExist(filePath) {
-        ShowMessage("Missing prompt file:`n" . filePath, 16)
+        MsgBox, 16, Codex Bridge, Missing prompt file:`n%filePath%
         Mode := "paused"
         UpdateModeLabel()
         return
     }
     FileRead, promptText, %filePath%
 
+    ; Copy and send
     Clipboard := promptText
     ClipWait, 1
     Send, ^a
@@ -248,6 +228,7 @@ RunCurrentStep() {
     Sleep, 150
     Send, {Enter}
 
+    ; Prepare monitoring
     LastClipboard := ""
     LastChangeTick := A_TickCount
     Mode := "waiting"
@@ -327,11 +308,12 @@ ResetChain() {
     UpdateStatus("Reset. Select Start to run.")
 }
 
-ShowMessage(text, type := 0) {
-    DllCall("MessageBox", "UInt", 0, "Str", text, "Str", "Codex Bridge", "UInt", type)
+MsgBox(text, type := 0) {
+    return DllCall("MessageBox", "UInt", 0, "Str", text, "Str", "Codex Bridge", "UInt", type)
 }
 
 PromptChoice(text) {
+    ; Returns "Yes", "No", or "Cancel" based on user selection
     result := DllCall("MessageBox", "UInt", 0, "Str", text, "Str", "Codex Bridge", "UInt", 3)
     if (result = 6)
         return "Yes"
@@ -358,10 +340,3 @@ UpdateModeLabel() {
     Global Mode
     GuiControl,, ModeLabel, % "Mode: " . Mode
 }
-
-<<<AHK_VALIDATION>>
-SYNTAX_CHECK = PASSED
-ALL_QUOTES_MATCH = YES
-ALL_CONTINUATIONS_VALID = YES
-READY_TO_RUN = YES
-<<</AHK_VALIDATION>>
