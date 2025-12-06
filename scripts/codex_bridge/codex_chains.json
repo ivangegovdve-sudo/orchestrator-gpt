@@ -1,0 +1,40 @@
+{
+  "schema": "codex-chains-v1",
+  "default_idle_threshold_ms": 2000,
+  "chains": [
+    {
+      "id": "prompt_builder_v5",
+      "name": "Prompt Builder v5 (SD tool)",
+      "description": "Builds the Prompt Builder HTML/CSS/JS and updates index.html for SD helper UI.",
+      "step_files_dir": "C:\\Ivan\\_StableDiffusion\\orchestrator-gpt\\codex_prompts",
+      "idle_threshold_ms": 2000,
+      "steps": [
+        {
+          "index": 1,
+          "file": "codex_step_A.txt",
+          "expect_marker": "\"schema\": \"ivan-sd-inventory-v1\""
+        },
+        {
+          "index": 2,
+          "file": "codex_step_B.html.txt",
+          "expect_marker": "<html"
+        },
+        {
+          "index": 3,
+          "file": "codex_step_C.css.txt",
+          "expect_marker": "#healthBox"
+        },
+        {
+          "index": 4,
+          "file": "codex_step_D.js.txt",
+          "expect_marker": "document.addEventListener(\"DOMContentLoaded\""
+        },
+        {
+          "index": 5,
+          "file": "codex_step_E_index.txt",
+          "expect_marker": "Prompt Builder"
+        }
+      ]
+    }
+  ]
+}
