@@ -1,0 +1,433 @@
+{
+  "schema": "ivan-sd-inventory-v1",
+  "checkpoints": [
+    {
+      "id": "cyberrealistic_v90",
+      "filename": "cyberrealistic_v90.safetensors",
+      "rel_path": "models/Stable-diffusion/cyberrealistic_v90.safetensors"
+    },
+    {
+      "id": "dreamshaper_8_inpainting_inpainting",
+      "filename": "DreamShaper_8_INPAINTING.inpainting.safetensors",
+      "rel_path": "models/Stable-diffusion/DreamShaper_8_INPAINTING.inpainting.safetensors"
+    },
+    {
+      "id": "dreamshaper_8_pruned",
+      "filename": "DreamShaper_8_pruned.safetensors",
+      "rel_path": "models/Stable-diffusion/DreamShaper_8_pruned.safetensors"
+    },
+    {
+      "id": "realistic_vision_v5_1_fp16_no_ema",
+      "filename": "Realistic_Vision_V5.1_fp16-no-ema.safetensors",
+      "rel_path": "models/Stable-diffusion/Realistic_Vision_V5.1_fp16-no-ema.safetensors"
+    },
+    {
+      "id": "v1_5_pruned_emaonly",
+      "filename": "v1-5-pruned-emaonly.safetensors",
+      "rel_path": "models/Stable-diffusion/v1-5-pruned-emaonly.safetensors"
+    },
+    {
+      "id": "v2_1_768_ema_pruned",
+      "filename": "v2-1_768-ema-pruned.safetensors",
+      "rel_path": "models/Stable-diffusion/v2-1_768-ema-pruned.safetensors"
+    }
+  ],
+  "loras": [
+    {
+      "id": "add_detail",
+      "filename": "add_detail.safetensors",
+      "rel_path": "models/Lora/add_detail.safetensors"
+    },
+    {
+      "id": "animatedfilm_v1_0",
+      "filename": "animatedfilm_v1.0.safetensors",
+      "rel_path": "models/Lora/animatedfilm_v1.0.safetensors"
+    },
+    {
+      "id": "animeoutlinev4_16",
+      "filename": "animeoutlineV4_16.safetensors",
+      "rel_path": "models/Lora/animeoutlineV4_16.safetensors"
+    },
+    {
+      "id": "arcane_offset",
+      "filename": "arcane_offset.safetensors",
+      "rel_path": "models/Lora/arcane_offset.safetensors"
+    },
+    {
+      "id": "as_cloud_04",
+      "filename": "as_cloud_04.safetensors",
+      "rel_path": "models/Lora/as_cloud_04.safetensors"
+    },
+    {
+      "id": "aztecworld",
+      "filename": "AztecWorld.safetensors",
+      "rel_path": "models/Lora/AztecWorld.safetensors"
+    },
+    {
+      "id": "baldur_s_gate_3_item_icons_lora_offset",
+      "filename": "Baldur's Gate 3 Item Icons LoRA_offset.safetensors",
+      "rel_path": "models/Lora/Baldur's Gate 3 Item Icons LoRA_offset.safetensors"
+    },
+    {
+      "id": "blanclaus_mockai_v1_0",
+      "filename": "Blanclaus [MockAi - v1.0].safetensors",
+      "rel_path": "models/Lora/Blanclaus [MockAi - v1.0].safetensors"
+    },
+    {
+      "id": "breastinclassbetter",
+      "filename": "breastinclassBetter.safetensors",
+      "rel_path": "models/Lora/breastinclassBetter.safetensors"
+    },
+    {
+      "id": "butterfly",
+      "filename": "butterfly.safetensors",
+      "rel_path": "models/Lora/butterfly.safetensors"
+    },
+    {
+      "id": "castlevania_style_offset",
+      "filename": "castlevania_style_offset.safetensors",
+      "rel_path": "models/Lora/castlevania_style_offset.safetensors"
+    },
+    {
+      "id": "citronfantasy_v2",
+      "filename": "CitronFantasy_v2.safetensors",
+      "rel_path": "models/Lora/CitronFantasy_v2.safetensors"
+    },
+    {
+      "id": "classic_dragons",
+      "filename": "Classic Dragons.safetensors",
+      "rel_path": "models/Lora/Classic Dragons.safetensors"
+    },
+    {
+      "id": "cloud_style_v1",
+      "filename": "cloud-style-v1.safetensors",
+      "rel_path": "models/Lora/cloud-style-v1.safetensors"
+    },
+    {
+      "id": "colorv1_7_000003",
+      "filename": "colorv1.7-000003.safetensors",
+      "rel_path": "models/Lora/colorv1.7-000003.safetensors"
+    },
+    {
+      "id": "coolkids_merge_v2_5",
+      "filename": "COOLKIDS_MERGE_V2.5.safetensors",
+      "rel_path": "models/Lora/COOLKIDS_MERGE_V2.5.safetensors"
+    },
+    {
+      "id": "crystal_style_crystal_style_v1",
+      "filename": "Crystal Style_Crystal Style V1.safetensors",
+      "rel_path": "models/Lora/Crystal Style_Crystal Style V1.safetensors"
+    },
+    {
+      "id": "crystallineai_000009",
+      "filename": "CrystallineAI-000009.safetensors",
+      "rel_path": "models/Lora/CrystallineAI-000009.safetensors"
+    },
+    {
+      "id": "danastasiav3",
+      "filename": "danastasiav3.safetensors",
+      "rel_path": "models/Lora/danastasiav3.safetensors"
+    },
+    {
+      "id": "don_bluth_style_000009",
+      "filename": "don bluth style-000009.safetensors",
+      "rel_path": "models/Lora/don bluth style-000009.safetensors"
+    },
+    {
+      "id": "dreamworksdiffusion_dreamworksdiffusionv1",
+      "filename": "dreamworksDiffusion_dreamworksDiffusionV1.safetensors",
+      "rel_path": "models/Lora/dreamworksDiffusion_dreamworksDiffusionV1.safetensors"
+    },
+    {
+      "id": "duobackground",
+      "filename": "duobackground.safetensors",
+      "rel_path": "models/Lora/duobackground.safetensors"
+    },
+    {
+      "id": "egyptian_icons",
+      "filename": "Egyptian_Icons.safetensors",
+      "rel_path": "models/Lora/Egyptian_Icons.safetensors"
+    },
+    {
+      "id": "elderring",
+      "filename": "ElderRing.safetensors",
+      "rel_path": "models/Lora/ElderRing.safetensors"
+    },
+    {
+      "id": "fantasyai_000008",
+      "filename": "fantasyAI-000008.safetensors",
+      "rel_path": "models/Lora/fantasyAI-000008.safetensors"
+    },
+    {
+      "id": "fantasyicons_bags_and_boxes",
+      "filename": "FantasyIcons_Bags_and_Boxes.safetensors",
+      "rel_path": "models/Lora/FantasyIcons_Bags_and_Boxes.safetensors"
+    },
+    {
+      "id": "fantasyicons_books",
+      "filename": "FantasyIcons_Books.safetensors",
+      "rel_path": "models/Lora/FantasyIcons_Books.safetensors"
+    },
+    {
+      "id": "fantasyicons_coins",
+      "filename": "FantasyIcons_Coins.safetensors",
+      "rel_path": "models/Lora/FantasyIcons_Coins.safetensors"
+    },
+    {
+      "id": "fantasyicons_gemstones",
+      "filename": "FantasyIcons_Gemstones.safetensors",
+      "rel_path": "models/Lora/FantasyIcons_Gemstones.safetensors"
+    },
+    {
+      "id": "fantasyicons_mushrooms",
+      "filename": "FantasyIcons_Mushrooms.safetensors",
+      "rel_path": "models/Lora/FantasyIcons_Mushrooms.safetensors"
+    },
+    {
+      "id": "fantasyicons_rings",
+      "filename": "FantasyIcons_Rings.safetensors",
+      "rel_path": "models/Lora/FantasyIcons_Rings.safetensors"
+    },
+    {
+      "id": "fantasyv1_1",
+      "filename": "fantasyV1.1.safetensors",
+      "rel_path": "models/Lora/fantasyV1.1.safetensors"
+    },
+    {
+      "id": "flat2",
+      "filename": "flat2.safetensors",
+      "rel_path": "models/Lora/flat2.safetensors"
+    },
+    {
+      "id": "futtora_01",
+      "filename": "futtora-01.safetensors",
+      "rel_path": "models/Lora/futtora-01.safetensors"
+    },
+    {
+      "id": "gameiconresearch_plant2_lora",
+      "filename": "GameIconResearch_PLANT2_Lora.safetensors",
+      "rel_path": "models/Lora/GameIconResearch_PLANT2_Lora.safetensors"
+    },
+    {
+      "id": "gem",
+      "filename": "gem.safetensors",
+      "rel_path": "models/Lora/gem.safetensors"
+    },
+    {
+      "id": "gemstoneai_000010",
+      "filename": "GemstoneAI-000010.safetensors",
+      "rel_path": "models/Lora/GemstoneAI-000010.safetensors"
+    },
+    {
+      "id": "gemstones",
+      "filename": "Gemstones.safetensors",
+      "rel_path": "models/Lora/Gemstones.safetensors"
+    },
+    {
+      "id": "handpaintedrpgicons_v1",
+      "filename": "handpaintedRPGIcons_v1.safetensors",
+      "rel_path": "models/Lora/handpaintedRPGIcons_v1.safetensors"
+    },
+    {
+      "id": "heavymetalstyle_09",
+      "filename": "HeavyMetalStyle-09.safetensors",
+      "rel_path": "models/Lora/HeavyMetalStyle-09.safetensors"
+    },
+    {
+      "id": "holov7",
+      "filename": "holov7.safetensors",
+      "rel_path": "models/Lora/holov7.safetensors"
+    },
+    {
+      "id": "hotarucontrast_v100",
+      "filename": "hotarucontrast_v100.safetensors",
+      "rel_path": "models/Lora/hotarucontrast_v100.safetensors"
+    },
+    {
+      "id": "hyperdetailer_v095",
+      "filename": "hyperdetailer_v095.safetensors",
+      "rel_path": "models/Lora/hyperdetailer_v095.safetensors"
+    },
+    {
+      "id": "incaworld",
+      "filename": "Incaworld.safetensors",
+      "rel_path": "models/Lora/Incaworld.safetensors"
+    },
+    {
+      "id": "kinomi_western_cartoon_style",
+      "filename": "Kinomi Western Cartoon Style.safetensors",
+      "rel_path": "models/Lora/Kinomi Western Cartoon Style.safetensors"
+    },
+    {
+      "id": "lora",
+      "filename": "lora.safetensors",
+      "rel_path": "models/Lora/lora.safetensors"
+    },
+    {
+      "id": "more_details",
+      "filename": "more_details.safetensors",
+      "rel_path": "models/Lora/more_details.safetensors"
+    },
+    {
+      "id": "mysticmotifstyle_v3rsefx_v1",
+      "filename": "mysticmotifstyle-v3rsefx-v1.safetensors",
+      "rel_path": "models/Lora/mysticmotifstyle-v3rsefx-v1.safetensors"
+    },
+    {
+      "id": "paseercloudv1",
+      "filename": "PAseerCloudV1.safetensors",
+      "rel_path": "models/Lora/PAseerCloudV1.safetensors"
+    },
+    {
+      "id": "pastel_color",
+      "filename": "Pastel color.safetensors",
+      "rel_path": "models/Lora/Pastel color.safetensors"
+    },
+    {
+      "id": "pedestal_v2",
+      "filename": "pedestal-v2.safetensors",
+      "rel_path": "models/Lora/pedestal-v2.safetensors"
+    },
+    {
+      "id": "plantcells",
+      "filename": "plantcells.safetensors",
+      "rel_path": "models/Lora/plantcells.safetensors"
+    },
+    {
+      "id": "reel_mechanical_parts_v_1_3",
+      "filename": "Reel_mechanical_parts_v_1_3.safetensors",
+      "rel_path": "models/Lora/Reel_mechanical_parts_v_1_3.safetensors"
+    },
+    {
+      "id": "rpg_maps_000007",
+      "filename": "RPG_Maps-000007.safetensors",
+      "rel_path": "models/Lora/RPG_Maps-000007.safetensors"
+    },
+    {
+      "id": "sci_fi_enviroments",
+      "filename": "Sci-fi_Enviroments.safetensors",
+      "rel_path": "models/Lora/Sci-fi_Enviroments.safetensors"
+    },
+    {
+      "id": "sci_fi_style",
+      "filename": "Sci-fi_style.safetensors",
+      "rel_path": "models/Lora/Sci-fi_style.safetensors"
+    },
+    {
+      "id": "shishkin_landscape_v1_2_000001",
+      "filename": "SHISHKIN(LANDSCAPE)_V1.2-000001.safetensors",
+      "rel_path": "models/Lora/SHISHKIN(LANDSCAPE)_V1.2-000001.safetensors"
+    },
+    {
+      "id": "spiritual_stones_zelda_v2",
+      "filename": "Spiritual_Stones_Zelda_v2.safetensors",
+      "rel_path": "models/Lora/Spiritual_Stones_Zelda_v2.safetensors"
+    },
+    {
+      "id": "stylizedtexture_v2",
+      "filename": "StylizedTexture_v2.safetensors",
+      "rel_path": "models/Lora/StylizedTexture_v2.safetensors"
+    },
+    {
+      "id": "surreal_fantasy_lora",
+      "filename": "surreal-fantasy-lora.safetensors",
+      "rel_path": "models/Lora/surreal-fantasy-lora.safetensors"
+    },
+    {
+      "id": "tbh53",
+      "filename": "tbh53-.safetensors",
+      "rel_path": "models/Lora/tbh53-.safetensors"
+    },
+    {
+      "id": "the_last_airbender_offset",
+      "filename": "the_last_airbender_offset.safetensors",
+      "rel_path": "models/Lora/the_last_airbender_offset.safetensors"
+    },
+    {
+      "id": "tkytoilft15",
+      "filename": "tkytoilFT15.safetensors",
+      "rel_path": "models/Lora/tkytoilFT15.safetensors"
+    },
+    {
+      "id": "western_animation_style",
+      "filename": "western_animation_style.safetensors",
+      "rel_path": "models/Lora/western_animation_style.safetensors"
+    },
+    {
+      "id": "xsarchitectural_14openingenvironment",
+      "filename": "xsarchitectural-14Openingenvironment.safetensors",
+      "rel_path": "models/Lora/xsarchitectural-14Openingenvironment.safetensors"
+    }
+  ],
+  "embeddings": [
+    {
+      "id": "baddream",
+      "filename": "BadDream.pt",
+      "rel_path": "embeddings/BadDream.pt"
+    },
+    {
+      "id": "fastnegativeembeddingstrong",
+      "filename": "FastNegativeEmbeddingStrong.pt",
+      "rel_path": "embeddings/FastNegativeEmbeddingStrong.pt"
+    },
+    {
+      "id": "fastnegativev2",
+      "filename": "FastNegativeV2.pt",
+      "rel_path": "embeddings/FastNegativeV2.pt"
+    },
+    {
+      "id": "unrealisticdream",
+      "filename": "UnrealisticDream.pt",
+      "rel_path": "embeddings/UnrealisticDream.pt"
+    }
+  ],
+  "controlnet": [
+    {
+      "id": "clip_vitl",
+      "filename": "clip_vitl.pth",
+      "rel_path": "extensions/sd-webui-controlnet/annotator/downloads/clip_vision/clip_vitl.pth"
+    },
+    {
+      "id": "controlnetmyseeedgedrawing_02",
+      "filename": "controlnetMyseeEdgeDrawing_02.safetensors",
+      "rel_path": "extensions/sd-webui-controlnet/models/controlnetMyseeEdgeDrawing_02.safetensors"
+    },
+    {
+      "id": "t2iadapter_canny_sd15v2",
+      "filename": "t2iadapter_canny_sd15v2.pth",
+      "rel_path": "extensions/sd-webui-controlnet/models/t2iadapter_canny_sd15v2.pth"
+    },
+    {
+      "id": "t2iadapter_color_sd14v1",
+      "filename": "t2iadapter_color_sd14v1.pth",
+      "rel_path": "extensions/sd-webui-controlnet/models/t2iadapter_color_sd14v1.pth"
+    },
+    {
+      "id": "t2iadapter_depth_sd15v2",
+      "filename": "t2iadapter_depth_sd15v2.pth",
+      "rel_path": "extensions/sd-webui-controlnet/models/t2iadapter_depth_sd15v2.pth"
+    },
+    {
+      "id": "t2iadapter_openpose_sd14v1",
+      "filename": "t2iadapter_openpose_sd14v1.pth",
+      "rel_path": "extensions/sd-webui-controlnet/models/t2iadapter_openpose_sd14v1.pth"
+    },
+    {
+      "id": "t2iadapter_sketch_sd15v2",
+      "filename": "t2iadapter_sketch_sd15v2.pth",
+      "rel_path": "extensions/sd-webui-controlnet/models/t2iadapter_sketch_sd15v2.pth"
+    }
+  ],
+  "animatediff": [
+    {
+      "id": "mm_sd15_v2",
+      "filename": "mm_sd15_v2.safetensors",
+      "rel_path": "extensions/sd-webui-animatediff/model/mm_sd15_v2.safetensors"
+    },
+    {
+      "id": "mm_sd15_v3",
+      "filename": "mm_sd15_v3.safetensors",
+      "rel_path": "extensions/sd-webui-animatediff/model/mm_sd15_v3.safetensors"
+    }
+  ]
+}
