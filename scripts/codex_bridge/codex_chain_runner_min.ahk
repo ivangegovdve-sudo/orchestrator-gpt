@@ -1,6 +1,5 @@
-; Codex Prompt Chain Runner - Minimal, stable version (AutoHotkey v1)
-; This version HARD-CODES a single chain for the Prompt Builder workflow
-; and avoids any JSON parsing. It is designed to be simple and reliable.
+; Codex Chain Runner - MINIMAL / HARD-CODED VERSION (AutoHotkey v1)
+; No JSON, no parsers, just one fixed 5-step chain.
 
 #NoEnv
 #SingleInstance Force
@@ -8,40 +7,38 @@
 SendMode Input
 SetTitleMatchMode, 2
 SetBatchLines, -1
-SetWorkingDir, %A_ScriptDir%
 
 ; -------------------------
 ; Global state
 ; -------------------------
-Global StepFilesDir       := "C:\Ivan\_StableDiffusion\orchestrator-gpt\codex_prompts"
-Global Steps              := []      ; Filled in InitChain()
-Global CurrentStepIndex   := 0
-Global Mode               := "idle"  ; idle | sending | waiting | checking | paused | done
-Global LastClipboard      := ""
-Global LastChangeTick     := 0
-Global IdleThresholdMs    := 2000    ; time of no change before treating Codex as "done"
-Global MonitorIntervalMs  := 750     ; timer interval for checking Codex output
+Global StepFilesDir      := "C:\Ivan\_StableDiffusion\orchestrator-gpt\codex_prompts"
+Global Steps             := []    ; filled in InitChain()
+Global CurrentStepIndex  := 0
+Global Mode              := "idle"   ; idle | sending | waiting | checking | paused | done
+Global LastClipboard     := ""
+Global LastChangeTick    := 0
+Global IdleThresholdMs   := 2000
+Global MonitorIntervalMs := 750
 
 ; -------------------------
 ; Hotkeys
 ; -------------------------
-^!p::StartOrResume()
-^!r::ResetChain()
+^!p::StartOrResume()   ; Ctrl+Alt+P
+^!r::ResetChain()      ; Ctrl+Alt+R
 
 ; -------------------------
-; Auto-execute section
+; Auto-execute
 ; -------------------------
 InitChain()
 CreateGui()
 return
 
 ; -------------------------
-; Chain definition
+; Chain definition (5 steps, hard-coded)
 ; -------------------------
 InitChain() {
     Global Steps
 
-    ; Clear and define the single Prompt Builder chain (5 steps)
     Steps := []
 
     step := {}
@@ -76,7 +73,7 @@ InitChain() {
 CreateGui() {
     Global
 
-    Gui, +Resize +MinSize300x220
+    Gui, New, +Resize +MinSize300x220, Codex Chain Runner (MIN)
     Gui, Font, s9, Segoe UI
 
     Gui, Add, Text, xm, Chain: Prompt Builder (5 steps)
@@ -87,9 +84,10 @@ CreateGui() {
     Gui, Add, Button, x+10 w80 gGuiPause, Pause
     Gui, Add, Button, x+10 w80 gGuiReset, Reset
 
-    Gui, Add, Edit, xm ym+110 w320 h140 ReadOnly vStatusBox, Ready. Focus Codex chat input, then press Start or Ctrl+Alt+P.
+    Gui, Add, Edit, xm ym+110 w320 h140 ReadOnly vStatusBox,
+        Ready. Focus Codex chat input, then click Start or press Ctrl+Alt+P.
 
-    Gui, Show, , Codex Chain Runner
+    Gui, Show, AutoSize Center, Codex Chain Runner (MIN)
     UpdateLabels()
 }
 
@@ -98,7 +96,7 @@ GuiClose:
 return
 
 GuiSize:
-    ; Basic resize support: let controls auto-adjust
+    ; let controls auto-adjust; nothing special needed for now
 return
 
 GuiStart:
@@ -114,13 +112,12 @@ GuiReset:
 return
 
 ; -------------------------
-; Core control functions
+; Control functions
 ; -------------------------
 StartOrResume() {
     Global CurrentStepIndex, Mode
 
     if (Mode = "done") {
-        ; If finished, starting again resets to first step
         CurrentStepIndex := 1
     }
 
@@ -134,17 +131,15 @@ StartOrResume() {
 
 ResetChain() {
     Global CurrentStepIndex, Mode
-
     SetTimer, MonitorOutput, Off
     CurrentStepIndex := 0
     Mode := "idle"
     UpdateLabels()
-    UpdateStatus("Reset. Press Start to run the Prompt Builder chain.")
+    UpdateStatus("Reset. Press Start or Ctrl+Alt+P to run the chain.")
 }
 
 PauseMonitoring() {
     Global Mode
-
     Mode := "paused"
     SetTimer, MonitorOutput, Off
     UpdateLabels()
@@ -160,6 +155,13 @@ RunCurrentStep() {
     Global IdleThresholdMs, MonitorIntervalMs
 
     total := Steps.MaxIndex()
+    if (total < 1) {
+        MsgBox, 16, Codex Chain Runner, No steps defined in script.
+        Mode := "idle"
+        UpdateLabels()
+        return
+    }
+
     if (CurrentStepIndex > total) {
         Mode := "done"
         UpdateLabels()
@@ -181,7 +183,6 @@ RunCurrentStep() {
 
     FileRead, promptText, %filePath%
 
-    ; Copy prompt to clipboard and send to Codex (assumes chat input is focused)
     Clipboard := ""
     Clipboard := promptText
     ClipWait, 1
@@ -201,27 +202,25 @@ RunCurrentStep() {
     Sleep, 250
     Send, {Enter}
 
-    ; Prepare monitoring
     LastClipboard := ""
     LastChangeTick := A_TickCount
     Mode := "waiting"
     UpdateLabels()
-    UpdateStatus("Step " . CurrentStepIndex . " sent. Waiting for Codex output to stabilize...")
+    UpdateStatus("Step " . CurrentStepIndex . " sent. Waiting for Codex output...")
 
     SetTimer, MonitorOutput, %MonitorIntervalMs%
 }
 
 ; -------------------------
-; Monitoring Codex output
+; Monitor Codex output
 ; -------------------------
 MonitorOutput:
     Global Mode, LastClipboard, LastChangeTick, IdleThresholdMs
-    Global CurrentStepIndex, Steps
+    Global CurrentStepIndex
 
     if (Mode != "waiting")
         return
 
-    ; Sample Codex output by copying everything (assumes chat window is active)
     Send, ^a
     Sleep, 60
     Send, ^c
@@ -239,7 +238,6 @@ MonitorOutput:
     if (idle < IdleThresholdMs)
         return
 
-    ; Consider Codex done for this step
     Mode := "checking"
     UpdateLabels()
     SetTimer, MonitorOutput, Off
@@ -262,12 +260,12 @@ CheckStepResult() {
         Sleep, 200
         RunCurrentStep()
     } else {
-        ; Ask user what to do
         MsgText := "Expected marker NOT found in Codex output for step " . CurrentStepIndex . ".`n`n"
         MsgText .= "Marker:`n" . expected . "`n`n"
-        MsgText .= "Yes = Re-monitor this step (wait again).`n"
-        MsgText .= "No  = Advance to next step anyway.`n"
+        MsgText .= "Yes = Wait longer and re-monitor.`n"
+        MsgText .= "No  = Advance anyway.`n"
         MsgText .= "Cancel = Pause chain."
+
         MsgBox, 35, Codex Chain Runner, %MsgText%
 
         IfMsgBox Yes
@@ -294,7 +292,7 @@ CheckStepResult() {
 }
 
 ; -------------------------
-; UI helpers
+; GUI helpers
 ; -------------------------
 UpdateStatus(text) {
     GuiControl,, StatusBox, %text%

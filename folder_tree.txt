@@ -1,0 +1,46 @@
+Folder PATH listing
+Volume serial number is 1A74-E25B
+C:\IVAN\_STABLEDIFFUSION\ORCHESTRATOR-GPT
+|   .gitignore
+|   folder_tree.txt
+|   index.html
+|   orchestrator_cli.bat
+|   orchestrator_git_menu.ps1
+|   orchestrator_http_server.py
+|   README.md
+|   run_sd_inventory.bat
+|   run_sd_inventory_update_and_scan.bat
+|   
++---.vscode
+|       settings.json
+|       
++---config
+|   +---controlnet
+|   +---lora-presets
+|   \---sd
++---data
+|   |   kTidsoptimist.jpg
+|   |   sd_inventory.json
+|   |   
+|   +---presets
+|   \---reports
++---docs
+|       environment-context.md
+|       notes.md
+|       sd_inventory.md
+|       
++---gptAgent
+|       README.md
+|       
++---scripts
+|   +---powershell
+|   +---python
+|   \---sd_inventory
+|           sd_inventory.py
+|           
+\---web
+    +---assets
+    +---prompt-builder
+    |       index.html
+    |       
+    \---site
