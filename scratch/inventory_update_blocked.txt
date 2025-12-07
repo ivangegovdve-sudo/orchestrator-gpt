@@ -1,0 +1,9 @@
+Attempted inventory update aborted to comply with rule 7 (avoid diffs >500 lines).
+
+Current situation:
+- data/sd_inventory.json contains a massive raw scan (~tens of thousands of lines).
+- Converting it to the required small curated format would delete nearly all lines, creating a huge diff.
+
+Next steps needed:
+- Confirm permission to replace data/sd_inventory.json with a curated list only (checkpoints/loras/embeddings/controlnet/animatediff with minimal fields).
+- Provide or confirm the latest raw scan source so the curated list can be rebuilt accurately.
