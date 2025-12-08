@@ -54,19 +54,6 @@
       font-size: 14px;
     }
 
-    .status {
-      font-size: 13px;
-      color: var(--muted);
-    }
-
-    .status-ok {
-      color: #6ee7b7;
-    }
-
-    .status-error {
-      color: #fca5a5;
-    }
-
     .hero-card {
       border-radius: 16px;
       border: 1px solid rgba(148, 163, 184, 0.35);
@@ -139,7 +126,6 @@
     <header>
       <h1>SD Orchestrator Hub</h1>
       <p class="subtitle">Quick links to the orchestration tools.</p>
-      <span id="jsonPresetStatus" class="status"></span>
     </header>
 
     <div class="hero-card">
@@ -165,31 +151,5 @@
       </a>
     </div>
   </div>
-
-  <script>
-    document.addEventListener('DOMContentLoaded', () => {
-      const statusEl = document.getElementById('jsonPresetStatus');
-      if (!statusEl) return;
-
-      fetch('/data/presets/newPresets.json')
-        .then(res => {
-          if (!res.ok) {
-            throw new Error('HTTP ' + res.status);
-          }
-          return res.json();
-        })
-        .then(data => {
-          const count = Array.isArray(data.presets) ? data.presets.length : 0;
-          statusEl.textContent = `Loaded ${count} JSON presets from newPresets.json`;
-          statusEl.classList.add('status-ok');
-          window.orchestratorPresets = data;
-        })
-        .catch(err => {
-          statusEl.textContent =
-            `Could not load JSON presets from /data/presets/newPresets.json (${err.message}). You can still work fully manually.`;
-          statusEl.classList.add('status-error');
-        });
-    });
-  </script>
 </body>
 </html>
