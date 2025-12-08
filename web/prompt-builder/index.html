@@ -371,6 +371,11 @@
         <select id="presetSelect">
           <option value="">None / manual</option>
         </select>
+        <div class="label" style="margin-top:8px;">JSON presets (from /data/presets/newPresets.json)</div>
+        <select id="jsonPresetSelect">
+          <option value="">None</option>
+        </select>
+        <small>Chooses a preset prompt + negative from the shared Orchestrator presets JSON.</small>
         <div class="preset-note">
           Uses <code>ivan-lora-presets-v1</code> (prompt + negative + <code>lora_in_prompt</code>).
           LoRAs are auto-parsed; you can still tweak everything afterwards.
@@ -787,6 +792,7 @@
   // --- Global state from JSON presets ---
   let jsonPresetsMap = {};
   let activeJsonPreset = null;
+  let jsonPresets = [];
   let baseModelHints = {};
 
   const PRESETS_PATH = "/data/presets/newPresets.json";
@@ -1124,27 +1130,51 @@
 
   async function loadPresets() {
     const select = document.getElementById('presetSelect');
+    const jsonSelect = document.getElementById('jsonPresetSelect');
     const metaBox = document.getElementById('presetMeta');
+
+    if (select) {
+      select.innerHTML = '<option value="">None / manual</option>';
+    }
+    if (jsonSelect) {
+      jsonSelect.innerHTML = '<option value="">None</option>';
+      jsonSelect.disabled = false;
+    }
+
     try {
-      const res = await fetch(PRESETS_PATH, {cache: "no-store"});
-      if (!res.ok) throw new Error("HTTP " + res.status);
-      const data = await res.json();
+      let data = window.orchestratorPresets;
+      if (!data) {
+        const res = await fetch(PRESETS_PATH, {cache: "no-store"});
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        data = await res.json();
+      }
+
+      if (!Array.isArray(data.presets)) {
+        throw new Error('Invalid schema: presets should be an array');
+      }
 
       baseModelHints = data.base_models_hint || {};
-      if (Array.isArray(data.presets)) {
-        data.presets.forEach(p => {
-          if (!p || !p.id) return;
-          jsonPresetsMap[p.id] = p;
-          const opt = document.createElement('option');
-          opt.value = p.id;
-          opt.textContent = p.label || p.id;
-          select.appendChild(opt);
-        });
-      }
+      jsonPresetsMap = {};
+      jsonPresets = data.presets;
+
+      data.presets.forEach(p => {
+        if (!p || !p.id) return;
+        jsonPresetsMap[p.id] = p;
+        const opt = document.createElement('option');
+        opt.value = p.id;
+        opt.textContent = p.label || p.id;
+        if (select) select.appendChild(opt.cloneNode(true));
+        if (jsonSelect) jsonSelect.appendChild(opt);
+      });
+
       metaBox.value = "Loaded " + Object.keys(jsonPresetsMap).length + " JSON presets from " + PRESETS_PATH;
       renderModelHints();
     } catch (err) {
       metaBox.value = "Could not load JSON presets from " + PRESETS_PATH + " (" + err.message + ").\nYou can still work fully manually.";
+      if (jsonSelect) {
+        jsonSelect.innerHTML = '<option value="">(JSON presets unavailable)</option>';
+        jsonSelect.disabled = true;
+      }
     }
   }
 
@@ -1167,7 +1197,7 @@
   }
 
   function applyJsonPreset(id) {
-    const p = jsonPresetsMap[id];
+    const p = jsonPresetsMap[id] || jsonPresets.find(x => x.id === id);
     const metaBox = document.getElementById('presetMeta');
     activeJsonPreset = p || null;
     if (!p) {
@@ -1176,13 +1206,17 @@
     }
 
     const baseText = document.getElementById('baseText');
-    baseText.value = p.prompt || "";
+    if (p.prompt) {
+      baseText.value = p.prompt;
+    }
 
     const negOut = document.getElementById('negOut');
-    if (p.negative) {
-      negOut.value = p.negative;
-    } else {
-      negOut.value = buildNegativeFromPositive(p.prompt || "");
+    if (negOut) {
+      if (p.negative) {
+        negOut.value = p.negative;
+      } else {
+        negOut.value = buildNegativeFromPositive(p.prompt || "");
+      }
     }
 
     const metaLines = [];
@@ -1300,10 +1334,31 @@
       if (!key) {
         activeJsonPreset = null;
         document.getElementById('presetMeta').value = "";
+        if (jsonPresetSelect) {
+          jsonPresetSelect.value = "";
+        }
         return;
       }
       applyJsonPreset(key);
+      if (jsonPresetSelect) {
+        jsonPresetSelect.value = key;
+      }
     });
+
+    const jsonPresetSelect = document.getElementById('jsonPresetSelect');
+    if (jsonPresetSelect) {
+      jsonPresetSelect.addEventListener('change', function (e) {
+        const key = e.target.value;
+        if (!key) {
+          activeJsonPreset = null;
+          document.getElementById('presetMeta').value = "";
+          presetSelect.value = "";
+          return;
+        }
+        applyJsonPreset(key);
+        presetSelect.value = key;
+      });
+    }
 
     const apiEnabled = document.getElementById('apiEnabled');
     const apiDot = document.getElementById('apiDot');
