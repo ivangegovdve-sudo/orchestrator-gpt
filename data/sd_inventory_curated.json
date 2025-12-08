@@ -1,433 +1,567 @@
 {
   "schema": "ivan-sd-inventory-v1",
-  "checkpoints": [
-    {
-      "id": "cyberrealistic_v90",
-      "filename": "cyberrealistic_v90.safetensors",
-      "rel_path": "models/Stable-diffusion/cyberrealistic_v90.safetensors"
+  "description": "Curated SD inventory for Ivan – LoRAs used by Prompt Builder.",
+  "loras_base_path": "models/Lora",
+  "ui_groups": {
+    "icons_core": {
+      "label": "Game asset / icon LoRAs",
+      "order": 10
     },
-    {
-      "id": "dreamshaper_8_inpainting_inpainting",
-      "filename": "DreamShaper_8_INPAINTING.inpainting.safetensors",
-      "rel_path": "models/Stable-diffusion/DreamShaper_8_INPAINTING.inpainting.safetensors"
+    "backgrounds": {
+      "label": "Background / environment",
+      "order": 20
     },
-    {
-      "id": "dreamshaper_8_pruned",
-      "filename": "DreamShaper_8_pruned.safetensors",
-      "rel_path": "models/Stable-diffusion/DreamShaper_8_pruned.safetensors"
+    "materials_detail": {
+      "label": "Ornament / materials / detail",
+      "order": 30
     },
-    {
-      "id": "realistic_vision_v5_1_fp16_no_ema",
-      "filename": "Realistic_Vision_V5.1_fp16-no-ema.safetensors",
-      "rel_path": "models/Stable-diffusion/Realistic_Vision_V5.1_fp16-no-ema.safetensors"
-    },
-    {
-      "id": "v1_5_pruned_emaonly",
-      "filename": "v1-5-pruned-emaonly.safetensors",
-      "rel_path": "models/Stable-diffusion/v1-5-pruned-emaonly.safetensors"
-    },
-    {
-      "id": "v2_1_768_ema_pruned",
-      "filename": "v2-1_768-ema-pruned.safetensors",
-      "rel_path": "models/Stable-diffusion/v2-1_768-ema-pruned.safetensors"
+    "fx_helpers": {
+      "label": "Extra style helpers / FX",
+      "order": 40
     }
-  ],
+  },
   "loras": [
     {
-      "id": "add_detail",
-      "filename": "add_detail.safetensors",
-      "rel_path": "models/Lora/add_detail.safetensors"
+      "id": "fantasyV1.1",
+      "label": "fantasyV1.1",
+      "prompt_snippet": "<lora:fantasyV1.1:0.48>",
+      "ui_group": "icons_core",
+      "role": "subject_base",
+      "tags": ["icons", "fantasy", "subject"],
+      "note": "General fantasy object base LoRA for icons and items.",
+      "enabled": true,
+      "recommended_weight": 0.48
     },
     {
-      "id": "animatedfilm_v1_0",
-      "filename": "animatedfilm_v1.0.safetensors",
-      "rel_path": "models/Lora/animatedfilm_v1.0.safetensors"
+      "id": "rpgicondiff",
+      "label": "Handpainted RPG Icons",
+      "prompt_snippet": "[rpgicondiff:3]",
+      "ui_group": "icons_core",
+      "role": "style",
+      "tags": ["icons", "handpainted", "style"],
+      "note": "Hand-painted RPG icon style; works best via prompt editing with [rpgicondiff:X].",
+      "enabled": true,
+      "recommended_weight": 3
     },
     {
-      "id": "animeoutlinev4_16",
-      "filename": "animeoutlineV4_16.safetensors",
-      "rel_path": "models/Lora/animeoutlineV4_16.safetensors"
+      "id": "RPG_Pedestal",
+      "label": "RPG Pedestal",
+      "prompt_snippet": "<lora:RPG_Pedestal:0.55>",
+      "ui_group": "icons_core",
+      "role": "style",
+      "tags": ["icons", "pedestal"],
+      "note": "3D pedestal-style base for presenting items.",
+      "enabled": true,
+      "recommended_weight": 0.55
     },
     {
-      "id": "arcane_offset",
-      "filename": "arcane_offset.safetensors",
-      "rel_path": "models/Lora/arcane_offset.safetensors"
+      "id": "RPG_Maps",
+      "label": "RPG Maps",
+      "prompt_snippet": "<lora:RPG_Maps:0.45>",
+      "ui_group": "icons_core",
+      "role": "background",
+      "tags": ["maps", "fantasy"],
+      "note": "Hand-drawn RPG map enhancement; great for full-map renders.",
+      "enabled": true,
+      "recommended_weight": 0.45
     },
+    {
+      "id": "Stylized_Textures",
+      "label": "Stylized Textures",
+      "prompt_snippet": "<lora:Stylized_Textures_zzStylizedTexture:0.55>",
+      "ui_group": "icons_core",
+      "role": "detail",
+      "tags": ["textures", "stylized"],
+      "note": "Stylized game-ready material textures for props and icons.",
+      "enabled": true,
+      "recommended_weight": 0.55
+    },
+    {
+      "id": "Fantasy_Style_TanjoreAI",
+      "label": "Fantasy Style (tanjoreai)",
+      "prompt_snippet": "<lora:Fantasy_Style_TanjoreAI:0.55>",
+      "ui_group": "icons_core",
+      "role": "style",
+      "tags": ["fantasy", "painting"],
+      "note": "Classic fantasy painting style (tanjoreai).",
+      "enabled": true,
+      "recommended_weight": 0.55
+    },
+    {
+      "id": "Egyptian_Icons",
+      "label": "Egyptian Icons",
+      "prompt_snippet": "<lora:Egyptian_Icons:0.60>",
+      "ui_group": "icons_core",
+      "role": "subject_base",
+      "tags": ["egyptian", "icons"],
+      "note": "Egyptian fantasy icon look; gold/blue jewels, no humans.",
+      "enabled": true,
+      "recommended_weight": 0.6
+    },
+    {
+      "id": "Grimoires_Books",
+      "label": "Grimoires & Books",
+      "prompt_snippet": "<lora:Grimoires_Books:0.60>",
+      "ui_group": "icons_core",
+      "role": "subject_base",
+      "tags": ["books", "grimoires"],
+      "note": "Magic book / grimoire icon generator.",
+      "enabled": true,
+      "recommended_weight": 0.6
+    },
+    {
+      "id": "Mushrooms_Assets",
+      "label": "Mushrooms",
+      "prompt_snippet": "<lora:Mushrooms_Assets:0.55>",
+      "ui_group": "icons_core",
+      "role": "subject_base",
+      "tags": ["mushrooms", "plants"],
+      "note": "Fantasy mushroom assets and icons.",
+      "enabled": true,
+      "recommended_weight": 0.55
+    },
+    {
+      "id": "Gemstones",
+      "label": "Gemstones",
+      "prompt_snippet": "<lora:Gemstones:0.34>",
+      "ui_group": "icons_core",
+      "role": "subject_base",
+      "tags": ["gems", "stones"],
+      "note": "Simple fantasy gem icons and stones.",
+      "enabled": true,
+      "recommended_weight": 0.34
+    },
+    {
+      "id": "Spiritual_Stones_OoT",
+      "label": "Spiritual Stones",
+      "prompt_snippet": "<lora:Spiritual_Stones_OoT:0.65>",
+      "ui_group": "icons_core",
+      "role": "subject_base",
+      "tags": ["zelda", "stones", "gems"],
+      "note": "Zelda Ocarina-of-Time style spiritual stones.",
+      "enabled": true,
+      "recommended_weight": 0.65
+    },
+    {
+      "id": "Rings_Fantasy",
+      "label": "Rings",
+      "prompt_snippet": "<lora:Rings_Fantasy:0.60>",
+      "ui_group": "icons_core",
+      "role": "subject_base",
+      "tags": ["rings", "jewelry"],
+      "note": "Magic ring icons with glowing jewels.",
+      "enabled": true,
+      "recommended_weight": 0.6
+    },
+    {
+      "id": "Boxes_Bags_Containers",
+      "label": "Boxes / Chests",
+      "prompt_snippet": "<lora:Boxes_Bags_Containers:0.60>",
+      "ui_group": "icons_core",
+      "role": "subject_base",
+      "tags": ["boxes", "chests", "containers"],
+      "note": "Treasure boxes, containers, bags and chests.",
+      "enabled": true,
+      "recommended_weight": 0.6
+    },
+    {
+      "id": "Coins_Fantasy",
+      "label": "Coins",
+      "prompt_snippet": "<lora:Coins_Fantasy:0.60>",
+      "ui_group": "icons_core",
+      "role": "subject_base",
+      "tags": ["coins", "treasure"],
+      "note": "Fantasy gold coins and piles of coins.",
+      "enabled": true,
+      "recommended_weight": 0.6
+    },
+    {
+      "id": "BaldursGate3_Item_Icons",
+      "label": "BG3 Item Icons",
+      "prompt_snippet": "<lora:BaldursGate3_Item_Icons:0.45>",
+      "ui_group": "icons_core",
+      "role": "style",
+      "tags": ["bg3", "icons", "style"],
+      "note": "Baldur's Gate 3 style item icons.",
+      "enabled": true,
+      "recommended_weight": 0.45
+    },
+
     {
       "id": "as_cloud_04",
-      "filename": "as_cloud_04.safetensors",
-      "rel_path": "models/Lora/as_cloud_04.safetensors"
+      "label": "as_cloud_04",
+      "prompt_snippet": "<lora:as_cloud_04:0.35>",
+      "ui_group": "backgrounds",
+      "role": "background",
+      "tags": ["clouds", "sky"],
+      "note": "Soft fantasy cloud textures for skies.",
+      "enabled": true,
+      "recommended_weight": 0.35
     },
     {
-      "id": "aztecworld",
-      "filename": "AztecWorld.safetensors",
-      "rel_path": "models/Lora/AztecWorld.safetensors"
+      "id": "PAseerCloudV1",
+      "label": "PAseerCloudV1",
+      "prompt_snippet": "<lora:PAseerCloudV1:0.34>",
+      "ui_group": "backgrounds",
+      "role": "background",
+      "tags": ["clouds", "mist"],
+      "note": "Mystic clouds and seer-like mist.",
+      "enabled": true,
+      "recommended_weight": 0.34
     },
     {
-      "id": "baldur_s_gate_3_item_icons_lora_offset",
-      "filename": "Baldur's Gate 3 Item Icons LoRA_offset.safetensors",
-      "rel_path": "models/Lora/Baldur's Gate 3 Item Icons LoRA_offset.safetensors"
+      "id": "SHISHKIN",
+      "label": "SHISHKIN Landscape",
+      "prompt_snippet": "<lora:SHISHKIN(LANDSCAPE)_V1.2-000001:0.40>",
+      "ui_group": "backgrounds",
+      "role": "background",
+      "tags": ["landscape", "painterly"],
+      "note": "Painterly landscape backgrounds (Shishkin).",
+      "enabled": true,
+      "recommended_weight": 0.4
     },
     {
-      "id": "blanclaus_mockai_v1_0",
-      "filename": "Blanclaus [MockAi - v1.0].safetensors",
-      "rel_path": "models/Lora/Blanclaus [MockAi - v1.0].safetensors"
+      "id": "Pastel_color",
+      "label": "Pastel color",
+      "prompt_snippet": "<lora:Pastel_color:0.38>",
+      "ui_group": "backgrounds",
+      "role": "background",
+      "tags": ["pastel", "color"],
+      "note": "Soft pastel color palette for backgrounds.",
+      "enabled": true,
+      "recommended_weight": 0.38
     },
     {
-      "id": "breastinclassbetter",
-      "filename": "breastinclassBetter.safetensors",
-      "rel_path": "models/Lora/breastinclassBetter.safetensors"
+      "id": "Background_Fantasy_Cyberpunk",
+      "label": "Fantasy & Cyberpunk BG",
+      "prompt_snippet": "<lora:Background_Fantasy_Cyberpunk:0.55>",
+      "ui_group": "backgrounds",
+      "role": "background",
+      "tags": ["fantasy", "cyberpunk"],
+      "note": "Fantasy or cyberpunk themed backgrounds.",
+      "enabled": true,
+      "recommended_weight": 0.55
     },
     {
-      "id": "butterfly",
-      "filename": "butterfly.safetensors",
-      "rel_path": "models/Lora/butterfly.safetensors"
+      "id": "Sci-fi_Environments",
+      "label": "Sci-fi Environments",
+      "prompt_snippet": "<lora:Sci-fi_Environments:0.40>",
+      "ui_group": "backgrounds",
+      "role": "background",
+      "tags": ["scifi", "environment"],
+      "note": "Sci-fi environment generator.",
+      "enabled": true,
+      "recommended_weight": 0.4
     },
     {
-      "id": "castlevania_style_offset",
-      "filename": "castlevania_style_offset.safetensors",
-      "rel_path": "models/Lora/castlevania_style_offset.safetensors"
+      "id": "xsarchitectural",
+      "label": "xsarchitectural Env",
+      "prompt_snippet": "<lora:xsarchitectural-14Openingenvironment:0.40>",
+      "ui_group": "backgrounds",
+      "role": "background",
+      "tags": ["architecture", "environment"],
+      "note": "Architectural environments and openings.",
+      "enabled": true,
+      "recommended_weight": 0.4
     },
     {
-      "id": "citronfantasy_v2",
-      "filename": "CitronFantasy_v2.safetensors",
-      "rel_path": "models/Lora/CitronFantasy_v2.safetensors"
+      "id": "Reel_mechanical_parts_v_1_3",
+      "label": "Reel mechanical parts",
+      "prompt_snippet": "<lora:Reel_mechanical_parts_v_1_3:0.40>",
+      "ui_group": "backgrounds",
+      "role": "background",
+      "tags": ["mechanical", "parts"],
+      "note": "Detailed mechanical parts and machinery.",
+      "enabled": true,
+      "recommended_weight": 0.4
+    },
+
+    {
+      "id": "Engraved_Detail",
+      "label": "Engraved Detail",
+      "prompt_snippet": "<lora:Engraved_Detail:0.55>",
+      "ui_group": "materials_detail",
+      "role": "detail",
+      "tags": ["engraving", "ornament"],
+      "note": "Engraved motifs, filigree and mystical motifs.",
+      "enabled": true,
+      "recommended_weight": 0.55
     },
     {
-      "id": "classic_dragons",
-      "filename": "Classic Dragons.safetensors",
-      "rel_path": "models/Lora/Classic Dragons.safetensors"
+      "id": "GemstoneAI_konyconi",
+      "label": "GemstoneAI",
+      "prompt_snippet": "<lora:GemstoneAI_konyconi:0.55>",
+      "ui_group": "materials_detail",
+      "role": "detail",
+      "tags": ["gems", "materials"],
+      "note": "High quality gemstone rendering (GemstoneAI).",
+      "enabled": true,
+      "recommended_weight": 0.55
     },
     {
-      "id": "cloud_style_v1",
-      "filename": "cloud-style-v1.safetensors",
-      "rel_path": "models/Lora/cloud-style-v1.safetensors"
+      "id": "Gold_Jewelry_Diamonds_Tang53",
+      "label": "Gold/Jewelry/Diamonds",
+      "prompt_snippet": "<lora:Gold_Jewelry_Diamonds_Tang53:0.60>",
+      "ui_group": "materials_detail",
+      "role": "detail",
+      "tags": ["gold", "jewelry", "diamonds"],
+      "note": "Gold, jewelry and diamond detailing.",
+      "enabled": true,
+      "recommended_weight": 0.6
     },
     {
-      "id": "colorv1_7_000003",
-      "filename": "colorv1.7-000003.safetensors",
-      "rel_path": "models/Lora/colorv1.7-000003.safetensors"
+      "id": "PlantCells_Style",
+      "label": "PlantCells",
+      "prompt_snippet": "<lora:PlantCells_Style:0.55>",
+      "ui_group": "materials_detail",
+      "role": "detail",
+      "tags": ["plants", "cells"],
+      "note": "Organic plant cell textures and patterns.",
+      "enabled": true,
+      "recommended_weight": 0.55
     },
     {
-      "id": "coolkids_merge_v2_5",
-      "filename": "COOLKIDS_MERGE_V2.5.safetensors",
-      "rel_path": "models/Lora/COOLKIDS_MERGE_V2.5.safetensors"
+      "id": "GameIconResearch_PLANT2",
+      "label": "GameIcon PLANT2",
+      "prompt_snippet": "<lora:GameIconResearch_PLANT2:0.55>",
+      "ui_group": "materials_detail",
+      "role": "detail",
+      "tags": ["icons", "plants"],
+      "note": "Stylized plant icon enhancement for maps and items.",
+      "enabled": true,
+      "recommended_weight": 0.55
     },
     {
-      "id": "crystal_style_crystal_style_v1",
-      "filename": "Crystal Style_Crystal Style V1.safetensors",
-      "rel_path": "models/Lora/Crystal Style_Crystal Style V1.safetensors"
+      "id": "CrystallineAI-000009",
+      "label": "CrystallineAI",
+      "prompt_snippet": "<lora:CrystallineAI-000009:0.40>",
+      "ui_group": "materials_detail",
+      "role": "detail",
+      "tags": ["crystal", "structure"],
+      "note": "Faceted crystal structure and cores.",
+      "enabled": true,
+      "recommended_weight": 0.4
     },
     {
-      "id": "crystallineai_000009",
-      "filename": "CrystallineAI-000009.safetensors",
-      "rel_path": "models/Lora/CrystallineAI-000009.safetensors"
-    },
-    {
-      "id": "danastasiav3",
-      "filename": "danastasiav3.safetensors",
-      "rel_path": "models/Lora/danastasiav3.safetensors"
-    },
-    {
-      "id": "don_bluth_style_000009",
-      "filename": "don bluth style-000009.safetensors",
-      "rel_path": "models/Lora/don bluth style-000009.safetensors"
-    },
-    {
-      "id": "dreamworksdiffusion_dreamworksdiffusionv1",
-      "filename": "dreamworksDiffusion_dreamworksDiffusionV1.safetensors",
-      "rel_path": "models/Lora/dreamworksDiffusion_dreamworksDiffusionV1.safetensors"
-    },
-    {
-      "id": "duobackground",
-      "filename": "duobackground.safetensors",
-      "rel_path": "models/Lora/duobackground.safetensors"
-    },
-    {
-      "id": "egyptian_icons",
-      "filename": "Egyptian_Icons.safetensors",
-      "rel_path": "models/Lora/Egyptian_Icons.safetensors"
-    },
-    {
-      "id": "elderring",
-      "filename": "ElderRing.safetensors",
-      "rel_path": "models/Lora/ElderRing.safetensors"
-    },
-    {
-      "id": "fantasyai_000008",
-      "filename": "fantasyAI-000008.safetensors",
-      "rel_path": "models/Lora/fantasyAI-000008.safetensors"
-    },
-    {
-      "id": "fantasyicons_bags_and_boxes",
-      "filename": "FantasyIcons_Bags_and_Boxes.safetensors",
-      "rel_path": "models/Lora/FantasyIcons_Bags_and_Boxes.safetensors"
-    },
-    {
-      "id": "fantasyicons_books",
-      "filename": "FantasyIcons_Books.safetensors",
-      "rel_path": "models/Lora/FantasyIcons_Books.safetensors"
-    },
-    {
-      "id": "fantasyicons_coins",
-      "filename": "FantasyIcons_Coins.safetensors",
-      "rel_path": "models/Lora/FantasyIcons_Coins.safetensors"
-    },
-    {
-      "id": "fantasyicons_gemstones",
-      "filename": "FantasyIcons_Gemstones.safetensors",
-      "rel_path": "models/Lora/FantasyIcons_Gemstones.safetensors"
-    },
-    {
-      "id": "fantasyicons_mushrooms",
-      "filename": "FantasyIcons_Mushrooms.safetensors",
-      "rel_path": "models/Lora/FantasyIcons_Mushrooms.safetensors"
-    },
-    {
-      "id": "fantasyicons_rings",
-      "filename": "FantasyIcons_Rings.safetensors",
-      "rel_path": "models/Lora/FantasyIcons_Rings.safetensors"
-    },
-    {
-      "id": "fantasyv1_1",
-      "filename": "fantasyV1.1.safetensors",
-      "rel_path": "models/Lora/fantasyV1.1.safetensors"
-    },
-    {
-      "id": "flat2",
-      "filename": "flat2.safetensors",
-      "rel_path": "models/Lora/flat2.safetensors"
-    },
-    {
-      "id": "futtora_01",
-      "filename": "futtora-01.safetensors",
-      "rel_path": "models/Lora/futtora-01.safetensors"
-    },
-    {
-      "id": "gameiconresearch_plant2_lora",
-      "filename": "GameIconResearch_PLANT2_Lora.safetensors",
-      "rel_path": "models/Lora/GameIconResearch_PLANT2_Lora.safetensors"
-    },
-    {
-      "id": "gem",
-      "filename": "gem.safetensors",
-      "rel_path": "models/Lora/gem.safetensors"
-    },
-    {
-      "id": "gemstoneai_000010",
-      "filename": "GemstoneAI-000010.safetensors",
-      "rel_path": "models/Lora/GemstoneAI-000010.safetensors"
-    },
-    {
-      "id": "gemstones",
-      "filename": "Gemstones.safetensors",
-      "rel_path": "models/Lora/Gemstones.safetensors"
-    },
-    {
-      "id": "handpaintedrpgicons_v1",
-      "filename": "handpaintedRPGIcons_v1.safetensors",
-      "rel_path": "models/Lora/handpaintedRPGIcons_v1.safetensors"
-    },
-    {
-      "id": "heavymetalstyle_09",
-      "filename": "HeavyMetalStyle-09.safetensors",
-      "rel_path": "models/Lora/HeavyMetalStyle-09.safetensors"
-    },
-    {
-      "id": "holov7",
-      "filename": "holov7.safetensors",
-      "rel_path": "models/Lora/holov7.safetensors"
-    },
-    {
-      "id": "hotarucontrast_v100",
-      "filename": "hotarucontrast_v100.safetensors",
-      "rel_path": "models/Lora/hotarucontrast_v100.safetensors"
-    },
-    {
-      "id": "hyperdetailer_v095",
-      "filename": "hyperdetailer_v095.safetensors",
-      "rel_path": "models/Lora/hyperdetailer_v095.safetensors"
-    },
-    {
-      "id": "incaworld",
-      "filename": "Incaworld.safetensors",
-      "rel_path": "models/Lora/Incaworld.safetensors"
-    },
-    {
-      "id": "kinomi_western_cartoon_style",
-      "filename": "Kinomi Western Cartoon Style.safetensors",
-      "rel_path": "models/Lora/Kinomi Western Cartoon Style.safetensors"
-    },
-    {
-      "id": "lora",
-      "filename": "lora.safetensors",
-      "rel_path": "models/Lora/lora.safetensors"
+      "id": "Crystal_Style_V1",
+      "label": "Crystal Style V1",
+      "prompt_snippet": "<lora:Crystal_Style_V1:0.36>",
+      "ui_group": "materials_detail",
+      "role": "detail",
+      "tags": ["crystal", "surface"],
+      "note": "Crystal surface shine and reflections.",
+      "enabled": true,
+      "recommended_weight": 0.36
     },
     {
       "id": "more_details",
-      "filename": "more_details.safetensors",
-      "rel_path": "models/Lora/more_details.safetensors"
+      "label": "more_details",
+      "prompt_snippet": "<lora:more_details:0.22>",
+      "ui_group": "materials_detail",
+      "role": "detail",
+      "tags": ["detail"],
+      "note": "Adds subtle extra micro-details.",
+      "enabled": true,
+      "recommended_weight": 0.22
     },
     {
-      "id": "mysticmotifstyle_v3rsefx_v1",
-      "filename": "mysticmotifstyle-v3rsefx-v1.safetensors",
-      "rel_path": "models/Lora/mysticmotifstyle-v3rsefx-v1.safetensors"
+      "id": "gem",
+      "label": "gem",
+      "prompt_snippet": "<lora:gem:0.32>",
+      "ui_group": "materials_detail",
+      "role": "detail",
+      "tags": ["gem", "sparkle"],
+      "note": "Fine gem sparkle enhancer.",
+      "enabled": true,
+      "recommended_weight": 0.32
     },
     {
-      "id": "paseercloudv1",
-      "filename": "PAseerCloudV1.safetensors",
-      "rel_path": "models/Lora/PAseerCloudV1.safetensors"
+      "id": "butterfly",
+      "label": "butterfly",
+      "prompt_snippet": "<lora:butterfly:0.36>",
+      "ui_group": "materials_detail",
+      "role": "detail",
+      "tags": ["butterfly", "organic"],
+      "note": "Butterfly wings and organic shapes.",
+      "enabled": true,
+      "recommended_weight": 0.36
     },
     {
-      "id": "pastel_color",
-      "filename": "Pastel color.safetensors",
-      "rel_path": "models/Lora/Pastel color.safetensors"
+      "id": "COOLKIDS_MERGE_V2.5",
+      "label": "COOLKIDS_MERGE_V2.5",
+      "prompt_snippet": "<lora:COOLKIDS_MERGE_V2.5:0.32>",
+      "ui_group": "materials_detail",
+      "role": "style",
+      "tags": ["painterly", "icons"],
+      "note": "Painterly icon style; good with UI props.",
+      "enabled": true,
+      "recommended_weight": 0.32
     },
     {
-      "id": "pedestal_v2",
-      "filename": "pedestal-v2.safetensors",
-      "rel_path": "models/Lora/pedestal-v2.safetensors"
+      "id": "flat2",
+      "label": "flat2",
+      "prompt_snippet": "<lora:flat2:0.35>",
+      "ui_group": "materials_detail",
+      "role": "style",
+      "tags": ["flat", "icons"],
+      "note": "Flat icon style helper.",
+      "enabled": true,
+      "recommended_weight": 0.35
     },
     {
-      "id": "plantcells",
-      "filename": "plantcells.safetensors",
-      "rel_path": "models/Lora/plantcells.safetensors"
+      "id": "futtora-01",
+      "label": "futtora-01",
+      "prompt_snippet": "<lora:futtora-01:0.38>",
+      "ui_group": "materials_detail",
+      "role": "style",
+      "tags": ["stylized", "hybrid"],
+      "note": "Stylized hybrid aesthetic; experimental.",
+      "enabled": true,
+      "recommended_weight": 0.38
     },
     {
-      "id": "reel_mechanical_parts_v_1_3",
-      "filename": "Reel_mechanical_parts_v_1_3.safetensors",
-      "rel_path": "models/Lora/Reel_mechanical_parts_v_1_3.safetensors"
+      "id": "Western_Dragon_Collection",
+      "label": "Western Dragon Collection",
+      "prompt_snippet": "<lora:Western_Dragon_Collection:0.80>",
+      "ui_group": "materials_detail",
+      "role": "subject_base",
+      "tags": ["dragons", "creatures"],
+      "note": "Dragon variants: magma, bone, forest, etc.",
+      "enabled": true,
+      "recommended_weight": 0.8
+    },
+
+    {
+      "id": "animeoutlineV4_16",
+      "label": "animeoutlineV4_16",
+      "prompt_snippet": "<lora:animeoutlineV4_16:0.40>",
+      "ui_group": "fx_helpers",
+      "role": "fx",
+      "tags": ["outline", "anime"],
+      "note": "Sharp anime-style outlines, good for icons.",
+      "enabled": true,
+      "recommended_weight": 0.4
     },
     {
-      "id": "rpg_maps_000007",
-      "filename": "RPG_Maps-000007.safetensors",
-      "rel_path": "models/Lora/RPG_Maps-000007.safetensors"
+      "id": "Heavy_colours_concept",
+      "label": "Heavy colours concept",
+      "prompt_snippet": "<lora:Heavy_colours_concept:0.40>",
+      "ui_group": "fx_helpers",
+      "role": "fx",
+      "tags": ["colors", "saturation"],
+      "note": "Heavier, saturated color composition.",
+      "enabled": true,
+      "recommended_weight": 0.4
     },
     {
-      "id": "sci_fi_enviroments",
-      "filename": "Sci-fi_Enviroments.safetensors",
-      "rel_path": "models/Lora/Sci-fi_Enviroments.safetensors"
+      "id": "HeavyMetal1981_style",
+      "label": "1981 Heavy Metal",
+      "prompt_snippet": "<lora:HeavyMetal1981_style:0.45>",
+      "ui_group": "fx_helpers",
+      "role": "style",
+      "tags": ["heavy metal", "fantasy"],
+      "note": "1981 Heavy Metal comic fantasy style.",
+      "enabled": true,
+      "recommended_weight": 0.45
     },
     {
-      "id": "sci_fi_style",
-      "filename": "Sci-fi_style.safetensors",
-      "rel_path": "models/Lora/Sci-fi_style.safetensors"
+      "id": "surreal-fantasy-lora",
+      "label": "surreal-fantasy-lora",
+      "prompt_snippet": "<lora:surreal-fantasy-lora:0.38>",
+      "ui_group": "fx_helpers",
+      "role": "fx",
+      "tags": ["surreal", "fantasy"],
+      "note": "Surreal fantasy aura and glows.",
+      "enabled": true,
+      "recommended_weight": 0.38
     },
     {
-      "id": "shishkin_landscape_v1_2_000001",
-      "filename": "SHISHKIN(LANDSCAPE)_V1.2-000001.safetensors",
-      "rel_path": "models/Lora/SHISHKIN(LANDSCAPE)_V1.2-000001.safetensors"
+      "id": "holov7",
+      "label": "holov7",
+      "prompt_snippet": "<lora:holov7:0.40>",
+      "ui_group": "fx_helpers",
+      "role": "fx",
+      "tags": ["holographic", "fx"],
+      "note": "Holographic / holo UI-style effects.",
+      "enabled": true,
+      "recommended_weight": 0.4
     },
     {
-      "id": "spiritual_stones_zelda_v2",
-      "filename": "Spiritual_Stones_Zelda_v2.safetensors",
-      "rel_path": "models/Lora/Spiritual_Stones_Zelda_v2.safetensors"
+      "id": "hyperedetailer_v095",
+      "label": "hyperedetailer",
+      "prompt_snippet": "<lora:hyperedetailer_v095:0.25>",
+      "ui_group": "fx_helpers",
+      "role": "fx",
+      "tags": ["detail", "lines"],
+      "note": "Hyper-detail lines and extra doodads.",
+      "enabled": true,
+      "recommended_weight": 0.25
     },
     {
-      "id": "stylizedtexture_v2",
-      "filename": "StylizedTexture_v2.safetensors",
-      "rel_path": "models/Lora/StylizedTexture_v2.safetensors"
+      "id": "hotarucontrast_v100",
+      "label": "hotarucontrast",
+      "prompt_snippet": "<lora:hotarucontrast_v100:0.22>",
+      "ui_group": "fx_helpers",
+      "role": "fx",
+      "tags": ["contrast"],
+      "note": "Contrast booster for punchier icons.",
+      "enabled": true,
+      "recommended_weight": 0.22
     },
     {
-      "id": "surreal_fantasy_lora",
-      "filename": "surreal-fantasy-lora.safetensors",
-      "rel_path": "models/Lora/surreal-fantasy-lora.safetensors"
+      "id": "Chinese_Cloud_Pattern",
+      "label": "Chinese Cloud Pattern",
+      "prompt_snippet": "<lora:Chinese_Cloud_Pattern:0.60>",
+      "ui_group": "fx_helpers",
+      "role": "fx",
+      "tags": ["clouds", "ornament"],
+      "note": "Traditional Chinese cloud motifs.",
+      "enabled": true,
+      "recommended_weight": 0.6
     },
     {
-      "id": "tbh53",
-      "filename": "tbh53-.safetensors",
-      "rel_path": "models/Lora/tbh53-.safetensors"
+      "id": "Aztec_Ornamentation",
+      "label": "Aztec Ornamentation",
+      "prompt_snippet": "<lora:Aztec_Ornamentation:0.65>",
+      "ui_group": "fx_helpers",
+      "role": "fx",
+      "tags": ["aztec", "ornament"],
+      "note": "Aztec ornamentation and geometry.",
+      "enabled": true,
+      "recommended_weight": 0.65
     },
     {
-      "id": "the_last_airbender_offset",
-      "filename": "the_last_airbender_offset.safetensors",
-      "rel_path": "models/Lora/the_last_airbender_offset.safetensors"
+      "id": "Mayan_Glyphs",
+      "label": "Mayan Glyphs",
+      "prompt_snippet": "<lora:Mayan_Glyphs:0.65>",
+      "ui_group": "fx_helpers",
+      "role": "fx",
+      "tags": ["mayan", "glyphs"],
+      "note": "Mayan glyph symbols and iconography.",
+      "enabled": true,
+      "recommended_weight": 0.65
     },
     {
-      "id": "tkytoilft15",
-      "filename": "tkytoilFT15.safetensors",
-      "rel_path": "models/Lora/tkytoilFT15.safetensors"
+      "id": "Inca_Symbols",
+      "label": "Inca Symbols",
+      "prompt_snippet": "<lora:Inca_Symbols:0.65>",
+      "ui_group": "fx_helpers",
+      "role": "fx",
+      "tags": ["inca", "symbols"],
+      "note": "Inca civilization symbols and motifs.",
+      "enabled": true,
+      "recommended_weight": 0.65
     },
     {
-      "id": "western_animation_style",
-      "filename": "western_animation_style.safetensors",
-      "rel_path": "models/Lora/western_animation_style.safetensors"
-    },
-    {
-      "id": "xsarchitectural_14openingenvironment",
-      "filename": "xsarchitectural-14Openingenvironment.safetensors",
-      "rel_path": "models/Lora/xsarchitectural-14Openingenvironment.safetensors"
-    }
-  ],
-  "embeddings": [
-    {
-      "id": "baddream",
-      "filename": "BadDream.pt",
-      "rel_path": "embeddings/BadDream.pt"
-    },
-    {
-      "id": "fastnegativeembeddingstrong",
-      "filename": "FastNegativeEmbeddingStrong.pt",
-      "rel_path": "embeddings/FastNegativeEmbeddingStrong.pt"
-    },
-    {
-      "id": "fastnegativev2",
-      "filename": "FastNegativeV2.pt",
-      "rel_path": "embeddings/FastNegativeV2.pt"
-    },
-    {
-      "id": "unrealisticdream",
-      "filename": "UnrealisticDream.pt",
-      "rel_path": "embeddings/UnrealisticDream.pt"
-    }
-  ],
-  "controlnet": [
-    {
-      "id": "clip_vitl",
-      "filename": "clip_vitl.pth",
-      "rel_path": "extensions/sd-webui-controlnet/annotator/downloads/clip_vision/clip_vitl.pth"
-    },
-    {
-      "id": "controlnetmyseeedgedrawing_02",
-      "filename": "controlnetMyseeEdgeDrawing_02.safetensors",
-      "rel_path": "extensions/sd-webui-controlnet/models/controlnetMyseeEdgeDrawing_02.safetensors"
-    },
-    {
-      "id": "t2iadapter_canny_sd15v2",
-      "filename": "t2iadapter_canny_sd15v2.pth",
-      "rel_path": "extensions/sd-webui-controlnet/models/t2iadapter_canny_sd15v2.pth"
-    },
-    {
-      "id": "t2iadapter_color_sd14v1",
-      "filename": "t2iadapter_color_sd14v1.pth",
-      "rel_path": "extensions/sd-webui-controlnet/models/t2iadapter_color_sd14v1.pth"
-    },
-    {
-      "id": "t2iadapter_depth_sd15v2",
-      "filename": "t2iadapter_depth_sd15v2.pth",
-      "rel_path": "extensions/sd-webui-controlnet/models/t2iadapter_depth_sd15v2.pth"
-    },
-    {
-      "id": "t2iadapter_openpose_sd14v1",
-      "filename": "t2iadapter_openpose_sd14v1.pth",
-      "rel_path": "extensions/sd-webui-controlnet/models/t2iadapter_openpose_sd14v1.pth"
-    },
-    {
-      "id": "t2iadapter_sketch_sd15v2",
-      "filename": "t2iadapter_sketch_sd15v2.pth",
-      "rel_path": "extensions/sd-webui-controlnet/models/t2iadapter_sketch_sd15v2.pth"
-    }
-  ],
-  "animatediff": [
-    {
-      "id": "mm_sd15_v2",
-      "filename": "mm_sd15_v2.safetensors",
-      "rel_path": "extensions/sd-webui-animatediff/model/mm_sd15_v2.safetensors"
-    },
-    {
-      "id": "mm_sd15_v3",
-      "filename": "mm_sd15_v3.safetensors",
-      "rel_path": "extensions/sd-webui-animatediff/model/mm_sd15_v3.safetensors"
+      "id": "add_detail",
+      "label": "add_detail",
+      "prompt_snippet": "<lora:add_detail:0.25>",
+      "ui_group": "fx_helpers",
+      "role": "fx",
+      "tags": ["detail"],
+      "note": "Adds small extra detail lines.",
+      "enabled": true,
+      "recommended_weight": 0.25
     }
   ]
 }
