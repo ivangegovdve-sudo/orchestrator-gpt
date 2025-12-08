@@ -2,23 +2,194 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Temporary Image Display</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SD Orchestrator Hub</title>
   <style>
+    :root {
+      --bg: #020617;
+      --card: rgba(15, 23, 42, 0.8);
+      --text: #e5e7eb;
+      --muted: #94a3b8;
+      --accent: #38bdf8;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
     body {
       margin: 0;
-      background: #000;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
+      min-height: 100vh;
+      background: radial-gradient(circle at 20% 20%, rgba(56, 189, 248, 0.08), transparent 32%),
+        radial-gradient(circle at 80% 0%, rgba(56, 189, 248, 0.05), transparent 28%),
+        var(--bg);
+      color: var(--text);
+      font-family: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+      padding: 32px 18px 42px;
     }
-    img {
-      max-width: 100%;
-      max-height: 100%;
+
+    .page {
+      max-width: 1080px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    header {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 26px;
+      letter-spacing: 0.01em;
+    }
+
+    .subtitle {
+      margin: 0;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .status {
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .status-ok {
+      color: #6ee7b7;
+    }
+
+    .status-error {
+      color: #fca5a5;
+    }
+
+    .hero-card {
+      border-radius: 16px;
+      border: 1px solid rgba(148, 163, 184, 0.35);
+      background: linear-gradient(145deg, rgba(15, 23, 42, 0.95), rgba(2, 6, 23, 0.9));
+      overflow: hidden;
+    }
+
+    .hero-card img {
+      width: 100%;
+      display: block;
+      object-fit: cover;
+      max-height: 420px;
+    }
+
+    .tool-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 14px;
+    }
+
+    /* Prompt Builder tile styles */
+    .tool-card {
+      display: block;
+      text-decoration: none;
+      border-radius: 14px;
+      border: 1px solid rgba(148, 163, 184, 0.35);
+      background: radial-gradient(circle at top left, rgba(56, 189, 248, 0.10), #020617);
+      padding: 12px 14px;
+      color: #e5e7eb;
+      transition: transform 0.12s ease, box-shadow 0.12s ease, border-color 0.12s ease;
+    }
+    .tool-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 26px rgba(15, 23, 42, 0.9);
+      border-color: rgba(56, 189, 248, 0.55);
+    }
+    .tool-card-title {
+      font-size: 15px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 4px;
+    }
+    .tool-card-subtitle {
+      font-size: 12px;
+      color: #9ca3af;
+      margin-bottom: 6px;
+    }
+    .tool-card-meta {
+      font-size: 10px;
+      color: #6b7280;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+    .tool-pill {
+      font-size: 10px;
+      padding: 2px 6px;
+      border-radius: 999px;
+      border: 1px solid rgba(56, 189, 248, 0.4);
+      color: #38bdf8;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
     }
   </style>
 </head>
 <body>
-  <img src="/data/kTidsoptimist.jpg" alt="Temporary Image">
+  <div class="page">
+    <header>
+      <h1>SD Orchestrator Hub</h1>
+      <p class="subtitle">Quick links to the orchestration tools.</p>
+      <span id="jsonPresetStatus" class="status"></span>
+    </header>
+
+    <div class="hero-card">
+      <img src="/data/kTidsoptimist.jpg" alt="Temporary Image" />
+    </div>
+
+    <div class="tool-grid">
+      <!-- Prompt Builder tile -->
+      <a href="/web/prompt-builder/" class="tool-card">
+        <div class="tool-card-body">
+          <div class="tool-card-title">
+            Prompt Builder
+            <span class="tool-pill">SD Orchestrator</span>
+          </div>
+          <div class="tool-card-subtitle">
+            Build dynamic SD prompts with curated LoRAs, JSON presets, and optional A1111 API output.
+          </div>
+          <div class="tool-card-meta">
+            <span>Reads: /data/presets/newPresets.json</span>
+            <span>Reads: /data/sd_inventory_curated.json</span>
+          </div>
+        </div>
+      </a>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const statusEl = document.getElementById('jsonPresetStatus');
+      if (!statusEl) return;
+
+      fetch('/data/presets/newPresets.json')
+        .then(res => {
+          if (!res.ok) {
+            throw new Error('HTTP ' + res.status);
+          }
+          return res.json();
+        })
+        .then(data => {
+          const count = Array.isArray(data.presets) ? data.presets.length : 0;
+          statusEl.textContent = `Loaded ${count} JSON presets from newPresets.json`;
+          statusEl.classList.add('status-ok');
+          window.orchestratorPresets = data;
+        })
+        .catch(err => {
+          statusEl.textContent =
+            `Could not load JSON presets from /data/presets/newPresets.json (${err.message}). You can still work fully manually.`;
+          statusEl.classList.add('status-error');
+        });
+    });
+  </script>
 </body>
 </html>

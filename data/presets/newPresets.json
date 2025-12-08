@@ -1,0 +1,46 @@
+{
+  "schema": "ivan-lora-presets-v1",
+  "description": "Prompt Builder presets for curated SD LoRAs (icons, FX, and detailing).",
+  "presets": [
+    {
+      "id": "fantasy_icon_base",
+      "label": "Fantasy Icon Base",
+      "lora_file": "fantasyV1.1",
+      "categories": ["icons", "fantasy", "base"],
+      "base_model": "SDXL",
+      "lora_in_prompt": "<lora:fantasyV1.1:0.48>",
+      "prompt": "isometric fantasy item icon, centered subject, dramatic rim light, ornate detailing, painterly edges, highly readable silhouette",
+      "negative": "low quality, blurry, text, watermark, cropped"
+    },
+    {
+      "id": "handpainted_rpg_icons",
+      "label": "Handpainted RPG Icons",
+      "lora_file": "rpgicondiff",
+      "categories": ["icons", "handpainted", "style"],
+      "base_model": "SDXL",
+      "lora_in_prompt": "[rpgicondiff:3]",
+      "prompt": "hand painted rpg game icon, fantasy ui element, textured brush strokes, rich color palette, crisp edges, dramatic lighting",
+      "negative": "photo, noisy, disfigured, typography, stickers"
+    },
+    {
+      "id": "gilded_ornament_detail",
+      "label": "Gilded Ornament Detail",
+      "lora_file": "Gold_Carving",
+      "categories": ["materials", "ornament", "detail"],
+      "base_model": "SDXL",
+      "lora_in_prompt": "<lora:Gold_Carving:0.9>",
+      "prompt": "baroque gold carving trim, intricate filigree, reflective metal highlights, studio lighting, high detail",
+      "negative": "flat shading, dull, plastic, low contrast"
+    },
+    {
+      "id": "particle_fx_helper",
+      "label": "Particle FX Helper",
+      "lora_file": "particlefx",
+      "categories": ["fx", "helper"],
+      "base_model": "SDXL",
+      "lora_in_prompt": "<lora:particlefx:0.65>",
+      "prompt": "glowing particle effects swirling around subject, soft volumetric haze, magical energy trails, depth of field",
+      "negative": "overexposed, messy clutter, text overlays"
+    }
+  ]
+}
