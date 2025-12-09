@@ -1,0 +1,31 @@
+{
+  "runwareApiUrl": "https://api.runware.ai/v1",
+  "defaults": {
+    "width": 512,
+    "height": 512,
+    "steps": 30,
+    "cfgScale": 7.5,
+    "numberResults": 1,
+    "controlNet": {
+      "model": "runware:25@1",
+      "weight": 1.0,
+      "startStep": 1,
+      "endStep": 10,
+      "controlMode": "balanced"
+    },
+    "baseModel": {
+      "airBaseModel": "runware:101@1",
+      "airWesternAnimBase": "civitai:YOUR_WESTERN_ANIMATION_BASE@VERSION"
+    },
+    "lora": {
+      "westernAnimation": {
+        "airId": "civitai:YOUR_WESTERN_ANIMATION_LORA@VERSION",
+        "weight": 0.9
+      }
+    },
+    "prompts": {
+      "basePositiveTemplate": "item icon, {assetDescription}, western animation style, clean bold outlines, cel-shaded shading, vibrant colors, single object, centered composition, game-ready, professional illustration, simple flat background, no text",
+      "baseNegative": "nsfw, gore, logo, watermark, text, caption, extra objects, lowres, blurry, noisy, overexposed, underexposed, distorted, messy background"
+    }
+  }
+}
