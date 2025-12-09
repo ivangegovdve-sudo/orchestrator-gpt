@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Item Icon Generator</title>
+  <style>
+    :root {
+      font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+      color: #1f2933;
+      background-color: #f7f9fb;
+    }
+
+    body {
+      margin: 0;
+      padding: 32px 16px;
+      display: flex;
+      justify-content: center;
+    }
+
+    .container {
+      max-width: 900px;
+      width: 100%;
+      background: #fff;
+      border: 1px solid #d8e2ec;
+      border-radius: 12px;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
+      padding: 24px;
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      font-size: 24px;
+    }
+
+    p.description {
+      margin: 0 0 24px;
+      color: #52606d;
+    }
+
+    .layout {
+      display: flex;
+      gap: 24px;
+      flex-wrap: wrap;
+    }
+
+    .column {
+      flex: 1 1 300px;
+      min-width: 280px;
+    }
+
+    form {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    label {
+      font-weight: 600;
+      margin-bottom: 6px;
+      display: block;
+    }
+
+    input[type="text"],
+    textarea {
+      width: 100%;
+      padding: 10px 12px;
+      border-radius: 8px;
+      border: 1px solid #cbd2d9;
+      background: #f8f9fb;
+      font-size: 14px;
+      resize: vertical;
+    }
+
+    textarea {
+      min-height: 96px;
+    }
+
+    .checkbox-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    button {
+      padding: 12px 16px;
+      border: none;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #4f46e5, #6d28d9);
+      color: #fff;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform 0.1s ease, box-shadow 0.1s ease, opacity 0.2s ease;
+      box-shadow: 0 6px 14px rgba(79, 70, 229, 0.2);
+    }
+
+    button:disabled {
+      opacity: 0.7;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+
+    button:hover:not(:disabled) {
+      transform: translateY(-1px);
+      box-shadow: 0 8px 18px rgba(79, 70, 229, 0.25);
+    }
+
+    .card {
+      border: 1px solid #e1e7ef;
+      border-radius: 10px;
+      padding: 16px;
+      background: #fafbfc;
+    }
+
+    .result-item {
+      margin: 8px 0;
+    }
+
+    .result-item span {
+      font-weight: 600;
+    }
+
+    .error {
+      color: #b42318;
+      margin-top: 8px;
+      font-weight: 600;
+    }
+
+    .preview {
+      margin-top: 12px;
+      border-radius: 8px;
+      border: 1px solid #d8e2ec;
+      max-width: 100%;
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Item Icon Generator</h1>
+    <p class="description">Generate a stylized item icon from a seed image and description.</p>
+
+    <div class="layout">
+      <div class="column">
+        <form id="icon-form">
+          <div>
+            <label for="seedImageUrl">Seed Image URL</label>
+            <input type="text" id="seedImageUrl" name="seedImageUrl" placeholder="https://example.com/seed.png" />
+          </div>
+
+          <div>
+            <label for="assetDescription">Asset Description</label>
+            <textarea id="assetDescription" name="assetDescription" placeholder="Describe the item icon you want"></textarea>
+          </div>
+
+          <div>
+            <label for="styleHint">Optional Style Hint</label>
+            <input type="text" id="styleHint" name="styleHint" placeholder="e.g., painterly, metallic, neon" />
+          </div>
+
+          <div class="checkbox-row">
+            <input type="checkbox" id="useWesternAnimation" name="useWesternAnimation" />
+            <label for="useWesternAnimation">Use Western Animation Base Model</label>
+          </div>
+
+          <button type="submit" id="generateButton">Generate Item Icon</button>
+          <div id="error" class="error" role="alert" aria-live="assertive"></div>
+        </form>
+      </div>
+
+      <div class="column">
+        <div class="card">
+          <h2>Result</h2>
+          <div id="resultContent">
+            <p>Fill in the form and click "Generate Item Icon" to view results.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const form = document.getElementById('icon-form');
+    const resultContent = document.getElementById('resultContent');
+    const errorEl = document.getElementById('error');
+    const generateButton = document.getElementById('generateButton');
+
+    function renderResult({ task_uuid, image_url }) {
+      resultContent.innerHTML = `
+        <div class="result-item"><span>Task UUID:</span> ${task_uuid}</div>
+        <div class="result-item"><span>Image URL:</span> <a href="${image_url}" target="_blank" rel="noopener noreferrer">${image_url}</a></div>
+        <img class="preview" src="${image_url}" alt="Generated item icon" />
+      `;
+    }
+
+    function renderLoading() {
+      resultContent.innerHTML = '<p>Generating…</p>';
+    }
+
+    function renderError(message) {
+      errorEl.textContent = message;
+    }
+
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      renderError('');
+
+      const seedImageUrl = form.seedImageUrl.value.trim();
+      const assetDescription = form.assetDescription.value.trim();
+      const styleHint = form.styleHint.value.trim();
+      const useWesternAnimationBaseModel = form.useWesternAnimation.checked;
+
+      if (!seedImageUrl || !assetDescription) {
+        renderError('Seed Image URL and Asset Description are required.');
+        return;
+      }
+
+      const body = {
+        seed_image_url: seedImageUrl,
+        asset_description: assetDescription,
+        style_hint: styleHint || undefined,
+        use_western_animation_base_model: useWesternAnimationBaseModel,
+      };
+
+      try {
+        generateButton.disabled = true;
+        renderLoading();
+
+        const response = await fetch('http://localhost:8000/api/item-icon', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body),
+        });
+
+        if (!response.ok) {
+          throw new Error('Request failed. Please try again.');
+        }
+
+        const data = await response.json();
+        renderResult(data);
+      } catch (err) {
+        renderError(err.message || 'An unexpected error occurred.');
+        resultContent.innerHTML = '<p>Something went wrong. Please try again.</p>';
+      } finally {
+        generateButton.disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>
