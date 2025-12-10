@@ -15,17 +15,220 @@
     },
     "baseModel": {
       "airBaseModel": "runware:101@1",
-      "airWesternAnimBase": "civitai:YOUR_WESTERN_ANIMATION_BASE@VERSION"
-    },
-    "lora": {
-      "westernAnimation": {
-        "airId": "civitai:YOUR_WESTERN_ANIMATION_LORA@VERSION",
-        "weight": 0.9
-      }
+      "airWesternAnimBase": "civitai:REPLACE_WITH_WESTERN_ANIM_BASE@1"
     },
     "prompts": {
-      "basePositiveTemplate": "item icon, {assetDescription}, western animation style, clean bold outlines, cel-shaded shading, vibrant colors, single object, centered composition, game-ready, professional illustration, simple flat background, no text",
-      "baseNegative": "nsfw, gore, logo, watermark, text, caption, extra objects, lowres, blurry, noisy, overexposed, underexposed, distorted, messy background"
+      "basePositiveTemplate": "item icon, {assetDescription}, single object, centered composition, western animation style, clean bold outlines, cel-shaded shading, vibrant colors, simple flat background, game-ready, professional illustration",
+      "baseNegative": "nsfw, gore, logo, watermark, text, caption, extra objects, multiple items, lowres, blurry, noisy, overexposed, underexposed, distorted, messy background"
+    }
+  },
+  "schema": {
+    "rarities": {
+      "common": {
+        "name": "Common",
+        "promptTags": "simple, muted colors, low-contrast detailing"
+      },
+      "uncommon": {
+        "name": "Uncommon",
+        "promptTags": "slightly ornate, soft magical accents, mild glow"
+      },
+      "rare": {
+        "name": "Rare",
+        "promptTags": "ornate, intricate, magical energy accents, vibrant colors"
+      },
+      "epic": {
+        "name": "Epic",
+        "promptTags": "radiant effects, dramatic shading, complex ornamentation"
+      },
+      "legendary": {
+        "name": "Legendary",
+        "promptTags": "divine aura, brilliant highlights, supreme craftsmanship, mythic presence"
+      }
+    },
+    "elements": {
+      "none": {
+        "name": "None",
+        "promptTags": ""
+      },
+      "fire": {
+        "name": "Fire",
+        "promptTags": "fire element, warm orange glow, ember sparks, molten accents"
+      },
+      "water": {
+        "name": "Water",
+        "promptTags": "water element, cool fluid accents, droplets, soft blue glow"
+      },
+      "earth": {
+        "name": "Earth",
+        "promptTags": "earth element, stone cracks, moss textures, grounded colors"
+      },
+      "air": {
+        "name": "Air",
+        "promptTags": "air element, swirling wisps, feather-light shapes"
+      },
+      "lightning": {
+        "name": "Lightning",
+        "promptTags": "electric arcs, sharp blue-violet glow, crackling energy"
+      },
+      "ice": {
+        "name": "Ice",
+        "promptTags": "ice element, frosted edges, crystalline surfaces, pale blue hues"
+      },
+      "shadow": {
+        "name": "Shadow",
+        "promptTags": "shadow aura, deep purple-black glow, ethereal wisps"
+      },
+      "holy": {
+        "name": "Holy",
+        "promptTags": "holy light, divine white-gold radiance, gentle aura"
+      }
+    },
+    "biomes": {
+      "none": {
+        "name": "None",
+        "promptTags": ""
+      },
+      "forest": {
+        "name": "Forest",
+        "promptTags": "forest biome, natural green tones, mossy textures, soft daylight"
+      },
+      "desert": {
+        "name": "Desert",
+        "promptTags": "desert biome, warm sand tones, sun-bleached surfaces"
+      },
+      "tundra": {
+        "name": "Tundra",
+        "promptTags": "tundra biome, frost edging, cold ambient light"
+      },
+      "volcanic": {
+        "name": "Volcanic",
+        "promptTags": "volcanic biome, magma cracks, scorch marks, ash particles"
+      },
+      "swamp": {
+        "name": "Swamp",
+        "promptTags": "swamp biome, moisture sheen, murky green palette"
+      },
+      "celestial": {
+        "name": "Celestial",
+        "promptTags": "celestial biome, cosmic glow, star flecks, nebula colors"
+      },
+      "underwater": {
+        "name": "Underwater",
+        "promptTags": "underwater biome, caustic light patterns, bubbles, turquoise hues"
+      }
+    },
+    "styles": {
+      "western_animation_default": {
+        "name": "Western Animation (Default)",
+        "promptTags": "western animation style, clean bold outlines, cel-shading, saturated colors, crisp silhouettes"
+      },
+      "comic_book": {
+        "name": "Comic Book",
+        "promptTags": "comic book style, thick ink outlines, halftone shading, dramatic color blocking"
+      },
+      "retro_cartoon_90s": {
+        "name": "Retro Cartoon (90s)",
+        "promptTags": "90s cartoon aesthetic, soft shading, vibrant toy-like shapes"
+      },
+      "modern_vector": {
+        "name": "Modern Vector",
+        "promptTags": "flat vector illustration, geometric shading, minimal gradients"
+      },
+      "dark_fantasy": {
+        "name": "Dark Fantasy",
+        "promptTags": "dark fantasy illustration, muted dramatic tones, intricate ornamentation"
+      },
+      "high_fantasy": {
+        "name": "High Fantasy",
+        "promptTags": "high fantasy illustration, ornate decorations, radiant accents"
+      }
+    },
+    "categories": {
+      "potion": {
+        "name": "Potion",
+        "promptTags": "glass bottle, fluid transparency, cork cap"
+      },
+      "weapon": {
+        "name": "Weapon",
+        "promptTags": "forged metal, stylized silhouette, heroic shape"
+      },
+      "armor": {
+        "name": "Armor",
+        "promptTags": "metal plates, rivets, stylized protective geometry"
+      },
+      "gem": {
+        "name": "Gem",
+        "promptTags": "faceted gem, translucent material, internal glow"
+      },
+      "scroll": {
+        "name": "Scroll",
+        "promptTags": "rolled parchment, decorative seal, arcane symbols"
+      },
+      "food": {
+        "name": "Food",
+        "promptTags": "cartoon food icon, exaggerated stylization, appetizing colors"
+      },
+      "currency": {
+        "name": "Currency",
+        "promptTags": "coin with emblem, embossed metal, clean highlights"
+      },
+      "material": {
+        "name": "Material",
+        "promptTags": "resource item, simple iconic shape, clean silhouette"
+      }
+    },
+    "loraPacks": {
+      "none": {
+        "name": "None",
+        "entries": []
+      },
+      "color_boost": {
+        "name": "Color Boost",
+        "entries": [
+          {
+            "name": "Heavy colours concept",
+            "airModel": "civitai:REPLACE_WITH_HEAVY_COLOURS_AIR@1",
+            "weight": 0.6,
+            "trigger": "color"
+          }
+        ]
+      },
+      "metal_fantasy": {
+        "name": "Metal Fantasy",
+        "entries": [
+          {
+            "name": "1981 Heavy Metal style",
+            "airModel": "civitai:REPLACE_WITH_1981_HEAVY_METAL_AIR@1",
+            "weight": 0.45,
+            "trigger": "HeavyMetal1981 style"
+          }
+        ]
+      },
+      "crystal_magic": {
+        "name": "Crystal Magic",
+        "entries": [
+          {
+            "name": "Crystal Style V1",
+            "airModel": "civitai:REPLACE_WITH_CRYSTAL_STYLE_AIR@1",
+            "weight": 0.6
+          },
+          {
+            "name": "Gemstones",
+            "airModel": "civitai:REPLACE_WITH_GEMSTONES_AIR@1",
+            "weight": 0.4
+          }
+        ]
+      },
+      "fantasy_icon": {
+        "name": "Fantasy Icon",
+        "entries": [
+          {
+            "name": "BG3 Item Icons LoRA",
+            "airModel": "civitai:REPLACE_WITH_BG3_ICON_AIR@1",
+            "weight": 0.8
+          }
+        ]
+      }
     }
   }
 }
