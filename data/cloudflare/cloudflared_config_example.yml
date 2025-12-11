@@ -1,0 +1,18 @@
+# cloudflared_config_example.yml
+#
+# This is a template for the Cloudflare tunnel config used on my local machine.
+# To apply it:
+#  1. Open this file in an editor.
+#  2. Copy all contents.
+#  3. Paste/overwrite into: C:\Users\igegov\.cloudflared\config.yml
+#  4. Restart the tunnel: `cloudflared tunnel run sd-tunnel`
+#
+# NOTE: This file is not read by the app; it only lives in the repo for reference and backup.
+
+tunnel: 7cb36fe2-456a-448e-b783-94f02fa472f4
+credentials-file: C:\Users\igegov\.cloudflared\7cb36fe2-456a-448e-b783-94f02fa472f4.json
+
+ingress:
+  - hostname: ai.sdforest.site
+    service: http://localhost:7860
+  - service: http_status:404
