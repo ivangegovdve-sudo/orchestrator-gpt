@@ -784,6 +784,51 @@
           <button class="secondary" onclick="sendToA1111()">Send to A1111 (txt2img)</button>
         </div>
         <div id="apiStatus" class="status-line"></div>
+        <div class="param-field" style="margin-top:12px;">
+          <div class="param-label">ControlNet base image</div>
+          <input type="file" id="controlImage" accept="image/*">
+          <small>Local-only; used for ControlNet img2img and preprocess previews.</small>
+        </div>
+        <div class="param-field" style="margin-top:8px;">
+          <label for="cnPreprocessModule" style="display:block; margin-bottom:4px;"> 
+            ControlNet preprocess module 
+          </label> 
+          <select id="cnPreprocessModule" style="width:100%; margin-bottom:8px;"> 
+            <option value="canny" selected>Canny (edges)</option> 
+            <option value="lineart">Lineart</option> 
+            <option value="softedge">Softedge</option> 
+          </select>
+          <div class="param-grid">
+            <div class="param-field">
+              <div class="param-label">Canny thresholds</div>
+              <div class="param-inline" style="gap:8px;">
+                <input type="number" id="cannyLow" value="100" min="0" max="255" step="1" style="max-width:110px;">
+                <input type="number" id="cannyHigh" value="200" min="0" max="255" step="1" style="max-width:110px;">
+              </div>
+              <small>Only used when the Canny module is selected.</small>
+            </div>
+            <div class="param-field">
+              <div class="param-label">Guidance range</div>
+              <div class="param-inline" style="gap:8px;">
+                <input type="number" id="cannyStart" value="0.0" min="0" max="1" step="0.01" style="max-width:110px;">
+                <input type="number" id="cannyEnd" value="0.33" min="0" max="1" step="0.01" style="max-width:110px;">
+              </div>
+              <small>Start / end used for ControlNet img2img requests.</small>
+            </div>
+          </div>
+          <div class="param-field" style="margin-top:6px;">
+            <div class="param-label">ControlNet model (optional override)</div>
+            <input type="text" id="cannyModel" placeholder="control_v11p_sd15_canny [d14c016b]">
+          </div>
+          <div class="actions" style="margin-top:6px; gap:6px;">
+            <button class="secondary" type="button" onclick="previewPreprocess()">Preview preprocess</button>
+            <button class="secondary" type="button" onclick="previewCanny()">Preview Canny edges</button>
+          </div>
+          <div id="cannyPreviewContainer" style="display:none; margin-top:8px;">
+            <div class="param-label">Preprocess preview</div>
+            <img id="cannyPreviewImg" style="max-width:100%; border-radius:12px; border:1px solid var(--border);" alt="ControlNet preprocess preview">
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -1462,7 +1507,7 @@
     return Number.isFinite(v) ? v : fallback;
   }
 
-  async function previewCanny() {
+  async function previewPreprocess(forcedModule) {
     try {
       const baseUrl = readApiBaseUrl();
 
@@ -1474,22 +1519,28 @@
 
       const bare = await fileToBase64Bare(fileInput.files[0]);
 
+      const moduleSelect = document.getElementById("cnPreprocessModule");
+      const moduleName = forcedModule || (moduleSelect && moduleSelect.value) || "canny";
+
       const low  = readNumberInput("cannyLow", 100);
       const high = readNumberInput("cannyHigh", 200);
 
-      const width  = readNumberInput("widthInput", 768);
-      const height = readNumberInput("heightInput", 768);
+      const width  = readNumberInput("sdWidth", 768);
+      const height = readNumberInput("sdHeight", 768);
       const processorRes = Math.max(width, height, 512);
 
       const payload = {
-        controlnet_module: "canny",
+        controlnet_module: moduleName,
         controlnet_input_images: [
           "data:image/png;base64," + bare
         ],
-        controlnet_processor_res: processorRes,
-        controlnet_threshold_a: low,
-        controlnet_threshold_b: high
+        controlnet_processor_res: processorRes
       };
+
+      if (moduleName === "canny") {
+        payload.controlnet_threshold_a = low;
+        payload.controlnet_threshold_b = high;
+      }
 
       const res = await fetch(baseUrl + "/controlnet/detect", {
         method: "POST",
@@ -1523,9 +1574,13 @@
       if (container) container.style.display = "block";
       if (imgEl) imgEl.src = src;
     } catch (err) {
-      console.error("previewCanny() error", err);
-      alert("Unexpected error during Canny preview. See console.");
+      console.error("previewPreprocess() error", err);
+      alert("Unexpected error during preprocess preview. See console.");
     }
+  }
+
+  function previewCanny() {
+    previewPreprocess("canny");
   }
 
   function getBuiltPrompts() {
@@ -1541,8 +1596,8 @@
 
     const steps       = readNumberInput("stepsInput", 28);
     const cfgScale    = readNumberInput("cfgInput", 7.0);
-    const width       = readNumberInput("widthInput", 768);
-    const height      = readNumberInput("heightInput", 768);
+    const width       = readNumberInput("sdWidth", 768);
+    const height      = readNumberInput("sdHeight", 768);
     const denoising   = readNumberInput("denoiseInput", 0.75);
     const batchSize   = readNumberInput("batchSizeInput", 1);
     const nIter       = readNumberInput("batchCountInput", 1);
@@ -1666,8 +1721,8 @@
       } else {
         const steps       = readNumberInput("stepsInput", 28);
         const cfgScale    = readNumberInput("cfgInput", 7.0);
-        const width       = readNumberInput("widthInput", 768);
-        const height      = readNumberInput("heightInput", 768);
+        const width       = readNumberInput("sdWidth", 768);
+        const height      = readNumberInput("sdHeight", 768);
         const batchSize   = readNumberInput("batchSizeInput", 1);
         const nIter       = readNumberInput("batchCountInput", 1);
         const samplerName = document.getElementById("samplerInput")?.value || "DPM++ 2M Karras";
