@@ -1,4 +1,4 @@
-<!-- NOTE: Prompt Builder v4 title not uniquely resolvable; no automated edits applied. -->
+<!-- NOTE: Multiple Prompt Builder v4 candidates; treating this file as primary for A1111 API wiring. -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -749,7 +749,7 @@
     <div class="col">
       <div class="group">
         <div class="group-title">
-          <span>Automatic1111 API (optional)</span>
+          <span>A1111 API / ControlNet (experimental)</span>
           <span class="badge-soft">
             <span class="pill-dot off" id="apiDot"></span> local only
           </span>
@@ -765,8 +765,19 @@
             </div>
           </div>
           <div class="param-field">
-            <div class="param-label">A1111 base URL</div>
-            <input type="text" id="apiBaseUrl" value="http://127.0.0.1:7860">
+            <label for="apiBaseUrl">
+              API base URL
+              <small>(local A1111 with <code>--api</code> enabled)</small>
+            </label>
+            <input id="apiBaseUrl" type="text" value="http://127.0.0.1:7860">
+            <small>
+              This tool is designed for local use only (no remote/tunnel endpoints).
+              Make sure A1111 is running with <code>--api --cors-allow-origins=*</code>.
+            </small>
+            <div id="apiStatusRow" style="margin-top:8px; display:flex; align-items:center; gap:8px;">
+              <button type="button" class="secondary" id="testApiButton">Test API</button>
+              <span id="apiStatusText" style="font-size:0.85rem; opacity:0.8;">Idle</span>
+            </div>
           </div>
         </div>
         <div class="actions" style="margin-top:8px;">
@@ -1262,6 +1273,42 @@
     }
   }
 
+  function readApiBaseUrl() {
+    const el = document.getElementById("apiBaseUrl");
+    if (!el) return "http://127.0.0.1:7860";
+    let url = (el.value || "").trim();
+    if (!url) url = "http://127.0.0.1:7860";
+    // Normalize: no trailing slash
+    url = url.replace(/\/+$, "");
+    return url;
+  }
+
+  async function testApiConnection() {
+    const statusEl = document.getElementById("apiStatusText");
+    if (statusEl) statusEl.textContent = "Testing...";
+    const baseUrl = readApiBaseUrl();
+    try {
+      const res = await fetch(baseUrl + "/sdapi/v1/sd-models", {
+        method: "GET"
+      });
+      if (!res.ok) {
+        if (statusEl) statusEl.textContent = "Error: " + res.status + " from /sdapi/v1/sd-models";
+        console.error("A1111 API test failed:", res.status, await res.text().catch(() => ""));
+        return;
+      }
+      const data = await res.json().catch(() => null);
+      if (!data || !Array.isArray(data)) {
+        if (statusEl) statusEl.textContent = "Connected, but response not as expected.";
+        console.warn("Unexpected /sdapi/v1/sd-models response", data);
+        return;
+      }
+      if (statusEl) statusEl.textContent = "OK (" + data.length + " models)";
+    } catch (err) {
+      console.error("A1111 API test error", err);
+      if (statusEl) statusEl.textContent = "Error: " + (err && err.message ? err.message : "Failed to fetch");
+    }
+  }
+
   async function sendToA1111() {
     const enabled = document.getElementById('apiEnabled').checked;
     const dot = document.getElementById('apiDot');
@@ -1272,7 +1319,7 @@
       return;
     }
 
-    const baseUrl = document.getElementById('apiBaseUrl').value.trim() || "http://127.0.0.1:7860";
+    const baseUrl = readApiBaseUrl();
     const pos = document.getElementById('posOut').value;
     const neg = document.getElementById('negOut').value;
 
@@ -1307,7 +1354,7 @@
     dot.classList.add('warn');
 
     try {
-      const res = await fetch(baseUrl.replace(/\/+$/,"") + "/sdapi/v1/txt2img", {
+      const res = await fetch(baseUrl + "/sdapi/v1/txt2img", {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
@@ -1324,6 +1371,20 @@
       setApiStatus("Could not reach A1111 API (" + err.message + "). This is expected on Vercel; use local browser + CORS-friendly setup.", true);
       dot.classList.add('warn');
     }
+  }
+
+  function initApiStatusUI() {
+    const btn = document.getElementById("testApiButton");
+    if (btn) {
+      btn.addEventListener("click", () => {
+        testApiConnection();
+      });
+    }
+  }
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initApiStatusUI);
+  } else {
+    initApiStatusUI();
   }
 
   document.addEventListener('DOMContentLoaded', function () {
@@ -1403,8 +1464,7 @@
 
   async function previewCanny() {
     try {
-      const baseUrlInput = document.getElementById("apiBaseUrl");
-      const baseUrl = (baseUrlInput?.value || "").trim() || "http://127.0.0.1:7860";
+      const baseUrl = readApiBaseUrl();
 
       const fileInput = document.getElementById("controlImage");
       if (!fileInput || !fileInput.files || !fileInput.files[0]) {
@@ -1589,8 +1649,7 @@
         return;
       }
 
-      const baseUrlInput = document.getElementById("apiBaseUrl");
-      const baseUrl = (baseUrlInput?.value || "").trim() || "http://127.0.0.1:7860";
+      const baseUrl = readApiBaseUrl();
 
       const modeEl = document.querySelector("input[name='apiMode']:checked");
       const mode = modeEl ? modeEl.value : "txt2img";
