@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>A1111 / ControlNet Debug Harness</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    body { font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; margin: 16px; background: #111; color: #eee; }
+    .card { border-radius: 12px; padding: 16px; margin-bottom: 16px; background: #1c1c1c; box-shadow: 0 0 0 1px rgba(255,255,255,0.04); }
+    label { display:block; margin-bottom:4px; font-size:0.9rem; }
+    input, textarea, button, select { font-family: inherit; font-size: 0.9rem; }
+    input[type="text"], input[type="password"], textarea { width: 100%; padding: 6px 8px; border-radius: 6px; border: 1px solid #333; background:#000; color:#eee; }
+    input[type="number"] { padding: 6px 8px; border-radius: 6px; border: 1px solid #333; background:#000; color:#eee; }
+    button { padding: 6px 10px; border-radius: 6px; border:none; cursor:pointer; }
+    button.primary { background:#1976d2; color:#fff; }
+    button.secondary { background:#333; color:#eee; }
+    #log { white-space:pre-wrap; font-family: "JetBrains Mono", "Fira Code", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; font-size:0.8rem; max-height:260px; overflow:auto; background:#000; padding:8px; border-radius:8px; border:1px solid #333; }
+    img.preview { max-width: 100%; border-radius: 8px; border: 1px solid #333; margin-top:8px; }
+  </style>
+</head>
+<body>
+  <h1>A1111 / ControlNet Debug Harness</h1>
+  <p style="opacity:0.8; font-size:0.9rem;">
+    This page is for local debugging of the AUTOMATIC1111 API and ControlNet.
+    Make sure your WebUI is running with <code>--api --cors-allow-origins=*</code>.
+  </p>
+  
+  <div class="card">
+    <h2>Connection</h2>
+    <label for="dbgBaseUrl">API base URL</label>
+    <input id="dbgBaseUrl" type="text" value="http://127.0.0.1:7860" />
+    <small>Local-only; do not expose this URL publicly.</small>
+  </div>
+  
+  <div class="card">
+    <h2>Models</h2>
+    <button class="primary" id="btnListModels">GET /sdapi/v1/sd-models</button>
+  </div>
+  
+  <div class="card">
+    <h2>txt2img test</h2>
+    <label for="dbgPrompt">Prompt</label>
+    <textarea id="dbgPrompt" rows="3">simple fantasy icon, glowing potion, high quality</textarea>
+    <button class="primary" id="btnTxt2Img" style="margin-top:8px;">POST /sdapi/v1/txt2img</button>
+    <div id="dbgTxt2ImgResult"></div>
+  </div>
+  
+  <div class="card">
+    <h2>ControlNet detect (Canny)</h2>
+    <label for="dbgCnImage">Input image</label>
+    <input type="file" id="dbgCnImage" accept="image/*" />
+    <div style="margin-top:8px;">
+      <label for="dbgCannyLow">Low / High thresholds</label>
+      <input id="dbgCannyLow" type="number" value="100" style="max-width:120px;" />
+      <input id="dbgCannyHigh" type="number" value="200" style="max-width:120px;" />
+    </div>
+    <button class="primary" id="btnCnDetect" style="margin-top:8px;">POST /controlnet/detect (canny)</button>
+    <div id="dbgCnResult"></div>
+  </div>
+  
+  <div class="card">
+    <h2>Log</h2>
+    <pre id="log"></pre>
+    <button class="secondary" id="btnClearLog" style="margin-top:8px;">Clear log</button>
+  </div>
+  
+  <script>
+    function dbgBaseUrl() {
+      const el = document.getElementById("dbgBaseUrl");
+      let url = (el && el.value || "").trim();
+      if (!url) url = "http://127.0.0.1:7860";
+      return url.replace(/\/+$/, "");
+    }
+
+    function logLine(msg, data) {
+      const logEl = document.getElementById("log");
+      if (!logEl) return;
+      const time = new Date().toISOString();
+      let line = "[" + time + "] " + msg;
+      if (data !== undefined) {
+        try {
+          line += "\n" + JSON.stringify(data, null, 2);
+        } catch (err) {
+          line += "\n" + String(data);
+        }
+      }
+      logEl.textContent += (logEl.textContent ? "\n\n" : "") + line;
+      logEl.scrollTop = logEl.scrollHeight;
+    }
+
+    async function fetchModels() {
+      const baseUrl = dbgBaseUrl();
+      logLine("Fetching models from " + baseUrl + "/sdapi/v1/sd-models");
+      try {
+        const res = await fetch(baseUrl + "/sdapi/v1/sd-models", { method: "GET" });
+        const data = await res.json().catch(() => null);
+        logLine("Models response status: " + res.status, data);
+      } catch (err) {
+        logLine("Error fetching models", err && err.message ? err.message : err);
+      }
+    }
+
+    function renderImage(base64, targetId) {
+      const el = document.getElementById(targetId);
+      if (!el) return;
+      if (!base64) {
+        el.innerHTML = "<p style=\"color:#f88;\">No image returned.</p>";
+        return;
+      }
+      const img = document.createElement("img");
+      img.className = "preview";
+      img.src = "data:image/png;base64," + base64;
+      el.innerHTML = "";
+      el.appendChild(img);
+    }
+
+    async function runTxt2Img() {
+      const baseUrl = dbgBaseUrl();
+      const promptEl = document.getElementById("dbgPrompt");
+      const prompt = promptEl ? (promptEl.value || "").trim() : "";
+      const payload = {
+        prompt: prompt || "simple fantasy icon, glowing potion, high quality",
+        steps: 10,
+        width: 512,
+        height: 512,
+        batch_size: 1,
+        n_iter: 1
+      };
+      logLine("Calling txt2img at " + baseUrl, payload);
+      try {
+        const res = await fetch(baseUrl + "/sdapi/v1/txt2img", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json().catch(() => null);
+        logLine("txt2img response status: " + res.status, data);
+        if (data && Array.isArray(data.images) && data.images.length > 0) {
+          renderImage(data.images[0], "dbgTxt2ImgResult");
+        } else {
+          renderImage("", "dbgTxt2ImgResult");
+        }
+      } catch (err) {
+        logLine("txt2img error", err && err.message ? err.message : err);
+      }
+    }
+
+    function readFileAsDataUrl(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = (err) => reject(err);
+        reader.readAsDataURL(file);
+      });
+    }
+
+    async function runCnDetect() {
+      const fileInput = document.getElementById("dbgCnImage");
+      const lowInput = document.getElementById("dbgCannyLow");
+      const highInput = document.getElementById("dbgCannyHigh");
+      const baseUrl = dbgBaseUrl();
+
+      if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
+        alert("Please choose an input image first.");
+        return;
+      }
+
+      const file = fileInput.files[0];
+      let dataUrl;
+      try {
+        dataUrl = await readFileAsDataUrl(file);
+      } catch (err) {
+        logLine("Failed to read input image", err && err.message ? err.message : err);
+        return;
+      }
+      const base64 = (dataUrl || "").toString().replace(/^data:[^;]+;base64,/, "");
+      const payload = {
+        controlnet_module: "canny",
+        controlnet_input_images: ["data:image/png;base64," + base64],
+        controlnet_processor_res: 512,
+        controlnet_threshold_a: lowInput ? Number(lowInput.value || 0) : 0,
+        controlnet_threshold_b: highInput ? Number(highInput.value || 0) : 0
+      };
+      logLine("Calling ControlNet detect at " + baseUrl, payload);
+      try {
+        const res = await fetch(baseUrl + "/controlnet/detect", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json().catch(() => null);
+        logLine("ControlNet detect response status: " + res.status, data);
+        if (data && Array.isArray(data.images) && data.images.length > 0) {
+          renderImage(data.images[0], "dbgCnResult");
+        } else {
+          renderImage("", "dbgCnResult");
+        }
+      } catch (err) {
+        logLine("ControlNet detect error", err && err.message ? err.message : err);
+      }
+    }
+
+    function initDebugHarness() {
+      const btnModels = document.getElementById("btnListModels");
+      if (btnModels) btnModels.addEventListener("click", fetchModels);
+
+      const btnTxt2Img = document.getElementById("btnTxt2Img");
+      if (btnTxt2Img) btnTxt2Img.addEventListener("click", runTxt2Img);
+
+      const btnCnDetect = document.getElementById("btnCnDetect");
+      if (btnCnDetect) btnCnDetect.addEventListener("click", runCnDetect);
+
+      const btnClear = document.getElementById("btnClearLog");
+      if (btnClear) btnClear.addEventListener("click", () => {
+        const logEl = document.getElementById("log");
+        if (logEl) logEl.textContent = "";
+      });
+    }
+
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", initDebugHarness);
+    } else {
+      initDebugHarness();
+    }
+  </script>
+</body>
+</html>

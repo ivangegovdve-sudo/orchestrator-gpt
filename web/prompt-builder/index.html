@@ -1,4 +1,4 @@
-<!-- NOTE: Prompt Builder v4 title not uniquely resolvable; no automated edits applied. -->
+<!-- NOTE: Multiple Prompt Builder v4 candidates; treating this file as primary for A1111 API wiring. -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -749,7 +749,7 @@
     <div class="col">
       <div class="group">
         <div class="group-title">
-          <span>Automatic1111 API (optional)</span>
+          <span>A1111 API / ControlNet (experimental)</span>
           <span class="badge-soft">
             <span class="pill-dot off" id="apiDot"></span> local only
           </span>
@@ -765,14 +765,70 @@
             </div>
           </div>
           <div class="param-field">
-            <div class="param-label">A1111 base URL</div>
-            <input type="text" id="apiBaseUrl" value="http://127.0.0.1:7860">
+            <label for="apiBaseUrl">
+              API base URL
+              <small>(local A1111 with <code>--api</code> enabled)</small>
+            </label>
+            <input id="apiBaseUrl" type="text" value="http://127.0.0.1:7860">
+            <small>
+              This tool is designed for local use only (no remote/tunnel endpoints).
+              Make sure A1111 is running with <code>--api --cors-allow-origins=*</code>.
+            </small>
+            <div id="apiStatusRow" style="margin-top:8px; display:flex; align-items:center; gap:8px;">
+              <button type="button" class="secondary" id="testApiButton">Test API</button>
+              <span id="apiStatusText" style="font-size:0.85rem; opacity:0.8;">Idle</span>
+            </div>
           </div>
         </div>
         <div class="actions" style="margin-top:8px;">
           <button class="secondary" onclick="sendToA1111()">Send to A1111 (txt2img)</button>
         </div>
         <div id="apiStatus" class="status-line"></div>
+        <div class="param-field" style="margin-top:12px;">
+          <div class="param-label">ControlNet base image</div>
+          <input type="file" id="controlImage" accept="image/*">
+          <small>Local-only; used for ControlNet img2img and preprocess previews.</small>
+        </div>
+        <div class="param-field" style="margin-top:8px;">
+          <label for="cnPreprocessModule" style="display:block; margin-bottom:4px;"> 
+            ControlNet preprocess module 
+          </label> 
+          <select id="cnPreprocessModule" style="width:100%; margin-bottom:8px;"> 
+            <option value="canny" selected>Canny (edges)</option> 
+            <option value="lineart">Lineart</option> 
+            <option value="softedge">Softedge</option> 
+          </select>
+          <div class="param-grid">
+            <div class="param-field">
+              <div class="param-label">Canny thresholds</div>
+              <div class="param-inline" style="gap:8px;">
+                <input type="number" id="cannyLow" value="100" min="0" max="255" step="1" style="max-width:110px;">
+                <input type="number" id="cannyHigh" value="200" min="0" max="255" step="1" style="max-width:110px;">
+              </div>
+              <small>Only used when the Canny module is selected.</small>
+            </div>
+            <div class="param-field">
+              <div class="param-label">Guidance range</div>
+              <div class="param-inline" style="gap:8px;">
+                <input type="number" id="cannyStart" value="0.0" min="0" max="1" step="0.01" style="max-width:110px;">
+                <input type="number" id="cannyEnd" value="0.33" min="0" max="1" step="0.01" style="max-width:110px;">
+              </div>
+              <small>Start / end used for ControlNet img2img requests.</small>
+            </div>
+          </div>
+          <div class="param-field" style="margin-top:6px;">
+            <div class="param-label">ControlNet model (optional override)</div>
+            <input type="text" id="cannyModel" placeholder="control_v11p_sd15_canny [d14c016b]">
+          </div>
+          <div class="actions" style="margin-top:6px; gap:6px;">
+            <button class="secondary" type="button" onclick="previewPreprocess()">Preview preprocess</button>
+            <button class="secondary" type="button" onclick="previewCanny()">Preview Canny edges</button>
+          </div>
+          <div id="cannyPreviewContainer" style="display:none; margin-top:8px;">
+            <div class="param-label">Preprocess preview</div>
+            <img id="cannyPreviewImg" style="max-width:100%; border-radius:12px; border:1px solid var(--border);" alt="ControlNet preprocess preview">
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -1262,6 +1318,42 @@
     }
   }
 
+  function readApiBaseUrl() {
+    const el = document.getElementById("apiBaseUrl");
+    if (!el) return "http://127.0.0.1:7860";
+    let url = (el.value || "").trim();
+    if (!url) url = "http://127.0.0.1:7860";
+    // Normalize: no trailing slash
+    url = url.replace(/\/+$, "");
+    return url;
+  }
+
+  async function testApiConnection() {
+    const statusEl = document.getElementById("apiStatusText");
+    if (statusEl) statusEl.textContent = "Testing...";
+    const baseUrl = readApiBaseUrl();
+    try {
+      const res = await fetch(baseUrl + "/sdapi/v1/sd-models", {
+        method: "GET"
+      });
+      if (!res.ok) {
+        if (statusEl) statusEl.textContent = "Error: " + res.status + " from /sdapi/v1/sd-models";
+        console.error("A1111 API test failed:", res.status, await res.text().catch(() => ""));
+        return;
+      }
+      const data = await res.json().catch(() => null);
+      if (!data || !Array.isArray(data)) {
+        if (statusEl) statusEl.textContent = "Connected, but response not as expected.";
+        console.warn("Unexpected /sdapi/v1/sd-models response", data);
+        return;
+      }
+      if (statusEl) statusEl.textContent = "OK (" + data.length + " models)";
+    } catch (err) {
+      console.error("A1111 API test error", err);
+      if (statusEl) statusEl.textContent = "Error: " + (err && err.message ? err.message : "Failed to fetch");
+    }
+  }
+
   async function sendToA1111() {
     const enabled = document.getElementById('apiEnabled').checked;
     const dot = document.getElementById('apiDot');
@@ -1272,7 +1364,7 @@
       return;
     }
 
-    const baseUrl = document.getElementById('apiBaseUrl').value.trim() || "http://127.0.0.1:7860";
+    const baseUrl = readApiBaseUrl();
     const pos = document.getElementById('posOut').value;
     const neg = document.getElementById('negOut').value;
 
@@ -1307,7 +1399,7 @@
     dot.classList.add('warn');
 
     try {
-      const res = await fetch(baseUrl.replace(/\/+$/,"") + "/sdapi/v1/txt2img", {
+      const res = await fetch(baseUrl + "/sdapi/v1/txt2img", {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
@@ -1324,6 +1416,20 @@
       setApiStatus("Could not reach A1111 API (" + err.message + "). This is expected on Vercel; use local browser + CORS-friendly setup.", true);
       dot.classList.add('warn');
     }
+  }
+
+  function initApiStatusUI() {
+    const btn = document.getElementById("testApiButton");
+    if (btn) {
+      btn.addEventListener("click", () => {
+        testApiConnection();
+      });
+    }
+  }
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initApiStatusUI);
+  } else {
+    initApiStatusUI();
   }
 
   document.addEventListener('DOMContentLoaded', function () {
@@ -1401,10 +1507,9 @@
     return Number.isFinite(v) ? v : fallback;
   }
 
-  async function previewCanny() {
+  async function previewPreprocess(forcedModule) {
     try {
-      const baseUrlInput = document.getElementById("apiBaseUrl");
-      const baseUrl = (baseUrlInput?.value || "").trim() || "http://127.0.0.1:7860";
+      const baseUrl = readApiBaseUrl();
 
       const fileInput = document.getElementById("controlImage");
       if (!fileInput || !fileInput.files || !fileInput.files[0]) {
@@ -1414,22 +1519,28 @@
 
       const bare = await fileToBase64Bare(fileInput.files[0]);
 
+      const moduleSelect = document.getElementById("cnPreprocessModule");
+      const moduleName = forcedModule || (moduleSelect && moduleSelect.value) || "canny";
+
       const low  = readNumberInput("cannyLow", 100);
       const high = readNumberInput("cannyHigh", 200);
 
-      const width  = readNumberInput("widthInput", 768);
-      const height = readNumberInput("heightInput", 768);
+      const width  = readNumberInput("sdWidth", 768);
+      const height = readNumberInput("sdHeight", 768);
       const processorRes = Math.max(width, height, 512);
 
       const payload = {
-        controlnet_module: "canny",
+        controlnet_module: moduleName,
         controlnet_input_images: [
           "data:image/png;base64," + bare
         ],
-        controlnet_processor_res: processorRes,
-        controlnet_threshold_a: low,
-        controlnet_threshold_b: high
+        controlnet_processor_res: processorRes
       };
+
+      if (moduleName === "canny") {
+        payload.controlnet_threshold_a = low;
+        payload.controlnet_threshold_b = high;
+      }
 
       const res = await fetch(baseUrl + "/controlnet/detect", {
         method: "POST",
@@ -1463,9 +1574,13 @@
       if (container) container.style.display = "block";
       if (imgEl) imgEl.src = src;
     } catch (err) {
-      console.error("previewCanny() error", err);
-      alert("Unexpected error during Canny preview. See console.");
+      console.error("previewPreprocess() error", err);
+      alert("Unexpected error during preprocess preview. See console.");
     }
+  }
+
+  function previewCanny() {
+    previewPreprocess("canny");
   }
 
   function getBuiltPrompts() {
@@ -1481,8 +1596,8 @@
 
     const steps       = readNumberInput("stepsInput", 28);
     const cfgScale    = readNumberInput("cfgInput", 7.0);
-    const width       = readNumberInput("widthInput", 768);
-    const height      = readNumberInput("heightInput", 768);
+    const width       = readNumberInput("sdWidth", 768);
+    const height      = readNumberInput("sdHeight", 768);
     const denoising   = readNumberInput("denoiseInput", 0.75);
     const batchSize   = readNumberInput("batchSizeInput", 1);
     const nIter       = readNumberInput("batchCountInput", 1);
@@ -1589,8 +1704,7 @@
         return;
       }
 
-      const baseUrlInput = document.getElementById("apiBaseUrl");
-      const baseUrl = (baseUrlInput?.value || "").trim() || "http://127.0.0.1:7860";
+      const baseUrl = readApiBaseUrl();
 
       const modeEl = document.querySelector("input[name='apiMode']:checked");
       const mode = modeEl ? modeEl.value : "txt2img";
@@ -1607,8 +1721,8 @@
       } else {
         const steps       = readNumberInput("stepsInput", 28);
         const cfgScale    = readNumberInput("cfgInput", 7.0);
-        const width       = readNumberInput("widthInput", 768);
-        const height      = readNumberInput("heightInput", 768);
+        const width       = readNumberInput("sdWidth", 768);
+        const height      = readNumberInput("sdHeight", 768);
         const batchSize   = readNumberInput("batchSizeInput", 1);
         const nIter       = readNumberInput("batchCountInput", 1);
         const samplerName = document.getElementById("samplerInput")?.value || "DPM++ 2M Karras";
