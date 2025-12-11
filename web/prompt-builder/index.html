@@ -1,3 +1,4 @@
+<!-- NOTE: Prompt Builder v4 title not uniquely found; no automated edits applied. -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -652,6 +653,7 @@
     <button class="green" onclick="buildPrompt()">
       <span>Build Prompt</span>
     </button>
+    <button class="green" type="button" onclick="generateViaA1111()">Generate via A1111 API</button>
     <button class="secondary" onclick="clearSelections()">Clear LoRAs</button>
     <button class="secondary" onclick="savePresetSnapshot()">Export session JSON</button>
     <div class="toggle-row">
@@ -1374,6 +1376,194 @@
       }
     });
   });
+
+  async function fileToBase64Bare(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const result = reader.result;
+        if (typeof result === "string") {
+          const commaIndex = result.indexOf(",");
+          resolve(commaIndex >= 0 ? result.slice(commaIndex + 1) : result);
+        } else {
+          reject(new Error("Unexpected FileReader result type"));
+        }
+      };
+      reader.onerror = () => reject(reader.error || new Error("Failed to read file"));
+      reader.readAsDataURL(file);
+    });
+  }
+
+  function readNumberInput(id, fallback) {
+    const el = document.getElementById(id);
+    if (!el) return fallback;
+    const v = parseFloat(el.value);
+    return Number.isFinite(v) ? v : fallback;
+  }
+
+  function getBuiltPrompts() {
+    const posEl = document.getElementById("posOut");
+    const negEl = document.getElementById("negOut");
+    const pos = posEl ? posEl.value.trim() : "";
+    const neg = negEl ? negEl.value.trim() : "";
+    return { pos, neg };
+  }
+
+  function buildImg2ImgPayload(base64Image, pos, neg) {
+    const useCanny = document.getElementById("useCanny")?.checked;
+
+    const steps       = readNumberInput("stepsInput", 28);
+    const cfgScale    = readNumberInput("cfgInput", 7.0);
+    const width       = readNumberInput("widthInput", 768);
+    const height      = readNumberInput("heightInput", 768);
+    const denoising   = readNumberInput("denoiseInput", 0.75);
+    const batchSize   = readNumberInput("batchSizeInput", 1);
+    const nIter       = readNumberInput("batchCountInput", 1);
+    const samplerName = document.getElementById("samplerInput")?.value || "DPM++ 2M Karras";
+
+    const payload = {
+      init_images: [base64Image],
+      prompt: pos,
+      negative_prompt: neg,
+      steps,
+      cfg_scale: cfgScale,
+      width,
+      height,
+      denoising_strength: denoising,
+      batch_size: batchSize,
+      n_iter: nIter,
+      sampler_name: samplerName
+    };
+
+    if (useCanny) {
+      const low   = readNumberInput("cannyLow", 100);
+      const high  = readNumberInput("cannyHigh", 200);
+      const start = readNumberInput("cannyStart", 0.0);
+      const end   = readNumberInput("cannyEnd", 0.33);
+      const model = document.getElementById("cannyModel")?.value.trim() || "";
+
+      payload.alwayson_scripts = {
+        controlnet: {
+          args: [
+            {
+              enabled: true,
+              module: "canny",
+              model: model,
+              weight: 1.0,
+              input_image: base64Image,
+              processor_res: Math.max(width, height),
+              threshold_a: low,
+              threshold_b: high,
+              guidance_start: start,
+              guidance_end: end,
+              control_mode: "Balanced",
+              pixel_perfect: true
+            }
+          ]
+        }
+      };
+    }
+
+    return payload;
+  }
+
+  async function sendSdRequest(url, payload) {
+    const res = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(payload)
+    });
+
+    if (!res.ok) {
+      const text = await res.text().catch(() => "");
+      console.error("SD API error response:", res.status, text);
+      throw new Error("Stable Diffusion API HTTP " + res.status);
+    }
+
+    const data = await res.json();
+
+    if (data && Array.isArray(data.images) && data.images[0]) {
+      const imgStr = data.images[0];
+      const src = imgStr.startsWith("data:")
+        ? imgStr
+        : "data:image/png;base64," + imgStr;
+
+      let preview = document.getElementById("sdPreview");
+      if (!preview) {
+        const container = document.querySelector(".app") || document.body;
+        preview = document.createElement("div");
+        preview.id = "sdPreview";
+        preview.style.marginTop = "16px";
+        preview.innerHTML = `
+          <div class="group">
+            <div class="group-title">Last A1111 result</div>
+            <img id="sdPreviewImg" style="max-width:100%;border-radius:12px;border:1px solid var(--border);" />
+          </div>`;
+        container.appendChild(preview);
+      }
+      const imgEl = document.getElementById("sdPreviewImg");
+      if (imgEl) imgEl.src = src;
+    } else {
+      console.warn("No images field in SD API response", data);
+    }
+  }
+
+  async function generateViaA1111() {
+    try {
+      if (typeof buildPrompt === "function") {
+        buildPrompt();
+      }
+
+      const { pos, neg } = getBuiltPrompts();
+      if (!pos) {
+        alert("Build a prompt first before calling the A1111 API.");
+        return;
+      }
+
+      const baseUrlInput = document.getElementById("apiBaseUrl");
+      const baseUrl = (baseUrlInput?.value || "").trim() || "http://127.0.0.1:7860";
+
+      const modeEl = document.querySelector("input[name='apiMode']:checked");
+      const mode = modeEl ? modeEl.value : "txt2img";
+
+      if (mode === "img2img") {
+        const fileInput = document.getElementById("controlImage");
+        if (!fileInput || !fileInput.files || !fileInput.files[0]) {
+          alert("Select a base image for img2img + ControlNet.");
+          return;
+        }
+        const bare = await fileToBase64Bare(fileInput.files[0]);
+        const payload = buildImg2ImgPayload(bare, pos, neg);
+        await sendSdRequest(baseUrl + "/sdapi/v1/img2img", payload);
+      } else {
+        const steps       = readNumberInput("stepsInput", 28);
+        const cfgScale    = readNumberInput("cfgInput", 7.0);
+        const width       = readNumberInput("widthInput", 768);
+        const height      = readNumberInput("heightInput", 768);
+        const batchSize   = readNumberInput("batchSizeInput", 1);
+        const nIter       = readNumberInput("batchCountInput", 1);
+        const samplerName = document.getElementById("samplerInput")?.value || "DPM++ 2M Karras";
+
+        const payload = {
+          prompt: pos,
+          negative_prompt: neg,
+          steps,
+          cfg_scale: cfgScale,
+          width,
+          height,
+          batch_size: batchSize,
+          n_iter: nIter,
+          sampler_name: samplerName
+        };
+        await sendSdRequest(baseUrl + "/sdapi/v1/txt2img", payload);
+      }
+    } catch (err) {
+      console.error("A1111 API error", err);
+      alert("Error calling A1111 API. See console for details.");
+    }
+  }
 </script>
 </body>
 </html>
