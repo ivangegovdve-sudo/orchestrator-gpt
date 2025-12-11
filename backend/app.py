@@ -228,6 +228,12 @@ def get_schema():
 
 @app.post("/api/item-icon", response_model=ItemIconResponse)
 def generate_item_icon(req: ItemIconRequest):
+    if not RUNWARE_ENABLED:
+        raise HTTPException(
+            status_code=503,
+            detail="Runware integration is not configured. Set RUNWARE_API_KEY to enable this endpoint.",
+        )
+
     workflow_id = str(uuid.uuid4())
 
     # -------------------------------------------------------------------------
