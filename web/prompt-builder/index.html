@@ -1,4 +1,4 @@
-<!-- NOTE: Prompt Builder v4 title not uniquely found; no automated edits applied. -->
+<!-- NOTE: Prompt Builder v4 title not uniquely resolvable; no automated edits applied. -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -1399,6 +1399,73 @@
     if (!el) return fallback;
     const v = parseFloat(el.value);
     return Number.isFinite(v) ? v : fallback;
+  }
+
+  async function previewCanny() {
+    try {
+      const baseUrlInput = document.getElementById("apiBaseUrl");
+      const baseUrl = (baseUrlInput?.value || "").trim() || "http://127.0.0.1:7860";
+
+      const fileInput = document.getElementById("controlImage");
+      if (!fileInput || !fileInput.files || !fileInput.files[0]) {
+        alert("Select a base image first (ControlNet base image).");
+        return;
+      }
+
+      const bare = await fileToBase64Bare(fileInput.files[0]);
+
+      const low  = readNumberInput("cannyLow", 100);
+      const high = readNumberInput("cannyHigh", 200);
+
+      const width  = readNumberInput("widthInput", 768);
+      const height = readNumberInput("heightInput", 768);
+      const processorRes = Math.max(width, height, 512);
+
+      const payload = {
+        controlnet_module: "canny",
+        controlnet_input_images: [
+          "data:image/png;base64," + bare
+        ],
+        controlnet_processor_res: processorRes,
+        controlnet_threshold_a: low,
+        controlnet_threshold_b: high
+      };
+
+      const res = await fetch(baseUrl + "/controlnet/detect", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(payload)
+      });
+
+      if (!res.ok) {
+        const txt = await res.text().catch(() => "");
+        console.error("ControlNet detect error:", res.status, txt);
+        alert("Error calling /controlnet/detect. See console for details.");
+        return;
+      }
+
+      const data = await res.json();
+      if (!data || !Array.isArray(data.images) || !data.images[0]) {
+        console.warn("No images in /controlnet/detect response", data);
+        alert("No preview image returned from /controlnet/detect.");
+        return;
+      }
+
+      const imgStr = data.images[0];
+      const src = imgStr.startsWith("data:")
+        ? imgStr
+        : "data:image/png;base64," + imgStr;
+
+      const container = document.getElementById("cannyPreviewContainer");
+      const imgEl = document.getElementById("cannyPreviewImg");
+      if (container) container.style.display = "block";
+      if (imgEl) imgEl.src = src;
+    } catch (err) {
+      console.error("previewCanny() error", err);
+      alert("Unexpected error during Canny preview. See console.");
+    }
   }
 
   function getBuiltPrompts() {
