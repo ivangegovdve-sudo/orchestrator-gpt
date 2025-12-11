@@ -13,9 +13,10 @@ from pydantic import BaseModel
 # ENV & CONFIG
 # -----------------------------------------------------------------------------
 
-# We read RUNWARE_API_KEY directly from environment, but do not require it for import
+# We read RUNWARE_API_KEY directly from environment
 RUNWARE_API_KEY = os.getenv("RUNWARE_API_KEY")
-RUNWARE_ENABLED = bool(RUNWARE_API_KEY)
+if not RUNWARE_API_KEY:
+    raise RuntimeError("RUNWARE_API_KEY is not set. Please set it as an environment variable.")
 
 # Load the unified config + schema
 CONFIG_PATH = os.path.join(os.path.dirname(__file__), "..", "config", "runware-item-icons.json")
@@ -81,12 +82,6 @@ def run_runware_tasks(tasks: List[Dict[str, Any]]) -> Dict[str, Any]:
     Equivalent to:
       requests.post(RUNWARE_API_URL, headers=..., json=tasks)
     """
-    if not RUNWARE_ENABLED:
-        raise HTTPException(
-            status_code=503,
-            detail="Runware integration is not configured. Set RUNWARE_API_KEY to enable this endpoint.",
-        )
-
     body = json.dumps(tasks).encode("utf-8")
     headers = {
         "Content-Type": "application/json",
