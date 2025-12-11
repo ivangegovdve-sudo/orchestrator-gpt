@@ -2,45 +2,67 @@ import os
 import uuid
 import json
 from typing import Optional, Any, Dict, List
+from urllib.request import Request, urlopen
+from urllib.error import URLError, HTTPError
 
-import requests
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from dotenv import load_dotenv
 
-# Load RUNWARE_API_KEY from .env if present
-load_dotenv()
+# -----------------------------------------------------------------------------
+# ENV & CONFIG
+# -----------------------------------------------------------------------------
 
+# We read RUNWARE_API_KEY directly from environment, but do not require it for import
 RUNWARE_API_KEY = os.getenv("RUNWARE_API_KEY")
-if not RUNWARE_API_KEY:
-    raise RuntimeError("RUNWARE_API_KEY is not set. Create a .env file or set an env var.")
+RUNWARE_ENABLED = bool(RUNWARE_API_KEY)
 
-# Load canonical config
+# Load the unified config + schema
 CONFIG_PATH = os.path.join(os.path.dirname(__file__), "..", "config", "runware-item-icons.json")
 with open(CONFIG_PATH, "r", encoding="utf-8") as f:
     PIPELINE_CONFIG = json.load(f)
 
-RUNWARE_API_URL = PIPELINE_CONFIG["runwareApiUrl"]
-DEFAULTS = PIPELINE_CONFIG["defaults"]
+RUNWARE_API_URL: str = PIPELINE_CONFIG["runwareApiUrl"]
+DEFAULTS: Dict[str, Any] = PIPELINE_CONFIG["defaults"]
+SCHEMA: Dict[str, Any] = PIPELINE_CONFIG.get("schema", {})
 
-app = FastAPI(title="Item Icon Generator — Western Animation Style")
+RARITIES: Dict[str, Any] = SCHEMA.get("rarities", {})
+ELEMENTS: Dict[str, Any] = SCHEMA.get("elements", {})
+BIOMES: Dict[str, Any] = SCHEMA.get("biomes", {})
+STYLES: Dict[str, Any] = SCHEMA.get("styles", {})
+CATEGORIES: Dict[str, Any] = SCHEMA.get("categories", {})
+LORA_PACKS: Dict[str, Any] = SCHEMA.get("loraPacks", {})
 
-# CORS for your internal web UI
+# -----------------------------------------------------------------------------
+# FASTAPI SETUP
+# -----------------------------------------------------------------------------
+
+app = FastAPI(title="Item Icon Generator — Western Animation Preset System")
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["*"],  # internal tool; tighten later if needed
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
+# -----------------------------------------------------------------------------
+# REQUEST / RESPONSE MODELS
+# -----------------------------------------------------------------------------
 
 class ItemIconRequest(BaseModel):
     seedImage: str
     assetDescription: str
     styleHint: Optional[str] = None
     useWesternAnimationBase: bool = True
+
+    rarity: Optional[str] = "common"
+    element: Optional[str] = "none"
+    biome: Optional[str] = "none"
+    style: Optional[str] = "western_animation_default"
+    category: Optional[str] = "material"
+    loraPack: Optional[str] = "none"
 
 
 class ItemIconResponse(BaseModel):
@@ -49,36 +71,182 @@ class ItemIconResponse(BaseModel):
     rawResponse: Dict[str, Any]
 
 
-def build_positive_prompt(asset_description: str, style_hint: Optional[str]) -> str:
-    base_template = DEFAULTS["prompts"]["basePositiveTemplate"]
-    prompt = base_template.replace("{assetDescription}", asset_description.strip())
+# -----------------------------------------------------------------------------
+# HTTP HELPER (NO "requests" LIBRARY)
+# -----------------------------------------------------------------------------
 
-    if style_hint:
-        prompt = f"{prompt}, {style_hint.strip()}"
-    return prompt
+def run_runware_tasks(tasks: List[Dict[str, Any]]) -> Dict[str, Any]:
+    """
+    Send tasks to Runware API using urllib (standard library only).
+    Equivalent to:
+      requests.post(RUNWARE_API_URL, headers=..., json=tasks)
+    """
+    if not RUNWARE_ENABLED:
+        raise HTTPException(
+            status_code=503,
+            detail="Runware integration is not configured. Set RUNWARE_API_KEY to enable this endpoint.",
+        )
 
-
-def run_runware_tasks(tasks: List[dict]) -> dict:
+    body = json.dumps(tasks).encode("utf-8")
     headers = {
         "Content-Type": "application/json",
         "Authorization": f"Bearer {RUNWARE_API_KEY}",
     }
+    req = Request(RUNWARE_API_URL, data=body, headers=headers, method="POST")
 
-    resp = requests.post(RUNWARE_API_URL, headers=headers, json=tasks, timeout=60)
-    if resp.status_code != 200:
-        raise HTTPException(status_code=502, detail=f"Runware API HTTP {resp.status_code}: {resp.text}")
+    try:
+        with urlopen(req, timeout=60) as resp:
+            raw = resp.read().decode("utf-8")
+            data = json.loads(raw)
+    except HTTPError as e:
+        raise HTTPException(
+            status_code=502,
+            detail=f"Runware API HTTP error {e.code}: {e.reason}"
+        )
+    except URLError as e:
+        raise HTTPException(
+            status_code=502,
+            detail=f"Runware API connection error: {e.reason}"
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=502,
+            detail=f"Runware API unknown error: {e}"
+        )
 
-    data = resp.json()
     if "data" not in data:
         raise HTTPException(status_code=502, detail=f"Runware API error: {data}")
     return data
 
 
+# -----------------------------------------------------------------------------
+# PRESET HELPERS
+# -----------------------------------------------------------------------------
+
+def _get_preset_block(preset_dict: Dict[str, Any], key: Optional[str]) -> Dict[str, Any]:
+    if key and key in preset_dict:
+        return preset_dict[key]
+    if "none" in preset_dict:
+        return preset_dict["none"]
+    return {}
+
+
+def build_lora_config_and_triggers(lora_pack_key: Optional[str]) -> (List[Dict[str, Any]], List[str]):
+    """
+    From a loraPack key, return:
+      - list of Runware lora configs (model + weight)
+      - list of trigger strings to append to the prompt
+    """
+    lora_configs: List[Dict[str, Any]] = []
+    triggers: List[str] = []
+
+    pack_key = lora_pack_key or "none"
+    pack = LORA_PACKS.get(pack_key)
+    if not pack:
+        pack = LORA_PACKS.get("none", {"entries": []})
+
+    entries = pack.get("entries", [])
+    for entry in entries:
+        air_model = entry.get("airModel")
+        if not air_model:
+            continue
+        weight = entry.get("weight", 0.8)
+        lora_configs.append({"model": air_model, "weight": weight})
+        trigger = entry.get("trigger")
+        if trigger:
+            triggers.append(trigger)
+
+    return lora_configs, triggers
+
+
+def build_positive_prompt(
+    asset_description: str,
+    rarity_key: Optional[str],
+    element_key: Optional[str],
+    biome_key: Optional[str],
+    style_key: Optional[str],
+    category_key: Optional[str],
+    lora_triggers: List[str],
+    style_hint: Optional[str]
+) -> str:
+    """
+    Construct the positive prompt by combining:
+    - Base template from defaults (with {assetDescription} filled)
+    - Preset promptTags from rarity, element, biome, style, category
+    - LoRA triggers
+    - Optional user styleHint
+    """
+    base_template: str = DEFAULTS["prompts"]["basePositiveTemplate"]
+    prompt_base = base_template.replace("{assetDescription}", asset_description.strip())
+
+    rarity_block = _get_preset_block(RARITIES, rarity_key)
+    element_block = _get_preset_block(ELEMENTS, element_key)
+    biome_block = _get_preset_block(BIOMES, biome_key)
+    style_block = _get_preset_block(STYLES, style_key)
+    category_block = _get_preset_block(CATEGORIES, category_key)
+
+    rarity_tags = rarity_block.get("promptTags", "")
+    element_tags = element_block.get("promptTags", "")
+    biome_tags = biome_block.get("promptTags", "")
+    style_tags = style_block.get("promptTags", "")
+    category_tags = category_block.get("promptTags", "")
+
+    parts: List[str] = [prompt_base]
+
+    for extra in [
+        category_tags,
+        rarity_tags,
+        element_tags,
+        biome_tags,
+        style_tags
+    ]:
+        if extra and extra.strip():
+            parts.append(extra.strip())
+
+    if style_hint:
+        parts.append(style_hint.strip())
+
+    if lora_triggers:
+        parts.extend(trigger.strip() for trigger in lora_triggers if trigger.strip())
+
+    parts.append("clean bold outlines, cel-shading, vibrant colors, professional illustration")
+
+    return ", ".join([p for p in parts if p and p.strip()])
+
+
+# -----------------------------------------------------------------------------
+# ROUTES
+# -----------------------------------------------------------------------------
+
+@app.get("/health")
+def health():
+    return {"status": "ok"}
+
+
+@app.get("/api/schema")
+def get_schema():
+    """
+    Return the schema block so the frontend can build dynamic preset dropdowns.
+    """
+    return SCHEMA
+
+
 @app.post("/api/item-icon", response_model=ItemIconResponse)
 def generate_item_icon(req: ItemIconRequest):
+    if not RUNWARE_ENABLED:
+        raise HTTPException(
+            status_code=503,
+            detail="Runware integration is not configured. Set RUNWARE_API_KEY to enable this endpoint.",
+        )
+
     workflow_id = str(uuid.uuid4())
 
+    # -------------------------------------------------------------------------
+    # 1) ControlNet Preprocess (Canny edges)
+    # -------------------------------------------------------------------------
     preprocess_task_uuid = f"pre-{workflow_id}"
+    controlnet_cfg = DEFAULTS["controlNet"]
+
     controlnet_preprocess_task = {
         "taskType": "controlNetPreprocess",
         "taskUUID": preprocess_task_uuid,
@@ -89,7 +257,7 @@ def generate_item_icon(req: ItemIconRequest):
         "lowThresholdCanny": 80,
         "highThresholdCanny": 200,
         "outputType": "URL",
-        "outputFormat": "PNG",
+        "outputFormat": "PNG"
     }
 
     preprocess_response = run_runware_tasks([controlnet_preprocess_task])
@@ -100,32 +268,53 @@ def generate_item_icon(req: ItemIconRequest):
     if not guide_image_url:
         raise HTTPException(status_code=502, detail="Missing guideImageURL in preprocess response.")
 
-    inference_task_uuid = f"ii-{workflow_id}"
+    # -------------------------------------------------------------------------
+    # 2) LoRA configs + triggers
+    # -------------------------------------------------------------------------
+    lora_configs, lora_triggers = build_lora_config_and_triggers(req.loraPack)
 
-    positive_prompt = build_positive_prompt(req.assetDescription, req.styleHint)
-    negative_prompt = DEFAULTS["prompts"]["baseNegative"]
+    # -------------------------------------------------------------------------
+    # 3) Prompts
+    # -------------------------------------------------------------------------
+    positive_prompt = build_positive_prompt(
+        asset_description=req.assetDescription,
+        rarity_key=req.rarity,
+        element_key=req.element,
+        biome_key=req.biome,
+        style_key=req.style,
+        category_key=req.category,
+        lora_triggers=lora_triggers,
+        style_hint=req.styleHint
+    )
+    negative_prompt: str = DEFAULTS["prompts"]["baseNegative"]
 
+    # -------------------------------------------------------------------------
+    # 4) Base model
+    # -------------------------------------------------------------------------
+    base_model_block = DEFAULTS["baseModel"]
     if req.useWesternAnimationBase:
-        model_air = DEFAULTS["baseModel"]["airWesternAnimBase"]
+        model_air = base_model_block["airWesternAnimBase"]
     else:
-        model_air = DEFAULTS["baseModel"]["airBaseModel"]
+        model_air = base_model_block["airBaseModel"]
 
-    western_lora = {
-        "model": DEFAULTS["lora"]["westernAnimation"]["airId"],
-        "weight": DEFAULTS["lora"]["westernAnimation"]["weight"],
-    }
-
-    controlnet_cfg = DEFAULTS["controlNet"]
+    # -------------------------------------------------------------------------
+    # 5) ControlNet config for inference
+    # -------------------------------------------------------------------------
     controlnet_obj = {
         "model": controlnet_cfg["model"],
         "guideImage": guide_image_url,
         "weight": controlnet_cfg["weight"],
         "startStep": controlnet_cfg["startStep"],
         "endStep": controlnet_cfg["endStep"],
-        "controlMode": controlnet_cfg["controlMode"],
+        "controlMode": controlnet_cfg["controlMode"]
     }
 
-    image_inference_task = {
+    # -------------------------------------------------------------------------
+    # 6) ImageInference task
+    # -------------------------------------------------------------------------
+    inference_task_uuid = f"ii-{workflow_id}"
+
+    image_inference_task: Dict[str, Any] = {
         "taskType": "imageInference",
         "taskUUID": inference_task_uuid,
         "outputType": "URL",
@@ -138,9 +327,11 @@ def generate_item_icon(req: ItemIconRequest):
         "CFGScale": DEFAULTS["cfgScale"],
         "model": model_air,
         "numberResults": DEFAULTS["numberResults"],
-        "lora": [western_lora],
-        "controlNet": [controlnet_obj],
+        "controlNet": [controlnet_obj]
     }
+
+    if lora_configs:
+        image_inference_task["lora"] = lora_configs
 
     inference_response = run_runware_tasks([image_inference_task])
     inference_items = [d for d in inference_response["data"] if d.get("taskUUID") == inference_task_uuid]
@@ -154,16 +345,11 @@ def generate_item_icon(req: ItemIconRequest):
 
     raw_combined = {
         "preprocess": preprocess_response,
-        "inference": inference_response,
+        "inference": inference_response
     }
 
     return ItemIconResponse(
         taskUUID=workflow_id,
         imageURL=image_url,
-        rawResponse=raw_combined,
+        rawResponse=raw_combined
     )
-
-
-@app.get("/health")
-def health():
-    return {"status": "ok"}
