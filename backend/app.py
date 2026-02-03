@@ -1,3 +1,4 @@
+import logging
 import os
 import uuid
 import json
@@ -9,14 +10,17 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
+import jobs_api
+
 # -----------------------------------------------------------------------------
 # ENV & CONFIG
 # -----------------------------------------------------------------------------
 
 # We read RUNWARE_API_KEY directly from environment
 RUNWARE_API_KEY = os.getenv("RUNWARE_API_KEY")
-if not RUNWARE_API_KEY:
-    raise RuntimeError("RUNWARE_API_KEY is not set. Please set it as an environment variable.")
+RUNWARE_ENABLED = bool(RUNWARE_API_KEY)
+if not RUNWARE_ENABLED:
+    logging.warning("RUNWARE_API_KEY is not set. Runware endpoints will be disabled.")
 
 # Load the unified config + schema
 CONFIG_PATH = os.path.join(os.path.dirname(__file__), "..", "config", "runware-item-icons.json")
@@ -39,6 +43,7 @@ LORA_PACKS: Dict[str, Any] = SCHEMA.get("loraPacks", {})
 # -----------------------------------------------------------------------------
 
 app = FastAPI(title="Item Icon Generator — Western Animation Preset System")
+app.include_router(jobs_api.router)
 
 app.add_middleware(
     CORSMiddleware,
