@@ -1,0 +1,328 @@
+{
+  "$schema": "https://raw.githubusercontent.com/jsonresume/resume-schema/master/schema.json",
+  "basics": {
+    "name": "Ivan Gegov",
+    "label": "Senior Animator / Animation Lead · Compositing · VFX",
+    "image": "/assets/slackPic.webp",
+    "email": "ivangegov.dve@gmail.com",
+    "url": "https://vimeo.com/283914588",
+    "summary": "Animation Lead and VFX professional with a track record spanning animated series, casino game development, commercials, and music videos. Experienced in leading animation teams, defining quality standards, and delivering visually polished content under tight deadlines.\n\nComfortable working in fast-paced studio environments as well as independently on freelance projects. Experienced in multicultural teams and international productions. Always looking for the next compelling visual challenge.",
+    "location": {
+      "city": "Sofia",
+      "region": "Bulgaria",
+      "countryCode": "BG"
+    },
+    "profiles": [
+      {
+        "network": "YouTube",
+        "url": "https://youtu.be/ogwVYZrWI6s",
+        "username": "ogwVYZrWI6s"
+      },
+      {
+        "network": "Vimeo",
+        "url": "https://vimeo.com/283914588",
+        "username": "283914588"
+      }
+    ]
+  },
+  "work": [
+    {
+      "name": "Dopamine (Red Tiger)",
+      "position": "Senior Animator / Animation Lead",
+      "startDate": "2021-03-01",
+      "summary": "Joined as Senior Animator producing 2D animation, VFX, and in-engine implementation for slot games published under the Red Tiger brand. Progressed into Animation Lead, taking ownership of animation execution and quality across a full game development team while continuing hands-on production.",
+      "highlights": [
+        "Leading and coordinating animation work within a multidisciplinary game team",
+        "Defining and maintaining animation quality standards and visual consistency",
+        "Hands-on production of animations and VFX for slot games",
+        "Close collaboration with game designers, developers, and artists",
+        "Supporting and improving animation pipelines and workflows"
+      ],
+      "location": "Sofia, Bulgaria"
+    },
+    {
+      "name": "Freelance",
+      "position": "Animation, Compositing & VFX Artist",
+      "url": "https://youtu.be/ogwVYZrWI6s",
+      "startDate": "2013-03-01",
+      "summary": "Animation, compositing, and visual effects across a variety of freelance projects for studios, agencies, and independent productions.",
+      "highlights": [],
+      "location": "Sofia, Bulgaria"
+    },
+    {
+      "name": "Semperia Films",
+      "position": "Compositing & VFX Artist",
+      "url": "https://youtu.be/pInnrhghaxY",
+      "startDate": "2020-07-01",
+      "endDate": "2020-08-01",
+      "summary": "Compositing and visual effects for the short film \"In Author's Hands\".",
+      "highlights": [],
+      "location": "Sofia, Bulgaria"
+    },
+    {
+      "name": "Chase a Cloud",
+      "position": "Animation, Compositing & VFX Artist",
+      "url": "https://vimeo.com/283914588",
+      "startDate": "2018-08-01",
+      "endDate": "2020-06-01",
+      "summary": "Part of the compositing and VFX team working on animated series and promotional content for international clients.",
+      "highlights": [
+        "National Geographic's Explorers Academy — \"Brain Freeze\"",
+        "\"Rescue Heroes\" — contributed to production by TONGAL for Fisher-Price® (14 episodes)",
+        "\"Arcana Magica\" — Kickstarter promotional video",
+        "John Vardar vs the Galaxy — animated feature film (limited compositing work, uncredited)"
+      ],
+      "location": "Sofia, Bulgaria"
+    },
+    {
+      "name": "DVE Events",
+      "position": "Coordinator",
+      "startDate": "2015-09-01",
+      "endDate": "2015-11-01",
+      "summary": "Construction and maintenance of a temporary base for the German army during NATO's \"Trident Juncture\" 2015 exercise at the Academia General Militar.",
+      "highlights": [],
+      "location": "Zaragoza, Spain"
+    },
+    {
+      "name": "YouChip Cashless Systems",
+      "position": "Chief Assistant for Network Specialist",
+      "startDate": "2015-05-01",
+      "endDate": "2015-08-01",
+      "summary": "LAN and WAN network cabling and setup, OS installation, configuration of work software and peripheral devices for RFID payment systems at music festivals.",
+      "highlights": [],
+      "location": "Germany, England, Sweden"
+    },
+    {
+      "name": "DVE Events",
+      "position": "Translator & Coordinator",
+      "startDate": "2014-05-01",
+      "endDate": "2014-06-01",
+      "summary": "Translator and coordinator at the 70th anniversary of D-Day in Normandy.",
+      "highlights": [],
+      "location": "Normandy, France"
+    },
+    {
+      "name": "Miroslav Kostadinov — Miro",
+      "position": "Screenwriter, Second Director & VFX",
+      "url": "https://youtu.be/C8Mwkhu3iq4",
+      "startDate": "2013-01-01",
+      "endDate": "2013-05-01",
+      "summary": "Screenwriting, second directing, and visual effects for the music video \"Souvenir\".",
+      "highlights": [],
+      "location": "Sofia, Bulgaria"
+    },
+    {
+      "name": "\"Big Sky\" Tent & Party Rentals",
+      "position": "Warehouse & Communications Manager",
+      "startDate": "2009-06-01",
+      "endDate": "2009-10-01",
+      "summary": "Coordinating teams, controlling inventory, and managing communications for a tent and event rental company.",
+      "highlights": [],
+      "location": "Oak Bluffs, USA"
+    }
+  ],
+  "education": [
+    {
+      "institution": "California Institute of Technology",
+      "area": "\"Drugs and the Brain\" Course",
+      "studyType": "Course",
+      "startDate": "2012-09-01",
+      "endDate": "2013-01-01",
+      "courses": [
+        "Completed an online course exploring the neuroscience of drugs and their effects on the brain."
+      ]
+    },
+    {
+      "institution": "American University in Bulgaria",
+      "area": "First Academic Year",
+      "studyType": "Academic",
+      "startDate": "2008-09-01",
+      "endDate": "2009-05-01"
+    }
+  ],
+  "skills": [
+    {
+      "name": "Adobe",
+      "keywords": [
+        "After Effects",
+        "Animate",
+        "Photoshop",
+        "Character Animator",
+        "Premiere"
+      ]
+    },
+    {
+      "name": "Animation",
+      "keywords": [
+        "Spine 2D (2.5D animation software)"
+      ]
+    },
+    {
+      "name": "Production & Optimization",
+      "keywords": [
+        "Scripting (ActionScript) for procedural animation and optimization",
+        "Animation structures and logic optimized for JavaScript / runtime implementation",
+        "UI, symbol, character, and FX animation",
+        "Asset optimization for browser and mobile performance",
+        "Asset compression and optimizing export workflows"
+      ]
+    },
+    {
+      "name": "Production Tools",
+      "keywords": [
+        "Git and repository-based workflows",
+        "Jira and Notion for production tracking and documentation"
+      ]
+    },
+    {
+      "name": "Exploratory",
+      "keywords": [
+        "Postshot Jawset",
+        "Cascadeur",
+        "JangaFX",
+        "Unreal Engine",
+        "Dragon Bones"
+      ]
+    },
+    {
+      "name": "Practical Familiarity",
+      "keywords": [
+        "Stable Diffusion",
+        "ControlNet",
+        "LoRAs",
+        "ComfyUI"
+      ]
+    },
+    {
+      "name": "AI & Emerging Tools",
+      "keywords": [
+        "Interest in open-source AI models for workflow optimization and pipeline automation"
+      ]
+    },
+    {
+      "name": "Personal",
+      "keywords": [
+        "Strong communication and teamwork",
+        "Ability to manage multiple tasks and deadlines",
+        "High attention to detail",
+        "Adaptability to different art and animation styles"
+      ]
+    }
+  ],
+  "projects": [
+    {
+      "name": "National Geographic® — Brain Freeze",
+      "startDate": "2018-01-01",
+      "endDate": "2018-12-31",
+      "description": "Animation · Compositing",
+      "highlights": [],
+      "url": "https://vimeo.com/283914588"
+    },
+    {
+      "name": "Rescue Heroes",
+      "startDate": "2020-01-01",
+      "endDate": "2020-12-31",
+      "description": "Animation · Series (14 episodes)",
+      "highlights": [],
+      "url": "https://www.youtube.com/watch?v=SOjHSKbRVCQ"
+    },
+    {
+      "name": "Miro — Souvenir",
+      "startDate": "2013-01-01",
+      "endDate": "2013-12-31",
+      "description": "Music Video · VFX",
+      "highlights": [],
+      "url": "https://youtu.be/C8Mwkhu3iq4"
+    },
+    {
+      "name": "Showreel",
+      "startDate": "2024-01-01",
+      "endDate": "2024-12-31",
+      "description": "Animation · Compositing · VFX",
+      "highlights": [],
+      "url": "https://youtu.be/ogwVYZrWI6s"
+    },
+    {
+      "name": "Arcana Magica",
+      "startDate": "2019-01-01",
+      "endDate": "2019-12-31",
+      "description": "Animation · Promotional",
+      "highlights": [],
+      "url": "https://www.youtube.com/watch?v=qeevdrluvnA"
+    },
+    {
+      "name": "In Author’s Hands",
+      "startDate": "2020-01-01",
+      "endDate": "2020-12-31",
+      "description": "Short Film · VFX",
+      "highlights": [],
+      "url": "https://youtu.be/pInnrhghaxY"
+    },
+    {
+      "name": "Red Tiger collection",
+      "startDate": "2021-01-01",
+      "endDate": "2025-12-31",
+      "description": "Selection of slot games animated and developed while working at Dopamine (published under the Red Tiger brand).",
+      "highlights": [
+        "DragonBoyz",
+        "Big Rich Turkeys",
+        "Cash Lamps",
+        "Monopoly® Rent Rush",
+        "Piggy Riches 2 Megaways",
+        "Piggy Riches Begins",
+        "Bass Boss",
+        "Bass Boss 2",
+        "Judgment Day MegaWays",
+        "Monsters Unchained",
+        "Cake and Ice Cream",
+        "Cai Shen 168",
+        "Piñatas & Ponies",
+        "Happy Apples",
+        "Trophy Fish",
+        "Fishtastic",
+        "Rise of Cleopatra",
+        "7's Luck",
+        "Dear Santa",
+        "The Wild Kiss",
+        "Beriched",
+        "Athens MegaWays",
+        "Astros",
+        "Gonzita's Quest",
+        "Dragon's Mirror",
+        "Dracula Awakening",
+        "Gold Mine Mistress",
+        "Fa Fa Babies 2",
+        "Bounty Raid 2",
+        "Wolfkin",
+        "Reel Keeper Power Reels",
+        "Majestic Mysteries Power Reels",
+        "Jingle Ways MegaWays",
+        "Hansel & Gretel Candyhouse",
+        "Big Cat Rescue MegaWays",
+        "Roman Emperors",
+        "The Good The Bad and The Rich",
+        "Alexander the Great",
+        "ShahMat"
+      ],
+      "url": "https://redtiger.com/games"
+    }
+  ],
+  "languages": [
+    {
+      "language": "Bulgarian",
+      "fluency": "Native"
+    },
+    {
+      "language": "English",
+      "fluency": "C1 — Advanced"
+    },
+    {
+      "language": "French",
+      "fluency": "B2 — Upper Intermediate"
+    },
+    {
+      "language": "Spanish",
+      "fluency": "A1 — Beginner"
+    }
+  ]
+}
