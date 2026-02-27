@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>AI_INIT Embeddable Search</title>
+<style>
+:root {
+  color-scheme: dark;
+  --bg: #050913;
+  --panel: rgba(10, 16, 28, 0.92);
+  --border: rgba(127, 153, 201, 0.3);
+  --text: #edf2ff;
+  --muted: #93a5cf;
+  --accent: #46d3c5;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at 10% 10%, rgba(70, 211, 197, 0.14), transparent 36%),
+    radial-gradient(circle at 90% 0%, rgba(122, 162, 255, 0.15), transparent 34%),
+    var(--bg);
+  color: var(--text);
+  font-family: "Space Grotesk", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+}
+
+main {
+  max-width: 880px;
+  margin: 0 auto;
+  padding: 26px 14px 36px;
+}
+
+.panel {
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--panel);
+  padding: 14px;
+}
+
+h1 {
+  margin: 0 0 8px;
+  font-size: clamp(1.2rem, 2.3vw, 1.75rem);
+}
+
+p {
+  margin: 0 0 12px;
+  color: var(--muted);
+}
+
+.search-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 8px;
+}
+
+#embed-search {
+  width: 100%;
+  border-radius: 12px;
+  border: 1px solid rgba(127, 153, 201, 0.44);
+  background: rgba(5, 10, 18, 0.9);
+  color: var(--text);
+  padding: 14px 15px;
+  font-size: 1.02rem;
+  outline: none;
+}
+
+#embed-search:focus {
+  border-color: rgba(70, 211, 197, 0.72);
+  box-shadow: 0 0 0 4px rgba(70, 211, 197, 0.14);
+}
+
+#embed-clear {
+  border-radius: 10px;
+  border: 1px solid rgba(127, 153, 201, 0.4);
+  background: rgba(9, 16, 29, 0.95);
+  color: var(--text);
+  padding: 0 14px;
+  font: inherit;
+  cursor: pointer;
+}
+
+#embed-results {
+  margin-top: 12px;
+  display: grid;
+  gap: 8px;
+}
+
+.ai-init-result-card {
+  transition: transform 0.16s ease, border-color 0.16s ease;
+}
+
+.ai-init-result-card:hover {
+  transform: translateY(-1px);
+  border-color: rgba(70, 211, 197, 0.65) !important;
+}
+
+#copy-status {
+  margin-top: 8px;
+  color: var(--muted);
+  font-size: 0.88rem;
+  min-height: 1.2em;
+}
+
+.code-sample {
+  margin-top: 14px;
+  padding: 10px;
+  border-radius: 10px;
+  border: 1px solid rgba(127, 153, 201, 0.28);
+  background: rgba(4, 8, 16, 0.9);
+  color: #c7d4f5;
+  font-family: Consolas, "Courier New", monospace;
+  font-size: 0.78rem;
+  line-height: 1.35;
+  white-space: pre-wrap;
+}
+
+@media (max-width: 640px) {
+  .search-row {
+    grid-template-columns: 1fr;
+  }
+
+  #embed-clear {
+    min-height: 40px;
+  }
+}
+</style>
+</head>
+<body>
+<main>
+  <section class="panel">
+    <h1>Embeddable AI_INIT Search</h1>
+    <p>This page uses a separate search bar wired to the shared glossary database. Click any result to copy formatted text.</p>
+    <div class="search-row">
+      <input id="embed-search" type="search" placeholder="Search glossary database..." autocomplete="off" />
+      <button id="embed-clear" type="button">Clear</button>
+    </div>
+    <div id="embed-results"></div>
+    <div id="copy-status"></div>
+
+    <div class="code-sample">Example integration:
+&lt;script src="/web/ai-init/glossary-data.js"&gt;&lt;/script&gt;
+&lt;script src="/web/ai-init/glossary-search.js"&gt;&lt;/script&gt;
+&lt;script&gt;
+AIInitGlossary.mountSearch({
+  input: '#my-search',
+  resultsContainer: '#my-results',
+  limit: 30,
+  onCopy: (entry, ok) =&gt; console.log('copied', entry.abbr, ok)
+});
+&lt;/script&gt;</div>
+  </section>
+</main>
+
+<script src="../glossary-data.js"></script>
+<script src="../glossary-search.js"></script>
+<script src="./embed.js"></script>
+</body>
+</html>
