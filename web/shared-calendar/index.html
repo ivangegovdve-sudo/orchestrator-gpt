@@ -468,7 +468,7 @@
     };
 
     const addActivity = (payload) => {
-      const id = `activity-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+      const id = `activity-${crypto.randomUUID()}`;
       const order = getNextOrder(payload.day);
       activities.push({ ...payload, id, order });
     };
@@ -535,8 +535,13 @@
       dragged.day = dayIndex;
 
       const targetCard = event.target.closest(".activity");
-      if (targetCard && targetCard.parentElement === targetColumn) {
-        targetColumn.insertBefore(document.querySelector(`[data-id="${draggedId}"]`), targetCard);
+      const draggedEl = document.querySelector(`[data-id="${draggedId}"]`);
+      if (draggedEl) {
+        if (targetCard && targetCard.parentElement === targetColumn) {
+          targetColumn.insertBefore(draggedEl, targetCard);
+        } else {
+          targetColumn.appendChild(draggedEl);
+        }
       }
 
       updateOrdersForDay(dayIndex, targetColumn);
