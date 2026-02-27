@@ -468,7 +468,7 @@
     };
 
     const addActivity = (payload) => {
-      const id = `activity-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+      const id = `activity-${crypto.randomUUID()}`;
       const order = getNextOrder(payload.day);
       activities.push({ ...payload, id, order });
     };
