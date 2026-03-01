@@ -1,0 +1,4 @@
+﻿-- 002_movies_imdb_fields.sql
+-- IMDb column backfill is handled in backend/movies_db.py via PRAGMA table_info checks
+-- to stay compatible with SQLite versions that do not support
+-- ALTER TABLE ... ADD COLUMN IF NOT EXISTS.

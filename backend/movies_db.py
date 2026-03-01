@@ -1,4 +1,4 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 import sqlite3
 import threading
@@ -8,14 +8,31 @@ from typing import Any, Dict, Iterable, List, Optional, Tuple
 REPO_ROOT = Path(__file__).resolve().parent.parent
 DATA_DIR = REPO_ROOT / "data"
 DB_PATH = DATA_DIR / "movies.db"
-MIGRATION_PATH = DATA_DIR / "migrations" / "001_movies.sql"
+MIGRATIONS_DIR = DATA_DIR / "migrations"
 
 _INIT_LOCK = threading.Lock()
 _DB_READY = False
 
-
 ALLOWED_SORTS = {"title", "year", "imdb", "rating"}
 ALLOWED_ORDERS = {"asc", "desc"}
+
+
+def _table_columns(conn: sqlite3.Connection, table_name: str) -> set[str]:
+    rows = conn.execute(f"PRAGMA table_info({table_name})").fetchall()
+    return {str(row[1]) for row in rows}
+
+
+def _ensure_movie_columns(conn: sqlite3.Connection) -> None:
+    columns = _table_columns(conn, "movies")
+    required_columns = {
+        "imdb_id": "TEXT",
+        "imdb_last_checked_at": "TEXT",
+        "imdb_source_url": "TEXT",
+    }
+    for column_name, definition in required_columns.items():
+        if column_name not in columns:
+            conn.execute(f"ALTER TABLE movies ADD COLUMN {column_name} {definition}")
+    conn.execute("CREATE INDEX IF NOT EXISTS idx_movies_imdb_id ON movies(imdb_id)")
 
 
 def ensure_db() -> None:
@@ -28,14 +45,20 @@ def ensure_db() -> None:
             return
 
         DATA_DIR.mkdir(parents=True, exist_ok=True)
-        if not MIGRATION_PATH.exists():
-            raise FileNotFoundError(f"Missing migration file: {MIGRATION_PATH}")
+        if not MIGRATIONS_DIR.exists():
+            raise FileNotFoundError(f"Missing migrations directory: {MIGRATIONS_DIR}")
 
-        migration_sql = MIGRATION_PATH.read_text(encoding="utf-8")
+        migration_paths = sorted(MIGRATIONS_DIR.glob("*.sql"))
+        if not migration_paths:
+            raise FileNotFoundError(f"No migration SQL files found in: {MIGRATIONS_DIR}")
+
         conn = sqlite3.connect(DB_PATH)
         try:
             conn.execute("PRAGMA foreign_keys = ON")
-            conn.executescript(migration_sql)
+            for migration_path in migration_paths:
+                sql = migration_path.read_text(encoding="utf-8")
+                conn.executescript(sql)
+            _ensure_movie_columns(conn)
             conn.commit()
         finally:
             conn.close()
@@ -54,6 +77,7 @@ def get_connection() -> sqlite3.Connection:
 def normalize_tags(tags: Optional[Iterable[str]]) -> List[str]:
     if not tags:
         return []
+
     out: List[str] = []
     for tag in tags:
         clean = (tag or "").strip().lower()
@@ -110,12 +134,15 @@ def upsert_movie(
     movie: Dict[str, Any],
     tags: Optional[Iterable[str]] = None,
 ) -> Tuple[int, bool]:
-    title = (movie.get("title") or "").strip()
+    title = str(movie.get("title") or "").strip()
     if not title:
         raise ValueError("Movie title is required")
 
     year = movie.get("year")
     imdb_score = movie.get("imdb_score")
+    imdb_id = movie.get("imdb_id")
+    imdb_last_checked_at = movie.get("imdb_last_checked_at")
+    imdb_source_url = movie.get("imdb_source_url")
     age_band = (movie.get("age_band") or "Family").strip() or "Family"
     watched = 1 if bool(movie.get("watched")) else 0
     notes = movie.get("notes")
@@ -130,16 +157,30 @@ def upsert_movie(
             INSERT INTO movies(
                 title,
                 year,
-                imdb_score,
-                age_band,
                 watched,
+                age_band,
                 notes,
+                imdb_score,
+                imdb_id,
+                imdb_last_checked_at,
+                imdb_source_url,
                 localized_title,
                 updated_at
             )
-            VALUES (?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
             """,
-            (title, year, imdb_score, age_band, watched, notes, localized_title),
+            (
+                title,
+                year,
+                watched,
+                age_band,
+                notes,
+                imdb_score,
+                imdb_id,
+                imdb_last_checked_at,
+                imdb_source_url,
+                localized_title,
+            ),
         )
         movie_id = int(cursor.lastrowid)
         created = True
@@ -151,7 +192,12 @@ def upsert_movie(
 
         merged_watched = 1 if watched or int(current["watched"]) else 0
         merged_year = year if year is not None else current["year"]
-        merged_imdb = imdb_score if imdb_score is not None else current["imdb_score"]
+        merged_imdb_score = imdb_score if imdb_score is not None else current["imdb_score"]
+        merged_imdb_id = imdb_id if imdb_id is not None else current["imdb_id"]
+        merged_last_checked = (
+            imdb_last_checked_at if imdb_last_checked_at is not None else current["imdb_last_checked_at"]
+        )
+        merged_source_url = imdb_source_url if imdb_source_url is not None else current["imdb_source_url"]
         merged_age_band = age_band or current["age_band"] or "Family"
         merged_notes = notes if notes is not None else current["notes"]
         merged_localized = localized_title if localized_title is not None else current["localized_title"]
@@ -160,20 +206,26 @@ def upsert_movie(
             """
             UPDATE movies
             SET year = ?,
-                imdb_score = ?,
-                age_band = ?,
                 watched = ?,
+                age_band = ?,
                 notes = ?,
+                imdb_score = ?,
+                imdb_id = ?,
+                imdb_last_checked_at = ?,
+                imdb_source_url = ?,
                 localized_title = ?,
                 updated_at = CURRENT_TIMESTAMP
             WHERE id = ?
             """,
             (
                 merged_year,
-                merged_imdb,
-                merged_age_band,
                 merged_watched,
+                merged_age_band,
                 merged_notes,
+                merged_imdb_score,
+                merged_imdb_id,
+                merged_last_checked,
+                merged_source_url,
                 merged_localized,
                 movie_id,
             ),
@@ -198,10 +250,13 @@ def update_movie(
     allowed = {
         "title": "title",
         "year": "year",
-        "imdb_score": "imdb_score",
-        "age_band": "age_band",
         "watched": "watched",
+        "age_band": "age_band",
         "notes": "notes",
+        "imdb_score": "imdb_score",
+        "imdb_id": "imdb_id",
+        "imdb_last_checked_at": "imdb_last_checked_at",
+        "imdb_source_url": "imdb_source_url",
         "localized_title": "localized_title",
     }
 
@@ -212,7 +267,7 @@ def update_movie(
         if payload_key in fields:
             value = fields[payload_key]
             if payload_key == "title" and value is not None:
-                value = (str(value)).strip()
+                value = str(value).strip()
                 if not value:
                     raise ValueError("Title cannot be empty")
             if payload_key == "watched" and value is not None:
@@ -233,16 +288,6 @@ def update_movie(
             add_movie_tags(conn, movie_id, tags)
 
 
-def set_watched(conn: sqlite3.Connection, movie_id: int, watched: bool) -> None:
-    if not _movie_exists(conn, movie_id):
-        raise LookupError("Movie not found")
-
-    conn.execute(
-        "UPDATE movies SET watched = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?",
-        (1 if watched else 0, movie_id),
-    )
-
-
 def set_rating(conn: sqlite3.Connection, movie_id: int, device_id: str, rating: int) -> None:
     if not _movie_exists(conn, movie_id):
         raise LookupError("Movie not found")
@@ -253,8 +298,8 @@ def set_rating(conn: sqlite3.Connection, movie_id: int, device_id: str, rating: 
         VALUES (?, ?, ?)
         ON CONFLICT(movie_id, device_id)
         DO UPDATE SET
-            rating = excluded.rating,
-            updated_at = CURRENT_TIMESTAMP
+          rating = excluded.rating,
+          updated_at = CURRENT_TIMESTAMP
         """,
         (movie_id, device_id, rating),
     )
@@ -278,12 +323,12 @@ def get_rating_summary(
 
     my_rating = None
     if device_id:
-        my_row = conn.execute(
+        mine = conn.execute(
             "SELECT rating FROM user_ratings WHERE movie_id = ? AND device_id = ?",
             (movie_id, device_id),
         ).fetchone()
-        if my_row:
-            my_rating = int(my_row["rating"])
+        if mine:
+            my_rating = int(mine["rating"])
 
     return {
         "avg_rating": round(float(row["avg_rating"]), 2) if row else 0.0,
@@ -292,10 +337,7 @@ def get_rating_summary(
     }
 
 
-def _movie_rows_to_dicts(
-    conn: sqlite3.Connection,
-    rows: List[sqlite3.Row],
-) -> List[Dict[str, Any]]:
+def _movie_rows_to_dicts(conn: sqlite3.Connection, rows: List[sqlite3.Row]) -> List[Dict[str, Any]]:
     movie_ids = [int(row["id"]) for row in rows]
     tag_map: Dict[int, List[str]] = {movie_id: [] for movie_id in movie_ids}
 
@@ -322,11 +364,14 @@ def _movie_rows_to_dicts(
                 "id": movie_id,
                 "title": row["title"],
                 "year": row["year"],
-                "imdb_score": row["imdb_score"],
-                "age_band": row["age_band"],
                 "watched": bool(row["watched"]),
+                "age_band": row["age_band"],
                 "notes": row["notes"],
                 "localized_title": row["localized_title"],
+                "imdb_score": row["imdb_score"],
+                "imdb_id": row["imdb_id"],
+                "imdb_last_checked_at": row["imdb_last_checked_at"],
+                "imdb_source_url": row["imdb_source_url"],
                 "tags": tag_map.get(movie_id, []),
                 "avg_rating": round(float(row["avg_rating"] or 0), 2),
                 "rating_count": int(row["rating_count"] or 0),
@@ -351,7 +396,7 @@ def list_movies(
     limit: int = 500,
 ) -> List[Dict[str, Any]]:
     safe_sort = sort if sort in ALLOWED_SORTS else "title"
-    safe_order = order.lower() if order and order.lower() in ALLOWED_ORDERS else "asc"
+    safe_order = order if order in ALLOWED_ORDERS else "asc"
     safe_tags_mode = tags_mode if tags_mode in {"any", "all"} else "any"
 
     where_parts = ["1 = 1"]
@@ -418,11 +463,14 @@ def list_movies(
           m.id,
           m.title,
           m.year,
-          m.imdb_score,
-          m.age_band,
           m.watched,
+          m.age_band,
           m.notes,
           m.localized_title,
+          m.imdb_score,
+          m.imdb_id,
+          m.imdb_last_checked_at,
+          m.imdb_source_url,
           m.created_at,
           m.updated_at,
           COALESCE(r.avg_rating, 0) AS avg_rating,
@@ -430,41 +478,39 @@ def list_movies(
           mr.rating AS my_rating
         FROM movies m
         LEFT JOIN (
-            SELECT movie_id, AVG(rating) AS avg_rating, COUNT(*) AS rating_count
-            FROM user_ratings
-            GROUP BY movie_id
+          SELECT movie_id, AVG(rating) AS avg_rating, COUNT(*) AS rating_count
+          FROM user_ratings
+          GROUP BY movie_id
         ) r ON r.movie_id = m.id
-        LEFT JOIN user_ratings mr
-            ON mr.movie_id = m.id AND mr.device_id = ?
+        LEFT JOIN user_ratings mr ON mr.movie_id = m.id AND mr.device_id = ?
         WHERE {where_clause}
         ORDER BY {order_clause}
         LIMIT ?
     """
 
-    full_params = [device_id or ""]
-    full_params.extend(params)
-    full_params.append(safe_limit)
+    all_params: List[Any] = [device_id or ""]
+    all_params.extend(params)
+    all_params.append(safe_limit)
 
-    rows = conn.execute(sql, full_params).fetchall()
+    rows = conn.execute(sql, all_params).fetchall()
     return _movie_rows_to_dicts(conn, rows)
 
 
-def get_movie_by_id(
-    conn: sqlite3.Connection,
-    movie_id: int,
-    device_id: Optional[str] = None,
-) -> Optional[Dict[str, Any]]:
+def get_movie_by_id(conn: sqlite3.Connection, movie_id: int, device_id: Optional[str] = None) -> Optional[Dict[str, Any]]:
     rows = conn.execute(
         """
         SELECT
           m.id,
           m.title,
           m.year,
-          m.imdb_score,
-          m.age_band,
           m.watched,
+          m.age_band,
           m.notes,
           m.localized_title,
+          m.imdb_score,
+          m.imdb_id,
+          m.imdb_last_checked_at,
+          m.imdb_source_url,
           m.created_at,
           m.updated_at,
           COALESCE(r.avg_rating, 0) AS avg_rating,
@@ -472,12 +518,11 @@ def get_movie_by_id(
           mr.rating AS my_rating
         FROM movies m
         LEFT JOIN (
-            SELECT movie_id, AVG(rating) AS avg_rating, COUNT(*) AS rating_count
-            FROM user_ratings
-            GROUP BY movie_id
+          SELECT movie_id, AVG(rating) AS avg_rating, COUNT(*) AS rating_count
+          FROM user_ratings
+          GROUP BY movie_id
         ) r ON r.movie_id = m.id
-        LEFT JOIN user_ratings mr
-            ON mr.movie_id = m.id AND mr.device_id = ?
+        LEFT JOIN user_ratings mr ON mr.movie_id = m.id AND mr.device_id = ?
         WHERE m.id = ?
         LIMIT 1
         """,
@@ -503,6 +548,6 @@ def get_facets(conn: sqlite3.Connection) -> Dict[str, List[str]]:
     ).fetchall()
 
     return {
-        "tags": [str(r["name"]) for r in tag_rows],
-        "age_bands": [str(r["age_band"]) for r in age_rows],
+        "tags": [str(row["name"]) for row in tag_rows],
+        "age_bands": [str(row["age_band"]) for row in age_rows],
     }
