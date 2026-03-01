@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Kids Movie Library</title>
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <main class="page">
+    <header class="hero">
+      <div>
+        <a class="back-link" href="/index.html">Back to hub</a>
+        <h1>Kids Movie Library</h1>
+        <p>Search, filter, rate, and track what has been watched.</p>
+      </div>
+      <div class="api-config">
+        <label for="apiBaseInput">API base URL</label>
+        <input id="apiBaseInput" type="text" placeholder="http://127.0.0.1:8000" />
+        <button id="saveApiBaseBtn" type="button">Save API URL</button>
+      </div>
+    </header>
+
+    <section class="panel filters">
+      <div class="field wide">
+        <label for="searchInput">Search title</label>
+        <input id="searchInput" type="search" placeholder="Type a movie title" />
+      </div>
+      <div class="field">
+        <label for="ageBandFilter">Age band</label>
+        <select id="ageBandFilter">
+          <option value="">All</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="watchedFilter">Watched</label>
+        <select id="watchedFilter">
+          <option value="all">All</option>
+          <option value="unwatched">Unwatched</option>
+          <option value="watched">Watched</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="sortFilter">Sort by</label>
+        <select id="sortFilter">
+          <option value="title">Title</option>
+          <option value="year">Year</option>
+          <option value="imdb">IMDb score</option>
+          <option value="rating">Avg user rating</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="orderFilter">Order</label>
+        <select id="orderFilter">
+          <option value="asc">Ascending</option>
+          <option value="desc">Descending</option>
+        </select>
+      </div>
+      <div class="field tags-field">
+        <label>Style / tone tags</label>
+        <div id="tagsContainer" class="tag-chips"></div>
+      </div>
+    </section>
+
+    <section class="panel status-panel">
+      <span id="statusText">Loading movies...</span>
+    </section>
+
+    <section>
+      <div id="movieList" class="movie-grid"></div>
+      <p id="emptyState" class="empty hidden">No movies match your filters.</p>
+    </section>
+
+    <section class="panel forms-panel">
+      <div class="form-card">
+        <h2>Add one movie</h2>
+        <form id="addMovieForm">
+          <div class="field-grid">
+            <label>Title<input id="addTitle" type="text" required /></label>
+            <label>Year<input id="addYear" type="number" min="1888" max="2100" /></label>
+            <label>IMDb score<input id="addImdb" type="number" min="0" max="10" step="0.1" /></label>
+            <label>Age band
+              <select id="addAgeBand">
+                <option value="Family">Family</option>
+                <option value="4-6">4-6</option>
+                <option value="6-8">6-8</option>
+                <option value="8-10">8-10</option>
+                <option value="10+">10+</option>
+              </select>
+            </label>
+          </div>
+          <label>Style/tone tags (comma-separated)
+            <input id="addTags" type="text" placeholder="animated, adventure, funny" />
+          </label>
+          <label>Notes
+            <textarea id="addNotes" rows="3" placeholder="Optional notes"></textarea>
+          </label>
+          <label class="checkbox-label">
+            <input id="addWatched" type="checkbox" />
+            Mark as watched
+          </label>
+          <button type="submit">Add movie</button>
+        </form>
+      </div>
+
+      <div class="form-card">
+        <h2>Bulk add</h2>
+        <form id="bulkAddForm">
+          <p class="hint">One movie per line. Prefix with <code>--</code> to mark watched (same as seed format).</p>
+          <label for="bulkLines">Movie lines</label>
+          <textarea id="bulkLines" rows="10" placeholder="--Luca (2021)&#10;Ron's Gone Wrong (2021)"></textarea>
+          <div class="field-grid">
+            <label>Default age band
+              <select id="bulkAgeBand">
+                <option value="Family">Family</option>
+                <option value="4-6">4-6</option>
+                <option value="6-8">6-8</option>
+                <option value="8-10">8-10</option>
+                <option value="10+">10+</option>
+              </select>
+            </label>
+            <label>Default tags (comma-separated)
+              <input id="bulkTags" type="text" placeholder="animated, adventure" />
+            </label>
+          </div>
+          <button type="submit">Parse &amp; Add</button>
+        </form>
+      </div>
+    </section>
+  </main>
+
+  <template id="movieCardTemplate">
+    <article class="movie-card">
+      <div class="movie-main">
+        <h3 class="movie-title"></h3>
+        <p class="movie-meta"></p>
+        <div class="movie-tags"></div>
+      </div>
+      <div class="movie-stats"></div>
+      <div class="movie-actions">
+        <button class="watch-toggle" type="button"></button>
+        <div class="rating-stars"></div>
+        <div class="imdb-editor">
+          <input class="imdb-input" type="number" min="0" max="10" step="0.1" placeholder="IMDb" />
+          <button class="save-imdb-btn" type="button">Save IMDb</button>
+        </div>
+      </div>
+    </article>
+  </template>
+
+  <script type="module" src="./app.js"></script>
+</body>
+</html>

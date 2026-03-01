@@ -10,7 +10,12 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
-import jobs_api
+try:
+    from . import jobs_api, movies_api, movies_db  # type: ignore
+except ImportError:
+    import jobs_api  # type: ignore
+    import movies_api  # type: ignore
+    import movies_db  # type: ignore
 
 # -----------------------------------------------------------------------------
 # ENV & CONFIG
@@ -44,6 +49,7 @@ LORA_PACKS: Dict[str, Any] = SCHEMA.get("loraPacks", {})
 
 app = FastAPI(title="Item Icon Generator — Western Animation Preset System")
 app.include_router(jobs_api.router)
+app.include_router(movies_api.router)
 
 app.add_middleware(
     CORSMiddleware,
@@ -52,6 +58,11 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+@app.on_event("startup")
+def init_sqlite_databases() -> None:
+    movies_db.ensure_db()
 
 # -----------------------------------------------------------------------------
 # REQUEST / RESPONSE MODELS
