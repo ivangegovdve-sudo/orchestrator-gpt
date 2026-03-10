@@ -1,10 +1,9 @@
 import pytest
 from backend.movies_import import parse_bulk_lines
 
-def test_parse_bulk_lines_empty():
-    assert parse_bulk_lines("") == []
-    assert parse_bulk_lines(None) == []
-    assert parse_bulk_lines("   \n   ") == []
+@pytest.mark.parametrize("empty_input", ["", None, "   \n   "])
+def test_parse_bulk_lines_empty(empty_input):
+    assert parse_bulk_lines(empty_input) == []
 
 def test_parse_bulk_lines_single_line():
     lines = "The Matrix (1999)"
