@@ -4,6 +4,8 @@ import sqlite3
 import threading
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Optional, Tuple
+from dataclasses import dataclass
+
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 DATA_DIR = REPO_ROOT / "data"
@@ -383,39 +385,47 @@ def _movie_rows_to_dicts(conn: sqlite3.Connection, rows: List[sqlite3.Row]) -> L
     return out
 
 
+
+@dataclass
+class MovieListFilters:
+    search: Optional[str] = None
+    age_band: Optional[str] = None
+    watched_filter: str = "all"
+    tags: Optional[Iterable[str]] = None
+    tags_mode: str = "any"
+    sort: str = "title"
+    order: str = "asc"
+    device_id: Optional[str] = None
+    limit: int = 500
+
 def list_movies(
     conn: sqlite3.Connection,
-    search: Optional[str] = None,
-    age_band: Optional[str] = None,
-    watched_filter: str = "all",
-    tags: Optional[Iterable[str]] = None,
-    tags_mode: str = "any",
-    sort: str = "title",
-    order: str = "asc",
-    device_id: Optional[str] = None,
-    limit: int = 500,
+    filters: Optional[MovieListFilters] = None,
 ) -> List[Dict[str, Any]]:
-    safe_sort = sort if sort in ALLOWED_SORTS else "title"
-    safe_order = order if order in ALLOWED_ORDERS else "asc"
-    safe_tags_mode = tags_mode if tags_mode in {"any", "all"} else "any"
+    if filters is None:
+        filters = MovieListFilters()
+
+    safe_sort = filters.sort if filters.sort in ALLOWED_SORTS else "title"
+    safe_order = filters.order if filters.order in ALLOWED_ORDERS else "asc"
+    safe_tags_mode = filters.tags_mode if filters.tags_mode in {"any", "all"} else "any"
 
     where_parts = ["1 = 1"]
     params: List[Any] = []
 
-    if search:
+    if filters.search:
         where_parts.append("LOWER(m.title) LIKE ?")
-        params.append(f"%{search.lower()}%")
+        params.append(f"%{filters.search.lower()}%")
 
-    if age_band:
+    if filters.age_band:
         where_parts.append("m.age_band = ?")
-        params.append(age_band)
+        params.append(filters.age_band)
 
-    if watched_filter == "watched":
+    if filters.watched_filter == "watched":
         where_parts.append("m.watched = 1")
-    elif watched_filter == "unwatched":
+    elif filters.watched_filter == "unwatched":
         where_parts.append("m.watched = 0")
 
-    normalized_tags = normalize_tags(tags)
+    normalized_tags = normalize_tags(filters.tags)
     if normalized_tags:
         placeholders = ",".join("?" for _ in normalized_tags)
         if safe_tags_mode == "all":
@@ -456,7 +466,7 @@ def list_movies(
         order_clause = f"LOWER(m.title) {safe_order.upper()}"
 
     where_clause = " AND ".join(where_parts)
-    safe_limit = max(1, min(int(limit), 5000))
+    safe_limit = max(1, min(int(filters.limit), 5000))
 
     sql = f"""
         SELECT
@@ -488,7 +498,7 @@ def list_movies(
         LIMIT ?
     """
 
-    all_params: List[Any] = [device_id or ""]
+    all_params: List[Any] = [filters.device_id or ""]
     all_params.extend(params)
     all_params.append(safe_limit)
 
