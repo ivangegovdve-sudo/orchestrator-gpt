@@ -31,15 +31,14 @@ def test_watched_prefix(line, expected_title):
     assert result["title"] == expected_title
     assert result["watched"] is True
 
-def test_bullet_points():
-    result = parse_movie_line("- Finding Nemo")
-    assert result["title"] == "Finding Nemo"
-
-    result2 = parse_movie_line("* Toy Story")
-    assert result2["title"] == "Toy Story"
-
-    result3 = parse_movie_line("• Up")
-    assert result3["title"] == "Up"
+@pytest.mark.parametrize("line, expected_title", [
+    ("- Finding Nemo", "Finding Nemo"),
+    ("* Toy Story", "Toy Story"),
+    ("• Up", "Up"),
+])
+def test_bullet_points(line, expected_title):
+    result = parse_movie_line(line)
+    assert result["title"] == expected_title
 
 def test_year_parentheses():
     result = parse_movie_line("Jurassic Park (1993)")
