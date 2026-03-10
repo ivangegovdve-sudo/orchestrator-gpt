@@ -1,10 +1,13 @@
 import pytest
 from backend.movies_import import parse_movie_line
 
-def test_empty_string():
-    assert parse_movie_line("") is None
-    assert parse_movie_line("   ") is None
-    assert parse_movie_line(None) is None
+@pytest.mark.parametrize("line", [
+    "",
+    "   ",
+    None,
+])
+def test_empty_string(line):
+    assert parse_movie_line(line) is None
 
 def test_basic_title():
     result = parse_movie_line("The Matrix")
