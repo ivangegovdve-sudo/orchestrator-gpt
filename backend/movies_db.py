@@ -129,6 +129,112 @@ def replace_movie_tags(conn: sqlite3.Connection, movie_id: int, tags: Iterable[s
     add_movie_tags(conn, movie_id, tags)
 
 
+
+def _insert_movie_record(
+    conn: sqlite3.Connection,
+    title: str,
+    year: Optional[int],
+    watched: int,
+    age_band: str,
+    notes: Optional[str],
+    imdb_score: Optional[float],
+    imdb_id: Optional[str],
+    imdb_last_checked_at: Optional[str],
+    imdb_source_url: Optional[str],
+    localized_title: Optional[str],
+) -> int:
+    cursor = conn.execute(
+        """
+        INSERT INTO movies(
+            title,
+            year,
+            watched,
+            age_band,
+            notes,
+            imdb_score,
+            imdb_id,
+            imdb_last_checked_at,
+            imdb_source_url,
+            localized_title,
+            updated_at
+        )
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+        """,
+        (
+            title,
+            year,
+            watched,
+            age_band,
+            notes,
+            imdb_score,
+            imdb_id,
+            imdb_last_checked_at,
+            imdb_source_url,
+            localized_title,
+        ),
+    )
+    return int(cursor.lastrowid)
+
+
+def _update_movie_record(
+    conn: sqlite3.Connection,
+    movie_id: int,
+    year: Optional[int],
+    watched: int,
+    age_band: str,
+    notes: Optional[str],
+    imdb_score: Optional[float],
+    imdb_id: Optional[str],
+    imdb_last_checked_at: Optional[str],
+    imdb_source_url: Optional[str],
+    localized_title: Optional[str],
+) -> None:
+    current = conn.execute("SELECT * FROM movies WHERE id = ?", (movie_id,)).fetchone()
+    if not current:
+        raise RuntimeError("Movie disappeared during upsert")
+
+    merged_watched = 1 if watched or int(current["watched"]) else 0
+    merged_year = year if year is not None else current["year"]
+    merged_imdb_score = imdb_score if imdb_score is not None else current["imdb_score"]
+    merged_imdb_id = imdb_id if imdb_id is not None else current["imdb_id"]
+    merged_last_checked = (
+        imdb_last_checked_at if imdb_last_checked_at is not None else current["imdb_last_checked_at"]
+    )
+    merged_source_url = imdb_source_url if imdb_source_url is not None else current["imdb_source_url"]
+    merged_age_band = age_band or current["age_band"] or "Family"
+    merged_notes = notes if notes is not None else current["notes"]
+    merged_localized = localized_title if localized_title is not None else current["localized_title"]
+
+    conn.execute(
+        """
+        UPDATE movies
+        SET year = ?,
+            watched = ?,
+            age_band = ?,
+            notes = ?,
+            imdb_score = ?,
+            imdb_id = ?,
+            imdb_last_checked_at = ?,
+            imdb_source_url = ?,
+            localized_title = ?,
+            updated_at = CURRENT_TIMESTAMP
+        WHERE id = ?
+        """,
+        (
+            merged_year,
+            merged_watched,
+            merged_age_band,
+            merged_notes,
+            merged_imdb_score,
+            merged_imdb_id,
+            merged_last_checked,
+            merged_source_url,
+            merged_localized,
+            movie_id,
+        ),
+    )
+
+
 def upsert_movie(
     conn: sqlite3.Connection,
     movie: Dict[str, Any],
@@ -152,83 +258,34 @@ def upsert_movie(
     created = False
 
     if existing_id is None:
-        cursor = conn.execute(
-            """
-            INSERT INTO movies(
-                title,
-                year,
-                watched,
-                age_band,
-                notes,
-                imdb_score,
-                imdb_id,
-                imdb_last_checked_at,
-                imdb_source_url,
-                localized_title,
-                updated_at
-            )
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
-            """,
-            (
-                title,
-                year,
-                watched,
-                age_band,
-                notes,
-                imdb_score,
-                imdb_id,
-                imdb_last_checked_at,
-                imdb_source_url,
-                localized_title,
-            ),
+        movie_id = _insert_movie_record(
+            conn,
+            title,
+            year,
+            watched,
+            age_band,
+            notes,
+            imdb_score,
+            imdb_id,
+            imdb_last_checked_at,
+            imdb_source_url,
+            localized_title,
         )
-        movie_id = int(cursor.lastrowid)
         created = True
     else:
         movie_id = existing_id
-        current = conn.execute("SELECT * FROM movies WHERE id = ?", (movie_id,)).fetchone()
-        if not current:
-            raise RuntimeError("Movie disappeared during upsert")
-
-        merged_watched = 1 if watched or int(current["watched"]) else 0
-        merged_year = year if year is not None else current["year"]
-        merged_imdb_score = imdb_score if imdb_score is not None else current["imdb_score"]
-        merged_imdb_id = imdb_id if imdb_id is not None else current["imdb_id"]
-        merged_last_checked = (
-            imdb_last_checked_at if imdb_last_checked_at is not None else current["imdb_last_checked_at"]
-        )
-        merged_source_url = imdb_source_url if imdb_source_url is not None else current["imdb_source_url"]
-        merged_age_band = age_band or current["age_band"] or "Family"
-        merged_notes = notes if notes is not None else current["notes"]
-        merged_localized = localized_title if localized_title is not None else current["localized_title"]
-
-        conn.execute(
-            """
-            UPDATE movies
-            SET year = ?,
-                watched = ?,
-                age_band = ?,
-                notes = ?,
-                imdb_score = ?,
-                imdb_id = ?,
-                imdb_last_checked_at = ?,
-                imdb_source_url = ?,
-                localized_title = ?,
-                updated_at = CURRENT_TIMESTAMP
-            WHERE id = ?
-            """,
-            (
-                merged_year,
-                merged_watched,
-                merged_age_band,
-                merged_notes,
-                merged_imdb_score,
-                merged_imdb_id,
-                merged_last_checked,
-                merged_source_url,
-                merged_localized,
-                movie_id,
-            ),
+        _update_movie_record(
+            conn,
+            movie_id,
+            year,
+            watched,
+            age_band,
+            notes,
+            imdb_score,
+            imdb_id,
+            imdb_last_checked_at,
+            imdb_source_url,
+            localized_title,
         )
 
     if tags:
