@@ -158,6 +158,85 @@ class MovieRecordPayload:
     language: Optional[str]
 
 
+@dataclass
+class BulkMovieState:
+    title: str
+    payload: MovieRecordPayload
+    tags: List[str]
+    db_id: Optional[int] = None
+
+
+def _movie_key(title: str, year: Optional[int]) -> Tuple[str, int]:
+    return title.lower(), year if year is not None else -1
+
+
+def _payload_from_movie(movie: Dict[str, Any]) -> MovieRecordPayload:
+    return MovieRecordPayload(
+        year=movie.get("year"),
+        watched=1 if bool(movie.get("watched")) else 0,
+        age_band=(movie.get("age_band") or "Family").strip() or "Family",
+        notes=movie.get("notes"),
+        imdb_score=movie.get("imdb_score"),
+        imdb_id=movie.get("imdb_id"),
+        imdb_last_checked_at=movie.get("imdb_last_checked_at"),
+        imdb_source_url=movie.get("imdb_source_url"),
+        localized_title=movie.get("localized_title"),
+        poster_url=movie.get("poster_url"),
+        runtime_minutes=movie.get("runtime_minutes"),
+        language=movie.get("language"),
+    )
+
+
+def _payload_from_row(row: sqlite3.Row) -> MovieRecordPayload:
+    return MovieRecordPayload(
+        year=row["year"],
+        watched=int(row["watched"]),
+        age_band=row["age_band"] or "Family",
+        notes=row["notes"],
+        imdb_score=row["imdb_score"],
+        imdb_id=row["imdb_id"],
+        imdb_last_checked_at=row["imdb_last_checked_at"],
+        imdb_source_url=row["imdb_source_url"],
+        localized_title=row["localized_title"],
+        poster_url=row["poster_url"],
+        runtime_minutes=row["runtime_minutes"],
+        language=row["language"],
+    )
+
+
+def _merge_movie_payload(base: MovieRecordPayload, incoming: MovieRecordPayload) -> MovieRecordPayload:
+    return MovieRecordPayload(
+        year=incoming.year if incoming.year is not None else base.year,
+        watched=1 if incoming.watched or base.watched else 0,
+        age_band=incoming.age_band or base.age_band or "Family",
+        notes=incoming.notes if incoming.notes is not None else base.notes,
+        imdb_score=incoming.imdb_score if incoming.imdb_score is not None else base.imdb_score,
+        imdb_id=incoming.imdb_id if incoming.imdb_id is not None else base.imdb_id,
+        imdb_last_checked_at=(
+            incoming.imdb_last_checked_at
+            if incoming.imdb_last_checked_at is not None
+            else base.imdb_last_checked_at
+        ),
+        imdb_source_url=(
+            incoming.imdb_source_url
+            if incoming.imdb_source_url is not None
+            else base.imdb_source_url
+        ),
+        localized_title=(
+            incoming.localized_title
+            if incoming.localized_title is not None
+            else base.localized_title
+        ),
+        poster_url=incoming.poster_url if incoming.poster_url is not None else base.poster_url,
+        runtime_minutes=(
+            incoming.runtime_minutes
+            if incoming.runtime_minutes is not None
+            else base.runtime_minutes
+        ),
+        language=incoming.language if incoming.language is not None else base.language,
+    )
+
+
 def _insert_movie_record(
     conn: sqlite3.Connection,
     title: str,
@@ -211,22 +290,7 @@ def _update_movie_record(
     if not current:
         raise RuntimeError("Movie disappeared during upsert")
 
-    merged_watched = 1 if payload.watched or int(current["watched"]) else 0
-    merged_year = payload.year if payload.year is not None else current["year"]
-    merged_imdb_score = payload.imdb_score if payload.imdb_score is not None else current["imdb_score"]
-    merged_imdb_id = payload.imdb_id if payload.imdb_id is not None else current["imdb_id"]
-    merged_last_checked = (
-        payload.imdb_last_checked_at
-        if payload.imdb_last_checked_at is not None
-        else current["imdb_last_checked_at"]
-    )
-    merged_source_url = payload.imdb_source_url if payload.imdb_source_url is not None else current["imdb_source_url"]
-    merged_poster_url = payload.poster_url if payload.poster_url is not None else current["poster_url"]
-    merged_runtime = payload.runtime_minutes if payload.runtime_minutes is not None else current["runtime_minutes"]
-    merged_language = payload.language if payload.language is not None else current["language"]
-    merged_age_band = payload.age_band or current["age_band"] or "Family"
-    merged_notes = payload.notes if payload.notes is not None else current["notes"]
-    merged_localized = payload.localized_title if payload.localized_title is not None else current["localized_title"]
+    merged = _merge_movie_payload(_payload_from_row(current), payload)
 
     conn.execute(
         """
@@ -247,18 +311,18 @@ def _update_movie_record(
         WHERE id = ?
         """,
         (
-            merged_year,
-            merged_watched,
-            merged_age_band,
-            merged_notes,
-            merged_imdb_score,
-            merged_imdb_id,
-            merged_last_checked,
-            merged_source_url,
-            merged_localized,
-            merged_poster_url,
-            merged_runtime,
-            merged_language,
+            merged.year,
+            merged.watched,
+            merged.age_band,
+            merged.notes,
+            merged.imdb_score,
+            merged.imdb_id,
+            merged.imdb_last_checked_at,
+            merged.imdb_source_url,
+            merged.localized_title,
+            merged.poster_url,
+            merged.runtime_minutes,
+            merged.language,
             movie_id,
         ),
     )
@@ -273,34 +337,9 @@ def upsert_movie(
     if not title:
         raise ValueError("Movie title is required")
 
-    year = movie.get("year")
-    imdb_score = movie.get("imdb_score")
-    imdb_id = movie.get("imdb_id")
-    imdb_last_checked_at = movie.get("imdb_last_checked_at")
-    imdb_source_url = movie.get("imdb_source_url")
-    poster_url = movie.get("poster_url")
-    runtime_minutes = movie.get("runtime_minutes")
-    language = movie.get("language")
-    age_band = (movie.get("age_band") or "Family").strip() or "Family"
-    watched = 1 if bool(movie.get("watched")) else 0
-    notes = movie.get("notes")
-    localized_title = movie.get("localized_title")
-    payload = MovieRecordPayload(
-        year=year,
-        watched=watched,
-        age_band=age_band,
-        notes=notes,
-        imdb_score=imdb_score,
-        imdb_id=imdb_id,
-        imdb_last_checked_at=imdb_last_checked_at,
-        imdb_source_url=imdb_source_url,
-        localized_title=localized_title,
-        poster_url=poster_url,
-        runtime_minutes=runtime_minutes,
-        language=language,
-    )
+    payload = _payload_from_movie(movie)
 
-    existing_id = _find_movie_id(conn, title=title, year=year)
+    existing_id = _find_movie_id(conn, title=title, year=payload.year)
     created = False
 
     if existing_id is None:
@@ -314,6 +353,196 @@ def upsert_movie(
         add_movie_tags(conn, movie_id, tags)
 
     return movie_id, created
+
+
+
+def upsert_movies_bulk(
+    conn: sqlite3.Connection,
+    movies_data: List[Dict[str, Any]],
+) -> Tuple[int, int]:
+    if not movies_data:
+        return 0, 0
+
+    titles_lower = {
+        str(movie.get("title") or "").strip().lower()
+        for movie in movies_data
+        if str(movie.get("title") or "").strip()
+    }
+    if not titles_lower:
+        return 0, 0
+
+    placeholders = ",".join("?" for _ in titles_lower)
+    existing_rows = conn.execute(
+        f"SELECT * FROM movies WHERE LOWER(title) IN ({placeholders})",
+        list(titles_lower),
+    ).fetchall()
+    existing_map = {
+        _movie_key(str(row["title"]).strip(), row["year"]): row
+        for row in existing_rows
+    }
+
+    states: Dict[Tuple[str, int], BulkMovieState] = {}
+    for movie in movies_data:
+        title = str(movie.get("title") or "").strip()
+        if not title:
+            continue
+
+        payload = _payload_from_movie(movie)
+        key = _movie_key(title, payload.year)
+        incoming_tags = normalize_tags(movie.get("tags") or [])
+        state = states.get(key)
+
+        if state is None:
+            existing = existing_map.get(key)
+            if existing is None:
+                states[key] = BulkMovieState(title=title, payload=payload, tags=incoming_tags)
+            else:
+                states[key] = BulkMovieState(
+                    title=str(existing["title"]),
+                    payload=_merge_movie_payload(_payload_from_row(existing), payload),
+                    tags=incoming_tags,
+                    db_id=int(existing["id"]),
+                )
+            continue
+
+        state.payload = _merge_movie_payload(state.payload, payload)
+        state.tags = normalize_tags([*state.tags, *incoming_tags])
+
+    states_to_insert = [state for state in states.values() if state.db_id is None]
+    states_to_update = [state for state in states.values() if state.db_id is not None]
+
+    if states_to_update:
+        conn.executemany(
+            """
+            UPDATE movies
+            SET year = ?,
+                watched = ?,
+                age_band = ?,
+                notes = ?,
+                imdb_score = ?,
+                imdb_id = ?,
+                imdb_last_checked_at = ?,
+                imdb_source_url = ?,
+                localized_title = ?,
+                poster_url = ?,
+                runtime_minutes = ?,
+                language = ?,
+                updated_at = CURRENT_TIMESTAMP
+            WHERE id = ?
+            """,
+            [
+                (
+                    state.payload.year,
+                    state.payload.watched,
+                    state.payload.age_band,
+                    state.payload.notes,
+                    state.payload.imdb_score,
+                    state.payload.imdb_id,
+                    state.payload.imdb_last_checked_at,
+                    state.payload.imdb_source_url,
+                    state.payload.localized_title,
+                    state.payload.poster_url,
+                    state.payload.runtime_minutes,
+                    state.payload.language,
+                    state.db_id,
+                )
+                for state in states_to_update
+            ],
+        )
+
+    if states_to_insert:
+        conn.executemany(
+            """
+            INSERT INTO movies(
+                title,
+                year,
+                watched,
+                age_band,
+                notes,
+                imdb_score,
+                imdb_id,
+                imdb_last_checked_at,
+                imdb_source_url,
+                localized_title,
+                poster_url,
+                runtime_minutes,
+                language,
+                updated_at
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+            """,
+            [
+                (
+                    state.title,
+                    state.payload.year,
+                    state.payload.watched,
+                    state.payload.age_band,
+                    state.payload.notes,
+                    state.payload.imdb_score,
+                    state.payload.imdb_id,
+                    state.payload.imdb_last_checked_at,
+                    state.payload.imdb_source_url,
+                    state.payload.localized_title,
+                    state.payload.poster_url,
+                    state.payload.runtime_minutes,
+                    state.payload.language,
+                )
+                for state in states_to_insert
+            ],
+        )
+
+        insert_titles = {state.title.lower() for state in states_to_insert}
+        insert_placeholders = ",".join("?" for _ in insert_titles)
+        inserted_rows = conn.execute(
+            f"""
+            SELECT id, title, IFNULL(year, -1) AS year
+            FROM movies
+            WHERE LOWER(title) IN ({insert_placeholders})
+            """,
+            list(insert_titles),
+        ).fetchall()
+        inserted_map = {
+            _movie_key(str(row["title"]).strip(), row["year"]): int(row["id"])
+            for row in inserted_rows
+        }
+        for state in states_to_insert:
+            state.db_id = inserted_map.get(_movie_key(state.title, state.payload.year))
+
+    all_tags = {tag for state in states.values() for tag in state.tags}
+    if all_tags:
+        tag_placeholders = ",".join("?" for _ in all_tags)
+        tag_rows = conn.execute(
+            f"SELECT id, name FROM tags WHERE name IN ({tag_placeholders})",
+            list(all_tags),
+        ).fetchall()
+        tag_map = {str(row["name"]): int(row["id"]) for row in tag_rows}
+
+        missing_tags = all_tags - set(tag_map.keys())
+        if missing_tags:
+            conn.executemany(
+                "INSERT OR IGNORE INTO tags(name) VALUES (?)",
+                [(tag,) for tag in missing_tags],
+            )
+            tag_rows = conn.execute(
+                f"SELECT id, name FROM tags WHERE name IN ({tag_placeholders})",
+                list(all_tags),
+            ).fetchall()
+            tag_map = {str(row["name"]): int(row["id"]) for row in tag_rows}
+
+        movie_tag_inserts = [
+            (state.db_id, tag_map[tag])
+            for state in states.values()
+            if state.db_id is not None
+            for tag in state.tags
+            if tag in tag_map
+        ]
+        if movie_tag_inserts:
+            conn.executemany(
+                "INSERT OR IGNORE INTO movie_tags(movie_id, tag_id) VALUES (?, ?)",
+                movie_tag_inserts,
+            )
+
+    return len(states_to_insert), len(states_to_update)
 
 
 def update_movie(
