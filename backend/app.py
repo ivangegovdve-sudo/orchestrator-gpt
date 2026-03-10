@@ -10,6 +10,7 @@ from urllib.error import URLError, HTTPError
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
+from dataclasses import dataclass
 
 try:
     from . import jobs_api, movies_api, movies_db  # type: ignore
@@ -179,15 +180,20 @@ def build_lora_config_and_triggers(lora_pack_key: Optional[str]) -> (List[Dict[s
     return lora_configs, triggers
 
 
-def build_positive_prompt(
-    asset_description: str,
-    rarity_key: Optional[str],
-    element_key: Optional[str],
-    biome_key: Optional[str],
-    style_key: Optional[str],
-    category_key: Optional[str],
-    lora_triggers: List[str],
+@dataclass(frozen=True)
+class PositivePromptConfig:
+    asset_description: str
+    rarity_key: Optional[str]
+    element_key: Optional[str]
+    biome_key: Optional[str]
+    style_key: Optional[str]
+    category_key: Optional[str]
+    lora_triggers: List[str]
     style_hint: Optional[str]
+
+
+def build_positive_prompt(
+    config: PositivePromptConfig
 ) -> str:
     """
     Construct the positive prompt by combining:
@@ -197,14 +203,14 @@ def build_positive_prompt(
     - Optional user styleHint
     """
     base_template: str = DEFAULTS["prompts"]["basePositiveTemplate"]
-    safe_asset_description = _sanitize_prompt_fragment(asset_description)
+    safe_asset_description = _sanitize_prompt_fragment(config.asset_description)
     prompt_base = base_template.replace("{assetDescription}", safe_asset_description)
 
-    rarity_block = _get_preset_block(RARITIES, rarity_key)
-    element_block = _get_preset_block(ELEMENTS, element_key)
-    biome_block = _get_preset_block(BIOMES, biome_key)
-    style_block = _get_preset_block(STYLES, style_key)
-    category_block = _get_preset_block(CATEGORIES, category_key)
+    rarity_block = _get_preset_block(RARITIES, config.rarity_key)
+    element_block = _get_preset_block(ELEMENTS, config.element_key)
+    biome_block = _get_preset_block(BIOMES, config.biome_key)
+    style_block = _get_preset_block(STYLES, config.style_key)
+    category_block = _get_preset_block(CATEGORIES, config.category_key)
 
     rarity_tags = rarity_block.get("promptTags", "")
     element_tags = element_block.get("promptTags", "")
@@ -224,12 +230,12 @@ def build_positive_prompt(
         if extra and extra.strip():
             parts.append(extra.strip())
 
-    safe_style_hint = _sanitize_prompt_fragment(style_hint, max_length=160)
+    safe_style_hint = _sanitize_prompt_fragment(config.style_hint, max_length=160)
     if safe_style_hint:
         parts.append(safe_style_hint)
 
-    if lora_triggers:
-        parts.extend(trigger.strip() for trigger in lora_triggers if trigger.strip())
+    if config.lora_triggers:
+        parts.extend(trigger.strip() for trigger in config.lora_triggers if trigger.strip())
 
     parts.append("clean bold outlines, cel-shading, vibrant colors, professional illustration")
 
@@ -278,7 +284,6 @@ def _run_controlnet_preprocess(seed_image: str, workflow_id: str) -> tuple[str, 
         raise HTTPException(status_code=502, detail="Missing guideImageURL in preprocess response.")
 
     return guide_image_url, preprocess_response
-
 
 def _run_image_inference(
     workflow_id: str,
@@ -355,7 +360,7 @@ def generate_item_icon(req: ItemIconRequest):
     # -------------------------------------------------------------------------
     # 3) Prompts
     # -------------------------------------------------------------------------
-    positive_prompt = build_positive_prompt(
+    prompt_config = PositivePromptConfig(
         asset_description=req.assetDescription,
         rarity_key=req.rarity,
         element_key=req.element,
@@ -363,8 +368,9 @@ def generate_item_icon(req: ItemIconRequest):
         style_key=req.style,
         category_key=req.category,
         lora_triggers=lora_triggers,
-        style_hint=req.styleHint
+        style_hint=req.styleHint,
     )
+    positive_prompt = build_positive_prompt(prompt_config)
     negative_prompt: str = DEFAULTS["prompts"]["baseNegative"]
 
     # -------------------------------------------------------------------------
