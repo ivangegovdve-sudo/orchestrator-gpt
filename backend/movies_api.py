@@ -135,8 +135,7 @@ def list_movies(
 ) -> MovieListResponse:
     conn = movies_db.get_connection()
     try:
-        items = movies_db.list_movies(
-            conn,
+        filters = movies_db.MovieListFilters(
             search=search,
             age_band=age_band,
             watched_filter=status,
@@ -147,6 +146,7 @@ def list_movies(
             device_id=device_id,
             limit=limit,
         )
+        items = movies_db.list_movies(conn, filters=filters)
         facets = movies_db.get_facets(conn)
     finally:
         conn.close()

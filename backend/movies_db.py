@@ -4,6 +4,8 @@ import sqlite3
 import threading
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Optional, Tuple
+from dataclasses import dataclass
+
 
 try:
     from . import utils  # type: ignore
@@ -417,6 +419,26 @@ def _movie_rows_to_dicts(conn: sqlite3.Connection, rows: List[sqlite3.Row]) -> L
     return out
 
 
+@dataclass
+class MovieListFilters:
+    search: Optional[str] = None
+    age_band: Optional[str] = None
+    watched_filter: str = "all"
+    tags: Optional[Iterable[str]] = None
+    tags_mode: str = "any"
+    sort: str = "title"
+    order: str = "asc"
+    device_id: Optional[str] = None
+    limit: int = 500
+
+    def __post_init__(self) -> None:
+        if self.sort not in ALLOWED_SORTS:
+            self.sort = "title"
+        if self.order not in ALLOWED_ORDERS:
+            self.order = "asc"
+        if self.tags_mode not in {"any", "all"}:
+            self.tags_mode = "any"
+        self.limit = max(1, min(int(self.limit), 5000))
 
 def _build_where_clause(
     search: Optional[str],
@@ -473,7 +495,6 @@ def _build_where_clause(
 
     return " AND ".join(where_parts), params
 
-
 def _build_order_clause(safe_sort: str, safe_order: str) -> str:
     upper_order = safe_order.upper()
     order_map = {
@@ -486,26 +507,21 @@ def _build_order_clause(safe_sort: str, safe_order: str) -> str:
 
 def list_movies(
     conn: sqlite3.Connection,
-    search: Optional[str] = None,
-    age_band: Optional[str] = None,
-    watched_filter: str = "all",
-    tags: Optional[Iterable[str]] = None,
-    tags_mode: str = "any",
-    sort: str = "title",
-    order: str = "asc",
-    device_id: Optional[str] = None,
-    limit: int = 500,
+    filters: Optional[MovieListFilters] = None,
 ) -> List[Dict[str, Any]]:
-    safe_sort = sort if sort in ALLOWED_SORTS else "title"
-    safe_order = order if order in ALLOWED_ORDERS else "asc"
-    safe_tags_mode = tags_mode if tags_mode in {"any", "all"} else "any"
+    if filters is None:
+        filters = MovieListFilters()
 
-    normalized_tags = normalize_tags(tags)
+    normalized_tags = normalize_tags(filters.tags)
     where_clause, params = _build_where_clause(
-        search, age_band, watched_filter, normalized_tags, safe_tags_mode
+        filters.search,
+        filters.age_band,
+        filters.watched_filter,
+        normalized_tags,
+        filters.tags_mode,
     )
-    order_clause = _build_order_clause(safe_sort, safe_order)
-    safe_limit = max(1, min(int(limit), 5000))
+    order_clause = _build_order_clause(filters.sort, filters.order)
+    safe_limit = filters.limit
 
     sql = f"""
         SELECT
@@ -540,7 +556,7 @@ def list_movies(
         LIMIT ?
     """
 
-    all_params: List[Any] = [device_id or ""]
+    all_params: List[Any] = [filters.device_id or ""]
     all_params.extend(params)
     all_params.append(safe_limit)
 
