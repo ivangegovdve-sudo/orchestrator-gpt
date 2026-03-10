@@ -151,10 +151,10 @@ def _categorize_files(all_files, categorize_func):
 
     for f in all_files:
         cat = categorize_func(f["rel_path"], f["ext"])
-        if cat is None:
-            categories["uncategorized"].append(f)
-        else:
+        if cat in categories:
             categories[cat].append(f)
+        else:
+            categories["uncategorized"].append(f)
 
     categories_counts = {k: len(v) for k, v in categories.items()}
     return categories, categories_counts
@@ -310,74 +310,50 @@ def human_size(num_bytes):
         size /= 1024.0
 
 
-def build_markdown(inventory):
-    sd_tree = inventory.get("sd_tree", {})
-    repo_tree = inventory.get("repo_tree", {})
+def _add_tree_summary_section(lines, tree, heading):
+    s = tree["summary"]
+    total_size_human = human_size(s["total_size_bytes"])
 
-    def summarize_tree(tree, heading):
-        s = tree["summary"]
-        total_size_human = human_size(s["total_size_bytes"])
-
-        lines = []
-        lines.append(f"## {heading}")
-        lines.append("")
-        lines.append(f"- Root: `{s['root']}`")
-        lines.append(f"- Inventory tree last modified: `{s['inventory_for_tree_last_modified']}`")
-        lines.append(f"- Total files: **{s['total_files']}**")
-        lines.append(f"- Total directories: **{s['total_dirs']}**")
-        lines.append(f"- Approx total size: **{total_size_human}**")
-        lines.append("")
-
-        lines.append("### Top-level directories")
-        lines.append("")
-        if s.get("top_level_dirs"):
-            lines.append("| Directory | Subdirs | Files |")
-            lines.append("|-----------|---------|-------|")
-            for d in s["top_level_dirs"]:
-                lines.append(f"| `{d['name']}` | {d['num_subdirs']} | {d['num_files']} |")
-        else:
-            lines.append("_No top-level directories found?_")
-        lines.append("")
-
-        return lines
-
-    def add_model_section(lines, title, key, cats):
-        files = cats.get(key, [])
-        lines.append(f"### {title} ({len(files)})")
-        lines.append("")
-        if not files:
-            lines.append("_None detected._")
-            lines.append("")
-            return
-        lines.append("| Name | Relative path | Size |")
-        lines.append("|------|---------------|------|")
-        for f in sorted(files, key=lambda x: x["name"])[:50]:
-            size_h = human_size(f["size_bytes"])
-            lines.append(f"| `{f['name']}` | `{f['rel_path']}` | {size_h} |")
-        if len(files) > 50:
-            lines.append(f"…and {len(files) - 50} more.")
-        lines.append("")
-
-    lines = []
-    lines.append("# Stable Diffusion Inventory Snapshot")
+    lines.append(f"## {heading}")
     lines.append("")
-    lines.append(f"Generated at: `{inventory.get('generated_at', 'unknown')}`")
+    lines.append(f"- Root: `{s['root']}`")
+    lines.append(f"- Inventory tree last modified: `{s['inventory_for_tree_last_modified']}`")
+    lines.append(f"- Total files: **{s['total_files']}**")
+    lines.append(f"- Total directories: **{s['total_dirs']}**")
+    lines.append(f"- Approx total size: **{total_size_human}**")
     lines.append("")
 
-    # Stable Diffusion tree details
-    lines.extend(summarize_tree(sd_tree, "Stable Diffusion webui tree"))
-
-    cats = sd_tree.get("categories", {})
-    lines.append("### Models and Assets")
+    lines.append("### Top-level directories")
     lines.append("")
-    add_model_section(lines, "Checkpoint models", "checkpoints", cats)
-    add_model_section(lines, "LoRA models", "loras", cats)
-    add_model_section(lines, "Embeddings", "embeddings", cats)
-    add_model_section(lines, "ControlNet / T2I models", "controlnet", cats)
-    add_model_section(lines, "Animatediff / motion models", "animatediff", cats)
-    add_model_section(lines, "Upscalers / ESRGAN", "upscalers", cats)
-    add_model_section(lines, "Other models", "other_models", cats)
+    if s.get("top_level_dirs"):
+        lines.append("| Directory | Subdirs | Files |")
+        lines.append("|-----------|---------|-------|")
+        for d in s["top_level_dirs"]:
+            lines.append(f"| `{d['name']}` | {d['num_subdirs']} | {d['num_files']} |")
+    else:
+        lines.append("_No top-level directories found?_")
+    lines.append("")
 
+
+def _add_model_section(lines, title, key, cats):
+    files = cats.get(key, [])
+    lines.append(f"### {title} ({len(files)})")
+    lines.append("")
+    if not files:
+        lines.append("_None detected._")
+        lines.append("")
+        return
+    lines.append("| Name | Relative path | Size |")
+    lines.append("|------|---------------|------|")
+    for f in sorted(files, key=lambda x: x["name"])[:50]:
+        size_h = human_size(f["size_bytes"])
+        lines.append(f"| `{f['name']}` | `{f['rel_path']}` | {size_h} |")
+    if len(files) > 50:
+        lines.append(f"…and {len(files) - 50} more.")
+    lines.append("")
+
+
+def _add_extensions_section(lines, sd_tree):
     ext_summary = sd_tree.get("summary", {}).get("extension_summary", {})
     ext_names = ext_summary.get("names", [])
     ext_counts = ext_summary.get("file_counts", {})
@@ -394,6 +370,8 @@ def build_markdown(inventory):
             lines.append(f"| `{name}` | {cnt} |")
     lines.append("")
 
+
+def _add_uncategorized_section(lines, cats):
     unc = cats.get("uncategorized", [])
     lines.append(f"### Uncategorized files ({len(unc)})")
     lines.append("")
@@ -411,8 +389,41 @@ def build_markdown(inventory):
         lines.append("_All files were categorized into known buckets._")
     lines.append("")
 
+
+def _add_models_and_assets_section(lines, cats):
+    lines.append("### Models and Assets")
+    lines.append("")
+    _add_model_section(lines, "Checkpoint models", "checkpoints", cats)
+    _add_model_section(lines, "LoRA models", "loras", cats)
+    _add_model_section(lines, "Embeddings", "embeddings", cats)
+    _add_model_section(lines, "ControlNet / T2I models", "controlnet", cats)
+    _add_model_section(lines, "Animatediff / motion models", "animatediff", cats)
+    _add_model_section(lines, "Upscalers / ESRGAN", "upscalers", cats)
+    _add_model_section(lines, "Other models", "other_models", cats)
+
+
+def build_markdown(inventory):
+    sd_tree = inventory.get("sd_tree", {})
+    repo_tree = inventory.get("repo_tree", {})
+
+    lines = []
+    lines.append("# Stable Diffusion Inventory Snapshot")
+    lines.append("")
+    lines.append(f"Generated at: `{inventory.get('generated_at', 'unknown')}`")
+    lines.append("")
+
+    # Stable Diffusion tree details
+    _add_tree_summary_section(lines, sd_tree, "Stable Diffusion webui tree")
+
+    cats = sd_tree.get("categories", {})
+    _add_models_and_assets_section(lines, cats)
+
+    _add_extensions_section(lines, sd_tree)
+
+    _add_uncategorized_section(lines, cats)
+
     # Orchestrator repo summary
-    lines.extend(summarize_tree(repo_tree, "Orchestrator repo tree"))
+    _add_tree_summary_section(lines, repo_tree, "Orchestrator repo tree")
 
     lines.append("---")
     lines.append("_This file is auto-generated by `sd_inventory.py`. Do not edit by hand._")
