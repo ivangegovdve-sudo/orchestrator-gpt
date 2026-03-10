@@ -417,22 +417,14 @@ def _movie_rows_to_dicts(conn: sqlite3.Connection, rows: List[sqlite3.Row]) -> L
     return out
 
 
-def list_movies(
-    conn: sqlite3.Connection,
-    search: Optional[str] = None,
-    age_band: Optional[str] = None,
-    watched_filter: str = "all",
-    tags: Optional[Iterable[str]] = None,
-    tags_mode: str = "any",
-    sort: str = "title",
-    order: str = "asc",
-    device_id: Optional[str] = None,
-    limit: int = 500,
-) -> List[Dict[str, Any]]:
-    safe_sort = sort if sort in ALLOWED_SORTS else "title"
-    safe_order = order if order in ALLOWED_ORDERS else "asc"
-    safe_tags_mode = tags_mode if tags_mode in {"any", "all"} else "any"
 
+def _build_where_clause(
+    search: Optional[str],
+    age_band: Optional[str],
+    watched_filter: str,
+    normalized_tags: List[str],
+    safe_tags_mode: str,
+) -> Tuple[str, List[Any]]:
     where_parts = ["1 = 1"]
     params: List[Any] = []
 
@@ -449,7 +441,6 @@ def list_movies(
     elif watched_filter == "unwatched":
         where_parts.append("m.watched = 0")
 
-    normalized_tags = normalize_tags(tags)
     if normalized_tags:
         placeholders = ",".join("?" for _ in normalized_tags)
         if safe_tags_mode == "all":
@@ -480,16 +471,40 @@ def list_movies(
             )
             params.extend(normalized_tags)
 
-    if safe_sort == "year":
-        order_clause = f"(m.year IS NULL) ASC, m.year {safe_order.upper()}, LOWER(m.title) ASC"
-    elif safe_sort == "imdb":
-        order_clause = f"(m.imdb_score IS NULL) ASC, m.imdb_score {safe_order.upper()}, LOWER(m.title) ASC"
-    elif safe_sort == "rating":
-        order_clause = f"avg_rating {safe_order.upper()}, rating_count DESC, LOWER(m.title) ASC"
-    else:
-        order_clause = f"LOWER(m.title) {safe_order.upper()}"
+    return " AND ".join(where_parts), params
 
-    where_clause = " AND ".join(where_parts)
+
+def _build_order_clause(safe_sort: str, safe_order: str) -> str:
+    upper_order = safe_order.upper()
+    order_map = {
+        "year": f"(m.year IS NULL) ASC, m.year {upper_order}, LOWER(m.title) ASC",
+        "imdb": f"(m.imdb_score IS NULL) ASC, m.imdb_score {upper_order}, LOWER(m.title) ASC",
+        "rating": f"avg_rating {upper_order}, rating_count DESC, LOWER(m.title) ASC",
+    }
+    return order_map.get(safe_sort, f"LOWER(m.title) {upper_order}")
+
+
+def list_movies(
+    conn: sqlite3.Connection,
+    search: Optional[str] = None,
+    age_band: Optional[str] = None,
+    watched_filter: str = "all",
+    tags: Optional[Iterable[str]] = None,
+    tags_mode: str = "any",
+    sort: str = "title",
+    order: str = "asc",
+    device_id: Optional[str] = None,
+    limit: int = 500,
+) -> List[Dict[str, Any]]:
+    safe_sort = sort if sort in ALLOWED_SORTS else "title"
+    safe_order = order if order in ALLOWED_ORDERS else "asc"
+    safe_tags_mode = tags_mode if tags_mode in {"any", "all"} else "any"
+
+    normalized_tags = normalize_tags(tags)
+    where_clause, params = _build_where_clause(
+        search, age_band, watched_filter, normalized_tags, safe_tags_mode
+    )
+    order_clause = _build_order_clause(safe_sort, safe_order)
     safe_limit = max(1, min(int(limit), 5000))
 
     sql = f"""
