@@ -79,10 +79,12 @@ def normalize_tags(tags: Optional[Iterable[str]]) -> List[str]:
         return []
 
     out: List[str] = []
+    seen: set[str] = set()
     for tag in tags:
         clean = (tag or "").strip().lower()
-        if clean and clean not in out:
+        if clean and clean not in seen:
             out.append(clean)
+            seen.add(clean)
     return out
 
 
