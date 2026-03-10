@@ -120,6 +120,12 @@ def _rate_limited_fetch(url: str) -> str:
         raise
 
 
+def _merge_missing_info(result: Dict[str, Any], nested: Dict[str, Any]) -> None:
+    for key, value in nested.items():
+        if result[key] is None and value is not None:
+            result[key] = value
+
+
 def _extract_info_from_json_node(node: Any) -> Dict[str, Any]:
     """Extract rating, poster, and duration from LD+JSON node."""
     res = {"rating": None, "poster": None, "duration": None}
@@ -148,18 +154,12 @@ def _extract_info_from_json_node(node: Any) -> Dict[str, Any]:
 
         # Recurse if something is still missing
         if not all(res.values()):
-            for value in node.values():
-                nested = _extract_info_from_json_node(value)
-                for k in res:
-                    if res[k] is None and nested[k] is not None:
-                        res[k] = nested[k]
+            for nested in map(_extract_info_from_json_node, node.values()):
+                _merge_missing_info(res, nested)
 
     elif isinstance(node, list):
-        for value in node:
-            nested = _extract_info_from_json_node(value)
-            for k in res:
-                if res[k] is None and nested[k] is not None:
-                    res[k] = nested[k]
+        for nested in map(_extract_info_from_json_node, node):
+            _merge_missing_info(res, nested)
 
     return res
 
