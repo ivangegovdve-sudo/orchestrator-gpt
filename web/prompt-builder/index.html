@@ -1313,6 +1313,7 @@
       col1.className = "col";
       const col2 = document.createElement("div");
       col2.className = "col";
+      let renderedGroupCount = 0;
 
       groups.forEach((g) => {
         const loras = inv.loras.filter(l => l.ui_group === g.id && l.enabled !== false);
@@ -1324,7 +1325,13 @@
         const titleDiv = document.createElement("div");
         titleDiv.className = "group-title";
         if (g.id === "icons_core") {
-          titleDiv.innerHTML = `<span>${g.label}</span><span class="badge-soft">Loaded from JSON inventory</span>`;
+          const labelSpan = document.createElement("span");
+          labelSpan.textContent = g.label;
+          const badgeSpan = document.createElement("span");
+          badgeSpan.className = "badge-soft";
+          badgeSpan.textContent = "Loaded from JSON inventory";
+          titleDiv.appendChild(labelSpan);
+          titleDiv.appendChild(badgeSpan);
         } else {
           titleDiv.textContent = g.label;
         }
@@ -1351,12 +1358,12 @@
           const spanWeight = document.createElement("span");
           spanWeight.className = "weight";
 
-          let displayWeight = String(l.recommended_weight);
+          let displayWeight = String(l.recommended_weight ?? "");
           // format display weight as [3] if snippet is [id:3], else 0.48 or similar
-          if (l.prompt_snippet && l.prompt_snippet.startsWith('[')) {
+          if (l.prompt_snippet?.startsWith('[')) {
              displayWeight = `[${displayWeight}]`;
-          } else if (displayWeight.length > 0 && displayWeight.indexOf('.') !== -1 && displayWeight.split('.')[1].length === 1) {
-             displayWeight = displayWeight + '0';
+          } else if (displayWeight.includes('.') && displayWeight.split('.')[1].length === 1) {
+             displayWeight += '0';
           }
 
           spanWeight.textContent = displayWeight;
@@ -1375,7 +1382,10 @@
         } else {
           col2.appendChild(groupDiv);
         }
+        renderedGroupCount += 1;
       });
+
+      if (renderedGroupCount === 0) return;
 
       container.innerHTML = "";
       container.appendChild(col1);
