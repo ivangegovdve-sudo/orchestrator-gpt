@@ -1,5 +1,10 @@
 import pytest
-from backend.utils import parse_tags, validate_tag, deduplicate_tags
+from backend.utils import (
+    parse_tags,
+    validate_tag,
+    deduplicate_tags,
+    normalize_tag_list,
+)
 
 def test_parse_tags_none():
     assert parse_tags(None) == []
@@ -45,3 +50,7 @@ def test_deduplicate_tags():
     assert deduplicate_tags(["a", "b", "a", "c", "b"]) == ["a", "b", "c"]
     assert deduplicate_tags([]) == []
     assert deduplicate_tags(["a", "A"]) == ["a", "A"] # case sensitive deduplication
+
+def test_normalize_tag_list():
+    assert normalize_tag_list([" A ", "b", "a"]) == ["a", "b"]
+    assert normalize_tag_list(None) == []

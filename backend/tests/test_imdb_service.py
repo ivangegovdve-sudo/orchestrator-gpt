@@ -1,6 +1,11 @@
 import pytest
-from datetime import datetime, timezone
-from backend.imdb_service import parse_iso_datetime, _extract_rating_from_json_node
+from datetime import datetime, timedelta, timezone
+from unittest.mock import patch
+from backend.imdb_service import (
+    parse_iso_datetime,
+    _extract_info_from_json_node,
+    _parse_duration,
+)
 
 def test_parse_iso_datetime():
     assert parse_iso_datetime(None) is None
@@ -14,73 +19,77 @@ def test_parse_iso_datetime():
 
     assert parse_iso_datetime("invalid-date") is None
 
-def test_extract_rating_from_json_node_dict():
-    node = {"aggregateRating": {"ratingValue": "8.5"}}
-    assert _extract_rating_from_json_node(node) == 8.5
+def test_extract_info_from_json_node_dict():
+    node = {
+        "@type": "Movie",
+        "aggregateRating": {"ratingValue": "8.5"},
+        "image": "http://poster.url",
+        "duration": "PT2H22M",
+    }
+    res = _extract_info_from_json_node(node)
+    assert res["rating"] == 8.5
+    assert res["poster"] == "http://poster.url"
+    assert res["duration"] == 142
 
-    node = {"aggregateRating": {"ratingValue": 7.2}}
-    assert _extract_rating_from_json_node(node) == 7.2
-
-def test_extract_rating_from_json_node_nested():
+def test_extract_info_from_json_node_nested():
     node = {
         "main": {
-            "ratings": {
-                "aggregateRating": {"ratingValue": "9.1"}
+            "movie": {
+                "@type": "Movie",
+                "aggregateRating": {"ratingValue": "9.1"},
+                "image": {"url": "http://poster.url"},
             }
         }
     }
-    assert _extract_rating_from_json_node(node) == 9.1
+    res = _extract_info_from_json_node(node)
+    assert res["rating"] == 9.1
+    assert res["poster"] == "http://poster.url"
 
-def test_extract_rating_from_json_node_list():
+def test_extract_info_from_json_node_list():
     node = [
         {"type": "other"},
-        {"aggregateRating": {"ratingValue": "6.5"}}
+        {"aggregateRating": {"ratingValue": "6.5"}, "duration": "PT90M"}
     ]
-    assert _extract_rating_from_json_node(node) == 6.5
+    res = _extract_info_from_json_node(node)
+    assert res["rating"] == 6.5
+    assert res["duration"] == 90
 
-def test_extract_rating_from_json_node_invalid():
-    assert _extract_rating_from_json_node({}) is None
-    assert _extract_rating_from_json_node({"aggregateRating": {}}) is None
-    assert _extract_rating_from_json_node({"ratingValue": "8.5"}) is None # not inside aggregateRating
+def test_extract_info_from_json_node_invalid():
+    res = _extract_info_from_json_node({})
+    assert res["rating"] is None
+    assert res["poster"] is None
+    assert res["duration"] is None
 
-def test_should_use_cached(monkeypatch):
+def test_parse_duration():
+    assert _parse_duration("PT2H22M") == 142
+    assert _parse_duration("PT1H") == 60
+    assert _parse_duration("PT45M") == 45
+    assert _parse_duration("PT0M") is None
+    assert _parse_duration("") is None
+    assert _parse_duration("invalid") is None
+
+def test_should_use_cached():
     from backend.imdb_service import should_use_cached
-    from datetime import datetime, timezone, timedelta
 
     now = datetime(2024, 3, 20, 12, 0, 0, tzinfo=timezone.utc)
 
-    class MockDatetime:
-        @classmethod
-        def now(cls, tz=None):
-            return now
+    with patch("backend.imdb_service.datetime", wraps=datetime) as mock_datetime:
+        mock_datetime.now.return_value = now
 
-        @classmethod
-        def fromisoformat(cls, date_string):
-            return datetime.fromisoformat(date_string)
+        assert should_use_cached(last_checked_at=now.isoformat(), force=True) is False
+        assert should_use_cached(last_checked_at=None, force=True) is False
 
-    monkeypatch.setattr("backend.imdb_service.datetime", MockDatetime)
+        assert should_use_cached(last_checked_at=None, force=False) is False
+        assert should_use_cached(last_checked_at="invalid-date", force=False) is False
 
+        three_days_ago = now - timedelta(days=3)
+        assert should_use_cached(last_checked_at=three_days_ago.isoformat(), force=False) is True
 
-    # If force is True, we shouldn't use cached regardless of the date
-    assert should_use_cached(last_checked_at=now.isoformat(), force=True) is False
-    assert should_use_cached(last_checked_at=None, force=True) is False
+        seven_days_ago = now - timedelta(days=7)
+        assert should_use_cached(last_checked_at=seven_days_ago.isoformat(), force=False) is False
 
-    # If force is False, but last_checked_at is None or invalid, we shouldn't use cached
-    assert should_use_cached(last_checked_at=None, force=False) is False
-    assert should_use_cached(last_checked_at="invalid-date", force=False) is False
+        just_under_seven_days_ago = now - timedelta(days=6, hours=23, minutes=59, seconds=59)
+        assert should_use_cached(last_checked_at=just_under_seven_days_ago.isoformat(), force=False) is True
 
-    # Valid dates within CACHE_TTL_DAYS (7 days) should return True
-    three_days_ago = now - timedelta(days=3)
-    assert should_use_cached(last_checked_at=three_days_ago.isoformat(), force=False) is True
-
-    # Exactly 7 days ago shouldn't use cached (since it's < timedelta(days=CACHE_TTL_DAYS))
-    seven_days_ago = now - timedelta(days=7)
-    assert should_use_cached(last_checked_at=seven_days_ago.isoformat(), force=False) is False
-
-    # Just under 7 days ago should use cached
-    just_under_seven_days_ago = now - timedelta(days=6, hours=23, minutes=59, seconds=59)
-    assert should_use_cached(last_checked_at=just_under_seven_days_ago.isoformat(), force=False) is True
-
-    # More than 7 days ago shouldn't use cached
-    eight_days_ago = now - timedelta(days=8)
-    assert should_use_cached(last_checked_at=eight_days_ago.isoformat(), force=False) is False
+        eight_days_ago = now - timedelta(days=8)
+        assert should_use_cached(last_checked_at=eight_days_ago.isoformat(), force=False) is False

@@ -47,7 +47,11 @@ class OrchestratorHandler(SimpleHTTPRequestHandler):
                 return
 
             timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-            seed_part = seed if seed is not None else "RND"
+            # Sanitize seed to prevent path traversal
+            if seed is not None:
+                seed_part = str(seed).replace("/", "_").replace("\\", "_")
+            else:
+                seed_part = "RND"
             filename = f"generated_{timestamp}_seed{seed_part}.png"
             filepath = GENERATED_DIR / filename
 

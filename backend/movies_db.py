@@ -5,6 +5,11 @@ import threading
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Optional, Tuple
 
+try:
+    from . import utils  # type: ignore
+except ImportError:
+    import utils  # type: ignore
+
 REPO_ROOT = Path(__file__).resolve().parent.parent
 DATA_DIR = REPO_ROOT / "data"
 DB_PATH = DATA_DIR / "movies.db"
@@ -28,6 +33,9 @@ def _ensure_movie_columns(conn: sqlite3.Connection) -> None:
         "imdb_id": "TEXT",
         "imdb_last_checked_at": "TEXT",
         "imdb_source_url": "TEXT",
+        "poster_url": "TEXT",
+        "runtime_minutes": "INTEGER",
+        "language": "TEXT",
     }
     for column_name, definition in required_columns.items():
         if column_name not in columns:
@@ -79,10 +87,12 @@ def normalize_tags(tags: Optional[Iterable[str]]) -> List[str]:
         return []
 
     out: List[str] = []
+    seen: set[str] = set()
     for tag in tags:
         clean = (tag or "").strip().lower()
-        if clean and clean not in out:
+        if clean and clean not in seen:
             out.append(clean)
+            seen.add(clean)
     return out
 
 
@@ -143,6 +153,9 @@ def upsert_movie(
     imdb_id = movie.get("imdb_id")
     imdb_last_checked_at = movie.get("imdb_last_checked_at")
     imdb_source_url = movie.get("imdb_source_url")
+    poster_url = movie.get("poster_url")
+    runtime_minutes = movie.get("runtime_minutes")
+    language = movie.get("language")
     age_band = (movie.get("age_band") or "Family").strip() or "Family"
     watched = 1 if bool(movie.get("watched")) else 0
     notes = movie.get("notes")
@@ -165,9 +178,12 @@ def upsert_movie(
                 imdb_last_checked_at,
                 imdb_source_url,
                 localized_title,
+                poster_url,
+                runtime_minutes,
+                language,
                 updated_at
             )
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
             """,
             (
                 title,
@@ -180,6 +196,9 @@ def upsert_movie(
                 imdb_last_checked_at,
                 imdb_source_url,
                 localized_title,
+                poster_url,
+                runtime_minutes,
+                language,
             ),
         )
         movie_id = int(cursor.lastrowid)
@@ -198,6 +217,9 @@ def upsert_movie(
             imdb_last_checked_at if imdb_last_checked_at is not None else current["imdb_last_checked_at"]
         )
         merged_source_url = imdb_source_url if imdb_source_url is not None else current["imdb_source_url"]
+        merged_poster_url = poster_url if poster_url is not None else current["poster_url"]
+        merged_runtime = runtime_minutes if runtime_minutes is not None else current["runtime_minutes"]
+        merged_language = language if language is not None else current["language"]
         merged_age_band = age_band or current["age_band"] or "Family"
         merged_notes = notes if notes is not None else current["notes"]
         merged_localized = localized_title if localized_title is not None else current["localized_title"]
@@ -214,6 +236,9 @@ def upsert_movie(
                 imdb_last_checked_at = ?,
                 imdb_source_url = ?,
                 localized_title = ?,
+                poster_url = ?,
+                runtime_minutes = ?,
+                language = ?,
                 updated_at = CURRENT_TIMESTAMP
             WHERE id = ?
             """,
@@ -227,6 +252,9 @@ def upsert_movie(
                 merged_last_checked,
                 merged_source_url,
                 merged_localized,
+                merged_poster_url,
+                merged_runtime,
+                merged_language,
                 movie_id,
             ),
         )
@@ -258,6 +286,9 @@ def update_movie(
         "imdb_last_checked_at": "imdb_last_checked_at",
         "imdb_source_url": "imdb_source_url",
         "localized_title": "localized_title",
+        "poster_url": "poster_url",
+        "runtime_minutes": "runtime_minutes",
+        "language": "language",
     }
 
     assignments: List[str] = []
@@ -372,6 +403,9 @@ def _movie_rows_to_dicts(conn: sqlite3.Connection, rows: List[sqlite3.Row]) -> L
                 "imdb_id": row["imdb_id"],
                 "imdb_last_checked_at": row["imdb_last_checked_at"],
                 "imdb_source_url": row["imdb_source_url"],
+                "poster_url": row["poster_url"],
+                "runtime_minutes": row["runtime_minutes"],
+                "language": row["language"],
                 "tags": tag_map.get(movie_id, []),
                 "avg_rating": round(float(row["avg_rating"] or 0), 2),
                 "rating_count": int(row["rating_count"] or 0),
@@ -471,6 +505,9 @@ def list_movies(
           m.imdb_id,
           m.imdb_last_checked_at,
           m.imdb_source_url,
+          m.poster_url,
+          m.runtime_minutes,
+          m.language,
           m.created_at,
           m.updated_at,
           COALESCE(r.avg_rating, 0) AS avg_rating,
@@ -511,6 +548,9 @@ def get_movie_by_id(conn: sqlite3.Connection, movie_id: int, device_id: Optional
           m.imdb_id,
           m.imdb_last_checked_at,
           m.imdb_source_url,
+          m.poster_url,
+          m.runtime_minutes,
+          m.language,
           m.created_at,
           m.updated_at,
           COALESCE(r.avg_rating, 0) AS avg_rating,
