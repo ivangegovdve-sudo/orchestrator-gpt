@@ -1,6 +1,7 @@
 ﻿from __future__ import annotations
 
 import json
+import logging
 import re
 import threading
 import time
@@ -89,9 +90,13 @@ def _rate_limited_fetch(url: str) -> str:
         },
     )
 
-    with urlopen(req, timeout=REQUEST_TIMEOUT_SECONDS) as response:
-        raw = response.read()
-        return raw.decode("utf-8", errors="ignore")
+    try:
+        with urlopen(req, timeout=REQUEST_TIMEOUT_SECONDS) as response:
+            raw = response.read()
+            return raw.decode("utf-8", errors="ignore")
+    except Exception as exc:
+        logging.error(f"Error fetching URL {url}: {exc}")
+        raise
 
 
 def _extract_rating_from_json_node(node: Any) -> Optional[float]:
@@ -126,7 +131,8 @@ def _parse_rating_from_title_html(html: str) -> Optional[float]:
             continue
         try:
             payload = json.loads(text)
-        except json.JSONDecodeError:
+        except json.JSONDecodeError as exc:
+            logging.warning(f"Failed to parse LD+JSON script block: {exc}")
             continue
 
         rating = _extract_rating_from_json_node(payload)

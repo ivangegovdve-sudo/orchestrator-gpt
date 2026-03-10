@@ -6,11 +6,12 @@ from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel, Field
 
 try:
-    from . import imdb_service, movies_db, movies_import  # type: ignore
+    from . import imdb_service, movies_db, movies_import, utils  # type: ignore
 except ImportError:
     import imdb_service  # type: ignore
     import movies_db  # type: ignore
     import movies_import  # type: ignore
+    import utils  # type: ignore
 
 router = APIRouter(prefix="/api/movies", tags=["movies"])
 
@@ -104,12 +105,6 @@ class IMDbUpdateResponse(BaseModel):
     movie: MovieOut
 
 
-def _parse_tags(tag_csv: Optional[str]) -> List[str]:
-    if not tag_csv:
-        return []
-    return [part.strip().lower() for part in tag_csv.split(",") if part.strip()]
-
-
 def _movie_or_404(conn, movie_id: int, device_id: Optional[str] = None) -> dict:
     movie = movies_db.get_movie_by_id(conn, movie_id=movie_id, device_id=device_id)
     if not movie:
@@ -136,7 +131,7 @@ def list_movies(
             search=search,
             age_band=age_band,
             watched_filter=status,
-            tags=_parse_tags(tags),
+            tags=utils.parse_tags(tags),
             tags_mode=tags_mode,
             sort=sort,
             order=order,
