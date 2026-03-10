@@ -60,6 +60,18 @@ def test_extract_info_from_json_node_invalid():
     assert res["poster"] is None
     assert res["duration"] is None
 
+@pytest.mark.parametrize(
+    "node",
+    [
+        {"aggregateRating": {"ratingValue": "N/A"}},
+        {"aggregateRating": {"ratingValue": ["8.5"]}},
+        {"aggregateRating": {"ratingValue": {"value": 8.5}}},
+    ],
+)
+def test_extract_info_from_json_node_invalid_rating_value(node):
+    res = _extract_info_from_json_node(node)
+    assert res["rating"] is None
+
 def test_parse_duration():
     assert _parse_duration("PT2H22M") == 142
     assert _parse_duration("PT1H") == 60
