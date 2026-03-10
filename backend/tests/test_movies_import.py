@@ -50,16 +50,15 @@ def test_year_trailing():
     assert result["title"] == "The Terminator"
     assert result["year"] == 1984
 
-def test_localized_title():
-    result = parse_movie_line("Spirited Away / Sen to Chihiro")
-    assert result["title"] == "Spirited Away"
-    assert result["localized_title"] == "Sen to Chihiro"
-    assert result["notes"] == "Localized title: Sen to Chihiro"
-
-    result2 = parse_movie_line("Title/")
-    assert result2["title"] == "Title"
-    assert result2["localized_title"] is None
-    assert result2["notes"] is None
+@pytest.mark.parametrize("line, expected_title, expected_localized, expected_notes", [
+    ("Spirited Away / Sen to Chihiro", "Spirited Away", "Sen to Chihiro", "Localized title: Sen to Chihiro"),
+    ("Title/", "Title", None, None),
+])
+def test_localized_title(line, expected_title, expected_localized, expected_notes):
+    result = parse_movie_line(line)
+    assert result["title"] == expected_title
+    assert result["localized_title"] == expected_localized
+    assert result["notes"] == expected_notes
 
 def test_complex_combination():
     result = parse_movie_line("-- * My Neighbor Totoro / Tonari no Totoro (1988)")
