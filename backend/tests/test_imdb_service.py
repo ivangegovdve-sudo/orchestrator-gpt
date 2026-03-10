@@ -1,5 +1,6 @@
 import pytest
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
+from unittest.mock import patch
 from backend.imdb_service import (
     parse_iso_datetime,
     _extract_info_from_json_node,
@@ -66,3 +67,29 @@ def test_parse_duration():
     assert _parse_duration("PT0M") is None
     assert _parse_duration("") is None
     assert _parse_duration("invalid") is None
+
+def test_should_use_cached():
+    from backend.imdb_service import should_use_cached
+
+    now = datetime(2024, 3, 20, 12, 0, 0, tzinfo=timezone.utc)
+
+    with patch("backend.imdb_service.datetime", wraps=datetime) as mock_datetime:
+        mock_datetime.now.return_value = now
+
+        assert should_use_cached(last_checked_at=now.isoformat(), force=True) is False
+        assert should_use_cached(last_checked_at=None, force=True) is False
+
+        assert should_use_cached(last_checked_at=None, force=False) is False
+        assert should_use_cached(last_checked_at="invalid-date", force=False) is False
+
+        three_days_ago = now - timedelta(days=3)
+        assert should_use_cached(last_checked_at=three_days_ago.isoformat(), force=False) is True
+
+        seven_days_ago = now - timedelta(days=7)
+        assert should_use_cached(last_checked_at=seven_days_ago.isoformat(), force=False) is False
+
+        just_under_seven_days_ago = now - timedelta(days=6, hours=23, minutes=59, seconds=59)
+        assert should_use_cached(last_checked_at=just_under_seven_days_ago.isoformat(), force=False) is True
+
+        eight_days_ago = now - timedelta(days=8)
+        assert should_use_cached(last_checked_at=eight_days_ago.isoformat(), force=False) is False
