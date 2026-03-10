@@ -9,6 +9,7 @@ from urllib.error import URLError, HTTPError
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
+from dataclasses import dataclass
 
 try:
     from . import jobs_api, movies_api, movies_db  # type: ignore
@@ -170,15 +171,20 @@ def build_lora_config_and_triggers(lora_pack_key: Optional[str]) -> (List[Dict[s
     return lora_configs, triggers
 
 
-def build_positive_prompt(
-    asset_description: str,
-    rarity_key: Optional[str],
-    element_key: Optional[str],
-    biome_key: Optional[str],
-    style_key: Optional[str],
-    category_key: Optional[str],
-    lora_triggers: List[str],
+@dataclass
+class PositivePromptConfig:
+    asset_description: str
+    rarity_key: Optional[str]
+    element_key: Optional[str]
+    biome_key: Optional[str]
+    style_key: Optional[str]
+    category_key: Optional[str]
+    lora_triggers: List[str]
     style_hint: Optional[str]
+
+
+def build_positive_prompt(
+    config: PositivePromptConfig
 ) -> str:
     """
     Construct the positive prompt by combining:
@@ -188,13 +194,13 @@ def build_positive_prompt(
     - Optional user styleHint
     """
     base_template: str = DEFAULTS["prompts"]["basePositiveTemplate"]
-    prompt_base = base_template.replace("{assetDescription}", asset_description.strip())
+    prompt_base = base_template.replace("{assetDescription}", config.asset_description.strip())
 
-    rarity_block = _get_preset_block(RARITIES, rarity_key)
-    element_block = _get_preset_block(ELEMENTS, element_key)
-    biome_block = _get_preset_block(BIOMES, biome_key)
-    style_block = _get_preset_block(STYLES, style_key)
-    category_block = _get_preset_block(CATEGORIES, category_key)
+    rarity_block = _get_preset_block(RARITIES, config.rarity_key)
+    element_block = _get_preset_block(ELEMENTS, config.element_key)
+    biome_block = _get_preset_block(BIOMES, config.biome_key)
+    style_block = _get_preset_block(STYLES, config.style_key)
+    category_block = _get_preset_block(CATEGORIES, config.category_key)
 
     rarity_tags = rarity_block.get("promptTags", "")
     element_tags = element_block.get("promptTags", "")
@@ -214,11 +220,11 @@ def build_positive_prompt(
         if extra and extra.strip():
             parts.append(extra.strip())
 
-    if style_hint:
-        parts.append(style_hint.strip())
+    if config.style_hint:
+        parts.append(config.style_hint.strip())
 
-    if lora_triggers:
-        parts.extend(trigger.strip() for trigger in lora_triggers if trigger.strip())
+    if config.lora_triggers:
+        parts.extend(trigger.strip() for trigger in config.lora_triggers if trigger.strip())
 
     parts.append("clean bold outlines, cel-shading, vibrant colors, professional illustration")
 
@@ -287,7 +293,7 @@ def generate_item_icon(req: ItemIconRequest):
     # -------------------------------------------------------------------------
     # 3) Prompts
     # -------------------------------------------------------------------------
-    positive_prompt = build_positive_prompt(
+    prompt_config = PositivePromptConfig(
         asset_description=req.assetDescription,
         rarity_key=req.rarity,
         element_key=req.element,
@@ -297,6 +303,7 @@ def generate_item_icon(req: ItemIconRequest):
         lora_triggers=lora_triggers,
         style_hint=req.styleHint
     )
+    positive_prompt = build_positive_prompt(prompt_config)
     negative_prompt: str = DEFAULTS["prompts"]["baseNegative"]
 
     # -------------------------------------------------------------------------
