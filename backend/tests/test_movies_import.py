@@ -70,11 +70,7 @@ def test_complex_combination():
 
 def test_tags_and_hints():
     result = parse_movie_line("Luca", default_tags=["disney", "CGI"])
-    assert "disney" in result["tags"]
-    assert "cgi" in result["tags"]
-    assert "animated" in result["tags"]
-    assert "funny" in result["tags"]
-    assert "emotional" in result["tags"]
+    assert set(result["tags"]) == {"disney", "cgi", "animated", "funny", "emotional"}
 
 def test_default_age_band():
     result = parse_movie_line("Deadpool", default_age_band="Adult")
