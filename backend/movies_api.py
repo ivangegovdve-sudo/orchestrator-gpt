@@ -179,19 +179,10 @@ def import_movies(payload: BulkImportRequest) -> BulkImportResponse:
         default_tags=payload.default_tags,
     )
 
-    created = 0
-    updated = 0
-
     conn = movies_db.get_connection()
     try:
         with conn:
-            for movie in parsed:
-                tags = movie.get("tags") or []
-                _movie_id, is_created = movies_db.upsert_movie(conn, movie, tags=tags)
-                if is_created:
-                    created += 1
-                else:
-                    updated += 1
+            created, updated = movies_db.upsert_movies_bulk(conn, parsed)
     finally:
         conn.close()
 

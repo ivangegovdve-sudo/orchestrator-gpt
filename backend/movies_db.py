@@ -237,6 +237,211 @@ def upsert_movie(
     return movie_id, created
 
 
+
+def upsert_movies_bulk(
+    conn: sqlite3.Connection,
+    movies_data: List[Dict[str, Any]],
+) -> Tuple[int, int]:
+    if not movies_data:
+        return 0, 0
+
+    titles_lower = set()
+    for m in movies_data:
+        t = str(m.get("title") or "").strip()
+        if t:
+            titles_lower.add(t.lower())
+
+    if not titles_lower:
+        return 0, 0
+
+    placeholders = ",".join("?" for _ in titles_lower)
+    rows = conn.execute(
+        f"SELECT * FROM movies WHERE LOWER(title) IN ({placeholders})",
+        list(titles_lower)
+    ).fetchall()
+
+    existing_map = {}
+    for r in rows:
+        t_low = str(r["title"]).lower()
+        y = r["year"] if r["year"] is not None else -1
+        existing_map[(t_low, y)] = r
+
+    to_insert = []
+    to_update = []
+
+    for m in movies_data:
+        t = str(m.get("title") or "").strip()
+        if not t:
+            continue
+
+        y = m.get("year")
+        t_low = t.lower()
+        y_key = y if y is not None else -1
+
+        imdb_score = m.get("imdb_score")
+        imdb_id = m.get("imdb_id")
+        imdb_last_checked_at = m.get("imdb_last_checked_at")
+        imdb_source_url = m.get("imdb_source_url")
+        age_band = (m.get("age_band") or "Family").strip() or "Family"
+        watched = 1 if bool(m.get("watched")) else 0
+        notes = m.get("notes")
+        localized_title = m.get("localized_title")
+
+        tags = normalize_tags(m.get("tags") or [])
+
+        if (t_low, y_key) in existing_map:
+            current = existing_map[(t_low, y_key)]
+            merged_watched = 1 if watched or int(current["watched"]) else 0
+            merged_year = y if y is not None else current["year"]
+            merged_imdb_score = imdb_score if imdb_score is not None else current["imdb_score"]
+            merged_imdb_id = imdb_id if imdb_id is not None else current["imdb_id"]
+            merged_last_checked = (
+                imdb_last_checked_at if imdb_last_checked_at is not None else current["imdb_last_checked_at"]
+            )
+            merged_source_url = imdb_source_url if imdb_source_url is not None else current["imdb_source_url"]
+            merged_age_band = age_band or current["age_band"] or "Family"
+            merged_notes = notes if notes is not None else current["notes"]
+            merged_localized = localized_title if localized_title is not None else current["localized_title"]
+
+            to_update.append((
+                merged_year,
+                merged_watched,
+                merged_age_band,
+                merged_notes,
+                merged_imdb_score,
+                merged_imdb_id,
+                merged_last_checked,
+                merged_source_url,
+                merged_localized,
+                current["id"],
+            ))
+            m["_db_id"] = current["id"]
+            m["_tags"] = tags
+        else:
+            to_insert.append((
+                t,
+                y,
+                watched,
+                age_band,
+                notes,
+                imdb_score,
+                imdb_id,
+                imdb_last_checked_at,
+                imdb_source_url,
+                localized_title,
+            ))
+            m["_tags"] = tags
+            m["_insert_idx"] = len(to_insert) - 1
+
+    if to_update:
+        conn.executemany(
+            """
+            UPDATE movies
+            SET year = ?,
+                watched = ?,
+                age_band = ?,
+                notes = ?,
+                imdb_score = ?,
+                imdb_id = ?,
+                imdb_last_checked_at = ?,
+                imdb_source_url = ?,
+                localized_title = ?,
+                updated_at = CURRENT_TIMESTAMP
+            WHERE id = ?
+            """,
+            to_update,
+        )
+
+    if to_insert:
+        conn.executemany(
+            """
+            INSERT INTO movies(
+                title,
+                year,
+                watched,
+                age_band,
+                notes,
+                imdb_score,
+                imdb_id,
+                imdb_last_checked_at,
+                imdb_source_url,
+                localized_title,
+                updated_at
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+            """,
+            to_insert,
+        )
+
+        inserted_titles = {r[0].lower() for r in to_insert}
+        placeholders_in = ",".join("?" for _ in inserted_titles)
+        rows_in = conn.execute(
+            f"""
+            SELECT id, LOWER(title) as title, IFNULL(year, -1) as year
+            FROM movies
+            WHERE LOWER(title) IN ({placeholders_in})
+            """,
+            list(inserted_titles)
+        ).fetchall()
+        id_map = {(r["title"], r["year"]): r["id"] for r in rows_in}
+
+        for m in movies_data:
+            if "_insert_idx" in m:
+                t = m["title"].lower()
+                y = m.get("year")
+                y_key = y if y is not None else -1
+                m["_db_id"] = id_map.get((t, y_key))
+
+    all_tags = set()
+    for m in movies_data:
+        all_tags.update(m.get("_tags", []))
+
+    if all_tags:
+        placeholders_tags = ",".join("?" for _ in all_tags)
+        rows_tags = conn.execute(
+            f"SELECT id, name FROM tags WHERE name IN ({placeholders_tags})",
+            list(all_tags)
+        ).fetchall()
+        tag_map = {str(r["name"]): int(r["id"]) for r in rows_tags}
+
+        missing = all_tags - set(tag_map.keys())
+        if missing:
+            conn.executemany("INSERT OR IGNORE INTO tags(name) VALUES (?)", [(t,) for t in missing])
+            rows_tags = conn.execute(
+                f"SELECT id, name FROM tags WHERE name IN ({placeholders_tags})",
+                list(all_tags)
+            ).fetchall()
+            tag_map = {str(r["name"]): int(r["id"]) for r in rows_tags}
+
+        # First, delete existing tags for any movies being updated
+        # (the ones that already had a _db_id before we inserted new ones)
+        # We can just delete tags for all movies we processed to be safe,
+        # since we are about to re-insert their full tag lists.
+        db_ids = [m.get("_db_id") for m in movies_data if m.get("_db_id") is not None]
+        if db_ids:
+            placeholders_del = ",".join("?" for _ in db_ids)
+            conn.execute(
+                f"DELETE FROM movie_tags WHERE movie_id IN ({placeholders_del})",
+                db_ids
+            )
+
+        movie_tags_to_insert = []
+        for m in movies_data:
+            db_id = m.get("_db_id")
+            if db_id is not None and m.get("_tags"):
+                for tg in m["_tags"]:
+                    if tg in tag_map:
+                        movie_tags_to_insert.append((db_id, tag_map[tg]))
+
+        if movie_tags_to_insert:
+            conn.executemany(
+                "INSERT OR IGNORE INTO movie_tags(movie_id, tag_id) VALUES (?, ?)",
+                movie_tags_to_insert
+            )
+
+    return len(to_insert), len(to_update)
+
+
 def update_movie(
     conn: sqlite3.Connection,
     movie_id: int,
