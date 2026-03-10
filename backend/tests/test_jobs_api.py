@@ -1,5 +1,4 @@
 import pytest
-from pydantic import HttpUrl
 from backend.jobs_api import JobIn, _score_job
 
 def create_job(title="Software Engineer", company="Tech Corp", location=None, description=None) -> JobIn:
@@ -15,41 +14,36 @@ def test_score_job_empty_job():
     job = create_job()
     assert _score_job(job) == 0
 
-def test_score_job_senior_marker():
-    job = create_job(title="Senior Software Engineer")
+@pytest.mark.parametrize("title", ["Senior Software Engineer", "Staff Engineer"])
+def test_score_job_senior_marker(title):
+    job = create_job(title=title)
     assert _score_job(job) == 2
 
-    job2 = create_job(title="Staff Engineer")
-    assert _score_job(job2) == 2
 
-def test_score_job_creative_marker():
-    job = create_job(description="Experience with Unity and UI/UX")
+@pytest.mark.parametrize("description", ["Experience with Unity and UI/UX", "Game animation role"])
+def test_score_job_creative_marker(description):
+    job = create_job(description=description)
     assert _score_job(job) == 4
 
-    job2 = create_job(description="Game animation role")
-    assert _score_job(job2) == 4
 
-def test_score_job_remote_marker():
-    job = create_job(location="Fully Remote")
+@pytest.mark.parametrize("location", ["Fully Remote", "Distributed team"])
+def test_score_job_remote_marker(location):
+    job = create_job(location=location)
     assert _score_job(job) == 2
 
-    job2 = create_job(location="Distributed team")
-    assert _score_job(job2) == 2
 
-def test_score_job_industry_marker():
-    # Avoid words like "building" (contains "ui") or "igaming" (contains "game" which is a creative marker)
-    job = create_job(description="Developing a new casino platform")
+# Avoid words like "building" (contains "ui") or "igaming" (contains "game" which is a creative marker)
+@pytest.mark.parametrize("description", ["Developing a new casino platform", "Slot machine developer"])
+def test_score_job_industry_marker(description):
+    job = create_job(description=description)
     assert _score_job(job) == 3
 
-    job2 = create_job(description="Slot machine developer")
-    assert _score_job(job2) == 3
 
-def test_score_job_avoid_marker():
-    job = create_job(description="This is an unpaid intern position")
+@pytest.mark.parametrize("description", ["This is an unpaid intern position", "Junior developer wanted"])
+def test_score_job_avoid_marker(description):
+    job = create_job(description=description)
     assert _score_job(job) == -10
 
-    job2 = create_job(description="Junior developer wanted")
-    assert _score_job(job2) == -10
 
 def test_score_job_combined_markers():
     job = create_job(
