@@ -1,6 +1,14 @@
 import pytest
-from datetime import datetime, timezone
-from backend.imdb_service import parse_iso_datetime, _extract_rating_from_json_node, _parse_rating_from_title_html
+from datetime import datetime, timedelta, timezone
+from unittest.mock import patch
+
+from backend.imdb_service import (
+    _extract_info_from_json_node,
+    _parse_data_from_title_html,
+    _parse_duration,
+    parse_iso_datetime,
+)
+
 
 def test_parse_iso_datetime():
     assert parse_iso_datetime(None) is None
@@ -14,37 +22,102 @@ def test_parse_iso_datetime():
 
     assert parse_iso_datetime("invalid-date") is None
 
-def test_extract_rating_from_json_node_dict():
-    node = {"aggregateRating": {"ratingValue": "8.5"}}
-    assert _extract_rating_from_json_node(node) == 8.5
 
-    node = {"aggregateRating": {"ratingValue": 7.2}}
-    assert _extract_rating_from_json_node(node) == 7.2
+def test_extract_info_from_json_node_dict():
+    node = {
+        "@type": "Movie",
+        "aggregateRating": {"ratingValue": "8.5"},
+        "image": "http://poster.url",
+        "duration": "PT2H22M",
+    }
+    res = _extract_info_from_json_node(node)
+    assert res["rating"] == 8.5
+    assert res["poster"] == "http://poster.url"
+    assert res["duration"] == 142
 
-def test_extract_rating_from_json_node_nested():
+
+def test_extract_info_from_json_node_nested():
     node = {
         "main": {
-            "ratings": {
-                "aggregateRating": {"ratingValue": "9.1"}
+            "movie": {
+                "@type": "Movie",
+                "aggregateRating": {"ratingValue": "9.1"},
+                "image": {"url": "http://poster.url"},
             }
         }
     }
-    assert _extract_rating_from_json_node(node) == 9.1
+    res = _extract_info_from_json_node(node)
+    assert res["rating"] == 9.1
+    assert res["poster"] == "http://poster.url"
 
-def test_extract_rating_from_json_node_list():
+
+def test_extract_info_from_json_node_list():
     node = [
         {"type": "other"},
-        {"aggregateRating": {"ratingValue": "6.5"}}
+        {"aggregateRating": {"ratingValue": "6.5"}, "duration": "PT90M"},
     ]
-    assert _extract_rating_from_json_node(node) == 6.5
-
-def test_extract_rating_from_json_node_invalid():
-    assert _extract_rating_from_json_node({}) is None
-    assert _extract_rating_from_json_node({"aggregateRating": {}}) is None
-    assert _extract_rating_from_json_node({"ratingValue": "8.5"}) is None # not inside aggregateRating
+    res = _extract_info_from_json_node(node)
+    assert res["rating"] == 6.5
+    assert res["duration"] == 90
 
 
-def test_parse_rating_from_title_html_ld_json():
+def test_extract_info_from_json_node_invalid():
+    res = _extract_info_from_json_node({})
+    assert res["rating"] is None
+    assert res["poster"] is None
+    assert res["duration"] is None
+
+
+@pytest.mark.parametrize(
+    "node",
+    [
+        {"aggregateRating": {"ratingValue": "N/A"}},
+        {"aggregateRating": {"ratingValue": ["8.5"]}},
+        {"aggregateRating": {"ratingValue": {"value": 8.5}}},
+    ],
+)
+def test_extract_info_from_json_node_invalid_rating_value(node):
+    res = _extract_info_from_json_node(node)
+    assert res["rating"] is None
+
+
+def test_parse_duration():
+    assert _parse_duration("PT2H22M") == 142
+    assert _parse_duration("PT1H") == 60
+    assert _parse_duration("PT45M") == 45
+    assert _parse_duration("PT0M") is None
+    assert _parse_duration("") is None
+    assert _parse_duration("invalid") is None
+
+
+def test_should_use_cached():
+    from backend.imdb_service import should_use_cached
+
+    now = datetime(2024, 3, 20, 12, 0, 0, tzinfo=timezone.utc)
+
+    with patch("backend.imdb_service.datetime", wraps=datetime) as mock_datetime:
+        mock_datetime.now.return_value = now
+
+        assert should_use_cached(last_checked_at=now.isoformat(), force=True) is False
+        assert should_use_cached(last_checked_at=None, force=True) is False
+
+        assert should_use_cached(last_checked_at=None, force=False) is False
+        assert should_use_cached(last_checked_at="invalid-date", force=False) is False
+
+        three_days_ago = now - timedelta(days=3)
+        assert should_use_cached(last_checked_at=three_days_ago.isoformat(), force=False) is True
+
+        seven_days_ago = now - timedelta(days=7)
+        assert should_use_cached(last_checked_at=seven_days_ago.isoformat(), force=False) is False
+
+        just_under_seven_days_ago = now - timedelta(days=6, hours=23, minutes=59, seconds=59)
+        assert should_use_cached(last_checked_at=just_under_seven_days_ago.isoformat(), force=False) is True
+
+        eight_days_ago = now - timedelta(days=8)
+        assert should_use_cached(last_checked_at=eight_days_ago.isoformat(), force=False) is False
+
+
+def test_parse_data_from_title_html_ld_json():
     html = """
     <html>
         <head>
@@ -64,9 +137,11 @@ def test_parse_rating_from_title_html_ld_json():
         <body></body>
     </html>
     """
-    assert _parse_rating_from_title_html(html) == 8.5
+    data = _parse_data_from_title_html(html)
+    assert data["rating"] == 8.5
 
-def test_parse_rating_from_title_html_regex():
+
+def test_parse_data_from_title_html_regex_fallback():
     html = """
     <html>
         <body>
@@ -74,9 +149,11 @@ def test_parse_rating_from_title_html_regex():
         </body>
     </html>
     """
-    assert _parse_rating_from_title_html(html) == 7.2
+    data = _parse_data_from_title_html(html)
+    assert data["rating"] == 7.2
 
-def test_parse_rating_from_title_html_invalid_json_fallback():
+
+def test_parse_data_from_title_html_invalid_json_fallback_to_body_rating():
     html = """
     <html>
         <head>
@@ -84,10 +161,8 @@ def test_parse_rating_from_title_html_invalid_json_fallback():
                 {
                     "@context": "https://schema.org",
                     "@type": "Movie",
-                    "aggregateRating": {
-                        "ratingValue": "8.5"
-                    # invalid json
-                }
+                    "description": "broken json"
+                # invalid json
             </script>
         </head>
         <body>
@@ -95,10 +170,11 @@ def test_parse_rating_from_title_html_invalid_json_fallback():
         </body>
     </html>
     """
-    # Returns 8.5 because the regex searches the WHOLE html, including the invalid JSON script block which has "ratingValue": "8.5"
-    assert _parse_rating_from_title_html(html) == 8.5
+    data = _parse_data_from_title_html(html)
+    assert data["rating"] == 7.2
 
-def test_parse_rating_from_title_html_no_rating_json_fallback():
+
+def test_parse_data_from_title_html_json_without_rating_fallback():
     html = """
     <html>
         <head>
@@ -115,13 +191,19 @@ def test_parse_rating_from_title_html_no_rating_json_fallback():
         </body>
     </html>
     """
-    assert _parse_rating_from_title_html(html) == 6.1
+    data = _parse_data_from_title_html(html)
+    assert data["rating"] == 6.1
 
-def test_parse_rating_from_title_html_none():
-    assert _parse_rating_from_title_html("<html><body></body></html>") is None
-    assert _parse_rating_from_title_html("") is None
 
-def test_parse_rating_from_title_html_multiple_scripts():
+def test_parse_data_from_title_html_none():
+    data = _parse_data_from_title_html("<html><body></body></html>")
+    assert data["rating"] is None
+
+    empty = _parse_data_from_title_html("")
+    assert empty["rating"] is None
+
+
+def test_parse_data_from_title_html_multiple_scripts():
     html = """
     <html>
         <head>
@@ -139,4 +221,5 @@ def test_parse_rating_from_title_html_multiple_scripts():
         <body></body>
     </html>
     """
-    assert _parse_rating_from_title_html(html) == 9.0
+    data = _parse_data_from_title_html(html)
+    assert data["rating"] == 9.0
