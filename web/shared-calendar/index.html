@@ -384,6 +384,18 @@
         .join("");
     };
 
+    const getDayActivities = (dayIndex, excludeId = null) => {
+      return activities
+        .filter((activity) => activity.day === dayIndex && activity.id !== excludeId)
+        .sort((a, b) => a.order - b.order);
+    };
+
+    const normalizeDayOrders = (dayIndex) => {
+      getDayActivities(dayIndex).forEach((activity, index) => {
+        activity.order = index;
+      });
+    };
+
     const renderCalendar = () => {
       calendar.innerHTML = "";
       days.forEach((day, dayIndex) => {
@@ -398,9 +410,7 @@
         title.textContent = day;
         const count = document.createElement("span");
         count.className = "day-count";
-        const dayActivities = activities
-          .filter((activity) => activity.day === dayIndex)
-          .sort((a, b) => a.order - b.order);
+        const dayActivities = getDayActivities(dayIndex);
         count.textContent = `${dayActivities.length} items`;
 
         header.appendChild(title);
@@ -493,11 +503,38 @@
     };
 
     const getNextOrder = (dayIndex) => {
-      const dayActivities = activities.filter((activity) => activity.day === dayIndex);
+      const dayActivities = getDayActivities(dayIndex);
       if (!dayActivities.length) {
         return 0;
       }
       return Math.max(...dayActivities.map((activity) => activity.order)) + 1;
+    };
+
+    const moveActivity = (draggedId, targetDayIndex, beforeId = null) => {
+      const dragged = activities.find((activity) => activity.id === draggedId);
+      if (!dragged) {
+        return false;
+      }
+
+      const sourceDayIndex = dragged.day;
+      const targetActivities = getDayActivities(targetDayIndex, draggedId);
+      const insertionIndex = beforeId
+        ? targetActivities.findIndex((activity) => activity.id === beforeId)
+        : targetActivities.length;
+      const safeIndex = insertionIndex >= 0 ? insertionIndex : targetActivities.length;
+
+      dragged.day = targetDayIndex;
+      targetActivities.splice(safeIndex, 0, dragged);
+      targetActivities.forEach((activity, index) => {
+        activity.day = targetDayIndex;
+        activity.order = index;
+      });
+
+      if (sourceDayIndex !== targetDayIndex) {
+        normalizeDayOrders(sourceDayIndex);
+      }
+
+      return true;
     };
 
     const handleDragStart = (event) => {
@@ -525,6 +562,7 @@
     const handleDrop = (event) => {
       event.preventDefault();
       const targetColumn = event.currentTarget;
+      targetColumn.classList.remove("drag-over");
       const dayIndex = Number(targetColumn.dataset.day);
       const draggedId = event.dataTransfer.getData("text/plain");
       const dragged = activities.find((activity) => activity.id === draggedId);
@@ -532,32 +570,20 @@
         return;
       }
 
-      dragged.day = dayIndex;
-
       const targetCard = event.target.closest(".activity");
-      const draggedEl = document.querySelector(`[data-id="${draggedId}"]`);
-      if (draggedEl) {
-        if (targetCard && targetCard.parentElement === targetColumn) {
-          targetColumn.insertBefore(draggedEl, targetCard);
-        } else {
-          targetColumn.appendChild(draggedEl);
-        }
+      if (dragged.day === dayIndex && targetCard?.dataset.id === draggedId) {
+        return;
       }
 
-      updateOrdersForDay(dayIndex, targetColumn);
+      const beforeId = targetCard && targetCard.parentElement === targetColumn && targetCard.dataset.id !== draggedId
+        ? targetCard.dataset.id
+        : null;
+      if (!moveActivity(draggedId, dayIndex, beforeId)) {
+        return;
+      }
+
       saveActivities();
       renderCalendar();
-    };
-
-    const updateOrdersForDay = (dayIndex, column) => {
-      const cards = Array.from(column.querySelectorAll(".activity"));
-      cards.forEach((card, index) => {
-        const activity = activities.find((item) => item.id === card.dataset.id);
-        if (activity) {
-          activity.day = dayIndex;
-          activity.order = index;
-        }
-      });
     };
 
     form.addEventListener("submit", (event) => {

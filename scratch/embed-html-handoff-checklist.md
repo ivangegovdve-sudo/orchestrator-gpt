@@ -39,7 +39,7 @@
 
 - **Deployment compatibility requirements:**
   - "No build step required; must run as plain static files."
-  - "Entry points must remain `index.html` at root and `/web/<tool>/index.html` for tools."
+  - "Entry points must remain `index.html` at root and `/web/<tool-slug>/index.html` for tools."
   - "Avoid introducing Webpack/Vite/Node tooling unless explicitly requested."
 
 - **Data/state requirements (for local-first tools):**
