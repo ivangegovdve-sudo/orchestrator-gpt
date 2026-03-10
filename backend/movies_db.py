@@ -141,6 +141,129 @@ def replace_movie_tags(conn: sqlite3.Connection, movie_id: int, tags: Iterable[s
     add_movie_tags(conn, movie_id, tags)
 
 
+
+@dataclass
+class MovieRecordPayload:
+    year: Optional[int]
+    watched: int
+    age_band: str
+    notes: Optional[str]
+    imdb_score: Optional[float]
+    imdb_id: Optional[str]
+    imdb_last_checked_at: Optional[str]
+    imdb_source_url: Optional[str]
+    localized_title: Optional[str]
+    poster_url: Optional[str]
+    runtime_minutes: Optional[int]
+    language: Optional[str]
+
+
+def _insert_movie_record(
+    conn: sqlite3.Connection,
+    title: str,
+    payload: MovieRecordPayload,
+) -> int:
+    cursor = conn.execute(
+        """
+        INSERT INTO movies(
+            title,
+            year,
+            watched,
+            age_band,
+            notes,
+            imdb_score,
+            imdb_id,
+            imdb_last_checked_at,
+            imdb_source_url,
+            localized_title,
+            poster_url,
+            runtime_minutes,
+            language,
+            updated_at
+        )
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+        """,
+        (
+            title,
+            payload.year,
+            payload.watched,
+            payload.age_band,
+            payload.notes,
+            payload.imdb_score,
+            payload.imdb_id,
+            payload.imdb_last_checked_at,
+            payload.imdb_source_url,
+            payload.localized_title,
+            payload.poster_url,
+            payload.runtime_minutes,
+            payload.language,
+        ),
+    )
+    return int(cursor.lastrowid)
+
+
+def _update_movie_record(
+    conn: sqlite3.Connection,
+    movie_id: int,
+    payload: MovieRecordPayload,
+) -> None:
+    current = conn.execute("SELECT * FROM movies WHERE id = ?", (movie_id,)).fetchone()
+    if not current:
+        raise RuntimeError("Movie disappeared during upsert")
+
+    merged_watched = 1 if payload.watched or int(current["watched"]) else 0
+    merged_year = payload.year if payload.year is not None else current["year"]
+    merged_imdb_score = payload.imdb_score if payload.imdb_score is not None else current["imdb_score"]
+    merged_imdb_id = payload.imdb_id if payload.imdb_id is not None else current["imdb_id"]
+    merged_last_checked = (
+        payload.imdb_last_checked_at
+        if payload.imdb_last_checked_at is not None
+        else current["imdb_last_checked_at"]
+    )
+    merged_source_url = payload.imdb_source_url if payload.imdb_source_url is not None else current["imdb_source_url"]
+    merged_poster_url = payload.poster_url if payload.poster_url is not None else current["poster_url"]
+    merged_runtime = payload.runtime_minutes if payload.runtime_minutes is not None else current["runtime_minutes"]
+    merged_language = payload.language if payload.language is not None else current["language"]
+    merged_age_band = payload.age_band or current["age_band"] or "Family"
+    merged_notes = payload.notes if payload.notes is not None else current["notes"]
+    merged_localized = payload.localized_title if payload.localized_title is not None else current["localized_title"]
+
+    conn.execute(
+        """
+        UPDATE movies
+        SET year = ?,
+            watched = ?,
+            age_band = ?,
+            notes = ?,
+            imdb_score = ?,
+            imdb_id = ?,
+            imdb_last_checked_at = ?,
+            imdb_source_url = ?,
+            localized_title = ?,
+            poster_url = ?,
+            runtime_minutes = ?,
+            language = ?,
+            updated_at = CURRENT_TIMESTAMP
+        WHERE id = ?
+        """,
+        (
+            merged_year,
+            merged_watched,
+            merged_age_band,
+            merged_notes,
+            merged_imdb_score,
+            merged_imdb_id,
+            merged_last_checked,
+            merged_source_url,
+            merged_localized,
+            merged_poster_url,
+            merged_runtime,
+            merged_language,
+            movie_id,
+        ),
+    )
+
+
 def upsert_movie(
     conn: sqlite3.Connection,
     movie: Dict[str, Any],
@@ -162,104 +285,30 @@ def upsert_movie(
     watched = 1 if bool(movie.get("watched")) else 0
     notes = movie.get("notes")
     localized_title = movie.get("localized_title")
+    payload = MovieRecordPayload(
+        year=year,
+        watched=watched,
+        age_band=age_band,
+        notes=notes,
+        imdb_score=imdb_score,
+        imdb_id=imdb_id,
+        imdb_last_checked_at=imdb_last_checked_at,
+        imdb_source_url=imdb_source_url,
+        localized_title=localized_title,
+        poster_url=poster_url,
+        runtime_minutes=runtime_minutes,
+        language=language,
+    )
 
     existing_id = _find_movie_id(conn, title=title, year=year)
     created = False
 
     if existing_id is None:
-        cursor = conn.execute(
-            """
-            INSERT INTO movies(
-                title,
-                year,
-                watched,
-                age_band,
-                notes,
-                imdb_score,
-                imdb_id,
-                imdb_last_checked_at,
-                imdb_source_url,
-                localized_title,
-                poster_url,
-                runtime_minutes,
-                language,
-                updated_at
-            )
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
-            """,
-            (
-                title,
-                year,
-                watched,
-                age_band,
-                notes,
-                imdb_score,
-                imdb_id,
-                imdb_last_checked_at,
-                imdb_source_url,
-                localized_title,
-                poster_url,
-                runtime_minutes,
-                language,
-            ),
-        )
-        movie_id = int(cursor.lastrowid)
+        movie_id = _insert_movie_record(conn, title, payload)
         created = True
     else:
         movie_id = existing_id
-        current = conn.execute("SELECT * FROM movies WHERE id = ?", (movie_id,)).fetchone()
-        if not current:
-            raise RuntimeError("Movie disappeared during upsert")
-
-        merged_watched = 1 if watched or int(current["watched"]) else 0
-        merged_year = year if year is not None else current["year"]
-        merged_imdb_score = imdb_score if imdb_score is not None else current["imdb_score"]
-        merged_imdb_id = imdb_id if imdb_id is not None else current["imdb_id"]
-        merged_last_checked = (
-            imdb_last_checked_at if imdb_last_checked_at is not None else current["imdb_last_checked_at"]
-        )
-        merged_source_url = imdb_source_url if imdb_source_url is not None else current["imdb_source_url"]
-        merged_poster_url = poster_url if poster_url is not None else current["poster_url"]
-        merged_runtime = runtime_minutes if runtime_minutes is not None else current["runtime_minutes"]
-        merged_language = language if language is not None else current["language"]
-        merged_age_band = age_band or current["age_band"] or "Family"
-        merged_notes = notes if notes is not None else current["notes"]
-        merged_localized = localized_title if localized_title is not None else current["localized_title"]
-
-        conn.execute(
-            """
-            UPDATE movies
-            SET year = ?,
-                watched = ?,
-                age_band = ?,
-                notes = ?,
-                imdb_score = ?,
-                imdb_id = ?,
-                imdb_last_checked_at = ?,
-                imdb_source_url = ?,
-                localized_title = ?,
-                poster_url = ?,
-                runtime_minutes = ?,
-                language = ?,
-                updated_at = CURRENT_TIMESTAMP
-            WHERE id = ?
-            """,
-            (
-                merged_year,
-                merged_watched,
-                merged_age_band,
-                merged_notes,
-                merged_imdb_score,
-                merged_imdb_id,
-                merged_last_checked,
-                merged_source_url,
-                merged_localized,
-                merged_poster_url,
-                merged_runtime,
-                merged_language,
-                movie_id,
-            ),
-        )
+        _update_movie_record(conn, movie_id, payload)
 
     if tags:
         add_movie_tags(conn, movie_id, tags)
