@@ -1,31 +1,63 @@
-# Item Icon Generator Pipeline
+﻿# SD Orchestrator - Kids Movie Library
 
-Quick reference for how the office-wide item icon flow is wired and how to run or tweak it.
+This repo now includes a Kids Movie Library feature with a SQLite database, FastAPI endpoints, and a minimal text-first UI.
 
-## Architecture at a Glance
-- **FastAPI backend** calls the Runware API to launch generation tasks and return task + image URLs.
-- **Static HTML + vanilla JS frontend** (`frontend/index.html`) for non-technical teammates; posts directly to the backend.
-- **Config files** store AIR model IDs and prompt templates that the backend uses when assembling Runware requests.
+## Run locally
+1. Start API:
+   - `uvicorn backend.app:app --reload --port 8000`
+2. Start static site server from repo root:
+   - `python -m http.server 8080`
+3. Open:
+   - Hub: `http://127.0.0.1:8080/index.html`
+   - Movies route: `http://127.0.0.1:8080/movies/`
 
-## AIR Model IDs
-- AIR IDs identify base models and LoRAs inside Runware.
-- You can find compatible AIRs on CivitAI (model page sidebar shows RunDiffusion/Runware IDs) or via Runware's Model Explorer in the console.
-- Keep the IDs noted in the config so everyone can reuse the same base and LoRA choices.
+## Database
+- SQLite file: `data/movies.db`
+- Migrations:
+  - `data/migrations/001_movies.sql`
+  - `data/migrations/002_movies_imdb_fields.sql`
+- Migrations are applied automatically on API startup/first DB access.
 
-## Running Locally
-- Create and activate a virtual environment (e.g., `python -m venv .venv` then `source .venv/bin/activate` or `Scripts\\activate`).
-- Install backend dependencies (e.g., `pip install -r backend/requirements.txt`).
-- Set `RUNWARE_API_KEY` in your environment before starting the server.
-- Start the FastAPI app on port 8000 (e.g., `uvicorn backend.main:app --reload --port 8000`).
-- Open `frontend/index.html` directly in your browser or serve it with a simple static server (e.g., `python -m http.server 8080`).
+## Seed data
+- Starter file: `data/movies_seed_starter.txt`
+- Seed command:
+  - `python backend/seed_movies.py`
 
-## Customizing the Style
-- **Change the base model AIR**: update the base AIR ID in the backend config to switch the default diffusion model.
-- **Use a different Western animation LoRA AIR**: swap the LoRA AIR ID in the config that is toggled by the “Use Western Animation Base Model” checkbox.
-- **Tweak prompts and ControlNet weights**: edit the default positive/negative prompts and ControlNet weight values in the config file the backend reads before sending Runware requests.
+Import rules:
+- Lines starting with `--` become `watched=true`.
+- `Title / Localized Title (Year)` stores localized title in `localized_title` and notes.
+- IMDb fields are seeded empty by default.
 
-## Mirroring This in Local Stable Diffusion (Automatic1111)
-- Pick a checkpoint like **DreamShaper_8_pruned** or **v1-5-pruned-emaonly**.
-- Enable **MySee-EDPF ControlNet** for seed conditioning.
-- Load your item and color-grading LoRAs with similar weights to the Runware setup.
-- Follow the same base positive/negative prompt pattern from the config to stay consistent with the hosted pipeline.
+## API endpoints
+- `GET /api/movies`
+  - Query params: `search`, `age_band`, `status` (`all|unwatched|watched`), `tags`, `tags_mode`, `sort`, `order`, `device_id`.
+- `POST /api/movies`
+- `PATCH /api/movies/:id`
+- `POST /api/movies/:id/rate`
+- `POST /api/movies/:id/imdb/update`
+- `POST /api/movies/import`
+- `GET /api/movies/facets`
+
+## IMDb update behavior
+The server does IMDb lookups without API keys:
+1. If `imdb_id` exists: fetch `https://www.imdb.com/title/{imdb_id}/` and parse rating.
+2. If `imdb_id` is missing: fetch IMDb find page for `Title Year`, pick best `tt...` match, then fetch title page.
+
+Safety controls:
+- Cache TTL: 7 days (skip refetch unless `force=true`).
+- Global rate limit: one IMDb request per second.
+- Request timeout enabled.
+- On parse/fetch failure: existing `imdb_score` is preserved, `imdb_last_checked_at` is updated, and endpoint returns a failure message.
+
+## UI behavior
+- `/movies/` opens the movies page (redirects to `/web/movies/`).
+- Minimal list UI (no dashboard/cards).
+- Named sections per movie row: Title, Year, Status, Age band, Style/Tags, IMDb score, User rating, Notes.
+- Results are hidden until Search is clicked.
+- After first search, filter changes refresh results immediately.
+- Watched movies are greyed out.
+- Ratings use per-device `device_id` in localStorage and are persisted in DB.
+- IMDb has a per-row update button (`↑`) to force refresh.
+
+## Notes for extension
+Current schema and code are prepared to extend with posters, runtime, language, external links, cast, and user profiles.

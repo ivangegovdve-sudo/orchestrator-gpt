@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>A1111 API / ControlNet Debug</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #080910;
+      color: #f5f5f7;
+      margin: 0;
+      padding: 16px;
+    }
+    .wrapper {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 16px;
+      background: #11131a;
+      border-radius: 18px;
+      box-shadow: 0 16px 40px rgba(0,0,0,0.55);
+    }
+    h1 {
+      margin-top: 0;
+      font-size: 1.6rem;
+    }
+    label {
+      display: block;
+      margin-top: 8px;
+      font-size: 0.9rem;
+    }
+    input[type="text"],
+    input[type="number"] {
+      width: 100%;
+      padding: 6px 8px;
+      border-radius: 8px;
+      border: 1px solid #303342;
+      background: #181a22;
+      color: #f5f5f7;
+      box-sizing: border-box;
+    }
+    input[type="file"] {
+      margin-top: 4px;
+    }
+    button {
+      margin: 4px 4px 4px 0;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid #2b7cff;
+      background: #1a2240;
+      color: #f6f7ff;
+      cursor: pointer;
+      font-size: 0.9rem;
+    }
+    button:hover {
+      background: #24408a;
+    }
+    .row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 8px;
+    }
+    .col {
+      flex: 1 1 260px;
+    }
+    pre {
+      background: #05060a;
+      padding: 10px;
+      border-radius: 10px;
+      overflow: auto;
+      max-height: 320px;
+      border: 1px solid #262938;
+      font-size: 0.8rem;
+    }
+    img {
+      max-width: 100%;
+      border-radius: 12px;
+      border: 1px solid #262938;
+      margin-top: 8px;
+    }
+    small {
+      font-size: 0.75rem;
+      color: #b0b4c4;
+    }
+    hr {
+      border: none;
+      border-top: 1px solid #262938;
+      margin: 16px 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+    <h1>A1111 API / ControlNet Debug</h1>
+    <p><small>For local testing only. Requires AUTOMATIC1111 started with <code>--api</code> and the ControlNet extension enabled.</small></p>
+
+    <label for="debugApiBaseUrl">
+      API base URL
+      <small>(default: <code>http://127.0.0.1:7860</code>)</small>
+    </label>
+    <input id="debugApiBaseUrl" type="text" value="http://127.0.0.1:7860" />
+
+    <div style="margin-top:8px;">
+      <button type="button" onclick="onTestModels()">Test /sdapi/v1/sd-models</button>
+      <button type="button" onclick="onTestCnModels()">Test /controlnet/model_list</button>
+      <button type="button" onclick="onTestCnModules()">Test /controlnet/module_list</button>
+    </div>
+
+    <hr />
+
+    <div class="row">
+      <div class="col">
+        <label for="debugImage">Debug image (for canny / img2img)</label>
+        <input id="debugImage" type="file" accept="image/*" />
+
+        <label for="debugCannyRes">Processor res</label>
+        <input id="debugCannyRes" type="number" value="512" />
+
+        <div class="row">
+          <div class="col">
+            <label for="debugCannyLow">Low threshold</label>
+            <input id="debugCannyLow" type="number" value="100" />
+          </div>
+          <div class="col">
+            <label for="debugCannyHigh">High threshold</label>
+            <input id="debugCannyHigh" type="number" value="200" />
+          </div>
+        </div>
+
+        <div style="margin-top:8px;">
+          <button type="button" onclick="onDetectCanny()">Run /controlnet/detect (canny)</button>
+        </div>
+
+        <div style="margin-top:8px;">
+          <button type="button" onclick="onImg2ImgCanny()">Run img2img + Canny test</button>
+          <small>Uses a very simple prompt and current A1111 model.</small>
+        </div>
+      </div>
+
+      <div class="col">
+        <div><strong>/controlnet/detect preview</strong></div>
+        <img id="debugDetectPreview" alt="canny preview will appear here" />
+
+        <div style="margin-top:12px;"><strong>img2img + Canny result</strong></div>
+        <img id="debugImg2ImgPreview" alt="img2img result will appear here" />
+      </div>
+    </div>
+
+    <hr />
+
+    <div>
+      <div><strong>Debug output</strong></div>
+      <pre id="debugOutput"></pre>
+    </div>
+  </div>
+
+  <script>
+    function getDebugBaseUrl() {
+      const el = document.getElementById("debugApiBaseUrl");
+      const v = (el?.value || "").trim();
+      return v || "http://127.0.0.1:7860";
+    }
+
+    function setDebugOutput(text) {
+      const out = document.getElementById("debugOutput");
+      if (out) out.textContent = text;
+    }
+
+    async function fileToBase64Bare(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+          const result = reader.result;
+          if (typeof result === "string") {
+            const commaIndex = result.indexOf(",");
+            resolve(commaIndex >= 0 ? result.slice(commaIndex + 1) : result);
+          } else {
+            reject(new Error("Unexpected FileReader result type"));
+          }
+        };
+        reader.onerror = () => reject(reader.error || new Error("Failed to read file"));
+        reader.readAsDataURL(file);
+      });
+    }
+
+    async function debugFetchJson(path) {
+      try {
+        const base = getDebugBaseUrl();
+        const res = await fetch(base + path);
+        if (!res.ok) {
+          const txt = await res.text().catch(() => "");
+          setDebugOutput("HTTP " + res.status + "\n" + txt);
+          return;
+        }
+        const data = await res.json();
+        setDebugOutput(JSON.stringify(data, null, 2));
+      } catch (e) {
+        console.error(e);
+        setDebugOutput("Error: " + e.message);
+      }
+    }
+
+    function onTestModels() {
+      debugFetchJson("/sdapi/v1/sd-models");
+    }
+    function onTestCnModels() {
+      debugFetchJson("/controlnet/model_list");
+    }
+    function onTestCnModules() {
+      debugFetchJson("/controlnet/module_list");
+    }
+
+    async function onDetectCanny() {
+      try {
+        const base = getDebugBaseUrl();
+        const fileInput = document.getElementById("debugImage");
+        if (!fileInput || !fileInput.files || !fileInput.files[0]) {
+          alert("Pick an image first.");
+          return;
+        }
+        const bare = await fileToBase64Bare(fileInput.files[0]);
+        const resVal = parseInt(document.getElementById("debugCannyRes")?.value || "512", 10) || 512;
+        const lowVal = parseInt(document.getElementById("debugCannyLow")?.value || "100", 10) || 100;
+        const highVal = parseInt(document.getElementById("debugCannyHigh")?.value || "200", 10) || 200;
+
+        const payload = {
+          controlnet_module: "canny",
+          controlnet_input_images: [
+            "data:image/png;base64," + bare
+          ],
+          controlnet_processor_res: resVal,
+          controlnet_threshold_a: lowVal,
+          controlnet_threshold_b: highVal
+        };
+
+        const res = await fetch(base + "/controlnet/detect", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+
+        if (!res.ok) {
+          const txt = await res.text().catch(() => "");
+          setDebugOutput("HTTP " + res.status + "\n" + txt);
+          return;
+        }
+        const data = await res.json();
+        setDebugOutput(JSON.stringify(data, null, 2));
+
+        if (data && Array.isArray(data.images) && data.images[0]) {
+          const imgStr = data.images[0];
+          const src = imgStr.startsWith("data:")
+            ? imgStr
+            : "data:image/png;base64," + imgStr;
+          const imgEl = document.getElementById("debugDetectPreview");
+          if (imgEl) imgEl.src = src;
+        }
+      } catch (e) {
+        console.error(e);
+        setDebugOutput("Error: " + e.message);
+      }
+    }
+
+    async function onImg2ImgCanny() {
+      try {
+        const base = getDebugBaseUrl();
+        const fileInput = document.getElementById("debugImage");
+        if (!fileInput || !fileInput.files || !fileInput.files[0]) {
+          alert("Pick an image first.");
+          return;
+        }
+        const bare = await fileToBase64Bare(fileInput.files[0]);
+        const resVal = parseInt(document.getElementById("debugCannyRes")?.value || "512", 10) || 512;
+        const lowVal = parseInt(document.getElementById("debugCannyLow")?.value || "100", 10) || 100;
+        const highVal = parseInt(document.getElementById("debugCannyHigh")?.value || "200", 10) || 200;
+
+        const payload = {
+          init_images: [bare],
+          prompt: "debug icon, simple test",
+          negative_prompt: "",
+          width: 512,
+          height: 512,
+          steps: 20,
+          cfg_scale: 7,
+          denoising_strength: 0.7,
+          sampler_name: "Euler a",
+          batch_size: 1,
+          n_iter: 1,
+          alwayson_scripts: {
+            controlnet: {
+              args: [
+                {
+                  enabled: true,
+                  module: "canny",
+                  model: "",
+                  weight: 1.0,
+                  input_image: bare,
+                  processor_res: resVal,
+                  threshold_a: lowVal,
+                  threshold_b: highVal,
+                  guidance_start: 0.0,
+                  guidance_end: 0.5,
+                  control_mode: "Balanced",
+                  pixel_perfect: true
+                }
+              ]
+            }
+          }
+        };
+
+        const res = await fetch(base + "/sdapi/v1/img2img", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+
+        if (!res.ok) {
+          const txt = await res.text().catch(() => "");
+          setDebugOutput("HTTP " + res.status + "\n" + txt);
+          return;
+        }
+        const data = await res.json();
+        setDebugOutput(JSON.stringify(data, null, 2));
+
+        if (data && Array.isArray(data.images) && data.images[0]) {
+          const imgStr = data.images[0];
+          const src = imgStr.startsWith("data:")
+            ? imgStr
+            : "data:image/png;base64," + imgStr;
+          const imgEl = document.getElementById("debugImg2ImgPreview");
+          if (imgEl) imgEl.src = src;
+        }
+      } catch (e) {
+        console.error(e);
+        setDebugOutput("Error: " + e.message);
+      }
+    }
+  </script>
+</body>
+</html>

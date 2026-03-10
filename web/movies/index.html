@@ -1,0 +1,134 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Kids Movie Library</title>
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <main class="page">
+    <header class="header-row">
+      <h1>Kids Movie Library</h1>
+      <a class="back-link" href="/index.html">Back to hub</a>
+    </header>
+
+    <section class="search-row">
+      <label for="searchInput" class="row-label">Search</label>
+      <input id="searchInput" type="search" placeholder="Type title (blank = all movies)" />
+      <button id="searchBtn" type="button">Search</button>
+    </section>
+
+    <section class="filters-row">
+      <label class="row-label" for="ageBandFilter">Age band</label>
+      <select id="ageBandFilter">
+        <option value="">All</option>
+      </select>
+
+      <label class="row-label" for="statusFilter">Status</label>
+      <select id="statusFilter">
+        <option value="all">All</option>
+        <option value="unwatched">Unwatched</option>
+        <option value="watched">Watched</option>
+      </select>
+
+      <label class="row-label" for="sortFilter">Sort</label>
+      <select id="sortFilter">
+        <option value="title_az">Title A-Z</option>
+        <option value="year_desc">Year (desc)</option>
+        <option value="imdb_desc">IMDb score (desc)</option>
+        <option value="rating_desc">Avg user rating (desc)</option>
+      </select>
+
+      <label class="row-label" for="apiBaseInput">API base</label>
+      <input id="apiBaseInput" type="text" placeholder="http://127.0.0.1:8000" />
+      <button id="saveApiBaseBtn" type="button">Save</button>
+    </section>
+
+    <section class="tags-row">
+      <span class="row-label">Tags</span>
+      <div id="tagsContainer" class="tag-wrap"></div>
+    </section>
+
+    <section id="toast" class="toast hidden" role="status" aria-live="polite"></section>
+
+    <section id="resultsMeta" class="results-meta hidden">
+      <span id="resultsCount">0 movies</span>
+    </section>
+
+    <section id="resultsList" class="results-list hidden"></section>
+    <p id="emptyState" class="hidden subtle">No movies match your filters.</p>
+
+    <section id="addSection" class="add-section hidden">
+      <h2>Add Movie</h2>
+      <form id="addMovieForm" class="form-simple">
+        <label>Title<input id="addTitle" type="text" required /></label>
+        <label>Year<input id="addYear" type="number" min="1888" max="2100" /></label>
+        <label>Age band
+          <select id="addAgeBand">
+            <option value="Family">Family</option>
+            <option value="4-6">4-6</option>
+            <option value="6-8">6-8</option>
+            <option value="8-10">8-10</option>
+            <option value="10+">10+</option>
+          </select>
+        </label>
+        <label>Tags (comma-separated)<input id="addTags" type="text" placeholder="animated, funny" /></label>
+        <label>Notes<textarea id="addNotes" rows="3"></textarea></label>
+        <label class="inline"><input id="addWatched" type="checkbox" /> Watched</label>
+        <button type="submit">Save Movie</button>
+      </form>
+
+      <h2>Bulk Add</h2>
+      <form id="bulkAddForm" class="form-simple">
+        <label>One per line<textarea id="bulkLines" rows="8" placeholder="--Luca (2021)"></textarea></label>
+        <label>Default age band
+          <select id="bulkAgeBand">
+            <option value="Family">Family</option>
+            <option value="4-6">4-6</option>
+            <option value="6-8">6-8</option>
+            <option value="8-10">8-10</option>
+            <option value="10+">10+</option>
+          </select>
+        </label>
+        <label>Default tags (comma-separated)<input id="bulkTags" type="text" placeholder="animated, adventure" /></label>
+        <button type="submit">Parse &amp; Add</button>
+      </form>
+    </section>
+  </main>
+
+  <template id="movieItemTemplate">
+    <article class="movie-item">
+      <div class="movie-row"><span class="name">Title</span><span class="value movie-title"></span></div>
+      <div class="movie-row"><span class="name">Year</span><span class="value movie-year"></span></div>
+      <div class="movie-row">
+        <span class="name">Status</span>
+        <span class="value">
+          <span class="movie-status"></span>
+          <button type="button" class="inline-btn watch-btn"></button>
+        </span>
+      </div>
+      <div class="movie-row"><span class="name">Age band</span><span class="value movie-age"></span></div>
+      <div class="movie-row"><span class="name">Style/Tags</span><span class="value movie-tags"></span></div>
+      <div class="movie-row">
+        <span class="name">IMDb score</span>
+        <span class="value">
+          <span class="movie-imdb"></span>
+          <button type="button" class="inline-btn imdb-update-btn" title="Update IMDb" aria-label="Update IMDb">↑</button>
+          <span class="movie-imdb-meta"></span>
+        </span>
+      </div>
+      <div class="movie-row">
+        <span class="name">User rating</span>
+        <span class="value">
+          <span class="movie-rating-summary"></span>
+          <span class="movie-stars"></span>
+        </span>
+      </div>
+      <div class="movie-row"><span class="name">Notes</span><span class="value movie-notes"></span></div>
+    </article>
+  </template>
+
+  <script type="module" src="./app.js"></script>
+</body>
+</html>

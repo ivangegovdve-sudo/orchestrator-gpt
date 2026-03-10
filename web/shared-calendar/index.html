@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Shared Calendar</title>
+  <style>
+    :root {
+      color-scheme: light;
+      font-family: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+      --bg: #f8fafc;
+      --surface: #ffffff;
+      --text: #0f172a;
+      --muted: #64748b;
+      --border: #e2e8f0;
+      --school: #2563eb;
+      --fun: #f97316;
+      --drag: #e0f2fe;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    header {
+      padding: 20px 20px 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 22px;
+    }
+
+    .subtitle {
+      margin: 0;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    main {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      padding: 0 20px 28px;
+    }
+
+    .layout {
+      display: grid;
+      gap: 18px;
+    }
+
+    @media (min-width: 960px) {
+      .layout {
+        grid-template-columns: 320px 1fr;
+        align-items: start;
+      }
+    }
+
+    .panel {
+      background: var(--surface);
+      border-radius: 16px;
+      border: 1px solid var(--border);
+      padding: 16px;
+      box-shadow: 0 10px 22px rgba(15, 23, 42, 0.05);
+    }
+
+    .form-field {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-bottom: 12px;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    label {
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    input, select, button, textarea {
+      font-family: inherit;
+      font-size: 14px;
+    }
+
+    input, select, textarea {
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: #fff;
+    }
+
+    textarea {
+      min-height: 70px;
+      resize: vertical;
+    }
+
+    .form-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    button {
+      border-radius: 999px;
+      border: 1px solid transparent;
+      padding: 10px 16px;
+      font-weight: 600;
+      cursor: pointer;
+      background: #0f172a;
+      color: #fff;
+    }
+
+    button.secondary {
+      background: #fff;
+      color: var(--text);
+      border-color: var(--border);
+    }
+
+    button.danger {
+      background: #fee2e2;
+      color: #b91c1c;
+      border-color: #fecaca;
+    }
+
+    button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .calendar {
+      display: grid;
+      grid-auto-flow: column;
+      grid-auto-columns: minmax(240px, 1fr);
+      gap: 12px;
+      overflow-x: auto;
+      padding-bottom: 6px;
+      scroll-snap-type: x mandatory;
+    }
+
+    @media (min-width: 960px) {
+      .calendar {
+        grid-auto-flow: row;
+        grid-template-columns: repeat(7, minmax(0, 1fr));
+        overflow-x: visible;
+      }
+    }
+
+    .day-column {
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      min-height: 260px;
+      background: #fff;
+      display: flex;
+      flex-direction: column;
+      padding: 10px;
+      gap: 8px;
+      scroll-snap-align: start;
+    }
+
+    .day-header {
+      font-weight: 600;
+      font-size: 14px;
+      color: var(--text);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .day-count {
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .day-column.drag-over {
+      background: var(--drag);
+      border-color: #38bdf8;
+    }
+
+    .activity {
+      border-radius: 12px;
+      padding: 10px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      cursor: grab;
+      border: 1px solid transparent;
+      background: #f8fafc;
+    }
+
+    .activity.dragging {
+      opacity: 0.5;
+    }
+
+    .activity.school {
+      border-color: rgba(37, 99, 235, 0.2);
+      background: rgba(37, 99, 235, 0.08);
+    }
+
+    .activity.fun {
+      border-color: rgba(249, 115, 22, 0.2);
+      background: rgba(249, 115, 22, 0.08);
+    }
+
+    .activity-title {
+      font-weight: 600;
+      font-size: 14px;
+    }
+
+    .activity-meta {
+      font-size: 12px;
+      color: var(--muted);
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .activity-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    .activity-actions button {
+      padding: 6px 10px;
+      font-size: 12px;
+      border-radius: 999px;
+      background: #fff;
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+
+    .helper {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 10px;
+    }
+
+    .legend {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .legend span {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 999px;
+      display: inline-block;
+    }
+
+    .dot.school {
+      background: var(--school);
+    }
+
+    .dot.fun {
+      background: var(--fun);
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Shared Calendar</h1>
+    <p class="subtitle">Plan school subjects and fun activities together. Drag blocks to rearrange the week.</p>
+  </header>
+  <main>
+    <div class="layout">
+      <section class="panel">
+        <form id="activity-form">
+          <div class="form-field">
+            <label for="activity-title">Activity</label>
+            <input id="activity-title" name="title" placeholder="Math homework, Outdoor time" required />
+          </div>
+          <div class="form-field">
+            <label for="activity-notes">Notes</label>
+            <textarea id="activity-notes" name="notes" placeholder="Optional details"></textarea>
+          </div>
+          <div class="form-field">
+            <label for="activity-category">Category</label>
+            <select id="activity-category" name="category">
+              <option value="school">School subject</option>
+              <option value="fun">Fun activity</option>
+            </select>
+          </div>
+          <div class="form-field">
+            <label for="activity-day">Day</label>
+            <select id="activity-day" name="day"></select>
+          </div>
+          <div class="form-actions">
+            <button type="submit" id="save-button">Add activity</button>
+            <button type="button" class="secondary" id="reset-button">Clear form</button>
+            <button type="button" class="danger" id="delete-button" disabled>Delete</button>
+          </div>
+          <p class="helper">Tap an activity to edit it, then update or delete. Drag blocks to rearrange.</p>
+        </form>
+        <div class="badge">Storage: saved locally in this browser.</div>
+      </section>
+
+      <section class="panel">
+        <div class="legend">
+          <span><span class="dot school"></span> School subject</span>
+          <span><span class="dot fun"></span> Fun activity</span>
+        </div>
+        <div class="calendar" id="calendar"></div>
+      </section>
+    </div>
+  </main>
+
+  <script>
+    const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+    const form = document.getElementById("activity-form");
+    const titleInput = document.getElementById("activity-title");
+    const notesInput = document.getElementById("activity-notes");
+    const categoryInput = document.getElementById("activity-category");
+    const dayInput = document.getElementById("activity-day");
+    const saveButton = document.getElementById("save-button");
+    const resetButton = document.getElementById("reset-button");
+    const deleteButton = document.getElementById("delete-button");
+    const calendar = document.getElementById("calendar");
+
+    let activities = [];
+    let editingId = null;
+
+    const loadActivities = () => {
+      const stored = localStorage.getItem("sharedCalendarActivities");
+      if (stored) {
+        try {
+          activities = JSON.parse(stored);
+        } catch (error) {
+          activities = [];
+        }
+      }
+    };
+
+    const saveActivities = () => {
+      localStorage.setItem("sharedCalendarActivities", JSON.stringify(activities));
+    };
+
+    const resetForm = () => {
+      editingId = null;
+      form.reset();
+      dayInput.value = "0";
+      saveButton.textContent = "Add activity";
+      deleteButton.disabled = true;
+    };
+
+    const setEditing = (activity) => {
+      editingId = activity.id;
+      titleInput.value = activity.title;
+      notesInput.value = activity.notes || "";
+      categoryInput.value = activity.category;
+      dayInput.value = activity.day.toString();
+      saveButton.textContent = "Update activity";
+      deleteButton.disabled = false;
+    };
+
+    const renderDays = () => {
+      dayInput.innerHTML = days
+        .map((day, index) => `<option value="${index}">${day}</option>`)
+        .join("");
+    };
+
+    const renderCalendar = () => {
+      calendar.innerHTML = "";
+      days.forEach((day, dayIndex) => {
+        const column = document.createElement("div");
+        column.className = "day-column";
+        column.dataset.day = dayIndex;
+
+        const header = document.createElement("div");
+        header.className = "day-header";
+
+        const title = document.createElement("span");
+        title.textContent = day;
+        const count = document.createElement("span");
+        count.className = "day-count";
+        const dayActivities = activities
+          .filter((activity) => activity.day === dayIndex)
+          .sort((a, b) => a.order - b.order);
+        count.textContent = `${dayActivities.length} items`;
+
+        header.appendChild(title);
+        header.appendChild(count);
+        column.appendChild(header);
+
+        dayActivities.forEach((activity) => {
+          const card = document.createElement("div");
+          card.className = `activity ${activity.category}`;
+          card.draggable = true;
+          card.dataset.id = activity.id;
+
+          const cardTitle = document.createElement("div");
+          cardTitle.className = "activity-title";
+          cardTitle.textContent = activity.title;
+
+          const cardMeta = document.createElement("div");
+          cardMeta.className = "activity-meta";
+          cardMeta.innerHTML = `<span>${activity.category === "school" ? "School" : "Fun"}</span>`;
+
+          const notes = document.createElement("div");
+          notes.className = "helper";
+          notes.textContent = activity.notes || "";
+
+          const actions = document.createElement("div");
+          actions.className = "activity-actions";
+
+          const editButton = document.createElement("button");
+          editButton.type = "button";
+          editButton.textContent = "Edit";
+          editButton.addEventListener("click", (event) => {
+            event.stopPropagation();
+            setEditing(activity);
+          });
+
+          const removeButton = document.createElement("button");
+          removeButton.type = "button";
+          removeButton.textContent = "Remove";
+          removeButton.addEventListener("click", (event) => {
+            event.stopPropagation();
+            removeActivity(activity.id);
+          });
+
+          actions.appendChild(editButton);
+          actions.appendChild(removeButton);
+
+          card.appendChild(cardTitle);
+          card.appendChild(cardMeta);
+          if (activity.notes) {
+            card.appendChild(notes);
+          }
+          card.appendChild(actions);
+
+          card.addEventListener("click", () => setEditing(activity));
+          card.addEventListener("dragstart", handleDragStart);
+          card.addEventListener("dragend", handleDragEnd);
+          column.appendChild(card);
+        });
+
+        column.addEventListener("dragover", handleDragOver);
+        column.addEventListener("dragleave", handleDragLeave);
+        column.addEventListener("drop", handleDrop);
+        calendar.appendChild(column);
+      });
+    };
+
+    const addActivity = (payload) => {
+      const id = `activity-${crypto.randomUUID()}`;
+      const order = getNextOrder(payload.day);
+      activities.push({ ...payload, id, order });
+    };
+
+    const updateActivity = (payload) => {
+      activities = activities.map((activity) => {
+        if (activity.id !== editingId) {
+          return activity;
+        }
+        const order = activity.day === payload.day ? activity.order : getNextOrder(payload.day);
+        return { ...activity, ...payload, order };
+      });
+    };
+
+    const removeActivity = (id) => {
+      activities = activities.filter((activity) => activity.id !== id);
+      saveActivities();
+      renderCalendar();
+      if (editingId === id) {
+        resetForm();
+      }
+    };
+
+    const getNextOrder = (dayIndex) => {
+      const dayActivities = activities.filter((activity) => activity.day === dayIndex);
+      if (!dayActivities.length) {
+        return 0;
+      }
+      return Math.max(...dayActivities.map((activity) => activity.order)) + 1;
+    };
+
+    const handleDragStart = (event) => {
+      event.dataTransfer.setData("text/plain", event.currentTarget.dataset.id);
+      event.dataTransfer.effectAllowed = "move";
+      event.currentTarget.classList.add("dragging");
+    };
+
+    const handleDragEnd = (event) => {
+      event.currentTarget.classList.remove("dragging");
+      document.querySelectorAll(".day-column").forEach((column) => {
+        column.classList.remove("drag-over");
+      });
+    };
+
+    const handleDragOver = (event) => {
+      event.preventDefault();
+      event.currentTarget.classList.add("drag-over");
+    };
+
+    const handleDragLeave = (event) => {
+      event.currentTarget.classList.remove("drag-over");
+    };
+
+    const handleDrop = (event) => {
+      event.preventDefault();
+      const targetColumn = event.currentTarget;
+      const dayIndex = Number(targetColumn.dataset.day);
+      const draggedId = event.dataTransfer.getData("text/plain");
+      const dragged = activities.find((activity) => activity.id === draggedId);
+      if (!dragged) {
+        return;
+      }
+
+      dragged.day = dayIndex;
+
+      const targetCard = event.target.closest(".activity");
+      const draggedEl = document.querySelector(`[data-id="${draggedId}"]`);
+      if (draggedEl) {
+        if (targetCard && targetCard.parentElement === targetColumn) {
+          targetColumn.insertBefore(draggedEl, targetCard);
+        } else {
+          targetColumn.appendChild(draggedEl);
+        }
+      }
+
+      updateOrdersForDay(dayIndex, targetColumn);
+      saveActivities();
+      renderCalendar();
+    };
+
+    const updateOrdersForDay = (dayIndex, column) => {
+      const cards = Array.from(column.querySelectorAll(".activity"));
+      cards.forEach((card, index) => {
+        const activity = activities.find((item) => item.id === card.dataset.id);
+        if (activity) {
+          activity.day = dayIndex;
+          activity.order = index;
+        }
+      });
+    };
+
+    form.addEventListener("submit", (event) => {
+      event.preventDefault();
+      const payload = {
+        title: titleInput.value.trim(),
+        notes: notesInput.value.trim(),
+        category: categoryInput.value,
+        day: Number(dayInput.value),
+      };
+
+      if (!payload.title) {
+        return;
+      }
+
+      if (editingId) {
+        updateActivity(payload);
+      } else {
+        addActivity(payload);
+      }
+
+      saveActivities();
+      renderCalendar();
+      resetForm();
+    });
+
+    resetButton.addEventListener("click", () => {
+      resetForm();
+    });
+
+    deleteButton.addEventListener("click", () => {
+      if (!editingId) {
+        return;
+      }
+      removeActivity(editingId);
+    });
+
+    renderDays();
+    loadActivities();
+    renderCalendar();
+    resetForm();
+  </script>
+</body>
+</html>
