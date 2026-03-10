@@ -2,6 +2,7 @@ import logging
 import os
 import uuid
 import json
+import re
 from typing import Optional, Any, Dict, List
 from urllib.request import Request, urlopen
 from urllib.error import URLError, HTTPError
@@ -142,6 +143,14 @@ def _get_preset_block(preset_dict: Dict[str, Any], key: Optional[str]) -> Dict[s
     return {}
 
 
+def _sanitize_prompt_fragment(value: Optional[str], max_length: int = 240) -> str:
+    clean = " ".join((value or "").split())
+    clean = re.sub(r"[\[\]{}<>`|]", " ", clean)
+    clean = re.sub(r"[^0-9A-Za-z\s,.'()/_:+&-]", " ", clean)
+    clean = re.sub(r"\s{2,}", " ", clean).strip(" ,")
+    return clean[:max_length]
+
+
 def build_lora_config_and_triggers(lora_pack_key: Optional[str]) -> (List[Dict[str, Any]], List[str]):
     """
     From a loraPack key, return:
@@ -188,7 +197,8 @@ def build_positive_prompt(
     - Optional user styleHint
     """
     base_template: str = DEFAULTS["prompts"]["basePositiveTemplate"]
-    prompt_base = base_template.replace("{assetDescription}", asset_description.strip())
+    safe_asset_description = _sanitize_prompt_fragment(asset_description)
+    prompt_base = base_template.replace("{assetDescription}", safe_asset_description)
 
     rarity_block = _get_preset_block(RARITIES, rarity_key)
     element_block = _get_preset_block(ELEMENTS, element_key)
@@ -214,8 +224,9 @@ def build_positive_prompt(
         if extra and extra.strip():
             parts.append(extra.strip())
 
-    if style_hint:
-        parts.append(style_hint.strip())
+    safe_style_hint = _sanitize_prompt_fragment(style_hint, max_length=160)
+    if safe_style_hint:
+        parts.append(safe_style_hint)
 
     if lora_triggers:
         parts.extend(trigger.strip() for trigger in lora_triggers if trigger.strip())
@@ -244,7 +255,6 @@ def get_schema():
 
 def _run_controlnet_preprocess(seed_image: str, workflow_id: str) -> tuple[str, Dict[str, Any]]:
     preprocess_task_uuid = f"pre-{workflow_id}"
-    controlnet_cfg = DEFAULTS["controlNet"]
 
     controlnet_preprocess_task = {
         "taskType": "controlNetPreprocess",
