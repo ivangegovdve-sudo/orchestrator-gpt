@@ -6,11 +6,12 @@ from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel, Field
 
 try:
-    from . import imdb_service, movies_db, movies_import  # type: ignore
+    from . import imdb_service, movies_db, movies_import, utils  # type: ignore
 except ImportError:
     import imdb_service  # type: ignore
     import movies_db  # type: ignore
     import movies_import  # type: ignore
+    import utils  # type: ignore
 
 router = APIRouter(prefix="/api/movies", tags=["movies"])
 
@@ -26,6 +27,9 @@ class MovieCreate(BaseModel):
     imdb_id: Optional[str] = Field(default=None, max_length=20)
     imdb_source_url: Optional[str] = Field(default=None, max_length=500)
     localized_title: Optional[str] = Field(default=None, max_length=250)
+    poster_url: Optional[str] = Field(default=None, max_length=500)
+    runtime_minutes: Optional[int] = Field(default=None, ge=1, le=1000)
+    language: Optional[str] = Field(default=None, max_length=50)
 
 
 class MovieUpdate(BaseModel):
@@ -40,6 +44,9 @@ class MovieUpdate(BaseModel):
     imdb_id: Optional[str] = Field(default=None, max_length=20)
     imdb_last_checked_at: Optional[str] = Field(default=None, max_length=50)
     imdb_source_url: Optional[str] = Field(default=None, max_length=500)
+    poster_url: Optional[str] = Field(default=None, max_length=500)
+    runtime_minutes: Optional[int] = Field(default=None, ge=1, le=1000)
+    language: Optional[str] = Field(default=None, max_length=50)
 
 
 class RatingCreate(BaseModel):
@@ -64,6 +71,9 @@ class MovieOut(BaseModel):
     imdb_id: Optional[str] = None
     imdb_last_checked_at: Optional[str] = None
     imdb_source_url: Optional[str] = None
+    poster_url: Optional[str] = None
+    runtime_minutes: Optional[int] = None
+    language: Optional[str] = None
     avg_rating: float = 0.0
     rating_count: int = 0
     my_rating: Optional[int] = None
@@ -104,12 +114,6 @@ class IMDbUpdateResponse(BaseModel):
     movie: MovieOut
 
 
-def _parse_tags(tag_csv: Optional[str]) -> List[str]:
-    if not tag_csv:
-        return []
-    return [part.strip().lower() for part in tag_csv.split(",") if part.strip()]
-
-
 def _movie_or_404(conn, movie_id: int, device_id: Optional[str] = None) -> dict:
     movie = movies_db.get_movie_by_id(conn, movie_id=movie_id, device_id=device_id)
     if not movie:
@@ -136,7 +140,7 @@ def list_movies(
             search=search,
             age_band=age_band,
             watched_filter=status,
-            tags=_parse_tags(tags),
+            tags=utils.parse_tags(tags),
             tags_mode=tags_mode,
             sort=sort,
             order=order,
@@ -284,7 +288,7 @@ def update_imdb(
                 movie=MovieOut(**movie),
             )
 
-        result = imdb_service.refresh_imdb_score(
+        result = imdb_service.refresh_imdb_data(
             title=movie["title"],
             year=movie.get("year"),
             imdb_id=movie.get("imdb_id"),
@@ -297,6 +301,10 @@ def update_imdb(
             update_fields["imdb_id"] = result.imdb_id
         if result.imdb_source_url:
             update_fields["imdb_source_url"] = result.imdb_source_url
+        if result.poster_url:
+            update_fields["poster_url"] = result.poster_url
+        if result.runtime_minutes:
+            update_fields["runtime_minutes"] = result.runtime_minutes
         if result.ok and result.imdb_score is not None:
             update_fields["imdb_score"] = result.imdb_score
 
