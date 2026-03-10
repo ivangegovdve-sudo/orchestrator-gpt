@@ -1,10 +1,10 @@
-; Codex Prompt Chain Runner - Minimal, stable version (AutoHotkey v1)
-; This version HARD-CODES a single chain for the Prompt Builder workflow
-; and avoids any JSON parsing. It is designed to be simple and reliable.
+; Codex Chain Runner - AutoHotkey v1
+; Automates Codex prompt chains defined in codex_chains.json.
 
 #NoEnv
 #SingleInstance Force
 #Persistent
+#InstallKeybdHook
 SendMode Input
 SetTitleMatchMode, 2
 SetBatchLines, -1
@@ -13,14 +13,19 @@ SetWorkingDir, %A_ScriptDir%
 ; -------------------------
 ; Global state
 ; -------------------------
-Global StepFilesDir       := "C:\Ivan\_StableDiffusion\orchestrator-gpt\codex_prompts"
-Global Steps              := []      ; Filled in InitChain()
-Global CurrentStepIndex   := 0
-Global Mode               := "idle"  ; idle | sending | waiting | checking | paused | done
-Global LastClipboard      := ""
-Global LastChangeTick     := 0
-Global IdleThresholdMs    := 2000    ; time of no change before treating Codex as "done"
-Global MonitorIntervalMs  := 750     ; timer interval for checking Codex output
+Global Chains := []
+Global ChainMap := {}
+Global CurrentChain := ""
+Global CurrentStep := ""
+Global CurrentStepIndex := 0
+Global LastClipboard := ""
+Global LastChangeTick := 0
+Global Mode := "idle"
+Global MonitorTimer := "MonitorOutput"
+Global MonitorIntervalMs := 750
+Global ConfigPath := A_ScriptDir . "\\codex_chains.json"
+Global DefaultIdle := 2000
+Global Monitoring_IdleThreshold := 0
 
 ; -------------------------
 ; Hotkeys
@@ -29,167 +34,242 @@ Global MonitorIntervalMs  := 750     ; timer interval for checking Codex output
 ^!r::ResetChain()
 
 ; -------------------------
-; Auto-execute section
+; JSON loader (JXON light)
 ; -------------------------
-InitChain()
-CreateGui()
+JSON_Load(jsonText) {
+    return Jxon_Load(jsonText)
+}
+
+; JXON by Coco (trimmed for basic objects/arrays)
+Jxon_Load(ByRef src, args*) {
+    static quot := Chr(34), esc := {b:"`b", f:"`f", n:"`n", r:"`r", t:"`t", "\"":"`\"", "\\":"`\\"}
+    key := ""
+    is_key := true
+    stack := []
+    arr := false
+    obj := {}
+    i := 1
+    While, i := RegExMatch(src, "\s*(?:(" quot "(?:\\.|[^" quot "])*" quot ")|([\{\}\[\]:,])|(-?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?)|(true|false|null))", m, i)
+    {
+        token := ""
+        m1 := m2 := m3 := m4 := ""
+        for k, v in m {
+            if (k > 0) {
+                token := v
+                break
+            }
+        }
+        if (token = "{" || token = "[") {
+            val := (token = "{") ? {} : []
+            if IsObject(obj)
+                obj[arr ? obj.Count() + 1 : key] := val
+            stack.Insert({obj: obj, arr: arr, key: key, is_key: is_key})
+            obj := val
+            arr := (token = "[")
+            key := ""
+            is_key := !arr
+        } else if (token = "}" || token = "]") {
+            if (stack.MaxIndex()) {
+                state := stack.Remove()
+                obj := state.obj
+                arr := state.arr
+                key := state.key
+                is_key := state.is_key
+            }
+            is_key := !arr
+        } else if (token = ":") {
+            is_key := false
+        } else if (token = ",") {
+            key := ""
+            is_key := !arr
+        } else if (m1 != "") {
+            val := StrReplace(SubStr(token, 2, -1), "\\\"", "\"")
+            for k, v in esc
+                val := StrReplace(val, "\\" k, v)
+            if (is_key) {
+                key := val
+            } else {
+                obj[arr ? obj.Count() + 1 : key] := val
+                is_key := !arr
+                key := ""
+            }
+        } else if (m3 != "") {
+            val := m3 + 0
+            obj[arr ? obj.Count() + 1 : key] := val
+            is_key := !arr
+            key := ""
+        } else if (m4 != "") {
+            if (m4 = "true")
+                val := true
+            else if (m4 = "false")
+                val := false
+            else
+                val := ""
+            obj[arr ? obj.Count() + 1 : key] := val
+            is_key := !arr
+            key := ""
+        }
+    }
+    return obj
+}
+
+; -------------------------
+; Load configuration
+; -------------------------
+LoadChains() {
+    Global Chains, ChainMap, ConfigPath, DefaultIdle
+    if !FileExist(ConfigPath) {
+        ShowMessage("Cannot find configuration file:`n" . ConfigPath, 16)
+        ExitApp
+    }
+
+    FileRead, jsonText, %ConfigPath%
+    cfg := JSON_Load(jsonText)
+    if !IsObject(cfg) {
+        ShowMessage("Failed to parse config JSON.", 16)
+        ExitApp
+    }
+
+    DefaultIdle := cfg.default_idle_threshold_ms ? cfg.default_idle_threshold_ms : 2000
+    Chains := cfg.chains
+    ChainMap := {}
+    for index, chain in Chains
+        ChainMap[chain.id] := chain
+}
+
+; -------------------------
+; GUI setup
+; -------------------------
+Gui, +AlwaysOnTop +Resize +MinSize300x250
+Gui, Font, s9, Segoe UI
+Gui, Add, Text, xm, Select chain:
+Gui, Add, DropDownList, vChainChoice gOnChainChange w280, Loading...
+Gui, Add, Text, xm ym+30 vStepLabel, Step: 0 / 0
+Gui, Add, Text, xm ym+50 vModeLabel, Mode: idle
+Gui, Add, Button, xm ym+80 w90 gHandleStart, Start
+Gui, Add, Button, x+10 w90 gHandlePause, Pause
+Gui, Add, Button, x+10 w90 gHandleReset, Reset
+Gui, Add, Edit, xm ym+120 w320 h200 ReadOnly vStatusBox,
+Gui, Show, , Codex Chain Runner
+
+LoadChains()
+PopulateDropdown()
+GuiControl, Choose, ChainChoice, 1
+LoadSelectedChain()
+UpdateStatus("Ready. Press Start to run the selected chain.")
 return
 
 ; -------------------------
-; Chain definition
+; GUI handlers
 ; -------------------------
-InitChain() {
-    Global Steps
+OnChainChange:
+    Gui, Submit, NoHide
+    LoadSelectedChain()
+return
 
-    ; Clear and define the single Prompt Builder chain (5 steps)
-    Steps := []
+HandleStart:
+    StartOrResume()
+return
 
-    step := {}
-    step.file   := "codex_step_A.txt"
-    step.marker := """schema"": ""ivan-sd-inventory-v1"""
-    Steps.Push(step)
+HandlePause:
+    PauseMonitoring()
+return
 
-    step := {}
-    step.file   := "codex_step_B.html.txt"
-    step.marker := "<html"
-    Steps.Push(step)
-
-    step := {}
-    step.file   := "codex_step_C.css.txt"
-    step.marker := "#healthBox"
-    Steps.Push(step)
-
-    step := {}
-    step.file   := "codex_step_D.js.txt"
-    step.marker := "document.addEventListener(""DOMContentLoaded"""
-    Steps.Push(step)
-
-    step := {}
-    step.file   := "codex_step_E_index.txt"
-    step.marker := "Prompt Builder"
-    Steps.Push(step)
-}
-
-; -------------------------
-; GUI
-; -------------------------
-CreateGui() {
-    Global
-
-    Gui, +Resize +MinSize300x220
-    Gui, Font, s9, Segoe UI
-
-    Gui, Add, Text, xm, Chain: Prompt Builder (5 steps)
-    Gui, Add, Text, xm ym+25 vStepLabel, Step: 0 / 5
-    Gui, Add, Text, xm ym+45 vModeLabel, Mode: idle
-
-    Gui, Add, Button, xm  ym+75 w80 gGuiStart, Start
-    Gui, Add, Button, x+10 w80 gGuiPause, Pause
-    Gui, Add, Button, x+10 w80 gGuiReset, Reset
-
-    Gui, Add, Edit, xm ym+110 w320 h140 ReadOnly vStatusBox, Ready. Focus Codex chat input, then press Start or Ctrl+Alt+P.
-
-    Gui, Show, , Codex Chain Runner
-    UpdateLabels()
-}
+HandleReset:
+    ResetChain()
+return
 
 GuiClose:
     ExitApp
 return
 
-GuiSize:
-    ; Basic resize support: let controls auto-adjust
-return
-
-GuiStart:
-    StartOrResume()
-return
-
-GuiPause:
-    PauseMonitoring()
-return
-
-GuiReset:
-    ResetChain()
-return
-
 ; -------------------------
-; Core control functions
+; Core functions
 ; -------------------------
-StartOrResume() {
-    Global CurrentStepIndex, Mode
+PopulateDropdown() {
+    Global Chains
+    choices := ""
+    for index, chain in Chains
+        choices .= chain.name . "|"
+    choices := RTrim(choices, "|")
+    GuiControl,, ChainChoice, %choices%
+}
 
-    if (Mode = "done") {
-        ; If finished, starting again resets to first step
-        CurrentStepIndex := 1
+LoadSelectedChain() {
+    Global Chains, CurrentChain, CurrentStep, CurrentStepIndex
+    Gui, Submit, NoHide
+    GuiControlGet, selectedChain, , ChainChoice
+    for index, chain in Chains {
+        if (chain.name = selectedChain) {
+            CurrentChain := chain
+            CurrentStep := ""
+            CurrentStepIndex := 0
+            UpdateStepLabels()
+            UpdateStatus("Loaded chain: " . chain.name)
+            return
+        }
     }
+
+    CurrentChain := ""
+    CurrentStep := ""
+    CurrentStepIndex := 0
+    UpdateStepLabels()
+}
+
+StartOrResume() {
+    Global CurrentChain, CurrentStepIndex, Mode
+    if !IsObject(CurrentChain) {
+        ShowMessage("Please select a chain first.", 48)
+        return
+    }
+
+    if (Mode = "done")
+        CurrentStepIndex := 1
 
     if (CurrentStepIndex < 1)
         CurrentStepIndex := 1
 
-    Mode := "sending"
-    UpdateLabels()
     RunCurrentStep()
 }
 
-ResetChain() {
-    Global CurrentStepIndex, Mode
-
-    SetTimer, MonitorOutput, Off
-    CurrentStepIndex := 0
-    Mode := "idle"
-    UpdateLabels()
-    UpdateStatus("Reset. Press Start to run the Prompt Builder chain.")
-}
-
-PauseMonitoring() {
-    Global Mode
-
-    Mode := "paused"
-    SetTimer, MonitorOutput, Off
-    UpdateLabels()
-    UpdateStatus("Paused.")
-}
-
-; -------------------------
-; Step execution
-; -------------------------
 RunCurrentStep() {
-    Global Steps, CurrentStepIndex, Mode
-    Global StepFilesDir, LastClipboard, LastChangeTick
-    Global IdleThresholdMs, MonitorIntervalMs
+    Global CurrentChain, CurrentStep, CurrentStepIndex
+    Global DefaultIdle, LastClipboard, LastChangeTick
+    Global Mode, Monitoring_IdleThreshold, MonitorIntervalMs, MonitorTimer
 
-    total := Steps.MaxIndex()
+    steps := CurrentChain.steps
+    total := steps.Count()
     if (CurrentStepIndex > total) {
         Mode := "done"
-        UpdateLabels()
-        UpdateStatus("Chain complete. All steps finished.")
+        UpdateStepLabels()
+        UpdateStatus("Chain complete.")
         SoundBeep, 1000, 200
         return
     }
 
-    step := Steps[CurrentStepIndex]
-    filePath := StepFilesDir . "\" . step.file
+    CurrentStep := steps[CurrentStepIndex]
+    idleThreshold := CurrentStep.idle_threshold_ms ? CurrentStep.idle_threshold_ms : (CurrentChain.idle_threshold_ms ? CurrentChain.idle_threshold_ms : DefaultIdle)
+    Mode := "sending"
+    UpdateStepLabels()
+    UpdateStatus("Sending step " . CurrentStepIndex . " of " . total . " - " . CurrentStep.file)
 
+    filePath := CurrentChain.step_files_dir . "\\" . CurrentStep.file
     if !FileExist(filePath) {
-        MsgBox, 16, Codex Chain Runner, Missing prompt file:`n%filePath%
+        ShowMessage("Missing prompt file:`n" . filePath, 16)
         Mode := "paused"
-        UpdateLabels()
-        UpdateStatus("Error: Missing file for step " . CurrentStepIndex)
+        UpdateModeLabel()
         return
     }
 
     FileRead, promptText, %filePath%
 
-    ; Copy prompt to clipboard and send to Codex (assumes chat input is focused)
     Clipboard := ""
     Clipboard := promptText
     ClipWait, 1
     if (ErrorLevel) {
-        MsgBox, 16, Codex Chain Runner, Failed to set clipboard for step %CurrentStepIndex%.
+        ShowMessage("Failed to set clipboard for step " . CurrentStepIndex . ".", 16)
         Mode := "paused"
-        UpdateLabels()
-        UpdateStatus("Clipboard error on step " . CurrentStepIndex)
+        UpdateModeLabel()
         return
     }
 
@@ -201,108 +281,122 @@ RunCurrentStep() {
     Sleep, 250
     Send, {Enter}
 
-    ; Prepare monitoring
     LastClipboard := ""
     LastChangeTick := A_TickCount
     Mode := "waiting"
-    UpdateLabels()
-    UpdateStatus("Step " . CurrentStepIndex . " sent. Waiting for Codex output to stabilize...")
-
-    SetTimer, MonitorOutput, %MonitorIntervalMs%
+    UpdateModeLabel()
+    Monitoring_IdleThreshold := idleThreshold
+    SetTimer, %MonitorTimer%, %MonitorIntervalMs%
+    return
 }
 
-; -------------------------
-; Monitoring Codex output
-; -------------------------
 MonitorOutput:
-    Global Mode, LastClipboard, LastChangeTick, IdleThresholdMs
-    Global CurrentStepIndex, Steps
-
+    Global LastClipboard, LastChangeTick
+    Global Mode, Monitoring_IdleThreshold, MonitorIntervalMs, MonitorTimer
     if (Mode != "waiting")
         return
 
-    ; Sample Codex output by copying everything (assumes chat window is active)
     Send, ^a
     Sleep, 60
     Send, ^c
     ClipWait, 0.5
     current := Clipboard
-
     if (current != LastClipboard) {
         LastClipboard := current
         LastChangeTick := A_TickCount
-        UpdateStatus("Step " . CurrentStepIndex . ": activity detected...")
+        UpdateStatus("Activity detected...")
         return
     }
 
     idle := A_TickCount - LastChangeTick
-    if (idle < IdleThresholdMs)
+    if (idle < Monitoring_IdleThreshold)
         return
 
-    ; Consider Codex done for this step
     Mode := "checking"
-    UpdateLabels()
-    SetTimer, MonitorOutput, Off
+    UpdateModeLabel()
+    SetTimer, %MonitorTimer%, Off
     CheckStepResult()
 return
 
 CheckStepResult() {
-    Global Steps, CurrentStepIndex, Mode
-
-    clip := Clipboard
-    step := Steps[CurrentStepIndex]
-    expected := step.marker
-
-    if (InStr(clip, expected)) {
-        UpdateStatus("Step " . CurrentStepIndex . " matched expected marker. Moving to next step.")
+    Global Clipboard, CurrentStep, CurrentStepIndex, LastChangeTick
+    Global Mode, MonitorIntervalMs, MonitorTimer
+    expected := CurrentStep.expect_marker
+    if (InStr(Clipboard, expected)) {
+        UpdateStatus("Step " . CurrentStepIndex . " matched marker. Moving on...")
         SoundBeep, 900, 150
         CurrentStepIndex++
-        Mode := "sending"
-        UpdateLabels()
-        Sleep, 200
         RunCurrentStep()
     } else {
-        ; Ask user what to do
-        MsgText := "Expected marker NOT found in Codex output for step " . CurrentStepIndex . ".`n`n"
-        MsgText .= "Marker:`n" . expected . "`n`n"
-        MsgText .= "Yes = Re-monitor this step (wait again).`n"
-        MsgText .= "No  = Advance to next step anyway.`n"
-        MsgText .= "Cancel = Pause chain."
-        MsgBox, 35, Codex Chain Runner, %MsgText%
-
-        IfMsgBox Yes
-        {
+        answer := PromptChoice("Expected marker not found. Retry monitoring? (Yes), Advance (No), or Pause (Cancel)")
+        if (answer = "Yes") {
             Mode := "waiting"
-            UpdateLabels()
+            UpdateModeLabel()
             LastChangeTick := A_TickCount
-            SetTimer, MonitorOutput, %MonitorIntervalMs%
-        }
-        IfMsgBox No
-        {
+            SetTimer, %MonitorTimer%, %MonitorIntervalMs%
+        } else if (answer = "No") {
             CurrentStepIndex++
-            Mode := "sending"
-            UpdateLabels()
             RunCurrentStep()
-        }
-        IfMsgBox Cancel
-        {
+        } else {
             Mode := "paused"
-            UpdateLabels()
-            UpdateStatus("Paused on step " . CurrentStepIndex . ".")
+            UpdateModeLabel()
+            UpdateStatus("Paused on step " . CurrentStepIndex)
         }
     }
 }
 
-; -------------------------
-; UI helpers
-; -------------------------
-UpdateStatus(text) {
-    GuiControl,, StatusBox, %text%
+PauseMonitoring() {
+    Global Mode, MonitorTimer
+    Mode := "paused"
+    SetTimer, %MonitorTimer%, Off
+    UpdateModeLabel()
+    UpdateStatus("Paused.")
 }
 
-UpdateLabels() {
-    Global CurrentStepIndex, Mode, Steps
-    total := Steps.MaxIndex()
-    GuiControl,, StepLabel, % "Step: " . CurrentStepIndex . " / " . total
+ResetChain() {
+    Global CurrentChain, CurrentStep, CurrentStepIndex
+    Global Mode, MonitorTimer
+    SetTimer, %MonitorTimer%, Off
+    CurrentStepIndex := 0
+    CurrentStep := ""
+    Mode := "idle"
+    UpdateStepLabels()
+    if IsObject(CurrentChain)
+        UpdateStatus("Reset. Press Start to run the selected chain.")
+    else
+        UpdateStatus("Reset. Select a chain and press Start.")
+}
+
+ShowMessage(text, type := 0) {
+    DllCall("MessageBox", "UInt", 0, "Str", text, "Str", "Codex Bridge", "UInt", type)
+}
+
+PromptChoice(text) {
+    result := DllCall("MessageBox", "UInt", 0, "Str", text, "Str", "Codex Bridge", "UInt", 3)
+    if (result = 6)
+        return "Yes"
+    else if (result = 7)
+        return "No"
+    else
+        return "Cancel"
+}
+
+UpdateStatus(text) {
+    GuiControl,, StatusBox, %text%
+    UpdateModeLabel()
+}
+
+UpdateStepLabels() {
+    Global CurrentChain, CurrentStepIndex
+    total := IsObject(CurrentChain) ? CurrentChain.steps.Count() : 0
+    displayStep := CurrentStepIndex
+    if (displayStep > total)
+        displayStep := total
+    GuiControl,, StepLabel, % "Step: " . displayStep . " / " . total
+    UpdateModeLabel()
+}
+
+UpdateModeLabel() {
+    Global Mode
     GuiControl,, ModeLabel, % "Mode: " . Mode
 }
