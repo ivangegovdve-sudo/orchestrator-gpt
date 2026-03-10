@@ -11,17 +11,17 @@ def test_normalize_tags_empty():
 def test_normalize_tags_whitespace_only():
     assert normalize_tags(["   ", "\t", "\n"]) == []
 
-def test_normalize_tags_single_tag():
-    assert normalize_tags(["Action"]) == ["action"]
-
-def test_normalize_tags_multiple_tags():
-    assert normalize_tags(["Action", "Sci-Fi"]) == ["action", "sci-fi"]
-
-def test_normalize_tags_mixed_case():
-    assert normalize_tags(["aCtIoN", "sCI-FI"]) == ["action", "sci-fi"]
-
-def test_normalize_tags_leading_trailing_whitespace():
-    assert normalize_tags([" Action ", "  Sci-Fi\n"]) == ["action", "sci-fi"]
+@pytest.mark.parametrize(
+    "input_tags, expected_output",
+    [
+        (["Action"], ["action"]),
+        (["Action", "Sci-Fi"], ["action", "sci-fi"]),
+        (["aCtIoN", "sCI-FI"], ["action", "sci-fi"]),
+        ([" Action ", "  Sci-Fi\n"], ["action", "sci-fi"]),
+    ],
+)
+def test_normalize_tags_various_inputs(input_tags, expected_output):
+    assert normalize_tags(input_tags) == expected_output
 
 def test_normalize_tags_none_values():
     assert normalize_tags(["Action", None, "Sci-Fi"]) == ["action", "sci-fi"]
