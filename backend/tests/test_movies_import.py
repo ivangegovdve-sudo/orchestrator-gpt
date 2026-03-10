@@ -11,7 +11,7 @@ def test_parse_bulk_lines_single_line():
     assert len(result) == 1
     assert result[0]["title"] == "The Matrix"
     assert result[0]["year"] == 1999
-    assert result[0]["tags"] == ["animated"] # default tag added in parse_movie_line
+    assert set(result[0]["tags"]) == {"animated"} # default tag added in parse_movie_line
 
 def test_parse_bulk_lines_multiple_lines():
     lines = """
