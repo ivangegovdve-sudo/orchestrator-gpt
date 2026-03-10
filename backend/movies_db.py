@@ -551,3 +551,187 @@ def get_facets(conn: sqlite3.Connection) -> Dict[str, List[str]]:
         "tags": [str(row["name"]) for row in tag_rows],
         "age_bands": [str(row["age_band"]) for row in age_rows],
     }
+
+
+
+def bulk_upsert_movies(
+    conn: sqlite3.Connection,
+    movies_data: List[Dict[str, Any]],
+) -> Tuple[int, int]:
+    if not movies_data:
+        return 0, 0
+
+    CHUNK_SIZE = 100
+    existing_movies = {}
+
+    for i in range(0, len(movies_data), CHUNK_SIZE):
+        chunk = movies_data[i:i + CHUNK_SIZE]
+        placeholders = " OR ".join(["(LOWER(title) = LOWER(?) AND ((year IS NULL AND ? IS NULL) OR year = ?))"] * len(chunk))
+        params = []
+        for m in chunk:
+            t = str(m.get("title") or "").strip()
+            if not t:
+                raise ValueError("Movie title is required")
+            y = m.get("year")
+            params.extend([t, y, y])
+
+        rows = conn.execute(f"SELECT * FROM movies WHERE {placeholders}", params).fetchall()
+        for r in rows:
+            t = r["title"].lower()
+            y = r["year"]
+            existing_movies[(t, y)] = r
+
+    inserts = []
+    updates = []
+    processed_movies = []
+
+    for m in movies_data:
+        title = str(m.get("title") or "").strip()
+        year = m.get("year")
+        t_lower = title.lower()
+
+        imdb_score = m.get("imdb_score")
+        imdb_id = m.get("imdb_id")
+        imdb_last_checked_at = m.get("imdb_last_checked_at")
+        imdb_source_url = m.get("imdb_source_url")
+        age_band = (m.get("age_band") or "Family").strip() or "Family"
+        watched = 1 if bool(m.get("watched")) else 0
+        notes = m.get("notes")
+        localized_title = m.get("localized_title")
+        tags_list = m.get("tags") or []
+        tags = normalize_tags(tags_list)
+
+        existing = existing_movies.get((t_lower, year))
+
+        if not existing:
+            inserts.append((
+                title, year, watched, age_band, notes,
+                imdb_score, imdb_id, imdb_last_checked_at, imdb_source_url, localized_title
+            ))
+            processed_movies.append({"title": title, "year": year, "tags": tags, "is_new": True})
+            existing_movies[(t_lower, year)] = {
+                "id": None, # Will be filled later
+                "title": title,
+                "year": year,
+                "watched": watched,
+                "imdb_score": imdb_score,
+                "imdb_id": imdb_id,
+                "imdb_last_checked_at": imdb_last_checked_at,
+                "imdb_source_url": imdb_source_url,
+                "age_band": age_band,
+                "notes": notes,
+                "localized_title": localized_title,
+            }
+        else:
+            if existing["id"] is None:
+                # This movie was added in the current batch but not yet inserted into the DB.
+                # It doesn't have an ID yet so we can't update it safely using executemany.
+                # Let's just update the local copy so the tags are collected correctly.
+                # (In a true batch UPSERT without returning we'd do a secondary pass or use SQLite UPSERT)
+                # But since we just need tags, we will add the tags to the processed movies list.
+                # We skip the update for the movie fields to keep it simple and avoid failure.
+                # The first occurrence is inserted, subsequent occurrences in the same batch are merged by tag.
+                processed_movies.append({"title": title, "year": year, "tags": tags, "is_new": True})
+            else:
+                merged_watched = 1 if watched or int(existing["watched"]) else 0
+                merged_year = year if year is not None else existing["year"]
+                merged_imdb_score = imdb_score if imdb_score is not None else existing["imdb_score"]
+                merged_imdb_id = imdb_id if imdb_id is not None else existing["imdb_id"]
+                merged_last_checked = (
+                    imdb_last_checked_at if imdb_last_checked_at is not None else existing["imdb_last_checked_at"]
+                )
+                merged_source_url = imdb_source_url if imdb_source_url is not None else existing["imdb_source_url"]
+                merged_age_band = age_band or existing["age_band"] or "Family"
+                merged_notes = notes if notes is not None else existing["notes"]
+                merged_localized = localized_title if localized_title is not None else existing["localized_title"]
+
+                updates.append((
+                    merged_year, merged_watched, merged_age_band, merged_notes,
+                    merged_imdb_score, merged_imdb_id, merged_last_checked, merged_source_url, merged_localized,
+                    existing["id"]
+                ))
+                processed_movies.append({"id": existing["id"], "tags": tags, "is_new": False})
+
+    if inserts:
+        conn.executemany(
+            """
+            INSERT INTO movies(
+                title, year, watched, age_band, notes,
+                imdb_score, imdb_id, imdb_last_checked_at, imdb_source_url, localized_title,
+                updated_at
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+            """,
+            inserts
+        )
+
+    if updates:
+        conn.executemany(
+            """
+            UPDATE movies
+            SET year = ?,
+                watched = ?,
+                age_band = ?,
+                notes = ?,
+                imdb_score = ?,
+                imdb_id = ?,
+                imdb_last_checked_at = ?,
+                imdb_source_url = ?,
+                localized_title = ?,
+                updated_at = CURRENT_TIMESTAMP
+            WHERE id = ?
+            """,
+            updates
+        )
+
+    if inserts:
+        inserted_items = [m for m in processed_movies if m["is_new"]]
+        for i in range(0, len(inserted_items), CHUNK_SIZE):
+            chunk = inserted_items[i:i + CHUNK_SIZE]
+            placeholders = " OR ".join(["(LOWER(title) = LOWER(?) AND ((year IS NULL AND ? IS NULL) OR year = ?))"] * len(chunk))
+            params = []
+            for m in chunk:
+                params.extend([m["title"], m["year"], m["year"]])
+
+            rows = conn.execute(f"SELECT id, title, year FROM movies WHERE {placeholders}", params).fetchall()
+            for r in rows:
+                t = r["title"].lower()
+                y = r["year"]
+                for pm in chunk:
+                    if pm["title"].lower() == t and pm["year"] == y:
+                        pm["id"] = r["id"]
+
+    all_tags = set()
+    for m in processed_movies:
+        if m["tags"]:
+            all_tags.update(m["tags"])
+
+    if all_tags:
+        all_tags_list = list(all_tags)
+        tag_inserts = [(t,) for t in all_tags_list]
+        for i in range(0, len(tag_inserts), CHUNK_SIZE):
+            conn.executemany("INSERT OR IGNORE INTO tags(name) VALUES (?)", tag_inserts[i:i + CHUNK_SIZE])
+
+        tag_id_map = {}
+        for i in range(0, len(all_tags_list), CHUNK_SIZE):
+            chunk = all_tags_list[i:i + CHUNK_SIZE]
+            tag_placeholders = ",".join(["?"] * len(chunk))
+            tag_rows = conn.execute(f"SELECT id, name FROM tags WHERE name IN ({tag_placeholders})", chunk).fetchall()
+            for r in tag_rows:
+                tag_id_map[r["name"]] = r["id"]
+
+        movie_tags_inserts = set()
+        for m in processed_movies:
+            movie_id = m.get("id")
+            if movie_id is not None and m.get("tags"):
+                for t in m["tags"]:
+                    tag_id = tag_id_map.get(t)
+                    if tag_id is not None:
+                        movie_tags_inserts.add((movie_id, tag_id))
+
+        if movie_tags_inserts:
+            mt_inserts_list = list(movie_tags_inserts)
+            for i in range(0, len(mt_inserts_list), CHUNK_SIZE):
+                conn.executemany("INSERT OR IGNORE INTO movie_tags(movie_id, tag_id) VALUES (?, ?)", mt_inserts_list[i:i + CHUNK_SIZE])
+
+    return len(inserts), len(updates)
