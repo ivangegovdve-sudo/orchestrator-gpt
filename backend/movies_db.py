@@ -4,6 +4,13 @@ import sqlite3
 import threading
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Optional, Tuple
+from dataclasses import dataclass
+
+
+try:
+    from . import utils  # type: ignore
+except ImportError:
+    import utils  # type: ignore
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 DATA_DIR = REPO_ROOT / "data"
@@ -28,6 +35,9 @@ def _ensure_movie_columns(conn: sqlite3.Connection) -> None:
         "imdb_id": "TEXT",
         "imdb_last_checked_at": "TEXT",
         "imdb_source_url": "TEXT",
+        "poster_url": "TEXT",
+        "runtime_minutes": "INTEGER",
+        "language": "TEXT",
     }
     for column_name, definition in required_columns.items():
         if column_name not in columns:
@@ -79,10 +89,12 @@ def normalize_tags(tags: Optional[Iterable[str]]) -> List[str]:
         return []
 
     out: List[str] = []
+    seen: set[str] = set()
     for tag in tags:
         clean = (tag or "").strip().lower()
-        if clean and clean not in out:
+        if clean and clean not in seen:
             out.append(clean)
+            seen.add(clean)
     return out
 
 
@@ -130,18 +142,26 @@ def replace_movie_tags(conn: sqlite3.Connection, movie_id: int, tags: Iterable[s
 
 
 
+@dataclass
+class MovieRecordPayload:
+    year: Optional[int]
+    watched: int
+    age_band: str
+    notes: Optional[str]
+    imdb_score: Optional[float]
+    imdb_id: Optional[str]
+    imdb_last_checked_at: Optional[str]
+    imdb_source_url: Optional[str]
+    localized_title: Optional[str]
+    poster_url: Optional[str]
+    runtime_minutes: Optional[int]
+    language: Optional[str]
+
+
 def _insert_movie_record(
     conn: sqlite3.Connection,
     title: str,
-    year: Optional[int],
-    watched: int,
-    age_band: str,
-    notes: Optional[str],
-    imdb_score: Optional[float],
-    imdb_id: Optional[str],
-    imdb_last_checked_at: Optional[str],
-    imdb_source_url: Optional[str],
-    localized_title: Optional[str],
+    payload: MovieRecordPayload,
 ) -> int:
     cursor = conn.execute(
         """
@@ -156,21 +176,27 @@ def _insert_movie_record(
             imdb_last_checked_at,
             imdb_source_url,
             localized_title,
+            poster_url,
+            runtime_minutes,
+            language,
             updated_at
         )
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
         """,
         (
             title,
-            year,
-            watched,
-            age_band,
-            notes,
-            imdb_score,
-            imdb_id,
-            imdb_last_checked_at,
-            imdb_source_url,
-            localized_title,
+            payload.year,
+            payload.watched,
+            payload.age_band,
+            payload.notes,
+            payload.imdb_score,
+            payload.imdb_id,
+            payload.imdb_last_checked_at,
+            payload.imdb_source_url,
+            payload.localized_title,
+            payload.poster_url,
+            payload.runtime_minutes,
+            payload.language,
         ),
     )
     return int(cursor.lastrowid)
@@ -179,31 +205,28 @@ def _insert_movie_record(
 def _update_movie_record(
     conn: sqlite3.Connection,
     movie_id: int,
-    year: Optional[int],
-    watched: int,
-    age_band: str,
-    notes: Optional[str],
-    imdb_score: Optional[float],
-    imdb_id: Optional[str],
-    imdb_last_checked_at: Optional[str],
-    imdb_source_url: Optional[str],
-    localized_title: Optional[str],
+    payload: MovieRecordPayload,
 ) -> None:
     current = conn.execute("SELECT * FROM movies WHERE id = ?", (movie_id,)).fetchone()
     if not current:
         raise RuntimeError("Movie disappeared during upsert")
 
-    merged_watched = 1 if watched or int(current["watched"]) else 0
-    merged_year = year if year is not None else current["year"]
-    merged_imdb_score = imdb_score if imdb_score is not None else current["imdb_score"]
-    merged_imdb_id = imdb_id if imdb_id is not None else current["imdb_id"]
+    merged_watched = 1 if payload.watched or int(current["watched"]) else 0
+    merged_year = payload.year if payload.year is not None else current["year"]
+    merged_imdb_score = payload.imdb_score if payload.imdb_score is not None else current["imdb_score"]
+    merged_imdb_id = payload.imdb_id if payload.imdb_id is not None else current["imdb_id"]
     merged_last_checked = (
-        imdb_last_checked_at if imdb_last_checked_at is not None else current["imdb_last_checked_at"]
+        payload.imdb_last_checked_at
+        if payload.imdb_last_checked_at is not None
+        else current["imdb_last_checked_at"]
     )
-    merged_source_url = imdb_source_url if imdb_source_url is not None else current["imdb_source_url"]
-    merged_age_band = age_band or current["age_band"] or "Family"
-    merged_notes = notes if notes is not None else current["notes"]
-    merged_localized = localized_title if localized_title is not None else current["localized_title"]
+    merged_source_url = payload.imdb_source_url if payload.imdb_source_url is not None else current["imdb_source_url"]
+    merged_poster_url = payload.poster_url if payload.poster_url is not None else current["poster_url"]
+    merged_runtime = payload.runtime_minutes if payload.runtime_minutes is not None else current["runtime_minutes"]
+    merged_language = payload.language if payload.language is not None else current["language"]
+    merged_age_band = payload.age_band or current["age_band"] or "Family"
+    merged_notes = payload.notes if payload.notes is not None else current["notes"]
+    merged_localized = payload.localized_title if payload.localized_title is not None else current["localized_title"]
 
     conn.execute(
         """
@@ -217,6 +240,9 @@ def _update_movie_record(
             imdb_last_checked_at = ?,
             imdb_source_url = ?,
             localized_title = ?,
+            poster_url = ?,
+            runtime_minutes = ?,
+            language = ?,
             updated_at = CURRENT_TIMESTAMP
         WHERE id = ?
         """,
@@ -230,6 +256,9 @@ def _update_movie_record(
             merged_last_checked,
             merged_source_url,
             merged_localized,
+            merged_poster_url,
+            merged_runtime,
+            merged_language,
             movie_id,
         ),
     )
@@ -249,44 +278,37 @@ def upsert_movie(
     imdb_id = movie.get("imdb_id")
     imdb_last_checked_at = movie.get("imdb_last_checked_at")
     imdb_source_url = movie.get("imdb_source_url")
+    poster_url = movie.get("poster_url")
+    runtime_minutes = movie.get("runtime_minutes")
+    language = movie.get("language")
     age_band = (movie.get("age_band") or "Family").strip() or "Family"
     watched = 1 if bool(movie.get("watched")) else 0
     notes = movie.get("notes")
     localized_title = movie.get("localized_title")
+    payload = MovieRecordPayload(
+        year=year,
+        watched=watched,
+        age_band=age_band,
+        notes=notes,
+        imdb_score=imdb_score,
+        imdb_id=imdb_id,
+        imdb_last_checked_at=imdb_last_checked_at,
+        imdb_source_url=imdb_source_url,
+        localized_title=localized_title,
+        poster_url=poster_url,
+        runtime_minutes=runtime_minutes,
+        language=language,
+    )
 
     existing_id = _find_movie_id(conn, title=title, year=year)
     created = False
 
     if existing_id is None:
-        movie_id = _insert_movie_record(
-            conn,
-            title,
-            year,
-            watched,
-            age_band,
-            notes,
-            imdb_score,
-            imdb_id,
-            imdb_last_checked_at,
-            imdb_source_url,
-            localized_title,
-        )
+        movie_id = _insert_movie_record(conn, title, payload)
         created = True
     else:
         movie_id = existing_id
-        _update_movie_record(
-            conn,
-            movie_id,
-            year,
-            watched,
-            age_band,
-            notes,
-            imdb_score,
-            imdb_id,
-            imdb_last_checked_at,
-            imdb_source_url,
-            localized_title,
-        )
+        _update_movie_record(conn, movie_id, payload)
 
     if tags:
         add_movie_tags(conn, movie_id, tags)
@@ -315,6 +337,9 @@ def update_movie(
         "imdb_last_checked_at": "imdb_last_checked_at",
         "imdb_source_url": "imdb_source_url",
         "localized_title": "localized_title",
+        "poster_url": "poster_url",
+        "runtime_minutes": "runtime_minutes",
+        "language": "language",
     }
 
     assignments: List[str] = []
@@ -429,6 +454,9 @@ def _movie_rows_to_dicts(conn: sqlite3.Connection, rows: List[sqlite3.Row]) -> L
                 "imdb_id": row["imdb_id"],
                 "imdb_last_checked_at": row["imdb_last_checked_at"],
                 "imdb_source_url": row["imdb_source_url"],
+                "poster_url": row["poster_url"],
+                "runtime_minutes": row["runtime_minutes"],
+                "language": row["language"],
                 "tags": tag_map.get(movie_id, []),
                 "avg_rating": round(float(row["avg_rating"] or 0), 2),
                 "rating_count": int(row["rating_count"] or 0),
@@ -440,22 +468,34 @@ def _movie_rows_to_dicts(conn: sqlite3.Connection, rows: List[sqlite3.Row]) -> L
     return out
 
 
-def list_movies(
-    conn: sqlite3.Connection,
-    search: Optional[str] = None,
-    age_band: Optional[str] = None,
-    watched_filter: str = "all",
-    tags: Optional[Iterable[str]] = None,
-    tags_mode: str = "any",
-    sort: str = "title",
-    order: str = "asc",
-    device_id: Optional[str] = None,
-    limit: int = 500,
-) -> List[Dict[str, Any]]:
-    safe_sort = sort if sort in ALLOWED_SORTS else "title"
-    safe_order = order if order in ALLOWED_ORDERS else "asc"
-    safe_tags_mode = tags_mode if tags_mode in {"any", "all"} else "any"
+@dataclass
+class MovieListFilters:
+    search: Optional[str] = None
+    age_band: Optional[str] = None
+    watched_filter: str = "all"
+    tags: Optional[Iterable[str]] = None
+    tags_mode: str = "any"
+    sort: str = "title"
+    order: str = "asc"
+    device_id: Optional[str] = None
+    limit: int = 500
 
+    def __post_init__(self) -> None:
+        if self.sort not in ALLOWED_SORTS:
+            self.sort = "title"
+        if self.order not in ALLOWED_ORDERS:
+            self.order = "asc"
+        if self.tags_mode not in {"any", "all"}:
+            self.tags_mode = "any"
+        self.limit = max(1, min(int(self.limit), 5000))
+
+def _build_where_clause(
+    search: Optional[str],
+    age_band: Optional[str],
+    watched_filter: str,
+    normalized_tags: List[str],
+    safe_tags_mode: str,
+) -> Tuple[str, List[Any]]:
     where_parts = ["1 = 1"]
     params: List[Any] = []
 
@@ -472,7 +512,6 @@ def list_movies(
     elif watched_filter == "unwatched":
         where_parts.append("m.watched = 0")
 
-    normalized_tags = normalize_tags(tags)
     if normalized_tags:
         placeholders = ",".join("?" for _ in normalized_tags)
         if safe_tags_mode == "all":
@@ -503,17 +542,35 @@ def list_movies(
             )
             params.extend(normalized_tags)
 
-    if safe_sort == "year":
-        order_clause = f"(m.year IS NULL) ASC, m.year {safe_order.upper()}, LOWER(m.title) ASC"
-    elif safe_sort == "imdb":
-        order_clause = f"(m.imdb_score IS NULL) ASC, m.imdb_score {safe_order.upper()}, LOWER(m.title) ASC"
-    elif safe_sort == "rating":
-        order_clause = f"avg_rating {safe_order.upper()}, rating_count DESC, LOWER(m.title) ASC"
-    else:
-        order_clause = f"LOWER(m.title) {safe_order.upper()}"
+    return " AND ".join(where_parts), params
 
-    where_clause = " AND ".join(where_parts)
-    safe_limit = max(1, min(int(limit), 5000))
+def _build_order_clause(safe_sort: str, safe_order: str) -> str:
+    upper_order = safe_order.upper()
+    order_map = {
+        "year": f"(m.year IS NULL) ASC, m.year {upper_order}, LOWER(m.title) ASC",
+        "imdb": f"(m.imdb_score IS NULL) ASC, m.imdb_score {upper_order}, LOWER(m.title) ASC",
+        "rating": f"avg_rating {upper_order}, rating_count DESC, LOWER(m.title) ASC",
+    }
+    return order_map.get(safe_sort, f"LOWER(m.title) {upper_order}")
+
+
+def list_movies(
+    conn: sqlite3.Connection,
+    filters: Optional[MovieListFilters] = None,
+) -> List[Dict[str, Any]]:
+    if filters is None:
+        filters = MovieListFilters()
+
+    normalized_tags = normalize_tags(filters.tags)
+    where_clause, params = _build_where_clause(
+        filters.search,
+        filters.age_band,
+        filters.watched_filter,
+        normalized_tags,
+        filters.tags_mode,
+    )
+    order_clause = _build_order_clause(filters.sort, filters.order)
+    safe_limit = filters.limit
 
     sql = f"""
         SELECT
@@ -528,6 +585,9 @@ def list_movies(
           m.imdb_id,
           m.imdb_last_checked_at,
           m.imdb_source_url,
+          m.poster_url,
+          m.runtime_minutes,
+          m.language,
           m.created_at,
           m.updated_at,
           COALESCE(r.avg_rating, 0) AS avg_rating,
@@ -545,7 +605,7 @@ def list_movies(
         LIMIT ?
     """
 
-    all_params: List[Any] = [device_id or ""]
+    all_params: List[Any] = [filters.device_id or ""]
     all_params.extend(params)
     all_params.append(safe_limit)
 
@@ -568,6 +628,9 @@ def get_movie_by_id(conn: sqlite3.Connection, movie_id: int, device_id: Optional
           m.imdb_id,
           m.imdb_last_checked_at,
           m.imdb_source_url,
+          m.poster_url,
+          m.runtime_minutes,
+          m.language,
           m.created_at,
           m.updated_at,
           COALESCE(r.avg_rating, 0) AS avg_rating,

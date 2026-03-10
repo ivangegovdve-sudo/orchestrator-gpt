@@ -419,7 +419,7 @@
   </div>
 
   <!-- LoRA chips -->
-  <div class="row" style="margin-top:6px;">
+  <div class="row" style="margin-top:6px;" id="loraChipsContainer">
     <div class="col">
       <div class="group">
         <div class="group-title">
@@ -1296,13 +1296,101 @@
   }
 
   async function loadInventory() {
-    // Future hook – read curated inventory and build LoRA chips dynamically.
-    // For now this is a graceful no-op if the file is missing or schema is different.
     try {
       const res = await fetch(INVENTORY_PATH, {cache: "no-store"});
       if (!res.ok) return;
-      // const inv = await res.json();
-      // TODO: once schema is finalized, use `inv.loras` to generate chip groups.
+      const inv = await res.json();
+      if (!inv || !inv.loras || !inv.ui_groups) return;
+
+      const container = document.getElementById("loraChipsContainer");
+      if (!container) return;
+
+      const groups = Object.entries(inv.ui_groups)
+        .map(([id, g]) => ({ id, ...g }))
+        .sort((a, b) => (a.order || 0) - (b.order || 0));
+
+      const col1 = document.createElement("div");
+      col1.className = "col";
+      const col2 = document.createElement("div");
+      col2.className = "col";
+      let renderedGroupCount = 0;
+
+      groups.forEach((g) => {
+        const loras = inv.loras.filter(l => l.ui_group === g.id && l.enabled !== false);
+        if (loras.length === 0) return;
+
+        const groupDiv = document.createElement("div");
+        groupDiv.className = "group";
+
+        const titleDiv = document.createElement("div");
+        titleDiv.className = "group-title";
+        if (g.id === "icons_core") {
+          const labelSpan = document.createElement("span");
+          labelSpan.textContent = g.label;
+          const badgeSpan = document.createElement("span");
+          badgeSpan.className = "badge-soft";
+          badgeSpan.textContent = "Loaded from JSON inventory";
+          titleDiv.appendChild(labelSpan);
+          titleDiv.appendChild(badgeSpan);
+        } else {
+          titleDiv.textContent = g.label;
+        }
+        groupDiv.appendChild(titleDiv);
+
+        const chipRow = document.createElement("div");
+        chipRow.className = "chip-row";
+
+        loras.forEach(l => {
+          const label = document.createElement("label");
+          label.className = "chip";
+          label.title = l.note || "";
+
+          const input = document.createElement("input");
+          input.type = "checkbox";
+          input.setAttribute("data-key", l.id);
+          if (l.prompt_snippet) {
+            input.setAttribute("data-snippet", l.prompt_snippet);
+          }
+
+          const spanName = document.createElement("span");
+          spanName.textContent = l.label;
+
+          const spanWeight = document.createElement("span");
+          spanWeight.className = "weight";
+
+          let displayWeight = String(l.recommended_weight ?? "");
+          // format display weight as [3] if snippet is [id:3], else 0.48 or similar
+          if (l.prompt_snippet?.startsWith('[')) {
+             displayWeight = `[${displayWeight}]`;
+          } else if (displayWeight.includes('.') && displayWeight.split('.')[1].length === 1) {
+             displayWeight += '0';
+          }
+
+          spanWeight.textContent = displayWeight;
+
+          label.appendChild(input);
+          label.appendChild(spanName);
+          label.appendChild(spanWeight);
+          chipRow.appendChild(label);
+        });
+
+        groupDiv.appendChild(chipRow);
+
+        // Put icons_core and backgrounds in left column, others in right column
+        if (g.id === "icons_core" || g.id === "backgrounds") {
+          col1.appendChild(groupDiv);
+        } else {
+          col2.appendChild(groupDiv);
+        }
+        renderedGroupCount += 1;
+      });
+
+      if (renderedGroupCount === 0) return;
+
+      container.innerHTML = "";
+      container.appendChild(col1);
+      container.appendChild(col2);
+
     } catch (err) {
       // Silently ignore; static chips remain the single source-of-truth for now.
     }
@@ -1324,7 +1412,7 @@
     let url = (el.value || "").trim();
     if (!url) url = "http://127.0.0.1:7860";
     // Normalize: no trailing slash
-    url = url.replace(/\/+$, "");
+    url = url.replace(/\/+$/, "");
     return url;
   }
 

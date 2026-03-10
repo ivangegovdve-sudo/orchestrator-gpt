@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 import json
 import logging
@@ -8,7 +8,7 @@ import time
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from html import unescape
-from typing import Any, Optional
+from typing import Any, Dict, Optional
 from urllib.parse import quote_plus
 from urllib.request import Request, urlopen
 
@@ -30,6 +30,7 @@ LD_JSON_RE = re.compile(
 )
 RATING_VALUE_RE = re.compile(r'"ratingValue"\s*:\s*"?(?P<value>\d+(?:\.\d+)?)"?')
 YEAR_RE = re.compile(r"\b((?:19|20)\d{2})\b")
+DURATION_RE = re.compile(r"PT(?:(?P<hours>\d+)H)?(?:(?P<minutes>\d+)M)?")
 
 
 @dataclass
@@ -39,6 +40,8 @@ class IMDbUpdateResult:
     imdb_score: Optional[float]
     imdb_id: Optional[str]
     imdb_source_url: Optional[str]
+    poster_url: Optional[str]
+    runtime_minutes: Optional[int]
     checked_at: str
     error: Optional[str] = None
 
@@ -48,6 +51,7 @@ def now_iso() -> str:
 
 
 def parse_iso_datetime(value: Optional[str]) -> Optional[datetime]:
+    """Parse ISO 8601 datetime string into a datetime object."""
     if not value:
         return None
     try:
@@ -66,6 +70,23 @@ def should_use_cached(last_checked_at: Optional[str], force: bool) -> bool:
         return False
 
     return datetime.now(timezone.utc) - last < timedelta(days=CACHE_TTL_DAYS)
+
+
+def _parse_duration(duration_str: Optional[str]) -> Optional[int]:
+    """Parse ISO 8601 duration string like PT2H22M into total minutes."""
+    if not duration_str:
+        return None
+    match = DURATION_RE.match(duration_str)
+    if not match:
+        return None
+
+    hours = int(match.group("hours") or 0)
+    minutes = int(match.group("minutes") or 0)
+
+    if hours == 0 and minutes == 0:
+        return None
+
+    return hours * 60 + minutes
 
 
 def _rate_limited_fetch(url: str) -> str:
@@ -99,32 +120,53 @@ def _rate_limited_fetch(url: str) -> str:
         raise
 
 
-def _extract_rating_from_json_node(node: Any) -> Optional[float]:
+def _merge_missing_info(result: Dict[str, Any], nested: Dict[str, Any]) -> None:
+    for key, value in nested.items():
+        if result[key] is None and value is not None:
+            result[key] = value
+
+
+def _extract_info_from_json_node(node: Any) -> Dict[str, Any]:
+    """Extract rating, poster, and duration from LD+JSON node."""
+    res = {"rating": None, "poster": None, "duration": None}
+
     if isinstance(node, dict):
-        aggregate = node.get("aggregateRating")
-        if isinstance(aggregate, dict):
-            value = aggregate.get("ratingValue")
-            if value is not None:
-                try:
-                    return float(value)
-                except (TypeError, ValueError):
-                    pass
+        if node.get("@type") == "Movie" or "aggregateRating" in node or "image" in node:
+            # Rating
+            aggregate = node.get("aggregateRating")
+            if isinstance(aggregate, dict):
+                val = aggregate.get("ratingValue")
+                if val is not None:
+                    try:
+                        res["rating"] = float(val)
+                    except (TypeError, ValueError):
+                        pass
 
-        for value in node.values():
-            nested = _extract_rating_from_json_node(value)
-            if nested is not None:
-                return nested
+            # Image (Poster)
+            image = node.get("image")
+            if isinstance(image, str):
+                res["poster"] = image
+            elif isinstance(image, dict):
+                res["poster"] = image.get("url")
 
-    if isinstance(node, list):
-        for value in node:
-            nested = _extract_rating_from_json_node(value)
-            if nested is not None:
-                return nested
+            # Duration
+            res["duration"] = _parse_duration(node.get("duration"))
 
-    return None
+        # Recurse if something is still missing
+        if not all(res.values()):
+            for nested in map(_extract_info_from_json_node, node.values()):
+                _merge_missing_info(res, nested)
+
+    elif isinstance(node, list):
+        for nested in map(_extract_info_from_json_node, node):
+            _merge_missing_info(res, nested)
+
+    return res
 
 
-def _parse_rating_from_title_html(html: str) -> Optional[float]:
+def _parse_data_from_title_html(html: str) -> Dict[str, Any]:
+    res = {"rating": None, "poster": None, "duration": None}
+
     for script_content in LD_JSON_RE.findall(html):
         text = unescape((script_content or "").strip())
         if not text:
@@ -135,18 +177,21 @@ def _parse_rating_from_title_html(html: str) -> Optional[float]:
             logging.warning(f"Failed to parse LD+JSON script block: {exc}")
             continue
 
-        rating = _extract_rating_from_json_node(payload)
-        if rating is not None:
-            return rating
+        extracted = _extract_info_from_json_node(payload)
+        for k in res:
+            if res[k] is None and extracted[k] is not None:
+                res[k] = extracted[k]
 
-    regex_match = RATING_VALUE_RE.search(html)
-    if regex_match:
-        try:
-            return float(regex_match.group("value"))
-        except (TypeError, ValueError):
-            return None
+    # Fallback for rating only if still missing
+    if res["rating"] is None:
+        regex_match = RATING_VALUE_RE.search(html)
+        if regex_match:
+            try:
+                res["rating"] = float(regex_match.group("value"))
+            except (TypeError, ValueError):
+                pass
 
-    return None
+    return res
 
 
 def _parse_best_title_id_from_search(html: str, expected_year: Optional[int]) -> Optional[str]:
@@ -179,12 +224,12 @@ def _parse_best_title_id_from_search(html: str, expected_year: Optional[int]) ->
     return candidates[0]
 
 
-def _fetch_title_score_by_id(imdb_id: str) -> tuple[Optional[float], str]:
+def _fetch_title_data_by_id(imdb_id: str) -> tuple[Dict[str, Any], str]:
     imdb_id = imdb_id.strip()
     source_url = IMDB_TITLE_URL.format(imdb_id=imdb_id)
     html = _rate_limited_fetch(source_url)
-    score = _parse_rating_from_title_html(html)
-    return score, source_url
+    data = _parse_data_from_title_html(html)
+    return data, source_url
 
 
 def _search_imdb_id(title: str, year: Optional[int]) -> Optional[str]:
@@ -198,10 +243,11 @@ def _search_imdb_id(title: str, year: Optional[int]) -> Optional[str]:
     return _parse_best_title_id_from_search(html, expected_year=year)
 
 
-def refresh_imdb_score(
+def refresh_imdb_data(
     title: str,
     year: Optional[int],
     imdb_id: Optional[str],
+    force: bool = False,
 ) -> IMDbUpdateResult:
     checked_at = now_iso()
 
@@ -217,30 +263,24 @@ def refresh_imdb_score(
                     imdb_score=None,
                     imdb_id=None,
                     imdb_source_url=None,
+                    poster_url=None,
+                    runtime_minutes=None,
                     checked_at=checked_at,
                     error="IMDb search did not return a title match.",
                 )
 
-        score, source_url = _fetch_title_score_by_id(selected_id)
-        if score is None:
-            return IMDbUpdateResult(
-                ok=False,
-                used_cache=False,
-                imdb_score=None,
-                imdb_id=selected_id,
-                imdb_source_url=source_url,
-                checked_at=checked_at,
-                error="IMDb rating could not be parsed from the title page.",
-            )
+        data, source_url = _fetch_title_data_by_id(selected_id)
 
         return IMDbUpdateResult(
             ok=True,
             used_cache=False,
-            imdb_score=float(score),
+            imdb_score=data["rating"],
             imdb_id=selected_id,
             imdb_source_url=source_url,
+            poster_url=data["poster"],
+            runtime_minutes=data["duration"],
             checked_at=checked_at,
-            error=None,
+            error=None if data["rating"] is not None else "IMDb rating could not be parsed.",
         )
     except Exception as exc:
         return IMDbUpdateResult(
@@ -249,6 +289,12 @@ def refresh_imdb_score(
             imdb_score=None,
             imdb_id=imdb_id,
             imdb_source_url=None,
+            poster_url=None,
+            runtime_minutes=None,
             checked_at=checked_at,
             error=f"IMDb fetch failed: {exc}",
         )
+
+# Maintain backward compatibility alias
+def refresh_imdb_score(title: str, year: Optional[int], imdb_id: Optional[str], force: bool = False) -> IMDbUpdateResult:
+    return refresh_imdb_data(title, year, imdb_id, force=force)
