@@ -75,6 +75,90 @@ def categorize_file(rel_path, ext_lower):
     return None
 
 
+
+def _process_directory(rel_dir, top_level_stats, include_extension_summary, extension_dirs):
+    if not rel_dir:
+        return
+
+    parts = rel_dir.split(os.sep)
+    top = parts[0]
+    entry = top_level_stats.setdefault(top, {"subdirs": set(), "files": 0})
+
+    if len(parts) > 1:
+        entry["subdirs"].add(rel_dir)
+
+    if include_extension_summary:
+        # Extension root directories (extensions\name)
+        parent_rel = os.path.dirname(rel_dir)
+        if parent_rel == "extensions":
+            ext_name = os.path.basename(rel_dir)
+            extension_dirs.add(ext_name)
+
+
+def _process_file(filename, rel_dir, root_path, skip_paths, top_level_stats, include_extension_summary, extension_file_counts, all_files):
+    rel_file = os.path.join(rel_dir, filename) if rel_dir else filename
+    full_path = os.path.join(root_path, rel_file)
+    rel_file_norm = rel_file.replace("\\", "/")
+
+    if skip_paths and rel_file_norm in skip_paths:
+        return 0, 0, 0.0
+
+    try:
+        size = os.path.getsize(full_path)
+        mtime = os.path.getmtime(full_path)
+    except OSError:
+        # Skip files that cannot be accessed
+        return 0, 0, 0.0
+
+    ext = os.path.splitext(filename)[1].lower()
+
+    file_entry = {
+        "rel_path": rel_file_norm,
+        "name": filename,
+        "ext": ext,
+        "size_bytes": size,
+        "modified_ts": int(mtime),
+    }
+    all_files.append(file_entry)
+
+    # Per-top-level file counts
+    parts_for_file = rel_file_norm.split("/")
+    if parts_for_file:
+        top_for_file = parts_for_file[0]
+        t_entry = top_level_stats.setdefault(top_for_file, {"subdirs": set(), "files": 0})
+        t_entry["files"] += 1
+
+    # Extension file counts
+    if include_extension_summary and rel_file_norm.lower().startswith("extensions/") and len(parts_for_file) >= 2:
+        ext_name = parts_for_file[1]
+        extension_file_counts[ext_name] = extension_file_counts.get(ext_name, 0) + 1
+
+    return 1, size, mtime
+
+
+def _categorize_files(all_files, categorize_func):
+    categories = {
+        "checkpoints": [],
+        "loras": [],
+        "embeddings": [],
+        "controlnet": [],
+        "animatediff": [],
+        "upscalers": [],
+        "other_models": [],
+        "extensions": [],
+        "uncategorized": [],
+    }
+
+    for f in all_files:
+        cat = categorize_func(f["rel_path"], f["ext"])
+        if cat in categories:
+            categories[cat].append(f)
+        else:
+            categories["uncategorized"].append(f)
+
+    categories_counts = {k: len(v) for k, v in categories.items()}
+    return categories, categories_counts
+
 def scan_tree(
     root_path,
     categorize_func=None,
@@ -123,64 +207,19 @@ def scan_tree(
         })
 
         # Top-level directory stats
-        if rel_dir:
-            parts = rel_dir.split(os.sep)
-            top = parts[0]
-            entry = top_level_stats.setdefault(top, {"subdirs": set(), "files": 0})
-
-            if len(parts) > 1:
-                entry["subdirs"].add(rel_dir)
-
-            if include_extension_summary:
-                # Extension root directories (extensions\name)
-                parent_rel = os.path.dirname(rel_dir)
-                if parent_rel == "extensions":
-                    ext_name = os.path.basename(rel_dir)
-                    extension_dirs.add(ext_name)
+        _process_directory(rel_dir, top_level_stats, include_extension_summary, extension_dirs)
 
         # Files in this directory
         for filename in filenames:
-            rel_file = os.path.join(rel_dir, filename) if rel_dir else filename
-            full_path = os.path.join(root_path, rel_file)
-            rel_file_norm = rel_file.replace("\\", "/")
+            f_count, f_size, f_mtime = _process_file(
+                filename, rel_dir, root_path, skip_paths,
+                top_level_stats, include_extension_summary, extension_file_counts, all_files
+            )
 
-            if skip_paths and rel_file_norm in skip_paths:
-                continue
-
-            try:
-                size = os.path.getsize(full_path)
-                mtime = os.path.getmtime(full_path)
-            except OSError:
-                # Skip files that cannot be accessed
-                continue
-
-            total_files += 1
-            total_size_bytes += size
-            if mtime > max_mtime:
-                max_mtime = mtime
-
-            ext = os.path.splitext(filename)[1].lower()
-
-            file_entry = {
-                "rel_path": rel_file_norm,
-                "name": filename,
-                "ext": ext,
-                "size_bytes": size,
-                "modified_ts": int(mtime),
-            }
-            all_files.append(file_entry)
-
-            # Per-top-level file counts
-            parts_for_file = rel_file_norm.split("/")
-            if parts_for_file:
-                top_for_file = parts_for_file[0]
-                t_entry = top_level_stats.setdefault(top_for_file, {"subdirs": set(), "files": 0})
-                t_entry["files"] += 1
-
-            # Extension file counts
-            if include_extension_summary and rel_file_norm.lower().startswith("extensions/") and len(parts_for_file) >= 2:
-                ext_name = parts_for_file[1]
-                extension_file_counts[ext_name] = extension_file_counts.get(ext_name, 0) + 1
+            total_files += f_count
+            total_size_bytes += f_size
+            if f_mtime > max_mtime:
+                max_mtime = f_mtime
 
     if max_mtime == 0.0:
         # Empty tree? Fallback to now, but this should only happen in weird cases.
@@ -201,26 +240,7 @@ def scan_tree(
     categories = None
     categories_counts = None
     if categorize_func is not None:
-        categories = {
-            "checkpoints": [],
-            "loras": [],
-            "embeddings": [],
-            "controlnet": [],
-            "animatediff": [],
-            "upscalers": [],
-            "other_models": [],
-            "extensions": [],
-            "uncategorized": [],
-        }
-
-        for f in all_files:
-            cat = categorize_func(f["rel_path"], f["ext"])
-            if cat is None:
-                categories["uncategorized"].append(f)
-            else:
-                categories[cat].append(f)
-
-        categories_counts = {k: len(v) for k, v in categories.items()}
+        categories, categories_counts = _categorize_files(all_files, categorize_func)
 
     summary = {
         "schema": "sd-inventory-tree-v1",
