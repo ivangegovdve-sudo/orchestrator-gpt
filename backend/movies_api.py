@@ -27,6 +27,9 @@ class MovieCreate(BaseModel):
     imdb_id: Optional[str] = Field(default=None, max_length=20)
     imdb_source_url: Optional[str] = Field(default=None, max_length=500)
     localized_title: Optional[str] = Field(default=None, max_length=250)
+    poster_url: Optional[str] = Field(default=None, max_length=500)
+    runtime_minutes: Optional[int] = Field(default=None, ge=1, le=1000)
+    language: Optional[str] = Field(default=None, max_length=50)
 
 
 class MovieUpdate(BaseModel):
@@ -41,6 +44,9 @@ class MovieUpdate(BaseModel):
     imdb_id: Optional[str] = Field(default=None, max_length=20)
     imdb_last_checked_at: Optional[str] = Field(default=None, max_length=50)
     imdb_source_url: Optional[str] = Field(default=None, max_length=500)
+    poster_url: Optional[str] = Field(default=None, max_length=500)
+    runtime_minutes: Optional[int] = Field(default=None, ge=1, le=1000)
+    language: Optional[str] = Field(default=None, max_length=50)
 
 
 class RatingCreate(BaseModel):
@@ -65,6 +71,9 @@ class MovieOut(BaseModel):
     imdb_id: Optional[str] = None
     imdb_last_checked_at: Optional[str] = None
     imdb_source_url: Optional[str] = None
+    poster_url: Optional[str] = None
+    runtime_minutes: Optional[int] = None
+    language: Optional[str] = None
     avg_rating: float = 0.0
     rating_count: int = 0
     my_rating: Optional[int] = None
@@ -126,8 +135,7 @@ def list_movies(
 ) -> MovieListResponse:
     conn = movies_db.get_connection()
     try:
-        items = movies_db.list_movies(
-            conn,
+        filters = movies_db.MovieListFilters(
             search=search,
             age_band=age_band,
             watched_filter=status,
@@ -138,6 +146,7 @@ def list_movies(
             device_id=device_id,
             limit=limit,
         )
+        items = movies_db.list_movies(conn, filters=filters)
         facets = movies_db.get_facets(conn)
     finally:
         conn.close()
@@ -179,19 +188,10 @@ def import_movies(payload: BulkImportRequest) -> BulkImportResponse:
         default_tags=payload.default_tags,
     )
 
-    created = 0
-    updated = 0
-
     conn = movies_db.get_connection()
     try:
         with conn:
-            for movie in parsed:
-                tags = movie.get("tags") or []
-                _movie_id, is_created = movies_db.upsert_movie(conn, movie, tags=tags)
-                if is_created:
-                    created += 1
-                else:
-                    updated += 1
+            created, updated = movies_db.bulk_upsert_movies(conn, parsed)
     finally:
         conn.close()
 
@@ -279,7 +279,7 @@ def update_imdb(
                 movie=MovieOut(**movie),
             )
 
-        result = imdb_service.refresh_imdb_score(
+        result = imdb_service.refresh_imdb_data(
             title=movie["title"],
             year=movie.get("year"),
             imdb_id=movie.get("imdb_id"),
@@ -292,6 +292,10 @@ def update_imdb(
             update_fields["imdb_id"] = result.imdb_id
         if result.imdb_source_url:
             update_fields["imdb_source_url"] = result.imdb_source_url
+        if result.poster_url:
+            update_fields["poster_url"] = result.poster_url
+        if result.runtime_minutes:
+            update_fields["runtime_minutes"] = result.runtime_minutes
         if result.ok and result.imdb_score is not None:
             update_fields["imdb_score"] = result.imdb_score
 

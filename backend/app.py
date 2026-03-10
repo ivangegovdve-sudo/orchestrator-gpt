@@ -2,6 +2,7 @@ import logging
 import os
 import uuid
 import json
+import re
 from typing import Optional, Any, Dict, List
 from urllib.request import Request, urlopen
 from urllib.error import URLError, HTTPError
@@ -143,6 +144,14 @@ def _get_preset_block(preset_dict: Dict[str, Any], key: Optional[str]) -> Dict[s
     return {}
 
 
+def _sanitize_prompt_fragment(value: Optional[str], max_length: int = 240) -> str:
+    clean = " ".join((value or "").split())
+    clean = re.sub(r"[\[\]{}<>`|]", " ", clean)
+    clean = re.sub(r"[^0-9A-Za-z\s,.'()/_:+&-]", " ", clean)
+    clean = re.sub(r"\s{2,}", " ", clean).strip(" ,")
+    return clean[:max_length]
+
+
 def build_lora_config_and_triggers(lora_pack_key: Optional[str]) -> (List[Dict[str, Any]], List[str]):
     """
     From a loraPack key, return:
@@ -171,7 +180,7 @@ def build_lora_config_and_triggers(lora_pack_key: Optional[str]) -> (List[Dict[s
     return lora_configs, triggers
 
 
-@dataclass
+@dataclass(frozen=True)
 class PositivePromptConfig:
     asset_description: str
     rarity_key: Optional[str]
@@ -194,7 +203,8 @@ def build_positive_prompt(
     - Optional user styleHint
     """
     base_template: str = DEFAULTS["prompts"]["basePositiveTemplate"]
-    prompt_base = base_template.replace("{assetDescription}", config.asset_description.strip())
+    safe_asset_description = _sanitize_prompt_fragment(config.asset_description)
+    prompt_base = base_template.replace("{assetDescription}", safe_asset_description)
 
     rarity_block = _get_preset_block(RARITIES, config.rarity_key)
     element_block = _get_preset_block(ELEMENTS, config.element_key)
@@ -220,8 +230,9 @@ def build_positive_prompt(
         if extra and extra.strip():
             parts.append(extra.strip())
 
-    if config.style_hint:
-        parts.append(config.style_hint.strip())
+    safe_style_hint = _sanitize_prompt_fragment(config.style_hint, max_length=160)
+    if safe_style_hint:
+        parts.append(safe_style_hint)
 
     if config.lora_triggers:
         parts.extend(trigger.strip() for trigger in config.lora_triggers if trigger.strip())
@@ -248,26 +259,13 @@ def get_schema():
     return SCHEMA
 
 
-@app.post("/api/item-icon", response_model=ItemIconResponse)
-def generate_item_icon(req: ItemIconRequest):
-    if not RUNWARE_ENABLED:
-        raise HTTPException(
-            status_code=503,
-            detail="Runware integration is not configured. Set RUNWARE_API_KEY to enable this endpoint.",
-        )
-
-    workflow_id = str(uuid.uuid4())
-
-    # -------------------------------------------------------------------------
-    # 1) ControlNet Preprocess (Canny edges)
-    # -------------------------------------------------------------------------
+def _run_controlnet_preprocess(seed_image: str, workflow_id: str) -> tuple[str, Dict[str, Any]]:
     preprocess_task_uuid = f"pre-{workflow_id}"
-    controlnet_cfg = DEFAULTS["controlNet"]
 
     controlnet_preprocess_task = {
         "taskType": "controlNetPreprocess",
         "taskUUID": preprocess_task_uuid,
-        "inputImage": req.seedImage,
+        "inputImage": seed_image,
         "preProcessorType": "canny",
         "height": DEFAULTS["height"],
         "width": DEFAULTS["width"],
@@ -285,39 +283,17 @@ def generate_item_icon(req: ItemIconRequest):
     if not guide_image_url:
         raise HTTPException(status_code=502, detail="Missing guideImageURL in preprocess response.")
 
-    # -------------------------------------------------------------------------
-    # 2) LoRA configs + triggers
-    # -------------------------------------------------------------------------
-    lora_configs, lora_triggers = build_lora_config_and_triggers(req.loraPack)
+    return guide_image_url, preprocess_response
 
-    # -------------------------------------------------------------------------
-    # 3) Prompts
-    # -------------------------------------------------------------------------
-    prompt_config = PositivePromptConfig(
-        asset_description=req.assetDescription,
-        rarity_key=req.rarity,
-        element_key=req.element,
-        biome_key=req.biome,
-        style_key=req.style,
-        category_key=req.category,
-        lora_triggers=lora_triggers,
-        style_hint=req.styleHint
-    )
-    positive_prompt = build_positive_prompt(prompt_config)
-    negative_prompt: str = DEFAULTS["prompts"]["baseNegative"]
-
-    # -------------------------------------------------------------------------
-    # 4) Base model
-    # -------------------------------------------------------------------------
-    base_model_block = DEFAULTS["baseModel"]
-    if req.useWesternAnimationBase:
-        model_air = base_model_block["airWesternAnimBase"]
-    else:
-        model_air = base_model_block["airBaseModel"]
-
-    # -------------------------------------------------------------------------
-    # 5) ControlNet config for inference
-    # -------------------------------------------------------------------------
+def _run_image_inference(
+    workflow_id: str,
+    positive_prompt: str,
+    negative_prompt: str,
+    model_air: str,
+    controlnet_cfg: Dict[str, Any],
+    guide_image_url: str,
+    lora_configs: List[Dict[str, Any]]
+) -> tuple[str, Dict[str, Any]]:
     controlnet_obj = {
         "model": controlnet_cfg["model"],
         "guideImage": guide_image_url,
@@ -327,9 +303,6 @@ def generate_item_icon(req: ItemIconRequest):
         "controlMode": controlnet_cfg["controlMode"]
     }
 
-    # -------------------------------------------------------------------------
-    # 6) ImageInference task
-    # -------------------------------------------------------------------------
     inference_task_uuid = f"ii-{workflow_id}"
 
     image_inference_task: Dict[str, Any] = {
@@ -360,6 +333,68 @@ def generate_item_icon(req: ItemIconRequest):
     image_url = image_item.get("imageURL") or image_item.get("imageUrl")
     if not image_url:
         raise HTTPException(status_code=502, detail="Missing imageURL in imageInference response.")
+
+    return image_url, inference_response
+
+
+@app.post("/api/item-icon", response_model=ItemIconResponse)
+def generate_item_icon(req: ItemIconRequest):
+    if not RUNWARE_ENABLED:
+        raise HTTPException(
+            status_code=503,
+            detail="Runware integration is not configured. Set RUNWARE_API_KEY to enable this endpoint.",
+        )
+
+    workflow_id = str(uuid.uuid4())
+
+    # -------------------------------------------------------------------------
+    # 1) ControlNet Preprocess (Canny edges)
+    # -------------------------------------------------------------------------
+    guide_image_url, preprocess_response = _run_controlnet_preprocess(req.seedImage, workflow_id)
+
+    # -------------------------------------------------------------------------
+    # 2) LoRA configs + triggers
+    # -------------------------------------------------------------------------
+    lora_configs, lora_triggers = build_lora_config_and_triggers(req.loraPack)
+
+    # -------------------------------------------------------------------------
+    # 3) Prompts
+    # -------------------------------------------------------------------------
+    prompt_config = PositivePromptConfig(
+        asset_description=req.assetDescription,
+        rarity_key=req.rarity,
+        element_key=req.element,
+        biome_key=req.biome,
+        style_key=req.style,
+        category_key=req.category,
+        lora_triggers=lora_triggers,
+        style_hint=req.styleHint,
+    )
+    positive_prompt = build_positive_prompt(prompt_config)
+    negative_prompt: str = DEFAULTS["prompts"]["baseNegative"]
+
+    # -------------------------------------------------------------------------
+    # 4) Base model
+    # -------------------------------------------------------------------------
+    base_model_block = DEFAULTS["baseModel"]
+    if req.useWesternAnimationBase:
+        model_air = base_model_block["airWesternAnimBase"]
+    else:
+        model_air = base_model_block["airBaseModel"]
+
+    # -------------------------------------------------------------------------
+    # 5/6) ImageInference task (with ControlNet)
+    # -------------------------------------------------------------------------
+    controlnet_cfg = DEFAULTS["controlNet"]
+    image_url, inference_response = _run_image_inference(
+        workflow_id=workflow_id,
+        positive_prompt=positive_prompt,
+        negative_prompt=negative_prompt,
+        model_air=model_air,
+        controlnet_cfg=controlnet_cfg,
+        guide_image_url=guide_image_url,
+        lora_configs=lora_configs
+    )
 
     raw_combined = {
         "preprocess": preprocess_response,

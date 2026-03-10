@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import argparse
 from pathlib import Path
 from typing import List
@@ -31,13 +29,7 @@ def seed_movies(seed_file: Path, default_age_band: str = "Family", default_tags:
     conn = movies_db.get_connection()
     try:
         with conn:
-            for movie in parsed:
-                tags = movie.get("tags") or []
-                _movie_id, is_created = movies_db.upsert_movie(conn, movie, tags=tags)
-                if is_created:
-                    created += 1
-                else:
-                    updated += 1
+            created, updated = movies_db.bulk_upsert_movies(conn, parsed)
     finally:
         conn.close()
 

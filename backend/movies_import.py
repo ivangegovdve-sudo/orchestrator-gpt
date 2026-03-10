@@ -1,7 +1,10 @@
-from __future__ import annotations
-
 import re
 from typing import Dict, List, Optional
+
+try:
+    from . import utils  # type: ignore
+except ImportError:
+    import utils  # type: ignore
 
 PAREN_YEAR_RE = re.compile(r"\((?P<year>(?:19|20)\d{2})\)\s*$")
 TRAILING_YEAR_RE = re.compile(r"\b(?P<year>(?:19|20)\d{2})\s*$")
@@ -65,7 +68,7 @@ def parse_movie_line(
     if localized_title:
         notes = f"Localized title: {localized_title}"
 
-    tags: List[str] = [t.strip().lower() for t in (default_tags or []) if t and t.strip()]
+    tags: List[str] = utils.normalize_tag_list(default_tags)
     if "animated" not in tags:
         tags.append("animated")
 
