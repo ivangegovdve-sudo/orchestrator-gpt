@@ -50,3 +50,82 @@ def test_bulk_import_api():
     movie_b = next(m for m in movies if m["title"] == "Movie B")
     assert movie_b["year"] == 2020
     assert "test" in movie_b["tags"]
+
+
+def test_upsert_movies_bulk_merges_duplicate_new_rows():
+    conn = movies_db.get_connection()
+    try:
+        with conn:
+            created, updated = movies_db.upsert_movies_bulk(
+                conn,
+                [
+                    {"title": "Movie A", "notes": "first", "tags": ["starter"]},
+                    {"title": "Movie A", "watched": True, "notes": "second", "tags": ["followup"]},
+                ],
+            )
+
+        movie = conn.execute(
+            "SELECT watched, notes FROM movies WHERE LOWER(title) = LOWER(?)",
+            ("Movie A",),
+        ).fetchone()
+        tags = {
+            row["name"]
+            for row in conn.execute(
+                """
+                SELECT t.name
+                FROM movie_tags mt
+                JOIN tags t ON t.id = mt.tag_id
+                JOIN movies m ON m.id = mt.movie_id
+                WHERE LOWER(m.title) = LOWER(?)
+                """,
+                ("Movie A",),
+            ).fetchall()
+        }
+    finally:
+        conn.close()
+
+    assert created == 1
+    assert updated == 0
+    assert movie["watched"] == 1
+    assert movie["notes"] == "second"
+    assert tags == {"starter", "followup"}
+
+
+def test_upsert_movies_bulk_preserves_existing_tags_and_batch_merges_updates():
+    conn = movies_db.get_connection()
+    try:
+        with conn:
+            movie_id, _ = movies_db.upsert_movie(
+                conn,
+                {"title": "Movie A", "notes": "original"},
+                tags=["manual"],
+            )
+            created, updated = movies_db.upsert_movies_bulk(
+                conn,
+                [
+                    {"title": "Movie A", "notes": "updated"},
+                    {"title": "Movie A", "imdb_id": "tt1234567", "tags": ["imported"]},
+                ],
+            )
+
+        movie = conn.execute("SELECT notes, imdb_id FROM movies WHERE id = ?", (movie_id,)).fetchone()
+        tags = {
+            row["name"]
+            for row in conn.execute(
+                """
+                SELECT t.name
+                FROM movie_tags mt
+                JOIN tags t ON t.id = mt.tag_id
+                WHERE mt.movie_id = ?
+                """,
+                (movie_id,),
+            ).fetchall()
+        }
+    finally:
+        conn.close()
+
+    assert created == 0
+    assert updated == 1
+    assert movie["notes"] == "updated"
+    assert movie["imdb_id"] == "tt1234567"
+    assert tags == {"manual", "imported"}
