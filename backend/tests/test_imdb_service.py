@@ -42,3 +42,15 @@ def test_extract_rating_from_json_node_invalid():
     assert _extract_rating_from_json_node({}) is None
     assert _extract_rating_from_json_node({"aggregateRating": {}}) is None
     assert _extract_rating_from_json_node({"ratingValue": "8.5"}) is None # not inside aggregateRating
+
+def test_extract_rating_from_json_node_invalid_value():
+    # Test ValueError
+    node_value_error = {"aggregateRating": {"ratingValue": "N/A"}}
+    assert _extract_rating_from_json_node(node_value_error) is None
+
+    # Test TypeError
+    node_type_error = {"aggregateRating": {"ratingValue": ["8.5"]}}
+    assert _extract_rating_from_json_node(node_type_error) is None
+
+    node_type_error2 = {"aggregateRating": {"ratingValue": {"value": 8.5}}}
+    assert _extract_rating_from_json_node(node_type_error2) is None
