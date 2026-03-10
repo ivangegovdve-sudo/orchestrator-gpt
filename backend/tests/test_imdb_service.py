@@ -1,6 +1,10 @@
 import pytest
 from datetime import datetime, timezone
-from backend.imdb_service import parse_iso_datetime, _extract_rating_from_json_node
+from backend.imdb_service import (
+    parse_iso_datetime,
+    _extract_info_from_json_node,
+    _parse_duration,
+)
 
 def test_parse_iso_datetime():
     assert parse_iso_datetime(None) is None
@@ -14,31 +18,51 @@ def test_parse_iso_datetime():
 
     assert parse_iso_datetime("invalid-date") is None
 
-def test_extract_rating_from_json_node_dict():
-    node = {"aggregateRating": {"ratingValue": "8.5"}}
-    assert _extract_rating_from_json_node(node) == 8.5
+def test_extract_info_from_json_node_dict():
+    node = {
+        "@type": "Movie",
+        "aggregateRating": {"ratingValue": "8.5"},
+        "image": "http://poster.url",
+        "duration": "PT2H22M",
+    }
+    res = _extract_info_from_json_node(node)
+    assert res["rating"] == 8.5
+    assert res["poster"] == "http://poster.url"
+    assert res["duration"] == 142
 
-    node = {"aggregateRating": {"ratingValue": 7.2}}
-    assert _extract_rating_from_json_node(node) == 7.2
-
-def test_extract_rating_from_json_node_nested():
+def test_extract_info_from_json_node_nested():
     node = {
         "main": {
-            "ratings": {
-                "aggregateRating": {"ratingValue": "9.1"}
+            "movie": {
+                "@type": "Movie",
+                "aggregateRating": {"ratingValue": "9.1"},
+                "image": {"url": "http://poster.url"},
             }
         }
     }
-    assert _extract_rating_from_json_node(node) == 9.1
+    res = _extract_info_from_json_node(node)
+    assert res["rating"] == 9.1
+    assert res["poster"] == "http://poster.url"
 
-def test_extract_rating_from_json_node_list():
+def test_extract_info_from_json_node_list():
     node = [
         {"type": "other"},
-        {"aggregateRating": {"ratingValue": "6.5"}}
+        {"aggregateRating": {"ratingValue": "6.5"}, "duration": "PT90M"}
     ]
-    assert _extract_rating_from_json_node(node) == 6.5
+    res = _extract_info_from_json_node(node)
+    assert res["rating"] == 6.5
+    assert res["duration"] == 90
 
-def test_extract_rating_from_json_node_invalid():
-    assert _extract_rating_from_json_node({}) is None
-    assert _extract_rating_from_json_node({"aggregateRating": {}}) is None
-    assert _extract_rating_from_json_node({"ratingValue": "8.5"}) is None # not inside aggregateRating
+def test_extract_info_from_json_node_invalid():
+    res = _extract_info_from_json_node({})
+    assert res["rating"] is None
+    assert res["poster"] is None
+    assert res["duration"] is None
+
+def test_parse_duration():
+    assert _parse_duration("PT2H22M") == 142
+    assert _parse_duration("PT1H") == 60
+    assert _parse_duration("PT45M") == 45
+    assert _parse_duration("PT0M") is None
+    assert _parse_duration("") is None
+    assert _parse_duration("invalid") is None
