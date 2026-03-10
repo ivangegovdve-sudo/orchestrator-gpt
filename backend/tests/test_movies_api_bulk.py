@@ -97,7 +97,7 @@ def test_upsert_movies_bulk_preserves_existing_tags_and_batch_merges_updates():
         with conn:
             movie_id, _ = movies_db.upsert_movie(
                 conn,
-                {"title": "Movie A", "notes": "original"},
+                {"title": "Movie A", "notes": "original", "age_band": "Teen"},
                 tags=["manual"],
             )
             created, updated = movies_db.upsert_movies_bulk(
@@ -108,7 +108,10 @@ def test_upsert_movies_bulk_preserves_existing_tags_and_batch_merges_updates():
                 ],
             )
 
-        movie = conn.execute("SELECT notes, imdb_id FROM movies WHERE id = ?", (movie_id,)).fetchone()
+        movie = conn.execute(
+            "SELECT notes, imdb_id, age_band FROM movies WHERE id = ?",
+            (movie_id,),
+        ).fetchone()
         tags = {
             row["name"]
             for row in conn.execute(
@@ -128,4 +131,5 @@ def test_upsert_movies_bulk_preserves_existing_tags_and_batch_merges_updates():
     assert updated == 1
     assert movie["notes"] == "updated"
     assert movie["imdb_id"] == "tt1234567"
+    assert movie["age_band"] == "Teen"
     assert tags == {"manual", "imported"}

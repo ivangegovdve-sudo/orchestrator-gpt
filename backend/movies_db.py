@@ -146,7 +146,7 @@ def replace_movie_tags(conn: sqlite3.Connection, movie_id: int, tags: Iterable[s
 class MovieRecordPayload:
     year: Optional[int]
     watched: int
-    age_band: str
+    age_band: Optional[str]
     notes: Optional[str]
     imdb_score: Optional[float]
     imdb_id: Optional[str]
@@ -171,10 +171,15 @@ def _movie_key(title: str, year: Optional[int]) -> Tuple[str, int]:
 
 
 def _payload_from_movie(movie: Dict[str, Any]) -> MovieRecordPayload:
+    raw_age_band = movie.get("age_band")
+    age_band = str(raw_age_band).strip() if raw_age_band is not None else None
+    if not age_band:
+        age_band = None
+
     return MovieRecordPayload(
         year=movie.get("year"),
         watched=1 if bool(movie.get("watched")) else 0,
-        age_band=(movie.get("age_band") or "Family").strip() or "Family",
+        age_band=age_band,
         notes=movie.get("notes"),
         imdb_score=movie.get("imdb_score"),
         imdb_id=movie.get("imdb_id"),
@@ -266,7 +271,7 @@ def _insert_movie_record(
             title,
             payload.year,
             payload.watched,
-            payload.age_band,
+            payload.age_band or "Family",
             payload.notes,
             payload.imdb_score,
             payload.imdb_id,
@@ -434,7 +439,7 @@ def upsert_movies_bulk(
                 (
                     state.payload.year,
                     state.payload.watched,
-                    state.payload.age_band,
+                    state.payload.age_band or "Family",
                     state.payload.notes,
                     state.payload.imdb_score,
                     state.payload.imdb_id,
@@ -476,7 +481,7 @@ def upsert_movies_bulk(
                     state.title,
                     state.payload.year,
                     state.payload.watched,
-                    state.payload.age_band,
+                    state.payload.age_band or "Family",
                     state.payload.notes,
                     state.payload.imdb_score,
                     state.payload.imdb_id,
@@ -900,3 +905,11 @@ def get_facets(conn: sqlite3.Connection) -> Dict[str, List[str]]:
         "tags": [str(row["name"]) for row in tag_rows],
         "age_bands": [str(row["age_band"]) for row in age_rows],
     }
+
+
+
+def bulk_upsert_movies(
+    conn: sqlite3.Connection,
+    movies_data: List[Dict[str, Any]],
+) -> Tuple[int, int]:
+    return upsert_movies_bulk(conn, movies_data)

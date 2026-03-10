@@ -191,7 +191,7 @@ def import_movies(payload: BulkImportRequest) -> BulkImportResponse:
     conn = movies_db.get_connection()
     try:
         with conn:
-            created, updated = movies_db.upsert_movies_bulk(conn, parsed)
+            created, updated = movies_db.bulk_upsert_movies(conn, parsed)
     finally:
         conn.close()
 
