@@ -1,0 +1,11 @@
+🎯 **What:** The `_parse_rating_from_title_html` function in `backend/imdb_service.py` lacked dedicated unit testing. This function is critical for scraping rating values out of unstructured HTML returned by IMDb, either via `application/ld+json` parsing or regex fallback. Tests have been added to ensure its robustness across a variety of HTML inputs.
+
+📊 **Coverage:** Tests now verify the following scenarios for `_parse_rating_from_title_html`:
+- Happy path parsing via valid `application/ld+json` blocks.
+- Happy path fallback to regex when `application/ld+json` is missing.
+- Fallback to regex when the `application/ld+json` block is malformed (invalid JSON).
+- Fallback to regex when the `application/ld+json` block is valid but missing a rating.
+- Edge case where HTML is empty or contains no matchable text (returns `None`).
+- Handling of multiple LD+JSON scripts, correctly identifying the one with the `aggregateRating`.
+
+✨ **Result:** Test coverage for `backend/imdb_service.py` has been significantly increased, ensuring robust behavior when scraping IMDb pages and providing a safety net against regressions if parsing logic needs tweaking in the future.
