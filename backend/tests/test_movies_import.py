@@ -33,9 +33,7 @@ def test_parse_bulk_lines_with_defaults():
     result = parse_bulk_lines(lines, default_age_band="Adult", default_tags=["sci-fi", "action"])
     assert len(result) == 1
     assert result[0]["age_band"] == "Adult"
-    assert "sci-fi" in result[0]["tags"]
-    assert "action" in result[0]["tags"]
-    assert "animated" in result[0]["tags"]
+    assert set(result[0]["tags"]) == {"sci-fi", "action", "animated"}
 
 def test_parse_bulk_lines_ignores_invalid():
     lines = """
