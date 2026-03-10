@@ -100,26 +100,29 @@ def _rate_limited_fetch(url: str) -> str:
 
 
 def _extract_rating_from_json_node(node: Any) -> Optional[float]:
-    if isinstance(node, dict):
-        aggregate = node.get("aggregateRating")
-        if isinstance(aggregate, dict):
-            value = aggregate.get("ratingValue")
-            if value is not None:
-                try:
-                    return float(value)
-                except (TypeError, ValueError):
-                    pass
-
-        for value in node.values():
-            nested = _extract_rating_from_json_node(value)
-            if nested is not None:
-                return nested
-
     if isinstance(node, list):
         for value in node:
             nested = _extract_rating_from_json_node(value)
             if nested is not None:
                 return nested
+        return None
+
+    if not isinstance(node, dict):
+        return None
+
+    aggregate = node.get("aggregateRating")
+    if isinstance(aggregate, dict):
+        value = aggregate.get("ratingValue")
+        if value is not None:
+            try:
+                return float(value)
+            except (TypeError, ValueError):
+                pass
+
+    for value in node.values():
+        nested = _extract_rating_from_json_node(value)
+        if nested is not None:
+            return nested
 
     return None
 
