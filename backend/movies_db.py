@@ -83,7 +83,17 @@ def get_connection() -> sqlite3.Connection:
 
 
 def normalize_tags(tags: Optional[Iterable[str]]) -> List[str]:
-    return utils.normalize_tag_list(tags)
+    if not tags:
+        return []
+
+    out: List[str] = []
+    seen: set[str] = set()
+    for tag in tags:
+        clean = (tag or "").strip().lower()
+        if clean and clean not in seen:
+            out.append(clean)
+            seen.add(clean)
+    return out
 
 
 def _movie_exists(conn: sqlite3.Connection, movie_id: int) -> bool:
