@@ -22,14 +22,14 @@ def test_basic_title():
         "tags": ["animated"]
     }
 
-def test_watched_prefix():
-    result = parse_movie_line("-- The Matrix")
-    assert result["title"] == "The Matrix"
+@pytest.mark.parametrize("line, expected_title", [
+    ("-- The Matrix", "The Matrix"),
+    ("  --   Inception  ", "Inception"),
+])
+def test_watched_prefix(line, expected_title):
+    result = parse_movie_line(line)
+    assert result["title"] == expected_title
     assert result["watched"] is True
-
-    result2 = parse_movie_line("  --   Inception  ")
-    assert result2["title"] == "Inception"
-    assert result2["watched"] is True
 
 def test_bullet_points():
     result = parse_movie_line("- Finding Nemo")
