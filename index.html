@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SD Orchestrator Hub</title>
+  <title>Forest HUB</title>
   <style>
     :root {
       --bg: #09090b;
@@ -258,17 +258,44 @@
       border-color: rgba(139, 92, 246, 0.3);
       color: var(--purple);
     }
+
+    .tool-card-progress {
+      width: 100%;
+      height: 4px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 2px;
+      margin-top: 10px;
+      overflow: hidden;
+      position: relative;
+    }
+    .tool-card-progress-bar {
+      height: 100%;
+      background: linear-gradient(90deg, var(--accent), var(--purple));
+      border-radius: 2px;
+      transition: width 0.5s ease-in-out;
+    }
+    .tool-card-progress-text {
+      font-size: 10px;
+      color: var(--muted);
+      margin-top: 4px;
+      text-align: right;
+    }
   </style>
+
 </head>
 <body>
   <div class="page">
     <header>
-      <h1>SD Orchestrator Hub</h1>
+      <h1>Forest HUB</h1>
       <p class="subtitle">Command center for generative workflows and tools.</p>
     </header>
 
-    <div class="hero-card">
-      <img src="/data/kTidsoptimist.jpg" alt="Hero Featured Image" />
+        <div class="hero-card" style="min-height: 300px; display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden;">
+      <canvas id="hero-canvas" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 0;"></canvas>
+      <div style="position: relative; z-index: 2; text-align: center; pointer-events: none;">
+        <h2 style="font-size: 42px; font-weight: 800; margin: 0; background: linear-gradient(135deg, #0ea5e9 0%, #8b5cf6 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-shadow: 0 4px 12px rgba(0,0,0,0.5);">Welcome to Forest HUB</h2>
+        <p style="color: #cbd5e1; font-size: 18px; margin-top: 10px; max-width: 600px; text-shadow: 0 2px 4px rgba(0,0,0,0.8);">Explore, build, and orchestrate AI applications.</p>
+      </div>
     </div>
 
     <div class="tool-grid">
@@ -286,6 +313,11 @@
             <span>Reads: /data/presets/newPresets.json</span>
             <span>Reads: /data/sd_inventory_curated.json</span>
           </div>
+
+          <div class="tool-card-progress">
+            <div class="tool-card-progress-bar" style="width: 95%;"></div>
+          </div>
+          <div class="tool-card-progress-text">95% Complete</div>
         </div>
       </a>
 
@@ -301,6 +333,11 @@
           <div class="tool-card-meta">
             <span>Link: /web/a1111-debug/index.html</span>
           </div>
+
+          <div class="tool-card-progress">
+            <div class="tool-card-progress-bar" style="width: 90%;"></div>
+          </div>
+          <div class="tool-card-progress-text">90% Complete</div>
         </div>
       </a>
 
@@ -317,6 +354,11 @@
             <span>Link: /movies/</span>
             <span>API: /api/movies</span>
           </div>
+
+          <div class="tool-card-progress">
+            <div class="tool-card-progress-bar" style="width: 100%;"></div>
+          </div>
+          <div class="tool-card-progress-text">100% Complete</div>
         </div>
       </a>
 
@@ -332,6 +374,11 @@
           <div class="tool-card-meta">
             <span>Link: /web/ai-init/</span>
           </div>
+
+          <div class="tool-card-progress">
+            <div class="tool-card-progress-bar" style="width: 100%;"></div>
+          </div>
+          <div class="tool-card-progress-text">100% Complete</div>
         </div>
       </a>
 
@@ -347,10 +394,15 @@
           <div class="tool-card-meta">
             <span>Link: /web/shared-calendar/</span>
           </div>
+
+          <div class="tool-card-progress">
+            <div class="tool-card-progress-bar" style="width: 80%;"></div>
+          </div>
+          <div class="tool-card-progress-text">80% Complete</div>
         </div>
       </a>
 
-      <a href="https://ivangegovdve-sudo.github.io/vfxportfolio-ee820969/" target="_blank" rel="noopener noreferrer" class="tool-card">
+      <a href="https://vfxportfolio.lovable.app" target="_blank" rel="noopener noreferrer" class="tool-card">
         <div class="tool-card-body">
           <div class="tool-card-title">
             VFX Portfolio
@@ -362,6 +414,91 @@
           <div class="tool-card-meta">
             <span>Repo: vfxportfolio-ee820969</span>
           </div>
+
+          <div class="tool-card-progress">
+            <div class="tool-card-progress-bar" style="width: 100%;"></div>
+          </div>
+          <div class="tool-card-progress-text">100% Complete</div>
+        </div>
+      </a>
+
+      <a href="#" class="tool-card">
+        <div class="tool-card-body">
+          <div class="tool-card-title">
+            LLM Platforms DB
+            <span class="tool-pill" style="background: rgba(234, 179, 8, 0.1); border-color: rgba(234, 179, 8, 0.3); color: #eab308;">WIP</span>
+          </div>
+          <div class="tool-card-subtitle">
+            Structured documentation for LLM platforms and integrations.
+          </div>
+          <div class="tool-card-meta">
+            <span>Status: Work In Progress</span>
+          </div>
+
+          <div class="tool-card-progress">
+            <div class="tool-card-progress-bar" style="width: 25%; background: linear-gradient(90deg, #eab308, #ca8a04);"></div>
+          </div>
+          <div class="tool-card-progress-text">25% Complete</div>
+        </div>
+      </a>
+
+      <a href="#" class="tool-card">
+        <div class="tool-card-body">
+          <div class="tool-card-title">
+            Retail AI
+            <span class="tool-pill" style="background: rgba(100, 116, 139, 0.1); border-color: rgba(100, 116, 139, 0.3); color: #94a3b8;">Empty</span>
+          </div>
+          <div class="tool-card-subtitle">
+            AI applications for retail, developed with Cursor.
+          </div>
+          <div class="tool-card-meta">
+            <span>Status: Not Started</span>
+          </div>
+
+          <div class="tool-card-progress">
+            <div class="tool-card-progress-bar" style="width: 0%; background: linear-gradient(90deg, #64748b, #475569);"></div>
+          </div>
+          <div class="tool-card-progress-text">0% Complete</div>
+        </div>
+      </a>
+
+      <a href="#" class="tool-card">
+        <div class="tool-card-body">
+          <div class="tool-card-title">
+            Python Learning Orchestrated
+            <span class="tool-pill" style="background: rgba(100, 116, 139, 0.1); border-color: rgba(100, 116, 139, 0.3); color: #94a3b8;">Empty</span>
+          </div>
+          <div class="tool-card-subtitle">
+            A structured path for learning Python and orchestration tools.
+          </div>
+          <div class="tool-card-meta">
+            <span>Status: Not Started</span>
+          </div>
+
+          <div class="tool-card-progress">
+            <div class="tool-card-progress-bar" style="width: 0%; background: linear-gradient(90deg, #64748b, #475569);"></div>
+          </div>
+          <div class="tool-card-progress-text">0% Complete</div>
+        </div>
+      </a>
+
+      <a href="https://github.com/IvanGegovDVE-Sudo/ClipMart" target="_blank" rel="noopener noreferrer" class="tool-card">
+        <div class="tool-card-body">
+          <div class="tool-card-title">
+            Clip Mart
+            <span class="tool-pill">Repo</span>
+          </div>
+          <div class="tool-card-subtitle">
+            GitHub repository for video and clip management.
+          </div>
+          <div class="tool-card-meta">
+            <span>Source: GitHub</span>
+          </div>
+
+          <div class="tool-card-progress">
+            <div class="tool-card-progress-bar" style="width: 15%; background: linear-gradient(90deg, #3b82f6, #2563eb);"></div>
+          </div>
+          <div class="tool-card-progress-text">15% Complete</div>
         </div>
       </a>
     </div>
@@ -378,6 +515,106 @@
         card.style.setProperty('--mouse-y', `${y}px`);
       });
     });
+
+    // Interactive Particle Network for Hero Canvas
+    const canvas = document.getElementById('hero-canvas');
+    if (canvas) {
+      const ctx = canvas.getContext('2d');
+      let width = canvas.width = canvas.parentElement.offsetWidth;
+      let height = canvas.height = canvas.parentElement.offsetHeight;
+
+      window.addEventListener('resize', () => {
+        width = canvas.width = canvas.parentElement.offsetWidth;
+        height = canvas.height = canvas.parentElement.offsetHeight;
+      });
+
+      const particles = [];
+      const numParticles = 80;
+
+      const mouse = { x: null, y: null, radius: 100 };
+
+      canvas.parentElement.addEventListener('mousemove', (e) => {
+        const rect = canvas.getBoundingClientRect();
+        mouse.x = e.clientX - rect.left;
+        mouse.y = e.clientY - rect.top;
+      });
+
+      canvas.parentElement.addEventListener('mouseleave', () => {
+        mouse.x = null;
+        mouse.y = null;
+      });
+
+      class Particle {
+        constructor() {
+          this.x = Math.random() * width;
+          this.y = Math.random() * height;
+          this.vx = (Math.random() - 0.5) * 1.5;
+          this.vy = (Math.random() - 0.5) * 1.5;
+          this.radius = Math.random() * 2 + 1;
+          this.color = Math.random() > 0.5 ? '#0ea5e9' : '#8b5cf6';
+        }
+
+        update() {
+          this.x += this.vx;
+          this.y += this.vy;
+
+          if (this.x < 0 || this.x > width) this.vx = -this.vx;
+          if (this.y < 0 || this.y > height) this.vy = -this.vy;
+
+          if (mouse.x != null && mouse.y != null) {
+            let dx = mouse.x - this.x;
+            let dy = mouse.y - this.y;
+            let distance = Math.sqrt(dx * dx + dy * dy);
+            if (distance < mouse.radius) {
+              let forceDirectionX = dx / distance;
+              let forceDirectionY = dy / distance;
+              let force = (mouse.radius - distance) / mouse.radius;
+              let directionX = forceDirectionX * force * 5;
+              let directionY = forceDirectionY * force * 5;
+              this.x -= directionX;
+              this.y -= directionY;
+            }
+          }
+        }
+
+        draw() {
+          ctx.beginPath();
+          ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+          ctx.fillStyle = this.color;
+          ctx.fill();
+        }
+      }
+
+      for (let i = 0; i < numParticles; i++) {
+        particles.push(new Particle());
+      }
+
+      function animate() {
+        requestAnimationFrame(animate);
+        ctx.clearRect(0, 0, width, height);
+
+        for (let i = 0; i < particles.length; i++) {
+          particles[i].update();
+          particles[i].draw();
+
+          for (let j = i; j < particles.length; j++) {
+            let dx = particles[i].x - particles[j].x;
+            let dy = particles[i].y - particles[j].y;
+            let distance = Math.sqrt(dx * dx + dy * dy);
+
+            if (distance < 120) {
+              ctx.beginPath();
+              ctx.strokeStyle = `rgba(255, 255, 255, ${1 - distance/120})`;
+              ctx.lineWidth = 0.5;
+              ctx.moveTo(particles[i].x, particles[i].y);
+              ctx.lineTo(particles[j].x, particles[j].y);
+              ctx.stroke();
+            }
+          }
+        }
+      }
+      animate();
+    }
   </script>
 </body>
 </html>
