@@ -6,11 +6,15 @@
   <title>SD Orchestrator Hub</title>
   <style>
     :root {
-      --bg: #020617;
-      --card: rgba(15, 23, 42, 0.8);
-      --text: #e5e7eb;
-      --muted: #94a3b8;
-      --accent: #38bdf8;
+      --bg: #09090b;
+      --card-bg: rgba(24, 24, 27, 0.6);
+      --card-border: rgba(255, 255, 255, 0.08);
+      --text: #f8fafc;
+      --muted: #a1a1aa;
+      --accent: #0ea5e9;
+      --accent-glow: rgba(14, 165, 233, 0.4);
+      --purple: #8b5cf6;
+      --purple-glow: rgba(139, 92, 246, 0.4);
     }
 
     * {
@@ -20,104 +24,239 @@
     body {
       margin: 0;
       min-height: 100vh;
-      background: radial-gradient(circle at 20% 20%, rgba(56, 189, 248, 0.08), transparent 32%),
-        radial-gradient(circle at 80% 0%, rgba(56, 189, 248, 0.05), transparent 28%),
-        var(--bg);
+      background-color: var(--bg);
+      background-image:
+        radial-gradient(circle at 15% 50%, rgba(14, 165, 233, 0.12), transparent 40%),
+        radial-gradient(circle at 85% 30%, rgba(139, 92, 246, 0.12), transparent 40%),
+        url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
       color: var(--text);
       font-family: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
-      padding: 32px 18px 42px;
+      padding: 40px 20px 60px;
+      overflow-x: hidden;
     }
 
     .page {
-      max-width: 1080px;
+      max-width: 1100px;
       margin: 0 auto;
       display: flex;
       flex-direction: column;
-      gap: 18px;
+      gap: 32px;
+      animation: fadeIn 0.8s ease-out forwards;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
     }
 
     header {
       display: flex;
       flex-direction: column;
-      gap: 6px;
+      gap: 8px;
+      text-align: center;
+      margin-bottom: 10px;
+      position: relative;
+    }
+
+    header::after {
+      content: '';
+      position: absolute;
+      bottom: -16px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 60px;
+      height: 4px;
+      background: linear-gradient(90deg, var(--accent), var(--purple));
+      border-radius: 4px;
     }
 
     h1 {
       margin: 0;
-      font-size: 26px;
-      letter-spacing: 0.01em;
+      font-size: 38px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      background: linear-gradient(135deg, #fff 0%, #cbd5e1 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-shadow: 0 4px 12px rgba(0,0,0,0.5);
     }
 
     .subtitle {
       margin: 0;
       color: var(--muted);
-      font-size: 14px;
+      font-size: 16px;
+      font-weight: 400;
+      letter-spacing: 0.01em;
     }
 
     .hero-card {
-      border-radius: 16px;
-      border: 1px solid rgba(148, 163, 184, 0.35);
-      background: linear-gradient(145deg, rgba(15, 23, 42, 0.95), rgba(2, 6, 23, 0.9));
+      position: relative;
+      border-radius: 20px;
+      border: 1px solid var(--card-border);
+      background: #000;
       overflow: hidden;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+      animation: revealHero 1s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+      animation-delay: 0.2s;
+      opacity: 0;
+      transform: scale(0.98);
+    }
+
+    @keyframes revealHero {
+      from { opacity: 0; transform: scale(0.98) translateY(20px); }
+      to { opacity: 1; transform: scale(1) translateY(0); }
+    }
+
+    .hero-card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to top, rgba(9, 9, 11, 0.9) 0%, transparent 60%);
+      z-index: 1;
+      pointer-events: none;
     }
 
     .hero-card img {
       width: 100%;
       display: block;
       object-fit: cover;
-      max-height: 420px;
+      max-height: 400px;
+      opacity: 0.85;
+      transition: opacity 0.5s ease, transform 0.5s ease;
+    }
+
+    .hero-card:hover img {
+      opacity: 1;
+      transform: scale(1.02);
     }
 
     .tool-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-      gap: 14px;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 20px;
+    }
+
+    /* Cards Stagger Animation */
+    .tool-card {
+      opacity: 0;
+      animation: slideUpFade 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    .tool-card:nth-child(1) { animation-delay: 0.3s; }
+    .tool-card:nth-child(2) { animation-delay: 0.4s; }
+    .tool-card:nth-child(3) { animation-delay: 0.5s; }
+    .tool-card:nth-child(4) { animation-delay: 0.6s; }
+    .tool-card:nth-child(5) { animation-delay: 0.7s; }
+    .tool-card:nth-child(6) { animation-delay: 0.8s; }
+
+    @keyframes slideUpFade {
+      from { opacity: 0; transform: translateY(30px); }
+      to { opacity: 1; transform: translateY(0); }
     }
 
     /* Prompt Builder tile styles */
     .tool-card {
-      display: block;
+      position: relative;
+      display: flex;
+      flex-direction: column;
       text-decoration: none;
-      border-radius: 14px;
-      border: 1px solid rgba(148, 163, 184, 0.35);
-      background: radial-gradient(circle at top left, rgba(56, 189, 248, 0.10), #020617);
-      padding: 12px 14px;
-      color: #e5e7eb;
-      transition: transform 0.12s ease, box-shadow 0.12s ease, border-color 0.12s ease;
+      border-radius: 16px;
+      border: 1px solid var(--card-border);
+      background: var(--card-bg);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      padding: 22px;
+      color: var(--text);
+      transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+      overflow: hidden;
+      z-index: 1;
     }
+
+    .tool-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: radial-gradient(800px circle at var(--mouse-x, 50%) var(--mouse-y, 50%), rgba(255,255,255,0.06), transparent 40%);
+      z-index: -1;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+
     .tool-card:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 10px 26px rgba(15, 23, 42, 0.9);
-      border-color: rgba(56, 189, 248, 0.55);
+      transform: translateY(-6px) scale(1.01);
+      box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.5), 0 0 20px var(--accent-glow);
+      border-color: rgba(14, 165, 233, 0.4);
+      background: rgba(30, 41, 59, 0.7);
     }
+
+    .tool-card:hover::before {
+      opacity: 1;
+    }
+
+    /* Give external links a distinct hover color */
+    .tool-card[href^="http"]:hover {
+       box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.5), 0 0 20px var(--purple-glow);
+       border-color: rgba(139, 92, 246, 0.4);
+    }
+
+    .tool-card-body {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+    }
+
     .tool-card-title {
-      font-size: 15px;
-      font-weight: 600;
+      font-size: 18px;
+      font-weight: 700;
       display: flex;
       align-items: center;
-      gap: 6px;
-      margin-bottom: 4px;
+      gap: 10px;
+      margin-bottom: 10px;
+      letter-spacing: -0.01em;
     }
+
     .tool-card-subtitle {
-      font-size: 12px;
-      color: #9ca3af;
-      margin-bottom: 6px;
+      font-size: 14px;
+      line-height: 1.5;
+      color: var(--muted);
+      margin-bottom: 18px;
+      flex-grow: 1;
     }
+
     .tool-card-meta {
-      font-size: 10px;
-      color: #6b7280;
+      font-size: 11px;
+      color: #64748b;
       display: flex;
       flex-wrap: wrap;
-      gap: 6px;
+      gap: 8px;
+      margin-top: auto;
+      padding-top: 14px;
+      border-top: 1px solid rgba(255,255,255,0.05);
     }
+
+    .tool-card-meta span {
+      background: rgba(0,0,0,0.3);
+      padding: 3px 8px;
+      border-radius: 4px;
+    }
+
     .tool-pill {
       font-size: 10px;
-      padding: 2px 6px;
-      border-radius: 999px;
-      border: 1px solid rgba(56, 189, 248, 0.4);
-      color: #38bdf8;
+      padding: 3px 8px;
+      border-radius: 6px;
+      background: rgba(14, 165, 233, 0.1);
+      border: 1px solid rgba(14, 165, 233, 0.3);
+      color: var(--accent);
       text-transform: uppercase;
-      letter-spacing: 0.08em;
+      letter-spacing: 0.05em;
+      font-weight: 600;
+      margin-left: auto;
+    }
+
+    .tool-card[href^="http"] .tool-pill {
+      background: rgba(139, 92, 246, 0.1);
+      border-color: rgba(139, 92, 246, 0.3);
+      color: var(--purple);
     }
   </style>
 </head>
@@ -125,11 +264,11 @@
   <div class="page">
     <header>
       <h1>SD Orchestrator Hub</h1>
-      <p class="subtitle">Quick links to the orchestration tools.</p>
+      <p class="subtitle">Command center for generative workflows and tools.</p>
     </header>
 
     <div class="hero-card">
-      <img src="/data/kTidsoptimist.jpg" alt="Temporary Image" />
+      <img src="/data/kTidsoptimist.jpg" alt="Hero Featured Image" />
     </div>
 
     <div class="tool-grid">
@@ -138,7 +277,7 @@
         <div class="tool-card-body">
           <div class="tool-card-title">
             Prompt Builder
-            <span class="tool-pill">SD Orchestrator</span>
+            <span class="tool-pill">Orchestrator</span>
           </div>
           <div class="tool-card-subtitle">
             Build dynamic SD prompts with curated LoRAs, JSON presets, and optional A1111 API output.
@@ -200,7 +339,7 @@
         <div class="tool-card-body">
           <div class="tool-card-title">
             Shared Calendar
-            <span class="tool-pill">Local</span>
+            <span class="tool-pill">Local App</span>
           </div>
           <div class="tool-card-subtitle">
             Drag-and-drop calendar blocks for school subjects and fun activities. Saved to local storage.
@@ -210,7 +349,35 @@
           </div>
         </div>
       </a>
+
+      <a href="https://ivangegovdve-sudo.github.io/vfxportfolio-ee820969/" target="_blank" rel="noopener noreferrer" class="tool-card">
+        <div class="tool-card-body">
+          <div class="tool-card-title">
+            VFX Portfolio
+            <span class="tool-pill">External</span>
+          </div>
+          <div class="tool-card-subtitle">
+            Animation Lead and VFX professional portfolio showcasing slot games, animated series, and commercials.
+          </div>
+          <div class="tool-card-meta">
+            <span>Repo: vfxportfolio-ee820969</span>
+          </div>
+        </div>
+      </a>
     </div>
   </div>
+
+  <script>
+    // Subtle mouse tracking glow effect for cards
+    document.querySelectorAll('.tool-card').forEach(card => {
+      card.addEventListener('mousemove', e => {
+        const rect = card.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        card.style.setProperty('--mouse-x', `${x}px`);
+        card.style.setProperty('--mouse-y', `${y}px`);
+      });
+    });
+  </script>
 </body>
 </html>
