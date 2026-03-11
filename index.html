@@ -55,10 +55,37 @@
     }
 
     .hero-card {
+      position: relative;
       border-radius: 16px;
       border: 1px solid rgba(148, 163, 184, 0.35);
       background: linear-gradient(145deg, rgba(15, 23, 42, 0.95), rgba(2, 6, 23, 0.9));
       overflow: hidden;
+    }
+
+    .hero-card:hover .change-image-btn {
+      opacity: 1;
+    }
+
+    .change-image-btn {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      background: rgba(15, 23, 42, 0.7);
+      color: #e5e7eb;
+      border: 1px solid rgba(148, 163, 184, 0.35);
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 13px;
+      cursor: pointer;
+      opacity: 0;
+      transition: opacity 0.2s ease, background 0.2s ease;
+      backdrop-filter: blur(4px);
+    }
+
+    .change-image-btn:hover {
+      background: rgba(15, 23, 42, 0.9);
+      border-color: rgba(56, 189, 248, 0.55);
+      color: #38bdf8;
     }
 
     .hero-card img {
@@ -129,7 +156,9 @@
     </header>
 
     <div class="hero-card">
-      <img src="/data/kTidsoptimist.jpg" alt="Temporary Image" />
+      <img id="hero-img" src="/public/data/kTidsoptimist.jpg" alt="Hero Image" />
+      <button class="change-image-btn" id="change-image-btn">Change Image</button>
+      <input type="file" id="hero-img-input" accept="image/*" style="display: none;" />
     </div>
 
     <div class="tool-grid">
@@ -212,5 +241,37 @@
       </a>
     </div>
   </div>
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const heroImg = document.getElementById("hero-img");
+      const changeBtn = document.getElementById("change-image-btn");
+      const fileInput = document.getElementById("hero-img-input");
+
+      // Load saved image from localStorage
+      const savedImage = localStorage.getItem("hubHeroImage");
+      if (savedImage) {
+        heroImg.src = savedImage;
+      }
+
+      // Handle button click to open file dialog
+      changeBtn.addEventListener("click", () => {
+        fileInput.click();
+      });
+
+      // Handle file selection
+      fileInput.addEventListener("change", (event) => {
+        const file = event.target.files[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            const dataUrl = e.target.result;
+            heroImg.src = dataUrl;
+            localStorage.setItem("hubHeroImage", dataUrl);
+          };
+          reader.readAsDataURL(file);
+        }
+      });
+    });
+  </script>
 </body>
 </html>
