@@ -13,6 +13,16 @@
   var results = document.getElementById("embed-results");
   var status = document.getElementById("status");
 
+  // 🛡️ SECURITY: Prevent XSS by sanitizing user-provided or external text before inserting via innerHTML
+  function escapeHtml(text) {
+    return String(text)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#39;");
+  }
+
   function render() {
     var query = String(input.value || "").trim();
     results.innerHTML = "";
@@ -32,7 +42,7 @@
       var btn = document.createElement("button");
       btn.type = "button";
       btn.className = "result";
-      btn.innerHTML = "<b>" + entry.abbr + "</b> — " + entry.expansion;
+      btn.innerHTML = "<b>" + escapeHtml(entry.abbr) + "</b> — " + escapeHtml(entry.expansion);
       btn.addEventListener("click", function () {
         searchApi.copyEntry(entry).then(function (ok) {
           status.textContent = ok ? "Copied: " + searchApi.formatCopy(entry) : "Clipboard copy failed";
