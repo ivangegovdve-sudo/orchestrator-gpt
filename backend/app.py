@@ -14,10 +14,12 @@ from dataclasses import dataclass
 
 try:
     from . import jobs_api, movies_api, movies_db  # type: ignore
+    from .llm_db.api import router as llm_db_router
 except ImportError:
     import jobs_api  # type: ignore
     import movies_api  # type: ignore
     import movies_db  # type: ignore
+    from backend.llm_db.api import router as llm_db_router
 
 # -----------------------------------------------------------------------------
 # ENV & CONFIG
@@ -52,6 +54,7 @@ LORA_PACKS: Dict[str, Any] = SCHEMA.get("loraPacks", {})
 app = FastAPI(title="Item Icon Generator — Western Animation Preset System")
 app.include_router(jobs_api.router)
 app.include_router(movies_api.router)
+app.include_router(llm_db_router)
 
 app.add_middleware(
     CORSMiddleware,
