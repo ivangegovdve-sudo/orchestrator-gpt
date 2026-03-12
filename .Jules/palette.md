@@ -1,3 +1,3 @@
-## 2025-03-10 - Add aria-labels to icon-only star rating buttons
-**Learning:** Icon-only buttons with symbols like "★" can be completely opaque to screen readers if they lack an `aria-label` attribute. Adding an explicit `aria-label` provides the necessary context for users utilizing assistive technologies without affecting visual layout. Also, ensure buttons that have text populated dynamically do not have static aria labels as it can result in an accessibility regression.
-**Action:** When creating UI components with icon-only interactive elements, ensure to use `aria-label` or `aria-labelledby` explicitly, but double check dynamic components to not conflict.
+## 2026-03-11 - Adding standard focus-visible styles to simple JS apps
+**Learning:** Native `button`, `input`, `textarea`, and `select` elements can easily lose clear focus states in vanilla CSS projects without a framework. Applying a global `:focus-visible` outline is a highly effective, low-effort micro-UX win for keyboard navigation.
+**Action:** Always check basic keyboard tab navigation on custom interactive elements in vanilla JS projects and add a consistent `:focus-visible` outline if missing.

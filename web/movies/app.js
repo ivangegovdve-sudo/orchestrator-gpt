@@ -198,7 +198,9 @@ function renderTagChips() {
     button.type = "button";
     button.className = "tag-chip";
     button.textContent = tag;
-    button.classList.toggle("active", state.filters.tags.has(tag));
+    const isActive = state.filters.tags.has(tag);
+    button.classList.toggle("active", isActive);
+    button.setAttribute("aria-pressed", isActive.toString());
 
     button.addEventListener("click", () => {
       if (state.filters.tags.has(tag)) {
@@ -226,6 +228,7 @@ function createStarButton(movie, value) {
   button.setAttribute("aria-label", `Rate ${value} out of 5 stars`);
 
   button.addEventListener("click", async () => {
+    button.disabled = true;
     try {
       await apiFetch(`/api/movies/${movie.id}/rate`, {
         method: "POST",
@@ -240,6 +243,8 @@ function createStarButton(movie, value) {
       }
     } catch (error) {
       showToast(`Rating failed: ${error.message}`, true);
+    } finally {
+      button.disabled = false;
     }
   });
 
@@ -261,6 +266,7 @@ function renderMovieItem(movie) {
   const watchBtn = fragment.querySelector(".watch-btn");
   watchBtn.textContent = movie.watched ? "Unwatch" : "Mark watched";
   watchBtn.addEventListener("click", async () => {
+    watchBtn.disabled = true;
     try {
       await apiFetch(
         `/api/movies/${movie.id}`,
@@ -278,6 +284,8 @@ function renderMovieItem(movie) {
       }
     } catch (error) {
       showToast(`Status update failed: ${error.message}`, true);
+    } finally {
+      watchBtn.disabled = false;
     }
   });
 
@@ -415,15 +423,19 @@ async function loadMovies() {
 
 function wireSearch() {
   els.searchBtn.addEventListener("click", async () => {
+    els.searchBtn.disabled = true;
     state.hasSearched = true;
     await loadMovies();
+    els.searchBtn.disabled = false;
   });
 
   els.searchInput.addEventListener("keydown", async (event) => {
     if (event.key === "Enter") {
       event.preventDefault();
+      els.searchBtn.disabled = true;
       state.hasSearched = true;
       await loadMovies();
+      els.searchBtn.disabled = false;
     }
   });
 }
