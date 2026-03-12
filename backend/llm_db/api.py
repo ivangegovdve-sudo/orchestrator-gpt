@@ -27,6 +27,10 @@ class SourceResponse(BaseModel):
     base_url: str
 
 def fetch_url(url: str) -> str:
+    if not url.lower().startswith(('http://', 'https://')):
+        logging.error(f"Security blocked non-HTTP URL: {url}")
+        return ""
+
     try:
         req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
         with urllib.request.urlopen(req, timeout=10) as response:
