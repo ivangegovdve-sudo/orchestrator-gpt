@@ -223,6 +223,7 @@ function createStarButton(movie, value) {
   button.textContent = "★";
   button.classList.toggle("active", (movie.my_rating || 0) >= value);
   button.title = `Rate ${value}/5`;
+  button.setAttribute("aria-label", `Rate ${value} out of 5 stars`);
 
   button.addEventListener("click", async () => {
     try {
