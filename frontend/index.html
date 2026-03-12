@@ -110,6 +110,40 @@
       border-radius: 10px;
       padding: 16px;
       background: #fafbfc;
+      transition: opacity 0.3s ease-in, transform 0.3s ease-in;
+    }
+
+    .fade-in {
+      animation: fadeIn 0.4s ease-out forwards;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .spinner {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      border-radius: 50%;
+      border-top-color: #fff;
+      animation: spin 1s ease-in-out infinite;
+      margin-right: 8px;
+      vertical-align: middle;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
     }
 
     .result-item {
@@ -185,16 +219,16 @@
     const errorEl = document.getElementById('error');
     const generateButton = document.getElementById('generateButton');
 
-    function renderResult({ task_uuid, image_url }) {
+    function renderResult({ taskUUID, imageURL }) {
       resultContent.innerHTML = `
-        <div class="result-item"><span>Task UUID:</span> ${task_uuid}</div>
-        <div class="result-item"><span>Image URL:</span> <a href="${image_url}" target="_blank" rel="noopener noreferrer">${image_url}</a></div>
-        <img class="preview" src="${image_url}" alt="Generated item icon" />
+        <div class="result-item fade-in"><span>Task UUID:</span> ${taskUUID}</div>
+        <div class="result-item fade-in" style="animation-delay: 0.1s;"><span>Image URL:</span> <a href="${imageURL}" target="_blank" rel="noopener noreferrer">${imageURL}</a></div>
+        <img class="preview fade-in" style="animation-delay: 0.2s;" src="${imageURL}" alt="Generated item icon" />
       `;
     }
 
     function renderLoading() {
-      resultContent.innerHTML = '<p>Generating…</p>';
+      resultContent.innerHTML = '<p class="fade-in">Generating…</p>';
     }
 
     function renderError(message) {
@@ -216,14 +250,16 @@
       }
 
       const body = {
-        seed_image_url: seedImageUrl,
-        asset_description: assetDescription,
-        style_hint: styleHint || undefined,
-        use_western_animation_base_model: useWesternAnimationBaseModel,
+        seedImage: seedImageUrl,
+        assetDescription: assetDescription,
+        styleHint: styleHint || undefined,
+        useWesternAnimationBase: useWesternAnimationBaseModel,
       };
 
       try {
         generateButton.disabled = true;
+        const originalText = generateButton.textContent;
+        generateButton.innerHTML = '<span class="spinner"></span> Generating...';
         renderLoading();
 
         const response = await fetch('http://localhost:8000/api/item-icon', {
@@ -240,9 +276,10 @@
         renderResult(data);
       } catch (err) {
         renderError(err.message || 'An unexpected error occurred.');
-        resultContent.innerHTML = '<p>Something went wrong. Please try again.</p>';
+        resultContent.innerHTML = '<p class="fade-in">Something went wrong. Please try again.</p>';
       } finally {
         generateButton.disabled = false;
+        generateButton.textContent = 'Generate Item Icon';
       }
     });
   </script>
