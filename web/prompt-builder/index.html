@@ -269,6 +269,8 @@
     .param-label {
       font-size: 11px;
       color: var(--muted);
+      display: block;
+      cursor: pointer;
     }
     .param-inline {
       display: flex;
@@ -698,7 +700,7 @@
         </div>
         <div class="param-grid">
           <div class="param-field">
-            <div class="param-label">Sampler</div>
+            <label class="param-label" for="sdSampler">Sampler</label>
             <select id="sdSampler">
               <option value="DPM++ 2M Karras">DPM++ 2M Karras</option>
               <option value="DPM++ SDE Karras">DPM++ SDE Karras</option>
@@ -707,35 +709,35 @@
             </select>
           </div>
           <div class="param-field">
-            <div class="param-label">Steps</div>
+            <label class="param-label" for="sdSteps">Steps</label>
             <input type="number" id="sdSteps" value="30" min="5" max="60">
           </div>
           <div class="param-field">
-            <div class="param-label">CFG</div>
+            <label class="param-label" for="sdCfg">CFG</label>
             <input type="number" id="sdCfg" value="7" step="0.5" min="1" max="20">
           </div>
           <div class="param-field">
-            <div class="param-label">Width</div>
+            <label class="param-label" for="sdWidth">Width</label>
             <input type="number" id="sdWidth" value="640" step="64" min="256" max="1536">
           </div>
           <div class="param-field">
-            <div class="param-label">Height</div>
+            <label class="param-label" for="sdHeight">Height</label>
             <input type="number" id="sdHeight" value="640" step="64" min="256" max="1536">
           </div>
           <div class="param-field">
-            <div class="param-label">Batch size</div>
+            <label class="param-label" for="sdBatchSize">Batch size</label>
             <input type="number" id="sdBatchSize" value="1" min="1" max="8">
           </div>
           <div class="param-field">
-            <div class="param-label">Batch count (n_iter)</div>
+            <label class="param-label" for="sdBatchCount">Batch count (n_iter)</label>
             <input type="number" id="sdBatchCount" value="5" min="1" max="32">
           </div>
           <div class="param-field">
-            <div class="param-label">Seed (-1 = random)</div>
+            <label class="param-label" for="sdSeed">Seed (-1 = random)</label>
             <input type="number" id="sdSeed" value="-1" step="1">
           </div>
           <div class="param-field">
-            <div class="param-label">Checkpoint (override)</div>
+            <label class="param-label" for="sdCheckpoint">Checkpoint (override)</label>
             <input type="text" id="sdCheckpoint" placeholder="DreamShaper_8_pruned.safetensors">
           </div>
         </div>
@@ -785,7 +787,7 @@
         </div>
         <div id="apiStatus" class="status-line"></div>
         <div class="param-field" style="margin-top:12px;">
-          <div class="param-label">ControlNet base image</div>
+          <label class="param-label" for="controlImage">ControlNet base image</label>
           <input type="file" id="controlImage" accept="image/*">
           <small>Local-only; used for ControlNet img2img and preprocess previews.</small>
         </div>
@@ -802,22 +804,22 @@
             <div class="param-field">
               <div class="param-label">Canny thresholds</div>
               <div class="param-inline" style="gap:8px;">
-                <input type="number" id="cannyLow" value="100" min="0" max="255" step="1" style="max-width:110px;">
-                <input type="number" id="cannyHigh" value="200" min="0" max="255" step="1" style="max-width:110px;">
+                <input type="number" id="cannyLow" value="100" min="0" max="255" step="1" style="max-width:110px;" aria-label="Canny Low Threshold">
+                <input type="number" id="cannyHigh" value="200" min="0" max="255" step="1" style="max-width:110px;" aria-label="Canny High Threshold">
               </div>
               <small>Only used when the Canny module is selected.</small>
             </div>
             <div class="param-field">
               <div class="param-label">Guidance range</div>
               <div class="param-inline" style="gap:8px;">
-                <input type="number" id="cannyStart" value="0.0" min="0" max="1" step="0.01" style="max-width:110px;">
-                <input type="number" id="cannyEnd" value="0.33" min="0" max="1" step="0.01" style="max-width:110px;">
+                <input type="number" id="cannyStart" value="0.0" min="0" max="1" step="0.01" style="max-width:110px;" aria-label="ControlNet Guidance Start">
+                <input type="number" id="cannyEnd" value="0.33" min="0" max="1" step="0.01" style="max-width:110px;" aria-label="ControlNet Guidance End">
               </div>
               <small>Start / end used for ControlNet img2img requests.</small>
             </div>
           </div>
           <div class="param-field" style="margin-top:6px;">
-            <div class="param-label">ControlNet model (optional override)</div>
+            <label class="param-label" for="cannyModel">ControlNet model (optional override)</label>
             <input type="text" id="cannyModel" placeholder="control_v11p_sd15_canny [d14c016b]">
           </div>
           <div class="actions" style="margin-top:6px; gap:6px;">
