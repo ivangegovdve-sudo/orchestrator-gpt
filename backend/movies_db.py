@@ -824,6 +824,8 @@ def list_movies(
           m.language,
           m.created_at,
           m.updated_at,
+          -- ⚡ Bolt optimization: Correlated subqueries are evaluated only for the single movie_id row,
+          -- changing O(N) full-table aggregation to an O(K) lookup where K is ratings for this movie.
           COALESCE((SELECT AVG(rating) FROM user_ratings WHERE movie_id = m.id), 0) AS avg_rating,
           COALESCE((SELECT COUNT(*) FROM user_ratings WHERE movie_id = m.id), 0) AS rating_count,
           mr.rating AS my_rating
@@ -862,15 +864,10 @@ def get_movie_by_id(conn: sqlite3.Connection, movie_id: int, device_id: Optional
           m.language,
           m.created_at,
           m.updated_at,
-          COALESCE(r.avg_rating, 0) AS avg_rating,
-          COALESCE(r.rating_count, 0) AS rating_count,
+          COALESCE((SELECT AVG(rating) FROM user_ratings WHERE movie_id = m.id), 0) AS avg_rating,
+          COALESCE((SELECT COUNT(*) FROM user_ratings WHERE movie_id = m.id), 0) AS rating_count,
           mr.rating AS my_rating
         FROM movies m
-        LEFT JOIN (
-          SELECT movie_id, AVG(rating) AS avg_rating, COUNT(*) AS rating_count
-          FROM user_ratings
-          GROUP BY movie_id
-        ) r ON r.movie_id = m.id
         LEFT JOIN user_ratings mr ON mr.movie_id = m.id AND mr.device_id = ?
         WHERE m.id = ?
         LIMIT 1
