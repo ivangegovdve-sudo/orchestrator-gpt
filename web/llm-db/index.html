@@ -411,6 +411,15 @@
         let isIngesting = false;
         let isSearching = false;
 
+        function escapeHtml(unsafe) {
+            return String(unsafe || '')
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
         async function loadSources() {
             try {
                 const res = await fetch(`${API_BASE}/sources`);
@@ -532,12 +541,12 @@
 
                     div.innerHTML = `
                         <div class="doc-title">
-                            ${doc.title}
-                            <span class="doc-badge">${doc.source_name}</span>
+                            ${escapeHtml(doc.title)}
+                            <span class="doc-badge">${escapeHtml(doc.source_name)}</span>
                         </div>
                         <div class="doc-source">
                             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
-                            <a href="${doc.url}" target="_blank" title="${doc.url}">${hostname}</a>
+                            <a href="${escapeHtml(doc.url)}" target="_blank" title="${escapeHtml(doc.url)}">${escapeHtml(hostname)}</a>
                         </div>
                         <button class="btn-small" onclick="toggleDoc(${doc.id}, this)">Show Content</button>
                         <div class="doc-content" id="content-${doc.id}">Loading...</div>
@@ -574,8 +583,7 @@
                     const doc = await res.json();
 
                     let content = doc.content || 'No content available.';
-                    content = content.replace(/</g, '&lt;').replace(/>/g, '&gt;');
-                    contentEl.innerHTML = content;
+                    contentEl.innerHTML = escapeHtml(content);
                 } catch (error) {
                     contentEl.textContent = `Error loading content: ${error.message}`;
                 }
