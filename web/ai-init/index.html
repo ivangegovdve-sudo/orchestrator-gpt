@@ -375,6 +375,14 @@ main {
   transform: translateY(0);
 }
 
+/* Accessibility focus styles */
+button:focus-visible,
+input:focus-visible,
+.search-input:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
 @media (max-width: 640px) {
   main { padding: 18px 10px 24px; }
   .search-card, .library-card { padding: 10px; }
