@@ -11,3 +11,8 @@
 **Vulnerability:** Unsanitized user inputs (`doc.title`, `doc.source_name`, `doc.url`) from external API data were injected directly into `div.innerHTML` in `web/llm-db/index.html`. Furthermore, document content was loaded into `contentEl.innerHTML` without full validation. This allows attackers to execute arbitrary JavaScript if malicious external sources are ingested.
 **Learning:** Vanilla JavaScript applications that rely on `innerHTML` for dynamic template rendering are highly susceptible to XSS. Standard escaping mechanisms are not built-in like they are in frameworks like React or Vue. Even if data comes from our own backend API, it shouldn't be implicitly trusted if it originates from external sources.
 **Prevention:** Avoid `innerHTML` whenever possible, preferring `textContent` or `createElement` combined with `appendChild`. When `innerHTML` is required for template string interpolation, always pass variable values through a robust HTML escaping function (e.g., `escapeHtml`) first.
+
+## 2024-05-24 - Overly Permissive CORS Configuration
+**Vulnerability:** The CORS configuration in `backend/app.py` allowed `"null"` and `"file://"` in `allow_origins` while also setting `allow_credentials=True`.
+**Learning:** Permitting the `"null"` origin allows attackers to use sandboxed iframes to completely bypass CORS protections. Permitting the `"file://"` origin introduces SSRF and Local File Inclusion risks. These should never be whitelisted alongside `allow_credentials=True`.
+**Prevention:** Never include `"null"` or `"file://"` in `allow_origins` when configuring CORS, especially when `allow_credentials` is true. Ensure strict whitelisting of expected origins only.
