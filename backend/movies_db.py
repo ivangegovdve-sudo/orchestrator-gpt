@@ -659,18 +659,22 @@ def _movie_rows_to_dicts(conn: sqlite3.Connection, rows: List[sqlite3.Row]) -> L
 
     if movie_ids:
         placeholders = ",".join("?" for _ in movie_ids)
+        # ⚡ Bolt optimization: Use GROUP_CONCAT to reduce data transfer and iteration overhead
+        # changing O(N*M) rows fetched to O(N) where M is avg tags per movie.
         tag_rows = conn.execute(
             f"""
-            SELECT mt.movie_id, t.name
+            SELECT mt.movie_id, GROUP_CONCAT(t.name, '||') as tag_names
             FROM movie_tags mt
             JOIN tags t ON t.id = mt.tag_id
             WHERE mt.movie_id IN ({placeholders})
-            ORDER BY t.name ASC
+            GROUP BY mt.movie_id
             """,
             movie_ids,
         ).fetchall()
         for tag_row in tag_rows:
-            tag_map[int(tag_row["movie_id"])].append(str(tag_row["name"]))
+            if tag_row["tag_names"]:
+                # SQLite GROUP_CONCAT does not guarantee order, so we sort in Python
+                tag_map[int(tag_row["movie_id"])] = sorted(tag_row["tag_names"].split("||"))
 
     out: List[Dict[str, Any]] = []
     for row in rows:
