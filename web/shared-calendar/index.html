@@ -441,6 +441,7 @@
           const editButton = document.createElement("button");
           editButton.type = "button";
           editButton.textContent = "Edit";
+          editButton.setAttribute("aria-label", `Edit activity: ${activity.title}`);
           editButton.addEventListener("click", (event) => {
             event.stopPropagation();
             setEditing(activity);
@@ -449,6 +450,7 @@
           const removeButton = document.createElement("button");
           removeButton.type = "button";
           removeButton.textContent = "Remove";
+          removeButton.setAttribute("aria-label", `Remove activity: ${activity.title}`);
           removeButton.addEventListener("click", (event) => {
             event.stopPropagation();
             removeActivity(activity.id);
