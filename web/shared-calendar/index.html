@@ -496,6 +496,9 @@
     };
 
     const removeActivity = (id) => {
+      if (!window.confirm("Are you sure you want to remove this activity?")) {
+        return;
+      }
       activities = activities.filter((activity) => activity.id !== id);
       saveActivities();
       renderCalendar();
