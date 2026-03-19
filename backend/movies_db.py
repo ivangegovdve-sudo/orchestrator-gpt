@@ -654,31 +654,12 @@ def get_rating_summary(
 
 
 def _movie_rows_to_dicts(conn: sqlite3.Connection, rows: List[sqlite3.Row]) -> List[Dict[str, Any]]:
-    movie_ids = [int(row["id"]) for row in rows]
-    tag_map: Dict[int, List[str]] = {movie_id: [] for movie_id in movie_ids}
-
-    if movie_ids:
-        placeholders = ",".join("?" for _ in movie_ids)
-        # ⚡ Bolt optimization: Use GROUP_CONCAT to reduce data transfer and iteration overhead
-        # changing O(N*M) rows fetched to O(N) where M is avg tags per movie.
-        tag_rows = conn.execute(
-            f"""
-            SELECT mt.movie_id, GROUP_CONCAT(t.name, '||') as tag_names
-            FROM movie_tags mt
-            JOIN tags t ON t.id = mt.tag_id
-            WHERE mt.movie_id IN ({placeholders})
-            GROUP BY mt.movie_id
-            """,
-            movie_ids,
-        ).fetchall()
-        for tag_row in tag_rows:
-            if tag_row["tag_names"]:
-                # SQLite GROUP_CONCAT does not guarantee order, so we sort in Python
-                tag_map[int(tag_row["movie_id"])] = sorted(tag_row["tag_names"].split("||"))
-
     out: List[Dict[str, Any]] = []
     for row in rows:
         movie_id = int(row["id"])
+        tags_str = row["tags_str"] if "tags_str" in row.keys() else None
+        tags_list = tags_str.split("|||") if tags_str else []
+
         out.append(
             {
                 "id": movie_id,
@@ -695,7 +676,7 @@ def _movie_rows_to_dicts(conn: sqlite3.Connection, rows: List[sqlite3.Row]) -> L
                 "poster_url": row["poster_url"],
                 "runtime_minutes": row["runtime_minutes"],
                 "language": row["language"],
-                "tags": tag_map.get(movie_id, []),
+                "tags": tags_list,
                 "avg_rating": round(float(row["avg_rating"] or 0), 2),
                 "rating_count": int(row["rating_count"] or 0),
                 "my_rating": int(row["my_rating"]) if row["my_rating"] is not None else None,
@@ -832,7 +813,19 @@ def list_movies(
           -- changing O(N) full-table aggregation to an O(K) lookup where K is ratings for this movie.
           COALESCE((SELECT AVG(rating) FROM user_ratings WHERE movie_id = m.id), 0) AS avg_rating,
           COALESCE((SELECT COUNT(*) FROM user_ratings WHERE movie_id = m.id), 0) AS rating_count,
-          mr.rating AS my_rating
+          mr.rating AS my_rating,
+          -- ⚡ Bolt optimization: Use GROUP_CONCAT subquery to fetch tags in a single trip,
+          -- eliminating N+1 querying overhead when converting rows to dictionaries.
+          (
+            SELECT GROUP_CONCAT(name, '|||')
+            FROM (
+                SELECT t.name
+                FROM movie_tags mt
+                JOIN tags t ON t.id = mt.tag_id
+                WHERE mt.movie_id = m.id
+                ORDER BY t.name ASC
+            )
+          ) AS tags_str
         FROM movies m
         LEFT JOIN user_ratings mr ON mr.movie_id = m.id AND mr.device_id = ?
         WHERE {where_clause}
@@ -870,7 +863,17 @@ def get_movie_by_id(conn: sqlite3.Connection, movie_id: int, device_id: Optional
           m.updated_at,
           COALESCE((SELECT AVG(rating) FROM user_ratings WHERE movie_id = m.id), 0) AS avg_rating,
           COALESCE((SELECT COUNT(*) FROM user_ratings WHERE movie_id = m.id), 0) AS rating_count,
-          mr.rating AS my_rating
+          mr.rating AS my_rating,
+          (
+            SELECT GROUP_CONCAT(name, '|||')
+            FROM (
+                SELECT t.name
+                FROM movie_tags mt
+                JOIN tags t ON t.id = mt.tag_id
+                WHERE mt.movie_id = m.id
+                ORDER BY t.name ASC
+            )
+          ) AS tags_str
         FROM movies m
         LEFT JOIN user_ratings mr ON mr.movie_id = m.id AND mr.device_id = ?
         WHERE m.id = ?
