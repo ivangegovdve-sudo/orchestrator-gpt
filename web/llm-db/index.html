@@ -376,8 +376,8 @@
                 Ingest Source
             </h2>
             <div class="ingest-form">
-                <input type="text" id="ingestName" placeholder="Source Name (e.g. OpenAI)">
-                <input type="text" id="ingestUrl" placeholder="URL (e.g. https://platform.openai.com/docs/models.md)">
+                <input type="text" id="ingestName" aria-label="Source Name" placeholder="Source Name (e.g. OpenAI)">
+                <input type="text" id="ingestUrl" aria-label="Source URL" placeholder="URL (e.g. https://platform.openai.com/docs/models.md)">
                 <button id="ingestBtn" onclick="ingestSource()">
                     Ingest
                 </button>
@@ -392,8 +392,8 @@
             </h2>
 
             <div class="search-row">
-                <input type="text" id="searchInput" placeholder="Search across documents..." onkeyup="if(event.key === 'Enter') searchDocs()">
-                <select id="sourceFilter" onchange="searchDocs()">
+                <input type="text" id="searchInput" aria-label="Search documents query" placeholder="Search across documents..." onkeyup="if(event.key === 'Enter') searchDocs()">
+                <select id="sourceFilter" aria-label="Filter by source" onchange="searchDocs()">
                     <option value="">All Sources</option>
                 </select>
                 <button id="searchBtn" onclick="searchDocs()">
