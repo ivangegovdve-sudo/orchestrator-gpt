@@ -26,6 +26,8 @@ The repo is not a packaged frontend app with a build step. Most pages are plain 
   Static 3D dice roller.
 - `frontend/index.html`
   Standalone Runware item-icon generator demo.
+- `voice-project-dashboard/apps/mobile/`
+  Expo-based Voice Project Dashboard source deployed separately to Vercel.
 - `backend/`
   FastAPI app, movies API, jobs API, LLM DB API, SQLite helpers, and tests.
 - `data/`
@@ -114,6 +116,7 @@ This is the expected mode for:
 - A1111 debug pages
 - movies
 - frontend item-icon demo
+- voice-project-dashboard source app
 
 ### Same-origin mode
 
@@ -270,6 +273,36 @@ If you keep split mode, make `web/llm-db/` configurable before calling the dashb
   - roll controls work
   - D6 and D12 visuals animate correctly
   - layout works on desktop and mobile
+
+### Voice Project Dashboard
+
+- Hub entry:
+  - external card in `index.html`
+- Source:
+  - `voice-project-dashboard/apps/mobile/`
+- Runtime:
+  - Expo web app, deployed separately to Vercel
+  - local edits persist in browser storage
+- Local commands:
+
+```powershell
+cd voice-project-dashboard/apps/mobile
+npm ci
+npm run web
+```
+
+- Build command:
+
+```powershell
+cd voice-project-dashboard/apps/mobile
+npm run build:web
+```
+
+- Done when:
+  - search and stage filters work
+  - task and deliverable toggles update project progress
+  - producer notes persist after reload
+  - the live Vercel deployment opens from the Forest HUB card
 
 ### Runware Item Icon Generator
 

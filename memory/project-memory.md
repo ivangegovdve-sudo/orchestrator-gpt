@@ -11,6 +11,7 @@
 - The dashboard is a static-first product surface with mini-projects under `web/`, a FastAPI backend under `backend/`, and shared data/config under `data/` and `config/`.
 - The repo now has a repo-local memory layer under `memory/` plus a consolidation skill under `skills/consolidate-memory/`.
 - The repo now has a repo-local multimodal asset memory skill under `skills/media-memory/` with runtime storage in `media-memory/`.
+- Forest HUB now links a deployed `Voice Project Dashboard` app whose source lives at `voice-project-dashboard/apps/mobile/`.
 - There are older untracked research-scout memory artifacts under `docs/`, but `memory/` is now the canonical location for active repo memory.
 
 ## Key Paths
