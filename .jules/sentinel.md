@@ -12,3 +12,8 @@
 **Vulnerability:** The LLM Platforms DB (`web/llm-db/index.html`) directly injected user-provided data (`doc.title`, `doc.source_name`, `doc.url`) into the DOM using `innerHTML` without proper HTML escaping and URL protocol validation.
 **Learning:** Vanilla JS applications in the `web/` directory that heavily use `innerHTML` for DOM updates are highly susceptible to XSS if explicit HTML sanitization functions (like `escapeHtml`) are not implemented and applied to untrusted data before injection.
 **Prevention:** Always implement and apply HTML sanitization functions (like `escapeHtml`) to untrusted data before inserting it via `innerHTML`. Additionally, validate URL protocols (e.g., allowing only `http://` or `https://`) before inserting them into `href` attributes to prevent `javascript:` URI execution.
+
+## 2024-05-24 - Overly Permissive CORS Configuration
+**Vulnerability:** The FastAPI backend had `"null"` included in its `allow_origins` array alongside `allow_credentials=True`.
+**Learning:** Allowing the `"null"` origin can be abused from sandboxed iframes or local-file contexts, which weakens the protection CORS is meant to provide.
+**Prevention:** Avoid using `"null"` as an allowed origin when credentials are enabled. Restrict CORS origins to explicit, intended frontend endpoints only.
