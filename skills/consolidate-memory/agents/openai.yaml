@@ -1,0 +1,4 @@
+interface:
+  display_name: "Consolidate Memory"
+  short_description: "Refresh repo memory from Codex logs"
+  default_prompt: "Use $consolidate-memory to refresh this repo's recent, project, and long-term memory files from recent Codex conversations."

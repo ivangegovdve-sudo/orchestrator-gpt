@@ -1,0 +1,4 @@
+interface:
+  display_name: "Research Scout"
+  short_description: "Scout external updates that change repo knowledge"
+  default_prompt: "Use $research-scout to find net-new external updates, stage validated learnings, and promote confirmed patterns into project memory."

@@ -366,3 +366,8 @@ Then:
 - there is no locked Python dependency manifest yet
 
 Treat these as active product debt, not hidden assumptions.
+
+## Repo Memory
+
+- Follow `CODEX.md` for repo-local memory workflows.
+- When the task involves user-provided or assistant-generated media/files that may be useful later, use `skills/media-memory/SKILL.md` and store runtime assets in `media-memory/`.

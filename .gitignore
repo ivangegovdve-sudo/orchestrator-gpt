@@ -24,3 +24,6 @@ temp/
 # SD-related local paths (never commit raw outputs here)
 outputs/
 checkpoints/
+
+# Local media memory store
+media-memory/
