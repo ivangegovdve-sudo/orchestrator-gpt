@@ -19,6 +19,7 @@ tmp/
 temp/
 .cache/
 .DS_Store
+.codex/config.toml
 
 # SD-related local paths (never commit raw outputs here)
 outputs/
