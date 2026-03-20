@@ -13,3 +13,8 @@
 ## 2026-03-15 - Added Missing Dialog Confirmations for Destructive Actions in Shared Calendar
 **Learning:** The shared calendar had destructive `Delete` and `Remove` actions without confirmation or undo, which made accidental data loss too easy.
 **Action:** Add `window.confirm("Are you sure you want to remove this activity?")` checks before destructive actions, and look for similar `Delete` or `Remove` actions in other vanilla JS tools.
+## 2024-03-20 - Adding `aria-expanded` to JavaScript Accordions
+
+**Learning:** When vanilla JavaScript accordions (`details`/`summary` alternative) use a `<button>` as a trigger, it lacks an implicit state indicating whether the content below is expanded or collapsed to screen readers. This makes keyboard-driven or screen-reader-assisted navigation confusing, as users don't know if clicking the button will reveal content.
+
+**Action:** Always add the `aria-expanded` attribute to accordion or dropdown trigger buttons. Initialize it to `"false"` (or `"true"` if open by default) and update it dynamically within the click event listener (e.g., `trigger.setAttribute("aria-expanded", String(isOpen))`) to keep assistive technologies synced with the visual state.
