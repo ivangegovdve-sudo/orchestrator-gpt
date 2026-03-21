@@ -1,5 +1,4 @@
 import sqlite3
-import os
 import logging
 from typing import List, Dict, Any, Optional
 from backend.movies_db import get_connection
