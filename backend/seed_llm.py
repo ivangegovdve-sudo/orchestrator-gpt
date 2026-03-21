@@ -1,4 +1,3 @@
-import asyncio
 from backend.llm_db.api import process_ingestion
 
 urls_to_seed = [
