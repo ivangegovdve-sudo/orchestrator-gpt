@@ -346,6 +346,30 @@ def _run_image_inference(
     return image_url, inference_response
 
 
+
+def _build_prompts(req: ItemIconRequest, lora_triggers: List[str]) -> tuple[str, str]:
+    prompt_config = PositivePromptConfig(
+        asset_description=req.assetDescription,
+        rarity_key=req.rarity,
+        element_key=req.element,
+        biome_key=req.biome,
+        style_key=req.style,
+        category_key=req.category,
+        lora_triggers=lora_triggers,
+        style_hint=req.styleHint,
+    )
+    positive_prompt = build_positive_prompt(prompt_config)
+    negative_prompt: str = DEFAULTS["prompts"]["baseNegative"]
+    return positive_prompt, negative_prompt
+
+
+def _get_base_model(use_western_animation_base: bool) -> str:
+    base_model_block = DEFAULTS["baseModel"]
+    if use_western_animation_base:
+        return base_model_block["airWesternAnimBase"]
+    return base_model_block["airBaseModel"]
+
+
 @app.post("/api/item-icon", response_model=ItemIconResponse)
 def generate_item_icon(req: ItemIconRequest):
     if not RUNWARE_ENABLED:
@@ -369,27 +393,12 @@ def generate_item_icon(req: ItemIconRequest):
     # -------------------------------------------------------------------------
     # 3) Prompts
     # -------------------------------------------------------------------------
-    prompt_config = PositivePromptConfig(
-        asset_description=req.assetDescription,
-        rarity_key=req.rarity,
-        element_key=req.element,
-        biome_key=req.biome,
-        style_key=req.style,
-        category_key=req.category,
-        lora_triggers=lora_triggers,
-        style_hint=req.styleHint,
-    )
-    positive_prompt = build_positive_prompt(prompt_config)
-    negative_prompt: str = DEFAULTS["prompts"]["baseNegative"]
+    positive_prompt, negative_prompt = _build_prompts(req, lora_triggers)
 
     # -------------------------------------------------------------------------
     # 4) Base model
     # -------------------------------------------------------------------------
-    base_model_block = DEFAULTS["baseModel"]
-    if req.useWesternAnimationBase:
-        model_air = base_model_block["airWesternAnimBase"]
-    else:
-        model_air = base_model_block["airBaseModel"]
+    model_air = _get_base_model(req.useWesternAnimationBase)
 
     # -------------------------------------------------------------------------
     # 5/6) ImageInference task (with ControlNet)
