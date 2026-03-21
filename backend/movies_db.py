@@ -1,5 +1,6 @@
 ﻿from __future__ import annotations
 
+import re
 import sqlite3
 import threading
 from pathlib import Path
@@ -25,6 +26,8 @@ ALLOWED_ORDERS = {"asc", "desc"}
 
 
 def _table_columns(conn: sqlite3.Connection, table_name: str) -> set[str]:
+    if not re.match(r"^[a-zA-Z0-9_]+$", table_name):
+        raise ValueError(f"Invalid table name: {table_name}")
     rows = conn.execute(f"PRAGMA table_info({table_name})").fetchall()
     return {str(row[1]) for row in rows}
 
@@ -40,6 +43,10 @@ def _ensure_movie_columns(conn: sqlite3.Connection) -> None:
         "language": "TEXT",
     }
     for column_name, definition in required_columns.items():
+        if not re.match(r"^[a-zA-Z0-9_]+$", column_name):
+            raise ValueError(f"Invalid column name: {column_name}")
+        if not re.match(r"^[a-zA-Z0-9_]+$", definition):
+            raise ValueError(f"Invalid column definition: {definition}")
         if column_name not in columns:
             conn.execute(f"ALTER TABLE movies ADD COLUMN {column_name} {definition}")
     conn.execute("CREATE INDEX IF NOT EXISTS idx_movies_imdb_id ON movies(imdb_id)")

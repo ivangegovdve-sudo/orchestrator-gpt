@@ -1,15 +1,7 @@
-🎯 **What:** The testing gap addressed was the lack of unit tests for the `normalize_tags` function in `backend/movies_db.py`. This is a pure function that normalizes strings in an iterable (lowercases, strips, deduplicates).
+🔒 Fix SQL Injection vulnerability in schema migration
 
-📊 **Coverage:** The new tests cover:
-- `None` input
-- Empty iterable input
-- Whitespace-only string input
-- Single tag input
-- Multiple tags input
-- Mixed case tags input
-- Tags with leading/trailing whitespace
-- Handling of `None` values within the iterable
-- Tag deduplication
-- Order preservation
+🎯 **What:** The `_table_columns` and `_ensure_movie_columns` functions in `backend/movies_db.py` used dynamically generated SQL queries (f-strings) for `PRAGMA table_info` and `ALTER TABLE` statements without validating the identifiers (table names, column names, or definitions).
 
-✨ **Result:** The `normalize_tags` function now has comprehensive test coverage ensuring it correctly formats, deduplicates, and handles edge cases for tags before they are saved to the database.
+⚠️ **Risk:** While currently hardcoded to safe internal values (e.g. "movies", "imdb_id"), using string formatting for dynamic Data Definition Language (DDL) execution creates a critical SQL Injection risk. If these functions were ever refactored to accept user input or dynamic values, an attacker could inject arbitrary SQL commands, potentially dropping tables or exfiltrating data.
+
+🛡️ **Solution:** Added a strict regex validation allowlist (`^[a-zA-Z0-9_]+$`) to ensure that all dynamically inserted table names, column names, and column definitions only contain valid alphanumeric characters and underscores before executing the query. If an invalid identifier is provided, a `ValueError` is raised, neutralizing the attack vector.
