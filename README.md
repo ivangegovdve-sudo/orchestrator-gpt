@@ -20,6 +20,10 @@ The repo is not a packaged frontend app with a build step. Most pages are plain 
   LLM Platforms DB UI.
 - `web/ai-init/`
   AI/IT glossary app plus embeddable search.
+- `web/calendar/`
+  Printable calendar generator adapted from CalendarGenerator, with local saved settings and holiday lookup.
+- `calendar/index.html`
+  Redirect shim to `/web/calendar/`.
 - `web/shared-calendar/`
   Local-only shared calendar.
 - `web/dice/`
@@ -91,6 +95,7 @@ python -m http.server 8080
 Open:
 
 - Hub: `http://127.0.0.1:8080/index.html`
+- Calendar Generator: `http://127.0.0.1:8080/calendar/`
 - Movies: `http://127.0.0.1:8080/movies/`
 - Prompt Builder: `http://127.0.0.1:8080/web/prompt-builder/`
 - AI_INIT: `http://127.0.0.1:8080/web/ai-init/`
@@ -251,6 +256,27 @@ If you keep split mode, make `web/llm-db/` configurable before calling the dashb
   - library view opens and browses categories
   - clicking entries copies `ABBR - Expansion`
   - embed view works as a lightweight search surface
+
+### Calendar Generator
+
+- Routes:
+  - `/calendar/`
+  - `/web/calendar/`
+- Files:
+  - `web/calendar/index.html`
+  - `web/calendar/app.js`
+  - `web/calendar/styles.css`
+  - `web/calendar/assets/pics/`
+  - `web/calendar/NOTICE.md`
+- Runtime: static only
+- External dependency:
+  - public holiday lookup from `https://kayaposoft.com/enrico/json/v1.0/`
+- Behavior:
+  - stores settings in localStorage
+  - supports local sample images or remote image URLs
+  - remains printable even if the holiday API is unavailable
+- Attribution:
+  - adapted from `CalendarGenerator` by Franco Mossotto under Apache 2.0
 
 ### Shared Calendar
 
