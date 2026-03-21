@@ -25,8 +25,8 @@ ALLOWED_ORDERS = {"asc", "desc"}
 
 
 def _table_columns(conn: sqlite3.Connection, table_name: str) -> set[str]:
-    rows = conn.execute(f"PRAGMA table_info({table_name})").fetchall()
-    return {str(row[1]) for row in rows}
+    rows = conn.execute("SELECT name FROM pragma_table_info(?)", (table_name,)).fetchall()
+    return {str(row[0]) for row in rows}
 
 
 def _ensure_movie_columns(conn: sqlite3.Connection) -> None:
