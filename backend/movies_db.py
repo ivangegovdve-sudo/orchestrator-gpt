@@ -31,17 +31,20 @@ def _table_columns(conn: sqlite3.Connection, table_name: str) -> set[str]:
 
 def _ensure_movie_columns(conn: sqlite3.Connection) -> None:
     columns = _table_columns(conn, "movies")
-    required_columns = {
-        "imdb_id": "TEXT",
-        "imdb_last_checked_at": "TEXT",
-        "imdb_source_url": "TEXT",
-        "poster_url": "TEXT",
-        "runtime_minutes": "INTEGER",
-        "language": "TEXT",
-    }
-    for column_name, definition in required_columns.items():
-        if column_name not in columns:
-            conn.execute(f"ALTER TABLE movies ADD COLUMN {column_name} {definition}")
+
+    if "imdb_id" not in columns:
+        conn.execute("ALTER TABLE movies ADD COLUMN imdb_id TEXT")
+    if "imdb_last_checked_at" not in columns:
+        conn.execute("ALTER TABLE movies ADD COLUMN imdb_last_checked_at TEXT")
+    if "imdb_source_url" not in columns:
+        conn.execute("ALTER TABLE movies ADD COLUMN imdb_source_url TEXT")
+    if "poster_url" not in columns:
+        conn.execute("ALTER TABLE movies ADD COLUMN poster_url TEXT")
+    if "runtime_minutes" not in columns:
+        conn.execute("ALTER TABLE movies ADD COLUMN runtime_minutes INTEGER")
+    if "language" not in columns:
+        conn.execute("ALTER TABLE movies ADD COLUMN language TEXT")
+
     conn.execute("CREATE INDEX IF NOT EXISTS idx_movies_imdb_id ON movies(imdb_id)")
 
 
