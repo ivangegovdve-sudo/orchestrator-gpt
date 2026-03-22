@@ -219,11 +219,35 @@
     const errorEl = document.getElementById('error');
     const generateButton = document.getElementById('generateButton');
 
+    function escapeHtml(text) {
+      if (!text) return "";
+      return String(text)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    function sanitizeUrl(url) {
+      if (!url) return "";
+      const strUrl = String(url).trim();
+      const lowerUrl = strUrl.toLowerCase();
+      if (lowerUrl.startsWith("http://") || lowerUrl.startsWith("https://")) {
+        return escapeHtml(strUrl);
+      }
+      return "#";
+    }
+
     function renderResult({ taskUUID, imageURL }) {
+      const safeUUID = escapeHtml(taskUUID);
+      const safeURLText = escapeHtml(imageURL);
+      const safeURLHref = sanitizeUrl(imageURL);
+
       resultContent.innerHTML = `
-        <div class="result-item fade-in"><span>Task UUID:</span> ${taskUUID}</div>
-        <div class="result-item fade-in" style="animation-delay: 0.1s;"><span>Image URL:</span> <a href="${imageURL}" target="_blank" rel="noopener noreferrer">${imageURL}</a></div>
-        <img class="preview fade-in" style="animation-delay: 0.2s;" src="${imageURL}" alt="Generated item icon" />
+        <div class="result-item fade-in"><span>Task UUID:</span> ${safeUUID}</div>
+        <div class="result-item fade-in" style="animation-delay: 0.1s;"><span>Image URL:</span> <a href="${safeURLHref}" target="_blank" rel="noopener noreferrer">${safeURLText}</a></div>
+        <img class="preview fade-in" style="animation-delay: 0.2s;" src="${safeURLHref}" alt="Generated item icon" />
       `;
     }
 
