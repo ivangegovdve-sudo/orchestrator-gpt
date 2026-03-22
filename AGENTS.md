@@ -1,373 +1,348 @@
-# AGENTS.md - Working Guide For Forest HUB
+# AGENTS.md - Forest HUB Product And Development Guide
 
-This repository is a multi-tool web dashboard. Agents should treat it as a real product surface, not a loose scratchpad. The goal is to keep the hub usable and to turn every visible mini-project into a genuinely working page.
+Forest HUB is the local command center for your working tools. Treat this repository as a real multi-product surface with a shared product roadmap, not as a scratchpad of disconnected experiments.
 
-## Mission
+## Core Mission
 
-Build and maintain a fully functional Forest HUB:
+- keep Forest HUB honest, deployed, and useful on `https://sdforest.site`
+- make every visible page or card reflect reality
+- use this repo as the integration layer for tools that belong together
+- extract products into dedicated repos only when they have earned separate ownership
+- make web functionality the default target, not local-only success
 
-- the landing page at `index.html`
-- the in-repo mini-projects under `web/`
-- the Python backend under `backend/`
-- the shared data/config that makes those pages work
+## Current Product Direction
 
-Do not optimize for mockups or placeholder polish. Optimize for working routes, working APIs, and honest status.
+- Front door:
+  `index.html` is the truth surface for what exists and what is still in progress
+- Primary production target:
+  Vercel deployment at `https://sdforest.site`
+- Primary frontend shape:
+  static-first pages under `web/`, plus `frontend/index.html`
+- Primary backend shape:
+  one FastAPI backend under `backend/`
+- Primary persistence:
+  SQLite and JSON under `data/`
+- Product maturity:
+  partially mature hub with several working tools, several useful experiments, and a few pages that still need stronger ownership or extraction
 
-## Current repo shape
+## Initial Setup Requirements
 
-- `index.html`
-  main dashboard / project grid
-- `web/`
-  mini-project entry points
-- `movies/index.html`
-  redirect route to `/web/movies/`
-- `frontend/index.html`
-  standalone Runware demo page
-- `backend/`
-  FastAPI app and API modules
-- `data/`
-  SQLite DB, migrations, presets, curated inventory
-- `config/runware-item-icons.json`
-  Runware schema/config for item-icon generation
+- local static server:
+  `python -m http.server 8080`
+- local API server:
+  `python -m uvicorn backend.app:app --reload --port 8000`
+- local setup purpose:
+  development and validation only; local success is not the end goal
+- backend test suite:
+  `pytest backend/tests`
+- AI_INIT checks:
+  `node scratch/tests/lint-glossary.js`
+  `node --test scratch/tests/glossary-search.test.js`
 
-This repo uses static HTML/CSS/JS by default. Do not add a frontend framework, bundler, or build pipeline unless the user explicitly asks for one.
+## Environments
 
-## Primary rule
+- local split mode:
+  static pages on `http://127.0.0.1:8080`
+  FastAPI on `http://127.0.0.1:8000`
+- preview / deployment target:
+  Vercel previews and production deployment on `https://sdforest.site`
+- preferred production shape:
+  same-origin or correctly proxied web deployment so all API-backed pages work consistently in production
+- external local-service dependencies:
+  AUTOMATIC1111, Runware, and any other service-specific APIs should be treated as optional external systems, not assumed always-on
 
-Never describe a project as functional unless you can actually run it in its required local mode and confirm its core user actions work.
+## Shared Dependencies
 
-That means:
+- Python + FastAPI backend
+- SQLite database in `data/movies.db`
+- static HTML/CSS/JS for most pages
+- JSON data sets under `data/`
+- optional external services:
+  AUTOMATIC1111
+  Runware
+  public docs sources
+  external portfolio or deployed companion apps
 
-- no dead dashboard links
-- no `href="#"` for anything presented as a finished tool
-- no UI that loads but cannot reach its API
-- no claiming completion while the page still depends on a missing local service without documenting that dependency
+## Backend Stance
 
-## Allowed edit zones
+- backend required for the repo overall:
+  yes
+- backend style:
+  one pragmatic FastAPI backend with multiple domain APIs, all reachable from the deployed web product
+- keep this shape until there is a strong reason to extract a domain
+- likely first extraction candidate:
+  docs search / LLM database / glossary work into `docsAI`
 
-Agents may freely work in:
+## Backend Development Plan
 
-- `index.html`
-- `movies/`
-- `web/**`
-- `frontend/**`
-- `backend/**`
-- `data/**`
-- `config/runware-item-icons.json`
-- `README.md`
-- `AGENTS.md`
-- `docs/**`
-- `scratch/**`
+1. Keep one trustworthy FastAPI app while the hub is still integration-heavy.
+2. Fix cross-origin and same-origin wiring before adding more API-backed pages.
+3. Harden and document each existing API before inventing new ones.
+4. Add missing UI surfaces for APIs that are useful enough to deserve a card.
+5. Extract domains only when they have stable scope, real runtime needs, and a dedicated repo owner.
 
-Use extra caution with:
+## Page And Subpage Product Map
 
-- `data/sd_inventory.json`
-  very large; do not rewrite wholesale unless the task specifically requires it
-- `data/movies.db`
-  binary SQLite DB; prefer API- or migration-driven changes over manual replacement
+### Forest HUB Landing Page
 
-Avoid changing these unless the user asks:
-
-- `scripts/**`
-- `*.bat`
-- `*.ps1`
-
-## Runtime assumptions
-
-### Static server
-
-Default local static origin:
-
-- `http://127.0.0.1:8080`
-
-Recommended quick command from repo root:
-
-```powershell
-python -m http.server 8080
-```
-
-### FastAPI
-
-Default API origin:
-
-- `http://127.0.0.1:8000`
-
-Recommended quick command:
-
-```powershell
-python -m uvicorn backend.app:app --reload --port 8000
-```
-
-### Important CORS note
-
-`backend/app.py` currently allows browser CORS for:
-
-- `http://localhost:8080`
-- `http://127.0.0.1:8080`
-
-If you change the static port or move to a different local origin, update CORS intentionally and keep it tight.
-
-### Same-origin note
-
-`web/llm-db/index.html` currently hardcodes:
-
-```js
-const API_BASE = '/api/llm-db';
-```
-
-So the dashboard is not fully unified in split mode. If the task is to make the whole site work end-to-end, solve one of these first:
-
-1. serve static pages and FastAPI from the same origin
-2. make the LLM DB UI configurable like Movies
-3. place a local reverse proxy in front of both layers
-
-Do not ignore this and then claim the whole dashboard is functional.
-
-## Project map and definitions of done
-
-### Forest HUB
-
-- Path: `index.html`
-- Type: static landing page
-- Done when:
-  - every visible card resolves to a working destination
-  - internal routes use the correct paths
-  - placeholder cards are either replaced or clearly marked as not functional
-  - project status text reflects reality
+- Paths:
+  `index.html`
+- Goal:
+  the truthful launch surface for the whole local ecosystem
+- Current progress:
+  visually strong and mostly useful, but still carries some placeholder or cross-repo debt
+- Backend need:
+  no direct backend
+- Next steps:
+  remove or replace dead placeholders, surface real tools, keep status copy honest, and prefer real routes over vague cards
+- End goal:
+  a reliable deployed dashboard on `sdforest.site` where every card leads to a real, web-functioning product
 
 ### Prompt Builder
 
-- Path: `web/prompt-builder/index.html`
-- Type: static tool with optional external SD integration
-- Inputs:
-  - `data/presets/newPresets.json`
-  - `data/sd_inventory_curated.json`
-- External dependency:
-  - AUTOMATIC1111 API, usually `http://127.0.0.1:7860`
-- Done when:
-  - prompt composition works without the backend
-  - preset load failure degrades gracefully
-  - A1111 actions work when the external service is available
-  - missing A1111 service yields a clear error, not a broken UI
+- Paths:
+  `web/prompt-builder/index.html`
+- Goal:
+  compose usable Stable Diffusion prompts from curated data and presets
+- Current progress:
+  useful static tool with optional A1111 integration
+- Dependencies:
+  `data/presets/newPresets.json`
+  `data/sd_inventory_curated.json`
+  optional A1111 API
+- Backend need:
+  no mandatory backend for core use
+- Future plan:
+  prompt history, export/import, preset editing, inventory validation, and clearer service-health messaging
+- End goal:
+  a durable web-usable prompt tool, with any local-only image backend dependency either replaced, proxied, or made explicit
 
-### A1111 Debug Harnesses
+### A1111 Debug Pages
 
 - Paths:
-  - `web/a1111-debug/index.html`
-  - `web/debug-a1111/index.html`
-- Type: static debug tools for local SD APIs
-- Done when:
-  - model listing works
-  - ControlNet test path works
-  - txt2img or img2img smoke path works
-  - debug output is readable
+  `web/a1111-debug/index.html`
+  `web/debug-a1111/index.html`
+- Goal:
+  debug and validate local Stable Diffusion / ControlNet flows
+- Current progress:
+  utility pages, useful but tooling-oriented rather than polished products
+- Dependencies:
+  local A1111 instance
+- Backend need:
+  no hub backend, but yes external local SD API
+- Future plan:
+  standardize output formatting, reduce duplication between the two pages, and keep one honest smoke path for txt2img / img2img / ControlNet
+- End goal:
+  a clearly owned web-facing diagnostics or admin surface, or else removal from the public hub if it cannot function meaningfully on the web
 
 ### Kids Movie Library
 
 - Paths:
-  - `web/movies/index.html`
-  - `web/movies/app.js`
-  - `movies/index.html`
-  - `backend/movies_api.py`
-  - `backend/movies_db.py`
-- Type: static + FastAPI + SQLite
-- Done when:
-  - search works
-  - facets load
-  - add movie works
-  - bulk import works
-  - watched state persists
-  - ratings persist by device
-  - IMDb update works or fails safely without data loss
+  `web/movies/index.html`
+  `movies/index.html`
+  `backend/movies_api.py`
+  `backend/movies_db.py`
+- Goal:
+  family movie browsing, search, watch tracking, and rating management
+- Current progress:
+  one of the strongest full-stack tools in the repo
+- Backend need:
+  yes, FastAPI + SQLite
+- Future backend plan:
+  keep SQLite for now, improve import resilience, IMDb update safety, and device-aware state rules
+- Future product plan:
+  stronger facets, profiles, better bulk import UX, safer metadata refresh, and clearer admin flows
+- End goal:
+  a trustworthy web-accessible family media library with deployed persistence, working search, and safe hosted data updates
 
 ### LLM Platforms DB
 
 - Paths:
-  - `web/llm-db/index.html`
-  - `backend/llm_db/api.py`
-  - `backend/llm_db/db.py`
-- Type: API-backed docs ingestion/search UI
-- Done when:
-  - sources list loads
-  - ingestion starts and persists data
-  - doc search works
-  - doc detail loads
-  - the SSRF protections in the backend remain intact
-  - same-origin or configurable API wiring is solved
+  `web/llm-db/index.html`
+  `backend/llm_db/api.py`
+  `backend/llm_db/db.py`
+- Goal:
+  searchable docs intelligence for LLM platforms and integrations
+- Current progress:
+  meaningful functionality exists, but long-term ownership probably belongs in `docsAI`
+- Backend need:
+  yes
+- Critical current issue:
+  same-origin or configurable API wiring must stay solved before calling it fully reliable
+- Future backend plan:
+  preserve SSRF protections, improve ingestion jobs, source management, persistence, and document detail quality
+- Future product plan:
+  migrate long-term ownership into `docsAI` while keeping Forest HUB as the launch surface
+- End goal:
+  robust hosted docs ingestion and search with safe fetching, structured results, deployed persistence, and clean separation from the hub when mature
 
 ### AI_INIT Glossary
 
 - Paths:
-  - `web/ai-init/index.html`
-  - `web/ai-init/app.js`
-  - `web/ai-init/glossary-search.js`
-  - `web/ai-init/glossary-data.js`
-  - `web/ai-init/embed/index.html`
-  - `web/ai-init/embed/embed.js`
-- Type: static searchable reference app
-- Done when:
-  - home search is fast and ranked
-  - library browsing works
-  - copy-to-clipboard works
-  - embed page works independently
+  `web/ai-init/index.html`
+  `web/ai-init/app.js`
+  `web/ai-init/glossary-search.js`
+  `web/ai-init/glossary-data.js`
+- Subpage:
+  `web/ai-init/embed/index.html`
+- Goal:
+  fast glossary and abbreviation lookup for AI and IT terminology
+- Current progress:
+  strong static reference tool
+- Backend need:
+  no today
+- Future plan:
+  stronger ranking, larger datasets, optional docsAI migration, and better embed customization
+- End goal:
+  a reusable deployed glossary product with both full-page and embeddable forms that work on the public web
+
+### AI_INIT Embed
+
+- Path:
+  `web/ai-init/embed/index.html`
+- Goal:
+  lightweight embeddable lookup experience independent of the full glossary app
+- Current progress:
+  working companion surface
+- Backend need:
+  no today
+- Future plan:
+  configurable themes, size modes, and cleaner integration docs
+- End goal:
+  a drop-in widget that can be embedded into other pages or repos and function correctly in deployed environments
 
 ### Shared Calendar
 
-- Path: `web/shared-calendar/index.html`
-- Type: static localStorage app
-- Done when:
-  - create/edit/delete works
-  - drag/drop reorder works
-  - state persists after reload
+- Path:
+  `web/shared-calendar/index.html`
+- Goal:
+  simple local family planning calendar with drag-and-drop activities
+- Current progress:
+  good local-storage utility
+- Backend need:
+  no
+- Future plan:
+  improve reorder UX, recurring blocks, templates, print/export, and better mobile ergonomics
+- End goal:
+  a small but polished family planning tool that works as a deployed web app, with persistence that survives beyond one browser session if needed
+
+### Calendar Generator
+
+- Paths:
+  `web/calendar/index.html`
+  `calendar/index.html`
+  `calendar/calendario.html`
+- Goal:
+  printable yearly calendar generation inside Forest HUB
+- Current progress:
+  integrated and working as a static product
+- Dependencies:
+  local image assets
+  external public holiday service
+- Backend need:
+  no
+- Future plan:
+  preset themes, exports, save/load templates, and possibly eventual extraction if it grows beyond a single static tool
+- End goal:
+  a stable deployed print-ready calendar tool that feels native to the hub and works directly from the web
 
 ### Dice
 
-- Path: `web/dice/index.html`
-- Type: static visual toy/app
-- Done when:
-  - D6 and D12 controls respond
-  - animations render properly
-  - mobile layout still works
+- Path:
+  `web/dice/index.html`
+- Goal:
+  a small polished interactive toy / utility for rolling dice
+- Current progress:
+  static page with visual interest
+- Backend need:
+  no
+- Future plan:
+  refine animations, mobile feel, and accessibility
+- End goal:
+  a delightful lightweight deployed utility page, not a broken novelty or local-only toy
 
 ### Runware Item Icon Generator
 
 - Paths:
-  - `frontend/index.html`
-  - `backend/app.py`
-  - `config/runware-item-icons.json`
-- Type: static page + FastAPI + external Runware service
-- Required env:
-  - `RUNWARE_API_KEY`
-- Done when:
-  - `POST /api/item-icon` succeeds
-  - schema/config still matches UI expectations
-  - the page renders the generated result
+  `frontend/index.html`
+  `backend/app.py`
+  `config/runware-item-icons.json`
+- Goal:
+  generate item icons through Runware using a hub-managed schema
+- Current progress:
+  useful but not yet surfaced strongly enough in the hub
+- Backend need:
+  yes, because the Runware API key must stay server-side
+- Future backend plan:
+  keep request validation, schema alignment, and provider abstraction clean
+- Future product plan:
+  expose it from the hub, improve result management, and keep provider failures explicit
+- End goal:
+  a safe and usable web-facing icon-generation tool with server-side key handling and a working deployed request path
+
+### Voice Project Dashboard Source
+
+- Path:
+  `voice-project-dashboard/apps/mobile/`
+- Goal:
+  track voice-production workflow and deliverables
+- Current progress:
+  source lives in this repo subtree, deployed separately
+- Backend need:
+  not necessarily in this repo today
+- Future plan:
+  either keep it as a clearly separate app with honest external linking, or move it into its own dedicated repo if ownership grows
+- End goal:
+  a clearly owned companion product, not a mystery subtree
 
 ### Jobs API
 
-- Path: `backend/jobs_api.py`
-- Type: API only right now
-- Rule:
-  - if you expose this in the dashboard, add a real page under `web/<slug>/` and link it from the hub
+- Path:
+  `backend/jobs_api.py`
+- Goal:
+  support structured job intake and ranking
+- Current progress:
+  backend exists without a first-class UI
+- Backend need:
+  yes, already present
+- Future plan:
+  either add a real page under `web/` or keep it unlinked from the hub until the user flow exists
+- End goal:
+  no orphan APIs; every meaningful backend feature should have an honest deployed UI plan and production-ready route
 
-## Placeholder and external cards
+### Placeholder And Cross-Repo Surfaces
 
-Current dashboard cards are not all equal:
+- Retail AI:
+  do not pretend it is local here if the real ownership belongs in `retailAI`
+- Python Learning Orchestrated:
+  either link to the dedicated repo honestly or build a real local page
+- Clip Mart / VFX Portfolio / Voice Project Dashboard:
+  keep cross-repo or external cards explicit and truthful
 
-- `VFX Portfolio`
-  external site
-- `Clip Mart`
-  external GitHub repo
-- `Retail AI`
-  placeholder in `index.html`
-- `Python Learning Orchestrated`
-  placeholder in `index.html`
+## How Forest HUB Should Progress
 
-Agent rules for placeholder cards:
+1. Make every current page work as a deployed web experience on `sdforest.site`.
+2. Fix serving, API routing, and hosted database truth before adding more cards.
+3. Make every existing in-repo page production-usable, not just locally usable.
+4. Surface hidden but real tools before inventing new placeholders.
+5. Move docs-intelligence ownership to `docsAI` when the extraction is justified.
+6. Only then expand the hub with new first-class mini-projects.
 
-- do not leave `href="#"` on anything you are calling complete
-- do not fabricate external project functionality that does not exist in this repo
-- if the user wants these built here, create a real mini-project under `web/<slug>/` and wire it in
-- if the source belongs in another repo, say so clearly and avoid pretending it is local
+## Data And Infrastructure Guardrails
 
-## Recommended implementation order for "make the whole website functional"
+- preserve migrations in `data/migrations/`
+- do not replace `data/movies.db` casually
+- keep JSON readable and stable
+- do not silently weaken LLM DB fetch protections
+- do not widen CORS thoughtlessly
 
-1. Fix serving and API wiring first.
-   This usually means same-origin serving or configurable API bases.
-2. Remove or replace dead dashboard links.
-3. Verify every in-repo tool with its core user flow.
-4. Add missing project pages only after the existing routes are truthful.
-5. Improve visuals last, not first.
+## Truthfulness Rules
 
-## Verification expectations
+- no `href="#"` for anything described as functional
+- no status text that outruns reality
+- no hidden backend dependency without documenting it
+- no claiming a page is complete unless its core user flow works locally
 
-### Backend
+## End Goal
 
-Run:
-
-```powershell
-pytest backend/tests
-```
-
-These tests cover:
-
-- movies DB and API
-- IMDb parsing helpers
-- jobs API scoring
-- LLM DB SSRF/safe-fetch protections
-
-### AI_INIT
-
-Run:
-
-```powershell
-node scratch/tests/lint-glossary.js
-node --test scratch/tests/glossary-search.test.js
-```
-
-Optional browser smoke test:
-
-```powershell
-cd scratch/tests
-npm install
-npx playwright install
-cd ../..
-node scratch/tests/glossary-e2e.mjs
-```
-
-### Manual smoke tests
-
-Agents should manually verify the target page in a browser when changing UI or integration code.
-
-At minimum, check:
-
-- page loads without console errors
-- main CTA or user flow works
-- back-to-hub navigation works where appropriate
-- reload behavior is sane for localStorage-backed tools
-
-## Data rules
-
-- Preserve migrations in `data/migrations/`.
-- Prefer additive migrations over destructive DB surgery.
-- Do not overwrite `data/movies.db` just to "fix" content unless the user explicitly wants a DB replacement.
-- Keep JSON data human-readable and stable.
-
-## UI rules
-
-- Keep the repo static-first.
-- Prefer one HTML entry file per mini-project at `web/<slug>/index.html`.
-- Add sibling JS/CSS files only when they improve clarity.
-- Preserve the established visual language unless the user asks for a redesign.
-- Make desktop and mobile both work before considering the task complete.
-
-## When adding a new mini-project
-
-Use this structure:
-
-- `web/<slug>/index.html`
-- optional `web/<slug>/app.js`
-- optional `web/<slug>/styles.css`
-- optional `data/<slug>/...` if the page needs local data
-
-Then:
-
-1. add a real card to `index.html`
-2. make the route reachable directly
-3. document runtime needs in `README.md`
-4. verify the page locally
-
-## Known gaps to keep in mind
-
-- `web/llm-db/index.html` is same-origin only
-- `index.html` still contains placeholder cards
-- `frontend/index.html` is not surfaced in the main dashboard
-- `backend/jobs_api.py` has no UI yet
-- there is no locked Python dependency manifest yet
-
-Treat these as active product debt, not hidden assumptions.
-
-## Repo Memory
-
-- Follow `CODEX.md` for repo-local memory workflows.
-- When the task involves user-provided or assistant-generated media/files that may be useful later, use `skills/media-memory/SKILL.md` and store runtime assets in `media-memory/`.
+Forest HUB should become a dependable deployed web platform on `sdforest.site`, with clearly owned pages, honest cross-repo boundaries, pragmatic hosted backend services, working databases and search where needed, and a roadmap that turns each mini-project into either a real web product or a consciously externalized link.
