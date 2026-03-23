@@ -59,27 +59,31 @@ def _serialize(job: JobOut) -> dict:
     return job.dict()
 
 
+_SENIOR_MARKERS = ("senior", "lead", "principal", "staff")
+_CREATIVE_MARKERS = ("game", "unity", "unreal", "spine", "ui", "ux", "animation")
+_REMOTE_MARKERS = ("remote", "distributed", "work from home")
+_INDUSTRY_MARKERS = ("casino", "slot", "igaming")
+_AVOID_MARKERS = ("intern", "junior", "unpaid", "volunteer")
+
+
 def _score_job(job: JobIn) -> int:
     score = 0
     title = (job.title or "").lower()
     desc = (job.description or "").lower()
     location = (job.location or "").lower()
 
-    senior_markers = ("senior", "lead", "principal", "staff")
-    creative_markers = ("game", "unity", "unreal", "spine", "ui", "ux", "animation")
-    remote_markers = ("remote", "distributed", "work from home")
-    industry_markers = ("casino", "slot", "igaming")
-    avoid_markers = ("intern", "junior", "unpaid", "volunteer")
-
-    if any(marker in title for marker in senior_markers):
+    # ⚡ Bolt optimization: Use module-level constants and list comprehensions
+    # for substring checks. List comprehensions evaluate faster than generator
+    # expressions for small collections due to lower iteration overhead.
+    if any([marker in title for marker in _SENIOR_MARKERS]):
         score += 2
-    if any(marker in desc for marker in creative_markers):
+    if any([marker in desc for marker in _CREATIVE_MARKERS]):
         score += 4
-    if any(marker in location for marker in remote_markers):
+    if any([marker in location for marker in _REMOTE_MARKERS]):
         score += 2
-    if any(marker in desc for marker in industry_markers):
+    if any([marker in desc for marker in _INDUSTRY_MARKERS]):
         score += 3
-    if any(marker in desc for marker in avoid_markers):
+    if any([marker in desc for marker in _AVOID_MARKERS]):
         score -= 10
 
     return score
