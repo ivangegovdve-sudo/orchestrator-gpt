@@ -43,6 +43,8 @@ def _ensure_movie_columns(conn: sqlite3.Connection) -> None:
         if column_name not in columns:
             conn.execute(f"ALTER TABLE movies ADD COLUMN {column_name} {definition}")
     conn.execute("CREATE INDEX IF NOT EXISTS idx_movies_imdb_id ON movies(imdb_id)")
+    # ⚡ Bolt: Composite covering index on user_ratings(movie_id, rating) speeds up correlated subqueries in list_movies
+    conn.execute("CREATE INDEX IF NOT EXISTS idx_user_ratings_movie_id_rating ON user_ratings(movie_id, rating)")
 
 
 def ensure_db() -> None:
