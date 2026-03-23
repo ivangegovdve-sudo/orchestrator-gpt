@@ -219,11 +219,36 @@
     const errorEl = document.getElementById('error');
     const generateButton = document.getElementById('generateButton');
 
+    // 🛡️ SECURITY: Prevent XSS by escaping HTML entities
+    function escapeHtml(unsafe) {
+      if (!unsafe) return "";
+      return String(unsafe)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    // 🛡️ SECURITY: Prevent executing javascript: URIs
+    function sanitizeUrl(url) {
+      if (!url) return "#";
+      const str = String(url).trim();
+      const lower = str.toLowerCase();
+      if (lower.startsWith("javascript:") || lower.startsWith("data:") || lower.startsWith("vbscript:")) {
+        return "#";
+      }
+      return escapeHtml(str);
+    }
+
     function renderResult({ taskUUID, imageURL }) {
+      const safeUUID = escapeHtml(taskUUID);
+      const safeUrl = sanitizeUrl(imageURL);
+
       resultContent.innerHTML = `
-        <div class="result-item fade-in"><span>Task UUID:</span> ${taskUUID}</div>
-        <div class="result-item fade-in" style="animation-delay: 0.1s;"><span>Image URL:</span> <a href="${imageURL}" target="_blank" rel="noopener noreferrer">${imageURL}</a></div>
-        <img class="preview fade-in" style="animation-delay: 0.2s;" src="${imageURL}" alt="Generated item icon" />
+        <div class="result-item fade-in"><span>Task UUID:</span> ${safeUUID}</div>
+        <div class="result-item fade-in" style="animation-delay: 0.1s;"><span>Image URL:</span> <a href="${safeUrl}" target="_blank" rel="noopener noreferrer">${safeUrl}</a></div>
+        <img class="preview fade-in" style="animation-delay: 0.2s;" src="${safeUrl}" alt="Generated item icon" />
       `;
     }
 
