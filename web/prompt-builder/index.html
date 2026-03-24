@@ -83,6 +83,7 @@
       min-width: 260px;
     }
     .label {
+      display: block;
       font-size: 12px;
       text-transform: uppercase;
       letter-spacing: 0.08em;
@@ -406,11 +407,11 @@
   <div class="group">
     <div class="row">
       <div class="col">
-        <div class="label">JSON preset</div>
+        <label class="label" for="presetSelect">JSON preset</label>
         <select id="presetSelect">
           <option value="">None / manual</option>
         </select>
-        <div class="label" style="margin-top:8px;">JSON presets (from /data/presets/newPresets.json)</div>
+        <label class="label" style="margin-top:8px;" for="jsonPresetSelect">JSON presets (from /data/presets/newPresets.json)</label>
         <select id="jsonPresetSelect">
           <option value="">None</option>
         </select>
@@ -421,7 +422,7 @@
         </div>
       </div>
       <div class="col">
-        <div class="label">Preset metadata</div>
+        <label class="label" for="presetMeta">Preset metadata</label>
         <textarea id="presetMeta" class="code" readonly></textarea>
       </div>
     </div>
@@ -430,12 +431,12 @@
 
     <div class="row">
       <div class="col">
-        <div class="label">Base description</div>
+        <label class="label" for="baseText">Base description</label>
         <textarea id="baseText">AAA fantasy game asset icon, {ring|amulet|crystal core|potion bottle|magic book|ancient coin|totem} as central subject, clean silhouette, strong contrast, game-ready readability.</textarea>
         <small>Supports dynamic syntax <code>{A|B|C}</code>. Use the toggle below to keep or flatten braces.</small>
       </div>
       <div class="col">
-        <div class="label">Global style</div>
+        <label class="label" for="styleSelect">Global style</label>
         <select id="styleSelect">
           <option value="">None / keep model default</option>
           <option value="DreamWorks_Style">DreamWorks cinematic</option>
@@ -712,14 +713,14 @@
   <div class="row">
     <div class="col">
       <div class="output-label">
-        <div class="label">Positive prompt</div>
+        <label class="label" for="posOut">Positive prompt</label>
         <button class="secondary" onclick="copyOutput('posOut')">Copy</button>
       </div>
       <textarea id="posOut" class="code"></textarea>
     </div>
     <div class="col">
       <div class="output-label">
-        <div class="label">Negative prompt</div>
+        <label class="label" for="negOut">Negative prompt</label>
         <span class="badge">Auto-derived from base description</span>
       </div>
       <textarea id="negOut" class="code"></textarea>
@@ -794,9 +795,9 @@
         </div>
         <div class="param-grid">
           <div class="param-field">
-            <div class="param-label">
+            <label class="param-label" for="apiEnabled">
               Enable API
-            </div>
+            </label>
             <div class="param-inline">
               <input type="checkbox" id="apiEnabled">
               <span>Send prompts to A1111 via <code>/sdapi/v1/txt2img</code></span>
@@ -837,22 +838,22 @@
             <option value="softedge">Softedge</option> 
           </select>
           <div class="param-grid">
-            <div class="param-field">
-              <div class="param-label">Canny thresholds</div>
+            <fieldset class="param-field" style="border: none; padding: 0; margin: 0;">
+              <legend class="param-label">Canny thresholds</legend>
               <div class="param-inline" style="gap:8px;">
                 <input type="number" id="cannyLow" value="100" min="0" max="255" step="1" style="max-width:110px;" aria-label="Canny Low Threshold">
                 <input type="number" id="cannyHigh" value="200" min="0" max="255" step="1" style="max-width:110px;" aria-label="Canny High Threshold">
               </div>
               <small>Only used when the Canny module is selected.</small>
-            </div>
-            <div class="param-field">
-              <div class="param-label">Guidance range</div>
+            </fieldset>
+            <fieldset class="param-field" style="border: none; padding: 0; margin: 0;">
+              <legend class="param-label">Guidance range</legend>
               <div class="param-inline" style="gap:8px;">
                 <input type="number" id="cannyStart" value="0.0" min="0" max="1" step="0.01" style="max-width:110px;" aria-label="ControlNet Guidance Start">
                 <input type="number" id="cannyEnd" value="0.33" min="0" max="1" step="0.01" style="max-width:110px;" aria-label="ControlNet Guidance End">
               </div>
               <small>Start / end used for ControlNet img2img requests.</small>
-            </div>
+            </fieldset>
           </div>
           <div class="param-field" style="margin-top:6px;">
             <label class="param-label" for="cannyModel">ControlNet model (optional override)</label>
@@ -863,8 +864,8 @@
             <button class="secondary" type="button" onclick="previewCanny()">Preview Canny edges</button>
           </div>
           <div id="cannyPreviewContainer" style="display:none; margin-top:8px;">
-            <div class="param-label">Preprocess preview</div>
-            <img id="cannyPreviewImg" style="max-width:100%; border-radius:12px; border:1px solid var(--border);" alt="ControlNet preprocess preview">
+            <div class="param-label" id="cannyPreviewLabel">Preprocess preview</div>
+            <img id="cannyPreviewImg" aria-labelledby="cannyPreviewLabel" style="max-width:100%; border-radius:12px; border:1px solid var(--border);" alt="ControlNet preprocess preview">
           </div>
         </div>
       </div>

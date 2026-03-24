@@ -13,3 +13,7 @@
 ## 2026-03-15 - Added Missing Dialog Confirmations for Destructive Actions in Shared Calendar
 **Learning:** The shared calendar had destructive `Delete` and `Remove` actions without confirmation or undo, which made accidental data loss too easy.
 **Action:** Add `window.confirm("Are you sure you want to remove this activity?")` checks before destructive actions, and look for similar `Delete` or `Remove` actions in other vanilla JS tools.
+
+## 2024-10-24 - Semantic Labels in Vanilla Form Controls
+**Learning:** Found a recurring pattern in vanilla HTML apps where non-semantic `div.label` elements were used to label inputs without being programmatically linked. This prevents screen readers from announcing the label when the input is focused, and stops users from clicking the label text to focus the input.
+**Action:** When finding `div.label`, convert it to a semantic `<label class="label" for="inputId">` element. Update the `.label` CSS to use `display: block;` to ensure the layout remains visually identical while significantly improving accessibility.
