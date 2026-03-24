@@ -17,3 +17,8 @@
 **Vulnerability:** The FastAPI backend had `"null"` included in its `allow_origins` array alongside `allow_credentials=True`.
 **Learning:** Allowing the `"null"` origin can be abused from sandboxed iframes or local-file contexts, which weakens the protection CORS is meant to provide.
 **Prevention:** Avoid using `"null"` as an allowed origin when credentials are enabled. Restrict CORS origins to explicit, intended frontend endpoints only.
+
+## 2026-03-12 - XSS Vulnerability in Item Icon Generator (frontend/index.html)
+**Vulnerability:** A Cross-Site Scripting (XSS) vulnerability was present in `frontend/index.html` because user-supplied or external API values (`taskUUID`, `imageURL`) were injected into the DOM using `innerHTML` without properly escaping HTML entities or validating URLs.
+**Learning:** Even internal API responses or task UUIDs should not be implicitly trusted when dynamically constructing HTML via string interpolation.
+**Prevention:** Implement and consistently use an `escapeHtml()` function for all text content and a `sanitizeUrl()` function to ensure safe `http:`/`https:` protocols and relative paths before inserting data into the DOM using `innerHTML`. Avoid using `innerHTML` if `textContent` or `innerText` can be used instead.
