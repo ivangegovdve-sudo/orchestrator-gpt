@@ -17,3 +17,8 @@
 **Vulnerability:** The FastAPI backend had `"null"` included in its `allow_origins` array alongside `allow_credentials=True`.
 **Learning:** Allowing the `"null"` origin can be abused from sandboxed iframes or local-file contexts, which weakens the protection CORS is meant to provide.
 **Prevention:** Avoid using `"null"` as an allowed origin when credentials are enabled. Restrict CORS origins to explicit, intended frontend endpoints only.
+
+## 2026-03-24 - SQL Injection Risk in Dynamic SQLite PRAGMA
+**Vulnerability:** In SQLite, when querying dynamic table schemas, concatenating `table_name` into the query `f"PRAGMA table_info({table_name})"` exposes a severe SQL injection vulnerability if the table name originates from user input.
+**Learning:** While `PRAGMA` statements in SQLite do not natively support parameterization, the modern alternative is to use the table-valued function `pragma_table_info(?)` which strictly allows passing the table name securely via parameterized binding, preventing injection.
+**Prevention:** When introspecting SQLite tables dynamically, never concatenate table names into `PRAGMA` strings. Instead, query the table-valued function `SELECT name FROM pragma_table_info(?)` to ensure full protection against SQL injection attacks.
