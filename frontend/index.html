@@ -219,11 +219,32 @@
     const errorEl = document.getElementById('error');
     const generateButton = document.getElementById('generateButton');
 
+    function escapeHtml(unsafe) {
+      if (unsafe == null) return '';
+      return String(unsafe)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    function sanitizeUrl(url) {
+      if (url == null) return '#';
+      const str = String(url);
+      if (str.trim().toLowerCase().startsWith('javascript:')) {
+        return 'about:blank';
+      }
+      return str;
+    }
+
     function renderResult({ taskUUID, imageURL }) {
+      const safeTaskUUID = escapeHtml(taskUUID);
+      const safeImageURL = escapeHtml(sanitizeUrl(imageURL));
       resultContent.innerHTML = `
-        <div class="result-item fade-in"><span>Task UUID:</span> ${taskUUID}</div>
-        <div class="result-item fade-in" style="animation-delay: 0.1s;"><span>Image URL:</span> <a href="${imageURL}" target="_blank" rel="noopener noreferrer">${imageURL}</a></div>
-        <img class="preview fade-in" style="animation-delay: 0.2s;" src="${imageURL}" alt="Generated item icon" />
+        <div class="result-item fade-in"><span>Task UUID:</span> ${safeTaskUUID}</div>
+        <div class="result-item fade-in" style="animation-delay: 0.1s;"><span>Image URL:</span> <a href="${safeImageURL}" target="_blank" rel="noopener noreferrer">${safeImageURL}</a></div>
+        <img class="preview fade-in" style="animation-delay: 0.2s;" src="${safeImageURL}" alt="Generated item icon" />
       `;
     }
 
