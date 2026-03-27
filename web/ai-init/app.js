@@ -146,6 +146,7 @@
     var trigger = document.createElement("button");
     trigger.type = "button";
     trigger.className = "accordion-trigger";
+    trigger.setAttribute("aria-expanded", "false");
 
     var left = document.createElement("span");
     left.className = "accordion-name";
@@ -169,7 +170,8 @@
     section.appendChild(panel);
 
     trigger.addEventListener("click", function () {
-      section.classList.toggle("open");
+      var isOpen = section.classList.toggle("open");
+      trigger.setAttribute("aria-expanded", isOpen ? "true" : "false");
     });
 
     return {
