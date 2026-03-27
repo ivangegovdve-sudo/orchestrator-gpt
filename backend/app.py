@@ -294,44 +294,48 @@ def _run_controlnet_preprocess(seed_image: str, workflow_id: str) -> tuple[str, 
 
     return guide_image_url, preprocess_response
 
-def _run_image_inference(
-    workflow_id: str,
-    positive_prompt: str,
-    negative_prompt: str,
-    model_air: str,
-    controlnet_cfg: Dict[str, Any],
-    guide_image_url: str,
+@dataclass(frozen=True)
+class InferenceConfig:
+    workflow_id: str
+    positive_prompt: str
+    negative_prompt: str
+    model_air: str
+    controlnet_cfg: Dict[str, Any]
+    guide_image_url: str
     lora_configs: List[Dict[str, Any]]
+
+def _run_image_inference(
+    config: InferenceConfig
 ) -> tuple[str, Dict[str, Any]]:
     controlnet_obj = {
-        "model": controlnet_cfg["model"],
-        "guideImage": guide_image_url,
-        "weight": controlnet_cfg["weight"],
-        "startStep": controlnet_cfg["startStep"],
-        "endStep": controlnet_cfg["endStep"],
-        "controlMode": controlnet_cfg["controlMode"]
+        "model": config.controlnet_cfg["model"],
+        "guideImage": config.guide_image_url,
+        "weight": config.controlnet_cfg["weight"],
+        "startStep": config.controlnet_cfg["startStep"],
+        "endStep": config.controlnet_cfg["endStep"],
+        "controlMode": config.controlnet_cfg["controlMode"]
     }
 
-    inference_task_uuid = f"ii-{workflow_id}"
+    inference_task_uuid = f"ii-{config.workflow_id}"
 
     image_inference_task: Dict[str, Any] = {
         "taskType": "imageInference",
         "taskUUID": inference_task_uuid,
         "outputType": "URL",
         "outputFormat": "PNG",
-        "positivePrompt": positive_prompt,
-        "negativePrompt": negative_prompt,
+        "positivePrompt": config.positive_prompt,
+        "negativePrompt": config.negative_prompt,
         "height": DEFAULTS["height"],
         "width": DEFAULTS["width"],
         "steps": DEFAULTS["steps"],
         "CFGScale": DEFAULTS["cfgScale"],
-        "model": model_air,
+        "model": config.model_air,
         "numberResults": DEFAULTS["numberResults"],
         "controlNet": [controlnet_obj]
     }
 
-    if lora_configs:
-        image_inference_task["lora"] = lora_configs
+    if config.lora_configs:
+        image_inference_task["lora"] = config.lora_configs
 
     inference_response = run_runware_tasks([image_inference_task])
     inference_items = [d for d in inference_response["data"] if d.get("taskUUID") == inference_task_uuid]
@@ -404,7 +408,7 @@ def generate_item_icon(req: ItemIconRequest):
     # 5/6) ImageInference task (with ControlNet)
     # -------------------------------------------------------------------------
     controlnet_cfg = DEFAULTS["controlNet"]
-    image_url, inference_response = _run_image_inference(
+    inference_cfg = InferenceConfig(
         workflow_id=workflow_id,
         positive_prompt=positive_prompt,
         negative_prompt=negative_prompt,
@@ -413,6 +417,7 @@ def generate_item_icon(req: ItemIconRequest):
         guide_image_url=guide_image_url,
         lora_configs=lora_configs
     )
+    image_url, inference_response = _run_image_inference(inference_cfg)
 
     raw_combined = {
         "preprocess": preprocess_response,
