@@ -33,7 +33,6 @@ def test_normalize_tags_order_preservation():
     assert normalize_tags(["sci-fi", "action", "sci-fi"]) == ["sci-fi", "action"]
 
 from backend import movies_db
-import sqlite3
 
 @pytest.fixture(autouse=True)
 def setup_test_db(tmp_path, monkeypatch):
@@ -111,5 +110,14 @@ def test_get_movie_by_id_not_found():
     try:
         movie = movies_db.get_movie_by_id(conn, 999999)
         assert movie is None
+    finally:
+        conn.close()
+
+
+def test_set_rating_movie_not_found():
+    conn = movies_db.get_connection()
+    try:
+        with pytest.raises(LookupError, match="Movie not found"):
+            movies_db.set_rating(conn, movie_id=999999999, device_id="test_device", rating=5)
     finally:
         conn.close()
