@@ -1,5 +1,5 @@
 import re
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Tuple
 
 try:
     from . import utils  # type: ignore
@@ -27,22 +27,14 @@ TITLE_TAG_HINTS: Dict[str, List[str]] = {
 }
 
 
-def parse_movie_line(
-    line: str,
-    default_age_band: str = "Family",
-    default_tags: Optional[List[str]] = None,
-) -> Optional[Dict[str, object]]:
-    """Parse a single seed/import line into a normalized movie payload."""
-    raw = (line or "").strip()
-    if not raw:
-        return None
-
+def _extract_watched(raw: str) -> Tuple[str, bool]:
     watched = bool(WATCHED_PREFIX_RE.match(raw))
     cleaned = WATCHED_PREFIX_RE.sub("", raw).strip() if watched else raw
     cleaned = cleaned.lstrip("-*\u2022 ").strip()
-    if not cleaned:
-        return None
+    return cleaned, watched
 
+
+def _extract_year(cleaned: str) -> Tuple[str, Optional[int]]:
     year = None
     year_match = PAREN_YEAR_RE.search(cleaned)
     if year_match:
@@ -53,21 +45,20 @@ def parse_movie_line(
         if trailing_match:
             year = int(trailing_match.group("year"))
             cleaned = cleaned[: trailing_match.start()].strip()
+    return cleaned, year
 
+
+def _extract_localized_title(cleaned: str) -> Tuple[str, Optional[str]]:
     localized_title = None
     title = cleaned
     if "/" in cleaned:
         left, right = cleaned.split("/", 1)
         title = left.strip()
         localized_title = right.strip() or None
+    return title, localized_title
 
-    if not title:
-        return None
 
-    notes = None
-    if localized_title:
-        notes = f"Localized title: {localized_title}"
-
+def _generate_tags(title: str, default_tags: Optional[List[str]] = None) -> List[str]:
     tags: List[str] = utils.normalize_tag_list(default_tags)
     if "animated" not in tags:
         tags.append("animated")
@@ -76,6 +67,34 @@ def parse_movie_line(
     for hint in hinted_tags:
         if hint not in tags:
             tags.append(hint)
+    return tags
+
+
+def parse_movie_line(
+    line: str,
+    default_age_band: str = "Family",
+    default_tags: Optional[List[str]] = None,
+) -> Optional[Dict[str, object]]:
+    """Parse a single seed/import line into a normalized movie payload."""
+    raw = (line or "").strip()
+    if not raw:
+        return None
+
+    cleaned, watched = _extract_watched(raw)
+    if not cleaned:
+        return None
+
+    cleaned, year = _extract_year(cleaned)
+    title, localized_title = _extract_localized_title(cleaned)
+
+    if not title:
+        return None
+
+    notes = None
+    if localized_title:
+        notes = f"Localized title: {localized_title}"
+
+    tags = _generate_tags(title, default_tags)
 
     return {
         "title": title,
