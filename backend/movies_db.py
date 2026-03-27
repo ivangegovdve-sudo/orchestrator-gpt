@@ -25,8 +25,8 @@ ALLOWED_ORDERS = {"asc", "desc"}
 
 
 def _table_columns(conn: sqlite3.Connection, table_name: str) -> set[str]:
-    rows = conn.execute(f"PRAGMA table_info({table_name})").fetchall()
-    return {str(row[1]) for row in rows}
+    rows = conn.execute("SELECT name FROM pragma_table_info(?)", (table_name,)).fetchall()
+    return {str(row[0]) for row in rows}
 
 
 def _ensure_movie_columns(conn: sqlite3.Connection) -> None:
@@ -41,6 +41,10 @@ def _ensure_movie_columns(conn: sqlite3.Connection) -> None:
     }
     for column_name, definition in required_columns.items():
         if column_name not in columns:
+            if not column_name.isidentifier():
+                raise ValueError(f"Invalid column name: {column_name}")
+            if definition not in {"TEXT", "INTEGER", "REAL", "BLOB"}:
+                raise ValueError(f"Invalid column definition: {definition}")
             conn.execute(f"ALTER TABLE movies ADD COLUMN {column_name} {definition}")
     conn.execute("CREATE INDEX IF NOT EXISTS idx_movies_imdb_id ON movies(imdb_id)")
 
