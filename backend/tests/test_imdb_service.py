@@ -223,3 +223,81 @@ def test_parse_data_from_title_html_multiple_scripts():
     """
     data = _parse_data_from_title_html(html)
     assert data["rating"] == 9.0
+
+@patch("backend.imdb_service._fetch_title_data_by_id")
+@patch("backend.imdb_service._search_imdb_id")
+def test_refresh_imdb_data_with_provided_id(mock_search, mock_fetch):
+    from backend.imdb_service import refresh_imdb_data
+    mock_fetch.return_value = ({"rating": 8.5, "poster": "http://poster", "duration": 120}, "http://imdb.com/title/tt1234567/")
+
+    result = refresh_imdb_data("The Matrix", 1999, "tt1234567 ")
+
+    assert mock_search.call_count == 0
+    mock_fetch.assert_called_once_with("tt1234567")
+
+    assert result.ok is True
+    assert result.imdb_score == 8.5
+    assert result.imdb_id == "tt1234567"
+    assert result.imdb_source_url == "http://imdb.com/title/tt1234567/"
+    assert result.poster_url == "http://poster"
+    assert result.runtime_minutes == 120
+    assert result.error is None
+
+
+@patch("backend.imdb_service._fetch_title_data_by_id")
+@patch("backend.imdb_service._search_imdb_id")
+def test_refresh_imdb_data_search_success(mock_search, mock_fetch):
+    from backend.imdb_service import refresh_imdb_data
+    mock_search.return_value = "tt7654321"
+    mock_fetch.return_value = ({"rating": 9.0, "poster": "http://poster2", "duration": 150}, "http://imdb.com/title/tt7654321/")
+
+    result = refresh_imdb_data("Inception", 2010, None)
+
+    mock_search.assert_called_once_with(title="Inception", year=2010)
+    mock_fetch.assert_called_once_with("tt7654321")
+
+    assert result.ok is True
+    assert result.imdb_score == 9.0
+    assert result.imdb_id == "tt7654321"
+
+
+@patch("backend.imdb_service._fetch_title_data_by_id")
+@patch("backend.imdb_service._search_imdb_id")
+def test_refresh_imdb_data_search_not_found(mock_search, mock_fetch):
+    from backend.imdb_service import refresh_imdb_data
+    mock_search.return_value = None
+
+    result = refresh_imdb_data("Unknown Movie", 2025, None)
+
+    mock_search.assert_called_once_with(title="Unknown Movie", year=2025)
+    assert mock_fetch.call_count == 0
+
+    assert result.ok is False
+    assert result.imdb_score is None
+    assert result.error == "IMDb search did not return a title match."
+
+
+@patch("backend.imdb_service._fetch_title_data_by_id")
+@patch("backend.imdb_service._search_imdb_id")
+def test_refresh_imdb_data_exception(mock_search, mock_fetch):
+    from backend.imdb_service import refresh_imdb_data
+    mock_fetch.side_effect = Exception("Network error")
+
+    result = refresh_imdb_data("The Matrix", 1999, "tt1234567")
+
+    assert result.ok is False
+    assert result.imdb_score is None
+    assert result.error == "IMDb fetch failed: Network error"
+
+
+@patch("backend.imdb_service._fetch_title_data_by_id")
+@patch("backend.imdb_service._search_imdb_id")
+def test_refresh_imdb_data_missing_rating(mock_search, mock_fetch):
+    from backend.imdb_service import refresh_imdb_data
+    mock_fetch.return_value = ({"rating": None, "poster": None, "duration": None}, "http://imdb.com/title/tt1234567/")
+
+    result = refresh_imdb_data("The Matrix", 1999, "tt1234567")
+
+    assert result.ok is True
+    assert result.imdb_score is None
+    assert result.error == "IMDb rating could not be parsed."
