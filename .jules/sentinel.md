@@ -17,15 +17,3 @@
 **Vulnerability:** The FastAPI backend had `"null"` included in its `allow_origins` array alongside `allow_credentials=True`.
 **Learning:** Allowing the `"null"` origin can be abused from sandboxed iframes or local-file contexts, which weakens the protection CORS is meant to provide.
 **Prevention:** Avoid using `"null"` as an allowed origin when credentials are enabled. Restrict CORS origins to explicit, intended frontend endpoints only.
-
-## 2024-06-03 - SQL Injection in Dynamic ALTER TABLE Statements
-
-**Vulnerability:**
-The `backend/movies_db.py` script was executing dynamic DDL statements (like `PRAGMA table_info` and `ALTER TABLE ADD COLUMN`) by directly using python format strings to inject identifiers (`table_name`, `column_name`, `definition`) into the SQL statement, causing a potential SQL Injection vulnerability if those identifiers ever became user-controlled.
-
-**Learning:**
-SQLite does not natively support bound parameters for identifiers (like table names or column names) in DDL statements like `ALTER TABLE` or `PRAGMA`. While `PRAGMA table_info` has an alternative functional format `pragma_table_info(?)` that does support parameterization, `ALTER TABLE` does not.
-
-**Prevention:**
-1. Whenever possible, use parameterized queries. E.g. replace `PRAGMA table_info({table_name})` with `SELECT name FROM pragma_table_info(?)`.
-2. When bound parameters are unsupported (e.g. `ALTER TABLE`), ensure dynamic identifiers are strictly validated against an allowlist, or verified via methods like `str.isidentifier()` and strict type/value checking before being injected into a format string.
