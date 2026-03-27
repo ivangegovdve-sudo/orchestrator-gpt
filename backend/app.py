@@ -70,6 +70,20 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+@app.middleware("http")
+async def add_security_headers(request, call_next):
+    response = await call_next(request)
+    # SECURITY: Prevent MIME-sniffing
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    # SECURITY: Prevent Clickjacking
+    response.headers["X-Frame-Options"] = "DENY"
+    # SECURITY: Enforce HTTPS
+    response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+    # SECURITY: Prevent XSS and data injection attacks by restricting sources
+    # Allow CDN for FastAPI docs
+    response.headers["Content-Security-Policy"] = "default-src 'self'; img-src 'self' data: https: fastapi.tiangolo.com; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net"
+    return response
+
 
 @app.on_event("startup")
 def init_sqlite_databases() -> None:
