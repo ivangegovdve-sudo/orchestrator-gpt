@@ -659,9 +659,15 @@ def get_rating_summary(
 
 def _movie_rows_to_dicts(conn: sqlite3.Connection, rows: List[sqlite3.Row]) -> List[Dict[str, Any]]:
     out: List[Dict[str, Any]] = []
+    if not rows:
+        return out
+
+    # Extract keys lookup outside the hot loop for performance
+    has_tags_str = "tags_str" in rows[0].keys()
+
     for row in rows:
         movie_id = int(row["id"])
-        tags_str = row["tags_str"] if "tags_str" in row.keys() else None
+        tags_str = row["tags_str"] if has_tags_str else None
         tags_list = tags_str.split("|||") if tags_str else []
 
         out.append(
