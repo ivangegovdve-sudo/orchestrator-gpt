@@ -434,3 +434,32 @@ node scratch/tests/glossary-e2e.mjs
 - There is no locked Python dependency file yet.
 
 If the goal is "make the whole site functional," the first high-value task is to unify static + API serving or make every API-backed page configurable enough to work in split mode.
+
+## Composio Gmail agent example
+
+A sanitized example script is available at `scratch/composio_email_manager_example.py`.
+
+Set these environment variables before running it:
+
+- `COMPOSIO_API_KEY`
+- `COMPOSIO_EXTERNAL_USER_ID`
+- `COMPOSIO_TEST_RECIPIENT`
+
+Run:
+
+```bash
+python scratch/composio_email_manager_example.py
+```
+
+Optional overrides:
+
+```bash
+python scratch/composio_email_manager_example.py \
+  --recipient "someone@example.com" \
+  --subject "Hello from Composio" \
+  --body "This is a test email!"
+```
+
+### OpenRouter realism notes
+
+Using OpenRouter models for strict tool-heavy agent flows is possible in some setups, but reliability depends on model support for structured tool calling and schema fidelity. For trusted automation (like sending email), keep a model/provider path that is proven to follow tool schemas deterministically, and use OpenRouter models only after validating behavior under your exact tool contract.
