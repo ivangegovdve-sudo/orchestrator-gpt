@@ -1,31 +1,27 @@
 # Recent Memory
 
-- Updated: 2026-03-19
-- Window: Bootstrap snapshot for the rolling 48-hour context. The nightly consolidation should replace this with a true rolling window.
+- Updated: 2026-04-05
+- Window: 2026-04-03 to 2026-04-05 (rolling 48-hour target; 1 repo-scoped Codex session was found in the last 24 hours)
 
 ## Current Focus
 
-- Build a repo-local memory layer with `memory/recent-memory.md`, `memory/long-term-memory.md`, and `memory/project-memory.md`.
-- Create `skills/consolidate-memory/` so future Codex sessions can refresh memory from `~/.codex` logs instead of starting cold.
-- Add `CODEX.md` startup guidance that always loads recent memory inline and references long-term memory by path.
+- Keep the repo-local memory layer aligned with active automations instead of bootstrap placeholders.
+- Carry forward the deployment-relevant findings from the latest research session without prematurely promoting them into durable repo policy.
 
 ## Recent Decisions
 
-- Earlier today, `main` was committed, rebased, and pushed with commit `01224d2` (`chore: add Life in Time deploy helpers`).
-- An open GitHub PR was observed for this repo: `#100` `Sentinel: [security improvement] Add secure HTTP response headers`; it looked mergeable at the time but was not merged in that pass.
-- Store persistent memory in the repo under `memory/` instead of only relying on `C:\Users\Groot\.codex\memories`.
-- Keep the memory workflow repo-scoped by filtering `~/.codex/sessions` to sessions whose `cwd` matches `D:\Ivan\orchestrator-gpt\orchestrator-gpt`.
-- Use `~/.codex/sessions` as the primary source and `~/.codex/history.jsonl` only as a fallback when recent session logs are unavailable.
-- Treat promotion into long-term memory as a judgment call: only durable facts, preferences, and repeated patterns should move there.
+- 2026-04-04: Nightly Repo Memory found one repo-scoped Codex session in the last 24 hours, from the `research-scout-nightly-02-30` automation.
+- 2026-04-04: The research scout staged Vercel rewrite/cache-control guidance and FastAPI-on-Vercel static serving constraints in `docs/long-term-memory.md`.
+- 2026-04-05: The user supplied `SD Forest - Master Plan for Site Development`, which is now the roadmap source of truth for future `STATE.md` updates.
+- 2026-04-05: Kept `memory/long-term-memory.md` conservative; no staged research findings were promoted into canonical long-term memory yet.
 
 ## Temporary Constraints
 
-- This memory layer is being bootstrapped from the current repo session, so some sections are seed content until the first nightly consolidation runs.
 - The repo uses static HTML/CSS/JS by default; avoid adding a frontend framework or build pipeline unless explicitly requested.
-- AGENTS guidance prioritizes truthful, working routes and APIs over placeholder polish.
-- Older untracked research-scout memory files exist under `docs/`; treat `memory/` as the active source of truth unless the user asks to migrate those files.
+- AGENTS guidance and the new master plan both prioritize truthful, working routes and APIs over placeholder polish.
+- Same-origin deployment for API-backed pages remains unresolved, so the staged Vercel proxy guidance is relevant but not yet enacted repo policy.
 
 ## Open Loops
 
-- Run the consolidate-memory workflow after major workdays so the rolling window and long-term memory stay current.
-- Revisit long-term entries after a few days of usage to remove anything that proves too transient.
+- Decide whether the staged Vercel and FastAPI deployment notes in `docs/long-term-memory.md` should be promoted into canonical repo memory after another confirming pass or an implemented repo change.
+- Use the next memory run to detect whether deployment wiring, navigation cleanup, or LLM DB restoration moved Phase 1 of the new master plan forward.

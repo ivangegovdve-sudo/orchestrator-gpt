@@ -1,0 +1,15 @@
+Note-Taking
+- Perfect for students capturing lectures, professionals documenting meetings, doctors recording patient notes, researchers transcribing interviews, and anyone needing accessible hands-free note-taking across all their devices.
+
+Features
+- Rich Text Editing - Format your notes with: Title, Bold, italic, and underline text.
+- Text alignment (left, right, center)
+- Record Voice notes
+- Import Audios and Transcribe
+- Export Audios to local storage
+- Share Audios functionality
+- Audio Transcription - Unlimited audio transcriptions after downloading model on your device
+- Transcribe Audios in multiple languages
+- Simple Search - Find your notes instantly with text search
+- Smart Filtering - Filter notes by type (Starred, Voice Notes, Recent)
+- Customise Theme - Dark, Light or System

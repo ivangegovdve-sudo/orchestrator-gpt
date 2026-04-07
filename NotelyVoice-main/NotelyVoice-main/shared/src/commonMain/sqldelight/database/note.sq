@@ -1,0 +1,55 @@
+CREATE TABLE notesEntity(
+    id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    title TEXT NOT NULL,
+    content TEXT NOT NULL,
+    starred INTEGER NOT NULL,
+    formatting TEXT NOT NULL,
+    text_align TEXT NOT NULL DEFAULT 'Start',
+    recording_path TEXT NOT NULL,
+    created_at INTEGER NOT NULL
+);
+
+getAllNotes:
+SELECT * FROM notesEntity ORDER BY created_at DESC;
+
+getNoteById:
+SELECT * FROM notesEntity WHERE id = :id;
+
+insertNote:
+INSERT INTO notesEntity(title, content, starred, formatting, text_align, recording_path, created_at)
+VALUES(:title, :content, :starred, :formatting, :text_align, :recording_path, :created_at);
+
+deleteNoteById:
+DELETE FROM notesEntity WHERE id = :id;
+
+updateNote:
+UPDATE notesEntity
+SET title = :title,
+    content = :content,
+    starred = :starred,
+    formatting = :formatting,
+    text_align = :text_align,
+    recording_path = :recording_path,
+    created_at = :created_at
+WHERE id = :id;
+
+getLastNote:
+SELECT * FROM notesEntity
+ORDER BY id DESC
+LIMIT 1;
+
+getLastNoteId:
+SELECT id FROM notesEntity
+ORDER BY id DESC
+LIMIT 1;
+
+getNotesByStarred:
+SELECT * FROM notesEntity WHERE starred = :starred ORDER BY created_at DESC;
+
+getNotesByRecordingPath:
+SELECT * FROM notesEntity WHERE recording_path != '' ORDER BY created_at DESC;
+
+getNotesByContent:
+SELECT * FROM notesEntity
+WHERE content LIKE :query || '%'
+ORDER BY created_at DESC;
