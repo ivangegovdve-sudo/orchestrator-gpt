@@ -1,0 +1,9 @@
+{
+  "name": "orchestrator-gpt",
+  "private": true,
+  "version": "0.0.0",
+  "scripts": {
+    "build": "node -e \"console.log('Static Forest HUB build: no bundling required.')\"",
+    "vercel-build": "npm run build"
+  }
+}
