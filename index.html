@@ -13,6 +13,8 @@
       --muted: #a1a1aa;
       --accent: #0ea5e9;
       --accent-glow: rgba(14, 165, 233, 0.4);
+      --warm: #fbbf24;
+      --warm-glow: rgba(251, 191, 36, 0.42);
       --purple: #8b5cf6;
       --purple-glow: rgba(139, 92, 246, 0.4);
     }
@@ -26,8 +28,9 @@
       min-height: 100vh;
       background-color: var(--bg);
       background-image:
-        radial-gradient(circle at 15% 50%, rgba(14, 165, 233, 0.12), transparent 40%),
-        radial-gradient(circle at 85% 30%, rgba(139, 92, 246, 0.12), transparent 40%),
+        radial-gradient(circle at 14% 22%, rgba(251, 191, 36, 0.12), transparent 34%),
+        radial-gradient(circle at 18% 50%, rgba(14, 165, 233, 0.10), transparent 40%),
+        radial-gradient(circle at 86% 30%, rgba(236, 72, 153, 0.10), transparent 40%),
         url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
       color: var(--text);
       font-family: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
@@ -66,7 +69,7 @@
       transform: translateX(-50%);
       width: 60px;
       height: 4px;
-      background: linear-gradient(90deg, var(--accent), var(--purple));
+      background: linear-gradient(90deg, var(--warm), var(--accent), var(--purple));
       border-radius: 4px;
     }
 
@@ -93,9 +96,12 @@
       position: relative;
       border-radius: 20px;
       border: 1px solid var(--card-border);
-      background: #000;
+      background:
+        radial-gradient(circle at 26% 18%, rgba(251, 191, 36, 0.18), transparent 34%),
+        radial-gradient(circle at 74% 34%, rgba(14, 165, 233, 0.18), transparent 36%),
+        #000;
       overflow: hidden;
-      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+      box-shadow: 0 28px 80px -28px rgba(0, 0, 0, 0.9), 0 0 48px -26px var(--warm-glow);
       animation: revealHero 1s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
       animation-delay: 0.2s;
       opacity: 0;
@@ -111,9 +117,22 @@
       content: '';
       position: absolute;
       inset: 0;
-      background: linear-gradient(to top, rgba(9, 9, 11, 0.9) 0%, transparent 60%);
+      background:
+        linear-gradient(to top, rgba(9, 9, 11, 0.9) 0%, transparent 62%),
+        radial-gradient(circle at var(--hero-x, 50%) var(--hero-y, 50%), rgba(255, 255, 255, 0.16), transparent 28%);
       z-index: 1;
       pointer-events: none;
+    }
+
+    .hero-card::after {
+      content: '';
+      position: absolute;
+      inset: 18px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 16px;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+      pointer-events: none;
+      z-index: 2;
     }
 
     .hero-card img {
@@ -302,7 +321,7 @@
         <div class="hero-card" style="min-height: 300px; display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden;">
       <canvas id="hero-canvas" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 0;"></canvas>
       <div style="position: relative; z-index: 2; text-align: center; pointer-events: none;">
-        <h2 style="font-size: 42px; font-weight: 800; margin: 0; background: linear-gradient(135deg, #0ea5e9 0%, #8b5cf6 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-shadow: 0 4px 12px rgba(0,0,0,0.5);">Welcome to Forest HUB</h2>
+        <h2 style="font-size: 42px; font-weight: 800; margin: 0; background: linear-gradient(135deg, #fbbf24 0%, #0ea5e9 52%, #ec4899 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-shadow: 0 4px 12px rgba(0,0,0,0.5);">Welcome to Forest HUB</h2>
         <p style="color: #cbd5e1; font-size: 18px; margin-top: 10px; max-width: 600px; text-shadow: 0 2px 4px rgba(0,0,0,0.8);">Explore, build, and orchestrate AI applications.</p>
       </div>
     </div>
@@ -571,104 +590,105 @@
       });
     });
 
-    // Interactive Particle Network for Hero Canvas
+    // Interactive orbital particle field for hero canvas
     const canvas = document.getElementById('hero-canvas');
     if (canvas) {
       const ctx = canvas.getContext('2d');
-      let width = canvas.width = canvas.parentElement.offsetWidth;
-      let height = canvas.height = canvas.parentElement.offsetHeight;
+      const hero = canvas.parentElement;
+      let dpr = Math.min(window.devicePixelRatio || 1, 2);
+      let width = 0;
+      let height = 0;
 
-      window.addEventListener('resize', () => {
-        width = canvas.width = canvas.parentElement.offsetWidth;
-        height = canvas.height = canvas.parentElement.offsetHeight;
+      function resizeCanvas() {
+        dpr = Math.min(window.devicePixelRatio || 1, 2);
+        width = hero.offsetWidth;
+        height = hero.offsetHeight;
+        canvas.width = Math.max(1, Math.floor(width * dpr));
+        canvas.height = Math.max(1, Math.floor(height * dpr));
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      }
+
+      resizeCanvas();
+      window.addEventListener('resize', resizeCanvas);
+
+      const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      const mouse = { x: 0, y: 0, tx: 0, ty: 0 };
+      const dots = Array.from({ length: 260 }, (_, index) => {
+        const offset = 2 / 260;
+        const y = index * offset - 1 + offset / 2;
+        const radius = Math.sqrt(1 - y * y);
+        const theta = index * Math.PI * (3 - Math.sqrt(5));
+        return { theta, y, radius, depth: 0.5 + (index % 19) / 38 };
       });
 
-      const particles = [];
-      const numParticles = 80;
-
-      const mouse = { x: null, y: null, radius: 100 };
-
-      canvas.parentElement.addEventListener('mousemove', (e) => {
+      hero.addEventListener('mousemove', (e) => {
         const rect = canvas.getBoundingClientRect();
-        mouse.x = e.clientX - rect.left;
-        mouse.y = e.clientY - rect.top;
+        mouse.tx = ((e.clientX - rect.left) / Math.max(rect.width, 1) - 0.5) * 2;
+        mouse.ty = ((e.clientY - rect.top) / Math.max(rect.height, 1) - 0.5) * 2;
+        hero.style.setProperty('--hero-x', `${e.clientX - rect.left}px`);
+        hero.style.setProperty('--hero-y', `${e.clientY - rect.top}px`);
       });
 
-      canvas.parentElement.addEventListener('mouseleave', () => {
-        mouse.x = null;
-        mouse.y = null;
+      hero.addEventListener('mouseleave', () => {
+        mouse.tx = 0;
+        mouse.ty = 0;
+        hero.style.setProperty('--hero-x', '50%');
+        hero.style.setProperty('--hero-y', '50%');
       });
 
-      class Particle {
-        constructor() {
-          this.x = Math.random() * width;
-          this.y = Math.random() * height;
-          this.vx = (Math.random() - 0.5) * 1.5;
-          this.vy = (Math.random() - 0.5) * 1.5;
-          this.radius = Math.random() * 2 + 1;
-          this.color = Math.random() > 0.5 ? '#0ea5e9' : '#8b5cf6';
-        }
-
-        update() {
-          this.x += this.vx;
-          this.y += this.vy;
-
-          if (this.x < 0 || this.x > width) this.vx = -this.vx;
-          if (this.y < 0 || this.y > height) this.vy = -this.vy;
-
-          if (mouse.x != null && mouse.y != null) {
-            let dx = mouse.x - this.x;
-            let dy = mouse.y - this.y;
-            let distance = Math.sqrt(dx * dx + dy * dy);
-            if (distance < mouse.radius) {
-              let forceDirectionX = dx / distance;
-              let forceDirectionY = dy / distance;
-              let force = (mouse.radius - distance) / mouse.radius;
-              let directionX = forceDirectionX * force * 5;
-              let directionY = forceDirectionY * force * 5;
-              this.x -= directionX;
-              this.y -= directionY;
-            }
-          }
-        }
-
-        draw() {
-          ctx.beginPath();
-          ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
-          ctx.fillStyle = this.color;
-          ctx.fill();
-        }
-      }
-
-      for (let i = 0; i < numParticles; i++) {
-        particles.push(new Particle());
-      }
-
-      function animate() {
-        requestAnimationFrame(animate);
+      function animate(now) {
+        mouse.x += (mouse.tx - mouse.x) * 0.055;
+        mouse.y += (mouse.ty - mouse.y) * 0.055;
         ctx.clearRect(0, 0, width, height);
 
-        for (let i = 0; i < particles.length; i++) {
-          particles[i].update();
-          particles[i].draw();
+        const t = reduceMotion ? 0 : now / 1000;
+        const cx = width * (0.5 + mouse.x * 0.04);
+        const cy = height * (0.5 + mouse.y * 0.05);
+        const r = Math.min(width, height) * 0.45;
+        const rot = t * 0.28 + mouse.x * 0.45;
 
-          for (let j = i; j < particles.length; j++) {
-            let dx = particles[i].x - particles[j].x;
-            let dy = particles[i].y - particles[j].y;
-            let distance = Math.sqrt(dx * dx + dy * dy);
+        const glow = ctx.createRadialGradient(width * (0.28 + mouse.x * 0.08), height * 0.18, 0, width * 0.4, height * 0.28, height * 0.9);
+        glow.addColorStop(0, 'rgba(251, 191, 36, 0.28)');
+        glow.addColorStop(0.22, 'rgba(14, 165, 233, 0.16)');
+        glow.addColorStop(1, 'rgba(0, 0, 0, 0)');
+        ctx.fillStyle = glow;
+        ctx.fillRect(0, 0, width, height);
 
-            if (distance < 120) {
-              ctx.beginPath();
-              ctx.strokeStyle = `rgba(255, 255, 255, ${1 - distance/120})`;
-              ctx.lineWidth = 0.5;
-              ctx.moveTo(particles[i].x, particles[i].y);
-              ctx.lineTo(particles[j].x, particles[j].y);
-              ctx.stroke();
-            }
-          }
+        ctx.save();
+        ctx.translate(cx, cy);
+
+        for (let ring = 0; ring < 18; ring++) {
+          const ringT = ring / 18;
+          const rr = r * (0.36 + ringT * 1.05);
+          ctx.beginPath();
+          ctx.ellipse(0, 0, rr, rr * 0.28, rot * 0.25, 0, Math.PI * 2);
+          ctx.strokeStyle = `rgba(14, 165, 233, ${0.025 + (1 - ringT) * 0.055})`;
+          ctx.lineWidth = 1;
+          ctx.stroke();
         }
+
+        dots.forEach((dot) => {
+          const theta = dot.theta + rot * dot.depth;
+          const x0 = Math.cos(theta) * dot.radius;
+          const z0 = Math.sin(theta) * dot.radius;
+          const perspective = 0.72 + z0 * 0.28;
+          const x = x0 * r * perspective;
+          const y = dot.y * r * 0.78 * perspective;
+          const pointerDistance = Math.hypot(x / r - mouse.x * 0.38, y / r - mouse.y * 0.38);
+          const pulse = Math.max(0, 1 - pointerDistance * 2);
+          const size = 1.2 + perspective * 2.2 + pulse * 2.2;
+          const alpha = Math.max(0.06, 0.12 + z0 * 0.18 + pulse * 0.35);
+          ctx.beginPath();
+          ctx.arc(x + mouse.x * pulse * 12, y + mouse.y * pulse * 12, size, 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(255, ${Math.floor(190 + perspective * 44)}, ${Math.floor(92 + perspective * 90)}, ${alpha})`;
+          ctx.fill();
+        });
+
+        ctx.restore();
+
+        if (!reduceMotion) requestAnimationFrame(animate);
       }
-      animate();
+      requestAnimationFrame(animate);
     }
   </script>
 </body>
