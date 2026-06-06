@@ -27,3 +27,4 @@ checkpoints/
 
 # Local media memory store
 media-memory/
+.vercel
