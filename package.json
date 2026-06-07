@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.0.0",
   "scripts": {
-    "build": "node -e \"console.log('Static Forest HUB build: no bundling required.')\"",
+    "build": "node build-vercel-static.cjs",
     "vercel-build": "npm run build"
   }
 }
