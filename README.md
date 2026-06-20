@@ -12,10 +12,10 @@ The repo is not a packaged frontend app with a build step. Most pages are plain 
   Stable Diffusion prompt builder with optional AUTOMATIC1111 integration.
 - `web/a1111-debug/` and `web/debug-a1111/`
   Local debug harnesses for AUTOMATIC1111 + ControlNet.
-- `web/movies/`
+- `web/kids-movie-library/`
   Static Kids Movie Library built from `kidsMoviesReport.md`, with local watch flags and ratings.
 - `movies/index.html`
-  Redirect shim to `/web/movies/`.
+  Redirect shim to `/web/kids-movie-library/`.
 - `web/mendeleev-bg/`
   Interactive Bulgarian periodic table copied from `ivangegovdve-sudo/mendeleev-bg`.
 - `web/math-mania/`
@@ -54,7 +54,7 @@ There are two runtime layers:
 
 Important local-dev detail:
 
-- `web/movies/` is static and stores family watch/rating state in localStorage.
+- `web/kids-movie-library/` is static and stores family watch/rating state in localStorage.
 - `web/llm-db/` currently assumes same-origin requests to `/api/llm-db`.
 - `backend/app.py` only allows browser CORS from `http://localhost:8080` and `http://127.0.0.1:8080`.
 
@@ -192,11 +192,11 @@ If you keep split mode, make `web/llm-db/` configurable before calling the dashb
 
 - Routes:
   - `/movies/`
-  - `/web/movies/`
+  - `/web/kids-movie-library/`
 - Files:
-  - `web/movies/index.html`
-  - `web/movies/app.js`
-  - `web/movies/styles.css`
+  - `web/kids-movie-library/index.html`
+  - `web/kids-movie-library/app.js`
+  - `web/kids-movie-library/styles.css`
 - Runtime:
   - static only
 - Source:

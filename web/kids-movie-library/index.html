@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Kids Movie Library</title>
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <main class="page">
+    <header class="header-row">
+      <div>
+        <p class="eyebrow">Forest family watchlist</p>
+        <h1>Kids Movie Library</h1>
+        <p class="intro">
+          Stylized animated films for ages 8-11, grouped by empathy, perspective, sibling collaboration, and generous action.
+        </p>
+      </div>
+      <a class="back-link" href="/index.html">Back to hub</a>
+    </header>
+
+    <section class="summary-grid" aria-label="Movie library summary">
+      <div><strong>15</strong><span>recommended films</span></div>
+      <div><strong>9</strong><span>already watched exclusions</span></div>
+      <div><strong>1</strong><span>verified Bulgarian audio pick</span></div>
+    </section>
+
+    <section class="controls" aria-label="Movie filters">
+      <label>
+        Search
+        <input id="searchInput" type="search" placeholder="Title, platform, theme, tag" />
+      </label>
+
+      <label>
+        Theme
+        <select id="categoryFilter">
+          <option value="">All themes</option>
+        </select>
+      </label>
+
+      <label>
+        Watch status
+        <select id="statusFilter">
+          <option value="all">All</option>
+          <option value="unwatched">Unwatched</option>
+          <option value="watched">Watched</option>
+        </select>
+      </label>
+
+      <label>
+        Bulgarian audio
+        <select id="bgAudioFilter">
+          <option value="all">All</option>
+          <option value="Yes">Yes</option>
+          <option value="No">No</option>
+          <option value="Unspecified">Unspecified</option>
+        </select>
+      </label>
+
+      <label>
+        Sort
+        <select id="sortFilter">
+          <option value="imdb_desc">IMDb score</option>
+          <option value="title_az">Title A-Z</option>
+          <option value="year_desc">Newest first</option>
+          <option value="platform_az">Platform</option>
+        </select>
+      </label>
+    </section>
+
+    <section class="tags-row">
+      <span class="row-label">Tags</span>
+      <div id="tagsContainer" class="tag-wrap"></div>
+    </section>
+
+    <section class="already-watched">
+      <h2>Already Watched / Excluded</h2>
+      <ul id="watchedList"></ul>
+    </section>
+
+    <section class="results-meta">
+      <span id="resultsCount">0 recommendations</span>
+    </section>
+
+    <section id="resultsList" class="results-list"></section>
+    <p id="emptyState" class="hidden subtle">No movies match current filters.</p>
+  </main>
+
+  <script type="module" src="./app.js"></script>
+</body>
+</html>
