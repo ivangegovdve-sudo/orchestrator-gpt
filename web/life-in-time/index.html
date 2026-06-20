@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Life in Time — How Much Is Left?</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#09090b;
+  --surface:rgba(255,255,255,.04);
+  --border:rgba(255,255,255,.08);
+  --blue:#3b82f6;
+  --purple:#a855f7;
+  --gold:#f59e0b;
+  --red:#ef4444;
+  --orange:#f97316;
+  --green:#22c55e;
+  --muted:#6b7280;
+  --text:#e2e8f0;
+}
+body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;min-height:100vh;overflow-x:hidden}
+
+/* ── Header ── */
+.header{text-align:center;padding:48px 20px 32px;position:relative}
+.header h1{font-size:clamp(1.8em,5vw,3em);font-weight:800;letter-spacing:-1px;background:linear-gradient(135deg,var(--blue),var(--purple));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.header .sub{color:var(--muted);margin-top:8px;font-size:.95em}
+
+/* ── Input Form ── */
+.form-card{max-width:520px;margin:0 auto 40px;background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:28px 32px}
+.form-card h2{font-size:1.1em;color:var(--blue);margin-bottom:20px;letter-spacing:.5px}
+.field{margin-bottom:16px}
+.field label{display:block;font-size:.82em;color:var(--muted);margin-bottom:5px;letter-spacing:.3px;text-transform:uppercase}
+.field input{width:100%;background:rgba(0,0,0,.4);border:1px solid var(--border);border-radius:8px;padding:10px 14px;color:var(--text);font-size:.95em;outline:none;transition:border-color .2s}
+.field input:focus{border-color:var(--blue)}
+.field .hint{font-size:.72em;color:var(--muted);margin-top:4px;opacity:.7}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.btn-calc{width:100%;background:linear-gradient(135deg,var(--blue),var(--purple));border:none;border-radius:8px;padding:13px;color:#fff;font-size:1em;font-weight:700;cursor:pointer;letter-spacing:.5px;margin-top:8px;transition:opacity .2s}
+.btn-calc:hover{opacity:.85}
+
+/* ── Wake-up section ── */
+#results{display:none;max-width:900px;margin:0 auto;padding:0 20px 60px}
+.wake-header{text-align:center;padding:20px 0 32px}
+.wake-header h2{font-size:clamp(1.4em,4vw,2.2em);color:var(--red);font-weight:800}
+.wake-header .wake-sub{color:var(--muted);margin-top:6px;font-size:.9em}
+
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;margin-bottom:40px}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px 16px;text-align:center;transition:border-color .3s}
+.stat-card:hover{border-color:rgba(255,255,255,.18)}
+.stat-card .icon{font-size:1.8em;margin-bottom:8px}
+.stat-card .val{font-size:clamp(1.6em,4vw,2.4em);font-weight:900;line-height:1;margin-bottom:4px}
+.stat-card .lbl{font-size:.75em;color:var(--muted);letter-spacing:.5px;text-transform:uppercase}
+.stat-card .ctx{font-size:.72em;color:var(--muted);margin-top:4px;opacity:.8;line-height:1.4}
+
+.stat-card.s-years  .val{color:var(--red)}
+.stat-card.s-summer .val{color:var(--orange)}
+.stat-card.s-xmas   .val{color:var(--blue)}
+.stat-card.s-wknd   .val{color:var(--purple)}
+.stat-card.s-meals  .val{color:var(--green)}
+.stat-card.s-hearts .val{color:var(--gold)}
+.stat-card.s-moons  .val{color:#c084fc}
+
+/* ── Heartbeat ticker ── */
+.heartbeat-ticker{text-align:center;margin:24px 0 40px;padding:20px;background:rgba(239,68,68,.05);border:1px solid rgba(239,68,68,.18);border-radius:12px}
+.heartbeat-ticker .ticker-label{font-size:.78em;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px}
+.heartbeat-ticker .ticker-val{font-size:2.4em;font-weight:900;color:var(--red);font-variant-numeric:tabular-nums;letter-spacing:-1px}
+.heartbeat-ticker .ticker-sub{font-size:.75em;color:var(--muted);margin-top:4px}
+
+/* ── Pivot button ── */
+.pivot-wrap{text-align:center;margin:20px 0 40px}
+.btn-pivot{background:linear-gradient(135deg,#7c3aed,#db2777);border:none;border-radius:10px;padding:16px 36px;color:#fff;font-size:1.05em;font-weight:700;cursor:pointer;letter-spacing:.3px;transition:transform .2s,box-shadow .2s;box-shadow:0 0 30px rgba(124,58,237,.25)}
+.btn-pivot:hover{transform:translateY(-2px);box-shadow:0 0 40px rgba(124,58,237,.45)}
+.pivot-hint{font-size:.8em;color:var(--muted);margin-top:10px}
+
+/* ── Positive pivot section ── */
+#positive{display:none;margin-top:20px}
+.positive-header{text-align:center;padding:20px 0 28px}
+.positive-header h2{font-size:clamp(1.3em,3.5vw,2em);color:var(--gold);font-weight:800}
+.positive-header .pos-sub{color:var(--muted);margin-top:6px;font-size:.9em}
+
+.achievers-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px;margin-bottom:40px}
+.achiever-card{background:rgba(245,158,11,.04);border:1px solid rgba(245,158,11,.15);border-radius:12px;padding:16px 18px;transition:border-color .2s}
+.achiever-card:hover{border-color:rgba(245,158,11,.35)}
+.achiever-card .ach-age{font-size:.72em;color:var(--gold);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px}
+.achiever-card .ach-name{font-size:.95em;font-weight:700;color:var(--text);margin-bottom:4px}
+.achiever-card .ach-desc{font-size:.8em;color:var(--muted);line-height:1.5}
+
+.peaks-section{margin-bottom:40px}
+.peaks-section h3{font-size:1em;color:var(--purple);font-weight:700;margin-bottom:16px;letter-spacing:.5px;text-transform:uppercase}
+.peaks-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px}
+.peak-card{background:rgba(168,85,247,.04);border:1px solid rgba(168,85,247,.15);border-radius:10px;padding:14px 16px}
+.peak-card .pk-skill{font-size:.85em;font-weight:700;color:#c084fc;margin-bottom:4px}
+.peak-card .pk-peak{font-size:.75em;color:var(--muted)}
+.peak-card .pk-why{font-size:.72em;color:var(--muted);opacity:.8;margin-top:4px;line-height:1.4}
+
+/* ── Remaining timeline ── */
+.timeline-section{margin-bottom:40px}
+.timeline-section h3{font-size:1em;color:var(--green);font-weight:700;margin-bottom:16px;letter-spacing:.5px;text-transform:uppercase}
+.timeline-bar{position:relative;height:36px;background:rgba(34,197,94,.06);border-radius:8px;overflow:hidden;border:1px solid rgba(34,197,94,.15);margin-bottom:8px}
+.timeline-fill{position:absolute;top:0;left:0;height:100%;background:linear-gradient(90deg,rgba(34,197,94,.3),rgba(59,130,246,.3));border-radius:8px;transition:width 1s ease}
+.timeline-labels{display:flex;justify-content:space-between;font-size:.72em;color:var(--muted)}
+
+/* ── Footer ── */
+.note{text-align:center;padding:20px;font-size:.75em;color:var(--muted);border-top:1px solid var(--border);max-width:600px;margin:0 auto}
+
+/* ── Responsive ── */
+@media(max-width:480px){
+  .form-card{padding:20px 18px}
+  .field-row{grid-template-columns:1fr}
+  .stats-grid{grid-template-columns:1fr 1fr}
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>Life in Time</h1>
+  <p class="sub">See what remains. Then see what's still possible.</p>
+</div>
+
+<div style="max-width:520px;margin:0 auto;padding:0 20px">
+<div class="form-card">
+  <h2>⏳ Your Time</h2>
+  <div class="field">
+    <label>Your birth year *</label>
+    <input type="number" id="birthYear" placeholder="e.g. 1990" min="1920" max="2015">
+  </div>
+  <div class="field-row">
+    <div class="field">
+      <label>Parent birth year (optional)</label>
+      <input type="number" id="parentYear" placeholder="e.g. 1960" min="1920" max="2000">
+      <div class="hint">Estimates Christmases with parents</div>
+    </div>
+    <div class="field">
+      <label>Youngest child born (optional)</label>
+      <input type="number" id="childYear" placeholder="e.g. 2018" min="2000" max="2025">
+      <div class="hint">Estimates summers with kids</div>
+    </div>
+  </div>
+  <div class="field">
+    <label>Life expectancy</label>
+    <input type="number" id="lifeExp" value="83" min="70" max="120">
+    <div class="hint">Default: 83 (EU average)</div>
+  </div>
+  <button class="btn-calc" onclick="calculate()">Calculate what remains →</button>
+</div>
+</div>
+
+<div id="results">
+  <div class="wake-header">
+    <h2 id="wakeTitle">You have time. Use it.</h2>
+    <p class="wake-sub" id="wakeSub">Here's what remains of your life in concrete numbers.</p>
+  </div>
+
+  <div class="stats-grid" id="statsGrid"></div>
+
+  <div class="heartbeat-ticker">
+    <div class="ticker-label">💓 Heartbeats remaining (estimated)</div>
+    <div class="ticker-val" id="heartTicker">0</div>
+    <div class="ticker-sub">at 70 bpm — updates every second</div>
+  </div>
+
+  <div class="pivot-wrap">
+    <button class="btn-pivot" onclick="showPositive()">But wait — it's not over ✨</button>
+    <p class="pivot-hint">See what's still possible in your remaining time</p>
+  </div>
+
+  <div id="positive">
+    <div class="positive-header">
+      <h2>You're nowhere near done.</h2>
+      <p class="pos-sub">History is full of people who changed the world after your current age.</p>
+    </div>
+
+    <div class="achievers-grid" id="achieversGrid"></div>
+
+    <div class="peaks-section">
+      <h3>Skills that peak later in life</h3>
+      <div class="peaks-grid" id="peaksGrid"></div>
+    </div>
+
+    <div class="timeline-section">
+      <h3>Your remaining years — a timeline</h3>
+      <div id="timelineContent"></div>
+    </div>
+  </div>
+</div>
+
+<p class="note">Life expectancy estimates use statistical averages and do not account for individual health factors. This tool is for perspective, not prediction.</p>
+
+<script>
+const LIFE_EXP_DEFAULT = 83;
+const BPM = 70;
+const NOW = new Date();
+const THIS_YEAR = NOW.getFullYear();
+
+const ACHIEVERS = [
+  {age:52, name:'Ray Kroc',         desc:"Sold milkshake mixers until 52, then built McDonald's into a global empire."},
+  {age:49, name:'Julia Child',      desc:"Published her first cookbook at 49. Became the face of American cooking."},
+  {age:40, name:'Vera Wang',        desc:"Switched from figure skating to fashion design at 40. Now a billion-dollar brand."},
+  {age:76, name:'Grandma Moses',    desc:"Started painting seriously at 76. Sold work for millions. Lived to 101."},
+  {age:48, name:'Sam Walton',       desc:"Opened the first Walmart at 44. Became the richest man in America by 63."},
+  {age:50, name:'Charles Darwin',   desc:"Published On the Origin of Species at 50 after decades of careful observation."},
+  {age:62, name:'Dr. Seuss',        desc:"Published The Cat in the Hat at 52. Most beloved children's books came after 50."},
+  {age:66, name:'Harland Sanders',  desc:"Founded KFC at 65 after failing dozens of other ventures. Sold it at 74 for millions."},
+];
+
+const SKILL_PEAKS = [
+  {skill:'Wisdom',             peak:'peaks in your 60s–70s', why:'Pattern recognition from decades of experience'},
+  {skill:'Vocabulary',         peak:'peaks around age 65–72', why:'Lifelong reading accumulates; recall stays high'},
+  {skill:'Emotional intelligence', peak:'peaks in your 50s–60s', why:'Better regulation, deeper empathy'},
+  {skill:'Teaching & mentoring',   peak:'peaks in your 50s–70s', why:'You know what actually matters'},
+  {skill:'Strategic thinking',     peak:'peaks in your 50s',     why:'Long-term perspective hard to fake with youth'},
+  {skill:'Crystallized intelligence', peak:'keeps growing into 80s', why:'Accumulated knowledge, not processing speed'},
+  {skill:'Writing & storytelling',    peak:'varies widely — often 50s+', why:'More to say, better editing judgment'},
+  {skill:'Gratitude & presence',      peak:'grows with age',        why:'Awareness of time increases its quality'},
+];
+
+let heartbeatInterval = null;
+
+function yearsRemaining(birthYear, lifeExp) {
+  const age = THIS_YEAR - birthYear;
+  return Math.max(0, lifeExp - age);
+}
+
+function fmt(n) {
+  return Math.max(0, Math.round(n)).toLocaleString();
+}
+
+function calculate() {
+  const by = parseInt(document.getElementById('birthYear').value);
+  const py = parseInt(document.getElementById('parentYear').value) || null;
+  const cy = parseInt(document.getElementById('childYear').value) || null;
+  const le = parseInt(document.getElementById('lifeExp').value) || LIFE_EXP_DEFAULT;
+
+  if (!by || by < 1920 || by > THIS_YEAR - 5) {
+    alert('Please enter a valid birth year.');
+    return;
+  }
+
+  const age = THIS_YEAR - by;
+  const yLeft = Math.max(0, le - age);
+  const deathYear = by + le;
+
+  // Summers: total remaining (warm months, meaningful ones)
+  const summersKids = cy ? Math.max(0, (cy + 20) - THIS_YEAR) : null; // kids leave ~age 20
+  const summersLeft = yLeft;
+
+  // Christmases with parent (parent dies at their life expectancy)
+  let xmasParent = null;
+  if (py) {
+    const parentDeathYear = py + 83;
+    xmasParent = Math.max(0, Math.min(parentDeathYear, deathYear) - THIS_YEAR);
+  }
+
+  // Weekends
+  const weekendsLeft = yLeft * 52;
+  // Meals
+  const mealsLeft = yLeft * 365 * 3;
+  // Heartbeats
+  const heartbeatsLeft = yLeft * 365.25 * 24 * 60 * BPM;
+  // Full moons
+  const moonsLeft = yLeft * 12.37;
+
+  // Build stat cards
+  const cards = [
+    {cls:'s-years',  icon:'⏳', val:fmt(yLeft),       lbl:'Years',         ctx:`You are ${age} now`},
+    {cls:'s-summer', icon:'🌞', val:fmt(summersLeft),  lbl:'Summers',       ctx: summersKids !== null ? `~${Math.max(0,summersKids)} left with kids at home` : 'Season by season'},
+    {cls:'s-xmas',   icon:'🎄', val: xmasParent !== null ? fmt(xmasParent) : fmt(yLeft), lbl:'Christmases', ctx: xmasParent !== null ? 'with your parent(s)' : 'total remaining'},
+    {cls:'s-wknd',   icon:'🌅', val:fmt(weekendsLeft), lbl:'Weekends',      ctx:'Saturday mornings'},
+    {cls:'s-meals',  icon:'🍽️', val:fmt(mealsLeft),   lbl:'Meals',         ctx:'at 3 per day'},
+    {cls:'s-hearts', icon:'💓', val:fmt(heartbeatsLeft), lbl:'Heartbeats',  ctx:'at 70 bpm'},
+    {cls:'s-moons',  icon:'🌕', val:fmt(moonsLeft),   lbl:'Full Moons',    ctx:'monthly cycles'},
+  ];
+
+  const grid = document.getElementById('statsGrid');
+  grid.innerHTML = cards.map(c => `
+    <div class="stat-card ${c.cls}">
+      <div class="icon">${c.icon}</div>
+      <div class="val">${c.val}</div>
+      <div class="lbl">${c.lbl}</div>
+      <div class="ctx">${c.ctx}</div>
+    </div>
+  `).join('');
+
+  // Heartbeat ticker
+  let hb = heartbeatsLeft;
+  if (heartbeatInterval) clearInterval(heartbeatInterval);
+  document.getElementById('heartTicker').textContent = fmt(hb);
+  heartbeatInterval = setInterval(() => {
+    hb -= BPM;
+    document.getElementById('heartTicker').textContent = fmt(Math.max(0, hb));
+  }, 60000 / BPM);
+
+  // Wake-up headline
+  document.getElementById('wakeTitle').textContent =
+    yLeft <= 0 ? "Time is precious." :
+    yLeft < 10 ? `You have ${yLeft} years left.` :
+    `You have ${yLeft} years remaining.`;
+  document.getElementById('wakeSub').textContent =
+    `Age ${age} → estimated ${deathYear}. Here's what that looks like in concrete numbers.`;
+
+  // Build achievers (filter to those older than current age or useful for context)
+  const achieversGrid = document.getElementById('achieversGrid');
+  achieversGrid.innerHTML = ACHIEVERS.map(a => `
+    <div class="achiever-card">
+      <div class="ach-age">Age ${a.age}</div>
+      <div class="ach-name">${a.name}</div>
+      <div class="ach-desc">${a.desc}</div>
+    </div>
+  `).join('');
+
+  // Peaks grid
+  document.getElementById('peaksGrid').innerHTML = SKILL_PEAKS.map(p => `
+    <div class="peak-card">
+      <div class="pk-skill">${p.skill}</div>
+      <div class="pk-peak">${p.peak}</div>
+      <div class="pk-why">${p.why}</div>
+    </div>
+  `).join('');
+
+  // Timeline
+  const tlYears = Math.min(yLeft, 50);
+  const segments = [];
+  const milestones = [5, 10, 20, 30];
+  milestones.forEach(m => {
+    if (m <= tlYears) {
+      const yr = THIS_YEAR + m;
+      segments.push(`<span style="color:var(--green);font-weight:700">${yr}</span> (+${m}yr)`);
+    }
+  });
+  document.getElementById('timelineContent').innerHTML = `
+    <div class="timeline-bar">
+      <div class="timeline-fill" style="width:${Math.min(100, (yLeft / le) * 100)}%"></div>
+    </div>
+    <div class="timeline-labels">
+      <span>Today (${THIS_YEAR})</span>
+      <span style="color:var(--green)">${fmt(yLeft)} years left</span>
+      <span>${deathYear} (est.)</span>
+    </div>
+    <p style="margin-top:14px;font-size:.82em;color:var(--muted);line-height:1.7">
+      Milestones ahead: ${segments.length ? segments.join(' · ') : 'every day counts'}.
+      That is ${fmt(weekendsLeft)} weekend mornings where something significant could happen.
+      ${summersKids !== null ? `About <strong style="color:var(--orange)">${Math.max(0,summersKids)} summers</strong> with your children still at home.` : ''}
+    </p>
+  `;
+
+  document.getElementById('results').style.display = 'block';
+  document.getElementById('positive').style.display = 'none';
+
+  setTimeout(() => {
+    document.getElementById('results').scrollIntoView({behavior:'smooth',block:'start'});
+  }, 100);
+}
+
+function showPositive() {
+  const pos = document.getElementById('positive');
+  pos.style.display = 'block';
+  setTimeout(() => pos.scrollIntoView({behavior:'smooth',block:'start'}), 50);
+}
+</script>
+</body>
+</html>
