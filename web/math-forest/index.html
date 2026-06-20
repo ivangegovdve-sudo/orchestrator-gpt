@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Math Forest</title>
+  <style>
+    :root {
+      --bg: #07130f;
+      --panel: #10231c;
+      --panel-soft: #142d24;
+      --border: #2d5748;
+      --text: #f3fbf7;
+      --muted: #a8c5b7;
+      --leaf: #35d07f;
+      --gold: #f4c95d;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--text);
+      background:
+        linear-gradient(180deg, rgba(53, 208, 127, 0.14), transparent 38%),
+        radial-gradient(circle at 80% 18%, rgba(244, 201, 93, 0.14), transparent 28%),
+        var(--bg);
+      font-family: "Segoe UI", system-ui, sans-serif;
+    }
+
+    main {
+      width: min(1000px, calc(100vw - 32px));
+      margin: 0 auto;
+      padding: 32px 0 48px;
+    }
+
+    .top {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      align-items: center;
+      margin-bottom: 28px;
+    }
+
+    a { color: var(--leaf); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(36px, 6vw, 72px);
+      line-height: 0.95;
+      letter-spacing: 0;
+    }
+
+    .lead {
+      max-width: 720px;
+      margin: 18px 0 28px;
+      color: var(--muted);
+      font-size: 18px;
+      line-height: 1.6;
+    }
+
+    .stage {
+      border: 1px solid var(--border);
+      background: rgba(16, 35, 28, 0.9);
+      border-radius: 8px;
+      min-height: 420px;
+      padding: 24px;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.32);
+    }
+
+    .trees {
+      position: absolute;
+      inset: auto 0 0;
+      height: 160px;
+      background:
+        linear-gradient(135deg, transparent 50%, rgba(53, 208, 127, 0.22) 51%) 0 0 / 90px 90px,
+        linear-gradient(225deg, transparent 50%, rgba(53, 208, 127, 0.18) 51%) 0 20px / 110px 110px;
+      opacity: 0.9;
+    }
+
+    .equation {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(54px, 96px));
+      gap: 12px;
+      align-items: center;
+      margin-top: 28px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .cell {
+      border: 1px solid var(--border);
+      background: var(--panel-soft);
+      border-radius: 8px;
+      min-height: 84px;
+      display: grid;
+      place-items: center;
+      font-size: 38px;
+      font-weight: 800;
+      color: var(--gold);
+    }
+
+    .status {
+      color: var(--leaf);
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .blocked {
+      position: relative;
+      z-index: 1;
+      margin-top: 28px;
+      max-width: 680px;
+      padding: 14px 16px;
+      border: 1px solid rgba(244, 201, 93, 0.34);
+      background: rgba(244, 201, 93, 0.10);
+      color: #f8dfa2;
+      border-radius: 8px;
+      line-height: 1.5;
+    }
+
+    @media (max-width: 720px) {
+      .top { align-items: flex-start; flex-direction: column; }
+      .equation { grid-template-columns: repeat(5, minmax(42px, 1fr)); }
+      .cell { min-height: 62px; font-size: 28px; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <div class="top">
+      <a href="/index.html">Back to Forest HUB</a>
+      <span class="status">Rebuild tracked here</span>
+    </div>
+
+    <h1>Math Forest</h1>
+    <p class="lead">
+      Dedicated page for Math Forest. Original working app appears unavailable, so this route stays reserved while the rebuild happens.
+    </p>
+
+    <section class="stage">
+      <h2>Game Mount Point</h2>
+      <div class="equation" aria-label="Math Forest preview equation">
+        <div class="cell">7</div>
+        <div class="cell">+</div>
+        <div class="cell">5</div>
+        <div class="cell">=</div>
+        <div class="cell">?</div>
+      </div>
+      <div class="blocked">
+        Keep this page. Do not drop Math Forest from the hub. Next rebuild can mount playable game files here without changing public route.
+      </div>
+      <div class="trees" aria-hidden="true"></div>
+    </section>
+  </main>
+</body>
+</html>

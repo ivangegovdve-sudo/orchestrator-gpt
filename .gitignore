@@ -18,6 +18,7 @@ build/
 tmp/
 temp/
 .cache/
+vercel-public/
 .DS_Store
 .codex/config.toml
 
@@ -27,3 +28,4 @@ checkpoints/
 
 # Local media memory store
 media-memory/
+.vercel
