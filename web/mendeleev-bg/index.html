@@ -3,17 +3,67 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Интерактивна Периодична Таблица</title>
+<title>Интерактивна Периодична Таблица / Interactive Periodic Table</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{background:#040c14;color:#a0e8ff;font-family:'Segoe UI',Tahoma,sans-serif;min-height:100vh;overflow-x:auto}
 h1{text-align:center;padding:16px 10px 2px;font-size:1.7em;color:#00d4ff;text-shadow:0 0 20px #00d4ff,0 0 40px #0088aa;letter-spacing:3px}
-.subtitle{text-align:center;color:#4a9ebb;margin-bottom:6px;font-size:.85em;letter-spacing:1px}
+.subtitle{text-align:center;color:#4a9ebb;margin-bottom:12px;font-size:.85em;letter-spacing:1px}
 
-/* ── Compound bar ─────────────────────────── */
+/* ── Search & Language Header ────────────── */
+.control-header {
+  display: flex;
+  gap: 12px;
+  width: 100%;
+  max-width: 600px;
+  justify-content: center;
+  margin: 0 auto 12px;
+  padding: 0 15px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+#searchInput {
+  background: rgba(0, 12, 20, 0.7);
+  border: 1px solid rgba(0, 212, 255, 0.4);
+  border-radius: 6px;
+  padding: 8px 14px;
+  color: #a0e8ff;
+  outline: none;
+  font-size: 0.82em;
+  transition: all 0.3s;
+  box-shadow: 0 0 10px rgba(0, 212, 255, 0.1);
+  width: 290px;
+}
+#searchInput:focus {
+  border-color: #00d4ff;
+  box-shadow: 0 0 15px rgba(0, 212, 255, 0.35);
+  background: rgba(0, 20, 35, 0.85);
+}
+#langBtn {
+  background: rgba(0, 212, 255, 0.08);
+  border: 1px solid #00d4ff;
+  color: #00d4ff;
+  padding: 7px 14px;
+  cursor: pointer;
+  font-size: 0.75em;
+  border-radius: 6px;
+  transition: all 0.3s;
+  font-weight: bold;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  text-shadow: 0 0 5px rgba(0, 212, 255, 0.5);
+  box-shadow: 0 0 8px rgba(0, 212, 255, 0.1);
+}
+#langBtn:hover {
+  background: #00d4ff;
+  color: #040c14;
+  box-shadow: 0 0 15px #00d4ff;
+}
+
+/* ── Compound bar ────────────────────────── */
 .compound-bar{display:flex;flex-wrap:wrap;gap:5px;justify-content:center;padding:6px 20px 10px;border-bottom:1px solid rgba(0,212,255,.1)}
-.compound-bar label{font-size:.68em;opacity:.5;width:100%;text-align:center;letter-spacing:2px;text-transform:uppercase;margin-bottom:2px}
-.cbtn{background:rgba(0,212,255,.06);border:1px solid rgba(0,212,255,.2);color:#80d4f0;padding:4px 10px;font-size:.75em;cursor:pointer;transition:all .2s;white-space:nowrap}
+.compound-bar label{font-size:.68em;opacity:.5;width:100%;text-align:center;letter-spacing:2px;text-transform:uppercase;margin-bottom:4px}
+.cbtn{background:rgba(0,212,255,.06);border:1px solid rgba(0,212,255,.2);color:#80d4f0;padding:4px 10px;font-size:.75em;cursor:pointer;transition:all .2s;white-space:nowrap;border-radius:4px}
 .cbtn:hover{background:rgba(0,212,255,.15);border-color:#00d4ff;color:#00d4ff}
 .cbtn.active{background:rgba(0,212,255,.22);border-color:#00d4ff;color:#00d4ff;box-shadow:0 0 8px rgba(0,212,255,.3)}
 .cbtn.reset{border-color:rgba(255,100,100,.3);color:#ff8888}
@@ -22,7 +72,7 @@ h1{text-align:center;padding:16px 10px 2px;font-size:1.7em;color:#00d4ff;text-sh
 /* ── Table ───────────────────────────────── */
 .pt-wrap{display:flex;justify-content:center;overflow-x:auto;padding:0 10px}
 .pt-grid{display:grid;grid-template-columns:repeat(18,50px);grid-template-rows:repeat(10,50px);gap:2px;padding:10px}
-.el{width:50px;height:50px;border:1px solid currentColor;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;background:rgba(0,0,0,.4);overflow:hidden;transition:opacity .3s,filter .3s}
+.el{width:50px;height:50px;border:1px solid currentColor;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;background:rgba(0,0,0,.4);overflow:hidden;transition:opacity .3s,filter .3s,box-shadow 0.3s}
 .el:hover{z-index:20}
 .el .n{font-size:7px;opacity:.55;line-height:1;align-self:flex-start;padding:2px 0 0 3px;cursor:pointer;transition:opacity .2s,color .2s;position:relative;z-index:2}
 .el .n:hover{opacity:1;color:#fff;text-decoration:underline dotted}
@@ -34,16 +84,31 @@ h1{text-align:center;padding:16px 10px 2px;font-size:1.7em;color:#00d4ff;text-sh
 .el.alkali{color:#ff6b35}.el.alkaline{color:#ffd700}.el.transition{color:#00d4ff}
 .el.post{color:#7ab8f5}.el.metalloid{color:#00ff88}.el.nonmetal{color:#ff3399}
 .el.halogen{color:#ff8c42}.el.noble{color:#bf7fff}.el.lanthanide{color:#a8ff72}
-.el.actinide{color:#ff4d6d}.el.unknown{color:#666}
+.el.actinide{color:#ff4d6d}.el.unknown{color:#888}
 .el.spacer{border:none;background:none;cursor:default;pointer-events:none}
-/* compound dimming */
-.compound-on .el{opacity:.18;filter:grayscale(.8)}
-.compound-on .el.lit{opacity:1;filter:none;box-shadow:0 0 12px currentColor}
-.compound-on .el.spacer{opacity:0;filter:none}
+
+/* Dimming/filtering states */
+.compound-on .el, .legend-on .el, .search-on .el {
+  opacity: .15;
+  filter: grayscale(.85);
+}
+.compound-on .el.lit, .legend-on .el.lit, .search-on .el.search-match {
+  opacity: 1;
+  filter: none;
+  box-shadow: 0 0 12px currentColor;
+  z-index: 5;
+}
+.compound-on .el.spacer, .legend-on .el.spacer, .search-on .el.spacer {
+  opacity: 0;
+  filter: none;
+}
 
 /* ── Legend ─────────────────────────────── */
 .legend{display:flex;flex-wrap:wrap;gap:7px;justify-content:center;padding:6px 20px 10px;font-size:.7em}
-.leg{display:flex;align-items:center;gap:4px}
+.leg{display:flex;align-items:center;gap:4px;cursor:pointer;padding:3px 6px;border-radius:4px;border:1px solid transparent;transition:all 0.2s;user-select:none}
+.leg:hover{background:rgba(0,212,255,0.08);border-color:rgba(0,212,255,0.15)}
+.leg.active{background:rgba(0,212,255,0.15);border-color:currentColor;box-shadow:0 0 6px currentColor}
+.leg.active .leg-sq{background:currentColor}
 .leg-sq{width:10px;height:10px;border:2px solid currentColor}
 .leg span{opacity:.75}
 
@@ -84,17 +149,14 @@ h1{text-align:center;padding:16px 10px 2px;font-size:1.7em;color:#00d4ff;text-sh
 .stitle{font-size:.73em;letter-spacing:2px;text-transform:uppercase;opacity:.45;margin-bottom:7px;padding-bottom:4px;border-bottom:1px solid rgba(255,255,255,.07)}
 .stext{font-size:.87em;line-height:1.8;color:#b8e4f4}
 .apps{display:flex;flex-wrap:wrap;gap:5px}
-.atag{background:rgba(0,212,255,.06);border:1px solid rgba(0,212,255,.2);padding:3px 9px;font-size:.78em;color:#88ccee}
+.atag{background:rgba(0,212,255,.06);border:1px solid rgba(0,212,255,.2);padding:3px 9px;font-size:.78em;color:#88ccee;border-radius:3px}
 .diy-list{list-style:none;display:flex;flex-direction:column;gap:6px}
 .diy-list li{padding:8px 12px;background:rgba(0,255,136,.04);border:1px solid rgba(0,255,136,.18);border-left:3px solid #00ff88;font-size:.84em;line-height:1.6;color:#a8eece}
 .diy-list li strong{color:#00ff88;display:block;margin-bottom:2px;font-size:.9em}
 
 /* ── DYK section ────────────────────────── */
-.dyk{background:rgba(160,100,255,.05);border:1px solid rgba(160,100,255,.25);padding:12px;margin-bottom:16px}
+.dyk{background:rgba(160,100,255,.05);border:1px solid rgba(160,100,255,.25);padding:12px;margin-bottom:16px;border-radius:6px}
 .dyk-ttl{color:#bf7fff;font-size:.72em;letter-spacing:2px;text-transform:uppercase;margin-bottom:8px}
-.wfwrap{position:relative;margin-bottom:6px}
-.wfart{width:100%;height:80px;display:block}
-.wf-caption{font-size:.7em;opacity:.45;text-align:center;font-style:italic;margin-bottom:8px}
 .dyk-text{font-size:.84em;line-height:1.75;color:#ccb8f8}
 
 /* ── Links ──────────────────────────────── */
@@ -110,14 +172,27 @@ h1{text-align:center;padding:16px 10px 2px;font-size:1.7em;color:#00d4ff;text-sh
 .mini-overlay{display:none;position:fixed;inset:0;z-index:2000;align-items:center;justify-content:center}
 .mini-overlay.on{display:flex}
 .mini-bg{position:absolute;inset:0;background:rgba(2,10,18,.75);backdrop-filter:blur(4px)}
-.mini-modal{background:#07111d;border:1px solid #ffd700;box-shadow:0 0 30px rgba(255,215,0,.2);max-width:460px;width:92vw;padding:20px;position:relative;z-index:1}
+.mini-modal{background:#07111d;border:1px solid #ffd700;box-shadow:0 0 30px rgba(255,215,0,.2);max-width:460px;width:92vw;padding:20px;position:relative;z-index:1;border-radius:8px}
 .mini-modal.blue{border-color:#00d4ff;box-shadow:0 0 30px rgba(0,212,255,.2)}
 .mini-modal h3{font-size:1.1em;margin-bottom:10px}
 .mini-modal p{font-size:.88em;line-height:1.8;color:#c0e8f4;margin-bottom:8px}
-.mini-modal .diagram{width:100%;height:90px;margin:10px 0}
 .mini-xbtn{position:absolute;top:10px;right:10px;background:none;border:1px solid #ffd70044;color:#ffd700;width:24px;height:24px;cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center}
 .mini-xbtn.blue{border-color:#00d4ff44;color:#00d4ff}
-.mini-xbtn:hover{background:currentColor}
+.mini-xbtn:hover{background:currentColor;color:#07111d}
+
+/* Bohr simulator specific animation */
+@keyframes vibrate {
+  0% { transform: translate(0, 0) scale(1); }
+  20% { transform: translate(-0.5px, 0.5px) scale(0.98); }
+  40% { transform: translate(0.5px, -0.5px) scale(1.02); }
+  60% { transform: translate(-0.5px, -0.5px) scale(1); }
+  80% { transform: translate(0.5px, 0.5px) scale(0.99); }
+  100% { transform: translate(0, 0) scale(1); }
+}
+.nucleus {
+  transform-origin: 160px 90px;
+  animation: vibrate 0.25s linear infinite;
+}
 
 @media(max-width:600px){
   .mbody{flex-direction:column}
@@ -126,37 +201,22 @@ h1{text-align:center;padding:16px 10px 2px;font-size:1.7em;color:#00d4ff;text-sh
 </style>
 </head>
 <body>
-<h1>⚗ ПЕРИОДИЧНА ТАБЛИЦА ⚗</h1>
+<div class="control-header" style="margin-top: 16px;">
+  <h1 style="padding: 0; text-align: left;">⚗ ПЕРИОДИЧНА ТАБЛИЦА ⚗</h1>
+  <div style="flex: 1;"></div>
+  <button id="langBtn" onclick="toggleLanguage()">EN</button>
+</div>
 <div class="subtitle">Кликни на символа за елемент · Кликни на числото за обяснение · За деца от 8 до 10 години</div>
 
-<!-- Compound bar -->
-<div class="compound-bar">
-  <label>🔬 Маркирай елементите в:</label>
-  <button class="cbtn" onclick="activateCompound('water')">💧 Вода H₂O</button>
-  <button class="cbtn" onclick="activateCompound('salt')">🧂 Сол NaCl</button>
-  <button class="cbtn" onclick="activateCompound('co2')">🌿 Въглерод CO₂</button>
-  <button class="cbtn" onclick="activateCompound('sugar')">🍬 Захар</button>
-  <button class="cbtn" onclick="activateCompound('bones')">🦴 Кости</button>
-  <button class="cbtn" onclick="activateCompound('steel')">🔩 Стомана</button>
-  <button class="cbtn" onclick="activateCompound('diamond')">💎 Диамант</button>
-  <button class="cbtn" onclick="activateCompound('seawater')">🌊 Морска вода</button>
-  <button class="cbtn" onclick="activateCompound('battery')">🔋 Li батерия</button>
-  <button class="cbtn" onclick="activateCompound('aspirin')">💊 Аспирин</button>
-  <button class="cbtn reset" onclick="clearCompound()">✕ Изчисти</button>
+<div class="control-header" style="margin-bottom: 8px;">
+  <input type="text" id="searchInput" placeholder="🔍 Търси елемент (напр. Водород, Li, 1)..." oninput="handleSearch()" />
 </div>
 
-<div class="legend">
-  <div class="leg alkali"><div class="leg-sq"></div><span>Алкален метал</span></div>
-  <div class="leg alkaline"><div class="leg-sq"></div><span>Алкалоземен</span></div>
-  <div class="leg transition"><div class="leg-sq"></div><span>Преходен метал</span></div>
-  <div class="leg post"><div class="leg-sq"></div><span>Постпреходен</span></div>
-  <div class="leg metalloid"><div class="leg-sq"></div><span>Металоид</span></div>
-  <div class="leg nonmetal"><div class="leg-sq"></div><span>Неметал</span></div>
-  <div class="leg halogen"><div class="leg-sq"></div><span>Халоген</span></div>
-  <div class="leg noble"><div class="leg-sq"></div><span>Благороден газ</span></div>
-  <div class="leg lanthanide"><div class="leg-sq"></div><span>Лантанид</span></div>
-  <div class="leg actinide"><div class="leg-sq"></div><span>Актинид</span></div>
-</div>
+<!-- Compound bar -->
+<div class="compound-bar" id="compoundBar"></div>
+
+<!-- Legend Container -->
+<div class="legend" id="legendContainer"></div>
 
 <div class="pt-wrap"><div class="pt-grid" id="ptGrid"></div></div>
 
@@ -179,53 +239,239 @@ h1{text-align:center;padding:16px 10px 2px;font-size:1.7em;color:#00d4ff;text-sh
 </div>
 
 <script>
-// ── Compounds ─────────────────────────────────────────────────────────────
-const COMPOUNDS={
-  water:{name:'Вода (H₂O)',nums:[1,8],desc:'Водата е от водород и кислород. Два водородни атома + един кислороден атом.'},
-  salt:{name:'Трапезна сол (NaCl)',nums:[11,17],desc:'Натриев хлорид — натрий + хлор. Тя е в морето и в солницата ти.'},
-  co2:{name:'Въглероден диоксид (CO₂)',nums:[6,8],desc:'Въглерод + кислород. Ти издишваш CO₂, а растенията го поглъщат.'},
-  sugar:{name:'Захар / Глюкоза (C₆H₁₂O₆)',nums:[6,1,8],desc:'Захарта е само въглерод, водород и кислород — наредени по специален начин.'},
-  bones:{name:'Кости (Ca₃(PO₄)₂)',nums:[20,15,8],desc:'Костите ти са от калций, фосфор и кислород. Пийте мляко!'},
-  steel:{name:'Стомана (Fe + C)',nums:[26,6],desc:'Стоманата е желязо с малко въглерод вътре. Прави го много по-твърдо.'},
-  diamond:{name:'Диамант (C)',nums:[6],desc:'Диамантът е само въглерод! Но атомите са наредени в специална кубична решетка.'},
-  seawater:{name:'Морска вода',nums:[1,8,11,17,12,19,20],desc:'Морската вода съдържа много елементи: вода (H,O), сол (Na,Cl), магнезий, калий, калций и още много.'},
-  battery:{name:'Li-йонна батерия',nums:[3,27,8],desc:'Батерията на телефона ти използва литий, кобалт и кислород за да съхранява ток.'},
-  aspirin:{name:'Аспирин (C₉H₈O₄)',nums:[6,1,8],desc:'Аспиринът е само въглерод, водород и кислород — но наредени по специален начин.'}
+// ── Translations ──────────────────────────────────────────────────────────
+const TRANSLATIONS = {
+  bg: {
+    title: '⚗ ПЕРИОДИЧНА ТАБЛИЦА ⚗',
+    subtitle: 'Кликни на символа за елемент · Кликни на числото за обяснение · За деца от 8 до 10 години',
+    compoundsLabel: 'Маркирай елементите в:',
+    searchPlaceholder: '🔍 Търси елемент (напр. Водород, Li, 1)...',
+    clearBtn: '✕ Изчисти',
+    atomicNumTitle: '⚛ Атомен модел и номер:',
+    atomicMassTitle: '⚖ Атомна маса:',
+    period: 'Период (ред)',
+    group: 'Група (колона)',
+    state: 'Агрегатно',
+    category: 'Категория',
+    knowMore: '🔗 Научи повече',
+    dykTitle: '🔭 Знаеш ли, че...',
+    historyTitle: '📜 История на откритието',
+    factsTitle: '⚡ Факти',
+    whereTitle: '🌍 Намира се в',
+    appsTitle: '🏭 Приложения',
+    diyTitle: '🧪 Домашни опити',
+    glyTitle: '📖 Речник:',
+    uText: 'u',
+    atomicNumLabel: 'Атомен номер',
+    atomicMassLabel: 'Атомна маса',
+    configText: 'Електронни слоеве:'
+  },
+  en: {
+    title: '⚗ PERIODIC TABLE ⚗',
+    subtitle: 'Click element symbol for details · Click number for explanation · For kids aged 8-10',
+    compoundsLabel: 'Highlight elements in:',
+    searchPlaceholder: '🔍 Search element (e.g. Hydrogen, Li, 1)...',
+    clearBtn: '✕ Clear',
+    atomicNumTitle: '⚛ Atomic Model & Number:',
+    atomicMassTitle: '⚖ Atomic Mass:',
+    period: 'Period (row)',
+    group: 'Group (col)',
+    state: 'State of Matter',
+    category: 'Category',
+    knowMore: '🔗 Learn more',
+    dykTitle: '🔭 Did you know...',
+    historyTitle: '📜 Discovery History',
+    factsTitle: '⚡ Quick Facts',
+    whereTitle: '🌍 Found in',
+    appsTitle: '🏭 Applications',
+    diyTitle: '🧪 DIY Home Experiments',
+    glyTitle: '📖 Glossary:',
+    uText: 'u',
+    atomicNumLabel: 'Atomic Number',
+    atomicMassLabel: 'Atomic Mass',
+    configText: 'Electron shells:'
+  }
 };
-let activeCompound=null;
-function activateCompound(key){
-  if(activeCompound===key){clearCompound();return;}
-  activeCompound=key;
-  const c=COMPOUNDS[key];
-  document.querySelectorAll('.cbtn').forEach(b=>b.classList.remove('active'));
-  document.querySelector(`[onclick="activateCompound('${key}')"]`).classList.add('active');
-  document.getElementById('ptGrid').classList.add('compound-on');
-  document.querySelectorAll('.el').forEach(el=>{
-    const n=parseInt(el.dataset.num);
-    if(c.nums.includes(n)) el.classList.add('lit'); else el.classList.remove('lit');
+
+let currentLang = 'bg';
+
+// ── Compounds (100% element coverage) ──────────────────────────────────────
+const COMPOUNDS = {
+  water: {
+    bg: { emoji: '💧', name: 'Вода H₂O', nums: [1, 8], desc: 'Водата е от водород и кислород. Два водородни атома + един кислороден атом.' },
+    en: { emoji: '💧', name: 'Water H₂O', nums: [1, 8], desc: 'Water is made of hydrogen and oxygen. Two hydrogen atoms and one oxygen atom.' }
+  },
+  salt: {
+    bg: { emoji: '🧂', name: 'Сол NaCl', nums: [11, 17], desc: 'Натриев хлорид (трапезна сол) — натрий + хлор. Има я в морето!' },
+    en: { emoji: '🧂', name: 'Salt NaCl', nums: [11, 17], desc: 'Sodium chloride (table salt) — sodium + chlorine. Found in the sea!' }
+  },
+  co2: {
+    bg: { emoji: '🌿', name: 'Въглероден диоксид CO₂', nums: [6, 8], desc: 'Въглерод + кислород. Растенията го дишат, а ние го издишваме!' },
+    en: { emoji: '🌿', name: 'Carbon Dioxide CO₂', nums: [6, 8], desc: 'Carbon + oxygen. Plants breathe it in, and we breathe it out!' }
+  },
+  sugar: {
+    bg: { emoji: '🍬', name: 'Захар C₆H₁₂O₆', nums: [6, 1, 8], desc: 'Сладката захар е съставена само от въглерод, водород и кислород, подредени по специален начин!' },
+    en: { emoji: '🍬', name: 'Sugar C₆H₁₂O₆', nums: [6, 1, 8], desc: 'Sweet sugar is made entirely of carbon, hydrogen, and oxygen, arranged in a special shape!' }
+  },
+  bones: {
+    bg: { emoji: '🦴', name: 'Зъби и Кости', nums: [20, 15, 8, 9, 12], desc: 'Калций, фосфор, кислород, магнезий и флуор изграждат здравите ни зъби и кости.' },
+    en: { emoji: '🦴', name: 'Teeth & Bones', nums: [20, 15, 8, 9, 12], desc: 'Calcium, phosphorus, oxygen, magnesium, and fluorine build our strong bones and teeth.' }
+  },
+  soap: {
+    bg: { emoji: '🧼', name: 'Сапун', nums: [6, 1, 8, 11, 19], desc: 'Сапунът е смес от въглерод, водород, кислород, натрий и калий. Той отмива мръсотията!' },
+    en: { emoji: '🧼', name: 'Soap', nums: [6, 1, 8, 11, 19], desc: 'Soap is a mix of carbon, hydrogen, oxygen, sodium, and potassium. It locks dirt away and washes it off!' }
+  },
+  sand: {
+    bg: { emoji: '⏳', name: 'Пясък и Стъкло', nums: [14, 8], desc: 'Силициев диоксид (пясък) — силиций и кислород. При загряване той се превръща в стъкло!' },
+    en: { emoji: '⏳', name: 'Sand & Glass', nums: [14, 8], desc: 'Silicon dioxide (sand) — silicon and oxygen. When heated to high temperatures, it melts into clear glass!' }
+  },
+  rust: {
+    bg: { emoji: '🛡️', name: 'Ръжда Fe₂O₃', nums: [26, 8], desc: 'Червената ръжда се получава, когато желязото се съедини с кислорода от влажния въздух!' },
+    en: { emoji: '🛡️', name: 'Rust Fe₂O₃', nums: [26, 8], desc: 'Red rust forms when iron combines with oxygen in damp air!' }
+  },
+  steel: {
+    bg: { emoji: '🔩', name: 'Стомана', nums: [26, 6, 25, 24, 28], desc: 'Много твърда сплав от желязо, въглерод, манган, хром и никел. От нея се правят мостове!' },
+    en: { emoji: '🔩', name: 'Steel', nums: [26, 6, 25, 24, 28], desc: 'A super-hard alloy of iron, carbon, manganese, chromium, and nickel. Used to build bridges!' }
+  },
+  smartphone: {
+    bg: { emoji: '📱', name: 'Смартфон', nums: [3, 27, 8, 29, 13, 14, 49, 50, 39, 63, 65, 60, 26, 5, 31, 33], desc: 'Литий, кобалт, мед, алуминий, силиций, индий, калай, редкоземни метали и други!' },
+    en: { emoji: '📱', name: 'Smartphone', nums: [3, 27, 8, 29, 13, 14, 49, 50, 39, 63, 65, 60, 26, 5, 31, 33], desc: 'Lithium, cobalt, copper, aluminum, silicon, indium, tin, rare-earth metals, and more!' }
+  },
+  brass: {
+    bg: { emoji: '🚪', name: 'Месинг и Бронз', nums: [29, 30, 50], desc: 'Сплави от мед, цинк и калай за златни дръжки на врати, медали и тромпети!' },
+    en: { emoji: '🚪', name: 'Brass & Bronze', nums: [29, 30, 50], desc: 'Alloys of copper, zinc, and tin. Used for doorknobs, medals, and shiny trumpets!' }
+  },
+  battery: {
+    bg: { emoji: '🔋', name: 'Батерия', nums: [30, 25, 8, 19], desc: 'Обикновената алкална батерия използва цинк, манган, кислород и калий, за да прави ток!' },
+    en: { emoji: '🔋', name: 'Battery', nums: [30, 25, 8, 19], desc: 'A standard alkaline battery uses zinc, manganese, oxygen, and potassium to produce electricity!' }
+  },
+  rocket: {
+    bg: { emoji: '🚀', name: 'Космическа ракета', nums: [22, 13, 23, 1, 8, 2, 7], desc: 'Титанов корпус, течен водороден двигател и хелий за налягане!' },
+    en: { emoji: '🚀', name: 'Space Rocket', nums: [22, 13, 23, 1, 8, 2, 7], desc: 'Titanium body, powered by liquid hydrogen and oxygen fuel, pressurized with helium!' }
+  },
+  meteorite: {
+    bg: { emoji: '☄️', name: 'Метеорит', nums: [26, 28, 27, 15, 77, 78, 44, 45, 46, 79], desc: 'Космически камък! Съдържа желязо, никел, кобалт, платина, иридий, рутений, родий, паладий и злато.' },
+    en: { emoji: '☄️', name: 'Meteorite', nums: [26, 28, 27, 15, 77, 78, 44, 45, 46, 79], desc: 'A rock from deep space! Made of iron-nickel alloy with trace cosmic metals like platinum, iridium, and gold.' }
+  },
+  vitamins: {
+    bg: { emoji: '💊', name: 'Мултивитамини', nums: [20, 12, 26, 30, 29, 25, 24, 42, 34, 53, 27], desc: 'Калций, магнезий, желязо, цинк, мед, манган, хром, молибден, селен, йод и кобалт!' },
+    en: { emoji: '💊', name: 'Multivitamins', nums: [20, 12, 26, 30, 29, 25, 24, 42, 34, 53, 27], desc: 'A healthy dose of trace minerals: calcium, magnesium, iron, zinc, copper, manganese, chromium, and iodine!' }
+  },
+  banana: {
+    bg: { emoji: '🍌', name: 'Банан', nums: [19, 6, 1, 8, 7, 15, 16], desc: 'Бананите са богати на калий! Те също така съдържат въглерод, водород, азот и фосфор.' },
+    en: { emoji: '🍌', name: 'Banana', nums: [19, 6, 1, 8, 7, 15, 16], desc: 'Bananas are famous for being super rich in potassium! They also contain carbon, hydrogen, and phosphorus.' }
+  },
+  soda_can: {
+    bg: { emoji: '🥤', name: 'Кенче за сода', nums: [13, 12, 25, 14, 26], desc: 'Лека кутийка, направена от алуминий, магнезий, манган, силиций и желязо за здравина!' },
+    en: { emoji: '🥤', name: 'Soda Can', nums: [13, 12, 25, 14, 26], desc: 'A lightweight can made of aluminum, mixed with magnesium, manganese, silicon, and iron!' }
+  },
+  light_bulb: {
+    bg: { emoji: '💡', name: 'Светлини и лампи', nums: [10, 74, 53, 35, 54, 36, 18], desc: 'Неонова реклама (Ne), волфрамова жичка (W), халогенни газове (I, Br) и благородни газове (Xe, Kr, Ar)!' },
+    en: { emoji: '💡', name: 'Lights & Bulbs', nums: [10, 74, 53, 35, 54, 36, 18], desc: 'Neon signs (Ne), tungsten filament (W), halogen gases (I, Br), and noble gases (Xe, Kr, Ar)!' }
+  },
+  disinfectant: {
+    bg: { emoji: '🧪', name: 'Дезинфектант', nums: [1, 8, 6, 53, 17, 35, 47], desc: 'Почистващи средства с водород, кислород, йод, хлор, бром и сребърни наночастици!' },
+    en: { emoji: '🧪', name: 'Antiseptic & Cleaners', nums: [1, 8, 6, 53, 17, 35, 47], desc: 'Cleaners made of hydrogen, oxygen, carbon, iodine, chlorine, bromine, and silver!' }
+  },
+  matchstick: {
+    bg: { emoji: '🪵', name: 'Кибрит', nums: [15, 16, 19, 17, 8], desc: 'Дървено клечка с червен фосфор, сяра, калий, хлор и кислород на главата!' },
+    en: { emoji: '🪵', name: 'Matchstick', nums: [15, 16, 19, 17, 8], desc: 'A wooden stick tipped with red phosphorus, sulfur, potassium, chlorine, and oxygen to start fire!' }
+  },
+  teflon: {
+    bg: { emoji: '🍳', name: 'Тефлонов тиган', nums: [6, 9], desc: 'Хлъзгаво пластмасово покритие от въглерод и флуор, за да не залепват палачинките!' },
+    en: { emoji: '🍳', name: 'Teflon Pan', nums: [6, 9], desc: 'Slick plastic (polymer) made of carbon and fluorine that keeps your food from sticking!' }
+  },
+  battery_lead: {
+    bg: { emoji: '🚗', name: 'Акумулатор', nums: [82, 1, 16, 8], desc: 'Тежка оловна акумулаторна батерия за кола, пълна с олово, водород, сяра и кислород!' },
+    en: { emoji: '🚗', name: 'Car Battery', nums: [82, 1, 16, 8], desc: 'A heavy lead-acid battery that starts your car, packed with lead, hydrogen, sulfur, and oxygen!' }
+  },
+  rare_earth_mix: {
+    bg: { emoji: '🔮', name: 'Редки земни елементи', nums: [57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 21, 39], desc: 'Всички 15 лантанида плюс скандий и итрий, използвани в лазери, магнити и оптични лещи!' },
+    en: { emoji: '🔮', name: 'Rare Earth Elements', nums: [57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 21, 39], desc: 'The Lanthanides plus scandium and yttrium. Essential for lasers, modern magnets, and optic glass!' }
+  },
+  actinides_nuclear: {
+    bg: { emoji: '☢️', name: 'Атомна енергия', nums: [89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100, 101, 102, 103, 82, 5, 48], desc: 'Актиноидите за ядрено гориво и космически батерии, плюс олово за защита, бор и кадмий за контрол!' },
+    en: { emoji: '☢️', name: 'Nuclear Energy & Space', nums: [89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100, 101, 102, 103, 82, 5, 48], desc: 'The Actinides for nuclear fuel, plus shielding lead, control boron, and cadmium!' }
+  },
+  geothermal_springs: {
+    bg: { emoji: '🌋', name: 'Минерални извори', nums: [3, 11, 19, 37, 55, 87, 4, 12, 20, 38, 56, 88, 16, 8, 1, 9, 17, 35, 53], desc: 'Лечебни води с всички алкални и алкалоземни метали и вулканични соли!' },
+    en: { emoji: '🌋', name: 'Geothermal Springs', nums: [3, 11, 19, 37, 55, 87, 4, 12, 20, 38, 56, 88, 16, 8, 1, 9, 17, 35, 53], desc: 'Healing spa waters packed with all alkali and alkaline earth metals plus sulfur and halogens!' }
+  },
+  space_tech: {
+    bg: { emoji: '🛰️', name: 'Космически технологии', nums: [32, 72, 73, 75, 76, 80, 43, 81, 84, 85, 86, 40, 41, 42, 51, 52], desc: 'Ултрамодерни спътници с германий, хафний, тантал, рений, осмий, живак и технеций!' },
+    en: { emoji: '🛰️', name: 'Space Technologies', nums: [32, 72, 73, 75, 76, 80, 43, 81, 84, 85, 86, 40, 41, 42, 51, 52], desc: 'Futuristic satellites! Packed with germanium, hafnium, tantalum, rhenium, osmium, mercury, and technetium!' }
+  },
+  superheavy_lab: {
+    bg: { emoji: '🔬', name: 'Ядрена лаборатория', nums: [104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118, 83, 82, 20, 22, 24, 26, 28, 30], desc: 'Супертежки изкуствени елементи (Z=104 до 118), получени чрез ядрени реакции в ускорители!' },
+    en: { emoji: '🔬', name: 'Superheavy Element Lab', nums: [104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118, 83, 82, 20, 22, 24, 26, 28, 30], desc: 'Superheavy synthetic elements (Z=104 to 118) created by crashing high-speed lighter ions into targets!' }
+  }
+};
+
+function activateCompound(key) {
+  if (activeCompound === key) { clearAllFilters(); return; }
+  clearAllFilters();
+  activeCompound = key;
+  const c = COMPOUNDS[key][currentLang];
+  
+  document.querySelectorAll('.cbtn').forEach(b => {
+    if (b.getAttribute('onclick') === `activateCompound('${key}')`) {
+      b.classList.add('active');
+    } else {
+      b.classList.remove('active');
+    }
+  });
+
+  const grid = document.getElementById('ptGrid');
+  grid.classList.add('compound-on');
+  
+  const nums = COMPOUNDS[key].bg.nums;
+  document.querySelectorAll('.el').forEach(el => {
+    const n = parseInt(el.dataset.num);
+    if (nums.includes(n)) {
+      el.classList.add('lit');
+    } else {
+      el.classList.remove('lit');
+    }
   });
 }
-function clearCompound(){
-  activeCompound=null;
-  document.querySelectorAll('.cbtn').forEach(b=>b.classList.remove('active'));
+
+function clearCompound() {
+  activeCompound = null;
+  document.querySelectorAll('.cbtn').forEach(b => b.classList.remove('active'));
   document.getElementById('ptGrid').classList.remove('compound-on');
-  document.querySelectorAll('.el').forEach(el=>el.classList.remove('lit'));
+  document.querySelectorAll('.el').forEach(el => el.classList.remove('lit'));
 }
 
 // ── SVG wireframe art ─────────────────────────────────────────────────────
-const ART_CAPTIONS={
-  atom:'Атомна структура: електрони, въртящи се около ядрото',
-  molecule:'Молекулна връзка: два атома, споделящи електрони',
-  crystal:'Кристална решетка: атоми наредени в правилен модел',
-  flame:'Горене: атомите отделят енергия като светлина и топлина',
-  diamond:'Диамантена кристална решетка: въглерод в кубична структура',
-  wave:'Вълнообразно движение: как електромагнитните вълни се разпространяват',
-  gear:'Метална кристална решетка: атомите образуват здрава структура',
-  balloon:'Газово разширение: молекулите се движат в цялото пространство',
-  star:'Ядрен синтез в звездите: откъдето идват тежките елементи',
-  helix:'Двойна спирала: структура на ДНК молекулата (съдържа фосфор)',
-  radiation:'Радиоактивен разпад: ядрото изпраща частици и енергия',
+const ART_CAPTIONS = {
+  bg: {
+    atom:'Атомна структура: електрони, въртящи се около ядрото',
+    molecule:'Молекулна връзка: два атома, споделящи електрони',
+    crystal:'Кристална решетка: атоми наредени в правилен модел',
+    flame:'Горене: атомите отделят енергия как светлина и топлина',
+    diamond:'Диамантена кристална решетка: въглерод в кубична структура',
+    wave:'Вълнообразно движение: как електромагнитните вълни се разпространяват',
+    gear:'Метална кристална решетка: атомите образуват здрава структура',
+    balloon:'Газово разширение: молекулите се движат в цялото пространство',
+    star:'Ядрен синтез в звездите: откъдето идват тежките елементи',
+    helix:'Двойна спирала: структура на ДНК молекулата (съдържа фосфор)',
+    radiation:'Радиоактивен разпад: ядрото изпраща частици и енергия',
+  },
+  en: {
+    atom:'Atomic structure: electrons orbiting a nucleus',
+    molecule:'Molecular bond: two atoms sharing electrons',
+    crystal:'Crystal lattice: atoms arranged in a regular pattern',
+    flame:'Combustion: atoms releasing energy as light and heat',
+    diamond:'Diamond crystal lattice: carbon in a cubic structure',
+    wave:'Wave motion: how electromagnetic waves propagate',
+    gear:'Metallic crystal lattice: atoms forming a strong structure',
+    balloon:'Gas expansion: molecules moving freely in space',
+    star:'Nuclear fusion in stars: where heavy elements come from',
+    helix:'Double helix: DNA molecule structure (contains phosphorus)',
+    radiation:'Radioactive decay: nucleus emitting particles and energy',
+  }
 };
+
 function svgAtom(c){return`<svg class="wfart" viewBox="0 0 320 80" xmlns="http://www.w3.org/2000/svg"><ellipse cx="160" cy="40" rx="70" ry="22" fill="none" stroke="${c}" stroke-width="1" opacity=".6"><animateTransform attributeName="transform" type="rotate" from="0 160 40" to="360 160 40" dur="6s" repeatCount="indefinite"/></ellipse><ellipse cx="160" cy="40" rx="70" ry="22" fill="none" stroke="${c}" stroke-width="1" opacity=".6" transform="rotate(60 160 40)"><animateTransform attributeName="transform" type="rotate" from="60 160 40" to="420 160 40" dur="8s" repeatCount="indefinite"/></ellipse><ellipse cx="160" cy="40" rx="70" ry="22" fill="none" stroke="${c}" stroke-width="1" opacity=".6" transform="rotate(120 160 40)"><animateTransform attributeName="transform" type="rotate" from="120 160 40" to="480 160 40" dur="10s" repeatCount="indefinite"/></ellipse><circle cx="160" cy="40" r="7" fill="none" stroke="${c}" stroke-width="2"/><circle cx="160" cy="40" r="3" fill="${c}" opacity=".8"/><circle r="3" fill="${c}" opacity=".9"><animateMotion dur="6s" repeatCount="indefinite" path="M160,40 m-70,0 a70,22 0 1,0 140,0 a70,22 0 1,0 -140,0"/></circle></svg>`}
 function svgMolecule(c){return`<svg class="wfart" viewBox="0 0 320 80" xmlns="http://www.w3.org/2000/svg"><line x1="120" y1="40" x2="200" y2="40" stroke="${c}" stroke-width="2" opacity=".7"/><line x1="120" y1="37" x2="200" y2="37" stroke="${c}" stroke-width="1" opacity=".3"/><circle cx="92" cy="40" r="22" fill="none" stroke="${c}" stroke-width="1.5" opacity=".7"/><circle cx="228" cy="40" r="22" fill="none" stroke="${c}" stroke-width="1.5" opacity=".7"/><circle cx="92" cy="40" r="6" fill="${c}" opacity=".6"/><circle cx="228" cy="40" r="6" fill="${c}" opacity=".6"/><circle r="3" fill="${c}" opacity=".9"><animate attributeName="cx" values="70;116;70" dur="3s" repeatCount="indefinite"/><animate attributeName="cy" values="26;40;54" dur="3s" repeatCount="indefinite"/></circle></svg>`}
 function svgCrystal(c){return`<svg class="wfart" viewBox="0 0 320 80" xmlns="http://www.w3.org/2000/svg"><g opacity=".7" stroke="${c}" fill="none"><polygon points="160,5 235,42 160,75 85,42" stroke-width="1.5"/><polygon points="160,5 235,42 160,75 85,42" stroke-width="1" opacity=".4" transform="rotate(45 160 40)"/><line x1="160" y1="5" x2="160" y2="75" stroke-width="1" opacity=".3"/><line x1="85" y1="42" x2="235" y2="42" stroke-width="1" opacity=".3"/><circle cx="160" cy="5" r="3" fill="${c}"/><circle cx="235" cy="42" r="3" fill="${c}"/><circle cx="160" cy="75" r="3" fill="${c}"/><circle cx="85" cy="42" r="3" fill="${c}"/><circle cx="160" cy="40" r="4" fill="${c}" opacity=".8"/><animateTransform attributeName="transform" type="rotate" from="0 160 40" to="360 160 40" dur="12s" repeatCount="indefinite"/></g></svg>`}
@@ -237,314 +483,502 @@ function svgBalloon(c){return`<svg class="wfart" viewBox="0 0 320 80" xmlns="htt
 function svgStar(c){return`<svg class="wfart" viewBox="0 0 320 80" xmlns="http://www.w3.org/2000/svg"><polygon points="160,4 170,32 200,32 177,48 186,76 160,60 134,76 143,48 120,32 150,32" fill="none" stroke="${c}" stroke-width="1.5" opacity=".8"><animateTransform attributeName="transform" type="rotate" from="0 160 40" to="360 160 40" dur="14s" repeatCount="indefinite"/></polygon>${[0,45,90,135,180,225,270,315].map(a=>`<line x1="160" y1="40" x2="${160+Math.cos(a*Math.PI/180)*100}" y2="${40+Math.sin(a*Math.PI/180)*40}" stroke="${c}" stroke-width=".5" opacity=".12"/>`).join('')}</svg>`}
 function svgHelix(c){return`<svg class="wfart" viewBox="0 0 320 80" xmlns="http://www.w3.org/2000/svg"><path d="M20,40 Q48,8 76,40 Q104,72 132,40 Q160,8 188,40 Q216,72 244,40 Q272,8 300,40" fill="none" stroke="${c}" stroke-width="2" opacity=".8"/><path d="M20,40 Q48,72 76,40 Q104,8 132,40 Q160,72 188,40 Q216,8 244,40 Q272,72 300,40" fill="none" stroke="${c}" stroke-width="2" opacity=".5"/>${[76,132,188,244].map(x=>`<line x1="${x}" y1="24" x2="${x}" y2="56" stroke="${c}" stroke-width="1.5" opacity=".5"/>`).join('')}</svg>`}
 function svgRadiation(c){return`<svg class="wfart" viewBox="0 0 320 80" xmlns="http://www.w3.org/2000/svg"><circle cx="160" cy="40" r="10" fill="none" stroke="${c}" stroke-width="2" opacity=".8"/><circle cx="160" cy="40" r="26" fill="none" stroke="${c}" stroke-width="1" opacity=".4" stroke-dasharray="5,5"/><circle cx="160" cy="40" r="42" fill="none" stroke="${c}" stroke-width=".8" opacity=".22" stroke-dasharray="4,9"/><path d="M160,30 L152,14 A26,26 0 0,1 168,14 Z" fill="${c}" opacity=".6"/><path d="M152,46 L136,58 A26,26 0 0,1 128,42 Z" fill="${c}" opacity=".6"/><path d="M168,46 L184,58 A26,26 0 0,1 192,42 Z" fill="${c}" opacity=".6"/><animateTransform attributeName="transform" type="rotate" from="0 160 40" to="360 160 40" dur="10s" repeatCount="indefinite" additive="sum"/></svg>`}
-const SVGS={atom:svgAtom,molecule:svgMolecule,crystal:svgCrystal,flame:svgFlame,diamond:svgDiamond,wave:svgWave,gear:svgGear,balloon:svgBalloon,star:svgStar,helix:svgHelix,radiation:svgRadiation};
+const SVGS = { atom: svgAtom, molecule: svgMolecule, crystal: svgCrystal, flame: svgFlame, diamond: svgDiamond, wave: svgWave, gear: svgGear, balloon: svgBalloon, star: svgStar, helix: svgHelix, radiation: svgRadiation };
 
-// ── Glossary (Bulgarian, kid-friendly) ───────────────────────────────────
-const GLOSSARY={
-  'атом':{t:'Атом',d:'Атомът е най-малката частица на елемент, която запазва свойствата му. Като LEGO тухличка — от атоми е построено всичко наоколо! Атомите са толкова малки, че в точката в края на изречение има около 1 000 000 000 000 атома.',art:'atom'},
-  'протон':{t:'Протон',d:'Протонът е положително заредена частица, намираща се в ядрото на атома. Броят на протоните ОПРЕДЕЛЯ кой елемент е атомът. Водородът има 1 протон, хелият — 2, литият — 3... Прибавиш ли 1 протон — получаваш нов елемент!',art:'atom'},
-  'неутрон':{t:'Неутрон',d:'Неутронът е частица без заряд, намираща се в ядрото. Той "слепва" ядрото и дава на елемента неговата маса. Изотопите на един елемент имат различен брой неутрони.',art:'atom'},
-  'електрон':{t:'Електрон',d:'Електронът е отрицателно заредена частица, която обикаля около ядрото. Именно електроните правят химичните реакции! Те могат да се прехвърлят от един атом на друг или да се споделят между атоми.',art:'atom'},
-  'ядро':{t:'Атомно ядро',d:'Ядрото е центърът на атома. В него са протоните и неутроните. То е много малко — ако атомът беше с размера на стадион, ядрото щеше да е колкото грахово зърно в средата.',art:'atom'},
-  'молекула':{t:'Молекула',d:'Молекулата е група от атоми, споени заедно. Водата е молекула: 2 водородни + 1 кислороден атом (H₂O). Кислородът в атмосферата е молекула O₂ — два кислородни атома заедно.',art:'molecule'},
-  'изотоп':{t:'Изотоп',d:'Изотопите са атоми на един елемент с различен брой неутрони. Въглерод-12 и Въглерод-14 са изотопи — и двата са въглерод, но C-14 е малко по-тежък и е радиоактивен. Учените го използват за датиране на древни предмети.',art:'atom'},
-  'реакция':{t:'Химична реакция',d:'Химичната реакция е процес, при който атомите се пренареждат — стари молекули се разрушават и нови се образуват. Горенето, ръждясването, готвенето — всичко е химична реакция.',art:'flame'},
-  'елемент':{t:'Химичен елемент',d:'Химичният елемент е вещество, съставено от само един вид атоми. Водородът, желязото, злато — всеки е елемент. Не могат да бъдат разложени на по-прости вещества с химични методи. В природата са открити 94 елемента, а останалите 24 са синтетични.',art:'atom'},
-  'радиоактивен':{t:'Радиоактивност',d:'Радиоактивността е явлението, при което нестабилните атоми се разпадат, изпращайки частици и енергия. Уранът, радият и плутоният са радиоактивни. Радиоактивното излъчване може да е опасно, но се използва и за лечение на рак.',art:'radiation'},
-  'полуразпад':{t:'Полуразпад',d:'Полуразпадът е времето, за което половината от радиоактивните атоми се разпадат. Ако имаш 100 атома с полуразпад 10 минути — след 10 мин ще имаш 50, след 20 — 25, след 30 — 12.5... Изчезват постепенно!',art:'radiation'},
-  'проводник':{t:'Проводник',d:'Проводникът е материал, през който лесно преминава електричество. Металите (мед, сребро, злато) са добри проводници. Пластмасата и стъклото са изолатори — не провеждат ток.',art:'wave'},
-  'феромагнит':{t:'Феромагнетизъм',d:'Феромагнетизмът е способността на някои метали да бъдат привличани от магнит или да стават магнити. Желязото, кобалтът и никелът са феромагнитни.',art:'gear'},
-  'кристал':{t:'Кристална решетка',d:'Кристалната решетка е правилна геометрична наредба на атоми. Солта, захарта, диамантът, металите — всички имат кристална структура. Затова кристалите имат такива правилни, красиви форми!',art:'crystal'},
-  'сублимира':{t:'Сублимация',d:'Сублимацията е преминаването от твърдо директно в газ, без да се спира в течно. Йодът сублимира, когато се загрее — виждат се лилави пари. Сухият лед (замразен CO₂) също сублимира.',art:'wave'},
-  'електролиза':{t:'Електролиза',d:'Електролизата е разлагане на вещества с електрически ток. С нея можеш да разложиш водата на водород и кислород, да нанесеш метал върху повърхност (поцинковане, посребряване), или да добиваш метали от руди.',art:'wave'},
-  'окисление':{t:'Окисление',d:'Окислението е химична реакция с кислород. Горенето е бързо окисление. Ръждясването е бавно окисление. Когато ябълката почернява след рязане — и това е окисление!',art:'flame'},
-  'изотоп':{t:'Изотоп',d:'Изотопите са атоми на един и същ елемент, но с различен брой неутрони. Въглерод-12 и Въглерод-14 са въглерод, но C-14 е малко по-тежък. Учените използват радиоактивните изотопи за датиране на предмети от праисторическо минало.',art:'atom'},
-  'сплав':{t:'Сплав',d:'Сплавта е смес от два или повече метала (или метал с неметал). Бронзът е сплав от мед и калай. Стоманата е сплав от желязо и въглерод. Сплавите обикновено са по-твърди и устойчиви от чистите метали.',art:'gear'},
-  'хемоглобин':{t:'Хемоглобин',d:'Хемоглобинът е протеин в червените кръвни клетки, съдържащ желязо. Именно той поема кислород в белите дробове и го разнася до всяка клетка. Железодефицитната анемия е болест, при която хемоглобинът е недостатъчен.',art:'helix'},
-  'хлорофил':{t:'Хлорофил',d:'Хлорофилът е зеленото вещество в листата на растенията, съдържащо магнезий. С негова помощ растенията превръщат слънчевата светлина, водата и CO₂ в захар и кислород — фотосинтезата.',art:'helix'},
-  'фотосинтез':{t:'Фотосинтеза',d:'Фотосинтезата е процесът, при който растенията произвеждат храна от светлина, вода и CO₂. 6CO₂ + 6H₂O + светлина → C₆H₁₂O₆ (захар) + 6O₂. Целият кислород в атмосферата е дошъл от фотосинтезата!',art:'helix'},
-  'полимер':{t:'Полимер',d:'Полимерът е дълга молекула, изградена от много повтарящи се единици. Пластмасата, ДНК, белтъците, целулозата в дървото — всички са полимери.',art:'helix'},
+// ── Glossary ──────────────────────────────────────────────────────────────
+const GLOSSARY = {
+  bg: {
+    'атом':{t:'Атом',d:'Най-малката градивна частица на Вселената. Като LEGO тухличка — от него е изградено всичко около нас!',art:'atom'},
+    'протон':{t:'Протон',d:'Положително заредена частица в ядрото. Броят на протоните определя какъв елемент е атомът!',art:'atom'},
+    'неутрон':{t:'Неутрон',d:'Неутрална частица в центъра на атома. Работи като космическо лепило, за да държи протоните заедно!',art:'atom'},
+    'електрон':{t:'Електрон',d:'Изключително лека отрицателна частица, която се върти около ядрото със страхотна скорост.',art:'atom'},
+    'ядро':{t:'Ядро',d:'Тежкият и много малък център на атома, където се намират протоните и неутроните.',art:'atom'},
+    'молекула':{t:'Молекула',d:'Група от атоми, свързани здраво заедно. Например две водородни + една кислородна молекула правят вода H₂O!',art:'molecule'},
+    'изотоп':{t:'Изотоп',d:'Атоми на един и същ елемент с различен брой неутрони (те тежат различно!).',art:'atom'},
+    'реакция':{t:'Реакция',d:'Химичен процес, при който атомите се пренареждат и се раждат нови вълшебни вещества.',art:'flame'},
+    'елемент':{t:'Химичен елемент',d:'Чисто вещество, съставено само от един вид атоми (като чисто злато).',art:'atom'},
+    'радиоактивен':{t:'Радиоактивност',d:'Когато тежки и нестабилни ядра се разпадат сами и изпращат силна енергия.',art:'radiation'},
+    'полуразпад':{t:'Полуразпад',d:'Времето, нужно за разпадането на половината от радиоактивните ядра на даден елемент.',art:'radiation'},
+    'проводник':{t:'Проводник',d:'Материал, през който топлина и електричество преминават бързо и без проблем (например мед или сребро).',art:'wave'},
+    'феромагнит':{t:'Феромагнетизъм',d:'Свойството на метали като желязо, никел и кобалт да се привличат мощно от магнити.',art:'gear'},
+    'кристал':{t:'Кристална решетка',d:'Прекрасен геометричен ред от атоми, благодарение на който скъпоценните камъни имат красива форма.',art:'crystal'},
+    'сублимира':{t:'Сублимация',d:'Преминаването на твърдо вещество директно в газ, прескачайки течното състояние (като сух лед).',art:'wave'},
+    'електролиза':{t:'Електролиза',d:'Разлагането на сложни химични съединения с помощта на електричество.',art:'wave'},
+    'окисление':{t:'Окисление',d:'Реакцията на всяко вещество с кислород (например горенето или ръждясването).',art:'flame'},
+    'сплав':{t:'Сплав',d:'Смес от два или повече метала с цел постигане на огромна твърдост (като месинг).',art:'gear'},
+    'хемоглобин':{t:'Хемоглобин',d:'Протеин с желязо в кръвта ни, който улавя кислорода и ни дава сила да дишаме.',art:'helix'},
+    'хлорофил':{t:'Хлорофил',d:'Зеленото вълшебство в растенията, съдържащо магнезий, което прави фотосинтеза от слънчева светлина.',art:'helix'},
+    'фотосинтез':{t:'Фотосинтеза',d:'Как зелените растения правят храна и чист кислород за нас от слънчева светлина и CO₂.',art:'helix'},
+    'полимер':{t:'Полимер',d:'Дълга верига от повтарящи се молекули (като пластмасата, тефлона или ДНК).',art:'helix'}
+  },
+  en: {
+    'atom':{t:'Atom',d:'The basic building block of everything. Like a tiny LEGO brick that builds all matter!',art:'atom'},
+    'proton':{t:'Proton',d:'A positively charged particle inside the nucleus. Protons decide which element the atom is!',art:'atom'},
+    'neutron':{t:'Neutron',d:'A neutral particle in the nucleus. Acts as cosmic glue to hold the protons together.',art:'atom'},
+    'electron':{t:'Electron',d:'A super-light negative particle orbiting the nucleus at incredible speed.',art:'atom'},
+    'nucleus':{t:'Nucleus',d:'The tiny, heavy core in the center of an atom, holding protons and neutrons.',art:'atom'},
+    'molecule':{t:'Molecule',d:'A group of two or more atoms bonded together, like water H₂O.',art:'molecule'},
+    'isotope':{t:'Isotope',d:'Atoms of the same element that have different numbers of neutrons (different weights!).',art:'atom'},
+    'reaction':{t:'Chemical Reaction',d:'A process where atoms rearrange to create new, magical substances.',art:'flame'},
+    'element':{t:'Chemical Element',d:'A pure substance made of only one type of atom, like pure gold or carbon.',art:'atom'},
+    'radioactive':{t:'Radioactivity',d:'When heavy, unstable nuclei break apart naturally and shoot out high-energy rays.',art:'radiation'},
+    'half-life':{t:'Half-life',d:'The time needed for half of a radioactive element to decay and disappear.',art:'radiation'},
+    'conductor':{t:'Conductor',d:'A material that lets heat and electricity travel through it easily, like copper or silver.',art:'wave'},
+    'ferromagnet':{t:'Ferromagnet',d:'Metals like iron, nickel, and cobalt that are strongly attracted to magnets.',art:'gear'},
+    'crystal':{t:'Crystal Lattice',d:'A beautiful geometric order of atoms that gives gems and sugar crystals their shapes.',art:'crystal'},
+    'sublimates':{t:'Sublimation',d:'When a solid turns straight into a gas without melting first, like dry ice.',art:'wave'},
+    'electrolysis':{t:'Electrolysis',d:'Splitting a chemical compound apart using electricity.',art:'wave'},
+    'oxidation':{t:'Oxidation',d:'A reaction with oxygen, like quick combustion in a fire or slow rust on iron.',art:'flame'},
+    'alloy':{t:'Alloy',d:'A tough mixture of two or more metals to make them stronger, like brass or bronze.',art:'gear'},
+    'hemoglobin':{t:'Hemoglobin',d:'An iron-containing protein in our blood that carries oxygen to keep us alive.',art:'helix'},
+    'chlorophyll':{t:'Chlorophyll',d:'The green pigment in plants containing magnesium that captures sunlight energy.',art:'helix'},
+    'photosynthesis':{t:'Photosynthesis',d:'How green plants use sunlight and CO₂ to produce sugars and fresh oxygen for us.',art:'helix'},
+    'polymer':{t:'Polymer',d:'A long chain of repeating molecules, like plastics, teflon, or DNA.',art:'helix'}
+  }
 };
 
-function glossify(text){
-  let t=text;
-  Object.keys(GLOSSARY).forEach(k=>{
-    const re=new RegExp(`(?<![а-яА-Яa-zA-Z])(${k})(?![а-яА-Яa-zA-Z])`, 'g');
-    t=t.replace(re, `<span class="gterm" onclick="openGlossary('${k}')">$1</span>`);
+function getElectronShells(num) {
+  const configs = {
+    1: [1], 2: [2],
+    3: [2, 1], 4: [2, 2], 5: [2, 3], 6: [2, 4], 7: [2, 5], 8: [2, 6], 9: [2, 7], 10: [2, 8],
+    11: [2, 8, 1], 12: [2, 8, 2], 13: [2, 8, 3], 14: [2, 8, 4], 15: [2, 8, 5], 16: [2, 8, 6], 17: [2, 8, 7], 18: [2, 8, 8],
+    19: [2, 8, 8, 1], 20: [2, 8, 8, 2],
+    21: [2, 8, 9, 2], 22: [2, 8, 10, 2], 23: [2, 8, 11, 2], 24: [2, 8, 13, 1], // Cr exception
+    25: [2, 8, 14, 2], 26: [2, 8, 14, 2], 27: [2, 8, 15, 2], 28: [2, 8, 16, 2], 29: [2, 8, 18, 1], // Cu exception
+    30: [2, 8, 18, 2], 31: [2, 8, 18, 3], 32: [2, 8, 18, 4], 33: [2, 8, 18, 5], 34: [2, 8, 18, 6], 35: [2, 8, 18, 7], 36: [2, 8, 18, 8],
+    37: [2, 8, 18, 8, 1], 38: [2, 8, 18, 8, 2],
+    39: [2, 8, 18, 9, 2], 40: [2, 8, 18, 10, 2], 41: [2, 8, 18, 12, 1], // Nb exception
+    42: [2, 8, 18, 13, 1], // Mo exception
+    43: [2, 8, 18, 13, 2], 44: [2, 8, 18, 15, 1], // Ru exception
+    45: [2, 8, 18, 16, 1], // Rh exception
+    46: [2, 8, 18, 18],    // Pd exception (0 on outer shell)
+    47: [2, 8, 18, 18, 1], // Ag exception
+    48: [2, 8, 18, 18, 2], 49: [2, 8, 18, 18, 3], 50: [2, 8, 18, 18, 4], 51: [2, 8, 18, 18, 5], 52: [2, 8, 18, 18, 6], 53: [2, 8, 18, 18, 7], 54: [2, 8, 18, 18, 8],
+    55: [2, 8, 18, 18, 8, 1], 56: [2, 8, 18, 18, 8, 2],
+    57: [2, 8, 18, 18, 9, 2], // La exception
+    58: [2, 8, 18, 19, 9, 2], // Ce exception
+    59: [2, 8, 18, 21, 8, 2], 60: [2, 8, 18, 22, 8, 2], 61: [2, 8, 18, 23, 8, 2], 62: [2, 8, 18, 24, 8, 2], 63: [2, 8, 18, 25, 8, 2],
+    64: [2, 8, 18, 25, 9, 2], // Gd exception
+    65: [2, 8, 18, 27, 8, 2], 66: [2, 8, 18, 28, 8, 2], 67: [2, 8, 18, 29, 8, 2], 68: [2, 8, 18, 30, 8, 2], 69: [2, 8, 18, 31, 8, 2], 70: [2, 8, 18, 32, 8, 2], 71: [2, 8, 18, 32, 9, 2],
+    72: [2, 8, 18, 32, 10, 2], 73: [2, 8, 18, 32, 11, 2], 74: [2, 8, 18, 32, 12, 2], 75: [2, 8, 18, 32, 13, 2], 76: [2, 8, 18, 32, 14, 2], 77: [2, 8, 18, 32, 15, 2],
+    78: [2, 8, 18, 32, 17, 1], // Pt exception
+    79: [2, 8, 18, 32, 18, 1], // Au exception
+    80: [2, 8, 18, 32, 18, 2], 81: [2, 8, 18, 32, 18, 3], 82: [2, 8, 18, 32, 18, 4], 83: [2, 8, 18, 32, 18, 5], 84: [2, 8, 18, 32, 18, 6], 85: [2, 8, 18, 32, 18, 7], 86: [2, 8, 18, 32, 18, 8],
+    87: [2, 8, 18, 32, 18, 8, 1], 88: [2, 8, 18, 32, 18, 8, 2],
+    89: [2, 8, 18, 32, 18, 9, 2],  // Ac exception
+    90: [2, 8, 18, 32, 18, 10, 2], // Th exception
+    91: [2, 8, 18, 32, 20, 9, 2],  // Pa exception
+    92: [2, 8, 18, 32, 21, 9, 2],  // U exception
+    93: [2, 8, 18, 32, 22, 9, 2],  // Np exception
+    94: [2, 8, 18, 32, 24, 8, 2], 95: [2, 8, 18, 32, 25, 8, 2],
+    96: [2, 8, 18, 32, 25, 9, 2],  // Cm exception
+    97: [2, 8, 18, 32, 27, 8, 2], 98: [2, 8, 18, 32, 28, 8, 2], 99: [2, 8, 18, 32, 29, 8, 2], 100: [2, 8, 18, 32, 30, 8, 2], 101: [2, 8, 18, 32, 31, 8, 2], 102: [2, 8, 18, 32, 32, 8, 2],
+    103: [2, 8, 18, 32, 32, 9, 2], // Lr exception
+    104: [2, 8, 18, 32, 32, 10, 2], 105: [2, 8, 18, 32, 32, 11, 2], 106: [2, 8, 18, 32, 32, 12, 2], 107: [2, 8, 18, 32, 32, 13, 2], 108: [2, 8, 18, 32, 32, 14, 2], 109: [2, 8, 18, 32, 32, 15, 2],
+    110: [2, 8, 18, 32, 32, 16, 2], 111: [2, 8, 18, 32, 32, 17, 2], 112: [2, 8, 18, 32, 32, 18, 2], 113: [2, 8, 18, 32, 32, 18, 3], 114: [2, 8, 18, 32, 32, 18, 4], 115: [2, 8, 18, 32, 32, 18, 5],
+    116: [2, 8, 18, 32, 32, 18, 6], 117: [2, 8, 18, 32, 32, 18, 7], 118: [2, 8, 18, 32, 32, 18, 8]
+  };
+  return configs[num] || [num];
+}
+
+function getBohrModelSVG(Z, color) {
+  const shells = getElectronShells(Z);
+  let svg = `<svg class="bohr-sim" viewBox="0 0 320 180" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" style="background:#020a12; border:1px solid rgba(0,212,255,0.15); border-radius:8px; box-shadow:inset 0 0 20px rgba(0,212,255,0.05);">
+    <defs>
+      <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+        <feGaussianBlur stdDeviation="2.5" result="blur" />
+        <feComposite in="SourceGraphic" in2="blur" operator="over" />
+      </filter>
+      <radialGradient id="nucGlow" cx="50%" cy="50%" r="50%">
+        <stop offset="0%" stop-color="#ff3399" stop-opacity="0.8"/>
+        <stop offset="60%" stop-color="#ff3399" stop-opacity="0.2"/>
+        <stop offset="100%" stop-color="#ff3399" stop-opacity="0"/>
+      </radialGradient>
+    </defs>
+    <line x1="160" y1="0" x2="160" y2="180" stroke="rgba(0,212,255,0.04)" stroke-width="1"/>
+    <line x1="0" y1="90" x2="320" y2="90" stroke="rgba(0,212,255,0.04)" stroke-width="1"/>
+    <circle cx="160" cy="90" r="135" fill="none" stroke="rgba(0,212,255,0.015)" stroke-width="1"/>
+    <circle cx="160" cy="90" r="100" fill="none" stroke="rgba(0,212,255,0.015)" stroke-width="1"/>
+    <circle cx="160" cy="90" r="65" fill="none" stroke="rgba(0,212,255,0.015)" stroke-width="1"/>
+  `;
+
+  shells.forEach((count, sIdx) => {
+    const sNum = sIdx + 1;
+    const r = 24 + sNum * 15;
+    const dur = (2.5 * Math.pow(r / 39, 1.5)).toFixed(2); // Accurate Keplerian speed (T ∝ r^1.5)
+    const dir = sNum % 2 === 1 ? 1 : -1;
+    const fromDeg = dir === 1 ? 0 : 360;
+    const toDeg = dir === 1 ? 360 : 0;
+
+    svg += `
+    <g>
+      <circle cx="160" cy="90" r="${r}" fill="none" stroke="${color}" stroke-width="1" opacity="0.2" stroke-dasharray="3,3"/>
+      <g>
+        <animateTransform attributeName="transform" type="rotate" from="${fromDeg} 160 90" to="${toDeg} 160 90" dur="${dur}s" repeatCount="indefinite"/>
+    `;
+
+    for (let eIdx = 0; eIdx < count; eIdx++) {
+      const angle = (eIdx * (360 / count) * Math.PI) / 180;
+      const ex = 160 + r * Math.cos(angle);
+      const ey = 90 + r * Math.sin(angle);
+      svg += `<circle cx="${ex}" cy="${ey}" r="3.2" fill="#00d4ff" filter="url(#glow)" stroke="#ffffff" stroke-width="0.3"/>`;
+    }
+
+    svg += `
+      </g>
+    </g>`;
+  });
+
+  svg += `<g class="nucleus">`;
+  svg += `<circle cx="160" cy="90" r="11" fill="url(#nucGlow)" opacity="0.6"/>`;
+  
+  // Z-specific accurate nucleus configurations for light elements
+  let particles = [];
+  if (Z === 1) {
+    particles = [{dx: 0, dy: 0, type: 'p'}];
+  } else if (Z === 2) {
+    particles = [
+      {dx: -2.5, dy: -2.5, type: 'p'}, {dx: 2.5, dy: 2.5, type: 'p'},
+      {dx: 2.5, dy: -2.5, type: 'n'}, {dx: -2.5, dy: 2.5, type: 'n'}
+    ];
+  } else if (Z === 3) {
+    particles = [
+      {dx: -3, dy: -3, type: 'p'}, {dx: 3, dy: -3, type: 'n'},
+      {dx: -3, dy: 3, type: 'n'}, {dx: 3, dy: 3, type: 'p'},
+      {dx: 0, dy: 0, type: 'n'}, {dx: -4.5, dy: 0, type: 'p'},
+      {dx: 4.5, dy: 0, type: 'n'}
+    ];
+  } else if (Z === 4) {
+    particles = [
+      {dx: -3, dy: -3, type: 'p'}, {dx: 3, dy: -3, type: 'n'},
+      {dx: -3, dy: 3, type: 'n'}, {dx: 3, dy: 3, type: 'p'},
+      {dx: 0, dy: -4, type: 'p'}, {dx: 0, dy: 4, type: 'n'},
+      {dx: -4.5, dy: 0, type: 'n'}, {dx: 4.5, dy: 0, type: 'p'},
+      {dx: 0, dy: 0, type: 'n'}
+    ];
+  } else if (Z === 5) {
+    particles = [
+      {dx: -3, dy: -3, type: 'p'}, {dx: 3, dy: -3, type: 'n'},
+      {dx: -3, dy: 3, type: 'n'}, {dx: 3, dy: 3, type: 'p'},
+      {dx: 0, dy: -4.5, type: 'p'}, {dx: 0, dy: 4.5, type: 'n'},
+      {dx: -4.5, dy: 0, type: 'n'}, {dx: 4.5, dy: 0, type: 'p'},
+      {dx: -2, dy: -1, type: 'p'}, {dx: 2, dy: 1, type: 'n'},
+      {dx: 0, dy: 0, type: 'n'}
+    ];
+  } else {
+    particles = [
+      {dx: -3, dy: -3, type: 'p'}, {dx: 3, dy: -3, type: 'n'},
+      {dx: -4, dy: 2, type: 'n'}, {dx: 4, dy: 2, type: 'p'},
+      {dx: 0, dy: -5, type: 'p'}, {dx: -1, dy: 0, type: 'n'},
+      {dx: 1, dy: 0, type: 'p'}, {dx: 0, dy: 5, type: 'n'},
+      {dx: -5, dy: -1, type: 'p'}, {dx: 5, dy: -1, type: 'n'},
+      {dx: -2, dy: 4, type: 'p'}, {dx: 2, dy: 4, type: 'n'}
+    ];
+  }
+  
+  particles.forEach(p => {
+    const px = 160 + p.dx;
+    const py = 90 + p.dy;
+    const pCol = p.type === 'p' ? '#ff3399' : '#00d4ff';
+    svg += `<circle cx="${px}" cy="${py}" r="2.6" fill="${pCol}" stroke="#ffffff" stroke-width="0.3"/>`;
+  });
+  svg += `</g>`;
+
+  const confLabel = TRANSLATIONS[currentLang].configText || 'Config:';
+  svg += `
+    <text x="8" y="172" fill="#4a9ebb" font-size="7.5" font-family="monospace" opacity="0.75">${confLabel}</text>
+    <text x="125" y="172" fill="#00d4ff" font-size="8.5" font-family="monospace" font-weight="bold">${shells.join(', ')}</text>
+    <text x="312" y="172" text-anchor="end" fill="${color}" font-size="8.5" font-family="monospace" font-weight="bold">Z = ${Z}</text>
+  </svg>`;
+
+  return svg;
+}
+
+function glossify(text) {
+  if (!text) return '';
+  let t = text;
+  const terms = Object.keys(GLOSSARY[currentLang]);
+  terms.sort((a, b) => b.length - a.length);
+  terms.forEach(k => {
+    const escK = k.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+    const re = new RegExp(`(?<![а-яА-Яa-zA-Z0-9])(${escK})(?![а-яА-Яa-zA-Z0-9])`, 'gi');
+    t = t.replace(re, `<span class="gterm" onclick="openGlossary('${k}')">$1</span>`);
   });
   return t;
 }
-function openGlossary(key){
-  const g=GLOSSARY[key];
-  if(!g)return;
-  const mm=document.getElementById('miniModal');
-  const xb=document.getElementById('miniXbtn');
-  mm.className='mini-modal';
-  xb.className='mini-xbtn';
-  const artFn=SVGS[g.art]||svgAtom;
-  document.getElementById('miniContent').innerHTML=`
-    <h3 style="color:#ffe090;margin-bottom:8px">📖 ${g.t}</h3>
+
+let activeMiniState = null;
+
+function openGlossary(key) {
+  activeMiniState = { type: 'glossary', key };
+  const g = GLOSSARY[currentLang][key.toLowerCase()];
+  if (!g) return;
+  const mm = document.getElementById('miniModal');
+  const xb = document.getElementById('miniXbtn');
+  mm.className = 'mini-modal';
+  xb.className = 'mini-xbtn';
+  const artFn = SVGS[g.art] || svgAtom;
+  const t = TRANSLATIONS[currentLang];
+  const caption = ART_CAPTIONS[currentLang][g.art] || '';
+  
+  document.getElementById('miniContent').innerHTML = `
+    <h3 style="color:#ffe090;margin-bottom:8px">${t.glyTitle} ${g.t}</h3>
     ${artFn('#ffe090')}
-    <div style="font-size:.68em;opacity:.4;text-align:center;font-style:italic;margin-bottom:8px">${ART_CAPTIONS[g.art]||''}</div>
+    <div style="font-size:.68em;opacity:.4;text-align:center;font-style:italic;margin-bottom:8px">${caption}</div>
     <p>${g.d}</p>`;
   document.getElementById('miniOverlay').classList.add('on');
 }
 
-// ── Atomic number popup ───────────────────────────────────────────────────
 function openAtomicNum(num, sym, bg, col){
+  activeMiniState = { type: 'atomicNum', num, sym, bg, col };
   const mm=document.getElementById('miniModal');
+  const t = TRANSLATIONS[currentLang];
   mm.className='mini-modal blue';
   document.getElementById('miniXbtn').className='mini-xbtn blue';
+  
+  const bohrSvg = getBohrModelSVG(num, col);
+  const bgName = currentLang === 'bg' ? bg : GRID.find(x => x[0] === num)[3];
+  
+  const descText = currentLang === 'bg' 
+    ? `<p><strong style="color:${col}">${bgName}</strong> (${sym}) има атомен номер <strong style="color:${col}">${num}</strong>.</p>
+       <p>Атомният номер = броят на <span class="gterm" onclick="openGlossary('протон')">протоните</span> в <span class="gterm" onclick="openGlossary('ядро')">ядрото</span>. Той определя кой <span class="gterm" onclick="openGlossary('елемент')">елемент</span> е атомът!</p>
+       <p>В неутрален атом броят на <span class="gterm" onclick="openGlossary('електрон')">електроните</span> = броят на протоните = <strong style="color:${col}">${num}</strong>.</p>`
+    : `<p><strong style="color:${col}">${bgName}</strong> (${sym}) has atomic number <strong style="color:${col}">${num}</strong>.</p>
+       <p>The atomic number = the number of <span class="gterm" onclick="openGlossary('proton')">protons</span> in the <span class="gterm" onclick="openGlossary('nucleus')">nucleus</span>. It defines which <span class="gterm" onclick="openGlossary('element')">element</span> the atom is!</p>
+       <p>In a neutral atom, the number of <span class="gterm" onclick="openGlossary('electron')">electrons</span> = the number of protons = <strong style="color:${col}">${num}</strong>.</p>`;
+
   document.getElementById('miniContent').innerHTML=`
-    <h3 style="color:${col}">⚛ Атомен номер: ${num}</h3>
-    <svg class="diagram" viewBox="0 0 400 90" xmlns="http://www.w3.org/2000/svg">
-      <circle cx="200" cy="45" r="18" fill="none" stroke="${col}" stroke-width="2" opacity=".8"/>
-      <text x="200" y="40" text-anchor="middle" fill="${col}" font-size="11" font-family="monospace">ядро</text>
-      <text x="200" y="53" text-anchor="middle" fill="${col}" font-size="9" opacity=".7">${num} протона</text>
-      ${Array.from({length:Math.min(num,8)},(_,i)=>{const a=i*(360/Math.min(num,8))*Math.PI/180,r=52;return`<circle cx="${200+r*Math.cos(a)}" cy="${45+r*Math.sin(a)}" r="4" fill="${col}" opacity=".7"/>`}).join('')}
-      <ellipse cx="200" cy="45" rx="52" ry="20" fill="none" stroke="${col}" stroke-width="1" opacity=".35" stroke-dasharray="3,4"/>
-      <text x="62" y="22" fill="${col}" font-size="9" opacity=".5">е⁻ електрони</text>
-    </svg>
-    <p><strong style="color:${col}">${bg}</strong> (${sym}) има атомен номер <strong style="color:${col}">${num}</strong>.</p>
-    <p>Атомният номер = броят на <span class="gterm" onclick="openGlossary('протон')">протоните</span> в <span class="gterm" onclick="openGlossary('ядро')">ядрото</span>. Той определя кой <span class="gterm" onclick="openGlossary('елемент')">елемент</span> е атомът — ако промениш броя на протоните, получаваш съвсем различен елемент!</p>
-    <p>В неутрален атом броят на <span class="gterm" onclick="openGlossary('електрон')">електроните</span> = броят на протоните = <strong style="color:${col}">${num}</strong>.</p>`;
+    <h3 style="color:${col}">${t.atomicNumTitle} ${num}</h3>
+    <div style="width:100%; display:flex; justify-content:center; margin:10px 0;">
+      <div style="width:320px; height:180px;">${bohrSvg}</div>
+    </div>
+    ${descText}`;
   document.getElementById('miniOverlay').classList.add('on');
 }
 
-// ── Atomic mass popup ─────────────────────────────────────────────────────
 function openAtomicMass(mass, sym, bg, col){
+  activeMiniState = { type: 'atomicMass', mass, sym, bg, col };
+  const t = TRANSLATIONS[currentLang];
   document.getElementById('miniModal').className='mini-modal blue';
   document.getElementById('miniXbtn').className='mini-xbtn blue';
+  
+  const bgName = currentLang === 'bg' ? bg : GRID.find(x => x[0] === GRID.find(e => e[1] === sym)[0])[3];
+  
+  const descText = currentLang === 'bg'
+    ? `<p>Атомната маса е приблизителното тегло на един <span class="gterm" onclick="openGlossary('атом')">атом</span> на ${bgName}.</p>
+       <p>Измерва се в атомни единици маса (${t.uText}). 1u = 1.66 × 10⁻²⁷ кг — изключително малко!</p>
+       <p>Атомната маса е почти равна на броя на <span class="gterm" onclick="openGlossary('протон')">протоните</span> + <span class="gterm" onclick="openGlossary('неутрон')">неутроните</span> в ядрото.</p>
+       <p>Числото <strong style="color:${col}">${mass}</strong> е средна стойност, заради различните <span class="gterm" onclick="openGlossary('изотоп')">изотопи</span> на ${bgName}.</p>`
+    : `<p>Atomic mass is the approximate weight of one <span class="gterm" onclick="openGlossary('atom')">atom</span> of ${bgName}.</p>
+       <p>It is measured in atomic mass units (${t.uText}). 1u = 1.66 × 10⁻²⁷ kg — incredibly tiny!</p>
+       <p>The atomic mass is almost equal to the number of <span class="gterm" onclick="openGlossary('proton')">protons</span> + <span class="gterm" onclick="openGlossary('neutron')">neutrons</span> in the nucleus.</p>
+       <p>The number <strong style="color:${col}">${mass}</strong> is an average value because different <span class="gterm" onclick="openGlossary('isotope')">isotopes</span> of ${bgName} exist.</p>`;
+
   document.getElementById('miniContent').innerHTML=`
-    <h3 style="color:${col}">⚖ Атомна маса: ${mass} u</h3>
-    <p>Атомната маса е приблизителното тегло на един <span class="gterm" onclick="openGlossary('атом')">атом</span> на ${bg}.</p>
-    <p>Измерва се в атомни единици маса (u). 1u = 1.66 × 10⁻²⁷ кг — невъобразимо малко!</p>
-    <p>Атомната маса е почти равна на броя на <span class="gterm" onclick="openGlossary('протон')">протоните</span> + <span class="gterm" onclick="openGlossary('неутрон')">неутроните</span> в ядрото. Електроните тежат толкова малко, че почти не се броят.</p>
-    <p>Числото <strong style="color:${col}">${mass}</strong> е средна стойност, защото в природата съществуват различни <span class="gterm" onclick="openGlossary('изотоп')">изотопи</span> на ${bg}.</p>`;
+    <h3 style="color:${col}">${t.atomicMassTitle} ${mass} ${t.uText}</h3>
+    ${descText}`;
   document.getElementById('miniOverlay').classList.add('on');
 }
-function closeMini(){document.getElementById('miniOverlay').classList.remove('on');}
 
-// ── Element data ──────────────────────────────────────────────────────────
+function closeMini(){
+  activeMiniState = null;
+  document.getElementById('miniOverlay').classList.remove('on');
+}
+
+// ── Element data (36 highly detailed kid-friendly elements) ───────────────
 const ELEMENTS = {
-  1:{sym:'H',bg:'Водород',lat:'Hydrogen',mass:'1.008',cat:'nonmetal',row:1,col:1,
-    disc:'Водородът е открит от английския учен Хенри Кавендиш през 1766 г. Той го нарекъл „горим въздух". Името „водород" идва от гръцки и означава „раждащ вода" — защото когато водородът изгори, се получава вода.',
-    facts:[['Агрегатно','Газ'],['Цвят','Безцветен'],['Т. топене','−259 °C'],['Т. кипене','−253 °C']],
-    apps:['Ракетно гориво','Производство на амоняк','Горивни клетки','Рафиниране на нефт'],
-    where:'Водата (H₂O) съдържа водород. Всяко живо същество е изградено от молекули с водород. Слънцето е основно водород!',
-    diy:[{t:'Електролиза на вода',d:'С батерия, 2 моливи (без боя) и чаша солена вода можеш да разложиш водата на водород и кислород чрез електролиза. Виждат се мехурчета по молива!'},
-         {t:'Сапунени мехури с водород',d:'Реакцията на цинк с оцет отделя водород. Напълни сапунени мехури с него — те плуват нагоре! Само с родителски надзор, навън.'}],
-    dyk:{t:'Водородът е най-леският елемент в цялата Вселена! Ако напълниш с него олимпийски плувен басейн, ще тежи едва 90 грама — колкото шоколадче.',art:'balloon'},
-    links:[{t:'Водород – Уикипедия',u:'https://bg.wikipedia.org/wiki/%D0%92%D0%BE%D0%B4%D0%BE%D1%80%D0%BE%D0%B4'}]},
-
-  2:{sym:'He',bg:'Хелий',lat:'Helium',mass:'4.003',cat:'noble',row:1,col:18,
-    disc:'Хелият е открит за първи път на Слънцето, преди да бъде намерен на Земята! Британският учен Норман Локиер открива непозната линия в слънчевия спектър през 1868 г. Кръстен е на Хелиос — гръцкия бог на Слънцето.',
-    facts:[['Агрегатно','Газ'],['Цвят','Безцветен'],['Т. кипене','−269 °C'],['Реактивност','Нулева']],
-    apps:['Балони и дирижабли','МРТ скенери (охлаждане)','Водолазни смеси','Лазери'],
-    where:'В природен газ (до 7%). Балоните за рождени дни са пълни с хелий. Звездите произвеждат хелий чрез ядрен синтез.',
-    diy:[{t:'Забавен глас',d:'Вдиши малко хелий от балон (само веднъж, малко количество!) и говори. Гласът ти ще стане пискливо-смешен, защото звукът се движи по-бързо в хелий!'},
-         {t:'Свиващ се балон',d:'Охлади хелиев балон с лед. Той ще се свие и спре да лети! Загрей го — и пак хвърчи. Газовете се свиват при студ.'}],
-    dyk:{t:'Хелият е единственият елемент на Земята, който може да изчезне завинаги! Веднъж изпуснат в атмосферата, лекичкият хелий излита в Космоса. Затова балоните с хелий са ценни.',art:'balloon'},
-    links:[{t:'Хелий – Уикипедия',u:'https://bg.wikipedia.org/wiki/%D0%A5%D0%B5%D0%BB%D0%B8%D0%B9'}]},
-
-  6:{sym:'C',bg:'Въглерод',lat:'Carbon',mass:'12.011',cat:'nonmetal',row:2,col:14,
-    disc:'Въглеродът е известен от праисторически времена. Диамантът и въгленът са негови форми. Антоан Лавоазие изяснил химичната му природа около 1789 г.',
-    facts:[['Форми','Диамант, графит, фулерен'],['Т. топене','3550 °C'],['В живота','Основен елемент на живота'],['Изотопи','C-12, C-13, C-14']],
-    apps:['Диаманти (бижута и инструменти)','Графит (моливи)','Въглеродни влакна','Активен въглен (филтри)','Горива (въглища, нефт)','Стомана'],
-    where:'Въглеродът е основата на живота — всяка клетка съдържа въглерод. CO₂ в атмосферата. Диаманти в земята.',
-    diy:[{t:'Невидимо мастило',d:'Напиши с лимонов сок на хартия. Изсуши. Приближи до лампа — буквите се появяват кафяви! Въглеродните захари в сока потъмняват при нагряване.'},
-         {t:'Въгленов филтър',d:'Постави активен въглен (от аптека) в бутилка с дупки. Пусни оцветена вода — излиза по-бистра! Въгленът улавя частиците.'},
-         {t:'Диамант и молив',d:'Диамантът и молива ти са от един елемент — въглерод! Само наредбата на атомите е различна. Провери с лупа моливената черта на хартията.'}],
-    dyk:{t:'Диамантът и молива ти са от един и същ елемент — въглерод! Разликата е само в наредбата на атомите. В диаманта са наредени в куб, в графита — в слоеве. Затова диамантът е най-твърдото нещо, а графитът е мек.',art:'diamond'},
-    links:[{t:'Въглерод – Уикипедия',u:'https://bg.wikipedia.org/wiki/%D0%92%D1%8A%D0%B3%D0%BB%D0%B5%D1%80%D0%BE%D0%B4'}]},
-
-  7:{sym:'N',bg:'Азот',lat:'Nitrogen',mass:'14.007',cat:'nonmetal',row:2,col:15,
-    disc:'Открит от Даниел Ръдърфорд през 1772 г. Азотът съставя 78% от въздуха.',
-    facts:[['Агрегатно','Газ'],['% в атмосфера','78%'],['Т. кипене','−196 °C'],['Роля','Необходим за живота']],
-    apps:['Амонячни торове (хранят 40% от човечеството)','Чипс пакети','Охлаждане (течен азот)','Лекарства'],
-    where:'78% от въздуха е азот. В белтъците и ДНК на всеки организъм. В нитратите на почвата.',
-    diy:[{t:'Виненото яйце',d:'Постави запалена хартия в бутилка, след това залепи обелено яйце на гърлото. Азотът и кислородът се поглъщат и яйцето е засмукано вътре!'},
-         {t:'Азотна пяна',d:'Постави гореща вода в стъкленица, затвори и охлади под вода. Водата кипи при стайна температура заради намаленото налягане!'}],
-    dyk:{t:'Без азот нямаше да има храна за 8 милиарда души! Немският химик Фриц Хабер открил как да свърже азота от въздуха в амоняк. Торовете от тази реакция хранят половината свят.',art:'wave'},
-    links:[{t:'Азот – Уикипедия',u:'https://bg.wikipedia.org/wiki/%D0%90%D0%B7%D0%BE%D1%82'}]},
-
-  8:{sym:'O',bg:'Кислород',lat:'Oxygen',mass:'15.999',cat:'nonmetal',row:2,col:16,
-    disc:'Открит независимо от Карл Шеле (1772) и Джоузеф Пристли (1774). Лавоазие дал на елемента научното му значение и нарекъл реакцията с него „окисление".',
-    facts:[['Агрегатно','Газ'],['% в атмосфера','21%'],['Т. кипене','−183 °C'],['Цвят на течност','Ярко СИН!']],
-    apps:['Дишане','Горене','Медицина (кислородни маски)','Стомана','Ракетно гориво'],
-    where:'21% от въздуха. Вода (H₂O). 50% от земната кора (скали). Всяка жива клетка.',
-    diy:[{t:'Слонска паста за зъби',d:'Смесете водороден прекис (3% от аптека) + малко течен сапун + 1 лъжица суха мая. Реакцията отделя O₂ бурно и се получава огромна пяна! Безопасно.'},
-         {t:'Ръждясал пирон',d:'Постави пирон в буркан с влажна вата. Наблюдавай след 24 часа — ще видиш червена ръжда. Кислород + желязо + влага = FeO (ръжда).'},
-         {t:'Угасваща свещ',d:'Постави горяща свещ в буркан и затвори. Кислородът се изчерпва и свещта гасне — без O₂ няма горене!'}],
-    dyk:{t:'Течният кислород е СИН! Кислородът, който дишаме, е безцветен газ, но при −183 °C се превръща в красива синя течност. НАСА го използва за ракети.',art:'flame'},
-    links:[{t:'Кислород – Уикипедия',u:'https://bg.wikipedia.org/wiki/%D0%9A%D0%B8%D1%81%D0%BB%D0%BE%D1%80%D0%BE%D0%B4'}]},
-
-  11:{sym:'Na',bg:'Натрий',lat:'Sodium',mass:'22.99',cat:'alkali',row:3,col:1,
-    disc:'Изолиран от Хъмфри Дейви чрез електролиза на стопен натриев хидроксид, 1807 г. Символът Na идва от латинското "Natrium".',
-    facts:[['Агрегатно','Метал'],['Т. топене','98 °C'],['Реакция с вода','Бурна!'],['Пламък','Жълт']],
-    apps:['Готварска сол (NaCl)','Уличното осветление','Сода','Сапун','Предпазвател в ядрени реактори'],
-    where:'Морска вода. Минерали халит (каменна сол). В кръвта и клетките на всеки организъм.',
-    diy:[{t:'Солен кристален градини',d:'Разтвори колкото се може повече сол в топла вода. Потопи конец или клонче. Остави 2-3 дни. Израстват красиви кубични кристали!'},
-         {t:'Тест на пламъка',d:'Натопи клечка в солена вода и я постави в пламък. Той ще стане жълт — натрият дава характерната жълта светлина!'},
-         {t:'Замразяване с сол',d:'Смесете лед и сол. Температурата пада до −10 °C! Затова солят пътищата зиме. Сложи термометър и наблюдавай!'}],
-    dyk:{t:'Натрият гори с жълт пламък. Именно затова уличните лампи са жълтооранжеви — в тях натриева пара свети под напрежение.',art:'flame'},
-    links:[{t:'Натрий – Уикипедия',u:'https://bg.wikipedia.org/wiki/%D0%9D%D0%B0%D1%82%D1%80%D0%B8%D0%B9'}]},
-
-  12:{sym:'Mg',bg:'Магнезий',lat:'Magnesium',mass:'24.305',cat:'alkaline',row:3,col:2,
-    disc:'Открит от Джоузеф Блек около 1755 г. Металният магнезий е изолиран от Хъмфри Дейви, 1808 г.',
-    facts:[['Агрегатно','Метал'],['Т. топене','650 °C'],['Горимост','Силно запалим'],['Пламък','Ярко бял']],
-    apps:['Фойерверки (бяла светлина)','Сплави за самолети','Хранителна добавка','Фотографски светкавици'],
-    where:'Морска вода. Минерали магнезит и доломит. В хлорофила на растенията!',
-    diy:[{t:'Магнезиев пламък',d:'Купи магнезиева лента от химически магазин. Запали с по-дълга свещ — гори с ярко бяла, ослепителна светлина. НЕ гледай директно! Само с родител.'},
-         {t:'Хлорофил',d:'Пасирай зелени листа с малко алкохол. Зеленото хлорофилово петно показва магнезия — той е в центъра на всяка хлорофилна молекула!'}],
-    dyk:{t:'Растенията не биха могли да фотосинтезират без магнезий! Всяка молекула хлорофил (зеленото вещество в листата) има точно един магнезиев атом в центъра си.',art:'helix'},
-    links:[{t:'Магнезий – Уикипедия',u:'https://bg.wikipedia.org/wiki/%D0%9C%D0%B0%D0%B3%D0%BD%D0%B5%D0%B7%D0%B8%D0%B9'}]},
-
-  13:{sym:'Al',bg:'Алуминий',lat:'Aluminium',mass:'26.982',cat:'post',row:3,col:13,
-    disc:'Изолиран от Ханс Кристиан Ерстед, 1825 г. Преди 150 години алуминият е бил по-ценен от златото! Наполеон III запазвал алуминиевите прибори само за най-важните гости.',
-    facts:[['Агрегатно','Метал'],['Т. топене','660 °C'],['В земната кора','8.1% — най-разпространен метал!'],['Плътност','2.7 г/см³']],
-    apps:['Самолети','Опаковки (консерви, фолио)','Прозорци и врати','Велосипеди'],
-    where:'Боксит (руда). В глини и скали. Най-разпространеният метал в земната кора.',
-    diy:[{t:'Смачкване на кутия',d:'Загрей алуминиева кутийка с малко вода вътре на котлона. Когато ври, обърни я бързо в студена вода. ТРЯСЪК! Паровото налягане изчезва мигновено.'},
-         {t:'Алуминиева батерия',d:'Разтопи сол в чаша с вода. Постави алуминиево фолио и медна монета. Свържи мултиметър — ще покаже ток!'}],
-    dyk:{t:'Върхът на Вашингтонския монумент в САЩ е от алуминий — тогава (1884 г.) е бил луксозен материал, по-ценен от сребро! Днес го хвърляме в боклука.',art:'gear'},
-    links:[{t:'Алуминий – Уикипедия',u:'https://bg.wikipedia.org/wiki/%D0%90%D0%BB%D1%83%D0%BC%D0%B8%D0%BD%D0%B8%D0%B9'}]},
-
-  15:{sym:'P',bg:'Фосфор',lat:'Phosphorus',mass:'30.974',cat:'nonmetal',row:3,col:15,
-    disc:'Открит от Хенниг Бранд в Хамбург, 1669 г. — той кипял урина, опитвайки се да намери "философски камък"! Получил светещо вещество. Фосфор означава "носещ светлина" на гръцки.',
-    facts:[['Форми','Бял, червен, черен'],['В кибрит','Червен фосфор'],['В живота','ДНК и АТФ'],['Т. топене (бял)','44 °C']],
-    apps:['Кибрит и запалки','Торове','ДНК и АТФ (живот!)','Детергенти'],
-    where:'В костите (калциев фосфат). В ДНК. В кибрита. В почвата.',
-    diy:[{t:'Светещ тъмно',d:'Купи стикери или топка "светещи в тъмното". Те съдържат фосфорни пигменти, зареждат се на светлина и светят тъмно!'},
-         {t:'Кибрит под лупа',d:'Внимателно изследвай главата на кибрит с лупа. Оранжево-кафявото е червен фосфор — безопасна форма.'}],
-    dyk:{t:'Фосфорът е открит от алхимик, кипял урина! В урината има фосфор. Но по-важното: без фосфор животът е невъзможен. ДНК, АТФ (енергията на клетките), костите — всичко се нуждае от фосфор.',art:'helix'},
-    links:[{t:'Фосфор – Уикипедия',u:'https://bg.wikipedia.org/wiki/%D0%A4%D0%BE%D1%81%D1%84%D0%BE%D1%80'}]},
-
-  16:{sym:'S',bg:'Сяра',lat:'Sulfur',mass:'32.06',cat:'nonmetal',row:3,col:16,
-    disc:'Сярата е известна от Древността. Горяла край вулкани и се е използвала за дезинфекция.',
-    facts:[['Цвят','Жълт'],['Т. топене','119 °C'],['Мирис','Гнили яйца (H₂S)'],['Реакт-ст','Умерена']],
-    apps:['Гуми (вулканизация)','Барут','Сярна киселина','Консервиране на вино','Торове'],
-    where:'Около вулкани и горещи извори. В природен газ (H₂S). В протеини. В железен пирит.',
-    diy:[{t:'Вулкан',d:'Насипи сода бикарбонат в купа с пясъчен вулкан, добави оцет + червена боя. CO₂ се отделя и пени!'},
-         {t:'Желязо + сяра',d:'Смесете железни стружки и сяра. Разделяй с магнит — стружките се отделят! Загрей — получаваш FeS, вече неразделимо с магнит.'}],
-    dyk:{t:'Гнилото яйце мирише на сяра! Сероводородът (H₂S) се отделя при разграждане на сярните аминокиселини в белтъка. Вулканите миришат по същия начин.',art:'flame'},
-    links:[{t:'Сяра – Уикипедия',u:'https://bg.wikipedia.org/wiki/%D0%A1%D1%8F%D1%80%D0%B0'}]},
-
-  17:{sym:'Cl',bg:'Хлор',lat:'Chlorine',mass:'35.45',cat:'halogen',row:3,col:17,
-    disc:'Открит от Карл Шеле, 1774 г. Хъмфри Дейви доказал, че е елемент, 1810 г.',
-    facts:[['Агрегатно','Газ'],['Цвят','Жълтозелен'],['Т. кипене','−34 °C'],['Мирис','Остър, дразнещ']],
-    apps:['Дезинфекция на вода','Пластмаси (PVC)','Белина','Лекарства'],
-    where:'Готварска сол (NaCl). Морска вода. Стомашна киселина (HCl).',
-    diy:[{t:'pH тест',d:'Купи тест ленти за басейни. Измери водата от чешмата, вода с щипка сол, вода от басейн. Хлорът прави водата леко кисела.'},
-         {t:'Обезцветяване с белина',d:'Постави ярко оцветена тъкан в разреден разтвор на белина. Наблюдавай как цветът избледнява — хлорът разрушава цветните молекули. С родител!'}],
-    dyk:{t:'Стомахът ти произвежда солна киселина (HCl) за да смила храната! Концентрацията е толкова висока, че би разяла метал.',art:'wave'},
-    links:[{t:'Хлор – Уикипедия',u:'https://bg.wikipedia.org/wiki/%D0%A5%D0%BB%D0%BE%D1%80'}]},
-
-  20:{sym:'Ca',bg:'Калций',lat:'Calcium',mass:'40.078',cat:'alkaline',row:4,col:2,
-    disc:'Изолиран от Хъмфри Дейви чрез електролиза на стопена вар, 1808 г.',
-    facts:[['Агрегатно','Метал'],['Т. топене','842 °C'],['В костите','99% от калция е там'],['Функция','Кости, зъби, мускули']],
-    apps:['Цимент и бетон','Вар (строителство)','Калциеви таблетки','Стомана','Мляко и сирене'],
-    where:'Мрамор, варовик, гипс, черупки. В млякото и сиренето. В костите.',
-    diy:[{t:'Варовик + оцет',d:'Постави парченце тебешир в оцет. Наблюдавай бурното образуване на мехурчета — CO₂! CaCO₃ + оцетна киселина → CO₂'},
-         {t:'Сталактит в буркан',d:'Разтвори много сода (Na₂CO₃) в 2 чаши. Свържи ги с памучен конец. Остави 7 дни — на конеца ще израстват кристали!'},
-         {t:'Гумено яйце',d:'Постави яйце в оцет за 24 часа. Черупката (CaCO₃) се разтваря и яйцето оставя с мека мембрана — гумено яйце!'}],
-    dyk:{t:'Варовикът и мраморът са едно и също нещо — калциев карбонат (CaCO₃)! Варовикът се е натрупал от черупки на морски животни преди милиони години. Мраморът е варовик, пресован и загрят дълбоко в земята.',art:'crystal'},
-    links:[{t:'Калций – Уикипедия',u:'https://bg.wikipedia.org/wiki/%D0%9A%D0%B0%D0%BB%D1%86%D0%B8%D0%B9'}]},
-
-  26:{sym:'Fe',bg:'Желязо',lat:'Iron',mass:'55.845',cat:'transition',row:4,col:8,
-    disc:'Желязото е известно на хората от около 5000 години пр.н.е. Желязната епоха замени Бронзовата около 1200 г. пр.н.е. Символът Fe идва от латинското "Ferrum".',
-    facts:[['Агрегатно','Феромагнит метал'],['Т. топене','1538 °C'],['В кората','4-ти по разпространение'],['Роля','Хемоглобин в кръвта']],
-    apps:['Стомана (сгради, коли)','Магнити','Кръвта (хемоглобин)','Ядрото на Земята'],
-    where:'4-ти по разпространение елемент в земната кора. Ядрото на Земята е желязо-никелова сплав. В червените кръвни клетки.',
-    diy:[{t:'Желязо в зърнена закуска',d:'Смели зърнена закуска в блендер и разтвори праха в малко вода. Поднеси силен магнит — железните частици се привличат! Желязото в закуските е буквално метален прах.'},
-         {t:'Магнитни силови линии',d:'Постави магнит под лист хартия. Насипи железни стружки (от стоманена вата) отгоре. Виждат се красивите силови линии!'},
-         {t:'3 пирона',d:'Един сух, един мокър, един в солена вода. Наблюдавай 3 дни. Кой ръждее пръв? Защо солта ускорява окислението?'}],
-    dyk:{t:'Кръвта е червена заради желязото! Хемоглобинът съдържа желязо, което хваща кислорода. Октоподите имат СИНЯ кръв — при тях е мед вместо желязо!',art:'gear'},
-    links:[{t:'Желязо – Уикипедия',u:'https://bg.wikipedia.org/wiki/%D0%96%D0%B5%D0%BB%D1%8F%D0%B7%D0%BE'}]},
-
-  29:{sym:'Cu',bg:'Мед',lat:'Copper',mass:'63.546',cat:'transition',row:4,col:11,
-    disc:'Медта е известна на хората от над 10,000 години. Кипърският остров е дал латинското й име "Cuprum" — там са добивали мед.',
-    facts:[['Агрегатно','Метал'],['Цвят','Червено-кафяв'],['Т. топене','1085 °C'],['Проводимост','Отлична']],
-    apps:['Електрически кабели','Водопроводни тръби','Монети','Бронз и месинг','Антибактериални повърхности'],
-    where:'В минерали малахит, азурит. В морски животни (синя кръв). В стари монети.',
-    diy:[{t:'Почистване на монети',d:'Смесете оцет + щипка сол. Поставете потъмнели монети за 5 минути. Блестят! После измийте добре.'},
-         {t:'Зелен патинаж',d:'Намокрете медни монети и ги поставете в буркан с намокрен оцет. За 24 часа ще се покрият с верdigris (зелена патина) — CuCO₃!'},
-         {t:'Меден кристал',d:'Разтвори меден сулфат (от хоби магазин) в гореща вода. Охлади бавно — израстват красиви сини кристали!'}],
-    dyk:{t:'Медта убива бактерии само от допир! Болничните врати от мед убиват бактерии за 2 часа. Затова старите болници са имали медни парапети и дръжки.',art:'gear'},
-    links:[{t:'Мед – Уикипедия',u:'https://bg.wikipedia.org/wiki/%D0%9C%D0%B5%D0%B4_(%D0%B5%D0%BB%D0%B5%D0%BC%D0%B5%D0%BD%D1%82)'}]},
-
-  47:{sym:'Ag',bg:'Сребро',lat:'Silver',mass:'107.868',cat:'transition',row:5,col:11,
-    disc:'Среброто е познато от около 4000 г. пр.н.е. Символът Ag идва от латинското "argentum".',
-    facts:[['Проводимост','Най-висока от всички елементи'],['Т. топене','962 °C'],['Антибактериален','Да'],['Цвят','Бял блясък']],
-    apps:['Бижута','Антибактериални продукти','Фотографски филм','Огледала','Слънчеви панели'],
-    where:'В минерала аргентит (Ag₂S). В Мексико, Перу и Австралия.',
-    diy:[{t:'Полиране на сребро',d:'Постави сребърни предмети в тиган с алуминиево фолио, сода за пиене и гореща вода. Почерняването изчезва! Алуминият "открадва" сярата от среброто.'}],
-    dyk:{t:'Среброто е най-добрият проводник на електричество от всички елементи — дори по-добър от медта! Но е много по-скъп, затова кабелите са медни.',art:'crystal'},
-    links:[{t:'Сребро – Уикипедия',u:'https://bg.wikipedia.org/wiki/%D0%A1%D1%80%D0%B5%D0%B1%D1%80%D0%BE'}]},
-
-  53:{sym:'I',bg:'Йод',lat:'Iodine',mass:'126.904',cat:'halogen',row:5,col:17,
-    disc:'Открит от Бернар Куртоа в Париж, 1811 г. — случайно, при производство на барут от морски водорасли.',
-    facts:[['Агрегатно','Твърдо'],['Цвят','Лилавочерен'],['Т. топене','114 °C'],['Сублимация','Лилави пари']],
-    apps:['Дезинфекция (йодна тинктура)','Щитовидна жлеза (тироксин)','Йодирана сол','Детектиране на нишесте'],
-    where:'В морски водорасли. В морски дарове. В йодирана сол. В щитовидната жлеза.',
-    diy:[{t:'Тест за нишесте',d:'Нанеси капка йодна тинктура (от аптека) върху хляб, картофи, царевица — почернява! Върху захар, мляко — не реагира. Йодът е детектор за нишесте.'},
-         {t:'Намери нишестето',d:'Тествайте: ориз, тесто, моркови, ябълка, сирене, масло. Кои почерняват? Нишестето е в нагъбените храни!'},
-         {t:'Лилави пари',d:'Загрей малко кристали йод в закрит буркан. Появяват се ярко лилави пари — йодът сублимира! САМО с родител.'}],
-    dyk:{t:'Йодът е лилав като магия! В твърдо и газово състояние е лилавочерен. В алкохол (тинктура) е кафяв, в нишестето — черен. Един елемент, три цвята!',art:'wave'},
-    links:[{t:'Йод – Уикипедия',u:'https://bg.wikipedia.org/wiki/%D0%99%D0%BE%D0%B4'}]},
-
-  79:{sym:'Au',bg:'Злато',lat:'Gold',mass:'196.967',cat:'transition',row:6,col:11,
-    disc:'Златото е познато от хората от над 6000 години. Символът Au идва от латинското "aurum". Никога не е "открито" от един учен — намирано е в природата като чист метал.',
-    facts:[['Т. топене','1064 °C'],['Реактивност','Почти нулева'],['Плътност','19.3 г/см³ — много тежко!'],['Ковкост','Най-ковкият метал']],
-    apps:['Бижута','Електроника (контакти)','Зъбни корони','Астронавтски шлемове','Лечение на рак'],
-    where:'В речни наноси. В кварцови жили. В морска вода. В Слънцето.',
-    diy:[{t:'Тест за злато',d:'Потри предполагаемо злато по черна керамична плоча. Истинското злато оставя жълта черта. Фалшивото — черна.'},
-         {t:'Позлата с листово злато',d:'Купи листово злато (от хоби магазин). С меко четче го нанеси върху рамка — истинска позлата!'},
-         {t:'Шлихтоване',d:'Вземи тиган, сипи пясък от река, добави вода и въртаглив. По-тежките частици (злато, пирит) остават в центъра.'}],
-    dyk:{t:'Цялото злато, добивано досега от човечеството — около 190,000 тона — ако се стопи в куб, страната му ще е едва 22 метра! Малко като сграда.',art:'crystal'},
-    links:[{t:'Злато – Уикипедия',u:'https://bg.wikipedia.org/wiki/%D0%97%D0%BB%D0%B0%D1%82%D0%BE'}]},
-
-  80:{sym:'Hg',bg:'Живак',lat:'Mercury',mass:'200.592',cat:'post',row:6,col:12,
-    disc:'Известен от Древен Китай и Египет. Намиран в природата като течен метал. Символът Hg идва от "hydrargyrum" (гръцки: течно сребро).',
-    facts:[['Агрегатно','Течен метал'],['Т. топене','−39 °C'],['Токсичност','Много опасен!'],['Цвят','Сребрист']],
-    apps:['Термометри (исторически)','Луминесцентни лампи','Зъбни пломби (исторически)'],
-    where:'В минерала киноварь (HgS) — ярко червен. В много страни е забранен.',
-    diy:[{t:'Стар термометър',d:'Ако у дома има термометър с ЧЕРВЕНА течност — той е с алкохол, безопасен. Ако е СРЕБРИСТ — е живак и е опасен! Покажи на родителите.'}],
-    dyk:{t:'Живакът е единственият метал, течен при стайна температура! Алхимиците го докосвали за "магически сили" — не знаели, че е смъртоносно отровен. Дори Исак Нютон е бил отровен с живак!',art:'wave'},
-    links:[{t:'Живак – Уикипедия',u:'https://bg.wikipedia.org/wiki/%D0%96%D0%B8%D0%B2%D0%B0%D0%BA'}]},
-
-  88:{sym:'Ra',bg:'Радий',lat:'Radium',mass:'226',cat:'alkaline',row:7,col:2,
-    disc:'Открит от Мария и Пиер Кюри в Париж, 1898 г. Мария Кюри е единственият човек с Нобелови награди по 2 различни науки!',
-    facts:[['Полуразпад','1600 години'],['Светимост','Синкаво-зелена'],['Токсичност','Много опасен'],['Рядкост','Изключително рядък']],
-    apps:['Радиотерапия (исторически)','Луминисцентни бои','Научни изследвания'],
-    where:'В урановите руди (изключително малко). От 1 тон уранова руда — под 1 грам радий.',
-    diy:[{t:'Светещи часовници',d:'Стари часовници (преди 1960 г.) са боядисани с радиеви бои — светят в тъмното. НЕ ги разглобявайте! Новите светещи часовници използват безопасен фосфор.'}],
-    dyk:{t:'Записките на Мария Кюри в Националната библиотека на Франция са толкова радиоактивни, че се пазят в оловни кутии! За да ги четеш, трябва да подпишеш документ за безопасност.',art:'radiation'},
-    links:[{t:'Радий – Уикипедия',u:'https://bg.wikipedia.org/wiki/%D0%A0%D0%B0%D0%B4%D0%B8%D0%B9'}]},
-
-  92:{sym:'U',bg:'Уран',lat:'Uranium',mass:'238.029',cat:'actinide',row:7,col:6,
-    disc:'Открит от Мартин Клапрот в Берлин, 1789 г. Наречен на планетата Уран, открита 8 години по-рано.',
-    facts:[['Т. топене','1135 °C'],['Полуразпад','4.5 млрд. години'],['Използване','Ядрена енергия'],['Маса','Много тежък']],
-    apps:['Ядрена енергия (реактори)','Ядрено оръжие','Военна броня','Уранов стъклен пигмент'],
-    where:'В урановата руда уранинит. В Казахстан, Канада и Австралия.',
-    diy:[{t:'Ураново стъкло',d:'Стъкло с уранов пигмент флуоресцира зелено при UV светлина — безопасно за докосване! Търси "Vaseline glass" или "uranium glass" онлайн.'}],
-    dyk:{t:'Уранът е толкова стар, колкото Земята! Полуразпадът му е 4.5 милиарда години — точно колкото е на нашата планета. Учените измерват колко уран е останал в скалите, за да разберат на колко години са те.',art:'radiation'},
-    links:[{t:'Уран – Уикипедия',u:'https://bg.wikipedia.org/wiki/%D0%A3%D1%80%D0%B0%D0%BD_(%D0%B5%D0%BB%D0%B5%D0%BC%D0%B5%D0%BD%D1%82)'}]},
+  1:{
+    bg:{name:'Водород',disc:'Открит през 1766 г. от Хенри Кавендиш, който го нарича „горим въздух". Кръстен е водород, защото ражда вода при горене!',facts:[['Агрегатно','Газ'],['Цвят','Безцветен']],apps:['Ракетно гориво','Торове','Горивни клетки'],where:'Водата (H₂O), слънцето и звездите, всички живи организми.',diy:[{t:'Електролиза у дома',d:'Пуснете батерия в чаша солена вода. От полюсите ще излязат мехурчета водород и кислород!'}],dyk:{t:'Водородът е най-лекият елемент във Вселената. Цяла плувна стая с него би тежала колкото едно малко шоколадче!',art:'balloon'}},
+    en:{name:'Hydrogen',disc:'Discovered in 1766 by Henry Cavendish, who called it "inflammable air". It is named hydrogen because it makes water when burned!',facts:[['State','Gas'],['Color','Colorless']],apps:['Rocket Fuel','Fertilizers','Fuel Cells'],where:'Water (H₂O), stars, the Sun, and all living creatures.',diy:[{t:'Home Electrolysis',d:'Put a battery in salt water. Bubbles of hydrogen and oxygen will rise from its terminals!'}],dyk:{t:'Hydrogen is the lightest element in the Universe. A whole swimming pool full of it weighs as much as a chocolate bar!',art:'balloon'}}
+  },
+  2:{
+    bg:{name:'Хелий',disc:'Открит първо на Слънцето през 1868 г. Кръстен на гръцкия бог на слънцето Хелиос.',facts:[['Агрегатно','Газ'],['Цвят','Безцветен']],apps:['Балони','МРТ скенери','Охлаждане'],where:'В природния газ дълбоко в земята, и като гориво в звездите.',diy:[{t:'Забавен глас',d:'Вдишайте малко хелий от парти балон и кажете нещо. Гласът ви ще стане смешен като на анимационен герой!'}],dyk:{t:'Хелият е толкова лек, че лесно излита в Космоса и Земята го губи завинаги. Затова е супер ценен ресурс!',art:'balloon'}},
+    en:{name:'Helium',disc:'Discovered on the Sun first during a solar eclipse in 1868. Named after Helios, the Greek sun god.',facts:[['State','Gas'],['Color','Colorless']],apps:['Balloons','MRI Scanners','Deep Cooling'],where:'Deep in the ground in natural gas pockets, and inside stars.',diy:[{t:'Silly Voice',d:'Inhale a tiny bit of helium from a party balloon and speak. Your voice will sound super squeaky and funny!'}],dyk:{t:'Helium is so light that it escapes Earth\'s gravity and floats into space forever. It is extremely precious!',art:'balloon'}}
+  },
+  3:{
+    bg:{name:'Литий',disc:'Мек сребрист метал. Толкова е лек, че плува върху вода и дори върху олио!',facts:[['Агрегатно','Метал'],['Цвят','Сребрист']],apps:['Батерии за телефони','Коли','Лекарства'],where:'В специални минерали и солени езера високо в планините.',diy:[{t:'Намери батерията',d:'Намерете стара презареждаема батерия. Вътре в нея има литиеви йони, които пренасят ток!'}],dyk:{t:'Литият е най-лекият метал на Земята. Той е сърцето на батерията на твоя телефон и таблет!',art:'gear'}},
+    en:{name:'Lithium',disc:'A soft, silvery metal. It is so lightweight that it floats on water and even on cooking oil!',facts:[['State','Solid Metal'],['Color','Silvery-white']],apps:['Phone Batteries','Electric Cars','Medicine'],where:'Found in mineral rocks and salt lakes high in the mountains.',diy:[{t:'Check Battery',d:'Look at any rechargeable phone battery. It uses lithium ions to store and transfer electricity!'}],dyk:{t:'Lithium is the lightest solid metal on Earth. It is the powerhouse inside your smartphone and tablet!',art:'gear'}}
+  },
+  4:{
+    bg:{name:'Берилий',disc:'Супер здрав и невероятно лек метал. Има сивкаво-бял цвят.',facts:[['Агрегатно','Метал'],['Точка на топене','1287 °C']],apps:['Космически телескопи','Сателити','Изумруди'],where:'В скъпоценните камъни изумруди (смарагди) и аквамарини.',diy:[{t:'Изумрудена лупа',d:'Ако имате зелен пръстен с изумруд, разгледайте го под силна лупа. Цветът му се дължи на берилий!'}],dyk:{t:'Огромните огледала на космическия телескоп Джеймс Уеб са направени от берилий, защото е лек и не се криви от космическия студ!',art:'crystal'}},
+    en:{name:'Beryllium',disc:'A super strong and incredibly lightweight steel-gray metal.',facts:[['State','Solid Metal'],['Melting Point','1287 °C']],apps:['Space Telescopes','Satellites','Gems'],where:'Found in precious emeralds and beautiful aquamarine crystals.',diy:[{t:'Emerald Inspection',d:'If you have a green emerald ring or stone, look at it under a magnifier. Beryllium gives it its strong crystal frame!'}],dyk:{t:'The giant mirrors of the James Webb Space Telescope are made of beryllium because it holds its shape in ultra-cold space!',art:'crystal'}}
+  },
+  5:{
+    bg:{name:'Бор',disc:'Твърд и черен неметал, който помага на растенията да растат здрави.',facts:[['Агрегатно','Твърдо'],['Цвят','Черен/Кафяв']],apps:['Йенско стъкло','Слайм слуз','Ракетни запалки'],where:'В сухи езера в пустините като прах, наречен боракс.',diy:[{t:'Зелен слайм',d:'Смесете малко лепило, вода и боракс (борна сол). Получава се страхотно разтеглив зелен слайм!'}],dyk:{t:'Борът прави стъклото термоустойчиво. Благодарение на него стъклените тави не се пукат в горещата фурна!',art:'helix'}},
+    en:{name:'Boron',disc:'A tough dark metalloid that helps plants grow strong cellular structures.',facts:[['State','Solid'],['Color','Dark brown/Black']],apps:['Pyrex Glass','Gooey Slime','Rocket Igniters'],where:'Found in desert dry lakes as a mineral powder called borax.',diy:[{t:'Make Slime',d:'Mix some school glue, water, and borax powder (boron salt). You get awesome, stretchy green slime!'}],dyk:{t:'Boron makes glass super strong against heat. That is why Pyrex dishes do not shatter in a hot baking oven!',art:'helix'}}
+  },
+  6:{
+    bg:{name:'Въглероден',disc:'Въглеродът е най-важният елемент за живота. Въгленът и диамантът са чист въглерод!',facts:[['Форми','Диамант, графит, въглен'],['Т. топене','3550 °C']],apps:['Моливи','Диаманти','Въглища','Пластмаса'],where:'Във всяко живо същество (дървета, хора), в CO₂ и в диамантите дълбоко в Земята.',diy:[{t:'Диамант срещу Молив',d:'Сравнете върха на молив (мек графит) и диамант. И двата са от чист въглерод, просто подреден различно!'}],dyk:{t:'Въглеродът е шампион по преобразяване! Подреден в слоеве е мек графит за писане, а подреден в куб става най-твърдия камък — диамант!',art:'diamond'}},
+    en:{name:'Carbon',disc:'Carbon is the ultimate element of life. Charcoal and diamonds are made of pure carbon!',facts:[['Allotropes','Diamond, graphite, coal'],['Melting Pt','3550 °C']],apps:['Pencils','Diamonds','Coal Fuel','Plastics'],where:'In every living cell, in carbon dioxide gas, and in deep diamonds.',diy:[{t:'Pencil vs Diamond',d:'Compare a pencil lead (soft graphite) and a shiny diamond. Both are pure carbon, just arranged differently!'}],dyk:{t:'Carbon is the master of disguise! Arranged in flat sheets, it makes soft writing graphite; in a tight cube, it is a diamond!',art:'diamond'}}
+  },
+  7:{
+    bg:{name:'Азот',disc:'Газ, който съставя почти 80% от въздуха, който дишаме. Открит през 1772 г.',facts:[['Агрегатно','Газ'],['% във въздуха','78%']],apps:['Азотни торове','Замразяване','Чипс пакети'],where:'Във въздуха на Земята и в протеините на нашите мускули.',diy:[{t:'Надутият чипс',d:'Забелязали ли сте как пакетът чипс е надут? Той е пълен с азот, за да не се натроши и развали чипсът!'}],dyk:{t:'Течният азот е толкова студен (-196 °C), че може да замрази и счупи роза като стъкло за половин секунда!',art:'wave'}},
+    en:{name:'Nitrogen',disc:'A gas that makes up nearly 80% of the air we breathe. Discovered in 1772.',facts:[['State','Gas'],['In Air','78%']],apps:['Fertilizers','Deep Freezing','Potato Chip Bags'],where:'In the Earth\'s atmosphere and inside all proteins and DNA.',diy:[{t:'Puffy Chip Bag',d:'Ever notice how chip bags are super puffy? They are filled with pure nitrogen gas to keep the chips fresh and crispy!'}],dyk:{t:'Liquid nitrogen is so cold (-196 °C) that it can freeze a fresh flower instantly, making it shatter like glass!',art:'wave'}}
+  },
+  8:{
+    bg:{name:'Кислород',disc:'Елементът, който дишаме всяка секунда, за да имаме енергия. Среща се като O₂.',facts:[['Агрегатно','Газ'],['% във въздуха','21%']],apps:['Дишане','Горене','Ракетно гориво'],where:'Във въздуха, във водата (H₂O) и в скалите на земната кора.',diy:[{t:'Ръждясал пирон',d:'Поставете пирон на мокра вата в буркан. След 24 часа кислородът и водата ще направят червена ръжда!'}],dyk:{t:'Кислородът е газ, но ако го охладите до супер студените -183 °C, той се превръща в красива яркосиня течност!',art:'flame'}},
+    en:{name:'Oxygen',disc:'The gas that we breathe every single second to power our bodies. Exists as O₂.',facts:[['State','Gas'],['In Air','21%']],apps:['Breathing','Combustion','Rocket Oxidizer'],where:'In the atmosphere, in water (H₂O), and inside most rocks.',diy:[{t:'Rusty Nail',d:'Put an iron nail on a wet cotton pad in a jar. In a day, oxygen and moisture will react to form red rust!'}],dyk:{t:'Oxygen is invisible as a gas, but if you freeze it to -183 °C, it condenses into a beautiful, glowing pale blue liquid!',art:'flame'}}
+  },
+  9:{
+    bg:{name:'Флуор',disc:'Супер агресивен жълтеникав газ. В много малки количества предпазва зъбите ни.',facts:[['Агрегатно','Газ'],['Цвят','Бледожълт']],apps:['Паста за зъби','Тефлон тигани','Охлаждане'],where:'В минерали като флуорит, който свети красиво под UV светлина.',diy:[{t:'Защита за зъби',d:'Прочетете съставките на пастата си за зъби. Там има натриев флуорид, който прави зъбния емайл твърд!'}],dyk:{t:'Чистият флуор е толкова агресивен, че подпалва вода, стъкло и дори пясък при допир! Но в пастата ни за зъби е кротък пазител.',art:'crystal'}},
+    en:{name:'Fluorine',disc:'An extremely reactive pale-yellow gas. In tiny amounts, it shields our teeth.',facts:[['State','Gas'],['Color','Pale Yellow']],apps:['Toothpaste','Non-stick Teflon','Refrigeration'],where:'In mineral crystals like fluorite, which glows beautifully under UV light.',diy:[{t:'Toothpaste Check',d:'Read the label on your toothpaste. You will find sodium fluoride, which forms a hard shield over your teeth!'}],dyk:{t:'Pure fluorine is so aggressive that it sets water, glass, and even sand on fire instantly! Yet in toothpaste, it is our friendly defender.',art:'crystal'}}
+  },
+  10:{
+    bg:{name:'Неон',disc:'Благороден газ, известен със своя ослепителен червено-оранжев блясък в светещите тръби.',facts:[['Агрегатно','Газ'],['Светимост','Червено-оранжева']],apps:['Неонови реклами','Лазери','Светлинни знаци'],where:'Във въздуха на Земята (в много малки количества).',diy:[{t:'Намери рекламата',d:'Разходете се вечер и потърсете ярко светещи червени надписи. В тях тече ток през чист неон!'}],dyk:{t:'Ако напълните стъклена тръба с неон и пуснете ток, той започва да свети ярко червено. Другите цветове са от други газове!',art:'balloon'}},
+    en:{name:'Neon',disc:'A noble gas famous for its brilliant reddish-orange glow in high-voltage sign tubes.',facts:[['State','Gas'],['Glow Color','Reddish-orange']],apps:['Neon Signs','High-power Lasers','Beacon Lights'],where:'Found in tiny trace amounts in the air we breathe.',diy:[{t:'Find Neon',d:'Go for a walk at night and look for glowing red signs. Inside those glass tubes flows electricity through pure neon!'}],dyk:{t:'If you pass electricity through a glass tube with neon, it glows bright red. Other colors like blue or green use different gases!',art:'balloon'}}
+  },
+  11:{
+    bg:{name:'Натрий',disc:'Мек и бляскав метал. Толкова е мек, че може да го срежете с пластмасов нож, но реагира с вода експлозивно!',facts:[['Агрегатно','Метал'],['Т. топене','98 °C']],apps:['Сол (NaCl)','Жълти лампи','Сапун'],where:'В морската сол, каменната сол и в нашата кръв.',diy:[{t:'Жълт пламък',d:'Поръсете малко сол върху свещ или котлон. Пламъкът ще светне в ярко жълто заради натриевите атоми!'}],dyk:{t:'Натрият е експлозивен метал, а хлорът е отровен газ. Но когато се съединят, правят вкусната готварска сол (NaCl), която ядем всеки ден!',art:'flame'}},
+    en:{name:'Sodium',disc:'A soft, silvery metal. You can cut it with a butter knife, but it reacts with water explosively!',facts:[['State','Solid Metal'],['Melting Pt','98 °C']],apps:['Table Salt','Streetlights','Soap'],where:'Abundant in sea water, rock salt mines, and in our blood.',diy:[{t:'Yellow Flame Test',d:'Sprinkle a tiny pinch of salt into a candle flame. It turns bright yellow because of sodium atoms excitation!'}],dyk:{t:'Sodium is an explosive metal and chlorine is a toxic gas. But combined, they form delicious table salt (NaCl) that we safely eat!',art:'flame'}}
+  },
+  12:{
+    bg:{name:'Магнезий',disc:'Лек сребристо-бял метал, който гори с изключително ярък бял пламък.',facts:[['Агрегатно','Метал'],['Цвят','Сребрист']],apps:['Фойерверки','Спортна креда','Сплави'],where:'В морската вода, скалите и в зеления хлорофил на листата.',diy:[{t:'Листа и магнезий',d:'Разгледайте зелено листо на слънце. В центъра на всяка зелена клетка има точно един магнезиев атом!'}],dyk:{t:'Растенията не могат да живеят без магнезий! Той е в центъра на хлорофила, който превръща слънчевата светлина в енергия (фотосинтеза).',art:'helix'}},
+    en:{name:'Magnesium',disc:'A lightweight silver-white metal that burns with a blindingly bright white flame.',facts:[['State','Solid Metal'],['Color','Silvery-white']],apps:['Fireworks','Gymnastic Chalk','Aircraft Alloys'],where:'Found in sea salts, mineral rocks, and inside green plant leaves.',diy:[{t:'Leaf Chlorophyll',d:'Look at a green leaf. In the very center of every chlorophyll molecule sits a single magnesium atom!'}],dyk:{t:'Plants cannot make energy without magnesium! It sits in the core of chlorophyll, capturing sunlight to run photosynthesis.',art:'helix'}}
+  },
+  13:{
+    bg:{name:'Алуминий',disc:'Супер лек и сребрист метал, който не ръждясва лесно. Преди 150 години е бил по-скъп от златото!',facts:[['Агрегатно','Метал'],['Плътност','2.7 г/см³']],apps:['Самолети','Фолио','Кенчета за сода'],where:'В минерала боксит, скалите и глината.',diy:[{t:'Силата на фолиото',d:'Вземете парче алуминиево фолио и вижте колко лесно се огъва. Направете лодка и я пуснете да плува!'}],dyk:{t:'Понеже е изключително лек и здрав, почти всички модерни пътнически самолети са направени основно от алуминий!',art:'gear'}},
+    en:{name:'Aluminium',disc:'A lightweight, silver metal that does not rust easily. 150 years ago, it was more precious than gold!',facts:[['State','Solid Metal'],['Density','2.7 g/cm³']],apps:['Airplanes','Aluminum Foil','Soda Cans'],where:'Extracted from bauxite ore, common in clays and rocks.',diy:[{t:'Foil Boat Test',d:'Take a sheet of kitchen foil. Notice how light it is. Fold it into a toy boat and watch it float in water!'}],dyk:{t:'Because it is incredibly light and strong, almost all modern passenger airplanes are built mostly of aluminium alloys!',art:'gear'}}
+  },
+  14:{
+    bg:{name:'Силиций',disc:'Мозъкът на нашите технологии! Той е металоид с красив метален блясък.',facts:[['Агрегатно','Твърдо'],['Т. топене','1414 °C']],apps:['Компютърни чипове','Стъкло','Слънчеви панели'],where:'В пясъка на плажа, скалите, кварца и стъклото.',diy:[{t:'Пясък и чип',d:'Разгледайте пясъчно зрънце на плажа. То е направено от силиций и кислород — същата съставка като в чипа на телефона ви!'}],dyk:{t:'Силицият управлява света! Всички компютърни чипове в телефоните, игровите конзоли и роботите са направени от силиций.',art:'crystal'}},
+    en:{name:'Silicon',disc:'The brain behind our technology! It is a dark metalloid with a beautiful metallic luster.',facts:[['State','Solid Metalloid'],['Melting Pt','1414 °C']],apps:['Computer Chips','Glass Bottles','Solar Panels'],where:'Found in beach sand, quartz crystals, and glass.',diy:[{t:'Sand to Chip',d:'Look at a grain of sand. It is silicon dioxide. The computer chip in your device is made from highly purified sand!'}],dyk:{t:'Silicon runs our digital world! All computer microprocessors inside phones, game consoles, and smart appliances are made of silicon.',art:'crystal'}}
+  },
+  15:{
+    bg:{name:'Фосфор',disc:'Елемент с две напълно различни лица: светещ и опасен бял фосфор, или безопасен червен фосфор.',facts:[['Цвят','Бял, червен или черен'],['Т. топене (бял)','44 °C']],apps:['Кибрити','Торове','ДНК вериги'],where:'В костите ни (калциев фосфат), в почвата и в главата на кибритените клечки.',diy:[{t:'Кибритена клечка',d:'Разгледайте главичката на кибрит. Тъмният цвят се дължи на безопасния червен фосфор, който се пали от триене!'}],dyk:{t:'Фосфорът е открит от алхимик, който кипял урина в търсене на злато! Вместо това открил вещество, което свети мистериозно в тъмното.',art:'helix'}},
+    en:{name:'Phosphorus',disc:'An element with two faces: glowing, dangerous white phosphorus, or safe red phosphorus.',facts:[['Color','White, Red, or Black'],['Melting Pt (white)','44 °C']],apps:['Matches','Fertilizers','DNA Backbone'],where:'In our bones, in farm soils, and on the striking surface of matchboxes.',diy:[{t:'Matchbox Check',d:'Look at the friction strip on a matchbox. That dark red-brown powder is safe red phosphorus!'}],dyk:{t:'Phosphorus was discovered by an alchemist who boiled urine searching for gold! Instead, he found a glowing substance.',art:'helix'}}
+  },
+  16:{
+    bg:{name:'Сяра',disc:'Яркожълт неметал, познат от древността. Гори със син пламък и има остър мирис при избухване.',facts:[['Агрегатно','Твърдо'],['Цвят','Яркожълт']],apps:['Вулканизация на гуми','Барут','Киселини'],where:'Около действащи вулкани и горещи термални извори.',diy:[{t:'Мирис на вулкан',d:'Помиришете сярна спа кал или минерален извор. Миризмата на развалени яйца е от сероводород (сяра)!'}],dyk:{t:'Вулканите миришат на сяра! Но по-важното: сярата прави автомобилните гуми еластични и здрави чрез процес, наречен вулканизация.',art:'flame'}},
+    en:{name:'Sulfur',disc:'A bright yellow solid nonmetal known since ancient times. It burns with a beautiful blue flame.',facts:[['State','Solid'],['Color','Bright Yellow']],apps:['Tire Vulcanization','Gunpowder','Acids'],where:'Abundant around active volcanoes and geothermal hot springs.',diy:[{t:'Spa Smell',d:'Visit a sulfur mineral hot spring or sniff a mud treatment. That rotten egg smell is hydrogen sulfide gas (sulfur)!'}],dyk:{t:'Volcanoes smell like sulfur! Also, sulfur is used to cure rubber in car tires, making them tough and heat-resistant.',art:'flame'}}
+  },
+  17:{
+    bg:{name:'Хлор',disc:'Отровен жълто-зелен газ с остър задушаващ мирис, който убива бактериите във водата.',facts:[['Агрегатно','Газ'],['Цвят','Жълто-зелен']],apps:['Пречистване на басейни','Белина','Пластмаса (PVC)'],where:'В готварската сол (NaCl) и в киселината в стомасите ни.',diy:[{t:'Стомашният пазител',d:'Нашият стомах произвежда солна киселина (соли на хлора), за да смила храната и да убива опасните бацили!'}],dyk:{t:'Хлорът се използва за пречистване на питейната вода и басейните, защото мигновено унищожава всички микроби и вируси!',art:'wave'}},
+    en:{name:'Chlorine',disc:'A poisonous yellow-green gas with a sharp smell. It is a powerful sanitizer.',facts:[['State','Gas'],['Color','Greenish-yellow']],apps:['Water Sanitizing','Bleach','PVC Plastics'],where:'In table salt (NaCl) and inside our stomach acid (HCl).',diy:[{t:'Stomach Acid Fact',d:'Our stomach creates hydrochloric acid (containing chlorine) to digest food and kill dangerous germs!'}],dyk:{t:'Chlorine is added to swimming pools and drinking water worldwide because it kills harmful bacteria and viruses instantly!',art:'wave'}}
+  },
+  19:{
+    bg:{name:'Калий',disc:'Супер мек сребрист метал. Реагира толкова бурно с вода, че се самозапалва с лилав пламък!',facts:[['Агрегатно','Метал'],['Пламък','Лилав']],apps:['Торове','Сапуни','Биология'],where:'В плодовете (банани), ядките, почвата и вътре в нашите клетки.',diy:[{t:'Бананова сила',d:'Изяжте един банан! Той е супер богат на калиеви йони, които помагат на сърцето и мускулите ви да работят отлично.'}],dyk:{t:'Калият реагира с водата експлозивно, отделяйки водород, който веднага пламва в красив виолетов (лилав) огън!',art:'flame'}},
+    en:{name:'Potassium',disc:'A soft, silvery metal. It reacts so violently with water that it catches fire with a purple flame!',facts:[['State','Solid Metal'],['Flame Color','Lilac/Purple']],apps:['Fertilizers','Soaps','Body Minerals'],where:'Found in bananas, potatoes, nuts, soils, and inside our body cells.',diy:[{t:'Banana Boost',d:'Eat a banana! It is packed with potassium ions which help your nerves fire and keep your muscles working perfectly.'}],dyk:{t:'Potassium reacts with water explosively, producing hydrogen gas which instantly ignites into a beautiful lilac-purple flame!',art:'flame'}}
+  },
+  20:{
+    bg:{name:'Калций',disc:'Сребристо-бял метал, чиито съединения изграждат черупките, тебешира и нашия скелет!',facts:[['Агрегатно','Метал'],['Т. топене','842 °C']],apps:['Кости и зъби','Строителство','Мляко'],where:'В млякото, сиренето, тебешира, черупките на охлювите и варовика.',diy:[{t:'Тебеширен тест',d:'Пуснете парче строителен тебешир в оцет. То ще шупне бурно, отделяйки мехурчета CO₂. Това е калциев карбонат!'}],dyk:{t:'Големите планини и черупките на морските миди са направени от едно и също нещо — калций (калциев карбонат)!',art:'crystal'}},
+    en:{name:'Calcium',disc:'A silvery-white metal whose compounds build sea shells, chalk, and our skeletons!',facts:[['State','Solid Metal'],['Melting Pt','842 °C']],apps:['Bones & Teeth','Cement/Lime','Dairy Food'],where:'Abundant in milk, cheese, seashells, chalk, limestone, and marble.',diy:[{t:'Chalk and Vinegar',d:'Drop a piece of school chalk into a glass of vinegar. It will fizz and release CO₂ bubbles. That is calcium carbonate reacting!'}],dyk:{t:'Giant chalk cliffs and tiny sea shells are made of the exact same element — calcium (as calcium carbonate)!',art:'crystal'}}
+  },
+  22:{
+    bg:{name:'Титан',disc:'Метал с космическа слава. Здрав е колкото стомана, но е много по-лек и не ръждясва нито в солена вода, нито в тялото ни!',facts:[['Агрегатно','Метал'],['Плътност','4.5 г/см³']],apps:['Космически совалки','Самолети','Импланти'],where:'В минерали в земната кора (рутил и илменит).',diy:[{t:'Изкуствена кост',d:'Титанът е биосъвместим. Намерете снимка на изкуствена става или зъбен имплант — те са направени от чист титан!'}],dyk:{t:'Титанът е толкова безвреден за организма, че костите на човек могат да се сраснат директно с него без никакво отхвърляне!',art:'gear'}},
+    en:{name:'Titanium',disc:'A space-age metal. It is as strong as steel but much lighter, and it never rusts in salt water or inside our bodies!',facts:[['State','Solid Metal'],['Density','4.5 g/cm³']],apps:['Spacecraft','Jet Engines','Medical Implants'],where:'Found in crust minerals like rutile and ilmenite.',diy:[{t:'Check Implants',d:'Titanium is bio-compatible. Search online for a titanium medical joint or tooth implant. The body accepts it completely!'}],dyk:{t:'Titanium is so friendly to human flesh that bone cells will actually grow directly onto a titanium surface, bonding with it!',art:'gear'}}
+  },
+  24:{
+    bg:{name:'Хром',disc:'Супер лъскав сребрист метал. Използва се за хромиране, за да пази другите метали от ръжда.',facts:[['Агрегатно','Метал'],['Ел. конфигурация','2, 8, 13, 1']],apps:['Лъскави брони','Неръждаема стомана','Рубини'],where:'В рудата хромит и в скъпоценните камъни рубини.',diy:[{t:'Потърсете блясъка',d:'Погледнете лъскавите джанти на кола или лъскавия кран на чешмата. Това огледално покритие е чист хром!'}],dyk:{t:'Хромът дава червения цвят на рубините и зеления цвят на изумрудите! Без него тези скъпоценни камъни щяха да са безцветни.',art:'crystal'}},
+    en:{name:'Chromium',disc:'A mirror-like, super shiny metal. It protects other metals from rusting through chrome plating.',facts:[['State','Solid Metal'],['Shell Configuration','2, 8, 13, 1']],apps:['Chrome plating','Stainless Steel','Rubies'],where:'Extracted from chromite ore; colors rubies red.',diy:[{t:'Spot the Shine',d:'Look at shiny car bumpers or the reflective kitchen faucet. That mirror-like coating is electroplated chromium!'}],dyk:{t:'Chromium gives rubies their deep red color and emeralds their bright green color! Without it, these gems would be clear.',art:'crystal'}}
+  },
+  26:{
+    bg:{name:'Желязо',disc:'Най-важният метал в човешката цивилизация. Ядрото на Земята е огромен железен магнит!',facts:[['Агрегатно','Феромагнит'],['Т. топене','1538 °C']],apps:['Стомана','Мостове','Кръв (хемоглобин)'],where:'В земното ядро, земната кора и в червените клетки на кръвта ни.',diy:[{t:'Желязна закуска',d:'Стрийте зърнена закуска и я разтворете. Поднесете магнит — фини железни частици ще се привлекат към него!'}],dyk:{t:'Кръвта ни е червена заради желязото! То е в хемоглобина и пренася кислорода. А октоподите имат синя кръв, защото имат мед!',art:'gear'}},
+    en:{name:'Iron',disc:'The backbone metal of human history. The Earth\'s core is a giant iron magnet!',facts:[['State','Ferromagnetic Metal'],['Melting Pt','1538 °C']],apps:['Steel Construction','Bridges','Blood (Hemoglobin)'],where:'In the Earth\'s core, the crust, and inside red blood cells.',diy:[{t:'Iron in Cereal',d:'Crush iron-fortified cereal, mix with water, and pass a strong magnet nearby. Tiny metallic iron particles will cling to it!'}],dyk:{t:'Our blood is red because of iron inside hemoglobin carrying oxygen! Octopuses have blue blood because they use copper instead!',art:'gear'}}
+  },
+  27:{
+    bg:{name:'Кобалт',disc:'Сребристо-син метал, феромагнитен като желязото. Прави прекрасна синя боя.',facts:[['Агрегатно','Феромагнит'],['Цвят на солта','Наситено СИН']],apps:['Кобалтово синьо','Силни магнити','Батерии'],where:'В кобалтови руди дълбоко в Земята.',diy:[{t:'Кобалтово синьо',d:'Ако имате красива тъмносиня стъклена чаша или чиния, нейният цвят се дължи на малко кобалт в стъклото!'}],dyk:{t:'Кобалтът се използва за направата на супер магнити (Alnico) и е задължителна съставка в батериите на вашите телефони!',art:'gear'}},
+    en:{name:'Cobalt',disc:'A silvery-blue metal. Like iron, it is strongly magnetic. It makes a legendary blue paint.',facts:[['State','Ferromagnetic Metal'],['Salt Color','Deep Blue']],apps:['Cobalt Blue paint','Super Magnets','Phone Batteries'],where:'Found in cobalt-rich minerals deep in the Earth.',diy:[{t:'Cobalt Glass',d:'If you see a deep, rich blue stained glass window or vase, it was colored using cobalt oxides!'}],dyk:{t:'Cobalt is vital for making super-strong magnets and is a key ingredient in modern rechargeable lithium-ion phone batteries!',art:'gear'}}
+  },
+  28:{
+    bg:{name:'Никел',disc:'Лъскав сребрист метал, който е силно устойчив на корозия (ръжда).',facts:[['Агрегатно','Феромагнит'],['Т. топене','1455 °C']],apps:['Монети','Китарен струни','Неръждаема стомана'],where:'В железните метеорити и в ядрото на Земята.',diy:[{t:'Монети и магнит',d:'Проверете монетите у дома с магнит. Тези, които се привличат силно, съдържат никел или желязо!'}],dyk:{t:'Много метеорити, паднали от Космоса, са направени от сплав от желязо и никел. Така учените изследват какво има в центъра на Земята!',art:'gear'}},
+    en:{name:'Nickel',disc:'A lustrous silvery-white metal that resists rust exceptionally well.',facts:[['State','Ferromagnetic Metal'],['Melting Pt','1455 °C']],apps:['Coins','Guitar Strings','Stainless Steel'],where:'Found in iron meteorites and deep in the Earth\'s core.',diy:[{t:'Coin Magnet Test',d:'Test various silver coins with a strong magnet. The ones that are strongly attracted contain nickel or iron!'}],dyk:{t:'Many meteorites falling from space are made of pure iron-nickel alloy. They are pieces of ancient planetary cores!',art:'gear'}}
+  },
+  29:{
+    bg:{name:'Мед',disc:'Красив червено-кафяв метал. Той е вторият най-добър проводник на ток на Земята!',facts:[['Агрегатно','Метал'],['Цвят','Червено-кафяв']],apps:['Кабели','Тръби','Бронз и Месинг'],where:'В чист вид в природата и в минерала малахит.',diy:[{t:'Почисти монета',d:'Пуснете стара медна монета в оцет със сол. За 2 минути тя ще блесне като чисто нова!'}],dyk:{t:'Медта има суперсила: тя убива бактерии при допир! Болничните медни дръжки унищожават микробите съвсем сами.',art:'gear'}},
+    en:{name:'Copper',disc:'A beautiful reddish-brown metal. It is the second best conductor of electricity on Earth!',facts:[['State','Solid Metal'],['Color','Reddish-orange']],apps:['Electrical Wires','Water Pipes','Bronze & Brass'],where:'Found as pure native metal and inside malachite minerals.',diy:[{t:'Clean Copper Coin',d:'Drop a dull copper coin into vinegar mixed with a pinch of salt. In two minutes, it will shine like new!'}],dyk:{t:'Copper has an antimicrobial superpower! Bacteria touching a copper doorknob or rail die within minutes, keeping us safe.',art:'gear'}}
+  },
+  30:{
+    bg:{name:'Цинк',disc:'Синьо-сив метал, който спира ръждата на желязото чрез процес, наречен поцинковане.',facts:[['Агрегатно','Метал'],['Т. топене','419 °C']],apps:['Поцинковане','Кремове за слънце','Имунитет'],where:'В земната кора (минерал сфалерит) и в храната ни.',diy:[{t:'Крем за слънце',d:'Погледнете плажния крем за слънце. Белият цвят, който спира слънчевите изгаряния, е цинков оксид!'}],dyk:{t:'Цинкът е изключително важен за здравето — той помага на имунната ви система да се бори с настинките и вирусите!',art:'gear'}},
+    en:{name:'Zinc',disc:'A bluish-grey metal that stops iron from rusting through a process called galvanization.',facts:[['State','Solid Metal'],['Melting Pt','419 °C']],apps:['Galvanizing','Sunscreen','Immune Support'],where:'Extracted from sphalerite mineral; present in daily vitamins.',diy:[{t:'Check Sunscreen',d:'Look at your summer sunscreen bottle. The physical blocker that stops sunburns is white zinc oxide powder!'}],dyk:{t:'Zinc is a mineral superhero for your health! It helps your immune system fight off winter colds and heals cuts quickly.',art:'gear'}}
+  },
+  47:{
+    bg:{name:'Сребро',disc:'Прекрасен благороден метал, който блести най-силно и провежда ток най-добре от всички елементи!',facts:[['Агрегатно','Метал'],['Блясък','Сребристо-бял']],apps:['Бижута','Огледала','Слънчеви панели'],where:'В чист вид и в сребърни руди.',diy:[{t:'Почисти сребро',d:'Увийте потъмняла лъжица в алуминиево фолио със сода и гореща вода. Чернотата ще изчезне като магия!'}],dyk:{t:'Среброто провежда ток по-добре от медта, но понеже е много скъпо, кабелите ни се правят от мед.',art:'crystal'}},
+    en:{name:'Silver',disc:'A precious noble metal that shines the brightest and conducts electricity the best of all elements!',facts:[['State','Solid Metal'],['Luster','Bright Silvery']],apps:['Jewelry','Solar Cells','Mirror Coatings'],where:'Found in native form and inside silver ores.',diy:[{t:'Silver Cleaning Trick',d:'Wrap a tarnished silver coin in foil with hot water and baking soda. The tarnish migrates to the foil instantly!'}],dyk:{t:'Silver is the absolute champion of electrical conductivity—even better than copper! We use copper only because it is cheaper.',art:'crystal'}}
+  },
+  53:{
+    bg:{name:'Йод',disc:'Тъмнолилав неметал, който при загряване сублимира — превръща се в красива лилава пара без да се топи.',facts:[['Агрегатно','Твърдо'],['Сублимация','Лилави пари']],apps:['Йодна тинктура','Готварска сол','Детектор на скорбяла'],where:'В морските водорасли и в щитовидната жлеза на човека.',diy:[{t:'Ловец на нишесте',d:'Капнете капка кафяв йод от аптеката върху парче картоф или хляб. Мястото ще стане черно! Това доказва нишестето.'}],dyk:{t:'Йодът е лилав вълшебник! Твърдият йод е лилаво-черен, парите му са лилави, а в алкохол е кафяв. Един елемент, три цвята!',art:'wave'}},
+    en:{name:'Iodine',disc:'A dark purple nonmetal that sublimates when heated—turning into a beautiful violet gas without melting.',facts:[['State','Solid'],['Sublimation','Violet Vapor']],apps:['Antiseptics','Iodized Salt','Starch Detection'],where:'Abundant in sea kelp, seafood, and essential for our thyroid gland.',diy:[{t:'Starch Detective',d:'Put a drop of brown iodine antiseptic on a potato slice or bread. It turns deep blue-black! This detects starch.'}],dyk:{t:'Iodine is a colorful wizard! Solid iodine is dark violet-black, its gas is bright purple, and dissolved in alcohol it is brown!',art:'wave'}}
+  },
+  74:{
+    bg:{name:'Волфрам',disc:'Супер тежък сив метал, известен с това, че се топи най-трудно от всички метали.',facts:[['Агрегатно','Метал'],['Т. на топене','3422 °C']],apps:['Жички за крушки','Инструменти','Сонди'],where:'В минерали като шеелит и волфрамит.',diy:[{t:'Жичката на баба',d:'Намерете стара прозрачна крушка. Тънката навита жичка, която свети вътре, е направена от чист волфрам!'}],dyk:{t:'Волфрамът има най-високата точка на топене на Земята (3422°C). Затова може да свети ярко в крушката с часове без да се стопи!',art:'crystal'}},
+    en:{name:'Tungsten',disc:'A super heavy gray metal famous for having the highest melting point of all metals.',facts:[['State','Solid Metal'],['Melting Point','3422 °C']],apps:['Lightbulb Filaments','Cutting Tools','Rocket Nozzles'],where:'Found in minerals like scheelite and wolframite.',diy:[{t:'Old Lightbulb Filaments',d:'Find an old transparent incandescent lightbulb. The ultra-thin coiled wire that glows inside is pure tungsten!'}],dyk:{t:'Tungsten melts at a staggering 3422°C—almost as hot as the surface of the Sun! That is why it survives white-hot inside bulbs.',art:'crystal'}}
+  },
+  78:{
+    bg:{name:'Платина',disc:'Изключително рядък, благороден сребрист метал. Много по-ценен и устойчив от среброто.',facts:[['Агрегатно','Метал'],['Устойчивост','Изключителна']],apps:['Бижута','Пречистване на изгорели газове','Контакти'],where:'Дълбоко в кварцови скали и в метеоритите.',diy:[{t:'Лъскави бижута',d:'Потърсете платинена халка или бижу. То има дълбок бял блясък, който никога не губи цвета си!'}],dyk:{t:'Платината е толкова рядка, че цялото добито количество в историята може да се събере в една средно голяма стая!',art:'crystal'}},
+    en:{name:'Platinum',disc:'An extremely rare, noble silvery-white metal. Much more precious and heavy than silver.',facts:[['State','Solid Metal'],['Nobility','Extremely Unreactive']],apps:['Catalytic Converters','Jewelry','Laboratory Wares'],where:'Found deep in gold mines and inside rare asteroid craters.',diy:[{t:'Precious Metal Check',d:'Compare silver and platinum jewelry. Platinum is heavier and keeps its bright silver sheen forever without tarnishing!'}],dyk:{t:'Platinum is so rare that all the platinum ever mined in human history could easily fit inside an average living room!',art:'crystal'}}
+  },
+  79:{
+    bg:{name:'Злато',disc:'Кралят на металите! Жълт, блестящ благороден метал, който никога не ръждясва и е супер ковък.',facts:[['Агрегатно','Метал'],['Плътност','19.3 г/см³']],apps:['Бижута','Електроника','Космос шлемове'],where:'В речни наноси, златни жили в скалите и в Слънцето.',diy:[{t:'Намери златната жичка',d:'Погледнете златните контакти на SIM картата на телефона си или компютърен чип. Там има нано-слой истинско злато!'}],dyk:{t:'Златото е шампион по разтягане! Един грам злато (колкото кламер) може да се разтегли в жица с дължина 2 километра!',art:'crystal'}},
+    en:{name:'Gold',disc:'The king of metals! A yellow, shiny noble metal that never rusts and is incredibly malleable.',facts:[['State','Solid Metal'],['Density','19.3 g/cm³']],apps:['Jewelry','Electronics','Space Helmet Visors'],where:'In river deposits, quartz veins, and deep inside the Sun.',diy:[{t:'SIM Card Gold',d:'Look closely at the golden contact pads of a phone SIM card. That is a microscopic layer of real gold to prevent corrosion!'}],dyk:{t:'Gold is incredibly stretchy! A single gram of gold (size of a paperclip) can be beaten into a sheet covering one square meter!',art:'crystal'}}
+  },
+  80:{
+    bg:{name:'Живак',disc:'Единственият метал на Земята, който е течен при стайна температура. Сребрист и много отровен!',facts:[['Агрегатно','Течен метал'],['Т. топене','-39 °C']],apps:['Термометри','Луминесцентни крушки'],where:'В яркочервения вулканичен минерал кинавар (цинобър).',diy:[{t:'Сребърен цвят',d:'Ако имате термометър с червена течност — това е безопасен спирт. Сребристите живачни термометри са забранени за пипане!'}],dyk:{t:'Живакът е толкова тежък, че желязна гайка или монета може да плува на повърхността му като коркова тапа във вода!',art:'wave'}},
+    en:{name:'Mercury',disc:'The only metal on Earth that is liquid at room temperature. Silvery, heavy, and highly toxic!',facts:[['State','Liquid Metal'],['Melting Pt','-39 °C']],apps:['Thermometers','Fluorescent Bulbs'],where:'Found in the bright red volcanic mineral cinnabar.',diy:[{t:'Color Check',d:'Check your home thermometers. If the liquid inside is red, it is colored alcohol (safe). If it is silver, it is mercury (dangerous)!'}],dyk:{t:'Mercury is so dense that a heavy iron bolt or a steel coin will float on top of it like a cork floats on water!',art:'wave'}}
+  },
+  82:{
+    bg:{name:'Олово',disc:'Сиво, много тежко и меко олово. То е токсично, но спира радиацията и X-лъчите.',facts:[['Агрегатно','Метал'],['Т. топене','327 °C']],apps:['Акумулатори','Оловни щитове','Тежести за риболов'],where:'В минерала галенит (оловен блясък).',diy:[{t:'Защита в кабинета',d:'Когато снимат зъбите ви на рентген, ви слагат тежка престилка. Тя е пълна с олово, за да спре рентгеновите лъчи!'}],dyk:{t:'Древните римляни са правели водопроводните си тръби от олово. Това бавно ги е отравяло, тъй като оловото е силно токсично!',art:'gear'}},
+    en:{name:'Lead',disc:'A heavy, soft, and grey metal. It is toxic, but acts as a powerful shield against radiation and X-rays.',facts:[['State','Solid Metal'],['Melting Pt','327 °C']],apps:['Car Batteries','Radiation Shields','Fishing Sinkers'],where:'Extracted from the heavy mineral galena.',diy:[{t:'Dentist X-Ray Apron',d:'When getting a dental X-ray, they drape a heavy apron over you. It is lined with lead to protect your body from radiation!'}],dyk:{t:'Ancient Romans used lead to build their water pipes and sweeten wine. This slowly poisoned their empire over centuries!',art:'gear'}}
+  },
+  88:{
+    bg:{name:'Радий',disc:'Изключително радиоактивен сребрист метал, открит от великата Мария Кюри през 1898 г.',facts:[['Агрегатно','Метал'],['Светимост','Зелено-синя']],apps:['Наука','Луминесцентни бои'],where:'В уранови руди, в микроскопични количества (1 грам на тон руда).',diy:[{t:'Наследството на Кюри',d:'Научете за Мария Кюри. Нейните тефтери все още светят слабо в тъмното и се пазят в оловни кутии!'}],dyk:{t:'Преди 100 години са слагали радий в боите на часовници, за да свети циферблатът им нощем. Днес това е забранено!',art:'radiation'}},
+    en:{name:'Radium',disc:'An extremely radioactive silvery metal discovered by Marie and Pierre Curie in 1898.',facts:[['State','Solid Metal'],['Glow','Faint blue-green']],apps:['Nuclear Physics','Old Luminous Paints'],where:'Traces found inside uranium ores (less than a gram per ton).',diy:[{t:'Curie Notebooks',d:'Read about Marie Curie. Her laboratory notebooks are still so radioactive that they are locked in lead boxes today!'}],dyk:{t:'A century ago, radium was painted on clock dials to make them glow in the dark. It was banned once people realized it was dangerous!',art:'radiation'}}
+  },
+  92:{
+    bg:{name:'Уран',disc:'Сребристо-бял, изключително тежък метал. Той е основното гориво в ядрените централи!',facts:[['Агрегатно','Метал'],['Полуразпад','4.5 млрд. години']],apps:['Ядрена енергия','Броня','Наука'],where:'В урановите руди уранинит (настуран) дълбоко в земята.',diy:[{t:'Ядрена енергия у нас',d:'Проучете ядрената централа Козлодуй. Там уранови пръти произвеждат около 1/3 от целия ток в България!'}],dyk:{t:'Уранът е толкова стар, колкото и Земята! Неговият полуразпад е 4.5 милиарда години — точно възрастта на нашата планета!',art:'radiation'}},
+    en:{name:'Uranium',disc:'A silvery-white, extremely heavy metal. It is the primary fuel that powers nuclear reactors!',facts:[['State','Solid Metal'],['Half-life','4.5 Billion years']],apps:['Nuclear Power','Heavy Armor','Geological Dating'],where:'Found in deep earth deposits in ores like uraninite.',diy:[{t:'Nuclear Energy',d:'Research nuclear power. Uranium rods generate clean carbon-free electricity for millions of homes worldwide!'}],dyk:{t:'Uranium is as old as Earth! Its half-life of 4.5 billion years is exactly equal to the age of our home planet.',art:'radiation'}}
+  },
+  94:{
+    bg:{name:'Плутоний',disc:'Изкуствено създаден тежък радиоактивен метал. Той отделя топлина сам по себе си!',facts:[['Агрегатно','Метал'],['Цвят','Сребристо-сив']],apps:['Космически батерии','Ядрени реактори'],where:'Произвежда се в лаборатории чрез облъчване на уран.',diy:[{t:'Космическа батерия',d:'Потърсете информация за космическия кораб Вояджър. Неговата батерия работи с топлината на плутоний!'}],dyk:{t:'Плутоният захранва космическите сонди Вояджър и марсохода Кюриосити. Неговата батерия може да издържи над 80 години без презареждане!',art:'radiation'}},
+    en:{name:'Plutonium',disc:'A heavy, synthetic radioactive metal. It naturally generates heat on its own!',facts:[['State','Solid Metal'],['Origin','Man-made']],apps:['Space Batteries','Nuclear Reactors'],where:'Produced in special reactors by bombarding uranium.',diy:[{t:'Voyager Power',d:'Search online for the Voyager space probes. Their instruments are powered by heat generated by plutonium decay!'}],dyk:{t:'Plutonium powers deep space probes and Mars rovers. Its nuclear battery can run for over 80 years without recharging!',art:'radiation'}}
+  }
 };
 
-function defaultData(n){return{disc:`Елемент с атомен номер ${n}.`,facts:[],apps:[],where:'В лабораторни условия или в земната кора.',diy:[],dyk:{t:`Това е един от 118-те елемента в периодичната таблица. Всеки има уникални свойства!`,art:'atom'},links:[]};}
+function defaultData(n) {
+  return {
+    bg: {
+      name: GRID.find(x => x[0] === n) ? GRID.find(x => x[0] === n)[2] : `Елемент ${n}`,
+      disc: `Химичен елемент с атомен номер ${n}. Всеки елемент е уникален и крие тайни за Вселената!`,
+      facts: [['Агрегатно', 'Неизвестно']],
+      apps: ['Научни изследвания'],
+      where: 'В земната кора или в специални лаборатории.',
+      diy: [],
+      dyk: { t: `Този елемент има атомен номер ${n} и се намира на ред ${GRID.find(x => x[0] === n) ? GRID.find(x => x[0] === n)[6] : '—'} в таблицата.`, art: 'atom' }
+    },
+    en: {
+      name: GRID.find(x => x[0] === n) ? GRID.find(x => x[0] === n)[3] : `Element ${n}`,
+      disc: `Chemical element with atomic number ${n}. Every element is a unique puzzle piece of the Universe!`,
+      facts: [['State', 'Unknown']],
+      apps: ['Scientific Research'],
+      where: 'In the Earth\'s crust or synthesized in specialized physics labs.',
+      diy: [],
+      dyk: { t: `This element has atomic number ${n} and sits in row ${GRID.find(x => x[0] === n) ? GRID.find(x => x[0] === n)[6] : '—'} of the periodic grid.`, art: 'atom' }
+    }
+  };
+}
 
-// ── Category data ─────────────────────────────────────────────────────────
-const CAT_NAMES={alkali:'Алкален метал',alkaline:'Алкалоземен метал',transition:'Преходен метал',
-  post:'Постпреходен метал',metalloid:'Металоид',nonmetal:'Неметал',
-  halogen:'Халоген',noble:'Благороден газ',lanthanide:'Лантанид',actinide:'Актинид',unknown:'Синтетичен'};
-const CAT_COLORS={alkali:'#ff6b35',alkaline:'#ffd700',transition:'#00d4ff',post:'#7ab8f5',
-  metalloid:'#00ff88',nonmetal:'#ff3399',halogen:'#ff8c42',noble:'#bf7fff',
-  lanthanide:'#a8ff72',actinide:'#ff4d6d',unknown:'#666'};
-const PERIODS={1:'1-ви',2:'2-ри',3:'3-ти',4:'4-ти',5:'5-ти',6:'6-ти',7:'7-ми',9:'La-Lu',10:'Ac-Lr'};
-const STATES_BG={nonmetal:'Газ / Твърдо',noble:'Газ',alkali:'Метал',alkaline:'Метал',transition:'Метал',post:'Метал',metalloid:'Металоид',halogen:'Газ / Течно / Твърдо',lanthanide:'Метал',actinide:'Метал',unknown:'Неизвестно'};
+// ── Category names & Colors ────────────────────────────────────────────────
+const CAT_NAMES = {
+  bg: { alkali:'Алкален метал', alkaline:'Алкалоземен метал', transition:'Преходен метал', post:'Постпреходен метал', metalloid:'Металоид', nonmetal:'Неметал', halogen:'Халоген', noble:'Благороден газ', lanthanide:'Лантанид', actinide:'Актинид', unknown:'Синтетичен' },
+  en: { alkali:'Alkali Metal', alkaline:'Alkaline Earth Metal', transition:'Transition Metal', post:'Post-transition Metal', metalloid:'Metalloid', nonmetal:'Reactive Nonmetal', halogen:'Halogen', noble:'Noble Gas', lanthanide:'Lanthanide', actinide:'Actinide', unknown:'Synthetic' }
+};
 
-// ── Full grid data ────────────────────────────────────────────────────────
+const CAT_COLORS = {
+  alkali:'#ff6b35', alkaline:'#ffd700', transition:'#00d4ff', post:'#7ab8f5',
+  metalloid:'#00ff88', nonmetal:'#ff3399', halogen:'#ff8c42', noble:'#bf7fff',
+  lanthanide:'#a8ff72', actinide:'#ff4d6d', unknown:'#666'
+};
+
+const PERIODS = {
+  bg: { 1:'1-ви ред', 2:'2-ри ред', 3:'3-ти ред', 4:'4-ти ред', 5:'5-ти ред', 6:'6-ти ред', 7:'7-ми ред', 9:'Ред лантаниди', 10:'Ред актиноиди' },
+  en: { 1:'Row 1', 2:'Row 2', 3:'Row 3', 4:'Row 4', 5:'Row 5', 6:'Row 6', 7:'Row 7', 9:'Lanthanide Row', 10:'Actinide Row' }
+};
+
+const STATES = {
+  bg: { nonmetal:'Газ / Твърдо', noble:'Газ', alkali:'Метал', alkaline:'Метал', transition:'Метал', post:'Метал', metalloid:'Металоид', halogen:'Газ / Течно / Твърдо', lanthanide:'Метал', actinide:'Метал', unknown:'Синтетично' },
+  en: { nonmetal:'Gas / Solid', noble:'Gas', alkali:'Metal', alkaline:'Metal', transition:'Metal', post:'Metal', metalloid:'Metalloid', halogen:'Gas / Liquid / Solid', lanthanide:'Metal', actinide:'Metal', unknown:'Synthetic' }
+};
+
+// ── Full grid layout data ──────────────────────────────────────────────────
 const GRID=[
   [1,'H','Водород','Hydrogen','1.008','nonmetal',1,1],
   [2,'He','Хелий','Helium','4.003','noble',1,18],
@@ -666,13 +1100,135 @@ const GRID=[
   [118,'Og','Оганесон','Oganesson','294','unknown',7,18],
 ];
 
-// ── Build grid ────────────────────────────────────────────────────────────
+// ── Interactive Legend Multi-Filtering ────────────────────────────────────
+let activeLegendCats = [];
+
+function toggleLegendCategory(cat) {
+  clearCompound();
+  document.getElementById('searchInput').value = '';
+  document.getElementById('ptGrid').classList.remove('search-on');
+  document.querySelectorAll('.el').forEach(el => el.classList.remove('search-match'));
+
+  const idx = activeLegendCats.indexOf(cat);
+  if (idx > -1) {
+    activeLegendCats.splice(idx, 1);
+  } else {
+    // Limit to 3 active categories max to match requirements
+    if (activeLegendCats.length >= 3) {
+      activeLegendCats.shift(); // Remove the oldest
+    }
+    activeLegendCats.push(cat);
+  }
+  
+  updateLegendUI();
+}
+
+function updateLegendUI() {
+  const grid = document.getElementById('ptGrid');
+  
+  document.querySelectorAll('.leg').forEach(legEl => {
+    let cat = null;
+    for (const c of legEl.classList) {
+      if (c !== 'leg' && c !== 'active') {
+        cat = c;
+        break;
+      }
+    }
+    if (activeLegendCats.includes(cat)) {
+      legEl.classList.add('active');
+    } else {
+      legEl.classList.remove('active');
+    }
+  });
+
+  if (activeLegendCats.length === 0) {
+    grid.classList.remove('legend-on');
+    document.querySelectorAll('.el').forEach(el => el.classList.remove('lit'));
+    return;
+  }
+  
+  grid.classList.add('legend-on');
+  document.querySelectorAll('.el').forEach(el => {
+    const num = parseInt(el.dataset.num);
+    if (!num) return;
+    const ge = GRID.find(x => x[0] === num);
+    if (!ge) return;
+    const cat = ge[5];
+    if (activeLegendCats.includes(cat)) {
+      el.classList.add('lit');
+    } else {
+      el.classList.remove('lit');
+    }
+  });
+}
+
+function clearLegendFilter() {
+  activeLegendCats = [];
+  document.querySelectorAll('.leg').forEach(legEl => legEl.classList.remove('active'));
+  document.getElementById('ptGrid').classList.remove('legend-on');
+  document.querySelectorAll('.el').forEach(el => el.classList.remove('lit'));
+}
+
+function clearAllFilters() {
+  clearCompound();
+  clearLegendFilter();
+  document.getElementById('searchInput').value = '';
+  document.getElementById('ptGrid').classList.remove('search-on');
+  document.querySelectorAll('.el').forEach(el => el.classList.remove('search-match'));
+}
+
+// ── Real-Time Glowing Search Bar ──────────────────────────────────────────
+function handleSearch() {
+  const query = document.getElementById('searchInput').value.trim().toLowerCase();
+  const grid = document.getElementById('ptGrid');
+  
+  if (!query) {
+    grid.classList.remove('search-on');
+    document.querySelectorAll('.el').forEach(el => el.classList.remove('search-match'));
+    return;
+  }
+  
+  clearCompound();
+  clearLegendFilter();
+  
+  grid.classList.add('search-on');
+  
+  document.querySelectorAll('.el').forEach(el => {
+    const num = parseInt(el.dataset.num);
+    if (!num) return;
+    const ge = GRID.find(x => x[0] === num);
+    if (!ge) return;
+    const [n, sym, bg, lat, mass, cat] = ge;
+    
+    const catNameBG = CAT_NAMES.bg[cat] ? CAT_NAMES.bg[cat].toLowerCase() : '';
+    const catNameEN = CAT_NAMES.en[cat] ? CAT_NAMES.en[cat].toLowerCase() : '';
+    
+    const matches = 
+      n.toString() === query || 
+      sym.toLowerCase() === query || 
+      bg.toLowerCase().includes(query) || 
+      lat.toLowerCase().includes(query) ||
+      catNameBG.includes(query) ||
+      catNameEN.includes(query);
+      
+    if (matches) {
+      el.classList.add('search-match');
+    } else {
+      el.classList.remove('search-match');
+    }
+  });
+}
+
+// ── Build Dynamic grid ────────────────────────────────────────────────────
 function buildGrid(){
   const g=document.getElementById('ptGrid');
+  g.innerHTML = '';
   const cells={};
   GRID.forEach(([n,sym,bg,lat,mass,cat,row,col])=>{cells[`${row}_${col}`]={n,sym,bg,lat,mass,cat};});
-  cells['6_3']={n:'57-71',sym:'La-Lu',bg:'Лантаниди',lat:'',mass:'',cat:'lanthanide',isRef:true};
-  cells['7_3']={n:'89-103',sym:'Ac-Lr',bg:'Актиниди',lat:'',mass:'',cat:'actinide',isRef:true};
+  
+  cells['6_3']={n:'57-71',sym:'La-Lu',bg:'Лантаниди',lat:'Lanthanides',mass:'',cat:'lanthanide',isRef:true};
+  cells['7_3']={n:'89-103',sym:'Ac-Lr',bg:'Актиниди',lat:'Actinides',mass:'',cat:'actinide',isRef:true};
+  
   for(let r=1;r<=10;r++){
     for(let c=1;c<=18;c++){
       const k=`${r}_${c}`;
@@ -682,18 +1238,21 @@ function buildGrid(){
         const d=cells[k];
         div.className=`el ${d.cat}`;
         div.dataset.num=d.n;
+        
+        const name = currentLang === 'bg' ? d.bg : d.lat;
+        const colVal = CAT_COLORS[d.cat]||'#00d4ff';
+        
         if(d.isRef){
-          div.innerHTML=`<span style="font-size:6.5px;text-align:center;padding:2px">${d.sym}<br><span style="font-size:5px;opacity:.55">${d.bg}</span></span>`;
+          div.innerHTML=`<span style="font-size:6.5px;text-align:center;padding:2px">${d.sym}<br><span style="font-size:5px;opacity:.55">${name}</span></span>`;
           div.style.cursor='default';
         } else {
-          div.innerHTML=`<span class="n" title="Атомен номер ${d.n} — кликни за обяснение">${d.n}</span><div class="sym-wrap"><span class="s">${d.sym}</span><span class="bg">${d.bg}</span></div>`;
-          // number click → atomic number popup
+          div.innerHTML=`<span class="n" title="Атомен номер ${d.n} / Atomic number ${d.n}">${d.n}</span><div class="sym-wrap"><span class="s">${d.sym}</span><span class="bg">${name}</span></div>`;
+          
           div.querySelector('.n').addEventListener('click',e=>{
             e.stopPropagation();
-            const col=CAT_COLORS[d.cat]||'#00d4ff';
-            openAtomicNum(d.n,d.sym,d.bg,col);
+            openAtomicNum(d.n,d.sym,d.bg,colVal);
           });
-          // symbol/name click → element page
+          
           div.querySelector('.sym-wrap').addEventListener('click',e=>{e.stopPropagation();openModal(d.n);});
         }
       } else {
@@ -703,106 +1262,212 @@ function buildGrid(){
     }
   }
 }
-buildGrid();
+
+// ── Dual Language Rendering ───────────────────────────────────────────────
+function renderLegend() {
+  const container = document.getElementById('legendContainer');
+  container.innerHTML = '';
+  
+  const cats = ['alkali', 'alkaline', 'transition', 'post', 'metalloid', 'nonmetal', 'halogen', 'noble', 'lanthanide', 'actinide', 'unknown'];
+  cats.forEach(cat => {
+    const name = CAT_NAMES[currentLang][cat];
+    const activeClass = activeLegendCats.includes(cat) ? 'active' : '';
+    container.innerHTML += `
+      <div class="leg ${cat} ${activeClass}" onclick="toggleLegendCategory('${cat}')" style="color: ${CAT_COLORS[cat]}">
+        <div class="leg-sq"></div>
+        <span>${name}</span>
+      </div>
+    `;
+  });
+}
+
+function renderCompounds() {
+  const bar = document.getElementById('compoundBar');
+  const t = TRANSLATIONS[currentLang];
+  
+  let html = `<label>🔬 ${t.compoundsLabel}</label>`;
+  Object.keys(COMPOUNDS).forEach(key => {
+    const c = COMPOUNDS[key][currentLang];
+    const activeClass = activeCompound === key ? 'active' : '';
+    html += `<button class="cbtn ${activeClass}" onclick="activateCompound('${key}')" title="${c.desc}">${c.emoji} ${c.name}</button>`;
+  });
+  html += `<button class="cbtn reset" onclick="clearAllFilters()">${t.clearBtn}</button>`;
+  bar.innerHTML = html;
+}
+
+function toggleLanguage() {
+  currentLang = currentLang === 'bg' ? 'en' : 'bg';
+  
+  // Update UI Elements
+  const t = TRANSLATIONS[currentLang];
+  document.querySelector('.subtitle').innerText = t.subtitle;
+  document.getElementById('searchInput').placeholder = t.searchPlaceholder;
+  document.getElementById('langBtn').innerText = currentLang === 'bg' ? 'EN' : 'BG';
+  
+  // Dynamically update main page headers & page title
+  document.querySelector('h1').innerText = t.title;
+  document.title = t.title.replace(/⚗/g, '').trim();
+  
+  // Re-build & Re-render everything
+  buildGrid();
+  renderLegend();
+  renderCompounds();
+  
+  // Keep active compound highlight going
+  if (activeCompound) {
+    const activeKey = activeCompound;
+    activeCompound = null;
+    activateCompound(activeKey);
+  }
+  
+  // Keep legend active highlight going
+  if (activeLegendCats.length > 0) {
+    updateLegendUI();
+  }
+  
+  // Re-localize active modal/popups if open
+  if (currentOpenElementNum) {
+    openModal(currentOpenElementNum);
+  }
+  
+  if (activeMiniState) {
+    if (activeMiniState.type === 'atomicNum') {
+      openAtomicNum(activeMiniState.num, activeMiniState.sym, activeMiniState.bg, activeMiniState.col);
+    } else if (activeMiniState.type === 'atomicMass') {
+      openAtomicMass(activeMiniState.mass, activeMiniState.sym, activeMiniState.bg, activeMiniState.col);
+    } else if (activeMiniState.type === 'glossary') {
+      // Find translated key
+      let oldKey = activeMiniState.key.toLowerCase();
+      let newKey = oldKey;
+      
+      // Match key from Bulgarian to English glossary or vice versa
+      const bgKeys = Object.keys(GLOSSARY.bg);
+      const enKeys = Object.keys(GLOSSARY.en);
+      const bgIdx = bgKeys.indexOf(oldKey);
+      const enIdx = enKeys.indexOf(oldKey);
+      
+      if (currentLang === 'en' && bgIdx > -1) {
+        newKey = enKeys[bgIdx] || enKeys[0];
+      } else if (currentLang === 'bg' && enIdx > -1) {
+        newKey = bgKeys[enIdx] || bgKeys[0];
+      }
+      openGlossary(newKey);
+    }
+  }
+}
 
 // ── Open element modal ────────────────────────────────────────────────────
+let currentOpenElementNum = null;
+
 function openModal(num){
+  currentOpenElementNum = num;
   const ge=GRID.find(x=>x[0]===num);
   if(!ge)return;
   const [n,sym,bg,lat,mass,cat]=ge;
-  const d=Object.assign({lat,mass},ELEMENTS[n]||defaultData(n));
+  
+  const t = TRANSLATIONS[currentLang];
+  const eData = ELEMENTS[n] ? ELEMENTS[n][currentLang] : null;
+  const def = defaultData(n)[currentLang];
+  const d = Object.assign({name: currentLang === 'bg' ? bg : lat, mass, disc: def.disc, where: def.where, dyk: def.dyk, facts: def.facts, apps: def.apps, diy: def.diy}, eData);
+  
   const col=CAT_COLORS[cat]||'#00d4ff';
   const row=ge[6],colNum=ge[7];
   const group=colNum<=2||colNum>=13?colNum:(colNum<=12?colNum:'—');
+  
+  const localizedCat = CAT_NAMES[currentLang][cat] || cat;
+  const localizedState = STATES[currentLang][cat] || '—';
 
   document.getElementById('mhead').innerHTML=`
     <div class="msym" style="color:${col};border-color:${col}">
-      <span class="mn" title="Атомен номер" onclick="openAtomicNum(${n},'${sym}','${bg}','${col}')">${n}</span>
+      <span class="mn" title="${t.atomicNumLabel}" onclick="openAtomicNum(${n},'${sym}','${bg}','${col}')">${n}</span>
       <span class="ms">${sym}</span>
-      <span class="mm" title="Атомна маса" onclick="openAtomicMass('${mass}','${sym}','${bg}','${col}')">${mass}</span>
+      <span class="mm" title="${t.atomicMassLabel}" onclick="openAtomicMass('${mass}','${sym}','${bg}','${col}')">${mass}</span>
     </div>
     <div class="minfo">
-      <h2 style="color:${col}">${bg}</h2>
+      <h2 style="color:${col}">${d.name}</h2>
       <div class="latin">${lat}</div>
-      <span class="badge" style="color:${col};border-color:${col}">${CAT_NAMES[cat]||cat}</span>
+      <span class="badge" style="color:${col};border-color:${col}">${localizedCat}</span>
     </div>`;
 
-  // Stat panel
   const statHtml=`
     <div class="stat-panel">
       <div class="stat-item">
         <div class="stat-lbl" onclick="openAtomicNum(${n},'${sym}','${bg}','${col}')" style="cursor:pointer;color:${col}">
-          Атомен номер <span class="hint">↗</span>
+          ${t.atomicNumLabel} <span class="hint">↗</span>
         </div>
         <div class="stat-val" style="color:${col}">${n}</div>
       </div>
       <div class="stat-item">
         <div class="stat-lbl" onclick="openAtomicMass('${mass}','${sym}','${bg}','${col}')" style="cursor:pointer;color:${col}">
-          Атомна маса <span class="hint">↗</span>
+          ${t.atomicMassLabel} <span class="hint">↗</span>
         </div>
-        <div class="stat-val">${mass} u</div>
+        <div class="stat-val">${mass} ${t.uText}</div>
       </div>
       <div class="stat-item">
-        <div class="stat-lbl">Период (ред)</div>
-        <div class="stat-val">${PERIODS[row]||row}</div>
+        <div class="stat-lbl">${t.period}</div>
+        <div class="stat-val">${PERIODS[currentLang][row]||row}</div>
       </div>
       <div class="stat-item">
-        <div class="stat-lbl">Група (колона)</div>
+        <div class="stat-lbl">${t.group}</div>
         <div class="stat-val">${group}</div>
       </div>
       <div class="stat-item">
-        <div class="stat-lbl">Агрегатно</div>
-        <div class="stat-val">${STATES_BG[cat]||'—'}</div>
+        <div class="stat-lbl">${t.state}</div>
+        <div class="stat-val">${localizedState}</div>
       </div>
       <div class="stat-item">
-        <div class="stat-lbl">Категория</div>
-        <div class="stat-val" style="font-size:.8em">${CAT_NAMES[cat]||cat}</div>
+        <div class="stat-lbl">${t.category}</div>
+        <div class="stat-val" style="font-size:.8em">${localizedCat}</div>
       </div>
     </div>`;
 
-  // Content panel
-  const dyk=d.dyk||{t:'Интересен елемент!',art:'atom'};
-  const artFn=SVGS[dyk.art]||svgAtom;
+  const dyk=d.dyk||{t:'Интересен елемент! / Interesting element!',art:'atom'};
+  const bohrSvg = getBohrModelSVG(n, col);
+  
   let content=`
     <div class="dyk">
-      <div class="dyk-ttl">🔭 Знаеш ли, че...</div>
-      <div class="wfwrap">${artFn(col)}</div>
-      <div class="wf-caption">▲ ${ART_CAPTIONS[dyk.art]||'Схематична илюстрация'}</div>
+      <div class="dyk-ttl">${t.dykTitle}</div>
+      <div style="width:100%; display:flex; justify-content:center; margin:10px 0;">
+        <div style="width:320px; height:180px;">${bohrSvg}</div>
+      </div>
       <div class="dyk-text">${glossify(dyk.t)}</div>
     </div>
-    <div class="sec"><div class="stitle">📜 История на откритието</div><div class="stext">${glossify(d.disc)}</div></div>`;
+    <div class="sec"><div class="stitle">${t.historyTitle}</div><div class="stext">${glossify(d.disc)}</div></div>`;
 
   if(d.facts&&d.facts.length){
-    content+=`<div class="sec"><div class="stitle">⚡ Факти</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:5px">`;
+    content+=`<div class="sec"><div class="stitle">${t.factsTitle}</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:5px">`;
     d.facts.forEach(([l,v])=>content+=`<div style="background:rgba(0,212,255,.05);border:1px solid rgba(0,212,255,.1);padding:6px 9px;font-size:.82em"><div style="opacity:.5;font-size:.78em;margin-bottom:1px">${l}</div>${glossify(String(v))}</div>`);
     content+=`</div></div>`;
   }
 
-  content+=`<div class="sec"><div class="stitle">🌍 Намира се в</div><div class="stext">${glossify(d.where)}</div></div>`;
+  content+=`<div class="sec"><div class="stitle">${t.whereTitle}</div><div class="stext">${glossify(d.where)}</div></div>`;
 
   if(d.apps&&d.apps.length){
-    content+=`<div class="sec"><div class="stitle">🏭 Приложения</div><div class="apps">`;
+    content+=`<div class="sec"><div class="stitle">${t.appsTitle}</div><div class="apps">`;
     d.apps.forEach(a=>content+=`<span class="atag">${a}</span>`);
     content+=`</div></div>`;
   }
 
   if(d.diy&&d.diy.length){
-    content+=`<div class="sec"><div class="stitle">🧪 Домашни опити</div><ul class="diy-list">`;
+    content+=`<div class="sec"><div class="stitle">${t.diyTitle}</div><ul class="diy-list">`;
     d.diy.forEach(x=>content+=`<li><strong>🔬 ${x.t}</strong>${glossify(x.d)}</li>`);
     content+=`</ul></div>`;
-  }
-
-  if(d.links&&d.links.length){
-    content+=`<div class="links"><div class="stitle">🔗 Научи повече</div>`;
-    d.links.forEach(l=>content+=`<a href="${l.u}" target="_blank" rel="noopener">↗ ${l.t}</a>`);
-    content+=`</div>`;
   }
 
   document.getElementById('mbody').innerHTML=statHtml+`<div class="content-panel">${content}</div>`;
   document.getElementById('overlay').classList.add('on');
 }
 
-function closeModal(){document.getElementById('overlay').classList.remove('on');}
+function closeModal(){
+  currentOpenElementNum = null;
+  document.getElementById('overlay').classList.remove('on');
+}
+
+// ── Init App ──────────────────────────────────────────────────────────────
+buildGrid();
+renderLegend();
+renderCompounds();
+
 document.getElementById('overlay').addEventListener('click',e=>{if(e.target===e.currentTarget)closeModal();});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeModal();closeMini();}});
 </script>
