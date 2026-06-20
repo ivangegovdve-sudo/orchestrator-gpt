@@ -16,6 +16,12 @@ The repo is not a packaged frontend app with a build step. Most pages are plain 
   Kids Movie Library UI.
 - `movies/index.html`
   Redirect shim to `/web/movies/`.
+- `web/mendeleev-bg/`
+  Interactive Bulgarian periodic table copied from `ivangegovdve-sudo/mendeleev-bg`.
+- `web/math-mania/`
+  Project shell for the Lovable Math Mania app, pending project id or published URL.
+- `web/math-forest/`
+  Project shell for the playable Math Forest app, pending exact GitHub source repo.
 - `web/llm-db/`
   LLM Platforms DB UI.
 - `web/ai-init/`
@@ -213,6 +219,50 @@ If you keep split mode, make `web/llm-db/` configurable before calling the dashb
   - watched toggle persists
   - per-device ratings persist
   - IMDb refresh works without breaking existing data on failures
+
+### Mendeleev BG
+
+- Route:
+  - `/web/mendeleev-bg/`
+- Source repo:
+  - `ivangegovdve-sudo/mendeleev-bg`
+- Files:
+  - `web/mendeleev-bg/index.html`
+- Runtime:
+  - static only
+- Done when:
+  - periodic table opens from Forest HUB
+  - element popups work
+  - compound highlighting works
+  - Bulgarian text renders correctly
+
+### Math Mania
+
+- Route:
+  - `/web/math-mania/`
+- Current state:
+  - local project shell exists
+  - real Lovable app still needs a project id, exported code, or public URL
+- Runtime:
+  - static shell today
+  - expected Lovable app when source is available
+- Done when:
+  - playable Math Mania app loads directly from this route or an embedded published Lovable route
+  - Forest HUB card no longer says pending
+
+### Math Forest
+
+- Route:
+  - `/web/math-forest/`
+- Current state:
+  - local project shell exists
+  - exact GitHub repo was not found by installed repo search for `forest`, `forest math`, `math forest`, or `math`
+- Runtime:
+  - static shell today
+  - expected playable game/app when source repo is identified
+- Done when:
+  - working playable Math Forest app loads from this route
+  - Forest HUB card no longer says pending
 
 ### LLM Platforms DB
 
