@@ -13,15 +13,15 @@ The repo is not a packaged frontend app with a build step. Most pages are plain 
 - `web/a1111-debug/` and `web/debug-a1111/`
   Local debug harnesses for AUTOMATIC1111 + ControlNet.
 - `web/movies/`
-  Kids Movie Library UI.
+  Static Kids Movie Library built from `kidsMoviesReport.md`, with local watch flags and ratings.
 - `movies/index.html`
   Redirect shim to `/web/movies/`.
 - `web/mendeleev-bg/`
   Interactive Bulgarian periodic table copied from `ivangegovdve-sudo/mendeleev-bg`.
 - `web/math-mania/`
-  Project shell for the Lovable Math Mania app, pending project id or published URL.
+  Forest HUB subpage embedding the live Lovable Math Mania app.
 - `web/math-forest/`
-  Project shell for the playable Math Forest app, pending exact GitHub source repo.
+  Reserved route for the Math Forest rebuild; original app currently appears unavailable.
 - `web/llm-db/`
   LLM Platforms DB UI.
 - `web/ai-init/`
@@ -54,14 +54,14 @@ There are two runtime layers:
 
 Important local-dev detail:
 
-- `web/movies/` can talk to a separate backend because it has a configurable API base.
+- `web/movies/` is static and stores family watch/rating state in localStorage.
 - `web/llm-db/` currently assumes same-origin requests to `/api/llm-db`.
 - `backend/app.py` only allows browser CORS from `http://localhost:8080` and `http://127.0.0.1:8080`.
 
 Because of that, split-server mode works for most pages, but a truly "everything works" local setup needs either:
 
 - same-origin serving for static files and FastAPI, or
-- a code change to make `web/llm-db/` use a configurable API base like Movies.
+- a code change to make `web/llm-db/` use a configurable API base.
 
 ## Quick start
 
@@ -197,28 +197,19 @@ If you keep split mode, make `web/llm-db/` configurable before calling the dashb
   - `web/movies/index.html`
   - `web/movies/app.js`
   - `web/movies/styles.css`
-  - `backend/movies_api.py`
-  - `backend/movies_db.py`
 - Runtime:
-  - static page on `8080`
-  - FastAPI on `8000`
-- API base:
-  - configurable in the UI and stored in localStorage
-- Database:
-  - `data/movies.db`
-- Migrations:
-  - `data/migrations/001_movies.sql`
-  - `data/migrations/002_movies_imdb_fields.sql`
-  - `data/migrations/003_llm_docs.sql`
-- Seed helper:
-  - `python backend/seed_movies.py`
+  - static only
+- Source:
+  - `D:\projects\ivan-websites\kidsMoviesReport.md`
+- Data:
+  - 15 curated recommendations from the report
+  - 9 already-watched exclusions from the report
+  - family watch/rating state stored in localStorage
 - Done when:
   - search works
-  - add movie works
-  - bulk import works
+  - theme, tag, Bulgarian audio, status, and sort filters work
   - watched toggle persists
-  - per-device ratings persist
-  - IMDb refresh works without breaking existing data on failures
+  - family ratings persist
 
 ### Mendeleev BG
 
@@ -241,28 +232,26 @@ If you keep split mode, make `web/llm-db/` configurable before calling the dashb
 - Route:
   - `/web/math-mania/`
 - Current state:
-  - local project shell exists
-  - real Lovable app still needs a project id, exported code, or public URL
+  - live Lovable app embedded from `https://forest-math-plus.lovable.app`
 - Runtime:
-  - static shell today
-  - expected Lovable app when source is available
+  - static page with iframe
 - Done when:
-  - playable Math Mania app loads directly from this route or an embedded published Lovable route
-  - Forest HUB card no longer says pending
+  - embedded app loads from Forest HUB route
+  - full-screen link opens Lovable app
 
 ### Math Forest
 
 - Route:
   - `/web/math-forest/`
 - Current state:
-  - local project shell exists
-  - exact GitHub repo was not found by installed repo search for `forest`, `forest math`, `math forest`, or `math`
+  - rebuild route exists
+  - user confirmed original Forest Math appears gone
 - Runtime:
-  - static shell today
-  - expected playable game/app when source repo is identified
+  - static rebuild placeholder today
+  - expected playable game/app after rebuild
 - Done when:
   - working playable Math Forest app loads from this route
-  - Forest HUB card no longer says pending
+  - Forest HUB card no longer says rebuild
 
 ### LLM Platforms DB
 

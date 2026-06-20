@@ -1,676 +1,380 @@
-﻿const API_BASE_KEY = "kidsMoviesApiBase";
-const DEVICE_ID_KEY = "kidsMoviesDeviceId";
+const STORAGE_KEY = "forestKidsMoviesState";
 
-const state = {
-  apiBase: "",
-  deviceId: "",
-  hasSearched: false,
-  filters: {
-    ageBand: "",
-    status: "all",
-    sortKey: "title_az",
-    tags: new Set(),
+const movies = [
+  {
+    title: "Spirited Away",
+    year: 2001,
+    platform: "Netflix",
+    imdb: 8.6,
+    runtime: "125 min",
+    age: "10+",
+    bgAudio: "No",
+    category: "Giving to others",
+    tags: ["ghibli", "empathy", "identity", "boundaries", "symbolic"],
+    note: "Identity, work, greed, and empathy without turning kindness into self-erasure.",
   },
-  movies: [],
-  facets: {
-    age_bands: [],
-    tags: [],
+  {
+    title: "Spider-Man: Into the Spider-Verse",
+    year: 2018,
+    platform: "Netflix + HBO Max",
+    imdb: 8.4,
+    runtime: "117 min",
+    age: "8-11",
+    bgAudio: "Unspecified",
+    category: "Mixed philosophical picks",
+    tags: ["identity", "responsibility", "stylized", "action", "empathy"],
+    note: "Identity as responsibility, with many kinds of fear and courage held together.",
   },
-};
+  {
+    title: "Klaus",
+    year: 2019,
+    platform: "Netflix",
+    imdb: 8.2,
+    runtime: "97 min",
+    age: "7+",
+    bgAudio: "No",
+    category: "Giving to others",
+    tags: ["kindness", "community", "painterly", "holiday", "generosity"],
+    note: "Kindness as choice, not mood; one good act can start a chain reaction.",
+  },
+  {
+    title: "My Neighbor Totoro",
+    year: 1988,
+    platform: "Netflix",
+    imdb: 8.1,
+    runtime: "86 min",
+    age: "All",
+    bgAudio: "No",
+    category: "Sibling collaboration",
+    tags: ["ghibli", "siblings", "gentle", "comfort", "imagination"],
+    note: "Sibling tenderness and emotional realism during uncertainty.",
+  },
+  {
+    title: "Kiki's Delivery Service",
+    year: 1989,
+    platform: "Netflix",
+    imdb: 7.8,
+    runtime: "103 min",
+    age: "7+",
+    bgAudio: "No",
+    category: "Mixed philosophical picks",
+    tags: ["ghibli", "self-worth", "work", "confidence", "independence"],
+    note: "Losing confidence does not mean losing value.",
+  },
+  {
+    title: "The Mitchells vs. The Machines",
+    year: 2021,
+    platform: "Netflix",
+    imdb: 7.6,
+    runtime: "114 min",
+    age: "7+",
+    bgAudio: "No",
+    category: "Sibling collaboration",
+    tags: ["family", "sibling", "stylized", "robots", "repair"],
+    note: "Family repair through better language, less control, and more listening.",
+  },
+  {
+    title: "KPop Demon Hunters",
+    year: 2025,
+    platform: "Netflix",
+    imdb: 7.5,
+    runtime: "Unspecified",
+    age: "10+",
+    bgAudio: "No",
+    category: "Humility and perspective",
+    tags: ["fame", "teamwork", "duty", "monsters", "pop"],
+    note: "Talent and celebrity matter less than character under pressure.",
+  },
+  {
+    title: "Teenage Mutant Ninja Turtles: Mutant Mayhem",
+    year: 2023,
+    platform: "HBO Max",
+    imdb: 7.2,
+    runtime: "100 min",
+    age: "9+",
+    bgAudio: "Unspecified",
+    category: "Sibling collaboration",
+    tags: ["brothers", "teamwork", "sketchy", "action", "acceptance"],
+    note: "Rivalry becomes teamwork when shared goals require shared respect.",
+  },
+  {
+    title: "The Sea Beast",
+    year: 2022,
+    platform: "Netflix",
+    imdb: 7.0,
+    runtime: "115 min",
+    age: "7+",
+    bgAudio: "No",
+    category: "Humility and perspective",
+    tags: ["monsters", "myths", "truth", "adventure", "empathy"],
+    note: "Inherited stories can turn victims into monsters; courage can mean telling truth.",
+  },
+  {
+    title: "Mary and The Witch's Flower",
+    year: 2017,
+    platform: "Netflix",
+    imdb: 6.8,
+    runtime: "103 min",
+    age: "7+",
+    bgAudio: "No",
+    category: "Mixed philosophical picks",
+    tags: ["magic", "integrity", "fantasy", "consequences", "ghibli-like"],
+    note: "Small lies often begin as bids for belonging, then grow teeth.",
+  },
+  {
+    title: "The Magician's Elephant",
+    year: 2023,
+    platform: "Netflix",
+    imdb: 6.6,
+    runtime: "99 min",
+    age: "7+",
+    bgAudio: "No",
+    category: "Giving to others",
+    tags: ["hope", "storybook", "persistence", "helping", "fantasy"],
+    note: "Hope works best with ethics: do not use others as tools.",
+  },
+  {
+    title: "My Father's Dragon",
+    year: 2022,
+    platform: "Netflix",
+    imdb: 6.5,
+    runtime: "99 min",
+    age: "7+",
+    bgAudio: "No",
+    category: "Giving to others",
+    tags: ["bravery", "fear", "helping", "gentle", "prestige-animation"],
+    note: "Helping others can be real compassion and also a way to process fear.",
+  },
+  {
+    title: "The Addams Family",
+    year: 2019,
+    platform: "Netflix",
+    imdb: 5.9,
+    runtime: "87 min",
+    age: "7+",
+    bgAudio: "No",
+    category: "Humility and perspective",
+    tags: ["spooky", "belonging", "family", "humility", "comedy"],
+    note: "Being different need not become feeling superior.",
+  },
+  {
+    title: "The SpongeBob Movie: Sponge on the Run",
+    year: 2020,
+    platform: "Netflix",
+    imdb: 5.9,
+    runtime: "95 min",
+    age: "7+",
+    bgAudio: "Yes",
+    category: "Mixed philosophical picks",
+    tags: ["friendship", "loyalty", "bulgarian-audio", "silly", "accessible"],
+    note: "Light friendship ethics with verified Bulgarian audio in the report.",
+  },
+  {
+    title: "The Addams Family 2",
+    year: 2021,
+    platform: "Netflix",
+    imdb: 5.4,
+    runtime: "93 min",
+    age: "7+",
+    bgAudio: "No",
+    category: "Sibling collaboration",
+    tags: ["spooky", "siblings", "road-trip", "family", "communication"],
+    note: "Closeness needs updates as kids grow and change.",
+  },
+];
+
+const alreadyWatched = [
+  "Wolfwalkers",
+  "Big Hero 6",
+  "The Monkey King",
+  "Orion and the Dark",
+  "In Your Dreams",
+  "Jumanji",
+  "The Mask",
+  "Pay It Forward",
+  "The NeverEnding Story",
+];
 
 const els = {
-  searchInput: document.getElementById("searchInput"),
-  searchBtn: document.getElementById("searchBtn"),
-  ageBandFilter: document.getElementById("ageBandFilter"),
-  statusFilter: document.getElementById("statusFilter"),
-  sortFilter: document.getElementById("sortFilter"),
-  tagsContainer: document.getElementById("tagsContainer"),
-  apiBaseInput: document.getElementById("apiBaseInput"),
-  saveApiBaseBtn: document.getElementById("saveApiBaseBtn"),
-  toast: document.getElementById("toast"),
-  resultsMeta: document.getElementById("resultsMeta"),
-  resultsCount: document.getElementById("resultsCount"),
-  resultsList: document.getElementById("resultsList"),
-  emptyState: document.getElementById("emptyState"),
-  addSection: document.getElementById("addSection"),
-  addMovieForm: document.getElementById("addMovieForm"),
-  addTitle: document.getElementById("addTitle"),
-  addYear: document.getElementById("addYear"),
-  addAgeBand: document.getElementById("addAgeBand"),
-  addTags: document.getElementById("addTags"),
-  addNotes: document.getElementById("addNotes"),
-  addWatched: document.getElementById("addWatched"),
-  bulkAddForm: document.getElementById("bulkAddForm"),
-  bulkLines: document.getElementById("bulkLines"),
-  bulkAgeBand: document.getElementById("bulkAgeBand"),
-  bulkTags: document.getElementById("bulkTags"),
-  movieItemTemplate: document.getElementById("movieItemTemplate"),
+  search: document.querySelector("#searchInput"),
+  category: document.querySelector("#categoryFilter"),
+  status: document.querySelector("#statusFilter"),
+  sort: document.querySelector("#sortFilter"),
+  bgAudio: document.querySelector("#bgAudioFilter"),
+  tags: document.querySelector("#tagsContainer"),
+  count: document.querySelector("#resultsCount"),
+  list: document.querySelector("#resultsList"),
+  watchedList: document.querySelector("#watchedList"),
+  empty: document.querySelector("#emptyState"),
 };
 
-function inferDefaultApiBase() {
-  if (window.location.port === "8000") {
-    return window.location.origin;
-  }
-  return "http://127.0.0.1:8000";
-}
+let saved = readSavedState();
+let selectedTags = new Set();
 
-function readApiBase() {
-  return (localStorage.getItem(API_BASE_KEY) || inferDefaultApiBase()).replace(/\/+$/, "");
-}
-
-function getOrCreateDeviceId() {
-  const existing = localStorage.getItem(DEVICE_ID_KEY);
-  if (existing) {
-    return existing;
-  }
-
-  const value = window.crypto?.randomUUID
-    ? window.crypto.randomUUID()
-    : `device-${Date.now()}-${Math.random().toString(16).slice(2)}`;
-
-  localStorage.setItem(DEVICE_ID_KEY, value);
-  return value;
-}
-
-function showToast(message, isError = false) {
-  if (!message) {
-    els.toast.classList.add("hidden");
-    els.toast.textContent = "";
-    els.toast.classList.remove("error");
-    return;
-  }
-
-  els.toast.classList.remove("hidden");
-  els.toast.textContent = message;
-  els.toast.classList.toggle("error", isError);
-}
-
-function parseTags(input) {
-  return (input || "")
-    .split(",")
-    .map((part) => part.trim().toLowerCase())
-    .filter(Boolean);
-}
-
-function toNullableInt(value) {
-  if (value === "" || value === null || value === undefined) {
-    return null;
-  }
-  const parsed = Number.parseInt(value, 10);
-  return Number.isFinite(parsed) ? parsed : null;
-}
-
-function formatTimestamp(isoValue) {
-  if (!isoValue) {
-    return "never";
-  }
-
-  const date = new Date(isoValue);
-  if (Number.isNaN(date.getTime())) {
-    return isoValue;
-  }
-
-  return date.toLocaleString();
-}
-
-function buildApiUrl(path, queryParams) {
-  const base = state.apiBase || "";
-  const url = new URL(`${base}${path}`, window.location.origin);
-
-  if (queryParams) {
-    for (const [key, value] of Object.entries(queryParams)) {
-      if (value !== undefined && value !== null && value !== "") {
-        url.searchParams.set(key, String(value));
-      }
-    }
-  }
-
-  return url.toString();
-}
-
-async function apiFetch(path, options = {}, queryParams) {
-  const response = await fetch(buildApiUrl(path, queryParams), {
-    method: options.method || "GET",
-    headers: {
-      "Content-Type": "application/json",
-      ...(options.headers || {}),
-    },
-    body: options.body !== undefined ? JSON.stringify(options.body) : undefined,
-  });
-
-  if (!response.ok) {
-    let message = `${response.status} ${response.statusText}`;
-    try {
-      const payload = await response.json();
-      if (payload?.detail) {
-        message = typeof payload.detail === "string" ? payload.detail : JSON.stringify(payload.detail);
-      }
-    } catch (_ignored) {
-      // Keep default message.
-    }
-    throw new Error(message);
-  }
-
-  return response.json();
-}
-
-function sortToApiParams(sortKey) {
-  switch (sortKey) {
-    case "year_desc":
-      return { sort: "year", order: "desc" };
-    case "imdb_desc":
-      return { sort: "imdb", order: "desc" };
-    case "rating_desc":
-      return { sort: "rating", order: "desc" };
-    case "title_az":
-    default:
-      return { sort: "title", order: "asc" };
+function readSavedState() {
+  try {
+    return JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}");
+  } catch (_error) {
+    return {};
   }
 }
 
-function renderAgeBands() {
-  const selected = state.filters.ageBand;
-  els.ageBandFilter.innerHTML = '<option value="">All</option>';
+function writeSavedState() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(saved));
+}
 
-  for (const ageBand of state.facets.age_bands || []) {
+function movieKey(movie) {
+  return `${movie.title}-${movie.year}`;
+}
+
+function getMovieState(movie) {
+  return saved[movieKey(movie)] || { watched: false, rating: 0 };
+}
+
+function setMovieState(movie, next) {
+  saved[movieKey(movie)] = { ...getMovieState(movie), ...next };
+  writeSavedState();
+  render();
+}
+
+function allTags() {
+  return [...new Set(movies.flatMap((movie) => movie.tags))].sort();
+}
+
+function renderOptions() {
+  const categories = [...new Set(movies.map((movie) => movie.category))].sort();
+  for (const category of categories) {
     const option = document.createElement("option");
-    option.value = ageBand;
-    option.textContent = ageBand;
-    els.ageBandFilter.appendChild(option);
+    option.value = category;
+    option.textContent = category;
+    els.category.appendChild(option);
   }
 
-  els.ageBandFilter.value = selected;
-}
-
-function renderTagChips() {
-  els.tagsContainer.innerHTML = "";
-
-  if (!(state.facets.tags || []).length) {
-    const none = document.createElement("span");
-    none.className = "subtle";
-    none.textContent = "No tags yet";
-    els.tagsContainer.appendChild(none);
-    return;
-  }
-
-  for (const tag of state.facets.tags) {
+  for (const tag of allTags()) {
     const button = document.createElement("button");
     button.type = "button";
     button.className = "tag-chip";
     button.textContent = tag;
-    const isActive = state.filters.tags.has(tag);
-    button.classList.toggle("active", isActive);
-    button.setAttribute("aria-pressed", isActive.toString());
-
     button.addEventListener("click", () => {
-      if (state.filters.tags.has(tag)) {
-        state.filters.tags.delete(tag);
+      if (selectedTags.has(tag)) {
+        selectedTags.delete(tag);
       } else {
-        state.filters.tags.add(tag);
+        selectedTags.add(tag);
       }
-      renderTagChips();
-      if (state.hasSearched) {
-        loadMovies();
-      }
+      button.classList.toggle("active", selectedTags.has(tag));
+      render();
     });
-
-    els.tagsContainer.appendChild(button);
+    els.tags.appendChild(button);
   }
 }
 
-function createStarButton(movie, value) {
-  const button = document.createElement("button");
-  button.type = "button";
-  button.className = "star-btn";
-  button.textContent = "★";
-  button.classList.toggle("active", (movie.my_rating || 0) >= value);
-  button.title = `Rate ${value}/5`;
-  button.setAttribute("aria-label", `Rate ${value} out of 5 stars`);
+function filteredMovies() {
+  const query = els.search.value.trim().toLowerCase();
+  let result = movies.filter((movie) => {
+    const state = getMovieState(movie);
+    const haystack = `${movie.title} ${movie.platform} ${movie.category} ${movie.tags.join(" ")} ${movie.note}`.toLowerCase();
+    const statusOk =
+      els.status.value === "all" ||
+      (els.status.value === "watched" && state.watched) ||
+      (els.status.value === "unwatched" && !state.watched);
+    const bgOk = els.bgAudio.value === "all" || movie.bgAudio === els.bgAudio.value;
+    const categoryOk = !els.category.value || movie.category === els.category.value;
+    const tagOk = !selectedTags.size || [...selectedTags].every((tag) => movie.tags.includes(tag));
+    return (!query || haystack.includes(query)) && statusOk && bgOk && categoryOk && tagOk;
+  });
 
-  button.addEventListener("click", async () => {
-    button.disabled = true;
-    try {
-      await apiFetch(`/api/movies/${movie.id}/rate`, {
-        method: "POST",
-        body: {
-          device_id: state.deviceId,
-          rating: value,
-        },
-      });
-      showToast(`Saved rating ${value}/5 for ${movie.title}.`);
-      if (state.hasSearched) {
-        await loadMovies();
-      }
-    } catch (error) {
-      showToast(`Rating failed: ${error.message}`, true);
-    } finally {
-      button.disabled = false;
+  result = result.sort((a, b) => {
+    switch (els.sort.value) {
+      case "year_desc":
+        return b.year - a.year;
+      case "imdb_desc":
+        return b.imdb - a.imdb;
+      case "platform_az":
+        return a.platform.localeCompare(b.platform) || a.title.localeCompare(b.title);
+      case "title_az":
+      default:
+        return a.title.localeCompare(b.title);
     }
   });
 
-  return button;
+  return result;
 }
 
-function renderMovieItem(movie) {
-  const fragment = els.movieItemTemplate.content.cloneNode(true);
-  const root = fragment.querySelector(".movie-item");
+function createMovieCard(movie) {
+  const state = getMovieState(movie);
+  const article = document.createElement("article");
+  article.className = "movie-card";
+  article.classList.toggle("watched", state.watched);
 
-  root.classList.toggle("watched", !!movie.watched);
+  const stars = Array.from({ length: 5 }, (_, index) => {
+    const value = index + 1;
+    const active = state.rating >= value ? " active" : "";
+    return `<button type="button" class="star-btn${active}" data-rating="${value}" aria-label="Rate ${value} out of 5">★</button>`;
+  }).join("");
 
-  fragment.querySelector(".movie-title").textContent = movie.title || "-";
-  fragment.querySelector(".movie-year").textContent = movie.year ?? "-";
+  article.innerHTML = `
+    <div class="movie-head">
+      <div>
+        <h2>${movie.title}</h2>
+        <p>${movie.year} · ${movie.runtime} · IMDb ${movie.imdb.toFixed(1)}</p>
+      </div>
+      <button type="button" class="watch-btn">${state.watched ? "Watched" : "Mark watched"}</button>
+    </div>
+    <div class="movie-meta">
+      <span>${movie.platform}</span>
+      <span>${movie.age}</span>
+      <span>BG audio: ${movie.bgAudio}</span>
+      <span>${movie.category}</span>
+    </div>
+    <p class="movie-note">${movie.note}</p>
+    <div class="tag-list">${movie.tags.map((tag) => `<span>${tag}</span>`).join("")}</div>
+    <div class="rating-row">
+      <span>Family rating</span>
+      <span class="stars">${stars}</span>
+    </div>
+  `;
 
-  const statusText = fragment.querySelector(".movie-status");
-  statusText.textContent = movie.watched ? "Watched" : "Unwatched";
-
-  const watchBtn = fragment.querySelector(".watch-btn");
-  watchBtn.textContent = movie.watched ? "Unwatch" : "Mark watched";
-  watchBtn.addEventListener("click", async () => {
-    watchBtn.disabled = true;
-    try {
-      await apiFetch(
-        `/api/movies/${movie.id}`,
-        {
-          method: "PATCH",
-          body: {
-            watched: !movie.watched,
-          },
-        },
-        { device_id: state.deviceId },
-      );
-      showToast(`${movie.title} updated.`);
-      if (state.hasSearched) {
-        await loadMovies();
-      }
-    } catch (error) {
-      showToast(`Status update failed: ${error.message}`, true);
-    } finally {
-      watchBtn.disabled = false;
-    }
+  article.querySelector(".watch-btn").addEventListener("click", () => {
+    setMovieState(movie, { watched: !state.watched });
   });
 
-  fragment.querySelector(".movie-age").textContent = movie.age_band || "Family";
-  fragment.querySelector(".movie-tags").textContent = (movie.tags || []).join(", ") || "-";
-
-  const imdbScoreText = movie.imdb_score === null || movie.imdb_score === undefined
-    ? "n/a"
-    : Number(movie.imdb_score).toFixed(1);
-  fragment.querySelector(".movie-imdb").textContent = imdbScoreText;
-
-  const imdbMeta = fragment.querySelector(".movie-imdb-meta");
-  imdbMeta.textContent = `last checked: ${formatTimestamp(movie.imdb_last_checked_at)}`;
-
-  const imdbBtn = fragment.querySelector(".imdb-update-btn");
-  imdbBtn.addEventListener("click", async () => {
-    const prevLabel = imdbBtn.textContent;
-    imdbBtn.textContent = "...";
-    imdbBtn.disabled = true;
-
-    try {
-      const response = await apiFetch(
-        `/api/movies/${movie.id}/imdb/update`,
-        {
-          method: "POST",
-          body: { force: true },
-        },
-        { device_id: state.deviceId },
-      );
-
-      showToast(response.message, !response.ok);
-      if (state.hasSearched) {
-        await loadMovies();
-      }
-    } catch (error) {
-      showToast(`IMDb update failed: ${error.message}`, true);
-    } finally {
-      imdbBtn.textContent = prevLabel;
-      imdbBtn.disabled = false;
-    }
+  article.querySelectorAll(".star-btn").forEach((button) => {
+    button.addEventListener("click", () => {
+      setMovieState(movie, { rating: Number(button.dataset.rating) });
+    });
   });
 
-  const ratingSummary = fragment.querySelector(".movie-rating-summary");
-  ratingSummary.textContent = movie.rating_count
-    ? `${Number(movie.avg_rating).toFixed(2)} (${movie.rating_count})`
-    : "n/a";
-
-  const stars = fragment.querySelector(".movie-stars");
-  for (let i = 1; i <= 5; i += 1) {
-    stars.appendChild(createStarButton(movie, i));
-  }
-
-  fragment.querySelector(".movie-notes").textContent = movie.notes || "-";
-
-  return fragment;
+  return article;
 }
 
-// ⚡ Bolt: Virtualization for Movie List
-// 💡 What: Implements windowed rendering for the movie list using IntersectionObserver or simple scroll calculation.
-// 🎯 Why: Rendering 500+ DOM elements at once causes layout thrashing and slows down scrolling. Virtualization keeps the DOM small.
-// 📊 Impact: Improves page performance and scroll frame rate significantly for large lists.
-let virtualScrollState = {
-  itemHeight: 250, // rough estimate of movie item height
-  buffer: 5,
-  startIndex: 0,
-  endIndex: 0,
-  totalHeight: 0,
-  onScroll: null,
-  ticking: false
-};
-
-function renderMoviesVirtual() {
-  const container = els.resultsList;
-  if (!state.movies.length) return;
-
-  const scrollTop = window.scrollY || document.documentElement.scrollTop;
-  // Account for container offset
-  const containerOffset = container.offsetTop || 300;
-
-  const viewportHeight = window.innerHeight;
-
-  // Calculate relative scroll
-  const relativeScrollTop = Math.max(0, scrollTop - containerOffset);
-
-  const startIndex = Math.max(0, Math.floor(relativeScrollTop / virtualScrollState.itemHeight) - virtualScrollState.buffer);
-  const visibleItemsCount = Math.ceil(viewportHeight / virtualScrollState.itemHeight);
-  const endIndex = Math.min(state.movies.length - 1, startIndex + visibleItemsCount + 2 * virtualScrollState.buffer);
-
-  if (startIndex === virtualScrollState.startIndex && endIndex === virtualScrollState.endIndex) {
-      return; // No need to re-render
-  }
-
-  virtualScrollState.startIndex = startIndex;
-  virtualScrollState.endIndex = endIndex;
-
-  const topPadding = startIndex * virtualScrollState.itemHeight;
-  const bottomPadding = (state.movies.length - 1 - endIndex) * virtualScrollState.itemHeight;
-
-  // Create a minimal diffing approach to reuse DOM nodes if possible,
-  // or at least avoid recreating the entire container if the user only scrolled slightly.
-  // For simplicity and to avoid complex state tracking, we'll recreate the visible window,
-  // but we can at least keep it out of the main thread blocking flow by doing it fast.
-  const newFragment = document.createDocumentFragment();
-
-  if (topPadding > 0) {
-      const topSpacer = document.createElement("div");
-      topSpacer.style.height = `${topPadding}px`;
-      newFragment.appendChild(topSpacer);
-  }
-
-  for (let i = startIndex; i <= endIndex; i++) {
-      const itemNode = renderMovieItem(state.movies[i]);
-      newFragment.appendChild(itemNode);
-  }
-
-  if (bottomPadding > 0) {
-      const bottomSpacer = document.createElement("div");
-      bottomSpacer.style.height = `${bottomPadding}px`;
-      newFragment.appendChild(bottomSpacer);
-  }
-
-  // fast swap
-  container.replaceChildren(newFragment);
-}
-
-function renderMovies() {
-  els.resultsList.innerHTML = "";
-
-  // cleanup previous scroll listener
-  if (virtualScrollState.onScroll) {
-    window.removeEventListener("scroll", virtualScrollState.onScroll);
-    virtualScrollState.onScroll = null;
-  }
-
-  if (!state.hasSearched) {
-    els.resultsMeta.classList.add("hidden");
-    els.resultsList.classList.add("hidden");
-    els.emptyState.classList.add("hidden");
-    els.addSection.classList.add("hidden");
-    return;
-  }
-
-  els.resultsMeta.classList.remove("hidden");
-  els.resultsList.classList.remove("hidden");
-  els.addSection.classList.remove("hidden");
-
-  els.resultsCount.textContent = `${state.movies.length} movies`;
-
-  if (!state.movies.length) {
-    els.emptyState.classList.remove("hidden");
-    return;
-  }
-
-  els.emptyState.classList.add("hidden");
-
-  // Initialize virtual scroll
-  virtualScrollState.startIndex = -1;
-  virtualScrollState.endIndex = -1;
-  renderMoviesVirtual();
-
-  virtualScrollState.onScroll = () => {
-    if (!virtualScrollState.ticking) {
-      requestAnimationFrame(() => {
-        renderMoviesVirtual();
-        virtualScrollState.ticking = false;
-      });
-      virtualScrollState.ticking = true;
-    }
-  };
-
-  window.addEventListener("scroll", virtualScrollState.onScroll);
-}
-
-async function loadFacets() {
-  try {
-    const facets = await apiFetch("/api/movies/facets");
-    state.facets = facets || { age_bands: [], tags: [] };
-    renderAgeBands();
-    renderTagChips();
-  } catch (error) {
-    showToast(`Could not load filters: ${error.message}`, true);
+function renderWatchedExclusions() {
+  els.watchedList.innerHTML = "";
+  for (const title of alreadyWatched) {
+    const li = document.createElement("li");
+    li.textContent = title;
+    els.watchedList.appendChild(li);
   }
 }
 
-async function loadMovies() {
-  if (!state.hasSearched) {
-    return;
-  }
+function render() {
+  const result = filteredMovies();
+  els.count.textContent = `${result.length} recommendation${result.length === 1 ? "" : "s"}`;
+  els.list.innerHTML = "";
+  els.empty.classList.toggle("hidden", result.length > 0);
 
-  const searchText = (els.searchInput.value || "").trim();
-  const sortParams = sortToApiParams(state.filters.sortKey);
-
-  const params = {
-    search: searchText || undefined,
-    age_band: state.filters.ageBand || undefined,
-    status: state.filters.status,
-    sort: sortParams.sort,
-    order: sortParams.order,
-    device_id: state.deviceId,
-  };
-
-  const selectedTags = Array.from(state.filters.tags.values());
-  if (selectedTags.length) {
-    params.tags = selectedTags.join(",");
-    params.tags_mode = "any";
-  }
-
-  try {
-    showToast("Loading results...");
-    const response = await apiFetch("/api/movies", {}, params);
-    state.movies = response.items || [];
-    state.facets = response.facets || state.facets;
-    renderAgeBands();
-    renderTagChips();
-    renderMovies();
-    showToast("");
-  } catch (error) {
-    state.movies = [];
-    renderMovies();
-    showToast(`Failed to load movies: ${error.message}`, true);
+  for (const movie of result) {
+    els.list.appendChild(createMovieCard(movie));
   }
 }
 
-// ⚡ Bolt: Debouncing search input
-// 💡 What: Delays search API calls until the user stops typing for 300ms.
-// 🎯 Why: Prevents spamming the backend API on every keystroke, saving bandwidth and backend load.
-// 📊 Impact: Reduces search API calls from O(keystrokes) to 1.
-function debounce(func, wait) {
-  let timeout;
-  return function executedFunction(...args) {
-    const later = () => {
-      clearTimeout(timeout);
-      func(...args);
-    };
-    clearTimeout(timeout);
-    timeout = setTimeout(later, wait);
-  };
-}
-
-function wireSearch() {
-  const debouncedSearch = debounce(async () => {
-    state.hasSearched = true;
-    await loadMovies();
-  }, 300);
-
-  els.searchBtn.addEventListener("click", async () => {
-    els.searchBtn.disabled = true;
-    state.hasSearched = true;
-    await loadMovies();
-    els.searchBtn.disabled = false;
-  });
-
-  els.searchInput.addEventListener("input", () => {
-    debouncedSearch();
-  });
-
-  els.searchInput.addEventListener("keydown", async (event) => {
-    if (event.key === "Enter") {
-      event.preventDefault();
-      els.searchBtn.disabled = true;
-      state.hasSearched = true;
-      await loadMovies();
-      els.searchBtn.disabled = false;
-    }
+function wire() {
+  [els.search, els.category, els.status, els.sort, els.bgAudio].forEach((el) => {
+    el.addEventListener("input", render);
+    el.addEventListener("change", render);
   });
 }
 
-function wireFilters() {
-  els.ageBandFilter.addEventListener("change", () => {
-    state.filters.ageBand = els.ageBandFilter.value;
-    if (state.hasSearched) {
-      loadMovies();
-    }
-  });
-
-  els.statusFilter.addEventListener("change", () => {
-    state.filters.status = els.statusFilter.value;
-    if (state.hasSearched) {
-      loadMovies();
-    }
-  });
-
-  els.sortFilter.addEventListener("change", () => {
-    state.filters.sortKey = els.sortFilter.value;
-    if (state.hasSearched) {
-      loadMovies();
-    }
-  });
-}
-
-function wireApiBaseControls() {
-  els.apiBaseInput.value = state.apiBase;
-
-  els.saveApiBaseBtn.addEventListener("click", async () => {
-    const next = (els.apiBaseInput.value || "").trim().replace(/\/+$/, "");
-    if (!next) {
-      showToast("API base URL cannot be empty.", true);
-      return;
-    }
-
-    state.apiBase = next;
-    localStorage.setItem(API_BASE_KEY, next);
-    showToast(`Saved API URL: ${next}`);
-
-    await loadFacets();
-    if (state.hasSearched) {
-      await loadMovies();
-    }
-  });
-}
-
-function wireAddForms() {
-  els.addMovieForm.addEventListener("submit", async (event) => {
-    event.preventDefault();
-
-    const payload = {
-      title: (els.addTitle.value || "").trim(),
-      year: toNullableInt(els.addYear.value),
-      age_band: els.addAgeBand.value || "Family",
-      tags: parseTags(els.addTags.value),
-      notes: (els.addNotes.value || "").trim() || null,
-      watched: !!els.addWatched.checked,
-    };
-
-    if (!payload.title) {
-      showToast("Title is required.", true);
-      return;
-    }
-
-    try {
-      await apiFetch("/api/movies", { method: "POST", body: payload }, { device_id: state.deviceId });
-      showToast(`Added: ${payload.title}`);
-      els.addMovieForm.reset();
-      els.addAgeBand.value = "Family";
-
-      await loadFacets();
-      if (state.hasSearched) {
-        await loadMovies();
-      }
-    } catch (error) {
-      showToast(`Add movie failed: ${error.message}`, true);
-    }
-  });
-
-  els.bulkAddForm.addEventListener("submit", async (event) => {
-    event.preventDefault();
-
-    const lines = (els.bulkLines.value || "").trim();
-    if (!lines) {
-      showToast("Bulk input is empty.", true);
-      return;
-    }
-
-    const payload = {
-      lines,
-      default_age_band: els.bulkAgeBand.value || "Family",
-      default_tags: parseTags(els.bulkTags.value),
-    };
-
-    try {
-      const result = await apiFetch("/api/movies/import", { method: "POST", body: payload });
-      showToast(`Imported ${result.processed} lines (${result.created} created, ${result.updated} updated).`);
-      els.bulkLines.value = "";
-
-      await loadFacets();
-      if (state.hasSearched) {
-        await loadMovies();
-      }
-    } catch (error) {
-      showToast(`Bulk import failed: ${error.message}`, true);
-    }
-  });
-}
-
-async function init() {
-  state.apiBase = readApiBase();
-  state.deviceId = getOrCreateDeviceId();
-
-  wireSearch();
-  wireFilters();
-  wireApiBaseControls();
-  wireAddForms();
-
-  await loadFacets();
-  renderMovies();
-}
-
-init();
+renderOptions();
+renderWatchedExclusions();
+wire();
+render();

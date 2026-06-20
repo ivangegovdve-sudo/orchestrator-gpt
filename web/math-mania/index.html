@@ -31,7 +31,7 @@
     }
 
     main {
-      width: min(960px, calc(100vw - 32px));
+      width: min(1180px, calc(100vw - 32px));
       margin: 0 auto;
       padding: 32px 0 48px;
     }
@@ -118,7 +118,40 @@
       box-shadow: 0 0 16px currentColor;
     }
 
-    .blocked {
+    .app-frame {
+      width: 100%;
+      min-height: 720px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: #020617;
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.28);
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin: 18px 0 22px;
+    }
+
+    .button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid rgba(56, 189, 248, 0.45);
+      background: rgba(56, 189, 248, 0.12);
+      color: var(--text);
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-weight: 700;
+    }
+
+    .button.secondary {
+      border-color: rgba(245, 158, 11, 0.45);
+      background: rgba(245, 158, 11, 0.12);
+    }
+
+    .note {
       margin-top: 18px;
       padding: 14px 16px;
       border: 1px solid rgba(245, 158, 11, 0.34);
@@ -131,6 +164,7 @@
     @media (max-width: 720px) {
       .top { align-items: flex-start; flex-direction: column; }
       .grid { grid-template-columns: 1fr; }
+      .app-frame { min-height: 640px; }
     }
   </style>
 </head>
@@ -138,23 +172,37 @@
   <main>
     <div class="top">
       <a href="/index.html">Back to Forest HUB</a>
-      <span class="status">Project shell ready</span>
+      <span class="status">Live Lovable app</span>
     </div>
 
     <h1>Math Mania</h1>
     <p class="lead">
-      Lovable app placeholder page for Math Mania. This route is ready to host the playable app once the Lovable project id, published URL, or exported files are available.
+      Playable Math Mania app from Lovable, hosted here as a Forest HUB subpage.
     </p>
 
+    <div class="actions">
+      <a class="button" href="https://forest-math-plus.lovable.app" target="_blank" rel="noopener noreferrer">Open full screen</a>
+      <a class="button secondary" href="/index.html">Back to hub</a>
+    </div>
+
+    <iframe
+      class="app-frame"
+      title="Math Mania Lovable app"
+      src="https://forest-math-plus.lovable.app"
+      loading="eager"
+      referrerpolicy="no-referrer-when-downgrade"
+      allow="fullscreen; clipboard-write"
+    ></iframe>
+
     <section class="panel">
-      <h2>Target Experience</h2>
+      <h2>Learning Modes</h2>
       <div class="grid">
         <div class="tile"><strong>+</strong><span>Fast arithmetic rounds for young learners.</span></div>
         <div class="tile"><strong>x</strong><span>Multiplication practice with streak feedback.</span></div>
         <div class="tile"><strong>=</strong><span>Score, progress, and replay loop.</span></div>
       </div>
-      <div class="blocked">
-        Needed from Ivan: Lovable Math Mania project id or public Lovable URL. Current Lovable connector can open a known project for editing, but cannot list account projects.
+      <div class="note">
+        Source: https://forest-math-plus.lovable.app. Exported source can replace this iframe later if full in-repo hosting becomes preferable.
       </div>
     </section>
   </main>
