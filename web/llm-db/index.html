@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Platforms Map — Forest HUB</title>
+  <meta name="description" content="Browsable directory of AI platforms, tools, and services — LLM APIs, dev tools, agents, image/video, voice, and more.">
+  <style>
+    :root {
+      --bg: #09090b;
+      --card-bg: rgba(24, 24, 27, 0.7);
+      --card-border: rgba(255, 255, 255, 0.08);
+      --text: #f4f4f5;
+      --muted: #a1a1aa;
+      --accent: #0ea5e9;
+      --accent-hover: #38bdf8;
+      --purple: #8b5cf6;
+      --green: #22c55e;
+      --amber: #f59e0b;
+      --radius: 10px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; }
+
+    body {
+      font-family: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+      margin: 0;
+      background: var(--bg);
+      background-image:
+        radial-gradient(circle at 10% 20%, rgba(14,165,233,0.06), transparent 40%),
+        radial-gradient(circle at 90% 80%, rgba(139,92,246,0.06), transparent 40%);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { color: var(--accent-hover); text-decoration: underline; }
+    a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
+
+    .page { max-width: 1060px; margin: 0 auto; padding: 32px 20px 80px; }
+
+    header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 28px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid var(--card-border);
+    }
+
+    .header-left h1 {
+      margin: 0 0 4px;
+      font-size: clamp(1.5rem, 3vw, 2rem);
+      font-weight: 800;
+      background: linear-gradient(135deg, #fff 0%, #cbd5e1 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .header-left p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.9rem;
+      max-width: 560px;
+    }
+
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--muted);
+      font-size: 14px;
+      white-space: nowrap;
+      transition: color 0.15s;
+    }
+    .back-link:hover { color: var(--text); text-decoration: none; }
+
+    /* Controls */
+    .controls {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+
+    .search-wrap {
+      position: relative;
+      flex: 1;
+      min-width: 200px;
+    }
+
+    .search-wrap svg {
+      position: absolute;
+      left: 11px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--muted);
+      pointer-events: none;
+    }
+
+    input[type="search"] {
+      width: 100%;
+      padding: 9px 12px 9px 36px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius);
+      color: var(--text);
+      font-size: 0.9rem;
+      transition: border-color 0.15s;
+    }
+    input[type="search"]:focus { border-color: var(--accent); outline: none; }
+    input[type="search"]::placeholder { color: var(--muted); }
+    input[type="search"]::-webkit-search-cancel-button { display: none; }
+
+    select {
+      padding: 9px 32px 9px 12px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius);
+      color: var(--text);
+      font-size: 0.9rem;
+      cursor: pointer;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23a1a1aa' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 10px center;
+    }
+    select:focus { border-color: var(--accent); outline: none; }
+    select option { background: #18181b; color: var(--text); }
+
+    /* Stats bar */
+    .stats-bar {
+      display: flex;
+      gap: 16px;
+      margin-bottom: 16px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    /* Grid */
+    .platform-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 14px;
+    }
+
+    .platform-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius);
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      transition: border-color 0.15s, background 0.15s;
+    }
+    .platform-card:hover {
+      border-color: rgba(255,255,255,0.15);
+      background: rgba(24,24,27,0.9);
+    }
+
+    .card-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .card-name {
+      font-weight: 700;
+      font-size: 1rem;
+      color: var(--text);
+      flex: 1;
+    }
+
+    .card-name a {
+      color: inherit;
+    }
+    .card-name a:hover { color: var(--accent-hover); text-decoration: none; }
+
+    .tag {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 99px;
+      font-size: 11px;
+      font-weight: 600;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .tag-llm-api    { background: rgba(14,165,233,0.12); color: #38bdf8; border: 1px solid rgba(14,165,233,0.3); }
+    .tag-coding     { background: rgba(34,197,94,0.12);  color: #4ade80; border: 1px solid rgba(34,197,94,0.3); }
+    .tag-builder    { background: rgba(139,92,246,0.12); color: #a78bfa; border: 1px solid rgba(139,92,246,0.3); }
+    .tag-image-vid  { background: rgba(244,63,94,0.12);  color: #fb7185; border: 1px solid rgba(244,63,94,0.3); }
+    .tag-voice      { background: rgba(249,115,22,0.12); color: #fb923c; border: 1px solid rgba(249,115,22,0.3); }
+    .tag-agents     { background: rgba(20,184,166,0.12); color: #2dd4bf; border: 1px solid rgba(20,184,166,0.3); }
+    .tag-search-rag { background: rgba(234,179,8,0.12);  color: #facc15; border: 1px solid rgba(234,179,8,0.3); }
+    .tag-infra      { background: rgba(100,116,139,0.18);color: #94a3b8; border: 1px solid rgba(100,116,139,0.3); }
+    .tag-cloud      { background: rgba(14,165,233,0.08); color: #7dd3fc; border: 1px solid rgba(14,165,233,0.2); }
+    .tag-comms      { background: rgba(236,72,153,0.12); color: #f472b6; border: 1px solid rgba(236,72,153,0.3); }
+    .tag-data       { background: rgba(16,185,129,0.12); color: #34d399; border: 1px solid rgba(16,185,129,0.3); }
+    .tag-digital-twin { background: rgba(99,102,241,0.12); color: #818cf8; border: 1px solid rgba(99,102,241,0.3); }
+
+    .card-desc {
+      font-size: 0.84rem;
+      color: var(--muted);
+      line-height: 1.5;
+      margin: 0;
+    }
+
+    .card-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 4px;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .card-by {
+      font-size: 11px;
+      color: rgba(161,161,170,0.6);
+    }
+
+    .card-link {
+      font-size: 12px;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      color: var(--accent);
+    }
+    .card-link:hover { color: var(--accent-hover); text-decoration: none; }
+
+    .empty-state {
+      grid-column: 1 / -1;
+      text-align: center;
+      padding: 48px 20px;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    /* Category headers */
+    .category-header {
+      grid-column: 1 / -1;
+      margin-top: 16px;
+      margin-bottom: 4px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+      border-bottom: 1px solid var(--card-border);
+      padding-bottom: 6px;
+    }
+
+    @media (max-width: 600px) {
+      .platform-grid { grid-template-columns: 1fr; }
+      header { flex-direction: column-reverse; gap: 8px; }
+    }
+  </style>
+</head>
+<body>
+<div class="page">
+  <header>
+    <div class="header-left">
+      <h1>AI Platforms Map</h1>
+      <p>Browsable directory of AI platforms, tools &amp; services — from LLM APIs to app builders, voice, agents, image, and infra.</p>
+    </div>
+    <a href="/" class="back-link">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+      Back to Hub
+    </a>
+  </header>
+
+  <div class="controls">
+    <div class="search-wrap">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input type="search" id="q" placeholder="Search platforms…" autocomplete="off" aria-label="Search platforms">
+    </div>
+    <select id="cat-filter" aria-label="Filter by category">
+      <option value="">All categories</option>
+    </select>
+  </div>
+
+  <div class="stats-bar">
+    <span id="count-label">— platforms</span>
+  </div>
+
+  <div class="platform-grid" id="grid" role="list" aria-live="polite" aria-label="Platform cards"></div>
+</div>
+
+<script>
+const PLATFORMS = [
+  // ── LLM API PROVIDERS ──────────────────────────────────────────────────────
+  { name:"OpenAI", cat:"LLM API Providers", tag:"llm-api", url:"https://platform.openai.com", by:"OpenAI",
+    desc:"The dominant LLM API. Models: GPT-4o, o1, o3, GPT-4.5, Whisper (ASR), DALL-E (images). Sets the de-facto API standard that most alternatives emulate." },
+  { name:"Anthropic (Claude)", cat:"LLM API Providers", tag:"llm-api", url:"https://www.anthropic.com", by:"Anthropic",
+    desc:"Safety-focused AI lab. Models: Claude 3.5/3.7 Sonnet, Claude 3 Opus, Claude Haiku. Strong on long context, coding, and instruction-following. Introduced MCP (Model Context Protocol)." },
+  { name:"Google AI / Gemini", cat:"LLM API Providers", tag:"llm-api", url:"https://ai.google.dev", by:"Google DeepMind",
+    desc:"Google's flagship model family: Gemini 1.5 Pro (1M context), Gemini 2.0 Flash, Gemma (open). API via AI Studio (free) and Vertex AI (enterprise)." },
+  { name:"Mistral AI", cat:"LLM API Providers", tag:"llm-api", url:"https://mistral.ai", by:"Mistral AI",
+    desc:"European open-weight models: Mistral 7B, Mixtral 8x7B (MoE), Mistral Large, Mistral NeMo. Also offers la Plateforme API and Codestral for code." },
+  { name:"Cohere", cat:"LLM API Providers", tag:"llm-api", url:"https://cohere.com", by:"Cohere",
+    desc:"Enterprise-grade LLM API with Command R+ for RAG, Embed for vector search, and Rerank for retrieval accuracy. Strong multilingual support." },
+  { name:"Together AI", cat:"LLM API Providers", tag:"llm-api", url:"https://www.together.ai", by:"Together AI",
+    desc:"Fast, cheap inference API for 100+ open-source models (Llama 3, Mixtral, DBRX, Qwen, etc.). Also runs fine-tuning on H100 clusters." },
+  { name:"Groq", cat:"LLM API Providers", tag:"llm-api", url:"https://groq.com", by:"Groq Inc.",
+    desc:"Fastest publicly available LLM inference using proprietary LPU (Language Processing Unit) chips. Llama 3 at 800+ tokens/sec. Great for latency-sensitive apps." },
+  { name:"Fireworks AI", cat:"LLM API Providers", tag:"llm-api", url:"https://fireworks.ai", by:"Fireworks AI",
+    desc:"Production inference API optimized for speed and cost. Supports open-source and private models. FireFunction for function calling at scale." },
+  { name:"OpenRouter", cat:"LLM API Providers", tag:"llm-api", url:"https://openrouter.ai", by:"OpenRouter",
+    desc:"Unified API gateway routing to 200+ models across OpenAI, Anthropic, Google, Meta, Mistral, and more. Single endpoint, automatic fallback, pay-per-token." },
+  { name:"Perplexity AI", cat:"LLM API Providers", tag:"llm-api", url:"https://www.perplexity.ai", by:"Perplexity AI",
+    desc:"AI search engine that retrieves and synthesizes live web results. Also offers a developer API (pplx-api) for search-augmented generation." },
+  { name:"AI21 Labs (Jamba)", cat:"LLM API Providers", tag:"llm-api", url:"https://www.ai21.com", by:"AI21 Labs",
+    desc:"Israeli AI lab. Jamba is a hybrid SSM+Transformer model; Jurassic-2 API for text. Focused on long-context enterprise use cases." },
+  { name:"xAI (Grok)", cat:"LLM API Providers", tag:"llm-api", url:"https://x.ai", by:"xAI",
+    desc:"Elon Musk's AI startup. Grok-2 and Grok-3 are their models, available via X/Twitter Premium and API. Real-time X data access is a differentiator." },
+  { name:"Meta AI (Llama)", cat:"LLM API Providers", tag:"llm-api", url:"https://llama.meta.com", by:"Meta AI",
+    desc:"The Llama family (Llama 3.1/3.3, Llama 3.2 vision) are the dominant open-weight LLMs. Download weights free; run via Together, Groq, Fireworks, or locally." },
+
+  // ── AI CODING TOOLS ────────────────────────────────────────────────────────
+  { name:"Cursor", cat:"AI Coding Tools", tag:"coding", url:"https://cursor.sh", by:"Anysphere",
+    desc:"VS Code fork with deep AI integration. Composer, Tab autocomplete, and Chat use frontier models. Most popular AI IDE as of 2025." },
+  { name:"GitHub Copilot", cat:"AI Coding Tools", tag:"coding", url:"https://github.com/features/copilot", by:"GitHub / Microsoft",
+    desc:"AI pair programmer with multi-model support (Claude, GPT-4o, Gemini) built into VS Code, JetBrains, and GitHub.com. Industry-standard." },
+  { name:"Windsurf (Codeium)", cat:"AI Coding Tools", tag:"coding", url:"https://codeium.com/windsurf", by:"Codeium",
+    desc:"Free AI coding assistant (Codeium) + Windsurf IDE with 'Flow' agentic coding loops. Strong autocomplete across 70+ languages." },
+  { name:"Replit", cat:"AI Coding Tools", tag:"coding", url:"https://replit.com", by:"Replit Inc.",
+    desc:"Browser-based IDE with Replit AI (Agent) for generating and iterating on full-stack apps. Instant deployment included. Great for rapid prototypes." },
+  { name:"Devin", cat:"AI Coding Tools", tag:"coding", url:"https://devin.ai", by:"Cognition AI",
+    desc:"First 'AI software engineer' — fully autonomous agent that takes a task, writes code, runs tests, and opens PRs. Operates in its own sandboxed dev environment." },
+  { name:"Aider", cat:"AI Coding Tools", tag:"coding", url:"https://aider.chat", by:"Paul Gauthier (OSS)",
+    desc:"Open-source CLI AI coding assistant. Pairs any LLM with your local git repo to edit files autonomously. Works with Claude, GPT-4o, DeepSeek, Gemini." },
+  { name:"Claude Code", cat:"AI Coding Tools", tag:"coding", url:"https://claude.ai/code", by:"Anthropic",
+    desc:"Anthropic's agentic coding CLI. Reads, edits, runs, and commits code in your actual repo. Deep tool-use integration and MCP server support." },
+  { name:"Continue", cat:"AI Coding Tools", tag:"coding", url:"https://continue.dev", by:"Continue (OSS)",
+    desc:"Open-source AI code assistant VS Code / JetBrains extension. Route to any LLM; supports local Ollama, Llama, and cloud APIs." },
+  { name:"Zed", cat:"AI Coding Tools", tag:"coding", url:"https://zed.dev", by:"Zed Industries",
+    desc:"High-performance collaborative code editor (Rust) with inline AI assistance, agent panel, and slash commands. Fast and minimal." },
+
+  // ── AI APP BUILDERS ────────────────────────────────────────────────────────
+  { name:"Lovable", cat:"AI App Builders", tag:"builder", url:"https://lovable.dev", by:"Lovable",
+    desc:"Prompt → production-ready React app in minutes. Generates full-stack apps, edits UI via chat, and deploys to Supabase + Netlify. Formerly known as 'GPT Engineer'." },
+  { name:"v0 by Vercel", cat:"AI App Builders", tag:"builder", url:"https://v0.dev", by:"Vercel",
+    desc:"Generates React/shadcn/UI components from text or image prompts. One-click deploy to Vercel. Excellent for landing pages and dashboards." },
+  { name:"Bolt.new", cat:"AI App Builders", tag:"builder", url:"https://bolt.new", by:"StackBlitz",
+    desc:"Full-stack app builder in the browser. Prompt → running app with backend, db, and npm packages. Uses WebContainers; no install required." },
+  { name:"Vercel AI SDK", cat:"AI App Builders", tag:"builder", url:"https://sdk.vercel.ai", by:"Vercel",
+    desc:"TypeScript library for building AI-powered apps. Unified interface for any LLM, streaming, structured outputs, and tool use. Works with Next.js, SvelteKit, Nuxt." },
+  { name:"Webflow AI", cat:"AI App Builders", tag:"builder", url:"https://webflow.com", by:"Webflow",
+    desc:"No-code visual web builder adding AI layout and content generation. Best for design-heavy marketing sites without writing code." },
+  { name:"Dify", cat:"AI App Builders", tag:"builder", url:"https://dify.ai", by:"LangGenius (OSS)",
+    desc:"Open-source LLM app development platform. Visual workflow builder for RAG pipelines, chatbots, and agents. Self-host or cloud." },
+  { name:"Flowise", cat:"AI App Builders", tag:"builder", url:"https://flowiseai.com", by:"FlowiseAI (OSS)",
+    desc:"Open-source LangChain drag-and-drop UI. Build chatbots and RAG pipelines visually. Self-hosted or cloud. Connects to 100+ integrations." },
+
+  // ── AI AGENTS & ORCHESTRATION ──────────────────────────────────────────────
+  { name:"LangChain", cat:"AI Agents & Orchestration", tag:"agents", url:"https://www.langchain.com", by:"LangChain Inc.",
+    desc:"The most widely used LLM application framework. Chains, agents, RAG pipelines, and tool integrations. LangGraph extends it for multi-agent stateful workflows." },
+  { name:"LlamaIndex", cat:"AI Agents & Orchestration", tag:"agents", url:"https://www.llamaindex.ai", by:"LlamaIndex",
+    desc:"Framework for building LLM data applications. Best-in-class for RAG: document loaders, chunking, vector indexing, query engines, and agents." },
+  { name:"CrewAI", cat:"AI Agents & Orchestration", tag:"agents", url:"https://crewai.com", by:"CrewAI (OSS)",
+    desc:"Multi-agent orchestration framework. Define roles, goals, and tools for crews of AI agents that collaborate on complex tasks." },
+  { name:"Composio", cat:"AI Agents & Orchestration", tag:"agents", url:"https://composio.dev", by:"Composio",
+    desc:"100+ managed tool integrations for AI agents (GitHub, Gmail, Slack, Linear, etc.). Handles auth and API calls so your agent just uses natural-language actions." },
+  { name:"n8n", cat:"AI Agents & Orchestration", tag:"agents", url:"https://n8n.io", by:"n8n GmbH (OSS)",
+    desc:"Self-hostable workflow automation platform with native LLM nodes, AI agent nodes, and 400+ integrations. Zapier alternative with code flexibility." },
+  { name:"AutoGen (Microsoft)", cat:"AI Agents & Orchestration", tag:"agents", url:"https://microsoft.github.io/autogen", by:"Microsoft Research",
+    desc:"Multi-agent conversation framework. Agents with different personas discuss problems and write code collaboratively. Foundation for many enterprise agent systems." },
+  { name:"OpenAI Agents SDK", cat:"AI Agents & Orchestration", tag:"agents", url:"https://openai.github.io/openai-agents-python", by:"OpenAI",
+    desc:"Official SDK for building multi-agent workflows. Handoffs, guardrails, tool use, and tracing. Lightweight and production-ready." },
+  { name:"Agency Swarm", cat:"AI Agents & Orchestration", tag:"agents", url:"https://vrsen.github.io/agency-swarm", by:"VRSEN (OSS)",
+    desc:"Framework for building collaborative AI agent networks. Each agent has a role, tools, and can communicate with others in a swarm." },
+  { name:"Zapier AI", cat:"AI Agents & Orchestration", tag:"agents", url:"https://zapier.com/ai", by:"Zapier",
+    desc:"No-code workflow automation with AI actions and Zaps triggered by AI. Connects 6,000+ apps. Easiest entry point for non-developer AI automation." },
+
+  // ── SEARCH & RAG ───────────────────────────────────────────────────────────
+  { name:"Exa (formerly Metaphor)", cat:"Search & RAG", tag:"search-rag", url:"https://exa.ai", by:"Exa",
+    desc:"Neural semantic search API for AI agents. Find web pages by meaning, not keywords. Returns cleaned text for LLM consumption. Designed for agent web search tools." },
+  { name:"Tavily", cat:"Search & RAG", tag:"search-rag", url:"https://tavily.com", by:"Tavily",
+    desc:"Search API purpose-built for LLM agents. Returns summarized, relevant snippets rather than raw URLs. Native LangChain/LlamaIndex integration." },
+  { name:"Pinecone", cat:"Search & RAG", tag:"search-rag", url:"https://www.pinecone.io", by:"Pinecone Systems",
+    desc:"Managed vector database for similarity search. Fast ANN (approximate nearest neighbor) at scale. Standard choice for production RAG systems." },
+  { name:"Weaviate", cat:"Search & RAG", tag:"search-rag", url:"https://weaviate.io", by:"Weaviate B.V. (OSS)",
+    desc:"Open-source vector database with hybrid (keyword + vector) search, multi-modal support, and built-in embedding modules." },
+  { name:"Qdrant", cat:"Search & RAG", tag:"search-rag", url:"https://qdrant.tech", by:"Qdrant (OSS)",
+    desc:"Fast open-source vector similarity search engine written in Rust. On-disk indexing, filtering, and payload support. Self-host or managed cloud." },
+  { name:"Chroma", cat:"Search & RAG", tag:"search-rag", url:"https://www.trychroma.com", by:"Chroma (OSS)",
+    desc:"Open-source embedding database designed for LLM apps. Easiest RAG setup: pip install, no infra. Great for prototyping; Chroma Cloud for production." },
+  { name:"AnythingLLM", cat:"Search & RAG", tag:"search-rag", url:"https://anythingllm.com", by:"Mintplex Labs (OSS)",
+    desc:"Private ChatGPT alternative you run locally or self-host. Document workspaces, multi-user, LLM-agnostic, built-in vector store." },
+  { name:"Perplexity API", cat:"Search & RAG", tag:"search-rag", url:"https://docs.perplexity.ai", by:"Perplexity AI",
+    desc:"API giving programmatic access to Perplexity's search-augmented generation. Returns answers with cited sources from live web. Sonar model family." },
+
+  // ── IMAGE & VIDEO ──────────────────────────────────────────────────────────
+  { name:"Midjourney", cat:"Image & Video AI", tag:"image-vid", url:"https://www.midjourney.com", by:"Midjourney Inc.",
+    desc:"The premier text-to-image model for artistic quality. V6/V7 produce photorealistic and stylized images. Discord-based workflow; no public API." },
+  { name:"DALL-E 3 (OpenAI)", cat:"Image & Video AI", tag:"image-vid", url:"https://openai.com/dall-e-3", by:"OpenAI",
+    desc:"OpenAI's text-to-image model, accessible via API and ChatGPT. Excellent at following detailed prompts. Integrated into GPT-4o for image generation." },
+  { name:"Stable Diffusion / A1111", cat:"Image & Video AI", tag:"image-vid", url:"https://github.com/AUTOMATIC1111/stable-diffusion-webui", by:"Stability AI + OSS",
+    desc:"Open-source image generation ecosystem. AUTOMATIC1111 WebUI is the most popular local runner. SDXL, SD 3.5, Flux models. Full control, free, runs locally." },
+  { name:"ComfyUI", cat:"Image & Video AI", tag:"image-vid", url:"https://github.com/comfyanonymous/ComfyUI", by:"comfyanonymous (OSS)",
+    desc:"Node-based visual graph UI for Stable Diffusion. Highly flexible workflow builder for advanced image/video pipelines with ControlNet, LoRA, IPAdapter." },
+  { name:"Flux (Black Forest Labs)", cat:"Image & Video AI", tag:"image-vid", url:"https://blackforestlabs.ai", by:"Black Forest Labs",
+    desc:"State-of-the-art image gen models: Flux.1 Dev (OSS), Flux.1 Schnell (4-step distilled), Flux.1 Pro (API). Exceptionally good at text in images." },
+  { name:"Leonardo.ai", cat:"Image & Video AI", tag:"image-vid", url:"https://leonardo.ai", by:"Leonardo.ai",
+    desc:"Web platform for AI image generation with fine-tuned models, LoRA training, and realtime canvas. Popular for game asset creation and concept art." },
+  { name:"Runway ML", cat:"Image & Video AI", tag:"image-vid", url:"https://runwayml.com", by:"Runway",
+    desc:"Video generation and editing platform. Gen-3 Alpha for text-to-video, image-to-video, and video inpainting. Industry-used for VFX and creative AI." },
+  { name:"Kling AI", cat:"Image & Video AI", tag:"image-vid", url:"https://klingai.com", by:"Kuaishou Technology",
+    desc:"Chinese video generation model with 5-second to 2-minute generation, high physical realism, and camera control. Fast and competitively priced." },
+  { name:"Sora (OpenAI)", cat:"Image & Video AI", tag:"image-vid", url:"https://sora.com", by:"OpenAI",
+    desc:"OpenAI's text-to-video model. Generates up to 20-second, 1080p clips with temporal consistency. Available to ChatGPT Plus/Pro users." },
+  { name:"Ideogram", cat:"Image & Video AI", tag:"image-vid", url:"https://ideogram.ai", by:"Ideogram AI",
+    desc:"Image generation model excelling at text rendering inside images. Great for logos, posters, and typographic designs." },
+  { name:"Runware", cat:"Image & Video AI", tag:"image-vid", url:"https://runware.ai", by:"Runware",
+    desc:"Ultra-fast inference API for Stable Diffusion and Flux. Optimized for high-throughput generation at scale; useful for apps needing sub-second images." },
+
+  // ── VOICE & AUDIO ──────────────────────────────────────────────────────────
+  { name:"ElevenLabs", cat:"Voice & Audio AI", tag:"voice", url:"https://elevenlabs.io", by:"ElevenLabs",
+    desc:"Best-in-class text-to-speech with voice cloning, multilingual support, and ultra-low latency streaming. Also offers Speech-to-Text and conversational AI voice." },
+  { name:"Twilio", cat:"Voice & Audio AI", tag:"comms", url:"https://www.twilio.com", by:"Twilio Inc.",
+    desc:"Communications platform for SMS, voice calls, and WhatsApp via API. Twilio ConversationRelay enables AI voicebot integration; used in contact-center AI." },
+  { name:"AssemblyAI", cat:"Voice & Audio AI", tag:"voice", url:"https://www.assemblyai.com", by:"AssemblyAI",
+    desc:"Speech recognition API with speaker diarization, sentiment analysis, PII redaction, and LeMUR (LLM over audio). Accurate for meeting/podcast transcription." },
+  { name:"Deepgram", cat:"Voice & Audio AI", tag:"voice", url:"https://deepgram.com", by:"Deepgram",
+    desc:"Real-time and batch speech-to-text API optimized for speed and accuracy. Nova-3 model. Aura TTS model for low-latency voice agents." },
+  { name:"Whisper (OpenAI)", cat:"Voice & Audio AI", tag:"voice", url:"https://openai.com/research/whisper", by:"OpenAI",
+    desc:"Open-source, high-accuracy multilingual ASR model. Runs locally or via OpenAI API. Widely used as the go-to offline transcription baseline." },
+  { name:"Resemble AI", cat:"Voice & Audio AI", tag:"voice", url:"https://www.resemble.ai", by:"Resemble AI",
+    desc:"Voice cloning, real-time TTS streaming, and speech watermarking (PerTh) for deepfake detection. API-first." },
+  { name:"Murf AI", cat:"Voice & Audio AI", tag:"voice", url:"https://murf.ai", by:"Murf Inc.",
+    desc:"Studio-quality AI voiceovers with 120+ voices across 20+ languages. Pitch, speed, and emphasis control. Used for e-learning and video narration." },
+  { name:"Play.ht", cat:"Voice & Audio AI", tag:"voice", url:"https://play.ht", by:"Play HT Inc.",
+    desc:"Hyper-realistic TTS with voice cloning and realtime API. PlayDialog model for conversational two-speaker audio generation." },
+
+  // ── INFERENCE & CLOUD AI INFRA ─────────────────────────────────────────────
+  { name:"HuggingFace", cat:"Inference & Cloud Infra", tag:"infra", url:"https://huggingface.co", by:"Hugging Face",
+    desc:"The GitHub for ML: hosts 600k+ models, datasets, and Spaces (demo apps). HF Inference API for hosted inference. Transformers library. Central to the OSS AI ecosystem." },
+  { name:"Replicate", cat:"Inference & Cloud Infra", tag:"infra", url:"https://replicate.com", by:"Replicate",
+    desc:"Run any open-source ML model via a simple API call. Docker-packaged models (Cog), pay-per-run pricing. Huge catalog of image, audio, and text models." },
+  { name:"Modal", cat:"Inference & Cloud Infra", tag:"infra", url:"https://modal.com", by:"Modal Labs",
+    desc:"Serverless GPU compute for Python functions. `@modal.function(gpu='H100')` deploys instantly. Cold-start optimized; popular for fine-tuning and custom inference." },
+  { name:"RunPod", cat:"Inference & Cloud Infra", tag:"infra", url:"https://www.runpod.io", by:"RunPod",
+    desc:"On-demand GPU cloud (H100, A100, 4090) at competitive spot pricing. Serverless endpoints, Pods (persistent), and a growing template library for AI apps." },
+  { name:"Lambda Labs", cat:"Inference & Cloud Infra", tag:"infra", url:"https://lambdalabs.com", by:"Lambda Inc.",
+    desc:"GPU cloud and on-prem servers for AI training and inference. Competitive A100/H100 pricing; popular with researchers and startups." },
+  { name:"Vast.ai", cat:"Inference & Cloud Infra", tag:"infra", url:"https://vast.ai", by:"Vast.ai",
+    desc:"Peer-to-peer GPU marketplace. Cheapest spot-priced GPUs (consumer + datacenter). Good for batch inference and training on a budget." },
+  { name:"Ollama", cat:"Inference & Cloud Infra", tag:"infra", url:"https://ollama.com", by:"Ollama (OSS)",
+    desc:"One-command local LLM runner. Manages model downloads, quantization, and a local OpenAI-compatible REST API. `ollama run llama3`. macOS, Linux, Windows." },
+  { name:"LM Studio", cat:"Inference & Cloud Infra", tag:"infra", url:"https://lmstudio.ai", by:"LM Studio",
+    desc:"Desktop app for discovering, downloading, and running local LLMs (GGUF format). Local server mode for OpenAI-compatible API. User-friendly GUI." },
+  { name:"NVIDIA NIM", cat:"Inference & Cloud Infra", tag:"infra", url:"https://www.nvidia.com/en-us/ai/nim", by:"NVIDIA",
+    desc:"NVIDIA Inference Microservices — Docker containers optimized for NVIDIA GPUs, serving LLMs and domain-specific models via OpenAI-compatible API." },
+  { name:"AWS Bedrock", cat:"Inference & Cloud Infra", tag:"cloud", url:"https://aws.amazon.com/bedrock", by:"Amazon Web Services",
+    desc:"Managed foundation model API on AWS. Access Claude (Anthropic), Titan, Llama, Mistral, Stable Diffusion, and others via unified API and IAM-secured endpoints." },
+  { name:"Azure OpenAI Service", cat:"Inference & Cloud Infra", tag:"cloud", url:"https://azure.microsoft.com/en-us/products/ai-services/openai-service", by:"Microsoft Azure",
+    desc:"Enterprise-grade deployment of OpenAI models (GPT-4o, o1, DALL-E) in your own Azure tenant. Data stays in your VPC; compliance-friendly." },
+  { name:"Google Vertex AI", cat:"Inference & Cloud Infra", tag:"cloud", url:"https://cloud.google.com/vertex-ai", by:"Google Cloud",
+    desc:"Google Cloud's unified ML platform: model training, Gemini API, Agent Builder, Model Garden (100+ OSS models), and TPU access." },
+
+  // ── DATA & ANALYTICS ───────────────────────────────────────────────────────
+  { name:"Databricks", cat:"Data & Analytics", tag:"data", url:"https://www.databricks.com", by:"Databricks",
+    desc:"Unified data + AI lakehouse platform. MLflow (experiment tracking), Delta Lake, and DBRX open LLM. Dominant for large-scale ML pipelines and data engineering." },
+  { name:"Snowflake Cortex", cat:"Data & Analytics", tag:"data", url:"https://www.snowflake.com/en/data-cloud/cortex", by:"Snowflake",
+    desc:"LLM functions directly inside Snowflake SQL. Run Claude, Mistral, and Llama 3 on your data warehouse with COMPLETE, SUMMARIZE, EXTRACT, TRANSLATE functions." },
+  { name:"BigQuery ML", cat:"Data & Analytics", tag:"data", url:"https://cloud.google.com/bigquery/docs/bqml-introduction", by:"Google Cloud",
+    desc:"Run ML models (including LLM inference with Vertex AI) directly in BigQuery SQL. Zero data movement; scales with BigQuery's serverless compute." },
+
+  // ── DIGITAL TWINS & SIMULATION ─────────────────────────────────────────────
+  { name:"Twin (twin.ai)", cat:"Digital Twins & Simulation", tag:"digital-twin", url:"https://www.twin.ai", by:"Twin.ai",
+    desc:"AI digital twin platform that replicates human workforce workflows. Automates complex business processes by mirroring human decision-making patterns at scale." },
+  { name:"Synthesis AI", cat:"Digital Twins & Simulation", tag:"digital-twin", url:"https://synthesis.ai", by:"Synthesis AI",
+    desc:"Synthetic data platform for AI training. Generates photorealistic human and scene data — faces, bodies, and environments — for CV model training without real images." },
+  { name:"NVIDIA Omniverse", cat:"Digital Twins & Simulation", tag:"digital-twin", url:"https://www.nvidia.com/en-us/omniverse", by:"NVIDIA",
+    desc:"Platform for building and running 3D simulations and digital twins. Used for robotic training environments, industrial simulation, and AV data generation." },
+
+  // ── SPECIALIZED / EMERGING ─────────────────────────────────────────────────
+  { name:"Emergent Mind", cat:"Research & Emerging", tag:"search-rag", url:"https://www.emergentmind.com", by:"Emergent Mind",
+    desc:"Curated AI paper discovery site. Highlights trending arXiv papers with social engagement signals. Useful for tracking what the research community is excited about." },
+  { name:"Weights & Biases (W&B)", cat:"Research & Emerging", tag:"infra", url:"https://wandb.ai", by:"Weights & Biases",
+    desc:"MLOps platform for experiment tracking, model versioning, hyperparameter tuning (Sweeps), and LLM evaluation (W&B Weave). Industry-standard for training runs." },
+  { name:"LangSmith", cat:"Research & Emerging", tag:"agents", url:"https://smith.langchain.com", by:"LangChain Inc.",
+    desc:"Observability and evaluation platform for LLM apps. Trace every LLM call, compare prompts, run eval datasets, and debug chains in production." },
+  { name:"Braintrust", cat:"Research & Emerging", tag:"agents", url:"https://www.braintrust.dev", by:"Braintrust Data",
+    desc:"LLM evaluation and observability platform. CI/CD for AI: run evals on every prompt change, A/B test models, and track quality regressions over time." },
+  { name:"Segment Anything (Meta)", cat:"Research & Emerging", tag:"image-vid", url:"https://segment-anything.com", by:"Meta AI",
+    desc:"Universal image segmentation model that can mask any object from a click or text prompt. SAM 2 extends to video. Foundation for many computer vision pipelines." },
+  { name:"Cursor Rules / .cursorrules", cat:"Research & Emerging", tag:"coding", url:"https://cursor.directory", by:"Community",
+    desc:"Community-maintained repository of .cursorrules prompt files for configuring Cursor's AI context per project. Curated at cursor.directory." },
+  { name:"SWE-agent", cat:"Research & Emerging", tag:"coding", url:"https://swe-agent.com", by:"Princeton NLP (OSS)",
+    desc:"Open-source autonomous software engineering agent. Uses LLMs to solve GitHub issues end-to-end: reads code, edits files, runs tests, and opens PRs." }
+];
+
+// Build category list
+const cats = [...new Set(PLATFORMS.map(p => p.cat))];
+
+// Populate filter
+const catSelect = document.getElementById('cat-filter');
+cats.forEach(c => {
+  const opt = document.createElement('option');
+  opt.value = c;
+  opt.textContent = c;
+  catSelect.appendChild(opt);
+});
+
+function render() {
+  const q = document.getElementById('q').value.trim().toLowerCase();
+  const cat = catSelect.value;
+
+  let items = PLATFORMS.filter(p => {
+    const matchQ = !q || [p.name, p.cat, p.desc, p.by].some(s => s.toLowerCase().includes(q));
+    const matchCat = !cat || p.cat === cat;
+    return matchQ && matchCat;
+  });
+
+  const grid = document.getElementById('grid');
+  grid.innerHTML = '';
+
+  if (!items.length) {
+    const div = document.createElement('div');
+    div.className = 'empty-state';
+    div.textContent = 'No platforms match your search.';
+    grid.appendChild(div);
+    document.getElementById('count-label').textContent = '0 platforms';
+    return;
+  }
+
+  document.getElementById('count-label').textContent = `${items.length} platform${items.length === 1 ? '' : 's'}`;
+
+  // Group by category (preserving order)
+  const grouped = [];
+  const seen = new Set();
+  items.forEach(p => {
+    if (!seen.has(p.cat)) {
+      seen.add(p.cat);
+      grouped.push({ type: 'header', label: p.cat });
+    }
+    grouped.push({ type: 'card', data: p });
+  });
+
+  grouped.forEach(item => {
+    if (item.type === 'header') {
+      const h = document.createElement('div');
+      h.className = 'category-header';
+      h.textContent = item.label;
+      h.setAttribute('aria-hidden', 'true');
+      grid.appendChild(h);
+    } else {
+      const p = item.data;
+      const card = document.createElement('article');
+      card.className = 'platform-card';
+      card.setAttribute('role', 'listitem');
+      card.innerHTML = `
+        <div class="card-top">
+          <div class="card-name">${p.url ? `<a href="${p.url}" target="_blank" rel="noopener noreferrer">${escH(p.name)}</a>` : escH(p.name)}</div>
+          <span class="tag tag-${escH(p.tag)}">${escH(p.cat.split(' ')[0])}</span>
+        </div>
+        <p class="card-desc">${escH(p.desc)}</p>
+        <div class="card-footer">
+          <span class="card-by">${escH(p.by)}</span>
+          ${p.url ? `<a href="${p.url}" target="_blank" rel="noopener noreferrer" class="card-link">Visit <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg></a>` : ''}
+        </div>`;
+      grid.appendChild(card);
+    }
+  });
+}
+
+function escH(str) {
+  return String(str ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
+document.getElementById('q').addEventListener('input', render);
+catSelect.addEventListener('change', render);
+
+render();
+</script>
+</body>
+</html>

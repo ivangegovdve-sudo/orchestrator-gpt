@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<!--
+  Adapted for Forest HUB from CalendarGenerator by Franco Mossotto.
+  Source: https://github.com/fmossott/CalendarGenerator
+  Original work licensed under the Apache License, Version 2.0.
+  See NOTICE.md and APACHE-2.0.txt in this folder for attribution and license details.
+-->
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Forest HUB | Calendar Generator</title>
+  <meta
+    name="description"
+    content="Build a printable 13-page calendar with holiday lookup, custom image URLs, and Forest HUB integration."
+  />
+  <link rel="stylesheet" href="./styles.css" />
+  <script type="module" src="./app.js"></script>
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar no-print">
+      <a class="back-link" href="/index.html">Back to Forest HUB</a>
+      <div class="topbar-copy">
+        <p class="eyebrow">Static Tool</p>
+        <h1>Calendar Generator</h1>
+        <p class="subtitle">
+          Create a printable cover plus thirteen month pages with custom images and public-holiday highlights.
+        </p>
+      </div>
+    </header>
+
+    <main class="app-layout">
+      <section class="controls-panel no-print" aria-label="Calendar settings">
+        <div class="panel-header">
+          <div>
+            <p class="panel-kicker">Setup</p>
+            <h2>Calendar Settings</h2>
+          </div>
+          <p class="panel-copy">
+            Adapted from CalendarGenerator and restyled for Forest HUB. Images can be local samples or remote URLs.
+          </p>
+        </div>
+
+        <form id="calendar-form" novalidate>
+          <div class="controls-grid">
+            <label class="field">
+              <span>Year</span>
+              <input id="year" name="year" type="number" min="1900" max="2200" />
+            </label>
+
+            <label class="field">
+              <span>Format</span>
+              <select id="format" name="format">
+                <option value="A4">A4 portrait</option>
+                <option value="A5">A5 portrait</option>
+              </select>
+            </label>
+
+            <label class="field">
+              <span>Holiday country</span>
+              <select id="country" name="country"></select>
+            </label>
+
+            <label class="field">
+              <span>Region</span>
+              <select id="region" name="region"></select>
+            </label>
+
+            <label class="field">
+              <span>Bleed area (mm)</span>
+              <input id="bleed" name="bleed" type="number" min="0" max="10" step="1" />
+            </label>
+          </div>
+
+          <div class="actions">
+            <button type="button" id="refresh-button">Refresh calendar</button>
+            <button type="button" id="sample-button" class="secondary">Load sample images</button>
+            <button type="button" id="reset-button" class="secondary">Reset settings</button>
+            <button type="button" id="print-button" class="secondary">Print</button>
+          </div>
+
+          <div class="hint-list">
+            <p>Holiday data comes from the public Enrico API. If it is unreachable, Sundays still render and the calendar stays printable.</p>
+            <p>Each page uses a direct image URL. Leave a field blank to fall back to the built-in placeholder.</p>
+          </div>
+
+          <div class="image-inputs">
+            <div class="image-inputs-header">
+              <div>
+                <p class="panel-kicker">Images</p>
+                <h3>Cover + Month Artwork</h3>
+              </div>
+              <p>Fourteen slots are available: one cover and thirteen month pages.</p>
+            </div>
+            <div id="image-input-list" class="image-input-list"></div>
+          </div>
+        </form>
+      </section>
+
+      <section class="preview-panel" aria-label="Printable calendar preview">
+        <div class="preview-header no-print">
+          <div>
+            <p class="panel-kicker">Preview</p>
+            <h2>Printable Pages</h2>
+          </div>
+          <p id="status-message" class="status" role="status" aria-live="polite"></p>
+        </div>
+        <div id="calendar-pages" class="calendar-pages"></div>
+      </section>
+    </main>
+  </div>
+
+  <template id="image-row-template">
+    <div class="image-row">
+      <div class="image-row-copy">
+        <label class="field compact">
+          <span class="image-label">Cover image</span>
+          <input class="image-url" type="url" placeholder="https://example.com/image.jpg" />
+        </label>
+      </div>
+      <label class="field compact">
+        <span>Caption</span>
+        <input class="image-caption" type="text" maxlength="120" placeholder="Optional caption" />
+      </label>
+    </div>
+  </template>
+</body>
+</html>
