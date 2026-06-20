@@ -136,7 +136,6 @@
       gap: 20px;
     }
 
-    /* Cards Stagger Animation */
     .tool-card {
       opacity: 0;
       animation: slideUpFade 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
@@ -154,7 +153,6 @@
       to { opacity: 1; transform: translateY(0); }
     }
 
-    /* Prompt Builder tile styles */
     .tool-card {
       position: relative;
       display: flex;
@@ -193,7 +191,6 @@
       opacity: 1;
     }
 
-    /* Give external links a distinct hover color */
     .tool-card[href^="http"]:hover {
        box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.5), 0 0 20px var(--purple-glow);
        border-color: rgba(139, 92, 246, 0.4);
@@ -281,7 +278,6 @@
       text-align: right;
     }
 
-    /* Accessibility focus styles */
     .tool-card:focus-visible,
     a:focus-visible,
     button:focus-visible {
@@ -296,32 +292,18 @@
   <div class="page">
     <header>
       <h1>Forest HUB</h1>
-      <p class="subtitle">Command center for generative workflows and tools.</p>
+      <p class="subtitle">Projects, tools, and experiments.</p>
     </header>
 
-        <div class="hero-card" style="min-height: 300px; display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden;">
+    <div class="hero-card" style="min-height: 300px; display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden;">
       <canvas id="hero-canvas" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 0;"></canvas>
       <div style="position: relative; z-index: 2; text-align: center; pointer-events: none;">
         <h2 style="font-size: 42px; font-weight: 800; margin: 0; background: linear-gradient(135deg, #0ea5e9 0%, #8b5cf6 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-shadow: 0 4px 12px rgba(0,0,0,0.5);">Welcome to Forest HUB</h2>
-        <p style="color: #cbd5e1; font-size: 18px; margin-top: 10px; max-width: 600px; text-shadow: 0 2px 4px rgba(0,0,0,0.8);">Explore, build, and orchestrate AI applications.</p>
+        <p style="color: #cbd5e1; font-size: 18px; margin-top: 10px; max-width: 600px; text-shadow: 0 2px 4px rgba(0,0,0,0.8);">Explore, build, and orchestrate.</p>
       </div>
     </div>
 
     <div class="tool-grid">
-      <!-- Prompt Builder tile -->
-      <a href="/web/prompt-builder/" class="tool-card">
-        <div class="tool-card-body">
-          <div class="tool-card-title">
-            Prompt Builder
-            <span class="tool-pill">Orchestrator</span>
-          </div>
-          <div class="tool-card-subtitle">
-            Build dynamic SD prompts with curated LoRAs, JSON presets, and optional A1111 API output.
-          </div>
-          <div class="tool-card-meta">
-            <span>Reads: /data/presets/newPresets.json</span>
-            <span>Reads: /data/sd_inventory_curated.json</span>
-          </div>
 
           <div class="tool-card-progress">
             <div class="tool-card-progress-bar" style="width: 95%;"></div>
@@ -558,21 +540,19 @@
         </div>
       </a>
 
-      <a href="https://dist-omega-lyart-23.vercel.app/" target="_blank" rel="noopener noreferrer" class="tool-card">
+      <!-- VFX Portfolio -->
+      <a href="https://vfxportfolio.lovable.app" target="_blank" rel="noopener noreferrer" class="tool-card">
         <div class="tool-card-body">
           <div class="tool-card-title">
-            Voice Project Dashboard
+            VFX Portfolio
             <span class="tool-pill">External</span>
           </div>
           <div class="tool-card-subtitle">
-            Voice-production control room for tracking recording, editing, deliverables, and producer notes.
+            Animation Lead and VFX professional portfolio showcasing slot games, animated series, and commercials.
           </div>
           <div class="tool-card-meta">
-            <span>Source: /voice-project-dashboard/apps/mobile</span>
-            <span>Expo Web</span>
-            <span>Vercel</span>
+            <span>Lovable</span>
           </div>
-
           <div class="tool-card-progress">
             <div class="tool-card-progress-bar" style="width: 100%;"></div>
           </div>
@@ -580,50 +560,94 @@
         </div>
       </a>
 
-      <a href="#" class="tool-card">
+      <!-- Mendeleev -->
+      <a href="/web/mendeleev-bg/" class="tool-card">
         <div class="tool-card-body">
           <div class="tool-card-title">
-            Python Learning Orchestrated
-            <span class="tool-pill" style="background: rgba(100, 116, 139, 0.1); border-color: rgba(100, 116, 139, 0.3); color: #94a3b8;">Empty</span>
+            Periodic Table
+            <span class="tool-pill">Interactive</span>
           </div>
           <div class="tool-card-subtitle">
-            A structured path for learning Python and orchestration tools.
+            Interactive Bulgarian-language periodic table with compound highlighting and element detail panels.
           </div>
           <div class="tool-card-meta">
-            <span>Status: Not Started</span>
+            <span>Link: /web/mendeleev-bg/</span>
+            <span>Static</span>
           </div>
-
           <div class="tool-card-progress">
-            <div class="tool-card-progress-bar" style="width: 0%; background: linear-gradient(90deg, #64748b, #475569);"></div>
+            <div class="tool-card-progress-bar" style="width: 100%;"></div>
           </div>
-          <div class="tool-card-progress-text">0% Complete</div>
+          <div class="tool-card-progress-text">100% Complete</div>
         </div>
       </a>
 
-      <a href="https://github.com/IvanGegovDVE-Sudo/ClipMart" target="_blank" rel="noopener noreferrer" class="tool-card">
+      <!-- Voice2Voice Buddy -->
+      <a href="https://dist-omega-lyart-23.vercel.app/" target="_blank" rel="noopener noreferrer" class="tool-card">
         <div class="tool-card-body">
           <div class="tool-card-title">
-            Clip Mart
-            <span class="tool-pill">Repo</span>
+            Voice2Voice Buddy
+            <span class="tool-pill">External</span>
           </div>
           <div class="tool-card-subtitle">
-            GitHub repository for video and clip management.
+            Voice-production control room for tracking recording, editing, deliverables, and producer notes.
           </div>
           <div class="tool-card-meta">
-            <span>Source: GitHub</span>
+            <span>Expo Web</span>
+            <span>Vercel</span>
           </div>
-
           <div class="tool-card-progress">
-            <div class="tool-card-progress-bar" style="width: 15%; background: linear-gradient(90deg, #3b82f6, #2563eb);"></div>
+            <div class="tool-card-progress-bar" style="width: 100%;"></div>
           </div>
-          <div class="tool-card-progress-text">15% Complete</div>
+          <div class="tool-card-progress-text">100% Complete</div>
         </div>
       </a>
+
+      <!-- Kids Movie Library -->
+      <a href="/web/kids-movie-library/" class="tool-card">
+        <div class="tool-card-body">
+          <div class="tool-card-title">
+            Kids Movie Library
+            <span class="tool-pill">Static</span>
+          </div>
+          <div class="tool-card-subtitle">
+            Curated family movie catalog with watched tracking, ratings, age guidance, and category filtering.
+          </div>
+          <div class="tool-card-meta">
+            <span>Link: /web/kids-movie-library/</span>
+            <span>LocalStorage</span>
+          </div>
+          <div class="tool-card-progress">
+            <div class="tool-card-progress-bar" style="width: 100%;"></div>
+          </div>
+          <div class="tool-card-progress-text">100% Complete</div>
+        </div>
+      </a>
+
+      <!-- LLM Council -->
+      <a href="/web/council/" class="tool-card">
+        <div class="tool-card-body">
+          <div class="tool-card-title">
+            LLM Council
+            <span class="tool-pill">Free AI</span>
+          </div>
+          <div class="tool-card-subtitle">
+            Multi-role free-tier debate: Proposer → Critic → Synthesizer. Watch the full reasoning chain before the final answer.
+          </div>
+          <div class="tool-card-meta">
+            <span>OpenRouter free tier</span>
+            <span>$0 cost</span>
+          </div>
+          <div class="tool-card-progress">
+            <div class="tool-card-progress-bar" style="width: 100%;"></div>
+          </div>
+          <div class="tool-card-progress-text">100% Complete</div>
+        </div>
+      </a>
+
     </div>
   </div>
 
   <script>
-    // Subtle mouse tracking glow effect for cards
     document.querySelectorAll('.tool-card').forEach(card => {
       card.addEventListener('mousemove', e => {
         const rect = card.getBoundingClientRect();
@@ -634,7 +658,6 @@
       });
     });
 
-    // Interactive Particle Network for Hero Canvas
     const canvas = document.getElementById('hero-canvas');
     if (canvas) {
       const ctx = canvas.getContext('2d');
@@ -648,7 +671,6 @@
 
       const particles = [];
       const numParticles = 80;
-
       const mouse = { x: null, y: null, radius: 100 };
 
       canvas.parentElement.addEventListener('mousemove', (e) => {
@@ -675,22 +697,16 @@
         update() {
           this.x += this.vx;
           this.y += this.vy;
-
           if (this.x < 0 || this.x > width) this.vx = -this.vx;
           if (this.y < 0 || this.y > height) this.vy = -this.vy;
-
           if (mouse.x != null && mouse.y != null) {
             let dx = mouse.x - this.x;
             let dy = mouse.y - this.y;
             let distance = Math.sqrt(dx * dx + dy * dy);
             if (distance < mouse.radius) {
-              let forceDirectionX = dx / distance;
-              let forceDirectionY = dy / distance;
               let force = (mouse.radius - distance) / mouse.radius;
-              let directionX = forceDirectionX * force * 5;
-              let directionY = forceDirectionY * force * 5;
-              this.x -= directionX;
-              this.y -= directionY;
+              this.x -= (dx / distance) * force * 5;
+              this.y -= (dy / distance) * force * 5;
             }
           }
         }
@@ -703,26 +719,21 @@
         }
       }
 
-      for (let i = 0; i < numParticles; i++) {
-        particles.push(new Particle());
-      }
+      for (let i = 0; i < numParticles; i++) particles.push(new Particle());
 
       function animate() {
         requestAnimationFrame(animate);
         ctx.clearRect(0, 0, width, height);
-
         for (let i = 0; i < particles.length; i++) {
           particles[i].update();
           particles[i].draw();
-
-          for (let j = i; j < particles.length; j++) {
+          for (let j = i + 1; j < particles.length; j++) {
             let dx = particles[i].x - particles[j].x;
             let dy = particles[i].y - particles[j].y;
             let distance = Math.sqrt(dx * dx + dy * dy);
-
             if (distance < 120) {
               ctx.beginPath();
-              ctx.strokeStyle = `rgba(255, 255, 255, ${1 - distance/120})`;
+              ctx.strokeStyle = `rgba(255, 255, 255, ${1 - distance / 120})`;
               ctx.lineWidth = 0.5;
               ctx.moveTo(particles[i].x, particles[i].y);
               ctx.lineTo(particles[j].x, particles[j].y);
