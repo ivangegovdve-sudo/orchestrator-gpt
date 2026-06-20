@@ -153,6 +153,11 @@ h1{text-align:center;padding:16px 10px 2px;font-size:1.7em;color:#00d4ff;text-sh
 .diy-list{list-style:none;display:flex;flex-direction:column;gap:6px}
 .diy-list li{padding:8px 12px;background:rgba(0,255,136,.04);border:1px solid rgba(0,255,136,.18);border-left:3px solid #00ff88;font-size:.84em;line-height:1.6;color:#a8eece}
 .diy-list li strong{color:#00ff88;display:block;margin-bottom:2px;font-size:.9em}
+.recipes-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:6px}
+.recipe-card{padding:8px 10px;background:rgba(168,85,247,.06);border:1px solid rgba(168,85,247,.22);border-radius:5px;display:flex;flex-direction:column;gap:2px}
+.recipe-formula{font-size:1em;font-weight:700;color:#c084fc;letter-spacing:.5px}
+.recipe-name{font-size:.75em;color:#e0c3ff;opacity:.9}
+.recipe-note{font-size:.68em;color:#a78bfa;opacity:.7;font-style:italic}
 
 /* ── DYK section ────────────────────────── */
 .dyk{background:rgba(160,100,255,.05);border:1px solid rgba(160,100,255,.25);padding:12px;margin-bottom:16px;border-radius:6px}
@@ -240,6 +245,143 @@ h1{text-align:center;padding:16px 10px 2px;font-size:1.7em;color:#00d4ff;text-sh
 
 <script>
 // ── Translations ──────────────────────────────────────────────────────────
+// ── Chemistry Recipes — top compounds per element ─────────────────────────
+const RECIPES = {
+  1:  [ // H
+    {f:'H₂O',     bg:'Вода',                    en:'Water',                 nb:'Основата на живота',        ne:'Foundation of life'},
+    {f:'H₂O₂',   bg:'Водороден пероксид',        en:'Hydrogen peroxide',     nb:'Дезинфектант',              ne:'Disinfectant'},
+    {f:'HCl',     bg:'Солна киселина',            en:'Hydrochloric acid',     nb:'В стомаха ни',              ne:'In our stomach'},
+    {f:'H₂SO₄',  bg:'Сярна киселина',            en:'Sulfuric acid',         nb:'Най-произвежданата киселина',ne:'Most produced acid'},
+    {f:'NH₃',     bg:'Амоняк',                   en:'Ammonia',               nb:'Тор и хладилен агент',      ne:'Fertilizer & refrigerant'},
+  ],
+  6:  [ // C
+    {f:'CO₂',           bg:'Въглероден диоксид',  en:'Carbon dioxide',        nb:'Газ от дишане и горене',    ne:'Gas from breathing & burning'},
+    {f:'CH₄',           bg:'Метан',               en:'Methane',               nb:'Природен газ',              ne:'Natural gas'},
+    {f:'C₆H₁₂O₆',      bg:'Глюкоза',             en:'Glucose',               nb:'Захар — гориво на клетките',ne:'Sugar — cell fuel'},
+    {f:'C₂H₅OH',        bg:'Етанол',              en:'Ethanol',               nb:'Горивен алкохол',           ne:'Fuel alcohol'},
+    {f:'C₁₂H₂₂O₁₁',    bg:'Захароза',            en:'Sucrose',               nb:'Трапезна захар',            ne:'Table sugar'},
+  ],
+  7:  [ // N
+    {f:'NH₃',     bg:'Амоняк',        en:'Ammonia',          nb:'Тор за земеделие',          ne:'Agricultural fertilizer'},
+    {f:'HNO₃',   bg:'Азотна киселина',en:'Nitric acid',      nb:'Производство на торове',    ne:'Fertilizer production'},
+    {f:'N₂O',    bg:'Райски газ',     en:'Nitrous oxide',    nb:'Анестезия и веселие',        ne:'Anesthesia & laughing gas'},
+    {f:'NO₂',    bg:'Азотен диоксид', en:'Nitrogen dioxide', nb:'Замърсяващ газ',            ne:'Pollutant gas'},
+    {f:'NH₄Cl',  bg:'Амониев хлорид', en:'Ammonium chloride',nb:'Батерии и спойки',          ne:'Batteries & soldering'},
+  ],
+  8:  [ // O
+    {f:'H₂O',   bg:'Вода',              en:'Water',           nb:'Основата на живота',       ne:'Foundation of life'},
+    {f:'CO₂',   bg:'Въглероден диоксид',en:'Carbon dioxide',  nb:'Фотосинтеза',              ne:'Photosynthesis'},
+    {f:'O₃',    bg:'Озон',              en:'Ozone',           nb:'Защита от UV',              ne:'UV protection'},
+    {f:'H₂O₂',  bg:'Водороден пероксид',en:'Hydrogen peroxide',nb:'Дезинфектант',            ne:'Disinfectant'},
+    {f:'SiO₂',  bg:'Силициев диоксид', en:'Silicon dioxide', nb:'Пясък и стъкло',           ne:'Sand & glass'},
+  ],
+  11: [ // Na
+    {f:'NaCl',      bg:'Натриев хлорид',    en:'Sodium chloride',    nb:'Готварска сол',       ne:'Table salt'},
+    {f:'NaHCO₃',   bg:'Натриев бикарбонат', en:'Sodium bicarbonate', nb:'Бакпулвер',           ne:'Baking soda'},
+    {f:'NaOH',     bg:'Натриева основа',    en:'Sodium hydroxide',   nb:'Луга',                ne:'Lye'},
+    {f:'Na₂CO₃',   bg:'Натриев карбонат',   en:'Sodium carbonate',   nb:'Сода аш',             ne:'Washing soda'},
+    {f:'Na₂SO₄',   bg:'Натриев сулфат',     en:'Sodium sulfate',     nb:'Перилни препарати',   ne:'Laundry detergents'},
+  ],
+  12: [ // Mg
+    {f:'MgO',       bg:'Магнезиев оксид',  en:'Magnesium oxide',    nb:'Огнеупорни тухли',   ne:'Refractory bricks'},
+    {f:'MgSO₄',    bg:'Магнезиев сулфат',  en:'Magnesium sulfate',  nb:'Горчива сол (Epsom)', ne:'Epsom salt'},
+    {f:'Mg(OH)₂',  bg:'Магнезиева основа', en:'Magnesium hydroxide',nb:'Млякото на магнезия', ne:'Milk of magnesia'},
+    {f:'MgCl₂',    bg:'Магнезиев хлорид',  en:'Magnesium chloride', nb:'Противогололедно',   ne:'De-icing agent'},
+    {f:'MgCO₃',    bg:'Магнезит',          en:'Magnesite',          nb:'Огнеупорен минерал',  ne:'Refractory mineral'},
+  ],
+  14: [ // Si
+    {f:'SiO₂',   bg:'Силициев диоксид', en:'Silicon dioxide',  nb:'Пясък и стъкло',             ne:'Sand & glass'},
+    {f:'SiC',    bg:'Силициев карбид',  en:'Silicon carbide',  nb:'Абразив — по-твърд от диамант',ne:'Abrasive — near-diamond hardness'},
+    {f:'Si₃N₄',  bg:'Силициев нитрид',  en:'Silicon nitride',  nb:'Керамика за двигатели',       ne:'Engine ceramics'},
+    {f:'SiCl₄',  bg:'Силициев хлорид',  en:'Silicon tetrachloride',nb:'Производство на чип',     ne:'Chip manufacturing'},
+    {f:'Na₂SiO₃',bg:'Натриев силикат',  en:'Sodium silicate',  nb:'Течно стъкло',               ne:'Liquid glass'},
+  ],
+  15: [ // P
+    {f:'H₃PO₄',      bg:'Фосфорна киселина',en:'Phosphoric acid',    nb:'В газираните напитки', ne:'In cola drinks'},
+    {f:'Ca₃(PO₄)₂',  bg:'Калциев фосфат',  en:'Calcium phosphate',  nb:'В костите ни',         ne:'In our bones'},
+    {f:'P₄O₁₀',      bg:'Фосфорен пентоксид',en:'Phosphorus pentoxide',nb:'Осушаващ агент',    ne:'Drying agent'},
+    {f:'Na₃PO₄',     bg:'Натриев фосфат',  en:'Sodium phosphate',   nb:'Детергенти',           ne:'Detergents'},
+    {f:'PCl₃',       bg:'Фосфорен трихлорид',en:'Phosphorus trichloride',nb:'Синтез в химията',ne:'Chemical synthesis'},
+  ],
+  16: [ // S
+    {f:'H₂SO₄',  bg:'Сярна киселина',   en:'Sulfuric acid',   nb:'Най-произвежданата киселина',ne:'Most produced acid'},
+    {f:'SO₂',    bg:'Серен диоксид',    en:'Sulfur dioxide',  nb:'Консервант Е220',           ne:'Preservative E220'},
+    {f:'H₂S',    bg:'Сероводород',      en:'Hydrogen sulfide',nb:'Мирис на развалени яйца',   ne:'Rotten-egg smell'},
+    {f:'Na₂SO₄', bg:'Натриев сулфат',   en:'Sodium sulfate',  nb:'Детергенти',                ne:'Detergents'},
+    {f:'CaSO₄',  bg:'Калциев сулфат',   en:'Calcium sulfate', nb:'Гипс',                      ne:'Plaster / gypsum'},
+  ],
+  17: [ // Cl
+    {f:'NaCl',   bg:'Натриев хлорид', en:'Sodium chloride',  nb:'Готварска сол',       ne:'Table salt'},
+    {f:'HCl',    bg:'Солна киселина', en:'Hydrochloric acid',nb:'В стомаха ни',        ne:'In our stomach'},
+    {f:'KCl',    bg:'Калиев хлорид',  en:'Potassium chloride',nb:'Заместител на сол',  ne:'Salt substitute'},
+    {f:'CaCl₂',  bg:'Калциев хлорид', en:'Calcium chloride', nb:'Противогололедно',   ne:'De-icing agent'},
+    {f:'HClO',   bg:'Хипохлорна киселина',en:'Hypochlorous acid',nb:'Дезинфектант',   ne:'Disinfectant'},
+  ],
+  19: [ // K
+    {f:'KCl',    bg:'Калиев хлорид',   en:'Potassium chloride',  nb:'Заместител на сол',       ne:'Salt substitute'},
+    {f:'KNO₃',  bg:'Калиев нитрат',   en:'Potassium nitrate',   nb:'Барут и тор',              ne:'Gunpowder & fertilizer'},
+    {f:'K₂CO₃', bg:'Калиев карбонат', en:'Potassium carbonate', nb:'Поташ — тор',              ne:'Potash — fertilizer'},
+    {f:'KOH',   bg:'Калиева основа',  en:'Potassium hydroxide', nb:'Сапуни и батерии',         ne:'Soaps & batteries'},
+    {f:'KMnO₄', bg:'Калиев перманганат',en:'Potassium permanganate',nb:'Дезинфектант виолетов',ne:'Purple disinfectant'},
+  ],
+  20: [ // Ca
+    {f:'CaCO₃',    bg:'Калциев карбонат', en:'Calcium carbonate', nb:'Мрамор, варовик, черупки',ne:'Marble, limestone, shells'},
+    {f:'CaO',      bg:'Негасена вар',     en:'Calcium oxide',     nb:'Строителство',            ne:'Construction'},
+    {f:'Ca(OH)₂',  bg:'Гасена вар',       en:'Calcium hydroxide', nb:'Мазилка',                 ne:'Plaster'},
+    {f:'CaSO₄',    bg:'Калциев сулфат',   en:'Calcium sulfate',   nb:'Гипс',                    ne:'Gypsum / plaster'},
+    {f:'CaCl₂',    bg:'Калциев хлорид',   en:'Calcium chloride',  nb:'Противогололедно',        ne:'De-icing agent'},
+  ],
+  26: [ // Fe
+    {f:'Fe₂O₃',  bg:'Железен оксид', en:'Iron(III) oxide',  nb:'Ръжда',                    ne:'Rust'},
+    {f:'Fe₃O₄',  bg:'Магнетит',      en:'Magnetite',        nb:'Природен магнит',           ne:'Natural magnet'},
+    {f:'FeCl₃',  bg:'Железен хлорид',en:'Iron(III) chloride',nb:'Офортна техника',          ne:'Etching technique'},
+    {f:'FeSO₄',  bg:'Железен сулфат',en:'Iron(II) sulfate', nb:'Противоанемичен препарат',  ne:'Anemia supplement'},
+    {f:'FeS₂',   bg:'Пирит',         en:'Pyrite',           nb:'Железен пирит — фалшиво злато',ne:'Fool\'s gold'},
+  ],
+  29: [ // Cu
+    {f:'CuSO₄',   bg:'Меден сулфат',    en:'Copper sulfate',    nb:'Син камък — фунгицид',    ne:'Blue stone — fungicide'},
+    {f:'CuO',     bg:'Меден оксид',     en:'Copper oxide',      nb:'Черен пигмент',            ne:'Black pigment'},
+    {f:'Cu(OH)₂', bg:'Меден хидроксид', en:'Copper hydroxide',  nb:'Бордолезова смес',        ne:'Bordeaux mixture'},
+    {f:'CuCl₂',   bg:'Меден хлорид',    en:'Copper chloride',   nb:'Катализатор',              ne:'Catalyst'},
+    {f:'CuCO₃',   bg:'Меден карбонат',  en:'Copper carbonate',  nb:'Зелената патина на статуи',ne:'Green patina on statues'},
+  ],
+  30: [ // Zn
+    {f:'ZnO',    bg:'Цинков оксид',    en:'Zinc oxide',    nb:'Слънцезащитен крем',    ne:'Sunscreen'},
+    {f:'ZnSO₄', bg:'Цинков сулфат',   en:'Zinc sulfate',  nb:'Добавка при дефицит',   ne:'Supplement for deficiency'},
+    {f:'ZnCl₂', bg:'Цинков хлорид',   en:'Zinc chloride', nb:'Флюс за запояване',     ne:'Soldering flux'},
+    {f:'Zn(OH)₂',bg:'Цинкова основа', en:'Zinc hydroxide',nb:'Антиацидни препарати',  ne:'Antacid preparations'},
+    {f:'ZnS',   bg:'Цинков сулфид',   en:'Zinc sulfide',  nb:'Луминесцентни екрани',  ne:'Luminescent screens'},
+  ],
+  47: [ // Ag
+    {f:'AgNO₃',  bg:'Сребърен нитрат', en:'Silver nitrate',   nb:'Фотография и медицина',   ne:'Photography & medicine'},
+    {f:'AgCl',   bg:'Сребърен хлорид', en:'Silver chloride',  nb:'Светочувствителен',       ne:'Light-sensitive'},
+    {f:'AgI',    bg:'Сребърен йодид',  en:'Silver iodide',    nb:'Изкуствен дъжд',          ne:'Cloud seeding'},
+    {f:'Ag₂S',   bg:'Сребърен сулфид', en:'Silver sulfide',   nb:'Потъмняване на среброто', ne:'Silver tarnish'},
+    {f:'Ag₂O',   bg:'Сребърен оксид',  en:'Silver oxide',     nb:'Батерии за часовници',    ne:'Watch batteries'},
+  ],
+  79: [ // Au
+    {f:'AuCl₃',   bg:'Ауров хлорид',  en:'Gold(III) chloride', nb:'Химическо злато',         ne:'Chemical gold'},
+    {f:'HAuCl₄',  bg:'Тетрахлороаурична к-на',en:'Chloroauric acid',nb:'Синтез на наночастици',ne:'Nanoparticle synthesis'},
+    {f:'AuCN',    bg:'Ауров цианид',   en:'Gold cyanide',      nb:'Галванично покритие',     ne:'Electroplating'},
+    {f:'Au₂O₃',   bg:'Ауров оксид',   en:'Gold(III) oxide',   nb:'Рядко срещан',            ne:'Rarely encountered'},
+    {f:'AuNO₃',   bg:'Ауров нитрат',  en:'Gold nitrate',      nb:'Аналитична химия',        ne:'Analytical chemistry'},
+  ],
+  80: [ // Hg
+    {f:'HgO',     bg:'Живачен оксид',  en:'Mercury oxide',    nb:'Стар термометричен пълнеж',ne:'Old thermometer fill'},
+    {f:'HgCl₂',  bg:'Живачен хлорид', en:'Mercury chloride',  nb:'Силна отрова',            ne:'Powerful poison'},
+    {f:'HgS',    bg:'Цинобър',        en:'Cinnabar',          nb:'Червен пигмент (токсичен)',ne:'Red pigment (toxic)'},
+    {f:'Hg₂Cl₂', bg:'Каломел',        en:'Calomel',           nb:'Стар лечебен препарат',   ne:'Historical medicinal compound'},
+    {f:'HgI₂',   bg:'Живачен йодид',  en:'Mercury iodide',   nb:'Детектор на радиация',    ne:'Radiation detector'},
+  ],
+  82: [ // Pb
+    {f:'PbO',        bg:'Оловен оксид',   en:'Lead oxide',   nb:'Керамични глазури',         ne:'Ceramic glazes'},
+    {f:'PbSO₄',     bg:'Оловен сулфат',  en:'Lead sulfate', nb:'В оловни акумулатори',      ne:'In lead-acid batteries'},
+    {f:'PbCl₂',     bg:'Оловен хлорид',  en:'Lead chloride',nb:'Бял пигмент (токсичен)',    ne:'White pigment (toxic)'},
+    {f:'Pb(NO₃)₂',  bg:'Оловен нитрат',  en:'Lead nitrate', nb:'Пиротехника',               ne:'Pyrotechnics'},
+    {f:'PbS',       bg:'Галенит',        en:'Galena',       nb:'Руда на оловото',            ne:'Lead ore'},
+  ],
+};
+
 const TRANSLATIONS = {
   bg: {
     title: '⚗ ПЕРИОДИЧНА ТАБЛИЦА ⚗',
@@ -260,6 +402,7 @@ const TRANSLATIONS = {
     whereTitle: '🌍 Намира се в',
     appsTitle: '🏭 Приложения',
     diyTitle: '🧪 Домашни опити',
+    recipesTitle: '🧬 Химични рецепти',
     glyTitle: '📖 Речник:',
     uText: 'u',
     atomicNumLabel: 'Атомен номер',
@@ -285,6 +428,7 @@ const TRANSLATIONS = {
     whereTitle: '🌍 Found in',
     appsTitle: '🏭 Applications',
     diyTitle: '🧪 DIY Home Experiments',
+    recipesTitle: '🧬 Chemistry Recipes',
     glyTitle: '📖 Glossary:',
     uText: 'u',
     atomicNumLabel: 'Atomic Number',
@@ -1452,6 +1596,17 @@ function openModal(num){
     content+=`<div class="sec"><div class="stitle">${t.diyTitle}</div><ul class="diy-list">`;
     d.diy.forEach(x=>content+=`<li><strong>🔬 ${x.t}</strong>${glossify(x.d)}</li>`);
     content+=`</ul></div>`;
+  }
+
+  const recipes = RECIPES[n];
+  if(recipes&&recipes.length){
+    content+=`<div class="sec"><div class="stitle">${t.recipesTitle}</div><div class="recipes-grid">`;
+    recipes.forEach(r=>{
+      const name = currentLang==='bg' ? r.bg : r.en;
+      const note = currentLang==='bg' ? r.nb : r.ne;
+      content+=`<div class="recipe-card"><div class="recipe-formula">${r.f}</div><div class="recipe-name">${name}</div><div class="recipe-note">${note}</div></div>`;
+    });
+    content+=`</div></div>`;
   }
 
   document.getElementById('mbody').innerHTML=statHtml+`<div class="content-panel">${content}</div>`;
