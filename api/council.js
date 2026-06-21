@@ -2,22 +2,27 @@
 const https = require("https");
 
 // ── Diverse free-tier model roster ──────────────────────────────────────────
-// Each role uses a DIFFERENT model family for maximum architectural diversity.
+// Each role uses a DIFFERENT model from the previous stage for diversity.
 // All slugs verified against OpenRouter /api/v1/models, June 2026.
 //
-// Role         Primary (family)                          Fallback (family)
+// Provider notes (empirically verified this session):
+//   Venice-hosted (rate-limits at ~20 req/min): Nous Hermes, Qwen3-Coder,
+//     Qwen3-Next, Meta Llama — avoid as primaries.
+//   Non-Venice (reliable for free tier): OpenAI, NVIDIA, Google Gemma 4.
+//
+// Role         Primary                                   Fallback
 // -----------  ----------------------------------------  ------------------------------------------
-// Proposer R1  openai/gpt-oss-20b          (OpenAI-20B)  nvidia/nemotron-3-nano-30b-a3b  (NVIDIA, 3B active)
-// Critic       qwen/qwen3-next-80b-a3b     (Alibaba,3B)  nvidia/nemotron-3-super-120b-a12b (NVIDIA,12B active)
-// Proposer Rev google/gemma-4-31b-it       (Google)      meta-llama/llama-3.3-70b-instruct (Meta)
-// Synthesizer  nousresearch/hermes-3-405b  (Nous)        qwen/qwen3-coder                  (Alibaba,35B active)
-// Judge        openai/gpt-oss-120b         (OpenAI-120B) nex-agi/nex-n2-pro                (NexAGI, 17B active)
+// Proposer R1  openai/gpt-oss-20b       (OpenAI 20B)    nvidia/nemotron-3-nano-30b-a3b (NVIDIA,3B active)
+// Critic       nvidia/nemotron-3-super   (NVIDIA,12B)    google/gemma-4-26b-a4b-it      (Google MoE,4B active)
+// Proposer Rev google/gemma-4-31b-it    (Google)        openai/gpt-oss-20b             (OpenAI fallback)
+// Synthesizer  openai/gpt-oss-120b      (OpenAI 120B)   nvidia/nemotron-3-super-120b   (NVIDIA fallback)
+// Judge        nvidia/nemotron-3-ultra   (NVIDIA,55B)    nex-agi/nex-n2-pro             (NexAGI,17B MoE)
 const ROSTER = {
   proposer_r1:  ["openai/gpt-oss-20b:free",                       "nvidia/nemotron-3-nano-30b-a3b:free"],
-  critic:       ["qwen/qwen3-next-80b-a3b-instruct:free",         "nvidia/nemotron-3-super-120b-a12b:free"],
-  proposer_rev: ["google/gemma-4-31b-it:free",                    "meta-llama/llama-3.3-70b-instruct:free"],
-  synthesizer:  ["nousresearch/hermes-3-llama-3.1-405b:free",     "qwen/qwen3-coder:free"],
-  judge:        ["openai/gpt-oss-120b:free",                      "nex-agi/nex-n2-pro:free"],
+  critic:       ["nvidia/nemotron-3-super-120b-a12b:free",         "google/gemma-4-26b-a4b-it:free"],
+  proposer_rev: ["google/gemma-4-31b-it:free",                    "nvidia/nemotron-3-nano-30b-a3b:free"],
+  synthesizer:  ["openai/gpt-oss-120b:free",                      "nvidia/nemotron-3-super-120b-a12b:free"],
+  judge:        ["nvidia/nemotron-3-ultra-550b-a55b:free",         "nex-agi/nex-n2-pro:free"],
 };
 
 const DEFAULT_ROUNDS = 2;     // ≥2 ensures at least one critique-then-revise loop
