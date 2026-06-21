@@ -26,7 +26,7 @@ const ROSTER = {
 };
 
 const DEFAULT_ROUNDS = 2;     // ≥2 ensures at least one critique-then-revise loop
-const MODEL_TIMEOUT_MS = 28000; // per-attempt wall-clock limit; avoids hanging on queued free models
+const MODEL_TIMEOUT_MS = 45000; // per-attempt wall-clock limit — 45s lets queued models respond (~35-40s typical)
 
 // Short label for SSE display (last path segment, strip :free)
 function shortName(slug) {
