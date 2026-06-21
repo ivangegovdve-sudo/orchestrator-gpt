@@ -4,7 +4,7 @@
   "framework": null,
   "functions": {
     "api/council.js": {
-      "maxDuration": 60
+      "maxDuration": 120
     }
   }
 }
