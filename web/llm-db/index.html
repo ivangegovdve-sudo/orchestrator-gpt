@@ -590,7 +590,17 @@ const PLATFORMS = [
   { name:"Cursor Rules / .cursorrules", cat:"Research & Emerging", tag:"coding", url:"https://cursor.directory", by:"Community",
     desc:"Community-maintained repository of .cursorrules prompt files for configuring Cursor's AI context per project. Curated at cursor.directory." },
   { name:"SWE-agent", cat:"Research & Emerging", tag:"coding", url:"https://swe-agent.com", by:"Princeton NLP (OSS)",
-    desc:"Open-source autonomous software engineering agent. Uses LLMs to solve GitHub issues end-to-end: reads code, edits files, runs tests, and opens PRs." }
+    desc:"Open-source autonomous software engineering agent. Uses LLMs to solve GitHub issues end-to-end: reads code, edits files, runs tests, and opens PRs." },
+
+  // ── LLM Observability & Data ────────────────────────────────────────────────
+  { name:"Langfuse", cat:"Research & Emerging", tag:"agents", url:"https://langfuse.com", by:"Langfuse (OSS)", isNew: true,
+    desc:"Open-source LLM observability and evaluation platform. Traces every LLM call, spans, scores, and prompt versions. Integrates with LangChain, LlamaIndex, and the OpenAI SDK." },
+  { name:"Helicone", cat:"Research & Emerging", tag:"agents", url:"https://helicone.ai", by:"Helicone", isNew: true,
+    desc:"LLM proxy and observability layer. One-line integration — route API calls through Helicone to get logging, cost tracking, rate limiting, caching, and prompt management." },
+  { name:"Scale AI", cat:"Data & Analytics", tag:"data", url:"https://scale.com", by:"Scale AI", isNew: true,
+    desc:"Data labeling and AI evaluation platform used by leading AI labs. RLHF annotation, model evaluation (Scale Eval), and SEAL leaderboard for model quality assessments." },
+  { name:"Baseten", cat:"Inference & Cloud Infra", tag:"infra", url:"https://baseten.co", by:"Baseten", isNew: true,
+    desc:"ML model deployment and serving platform. Deploy any model (open-source or custom) as a scalable API in minutes. Handles autoscaling, GPU selection, and observability." }
 ];
 
 // Build category list
