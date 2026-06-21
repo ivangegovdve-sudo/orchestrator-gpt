@@ -4,9 +4,9 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>LLM Council — Free-Tier AI Deliberation</title>
-  <meta name="description" content="Ask a question and watch 4 distinct AI families deliberate across 6 stages: Propose → Critique × 2 → Revise → Synthesize → Judge. OpenRouter free models, $0 cost.">
+  <meta name="description" content="Ask a council of distinct AI families to deliberate live across multiple stages: Propose → Critique → Revise → Synthesize → Judge. Selectable modes, live thinking, interactive rounds. OpenRouter free models, $0 cost.">
   <meta property="og:title" content="LLM Council — Free-Tier AI Deliberation">
-  <meta property="og:description" content="6-stage free-tier deliberation: OpenAI · NVIDIA Ultra · Google Gemma · Nex AGI — 4 distinct model families, no shared blind spots, $0 cost.">
+  <meta property="og:description" content="Heterogeneous free-tier deliberation: OpenAI · NVIDIA · Google · Nex AGI · Qwen — distinct model families, live thinking, selectable modes, $0 cost.">
   <meta property="og:type" content="website">
   <style>
     :root {
@@ -81,6 +81,20 @@
     textarea:focus { border-color: rgba(14,165,233,0.5); }
     textarea::placeholder { color: #475569; }
 
+    /* ── Mode selector ─────────────────────────────────────── */
+    .modes-wrap { display: flex; flex-direction: column; gap: 8px; }
+    .modes-label { font-size: 11px; color: #64748b; text-transform: uppercase; letter-spacing: 0.06em; font-weight: 600; }
+    .mode-row { display: flex; flex-wrap: wrap; gap: 8px; }
+    .mode-pill {
+      background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 999px; color: var(--muted); cursor: pointer; font-size: 12px;
+      padding: 7px 14px; font-family: inherit; transition: all 0.18s; font-weight: 600;
+      display: inline-flex; align-items: center; gap: 6px;
+    }
+    .mode-pill:hover { background: rgba(255,255,255,0.08); color: var(--text); }
+    .mode-pill.selected { background: linear-gradient(135deg, rgba(14,165,233,0.25), rgba(139,92,246,0.25)); border-color: rgba(139,92,246,0.5); color: var(--text); }
+    .mode-desc { font-size: 11.5px; color: #64748b; line-height: 1.5; min-height: 16px; }
+
     .input-footer { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 
     .model-label { font-size: 11px; color: #475569; display: flex; align-items: center; gap: 6px; }
@@ -99,14 +113,29 @@
     .submit-btn:hover:not(:disabled) { opacity: 0.9; transform: translateY(-1px); }
     .submit-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
 
+    /* ── Collapsible suggestions ───────────────────────────── */
+    .suggest-toggle {
+      align-self: flex-start; background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: var(--muted);
+      cursor: pointer; font-size: 12px; padding: 6px 12px; font-family: inherit;
+      transition: all 0.2s; display: inline-flex; align-items: center; gap: 7px;
+    }
+    .suggest-toggle:hover { background: rgba(255,255,255,0.08); color: var(--text); }
+    .suggest-toggle .chev { transition: transform 0.25s; font-size: 10px; }
+    .suggest-toggle.open .chev { transform: rotate(180deg); }
+
+    .suggest-panel {
+      display: none; flex-wrap: wrap; gap: 8px; padding-top: 4px;
+    }
+    .suggest-panel.open { display: flex; }
+
     .example-q {
       background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);
       border-radius: 8px; color: var(--muted); cursor: pointer; font-size: 12px;
-      padding: 6px 12px; font-family: inherit; transition: all 0.2s;
+      padding: 6px 12px; font-family: inherit; transition: all 0.2s; text-align: left;
     }
     .example-q:hover { background: rgba(255,255,255,0.08); color: var(--text); border-color: rgba(255,255,255,0.15); }
 
-    /* Diversity roster display */
     .roster-info {
       background: rgba(139,92,246,0.06); border: 1px solid rgba(139,92,246,0.15);
       border-radius: 10px; padding: 10px 14px; font-size: 11px; color: #9ca3af;
@@ -137,6 +166,7 @@
     }
     .stage-card.active { border-color: rgba(14,165,233,0.4); }
     .stage-card.done   { border-color: rgba(255,255,255,0.12); }
+    .stage-card.failed { border-color: rgba(244,63,94,0.4); }
     .stage-card.judge-card { background: rgba(20, 16, 4, 0.7); }
     .stage-card.judge-card.active { border-color: rgba(245,158,11,0.5); }
     .stage-card.judge-card.done   { border-color: rgba(245,158,11,0.3); }
@@ -150,20 +180,20 @@
     .stage-icon.judge    { background: rgba(245,158,11,0.15); }
 
     .stage-meta { flex: 1; min-width: 0; }
-    .stage-name { font-size: 13px; font-weight: 700; display: flex; align-items: center; gap: 7px; }
+    .stage-name { font-size: 13px; font-weight: 700; display: flex; align-items: center; gap: 7px; flex-wrap: wrap; }
     .stage-desc { font-size: 11px; color: var(--muted); margin-top: 2px; }
 
-    /* Model attribution tag shown inside each completed card header */
     .model-tag-badge {
-      font-size: 9px; font-family: monospace; color: #64748b;
-      background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08);
+      font-size: 9px; font-family: monospace; color: #7dd3fc;
+      background: rgba(14,165,233,0.08); border: 1px solid rgba(14,165,233,0.2);
       border-radius: 4px; padding: 1px 5px; white-space: nowrap; display: none;
     }
-    .stage-card.done .model-tag-badge { display: inline-block; }
+    .stage-card .model-tag-badge.show { display: inline-block; }
 
     .stage-status { font-size: 11px; color: var(--muted); display: flex; align-items: center; gap: 5px; flex-shrink: 0; }
     .stage-status.thinking { color: var(--accent); }
     .stage-status.done     { color: var(--green); }
+    .stage-status.failed   { color: var(--rose); }
     .judge-card .stage-status.done { color: var(--amber); }
 
     .spinner { width: 11px; height: 11px; border: 2px solid currentColor; border-top-color: transparent; border-radius: 50%; animation: spin 0.8s linear infinite; display: inline-block; }
@@ -173,13 +203,19 @@
     .stage-card.open .chevron { transform: rotate(180deg); }
 
     .stage-body { max-height: 0; overflow: hidden; transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
-    .stage-card.open .stage-body { max-height: 3000px; }
+    .stage-card.open .stage-body { max-height: 4000px; }
 
     .stage-content {
       padding: 14px 20px 18px; border-top: 1px solid rgba(255,255,255,0.05);
       font-size: 13.5px; line-height: 1.75; color: #cbd5e1; white-space: pre-wrap; word-break: break-word;
     }
     .judge-card .stage-content { color: #fef3c7; }
+
+    /* blinking caret while a stage streams live */
+    .stage-content.streaming::after {
+      content: "▌"; color: var(--accent); animation: caret 1s steps(1) infinite; margin-left: 1px;
+    }
+    @keyframes caret { 50% { opacity: 0; } }
 
     .placeholder-text { color: #3f4f62; font-style: italic; font-size: 13px; }
 
@@ -193,6 +229,15 @@
     .stage-card.done .copy-btn { opacity: 1; pointer-events: auto; }
     .copy-btn:hover { background: rgba(255,255,255,0.1); color: var(--text); }
     .copy-btn.copied { color: var(--green); border-color: rgba(34,197,94,0.3); }
+
+    /* ── Interactive follow-up ─────────────────────────────── */
+    .followup-card {
+      background: rgba(14,165,233,0.05); border: 1px solid rgba(14,165,233,0.2);
+      border-radius: 14px; padding: 18px 20px; display: none; flex-direction: column; gap: 12px;
+    }
+    .followup-card.visible { display: flex; }
+    .followup-title { font-size: 13px; font-weight: 700; color: #7dd3fc; display: flex; align-items: center; gap: 8px; }
+    .followup-sub { font-size: 11.5px; color: var(--muted); margin-top: -6px; }
 
     .footer-tag { font-size: 10px; color: #475569; text-align: center; padding-top: 4px; }
 
@@ -209,7 +254,7 @@
 
     <header>
       <h1>&#9878;&#65039; LLM Council</h1>
-      <p class="tagline">Heterogeneous AI panel &mdash; each role a different model family &mdash; no shared blind spots.</p>
+      <p class="tagline">Heterogeneous AI panel &mdash; each role a different model family &mdash; deliberating live, $0.</p>
     </header>
 
     <div class="flow-row">
@@ -226,115 +271,188 @@
       <span class="role-badge judge">Judge</span>
     </div>
 
-    <div class="roster-info">
-      <strong>4 distinct vendor families</strong> &mdash; 6 stages, all non-Venice, $0:<br>
-      <span class="model-chip">Proposer</span> OpenAI gpt-oss-120b &nbsp;
-      <span class="model-chip">Critic 1</span> NVIDIA Nemotron Ultra (550B, 55B active) &nbsp;
-      <span class="model-chip">Revision</span> Google Gemma-4-31b &nbsp;
-      <span class="model-chip">Critic 2</span> Nex AGI nex-n2-pro (17B active MoE) &nbsp;
-      <span class="model-chip">Synth</span> Google Gemma-4-26b MoE (4B active) &nbsp;
-      <span class="model-chip">Judge</span> OpenAI gpt-oss-20b
-      &mdash; with fallbacks if any provider rate-limits.
-    </div>
-
     <div class="input-card">
       <textarea id="question" placeholder="Ask the council anything &#8212; a decision, a concept, a plan&#8230;" rows="3"></textarea>
 
-      <div style="display:flex; flex-wrap:wrap; gap:8px; margin-top:-4px;">
-        <span style="font-size:11px; color:#475569; align-self:center;">Try:</span>
-        <button class="example-q" onclick="fillQ(this)">Should I learn Rust or Go?</button>
-        <button class="example-q" onclick="fillQ(this)">What makes a good API design?</button>
-        <button class="example-q" onclick="fillQ(this)">Best way to give critical feedback?</button>
-        <button class="example-q" onclick="fillQ(this)">Should I quit my job and freelance?</button>
-        <button class="example-q" onclick="fillQ(this)">Is journaling actually useful?</button>
-        <button class="example-q" onclick="fillQ(this)">What's the best diet for longevity?</button>
-        <button class="example-q" onclick="fillQ(this)">How should I approach AI alignment as a founder?</button>
+      <!-- Collapsible suggestions (B1) -->
+      <button type="button" class="suggest-toggle" id="suggest-toggle" onclick="toggleSuggest()">
+        <span>&#128161; Show suggestions</span><span class="chev">&#9660;</span>
+      </button>
+      <div class="suggest-panel" id="suggest-panel"></div>
+
+      <!-- Council modes (B3) -->
+      <div class="modes-wrap">
+        <span class="modes-label">Council mode</span>
+        <div class="mode-row" id="mode-row"></div>
+        <div class="mode-desc" id="mode-desc"></div>
       </div>
 
       <div class="input-footer">
         <div class="model-label">
-          4 families &middot; <span class="free-badge">free</span> &middot; 2 critics + judge &middot; $0
+          5 families &middot; <span class="free-badge">free</span> &middot; live thinking &middot; $0
         </div>
         <button class="submit-btn" id="submit-btn" onclick="runCouncil()">Convene Council</button>
       </div>
+    </div>
+
+    <div class="roster-info">
+      <strong>Distinct vendor families</strong> &mdash; all <code>:free</code>, $0, with fast fallback if any provider rate-limits:<br>
+      <span class="model-chip">Proposer</span> OpenAI gpt-oss &nbsp;
+      <span class="model-chip">Critic 1</span> NVIDIA Nemotron Ultra &nbsp;
+      <span class="model-chip">Revision</span> Google Gemma-4 &nbsp;
+      <span class="model-chip">Critic 2</span> Nex AGI / Qwen3 &nbsp;
+      <span class="model-chip">Synth</span> Google Gemma MoE &nbsp;
+      <span class="model-chip">Judge</span> OpenAI gpt-oss-20b
     </div>
 
     <div class="error-banner" id="error-banner"></div>
 
     <div class="stages" id="stages" style="display:none;"></div>
 
-    <p class="footer-tag">Free tier &middot; OpenAI gpt-oss / NVIDIA Nemotron Ultra / Google Gemma-4 / Nex AGI &mdash; 4 families via OpenRouter &mdash; $0</p>
+    <!-- Interactive follow-up round (B4) -->
+    <div class="followup-card" id="followup-card">
+      <div class="followup-title">&#128172; Continue the deliberation</div>
+      <div class="followup-sub">Add a follow-up &mdash; it feeds into a new round seeded with the council's last synthesis.</div>
+      <textarea id="followup-input" placeholder="Push back, add a constraint, or ask a follow-up&#8230;" rows="2"></textarea>
+      <div style="display:flex; justify-content:flex-end;">
+        <button class="submit-btn" id="followup-btn" onclick="runFollowup()">Continue &rarr;</button>
+      </div>
+    </div>
+
+    <p class="footer-tag">Free tier &middot; OpenAI &middot; NVIDIA Nemotron &middot; Google Gemma-4 &middot; Nex AGI &middot; Qwen3 &mdash; via OpenRouter &mdash; $0</p>
   </div>
 
   <script>
+    // ── Canonical API host (B/A fix): the council page may be loaded from the
+    // apex domain, which 307-redirects /api/* to www. A redirected streaming
+    // POST is fragile, so we post straight to the canonical www host. ──────────
+    var API_URL = (location.hostname === 'sdforest.site')
+      ? 'https://www.sdforest.site/api/council'
+      : '/api/council';
+
+    // ── Suggestions (collapsed by default; longer list on expand) ─────────────
+    var SUGGESTIONS = [
+      "Should I learn Rust or Go?",
+      "What makes a good API design?",
+      "Best way to give critical feedback?",
+      "Should I quit my job and freelance?",
+      "Is journaling actually useful?",
+      "What's the best diet for longevity?",
+      "How should I approach AI alignment as a founder?",
+      "Is remote work better than in-office for a small team?",
+      "How do I price a SaaS product with no track record?",
+      "What's the strongest argument against my startup idea?",
+      "Should I optimize for growth or profitability first?",
+      "How do I structure a difficult conversation with a cofounder?",
+      "Is it worth learning a new language at 35?",
+      "What habits compound the most over a decade?",
+      "How should I think about taking on debt for a house?",
+      "What's a contrarian but correct take on productivity?"
+    ];
+    function buildSuggestions() {
+      var panel = document.getElementById('suggest-panel');
+      panel.innerHTML = SUGGESTIONS.map(function (s) {
+        return '<button type="button" class="example-q" onclick="fillQ(this)">' +
+          s.replace(/&/g, '&amp;').replace(/</g, '&lt;') + '</button>';
+      }).join('');
+    }
+    function toggleSuggest() {
+      var t = document.getElementById('suggest-toggle');
+      var p = document.getElementById('suggest-panel');
+      var open = p.classList.toggle('open');
+      t.classList.toggle('open', open);
+      t.querySelector('span').innerHTML = open ? '&#128161; Hide suggestions' : '&#128161; Show suggestions';
+    }
     function fillQ(btn) {
       document.getElementById('question').value = btn.textContent.trim();
+      document.getElementById('question').focus();
     }
 
+    // ── Modes (treatment instructions, picked before running) ─────────────────
+    var MODES = [
+      { id: 'default',        label: '⚖️ Balanced',       desc: 'The clean default — each member fairly weighs and builds on the prior response.' },
+      { id: 'adversarial',    label: '⚔️ Adversarial',    desc: 'Members push back hard on the prior response — attack assumptions, steelman the opposition, concede little.' },
+      { id: 'chaos',          label: '🎲 Chaos',          desc: 'Lateral, divergent, randomized — surprising connections and wild-card angles over the obvious.' },
+      { id: 'dreamer',        label: '🌌 Dreamer',        desc: 'Expansive and imaginative — each member amplifies the vision and dreams bigger.' },
+      { id: 'problem-solver', label: '🧩 Problem-Solver', desc: 'Frames the input as a PROBLEM and returns multiple ways to APPROACH it, with trade-offs — not just one answer.' }
+    ];
+    var selectedMode = 'default';
+    function buildModes() {
+      var row = document.getElementById('mode-row');
+      row.innerHTML = MODES.map(function (m) {
+        return '<button type="button" class="mode-pill' + (m.id === selectedMode ? ' selected' : '') +
+          '" data-mode="' + m.id + '" onclick="selectMode(\'' + m.id + '\')">' + m.label + '</button>';
+      }).join('');
+      updateModeDesc();
+    }
+    function selectMode(id) {
+      selectedMode = id;
+      var pills = document.querySelectorAll('.mode-pill');
+      for (var i = 0; i < pills.length; i++) pills[i].classList.toggle('selected', pills[i].getAttribute('data-mode') === id);
+      updateModeDesc();
+    }
+    function updateModeDesc() {
+      var m = MODES.filter(function (x) { return x.id === selectedMode; })[0];
+      document.getElementById('mode-desc').textContent = m ? m.desc : '';
+    }
+
+    // ── Stage rendering ───────────────────────────────────────────────────────
+    var passNum = 0;          // each run/follow-up is a "pass"; namespaces card ids
+    var lastSynthesis = '';   // seeds the next interactive round
+    var liveBuffers = {};     // cardId -> accumulating streamed text
+
     function copyStage(cardId) {
-      var text = document.getElementById('content-' + cardId).textContent;
+      var el = document.getElementById('content-' + cardId);
+      if (!el) return;
+      var text = el.textContent;
       if (!text || !text.trim()) return;
-      navigator.clipboard.writeText(text.trim()).then(function() {
+      navigator.clipboard.writeText(text.trim()).then(function () {
         var btn = document.querySelector('#stage-' + cardId + ' .copy-btn');
         if (!btn) return;
         var orig = btn.textContent;
-        btn.textContent = 'Copied';
-        btn.classList.add('copied');
-        setTimeout(function() { btn.textContent = orig; btn.classList.remove('copied'); }, 2000);
-      }).catch(function(){});
+        btn.textContent = 'Copied'; btn.classList.add('copied');
+        setTimeout(function () { btn.textContent = orig; btn.classList.remove('copied'); }, 2000);
+      }).catch(function () {});
     }
-
     function toggleStage(cardId) {
       var card = document.getElementById('stage-' + cardId);
       if (card) card.classList.toggle('open');
     }
-
     function setStatus(cardId, type, html) {
       var el = document.getElementById('status-' + cardId);
       if (!el) return;
       el.className = 'stage-status ' + type;
       el.innerHTML = type === 'thinking' ? '<span class="spinner"></span> ' + html : html;
     }
-
-    function setContent(cardId, text) {
-      var el = document.getElementById('content-' + cardId);
-      if (el) el.textContent = text;
-    }
-
     function setModelBadge(cardId, modelName) {
       var el = document.getElementById('modelbadge-' + cardId);
-      if (el && modelName) el.textContent = modelName;
+      if (el && modelName) { el.textContent = modelName; el.classList.add('show'); }
     }
-
     function openCard(cardId) {
       var card = document.getElementById('stage-' + cardId);
       if (card) card.classList.add('open', 'active');
     }
-
-    function doneCard(cardId) {
+    function doneCard(cardId, cls) {
       var card = document.getElementById('stage-' + cardId);
       if (!card) return;
       card.classList.remove('active');
-      card.classList.add('done');
+      card.classList.add(cls || 'done');
     }
 
     function ensureRoundHeader(round) {
-      var id = 'round-hdr-' + round;
+      var id = 'round-hdr-' + passNum + '-' + round;
       if (!document.getElementById(id)) {
         var hdr = document.createElement('div');
-        hdr.id = id;
-        hdr.className = 'round-header';
+        hdr.id = id; hdr.className = 'round-header';
         hdr.innerHTML = '<div class="round-label">Round ' + round + '</div><div class="round-line"></div>';
         document.getElementById('stages').appendChild(hdr);
       }
     }
-
-    function ensureDivider(id, label, color) {
-      var divId = 'div-' + id;
+    function ensureDivider(key, label, color) {
+      var divId = 'div-' + passNum + '-' + key;
       if (!document.getElementById(divId)) {
         var hdr = document.createElement('div');
-        hdr.id = divId;
-        hdr.className = 'round-header';
+        hdr.id = divId; hdr.className = 'round-header';
         hdr.innerHTML = '<div class="round-label" style="color:' + (color || '#475569') + '">' + label + '</div><div class="round-line"></div>';
         document.getElementById('stages').appendChild(hdr);
       }
@@ -366,95 +484,164 @@
       document.getElementById('stages').appendChild(card);
     }
 
-    function handleEvent(event) {
-      var stage = event.stage, round = event.round, status = event.status,
-          text = event.text, modelName = event.model;
-
+    // Resolve the {stage, round} of an event to a namespaced card id + metadata.
+    function cardFor(event) {
+      var stage = event.stage, round = event.round;
       if (stage === 'proposer') {
-        var id = 'proposer-r' + round;
-        if (!document.getElementById('stage-' + id)) {
-          ensureRoundHeader(round);
-          var name = round === 1 ? 'Proposer &#8212; Initial' : 'Proposer &#8212; Revision ' + round;
-          var desc = round === 1
-            ? 'Forms the initial answer &mdash; direct, substantive, confident'
-            : 'Revises based on critic feedback from a different AI family';
-          createCard(id, 'proposer', '&#128161;', name, desc, '');
-        }
-        if (status === 'thinking') {
-          openCard(id);
-          var rosterHint = event.roster ? ' (' + event.roster[0] + ')' : '';
-          setStatus(id, 'thinking', 'Thinking&#8230;' + rosterHint);
-        } else if (status === 'done') {
-          setContent(id, text);
-          setModelBadge(id, modelName);
-          setStatus(id, 'done', '&#10003; Done');
-          doneCard(id);
-        }
+        return {
+          id: 'p' + passNum + '-proposer-r' + round, role: 'proposer', icon: '&#128161;',
+          name: round === 1 ? 'Proposer &#8212; Initial' : 'Proposer &#8212; Revision ' + round,
+          desc: round === 1 ? 'Forms the initial response &mdash; direct and substantive'
+                            : 'Revises based on the previous member&#39;s reaction',
+          headerRound: round, extra: ''
+        };
+      }
+      if (stage === 'critic') {
+        return {
+          id: 'p' + passNum + '-critic-r' + round, role: 'critic', icon: '&#128269;',
+          name: 'Critic &#8212; Round ' + round,
+          desc: 'Different AI family &mdash; treats the prior response per the chosen mode',
+          headerRound: round, extra: ''
+        };
+      }
+      if (stage === 'synthesizer') {
+        return {
+          id: 'p' + passNum + '-synthesizer', role: 'synth', icon: '&#9989;',
+          name: 'Synthesizer', desc: 'Weaves all responses &amp; reactions into the definitive result',
+          divider: ['synth', 'Synthesis', '#475569'], extra: ''
+        };
+      }
+      if (stage === 'judge') {
+        return {
+          id: 'p' + passNum + '-judge', role: 'judge', icon: '&#9878;&#65039;',
+          name: 'Judge &#8212; Verdict', desc: 'Delivers the final decision, confidence &amp; call to action',
+          divider: ['judge', 'Verdict', 'var(--amber)'], extra: 'judge-card'
+        };
+      }
+      return null;
+    }
+
+    function handleEvent(event) {
+      if (event.stage === 'meta' || event.stage === 'complete') return; // handled in runStream
+      if (event.stage === 'error') throw new Error(event.error || 'Unknown error from council');
+
+      var c = cardFor(event);
+      if (!c) return;
+
+      if (!document.getElementById('stage-' + c.id)) {
+        if (c.headerRound) ensureRoundHeader(c.headerRound);
+        if (c.divider) ensureDivider(c.divider[0], c.divider[1], c.divider[2]);
+        createCard(c.id, c.role, c.icon, c.name, c.desc, c.extra);
       }
 
-      else if (stage === 'critic') {
-        var id = 'critic-r' + round;
-        if (!document.getElementById('stage-' + id)) {
-          ensureRoundHeader(round);
-          createCard(id, 'critic', '&#128269;', 'Critic &#8212; Round ' + round,
-            'Different AI family &mdash; catches what the proposer missed', '');
-        }
-        if (status === 'thinking') {
-          openCard(id);
-          var rosterHint = event.roster ? ' (' + event.roster[0] + ')' : '';
-          setStatus(id, 'thinking', 'Thinking&#8230;' + rosterHint);
-        } else if (status === 'done') {
-          setContent(id, text);
-          setModelBadge(id, modelName);
-          setStatus(id, 'done', '&#10003; Done');
-          doneCard(id);
-        }
-      }
+      var status = event.status;
+      var contentEl = document.getElementById('content-' + c.id);
 
-      else if (stage === 'synthesizer') {
-        var id = 'synthesizer';
-        if (!document.getElementById('stage-' + id)) {
-          ensureDivider('synth', 'Synthesis', '#475569');
-          createCard(id, 'synth', '&#9989;', 'Synthesizer',
-            'Google Gemma weaves all proposals &amp; both critiques into the definitive answer', '');
+      if (status === 'thinking') {
+        openCard(c.id);
+        var hint = event.roster ? ' (' + event.roster[0] + ')' : '';
+        setStatus(c.id, 'thinking', (c.role === 'judge' ? 'Deliberating&#8230;' : 'Thinking&#8230;') + hint);
+      } else if (status === 'model') {
+        // A (new) model attempt started streaming — reset the live buffer so a
+        // failed-then-retried stage doesn't show concatenated garbage.
+        liveBuffers[c.id] = '';
+        if (contentEl) { contentEl.textContent = ''; contentEl.classList.add('streaming'); }
+        setModelBadge(c.id, event.model);
+        setStatus(c.id, 'thinking', 'Streaming&#8230; (' + event.model + ')');
+      } else if (status === 'delta') {
+        liveBuffers[c.id] = (liveBuffers[c.id] || '') + (event.delta || '');
+        if (contentEl) {
+          contentEl.classList.add('streaming');
+          contentEl.textContent = liveBuffers[c.id];
         }
-        if (status === 'thinking') {
-          openCard(id);
-          var rosterHint = event.roster ? ' (' + event.roster[0] + ')' : '';
-          setStatus(id, 'thinking', 'Thinking&#8230;' + rosterHint);
-        } else if (status === 'done') {
-          setContent(id, text);
-          setModelBadge(id, modelName);
-          setStatus(id, 'done', '&#10003; Done');
-          doneCard(id);
+      } else if (status === 'done') {
+        if (contentEl) { contentEl.classList.remove('streaming'); contentEl.textContent = event.text; }
+        if (event.model) setModelBadge(c.id, event.model);
+        setStatus(c.id, 'done', c.role === 'judge' ? '&#10003; Verdict' : '&#10003; Done');
+        doneCard(c.id, 'done');
+      } else if (status === 'failed') {
+        if (contentEl) {
+          contentEl.classList.remove('streaming');
+          contentEl.innerHTML = '<span class="placeholder-text">All free models for this stage were rate-limited or timed out. The council continued with the remaining stages.</span>';
         }
-      }
-
-      else if (stage === 'judge') {
-        var id = 'judge';
-        if (!document.getElementById('stage-' + id)) {
-          ensureDivider('judge', 'Verdict', 'var(--amber)');
-          createCard(id, 'judge', '&#9878;&#65039;', 'Judge &#8212; Verdict',
-            'OpenAI (different from NVIDIA critics) delivers the final decision, confidence &amp; call to action', 'judge-card');
-        }
-        if (status === 'thinking') {
-          openCard(id);
-          var rosterHint = event.roster ? ' (' + event.roster[0] + ')' : '';
-          setStatus(id, 'thinking', 'Deliberating&#8230;' + rosterHint);
-        } else if (status === 'done') {
-          setContent(id, text);
-          setModelBadge(id, modelName);
-          setStatus(id, 'done', '&#10003; Verdict');
-          doneCard(id);
-        }
-      }
-
-      else if (stage === 'error') {
-        throw new Error(event.error || 'Unknown error from council');
+        setStatus(c.id, 'failed', '&#9888; Skipped');
+        doneCard(c.id, 'failed');
       }
     }
 
-    async function runCouncil() {
+    async function runStream(payload) {
+      var res = await fetch(API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      if (!res.ok) {
+        var err = await res.json().catch(function () { return { error: res.statusText }; });
+        throw new Error(err.error || 'HTTP ' + res.status);
+      }
+
+      var reader = res.body.getReader();
+      var decoder = new TextDecoder();
+      var buf = '';
+      while (true) {
+        var chunk = await reader.read();
+        if (chunk.done) break;
+        buf += decoder.decode(chunk.value, { stream: true });
+        var lines = buf.split('\n');
+        buf = lines.pop();
+        for (var i = 0; i < lines.length; i++) {
+          var line = lines[i];
+          if (!line || line.charAt(0) === ':') continue;       // SSE heartbeat comment
+          var trimmed = line.replace(/^data:\s*/, '').trim();
+          if (!trimmed) continue;
+          var event;
+          try { event = JSON.parse(trimmed); } catch (e) { continue; }
+          if (event.stage === 'complete') { if (event.synthesis) lastSynthesis = event.synthesis; continue; }
+          handleEvent(event);
+        }
+      }
+    }
+
+    async function convene(question, priorContext, isFollowup) {
+      var btn = document.getElementById('submit-btn');
+      var fbtn = document.getElementById('followup-btn');
+      var errorEl = document.getElementById('error-banner');
+      var stagesEl = document.getElementById('stages');
+      var followCard = document.getElementById('followup-card');
+
+      btn.disabled = true; fbtn.disabled = true;
+      btn.textContent = 'Convening…';
+      errorEl.className = 'error-banner';
+      followCard.classList.remove('visible');
+
+      if (isFollowup) {
+        passNum++;
+        ensureDivider('followup', '&#128172; Follow-up ' + passNum, 'var(--purple)');
+      } else {
+        passNum = 0;
+        stagesEl.innerHTML = '';
+        liveBuffers = {};
+      }
+      stagesEl.style.display = 'flex';
+
+      try {
+        await runStream({ question: question, mode: selectedMode, priorContext: priorContext || '' });
+        // Offer an interactive next round once we have a synthesis to build on.
+        if (lastSynthesis) {
+          document.getElementById('followup-input').value = '';
+          followCard.classList.add('visible');
+        }
+      } catch (err) {
+        errorEl.textContent = err.message;
+        errorEl.className = 'error-banner visible';
+      } finally {
+        btn.disabled = false; fbtn.disabled = false;
+        btn.textContent = 'Convene Council';
+      }
+    }
+
+    function runCouncil() {
       var question = document.getElementById('question').value.trim();
       if (!question) {
         var errorEl = document.getElementById('error-banner');
@@ -463,61 +650,24 @@
         document.getElementById('question').focus();
         return;
       }
-
-      var btn = document.getElementById('submit-btn');
-      var errorEl = document.getElementById('error-banner');
-      var stagesEl = document.getElementById('stages');
-
-      btn.disabled = true;
-      btn.textContent = 'Convening…';
-      errorEl.className = 'error-banner';
-      stagesEl.innerHTML = '';
-      stagesEl.style.display = 'flex';
-
-      try {
-        var res = await fetch('/api/council', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ question: question }),
-        });
-
-        if (!res.ok) {
-          var err = await res.json().catch(function() { return { error: res.statusText }; });
-          throw new Error(err.error || 'HTTP ' + res.status);
-        }
-
-        var reader = res.body.getReader();
-        var decoder = new TextDecoder();
-        var buf = '';
-
-        while (true) {
-          var chunk = await reader.read();
-          if (chunk.done) break;
-          buf += decoder.decode(chunk.value, { stream: true });
-          var lines = buf.split('\n');
-          buf = lines.pop();
-          for (var i = 0; i < lines.length; i++) {
-            var trimmed = lines[i].replace(/^data:\s*/, '').trim();
-            if (!trimmed) continue;
-            var event;
-            try { event = JSON.parse(trimmed); } catch(e) { continue; }
-            if (event.stage === 'complete') continue;
-            handleEvent(event);
-          }
-        }
-
-      } catch (err) {
-        errorEl.textContent = err.message;
-        errorEl.className = 'error-banner visible';
-      } finally {
-        btn.disabled = false;
-        btn.textContent = 'Convene Council';
-      }
+      convene(question, '', false);
     }
 
-    document.getElementById('question').addEventListener('keydown', function(e) {
+    function runFollowup() {
+      var follow = document.getElementById('followup-input').value.trim();
+      if (!follow) { document.getElementById('followup-input').focus(); return; }
+      convene(follow, lastSynthesis, true);
+    }
+
+    document.getElementById('question').addEventListener('keydown', function (e) {
       if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') runCouncil();
     });
+    document.getElementById('followup-input').addEventListener('keydown', function (e) {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') runFollowup();
+    });
+
+    buildSuggestions();
+    buildModes();
   </script>
 </body>
 </html>
