@@ -18,8 +18,10 @@ Ran a continuous improvement pass across all active subpages. Below is the per-p
 **Status:** ✅ Polished
 **Changes this session:**
 - Added meta description for SEO
-- Added footer with site stats (9 projects · 122 platforms · 508 terms · 20 movies)
+- Added footer with site stats (9 projects · 126 platforms · 517 terms · 20 movies)
 - Updated hub card counts to match session output
+- **Added Calendar Generator card** (was missing from hub grid despite page existing)
+- Updated LLM Council card description to reflect 4-stage flow
 - Hub already has: 3D nebula hero canvas, perspective-tilt cards, emoji icons, staggered entrance animations
 
 ---
@@ -29,9 +31,10 @@ Ran a continuous improvement pass across all active subpages. Below is the per-p
 **Files:** `web/llm-db/index.html`
 **Status:** ✅ Polished
 **Changes this session:**
-- Expanded from 102 → 122 platforms (+20 new entries)
-  - Qwen, Reka AI, Minimax, Phind, Tabnine, OpenHands, Cursor Background Agent, Glide, Luma Dream Machine, Haiper AI, Hedra, Krea.ai, Udio, LiveKit, Speechify, Agno, Smolagents, Mem0, Fal.ai, Unstructured.io
-- Added green "NEW" badge on 16 recently added platforms
+- Expanded from 102 → 126 platforms (+24 new entries)
+  - Original 20: Qwen, Reka AI, Minimax, Phind, Tabnine, OpenHands, Cursor Background Agent, Glide, Luma Dream Machine, Haiper AI, Hedra, Krea.ai, Udio, LiveKit, Speechify, Agno, Smolagents, Mem0, Fal.ai, Unstructured.io
+  - Additional 4: Langfuse (observability), Helicone (proxy/observability), Scale AI (data labeling), Baseten (model deployment)
+- Added green "NEW" badge on recently added platforms
 - Added `/` keyboard shortcut to focus search input
 - Clear-filters button already wired (shows when filters active)
 
@@ -42,12 +45,14 @@ Ran a continuous improvement pass across all active subpages. Below is the per-p
 **Files:** `web/ai-init/index.html`, `glossary-data.js`, `app.js`
 **Status:** ✅ Polished
 **Changes this session:**
-- Expanded from 492 → 508 terms (+16 new entries)
-  - SFT, TTFT, TPS, CAI, VLM, ASR, TTS, FIM, ToT, Hallucination, Alignment, Jailbreak, Grounding, Watermarking, Context Window, System Prompt
+- Expanded from 492 → 517 terms (+25 new entries)
+  - Batch 1 (16): SFT, TTFT, TPS, CAI, VLM, ASR, TTS, FIM, ToT, Hallucination, Alignment, Jailbreak, Grounding, Watermarking, Context Window, System Prompt
+  - Batch 2 (5): Temperature, Top-p, Tokenization, Prefix Caching, Pre-training
+  - Batch 3 (4): Multimodal, Tool Use, Vector Store, Inference
+- Added gotchas to 10 key terms that were missing them (MCP, TPS, Alignment, Jailbreak, Grounding, + 5 new)
 - Added back-to-hub link
 - Added `/` keyboard shortcut to focus search
-- Updated hero description to mention new terms
-- Added `<kbd>/</kbd>` hint in search bar
+- Updated hero description to mention newest terms
 
 ---
 
@@ -60,6 +65,8 @@ Ran a continuous improvement pass across all active subpages. Below is the per-p
 - Added age-based achiever filtering (shows achievers at user's age or later)
 - Added 2 new stat cards: Minutes and Books remaining
 - Added animated year-progress bar in header (shows "2026 is X% gone + days left")
+- **Added URL sharing**: page now reads `?by=&py=&cy=&le=` params and auto-calculates
+  - "🔗 Share link" button copies shareable URL to clipboard
 - Back-to-hub link already present
 - CSS animations: `statIn`, `hbPulse` on stat cards
 
@@ -141,7 +148,28 @@ Ran a continuous improvement pass across all active subpages. Below is the per-p
 - Hub meta description added
 - Back-to-hub links: all active subpages now have them
 - `/` keyboard shortcut: LLM Platforms + AI Glossary
-- All hub card counts updated to match actual content
+- Calendar Generator card added to hub grid (was missing)
+- All hub card counts updated: 126 platforms · 517 glossary terms
+
+---
+
+## Commit Log Summary
+
+| Commit | Change |
+|--------|--------|
+| `07fe0b3` | LLM platforms 102→122, Life in Time 14→24 achievers + age filter + 2 stat cards |
+| `cefa748` | Glossary 492→508, council markdown/scroll/copy-all, hub counts |
+| `673a253` | Mendeleev back-link, kids movies 15→20, council copy CSS |
+| `598afe5` | AI Glossary back-link + 508 count, council 4-stage Judge upgrade |
+| `722a50f` | `/` search shortcuts + vercel council config + hub meta desc |
+| `e971cd2` | Hub footer, NEW badges on 16 platforms |
+| `22d25dc` | Life in Time year-progress bar + fix bad achiever + SUBPAGES-STATUS |
+| `530d878` | Glossary gotchas for 5 key terms + council hub card update |
+| `3463fa2` | Hub: Calendar Generator card added to grid |
+| `3578016` | LLM Platforms 122→126 (Langfuse, Helicone, Scale AI, Baseten) |
+| `82e1e9d` | Life in Time URL sharing + 🔗 Share link button |
+| `a7880b1` | Glossary +5 terms (Temperature, Top-p, Tokenization, Prefix Caching, Pre-training) |
+| `a356fa7` | Glossary +4 core terms (Multimodal, Tool Use, Vector Store, Inference) |
 
 ---
 
