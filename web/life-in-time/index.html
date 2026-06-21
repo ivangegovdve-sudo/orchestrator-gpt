@@ -462,8 +462,8 @@ function calculate() {
       kidLeft > 0 ? 'left before your child becomes a teenager.' : 'Your child is already a teenager.';
     document.getElementById('kidNote').textContent =
       kidLeft > 0
-        ? 'After 18 they'll have other priorities. Before that, you have their full world. Make each summer deliberate.'
-        : 'You're in the second chapter. Adult children still need you — just differently. The relationship is still forming.';
+        ? "After 18 they'll have other priorities. Before that, you have their full world. Make each summer deliberate."
+        : "You're in the second chapter. Adult children still need you — just differently. The relationship is still forming.";
 
     // Draw kid dots
     var dots = '';
@@ -524,7 +524,7 @@ function calculate() {
     yLeft < 10 ? 'You have ' + yLeft + ' years left.' :
     'You have ' + yLeft + ' years remaining.';
   document.getElementById('wakeSub').textContent =
-    'Age ' + age + ' → estimated ' + deathYear + '. Here's what that looks like in concrete numbers.';
+    'Age ' + age + ' → estimated ' + deathYear + ". Here's what that looks like in concrete numbers.";
 
   // ── Achievers ──
   var relevant = ACHIEVERS.filter(function(a){ return a.age >= age; });
