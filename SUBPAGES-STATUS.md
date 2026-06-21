@@ -36,6 +36,7 @@ Ran a continuous improvement pass across all active subpages. Below is the per-p
 - Expanded from 102 → 126 platforms (+24 new entries)
   - Original 20: Qwen, Reka AI, Minimax, Phind, Tabnine, OpenHands, Cursor Background Agent, Glide, Luma Dream Machine, Haiper AI, Hedra, Krea.ai, Udio, LiveKit, Speechify, Agno, Smolagents, Mem0, Fal.ai, Unstructured.io
   - Additional 4: Langfuse (observability), Helicone (proxy/observability), Scale AI (data labeling), Baseten (model deployment)
+  - Session 3 additions (4): Writer (enterprise AI), OpenPipe (fine-tuning), SambaNova (fast inference chips), DeepInfra (cost-optimized API)
 - Added green "NEW" badge on recently added platforms
 - Added `/` keyboard shortcut to focus search input
 - Clear-filters button already wired (shows when filters active)
@@ -158,7 +159,8 @@ Ran a continuous improvement pass across all active subpages. Below is the per-p
 - Back-to-hub links: all active subpages have them
 - `/` keyboard shortcut: LLM Platforms + AI Glossary
 - Calendar Generator card added to hub grid (was missing)
-- Hub card counts updated: 126 platforms · 522 glossary terms · 24 movies
+- Hub card counts updated: 130 platforms · 522 glossary terms · 24 movies
+- Meta description + OG tags added to: Life in Time, Mendeleev, Kids Movie Library, LLM Council
 
 ---
 
@@ -182,6 +184,8 @@ Ran a continuous improvement pass across all active subpages. Below is the per-p
 | `c52d1d7` | Glossary +5 foundational terms (Agent, Few-shot, Zero-shot, Prompt Engineering, Fine-tuning) + hub hero tagline + 2 council example questions |
 | `4743cd3` | Mendeleev: recipes for F(9), Cr(24), Co(27), Sn(50), Ba(56) — 5 new elements |
 | `a27b4c9` | Kids movies 20→24 (Moana, Encanto, HTTYD, Paddington) + hub footer 24 movies |
+| `19f09f7` | SEO: meta description + OG tags for Life in Time, Mendeleev, Kids Movies, Council |
+| `6924a58` | LLM Platforms 126→130 (Writer, OpenPipe, SambaNova, DeepInfra) + hub counts |
 
 ---
 
