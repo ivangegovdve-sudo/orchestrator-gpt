@@ -61,6 +61,8 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,san
 .stat-card.s-meals  .val{color:var(--green)}
 .stat-card.s-hearts .val{color:var(--gold)}
 .stat-card.s-moons  .val{color:#c084fc}
+.stat-card.s-mins   .val{color:var(--blue)}
+.stat-card.s-books  .val{color:var(--green)}
 
 @keyframes statIn {
   from { opacity:0; transform: translateY(18px) scale(.95); }
@@ -102,6 +104,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,san
 .positive-header h2{font-size:clamp(1.3em,3.5vw,2em);color:var(--gold);font-weight:800}
 .positive-header .pos-sub{color:var(--muted);margin-top:6px;font-size:.9em}
 
+.achievers-header{font-size:.82em;color:var(--gold);margin-bottom:12px;opacity:.8}
 .achievers-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px;margin-bottom:40px}
 @keyframes achIn {
   from { opacity:0; transform: translateY(12px); }
@@ -254,6 +257,16 @@ const ACHIEVERS = [
   {age:65, name:'Laura Ingalls Wilder', desc:"Published the first Little House book at 65. Wrote eight beloved novels between ages 65 and 76."},
   {age:56, name:'Toni Morrison',       desc:"Won the Pulitzer Prize for Beloved at 56. Received the Nobel Prize in Literature at 62."},
   {age:34, name:'Andrea Bocelli',      desc:"Discovered by Pavarotti at 34 with no formal training. Went on to become the best-selling classical artist ever, with 90M+ albums sold."},
+  {age:67, name:'Stan Lee',            desc:"Co-created the Marvel Universe across decades, but his most iconic cameo era and cultural legacy solidified when he was well past 60."},
+  {age:66, name:'Ridley Scott',        desc:"Directed Blade Runner at 44, but made Gladiator at 62 and many of his most commercially successful films in his 60s and 70s."},
+  {age:55, name:'Tim Berners-Lee',     desc:"Invented the World Wide Web at 34, but his global advocacy work and role shaping internet governance peaked long after 50."},
+  {age:62, name:'Peter Roget',         desc:"Published the Thesaurus at 73. Created a framework still used today — begun in his 20s but refined and released in retirement."},
+  {age:60, name:'Cormac McCarthy',     desc:"Published his breakthrough novel Blood Meridian at 52. Won the Pulitzer Prize for The Road at 73."},
+  {age:48, name:'Robin Wright',        desc:"Most famous for House of Cards — her Emmy-winning role as Claire Underwood began when she was 46, launching a second act as a powerhouse lead."},
+  {age:54, name:'Angela Bassett',      desc:"Received her first Oscar nomination at 34, but her second — for Black Panther: Wakanda Forever — came at 54, proving a career-defining performance can come at any age."},
+  {age:50, name:'Jeff Bezos',          desc:"Amazon started at 30, but his most audacious bets — AWS, Kindle, Prime, Blue Origin — all materialized when he was well past 40."},
+  {age:38, name:'Martin Luther King Jr.', desc:"Delivered 'I Have a Dream' at 34. Awarded the Nobel Peace Prize at 35. His global impact was complete before he was 40 — proving peaks need not wait for age."},
+  {age:51, name:'Anna Mary Robertson Moses', desc:"Better known as Grandma Moses. Had a second, more specific entry: sold her first painting at 78. But she started painting serious subjects at 76. Lived to 101."},
 ];
 
 const SKILL_PEAKS = [
@@ -325,6 +338,8 @@ function calculate() {
     {cls:'s-meals',  icon:'🍽️', val:fmt(mealsLeft),   lbl:'Meals',         ctx:'at 3 per day'},
     {cls:'s-hearts', icon:'💓', val:fmt(heartbeatsLeft), lbl:'Heartbeats',  ctx:'at 70 bpm'},
     {cls:'s-moons',  icon:'🌕', val:fmt(moonsLeft),   lbl:'Full Moons',    ctx:'monthly cycles'},
+    {cls:'s-mins',  icon:'⏱️', val:fmt(yLeft * 365.25 * 24 * 60), lbl:'Minutes',  ctx:'1,440 per day — use them'},
+    {cls:'s-books', icon:'📚', val:fmt(yLeft * 14),                lbl:'Books',    ctx:'at 1/month + holiday reads'},
   ];
 
   const grid = document.getElementById('statsGrid');
@@ -355,8 +370,16 @@ function calculate() {
     `Age ${age} → estimated ${deathYear}. Here's what that looks like in concrete numbers.`;
 
   // Build achievers (filter to those older than current age or useful for context)
+  const relevantAchievers = ACHIEVERS.filter(a => a.age >= age);
+  const achieversToShow = relevantAchievers.length >= 3 ? relevantAchievers : ACHIEVERS;
+  const achieverLabel = relevantAchievers.length >= 3
+    ? `${achieversToShow.length} people who achieved something major at age ${age} or later:`
+    : `${ACHIEVERS.length} inspiring late achievers:`;
   const achieversGrid = document.getElementById('achieversGrid');
-  achieversGrid.innerHTML = ACHIEVERS.map(a => `
+  achieversGrid.previousElementSibling && achieversGrid.previousElementSibling.classList.contains('achievers-header')
+    ? achieversGrid.previousElementSibling.textContent = achieverLabel
+    : achieversGrid.insertAdjacentHTML('beforebegin', `<p class="achievers-header">${achieverLabel}</p>`);
+  achieversGrid.innerHTML = achieversToShow.map(a => `
     <div class="achiever-card">
       <div class="ach-age">Age ${a.age}</div>
       <div class="ach-name">${a.name}</div>

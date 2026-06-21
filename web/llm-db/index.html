@@ -353,6 +353,12 @@ const PLATFORMS = [
     desc:"The Llama family (Llama 3.1/3.3, Llama 3.2 vision) are the dominant open-weight LLMs. Download weights free; run via Together, Groq, Fireworks, or locally." },
   { name:"DeepSeek", cat:"LLM API Providers", tag:"llm-api", url:"https://deepseek.com", by:"DeepSeek AI (China)",
     desc:"DeepSeek R1 and V3 are frontier-tier models at a fraction of the cost. R1 matches o1 on reasoning benchmarks. API pricing is 20-40x cheaper than OpenAI. Huge disruption in 2025." },
+  { name:"Qwen (Alibaba)", cat:"LLM API Providers", tag:"llm-api", url:"https://qwenlm.github.io", by:"Alibaba Cloud",
+    desc:"Alibaba's flagship model family. Qwen2.5 72B and Qwen2.5-Coder are top open-weight models; QwQ for reasoning. API via Alibaba Cloud DashScope; weights on HuggingFace." },
+  { name:"Reka AI", cat:"LLM API Providers", tag:"llm-api", url:"https://www.reka.ai", by:"Reka AI",
+    desc:"Multimodal frontier LLMs from an AI safety-focused lab. Reka Core, Flash, and Edge models handle text, images, and video. Competitive with top providers on reasoning and vision tasks." },
+  { name:"Minimax", cat:"LLM API Providers", tag:"llm-api", url:"https://www.minimaxi.com", by:"MiniMax (China)",
+    desc:"Chinese AI startup building MoE-based LLMs (MiniMax-Text-01) with 1M context and the Hailuo video generation model. API available internationally." },
   { name:"Cerebras", cat:"Inference & Cloud Infra", tag:"infra", url:"https://cerebras.ai", by:"Cerebras Systems",
     desc:"World's fastest AI inference using Wafer Scale Engine chips (WSE-3). Llama 70B at 2,000+ tokens/sec via API — far faster than GPU alternatives. Free tier available." },
 
@@ -379,6 +385,12 @@ const PLATFORMS = [
     desc:"Async AI coding agent integrated as a GitHub App. Picks up Issues, writes code, and opens PRs autonomously. 2M context, fire-and-forget workflow. Included in Google subscription." },
   { name:"Gemini Code Assist", cat:"AI Coding Tools", tag:"coding", url:"https://codeassist.google.com", by:"Google",
     desc:"Google's AI coding assistant for VS Code and JetBrains. Powered by Gemini; inline suggestions, code generation, and agentic chat. Free tier for individuals." },
+  { name:"Phind", cat:"AI Coding Tools", tag:"coding", url:"https://www.phind.com", by:"Phind",
+    desc:"AI search engine optimized for developers. Searches technical docs, Stack Overflow, and GitHub to give direct, code-first answers. Custom Phind-70B model trained on code." },
+  { name:"Tabnine", cat:"AI Coding Tools", tag:"coding", url:"https://www.tabnine.com", by:"Tabnine",
+    desc:"AI code completion with strong privacy controls. Runs models locally or privately in your cloud; never trains on your code. Supports all major IDEs and languages." },
+  { name:"OpenHands (All-Hands AI)", cat:"AI Coding Tools", tag:"coding", url:"https://github.com/All-Hands-AI/OpenHands", by:"All-Hands AI (OSS)",
+    desc:"Open-source AI software engineering agent (formerly OpenDevin). Runs in a sandboxed environment to browse the web, write code, run tests, and submit PRs. Works with any LLM backend." },
 
   // ── AI APP BUILDERS ────────────────────────────────────────────────────────
   { name:"Lovable", cat:"AI App Builders", tag:"builder", url:"https://lovable.dev", by:"Lovable",
@@ -395,6 +407,10 @@ const PLATFORMS = [
     desc:"Open-source LLM app development platform. Visual workflow builder for RAG pipelines, chatbots, and agents. Self-host or cloud." },
   { name:"Flowise", cat:"AI App Builders", tag:"builder", url:"https://flowiseai.com", by:"FlowiseAI (OSS)",
     desc:"Open-source LangChain drag-and-drop UI. Build chatbots and RAG pipelines visually. Self-hosted or cloud. Connects to 100+ integrations." },
+  { name:"Cursor Background Agent", cat:"AI App Builders", tag:"builder", url:"https://cursor.sh", by:"Anysphere",
+    desc:"Cursor's cloud-based background agent mode: describe a task, the agent spins up a cloud VM, codes the solution autonomously, and opens a PR. Pairs with the Cursor IDE." },
+  { name:"Glide", cat:"AI App Builders", tag:"builder", url:"https://www.glideapps.com", by:"Glide",
+    desc:"No-code app builder with a native AI column type. Add LLM-powered columns to any data source (Sheets, Airtable, SQL) to classify, summarize, or generate content at scale." },
 
   // ── AI AGENTS & ORCHESTRATION ──────────────────────────────────────────────
   { name:"LangChain", cat:"AI Agents & Orchestration", tag:"agents", url:"https://www.langchain.com", by:"LangChain Inc.",
@@ -421,6 +437,12 @@ const PLATFORMS = [
     desc:"TypeScript-native AI agent framework. Workflows, memory, tool integrations, and evals built-in. Designed for production; strong type safety. Rapidly gaining adoption in 2025." },
   { name:"Google ADK", cat:"AI Agents & Orchestration", tag:"agents", url:"https://google.github.io/adk-docs", by:"Google (OSS)",
     desc:"Agent Development Kit v2. SequentialAgent, ParallelAgent, LoopAgent primitives for building multi-agent systems. Open-source Python/Go; pairs with Gemini or any LLM." },
+  { name:"Agno (PhiData)", cat:"AI Agents & Orchestration", tag:"agents", url:"https://docs.agno.com", by:"Agno (OSS)",
+    desc:"Lightweight Python agent framework (formerly PhiData). Agno agents have memory, knowledge, tools, and reasoning out of the box. Model-agnostic; minimal boilerplate." },
+  { name:"Smolagents (HuggingFace)", cat:"AI Agents & Orchestration", tag:"agents", url:"https://huggingface.co/docs/smolagents", by:"HuggingFace (OSS)",
+    desc:"Minimal agent library from HuggingFace. Agents write and run Python code to solve tasks rather than calling fixed JSON tools. Works with any HF or API-based model." },
+  { name:"Mem0", cat:"AI Agents & Orchestration", tag:"agents", url:"https://mem0.ai", by:"Mem0 (OSS)",
+    desc:"Persistent memory layer for AI agents and chatbots. Automatically extracts, stores, and retrieves user preferences and facts across conversations. SDK + managed cloud." },
 
   // ── SEARCH & RAG ───────────────────────────────────────────────────────────
   { name:"Exa (formerly Metaphor)", cat:"Search & RAG", tag:"search-rag", url:"https://exa.ai", by:"Exa",
@@ -439,6 +461,10 @@ const PLATFORMS = [
     desc:"Private ChatGPT alternative you run locally or self-host. Document workspaces, multi-user, LLM-agnostic, built-in vector store." },
   { name:"Perplexity API", cat:"Search & RAG", tag:"search-rag", url:"https://docs.perplexity.ai", by:"Perplexity AI",
     desc:"API giving programmatic access to Perplexity's search-augmented generation. Returns answers with cited sources from live web. Sonar model family." },
+  { name:"Fal.ai", cat:"Inference & Cloud Infra", tag:"infra", url:"https://fal.ai", by:"fal.ai",
+    desc:"Serverless GPU inference API specializing in image and video models (Flux, SD, AnimateDiff, Luma). Ultra-fast cold starts; developer-friendly Python and JS SDKs." },
+  { name:"Unstructured.io", cat:"Search & RAG", tag:"search-rag", url:"https://unstructured.io", by:"Unstructured (OSS)",
+    desc:"Document parsing and preprocessing for RAG. Extracts clean text from PDFs, Word docs, HTML, images, and tables with layout awareness. Open-source and managed cloud." },
 
   // ── IMAGE & VIDEO ──────────────────────────────────────────────────────────
   { name:"Midjourney", cat:"Image & Video AI", tag:"image-vid", url:"https://www.midjourney.com", by:"Midjourney Inc.",
@@ -467,6 +493,14 @@ const PLATFORMS = [
     desc:"Fast text-to-video and image-to-video generation. Pika 2.0 with Scenes for multi-shot video storytelling. Consumer-friendly; popular for social content." },
   { name:"Veo 2 (Google)", cat:"Image & Video AI", tag:"image-vid", url:"https://deepmind.google/technologies/veo", by:"Google DeepMind",
     desc:"Google's flagship text-to-video model. Generates high-fidelity videos up to 2 minutes with complex camera controls and physical accuracy. Available via Vertex AI." },
+  { name:"Luma Dream Machine", cat:"Image & Video AI", tag:"image-vid", url:"https://lumalabs.ai/dream-machine", by:"Luma AI",
+    desc:"High-quality text-to-video and image-to-video model with smooth motion and physical realism. Ray2 model generates cinematic 5-second clips; fast API available." },
+  { name:"Haiper AI", cat:"Image & Video AI", tag:"image-vid", url:"https://haiper.ai", by:"Haiper AI",
+    desc:"Video generation model by ex-DeepMind researchers. Fast 2-4 second clip generation, outpaint/extend, and re-animate from still images. Generous free tier." },
+  { name:"Hedra", cat:"Image & Video AI", tag:"image-vid", url:"https://www.hedra.com", by:"Hedra",
+    desc:"Talking-head video generation: give a portrait photo + audio, Hedra animates realistic lip-sync and facial expressions. Character-1 model is the best publicly available." },
+  { name:"Krea.ai", cat:"Image & Video AI", tag:"image-vid", url:"https://www.krea.ai", by:"Krea",
+    desc:"Real-time AI image generation and enhancement. Sketch or describe → instant visual output with canvas controls, upscaling, and video generation. Live API for creative tools." },
 
   // ── VOICE & AUDIO ──────────────────────────────────────────────────────────
   { name:"ElevenLabs", cat:"Voice & Audio AI", tag:"voice", url:"https://elevenlabs.io", by:"ElevenLabs",
@@ -491,6 +525,12 @@ const PLATFORMS = [
     desc:"Emotional intelligence for voice. EVI (Empathic Voice Interface) understands tone, adjusts response, and expresses nuanced emotions. SDK for building emotionally intelligent apps." },
   { name:"Suno", cat:"Voice & Audio AI", tag:"voice", url:"https://suno.com", by:"Suno AI",
     desc:"AI music generation from text prompts. Create full songs with lyrics, melody, and production in seconds. V4 produces radio-quality tracks. Free tier available." },
+  { name:"Udio", cat:"Voice & Audio AI", tag:"voice", url:"https://www.udio.com", by:"Udio AI",
+    desc:"AI music generation platform. Create full songs from text prompts with distinct genres, vocals, and instruments. Competes with Suno; strong on genre diversity and audio quality." },
+  { name:"LiveKit", cat:"Voice & Audio AI", tag:"voice", url:"https://livekit.io", by:"LiveKit (OSS)",
+    desc:"Open-source real-time audio/video infra optimized for AI voice agents. WebRTC framework + LiveKit Agents SDK for building conversational AI with sub-200ms latency." },
+  { name:"Speechify", cat:"Voice & Audio AI", tag:"voice", url:"https://speechify.com", by:"Speechify Inc.",
+    desc:"AI text-to-speech app and API. 200+ studio voices, 50+ languages, listening speed up to 4.5x. Popular for accessibility and content creation; also offers voice cloning." },
 
   // ── INFERENCE & CLOUD AI INFRA ─────────────────────────────────────────────
   { name:"HuggingFace", cat:"Inference & Cloud Infra", tag:"infra", url:"https://huggingface.co", by:"Hugging Face",
