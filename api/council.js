@@ -1,18 +1,42 @@
 "use strict";
 const https = require("https");
 
-const FREE_MODEL = "meta-llama/llama-3.3-70b-instruct:free";
-const DEFAULT_ROUNDS = 2; // Number of proposer passes (≥2 means at least one critique loop)
+// ── Diverse free-tier model roster ──────────────────────────────────────────
+// Each role uses a DIFFERENT model family to maximize architectural diversity.
+// A council of clones shares blind spots; heterogeneous families catch errors
+// each other misses. Primary is tried first; fallback used on 429 or failure.
+// Slugs verified on OpenRouter free catalog, June 2026.
+//
+// Role         Primary                                    Family       Fallback
+// -----------  -----------------------------------------  -----------  ------------------------------------------
+// Proposer R1  openai/gpt-oss-120b:free                  OpenAI       meta-llama/llama-3.3-70b-instruct:free
+// Critic       nvidia/nemotron-3-super-120b-a12b:free    NVIDIA       deepseek/deepseek-r1:free
+// Proposer Rev qwen/qwen3-coder:free                     Alibaba Qwen google/gemma-3-27b-it:free
+// Synthesizer  nousresearch/hermes-3-llama-3.1-405b:free NousResearch meta-llama/llama-3.3-70b-instruct:free
+// Judge        openai/gpt-oss-20b:free                   OpenAI-20B   z-ai/glm-4.5-air:free
+const ROSTER = {
+  proposer_r1:  ["openai/gpt-oss-120b:free",                "meta-llama/llama-3.3-70b-instruct:free"],
+  critic:       ["nvidia/nemotron-3-super-120b-a12b:free",   "deepseek/deepseek-r1:free"],
+  proposer_rev: ["qwen/qwen3-coder:free",                    "google/gemma-3-27b-it:free"],
+  synthesizer:  ["nousresearch/hermes-3-llama-3.1-405b:free","meta-llama/llama-3.3-70b-instruct:free"],
+  judge:        ["openai/gpt-oss-20b:free",                  "z-ai/glm-4.5-air:free"],
+};
 
-function callOpenRouter(messages, apiKey) {
+const DEFAULT_ROUNDS = 2; // ≥2 ensures at least one critique-then-revise loop
+
+// Short label for SSE display (last path segment, strip :free)
+function shortName(slug) {
+  return slug.split("/").pop().replace(/:free$/, "");
+}
+
+function callSingleModel(messages, apiKey, model, maxTokens) {
   return new Promise((resolve, reject) => {
     const body = JSON.stringify({
-      model: FREE_MODEL,
+      model,
       messages,
-      max_tokens: 1000,
+      max_tokens: maxTokens || 800,
       temperature: 0.7,
     });
-
     const req = https.request(
       {
         hostname: "openrouter.ai",
@@ -28,20 +52,18 @@ function callOpenRouter(messages, apiKey) {
       },
       (res) => {
         let data = "";
-        res.on("data", (chunk) => { data += chunk; });
+        res.on("data", (c) => { data += c; });
         res.on("end", () => {
           if (res.statusCode < 200 || res.statusCode >= 300) {
-            return reject(new Error(`OpenRouter ${res.statusCode}: ${data}`));
+            return reject(new Error(`HTTP ${res.statusCode}: ${data.slice(0, 300)}`));
           }
           try {
             const parsed = JSON.parse(data);
             const content = parsed?.choices?.[0]?.message?.content;
-            if (!content) {
-              return reject(new Error(`Empty response: ${data}`));
-            }
+            if (!content) return reject(new Error(`Empty: ${data.slice(0, 200)}`));
             resolve(content);
           } catch (e) {
-            reject(new Error(`Parse error: ${data.slice(0, 200)}`));
+            reject(new Error(`Parse: ${data.slice(0, 200)}`));
           }
         });
       }
@@ -52,24 +74,32 @@ function callOpenRouter(messages, apiKey) {
   });
 }
 
+// Try each model in order; return { text, model } for the first that succeeds.
+async function callWithFallback(messages, apiKey, modelList, maxTokens) {
+  let lastErr;
+  for (const model of modelList) {
+    try {
+      const text = await callSingleModel(messages, apiKey, model, maxTokens);
+      return { text, model };
+    } catch (err) {
+      lastErr = err;
+      // Continue to next model on any failure (rate-limit, 5xx, parse error)
+    }
+  }
+  throw lastErr || new Error("All models in roster failed");
+}
+
 module.exports = async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
 
-  if (req.method === "OPTIONS") {
-    return res.status(200).end();
-  }
-
-  if (req.method !== "POST") {
-    return res.status(405).json({ error: "Method not allowed" });
-  }
+  if (req.method === "OPTIONS") return res.status(200).end();
+  if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
 
   const apiKey = process.env.OPENROUTER_API_KEY;
   if (!apiKey) {
-    return res
-      .status(503)
-      .json({ error: "OPENROUTER_API_KEY is not configured on this deployment." });
+    return res.status(503).json({ error: "OPENROUTER_API_KEY is not configured on this deployment." });
   }
 
   let body = "";
@@ -79,11 +109,8 @@ module.exports = async function handler(req, res) {
   });
 
   let question, rounds;
-  try {
-    ({ question, rounds } = JSON.parse(body));
-  } catch {
-    return res.status(400).json({ error: "Invalid JSON body." });
-  }
+  try { ({ question, rounds } = JSON.parse(body)); }
+  catch { return res.status(400).json({ error: "Invalid JSON body." }); }
 
   if (!question || typeof question !== "string" || question.trim().length === 0) {
     return res.status(400).json({ error: "question is required." });
@@ -102,40 +129,45 @@ module.exports = async function handler(req, res) {
   try {
     const proposerTexts = [];
     const criticTexts = [];
+    const proposerModels = [];
+    const criticModels = [];
 
-    // Round 1 — Initial Proposal
-    send({ stage: "proposer", round: 1, status: "thinking" });
-    proposerTexts[0] = await callOpenRouter(
+    // ── Round 1: Initial Proposal ──────────────────────────────────────────
+    send({ stage: "proposer", round: 1, status: "thinking", roster: ROSTER.proposer_r1.map(shortName) });
+
+    const p1 = await callWithFallback(
       [
         {
           role: "system",
           content:
             "You are the Proposer in a multi-role LLM Council. " +
-            "Given a question, provide a thorough, well-reasoned initial answer. " +
-            "Be direct, substantive, and confident. Focus on depth, not length — be concise.",
+            "Give a thorough, well-reasoned initial answer. " +
+            "Be direct, substantive, and confident. Prioritize depth over hedging.",
         },
         { role: "user", content: q },
       ],
-      apiKey
+      apiKey, ROSTER.proposer_r1, 800
     );
-    send({ stage: "proposer", round: 1, status: "done", text: proposerTexts[0] });
+    proposerTexts.push(p1.text);
+    proposerModels.push(p1.model);
+    send({ stage: "proposer", round: 1, status: "done", text: p1.text, model: shortName(p1.model) });
 
-    // Rounds 2..numRounds — Critique then Revise loop
-    // Critic round (r-1) critiques Proposer round (r-1), then Proposer round r revises
+    // ── Rounds 2..numRounds: Critique → Revise loop ────────────────────────
     for (let r = 2; r <= numRounds; r++) {
       const prevProposal = proposerTexts[r - 2];
 
-      // Critic critiques the previous proposer output
-      send({ stage: "critic", round: r - 1, status: "thinking" });
-      criticTexts[r - 2] = await callOpenRouter(
+      // Critic — different family than the proposer
+      const criticRoster = ROSTER.critic;
+      send({ stage: "critic", round: r - 1, status: "thinking", roster: criticRoster.map(shortName) });
+
+      const c = await callWithFallback(
         [
           {
             role: "system",
             content:
               "You are the Critic in a multi-role LLM Council. " +
               "Identify the key weaknesses, blind spots, or missing nuance in the proposal. " +
-              "Be specific and constructive — strengthen the answer, don't dismiss it. " +
-              "Note at least two concrete concerns. Be concise.",
+              "Be specific and constructive. Note at least two concrete concerns. Be concise.",
           },
           {
             role: "user",
@@ -145,96 +177,94 @@ module.exports = async function handler(req, res) {
               "Critique the proposal above.",
           },
         ],
-        apiKey
+        apiKey, criticRoster, 600
       );
-      send({ stage: "critic", round: r - 1, status: "done", text: criticTexts[r - 2] });
+      criticTexts.push(c.text);
+      criticModels.push(c.model);
+      send({ stage: "critic", round: r - 1, status: "done", text: c.text, model: shortName(c.model) });
 
-      // Proposer revises based on the critique
-      send({ stage: "proposer", round: r, status: "thinking" });
-      proposerTexts[r - 1] = await callOpenRouter(
+      // Proposer Revision — yet another family
+      const revRoster = r === 2 ? ROSTER.proposer_rev : ROSTER.proposer_r1;
+      send({ stage: "proposer", round: r, status: "thinking", roster: revRoster.map(shortName) });
+
+      const p = await callWithFallback(
         [
           {
             role: "system",
             content:
               "You are the Proposer in a multi-role LLM Council. " +
-              "A critic identified weaknesses in your previous answer. " +
-              "Revise your answer to address those concerns while preserving your core insights. " +
-              "Be direct and concise.",
+              "A critic from a different AI family identified weaknesses in your previous answer. " +
+              "Revise to address those concerns while preserving your core insights. Be direct.",
           },
           {
             role: "user",
             content:
               `Original question:\n${q}\n\n` +
               `Your previous answer (Round ${r - 1}):\n${prevProposal}\n\n` +
-              `Critic's feedback:\n${criticTexts[r - 2]}\n\n` +
+              `Critic's feedback:\n${c.text}\n\n` +
               `Write your revised answer for Round ${r}.`,
           },
         ],
-        apiKey
+        apiKey, revRoster, 800
       );
-      send({ stage: "proposer", round: r, status: "done", text: proposerTexts[r - 1] });
+      proposerTexts.push(p.text);
+      proposerModels.push(p.model);
+      send({ stage: "proposer", round: r, status: "done", text: p.text, model: shortName(p.model) });
     }
 
-    // Synthesizer — combines all rounds into the definitive answer
-    send({ stage: "synthesizer", status: "thinking" });
-    const allRoundsContext =
-      proposerTexts.map((t, i) => `Proposer Round ${i + 1}:\n${t}`).join("\n\n") +
+    // ── Synthesizer — different family again ───────────────────────────────
+    send({ stage: "synthesizer", status: "thinking", roster: ROSTER.synthesizer.map(shortName) });
+
+    const allRoundsCtx =
+      proposerTexts.map((t, i) => `Proposer Round ${i + 1} (${shortName(proposerModels[i])}):\n${t}`).join("\n\n") +
       (criticTexts.length
-        ? "\n\n" + criticTexts.map((t, i) => `Critic Round ${i + 1}:\n${t}`).join("\n\n")
+        ? "\n\n" + criticTexts.map((t, i) => `Critic Round ${i + 1} (${shortName(criticModels[i])}):\n${t}`).join("\n\n")
         : "");
 
-    const synthText = await callOpenRouter(
+    const synth = await callWithFallback(
       [
         {
           role: "system",
           content:
             "You are the Synthesizer in a multi-role LLM Council. " +
-            "Review all proposer drafts and critic feedback, then produce the definitive final answer. " +
-            "Incorporate the strongest points and address the critiques. " +
-            "Be comprehensive yet concise.",
+            "You have received proposals and critiques from multiple distinct AI models. " +
+            "Produce the definitive final answer — incorporate the strongest points from all rounds " +
+            "and address the critiques. Be comprehensive yet concise.",
         },
         {
           role: "user",
-          content:
-            `Original question:\n${q}\n\n` +
-            allRoundsContext +
-            "\n\nSynthesize the best final answer.",
+          content: `Original question:\n${q}\n\n${allRoundsCtx}\n\nSynthesize the best final answer.`,
         },
       ],
-      apiKey
+      apiKey, ROSTER.synthesizer, 1000
     );
-    send({ stage: "synthesizer", status: "done", text: synthText });
+    send({ stage: "synthesizer", status: "done", text: synth.text, model: shortName(synth.model) });
 
-    // Judge — final verdict with confidence and call-to-action
-    send({ stage: "judge", status: "thinking" });
-    const judgeText = await callOpenRouter(
+    // ── Judge — decisive final verdict ─────────────────────────────────────
+    send({ stage: "judge", status: "thinking", roster: ROSTER.judge.map(shortName) });
+
+    const judge = await callWithFallback(
       [
         {
           role: "system",
           content:
             "You are the Judge in a multi-role LLM Council. " +
-            "After reviewing the full deliberation, deliver a clear VERDICT. " +
-            "Use EXACTLY this structure:\n" +
-            "VERDICT: [core decision or recommendation — one sentence]\n" +
-            "CONFIDENCE: [High | Medium | Low — plus one-line rationale]\n" +
-            "KEY REASONING:\n" +
-            "- [point 1]\n" +
-            "- [point 2]\n" +
-            "- [point 3]\n" +
+            "Deliver a clear VERDICT using EXACTLY this structure:\n" +
+            "VERDICT: [core decision — one sentence]\n" +
+            "CONFIDENCE: [High | Medium | Low + one-line rationale]\n" +
+            "KEY REASONING:\n- [point 1]\n- [point 2]\n- [point 3]\n" +
             "CALL TO ACTION: [specific first step the questioner should take]\n" +
             "Be decisive. No padding.",
         },
         {
           role: "user",
           content:
-            `Original question:\n${q}\n\n` +
-            `Council's final synthesis:\n${synthText}\n\n` +
-            "Deliver your verdict.",
+            `Original question:\n${q}\n\nCouncil synthesis:\n${synth.text}\n\nDeliver your verdict.`,
         },
       ],
-      apiKey
+      apiKey, ROSTER.judge, 500
     );
-    send({ stage: "judge", status: "done", text: judgeText });
+    send({ stage: "judge", status: "done", text: judge.text, model: shortName(judge.model) });
 
     send({ stage: "complete" });
   } catch (err) {

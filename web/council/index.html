@@ -32,23 +32,9 @@
       padding: 40px 20px 60px;
     }
 
-    .page {
-      max-width: 780px;
-      margin: 0 auto;
-      display: flex;
-      flex-direction: column;
-      gap: 28px;
-    }
+    .page { max-width: 780px; margin: 0 auto; display: flex; flex-direction: column; gap: 28px; }
 
-    .back-link {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      color: var(--muted);
-      text-decoration: none;
-      font-size: 13px;
-      transition: color 0.2s;
-    }
+    .back-link { display: inline-flex; align-items: center; gap: 6px; color: var(--muted); text-decoration: none; font-size: 13px; transition: color 0.2s; }
     .back-link:hover { color: var(--text); }
 
     header { text-align: center; }
@@ -63,29 +49,12 @@
       -webkit-text-fill-color: transparent;
     }
 
-    .tagline {
-      margin: 0;
-      color: var(--muted);
-      font-size: 15px;
-      line-height: 1.5;
-    }
+    .tagline { margin: 0; color: var(--muted); font-size: 15px; line-height: 1.5; }
 
-    .flow-row {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
-      font-size: 12px;
-      color: var(--muted);
-      flex-wrap: wrap;
-    }
+    .flow-row { display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 12px; color: var(--muted); flex-wrap: wrap; }
     .role-badge {
-      padding: 3px 10px;
-      border-radius: 20px;
-      font-weight: 600;
-      font-size: 11px;
-      letter-spacing: 0.04em;
-      text-transform: uppercase;
+      padding: 3px 10px; border-radius: 20px; font-weight: 600;
+      font-size: 11px; letter-spacing: 0.04em; text-transform: uppercase;
     }
     .role-badge.proposer { background: rgba(14,165,233,0.12); border: 1px solid rgba(14,165,233,0.3); color: var(--accent); }
     .role-badge.critic   { background: rgba(244,63,94,0.12);  border: 1px solid rgba(244,63,94,0.3);  color: var(--rose); }
@@ -94,242 +63,134 @@
     .arrow { color: #475569; }
 
     .input-card {
-      background: var(--card-bg);
-      border: 1px solid var(--card-border);
-      border-radius: 16px;
-      padding: 24px;
-      backdrop-filter: blur(12px);
-      display: flex;
-      flex-direction: column;
-      gap: 14px;
+      background: var(--card-bg); border: 1px solid var(--card-border);
+      border-radius: 16px; padding: 24px; backdrop-filter: blur(12px);
+      display: flex; flex-direction: column; gap: 14px;
     }
 
     textarea {
-      width: 100%;
-      background: rgba(0,0,0,0.4);
-      border: 1px solid rgba(255,255,255,0.1);
-      border-radius: 10px;
-      color: var(--text);
-      font-family: inherit;
-      font-size: 15px;
-      line-height: 1.6;
-      padding: 14px 16px;
-      resize: vertical;
-      min-height: 90px;
-      transition: border-color 0.2s;
-      outline: none;
+      width: 100%; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 10px; color: var(--text); font-family: inherit; font-size: 15px;
+      line-height: 1.6; padding: 14px 16px; resize: vertical; min-height: 90px;
+      transition: border-color 0.2s; outline: none;
     }
     textarea:focus { border-color: rgba(14,165,233,0.5); }
     textarea::placeholder { color: #475569; }
 
-    .input-footer {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-    }
+    .input-footer { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 
-    .model-label {
-      font-size: 11px;
-      color: #475569;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
+    .model-label { font-size: 11px; color: #475569; display: flex; align-items: center; gap: 6px; }
     .free-badge {
-      background: rgba(34,197,94,0.12);
-      border: 1px solid rgba(34,197,94,0.25);
-      color: var(--green);
-      padding: 2px 7px;
-      border-radius: 4px;
-      font-size: 10px;
-      font-weight: 600;
-      text-transform: uppercase;
+      background: rgba(34,197,94,0.12); border: 1px solid rgba(34,197,94,0.25);
+      color: var(--green); padding: 2px 7px; border-radius: 4px;
+      font-size: 10px; font-weight: 600; text-transform: uppercase;
     }
 
     .submit-btn {
       background: linear-gradient(135deg, var(--accent), var(--purple));
-      border: none;
-      border-radius: 10px;
-      color: #fff;
-      cursor: pointer;
-      font-family: inherit;
-      font-size: 14px;
-      font-weight: 600;
-      padding: 10px 24px;
-      transition: opacity 0.2s, transform 0.15s;
-      white-space: nowrap;
+      border: none; border-radius: 10px; color: #fff; cursor: pointer;
+      font-family: inherit; font-size: 14px; font-weight: 600; padding: 10px 24px;
+      transition: opacity 0.2s, transform 0.15s; white-space: nowrap;
     }
     .submit-btn:hover:not(:disabled) { opacity: 0.9; transform: translateY(-1px); }
     .submit-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
 
     .example-q {
-      background: rgba(255,255,255,0.04);
-      border: 1px solid rgba(255,255,255,0.08);
-      border-radius: 8px;
-      color: var(--muted);
-      cursor: pointer;
-      font-size: 12px;
-      padding: 6px 12px;
-      font-family: inherit;
-      transition: all 0.2s;
+      background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 8px; color: var(--muted); cursor: pointer; font-size: 12px;
+      padding: 6px 12px; font-family: inherit; transition: all 0.2s;
     }
     .example-q:hover { background: rgba(255,255,255,0.08); color: var(--text); border-color: rgba(255,255,255,0.15); }
 
+    /* Diversity roster display */
+    .roster-info {
+      background: rgba(139,92,246,0.06); border: 1px solid rgba(139,92,246,0.15);
+      border-radius: 10px; padding: 10px 14px; font-size: 11px; color: #9ca3af;
+      line-height: 1.7;
+    }
+    .roster-info strong { color: #c4b5fd; }
+    .model-chip {
+      display: inline-block; background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 4px; padding: 1px 6px; font-family: monospace; font-size: 10px;
+      color: #94a3b8; margin: 1px;
+    }
+
     .error-banner {
-      background: rgba(244,63,94,0.1);
-      border: 1px solid rgba(244,63,94,0.3);
-      border-radius: 10px;
-      padding: 14px 18px;
-      color: var(--rose);
-      font-size: 13px;
-      display: none;
+      background: rgba(244,63,94,0.1); border: 1px solid rgba(244,63,94,0.3);
+      border-radius: 10px; padding: 14px 18px; color: var(--rose); font-size: 13px; display: none;
     }
     .error-banner.visible { display: block; }
 
     .stages { display: flex; flex-direction: column; gap: 12px; }
 
-    .round-header {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      margin-top: 4px;
-    }
-    .round-label {
-      font-size: 10px;
-      font-weight: 700;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      color: #475569;
-      white-space: nowrap;
-    }
-    .round-line {
-      flex: 1;
-      height: 1px;
-      background: rgba(255,255,255,0.06);
-    }
+    .round-header { display: flex; align-items: center; gap: 10px; margin-top: 4px; }
+    .round-label { font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #475569; white-space: nowrap; }
+    .round-line  { flex: 1; height: 1px; background: rgba(255,255,255,0.06); }
 
     .stage-card {
-      background: var(--card-bg);
-      border: 1px solid var(--card-border);
-      border-radius: 14px;
-      overflow: hidden;
-      transition: border-color 0.3s;
+      background: var(--card-bg); border: 1px solid var(--card-border);
+      border-radius: 14px; overflow: hidden; transition: border-color 0.3s;
     }
     .stage-card.active { border-color: rgba(14,165,233,0.4); }
     .stage-card.done   { border-color: rgba(255,255,255,0.12); }
-
     .stage-card.judge-card { background: rgba(20, 16, 4, 0.7); }
     .stage-card.judge-card.active { border-color: rgba(245,158,11,0.5); }
     .stage-card.judge-card.done   { border-color: rgba(245,158,11,0.3); }
 
-    .stage-header {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 15px 20px;
-      cursor: pointer;
-      user-select: none;
-    }
+    .stage-header { display: flex; align-items: center; gap: 12px; padding: 15px 20px; cursor: pointer; user-select: none; }
 
-    .stage-icon {
-      width: 30px;
-      height: 30px;
-      border-radius: 8px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 15px;
-      flex-shrink: 0;
-    }
+    .stage-icon { width: 30px; height: 30px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 15px; flex-shrink: 0; }
     .stage-icon.proposer { background: rgba(14,165,233,0.15); }
     .stage-icon.critic   { background: rgba(244,63,94,0.15); }
     .stage-icon.synth    { background: rgba(34,197,94,0.15); }
     .stage-icon.judge    { background: rgba(245,158,11,0.15); }
 
     .stage-meta { flex: 1; min-width: 0; }
-    .stage-name {
-      font-size: 13px;
-      font-weight: 700;
-      display: flex;
-      align-items: center;
-      gap: 7px;
-    }
+    .stage-name { font-size: 13px; font-weight: 700; display: flex; align-items: center; gap: 7px; }
     .stage-desc { font-size: 11px; color: var(--muted); margin-top: 2px; }
 
-    .stage-status {
-      font-size: 11px;
-      color: var(--muted);
-      display: flex;
-      align-items: center;
-      gap: 5px;
-      flex-shrink: 0;
+    /* Model attribution tag shown inside each completed card header */
+    .model-tag-badge {
+      font-size: 9px; font-family: monospace; color: #64748b;
+      background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 4px; padding: 1px 5px; white-space: nowrap; display: none;
     }
+    .stage-card.done .model-tag-badge { display: inline-block; }
+
+    .stage-status { font-size: 11px; color: var(--muted); display: flex; align-items: center; gap: 5px; flex-shrink: 0; }
     .stage-status.thinking { color: var(--accent); }
     .stage-status.done     { color: var(--green); }
     .judge-card .stage-status.done { color: var(--amber); }
 
-    .spinner {
-      width: 11px;
-      height: 11px;
-      border: 2px solid currentColor;
-      border-top-color: transparent;
-      border-radius: 50%;
-      animation: spin 0.8s linear infinite;
-      display: inline-block;
-    }
+    .spinner { width: 11px; height: 11px; border: 2px solid currentColor; border-top-color: transparent; border-radius: 50%; animation: spin 0.8s linear infinite; display: inline-block; }
     @keyframes spin { to { transform: rotate(360deg); } }
 
     .chevron { color: var(--muted); font-size: 11px; transition: transform 0.3s; flex-shrink: 0; }
     .stage-card.open .chevron { transform: rotate(180deg); }
 
-    .stage-body {
-      max-height: 0;
-      overflow: hidden;
-      transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    }
+    .stage-body { max-height: 0; overflow: hidden; transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
     .stage-card.open .stage-body { max-height: 3000px; }
 
     .stage-content {
-      padding: 14px 20px 18px;
-      border-top: 1px solid rgba(255,255,255,0.05);
-      font-size: 13.5px;
-      line-height: 1.75;
-      color: #cbd5e1;
-      white-space: pre-wrap;
-      word-break: break-word;
+      padding: 14px 20px 18px; border-top: 1px solid rgba(255,255,255,0.05);
+      font-size: 13.5px; line-height: 1.75; color: #cbd5e1; white-space: pre-wrap; word-break: break-word;
     }
     .judge-card .stage-content { color: #fef3c7; }
 
     .placeholder-text { color: #3f4f62; font-style: italic; font-size: 13px; }
 
     .copy-btn {
-      float: right;
-      clear: right;
-      margin: 10px 20px 0 0;
-      background: rgba(255,255,255,0.05);
-      border: 1px solid rgba(255,255,255,0.1);
-      border-radius: 6px;
-      color: var(--muted);
-      cursor: pointer;
-      font-size: 11px;
-      font-weight: 600;
-      padding: 3px 9px;
-      font-family: inherit;
-      transition: all 0.18s;
-      opacity: 0;
-      pointer-events: none;
+      float: right; clear: right; margin: 10px 20px 0 0;
+      background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 6px; color: var(--muted); cursor: pointer; font-size: 11px;
+      font-weight: 600; padding: 3px 9px; font-family: inherit; transition: all 0.18s;
+      opacity: 0; pointer-events: none;
     }
     .stage-card.done .copy-btn { opacity: 1; pointer-events: auto; }
     .copy-btn:hover { background: rgba(255,255,255,0.1); color: var(--text); }
     .copy-btn.copied { color: var(--green); border-color: rgba(34,197,94,0.3); }
 
-    .model-tag {
-      font-size: 10px;
-      color: #475569;
-      text-align: center;
-      padding-top: 4px;
-    }
+    .footer-tag { font-size: 10px; color: #475569; text-align: center; padding-top: 4px; }
 
     @media (max-width: 520px) {
       h1 { font-size: 26px; }
@@ -344,7 +205,7 @@
 
     <header>
       <h1>&#9878;&#65039; LLM Council</h1>
-      <p class="tagline">Multi-round deliberation &mdash; critique fed back to proposer &mdash; judge&rsquo;s verdict.</p>
+      <p class="tagline">Heterogeneous AI panel &mdash; each role a different model family &mdash; no shared blind spots.</p>
     </header>
 
     <div class="flow-row">
@@ -359,6 +220,16 @@
       <span class="role-badge judge">Judge</span>
     </div>
 
+    <div class="roster-info">
+      <strong>Diverse model roster</strong> &mdash; each role uses a different AI family:<br>
+      <span class="model-chip">Proposer</span> OpenAI gpt-oss-120b &nbsp;
+      <span class="model-chip">Critic</span> NVIDIA Nemotron-120b &nbsp;
+      <span class="model-chip">Revision</span> Alibaba Qwen3-Coder &nbsp;
+      <span class="model-chip">Synth</span> Nous Hermes-3-405b &nbsp;
+      <span class="model-chip">Judge</span> OpenAI gpt-oss-20b
+      &mdash; with fallbacks if any provider rate-limits.
+    </div>
+
     <div class="input-card">
       <textarea id="question" placeholder="Ask the council anything &#8212; a decision, a concept, a plan&#8230;" rows="3"></textarea>
 
@@ -366,14 +237,14 @@
         <span style="font-size:11px; color:#475569; align-self:center;">Try:</span>
         <button class="example-q" onclick="fillQ(this)">Should I learn Rust or Go?</button>
         <button class="example-q" onclick="fillQ(this)">What makes a good API design?</button>
-        <button class="example-q" onclick="fillQ(this)">What's the best way to give critical feedback?</button>
+        <button class="example-q" onclick="fillQ(this)">Best way to give critical feedback?</button>
         <button class="example-q" onclick="fillQ(this)">Should I quit my job and freelance?</button>
         <button class="example-q" onclick="fillQ(this)">Is journaling actually useful?</button>
       </div>
 
       <div class="input-footer">
         <div class="model-label">
-          Llama 3.3 70B &middot; <span class="free-badge">free</span> &middot; 2 rounds + judge &middot; $0
+          5 families &middot; <span class="free-badge">free</span> &middot; 2 rounds + judge &middot; $0
         </div>
         <button class="submit-btn" id="submit-btn" onclick="runCouncil()">Convene Council</button>
       </div>
@@ -383,7 +254,7 @@
 
     <div class="stages" id="stages" style="display:none;"></div>
 
-    <p class="model-tag">Powered by meta-llama/llama-3.3-70b-instruct:free via OpenRouter &mdash; no cost, no account needed</p>
+    <p class="footer-tag">Free tier &middot; OpenAI / NVIDIA / Alibaba Qwen / Nous Research / OpenAI-20B via OpenRouter &mdash; $0</p>
   </div>
 
   <script>
@@ -409,16 +280,21 @@
       if (card) card.classList.toggle('open');
     }
 
-    function setStatus(cardId, type, text) {
+    function setStatus(cardId, type, html) {
       var el = document.getElementById('status-' + cardId);
       if (!el) return;
       el.className = 'stage-status ' + type;
-      el.innerHTML = type === 'thinking' ? '<span class="spinner"></span> ' + text : text;
+      el.innerHTML = type === 'thinking' ? '<span class="spinner"></span> ' + html : html;
     }
 
     function setContent(cardId, text) {
       var el = document.getElementById('content-' + cardId);
       if (el) el.textContent = text;
+    }
+
+    function setModelBadge(cardId, modelName) {
+      var el = document.getElementById('modelbadge-' + cardId);
+      if (el && modelName) el.textContent = modelName;
     }
 
     function openCard(cardId) {
@@ -465,7 +341,10 @@
         '<div class="stage-header" onclick="toggleStage(\'' + cardId + '\')">' +
           '<div class="stage-icon ' + roleClass + '">' + icon + '</div>' +
           '<div class="stage-meta">' +
-            '<div class="stage-name">' + name + '<span class="role-badge ' + roleClass + '" style="font-size:9px;">' + roleCap + '</span></div>' +
+            '<div class="stage-name">' + name +
+              '<span class="role-badge ' + roleClass + '" style="font-size:9px;">' + roleCap + '</span>' +
+              '<span class="model-tag-badge" id="modelbadge-' + cardId + '"></span>' +
+            '</div>' +
             '<div class="stage-desc">' + desc + '</div>' +
           '</div>' +
           '<div class="stage-status" id="status-' + cardId + '">Waiting</div>' +
@@ -479,48 +358,86 @@
     }
 
     function handleEvent(event) {
-      var stage = event.stage, round = event.round, status = event.status, text = event.text;
+      var stage = event.stage, round = event.round, status = event.status,
+          text = event.text, modelName = event.model;
 
       if (stage === 'proposer') {
         var id = 'proposer-r' + round;
         if (!document.getElementById('stage-' + id)) {
           ensureRoundHeader(round);
           var name = round === 1 ? 'Proposer &#8212; Initial' : 'Proposer &#8212; Revision ' + round;
-          var desc = round === 1 ? 'Forms the initial answer &#8212; direct, substantive, confident' : 'Revises based on critic feedback';
+          var desc = round === 1
+            ? 'Forms the initial answer &mdash; direct, substantive, confident'
+            : 'Revises based on critic feedback from a different AI family';
           createCard(id, 'proposer', '&#128161;', name, desc, '');
         }
-        if (status === 'thinking') { openCard(id); setStatus(id, 'thinking', 'Thinking&#8230;'); }
-        else if (status === 'done') { setContent(id, text); setStatus(id, 'done', '&#10003; Done'); doneCard(id); }
+        if (status === 'thinking') {
+          openCard(id);
+          var rosterHint = event.roster ? ' (' + event.roster[0] + ')' : '';
+          setStatus(id, 'thinking', 'Thinking&#8230;' + rosterHint);
+        } else if (status === 'done') {
+          setContent(id, text);
+          setModelBadge(id, modelName);
+          setStatus(id, 'done', '&#10003; Done');
+          doneCard(id);
+        }
       }
 
       else if (stage === 'critic') {
         var id = 'critic-r' + round;
         if (!document.getElementById('stage-' + id)) {
           ensureRoundHeader(round);
-          createCard(id, 'critic', '&#128269;', 'Critic &#8212; Round ' + round, 'Identifies weaknesses and blind spots &#8212; specific, constructive', '');
+          createCard(id, 'critic', '&#128269;', 'Critic &#8212; Round ' + round,
+            'Different AI family &mdash; catches what the proposer missed', '');
         }
-        if (status === 'thinking') { openCard(id); setStatus(id, 'thinking', 'Thinking&#8230;'); }
-        else if (status === 'done') { setContent(id, text); setStatus(id, 'done', '&#10003; Done'); doneCard(id); }
+        if (status === 'thinking') {
+          openCard(id);
+          var rosterHint = event.roster ? ' (' + event.roster[0] + ')' : '';
+          setStatus(id, 'thinking', 'Thinking&#8230;' + rosterHint);
+        } else if (status === 'done') {
+          setContent(id, text);
+          setModelBadge(id, modelName);
+          setStatus(id, 'done', '&#10003; Done');
+          doneCard(id);
+        }
       }
 
       else if (stage === 'synthesizer') {
         var id = 'synthesizer';
         if (!document.getElementById('stage-' + id)) {
           ensureDivider('synth', 'Synthesis', '#475569');
-          createCard(id, 'synth', '&#9989;', 'Synthesizer', 'Combines all rounds into the definitive answer', '');
+          createCard(id, 'synth', '&#9989;', 'Synthesizer',
+            'Third AI family combines all rounds into the definitive answer', '');
         }
-        if (status === 'thinking') { openCard(id); setStatus(id, 'thinking', 'Thinking&#8230;'); }
-        else if (status === 'done') { setContent(id, text); setStatus(id, 'done', '&#10003; Done'); doneCard(id); }
+        if (status === 'thinking') {
+          openCard(id);
+          var rosterHint = event.roster ? ' (' + event.roster[0] + ')' : '';
+          setStatus(id, 'thinking', 'Thinking&#8230;' + rosterHint);
+        } else if (status === 'done') {
+          setContent(id, text);
+          setModelBadge(id, modelName);
+          setStatus(id, 'done', '&#10003; Done');
+          doneCard(id);
+        }
       }
 
       else if (stage === 'judge') {
         var id = 'judge';
         if (!document.getElementById('stage-' + id)) {
           ensureDivider('judge', 'Verdict', 'var(--amber)');
-          createCard(id, 'judge', '&#9878;&#65039;', 'Judge &#8212; Verdict', 'Final decision &middot; confidence rating &middot; call to action', 'judge-card');
+          createCard(id, 'judge', '&#9878;&#65039;', 'Judge &#8212; Verdict',
+            'Fourth AI family delivers the final decision, confidence &amp; call to action', 'judge-card');
         }
-        if (status === 'thinking') { openCard(id); setStatus(id, 'thinking', 'Deliberating&#8230;'); }
-        else if (status === 'done') { setContent(id, text); setStatus(id, 'done', '&#10003; Verdict'); doneCard(id); }
+        if (status === 'thinking') {
+          openCard(id);
+          var rosterHint = event.roster ? ' (' + event.roster[0] + ')' : '';
+          setStatus(id, 'thinking', 'Deliberating&#8230;' + rosterHint);
+        } else if (status === 'done') {
+          setContent(id, text);
+          setModelBadge(id, modelName);
+          setStatus(id, 'done', '&#10003; Verdict');
+          doneCard(id);
+        }
       }
 
       else if (stage === 'error') {
