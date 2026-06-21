@@ -28,7 +28,7 @@ const ROSTER = {
   critic:       ["nvidia/nemotron-3-super-120b-a12b:free",      "google/gemma-4-26b-a4b-it:free"],
   proposer_rev: ["google/gemma-4-31b-it:free",                 "nvidia/nemotron-3-nano-30b-a3b:free"],
   synthesizer:  ["google/gemma-4-26b-a4b-it:free",             "nvidia/nemotron-3-super-120b-a12b:free"],
-  judge:        ["openai/gpt-oss-20b:free",                    "nvidia/nemotron-3-super-120b-a12b:free"],
+  judge:        ["nvidia/nemotron-3-super-120b-a12b:free",      "openai/gpt-oss-20b:free"],
 };
 
 const DEFAULT_ROUNDS = 2;     // >=2 ensures at least one critique-then-revise loop
@@ -271,18 +271,17 @@ module.exports = async function handler(req, res) {
         {
           role: "system",
           content:
-            "You are the Judge in a multi-role LLM Council. " +
-            "Output EXACTLY this structure and nothing else:\n" +
-            "VERDICT: [one decisive sentence]\n" +
-            "CONFIDENCE: [High or Medium or Low — one-line reason]\n" +
-            "KEY REASONING:\n- [point 1]\n- [point 2]\n- [point 3]\n" +
-            "CALL TO ACTION: [the single most important first step]\n" +
-            "Start immediately with VERDICT:. No preamble.",
+            "You are the Judge in a multi-role LLM Council. Be decisive. Start IMMEDIATELY with VERDICT: " +
+            "and use exactly this format:\n\n" +
+            "VERDICT: <one sentence decision>\n" +
+            "CONFIDENCE: <High|Medium|Low> — <one-line reason>\n" +
+            "KEY REASONING:\n• <point 1>\n• <point 2>\n• <point 3>\n" +
+            "CALL TO ACTION: <the single most important next step>",
         },
         {
           role: "user",
           content:
-            "Original question:\n" + q + "\n\nCouncil synthesis:\n" + synth.text + "\n\nDeliver your verdict now.",
+            "Question: " + q + "\n\nSynthesis: " + synth.text.slice(0, 1200) + "\n\nVerdict:",
         },
       ],
       apiKey, ROSTER.judge, 500
