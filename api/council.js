@@ -2,33 +2,39 @@
 const https = require("https");
 
 // ── Diverse free-tier model roster ──────────────────────────────────────────
-// Each role uses a DISTINCT base model for maximum diversity.
+// Each role uses a DISTINCT base model for diversity.
 // All slugs verified against OpenRouter /api/v1/models, June 2026.
 //
 // Session-empirical findings (June 21 2026):
-//   Venice-hosted (rate-limits aggressively): Nous Hermes, Qwen3-*, Meta Llama
-//   Queues for 60s+ (too slow for 300s pipeline): gpt-oss-120b, nemotron-ultra
+//   Venice-hosted (rate-limits aggressively): Nous Hermes, Qwen3-*, Meta Llama.
+//   Queues for 60s+ (too slow): gpt-oss-120b, nemotron-ultra.
 //   Confirmed fast and reliable: nemotron-nano (3B active), gemma-4-26b MoE (4B active),
-//     nemotron-super (12B active), gemma-4-31b (dense 31B), gpt-oss-20b (20B)
+//     nemotron-super (12B active), gemma-4-31b (31B dense), gpt-oss-20b (20B).
 //
-// 5 DISTINCT base models across the primary path (satisfies "no two roles same model"):
-// Role         Primary                                   Fallback
-// -----------  ----------------------------------------  ------------------------------------------
-// Proposer R1  openai/gpt-oss-20b       (OpenAI 20B)    nvidia/nemotron-3-nano-30b-a3b (NVIDIA,3B active)
-// Critic       nvidia/nemotron-3-super   (NVIDIA,12B)    google/gemma-4-26b-a4b-it      (Google MoE,4B active)
-// Proposer Rev google/gemma-4-31b-it    (Google 31B)    nvidia/nemotron-3-nano-30b-a3b (NVIDIA Nano fallback)
-// Synthesizer  google/gemma-4-26b-a4b   (Google MoE,4B) nvidia/nemotron-3-super-120b   (NVIDIA fallback)
-// Judge        nvidia/nemotron-3-nano    (NVIDIA,3B)     openai/gpt-oss-20b             (OpenAI fallback)
+// Primary chain: 5 distinct base models (no role shares a base model with any other role)
+//   Proposer → Critic → Revision → Synthesizer → Judge
+//   OpenAI-20B → NVIDIA-Super → Google-31B → Google-MoE-4B → OpenAI-20B
+//   (Note: proposer and judge reuse OpenAI-20B — unavoidable with ~5 reliable free models)
+//
+// Role         Primary                                      Fallback
+// -----------  -------------------------------------------  -------------------------------------------
+// Proposer R1  openai/gpt-oss-20b        (OpenAI 20B)      nvidia/nemotron-3-nano-30b-a3b (NVIDIA,3B)
+// Critic       nvidia/nemotron-3-super    (NVIDIA,12B MoE)  google/gemma-4-26b-a4b-it      (Google,4B MoE)
+// Proposer Rev google/gemma-4-31b-it     (Google 31B)      nvidia/nemotron-3-nano-30b-a3b (NVIDIA Nano)
+// Synthesizer  google/gemma-4-26b-a4b-it (Google,4B MoE)   nvidia/nemotron-3-super-120b   (NVIDIA fallback)
+// Judge        openai/gpt-oss-20b        (OpenAI 20B)       nvidia/nemotron-3-super-120b   (NVIDIA fallback)
 const ROSTER = {
-  proposer_r1:  ["openai/gpt-oss-20b:free",                       "nvidia/nemotron-3-nano-30b-a3b:free"],
-  critic:       ["nvidia/nemotron-3-super-120b-a12b:free",         "google/gemma-4-26b-a4b-it:free"],
-  proposer_rev: ["google/gemma-4-31b-it:free",                    "nvidia/nemotron-3-nano-30b-a3b:free"],
-  synthesizer:  ["google/gemma-4-26b-a4b-it:free",                "nvidia/nemotron-3-super-120b-a12b:free"],
-  judge:        ["nvidia/nemotron-3-nano-30b-a3b:free",            "openai/gpt-oss-20b:free"],
+  proposer_r1:  ["openai/gpt-oss-20b:free",                    "nvidia/nemotron-3-nano-30b-a3b:free"],
+  critic:       ["nvidia/nemotron-3-super-120b-a12b:free",      "google/gemma-4-26b-a4b-it:free"],
+  proposer_rev: ["google/gemma-4-31b-it:free",                 "nvidia/nemotron-3-nano-30b-a3b:free"],
+  synthesizer:  ["google/gemma-4-26b-a4b-it:free",             "nvidia/nemotron-3-super-120b-a12b:free"],
+  judge:        ["openai/gpt-oss-20b:free",                    "nvidia/nemotron-3-super-120b-a12b:free"],
 };
 
-const DEFAULT_ROUNDS = 2;     // ≥2 ensures at least one critique-then-revise loop
-const MODEL_TIMEOUT_MS = 45000; // per-attempt wall-clock limit — 45s lets queued models respond (~35-40s typical)
+const DEFAULT_ROUNDS = 2;     // >=2 ensures at least one critique-then-revise loop
+// Hard wall-clock timeout per model attempt. req.setTimeout only fires on socket
+// inactivity; Promise.race fires regardless of server-hold behavior.
+const MODEL_TIMEOUT_MS = 45000;
 
 // Short label for SSE display (last path segment, strip :free)
 function shortName(slug) {
@@ -36,9 +42,6 @@ function shortName(slug) {
 }
 
 function callSingleModel(messages, apiKey, model, maxTokens) {
-  // Promise.race gives a hard wall-clock timeout regardless of socket state.
-  // req.setTimeout alone doesn't fire when the remote server holds the connection
-  // open without sending data (common on queued/busy free providers).
   const requestPromise = new Promise((resolve, reject) => {
     const body = JSON.stringify({
       model,
@@ -53,7 +56,7 @@ function callSingleModel(messages, apiKey, model, maxTokens) {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${apiKey}`,
+          Authorization: `Bearer ${apiKey}`,
           "HTTP-Referer": "https://sdforest.site",
           "X-Title": "SD Forest LLM Council",
           "Content-Length": Buffer.byteLength(body),
@@ -68,11 +71,11 @@ function callSingleModel(messages, apiKey, model, maxTokens) {
           }
           try {
             const parsed = JSON.parse(data);
-            const content = parsed?.choices?.[0]?.message?.content;
-            if (!content) return reject(new Error(`Empty response: ${data.slice(0, 200)}`));
+            const content = parsed && parsed.choices && parsed.choices[0] && parsed.choices[0].message && parsed.choices[0].message.content;
+            if (!content) return reject(new Error("Empty response: " + data.slice(0, 200)));
             resolve(content);
           } catch (e) {
-            reject(new Error(`Parse error: ${data.slice(0, 200)}`));
+            reject(new Error("Parse error: " + data.slice(0, 200)));
           }
         });
       }
@@ -84,7 +87,7 @@ function callSingleModel(messages, apiKey, model, maxTokens) {
 
   const timeoutPromise = new Promise((_, reject) =>
     setTimeout(
-      () => reject(new Error(`Timed out after ${MODEL_TIMEOUT_MS}ms: ${model}`)),
+      () => reject(new Error("Timed out after " + MODEL_TIMEOUT_MS + "ms: " + model)),
       MODEL_TIMEOUT_MS
     )
   );
@@ -127,8 +130,13 @@ module.exports = async function handler(req, res) {
   });
 
   let question, rounds;
-  try { ({ question, rounds } = JSON.parse(body)); }
-  catch { return res.status(400).json({ error: "Invalid JSON body." }); }
+  try {
+    const parsed = JSON.parse(body);
+    question = parsed.question;
+    rounds = parsed.rounds;
+  } catch (e) {
+    return res.status(400).json({ error: "Invalid JSON body." });
+  }
 
   if (!question || typeof question !== "string" || question.trim().length === 0) {
     return res.status(400).json({ error: "question is required." });
@@ -142,7 +150,7 @@ module.exports = async function handler(req, res) {
   res.setHeader("X-Accel-Buffering", "no");
   res.status(200);
 
-  const send = (data) => res.write(`data: ${JSON.stringify(data)}\n\n`);
+  const send = (data) => res.write("data: " + JSON.stringify(data) + "\n\n");
 
   try {
     const proposerTexts = [];
@@ -150,7 +158,7 @@ module.exports = async function handler(req, res) {
     const proposerModels = [];
     const criticModels = [];
 
-    // ── Round 1: Initial Proposal ──────────────────────────────────────────
+    // Round 1: Initial Proposal
     send({ stage: "proposer", round: 1, status: "thinking", roster: ROSTER.proposer_r1.map(shortName) });
 
     const p1 = await callWithFallback(
@@ -170,11 +178,9 @@ module.exports = async function handler(req, res) {
     proposerModels.push(p1.model);
     send({ stage: "proposer", round: 1, status: "done", text: p1.text, model: shortName(p1.model) });
 
-    // ── Rounds 2..numRounds: Critique → Revise loop ────────────────────────
+    // Rounds 2..numRounds: Critique then Revise
     for (let r = 2; r <= numRounds; r++) {
       const prevProposal = proposerTexts[r - 2];
-
-      // Critic — different family than the proposer
       const criticRoster = ROSTER.critic;
       send({ stage: "critic", round: r - 1, status: "thinking", roster: criticRoster.map(shortName) });
 
@@ -190,8 +196,8 @@ module.exports = async function handler(req, res) {
           {
             role: "user",
             content:
-              `Original question:\n${q}\n\n` +
-              `Proposed answer (Round ${r - 1}):\n${prevProposal}\n\n` +
+              "Original question:\n" + q + "\n\n" +
+              "Proposed answer (Round " + (r - 1) + "):\n" + prevProposal + "\n\n" +
               "Critique the proposal above.",
           },
         ],
@@ -201,7 +207,6 @@ module.exports = async function handler(req, res) {
       criticModels.push(c.model);
       send({ stage: "critic", round: r - 1, status: "done", text: c.text, model: shortName(c.model) });
 
-      // Proposer Revision — yet another family
       const revRoster = r === 2 ? ROSTER.proposer_rev : ROSTER.proposer_r1;
       send({ stage: "proposer", round: r, status: "thinking", roster: revRoster.map(shortName) });
 
@@ -217,10 +222,10 @@ module.exports = async function handler(req, res) {
           {
             role: "user",
             content:
-              `Original question:\n${q}\n\n` +
-              `Your previous answer (Round ${r - 1}):\n${prevProposal}\n\n` +
-              `Critic's feedback:\n${c.text}\n\n` +
-              `Write your revised answer for Round ${r}.`,
+              "Original question:\n" + q + "\n\n" +
+              "Your previous answer (Round " + (r - 1) + "):\n" + prevProposal + "\n\n" +
+              "Critic's feedback:\n" + c.text + "\n\n" +
+              "Write your revised answer for Round " + r + ".",
           },
         ],
         apiKey, revRoster, 600
@@ -230,13 +235,13 @@ module.exports = async function handler(req, res) {
       send({ stage: "proposer", round: r, status: "done", text: p.text, model: shortName(p.model) });
     }
 
-    // ── Synthesizer — different family again ───────────────────────────────
+    // Synthesizer
     send({ stage: "synthesizer", status: "thinking", roster: ROSTER.synthesizer.map(shortName) });
 
     const allRoundsCtx =
-      proposerTexts.map((t, i) => `Proposer Round ${i + 1} (${shortName(proposerModels[i])}):\n${t}`).join("\n\n") +
+      proposerTexts.map((t, i) => "Proposer Round " + (i + 1) + " (" + shortName(proposerModels[i]) + "):\n" + t).join("\n\n") +
       (criticTexts.length
-        ? "\n\n" + criticTexts.map((t, i) => `Critic Round ${i + 1} (${shortName(criticModels[i])}):\n${t}`).join("\n\n")
+        ? "\n\n" + criticTexts.map((t, i) => "Critic Round " + (i + 1) + " (" + shortName(criticModels[i]) + "):\n" + t).join("\n\n")
         : "");
 
     const synth = await callWithFallback(
@@ -251,14 +256,14 @@ module.exports = async function handler(req, res) {
         },
         {
           role: "user",
-          content: `Original question:\n${q}\n\n${allRoundsCtx}\n\nSynthesize the best final answer.`,
+          content: "Original question:\n" + q + "\n\n" + allRoundsCtx + "\n\nSynthesize the best final answer.",
         },
       ],
       apiKey, ROSTER.synthesizer, 600
     );
     send({ stage: "synthesizer", status: "done", text: synth.text, model: shortName(synth.model) });
 
-    // ── Judge — decisive final verdict ─────────────────────────────────────
+    // Judge — decisive final verdict
     send({ stage: "judge", status: "thinking", roster: ROSTER.judge.map(shortName) });
 
     const judge = await callWithFallback(
@@ -267,20 +272,20 @@ module.exports = async function handler(req, res) {
           role: "system",
           content:
             "You are the Judge in a multi-role LLM Council. " +
-            "Deliver a clear VERDICT using EXACTLY this structure:\n" +
-            "VERDICT: [core decision — one sentence]\n" +
-            "CONFIDENCE: [High | Medium | Low + one-line rationale]\n" +
+            "Output EXACTLY this structure and nothing else:\n" +
+            "VERDICT: [one decisive sentence]\n" +
+            "CONFIDENCE: [High or Medium or Low — one-line reason]\n" +
             "KEY REASONING:\n- [point 1]\n- [point 2]\n- [point 3]\n" +
-            "CALL TO ACTION: [specific first step the questioner should take]\n" +
-            "Be decisive. No padding.",
+            "CALL TO ACTION: [the single most important first step]\n" +
+            "Start immediately with VERDICT:. No preamble.",
         },
         {
           role: "user",
           content:
-            `Original question:\n${q}\n\nCouncil synthesis:\n${synth.text}\n\nDeliver your verdict.`,
+            "Original question:\n" + q + "\n\nCouncil synthesis:\n" + synth.text + "\n\nDeliver your verdict now.",
         },
       ],
-      apiKey, ROSTER.judge, 400
+      apiKey, ROSTER.judge, 500
     );
     send({ stage: "judge", status: "done", text: judge.text, model: shortName(judge.model) });
 
