@@ -2,27 +2,29 @@
 const https = require("https");
 
 // ── Diverse free-tier model roster ──────────────────────────────────────────
-// Each role uses a DIFFERENT model from the previous stage for diversity.
+// Each role uses a DISTINCT base model for maximum diversity.
 // All slugs verified against OpenRouter /api/v1/models, June 2026.
 //
-// Provider notes (empirically verified this session):
-//   Venice-hosted (rate-limits at ~20 req/min): Nous Hermes, Qwen3-Coder,
-//     Qwen3-Next, Meta Llama — avoid as primaries.
-//   Non-Venice (reliable for free tier): OpenAI, NVIDIA, Google Gemma 4.
+// Session-empirical findings (June 21 2026):
+//   Venice-hosted (rate-limits aggressively): Nous Hermes, Qwen3-*, Meta Llama
+//   Queues for 60s+ (too slow for 300s pipeline): gpt-oss-120b, nemotron-ultra
+//   Confirmed fast and reliable: nemotron-nano (3B active), gemma-4-26b MoE (4B active),
+//     nemotron-super (12B active), gemma-4-31b (dense 31B), gpt-oss-20b (20B)
 //
+// 5 DISTINCT base models across the primary path (satisfies "no two roles same model"):
 // Role         Primary                                   Fallback
 // -----------  ----------------------------------------  ------------------------------------------
 // Proposer R1  openai/gpt-oss-20b       (OpenAI 20B)    nvidia/nemotron-3-nano-30b-a3b (NVIDIA,3B active)
 // Critic       nvidia/nemotron-3-super   (NVIDIA,12B)    google/gemma-4-26b-a4b-it      (Google MoE,4B active)
-// Proposer Rev google/gemma-4-31b-it    (Google)        openai/gpt-oss-20b             (OpenAI fallback)
-// Synthesizer  openai/gpt-oss-120b      (OpenAI 120B)   nvidia/nemotron-3-super-120b   (NVIDIA fallback)
-// Judge        nvidia/nemotron-3-ultra   (NVIDIA,55B)    nex-agi/nex-n2-pro             (NexAGI,17B MoE)
+// Proposer Rev google/gemma-4-31b-it    (Google 31B)    nvidia/nemotron-3-nano-30b-a3b (NVIDIA Nano fallback)
+// Synthesizer  google/gemma-4-26b-a4b   (Google MoE,4B) nvidia/nemotron-3-super-120b   (NVIDIA fallback)
+// Judge        nvidia/nemotron-3-nano    (NVIDIA,3B)     openai/gpt-oss-20b             (OpenAI fallback)
 const ROSTER = {
   proposer_r1:  ["openai/gpt-oss-20b:free",                       "nvidia/nemotron-3-nano-30b-a3b:free"],
   critic:       ["nvidia/nemotron-3-super-120b-a12b:free",         "google/gemma-4-26b-a4b-it:free"],
   proposer_rev: ["google/gemma-4-31b-it:free",                    "nvidia/nemotron-3-nano-30b-a3b:free"],
-  synthesizer:  ["openai/gpt-oss-120b:free",                      "nvidia/nemotron-3-super-120b-a12b:free"],
-  judge:        ["nvidia/nemotron-3-ultra-550b-a55b:free",         "nex-agi/nex-n2-pro:free"],
+  synthesizer:  ["google/gemma-4-26b-a4b-it:free",                "nvidia/nemotron-3-super-120b-a12b:free"],
+  judge:        ["nvidia/nemotron-3-nano-30b-a3b:free",            "openai/gpt-oss-20b:free"],
 };
 
 const DEFAULT_ROUNDS = 2;     // ≥2 ensures at least one critique-then-revise loop
