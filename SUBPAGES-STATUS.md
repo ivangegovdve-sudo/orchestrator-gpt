@@ -18,10 +18,12 @@ Ran a continuous improvement pass across all active subpages. Below is the per-p
 **Status:** ✅ Polished
 **Changes this session:**
 - Added meta description for SEO
-- Added footer with site stats (9 projects · 126 platforms · 517 terms · 20 movies)
+- Added footer with site stats (9 projects · 126 platforms · 522 terms · 24 movies)
 - Updated hub card counts to match session output
 - **Added Calendar Generator card** (was missing from hub grid despite page existing)
 - Updated LLM Council card description to reflect 4-stage flow
+- Updated Life in Time card description
+- Updated hero tagline: "9 projects — 126 AI platforms — 522 glossary terms."
 - Hub already has: 3D nebula hero canvas, perspective-tilt cards, emoji icons, staggered entrance animations
 
 ---
@@ -45,14 +47,15 @@ Ran a continuous improvement pass across all active subpages. Below is the per-p
 **Files:** `web/ai-init/index.html`, `glossary-data.js`, `app.js`
 **Status:** ✅ Polished
 **Changes this session:**
-- Expanded from 492 → 517 terms (+25 new entries)
+- Expanded from 492 → 522 terms (+30 new entries)
   - Batch 1 (16): SFT, TTFT, TPS, CAI, VLM, ASR, TTS, FIM, ToT, Hallucination, Alignment, Jailbreak, Grounding, Watermarking, Context Window, System Prompt
   - Batch 2 (5): Temperature, Top-p, Tokenization, Prefix Caching, Pre-training
   - Batch 3 (4): Multimodal, Tool Use, Vector Store, Inference
-- Added gotchas to 10 key terms that were missing them (MCP, TPS, Alignment, Jailbreak, Grounding, + 5 new)
+  - Batch 4 (5): Agent, Few-shot, Zero-shot, Prompt Engineering, Fine-tuning
+- Added gotchas to 10 key terms that were missing them
 - Added back-to-hub link
 - Added `/` keyboard shortcut to focus search
-- Updated hero description to mention newest terms
+- Updated hero description: "Search 522+ AI, compute, cloud, and infra abbreviations instantly"
 
 ---
 
@@ -78,7 +81,12 @@ Ran a continuous improvement pass across all active subpages. Below is the per-p
 **Status:** ✅ Polished
 **Changes this session:**
 - Added back-to-hub link
-- Chemistry Recipes panel already present (19+ elements with DIY experiments)
+- **Expanded chemistry RECIPES from ~27 → 32 elements covered**
+  - Added F(9): HF (etches glass), NaF (toothpaste), PTFE (Teflon), SF₆, CaF₂
+  - Added Cr(24): Cr₂O₃ (green pigment), CrO₃ (chrome plating), K₂Cr₂O₇, FeCr₂O₄, CrCl₃
+  - Added Co(27): CoO (blue ceramics), LiCoO₂ (Li-ion batteries), CoCl₂ (humidity indicator), Co₃O₄, Co(CH₃COO)₂
+  - Added Sn(50): SnO₂ (ITO coating), SnCl₂ (reducing agent), Bronze alloy, SnF₂, Tetramethyltin
+  - Added Ba(56): BaSO₄ (X-ray contrast), BaCO₃ (ceramics), BaCl₂ (pyrotechnics green), Ba(OH)₂, BaTiO₃ (piezo)
 - Bulgarian periodic table with clickable element modals
 
 ---
@@ -88,9 +96,10 @@ Ran a continuous improvement pass across all active subpages. Below is the per-p
 **Files:** `web/kids-movie-library/index.html`, `app.js`, `styles.css`
 **Status:** ✅ Polished
 **Changes this session:**
-- Expanded from 15 → 20 curated films (+5)
-  - Song of the Sea (8.0), Kubo and the Two Strings (7.8), Nausicaä of the Valley of the Wind (8.1), The Secret World of Arrietty (7.5), Ernest & Celestine (8.0)
-- Updated summary count in header
+- Expanded from 15 → 24 curated films
+  - Session 1 additions (5): Song of the Sea, Kubo and the Two Strings, Nausicaä, Arrietty, Ernest & Celestine
+  - Session 2 additions (4): Moana (2016), Encanto (2021), How to Train Your Dragon (2010), Paddington (2014)
+- Updated hub footer count: 20 → 24 curated movies
 - Existing features: tag filtering, watched/rated state in localStorage, BG audio filter, stagger animation
 
 ---
@@ -103,10 +112,10 @@ Ran a continuous improvement pass across all active subpages. Below is the per-p
 - Added markdown renderer (bold/italic/headings/bullets)
 - Added auto-scroll to bottom
 - Added copy-all button with CSS
-- Added new example questions
+- Added 2 new example questions (longevity diet, AI alignment for founders)
 - **4th Judge stage added** (hook-generated): Proposer → Critic → Synthesizer → Judge
 - Added `vercel.json` config: `maxDuration: 60` for council function
-- Model label: "Llama 3.3 70B · free · 2 rounds + judge · $0"
+- Diverse model roster: 5 families (GPT-oss, Nemotron, Qwen, Hermes, GLM)
 
 ---
 
@@ -144,12 +153,12 @@ Ran a continuous improvement pass across all active subpages. Below is the per-p
 
 ## Site-wide Changes
 
-- Hub footer added
-- Hub meta description added
-- Back-to-hub links: all active subpages now have them
+- Hub footer with counts
+- Hub meta description
+- Back-to-hub links: all active subpages have them
 - `/` keyboard shortcut: LLM Platforms + AI Glossary
 - Calendar Generator card added to hub grid (was missing)
-- All hub card counts updated: 126 platforms · 517 glossary terms
+- Hub card counts updated: 126 platforms · 522 glossary terms · 24 movies
 
 ---
 
@@ -170,6 +179,9 @@ Ran a continuous improvement pass across all active subpages. Below is the per-p
 | `82e1e9d` | Life in Time URL sharing + 🔗 Share link button |
 | `a7880b1` | Glossary +5 terms (Temperature, Top-p, Tokenization, Prefix Caching, Pre-training) |
 | `a356fa7` | Glossary +4 core terms (Multimodal, Tool Use, Vector Store, Inference) |
+| `c52d1d7` | Glossary +5 foundational terms (Agent, Few-shot, Zero-shot, Prompt Engineering, Fine-tuning) + hub hero tagline + 2 council example questions |
+| `4743cd3` | Mendeleev: recipes for F(9), Cr(24), Co(27), Sn(50), Ba(56) — 5 new elements |
+| `a27b4c9` | Kids movies 20→24 (Moana, Encanto, HTTYD, Paddington) + hub footer 24 movies |
 
 ---
 
