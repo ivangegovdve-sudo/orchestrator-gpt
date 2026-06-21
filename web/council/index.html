@@ -113,6 +113,19 @@
     .submit-btn:hover:not(:disabled) { opacity: 0.9; transform: translateY(-1px); }
     .submit-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
 
+    /* ── 4-digit access gate ───────────────────────────────── */
+    .gate-wrap { display: flex; align-items: center; gap: 8px; }
+    .gate-label { font-size: 11px; color: #64748b; white-space: nowrap; }
+    .code-input {
+      width: 76px; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 8px; color: var(--text); font-family: monospace; font-size: 18px;
+      letter-spacing: 6px; text-align: center; padding: 8px 10px; outline: none;
+      transition: border-color 0.2s;
+    }
+    .code-input:focus { border-color: rgba(139,92,246,0.6); }
+    .code-input.bad { border-color: var(--rose); }
+    .gate-hint { font-size: 11px; color: #475569; margin-top: 10px; display: flex; align-items: center; gap: 6px; }
+
     /* ── Collapsible suggestions ───────────────────────────── */
     .suggest-toggle {
       align-self: flex-start; background: rgba(255,255,255,0.04);
@@ -288,17 +301,20 @@
       </div>
 
       <div class="input-footer">
-        <div class="model-label">
-          5 families &middot; <span class="free-badge">free</span> &middot; live thinking &middot; $0
+        <div class="gate-wrap">
+          <span class="gate-label">&#128274; Access code</span>
+          <input id="access-code" class="code-input" inputmode="numeric" pattern="[0-9]*" maxlength="4"
+                 placeholder="••••" autocomplete="off" aria-label="4-digit access code" />
         </div>
         <button class="submit-btn" id="submit-btn" onclick="runCouncil()">Convene Council</button>
       </div>
+      <div class="gate-hint">Shared with you by Ivan &mdash; keeps the free council from being over-used. <span class="free-badge">free</span> &middot; $0</div>
     </div>
 
     <div class="roster-info">
       <strong>Distinct vendor families</strong> &mdash; all <code>:free</code>, $0, with fast fallback if any provider rate-limits:<br>
-      <span class="model-chip">Proposer</span> OpenAI gpt-oss &nbsp;
-      <span class="model-chip">Critic 1</span> NVIDIA Nemotron Ultra &nbsp;
+      <span class="model-chip">Proposer</span> Google Gemma-4 / Llama-3.3 &nbsp;
+      <span class="model-chip">Critic 1</span> NVIDIA Nemotron Super / Qwen3 &nbsp;
       <span class="model-chip">Revision</span> Google Gemma-4 &nbsp;
       <span class="model-chip">Critic 2</span> Nex AGI / Qwen3 &nbsp;
       <span class="model-chip">Synth</span> Google Gemma MoE &nbsp;
@@ -634,7 +650,7 @@
       stagesEl.style.display = 'flex';
 
       try {
-        await runStream({ question: question, mode: selectedMode, priorContext: priorContext || '' });
+        await runStream({ question: question, mode: selectedMode, priorContext: priorContext || '', code: accessCode() });
         // Offer an interactive next round once we have a synthesis to build on.
         if (lastSynthesis) {
           document.getElementById('followup-input').value = '';
@@ -649,6 +665,26 @@
       }
     }
 
+    // ── 4-digit access gate (client side) ─────────────────────────────────────
+    // The code is validated SERVER-SIDE; this is just format-checking + UX. The
+    // real value is never in this file, so it can't be scraped from the page.
+    var codeEl = document.getElementById('access-code');
+    try { var saved = localStorage.getItem('council_code'); if (saved) codeEl.value = saved; } catch (e) {}
+    function accessCode() { return (codeEl.value || '').replace(/\D/g, '').slice(0, 4); }
+    function gateOk() {
+      var c = accessCode();
+      if (c.length !== 4) {
+        var errorEl = document.getElementById('error-banner');
+        errorEl.textContent = 'Enter the 4-digit access code (ask Ivan) to convene the council.';
+        errorEl.className = 'error-banner visible';
+        codeEl.classList.add('bad'); codeEl.focus();
+        return false;
+      }
+      codeEl.classList.remove('bad');
+      try { localStorage.setItem('council_code', c); } catch (e) {}
+      return true;
+    }
+
     function runCouncil() {
       var question = document.getElementById('question').value.trim();
       if (!question) {
@@ -658,12 +694,14 @@
         document.getElementById('question').focus();
         return;
       }
+      if (!gateOk()) return;
       convene(question, '', false);
     }
 
     function runFollowup() {
       var follow = document.getElementById('followup-input').value.trim();
       if (!follow) { document.getElementById('followup-input').focus(); return; }
+      if (!gateOk()) return;
       convene(follow, lastSynthesis, true);
     }
 

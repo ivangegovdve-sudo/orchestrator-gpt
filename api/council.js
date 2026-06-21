@@ -28,12 +28,19 @@ const https = require("https");
 
 // Every slug here is a verified-available :free model on OpenRouter (June 2026).
 // Order = preference; first model to emit a first token within the timeout wins.
+//
+// SPEED-FIRST ordering (2026-06-21): the pipeline must finish well under Vercel's
+// 300s function limit, or the function is killed mid-stream and the browser shows
+// "Network error". So FAST, well-behaved (max_tokens-respecting) models lead every
+// stage; slow reasoning giants (gpt-oss-120b, nemotron-ultra-550b) are demoted to
+// LAST-RESORT fallbacks only. gpt-oss-120b previously hit the 72s hard cap emitting
+// 9000+ chars (it ignores max_tokens) and single-handedly blew the time budget.
 const ROSTER = {
-  proposer_r1:  ["openai/gpt-oss-120b:free", "openai/gpt-oss-20b:free", "google/gemma-4-31b-it:free", "meta-llama/llama-3.3-70b-instruct:free"],
-  critic:       ["nvidia/nemotron-3-ultra-550b-a55b:free", "nvidia/nemotron-3-super-120b-a12b:free", "qwen/qwen3-next-80b-a3b-instruct:free", "nousresearch/hermes-3-llama-3.1-405b:free"],
+  proposer_r1:  ["google/gemma-4-31b-it:free", "meta-llama/llama-3.3-70b-instruct:free", "openai/gpt-oss-20b:free", "nvidia/nemotron-3-super-120b-a12b:free"],
+  critic:       ["nvidia/nemotron-3-super-120b-a12b:free", "qwen/qwen3-next-80b-a3b-instruct:free", "meta-llama/llama-3.3-70b-instruct:free", "google/gemma-4-31b-it:free"],
   proposer_rev: ["google/gemma-4-31b-it:free", "nvidia/nemotron-3-nano-30b-a3b:free", "meta-llama/llama-3.3-70b-instruct:free", "openai/gpt-oss-20b:free"],
-  critic2:      ["nex-agi/nex-n2-pro:free", "qwen/qwen3-next-80b-a3b-instruct:free", "nvidia/nemotron-3-super-120b-a12b:free", "cohere/north-mini-code:free"],
-  synthesizer:  ["google/gemma-4-26b-a4b-it:free", "nvidia/nemotron-3-super-120b-a12b:free", "openai/gpt-oss-120b:free", "meta-llama/llama-3.3-70b-instruct:free"],
+  critic2:      ["nex-agi/nex-n2-pro:free", "qwen/qwen3-next-80b-a3b-instruct:free", "nvidia/nemotron-3-super-120b-a12b:free", "meta-llama/llama-3.3-70b-instruct:free"],
+  synthesizer:  ["google/gemma-4-26b-a4b-it:free", "meta-llama/llama-3.3-70b-instruct:free", "nvidia/nemotron-3-super-120b-a12b:free", "google/gemma-4-31b-it:free"],
   judge:        ["openai/gpt-oss-20b:free", "google/gemma-4-31b-it:free", "nvidia/nemotron-3-nano-30b-a3b:free"],
 };
 
@@ -48,15 +55,19 @@ function isFreeSlug(model) {
 const DEFAULT_ROUNDS = 2;
 // First-token timeout: how long we wait for the model to START streaming before
 // giving up and trying the next one. Short enough to dodge queued free models.
-const FIRST_TOKEN_TIMEOUT = 22000;
+const FIRST_TOKEN_TIMEOUT = 15000;
 // Hard cap once tokens are flowing — stops a runaway (verbose reasoning) model.
-const STREAM_HARD_CAP = 72000;
-// Global wall-clock budget. The function's Vercel maxDuration is 300s; we stop
-// scheduling new optional stages well before that and always reserve enough time
-// to still run the synthesizer + judge, so the user ALWAYS gets a final verdict
-// instead of the function being killed mid-stream (the old "Network error").
-const TOTAL_BUDGET_MS = 265000;
-const SYNTH_JUDGE_RESERVE_MS = 105000;
+// Tight so no single stage can dominate the wall-clock budget.
+const STREAM_HARD_CAP = 38000;
+// Global wall-clock budget. Vercel maxDuration is 300s; we keep the WHOLE run well
+// under that (the real "Network error" was the function being killed mid-stream on
+// a slow free-tier run). Once the budget is nearly spent we skip remaining optional
+// debate stages and always reserve enough time to still deliver synthesizer + judge.
+const TOTAL_BUDGET_MS = 210000;
+const SYNTH_JUDGE_RESERVE_MS = 80000;
+// Per-stage output caps (tokens). Kept modest so generations finish fast; the
+// council's value is the multi-model debate, not 9000-char monologues.
+const MAXTOK = { propose: 420, critique: 320, revise: 420, critique2: 320, synth: 560, judge: 340 };
 
 // ── Council modes ───────────────────────────────────────────────────────────
 // IMPORTANT: modes are NOT personas. They are INSTRUCTIONS for HOW each member
@@ -252,15 +263,26 @@ module.exports = async function handler(req, res) {
     req.on("end", resolve);
   });
 
-  let question, rounds, modeName, priorContext;
+  let question, rounds, modeName, priorContext, code;
   try {
     const parsed = JSON.parse(body);
     question = parsed.question;
     rounds = parsed.rounds;
     modeName = parsed.mode;
     priorContext = parsed.priorContext;
+    code = parsed.code;
   } catch (e) {
     return res.status(400).json({ error: "Invalid JSON body." });
+  }
+
+  // ── 4-digit access gate ────────────────────────────────────────────────────
+  // Lightweight shared-secret to stop anonymous over-use of the free OpenRouter
+  // quota (which itself causes "network error" via rate-limit starvation). The
+  // code is validated SERVER-SIDE and never shipped in client source, so it can't
+  // be scraped from the page. Configurable via env; falls back to a default.
+  const ACCESS_CODE = String(process.env.COUNCIL_ACCESS_CODE || "7341").trim();
+  if (String(code || "").trim() !== ACCESS_CODE) {
+    return res.status(401).json({ error: "Invalid access code. Ask Ivan for the 4-digit council code." });
   }
 
   if (!question || typeof question !== "string" || question.trim().length === 0) {
@@ -326,7 +348,7 @@ module.exports = async function handler(req, res) {
         { role: "system", content: "You are the Proposer in a multi-role LLM Council. " + mode.propose },
         { role: "user", content: taskFraming },
       ],
-      650
+      MAXTOK.propose
     );
     if (!p1) throw new Error("The initial proposal stage could not get any free model to respond. Free-tier models may be rate-limited right now — please retry in a minute.");
     proposerTexts.push(p1.text);
@@ -350,7 +372,7 @@ module.exports = async function handler(req, res) {
           { role: "system", content: "You are the Critic in a multi-role LLM Council, reacting to the previous member's response. " + mode.critique + " Be concise." },
           { role: "user", content: "Original input:\n" + taskFraming + "\n\nPrevious member's response (Round " + (r - 1) + "):\n" + prevProposal + "\n\nNow apply your treatment to the response above." },
         ],
-        550
+        MAXTOK.critique
       );
       const criticText = c ? c.text : "(critic stage unavailable — proceeding)";
       if (c) { criticTexts.push(c.text); criticModels.push(c.model); }
@@ -363,7 +385,7 @@ module.exports = async function handler(req, res) {
           { role: "system", content: "You are the Proposer in a multi-role LLM Council. " + mode.revise + " Be direct." },
           { role: "user", content: "Original input:\n" + taskFraming + "\n\nYour previous answer (Round " + (r - 1) + "):\n" + prevProposal + "\n\nThe previous member's reaction:\n" + criticText + "\n\nWrite your Round " + r + " response." },
         ],
-        650
+        MAXTOK.revise
       );
       if (p) { proposerTexts.push(p.text); proposerModels.push(p.model); }
       else { proposerTexts.push(prevProposal); proposerModels.push(proposerModels[proposerModels.length - 1]); }
@@ -379,7 +401,7 @@ module.exports = async function handler(req, res) {
         { role: "system", content: "You are the Second Critic in a multi-role LLM Council — a DIFFERENT AI system from the first critic, reacting to the latest response. " + mode.critique + " Find what the first critic missed." },
         { role: "user", content: "Original input:\n" + taskFraming + "\n\nLatest response to react to:\n" + finalProposal + "\n\nThe first critic already raised:\n" + firstCriticText.slice(0, 600) + "\n\nApply your treatment — surface what remains." },
       ],
-      550
+      MAXTOK.critique2
     );
     if (c2) { criticTexts.push(c2.text); criticModels.push(c2.model); }
 
@@ -396,7 +418,7 @@ module.exports = async function handler(req, res) {
         { role: "system", content: "You are the Synthesizer in a multi-role LLM Council. You received responses and reactions from MULTIPLE distinct AI model families. " + mode.synth + " Be comprehensive yet concise." },
         { role: "user", content: "Original input:\n" + taskFraming + "\n\n" + allRoundsCtx + "\n\nSynthesize the best final result." },
       ],
-      750
+      MAXTOK.synth
     );
     const synthText = synth ? synth.text : finalProposal;
 
@@ -417,7 +439,7 @@ module.exports = async function handler(req, res) {
         },
         { role: "user", content: "Original input:\n" + taskFraming + "\n\nCouncil synthesis:\n" + synthText.slice(0, 1400) + "\n\nDeliver your verdict now." },
       ],
-      500
+      MAXTOK.judge
     );
 
     // Send the synthesis text so the client can seed the next interactive round.
