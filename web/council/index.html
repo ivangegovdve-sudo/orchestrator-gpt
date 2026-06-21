@@ -524,6 +524,14 @@
     function handleEvent(event) {
       if (event.stage === 'meta' || event.stage === 'complete') return; // handled in runStream
       if (event.stage === 'error') throw new Error(event.error || 'Unknown error from council');
+      if (event.stage === 'notice') {
+        var n = document.createElement('div');
+        n.className = 'round-header';
+        n.innerHTML = '<div class="round-label" style="color:var(--amber);text-transform:none;letter-spacing:0;font-weight:600;">&#9888; ' +
+          (event.text || '').replace(/</g, '&lt;') + '</div>';
+        document.getElementById('stages').appendChild(n);
+        return;
+      }
 
       var c = cardFor(event);
       if (!c) return;

@@ -49,8 +49,14 @@ const DEFAULT_ROUNDS = 2;
 // First-token timeout: how long we wait for the model to START streaming before
 // giving up and trying the next one. Short enough to dodge queued free models.
 const FIRST_TOKEN_TIMEOUT = 22000;
-// Hard cap once tokens are flowing — stops a runaway generation.
-const STREAM_HARD_CAP = 90000;
+// Hard cap once tokens are flowing — stops a runaway (verbose reasoning) model.
+const STREAM_HARD_CAP = 72000;
+// Global wall-clock budget. The function's Vercel maxDuration is 300s; we stop
+// scheduling new optional stages well before that and always reserve enough time
+// to still run the synthesizer + judge, so the user ALWAYS gets a final verdict
+// instead of the function being killed mid-stream (the old "Network error").
+const TOTAL_BUDGET_MS = 265000;
+const SYNTH_JUDGE_RESERVE_MS = 105000;
 
 // ── Council modes ───────────────────────────────────────────────────────────
 // IMPORTANT: modes are NOT personas. They are INSTRUCTIONS for HOW each member
@@ -282,6 +288,10 @@ module.exports = async function handler(req, res) {
   // connection from going idle during the gaps between/within stages.
   const heartbeat = setInterval(() => { try { res.write(": ping\n\n"); } catch (_) {} }, 8000);
 
+  // Global wall-clock guard — see TOTAL_BUDGET_MS above.
+  const deadline = Date.now() + TOTAL_BUDGET_MS;
+  const timeLeft = () => deadline - Date.now();
+
   send({ stage: "meta", mode: mode.label, rounds: numRounds });
 
   // Run one council stage with live streaming + graceful failure.
@@ -324,6 +334,12 @@ module.exports = async function handler(req, res) {
 
     // ── Rounds 2..N: critique then revise ──────────────────────────────────
     for (let r = 2; r <= numRounds; r++) {
+      // Budget guard: if we can't fit another critique+revision AND still leave
+      // room for synthesis+judge, skip the rest of the debate and synthesize now.
+      if (timeLeft() < SYNTH_JUDGE_RESERVE_MS) {
+        send({ stage: "notice", text: "Free-tier was slow — skipping remaining debate rounds to deliver the synthesis & verdict in time." });
+        break;
+      }
       const prevProposal = proposerTexts[r - 2];
       const criticRound = r - 1;
 
@@ -356,7 +372,7 @@ module.exports = async function handler(req, res) {
     // ── Second critic (different family) on the final proposal ─────────────
     const finalProposal = proposerTexts[proposerTexts.length - 1];
     const firstCriticText = criticTexts[0] || "";
-    const c2 = await runStage(
+    const c2 = (timeLeft() < SYNTH_JUDGE_RESERVE_MS) ? null : await runStage(
       { stage: "critic", round: numRounds },
       ROSTER.critic2,
       [
