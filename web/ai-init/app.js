@@ -318,4 +318,13 @@
 
   renderLibraryTree();
   renderHomeResults("");
+
+  // Press / to focus the search input from anywhere
+  document.addEventListener("keydown", function (event) {
+    if (event.key === "/" && document.activeElement !== homeInput && document.activeElement !== libraryInput) {
+      event.preventDefault();
+      switchView("home");
+      homeInput.focus();
+    }
+  });
 })();

@@ -1,6 +1,6 @@
 # STATUS.md — Forest HUB / orchestrator-gpt
 
-**Last updated:** 2026-06-21 (overnight session — Claude Code)
+**Last updated:** 2026-06-21 (afternoon session — Claude Code, feat/june21-polish)
 **Production URL:** https://sdforest.site (Vercel)
 **Phase:** Phase 1 Foundation / Cleanup (in progress)
 **Canonical source:** This file is the single source of truth for what is done, in progress, and blocked.

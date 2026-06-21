@@ -694,6 +694,16 @@ if (clearBtn) {
 }
 
 render();
+
+// Press / to focus search from anywhere
+document.addEventListener('keydown', e => {
+  const q = document.getElementById('q');
+  if (e.key === '/' && document.activeElement !== q) {
+    e.preventDefault();
+    q.focus();
+    q.select();
+  }
+});
 </script>
 </body>
 </html>

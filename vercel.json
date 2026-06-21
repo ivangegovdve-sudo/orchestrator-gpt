@@ -1,5 +1,10 @@
 {
   "buildCommand": "npm run vercel-build",
   "outputDirectory": "vercel-public",
-  "framework": null
+  "framework": null,
+  "functions": {
+    "api/council.js": {
+      "maxDuration": 60
+    }
+  }
 }
