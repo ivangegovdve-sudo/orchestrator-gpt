@@ -2,27 +2,26 @@
 const https = require("https");
 
 // ── Diverse free-tier model roster ──────────────────────────────────────────
-// Each role uses a DIFFERENT model family to maximize architectural diversity.
-// A council of clones shares blind spots; heterogeneous families catch errors
-// each other misses. Primary is tried first; fallback used on 429 or failure.
-// Slugs verified on OpenRouter free catalog, June 2026.
+// Each role uses a DIFFERENT model family for maximum architectural diversity.
+// All slugs verified against OpenRouter /api/v1/models, June 2026.
 //
-// Role         Primary                                    Family       Fallback
-// -----------  -----------------------------------------  -----------  ------------------------------------------
-// Proposer R1  openai/gpt-oss-120b:free                  OpenAI       meta-llama/llama-3.3-70b-instruct:free
-// Critic       nvidia/nemotron-3-super-120b-a12b:free    NVIDIA       deepseek/deepseek-r1:free
-// Proposer Rev qwen/qwen3-coder:free                     Alibaba Qwen google/gemma-3-27b-it:free
-// Synthesizer  nousresearch/hermes-3-llama-3.1-405b:free NousResearch meta-llama/llama-3.3-70b-instruct:free
-// Judge        openai/gpt-oss-20b:free                   OpenAI-20B   z-ai/glm-4.5-air:free
+// Role         Primary (family)                          Fallback (family)
+// -----------  ----------------------------------------  ------------------------------------------
+// Proposer R1  openai/gpt-oss-20b          (OpenAI-20B)  nvidia/nemotron-3-nano-30b-a3b  (NVIDIA, 3B active)
+// Critic       qwen/qwen3-next-80b-a3b     (Alibaba,3B)  nvidia/nemotron-3-super-120b-a12b (NVIDIA,12B active)
+// Proposer Rev google/gemma-4-31b-it       (Google)      meta-llama/llama-3.3-70b-instruct (Meta)
+// Synthesizer  nousresearch/hermes-3-405b  (Nous)        qwen/qwen3-coder                  (Alibaba,35B active)
+// Judge        openai/gpt-oss-120b         (OpenAI-120B) nex-agi/nex-n2-pro                (NexAGI, 17B active)
 const ROSTER = {
-  proposer_r1:  ["openai/gpt-oss-120b:free",                "meta-llama/llama-3.3-70b-instruct:free"],
-  critic:       ["nvidia/nemotron-3-super-120b-a12b:free",   "deepseek/deepseek-r1:free"],
-  proposer_rev: ["qwen/qwen3-coder:free",                    "google/gemma-3-27b-it:free"],
-  synthesizer:  ["nousresearch/hermes-3-llama-3.1-405b:free","meta-llama/llama-3.3-70b-instruct:free"],
-  judge:        ["openai/gpt-oss-20b:free",                  "z-ai/glm-4.5-air:free"],
+  proposer_r1:  ["openai/gpt-oss-20b:free",                       "nvidia/nemotron-3-nano-30b-a3b:free"],
+  critic:       ["qwen/qwen3-next-80b-a3b-instruct:free",         "nvidia/nemotron-3-super-120b-a12b:free"],
+  proposer_rev: ["google/gemma-4-31b-it:free",                    "meta-llama/llama-3.3-70b-instruct:free"],
+  synthesizer:  ["nousresearch/hermes-3-llama-3.1-405b:free",     "qwen/qwen3-coder:free"],
+  judge:        ["openai/gpt-oss-120b:free",                      "nex-agi/nex-n2-pro:free"],
 };
 
-const DEFAULT_ROUNDS = 2; // ≥2 ensures at least one critique-then-revise loop
+const DEFAULT_ROUNDS = 2;     // ≥2 ensures at least one critique-then-revise loop
+const MODEL_TIMEOUT_MS = 22000; // per-attempt wall-clock limit; avoids hanging on queued free models
 
 // Short label for SSE display (last path segment, strip :free)
 function shortName(slug) {
@@ -34,8 +33,8 @@ function callSingleModel(messages, apiKey, model, maxTokens) {
     const body = JSON.stringify({
       model,
       messages,
-      max_tokens: maxTokens || 800,
-      temperature: 0.7,
+      max_tokens: maxTokens || 600,
+      temperature: 0.65,
     });
     const req = https.request(
       {
@@ -60,14 +59,21 @@ function callSingleModel(messages, apiKey, model, maxTokens) {
           try {
             const parsed = JSON.parse(data);
             const content = parsed?.choices?.[0]?.message?.content;
-            if (!content) return reject(new Error(`Empty: ${data.slice(0, 200)}`));
+            if (!content) return reject(new Error(`Empty response: ${data.slice(0, 200)}`));
             resolve(content);
           } catch (e) {
-            reject(new Error(`Parse: ${data.slice(0, 200)}`));
+            reject(new Error(`Parse error: ${data.slice(0, 200)}`));
           }
         });
       }
     );
+
+    // Hard per-model timeout — prevents hanging on queued/throttled free models.
+    // Without this, a single slow provider eats the entire Vercel function budget.
+    req.setTimeout(MODEL_TIMEOUT_MS, () => {
+      req.destroy(new Error(`Timed out after ${MODEL_TIMEOUT_MS}ms: ${model}`));
+    });
+
     req.on("error", reject);
     req.write(body);
     req.end();
@@ -83,7 +89,7 @@ async function callWithFallback(messages, apiKey, modelList, maxTokens) {
       return { text, model };
     } catch (err) {
       lastErr = err;
-      // Continue to next model on any failure (rate-limit, 5xx, parse error)
+      // Continue to next model on rate-limit, timeout, 5xx, or parse error
     }
   }
   throw lastErr || new Error("All models in roster failed");
@@ -146,7 +152,7 @@ module.exports = async function handler(req, res) {
         },
         { role: "user", content: q },
       ],
-      apiKey, ROSTER.proposer_r1, 800
+      apiKey, ROSTER.proposer_r1, 600
     );
     proposerTexts.push(p1.text);
     proposerModels.push(p1.model);
@@ -177,7 +183,7 @@ module.exports = async function handler(req, res) {
               "Critique the proposal above.",
           },
         ],
-        apiKey, criticRoster, 600
+        apiKey, criticRoster, 500
       );
       criticTexts.push(c.text);
       criticModels.push(c.model);
@@ -205,7 +211,7 @@ module.exports = async function handler(req, res) {
               `Write your revised answer for Round ${r}.`,
           },
         ],
-        apiKey, revRoster, 800
+        apiKey, revRoster, 600
       );
       proposerTexts.push(p.text);
       proposerModels.push(p.model);
@@ -236,7 +242,7 @@ module.exports = async function handler(req, res) {
           content: `Original question:\n${q}\n\n${allRoundsCtx}\n\nSynthesize the best final answer.`,
         },
       ],
-      apiKey, ROSTER.synthesizer, 1000
+      apiKey, ROSTER.synthesizer, 800
     );
     send({ stage: "synthesizer", status: "done", text: synth.text, model: shortName(synth.model) });
 
@@ -262,7 +268,7 @@ module.exports = async function handler(req, res) {
             `Original question:\n${q}\n\nCouncil synthesis:\n${synth.text}\n\nDeliver your verdict.`,
         },
       ],
-      apiKey, ROSTER.judge, 500
+      apiKey, ROSTER.judge, 400
     );
     send({ stage: "judge", status: "done", text: judge.text, model: shortName(judge.model) });
 
