@@ -164,7 +164,29 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,san
 <div class="header">
   <h1>Life in Time</h1>
   <p class="sub">See what remains. Then see what's still possible.</p>
+  <div id="yearProgressWrap" style="margin-top:18px;max-width:360px;margin-left:auto;margin-right:auto">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">
+      <span style="font-size:.74em;color:#6b7280;letter-spacing:.04em" id="yearProgressLabel">2026 is 0% gone</span>
+      <span style="font-size:.72em;color:#6b7280" id="yearProgressDays"></span>
+    </div>
+    <div style="height:4px;background:rgba(255,255,255,.07);border-radius:99px;overflow:hidden">
+      <div id="yearProgressBar" style="height:100%;width:0%;background:linear-gradient(90deg,#3b82f6,#a855f7);border-radius:99px;transition:width 1.2s cubic-bezier(.16,1,.3,1)"></div>
+    </div>
+  </div>
 </div>
+<script>
+(function(){
+  const now = new Date();
+  const yr = now.getFullYear();
+  const start = new Date(yr, 0, 1);
+  const end = new Date(yr + 1, 0, 1);
+  const pct = Math.round((now - start) / (end - start) * 100);
+  const daysLeft = Math.ceil((end - now) / 86400000);
+  document.getElementById('yearProgressLabel').textContent = `${yr} is ${pct}% gone`;
+  document.getElementById('yearProgressDays').textContent = `${daysLeft} days left`;
+  setTimeout(() => { document.getElementById('yearProgressBar').style.width = pct + '%'; }, 120);
+})();
+</script>
 
 <div style="max-width:520px;margin:0 auto;padding:0 20px">
 <div class="form-card">
@@ -266,7 +288,7 @@ const ACHIEVERS = [
   {age:54, name:'Angela Bassett',      desc:"Received her first Oscar nomination at 34, but her second — for Black Panther: Wakanda Forever — came at 54, proving a career-defining performance can come at any age."},
   {age:50, name:'Jeff Bezos',          desc:"Amazon started at 30, but his most audacious bets — AWS, Kindle, Prime, Blue Origin — all materialized when he was well past 40."},
   {age:38, name:'Martin Luther King Jr.', desc:"Delivered 'I Have a Dream' at 34. Awarded the Nobel Peace Prize at 35. His global impact was complete before he was 40 — proving peaks need not wait for age."},
-  {age:51, name:'Anna Mary Robertson Moses', desc:"Better known as Grandma Moses. Had a second, more specific entry: sold her first painting at 78. But she started painting serious subjects at 76. Lived to 101."},
+  {age:96, name:'Harry Bernstein',          desc:"Published his debut novel The Invisible Wall at age 96. It became a bestseller and launched a trilogy he completed in his late 90s."},
 ];
 
 const SKILL_PEAKS = [
