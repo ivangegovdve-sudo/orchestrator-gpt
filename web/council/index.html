@@ -225,12 +225,12 @@
     </div>
 
     <div class="roster-info">
-      <strong>Diverse model roster</strong> &mdash; each role uses a different model, non-Venice providers:<br>
+      <strong>Diverse model roster</strong> &mdash; 5 distinct base models, non-Venice providers:<br>
       <span class="model-chip">Proposer</span> OpenAI gpt-oss-20b &nbsp;
-      <span class="model-chip">Critic</span> NVIDIA Nemotron-Super-120b &nbsp;
+      <span class="model-chip">Critic</span> NVIDIA Nemotron-Super (12B active) &nbsp;
       <span class="model-chip">Revision</span> Google Gemma-4-31b &nbsp;
-      <span class="model-chip">Synth</span> OpenAI gpt-oss-120b &nbsp;
-      <span class="model-chip">Judge</span> NVIDIA Nemotron-Ultra-550b
+      <span class="model-chip">Synth</span> Google Gemma-4-26b MoE (4B active) &nbsp;
+      <span class="model-chip">Judge</span> NVIDIA Nemotron-Nano (3B active)
       &mdash; with fallbacks if any provider rate-limits.
     </div>
 
@@ -260,7 +260,7 @@
 
     <div class="stages" id="stages" style="display:none;"></div>
 
-    <p class="footer-tag">Free tier &middot; OpenAI / NVIDIA Nemotron / Google Gemma 4 via OpenRouter &mdash; $0</p>
+    <p class="footer-tag">Free tier &middot; OpenAI / NVIDIA Nemotron (Super+Nano) / Google Gemma-4 (Dense+MoE) via OpenRouter &mdash; $0</p>
   </div>
 
   <script>
