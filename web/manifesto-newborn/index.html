@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Manifesto for a Newborn — Forest HUB</title>
+<meta name="description" content="A letter to the newly arrived. On belonging, feeling, surviving the world's forgetting, and staying whole.">
+<meta property="og:title" content="Manifesto for a Newborn">
+<meta property="og:description" content="You've just crashed the party we call life. Before the world starts yelling its expectations, hear this.">
+<meta property="og:type" content="website">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;1,400;1,500&family=Inter:wght@300;400&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #0a0a0d;
+  --text: #d4cfc6;
+  --text-dim: #8a8278;
+  --accent: rgba(214,190,155,.18);
+  --warm: #d6b87a;
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Lora', Georgia, 'Times New Roman', serif;
+  font-size: clamp(17px, 2.2vw, 20px);
+  line-height: 1.82;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ── Plexus canvas — very subtle background ── */
+#plexus {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  z-index: 0;
+  pointer-events: none;
+  opacity: .11;
+}
+
+/* ── Page shell ── */
+.page {
+  position: relative;
+  z-index: 1;
+  max-width: 680px;
+  margin: 0 auto;
+  padding: clamp(48px, 8vw, 96px) clamp(24px, 6vw, 48px) clamp(72px, 10vw, 128px);
+}
+
+/* ── Back link ── */
+.back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 13px;
+  color: var(--text-dim);
+  text-decoration: none;
+  letter-spacing: .03em;
+  margin-bottom: clamp(48px, 8vw, 80px);
+  transition: color .25s;
+}
+.back:hover { color: var(--text); }
+
+/* ── Header ── */
+header {
+  margin-bottom: clamp(48px, 7vw, 72px);
+}
+
+.eyebrow {
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 11px;
+  font-weight: 300;
+  letter-spacing: .2em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  margin-bottom: 18px;
+}
+
+h1 {
+  font-family: 'Lora', Georgia, serif;
+  font-size: clamp(1.9em, 5vw, 2.7em);
+  font-weight: 400;
+  line-height: 1.18;
+  letter-spacing: -.01em;
+  color: #e8e1d4;
+}
+
+h1 em {
+  font-style: italic;
+  color: var(--warm);
+}
+
+.rule {
+  width: 40px;
+  height: 1px;
+  background: rgba(214,184,122,.3);
+  margin: 28px 0 0;
+}
+
+/* ── Body text ── */
+.body-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.body-text p {
+  margin-bottom: clamp(22px, 4vw, 34px);
+  color: var(--text);
+  font-weight: 400;
+}
+
+/* First paragraph: slightly larger drop-cap treatment */
+.body-text p:first-child {
+  font-size: 1.04em;
+  color: #ddd8cf;
+}
+
+.body-text p:first-child::first-letter {
+  float: left;
+  font-size: 3.4em;
+  line-height: .82;
+  margin: .06em .1em 0 0;
+  font-weight: 500;
+  color: var(--warm);
+  font-family: 'Lora', Georgia, serif;
+}
+
+/* Closing — special weight */
+.closing {
+  margin-top: clamp(40px, 6vw, 60px);
+  padding-top: clamp(32px, 5vw, 48px);
+  border-top: 1px solid rgba(255,255,255,.07);
+}
+
+.closing p {
+  font-style: italic;
+  font-size: 1.12em;
+  color: #e4ddd3;
+  margin-bottom: 0 !important;
+}
+
+.closing p:last-child {
+  margin-top: clamp(14px, 2.5vw, 22px);
+  font-size: 1.45em;
+  font-style: normal;
+  font-weight: 500;
+  color: #ede6da;
+  letter-spacing: .01em;
+}
+
+/* ── Footer ── */
+footer {
+  margin-top: clamp(56px, 8vw, 96px);
+  padding-top: 24px;
+  border-top: 1px solid rgba(255,255,255,.05);
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 12px;
+  color: var(--text-dim);
+  letter-spacing: .04em;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #plexus { display: none; }
+}
+</style>
+</head>
+<body>
+
+<canvas id="plexus" aria-hidden="true"></canvas>
+
+<div class="page">
+  <a href="/" class="back">← Forest HUB</a>
+
+  <header>
+    <p class="eyebrow">A letter to the newly arrived</p>
+    <h1>Manifesto for<br><em>a newborn</em></h1>
+    <div class="rule"></div>
+  </header>
+
+  <div class="body-text">
+    <p>You've just crashed the party we call life. You don't know what hunger is, what fear feels like, or even what a body does. There's no script yet, just cries and warm hands. Before the world starts yelling its expectations, hear this:</p>
+
+    <p>You belong here. That's not contingent on being useful, charming, successful or easy. Your right to exist isn't doled out by parents, teachers, lovers or governments. It predates every report card, paycheck and trophy.</p>
+
+    <p>You also get to feel things—joy, terror, confusion, anger, need. Those emotions aren't a problem to solve or an inconvenience to others. They're proof you're alive. They might unsettle people who never learned how to deal with their own feelings, but their discomfort doesn't make you wrong.</p>
+
+    <p>Here's the bad news: the world won't always respect your rights. No law, culture or family can guarantee perpetual shelter for your vulnerability. People forget. Systems fail. Loved ones sometimes ask you to shrink because they don't know how to grow.</p>
+
+    <p>When pain comes—and it will—don't assume it's because you deserved it. Most wounds are collateral damage from a chaotic world, not evidence of a cosmic vendetta. Humanity is still fumbling along, dragging around inherited fears and bad habits while trying to pay rent and put dinner on the table.</p>
+
+    <p>Your parents will blow up at you sometimes. They'll also love you ferociously. Both things can be true. They're not demigods with perfect emotional hygiene; they're flawed people suddenly responsible for a fragile life. Their outbursts aren't verdicts on your worth.</p>
+
+    <p>So don't internalize their stress. You're not too much. You are not bad. Getting into trouble, making mistakes, needing care before you have learned how to offer care in return—none of that makes you selfish. It makes you new. It makes you human. It means you are still being taught how to live.</p>
+
+    <p>Life will teach you contradictory lessons. You'll see that love and harm coexist, that silence feels safer than truth, that laughter hides grief. You'll also learn to come back to yourself. When the world demands performance, return to being. When shame tells you to vanish, remind yourself you're still here.</p>
+
+    <p>Safety isn't guaranteed, but authenticity is possible. You don't need to become stone to avoid being hurt; stones don't sing. The aim isn't to be untouchable; it's to stay alive without discarding yourself.</p>
+  </div>
+
+  <div class="closing">
+    <p>Welcome to the mess. Welcome to milk and hunger, sleep and chaos, awkward hugs and shaky apologies. Welcome to imperfect love. Your rights—to exist, to feel, to need, to change, to take up space—remain intact even when others fail to honor them.</p>
+    <p>Welcome to life.</p>
+  </div>
+
+  <footer>Forest HUB &nbsp;·&nbsp; sdforest.site</footer>
+</div>
+
+<script>
+(function(){
+  var canvas = document.getElementById('plexus');
+  var ctx = canvas.getContext('2d');
+  var W, H, nodes = [], RAF;
+  var NODE_COUNT = 42;
+  var LINK_DIST = 140;
+
+  function resize() {
+    W = canvas.width  = window.innerWidth;
+    H = canvas.height = window.innerHeight;
+  }
+
+  function init() {
+    nodes = [];
+    for (var i = 0; i < NODE_COUNT; i++) {
+      nodes.push({
+        x: Math.random() * W,
+        y: Math.random() * H,
+        vx: (Math.random() - .5) * .28,
+        vy: (Math.random() - .5) * .28,
+        r: Math.random() * 1.4 + .6
+      });
+    }
+  }
+
+  function draw() {
+    ctx.clearRect(0, 0, W, H);
+    // Move
+    for (var i = 0; i < nodes.length; i++) {
+      var n = nodes[i];
+      n.x += n.vx; n.y += n.vy;
+      if (n.x < 0 || n.x > W) n.vx *= -1;
+      if (n.y < 0 || n.y > H) n.vy *= -1;
+    }
+    // Links
+    for (var i = 0; i < nodes.length; i++) {
+      for (var j = i + 1; j < nodes.length; j++) {
+        var dx = nodes[i].x - nodes[j].x;
+        var dy = nodes[i].y - nodes[j].y;
+        var dist = Math.sqrt(dx*dx + dy*dy);
+        if (dist < LINK_DIST) {
+          var alpha = (1 - dist / LINK_DIST) * .45;
+          ctx.strokeStyle = 'rgba(200,185,155,' + alpha + ')';
+          ctx.lineWidth = .6;
+          ctx.beginPath();
+          ctx.moveTo(nodes[i].x, nodes[i].y);
+          ctx.lineTo(nodes[j].x, nodes[j].y);
+          ctx.stroke();
+        }
+      }
+    }
+    // Dots
+    for (var i = 0; i < nodes.length; i++) {
+      ctx.fillStyle = 'rgba(214,184,122,.55)';
+      ctx.beginPath();
+      ctx.arc(nodes[i].x, nodes[i].y, nodes[i].r, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    RAF = requestAnimationFrame(draw);
+  }
+
+  window.addEventListener('resize', function(){ resize(); init(); });
+  resize();
+  init();
+  draw();
+})();
+</script>
+</body>
+</html>
