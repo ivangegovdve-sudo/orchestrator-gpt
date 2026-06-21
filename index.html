@@ -5,73 +5,62 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Forest HUB</title>
   <style>
+    /* ── Design tokens ── */
     :root {
       --bg: #09090b;
-      --card-bg: rgba(24, 24, 27, 0.6);
-      --card-border: rgba(255, 255, 255, 0.08);
       --text: #f8fafc;
-      --muted: #a1a1aa;
-      --accent: #0ea5e9;
-      --accent-glow: rgba(14, 165, 233, 0.4);
-      --purple: #8b5cf6;
-      --purple-glow: rgba(139, 92, 246, 0.4);
-      --green: #10b981;
-      --green-glow: rgba(16, 185, 129, 0.4);
+      --muted: #94a3b8;
+      --border: rgba(255,255,255,0.07);
+      --card-bg: rgba(13,13,18,0.88);
     }
-
-    * { box-sizing: border-box; }
+    *, *::before, *::after { box-sizing: border-box; }
 
     body {
       margin: 0;
       min-height: 100vh;
       background-color: var(--bg);
       background-image:
-        radial-gradient(circle at 15% 50%, rgba(14, 165, 233, 0.10), transparent 45%),
-        radial-gradient(circle at 85% 30%, rgba(139, 92, 246, 0.10), transparent 45%),
-        radial-gradient(circle at 50% 80%, rgba(16, 185, 129, 0.06), transparent 40%),
-        url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.025'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+        radial-gradient(circle at 15% 50%, rgba(14,165,233,.10), transparent 45%),
+        radial-gradient(circle at 85% 30%, rgba(139,92,246,.10), transparent 45%),
+        radial-gradient(circle at 50% 80%, rgba(16,185,129,.06), transparent 40%),
+        url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.022'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
       color: var(--text);
-      font-family: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+      font-family: "Inter","Segoe UI",system-ui,-apple-system,sans-serif;
       padding: 40px 20px 80px;
       overflow-x: hidden;
     }
 
     .page {
-      max-width: 1200px;
+      max-width: 1100px;
       margin: 0 auto;
       display: flex;
       flex-direction: column;
-      gap: 36px;
-      animation: fadeIn 0.8s ease-out forwards;
+      gap: 48px;
+      animation: pageIn 0.7s ease-out both;
     }
 
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(10px); }
-      to   { opacity: 1; transform: translateY(0); }
+    @keyframes pageIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to   { opacity: 1; transform: none; }
     }
 
     /* ── Header ── */
     header {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
       text-align: center;
-      margin-bottom: 10px;
       position: relative;
+      margin-bottom: 4px;
     }
-
     header::after {
       content: '';
       position: absolute;
-      bottom: -16px; left: 50%;
+      bottom: -20px; left: 50%;
       transform: translateX(-50%);
-      width: 60px; height: 4px;
-      background: linear-gradient(90deg, var(--accent), var(--purple));
-      border-radius: 4px;
+      width: 48px; height: 3px;
+      background: linear-gradient(90deg, #0ea5e9, #8b5cf6);
+      border-radius: 3px;
     }
-
     h1 {
-      margin: 0;
+      margin: 0 0 8px;
       font-size: clamp(28px, 5vw, 40px);
       font-weight: 800;
       letter-spacing: -0.03em;
@@ -79,7 +68,6 @@
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
     }
-
     .subtitle {
       margin: 0;
       color: var(--muted);
@@ -88,312 +76,286 @@
       letter-spacing: 0.01em;
     }
 
-    /* ── Hero 3D canvas ── */
+    /* ── Hero canvas ── */
     .hero-card {
       position: relative;
       border-radius: 20px;
-      border: 1px solid rgba(255,255,255,0.06);
-      background: rgba(0,0,0,0.6);
+      border: 1px solid rgba(255,255,255,.06);
+      background: rgba(0,0,0,.6);
       overflow: hidden;
-      min-height: 340px;
-      box-shadow: 0 25px 60px -12px rgba(0,0,0,0.8), inset 0 1px 0 rgba(255,255,255,0.05);
+      min-height: 300px;
+      box-shadow: 0 25px 60px -12px rgba(0,0,0,.8), inset 0 1px 0 rgba(255,255,255,.05);
     }
-
     #hero-canvas {
-      position: absolute;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
-      z-index: 0;
+      position: absolute; top: 0; left: 0;
+      width: 100%; height: 100%; z-index: 0;
     }
-
     .hero-text {
-      position: relative;
-      z-index: 2;
-      text-align: center;
+      position: relative; z-index: 2;
+      text-align: center; padding: 60px 20px;
       pointer-events: none;
-      padding: 60px 20px;
     }
-
     .hero-text h2 {
-      font-size: clamp(28px, 5vw, 44px);
-      font-weight: 800;
-      margin: 0 0 12px;
+      font-size: clamp(26px, 5vw, 42px);
+      font-weight: 800; margin: 0 0 10px;
       background: linear-gradient(135deg, #0ea5e9 0%, #8b5cf6 60%, #10b981 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
       animation: glowPulse 3s ease-in-out infinite;
     }
-
     @keyframes glowPulse {
-      0%, 100% { filter: drop-shadow(0 0 12px rgba(14,165,233,0.4)); }
-      50%       { filter: drop-shadow(0 0 24px rgba(139,92,246,0.6)); }
+      0%,100% { filter: drop-shadow(0 0 12px rgba(14,165,233,.4)); }
+      50%      { filter: drop-shadow(0 0 24px rgba(139,92,246,.6)); }
     }
-
-    .hero-text p {
-      color: rgba(203, 213, 225, 0.8);
-      font-size: 18px;
-      margin: 0;
-    }
-
-    /* floating orbit rings behind the title */
+    .hero-text p { color: rgba(203,213,225,.8); font-size: 17px; margin: 0; }
     .orbit-ring {
-      position: absolute;
-      border-radius: 50%;
-      border: 1px solid rgba(255,255,255,0.04);
-      animation: spin linear infinite;
-      pointer-events: none;
+      position: absolute; border-radius: 50%;
+      border: 1px solid rgba(255,255,255,.04);
+      animation: spin linear infinite; pointer-events: none;
     }
-    .orbit-ring:nth-child(1) { width: 200px; height: 200px; top: 50%; left: 50%; margin: -100px; animation-duration: 12s; }
-    .orbit-ring:nth-child(2) { width: 320px; height: 320px; top: 50%; left: 50%; margin: -160px; animation-duration: 20s; animation-direction: reverse; }
-    .orbit-ring:nth-child(3) { width: 440px; height: 440px; top: 50%; left: 50%; margin: -220px; animation-duration: 30s; }
-
-    @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-
-    /* ── Grid view mode buttons ── */
-    .view-toggle {
-      display: flex;
-      justify-content: flex-end;
-      gap: 8px;
-      margin-bottom: -16px;
-    }
-
-    .view-btn {
-      background: rgba(255,255,255,0.04);
-      border: 1px solid rgba(255,255,255,0.1);
-      color: var(--muted);
-      border-radius: 8px;
-      padding: 6px 14px;
-      font-size: 13px;
-      cursor: pointer;
-      transition: all 0.2s;
-      font-family: inherit;
-    }
-
-    .view-btn.active, .view-btn:hover {
-      background: rgba(14,165,233,0.12);
-      border-color: rgba(14,165,233,0.4);
-      color: var(--accent);
-    }
-
-    /* ── Card grid (flat layout) ── */
-    .tool-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-      gap: 20px;
-      transition: all 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
-    }
-
-    /* Perspective 3D layout mode */
-    .tool-grid.grid-3d {
-      perspective: 1200px;
-      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    }
-
-    /* Orbit layout mode */
-    .tool-grid.grid-orbit {
-      position: relative;
-      height: 640px;
-      display: block;
-    }
-
-    .tool-card {
-      opacity: 0;
-      animation: slideUpFade 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-    }
-
-    .tool-card:nth-child(1)  { animation-delay: 0.10s; }
-    .tool-card:nth-child(2)  { animation-delay: 0.17s; }
-    .tool-card:nth-child(3)  { animation-delay: 0.24s; }
-    .tool-card:nth-child(4)  { animation-delay: 0.31s; }
-    .tool-card:nth-child(5)  { animation-delay: 0.38s; }
-    .tool-card:nth-child(6)  { animation-delay: 0.45s; }
-    .tool-card:nth-child(7)  { animation-delay: 0.52s; }
-    .tool-card:nth-child(8)  { animation-delay: 0.59s; }
-    .tool-card:nth-child(9)  { animation-delay: 0.66s; }
-    .tool-card:nth-child(10) { animation-delay: 0.73s; }
-    .tool-card:nth-child(11) { animation-delay: 0.80s; }
-    .tool-card:nth-child(12) { animation-delay: 0.87s; }
-
-    @keyframes slideUpFade {
-      from { opacity: 0; transform: translateY(30px) scale(0.96); }
-      to   { opacity: 1; transform: translateY(0) scale(1); }
-    }
-
-    .tool-card {
-      position: relative;
-      display: flex;
-      flex-direction: column;
-      text-decoration: none;
-      border-radius: 18px;
-      border: 1px solid var(--card-border);
-      background: var(--card-bg);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      padding: 22px;
-      color: var(--text);
-      overflow: hidden;
-      z-index: 1;
-      /* 3D transform origin for tilt */
-      transform-style: preserve-3d;
-      transform: perspective(800px) rotateX(0deg) rotateY(0deg);
-      transition: transform 0.12s ease-out, box-shadow 0.3s ease, border-color 0.3s ease;
-      will-change: transform;
-    }
-
-    /* Shine overlay for tilt effect */
-    .tool-card::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: radial-gradient(600px circle at var(--mouse-x, 50%) var(--mouse-y, 50%), rgba(255,255,255,0.07), transparent 40%);
-      z-index: -1;
-      opacity: 0;
-      transition: opacity 0.3s;
-      border-radius: inherit;
-    }
-
-    .tool-card:hover {
-      box-shadow: 0 24px 48px -10px rgba(0,0,0,0.6), 0 0 28px var(--card-glow, var(--accent-glow));
-      border-color: var(--card-border-hover, rgba(14,165,233,0.35));
-    }
-
-    .tool-card:hover::before { opacity: 1; }
-
-    .tool-card[href^="http"]:hover {
-      --card-glow: var(--purple-glow);
-      --card-border-hover: rgba(139,92,246,0.35);
-    }
-
-    /* Card icon — big, animated */
-    .card-icon {
-      font-size: 40px;
-      line-height: 1;
-      margin-bottom: 14px;
-      display: block;
-      animation: float 4s ease-in-out infinite;
-      filter: drop-shadow(0 4px 12px rgba(0,0,0,0.4));
-      transform-origin: center;
-      animation-delay: var(--icon-delay, 0s);
-    }
-
-    @keyframes float {
-      0%, 100% { transform: translateY(0) rotate(0deg); }
-      33%       { transform: translateY(-5px) rotate(-2deg); }
-      66%       { transform: translateY(-3px) rotate(2deg); }
-    }
-
-    .tool-card-body {
-      display: flex;
-      flex-direction: column;
-      height: 100%;
-    }
-
-    .tool-card-title {
-      font-size: 18px;
-      font-weight: 700;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      margin-bottom: 8px;
-      letter-spacing: -0.01em;
-    }
-
-    .tool-card-subtitle {
-      font-size: 14px;
-      line-height: 1.55;
-      color: var(--muted);
-      margin-bottom: 18px;
-      flex-grow: 1;
-    }
-
-    .tool-card-meta {
-      font-size: 11px;
-      color: #64748b;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      margin-top: auto;
-      padding-top: 14px;
-      border-top: 1px solid rgba(255,255,255,0.05);
-    }
-
-    .tool-card-meta span {
-      background: rgba(0,0,0,0.3);
-      padding: 3px 8px;
-      border-radius: 4px;
-    }
-
-    .tool-pill {
-      font-size: 10px;
-      padding: 3px 8px;
-      border-radius: 6px;
-      background: rgba(14, 165, 233, 0.1);
-      border: 1px solid rgba(14, 165, 233, 0.3);
-      color: var(--accent);
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      font-weight: 600;
-      margin-left: auto;
-      white-space: nowrap;
-    }
-
-    .tool-card[href^="http"] .tool-pill {
-      background: rgba(139, 92, 246, 0.1);
-      border-color: rgba(139, 92, 246, 0.3);
-      color: var(--purple);
-    }
-
-    .tool-card-progress {
-      width: 100%;
-      height: 3px;
-      background: rgba(255, 255, 255, 0.08);
-      border-radius: 2px;
-      margin-top: 12px;
-      overflow: hidden;
-    }
-
-    .tool-card-progress-bar {
-      height: 100%;
-      background: linear-gradient(90deg, var(--accent), var(--purple));
-      border-radius: 2px;
-      transition: width 0.5s ease-in-out;
-    }
-
-    .tool-card-progress-text {
-      font-size: 10px;
-      color: #475569;
-      margin-top: 4px;
-      text-align: right;
-    }
-
-    .tool-card:focus-visible, a:focus-visible, button:focus-visible {
-      outline: 2px solid var(--accent);
-      outline-offset: 4px;
-      border-radius: 18px;
-    }
+    .orbit-ring:nth-child(1) { width:200px;height:200px;top:50%;left:50%;margin:-100px;animation-duration:12s; }
+    .orbit-ring:nth-child(2) { width:320px;height:320px;top:50%;left:50%;margin:-160px;animation-duration:20s;animation-direction:reverse; }
+    .orbit-ring:nth-child(3) { width:440px;height:440px;top:50%;left:50%;margin:-220px;animation-duration:30s; }
+    @keyframes spin { to { transform: rotate(360deg); } }
 
     /* ── Section label ── */
     .section-label {
-      font-size: 11px;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      color: #475569;
-      font-weight: 600;
+      font-size: 11px; letter-spacing: .10em; text-transform: uppercase;
+      color: #475569; font-weight: 600;
       padding-bottom: 8px;
-      border-bottom: 1px solid rgba(255,255,255,0.05);
-      margin-bottom: -16px;
+      border-bottom: 1px solid rgba(255,255,255,.05);
+      margin-bottom: -28px;
     }
 
-    /* ── 3D mode card override ── */
-    .grid-3d .tool-card {
-      transition: transform 0.08s ease-out, box-shadow 0.3s, border-color 0.3s;
+    /* ── Hub grid ── */
+    .hub-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(245px, 1fr));
+      gap: 16px;
     }
 
-    /* Responsive */
+    /* ── Hub card ── */
+    .hub-card {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      text-decoration: none;
+      color: var(--text);
+      border-radius: 24px;
+      border: 1px solid var(--border);
+      background: var(--card-bg);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      padding: 38px 24px 30px;
+      overflow: hidden;
+      cursor: pointer;
+      /* 3D base */
+      transform: perspective(900px) rotateX(0deg) rotateY(0deg) scale(1);
+      transition: transform .15s ease-out, box-shadow .3s ease, border-color .3s ease;
+      will-change: transform;
+      /* staggered entrance */
+      opacity: 0;
+      animation: cardIn .55s cubic-bezier(.16,1,.3,1) both;
+    }
+
+    .hub-card:nth-child(1) { animation-delay: .08s; }
+    .hub-card:nth-child(2) { animation-delay: .14s; }
+    .hub-card:nth-child(3) { animation-delay: .20s; }
+    .hub-card:nth-child(4) { animation-delay: .26s; }
+    .hub-card:nth-child(5) { animation-delay: .32s; }
+    .hub-card:nth-child(6) { animation-delay: .38s; }
+    .hub-card:nth-child(7) { animation-delay: .44s; }
+    .hub-card:nth-child(8) { animation-delay: .50s; }
+
+    @keyframes cardIn {
+      from { opacity: 0; transform: perspective(900px) translateY(22px) scale(.94); }
+      to   { opacity: 1; transform: perspective(900px) translateY(0) scale(1); }
+    }
+
+    /* Mouse-position radial shine */
+    .hub-card::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: radial-gradient(420px circle at var(--mx,50%) var(--my,50%), rgba(255,255,255,.055), transparent 50%);
+      z-index: 0; border-radius: inherit;
+      opacity: 0; transition: opacity .3s;
+      pointer-events: none;
+    }
+    .hub-card:hover::before { opacity: 1; }
+
+    /* Per-card color orb that blooms on hover */
+    .hub-card::after {
+      content: '';
+      position: absolute;
+      top: -20px; left: 50%;
+      transform: translateX(-50%);
+      width: 110px; height: 110px;
+      border-radius: 50%;
+      background: radial-gradient(circle, var(--c, rgba(14,165,233,.5)) 0%, transparent 70%);
+      opacity: .20;
+      transition: width .55s ease, height .55s ease, opacity .55s ease, top .55s ease;
+      pointer-events: none; z-index: 0;
+    }
+    .hub-card:hover::after, .hub-card.open::after {
+      width: 340px; height: 340px;
+      top: -60px; opacity: .12;
+    }
+
+    /* Hover state */
+    .hub-card:hover {
+      border-color: rgba(255,255,255,.14);
+      box-shadow:
+        0 24px 56px -10px rgba(0,0,0,.75),
+        0 0 0 1px rgba(255,255,255,.05),
+        0 0 48px var(--c, rgba(14,165,233,.15));
+    }
+
+    /* ── Icon ring ── */
+    .hub-icon-ring {
+      position: relative; z-index: 2;
+      width: 88px; height: 88px;
+      display: flex; align-items: center; justify-content: center;
+      border-radius: 50%;
+      background: rgba(255,255,255,.04);
+      border: 1px solid rgba(255,255,255,.09);
+      margin-bottom: 18px;
+      transition:
+        box-shadow .35s ease,
+        background .35s ease,
+        border-color .35s ease,
+        transform .4s cubic-bezier(.34,1.56,.64,1);
+    }
+    .hub-card:hover .hub-icon-ring {
+      box-shadow: 0 0 32px var(--c, rgba(14,165,233,.4));
+      background: rgba(255,255,255,.07);
+      border-color: rgba(255,255,255,.18);
+      transform: scale(1.10) translateY(-3px);
+    }
+
+    /* ── Icon emoji ── */
+    .hub-icon {
+      font-size: 44px; line-height: 1;
+      display: block;
+      filter: drop-shadow(0 2px 8px rgba(0,0,0,.5));
+      animation: floatIcon 5s ease-in-out infinite;
+      animation-delay: var(--icon-delay, 0s);
+      transition: transform .3s ease;
+    }
+    .hub-card:hover .hub-icon {
+      animation-play-state: paused;
+    }
+    @keyframes floatIcon {
+      0%,100% { transform: translateY(0) rotate(0deg); }
+      33%      { transform: translateY(-4px) rotate(-2deg); }
+      66%      { transform: translateY(-2px) rotate(2deg); }
+    }
+
+    /* ── Name ── */
+    .hub-name {
+      font-size: 16px; font-weight: 700; letter-spacing: -.01em;
+      position: relative; z-index: 2;
+      margin-bottom: 6px;
+      transition: color .2s;
+    }
+    .hub-card:hover .hub-name { color: #fff; }
+
+    /* ── Pill ── */
+    .hub-pill {
+      font-size: 10px; padding: 3px 10px;
+      border-radius: 99px;
+      background: rgba(255,255,255,.06);
+      border: 1px solid rgba(255,255,255,.10);
+      color: #64748b;
+      text-transform: uppercase; letter-spacing: .06em; font-weight: 600;
+      position: relative; z-index: 2;
+      margin-bottom: 18px;
+      transition: background .25s, border-color .25s, color .25s;
+    }
+    .hub-card:hover .hub-pill {
+      background: var(--cp, rgba(14,165,233,.12));
+      border-color: var(--c, rgba(14,165,233,.35));
+      color: var(--ct, #0ea5e9);
+    }
+
+    /* ── Description reveal ── */
+    .hub-desc-box {
+      position: relative; z-index: 2;
+      overflow: hidden;
+      max-height: 0;
+      opacity: 0;
+      transition: max-height .45s cubic-bezier(.16,1,.3,1), opacity .3s ease .05s;
+      width: 100%;
+    }
+    .hub-card:hover .hub-desc-box,
+    .hub-card.open .hub-desc-box {
+      max-height: 180px;
+      opacity: 1;
+    }
+
+    .hub-desc {
+      font-size: 13px; line-height: 1.65;
+      color: rgba(148,163,184,.9);
+      margin: 0 0 14px;
+    }
+
+    .hub-cta {
+      display: inline-flex; align-items: center; gap: 4px;
+      font-size: 12px; font-weight: 700; letter-spacing: .04em;
+      color: var(--ct, #0ea5e9);
+      padding: 7px 18px;
+      border-radius: 99px;
+      background: var(--cp, rgba(14,165,233,.10));
+      border: 1px solid var(--c, rgba(14,165,233,.28));
+      transition: background .2s, transform .2s;
+      pointer-events: none;
+    }
+    .hub-card:hover .hub-cta {
+      transform: translateY(-1px);
+    }
+
+    /* ── Focus ring (accessibility) ── */
+    .hub-card:focus-visible {
+      outline: 2px solid var(--ct, #0ea5e9);
+      outline-offset: 4px;
+      border-radius: 24px;
+    }
+
+    /* ── prefers-reduced-motion ── */
+    @media (prefers-reduced-motion: reduce) {
+      .hub-card,
+      .hub-card::before, .hub-card::after,
+      .hub-icon-ring, .hub-pill, .hub-cta,
+      .hub-desc-box, .hub-name { transition: none; animation: none; }
+      .hub-card { opacity: 1; transform: none; }
+      .hub-icon { animation: none; }
+      /* show descriptions statically */
+      .hub-desc-box { max-height: 180px; opacity: 1; }
+      /* no glow pulse in hero */
+      .hero-text h2 { animation: none; filter: none; }
+      /* no orbit spin */
+      .orbit-ring { animation: none; }
+    }
+
+    /* ── Touch/mobile: description always partially visible ── */
+    @media (pointer: coarse) {
+      .hub-desc-box { max-height: 68px; opacity: .75; }
+      .hub-cta { display: none; }
+    }
+
+    /* ── Mobile layout ── */
     @media (max-width: 640px) {
       body { padding: 20px 14px 60px; }
-      .tool-grid { grid-template-columns: 1fr; }
-      .card-icon { font-size: 32px; }
+      .hub-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
+      .hub-card { padding: 26px 14px 22px; border-radius: 18px; }
+      .hub-icon-ring { width: 68px; height: 68px; margin-bottom: 12px; }
+      .hub-icon { font-size: 34px; }
+      .hub-name { font-size: 14px; }
+      .hub-pill { margin-bottom: 10px; }
+      .hub-desc { font-size: 12px; }
+    }
+    @media (max-width: 380px) {
+      .hub-grid { grid-template-columns: 1fr; }
     }
   </style>
 </head>
@@ -417,322 +379,169 @@
       </div>
     </div>
 
-    <!-- View toggle -->
-    <div class="view-toggle">
-      <button class="view-btn active" data-mode="flat" title="Grid view">&#9707; Grid</button>
-      <button class="view-btn" data-mode="3d" title="3D tilt mode">&#9671; 3D</button>
-    </div>
-
     <p class="section-label">All Projects</p>
 
-    <!-- Card Grid -->
-    <div class="tool-grid" id="tool-grid">
+    <!-- Interactive Hub Grid — 8 kept subpages -->
+    <div class="hub-grid" id="hub-grid">
 
-      <a href="/web/math-mania/" class="tool-card" style="--icon-delay: 0.1s">
-        <span class="card-icon">🧮</span>
-        <div class="tool-card-body">
-          <div class="tool-card-title">
-            Math Mania
-            <span class="tool-pill">Lovable</span>
-          </div>
-          <div class="tool-card-subtitle">
-            Playable Lovable math app embedded inside Forest HUB with a full-screen escape hatch.
-          </div>
-          <div class="tool-card-meta">
-            <span>/web/math-mania/</span>
-            <span>forest-math-plus.lovable.app</span>
-          </div>
-          <div class="tool-card-progress">
-            <div class="tool-card-progress-bar" style="width: 100%"></div>
-          </div>
-          <div class="tool-card-progress-text">100% Complete</div>
+      <a href="web/life-in-time/" class="hub-card"
+         style="--c:rgba(251,191,36,.42);--cp:rgba(251,191,36,.1);--ct:#f59e0b;--icon-delay:.00s">
+        <div class="hub-icon-ring">
+          <span class="hub-icon">⏳</span>
+        </div>
+        <div class="hub-name">Life in Time</div>
+        <div class="hub-pill">Personal</div>
+        <div class="hub-desc-box">
+          <p class="hub-desc">How much time is left — summers, heartbeats, Christmases. A wake-up call and late-achiever pivot.</p>
+          <span class="hub-cta">Explore ↗</span>
         </div>
       </a>
 
-      <a href="/web/math-forest/" class="tool-card" style="--icon-delay: 0.3s">
-        <span class="card-icon">🌲</span>
-        <div class="tool-card-body">
-          <div class="tool-card-title">
-            Math Forest
-            <span class="tool-pill" style="background: rgba(245,158,11,0.1); border-color: rgba(245,158,11,0.3); color: #f59e0b;">Rebuild</span>
-          </div>
-          <div class="tool-card-subtitle">
-            Reserved route for the Math Forest rebuild. Original playable app preserved here.
-          </div>
-          <div class="tool-card-meta">
-            <span>/web/math-forest/</span>
-            <span>rebuild pending</span>
-          </div>
-          <div class="tool-card-progress">
-            <div class="tool-card-progress-bar" style="width: 20%; background: linear-gradient(90deg, #35d07f, #f4c95d)"></div>
-          </div>
-          <div class="tool-card-progress-text">20% Complete</div>
+      <a href="https://vfxportfolio.lovable.app" target="_blank" rel="noopener noreferrer" class="hub-card"
+         style="--c:rgba(236,72,153,.42);--cp:rgba(236,72,153,.1);--ct:#ec4899;--icon-delay:.15s">
+        <div class="hub-icon-ring">
+          <span class="hub-icon">🎨</span>
+        </div>
+        <div class="hub-name">VFX Portfolio</div>
+        <div class="hub-pill">External</div>
+        <div class="hub-desc-box">
+          <p class="hub-desc">Animation Lead &amp; VFX reel — slot games, animated series, and commercials.</p>
+          <span class="hub-cta">View Portfolio ↗</span>
         </div>
       </a>
 
-      <a href="/web/kids-movie-library/" class="tool-card" style="--icon-delay: 0.5s">
-        <span class="card-icon">🎬</span>
-        <div class="tool-card-body">
-          <div class="tool-card-title">
-            Kids Movie Library
-            <span class="tool-pill">Static</span>
-          </div>
-          <div class="tool-card-subtitle">
-            Curated family movie catalog with watched tracking, ratings, age guidance, and category filtering.
-          </div>
-          <div class="tool-card-meta">
-            <span>/web/kids-movie-library/</span>
-          </div>
-          <div class="tool-card-progress">
-            <div class="tool-card-progress-bar" style="width: 100%"></div>
-          </div>
-          <div class="tool-card-progress-text">100% Complete</div>
+      <a href="/web/mendeleev-bg/" class="hub-card"
+         style="--c:rgba(16,185,129,.42);--cp:rgba(16,185,129,.1);--ct:#10b981;--icon-delay:.30s">
+        <div class="hub-icon-ring">
+          <span class="hub-icon">⚗️</span>
+        </div>
+        <div class="hub-name">Mendeleev BG</div>
+        <div class="hub-pill">Interactive</div>
+        <div class="hub-desc-box">
+          <p class="hub-desc">Bulgarian-language periodic table with compound highlighting and deep-dive element panels.</p>
+          <span class="hub-cta">Explore ↗</span>
         </div>
       </a>
 
-      <a href="/web/mendeleev-bg/" class="tool-card" style="--icon-delay: 0.7s">
-        <span class="card-icon">⚗️</span>
-        <div class="tool-card-body">
-          <div class="tool-card-title">
-            Periodic Table BG
-            <span class="tool-pill">Interactive</span>
-          </div>
-          <div class="tool-card-subtitle">
-            Interactive Bulgarian-language periodic table with compound highlighting and element detail panels.
-          </div>
-          <div class="tool-card-meta">
-            <span>/web/mendeleev-bg/</span>
-          </div>
-          <div class="tool-card-progress">
-            <div class="tool-card-progress-bar" style="width: 100%"></div>
-          </div>
-          <div class="tool-card-progress-text">100% Complete</div>
+      <a href="https://dist-omega-lyart-23.vercel.app/" target="_blank" rel="noopener noreferrer" class="hub-card"
+         style="--c:rgba(14,165,233,.42);--cp:rgba(14,165,233,.1);--ct:#0ea5e9;--icon-delay:.45s">
+        <div class="hub-icon-ring">
+          <span class="hub-icon">🎙️</span>
+        </div>
+        <div class="hub-name">Voice2Voice Buddy</div>
+        <div class="hub-pill">External</div>
+        <div class="hub-desc-box">
+          <p class="hub-desc">Voice-production control room — recording sessions, editing, deliverables, and producer notes.</p>
+          <span class="hub-cta">Open App ↗</span>
         </div>
       </a>
 
-      <a href="/web/ai-init/" class="tool-card" style="--icon-delay: 0.9s">
-        <span class="card-icon">📚</span>
-        <div class="tool-card-body">
-          <div class="tool-card-title">
-            AI &amp; Tech Glossary
-            <span class="tool-pill">Reference</span>
-          </div>
-          <div class="tool-card-subtitle">
-            490+ searchable AI, compute, cloud, and infra abbreviations — GPU/TPU/LPU, LoRA, vLLM, RAG, and more.
-          </div>
-          <div class="tool-card-meta">
-            <span>/web/ai-init/</span>
-          </div>
-          <div class="tool-card-progress">
-            <div class="tool-card-progress-bar" style="width: 100%"></div>
-          </div>
-          <div class="tool-card-progress-text">100% Complete</div>
+      <a href="/web/kids-movie-library/" class="hub-card"
+         style="--c:rgba(249,115,22,.42);--cp:rgba(249,115,22,.1);--ct:#f97316;--icon-delay:.60s">
+        <div class="hub-icon-ring">
+          <span class="hub-icon">🎬</span>
+        </div>
+        <div class="hub-name">Kids Movie Library</div>
+        <div class="hub-pill">Static</div>
+        <div class="hub-desc-box">
+          <p class="hub-desc">Curated family movie catalog with watch tracking, ratings, age guidance, and category filtering.</p>
+          <span class="hub-cta">Browse ↗</span>
         </div>
       </a>
 
-      <a href="/calendar/" class="tool-card" style="--icon-delay: 1.1s">
-        <span class="card-icon">📅</span>
-        <div class="tool-card-body">
-          <div class="tool-card-title">
-            Calendar Generator
-            <span class="tool-pill">Print Tool</span>
-          </div>
-          <div class="tool-card-subtitle">
-            Build a printable cover plus thirteen month pages with custom artwork, holiday lookup, and saved settings.
-          </div>
-          <div class="tool-card-meta">
-            <span>/calendar/</span>
-            <span>static</span>
-          </div>
-          <div class="tool-card-progress">
-            <div class="tool-card-progress-bar" style="width: 100%"></div>
-          </div>
-          <div class="tool-card-progress-text">100% Complete</div>
+      <a href="/web/council/" class="hub-card"
+         style="--c:rgba(139,92,246,.42);--cp:rgba(139,92,246,.1);--ct:#8b5cf6;--icon-delay:.75s">
+        <div class="hub-icon-ring">
+          <span class="hub-icon">🤖</span>
+        </div>
+        <div class="hub-name">LLM Council</div>
+        <div class="hub-pill">Free AI</div>
+        <div class="hub-desc-box">
+          <p class="hub-desc">Multi-role free-tier debate: Proposer → Critic → Synthesizer. Watch the full reasoning chain.</p>
+          <span class="hub-cta">Start Debate ↗</span>
         </div>
       </a>
 
-      <a href="https://vfxportfolio.lovable.app" target="_blank" rel="noopener noreferrer" class="tool-card" style="--icon-delay: 1.3s">
-        <span class="card-icon">🎨</span>
-        <div class="tool-card-body">
-          <div class="tool-card-title">
-            VFX Portfolio
-            <span class="tool-pill">External</span>
-          </div>
-          <div class="tool-card-subtitle">
-            Animation Lead and VFX professional portfolio showcasing slot games, animated series, and commercials.
-          </div>
-          <div class="tool-card-meta">
-            <span>vfxportfolio.lovable.app</span>
-          </div>
-          <div class="tool-card-progress">
-            <div class="tool-card-progress-bar" style="width: 100%"></div>
-          </div>
-          <div class="tool-card-progress-text">100% Complete</div>
+      <a href="/web/ai-init/" class="hub-card"
+         style="--c:rgba(99,102,241,.42);--cp:rgba(99,102,241,.1);--ct:#6366f1;--icon-delay:.90s">
+        <div class="hub-icon-ring">
+          <span class="hub-icon">📚</span>
+        </div>
+        <div class="hub-name">AI Glossary</div>
+        <div class="hub-pill">Reference</div>
+        <div class="hub-desc-box">
+          <p class="hub-desc">490+ searchable AI, compute &amp; infra abbreviations — GPU/TPU/LPU, LoRA, vLLM, RAG, and more.</p>
+          <span class="hub-cta">Look Up ↗</span>
         </div>
       </a>
 
-      <a href="/web/llm-db/index.html" class="tool-card" style="--icon-delay: 0.2s">
-        <span class="card-icon">🗺️</span>
-        <div class="tool-card-body">
-          <div class="tool-card-title">
-            AI Platforms Map
-            <span class="tool-pill">Directory</span>
-          </div>
-          <div class="tool-card-subtitle">
-            Browsable map of the AI ecosystem — LLM APIs, coding tools, app builders, agents, image, voice, and infra.
-          </div>
-          <div class="tool-card-meta">
-            <span>/web/llm-db/</span>
-            <span>102 platforms</span>
-          </div>
-          <div class="tool-card-progress">
-            <div class="tool-card-progress-bar" style="width: 100%"></div>
-          </div>
-          <div class="tool-card-progress-text">100% Complete</div>
+      <a href="/web/llm-db/index.html" class="hub-card"
+         style="--c:rgba(45,212,191,.42);--cp:rgba(45,212,191,.1);--ct:#2dd4bf;--icon-delay:1.05s">
+        <div class="hub-icon-ring">
+          <span class="hub-icon">🗺️</span>
+        </div>
+        <div class="hub-name">AI Platforms Map</div>
+        <div class="hub-pill">Directory</div>
+        <div class="hub-desc-box">
+          <p class="hub-desc">Browsable map of the AI ecosystem — 102 platforms across LLM APIs, coding, agents, image, and voice.</p>
+          <span class="hub-cta">Explore Map ↗</span>
         </div>
       </a>
-
-      <a href="web/life-in-time/" class="tool-card" style="--icon-delay: 0.4s">
-        <span class="card-icon">⏳</span>
-        <div class="tool-card-body">
-          <div class="tool-card-title">
-            Life in Time
-            <span class="tool-pill">Local</span>
-          </div>
-          <div class="tool-card-subtitle">
-            How much time is left — summers, heartbeats, Christmases. Wake-up call + late-achiever pivot.
-          </div>
-          <div class="tool-card-meta">
-            <span>Vanilla JS</span>
-            <span>/web/life-in-time/</span>
-          </div>
-          <div class="tool-card-progress">
-            <div class="tool-card-progress-bar" style="width: 100%"></div>
-          </div>
-          <div class="tool-card-progress-text">100% Complete</div>
-        </div>
-      </a>
-
-      <a href="https://dist-omega-lyart-23.vercel.app/" target="_blank" rel="noopener noreferrer" class="tool-card" style="--icon-delay: 0.6s">
-        <span class="card-icon">🎙️</span>
-        <div class="tool-card-body">
-          <div class="tool-card-title">
-            Voice2Voice Buddy
-            <span class="tool-pill">External</span>
-          </div>
-          <div class="tool-card-subtitle">
-            Voice-production control room for tracking recording, editing, deliverables, and producer notes.
-          </div>
-          <div class="tool-card-meta">
-            <span>Expo Web</span>
-            <span>Vercel</span>
-          </div>
-          <div class="tool-card-progress">
-            <div class="tool-card-progress-bar" style="width: 100%"></div>
-          </div>
-          <div class="tool-card-progress-text">100% Complete</div>
-        </div>
-      </a>
-
-      <a href="/web/council/" class="tool-card" style="--icon-delay: 0.8s">
-        <span class="card-icon">🤖</span>
-        <div class="tool-card-body">
-          <div class="tool-card-title">
-            LLM Council
-            <span class="tool-pill">Free AI</span>
-          </div>
-          <div class="tool-card-subtitle">
-            Multi-role free-tier debate: Proposer → Critic → Synthesizer. Watch the full reasoning chain before the final answer.
-          </div>
-          <div class="tool-card-meta">
-            <span>OpenRouter free tier</span>
-            <span>$0 cost</span>
-          </div>
-          <div class="tool-card-progress">
-            <div class="tool-card-progress-bar" style="width: 100%"></div>
-          </div>
-          <div class="tool-card-progress-text">100% Complete</div>
-        </div>
-      </a>
-
 
     </div>
   </div>
 
   <script>
-    /* ─────────────────────────────────────────
-       1. Mouse-position shine on cards
-    ───────────────────────────────────────── */
-    document.querySelectorAll('.tool-card').forEach(card => {
-      card.addEventListener('mousemove', e => {
-        const rect = card.getBoundingClientRect();
-        const x = e.clientX - rect.left;
-        const y = e.clientY - rect.top;
-        card.style.setProperty('--mouse-x', `${x}px`);
-        card.style.setProperty('--mouse-y', `${y}px`);
-      });
-    });
+    /* ── Reduced-motion + touch detection ── */
+    const noMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const isTouch  = window.matchMedia('(pointer: coarse)').matches;
 
-    /* ─────────────────────────────────────────
-       2. CSS 3D perspective tilt on cards
-    ───────────────────────────────────────── */
-    const MAX_TILT = 12; // degrees
-
-    function applyTilt(card, e) {
-      const rect = card.getBoundingClientRect();
-      const cx   = rect.left + rect.width  / 2;
-      const cy   = rect.top  + rect.height / 2;
-      const dx   = (e.clientX - cx) / (rect.width  / 2);
-      const dy   = (e.clientY - cy) / (rect.height / 2);
-      const rotY =  dx * MAX_TILT;
-      const rotX = -dy * MAX_TILT;
-      const scale = 1.03;
-      card.style.transform = `perspective(800px) rotateX(${rotX}deg) rotateY(${rotY}deg) scale(${scale})`;
-    }
-
-    function resetTilt(card) {
-      card.style.transform = 'perspective(800px) rotateX(0deg) rotateY(0deg) scale(1)';
-    }
-
-    function attachTiltListeners() {
-      document.querySelectorAll('.tool-card').forEach(card => {
-        card.addEventListener('mousemove', e => applyTilt(card, e));
-        card.addEventListener('mouseleave', () => resetTilt(card));
+    /* ── 3D tilt + mouse-shine on desktop ── */
+    const MAX_TILT = 11;
+    if (!noMotion && !isTouch) {
+      document.querySelectorAll('.hub-card').forEach(card => {
+        card.addEventListener('mousemove', e => {
+          const rect = card.getBoundingClientRect();
+          const cx = rect.width / 2,  cy = rect.height / 2;
+          const dx = (e.clientX - rect.left - cx) / cx;
+          const dy = (e.clientY - rect.top  - cy) / cy;
+          card.style.transform =
+            `perspective(900px) rotateX(${-dy * MAX_TILT}deg) rotateY(${dx * MAX_TILT}deg) scale(1.025)`;
+          card.style.setProperty('--mx', `${e.clientX - rect.left}px`);
+          card.style.setProperty('--my', `${e.clientY - rect.top}px`);
+        });
+        card.addEventListener('mouseleave', () => {
+          card.style.transform = 'perspective(900px) rotateX(0deg) rotateY(0deg) scale(1)';
+        });
       });
     }
 
-    attachTiltListeners();
-
-    /* ─────────────────────────────────────────
-       3. View toggle (grid ↔ 3D)
-    ───────────────────────────────────────── */
-    const grid    = document.getElementById('tool-grid');
-    const viewBtns = document.querySelectorAll('.view-btn');
-
-    viewBtns.forEach(btn => {
-      btn.addEventListener('click', () => {
-        viewBtns.forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        const mode = btn.dataset.mode;
-        grid.classList.remove('grid-3d');
-        if (mode === '3d') {
-          grid.classList.add('grid-3d');
-          MAX_TILT_VALUE = 18; // more tilt in 3D mode
-        } else {
-          MAX_TILT_VALUE = 12;
+    /* ── Mobile tap-to-reveal (first tap reveals, second tap navigates) ── */
+    if (isTouch) {
+      document.querySelectorAll('.hub-card').forEach(card => {
+        card.addEventListener('click', e => {
+          if (!card.classList.contains('open')) {
+            e.preventDefault();
+            document.querySelectorAll('.hub-card.open').forEach(c => c.classList.remove('open'));
+            card.classList.add('open');
+          }
+          /* if already .open, let the native href navigate */
+        });
+      });
+      /* tap elsewhere to close */
+      document.addEventListener('click', e => {
+        if (!e.target.closest('.hub-card')) {
+          document.querySelectorAll('.hub-card.open').forEach(c => c.classList.remove('open'));
         }
       });
-    });
+    }
 
-    let MAX_TILT_VALUE = MAX_TILT;
-
-    /* ─────────────────────────────────────────
-       4. Hero 3D nebula canvas
+    /* ────────────────────────────────────────────
+       Hero 3D nebula canvas
        - Deep-space feel with z-layered stars
-       - Nebula glow clouds
-       - Particle constellation network
-       - Mouse parallax
-    ───────────────────────────────────────── */
+       - Nebula glow clouds with mouse parallax
+       - Constellation particle network
+    ──────────────────────────────────────────── */
     const canvas = document.getElementById('hero-canvas');
     if (canvas) {
       const ctx = canvas.getContext('2d');
@@ -745,7 +554,9 @@
       resize();
       window.addEventListener('resize', resize);
 
-      const mouse = { x: W / 2, y: H / 2, smooth: { x: W / 2, y: H / 2 } };
+      const mouse = { x: 0, y: 0, smooth: { x: 0, y: 0 } };
+      function initMouse() { mouse.x = W / 2; mouse.y = H / 2; mouse.smooth.x = W / 2; mouse.smooth.y = H / 2; }
+      initMouse();
       canvas.parentElement.addEventListener('mousemove', e => {
         const r = canvas.getBoundingClientRect();
         mouse.x = e.clientX - r.left;
@@ -755,35 +566,33 @@
         mouse.x = W / 2; mouse.y = H / 2;
       });
 
-      /* ── Stars (background — many, tiny, parallax depth) ── */
+      /* Stars */
       const STAR_COUNT = 220;
       const stars = Array.from({ length: STAR_COUNT }, () => ({
-        x: Math.random(),   // normalized 0-1
-        y: Math.random(),
+        x: Math.random(), y: Math.random(),
         r: Math.random() * 1.2 + 0.2,
-        speed: Math.random() * 0.3 + 0.05,  // parallax speed factor
+        speed: Math.random() * 0.3 + 0.05,
         alpha: Math.random() * 0.7 + 0.2,
         twinkleOffset: Math.random() * Math.PI * 2,
       }));
 
-      /* ── Nebula clouds (background glow blobs) ── */
+      /* Nebula clouds */
       const nebulae = [
-        { cx: 0.25, cy: 0.40, r: 180, color: 'rgba(14,165,233,' },   // blue
-        { cx: 0.75, cy: 0.60, r: 150, color: 'rgba(139,92,246,' },   // purple
-        { cx: 0.50, cy: 0.20, r: 120, color: 'rgba(16,185,129,' },   // green
+        { cx: 0.25, cy: 0.40, r: 180, color: 'rgba(14,165,233,' },
+        { cx: 0.75, cy: 0.60, r: 150, color: 'rgba(139,92,246,' },
+        { cx: 0.50, cy: 0.20, r: 120, color: 'rgba(16,185,129,' },
         { cx: 0.15, cy: 0.75, r: 100, color: 'rgba(139,92,246,' },
         { cx: 0.85, cy: 0.25, r: 130, color: 'rgba(14,165,233,' },
       ];
 
-      /* ── Constellation particles (foreground) ── */
+      /* Constellation particles */
       const PART_COUNT = 55;
       const parts = Array.from({ length: PART_COUNT }, () => ({
-        x: Math.random() * (typeof W !== 'undefined' ? W : 800),
-        y: Math.random() * (typeof H !== 'undefined' ? H : 340),
+        x: Math.random() * 800, y: Math.random() * 340,
         vx: (Math.random() - 0.5) * 0.6,
         vy: (Math.random() - 0.5) * 0.6,
         r: Math.random() * 2.2 + 0.8,
-        hue: Math.random() > 0.5 ? 199 : 264,  // sky-blue vs purple
+        hue: Math.random() > 0.5 ? 199 : 264,
         alpha: Math.random() * 0.5 + 0.4,
       }));
 
@@ -794,14 +603,13 @@
         ctx.clearRect(0, 0, W, H);
         t += 0.008;
 
-        /* ── Smooth mouse ── */
         mouse.smooth.x += (mouse.x - mouse.smooth.x) * 0.05;
         mouse.smooth.y += (mouse.y - mouse.smooth.y) * 0.05;
         const mx = mouse.smooth.x, my = mouse.smooth.y;
         const offX = (mx - W / 2) / W;
         const offY = (my - H / 2) / H;
 
-        /* ── Nebula glow ── */
+        /* Nebula glow */
         nebulae.forEach(n => {
           const px = n.cx * W + offX * 40;
           const py = n.cy * H + offY * 25;
@@ -815,7 +623,7 @@
           ctx.fill();
         });
 
-        /* ── Stars (parallax) ── */
+        /* Stars */
         const now = performance.now() / 1000;
         stars.forEach(s => {
           const px = (s.x * W + offX * s.speed * 60 + W) % W;
@@ -829,13 +637,11 @@
         });
         ctx.globalAlpha = 1;
 
-        /* ── Constellation network ── */
+        /* Constellation network */
         parts.forEach(p => {
           p.x += p.vx; p.y += p.vy;
           if (p.x < 0 || p.x > W) p.vx = -p.vx;
           if (p.y < 0 || p.y > H) p.vy = -p.vy;
-
-          // gentle mouse attraction
           const dx = mx - p.x, dy = my - p.y;
           const dist = Math.sqrt(dx * dx + dy * dy);
           if (dist < 120) {
@@ -843,16 +649,14 @@
             p.x += dx * force; p.y += dy * force;
           }
         });
-
         for (let i = 0; i < parts.length; i++) {
           for (let j = i + 1; j < parts.length; j++) {
             const dx = parts[i].x - parts[j].x;
             const dy = parts[i].y - parts[j].y;
             const d  = Math.sqrt(dx * dx + dy * dy);
             if (d < 100) {
-              const a = (1 - d / 100) * 0.35;
               ctx.beginPath();
-              ctx.strokeStyle = `rgba(148,163,184,${a})`;
+              ctx.strokeStyle = `rgba(148,163,184,${(1 - d / 100) * 0.35})`;
               ctx.lineWidth = 0.6;
               ctx.moveTo(parts[i].x, parts[i].y);
               ctx.lineTo(parts[j].x, parts[j].y);
@@ -860,9 +664,7 @@
             }
           }
         }
-
         parts.forEach(p => {
-          // glowing core
           const g = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.r * 3);
           g.addColorStop(0, `hsla(${p.hue},90%,70%,${p.alpha})`);
           g.addColorStop(1, `hsla(${p.hue},90%,70%,0)`);
@@ -870,7 +672,6 @@
           ctx.beginPath();
           ctx.arc(p.x, p.y, p.r * 3, 0, Math.PI * 2);
           ctx.fill();
-
           ctx.fillStyle = `hsla(${p.hue},100%,90%,${p.alpha})`;
           ctx.beginPath();
           ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
