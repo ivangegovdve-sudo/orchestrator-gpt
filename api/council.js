@@ -280,7 +280,7 @@ module.exports = async function handler(req, res) {
   // quota (which itself causes "network error" via rate-limit starvation). The
   // code is validated SERVER-SIDE and never shipped in client source, so it can't
   // be scraped from the page. Configurable via env; falls back to a default.
-  const ACCESS_CODE = String(process.env.COUNCIL_ACCESS_CODE || "7341").trim();
+  const ACCESS_CODE = String(process.env.COUNCIL_ACCESS_CODE || "2142").trim();
   if (String(code || "").trim() !== ACCESS_CODE) {
     return res.status(401).json({ error: "Invalid access code. Ask Ivan for the 4-digit council code." });
   }
