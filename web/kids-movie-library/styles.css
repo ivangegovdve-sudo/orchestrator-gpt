@@ -312,3 +312,46 @@ a:focus-visible {
     grid-template-columns: 1fr;
   }
 }
+
+/* ── Animations ── */
+@keyframes movieCardIn {
+  from { opacity: 0; transform: translateY(14px) scale(0.97); }
+  to   { opacity: 1; transform: none; }
+}
+
+.movie-card {
+  animation: movieCardIn 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.tag-chip {
+  transition: background 0.18s, border-color 0.18s, color 0.18s, transform 0.15s;
+}
+.tag-chip:hover {
+  transform: translateY(-1px);
+}
+.tag-chip.active {
+  transform: translateY(-1px);
+}
+
+.watch-btn {
+  transition: background 0.15s, transform 0.15s, box-shadow 0.15s;
+}
+.watch-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(18, 120, 90, 0.2);
+}
+
+.movie-card.watched {
+  transition: opacity 0.3s;
+}
+
+.summary-grid div {
+  transition: box-shadow 0.2s;
+}
+.summary-grid div:hover {
+  box-shadow: 0 24px 56px rgba(22, 33, 29, 0.14);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .movie-card, .tag-chip, .watch-btn { animation: none; transition: none; }
+}

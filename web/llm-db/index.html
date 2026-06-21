@@ -132,6 +132,19 @@
     select:focus { border-color: var(--accent); outline: none; }
     select option { background: #18181b; color: var(--text); }
 
+    .clear-btn {
+      padding: 9px 14px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: var(--radius);
+      color: var(--muted);
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: all 0.15s;
+      white-space: nowrap;
+    }
+    .clear-btn:hover { background: rgba(244,63,94,0.1); border-color: rgba(244,63,94,0.3); color: #fb7185; }
+
     /* Stats bar */
     .stats-bar {
       display: flex;
@@ -284,6 +297,7 @@
     <select id="cat-filter" aria-label="Filter by category">
       <option value="">All categories</option>
     </select>
+    <button id="clear-btn" class="clear-btn" aria-label="Clear all filters" title="Clear filters" style="display:none">✕ Clear</button>
   </div>
 
   <div class="stats-bar">
@@ -294,6 +308,21 @@
 </div>
 
 <script>
+const CAT_TAG_LABEL = {
+  'llm-api':      'LLM API',
+  'coding':       'Coding',
+  'builder':      'Builder',
+  'image-vid':    'Image/Video',
+  'voice':        'Voice',
+  'agents':       'Agents',
+  'search-rag':   'Search/RAG',
+  'infra':        'Infra',
+  'cloud':        'Cloud',
+  'comms':        'Comms',
+  'data':         'Data',
+  'digital-twin': 'Digital Twin',
+};
+
 const PLATFORMS = [
   // ── LLM API PROVIDERS ──────────────────────────────────────────────────────
   { name:"OpenAI", cat:"LLM API Providers", tag:"llm-api", url:"https://platform.openai.com", by:"OpenAI",
@@ -537,6 +566,9 @@ cats.forEach(c => {
 function render() {
   const q = document.getElementById('q').value.trim().toLowerCase();
   const cat = catSelect.value;
+  const hasFilters = q || cat;
+  const clearBtn = document.getElementById('clear-btn');
+  if (clearBtn) clearBtn.style.display = hasFilters ? 'block' : 'none';
 
   let items = PLATFORMS.filter(p => {
     const matchQ = !q || [p.name, p.cat, p.desc, p.by].some(s => s.toLowerCase().includes(q));
@@ -556,7 +588,11 @@ function render() {
     return;
   }
 
-  document.getElementById('count-label').textContent = `${items.length} platform${items.length === 1 ? '' : 's'}`;
+  const total = PLATFORMS.length;
+  const filtered = items.length;
+  document.getElementById('count-label').textContent = (hasFilters && filtered < total)
+    ? `${filtered} of ${total} platforms`
+    : `${total} platforms`;
 
   // Group by category (preserving order)
   const grouped = [];
@@ -584,7 +620,7 @@ function render() {
       card.innerHTML = `
         <div class="card-top">
           <div class="card-name">${p.url ? `<a href="${p.url}" target="_blank" rel="noopener noreferrer">${escH(p.name)}</a>` : escH(p.name)}</div>
-          <span class="tag tag-${escH(p.tag)}">${escH(p.cat.split(' ')[0])}</span>
+          <span class="tag tag-${escH(p.tag)}">${escH(CAT_TAG_LABEL[p.tag] || p.cat.split(' ')[0])}</span>
         </div>
         <p class="card-desc">${escH(p.desc)}</p>
         <div class="card-footer">
@@ -607,6 +643,15 @@ function escH(str) {
 
 document.getElementById('q').addEventListener('input', render);
 catSelect.addEventListener('change', render);
+
+const clearBtn = document.getElementById('clear-btn');
+if (clearBtn) {
+  clearBtn.addEventListener('click', () => {
+    document.getElementById('q').value = '';
+    catSelect.value = '';
+    render();
+  });
+}
 
 render();
 </script>

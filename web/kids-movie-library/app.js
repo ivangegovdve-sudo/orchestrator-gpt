@@ -210,6 +210,7 @@ const els = {
 
 let saved = readSavedState();
 let selectedTags = new Set();
+let searchDebounceTimer = null;
 
 function readSavedState() {
   try {
@@ -365,10 +366,20 @@ function render() {
   for (const movie of result) {
     els.list.appendChild(createMovieCard(movie));
   }
+
+  // Stagger animation for movie cards
+  document.querySelectorAll('#resultsList .movie-card').forEach((card, i) => {
+    card.style.animationDelay = `${i * 0.05}s`;
+  });
 }
 
 function wire() {
-  [els.search, els.category, els.status, els.sort, els.bgAudio].forEach((el) => {
+  els.search.addEventListener("input", () => {
+    clearTimeout(searchDebounceTimer);
+    searchDebounceTimer = setTimeout(render, 120);
+  });
+
+  [els.category, els.status, els.sort, els.bgAudio].forEach((el) => {
     el.addEventListener("input", render);
     el.addEventListener("change", render);
   });

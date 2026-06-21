@@ -380,6 +380,62 @@ const RECIPES = {
     {f:'Pb(NO₃)₂',  bg:'Оловен нитрат',  en:'Lead nitrate', nb:'Пиротехника',               ne:'Pyrotechnics'},
     {f:'PbS',       bg:'Галенит',        en:'Galena',       nb:'Руда на оловото',            ne:'Lead ore'},
   ],
+  3: [ // Li
+    {f:'LiOH',    bg:'Литиев хидроксид',    en:'Lithium hydroxide',   nb:'Силна основа; в алкални батерии', ne:'Strong base; used in alkaline batteries'},
+    {f:'Li₂CO₃',  bg:'Литиев карбонат',      en:'Lithium carbonate',   nb:'Лекарство за биполярно разстройство', ne:'Medication for bipolar disorder'},
+    {f:'LiCl',    bg:'Литиев хлорид',        en:'Lithium chloride',    nb:'Поглъща влага; в климатици', ne:'Absorbs moisture; used in air conditioning'},
+    {f:'LiH',     bg:'Литиев хидрид',        en:'Lithium hydride',     nb:'Хранилище за водород; в ядрени оръжия', ne:'Hydrogen storage; in nuclear weapons'},
+    {f:'LiFePO₄', bg:'Литиев железен фосфат', en:'Lithium iron phosphate', nb:'Безопасна литиева батерия', ne:'Safe lithium battery chemistry (LFP)'},
+  ],
+  5: [ // B
+    {f:'H₃BO₃',   bg:'Борна киселина',        en:'Boric acid',              nb:'Дезинфектант и консервант', ne:'Disinfectant and preservative'},
+    {f:'Na₂B₄O₇', bg:'Натриев борат (боракс)', en:'Borax',                   nb:'Почистващо средство',        ne:'Cleaning agent'},
+    {f:'B₂O₃',    bg:'Борен оксид',          en:'Boron trioxide',          nb:'В жидкостни кристали',      ne:'In liquid crystal displays'},
+    {f:'B₄C',     bg:'Боров карбид',         en:'Boron carbide',           nb:'Супертвърдо; абразив',      ne:'Superhardness; abrasive'},
+    {f:'BF₃',     bg:'Боров трифлуорид',     en:'Boron trifluoride',       nb:'Катализатор в химията',     ne:'Catalyst in chemistry'},
+  ],
+  13: [ // Al
+    {f:'Al₂O₃',     bg:'Алуминиев оксид',       en:'Aluminum oxide',          nb:'Твърдо боксит; от него се издобива Al', ne:'Hard bauxite ore for Al extraction'},
+    {f:'AlCl₃',     bg:'Алуминиев хлорид',      en:'Aluminum chloride',       nb:'Катализатор в синтезата',   ne:'Catalyst in organic synthesis'},
+    {f:'Al(OH)₃',   bg:'Алуминиева основа',     en:'Aluminum hydroxide',      nb:'Огнеупорен пълнител',       ne:'Flame-retardant filler'},
+    {f:'Al₂(SO₄)₃', bg:'Алуминиев сулфат',      en:'Aluminum sulfate',        nb:'За пречистване на вода',    ne:'Used in water purification'},
+    {f:'KAl(SO₄)₂·12H₂O', bg:'Алумов кристал', en:'Alum crystal',            nb:'Дезодорант и вързващо средство', ne:'Deodorant and astringent'},
+  ],
+  22: [ // Ti
+    {f:'TiO₂',    bg:'Титанов диоксид',         en:'Titanium dioxide',        nb:'Слънцезащитен крем и бял пигмент', ne:'Sunscreen and white pigment'},
+    {f:'TiCl₄',   bg:'Титанов тетрахлорид',    en:'Titanium tetrachloride',  nb:'Производство на пигменти',  ne:'Pigment manufacturing'},
+    {f:'TiN',     bg:'Титанов нитрид',         en:'Titanium nitride',        nb:'Златна метална боя; закаляне на режещи инструменти', ne:'Gold-colored coating; hardening'},
+    {f:'Ti-6Al-4V', bg:'Титанова сплав',       en:'Titanium alloy Ti-6Al-4V',nb:'Космически инженеринг; авиация', ne:'Aerospace and aviation'},
+    {f:'TiC',     bg:'Титанов карбид',         en:'Titanium carbide',        nb:'Изключително твърда керамика', ne:'Extremely hard ceramic'},
+  ],
+  25: [ // Mn
+    {f:'MnO₂',     bg:'Манганов диоксид',       en:'Manganese dioxide',      nb:'Батерии и окислител',      ne:'In batteries and as oxidizer'},
+    {f:'KMnO₄',    bg:'Калиев перманганат',    en:'Potassium permanganate', nb:'Виолетов дезинфектант',     ne:'Purple disinfectant'},
+    {f:'MnSO₄',    bg:'Манганов сулфат',       en:'Manganese sulfate',      nb:'Тор за растенията',        ne:'Fertilizer for crops'},
+    {f:'Mn₂O₃',    bg:'Манганов оксид',        en:'Manganese oxide',        nb:'При производство на керамика', ne:'In ceramic manufacturing'},
+    {f:'MnCl₂',    bg:'Манганов хлорид',       en:'Manganese chloride',     nb:'Текстилен краситель',      ne:'Textile dye production'},
+  ],
+  28: [ // Ni
+    {f:'NiSO₄',    bg:'Никелов сулфат',       en:'Nickel sulfate',        nb:'Гальванично покритие',     ne:'Electroplating'},
+    {f:'NiO',      bg:'Никелов оксид',        en:'Nickel oxide',          nb:'Катализатор',              ne:'Catalyst in reactions'},
+    {f:'NiCl₂',    bg:'Никелов хлорид',       en:'Nickel chloride',       nb:'При производство на пигменти', ne:'Pigment manufacturing'},
+    {f:'Ni(CO)₄',  bg:'Никелов карбонил',     en:'Nickel carbonyl',       nb:'Екстракция на никел',      ne:'Nickel refining process'},
+    {f:'NiCr',     bg:'Нихром сплав',        en:'Nichrome alloy',        nb:'Гарнитури за готвене',    ne:'Heating elements in ovens'},
+  ],
+  35: [ // Br
+    {f:'HBr',     bg:'Водороден бромид',      en:'Hydrogen bromide',     nb:'Силна киселина',           ne:'Strong acid'},
+    {f:'NaBr',    bg:'Натриев бромид',        en:'Sodium bromide',        nb:'Седативен препарат',       ne:'Sedative medication'},
+    {f:'AgBr',    bg:'Сребърен бромид',       en:'Silver bromide',        nb:'Фотографски филм',        ne:'Photographic film'},
+    {f:'CH₂Br₂',  bg:'Метилен бромид',        en:'Methylene bromide',     nb:'Органична разтворител',    ne:'Organic solvent'},
+    {f:'Br₂',     bg:'Бромна течност',        en:'Bromine',               nb:'Токсичен; дезинфектант',  ne:'Toxic; water disinfectant'},
+  ],
+  53: [ // I
+    {f:'I₂',      bg:'Йод',                  en:'Iodine',               nb:'Дезинфектант и хранителна добавка', ne:'Disinfectant and food additive'},
+    {f:'KI',      bg:'Калиев йодид',         en:'Potassium iodide',     nb:'Защита при радиация',      ne:'Radiation protection'},
+    {f:'AgI',     bg:'Сребърен йодид',       en:'Silver iodide',        nb:'Изкуствен дъжд; облачно отсяване', ne:'Cloud seeding'},
+    {f:'CHI₃',    bg:'Йодоформ',             en:'Iodoform',             nb:'Антисептик (стар)',        ne:'Antiseptic (historical)'},
+    {f:'I₂O₅',    bg:'Йоден пентоксид',      en:'Iodine pentoxide',      nb:'Окислител в анализата',    ne:'Oxidizer in analysis'},
+  ],
 };
 
 const TRANSLATIONS = {

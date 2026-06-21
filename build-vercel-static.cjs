@@ -61,7 +61,7 @@ async function syncMendeleevBg() {
 }
 
 async function main() {
-  await syncMendeleevBg();
+  // syncMendeleevBg() skipped — using committed local version
 
   fs.rmSync(outDir, { recursive: true, force: true });
   fs.mkdirSync(outDir, { recursive: true });

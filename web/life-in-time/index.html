@@ -35,6 +35,8 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,san
 .field input:focus{border-color:var(--blue)}
 .field .hint{font-size:.72em;color:var(--muted);margin-top:4px;opacity:.7}
 .field-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.form-error{color:var(--red);font-size:.82em;margin:4px 0;padding:6px 10px;border-radius:6px;background:rgba(239,68,68,.06);border:1px solid rgba(239,68,68,.18);display:none}
+.form-error.visible{display:block}
 .btn-calc{width:100%;background:linear-gradient(135deg,var(--blue),var(--purple));border:none;border-radius:8px;padding:13px;color:#fff;font-size:1em;font-weight:700;cursor:pointer;letter-spacing:.5px;margin-top:8px;transition:opacity .2s}
 .btn-calc:hover{opacity:.85}
 
@@ -60,6 +62,28 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,san
 .stat-card.s-hearts .val{color:var(--gold)}
 .stat-card.s-moons  .val{color:#c084fc}
 
+@keyframes statIn {
+  from { opacity:0; transform: translateY(18px) scale(.95); }
+  to   { opacity:1; transform: none; }
+}
+@keyframes hbPulse {
+  0%,100% { box-shadow: 0 0 0 0 rgba(239,68,68,0); }
+  50%      { box-shadow: 0 0 20px 4px rgba(239,68,68,.18); }
+}
+.stat-card { animation: statIn 0.5s cubic-bezier(.16,1,.3,1) both; }
+.stat-card:nth-child(1) { animation-delay:.04s; }
+.stat-card:nth-child(2) { animation-delay:.09s; }
+.stat-card:nth-child(3) { animation-delay:.14s; }
+.stat-card:nth-child(4) { animation-delay:.19s; }
+.stat-card:nth-child(5) { animation-delay:.24s; }
+.stat-card:nth-child(6) { animation-delay:.29s; }
+.stat-card:nth-child(7) { animation-delay:.34s; }
+.heartbeat-ticker { animation: hbPulse 2.5s ease-in-out infinite; }
+@media (prefers-reduced-motion:reduce) {
+  .stat-card { animation:none; opacity:1; }
+  .heartbeat-ticker { animation:none; }
+}
+
 /* ── Heartbeat ticker ── */
 .heartbeat-ticker{text-align:center;margin:24px 0 40px;padding:20px;background:rgba(239,68,68,.05);border:1px solid rgba(239,68,68,.18);border-radius:12px}
 .heartbeat-ticker .ticker-label{font-size:.78em;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px}
@@ -79,11 +103,30 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,san
 .positive-header .pos-sub{color:var(--muted);margin-top:6px;font-size:.9em}
 
 .achievers-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px;margin-bottom:40px}
-.achiever-card{background:rgba(245,158,11,.04);border:1px solid rgba(245,158,11,.15);border-radius:12px;padding:16px 18px;transition:border-color .2s}
+@keyframes achIn {
+  from { opacity:0; transform: translateY(12px); }
+  to   { opacity:1; transform:none; }
+}
+.achiever-card { animation: achIn 0.45s cubic-bezier(.16,1,.3,1) both; background:rgba(245,158,11,.04);border:1px solid rgba(245,158,11,.15);border-radius:12px;padding:16px 18px;transition:border-color .2s; }
+.achiever-card:nth-child(1)  { animation-delay:.06s; }
+.achiever-card:nth-child(2)  { animation-delay:.10s; }
+.achiever-card:nth-child(3)  { animation-delay:.14s; }
+.achiever-card:nth-child(4)  { animation-delay:.18s; }
+.achiever-card:nth-child(5)  { animation-delay:.22s; }
+.achiever-card:nth-child(6)  { animation-delay:.26s; }
+.achiever-card:nth-child(7)  { animation-delay:.30s; }
+.achiever-card:nth-child(8)  { animation-delay:.34s; }
+.achiever-card:nth-child(9)  { animation-delay:.38s; }
+.achiever-card:nth-child(10) { animation-delay:.42s; }
+.achiever-card:nth-child(11) { animation-delay:.46s; }
+.achiever-card:nth-child(12) { animation-delay:.50s; }
 .achiever-card:hover{border-color:rgba(245,158,11,.35)}
 .achiever-card .ach-age{font-size:.72em;color:var(--gold);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px}
 .achiever-card .ach-name{font-size:.95em;font-weight:700;color:var(--text);margin-bottom:4px}
 .achiever-card .ach-desc{font-size:.8em;color:var(--muted);line-height:1.5}
+@media (prefers-reduced-motion:reduce) {
+  .achiever-card { animation:none; opacity:1; }
+}
 
 .peaks-section{margin-bottom:40px}
 .peaks-section h3{font-size:1em;color:var(--purple);font-weight:700;margin-bottom:16px;letter-spacing:.5px;text-transform:uppercase}
@@ -112,6 +155,8 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,san
 </style>
 </head>
 <body>
+
+<a href="/" style="display:inline-flex;align-items:center;gap:6px;color:#6b7280;text-decoration:none;font-size:13px;padding:16px 20px 0;transition:color .2s" onmouseover="this.style.color='#e2e8f0'" onmouseout="this.style.color='#6b7280'">← Forest HUB</a>
 
 <div class="header">
   <h1>Life in Time</h1>
@@ -142,6 +187,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,san
     <input type="number" id="lifeExp" value="83" min="70" max="120">
     <div class="hint">Default: 83 (EU average)</div>
   </div>
+  <div class="form-error" id="formError" role="alert"></div>
   <button class="btn-calc" onclick="calculate()">Calculate what remains →</button>
 </div>
 </div>
@@ -194,14 +240,20 @@ const NOW = new Date();
 const THIS_YEAR = NOW.getFullYear();
 
 const ACHIEVERS = [
-  {age:52, name:'Ray Kroc',         desc:"Sold milkshake mixers until 52, then built McDonald's into a global empire."},
-  {age:49, name:'Julia Child',      desc:"Published her first cookbook at 49. Became the face of American cooking."},
-  {age:40, name:'Vera Wang',        desc:"Switched from figure skating to fashion design at 40. Now a billion-dollar brand."},
-  {age:76, name:'Grandma Moses',    desc:"Started painting seriously at 76. Sold work for millions. Lived to 101."},
-  {age:48, name:'Sam Walton',       desc:"Opened the first Walmart at 44. Became the richest man in America by 63."},
-  {age:50, name:'Charles Darwin',   desc:"Published On the Origin of Species at 50 after decades of careful observation."},
-  {age:62, name:'Dr. Seuss',        desc:"Published The Cat in the Hat at 52. Most beloved children's books came after 50."},
-  {age:66, name:'Harland Sanders',  desc:"Founded KFC at 65 after failing dozens of other ventures. Sold it at 74 for millions."},
+  {age:52, name:'Ray Kroc',            desc:"Sold milkshake mixers until 52, then built McDonald's into a global empire."},
+  {age:49, name:'Julia Child',         desc:"Published her first cookbook at 49. Became the defining voice of American cooking on television."},
+  {age:40, name:'Vera Wang',           desc:"Pivoted from figure skating to fashion design at 40. Built a global billion-dollar brand."},
+  {age:78, name:'Grandma Moses',       desc:"Started painting at 78. Sold work for millions. Actively creating and exhibiting until age 101."},
+  {age:50, name:'Charles Darwin',      desc:"Published On the Origin of Species at 50, after 20+ years of meticulous patient observation."},
+  {age:52, name:'Dr. Seuss',           desc:"Published The Cat in the Hat at 52. His most beloved books all arrived after age 50."},
+  {age:65, name:'Harland Sanders',     desc:"Founded KFC at 65 after four decades of other ventures. Sold the company at 74."},
+  {age:44, name:'Sam Walton',          desc:"Opened the first Walmart at 44. Was the richest person in America by his 60s."},
+  {age:57, name:'Kathryn Bigelow',     desc:"Won the Oscar for Best Director at 57 — the first woman ever to do so — for The Hurt Locker."},
+  {age:76, name:'Nelson Mandela',      desc:"Released from 27 years in prison at 71. Became South Africa's first elected president at 76."},
+  {age:62, name:'Johnny Cash',         desc:"His landmark American Recordings series — the most critically acclaimed work of his life — began at 62."},
+  {age:65, name:'Laura Ingalls Wilder', desc:"Published the first Little House book at 65. Wrote eight beloved novels between ages 65 and 76."},
+  {age:56, name:'Toni Morrison',       desc:"Won the Pulitzer Prize for Beloved at 56. Received the Nobel Prize in Literature at 62."},
+  {age:34, name:'Andrea Bocelli',      desc:"Discovered by Pavarotti at 34 with no formal training. Went on to become the best-selling classical artist ever, with 90M+ albums sold."},
 ];
 
 const SKILL_PEAKS = [
@@ -232,8 +284,11 @@ function calculate() {
   const cy = parseInt(document.getElementById('childYear').value) || null;
   const le = parseInt(document.getElementById('lifeExp').value) || LIFE_EXP_DEFAULT;
 
+  const formErr = document.getElementById('formError');
+  formErr.classList.remove('visible');
   if (!by || by < 1920 || by > THIS_YEAR - 5) {
-    alert('Please enter a valid birth year.');
+    formErr.textContent = 'Enter a birth year between 1920 and ' + (THIS_YEAR - 5) + '.';
+    formErr.classList.add('visible');
     return;
   }
 
