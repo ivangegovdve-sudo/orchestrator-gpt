@@ -4,9 +4,9 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>LLM Council — Free-Tier AI Deliberation</title>
-  <meta name="description" content="Ask a question and watch 5 diverse free-tier LLMs deliberate in 4 stages: Proposer → Critic → Synthesizer → Judge. Powered by OpenRouter free models, $0 cost.">
+  <meta name="description" content="Ask a question and watch 4 distinct AI families deliberate across 6 stages: Propose → Critique × 2 → Revise → Synthesize → Judge. OpenRouter free models, $0 cost.">
   <meta property="og:title" content="LLM Council — Free-Tier AI Deliberation">
-  <meta property="og:description" content="4-stage free-tier deliberation: Proposer → Critic → Synthesizer → Judge. Watch the full reasoning chain live with no API key required.">
+  <meta property="og:description" content="6-stage free-tier deliberation: OpenAI · NVIDIA Ultra · Google Gemma · Nex AGI — 4 distinct model families, no shared blind spots, $0 cost.">
   <meta property="og:type" content="website">
   <style>
     :root {
@@ -215,9 +215,11 @@
     <div class="flow-row">
       <span class="role-badge proposer">Propose</span>
       <span class="arrow">&rarr;</span>
-      <span class="role-badge critic">Critique</span>
+      <span class="role-badge critic">Critique 1</span>
       <span class="arrow">&rarr;</span>
       <span class="role-badge proposer">Revise</span>
+      <span class="arrow">&rarr;</span>
+      <span class="role-badge critic">Critique 2</span>
       <span class="arrow">&rarr;</span>
       <span class="role-badge synth">Synthesize</span>
       <span class="arrow">&rarr;</span>
@@ -225,12 +227,13 @@
     </div>
 
     <div class="roster-info">
-      <strong>Diverse model roster</strong> &mdash; 5 distinct base models, non-Venice providers:<br>
-      <span class="model-chip">Proposer</span> OpenAI gpt-oss-20b &nbsp;
-      <span class="model-chip">Critic</span> NVIDIA Nemotron-Super (12B active) &nbsp;
+      <strong>4 distinct vendor families</strong> &mdash; 6 stages, all non-Venice, $0:<br>
+      <span class="model-chip">Proposer</span> OpenAI gpt-oss-120b &nbsp;
+      <span class="model-chip">Critic 1</span> NVIDIA Nemotron Ultra (550B, 55B active) &nbsp;
       <span class="model-chip">Revision</span> Google Gemma-4-31b &nbsp;
+      <span class="model-chip">Critic 2</span> Nex AGI nex-n2-pro (17B active MoE) &nbsp;
       <span class="model-chip">Synth</span> Google Gemma-4-26b MoE (4B active) &nbsp;
-      <span class="model-chip">Judge</span> NVIDIA Nemotron-Nano (3B active)
+      <span class="model-chip">Judge</span> OpenAI gpt-oss-20b
       &mdash; with fallbacks if any provider rate-limits.
     </div>
 
@@ -250,7 +253,7 @@
 
       <div class="input-footer">
         <div class="model-label">
-          5 families &middot; <span class="free-badge">free</span> &middot; 2 rounds + judge &middot; $0
+          4 families &middot; <span class="free-badge">free</span> &middot; 2 critics + judge &middot; $0
         </div>
         <button class="submit-btn" id="submit-btn" onclick="runCouncil()">Convene Council</button>
       </div>
@@ -260,7 +263,7 @@
 
     <div class="stages" id="stages" style="display:none;"></div>
 
-    <p class="footer-tag">Free tier &middot; OpenAI / NVIDIA Nemotron (Super+Nano) / Google Gemma-4 (Dense+MoE) via OpenRouter &mdash; $0</p>
+    <p class="footer-tag">Free tier &middot; OpenAI gpt-oss / NVIDIA Nemotron Ultra / Google Gemma-4 / Nex AGI &mdash; 4 families via OpenRouter &mdash; $0</p>
   </div>
 
   <script>
@@ -413,7 +416,7 @@
         if (!document.getElementById('stage-' + id)) {
           ensureDivider('synth', 'Synthesis', '#475569');
           createCard(id, 'synth', '&#9989;', 'Synthesizer',
-            'Third AI family combines all rounds into the definitive answer', '');
+            'Google Gemma weaves all proposals &amp; both critiques into the definitive answer', '');
         }
         if (status === 'thinking') {
           openCard(id);
@@ -432,7 +435,7 @@
         if (!document.getElementById('stage-' + id)) {
           ensureDivider('judge', 'Verdict', 'var(--amber)');
           createCard(id, 'judge', '&#9878;&#65039;', 'Judge &#8212; Verdict',
-            'Fourth AI family delivers the final decision, confidence &amp; call to action', 'judge-card');
+            'OpenAI (different from NVIDIA critics) delivers the final decision, confidence &amp; call to action', 'judge-card');
         }
         if (status === 'thinking') {
           openCard(id);
