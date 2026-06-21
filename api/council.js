@@ -2,13 +2,14 @@
 const https = require("https");
 
 const FREE_MODEL = "meta-llama/llama-3.3-70b-instruct:free";
+const DEFAULT_ROUNDS = 2; // Number of proposer passes (≥2 means at least one critique loop)
 
 function callOpenRouter(messages, apiKey) {
   return new Promise((resolve, reject) => {
     const body = JSON.stringify({
       model: FREE_MODEL,
       messages,
-      max_tokens: 1500,
+      max_tokens: 1000,
       temperature: 0.7,
     });
 
@@ -52,7 +53,6 @@ function callOpenRouter(messages, apiKey) {
 }
 
 module.exports = async function handler(req, res) {
-  // CORS for sdforest.site previews and local dev
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
@@ -78,9 +78,9 @@ module.exports = async function handler(req, res) {
     req.on("end", resolve);
   });
 
-  let question;
+  let question, rounds;
   try {
-    ({ question } = JSON.parse(body));
+    ({ question, rounds } = JSON.parse(body));
   } catch {
     return res.status(400).json({ error: "Invalid JSON body." });
   }
@@ -90,6 +90,7 @@ module.exports = async function handler(req, res) {
   }
 
   const q = question.trim().slice(0, 2000);
+  const numRounds = Math.max(2, Math.min(3, parseInt(rounds, 10) || DEFAULT_ROUNDS));
 
   res.setHeader("Content-Type", "text/event-stream; charset=utf-8");
   res.setHeader("Cache-Control", "no-cache, no-transform");
@@ -99,48 +100,88 @@ module.exports = async function handler(req, res) {
   const send = (data) => res.write(`data: ${JSON.stringify(data)}\n\n`);
 
   try {
-    // Stage 1 — Proposer
-    send({ stage: "proposer", status: "thinking" });
+    const proposerTexts = [];
+    const criticTexts = [];
 
-    const proposerText = await callOpenRouter(
+    // Round 1 — Initial Proposal
+    send({ stage: "proposer", round: 1, status: "thinking" });
+    proposerTexts[0] = await callOpenRouter(
       [
         {
           role: "system",
           content:
             "You are the Proposer in a multi-role LLM Council. " +
             "Given a question, provide a thorough, well-reasoned initial answer. " +
-            "Be direct, substantive, and confident. Aim for depth over hedging.",
+            "Be direct, substantive, and confident. Focus on depth, not length — be concise.",
         },
         { role: "user", content: q },
       ],
       apiKey
     );
-    send({ stage: "proposer", status: "done", text: proposerText });
+    send({ stage: "proposer", round: 1, status: "done", text: proposerTexts[0] });
 
-    // Stage 2 — Critic
-    send({ stage: "critic", status: "thinking" });
+    // Rounds 2..numRounds — Critique then Revise loop
+    // Critic round (r-1) critiques Proposer round (r-1), then Proposer round r revises
+    for (let r = 2; r <= numRounds; r++) {
+      const prevProposal = proposerTexts[r - 2];
 
-    const criticText = await callOpenRouter(
-      [
-        {
-          role: "system",
-          content:
-            "You are the Critic in a multi-role LLM Council. " +
-            "Given a proposed answer, identify its key weaknesses, blind spots, or missing nuance. " +
-            "Be specific and constructive — your goal is to strengthen the answer, not dismiss it. " +
-            "Note at least two concrete concerns.",
-        },
-        {
-          role: "user",
-          content: `Original question:\n${q}\n\nProposed answer:\n${proposerText}\n\nCritique the proposal above.`,
-        },
-      ],
-      apiKey
-    );
-    send({ stage: "critic", status: "done", text: criticText });
+      // Critic critiques the previous proposer output
+      send({ stage: "critic", round: r - 1, status: "thinking" });
+      criticTexts[r - 2] = await callOpenRouter(
+        [
+          {
+            role: "system",
+            content:
+              "You are the Critic in a multi-role LLM Council. " +
+              "Identify the key weaknesses, blind spots, or missing nuance in the proposal. " +
+              "Be specific and constructive — strengthen the answer, don't dismiss it. " +
+              "Note at least two concrete concerns. Be concise.",
+          },
+          {
+            role: "user",
+            content:
+              `Original question:\n${q}\n\n` +
+              `Proposed answer (Round ${r - 1}):\n${prevProposal}\n\n` +
+              "Critique the proposal above.",
+          },
+        ],
+        apiKey
+      );
+      send({ stage: "critic", round: r - 1, status: "done", text: criticTexts[r - 2] });
 
-    // Stage 3 — Synthesizer
+      // Proposer revises based on the critique
+      send({ stage: "proposer", round: r, status: "thinking" });
+      proposerTexts[r - 1] = await callOpenRouter(
+        [
+          {
+            role: "system",
+            content:
+              "You are the Proposer in a multi-role LLM Council. " +
+              "A critic identified weaknesses in your previous answer. " +
+              "Revise your answer to address those concerns while preserving your core insights. " +
+              "Be direct and concise.",
+          },
+          {
+            role: "user",
+            content:
+              `Original question:\n${q}\n\n` +
+              `Your previous answer (Round ${r - 1}):\n${prevProposal}\n\n` +
+              `Critic's feedback:\n${criticTexts[r - 2]}\n\n` +
+              `Write your revised answer for Round ${r}.`,
+          },
+        ],
+        apiKey
+      );
+      send({ stage: "proposer", round: r, status: "done", text: proposerTexts[r - 1] });
+    }
+
+    // Synthesizer — combines all rounds into the definitive answer
     send({ stage: "synthesizer", status: "thinking" });
+    const allRoundsContext =
+      proposerTexts.map((t, i) => `Proposer Round ${i + 1}:\n${t}`).join("\n\n") +
+      (criticTexts.length
+        ? "\n\n" + criticTexts.map((t, i) => `Critic Round ${i + 1}:\n${t}`).join("\n\n")
+        : "");
 
     const synthText = await callOpenRouter(
       [
@@ -148,22 +189,52 @@ module.exports = async function handler(req, res) {
           role: "system",
           content:
             "You are the Synthesizer in a multi-role LLM Council. " +
-            "Given the original question, the initial proposal, and the critique, " +
-            "produce the definitive final answer. Incorporate the strengths of the proposal " +
-            "and address the critique's concerns. Be comprehensive and clear.",
+            "Review all proposer drafts and critic feedback, then produce the definitive final answer. " +
+            "Incorporate the strongest points and address the critiques. " +
+            "Be comprehensive yet concise.",
         },
         {
           role: "user",
           content:
             `Original question:\n${q}\n\n` +
-            `Proposal:\n${proposerText}\n\n` +
-            `Critique:\n${criticText}\n\n` +
-            "Synthesize the final, best answer.",
+            allRoundsContext +
+            "\n\nSynthesize the best final answer.",
         },
       ],
       apiKey
     );
     send({ stage: "synthesizer", status: "done", text: synthText });
+
+    // Judge — final verdict with confidence and call-to-action
+    send({ stage: "judge", status: "thinking" });
+    const judgeText = await callOpenRouter(
+      [
+        {
+          role: "system",
+          content:
+            "You are the Judge in a multi-role LLM Council. " +
+            "After reviewing the full deliberation, deliver a clear VERDICT. " +
+            "Use EXACTLY this structure:\n" +
+            "VERDICT: [core decision or recommendation — one sentence]\n" +
+            "CONFIDENCE: [High | Medium | Low — plus one-line rationale]\n" +
+            "KEY REASONING:\n" +
+            "- [point 1]\n" +
+            "- [point 2]\n" +
+            "- [point 3]\n" +
+            "CALL TO ACTION: [specific first step the questioner should take]\n" +
+            "Be decisive. No padding.",
+        },
+        {
+          role: "user",
+          content:
+            `Original question:\n${q}\n\n` +
+            `Council's final synthesis:\n${synthText}\n\n` +
+            "Deliver your verdict.",
+        },
+      ],
+      apiKey
+    );
+    send({ stage: "judge", status: "done", text: judgeText });
 
     send({ stage: "complete" });
   } catch (err) {
