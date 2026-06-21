@@ -26,7 +26,7 @@ const ROSTER = {
 };
 
 const DEFAULT_ROUNDS = 2;     // ≥2 ensures at least one critique-then-revise loop
-const MODEL_TIMEOUT_MS = 22000; // per-attempt wall-clock limit; avoids hanging on queued free models
+const MODEL_TIMEOUT_MS = 28000; // per-attempt wall-clock limit; avoids hanging on queued free models
 
 // Short label for SSE display (last path segment, strip :free)
 function shortName(slug) {
@@ -34,7 +34,10 @@ function shortName(slug) {
 }
 
 function callSingleModel(messages, apiKey, model, maxTokens) {
-  return new Promise((resolve, reject) => {
+  // Promise.race gives a hard wall-clock timeout regardless of socket state.
+  // req.setTimeout alone doesn't fire when the remote server holds the connection
+  // open without sending data (common on queued/busy free providers).
+  const requestPromise = new Promise((resolve, reject) => {
     const body = JSON.stringify({
       model,
       messages,
@@ -72,17 +75,19 @@ function callSingleModel(messages, apiKey, model, maxTokens) {
         });
       }
     );
-
-    // Hard per-model timeout — prevents hanging on queued/throttled free models.
-    // Without this, a single slow provider eats the entire Vercel function budget.
-    req.setTimeout(MODEL_TIMEOUT_MS, () => {
-      req.destroy(new Error(`Timed out after ${MODEL_TIMEOUT_MS}ms: ${model}`));
-    });
-
     req.on("error", reject);
     req.write(body);
     req.end();
   });
+
+  const timeoutPromise = new Promise((_, reject) =>
+    setTimeout(
+      () => reject(new Error(`Timed out after ${MODEL_TIMEOUT_MS}ms: ${model}`)),
+      MODEL_TIMEOUT_MS
+    )
+  );
+
+  return Promise.race([requestPromise, timeoutPromise]);
 }
 
 // Try each model in order; return { text, model } for the first that succeeds.
@@ -247,7 +252,7 @@ module.exports = async function handler(req, res) {
           content: `Original question:\n${q}\n\n${allRoundsCtx}\n\nSynthesize the best final answer.`,
         },
       ],
-      apiKey, ROSTER.synthesizer, 800
+      apiKey, ROSTER.synthesizer, 600
     );
     send({ stage: "synthesizer", status: "done", text: synth.text, model: shortName(synth.model) });
 
