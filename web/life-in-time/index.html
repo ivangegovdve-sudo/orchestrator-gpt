@@ -4,9 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Life in Time — How Much Is Left?</title>
-<meta name="description" content="Enter your birth year and see time remaining in summers, heartbeats, and Christmases. Explore late-achiever inspiration — people who created their best work after 50, 60, or 70.">
+<meta name="description" content="Enter your birth year and see time remaining in summers, heartbeats, and Christmases — including how many summers you have left with your kids before they're teenagers. Then flip to the 'it's not too late' side.">
 <meta property="og:title" content="Life in Time — How Much Is Left?">
-<meta property="og:description" content="Calculate your remaining summers, heartbeats, and Christmases. Shareable link, late-achiever gallery, year progress bar.">
+<meta property="og:description" content="Visceral time visualization + late-achiever inspiration. How many summers with your kids? When do skills actually peak? Data-backed, moving, shareable.">
 <meta property="og:type" content="website">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
@@ -17,314 +17,426 @@
   --blue:#3b82f6;
   --purple:#a855f7;
   --gold:#f59e0b;
+  --amber:#fbbf24;
   --red:#ef4444;
   --orange:#f97316;
   --green:#22c55e;
+  --teal:#14b8a6;
   --muted:#6b7280;
   --text:#e2e8f0;
 }
 body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;min-height:100vh;overflow-x:hidden}
 
+/* ── Back link ── */
+.back-link{display:inline-flex;align-items:center;gap:6px;color:#6b7280;text-decoration:none;font-size:13px;padding:16px 20px 0;transition:color .2s}
+.back-link:hover{color:var(--text)}
+
 /* ── Header ── */
-.header{text-align:center;padding:48px 20px 32px;position:relative}
-.header h1{font-size:clamp(1.8em,5vw,3em);font-weight:800;letter-spacing:-1px;background:linear-gradient(135deg,var(--blue),var(--purple));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.header{text-align:center;padding:36px 20px 24px}
+.header h1{font-size:clamp(1.9em,5vw,3em);font-weight:800;letter-spacing:-1px;background:linear-gradient(135deg,var(--blue),var(--purple));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
 .header .sub{color:var(--muted);margin-top:8px;font-size:.95em}
 
-/* ── Input Form ── */
-.form-card{max-width:520px;margin:0 auto 40px;background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:28px 32px}
-.form-card h2{font-size:1.1em;color:var(--blue);margin-bottom:20px;letter-spacing:.5px}
-.field{margin-bottom:16px}
-.field label{display:block;font-size:.82em;color:var(--muted);margin-bottom:5px;letter-spacing:.3px;text-transform:uppercase}
+/* ── Year progress bar ── */
+.year-prog-wrap{max-width:360px;margin:16px auto 0}
+.year-prog-labels{display:flex;justify-content:space-between;margin-bottom:5px;font-size:.73em;color:var(--muted)}
+.year-prog-track{height:4px;background:rgba(255,255,255,.07);border-radius:99px;overflow:hidden}
+.year-prog-fill{height:100%;width:0%;background:linear-gradient(90deg,var(--blue),var(--purple));border-radius:99px;transition:width 1.2s cubic-bezier(.16,1,.3,1)}
+
+/* ── Form ── */
+.form-wrap{max-width:520px;margin:28px auto 0;padding:0 20px}
+.form-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:28px 32px}
+.form-card h2{font-size:1.05em;color:var(--blue);margin-bottom:18px;letter-spacing:.5px}
+.field{margin-bottom:14px}
+.field label{display:block;font-size:.8em;color:var(--muted);margin-bottom:5px;letter-spacing:.3px;text-transform:uppercase}
 .field input{width:100%;background:rgba(0,0,0,.4);border:1px solid var(--border);border-radius:8px;padding:10px 14px;color:var(--text);font-size:.95em;outline:none;transition:border-color .2s}
 .field input:focus{border-color:var(--blue)}
-.field .hint{font-size:.72em;color:var(--muted);margin-top:4px;opacity:.7}
+.field .hint{font-size:.71em;color:var(--muted);margin-top:4px;opacity:.7}
 .field-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .form-error{color:var(--red);font-size:.82em;margin:4px 0;padding:6px 10px;border-radius:6px;background:rgba(239,68,68,.06);border:1px solid rgba(239,68,68,.18);display:none}
 .form-error.visible{display:block}
 .btn-calc{width:100%;background:linear-gradient(135deg,var(--blue),var(--purple));border:none;border-radius:8px;padding:13px;color:#fff;font-size:1em;font-weight:700;cursor:pointer;letter-spacing:.5px;margin-top:8px;transition:opacity .2s}
 .btn-calc:hover{opacity:.85}
 
-/* ── Wake-up section ── */
-#results{display:none;max-width:900px;margin:0 auto;padding:0 20px 60px}
-.wake-header{text-align:center;padding:20px 0 32px}
-.wake-header h2{font-size:clamp(1.4em,4vw,2.2em);color:var(--red);font-weight:800}
-.wake-header .wake-sub{color:var(--muted);margin-top:6px;font-size:.9em}
+/* ── Results ── */
+#results{display:none;max-width:900px;margin:0 auto;padding:32px 20px 60px}
 
-.stats-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;margin-bottom:40px}
-.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px 16px;text-align:center;transition:border-color .3s}
+/* ── Wake header ── */
+.wake-header{text-align:center;padding:0 0 28px}
+.wake-header h2{font-size:clamp(1.5em,4vw,2.4em);color:var(--red);font-weight:800;line-height:1.1}
+.wake-sub{color:var(--muted);margin-top:8px;font-size:.9em}
+
+/* ── Kid summers section ── */
+.kid-block{background:rgba(245,158,11,.05);border:1px solid rgba(245,158,11,.2);border-radius:18px;padding:28px;margin-bottom:32px;text-align:center}
+.kid-count{font-size:clamp(2.6em,7vw,4.2em);font-weight:900;color:var(--gold);line-height:1;letter-spacing:-2px}
+.kid-subtitle{font-size:1.05em;color:var(--text);font-weight:600;margin:6px 0 4px}
+.kid-note{font-size:.85em;color:var(--muted);line-height:1.6;max-width:480px;margin:0 auto 20px}
+.kid-dot-grid{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin:18px auto;max-width:560px}
+.kd{width:22px;height:22px;border-radius:4px;flex-shrink:0}
+.kd.gone{background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.18)}
+.kd.left{background:rgba(245,158,11,.72);border:1px solid rgba(245,158,11,.9);animation:kidPulse 3.5s ease-in-out infinite}
+@keyframes kidPulse{0%,100%{box-shadow:0 0 0 0 rgba(245,158,11,0)}50%{box-shadow:0 0 14px 3px rgba(245,158,11,.2)}}
+.kid-footnote{font-size:.71em;color:var(--muted);margin-top:8px;opacity:.6}
+
+/* ── Life grid section ── */
+.life-grid-section{margin-bottom:36px}
+.section-label{font-size:.75em;letter-spacing:1.2px;text-transform:uppercase;color:var(--muted);margin-bottom:14px;display:block}
+.lg-row{display:flex;align-items:center;gap:0;margin-bottom:3px}
+.lg-decade{width:32px;font-size:.63em;color:var(--muted);text-align:right;padding-right:7px;flex-shrink:0;user-select:none}
+.lg-cells{display:flex;gap:2px}
+.ld{width:15px;height:15px;border-radius:2px;flex-shrink:0;transition:opacity .2s}
+.ld.past{background:rgba(255,255,255,.09);border:1px solid rgba(255,255,255,.07)}
+.ld.future{background:rgba(59,130,246,.33);border:1px solid rgba(59,130,246,.48)}
+.ld.kid-gone{background:rgba(245,158,11,.14);border:1px solid rgba(245,158,11,.24)}
+.ld.kid-left{background:rgba(245,158,11,.62);border:1px solid rgba(245,158,11,.82)}
+.ld.current{background:var(--red);border:1px solid #ff6b6b;animation:curPulse 1.5s ease-in-out infinite}
+.ld.beyond{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.04)}
+@keyframes curPulse{0%,100%{box-shadow:0 0 0 0 rgba(239,68,68,0)}50%{box-shadow:0 0 8px 2px rgba(239,68,68,.32)}}
+.grid-legend{display:flex;flex-wrap:wrap;gap:12px;font-size:.72em;color:var(--muted);margin-top:10px}
+.legend-item{display:flex;align-items:center;gap:5px}
+.legend-dot{width:11px;height:11px;border-radius:2px;display:inline-block;flex-shrink:0}
+
+/* ── Stats grid ── */
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(175px,1fr));gap:11px;margin-bottom:32px}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px 13px;text-align:center;transition:border-color .3s;animation:statIn .5s cubic-bezier(.16,1,.3,1) both}
 .stat-card:hover{border-color:rgba(255,255,255,.18)}
-.stat-card .icon{font-size:1.8em;margin-bottom:8px}
-.stat-card .val{font-size:clamp(1.6em,4vw,2.4em);font-weight:900;line-height:1;margin-bottom:4px}
-.stat-card .lbl{font-size:.75em;color:var(--muted);letter-spacing:.5px;text-transform:uppercase}
-.stat-card .ctx{font-size:.72em;color:var(--muted);margin-top:4px;opacity:.8;line-height:1.4}
-
-.stat-card.s-years  .val{color:var(--red)}
-.stat-card.s-summer .val{color:var(--orange)}
-.stat-card.s-xmas   .val{color:var(--blue)}
-.stat-card.s-wknd   .val{color:var(--purple)}
-.stat-card.s-meals  .val{color:var(--green)}
-.stat-card.s-hearts .val{color:var(--gold)}
-.stat-card.s-moons  .val{color:#c084fc}
-.stat-card.s-mins   .val{color:var(--blue)}
-.stat-card.s-books  .val{color:var(--green)}
-
-@keyframes statIn {
-  from { opacity:0; transform: translateY(18px) scale(.95); }
-  to   { opacity:1; transform: none; }
-}
-@keyframes hbPulse {
-  0%,100% { box-shadow: 0 0 0 0 rgba(239,68,68,0); }
-  50%      { box-shadow: 0 0 20px 4px rgba(239,68,68,.18); }
-}
-.stat-card { animation: statIn 0.5s cubic-bezier(.16,1,.3,1) both; }
-.stat-card:nth-child(1) { animation-delay:.04s; }
-.stat-card:nth-child(2) { animation-delay:.09s; }
-.stat-card:nth-child(3) { animation-delay:.14s; }
-.stat-card:nth-child(4) { animation-delay:.19s; }
-.stat-card:nth-child(5) { animation-delay:.24s; }
-.stat-card:nth-child(6) { animation-delay:.29s; }
-.stat-card:nth-child(7) { animation-delay:.34s; }
-.heartbeat-ticker { animation: hbPulse 2.5s ease-in-out infinite; }
-@media (prefers-reduced-motion:reduce) {
-  .stat-card { animation:none; opacity:1; }
-  .heartbeat-ticker { animation:none; }
-}
+.stat-card .icon{font-size:1.5em;margin-bottom:5px}
+.stat-card .val{font-size:clamp(1.3em,3.2vw,1.9em);font-weight:900;line-height:1;margin-bottom:3px}
+.stat-card .lbl{font-size:.7em;color:var(--muted);letter-spacing:.5px;text-transform:uppercase}
+.stat-card .ctx{font-size:.67em;color:var(--muted);margin-top:3px;opacity:.8;line-height:1.35}
+.s-years .val{color:var(--red)}.s-summer .val{color:var(--orange)}.s-xmas .val{color:var(--blue)}
+.s-wknd .val{color:var(--purple)}.s-meals .val{color:var(--green)}.s-hearts .val{color:var(--gold)}
+.s-moons .val{color:#c084fc}.s-mins .val{color:var(--teal)}.s-books .val{color:var(--green)}
+@keyframes statIn{from{opacity:0;transform:translateY(16px) scale(.96)}to{opacity:1;transform:none}}
+.stat-card:nth-child(1){animation-delay:.04s}.stat-card:nth-child(2){animation-delay:.09s}
+.stat-card:nth-child(3){animation-delay:.13s}.stat-card:nth-child(4){animation-delay:.17s}
+.stat-card:nth-child(5){animation-delay:.21s}.stat-card:nth-child(6){animation-delay:.25s}
+.stat-card:nth-child(7){animation-delay:.29s}.stat-card:nth-child(8){animation-delay:.33s}
+.stat-card:nth-child(9){animation-delay:.37s}
 
 /* ── Heartbeat ticker ── */
-.heartbeat-ticker{text-align:center;margin:24px 0 40px;padding:20px;background:rgba(239,68,68,.05);border:1px solid rgba(239,68,68,.18);border-radius:12px}
-.heartbeat-ticker .ticker-label{font-size:.78em;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px}
-.heartbeat-ticker .ticker-val{font-size:2.4em;font-weight:900;color:var(--red);font-variant-numeric:tabular-nums;letter-spacing:-1px}
-.heartbeat-ticker .ticker-sub{font-size:.75em;color:var(--muted);margin-top:4px}
+.hb-ticker{text-align:center;padding:20px;background:rgba(239,68,68,.05);border:1px solid rgba(239,68,68,.18);border-radius:12px;margin-bottom:32px;animation:hbPulse 2.5s ease-in-out infinite}
+.hb-label{font-size:.78em;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px}
+.hb-val{font-size:2.3em;font-weight:900;color:var(--red);font-variant-numeric:tabular-nums;letter-spacing:-1px}
+.hb-sub{font-size:.75em;color:var(--muted);margin-top:4px}
+@keyframes hbPulse{0%,100%{box-shadow:0 0 0 0 rgba(239,68,68,0)}50%{box-shadow:0 0 22px 5px rgba(239,68,68,.16)}}
 
-/* ── Pivot button ── */
-.pivot-wrap{text-align:center;margin:20px 0 40px}
-.btn-pivot{background:linear-gradient(135deg,#7c3aed,#db2777);border:none;border-radius:10px;padding:16px 36px;color:#fff;font-size:1.05em;font-weight:700;cursor:pointer;letter-spacing:.3px;transition:transform .2s,box-shadow .2s;box-shadow:0 0 30px rgba(124,58,237,.25)}
-.btn-pivot:hover{transform:translateY(-2px);box-shadow:0 0 40px rgba(124,58,237,.45)}
+/* ── Pivot ── */
+.pivot-wrap{text-align:center;margin:0 0 0}
+.btn-pivot{background:linear-gradient(135deg,#7c3aed,#db2777);border:none;border-radius:10px;padding:16px 38px;color:#fff;font-size:1.05em;font-weight:700;cursor:pointer;transition:transform .2s,box-shadow .2s;box-shadow:0 0 30px rgba(124,58,237,.25)}
+.btn-pivot:hover{transform:translateY(-2px);box-shadow:0 0 42px rgba(124,58,237,.45)}
 .pivot-hint{font-size:.8em;color:var(--muted);margin-top:10px}
 
-/* ── Positive pivot section ── */
-#positive{display:none;margin-top:20px}
-.positive-header{text-align:center;padding:20px 0 28px}
-.positive-header h2{font-size:clamp(1.3em,3.5vw,2em);color:var(--gold);font-weight:800}
-.positive-header .pos-sub{color:var(--muted);margin-top:6px;font-size:.9em}
+/* ── Part 2: positive ── */
+#positive{display:none;border-top:1px solid var(--border);padding-top:52px;margin-top:44px}
+.positive-header{text-align:center;padding:0 0 36px}
+.positive-header h2{font-size:clamp(1.4em,4vw,2.3em);color:var(--gold);font-weight:800}
+.pos-sub{color:var(--muted);margin-top:10px;font-size:.9em;line-height:1.7;max-width:580px;margin-left:auto;margin-right:auto}
 
-.achievers-header{font-size:.82em;color:var(--gold);margin-bottom:12px;opacity:.8}
-.achievers-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px;margin-bottom:40px}
-@keyframes achIn {
-  from { opacity:0; transform: translateY(12px); }
-  to   { opacity:1; transform:none; }
-}
-.achiever-card { animation: achIn 0.45s cubic-bezier(.16,1,.3,1) both; background:rgba(245,158,11,.04);border:1px solid rgba(245,158,11,.15);border-radius:12px;padding:16px 18px;transition:border-color .2s; }
-.achiever-card:nth-child(1)  { animation-delay:.06s; }
-.achiever-card:nth-child(2)  { animation-delay:.10s; }
-.achiever-card:nth-child(3)  { animation-delay:.14s; }
-.achiever-card:nth-child(4)  { animation-delay:.18s; }
-.achiever-card:nth-child(5)  { animation-delay:.22s; }
-.achiever-card:nth-child(6)  { animation-delay:.26s; }
-.achiever-card:nth-child(7)  { animation-delay:.30s; }
-.achiever-card:nth-child(8)  { animation-delay:.34s; }
-.achiever-card:nth-child(9)  { animation-delay:.38s; }
-.achiever-card:nth-child(10) { animation-delay:.42s; }
-.achiever-card:nth-child(11) { animation-delay:.46s; }
-.achiever-card:nth-child(12) { animation-delay:.50s; }
-.achiever-card:hover{border-color:rgba(245,158,11,.35)}
-.achiever-card .ach-age{font-size:.72em;color:var(--gold);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px}
-.achiever-card .ach-name{font-size:.95em;font-weight:700;color:var(--text);margin-bottom:4px}
-.achiever-card .ach-desc{font-size:.8em;color:var(--muted);line-height:1.5}
-@media (prefers-reduced-motion:reduce) {
-  .achiever-card { animation:none; opacity:1; }
-}
+.section-hd{font-size:.75em;letter-spacing:1.5px;text-transform:uppercase;font-weight:700;margin-bottom:16px;display:block}
 
-.peaks-section{margin-bottom:40px}
-.peaks-section h3{font-size:1em;color:var(--purple);font-weight:700;margin-bottom:16px;letter-spacing:.5px;text-transform:uppercase}
-.peaks-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px}
-.peak-card{background:rgba(168,85,247,.04);border:1px solid rgba(168,85,247,.15);border-radius:10px;padding:14px 16px}
-.peak-card .pk-skill{font-size:.85em;font-weight:700;color:#c084fc;margin-bottom:4px}
-.peak-card .pk-peak{font-size:.75em;color:var(--muted)}
-.peak-card .pk-why{font-size:.72em;color:var(--muted);opacity:.8;margin-top:4px;line-height:1.4}
+/* ── Achievers ── */
+.achievers-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:13px;margin-bottom:44px}
+.achiever-card{background:rgba(245,158,11,.04);border:1px solid rgba(245,158,11,.14);border-radius:12px;padding:16px 18px;transition:border-color .2s;animation:achIn .45s cubic-bezier(.16,1,.3,1) both}
+.achiever-card:hover{border-color:rgba(245,158,11,.34)}
+.ach-age{font-size:.71em;color:var(--gold);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;font-weight:700}
+.ach-name{font-size:.95em;font-weight:700;color:var(--text);margin-bottom:6px}
+.ach-desc{font-size:.8em;color:var(--muted);line-height:1.55}
+@keyframes achIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
 
-/* ── Remaining timeline ── */
-.timeline-section{margin-bottom:40px}
-.timeline-section h3{font-size:1em;color:var(--green);font-weight:700;margin-bottom:16px;letter-spacing:.5px;text-transform:uppercase}
-.timeline-bar{position:relative;height:36px;background:rgba(34,197,94,.06);border-radius:8px;overflow:hidden;border:1px solid rgba(34,197,94,.15);margin-bottom:8px}
-.timeline-fill{position:absolute;top:0;left:0;height:100%;background:linear-gradient(90deg,rgba(34,197,94,.3),rgba(59,130,246,.3));border-radius:8px;transition:width 1s ease}
-.timeline-labels{display:flex;justify-content:space-between;font-size:.72em;color:var(--muted)}
+/* ── Skills peak chart ── */
+.peaks-section{margin-bottom:44px}
+.peaks-chart-outer{overflow-x:auto;padding-bottom:4px}
+.peaks-chart{min-width:380px}
+.peak-axis-row{display:flex;justify-content:space-between;padding-left:148px;font-size:.62em;color:var(--muted);margin-bottom:6px;padding-right:66px}
+.peak-row{display:flex;align-items:center;gap:8px;margin-bottom:5px}
+.peak-skill-lbl{width:140px;font-size:.74em;color:var(--muted);text-align:right;flex-shrink:0;line-height:1.25}
+.peak-track{flex:1;height:19px;background:rgba(255,255,255,.04);border-radius:3px;position:relative}
+.peak-bar{position:absolute;top:0;height:100%;border-radius:3px;display:flex;align-items:center;justify-content:center;min-width:30px}
+.peak-bar-label{font-size:.58em;font-weight:600;white-space:nowrap;padding:0 4px}
+.peak-now-line{position:absolute;top:-5px;bottom:-5px;width:2px;border-radius:1px;background:rgba(255,255,255,.55);pointer-events:none;z-index:2}
+.peak-status-badge{width:60px;font-size:.61em;border-radius:3px;padding:2px 5px;text-align:center;flex-shrink:0;font-weight:600;letter-spacing:.03em}
+.psb-ahead{background:rgba(34,197,94,.1);color:#4ade80;border:1px solid rgba(34,197,94,.2)}
+.psb-now{background:rgba(245,158,11,.15);color:var(--amber);border:1px solid rgba(245,158,11,.3)}
+.psb-done{background:rgba(255,255,255,.04);color:var(--muted);border:1px solid rgba(255,255,255,.08)}
+.peaks-note{font-size:.7em;color:var(--muted);margin-top:12px;text-align:center;opacity:.7;line-height:1.6}
+
+/* ── Timeline ── */
+.timeline-section{margin-bottom:36px}
+.tl-bar{position:relative;height:30px;background:rgba(34,197,94,.06);border-radius:8px;overflow:hidden;border:1px solid rgba(34,197,94,.14);margin-bottom:8px}
+.tl-fill{position:absolute;top:0;left:0;height:100%;background:linear-gradient(90deg,rgba(34,197,94,.28),rgba(59,130,246,.28));border-radius:8px;transition:width 1s ease}
+.tl-labels{display:flex;justify-content:space-between;font-size:.72em;color:var(--muted)}
+.tl-note{margin-top:14px;font-size:.82em;color:var(--muted);line-height:1.7}
+
+/* ── Share ── */
+.share-row{text-align:center;margin:32px 0 0}
+.btn-share{display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);color:#94a3b8;border-radius:8px;padding:10px 20px;font-size:.84em;cursor:pointer;transition:border-color .2s,color .2s}
+.btn-share:hover{border-color:rgba(255,255,255,.26);color:var(--text)}
 
 /* ── Footer ── */
-.note{text-align:center;padding:20px;font-size:.75em;color:var(--muted);border-top:1px solid var(--border);max-width:600px;margin:0 auto}
+.page-note{text-align:center;padding:28px 20px 20px;font-size:.74em;color:var(--muted);border-top:1px solid var(--border);max-width:600px;margin:0 auto;line-height:1.6}
 
-/* ── Responsive ── */
-@media(max-width:480px){
-  .form-card{padding:20px 18px}
+@media(prefers-reduced-motion:reduce){
+  .stat-card,.achiever-card{animation:none;opacity:1}
+  .hb-ticker,.kd.left,.ld.current{animation:none}
+}
+@media(max-width:600px){
+  .form-card{padding:20px 16px}
   .field-row{grid-template-columns:1fr}
   .stats-grid{grid-template-columns:1fr 1fr}
+  .peak-skill-lbl{width:96px;font-size:.67em}
+  .peak-axis-row{padding-left:104px;padding-right:4px}
+  .peak-status-badge{display:none}
+  .kid-block{padding:20px 16px}
 }
 </style>
 </head>
 <body>
 
-<a href="/" style="display:inline-flex;align-items:center;gap:6px;color:#6b7280;text-decoration:none;font-size:13px;padding:16px 20px 0;transition:color .2s" onmouseover="this.style.color='#e2e8f0'" onmouseout="this.style.color='#6b7280'">← Forest HUB</a>
+<a href="/" class="back-link">← Forest HUB</a>
 
 <div class="header">
   <h1>Life in Time</h1>
   <p class="sub">See what remains. Then see what's still possible.</p>
-  <div id="yearProgressWrap" style="margin-top:18px;max-width:360px;margin-left:auto;margin-right:auto">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">
-      <span style="font-size:.74em;color:#6b7280;letter-spacing:.04em" id="yearProgressLabel">2026 is 0% gone</span>
-      <span style="font-size:.72em;color:#6b7280" id="yearProgressDays"></span>
+  <div class="year-prog-wrap">
+    <div class="year-prog-labels">
+      <span id="yearProgLabel">2026 is 0% gone</span>
+      <span id="yearProgDays"></span>
     </div>
-    <div style="height:4px;background:rgba(255,255,255,.07);border-radius:99px;overflow:hidden">
-      <div id="yearProgressBar" style="height:100%;width:0%;background:linear-gradient(90deg,#3b82f6,#a855f7);border-radius:99px;transition:width 1.2s cubic-bezier(.16,1,.3,1)"></div>
+    <div class="year-prog-track">
+      <div class="year-prog-fill" id="yearProgBar"></div>
     </div>
   </div>
 </div>
 <script>
 (function(){
-  const now = new Date();
-  const yr = now.getFullYear();
-  const start = new Date(yr, 0, 1);
-  const end = new Date(yr + 1, 0, 1);
-  const pct = Math.round((now - start) / (end - start) * 100);
-  const daysLeft = Math.ceil((end - now) / 86400000);
-  document.getElementById('yearProgressLabel').textContent = `${yr} is ${pct}% gone`;
-  document.getElementById('yearProgressDays').textContent = `${daysLeft} days left`;
-  setTimeout(() => { document.getElementById('yearProgressBar').style.width = pct + '%'; }, 120);
+  var now=new Date(),yr=now.getFullYear();
+  var start=new Date(yr,0,1),end=new Date(yr+1,0,1);
+  var pct=Math.round((now-start)/(end-start)*100);
+  var dLeft=Math.ceil((end-now)/86400000);
+  document.getElementById('yearProgLabel').textContent=yr+' is '+pct+'% gone';
+  document.getElementById('yearProgDays').textContent=dLeft+' days left';
+  setTimeout(function(){document.getElementById('yearProgBar').style.width=pct+'%';},120);
 })();
 </script>
 
-<div style="max-width:520px;margin:0 auto;padding:0 20px">
-<div class="form-card">
-  <h2>⏳ Your Time</h2>
-  <div class="field">
-    <label>Your birth year *</label>
-    <input type="number" id="birthYear" placeholder="e.g. 1990" min="1920" max="2015">
-  </div>
-  <div class="field-row">
+<div class="form-wrap">
+  <div class="form-card">
+    <h2>⏳ Your Time</h2>
     <div class="field">
-      <label>Parent birth year (optional)</label>
-      <input type="number" id="parentYear" placeholder="e.g. 1960" min="1920" max="2000">
-      <div class="hint">Estimates Christmases with parents</div>
+      <label>Your birth year *</label>
+      <input type="number" id="birthYear" placeholder="e.g. 1990" min="1920" max="2015">
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label>Parent birth year</label>
+        <input type="number" id="parentYear" placeholder="e.g. 1960" min="1920" max="2000">
+        <div class="hint">Christmases with parents</div>
+      </div>
+      <div class="field">
+        <label>Youngest child born</label>
+        <input type="number" id="childYear" placeholder="e.g. 2018" min="1990" max="2025">
+        <div class="hint">Summers with kids at home</div>
+      </div>
     </div>
     <div class="field">
-      <label>Youngest child born (optional)</label>
-      <input type="number" id="childYear" placeholder="e.g. 2018" min="2000" max="2025">
-      <div class="hint">Estimates summers with kids</div>
+      <label>Life expectancy</label>
+      <input type="number" id="lifeExp" value="83" min="70" max="120">
+      <div class="hint">Default: 83 (EU average)</div>
     </div>
+    <div class="form-error" id="formError" role="alert"></div>
+    <button class="btn-calc" onclick="calculate()">See what remains →</button>
   </div>
-  <div class="field">
-    <label>Life expectancy</label>
-    <input type="number" id="lifeExp" value="83" min="70" max="120">
-    <div class="hint">Default: 83 (EU average)</div>
-  </div>
-  <div class="form-error" id="formError" role="alert"></div>
-  <button class="btn-calc" onclick="calculate()">Calculate what remains →</button>
-</div>
 </div>
 
 <div id="results">
+
   <div class="wake-header">
-    <h2 id="wakeTitle">You have time. Use it.</h2>
-    <p class="wake-sub" id="wakeSub">Here's what remains of your life in concrete numbers.</p>
+    <h2 id="wakeTitle">You have time.</h2>
+    <p class="wake-sub" id="wakeSub"></p>
   </div>
 
+  <!-- Kid summers (only shown if child year given) -->
+  <div id="kidBlock" class="kid-block" style="display:none">
+    <div class="kid-count" id="kidCount">—</div>
+    <div class="kid-subtitle" id="kidSubtitle"></div>
+    <p class="kid-note" id="kidNote"></p>
+    <div class="kid-dot-grid" id="kidDotGrid"></div>
+    <p class="kid-footnote" id="kidFootnote"></p>
+  </div>
+
+  <!-- Life in summers grid -->
+  <div class="life-grid-section">
+    <span class="section-label">Your whole life — each square = one year</span>
+    <div id="lifeGrid"></div>
+    <div class="grid-legend" id="gridLegend"></div>
+  </div>
+
+  <!-- Stats cards -->
   <div class="stats-grid" id="statsGrid"></div>
 
-  <div class="heartbeat-ticker">
-    <div class="ticker-label">💓 Heartbeats remaining (estimated)</div>
-    <div class="ticker-val" id="heartTicker">0</div>
-    <div class="ticker-sub">at 70 bpm — updates every second</div>
+  <!-- Heartbeat ticker -->
+  <div class="hb-ticker">
+    <div class="hb-label">💓 Heartbeats remaining (estimated)</div>
+    <div class="hb-val" id="heartTicker">0</div>
+    <div class="hb-sub">at 70 bpm — counts down live</div>
   </div>
 
+  <!-- Pivot -->
   <div class="pivot-wrap">
-    <button class="btn-pivot" onclick="showPositive()">But wait — it's not over ✨</button>
-    <p class="pivot-hint">See what's still possible in your remaining time</p>
-    <button id="shareBtn" onclick="shareLink()" style="display:inline-flex;align-items:center;gap:6px;margin-top:14px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);color:#94a3b8;border-radius:8px;padding:9px 18px;font-size:.83em;cursor:pointer;transition:border-color .2s,color .2s" onmouseover="this.style.borderColor='rgba(255,255,255,.25)';this.style.color='#e2e8f0'" onmouseout="this.style.borderColor='rgba(255,255,255,.12)';this.style.color='#94a3b8'">🔗 Share link</button>
+    <button class="btn-pivot" onclick="showPositive()">But you're nowhere near done ✨</button>
+    <p class="pivot-hint">History says your best work may still be ahead</p>
   </div>
 
+  <!-- Part 2: hopeful -->
   <div id="positive">
+
     <div class="positive-header">
-      <h2>You're nowhere near done.</h2>
-      <p class="pos-sub">History is full of people who changed the world after your current age.</p>
+      <h2>You didn't peak in your 20s.</h2>
+      <p class="pos-sub">Processing speed, sure. But the abilities that actually shape a life — wisdom, vocabulary, emotional intelligence, crystallized expertise — keep building for decades. The data agrees with the stories.</p>
     </div>
 
+    <span class="section-hd" id="achieversHd" style="color:var(--gold)"></span>
     <div class="achievers-grid" id="achieversGrid"></div>
 
     <div class="peaks-section">
-      <h3>Skills that peak later in life</h3>
-      <div class="peaks-grid" id="peaksGrid"></div>
+      <span class="section-hd" style="color:var(--purple)">When human abilities actually peak — your age marked ↓</span>
+      <div class="peaks-chart-outer">
+        <div class="peaks-chart" id="peaksChart"></div>
+      </div>
+      <p class="peaks-note">Data sources: Seattle Longitudinal Study (Schaie), Hartshorne &amp; Germine (MIT/Harvard 2015), Virginia Cognitive Aging Project. Ranges reflect research peaks, not sharp cliffs — most abilities decline slowly if at all after peak.</p>
     </div>
 
     <div class="timeline-section">
-      <h3>Your remaining years — a timeline</h3>
+      <span class="section-hd" style="color:var(--green)">Remaining years — a timeline</span>
       <div id="timelineContent"></div>
     </div>
-  </div>
-</div>
 
-<p class="note">Life expectancy estimates use statistical averages and do not account for individual health factors. This tool is for perspective, not prediction.</p>
+    <div class="share-row">
+      <button class="btn-share" id="shareBtn" onclick="shareLink()">🔗 Share this with someone who needs it</button>
+    </div>
+
+  </div><!-- /positive -->
+</div><!-- /results -->
+
+<p class="page-note">Life expectancy estimates use statistical averages and do not account for individual health. This is a perspective tool, not a medical prediction. Skill-peak ranges are approximate and based on population averages — individual variation is wide.</p>
 
 <script>
-const LIFE_EXP_DEFAULT = 83;
-const BPM = 70;
-const NOW = new Date();
-const THIS_YEAR = NOW.getFullYear();
+var LIFE_EXP_DEFAULT = 83;
+var BPM = 70;
+var NOW = new Date();
+var THIS_YEAR = NOW.getFullYear();
+var MAX_CHART_AGE = 80;
 
-const ACHIEVERS = [
-  {age:52, name:'Ray Kroc',            desc:"Sold milkshake mixers until 52, then built McDonald's into a global empire."},
-  {age:49, name:'Julia Child',         desc:"Published her first cookbook at 49. Became the defining voice of American cooking on television."},
-  {age:40, name:'Vera Wang',           desc:"Pivoted from figure skating to fashion design at 40. Built a global billion-dollar brand."},
-  {age:78, name:'Grandma Moses',       desc:"Started painting at 78. Sold work for millions. Actively creating and exhibiting until age 101."},
-  {age:50, name:'Charles Darwin',      desc:"Published On the Origin of Species at 50, after 20+ years of meticulous patient observation."},
-  {age:52, name:'Dr. Seuss',           desc:"Published The Cat in the Hat at 52. His most beloved books all arrived after age 50."},
-  {age:65, name:'Harland Sanders',     desc:"Founded KFC at 65 after four decades of other ventures. Sold the company at 74."},
-  {age:44, name:'Sam Walton',          desc:"Opened the first Walmart at 44. Was the richest person in America by his 60s."},
-  {age:57, name:'Kathryn Bigelow',     desc:"Won the Oscar for Best Director at 57 — the first woman ever to do so — for The Hurt Locker."},
-  {age:76, name:'Nelson Mandela',      desc:"Released from 27 years in prison at 71. Became South Africa's first elected president at 76."},
-  {age:62, name:'Johnny Cash',         desc:"His landmark American Recordings series — the most critically acclaimed work of his life — began at 62."},
-  {age:65, name:'Laura Ingalls Wilder', desc:"Published the first Little House book at 65. Wrote eight beloved novels between ages 65 and 76."},
-  {age:56, name:'Toni Morrison',       desc:"Won the Pulitzer Prize for Beloved at 56. Received the Nobel Prize in Literature at 62."},
-  {age:34, name:'Andrea Bocelli',      desc:"Discovered by Pavarotti at 34 with no formal training. Went on to become the best-selling classical artist ever, with 90M+ albums sold."},
-  {age:67, name:'Stan Lee',            desc:"Co-created the Marvel Universe across decades, but his most iconic cameo era and cultural legacy solidified when he was well past 60."},
-  {age:66, name:'Ridley Scott',        desc:"Directed Blade Runner at 44, but made Gladiator at 62 and many of his most commercially successful films in his 60s and 70s."},
-  {age:55, name:'Tim Berners-Lee',     desc:"Invented the World Wide Web at 34, but his global advocacy work and role shaping internet governance peaked long after 50."},
-  {age:62, name:'Peter Roget',         desc:"Published the Thesaurus at 73. Created a framework still used today — begun in his 20s but refined and released in retirement."},
-  {age:60, name:'Cormac McCarthy',     desc:"Published his breakthrough novel Blood Meridian at 52. Won the Pulitzer Prize for The Road at 73."},
-  {age:48, name:'Robin Wright',        desc:"Most famous for House of Cards — her Emmy-winning role as Claire Underwood began when she was 46, launching a second act as a powerhouse lead."},
-  {age:54, name:'Angela Bassett',      desc:"Received her first Oscar nomination at 34, but her second — for Black Panther: Wakanda Forever — came at 54, proving a career-defining performance can come at any age."},
-  {age:50, name:'Jeff Bezos',          desc:"Amazon started at 30, but his most audacious bets — AWS, Kindle, Prime, Blue Origin — all materialized when he was well past 40."},
-  {age:38, name:'Martin Luther King Jr.', desc:"Delivered 'I Have a Dream' at 34. Awarded the Nobel Peace Prize at 35. His global impact was complete before he was 40 — proving peaks need not wait for age."},
-  {age:96, name:'Harry Bernstein',          desc:"Published his debut novel The Invisible Wall at age 96. It became a bestseller and launched a trilogy he completed in his late 90s."},
+var ACHIEVERS = [
+  {age:52,  name:'Ray Kroc',              desc:"Sold milkshake machines until 52. Then built McDonald's into a global empire."},
+  {age:49,  name:'Julia Child',           desc:"Published her first cookbook at 49. Became the defining American cooking voice on television."},
+  {age:40,  name:'Vera Wang',             desc:"Pivoted from competitive skating to fashion design at 40. Built a global billion-dollar brand."},
+  {age:78,  name:'Grandma Moses',         desc:"Started painting at 78. Sold work for millions and exhibited actively until age 101."},
+  {age:50,  name:'Charles Darwin',        desc:"Published On the Origin of Species at 50 — after 20+ years of meticulous observation and quiet doubt."},
+  {age:52,  name:'Dr. Seuss',             desc:"Published The Cat in the Hat at 52. His most beloved books arrived after age 50."},
+  {age:65,  name:'Harland Sanders',       desc:"Founded KFC at 65, after four decades of failed ventures. Sold the company at 74."},
+  {age:44,  name:'Sam Walton',            desc:"Opened the first Walmart at 44. Was the richest person in America by his 60s."},
+  {age:57,  name:'Kathryn Bigelow',       desc:"Won the Oscar for Best Director at 57 — the first woman ever — for The Hurt Locker."},
+  {age:76,  name:'Nelson Mandela',        desc:"Released from 27 years in prison at 71. Became South Africa's first elected president at 76."},
+  {age:62,  name:'Johnny Cash',           desc:"His American Recordings series — the most critically acclaimed of his life — launched at 62."},
+  {age:65,  name:'Laura Ingalls Wilder',  desc:"Published the first Little House book at 65. Wrote 8 beloved novels between ages 65 and 76."},
+  {age:56,  name:'Toni Morrison',         desc:"Won the Pulitzer for Beloved at 56. Won the Nobel Prize in Literature at 62."},
+  {age:73,  name:'Peter Roget',           desc:"Published the Thesaurus at 73 — begun in his 20s, refined over decades, released in retirement. Still used daily."},
+  {age:96,  name:'Harry Bernstein',       desc:"Published his debut novel The Invisible Wall at 96. It became a bestseller and launched a trilogy he completed in his late 90s."},
+  {age:34,  name:'Andrea Bocelli',        desc:"Discovered by Pavarotti at 34 with no conservatory training. Went on to sell 90 million albums."},
+  {age:50,  name:'Jeff Bezos',            desc:"Amazon started at 30. But AWS, Kindle, Prime, Blue Origin — all materialized after he turned 40."},
+  {age:60,  name:'Cormac McCarthy',       desc:"Published Blood Meridian at 52. Won the Pulitzer for The Road at 73. Kept going to 90."},
+  {age:66,  name:'Ridley Scott',          desc:"Made Gladiator at 62. Many of his most successful films arrived in his 60s and 70s."},
+  {age:54,  name:'Angela Bassett',        desc:"Her second Oscar nomination — for Black Panther: Wakanda Forever — came at 54. A defining performance at any age."},
+  {age:38,  name:'Alan Rickman',          desc:"Cast in his first major film role (Die Hard) at 42. Became one of cinema's most beloved character actors in his 40s–60s."},
+  {age:48,  name:'Vera Farmiga',          desc:"Broke through at 35; won Emmy nominations for Bates Motel in her 40s, proving a second act is reachable."},
 ];
 
-const SKILL_PEAKS = [
-  {skill:'Wisdom',             peak:'peaks in your 60s–70s', why:'Pattern recognition from decades of experience'},
-  {skill:'Vocabulary',         peak:'peaks around age 65–72', why:'Lifelong reading accumulates; recall stays high'},
-  {skill:'Emotional intelligence', peak:'peaks in your 50s–60s', why:'Better regulation, deeper empathy'},
-  {skill:'Teaching & mentoring',   peak:'peaks in your 50s–70s', why:'You know what actually matters'},
-  {skill:'Strategic thinking',     peak:'peaks in your 50s',     why:'Long-term perspective hard to fake with youth'},
-  {skill:'Crystallized intelligence', peak:'keeps growing into 80s', why:'Accumulated knowledge, not processing speed'},
-  {skill:'Writing & storytelling',    peak:'varies widely — often 50s+', why:'More to say, better editing judgment'},
-  {skill:'Gratitude & presence',      peak:'grows with age',        why:'Awareness of time increases its quality'},
+// Skills peak by age — based on longitudinal cognitive research
+var SKILL_PEAKS = [
+  {skill:'Processing speed',          peakMin:17, peakMax:24, color:'#60a5fa', note:'Peaks in late teens'},
+  {skill:'Working memory',            peakMin:22, peakMax:30, color:'#818cf8', note:'Best in your 20s'},
+  {skill:'Fluid intelligence',        peakMin:25, peakMax:37, color:'#a78bfa', note:'Novel problem solving'},
+  {skill:'Creativity',                peakMin:30, peakMax:48, color:'#c084fc', note:'Divergent thinking'},
+  {skill:'Emotional regulation',      peakMin:38, peakMax:56, color:'#e879f9', note:'Managing stress/reactions'},
+  {skill:'Strategic thinking',        peakMin:44, peakMax:62, color:'#f0a0fa', note:'Long-game clarity'},
+  {skill:'Emotional intelligence',    peakMin:48, peakMax:65, color:'#34d399', note:'Empathy, social reading'},
+  {skill:'Crystallized intelligence', peakMin:52, peakMax:78, color:'#fbbf24', note:'Accumulated expertise'},
+  {skill:'Vocabulary',                peakMin:60, peakMax:74, color:'#f59e0b', note:'Keeps growing for decades'},
+  {skill:'Wisdom & judgment',         peakMin:58, peakMax:80, color:'#86efac', note:'Knowing what matters'},
+  {skill:'Life satisfaction',         peakMin:63, peakMax:80, color:'#6ee7b7', note:'U-curve: peaks again ~65'},
 ];
 
-let heartbeatInterval = null;
-
-function yearsRemaining(birthYear, lifeExp) {
-  const age = THIS_YEAR - birthYear;
-  return Math.max(0, lifeExp - age);
-}
+var heartbeatInterval = null;
 
 function fmt(n) {
   return Math.max(0, Math.round(n)).toLocaleString();
 }
 
-function calculate() {
-  const by = parseInt(document.getElementById('birthYear').value);
-  const py = parseInt(document.getElementById('parentYear').value) || null;
-  const cy = parseInt(document.getElementById('childYear').value) || null;
-  const le = parseInt(document.getElementById('lifeExp').value) || LIFE_EXP_DEFAULT;
+function buildLifeGrid(age, lifeExp, childYear, birthYear) {
+  var kidStart = childYear ? (childYear - birthYear) : null;
+  var kidEnd   = childYear ? (childYear + 18 - birthYear) : null;
+  var rows = '';
+  for (var d = 0; d < 9; d++) {
+    var rStart = d * 10;
+    var label  = rStart === 0 ? '0s' : rStart + 's';
+    var cells  = '';
+    for (var yr = rStart; yr < rStart + 10; yr++) {
+      var isKid = kidStart !== null && yr >= kidStart && yr < kidEnd;
+      var cls;
+      if (yr >= lifeExp)    cls = 'beyond';
+      else if (yr < age)    cls = isKid ? 'kid-gone' : 'past';
+      else if (yr === age)  cls = 'current';
+      else                  cls = isKid ? 'kid-left' : 'future';
+      cells += '<span class="ld ' + cls + '" title="Age ' + yr + '"></span>';
+    }
+    rows += '<div class="lg-row"><span class="lg-decade">' + label + '</span><div class="lg-cells">' + cells + '</div></div>';
+  }
+  return rows;
+}
 
-  const formErr = document.getElementById('formError');
+function buildPeaksChart(userAge) {
+  // Axis labels: 0, 10, 20, 30, 40, 50, 60, 70, 80
+  var axisHtml = '<div class="peak-axis-row">';
+  for (var t = 0; t <= MAX_CHART_AGE; t += 10) {
+    axisHtml += '<span>' + t + '</span>';
+  }
+  axisHtml += '</div>';
+
+  var rowsHtml = '';
+  SKILL_PEAKS.forEach(function(p) {
+    var leftPct  = (Math.min(p.peakMin, MAX_CHART_AGE) / MAX_CHART_AGE * 100).toFixed(1);
+    var endPct   = (Math.min(p.peakMax, MAX_CHART_AGE) / MAX_CHART_AGE * 100).toFixed(1);
+    var widthPct = (endPct - leftPct).toFixed(1);
+    var nowPct   = (Math.min(userAge, MAX_CHART_AGE) / MAX_CHART_AGE * 100).toFixed(1);
+
+    var status, sbCls;
+    if (userAge < p.peakMin)       { status = '→ coming';   sbCls = 'psb-ahead'; }
+    else if (userAge <= p.peakMax) { status = '✦ in peak';  sbCls = 'psb-now';  }
+    else                           { status = '✓ built';    sbCls = 'psb-done'; }
+
+    rowsHtml += '<div class="peak-row">' +
+      '<span class="peak-skill-lbl">' + p.skill + '</span>' +
+      '<div class="peak-track">' +
+        '<div class="peak-bar" style="left:' + leftPct + '%;width:' + widthPct + '%;background:' + p.color + '28;border:1px solid ' + p.color + '60">' +
+          '<span class="peak-bar-label" style="color:' + p.color + '">' + p.peakMin + '–' + p.peakMax + '</span>' +
+        '</div>' +
+        '<div class="peak-now-line" style="left:' + nowPct + '%"></div>' +
+      '</div>' +
+      '<span class="peak-status-badge ' + sbCls + '">' + status + '</span>' +
+    '</div>';
+  });
+
+  return axisHtml + rowsHtml;
+}
+
+function calculate() {
+  var by = parseInt(document.getElementById('birthYear').value);
+  var py = parseInt(document.getElementById('parentYear').value) || null;
+  var cy = parseInt(document.getElementById('childYear').value) || null;
+  var le = parseInt(document.getElementById('lifeExp').value) || LIFE_EXP_DEFAULT;
+
+  var formErr = document.getElementById('formError');
   formErr.classList.remove('visible');
   if (!by || by < 1920 || by > THIS_YEAR - 5) {
     formErr.textContent = 'Enter a birth year between 1920 and ' + (THIS_YEAR - 5) + '.';
@@ -332,160 +444,143 @@ function calculate() {
     return;
   }
 
-  const age = THIS_YEAR - by;
-  const yLeft = Math.max(0, le - age);
-  const deathYear = by + le;
+  var age = THIS_YEAR - by;
+  var yLeft = Math.max(0, le - age);
+  var deathYear = by + le;
 
-  // Summers: total remaining (warm months, meaningful ones)
-  const summersKids = cy ? Math.max(0, (cy + 20) - THIS_YEAR) : null; // kids leave ~age 20
-  const summersLeft = yLeft;
+  // ── Kid summers ──
+  var kidLeft = null;
+  if (cy) {
+    var childAge = THIS_YEAR - cy;
+    var yearsUntil18 = Math.max(0, 18 - childAge);
+    kidLeft = yearsUntil18;
+    var alreadyGone = Math.min(childAge, 18);
 
-  // Christmases with parent (parent dies at their life expectancy)
-  let xmasParent = null;
-  if (py) {
-    const parentDeathYear = py + 83;
-    xmasParent = Math.max(0, Math.min(parentDeathYear, deathYear) - THIS_YEAR);
+    document.getElementById('kidBlock').style.display = 'block';
+    document.getElementById('kidCount').textContent   = kidLeft + ' summers';
+    document.getElementById('kidSubtitle').textContent =
+      kidLeft > 0 ? 'left before your child becomes a teenager.' : 'Your child is already a teenager.';
+    document.getElementById('kidNote').textContent =
+      kidLeft > 0
+        ? 'After 18 they'll have other priorities. Before that, you have their full world. Make each summer deliberate.'
+        : 'You're in the second chapter. Adult children still need you — just differently. The relationship is still forming.';
+
+    // Draw kid dots
+    var dots = '';
+    for (var i = 0; i < alreadyGone; i++) dots += '<span class="kd gone" title="Summer ' + (i+1) + ' — passed"></span>';
+    for (var i = 0; i < kidLeft; i++) dots += '<span class="kd left" title="Summer ' + (alreadyGone+i+1) + ' — remaining"></span>';
+    document.getElementById('kidDotGrid').innerHTML = dots;
+    document.getElementById('kidFootnote').textContent =
+      alreadyGone + ' already passed · ' + kidLeft + ' remaining · independence assumed at 18';
+  } else {
+    document.getElementById('kidBlock').style.display = 'none';
   }
 
-  // Weekends
-  const weekendsLeft = yLeft * 52;
-  // Meals
-  const mealsLeft = yLeft * 365 * 3;
-  // Heartbeats
-  const heartbeatsLeft = yLeft * 365.25 * 24 * 60 * BPM;
-  // Full moons
-  const moonsLeft = yLeft * 12.37;
+  // ── Life grid ──
+  document.getElementById('lifeGrid').innerHTML = buildLifeGrid(age, le, cy, by);
 
-  // Build stat cards
-  const cards = [
-    {cls:'s-years',  icon:'⏳', val:fmt(yLeft),       lbl:'Years',         ctx:`You are ${age} now`},
-    {cls:'s-summer', icon:'🌞', val:fmt(summersLeft),  lbl:'Summers',       ctx: summersKids !== null ? `~${Math.max(0,summersKids)} left with kids at home` : 'Season by season'},
-    {cls:'s-xmas',   icon:'🎄', val: xmasParent !== null ? fmt(xmasParent) : fmt(yLeft), lbl:'Christmases', ctx: xmasParent !== null ? 'with your parent(s)' : 'total remaining'},
-    {cls:'s-wknd',   icon:'🌅', val:fmt(weekendsLeft), lbl:'Weekends',      ctx:'Saturday mornings'},
-    {cls:'s-meals',  icon:'🍽️', val:fmt(mealsLeft),   lbl:'Meals',         ctx:'at 3 per day'},
-    {cls:'s-hearts', icon:'💓', val:fmt(heartbeatsLeft), lbl:'Heartbeats',  ctx:'at 70 bpm'},
-    {cls:'s-moons',  icon:'🌕', val:fmt(moonsLeft),   lbl:'Full Moons',    ctx:'monthly cycles'},
-    {cls:'s-mins',  icon:'⏱️', val:fmt(yLeft * 365.25 * 24 * 60), lbl:'Minutes',  ctx:'1,440 per day — use them'},
-    {cls:'s-books', icon:'📚', val:fmt(yLeft * 14),                lbl:'Books',    ctx:'at 1/month + holiday reads'},
+  var legendHtml = [
+    '<div class="legend-item"><span class="legend-dot" style="background:rgba(255,255,255,.09);border:1px solid rgba(255,255,255,.12)"></span> Past (' + age + ' yrs)</div>',
+    '<div class="legend-item"><span class="legend-dot" style="background:rgba(59,130,246,.33);border:1px solid rgba(59,130,246,.48)"></span> Remaining (' + yLeft + ' yrs)</div>',
+    '<div class="legend-item"><span class="legend-dot" style="background:var(--red);border:1px solid #ff6b6b"></span> You (age ' + age + ')</div>',
   ];
+  if (cy) legendHtml.push('<div class="legend-item"><span class="legend-dot" style="background:rgba(245,158,11,.62);border:1px solid rgba(245,158,11,.82)"></span> Kid summers left (' + kidLeft + ')</div>');
+  document.getElementById('gridLegend').innerHTML = legendHtml.join('');
 
-  const grid = document.getElementById('statsGrid');
-  grid.innerHTML = cards.map(c => `
-    <div class="stat-card ${c.cls}">
-      <div class="icon">${c.icon}</div>
-      <div class="val">${c.val}</div>
-      <div class="lbl">${c.lbl}</div>
-      <div class="ctx">${c.ctx}</div>
-    </div>
-  `).join('');
+  // ── Stats ──
+  var xmasParent = null;
+  if (py) {
+    var parentDeathYear = py + 83;
+    xmasParent = Math.max(0, Math.min(parentDeathYear, deathYear) - THIS_YEAR);
+  }
+  var heartbeatsLeft = yLeft * 365.25 * 24 * 60 * BPM;
+  var cards = [
+    {cls:'s-years',  icon:'⏳', val:fmt(yLeft),                    lbl:'Years left',    ctx:'Age ' + age + ' today'},
+    {cls:'s-summer', icon:'🌞', val:fmt(yLeft),                    lbl:'Summers',       ctx: kidLeft !== null ? '~' + kidLeft + ' with kids at home' : 'Season by season'},
+    {cls:'s-xmas',   icon:'🎄', val: xmasParent !== null ? fmt(xmasParent) : fmt(yLeft), lbl:'Christmases', ctx: xmasParent !== null ? 'with your parent(s)' : 'total remaining'},
+    {cls:'s-wknd',   icon:'🌅', val:fmt(yLeft * 52),              lbl:'Weekends',      ctx:'Saturday mornings'},
+    {cls:'s-meals',  icon:'🍽️', val:fmt(yLeft * 365 * 3),        lbl:'Meals',         ctx:'at 3 per day'},
+    {cls:'s-hearts', icon:'💓', val:fmt(heartbeatsLeft),           lbl:'Heartbeats',    ctx:'at 70 bpm'},
+    {cls:'s-moons',  icon:'🌕', val:fmt(yLeft * 12.37),           lbl:'Full moons',    ctx:'monthly cycles'},
+    {cls:'s-mins',   icon:'⏱️', val:fmt(yLeft * 525960),         lbl:'Minutes',       ctx:'1,440 per day'},
+    {cls:'s-books',  icon:'📚', val:fmt(yLeft * 14),              lbl:'Books',         ctx:'at ~1 per month'},
+  ];
+  document.getElementById('statsGrid').innerHTML = cards.map(function(c){
+    return '<div class="stat-card ' + c.cls + '"><div class="icon">' + c.icon + '</div><div class="val">' + c.val + '</div><div class="lbl">' + c.lbl + '</div><div class="ctx">' + c.ctx + '</div></div>';
+  }).join('');
 
-  // Heartbeat ticker
-  let hb = heartbeatsLeft;
+  // ── Heartbeat ──
+  var hb = heartbeatsLeft;
   if (heartbeatInterval) clearInterval(heartbeatInterval);
   document.getElementById('heartTicker').textContent = fmt(hb);
-  heartbeatInterval = setInterval(() => {
+  heartbeatInterval = setInterval(function() {
     hb -= BPM;
     document.getElementById('heartTicker').textContent = fmt(Math.max(0, hb));
-  }, 60000 / BPM);
+  }, Math.round(60000 / BPM));
 
-  // Wake-up headline
+  // ── Wake header ──
   document.getElementById('wakeTitle').textContent =
-    yLeft <= 0 ? "Time is precious." :
-    yLeft < 10 ? `You have ${yLeft} years left.` :
-    `You have ${yLeft} years remaining.`;
+    yLeft <= 0 ? 'Time is precious.' :
+    yLeft < 10 ? 'You have ' + yLeft + ' years left.' :
+    'You have ' + yLeft + ' years remaining.';
   document.getElementById('wakeSub').textContent =
-    `Age ${age} → estimated ${deathYear}. Here's what that looks like in concrete numbers.`;
+    'Age ' + age + ' → estimated ' + deathYear + '. Here's what that looks like in concrete numbers.';
 
-  // Build achievers (filter to those older than current age or useful for context)
-  const relevantAchievers = ACHIEVERS.filter(a => a.age >= age);
-  const achieversToShow = relevantAchievers.length >= 3 ? relevantAchievers : ACHIEVERS;
-  const achieverLabel = relevantAchievers.length >= 3
-    ? `${achieversToShow.length} people who achieved something major at age ${age} or later:`
-    : `${ACHIEVERS.length} inspiring late achievers:`;
-  const achieversGrid = document.getElementById('achieversGrid');
-  achieversGrid.previousElementSibling && achieversGrid.previousElementSibling.classList.contains('achievers-header')
-    ? achieversGrid.previousElementSibling.textContent = achieverLabel
-    : achieversGrid.insertAdjacentHTML('beforebegin', `<p class="achievers-header">${achieverLabel}</p>`);
-  achieversGrid.innerHTML = achieversToShow.map(a => `
-    <div class="achiever-card">
-      <div class="ach-age">Age ${a.age}</div>
-      <div class="ach-name">${a.name}</div>
-      <div class="ach-desc">${a.desc}</div>
-    </div>
-  `).join('');
+  // ── Achievers ──
+  var relevant = ACHIEVERS.filter(function(a){ return a.age >= age; });
+  var toShow   = relevant.length >= 4 ? relevant : ACHIEVERS;
+  document.getElementById('achieversHd').textContent = relevant.length >= 4
+    ? toShow.length + ' people who changed the world at age ' + age + ' or later:'
+    : ACHIEVERS.length + ' inspiring late achievers:';
+  document.getElementById('achieversGrid').innerHTML = toShow.map(function(a, i){
+    return '<div class="achiever-card" style="animation-delay:' + (i * 0.05) + 's"><div class="ach-age">Age ' + a.age + '</div><div class="ach-name">' + a.name + '</div><div class="ach-desc">' + a.desc + '</div></div>';
+  }).join('');
 
-  // Peaks grid
-  document.getElementById('peaksGrid').innerHTML = SKILL_PEAKS.map(p => `
-    <div class="peak-card">
-      <div class="pk-skill">${p.skill}</div>
-      <div class="pk-peak">${p.peak}</div>
-      <div class="pk-why">${p.why}</div>
-    </div>
-  `).join('');
+  // ── Skills chart ──
+  document.getElementById('peaksChart').innerHTML = buildPeaksChart(age);
 
-  // Timeline
-  const tlYears = Math.min(yLeft, 50);
-  const segments = [];
-  const milestones = [5, 10, 20, 30];
-  milestones.forEach(m => {
-    if (m <= tlYears) {
-      const yr = THIS_YEAR + m;
-      segments.push(`<span style="color:var(--green);font-weight:700">${yr}</span> (+${m}yr)`);
-    }
-  });
-  document.getElementById('timelineContent').innerHTML = `
-    <div class="timeline-bar">
-      <div class="timeline-fill" style="width:${Math.min(100, (yLeft / le) * 100)}%"></div>
-    </div>
-    <div class="timeline-labels">
-      <span>Today (${THIS_YEAR})</span>
-      <span style="color:var(--green)">${fmt(yLeft)} years left</span>
-      <span>${deathYear} (est.)</span>
-    </div>
-    <p style="margin-top:14px;font-size:.82em;color:var(--muted);line-height:1.7">
-      Milestones ahead: ${segments.length ? segments.join(' · ') : 'every day counts'}.
-      That is ${fmt(weekendsLeft)} weekend mornings where something significant could happen.
-      ${summersKids !== null ? `About <strong style="color:var(--orange)">${Math.max(0,summersKids)} summers</strong> with your children still at home.` : ''}
-    </p>
-  `;
+  // ── Timeline ──
+  var weekendsLeft = yLeft * 52;
+  var mParts = [5,10,15,20,30,40].filter(function(m){ return m <= yLeft; })
+    .map(function(m){ return '<span style="color:var(--green);font-weight:700">' + (THIS_YEAR + m) + '</span> (+' + m + 'yr)'; });
+  document.getElementById('timelineContent').innerHTML =
+    '<div class="tl-bar"><div class="tl-fill" style="width:' + Math.min(100, (yLeft / le * 100)) + '%"></div></div>' +
+    '<div class="tl-labels"><span>Today (' + THIS_YEAR + ')</span><span style="color:var(--green)">' + fmt(yLeft) + ' years left</span><span>' + deathYear + ' (est.)</span></div>' +
+    '<p class="tl-note">Milestones ahead: ' + (mParts.length ? mParts.join(' · ') : 'every day counts') + '. ' +
+    'That\'s ' + fmt(weekendsLeft) + ' weekend mornings where something significant could happen.' +
+    (kidLeft !== null ? ' <strong style="color:var(--orange)">' + kidLeft + ' summers</strong> with your children still at home.' : '') + '</p>';
 
-  document.getElementById('results').style.display = 'block';
   document.getElementById('positive').style.display = 'none';
-
-  setTimeout(() => {
-    document.getElementById('results').scrollIntoView({behavior:'smooth',block:'start'});
-  }, 100);
+  document.getElementById('results').style.display = 'block';
+  setTimeout(function(){ document.getElementById('results').scrollIntoView({behavior:'smooth',block:'start'}); }, 80);
 }
 
 function showPositive() {
-  const pos = document.getElementById('positive');
+  var pos = document.getElementById('positive');
   pos.style.display = 'block';
-  setTimeout(() => pos.scrollIntoView({behavior:'smooth',block:'start'}), 50);
+  setTimeout(function(){ pos.scrollIntoView({behavior:'smooth',block:'start'}); }, 50);
 }
 
 function shareLink() {
-  const params = new URLSearchParams();
-  const by = document.getElementById('birthYear').value;
-  const py = document.getElementById('parentYear').value;
-  const cy = document.getElementById('childYear').value;
-  const le = document.getElementById('lifeExp').value;
+  var params = new URLSearchParams();
+  var by = document.getElementById('birthYear').value;
+  var py = document.getElementById('parentYear').value;
+  var cy = document.getElementById('childYear').value;
+  var le = document.getElementById('lifeExp').value;
   if (by) params.set('by', by);
   if (py) params.set('py', py);
   if (cy) params.set('cy', cy);
   if (le && le !== '83') params.set('le', le);
-  const url = location.origin + location.pathname + (params.toString() ? '?' + params.toString() : '');
-  navigator.clipboard.writeText(url).then(() => {
-    const btn = document.getElementById('shareBtn');
+  var url = location.origin + location.pathname + (params.toString() ? '?' + params.toString() : '');
+  navigator.clipboard.writeText(url).then(function(){
+    var btn = document.getElementById('shareBtn');
     btn.textContent = '✓ Copied!';
-    setTimeout(() => btn.textContent = '🔗 Share link', 2000);
-  }).catch(() => {
-    prompt('Copy this link:', url);
-  });
+    setTimeout(function(){ btn.textContent = '🔗 Share this with someone who needs it'; }, 2200);
+  }).catch(function(){ prompt('Copy this link:', url); });
 }
 
-// On load: read URL params and auto-populate form
-(function() {
-  const p = new URLSearchParams(location.search);
+(function(){
+  var p = new URLSearchParams(location.search);
   if (p.get('by')) document.getElementById('birthYear').value = p.get('by');
   if (p.get('py')) document.getElementById('parentYear').value = p.get('py');
   if (p.get('cy')) document.getElementById('childYear').value = p.get('cy');
