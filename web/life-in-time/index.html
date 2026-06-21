@@ -234,6 +234,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,san
   <div class="pivot-wrap">
     <button class="btn-pivot" onclick="showPositive()">But wait — it's not over ✨</button>
     <p class="pivot-hint">See what's still possible in your remaining time</p>
+    <button id="shareBtn" onclick="shareLink()" style="display:inline-flex;align-items:center;gap:6px;margin-top:14px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);color:#94a3b8;border-radius:8px;padding:9px 18px;font-size:.83em;cursor:pointer;transition:border-color .2s,color .2s" onmouseover="this.style.borderColor='rgba(255,255,255,.25)';this.style.color='#e2e8f0'" onmouseout="this.style.borderColor='rgba(255,255,255,.12)';this.style.color='#94a3b8'">🔗 Share link</button>
   </div>
 
   <div id="positive">
@@ -457,6 +458,36 @@ function showPositive() {
   pos.style.display = 'block';
   setTimeout(() => pos.scrollIntoView({behavior:'smooth',block:'start'}), 50);
 }
+
+function shareLink() {
+  const params = new URLSearchParams();
+  const by = document.getElementById('birthYear').value;
+  const py = document.getElementById('parentYear').value;
+  const cy = document.getElementById('childYear').value;
+  const le = document.getElementById('lifeExp').value;
+  if (by) params.set('by', by);
+  if (py) params.set('py', py);
+  if (cy) params.set('cy', cy);
+  if (le && le !== '83') params.set('le', le);
+  const url = location.origin + location.pathname + (params.toString() ? '?' + params.toString() : '');
+  navigator.clipboard.writeText(url).then(() => {
+    const btn = document.getElementById('shareBtn');
+    btn.textContent = '✓ Copied!';
+    setTimeout(() => btn.textContent = '🔗 Share link', 2000);
+  }).catch(() => {
+    prompt('Copy this link:', url);
+  });
+}
+
+// On load: read URL params and auto-populate form
+(function() {
+  const p = new URLSearchParams(location.search);
+  if (p.get('by')) document.getElementById('birthYear').value = p.get('by');
+  if (p.get('py')) document.getElementById('parentYear').value = p.get('py');
+  if (p.get('cy')) document.getElementById('childYear').value = p.get('cy');
+  if (p.get('le')) document.getElementById('lifeExp').value = p.get('le');
+  if (p.get('by')) calculate();
+})();
 </script>
 </body>
 </html>
