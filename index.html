@@ -516,8 +516,10 @@
        Sparse — every particle owns an independent
        velocity + heading (no shared/parallax motion),
        bounces off the viewport edges, and is pushed
-       AWAY from the cursor. Site-wide, DPR-aware.
-       (Restored from the original hero canvas Ivan liked.)
+       AWAY from the cursor. Dots that drift close are
+       joined by proximity lines whose opacity fades in
+       with closeness (and brightens near the cursor).
+       Site-wide, DPR-aware.
     ───────────────────────────────────────────── */
     const noMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     const isTouch  = window.matchMedia('(pointer: coarse)').matches;
@@ -569,7 +571,7 @@
         window.addEventListener('mouseout', () => { mouse.active = false; });
       }
 
-      const LINK = 118, REPEL = 130;
+      const LINK = 165, REPEL = 130, GLOW = 185;
 
       if (noMotion) { drawStatic(); return; }
 
@@ -601,16 +603,28 @@
           }
         }
 
-        // Links between nearby particles.
+        // Proximity links — opacity fades IN as two dots approach, OUT as they
+        // separate. Segments near the cursor brighten.
         for (let i = 0; i < parts.length; i++) {
+          const ax = parts[i].x, ay = parts[i].y;
           for (let j = i + 1; j < parts.length; j++) {
-            const dx = parts[i].x - parts[j].x, dy = parts[i].y - parts[j].y;
+            const bx = parts[j].x, by = parts[j].y;
+            const dx = ax - bx, dy = ay - by;
             const d = Math.hypot(dx, dy);
             if (d < LINK) {
-              ctx.strokeStyle = `rgba(150,170,205,${(1 - d / LINK) * 0.32})`;
-              ctx.lineWidth = 0.6;
+              let a = (1 - d / LINK) * 0.45;          // closer ⇒ stronger
+              let col = '150,170,205';
+              if (mouse.active) {
+                const md = Math.hypot((ax + bx) / 2 - mouse.sx, (ay + by) / 2 - mouse.sy);
+                if (md < GLOW) {
+                  a += (1 - md / GLOW) * 0.5;          // nearer the pointer ⇒ brighter
+                  col = '175,205,255';
+                }
+              }
+              ctx.strokeStyle = `rgba(${col},${a < 0.9 ? a : 0.9})`;
+              ctx.lineWidth = 0.7;
               ctx.beginPath();
-              ctx.moveTo(parts[i].x, parts[i].y); ctx.lineTo(parts[j].x, parts[j].y);
+              ctx.moveTo(ax, ay); ctx.lineTo(bx, by);
               ctx.stroke();
             }
           }
