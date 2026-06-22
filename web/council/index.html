@@ -95,6 +95,32 @@
     .mode-pill.selected { background: linear-gradient(135deg, rgba(14,165,233,0.25), rgba(139,92,246,0.25)); border-color: rgba(139,92,246,0.5); color: var(--text); }
     .mode-desc { font-size: 11.5px; color: #64748b; line-height: 1.5; min-height: 16px; }
 
+    /* ── Capability toggles (Web Search / Delegation) ──────────── */
+    .toggles-wrap { display: flex; flex-direction: column; gap: 8px; }
+    .toggles-label { font-size: 11px; color: #64748b; text-transform: uppercase; letter-spacing: 0.06em; font-weight: 600; }
+    .toggle-row { display: flex; flex-wrap: wrap; gap: 10px; }
+    .toggle-pill {
+      display: inline-flex; align-items: center; gap: 9px; cursor: pointer;
+      background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 10px; padding: 8px 13px; font-size: 12px; color: var(--muted);
+      font-weight: 600; transition: all 0.18s; user-select: none;
+    }
+    .toggle-pill:hover { background: rgba(255,255,255,0.07); color: var(--text); }
+    .toggle-pill.on { border-color: rgba(34,197,94,0.45); color: var(--text); background: rgba(34,197,94,0.08); }
+    .toggle-switch {
+      position: relative; width: 34px; height: 19px; border-radius: 999px; flex-shrink: 0;
+      background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.15); transition: background 0.2s, border-color 0.2s;
+    }
+    .toggle-pill.on .toggle-switch { background: var(--green); border-color: var(--green); }
+    .toggle-switch::after {
+      content: ""; position: absolute; top: 1.5px; left: 1.5px; width: 14px; height: 14px;
+      border-radius: 50%; background: #fff; transition: transform 0.2s;
+    }
+    .toggle-pill.on .toggle-switch::after { transform: translateX(15px); }
+    .toggle-text { display: flex; flex-direction: column; gap: 1px; line-height: 1.25; }
+    .toggle-name { font-size: 12px; }
+    .toggle-hint { font-size: 10px; color: #64748b; font-weight: 500; }
+
     .input-footer { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 
     .model-label { font-size: 11px; color: #475569; display: flex; align-items: center; gap: 6px; }
@@ -300,6 +326,27 @@
         <div class="mode-desc" id="mode-desc"></div>
       </div>
 
+      <!-- Capability toggles: Web Search + Delegation -->
+      <div class="toggles-wrap">
+        <span class="toggles-label">Capabilities</span>
+        <div class="toggle-row">
+          <div class="toggle-pill on" id="toggle-websearch" role="switch" aria-checked="true" tabindex="0" onclick="toggleWebSearch()">
+            <span class="toggle-switch"></span>
+            <span class="toggle-text">
+              <span class="toggle-name">&#127758; Web Search</span>
+              <span class="toggle-hint">Ground the debate in live web results (slower)</span>
+            </span>
+          </div>
+          <div class="toggle-pill" id="toggle-delegation" role="switch" aria-checked="false" tabindex="0" onclick="toggleDelegation()">
+            <span class="toggle-switch"></span>
+            <span class="toggle-text">
+              <span class="toggle-name">&#129309; Delegation</span>
+              <span class="toggle-hint">Delegate a sub-question to the fleet (Chlo&eacute;)</span>
+            </span>
+          </div>
+        </div>
+      </div>
+
       <div class="input-footer">
         <div class="gate-wrap">
           <span class="gate-label">&#128274; Access code</span>
@@ -412,10 +459,62 @@
       document.getElementById('mode-desc').textContent = m ? m.desc : '';
     }
 
+    // ── Capability toggles ────────────────────────────────────────────────────
+    // Web Search defaults ON (it works); user can switch it OFF for a faster,
+    // model-knowledge-only run. Delegation defaults OFF (no public fleet endpoint
+    // yet). Each value is sent in the payload and gates the matching server stage.
+    var webSearchOn = true;
+    var delegationOn = false;
+    function paintToggle(id, on) {
+      var el = document.getElementById(id);
+      if (!el) return;
+      el.classList.toggle('on', !!on);
+      el.setAttribute('aria-checked', on ? 'true' : 'false');
+    }
+    function toggleWebSearch() { webSearchOn = !webSearchOn; paintToggle('toggle-websearch', webSearchOn); }
+    function toggleDelegation() { delegationOn = !delegationOn; paintToggle('toggle-delegation', delegationOn); }
+    // Keyboard a11y for the switch role.
+    ['toggle-websearch', 'toggle-delegation'].forEach(function (id) {
+      var el = document.getElementById(id);
+      if (el) el.addEventListener('keydown', function (e) {
+        if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); el.click(); }
+      });
+    });
+
     // ── Stage rendering ───────────────────────────────────────────────────────
     var passNum = 0;          // each run/follow-up is a "pass"; namespaces card ids
     var lastSynthesis = '';   // seeds the next interactive round
     var liveBuffers = {};     // cardId -> accumulating streamed text
+    var runCompleted = false; // set true when the server sends {stage:'complete'}
+    var currentRunId = '';    // server-registry key for resume-on-reattach
+    var lastSeq = 0;          // highest event seq the client has fully processed
+    function genRunId() {
+      return 'r' + Date.now().toString(36) + Math.random().toString(36).slice(2, 10);
+    }
+
+    // ── Tab-switch / connection resilience ────────────────────────────────────
+    // The run is NEVER tied to tab focus — we add no blur/visibility handler that
+    // aborts it. Continuous token streaming + the server's 8s heartbeats keep the
+    // connection alive across a backgrounded tab. As a safety net, if the stream
+    // is dropped mid-run (mobile suspend / proxy), we transparently reconnect and
+    // RESUME into the same cards (seeded with any synthesis so far) instead of
+    // wiping the screen and starting from scratch.
+    var wakeLock = null;
+    async function acquireWakeLock() {
+      try { if (navigator.wakeLock && document.visibilityState === 'visible') wakeLock = await navigator.wakeLock.request('screen'); } catch (e) {}
+    }
+    function releaseWakeLock() { try { if (wakeLock) { wakeLock.release(); wakeLock = null; } } catch (e) {} }
+    document.addEventListener('visibilitychange', function () {
+      // Re-acquire the wake lock on return; do NOT touch the in-flight run.
+      if (document.visibilityState === 'visible' && !runCompleted) acquireWakeLock();
+    });
+    function sleep(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
+    function reconnectNotice(attempt) {
+      var n = document.createElement('div');
+      n.className = 'round-header';
+      n.innerHTML = '<div class="round-label" style="color:var(--accent);text-transform:none;letter-spacing:0;font-weight:600;">&#8635; Connection paused &mdash; resuming the deliberation (attempt ' + attempt + ')&#8230;</div><div class="round-line"></div>';
+      document.getElementById('stages').appendChild(n);
+    }
 
     function copyStage(cardId) {
       var el = document.getElementById('content-' + cardId);
@@ -621,10 +720,26 @@
           if (!trimmed) continue;
           var event;
           try { event = JSON.parse(trimmed); } catch (e) { continue; }
-          if (event.stage === 'complete') { if (event.synthesis) lastSynthesis = event.synthesis; continue; }
+          // Server couldn't find the run to resume (cold / different instance) →
+          // bubble up so the caller falls back to a seeded fresh run.
+          if (event.stage === 'resume_miss') throw new Error('RESUME_MISS');
+          // Idempotent replay guard: on reattach the server resends only seq>lastSeq,
+          // but ignore any straggler we've already rendered.
+          if (typeof event.seq === 'number') {
+            if (event.seq <= lastSeq) continue;
+            lastSeq = event.seq;
+          }
+          if (event.stage === 'complete') {
+            runCompleted = true;
+            if (event.synthesis) { lastSynthesis = event.synthesis; try { sessionStorage.setItem('council_last_synth', lastSynthesis); } catch (e) {} }
+            continue;
+          }
           handleEvent(event);
         }
       }
+      // Reader ended. If the server never sent {stage:'complete'} and never threw
+      // an error, the connection was dropped mid-run — signal a resumable drop.
+      if (!runCompleted) throw new Error('STREAM_DROPPED');
     }
 
     async function convene(question, priorContext, isFollowup) {
@@ -648,18 +763,66 @@
         liveBuffers = {};
       }
       stagesEl.style.display = 'flex';
+      runCompleted = false;
+      currentRunId = genRunId();
+      lastSeq = 0;
+      acquireWakeLock();
 
+      // Fresh-run payload carries the runId + capability toggles. The server runs
+      // this council to completion server-side and mirrors every event under runId.
+      var freshPayload = {
+        question: question, mode: selectedMode, priorContext: priorContext || '',
+        code: accessCode(), runId: currentRunId,
+        webSearch: webSearchOn, delegate: delegationOn,
+      };
+      var payload = freshPayload;
+      var attempts = 0;
       try {
-        await runStream({ question: question, mode: selectedMode, priorContext: priorContext || '', code: accessCode() });
+        while (true) {
+          try {
+            await runStream(payload);
+            break; // server sent {complete} (or ended cleanly after it)
+          } catch (err) {
+            var m = err && err.message;
+            if ((m === 'STREAM_DROPPED' || m === 'RESUME_MISS') && attempts < 5) {
+              attempts++;
+              reconnectNotice(attempts);
+              if (m === 'STREAM_DROPPED') {
+                // TRUE RESUME: re-attach to the same server-side run and replay only
+                // the events we missed (seq > lastSeq) — no restart of the council.
+                runCompleted = false;
+                payload = { resume: true, runId: currentRunId, lastSeq: lastSeq, code: accessCode() };
+              } else {
+                // Re-attach missed (cold/other instance) → seeded fresh run as a
+                // safe fallback, never worse than the old behaviour.
+                runCompleted = false;
+                currentRunId = genRunId();
+                lastSeq = 0;
+                payload = Object.assign({}, freshPayload, {
+                  runId: currentRunId,
+                  priorContext: lastSynthesis || freshPayload.priorContext,
+                });
+              }
+              await sleep(500 * attempts);
+              continue;
+            }
+            throw err;
+          }
+        }
         // Offer an interactive next round once we have a synthesis to build on.
         if (lastSynthesis) {
           document.getElementById('followup-input').value = '';
           followCard.classList.add('visible');
         }
       } catch (err) {
-        errorEl.textContent = err.message;
+        var dropped = err && (err.message === 'STREAM_DROPPED' || err.message === 'RESUME_MISS');
+        var msg = dropped
+          ? 'The connection dropped and could not be resumed after several attempts. Please tap Convene again — your access code is remembered.'
+          : (err && err.message) || 'Unexpected error.';
+        errorEl.textContent = msg;
         errorEl.className = 'error-banner visible';
       } finally {
+        releaseWakeLock();
         btn.disabled = false; fbtn.disabled = false;
         btn.textContent = 'Convene Council';
       }

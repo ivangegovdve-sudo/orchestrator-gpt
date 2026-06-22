@@ -80,7 +80,12 @@ const MAXTOK = { propose: 420, critique: 320, revise: 420, critique2: 320, synth
 //   key from Vercel env TAVILY_API_KEY; DuckDuckGo HTML fallback, no key).
 const WEBSEARCH_ENABLED = !/^(0|false|no|off)$/i.test((process.env.COUNCIL_WEBSEARCH_ENABLED || "1").trim());
 const WEBSEARCH_K       = Math.max(1, Math.min(8, parseInt(process.env.COUNCIL_WEBSEARCH_K || "5", 10) || 5));
-const WEBSEARCH_TIMEOUT_MS = 9000;
+// Per-provider socket timeout AND a hard overall cap. The grounding step runs
+// BEFORE the proposer, so it must never add a long silent gap before stage 1.
+// Whatever happens (provider hang, DNS stall, key issue), we give up at
+// WEBSEARCH_TOTAL_MS and proceed to the proposers ungrounded-with-a-note.
+const WEBSEARCH_TIMEOUT_MS = 5000;
+const WEBSEARCH_TOTAL_MS   = Math.max(3000, Math.min(12000, parseInt(process.env.COUNCIL_WEBSEARCH_TOTAL_MS || "7000", 10) || 7000));
 const TAVILY_API_KEY    = process.env.TAVILY_API_KEY || "";
 //
 // DELEGATION to Chloé (§3.2–§3.4): between rounds the council can delegate ONE
@@ -332,9 +337,23 @@ async function ddgSearch(query, limit) {
 }
 
 async function webSearch(query, limit) {
-  try { const r = await tavilySearch(query, limit); if (r && r.length) return r; } catch (_) {}
-  try { const r = await ddgSearch(query, limit); if (r && r.length) return r; } catch (_) {}
-  return [];
+  // Hard overall bound: grounding may NEVER delay the first proposer by more than
+  // WEBSEARCH_TOTAL_MS. We race the real lookup against a deadline that resolves
+  // to "no results"; the proposer always starts on time. Providers run in
+  // PARALLEL (Tavily keyed + DDG keyless) so a slow one can't gate the fast one.
+  const deadline = new Promise((resolve) => setTimeout(() => resolve([]), WEBSEARCH_TOTAL_MS));
+  const lookup = (async () => {
+    const tasks = [
+      tavilySearch(query, limit).catch(() => []),
+      ddgSearch(query, limit).catch(() => []),
+    ];
+    // Prefer Tavily (richer) if it returns in time; else first non-empty.
+    const [tav, ddg] = await Promise.all(tasks);
+    if (tav && tav.length) return tav;
+    if (ddg && ddg.length) return ddg;
+    return [];
+  })();
+  try { return await Promise.race([lookup, deadline]); } catch (_) { return []; }
 }
 
 function formatWebBlock(results) {
@@ -415,6 +434,70 @@ async function delegationDecision(taskFraming, proposal, apiKey) {
   }
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// In-memory RUN REGISTRY for tab-blur persistence (no external infra, $0).
+//
+// A council run executes server-side to completion regardless of whether the
+// client stays connected (the async pipeline reads from OpenRouter, not from the
+// browser — closing the tab never aborts it). Every SSE event is ALSO mirrored
+// here with a monotonic seq. If the browser drops the stream on tab-blur and then
+// re-attaches with {resume:true, runId, lastSeq}, we REPLAY only the events it
+// missed (seq > lastSeq) and, if the run is still going, stream the live tail —
+// so the user RESUMES instead of restarting the whole council.
+//
+// Cross-instance caveat: Vercel may route the re-attach to a different warm
+// instance that doesn't hold this run. In that case we emit {stage:"resume_miss"}
+// and the client falls back to the previous seeded-rerun behaviour — i.e. NEVER
+// worse than today. Best case: true resume. Worst case: today's behaviour.
+// ─────────────────────────────────────────────────────────────────────────────
+const RUNS = new Map(); // runId -> { events:[{...,seq}], seq, done, createdAt }
+const RUN_TTL_MS = 12 * 60 * 1000;
+const RUN_MAX = 80;
+function pruneRuns() {
+  const now = Date.now();
+  for (const [k, v] of RUNS) {
+    if (now - v.createdAt > RUN_TTL_MS) RUNS.delete(k);
+  }
+  if (RUNS.size > RUN_MAX) {
+    // Drop oldest beyond the cap.
+    const sorted = [...RUNS.entries()].sort((a, b) => a[1].createdAt - b[1].createdAt);
+    for (let i = 0; i < sorted.length - RUN_MAX; i++) RUNS.delete(sorted[i][0]);
+  }
+}
+
+function writeSSE(res, obj) {
+  try { res.write("data: " + JSON.stringify(obj) + "\n\n"); } catch (_) {}
+}
+
+// Re-attach to an in-progress / completed run: replay missed events, then tail
+// live updates until the run finishes or the client disconnects. Never starts a
+// new council. Resolves a boolean: true if the run was found and served.
+async function handleReattach(res, runId, lastSeq) {
+  const run = RUNS.get(runId);
+  if (!run) { writeSSE(res, { stage: "resume_miss" }); res.end(); return false; }
+
+  let lastWritten = lastSeq;
+  const flushNew = () => {
+    for (const ev of run.events) {
+      if (ev.seq > lastWritten) { writeSSE(res, ev); lastWritten = ev.seq; }
+    }
+  };
+  flushNew();
+  if (run.done) { res.end(); return true; }
+
+  // Tail the still-running original invocation (same warm instance).
+  await new Promise((resolve) => {
+    let closed = false;
+    const stop = () => { if (closed) return; closed = true; clearInterval(poll); clearInterval(hb); resolve(); };
+    const hb = setInterval(() => { try { res.write(": ping\n\n"); } catch (_) {} }, 8000);
+    const poll = setInterval(() => { flushNew(); if (run.done) stop(); }, 140);
+    res.on("close", stop);
+    res.on("error", stop);
+  });
+  try { res.end(); } catch (_) {}
+  return true;
+}
+
 module.exports = async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
@@ -434,9 +517,9 @@ module.exports = async function handler(req, res) {
     req.on("end", resolve);
   });
 
-  let question, rounds, modeName, priorContext, code;
+  let question, rounds, modeName, priorContext, code, parsed;
   try {
-    const parsed = JSON.parse(body);
+    parsed = JSON.parse(body);
     question = parsed.question;
     rounds = parsed.rounds;
     modeName = parsed.mode;
@@ -446,6 +529,21 @@ module.exports = async function handler(req, res) {
     return res.status(400).json({ error: "Invalid JSON body." });
   }
 
+  // ── Per-request feature toggles (UI ticks) ──────────────────────────────────
+  // Web search is on-by-default (it works) but the user can switch it OFF for a
+  // faster, model-knowledge-only run. Delegation is off-by-default (no public
+  // Chloé endpoint yet); turning it on still no-ops gracefully unless a public
+  // COUNCIL_DELEGATE_ENDPOINT is configured. Both override the env defaults
+  // ONLY when the client sends an explicit boolean.
+  const reqWebSearch = (typeof parsed.webSearch === "boolean") ? parsed.webSearch : WEBSEARCH_ENABLED;
+  const reqDelegate  = (typeof parsed.delegate === "boolean") ? parsed.delegate : DELEGATION_ENABLED;
+  const delegateActive = reqDelegate && !!DELEGATE_ENDPOINT;
+
+  // ── Resume / reattach plumbing (tab-blur persistence) ───────────────────────
+  const runId   = typeof parsed.runId === "string" ? parsed.runId.slice(0, 64) : "";
+  const isResume = parsed.resume === true;
+  const lastSeq = Math.max(0, parseInt(parsed.lastSeq, 10) || 0);
+
   // ── 4-digit access gate ────────────────────────────────────────────────────
   // Lightweight shared-secret to stop anonymous over-use of the free OpenRouter
   // quota (which itself causes "network error" via rate-limit starvation). The
@@ -454,6 +552,19 @@ module.exports = async function handler(req, res) {
   const ACCESS_CODE = String(process.env.COUNCIL_ACCESS_CODE || "2142").trim();
   if (String(code || "").trim() !== ACCESS_CODE) {
     return res.status(401).json({ error: "Invalid access code. Ask Ivan for the 4-digit council code." });
+  }
+
+  // SSE headers for both the fresh-run and the re-attach branch.
+  res.setHeader("Content-Type", "text/event-stream; charset=utf-8");
+  res.setHeader("Cache-Control", "no-cache, no-transform");
+  res.setHeader("X-Accel-Buffering", "no");
+  res.status(200);
+
+  // ── RE-ATTACH branch: resume an in-progress/finished run, never re-run it ────
+  if (isResume && runId) {
+    pruneRuns();
+    await handleReattach(res, runId, lastSeq);
+    return;
   }
 
   if (!question || typeof question !== "string" || question.trim().length === 0) {
@@ -471,12 +582,19 @@ module.exports = async function handler(req, res) {
     (ctx ? "Earlier in this deliberation the council concluded:\n" + ctx + "\n\nThe user now follows up with:\n" : "") +
     q;
 
-  res.setHeader("Content-Type", "text/event-stream; charset=utf-8");
-  res.setHeader("Cache-Control", "no-cache, no-transform");
-  res.setHeader("X-Accel-Buffering", "no");
-  res.status(200);
+  // Register this run so a re-attaching client can replay/resume it. The pipeline
+  // runs to completion server-side even if THIS response socket later drops.
+  pruneRuns();
+  const run = { events: [], seq: 0, done: false, createdAt: Date.now() };
+  if (runId) RUNS.set(runId, run);
 
-  const send = (data) => { try { res.write("data: " + JSON.stringify(data) + "\n\n"); } catch (_) {} };
+  // Every event is stamped with a monotonic seq, mirrored into the registry
+  // (for resume), and written to the live socket (no-op once the client drops).
+  const send = (data) => {
+    data.seq = ++run.seq;
+    run.events.push(data);
+    try { res.write("data: " + JSON.stringify(data) + "\n\n"); } catch (_) {}
+  };
   // Heartbeat: SSE comment line, ignored by the client parser, keeps the
   // connection from going idle during the gaps between/within stages.
   const heartbeat = setInterval(() => { try { res.write(": ping\n\n"); } catch (_) {} }, 8000);
@@ -488,8 +606,10 @@ module.exports = async function handler(req, res) {
   send({ stage: "meta", mode: mode.label, rounds: numRounds });
 
   // ── RAG pre-step: live web search → grounding injected into every member ──────
-  // (§3.1) Non-fatal: on any failure the council proceeds ungrounded.
-  if (WEBSEARCH_ENABLED) {
+  // (§3.1) Non-fatal: on any failure the council proceeds ungrounded. Controlled
+  // by the page's "Web Search" tick (reqWebSearch) — when OFF we skip grounding
+  // entirely and go straight to the proposers for a faster run.
+  if (reqWebSearch) {
     send({ stage: "notice", text: "Searching the live web for grounding…" });
     try {
       const results = await webSearch(q, WEBSEARCH_K);
@@ -594,9 +714,14 @@ module.exports = async function handler(req, res) {
     if (c2) { criticTexts.push(c2.text); criticModels.push(c2.model); }
 
     // ── Fleet delegation (§3.2–§3.4): one sub-question to Chloé, folded into synthesis.
-    // Budget-guarded + non-fatal. OFF unless COUNCIL_DELEGATE_ENDPOINT is a public URL.
+    // Controlled by the page's "Delegation" tick (delegateActive) AND budget-guarded
+    // + non-fatal. Stays OFF unless COUNCIL_DELEGATE_ENDPOINT is a public URL; if the
+    // user ticked it on but no public endpoint exists, we say so and proceed.
     let delegationBlock = "";
-    if (DELEGATION_ENABLED && timeLeft() > SYNTH_JUDGE_RESERVE_MS + DELEGATE_TIMEOUT_MS) {
+    if (reqDelegate && !DELEGATE_ENDPOINT) {
+      send({ stage: "notice", text: "Delegation requested, but no public fleet endpoint is configured yet — proceeding with the council only." });
+    }
+    if (delegateActive && timeLeft() > SYNTH_JUDGE_RESERVE_MS + DELEGATE_TIMEOUT_MS) {
       send({ stage: "notice", text: "Considering a fleet delegation to Chloé…" });
       try {
         const d = await delegationDecision(taskFraming, proposerTexts[0], apiKey);
@@ -660,7 +785,8 @@ module.exports = async function handler(req, res) {
   } catch (err) {
     send({ stage: "error", error: err.message });
   } finally {
+    run.done = true; // unblocks any re-attached client tailing this run
     clearInterval(heartbeat);
-    res.end();
+    try { res.end(); } catch (_) {}
   }
 };
