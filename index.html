@@ -532,8 +532,8 @@
         const count = Math.max(36, Math.min(130, Math.round(area / 16000)));
         parts = Array.from({ length: count }, () => ({
           x: Math.random(), y: Math.random(),
-          vx: (Math.random() - 0.5) * 0.045,
-          vy: (Math.random() - 0.5) * 0.045,
+          vx: (Math.random() - 0.5) * 0.0006,
+          vy: (Math.random() - 0.5) * 0.0006,
           z: Math.random() * 0.7 + 0.3,
           hue: Math.random() > 0.5 ? 199 : 264,
         }));
@@ -556,7 +556,7 @@
         window.addEventListener('mouseout', () => { mouse.active = false; });
       }
 
-      const LINK = 132, PULL = 124;
+      const LINK = 132, PULL = 170, MOUSE_LINK = 210;
 
       if (noMotion) { drawStatic(); return; }
 
@@ -573,7 +573,7 @@
         const py = new Array(parts.length);
         for (let i = 0; i < parts.length; i++) {
           const p = parts[i];
-          p.x += p.vx / W; p.y += p.vy / H;
+          p.x += p.vx; p.y += p.vy;
           if (p.x < 0) p.x += 1; else if (p.x > 1) p.x -= 1;
           if (p.y < 0) p.y += 1; else if (p.y > 1) p.y -= 1;
 
@@ -584,7 +584,7 @@
             const dx = mouse.sx - X, dy = mouse.sy - Y;
             const d = Math.hypot(dx, dy);
             if (d < PULL && d > 0.1) {
-              const f = (PULL - d) / PULL * 0.6;
+              const f = (PULL - d) / PULL * 18;
               X += dx / d * f; Y += dy / d * f;
             }
           }
@@ -601,6 +601,22 @@
               ctx.lineWidth = 0.6;
               ctx.beginPath();
               ctx.moveTo(px[i], py[i]); ctx.lineTo(px[j], py[j]);
+              ctx.stroke();
+            }
+          }
+        }
+
+        // lines reach toward the cursor — the constellation "grabs" the pointer
+        if (mouse.active) {
+          for (let i = 0; i < parts.length; i++) {
+            const dx = px[i] - mouse.sx, dy = py[i] - mouse.sy;
+            const d = Math.hypot(dx, dy);
+            if (d < MOUSE_LINK) {
+              const a = (1 - d / MOUSE_LINK) * 0.5;
+              ctx.strokeStyle = `rgba(170,195,255,${a})`;
+              ctx.lineWidth = 0.9;
+              ctx.beginPath();
+              ctx.moveTo(px[i], py[i]); ctx.lineTo(mouse.sx, mouse.sy);
               ctx.stroke();
             }
           }
