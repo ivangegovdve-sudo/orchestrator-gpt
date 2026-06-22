@@ -69,6 +69,34 @@ const SYNTH_JUDGE_RESERVE_MS = 80000;
 // council's value is the multi-model debate, not 9000-char monologues.
 const MAXTOK = { propose: 420, critique: 320, revise: 420, critique2: 320, synth: 560, judge: 340 };
 
+// ── AGENTIC UPGRADE (2026-06-22): web search + RAG grounding + fleet delegation ──
+// All additive and non-fatal: each step injects context into the deliberation and
+// can fail without breaking the propose→critique→synth→judge flow. Free-only stays
+// in force (web search uses Tavily/DDG, not a paid LLM; delegation hits Chloé's
+// own free gateway). The 2142 access gate is untouched.
+//
+// WEB SEARCH / RAG (§3.1): every member deliberates over fresh, URL-cited web facts.
+//   Reuses the same provider stack as the fleet's tools/web_search.py (Tavily primary,
+//   key from Vercel env TAVILY_API_KEY; DuckDuckGo HTML fallback, no key).
+const WEBSEARCH_ENABLED = !/^(0|false|no|off)$/i.test((process.env.COUNCIL_WEBSEARCH_ENABLED || "1").trim());
+const WEBSEARCH_K       = Math.max(1, Math.min(8, parseInt(process.env.COUNCIL_WEBSEARCH_K || "5", 10) || 5));
+const WEBSEARCH_TIMEOUT_MS = 9000;
+const TAVILY_API_KEY    = process.env.TAVILY_API_KEY || "";
+//
+// DELEGATION to Chloé (§3.2–§3.4): between rounds the council can delegate ONE
+//   sub-question to Chloé's gateway, then fold her grounded answer into synthesis.
+//   IMPORTANT: Vercel's serverless functions are NOT on the Tailscale network, so the
+//   KVM2 gateway (100.77.50.41, CGNAT) is unreachable from here. Public delegation is
+//   therefore OFF unless COUNCIL_DELEGATE_ENDPOINT is a *public* https URL (e.g. a
+//   Tailscale Funnel / Cloudflare tunnel in front of Chloé's gateway). When unset, the
+//   step is skipped silently (no latency); when set but unreachable/slow, it degrades
+//   gracefully with a visible notice and the council proceeds from members only.
+const DELEGATE_ENDPOINT   = (process.env.COUNCIL_DELEGATE_ENDPOINT || "").trim();   // public https URL or ""
+const DELEGATE_KEY        = (process.env.COUNCIL_DELEGATE_KEY || "").trim();        // Bearer for the gateway
+const DELEGATE_MODEL      = (process.env.COUNCIL_DELEGATE_MODEL || "chloe").trim();
+const DELEGATE_TIMEOUT_MS = Math.max(10000, Math.min(90000, parseInt(process.env.COUNCIL_DELEGATE_TIMEOUT_MS || "70000", 10) || 70000));
+const DELEGATION_ENABLED  = !/^(0|false|no|off)$/i.test((process.env.COUNCIL_DELEGATION_ENABLED || "1").trim()) && !!DELEGATE_ENDPOINT;
+
 // ── Council modes ───────────────────────────────────────────────────────────
 // IMPORTANT: modes are NOT personas. They are INSTRUCTIONS for HOW each member
 // should TREAT the response handed to it by the previous member. Same panel of
@@ -244,6 +272,149 @@ async function streamWithFallback(messages, apiKey, modelList, maxTokens, temper
   throw lastErr || new Error("All models in roster failed");
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Web search (Node-native, built-in https only — no npm deps on Vercel).
+// Tavily primary (vaulted key via env), DuckDuckGo HTML fallback. Never throws.
+// ─────────────────────────────────────────────────────────────────────────────
+function httpsRequest(opts, bodyStr, timeoutMs) {
+  return new Promise((resolve, reject) => {
+    let settled = false;
+    const done = (fn, arg) => { if (settled) return; settled = true; clearTimeout(timer); try { req.destroy(); } catch (_) {} fn(arg); };
+    const timer = setTimeout(() => done(reject, new Error("timeout")), timeoutMs || 9000);
+    const req = https.request(opts, (res) => {
+      let data = "";
+      res.setEncoding("utf8");
+      res.on("data", (c) => { data += c; });
+      res.on("end", () => done(resolve, { statusCode: res.statusCode, body: data }));
+      res.on("error", (e) => done(reject, e));
+    });
+    req.on("error", (e) => done(reject, e));
+    if (bodyStr) req.write(bodyStr);
+    req.end();
+  });
+}
+
+async function tavilySearch(query, limit) {
+  if (!TAVILY_API_KEY) throw new Error("no tavily key");
+  const body = JSON.stringify({
+    api_key: TAVILY_API_KEY, query, search_depth: "basic",
+    max_results: Math.min(limit, 10), include_answer: false,
+  });
+  const r = await httpsRequest({
+    hostname: "api.tavily.com", path: "/search", method: "POST",
+    headers: { "Content-Type": "application/json", "Content-Length": Buffer.byteLength(body) },
+  }, body, WEBSEARCH_TIMEOUT_MS);
+  if (r.statusCode < 200 || r.statusCode >= 300) throw new Error("tavily HTTP " + r.statusCode);
+  const data = JSON.parse(r.body);
+  return (data.results || []).slice(0, limit).map((x) => ({
+    title: x.title || "", url: x.url || "", snippet: (x.content || "").slice(0, 400), provider: "tavily",
+  }));
+}
+
+async function ddgSearch(query, limit) {
+  const r = await httpsRequest({
+    hostname: "html.duckduckgo.com", path: "/html/?q=" + encodeURIComponent(query), method: "GET",
+    headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/124.0 Safari/537.36", "Accept-Language": "en-US,en;q=0.9" },
+  }, null, WEBSEARCH_TIMEOUT_MS);
+  if (r.statusCode < 200 || r.statusCode >= 300) throw new Error("ddg HTTP " + r.statusCode);
+  const out = [];
+  const re = /<a[^>]+class="result__a"[^>]+href="([^"]+)"[^>]*>([\s\S]*?)<\/a>[\s\S]*?<a[^>]*class="result__snippet"[^>]*>([\s\S]*?)<\/a>/g;
+  let m;
+  const strip = (s) => s.replace(/<[^>]+>/g, "").replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&#x27;/g, "'").replace(/&quot;/g, '"').trim();
+  while ((m = re.exec(r.body)) && out.length < limit) {
+    let href = m[1];
+    const um = /uddg=([^&"]+)/.exec(href);
+    if (um) href = decodeURIComponent(um[1]);
+    if (href.startsWith("//")) href = "https:" + href;
+    out.push({ title: strip(m[2]), url: href, snippet: strip(m[3]).slice(0, 400), provider: "ddg" });
+  }
+  return out;
+}
+
+async function webSearch(query, limit) {
+  try { const r = await tavilySearch(query, limit); if (r && r.length) return r; } catch (_) {}
+  try { const r = await ddgSearch(query, limit); if (r && r.length) return r; } catch (_) {}
+  return [];
+}
+
+function formatWebBlock(results) {
+  const lines = results.map((r, i) =>
+    (i + 1) + ". " + (r.title || "(untitled)") + "\n   " + (r.url || "") + "\n   " + (r.snippet || "").replace(/\s+/g, " ").slice(0, 360));
+  return "## LIVE WEB CONTEXT (retrieved just now — cite URLs where used)\n" + lines.join("\n") +
+    "\n[sources: " + results.length + " results via " + (results[0] && results[0].provider || "?") + "]";
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Delegation to Chloé (single endpoint). Non-streaming POST /v1/chat/completions,
+// hard deadline, NEVER throws — always returns a structured result. Degrades to a
+// note when the (public) endpoint is unset, unreachable, or slow.
+// ─────────────────────────────────────────────────────────────────────────────
+function delegationSystemPrompt(hint) {
+  const route = hint === "research"
+    ? "Route this to Iris (research/web) and ground the answer in sources."
+    : hint === "code"
+      ? "Route this to Anderson in ADVISE-ONLY mode (solutions/answers only, never write code)."
+      : "Decide the best route (Iris for research, Anderson for code, or answer yourself).";
+  return "You are receiving a COUNCIL DELEGATION — one focused sub-question an expert council needs grounded before it finalizes. " +
+    route + " Return a single concise, grounded answer with sources where available. NEVER return an error — if the fleet cannot help, answer from your own best knowledge.";
+}
+
+async function delegateToChloe(subQuestion, hint) {
+  const result = { answer: "", route: hint || "self", degraded: false, reason: "", elapsed_ms: 0 };
+  if (!DELEGATE_ENDPOINT) { result.degraded = true; result.reason = "no_public_endpoint"; return result; }
+  const url = new URL(DELEGATE_ENDPOINT.replace(/\/$/, "") + "/v1/chat/completions");
+  const body = JSON.stringify({
+    model: DELEGATE_MODEL, stream: false, max_tokens: 1024,
+    messages: [
+      { role: "system", content: delegationSystemPrompt(hint) },
+      { role: "user", content: subQuestion },
+    ],
+  });
+  const headers = { "Content-Type": "application/json", "Content-Length": Buffer.byteLength(body) };
+  if (DELEGATE_KEY) headers.Authorization = "Bearer " + DELEGATE_KEY;
+  const t0 = Date.now();
+  try {
+    const r = await httpsRequest({
+      hostname: url.hostname, port: url.port || 443, path: url.pathname + url.search,
+      method: "POST", headers,
+    }, body, DELEGATE_TIMEOUT_MS);
+    result.elapsed_ms = Date.now() - t0;
+    if (r.statusCode < 200 || r.statusCode >= 300) { result.degraded = true; result.reason = "http_" + r.statusCode; return result; }
+    const data = JSON.parse(r.body);
+    const answer = (data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content || "").trim();
+    if (!answer) { result.degraded = true; result.reason = "empty_answer"; return result; }
+    result.answer = answer;
+    return result;
+  } catch (e) {
+    result.elapsed_ms = Date.now() - t0;
+    result.degraded = true;
+    result.reason = (e && e.message === "timeout") ? "timeout_" + Math.round(DELEGATE_TIMEOUT_MS / 1000) + "s" : "error:" + (e && e.message || "unknown").slice(0, 60);
+    return result;
+  }
+}
+
+// One cheap free-model JSON classification: is a sub-question worth delegating?
+async function delegationDecision(taskFraming, proposal, apiKey) {
+  const sys = "You are a council delegation router. Decide whether the council would benefit from delegating ONE focused sub-question to a fleet (Iris=research/web, Anderson=code). Reply with STRICT JSON only: " +
+    '{"delegatable":bool,"would_benefit":bool,"target_hint":"research|code|self","sub_question":"..."}. ' +
+    "would_benefit=true only when an external grounded answer would materially improve the synthesis.";
+  const user = "Question:\n" + taskFraming.slice(0, 1500) + "\n\nRound-1 proposal:\n" + (proposal || "").slice(0, 1200) + "\n\nReturn the JSON verdict.";
+  try {
+    const { text } = await streamWithFallback(
+      [{ role: "system", content: sys }, { role: "user", content: user }],
+      apiKey, ROSTER.judge, 180, 0, null, null);
+    const m = /\{[\s\S]*\}/.exec(text);
+    const v = JSON.parse(m ? m[0] : text);
+    return {
+      delegatable: !!v.delegatable, would_benefit: !!v.would_benefit,
+      target_hint: ["research", "code", "self"].includes(v.target_hint) ? v.target_hint : "self",
+      sub_question: typeof v.sub_question === "string" ? v.sub_question.trim() : "",
+    };
+  } catch (_) {
+    return { delegatable: false, would_benefit: false, target_hint: "self", sub_question: "" };
+  }
+}
+
 module.exports = async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
@@ -296,7 +467,7 @@ module.exports = async function handler(req, res) {
 
   // Shared user-facing framing of the task — carries any prior-round context so
   // follow-up rounds (B4: interactive) build on the previous deliberation.
-  const taskFraming =
+  let taskFraming =
     (ctx ? "Earlier in this deliberation the council concluded:\n" + ctx + "\n\nThe user now follows up with:\n" : "") +
     q;
 
@@ -315,6 +486,23 @@ module.exports = async function handler(req, res) {
   const timeLeft = () => deadline - Date.now();
 
   send({ stage: "meta", mode: mode.label, rounds: numRounds });
+
+  // ── RAG pre-step: live web search → grounding injected into every member ──────
+  // (§3.1) Non-fatal: on any failure the council proceeds ungrounded.
+  if (WEBSEARCH_ENABLED) {
+    send({ stage: "notice", text: "Searching the live web for grounding…" });
+    try {
+      const results = await webSearch(q, WEBSEARCH_K);
+      if (results.length) {
+        taskFraming = formatWebBlock(results) + "\n\n" + taskFraming;
+        send({ stage: "notice", text: "Web grounding: pulled " + results.length + " live source" + (results.length === 1 ? "" : "s") + " (" + (results[0].provider) + ") into the deliberation." });
+      } else {
+        send({ stage: "notice", text: "Web grounding: no results — proceeding from model knowledge." });
+      }
+    } catch (e) {
+      send({ stage: "notice", text: "Web grounding unavailable — proceeding from model knowledge." });
+    }
+  }
 
   // Run one council stage with live streaming + graceful failure.
   //   keys: { stage, round?, extra? } — passed straight back to the client.
@@ -405,11 +593,36 @@ module.exports = async function handler(req, res) {
     );
     if (c2) { criticTexts.push(c2.text); criticModels.push(c2.model); }
 
+    // ── Fleet delegation (§3.2–§3.4): one sub-question to Chloé, folded into synthesis.
+    // Budget-guarded + non-fatal. OFF unless COUNCIL_DELEGATE_ENDPOINT is a public URL.
+    let delegationBlock = "";
+    if (DELEGATION_ENABLED && timeLeft() > SYNTH_JUDGE_RESERVE_MS + DELEGATE_TIMEOUT_MS) {
+      send({ stage: "notice", text: "Considering a fleet delegation to Chloé…" });
+      try {
+        const d = await delegationDecision(taskFraming, proposerTexts[0], apiKey);
+        if (d.delegatable && d.would_benefit && d.sub_question) {
+          send({ stage: "notice", text: "Delegating to Chloé (" + d.target_hint + "): " + d.sub_question.slice(0, 120) });
+          const ans = await delegateToChloe(d.sub_question, d.target_hint);
+          if (!ans.degraded && ans.answer) {
+            delegationBlock = "\n\nFleet delegation (Chloé → " + ans.route + ", " + ans.elapsed_ms + "ms):\n" + ans.answer + "\n";
+            send({ stage: "notice", text: "Fleet answer folded into synthesis (route=" + ans.route + ")." });
+          } else {
+            send({ stage: "notice", text: "Fleet delegation unavailable (" + ans.reason + ") — synthesizing from council members only." });
+          }
+        } else {
+          send({ stage: "notice", text: "No fleet delegation needed — the council has enough to synthesize." });
+        }
+      } catch (e) {
+        send({ stage: "notice", text: "Delegation step skipped (non-fatal)." });
+      }
+    }
+
     // ── Synthesizer ────────────────────────────────────────────────────────
     const allRoundsCtx =
       proposerTexts.map((t, i) => "Proposer Round " + (i + 1) + " (" + (proposerModels[i] || "?") + "):\n" + t).join("\n\n") +
       "\n\n" +
-      criticTexts.map((t, i) => "Critic " + (i + 1) + " (" + (criticModels[i] || "?") + "):\n" + t).join("\n\n");
+      criticTexts.map((t, i) => "Critic " + (i + 1) + " (" + (criticModels[i] || "?") + "):\n" + t).join("\n\n") +
+      delegationBlock;
 
     const synth = await runStage(
       { stage: "synthesizer" },
