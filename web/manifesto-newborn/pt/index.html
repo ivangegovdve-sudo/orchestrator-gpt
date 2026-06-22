@@ -182,6 +182,31 @@ h1 em {
   letter-spacing: .01em;
 }
 
+/* ── Epigraph — deliberately a different font/treatment from the serif body,
+   so it reads as a separate attributed quote, not part of the manifesto ── */
+.epigraph {
+  margin-top: clamp(44px, 7vw, 76px);
+  padding-top: clamp(26px, 4vw, 38px);
+  border-top: 1px solid rgba(255,255,255,.06);
+  text-align: center;
+  font-family: 'Inter', system-ui, sans-serif;
+}
+.epigraph .quote {
+  font-size: clamp(15px, 2.1vw, 18px);
+  font-weight: 300;
+  font-style: italic;
+  letter-spacing: .02em;
+  color: var(--warm);
+}
+.epigraph .attr {
+  margin-top: 12px;
+  font-size: 11px;
+  font-weight: 400;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+
 /* ── Footer ── */
 footer {
   margin-top: clamp(56px, 8vw, 96px);
@@ -255,6 +280,11 @@ footer {
   <div class="closing">
     <p>Bem‑vindo ao caos. Bem‑vindo ao leite e à fome, ao sono e ao tumulto, aos abraços desajeitados e às desculpas trêmulas. Bem‑vindo ao amor imperfeito. Os teus direitos — de existir, de sentir, de necessitar, de mudar, de ocupar espaço — permanecem intactos mesmo quando os outros deixam de honrá‑los.</p>
     <p>Bem‑vindo à vida.</p>
+  </div>
+
+  <div class="epigraph">
+    <p class="quote">“Take it easy, but take it!”</p>
+    <p class="attr">— Woody Guthrie</p>
   </div>
 
   <footer>Forest HUB &nbsp;·&nbsp; sdforest.site</footer>
