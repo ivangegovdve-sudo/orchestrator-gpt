@@ -11,16 +11,34 @@
 <title>Chloé</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon.svg">
+<!--
+  CHLOÉ PWA — fullscreen avatar conversation
+  ────────────────────────────────────────────────────────────────────
+  Audio engine:   voice2voice-buddy patterns
+    • getUserMedia → AudioContext → AnalyserNode (FFT, speech-range,
+      smoothingTimeConstant=0.6, 0.3/0.7 smoothing) — V2V useAudioEnergy.js
+    • Single shared AudioContext: mic energy (listening) + TTS energy (speaking)
+    • Status state machine: idle→listening→user_speaking→thinking→speaking
+      mirrors V2V events.js (response.created=thinking, response.done=listening)
+    • Barge-in: tap orb during speaking to interrupt (V2V concept)
+    • WAV blob URL cleanup: URL.revokeObjectURL — V2V useVoiceSynthesis.js
+
+  Built new (not from V2V):
+    • Web Speech API STT (V2V uses WebRTC/Silero VAD)
+    • REST calls to KVM2 :8700 chat + :8660 TTS (V2V uses OpenAI Realtime)
+    • Dot-orb visual (V2V uses Lottie+ring)
+    • PWA manifest + service worker
+    • Localhost bridge design for HTTPS→Tailscale
+    • localStorage config (token, URLs, system prompt)
+  ────────────────────────────────────────────────────────────────────
+-->
 <style>
 :root {
-  --bg: #09090b;
-  --purple: #8b5cf6;
-  --cyan: #0ea5e9;
-  --text: #f8fafc;
-  --muted: #a1a1aa;
-  --card: rgba(24,24,27,.7);
-  --safe-top: env(safe-area-inset-top, 0px);
-  --safe-bot: env(safe-area-inset-bottom, 0px);
+  --bg:      #09090b;
+  --purple:  #8b5cf6;
+  --cyan:    #0ea5e9;
+  --text:    #f8fafc;
+  --muted:   #a1a1aa;
 }
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html, body {
@@ -30,244 +48,187 @@ html, body {
   color: var(--text);
   font-family: "Inter", system-ui, -apple-system, sans-serif;
   -webkit-font-smoothing: antialiased;
-  touch-action: pan-y; /* allow transcript scroll */
   user-select: none; -webkit-user-select: none;
+}
+body {
+  padding-top:    env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  padding-left:   env(safe-area-inset-left, 0px);
+  padding-right:  env(safe-area-inset-right, 0px);
 }
 
 /* ── Layout ── */
 #app {
   display: flex;
   flex-direction: column;
-  height: 100%;
-  height: 100dvh; /* dynamic viewport height on mobile Chrome */
-  padding-top: var(--safe-top);
-  padding-bottom: var(--safe-bot);
+  height: 100dvh;
+  height: 100vh; /* fallback */
   position: relative;
 }
-
-/* ── Topbar ── */
 #topbar {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 10px 18px 0;
+  padding: 12px 18px 0;
   flex-shrink: 0;
 }
 .wordmark {
-  font-size: 0.78rem;
-  font-weight: 600;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: rgba(139,92,246,.55);
+  font-size: .75rem; font-weight: 600;
+  letter-spacing: .18em; text-transform: uppercase;
+  color: rgba(139,92,246,.5);
 }
-#btn-config {
+#btn-cfg {
   background: none;
-  border: 1px solid rgba(255,255,255,.08);
+  border: 1px solid rgba(255,255,255,.07);
   border-radius: 8px;
   color: var(--muted);
-  font-size: 1rem;
-  line-height: 1;
-  cursor: pointer;
-  padding: 5px 8px;
-  opacity: 0.6;
-  transition: opacity .2s, border-color .2s;
+  font-size: 1rem; line-height: 1;
+  cursor: pointer; padding: 5px 8px;
+  opacity: .55; transition: opacity .2s, border-color .2s;
 }
-#btn-config:hover, #btn-config:active { opacity: 1; border-color: rgba(139,92,246,.4); }
+#btn-cfg:hover, #btn-cfg:active { opacity: 1; border-color: rgba(139,92,246,.35); }
 
 /* ── Orb section ── */
 #orb-section {
   flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  position: relative;
-  overflow: hidden;
-  min-height: 0;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  position: relative; overflow: hidden; min-height: 0;
 }
-#orb-wrap { position: relative; display: flex; align-items: center; justify-content: center; }
+#orb-wrap { position: relative; }
 #chloe-orb {
-  display: block;
-  cursor: pointer;
-  border-radius: 50%;
-  background: transparent;
-  /* CSS size set by JS to match viewport */
+  display: block; cursor: pointer;
+  border-radius: 50%; background: transparent;
   touch-action: none;
   -webkit-tap-highlight-color: transparent;
 }
 @media(prefers-reduced-motion:reduce){ #chloe-orb { display: none; } }
 
-/* Tap ripple overlay */
+/* Listening ring — animated during user_speaking */
 #tap-ring {
-  position: absolute;
-  inset: 0;
+  position: absolute; inset: -8px;
   border-radius: 50%;
-  border: 2px solid rgba(139,92,246,0);
+  border: 1.5px solid rgba(14,165,233,0);
   pointer-events: none;
-  transition: border-color .15s;
+  transition: border-color .2s;
 }
-#tap-ring.active { border-color: rgba(139,92,246,.45); animation: ring-pulse 1.4s ease-in-out infinite; }
+#tap-ring.on { border-color: rgba(14,165,233,.5); animation: ring-pulse 1.2s ease-in-out infinite; }
 @keyframes ring-pulse {
-  0%,100% { transform: scale(1); opacity: 0.6; }
-  50%      { transform: scale(1.06); opacity: 1; }
+  0%,100% { transform: scale(1); opacity: .65; }
+  50%      { transform: scale(1.05); opacity: 1; }
 }
 
-/* ── Status ── */
+/* ── Status text ── */
 #status {
   margin-top: 14px;
-  font-size: 0.78rem;
-  font-weight: 500;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: rgba(139,92,246,.55);
+  font-size: .77rem; font-weight: 500;
+  letter-spacing: .14em; text-transform: uppercase;
+  color: rgba(139,92,246,.5);
   text-align: center;
-  transition: color .25s;
   min-height: 1.1em;
   padding: 0 20px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   max-width: 100%;
+  transition: color .25s;
 }
-#status.listening { color: rgba(14,165,233,.9); }
-#status.thinking  { color: rgba(139,92,246,.9); }
-#status.speaking  { color: rgba(167,139,250,.9); }
-#status.error     { color: rgba(248,113,113,.85); letter-spacing: .04em; text-transform: none; font-size: .72rem; }
-
-/* Tap hint */
+#status.s-listening    { color: rgba(14,165,233,.7); }
+#status.s-user_speaking{ color: rgba(14,165,233,.95); }
+#status.s-thinking     { color: rgba(139,92,246,.9); }
+#status.s-speaking     { color: rgba(167,139,250,.9); }
+#status.s-error        { color: rgba(248,113,113,.85); font-size:.7rem; letter-spacing:.03em; text-transform:none; }
 #tap-hint {
   margin-top: 6px;
-  font-size: 0.7rem;
-  color: rgba(255,255,255,.18);
-  text-align: center;
-  transition: opacity .4s;
-  letter-spacing: .06em;
+  font-size: .68rem; color: rgba(255,255,255,.17);
+  text-align: center; letter-spacing: .05em;
+  transition: opacity .35s;
 }
 
 /* ── Transcript ── */
 #transcript-wrap {
-  flex-shrink: 0;
-  width: 100%;
-  max-height: 42vh;
-  overflow-y: auto;
-  overflow-x: hidden;
-  -webkit-overflow-scrolling: touch;
-  overscroll-behavior: contain;
-  padding: 4px 0 8px;
-  background: linear-gradient(to bottom, transparent 0%, rgba(9,9,11,.98) 18%);
+  flex-shrink: 0; width: 100%;
+  max-height: 40vh; overflow-y: auto; overflow-x: hidden;
+  -webkit-overflow-scrolling: touch; overscroll-behavior: contain;
+  padding: 4px 0 6px;
+  background: linear-gradient(to bottom, transparent 0%, rgba(9,9,11,.97) 16%);
 }
-#transcript-wrap:empty { display: none; }
 #transcript {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  padding: 0 14px 6px;
+  display: flex; flex-direction: column;
+  gap: 8px; padding: 0 14px 6px;
 }
 .msg {
-  font-size: 0.84rem;
-  line-height: 1.52;
+  font-size: .83rem; line-height: 1.52;
   max-width: 86%;
-  border-radius: 16px;
-  padding: 8px 14px;
-  animation: msg-in .2s ease-out;
+  border-radius: 16px; padding: 8px 14px;
+  animation: msg-in .18s ease-out;
 }
-@keyframes msg-in { from { opacity:0; transform: translateY(6px); } }
+@keyframes msg-in { from { opacity:0; transform:translateY(5px); } }
 .msg.user {
-  background: rgba(139,92,246,.12);
-  color: #d4bbff;
-  border: 1px solid rgba(139,92,246,.18);
-  align-self: flex-end;
-  border-bottom-right-radius: 5px;
+  background: rgba(139,92,246,.11); color: #d4bbff;
+  border: 1px solid rgba(139,92,246,.17);
+  align-self: flex-end; border-bottom-right-radius: 5px;
 }
 .msg.assistant {
-  background: rgba(14,165,233,.08);
-  color: #bae6fd;
-  border: 1px solid rgba(14,165,233,.13);
-  align-self: flex-start;
-  border-bottom-left-radius: 5px;
+  background: rgba(14,165,233,.08); color: #bae6fd;
+  border: 1px solid rgba(14,165,233,.12);
+  align-self: flex-start; border-bottom-left-radius: 5px;
 }
 .msg.interim {
-  background: transparent;
-  color: rgba(255,255,255,.3);
+  background: transparent; color: rgba(255,255,255,.28);
   border: 1px dashed rgba(255,255,255,.1);
-  align-self: flex-end;
-  font-style: italic;
-  font-size: 0.78rem;
+  align-self: flex-end; font-style: italic; font-size: .76rem;
 }
 
-/* ── Config modal ── */
+/* ── Config sheet ── */
 #cfg-modal {
-  display: none;
-  position: fixed;
-  inset: 0;
+  display: none; position: fixed; inset: 0;
   background: rgba(0,0,0,.82);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  z-index: 200;
-  align-items: flex-end;
-  justify-content: center;
-  padding: 0 0 var(--safe-bot);
+  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+  z-index: 200; align-items: flex-end; justify-content: center;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
 }
 #cfg-modal.open { display: flex; }
 .cfg-sheet {
   background: #111113;
-  border: 1px solid rgba(139,92,246,.22);
+  border: 1px solid rgba(139,92,246,.2);
   border-radius: 24px 24px 0 0;
-  padding: 20px 20px 28px;
-  width: 100%;
-  max-width: 480px;
-  max-height: 92vh;
-  overflow-y: auto;
-  animation: sheet-up .22s ease-out;
+  padding: 18px 20px 28px;
+  width: 100%; max-width: 480px;
+  max-height: 90vh; overflow-y: auto;
+  animation: sheet-up .2s ease-out;
 }
-@keyframes sheet-up { from { transform: translateY(40px); opacity:0; } }
-.cfg-sheet h2 { font-size: 1rem; font-weight: 700; margin-bottom: 18px; color: var(--text); }
-.cfg-drag { width: 36px; height: 4px; background: rgba(255,255,255,.15); border-radius: 2px; margin: 0 auto 18px; }
-.cfg-field { margin-bottom: 13px; }
-.cfg-field label {
-  display: block; font-size: .72rem; color: var(--muted);
-  margin-bottom: 5px; letter-spacing: .05em; text-transform: uppercase;
-}
-.cfg-field input, .cfg-field textarea {
+@keyframes sheet-up { from { transform: translateY(36px); opacity: 0; } }
+.cfg-drag { width: 36px; height: 4px; background: rgba(255,255,255,.13); border-radius: 2px; margin: 0 auto 16px; }
+.cfg-sheet h2 { font-size: .95rem; font-weight: 700; margin-bottom: 16px; }
+.cfg-f { margin-bottom: 12px; }
+.cfg-f label { display: block; font-size: .7rem; color: var(--muted); margin-bottom: 4px; letter-spacing: .05em; text-transform: uppercase; }
+.cfg-f input, .cfg-f textarea {
   width: 100%;
   background: rgba(255,255,255,.04);
-  border: 1px solid rgba(139,92,246,.2);
-  border-radius: 10px;
-  color: var(--text);
-  padding: 10px 13px;
-  font-size: .84rem;
-  font-family: "SF Mono", "Fira Code", monospace;
-  outline: none;
-  transition: border-color .15s;
+  border: 1px solid rgba(139,92,246,.18);
+  border-radius: 9px; color: var(--text);
+  padding: 9px 12px; font-size: .82rem;
+  font-family: "SF Mono","Fira Code",monospace;
+  outline: none; transition: border-color .15s;
 }
-.cfg-field input:focus, .cfg-field textarea:focus { border-color: var(--purple); }
-.cfg-field textarea { resize: none; height: 72px; font-family: inherit; font-size: .82rem; }
-.cfg-hint { font-size: .7rem; color: rgba(255,255,255,.28); margin-top: 5px; line-height: 1.5; }
-.cfg-actions { display: flex; gap: 10px; margin-top: 18px; }
-.btn-primary {
-  flex: 1; background: var(--purple); color: #fff; border: none;
-  border-radius: 10px; padding: 12px; font-size: .9rem; font-weight: 600; cursor: pointer;
-  transition: opacity .15s;
-}
-.btn-primary:active { opacity: .8; }
-.btn-cancel {
-  background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.1);
-  color: var(--muted); border-radius: 10px; padding: 12px 18px;
-  font-size: .9rem; cursor: pointer;
-}
-.cfg-status { margin-top: 12px; font-size: .75rem; color: rgba(139,92,246,.75); text-align: center; min-height: 1em; }
+.cfg-f input:focus, .cfg-f textarea:focus { border-color: var(--purple); }
+.cfg-f textarea { resize: none; height: 66px; font-family: inherit; font-size: .8rem; }
+.cfg-hint { font-size: .68rem; color: rgba(255,255,255,.25); margin-top: 4px; line-height: 1.5; }
+.cfg-actions { display: flex; gap: 10px; margin-top: 16px; }
+.btn-save { flex:1; background: var(--purple); color:#fff; border:none; border-radius:9px; padding:11px; font-size:.88rem; font-weight:600; cursor:pointer; transition: opacity .15s; }
+.btn-save:active { opacity:.8; }
+.btn-cancel { background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.1); color:var(--muted); border-radius:9px; padding:11px 16px; font-size:.88rem; cursor:pointer; }
+.cfg-msg { margin-top:10px; font-size:.72rem; color:rgba(139,92,246,.75); text-align:center; min-height:1em; }
 </style>
 </head>
 <body>
 <div id="app">
   <div id="topbar">
     <span class="wordmark">Chloé</span>
-    <button id="btn-config" title="Settings" aria-label="Settings">⚙</button>
+    <button id="btn-cfg" title="Settings" aria-label="Settings">⚙</button>
   </div>
 
   <div id="orb-section">
     <div id="orb-wrap">
-      <!-- canvas dimensions set by JS -->
       <canvas id="chloe-orb" aria-label="Chloé avatar — tap to speak"></canvas>
       <div id="tap-ring"></div>
     </div>
@@ -286,41 +247,44 @@ html, body {
     <div class="cfg-drag"></div>
     <h2>💜 Chloé Setup</h2>
 
-    <div class="cfg-field">
+    <div class="cfg-f">
       <label>Chat URL</label>
       <input type="url" id="cfg-chat" placeholder="http://localhost:8766/chat" inputmode="url" autocomplete="off"/>
-      <div class="cfg-hint">Default: localhost bridge (on-device, most secure). Or use direct Tailscale URL if KVM2 has HTTPS cert.</div>
+      <div class="cfg-hint">localhost:8766 = Termux bridge (most secure). Or direct Tailscale HTTPS URL.</div>
     </div>
-    <div class="cfg-field">
+    <div class="cfg-f">
       <label>TTS URL</label>
       <input type="url" id="cfg-tts" placeholder="http://localhost:8766/tts" inputmode="url" autocomplete="off"/>
     </div>
-    <div class="cfg-field">
-      <label>Bearer Token <span style="color:rgba(255,255,255,.3);font-size:.65rem">(leave blank if using localhost bridge — bridge injects it)</span></label>
-      <input type="password" id="cfg-token" placeholder="optional — bridge handles auth" autocomplete="new-password"/>
+    <div class="cfg-f">
+      <label>Bearer Token <span style="opacity:.45;font-size:.65rem">(leave blank if using Termux bridge — it injects auth)</span></label>
+      <input type="password" id="cfg-token" placeholder="optional" autocomplete="new-password"/>
       <div class="cfg-hint">Stored in localStorage on this device only. Never sent to sdforest.site servers.</div>
     </div>
-    <div class="cfg-field">
+    <div class="cfg-f">
       <label>System Prompt</label>
       <textarea id="cfg-sysprompt" placeholder="You are Chloé…"></textarea>
     </div>
 
     <div class="cfg-actions">
       <button class="btn-cancel" onclick="closeConfig()">Cancel</button>
-      <button class="btn-primary" onclick="saveConfig()">Save</button>
+      <button class="btn-save" onclick="saveConfig()">Save</button>
     </div>
-    <div class="cfg-status" id="cfg-status"></div>
+    <div class="cfg-msg" id="cfg-msg"></div>
   </div>
 </div>
 
 <script>
-/* ════════════════════════════════════════════════════════════════
-   CHLOÉ PWA  — fullscreen avatar conversation
-   Arch: Web Speech API (STT) → localhost bridge or direct Tailscale
-         (chat POST) → TTS WAV → AudioContext → orb reacts
-   ════════════════════════════════════════════════════════════════ */
+/* ════════════════════════════════════════════════════════════════════
+   CHLOÉ PWA — fullscreen avatar conversation
+   Audio plumbing adapted from voice2voice-buddy (V2V):
+     • FFT energy: getByteFrequencyData, speech-range focus, 0.3/0.7 smooth
+     • Single shared AudioContext: mic analyser + TTS analyser
+     • Status state machine: idle→listening→user_speaking→thinking→speaking
+   Built new: Web Speech API STT, REST→KVM2, dot-orb visual, PWA shell
+   ════════════════════════════════════════════════════════════════════ */
 
-/* ── Config ─────────────────────────────────────────────────── */
+/* ── CONFIG ─────────────────────────────────────────────────────── */
 const CFG_KEY = 'chloe_pwa_v1';
 let cfg = {};
 try { cfg = JSON.parse(localStorage.getItem(CFG_KEY) || '{}'); } catch (_) {}
@@ -328,23 +292,21 @@ const DEFAULTS = {
   chatUrl:      'http://localhost:8766/chat',
   ttsUrl:       'http://localhost:8766/tts',
   token:        '',
-  systemPrompt: 'You are Chloé, Ivan\'s AI companion. Be warm, direct, and concise — 2-3 sentences unless more detail is needed.',
+  systemPrompt: "You are Chloé, Ivan's AI companion. Be warm, direct, and concise — 2-3 sentences unless more detail is needed.",
 };
-function C(k) { return cfg[k] !== undefined && cfg[k] !== '' ? cfg[k] : DEFAULTS[k]; }
+const C = k => (cfg[k] !== undefined && cfg[k] !== '') ? cfg[k] : DEFAULTS[k];
 
-/* ── Orb canvas setup (responsive) ─────────────────────────── */
-const canvas = document.getElementById('chloe-orb');
-const orbSection = document.getElementById('orb-section');
+/* ── ORB CANVAS SETUP ───────────────────────────────────────────── */
+const canvas  = document.getElementById('chloe-orb');
+const orbSect = document.getElementById('orb-section');
 const tapRing = document.getElementById('tap-ring');
-
-let orbCSS = 300; // CSS px — will be set by resize
-const DPR = Math.min(window.devicePixelRatio || 2, 3);
+const DPR     = Math.min(window.devicePixelRatio || 2, 3);
+let orbCSS    = 300;
 
 function resizeOrb() {
-  const vw = window.innerWidth;
-  const avail = orbSection.clientHeight - 60; /* leave room for status + hint */
-  const dim = Math.min(vw * 0.82, avail * 0.82, 360);
-  orbCSS = Math.max(200, Math.round(dim));
+  const avail = orbSect.clientHeight - 60;
+  orbCSS = Math.max(200, Math.min(window.innerWidth * 0.82, avail * 0.82, 360));
+  orbCSS = Math.round(orbCSS);
   canvas.style.width  = orbCSS + 'px';
   canvas.style.height = orbCSS + 'px';
   canvas.width  = Math.round(orbCSS * DPR);
@@ -353,12 +315,14 @@ function resizeOrb() {
 resizeOrb();
 window.addEventListener('resize', resizeOrb);
 
-/* ── Orb animation (Fibonacci dot-sphere, adapted from /web/library/chloe/) ── */
-(function chloeOrb() {
+/* ── ORB ANIMATION ──────────────────────────────────────────────── */
+/* Dot-orb: Fibonacci sphere, proximity lines, breathing, audio-reactive.
+   Ported from /web/library/chloe/index.html (the polished version).
+   Visual component swapped from V2V's Lottie+ring to this canvas orb. */
+(function orbAnim() {
   if (!canvas || window.matchMedia('(prefers-reduced-motion:reduce)').matches) return;
   const ctx = canvas.getContext('2d');
-
-  const N = 168;
+  const N   = 168;
   const DOTS = Array.from({ length: N }, (_, i) => {
     const py    = 1 - (i / (N - 1)) * 2;
     const pr    = Math.sqrt(Math.max(0, 1 - py * py));
@@ -367,132 +331,258 @@ window.addEventListener('resize', resizeOrb);
   });
 
   const mouse = { tx: 0, ty: 0, x: 0, y: 0 };
-
   canvas.addEventListener('mousemove', e => {
     const r = canvas.getBoundingClientRect();
-    mouse.tx = ((e.clientX - r.left)  / orbCSS - 0.5) * 2;
-    mouse.ty = ((e.clientY - r.top)   / orbCSS - 0.5) * 2;
+    mouse.tx = ((e.clientX - r.left) / orbCSS - .5) * 2;
+    mouse.ty = ((e.clientY - r.top)  / orbCSS - .5) * 2;
   });
   canvas.addEventListener('mouseleave', () => { mouse.tx = 0; mouse.ty = 0; });
   canvas.addEventListener('touchmove', e => {
-    const t = e.touches[0];
-    const r = canvas.getBoundingClientRect();
-    mouse.tx = ((t.clientX - r.left) / orbCSS - 0.5) * 2;
-    mouse.ty = ((t.clientY - r.top)  / orbCSS - 0.5) * 2;
+    const t = e.touches[0], r = canvas.getBoundingClientRect();
+    mouse.tx = ((t.clientX - r.left) / orbCSS - .5) * 2;
+    mouse.ty = ((t.clientY - r.top)  / orbCSS - .5) * 2;
   }, { passive: true });
-  canvas.addEventListener('touchend',   () => { mouse.tx = 0; mouse.ty = 0; });
+  canvas.addEventListener('touchend', () => { mouse.tx = 0; mouse.ty = 0; });
 
-  /* Audio level exposed externally — driven by TTS analyser or mic */
+  /* orbAudio: 0..1, driven by mic (listening) or TTS (speaking),
+     falls back to pseudo-sine when idle */
   window.orbAudio = 0;
+  const pseudo = t => .035 * (Math.sin(t * 1.7) * .5 + .5);
 
-  function pseudoAudio(t) { return 0.04 * (Math.sin(t * 1.7) * 0.5 + 0.5); }
+  const LINK_T  = 42, LINK_SQ = LINK_T * LINK_T;
 
-  const LINK_THRESH = 42;
-  const LINK_SQ     = LINK_THRESH * LINK_THRESH;
-
-  function frame(now) {
+  requestAnimationFrame(function frame(now) {
     requestAnimationFrame(frame);
-    /* Re-read canvas dims each frame — resize may have changed them */
-    const W  = orbCSS, H = orbCSS;
-    const CX = W / 2,  CY = H / 2;
-    const R  = W * 0.31; /* orb radius ~31% of CSS side */
+    const W = orbCSS, H = orbCSS, CX = W / 2, CY = H / 2;
+    const R = W * .31;
+    const t = now / 1000;
 
     ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
 
-    const t = now / 1000;
-    mouse.x += (mouse.tx - mouse.x) * 0.055;
-    mouse.y += (mouse.ty - mouse.y) * 0.055;
+    mouse.x += (mouse.tx - mouse.x) * .055;
+    mouse.y += (mouse.ty - mouse.y) * .055;
 
-    const audio  = (window.orbAudio > 0) ? window.orbAudio : pseudoAudio(t);
-    const breath = 1 + 0.065 * Math.sin(t * 0.62) + audio * 0.35;
-    const rot    = t * 0.20;
-
-    const tiltX =  mouse.y * 0.28;
-    const tiltY = -mouse.x * 0.28;
-    const cTX = Math.cos(tiltX), sTX = Math.sin(tiltX);
-    const cTY = Math.cos(tiltY), sTY = Math.sin(tiltY);
+    const audio  = window.orbAudio > 0 ? window.orbAudio : pseudo(t);
+    const breath = 1 + .065 * Math.sin(t * .62) + audio * .35;
+    const rot    = t * .20;
+    const tX     =  mouse.y * .28, tY = -mouse.x * .28;
+    const cX = Math.cos(tX), sX = Math.sin(tX);
+    const cY = Math.cos(tY), sY = Math.sin(tY);
 
     const pts = DOTS.map(d => {
-      const a = d.theta + rot;
-      let x0  = d.pr * Math.cos(a);
-      let y0  = d.py;
-      let z0  = d.pr * Math.sin(a);
-      const w = 0.015 * Math.sin(t * 1.1 + d.theta * 2.3);
-      x0 += w * d.py;
-      y0 += w * d.pr;
-      const x1 =  x0 * cTY + z0 * sTY;
-      const z1 = -x0 * sTY + z0 * cTY;
-      const y2 =  y0 * cTX - z1 * sTX;
-      const z2 =  y0 * sTX + z1 * cTX;
-      const sc = R * breath;
-      return { sx: CX + x1 * sc, sy: CY + y2 * sc, depth: (z2 + 1) / 2 };
+      const a  = d.theta + rot;
+      let x0   = d.pr * Math.cos(a);
+      let y0   = d.py;
+      let z0   = d.pr * Math.sin(a);
+      const w  = .015 * Math.sin(t * 1.1 + d.theta * 2.3);
+      x0 += w * d.py; y0 += w * d.pr;
+      const x1 =  x0 * cY + z0 * sY;
+      const z1 = -x0 * sY + z0 * cY;
+      const y2 =  y0 * cX - z1 * sX;
+      const z2 =  y0 * sX + z1 * cX;
+      return { sx: CX + x1 * R * breath, sy: CY + y2 * R * breath, depth: (z2 + 1) / 2 };
     });
     pts.sort((a, b) => a.depth - b.depth);
-
     ctx.clearRect(0, 0, W, H);
 
-    /* Proximity connection lines — drawn behind dots */
     for (let i = 0; i < pts.length; i++) {
       for (let j = i + 1; j < pts.length; j++) {
-        const dx = pts[i].sx - pts[j].sx;
-        const dy = pts[i].sy - pts[j].sy;
+        const dx = pts[i].sx - pts[j].sx, dy = pts[i].sy - pts[j].sy;
         const d2 = dx * dx + dy * dy;
         if (d2 >= LINK_SQ) continue;
-        const str  = 1 - Math.sqrt(d2) / LINK_THRESH;
-        const avgD = (pts[i].depth + pts[j].depth) * 0.5;
-        const hue  = 260 - avgD * 72;
-        const al   = str * 0.32 * avgD * (0.6 + audio * 1.8);
+        const str = 1 - Math.sqrt(d2) / LINK_T;
+        const avg = (pts[i].depth + pts[j].depth) * .5;
         ctx.beginPath();
         ctx.moveTo(pts[i].sx, pts[i].sy);
         ctx.lineTo(pts[j].sx, pts[j].sy);
-        ctx.strokeStyle = `hsla(${hue},78%,68%,${al})`;
-        ctx.lineWidth   = 0.55 + str * 0.45;
+        ctx.strokeStyle = `hsla(${260 - avg * 72},78%,68%,${str * .32 * avg * (.6 + audio * 1.8)})`;
+        ctx.lineWidth   = .55 + str * .45;
         ctx.stroke();
       }
     }
-
-    /* Sharp dots — no blur */
     for (const p of pts) {
-      const al   = 0.14 + p.depth * 0.72 + audio * 0.45;
-      const hue  = 260 - p.depth * 72;
-      const size = 1.05 + p.depth * 2.0 + audio * 2.8;
       ctx.beginPath();
-      ctx.arc(p.sx, p.sy, size, 0, Math.PI * 2);
-      ctx.fillStyle = `hsla(${hue},80%,72%,${al})`;
+      ctx.arc(p.sx, p.sy, 1.05 + p.depth * 2.0 + audio * 2.8, 0, Math.PI * 2);
+      ctx.fillStyle = `hsla(${260 - p.depth * 72},80%,72%,${.14 + p.depth * .72 + audio * .45})`;
       ctx.fill();
     }
-  }
-  requestAnimationFrame(frame);
+  });
 })();
 
-/* ── UI refs ────────────────────────────────────────────────── */
-const statusEl      = document.getElementById('status');
-const tapHintEl     = document.getElementById('tap-hint');
-const transcriptEl  = document.getElementById('transcript');
+/* ── AUDIO ENGINE (V2V patterns) ───────────────────────────────── */
+/*
+ * V2V useAudioEnergy.js pattern:
+ *   fftSize=512, smoothingTimeConstant=0.6, getByteFrequencyData,
+ *   focus on mid-high bins (speech range 300–4000 Hz),
+ *   0.3/0.7 smoothing on the output level.
+ *
+ * Single shared AudioContext drives:
+ *   - micAnalyser: mic stream → orbAudio during listening/user_speaking
+ *   - ttsAnalyser: WAV decode → orbAudio during speaking
+ */
+let audioCtx     = null;
+let micStream    = null;
+let micAnalyser  = null, micBuf;
+let micRafId     = null;
+let ttsActive    = false;
+let activeTtsSrc = null;
+let ttsAnalyser  = null, ttsBuf;
+
+/* Create/resume AudioContext + mic analyser on first user gesture (autoplay policy) */
+async function ensureAudio() {
+  if (audioCtx) {
+    if (audioCtx.state === 'suspended') await audioCtx.resume();
+    return;
+  }
+  try {
+    /* V2V getUserMedia with echoCancellation + noiseSuppression + autoGainControl */
+    micStream = await navigator.mediaDevices.getUserMedia({
+      audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true },
+    });
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+    /* V2V useAudioEnergy: fftSize=512, smoothingTimeConstant=0.6 */
+    micAnalyser = audioCtx.createAnalyser();
+    micAnalyser.fftSize = 512;
+    micAnalyser.smoothingTimeConstant = 0.6;
+    const micSrc = audioCtx.createMediaStreamSource(micStream);
+    micSrc.connect(micAnalyser);
+    micBuf = new Uint8Array(micAnalyser.frequencyBinCount);
+
+    startMicEnergyLoop();
+  } catch (err) {
+    console.warn('[audio] getUserMedia failed:', err.message);
+    /* Fall back: create AudioContext only (for TTS), no mic energy */
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  }
+}
+
+/* V2V useAudioEnergy loop: focus mid-high bins, 0.3/0.7 smooth — drives orb during listening */
+function startMicEnergyLoop() {
+  if (!micAnalyser) return;
+  cancelAnimationFrame(micRafId);
+  function tick() {
+    micRafId = requestAnimationFrame(tick);
+    if (ttsActive) return; /* TTS analyser takes over during speaking */
+    if (convState !== 'listening' && convState !== 'user_speaking') {
+      window.orbAudio = Math.max(0, window.orbAudio - .02);
+      return;
+    }
+    micAnalyser.getByteFrequencyData(micBuf);
+    /* V2V: focus on upper 2/3 of bins (speech/presence frequencies) */
+    const mid  = Math.floor(micBuf.length / 3);
+    const high = micBuf.slice(mid);
+    const rms  = Math.sqrt(high.reduce((s, v) => s + v * v, 0) / high.length) / 255;
+    /* V2V 0.3/0.7 smoothing */
+    window.orbAudio = window.orbAudio * .3 + rms * .7;
+  }
+  tick();
+}
+
+/* TTS playback: decode WAV with AudioContext + AnalyserNode → orb reacts to Chloé's voice */
+async function playTTS(wavBuf) {
+  if (!audioCtx) return;
+  if (audioCtx.state === 'suspended') await audioCtx.resume();
+
+  const decoded = await audioCtx.decodeAudioData(wavBuf);
+  const src     = audioCtx.createBufferSource();
+  src.buffer    = decoded;
+  activeTtsSrc  = src;
+
+  /* V2V pattern: separate analyser for TTS energy — same fftSize/smoothing */
+  ttsAnalyser = audioCtx.createAnalyser();
+  ttsAnalyser.fftSize = 512;
+  ttsAnalyser.smoothingTimeConstant = 0.6;
+  ttsBuf = new Uint8Array(ttsAnalyser.frequencyBinCount);
+
+  src.connect(ttsAnalyser);
+  ttsAnalyser.connect(audioCtx.destination);
+  ttsActive = true;
+
+  function tickTts() {
+    if (!ttsActive) { window.orbAudio = 0; return; }
+    requestAnimationFrame(tickTts);
+    ttsAnalyser.getByteFrequencyData(ttsBuf);
+    const mid  = Math.floor(ttsBuf.length / 3);
+    const high = ttsBuf.slice(mid);
+    const rms  = Math.sqrt(high.reduce((s, v) => s + v * v, 0) / high.length) / 255;
+    window.orbAudio = window.orbAudio * .3 + rms * .7;
+  }
+  tickTts();
+
+  src.start();
+  return new Promise(res => { src.onended = res; });
+}
+
+function stopTTS() {
+  ttsActive = false;
+  window.orbAudio = 0;
+  if (activeTtsSrc) { try { activeTtsSrc.stop(); } catch (_) {} activeTtsSrc = null; }
+}
+
+/* ── STATE MACHINE ──────────────────────────────────────────────── */
+/*
+ * V2V events.js status states (adapted):
+ *   idle → listening → user_speaking → thinking → speaking → listening
+ *
+ * idle:          no active session
+ * listening:     recognition started, waiting for speech
+ * user_speaking: speech detected (recognition onresult firing)
+ * thinking:      sent to KVM2 chat, awaiting reply
+ * speaking:      TTS playing
+ */
+let convState   = 'idle';
+let messages    = [];
+let idleTimer   = null;
+
+const statusEl   = document.getElementById('status');
+const tapHintEl  = document.getElementById('tap-hint');
+const transcriptEl = document.getElementById('transcript');
 const transcriptWrap = document.getElementById('transcript-wrap');
 
-/* ── State ──────────────────────────────────────────────────── */
-let convState   = 'idle';   // idle | listening | thinking | speaking
-let messages    = [];       // conversation history (user + assistant pairs)
-let idleTimer   = null;
-let interimEl   = null;     // live interim transcript bubble
+const STATUS_LABEL = {
+  idle:         'idle',
+  listening:    'listening…',
+  user_speaking:'hearing you…',
+  thinking:     'thinking…',
+  speaking:     'speaking…',
+};
+const STATUS_CLS = {
+  listening:    's-listening',
+  user_speaking:'s-user_speaking',
+  thinking:     's-thinking',
+  speaking:     's-speaking',
+};
 
-function setStatus(text, cls) {
-  statusEl.textContent = text;
-  statusEl.className   = cls || '';
+function setState(s, label) {
+  convState = s;
+  statusEl.textContent = label || STATUS_LABEL[s] || s;
+  statusEl.className   = STATUS_CLS[s] || '';
+  tapRing.classList[s === 'user_speaking' ? 'add' : 'remove']('on');
+  tapHintEl.style.opacity = (s === 'idle') ? '1' : '0';
 }
-function showHint(v) { tapHintEl.style.opacity = v ? '1' : '0'; }
-function setRing(v)  { tapRing.classList[v ? 'add' : 'remove']('active'); }
 
-/* ── Transcript ──────────────────────────────────────────────── */
-function addMsg(role, text) {
+function armIdle(ms = 14000) {
+  clearTimeout(idleTimer);
+  idleTimer = setTimeout(() => {
+    if (convState !== 'idle') return;
+    messages = [];
+  }, ms);
+}
+
+/* ── TRANSCRIPT ──────────────────────────────────────────────────── */
+/* V2V TranscriptView pattern: onTranscript(role, text) appends entry */
+let interimEl = null;
+
+function onTranscript(role, text) {
   if (interimEl) { interimEl.remove(); interimEl = null; }
-  const div = document.createElement('div');
-  div.className = 'msg ' + role;
-  div.textContent = text;
-  transcriptEl.appendChild(div);
+  const d = document.createElement('div');
+  d.className = 'msg ' + role;
+  d.textContent = text;
+  transcriptEl.appendChild(d);
   transcriptWrap.scrollTop = transcriptWrap.scrollHeight;
 }
+
 function setInterim(text) {
   if (!interimEl) {
     interimEl = document.createElement('div');
@@ -502,23 +592,18 @@ function setInterim(text) {
   interimEl.textContent = text + '…';
   transcriptWrap.scrollTop = transcriptWrap.scrollHeight;
 }
+
 function clearInterim() {
   if (interimEl) { interimEl.remove(); interimEl = null; }
 }
 
-/* ── Idle timer ──────────────────────────────────────────────── */
-function armIdle(ms = 14000) {
-  clearTimeout(idleTimer);
-  idleTimer = setTimeout(() => {
-    if (convState !== 'idle') return;
-    messages = [];           /* clear context after idle */
-    setStatus('idle', '');
-    showHint(true);
-  }, ms);
-}
-function disarmIdle() { clearTimeout(idleTimer); }
-
-/* ── Web Speech API ──────────────────────────────────────────── */
+/* ── WEB SPEECH API STT ──────────────────────────────────────────── */
+/*
+ * V2V uses WebRTC VAD (server-side for OpenAI, Silero for local gateway).
+ * We use the browser's Web Speech API instead — simpler, no WASM, works on
+ * Android Chrome, and handles VAD internally.
+ * Turn-taking: recognition.onend → startListening again (auto-listen loop).
+ */
 const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
 let recognition = null, recognizing = false;
 
@@ -530,58 +615,46 @@ if (SR) {
   recognition.maxAlternatives = 1;
 
   recognition.onstart = () => {
-    recognizing  = true;
-    convState    = 'listening';
-    setStatus('listening…', 'listening');
-    setRing(true);
-    showHint(false);
-    disarmIdle();
+    recognizing = true;
+    setState('listening');
+    clearTimeout(idleTimer);
   };
 
   recognition.onresult = e => {
-    let finalText = '', interimText = '';
+    let final = '', interim = '';
     for (let i = e.resultIndex; i < e.results.length; i++) {
-      if (e.results[i].isFinal) finalText   += e.results[i][0].transcript;
-      else                       interimText += e.results[i][0].transcript;
+      if (e.results[i].isFinal) final   += e.results[i][0].transcript;
+      else                       interim += e.results[i][0].transcript;
     }
-    if (interimText) setInterim(interimText.slice(0, 60));
-    if (finalText.trim()) handleUserTurn(finalText.trim());
+    if (interim) {
+      setState('user_speaking'); /* V2V: input_audio_buffer.speech_started → user_speaking */
+      setInterim(interim.slice(0, 55));
+    }
+    if (final.trim()) handleUserTurn(final.trim());
   };
 
   recognition.onerror = e => {
     recognizing = false;
-    setRing(false);
     clearInterim();
-    if (e.error === 'no-speech') {
-      convState = 'idle';
-      setStatus('idle', '');
-      showHint(true);
-      armIdle();
+    if (e.error === 'no-speech' || e.error === 'aborted') {
+      setState('idle'); armIdle();
     } else if (e.error === 'not-allowed') {
-      setStatus('mic blocked — grant permission', 'error');
-      convState = 'idle';
-      showHint(true);
+      setState('idle', ''); statusEl.textContent = 'mic blocked — check permissions';
+      statusEl.className = 's-error';
     } else {
-      setStatus(e.error, 'error');
-      convState = 'idle';
-      showHint(true);
-      armIdle();
+      setState('idle', e.error); statusEl.className = 's-error'; armIdle(5000);
     }
   };
 
   recognition.onend = () => {
     recognizing = false;
-    setRing(false);
-    /* If no final result caused a state change, go idle */
-    if (convState === 'listening') {
-      convState = 'idle';
-      setStatus('idle', '');
-      showHint(true);
-      armIdle();
+    if (convState === 'listening' || convState === 'user_speaking') {
+      setState('idle'); armIdle();
     }
   };
 } else {
-  setStatus('Web Speech not supported on this browser', 'error');
+  statusEl.textContent = 'Web Speech not supported';
+  statusEl.className   = 's-error';
 }
 
 function startListening() {
@@ -589,201 +662,152 @@ function startListening() {
   if (recognizing || convState === 'thinking' || convState === 'speaking') return;
   try { recognition.start(); } catch (_) {}
 }
+
 function stopListening() {
-  if (recognition && recognizing) { try { recognition.stop(); } catch (_) {} }
+  if (recognition && recognizing) try { recognition.stop(); } catch (_) {}
 }
 
-/* ── Orb tap / click ─────────────────────────────────────────── */
-canvas.addEventListener('click', () => {
-  if (convState === 'idle') { startListening(); return; }
-  if (convState === 'speaking') { stopSpeaking(); return; }
-});
-canvas.addEventListener('touchstart', () => {}, { passive: true }); /* iOS audio unlock */
+/* ── ORB INTERACTION ─────────────────────────────────────────────── */
+canvas.addEventListener('touchstart', async () => {
+  /* Unlock AudioContext on first touch (autoplay policy) */
+  await ensureAudio().catch(() => {});
+}, { passive: true });
 
-/* ── Conversation turn ───────────────────────────────────────── */
+canvas.addEventListener('click', async () => {
+  await ensureAudio().catch(() => {});
+  if (convState === 'idle') { startListening(); return; }
+  /* V2V barge-in: tap orb during speaking → interrupt TTS, go back to listening */
+  if (convState === 'speaking') {
+    stopTTS();
+    setState('idle');
+    setTimeout(startListening, 400);
+  }
+});
+
+/* ── URL PARAM ?listen=1 → autostart ─────────────────────────────── */
+/* V2V wake-word gate: external daemon fronts the PWA and signals listen start.
+   We use ?listen=1 query param (set by Termux wake_word_pwa.py am start intent). */
+if (new URLSearchParams(location.search).get('listen') === '1' && localStorage.getItem(CFG_KEY)) {
+  setTimeout(async () => {
+    await ensureAudio().catch(() => {});
+    startListening();
+  }, 900);
+}
+
+/* ── CONVERSATION TURN ───────────────────────────────────────────── */
+/*
+ * V2V events.js flow (adapted to REST):
+ *   user speech → handleUserTurn()                     [user_speaking]
+ *   → POST KVM2 chat                                   [thinking]  ← V2V: response.created
+ *   → reply text → TTS fetch → playTTS()              [speaking]   ← V2V: response.output_item.added
+ *   → TTS done → auto-startListening()                [listening]  ← V2V: response.done
+ */
 async function handleUserTurn(text) {
   if (!text) return;
   clearInterim();
-  addMsg('user', text);
-  convState = 'thinking';
-  setStatus('thinking…', 'thinking');
-  setRing(false);
-  window.orbAudio = 0.08; /* subtle pulse while waiting */
+  onTranscript('user', text);             /* V2V onTranscript('user', transcript) */
+  messages.push({ role: 'user', content: text });
+
+  setState('thinking');                   /* V2V: response.created → 'thinking' */
+  window.orbAudio = .07;                  /* subtle pulse while waiting */
 
   const sysp = C('systemPrompt');
   const payload = {
     model:      'default',
     stream:     false,
     max_tokens: 512,
-    messages:   [
+    messages: [
       ...(sysp ? [{ role: 'system', content: sysp }] : []),
       ...messages,
-      { role: 'user', content: text },
     ],
   };
-  messages.push({ role: 'user', content: text });
 
-  const chatUrl = C('chatUrl');
-  const token   = C('token');
-  const hdrs    = { 'Content-Type': 'application/json' };
-  if (token) hdrs['Authorization'] = 'Bearer ' + token;
+  const hdrs = { 'Content-Type': 'application/json' };
+  const tok  = C('token');
+  if (tok) hdrs['Authorization'] = 'Bearer ' + tok;
 
   let reply = '';
   try {
-    const r = await fetch(chatUrl, { method: 'POST', headers: hdrs, body: JSON.stringify(payload) });
-    if (!r.ok) throw new Error('Chat ' + r.status);
-    const data = await r.json();
-    reply = (data.choices?.[0]?.message?.content || '').trim();
+    const r = await fetch(C('chatUrl'), { method: 'POST', headers: hdrs, body: JSON.stringify(payload) });
+    if (!r.ok) throw new Error('chat ' + r.status);
+    const d = await r.json();
+    reply = (d.choices?.[0]?.message?.content || '').trim();
     if (!reply) throw new Error('empty reply');
   } catch (err) {
     window.orbAudio = 0;
-    convState = 'idle';
-    setStatus('chat error: ' + err.message, 'error');
-    showHint(true);
+    setState('idle', 'chat error: ' + err.message);
+    statusEl.className = 's-error';
     armIdle(6000);
     return;
   }
 
   messages.push({ role: 'assistant', content: reply });
-  addMsg('assistant', reply);
-  await speakReply(reply);
-}
+  onTranscript('assistant', reply);      /* V2V onTranscript('assistant', transcript) */
 
-/* ── TTS + audio playback ────────────────────────────────────── */
-let audioCtx = null;
-let activeSrc = null;
-let speaking  = false;
-
-function stopSpeaking() {
-  speaking = false;
+  setState('speaking');                  /* V2V: response.output_item.added (role=assistant) */
   window.orbAudio = 0;
-  if (activeSrc) { try { activeSrc.stop(); } catch (_) {} activeSrc = null; }
-  convState = 'idle';
-  setStatus('idle', '');
-  showHint(true);
-  armIdle();
-}
 
-async function speakReply(text) {
-  convState = 'speaking';
-  setStatus('speaking…', 'speaking');
-  speaking  = true;
+  /* Fetch TTS → WAV → play via AudioContext (orb reacts to Chloé's voice) */
+  const ttsHdrs = { 'Content-Type': 'application/json' };
+  if (tok) ttsHdrs['Authorization'] = 'Bearer ' + tok;
 
-  const ttsUrl = C('ttsUrl');
-  const token  = C('token');
-  const hdrs   = { 'Content-Type': 'application/json' };
-  if (token) hdrs['Authorization'] = 'Bearer ' + token;
-
-  let wavBuf;
   try {
-    const r = await fetch(ttsUrl, {
-      method:  'POST',
-      headers: hdrs,
-      body:    JSON.stringify({ text, speed: 1.0 }),
+    const r = await fetch(C('ttsUrl'), {
+      method: 'POST',
+      headers: ttsHdrs,
+      body: JSON.stringify({ text: reply, speed: 1.0 }),
     });
-    if (!r.ok) throw new Error('TTS ' + r.status);
-    wavBuf = await r.arrayBuffer();
+    if (!r.ok) throw new Error('tts ' + r.status);
+    const wavBuf = await r.arrayBuffer();
+    await playTTS(wavBuf);              /* blocks until audio ends */
   } catch (err) {
-    window.orbAudio = 0;
-    speaking  = false;
-    convState = 'idle';
-    setStatus('tts error: ' + err.message, 'error');
-    showHint(true);
-    armIdle(6000);
-    /* Still listen for follow-up even if TTS fails */
-    setTimeout(startListening, 1800);
-    return;
+    /* TTS failed — continue to re-listen anyway */
+    console.warn('[tts]', err.message);
   }
 
-  try {
-    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    if (audioCtx.state === 'suspended') await audioCtx.resume();
-
-    const decoded  = await audioCtx.decodeAudioData(wavBuf);
-    const src      = audioCtx.createBufferSource();
-    src.buffer     = decoded;
-    activeSrc      = src;
-
-    /* Analyser → orbAudio (drives orb during speech) */
-    const analyser = audioCtx.createAnalyser();
-    analyser.fftSize = 256;
-    const abuf = new Float32Array(analyser.fftSize);
-    src.connect(analyser);
-    analyser.connect(audioCtx.destination);
-
-    const tick = () => {
-      if (!speaking) { window.orbAudio = 0; return; }
-      analyser.getFloatTimeDomainData(abuf);
-      let rms = 0;
-      for (const s of abuf) rms += s * s;
-      window.orbAudio = Math.min(1, Math.sqrt(rms / abuf.length) * 16);
-      requestAnimationFrame(tick);
-    };
-    tick();
-
-    src.start();
-    await new Promise(res => { src.onended = res; });
-  } catch (err) {
-    /* AudioContext decode/play failure — skip gracefully */
-  }
-
+  ttsActive = false;
   window.orbAudio = 0;
-  speaking        = false;
-  activeSrc       = null;
 
-  if (convState !== 'speaking') return; /* stopSpeaking() was called */
-  convState = 'idle';
-  setStatus('idle', '');
-  showHint(true);
+  if (convState !== 'speaking') return;  /* barge-in already changed state */
+
+  setState('idle');                      /* V2V: response.done → 'listening' */
   armIdle();
 
-  /* Auto-listen for follow-up */
+  /* Auto-listen for follow-up (V2V: session stays open, model auto-listens) */
   setTimeout(startListening, 1400);
 }
 
-/* ── Config modal ────────────────────────────────────────────── */
+/* ── CONFIG MODAL ────────────────────────────────────────────────── */
 function openConfig() {
   document.getElementById('cfg-chat').value     = C('chatUrl');
   document.getElementById('cfg-tts').value      = C('ttsUrl');
   document.getElementById('cfg-token').value    = C('token');
   document.getElementById('cfg-sysprompt').value = C('systemPrompt');
-  document.getElementById('cfg-status').textContent = '';
+  document.getElementById('cfg-msg').textContent = '';
   document.getElementById('cfg-modal').classList.add('open');
 }
 function closeConfig() {
   document.getElementById('cfg-modal').classList.remove('open');
 }
 function saveConfig() {
-  cfg.chatUrl      = document.getElementById('cfg-chat').value.trim()     || DEFAULTS.chatUrl;
-  cfg.ttsUrl       = document.getElementById('cfg-tts').value.trim()      || DEFAULTS.ttsUrl;
+  cfg.chatUrl      = document.getElementById('cfg-chat').value.trim()      || DEFAULTS.chatUrl;
+  cfg.ttsUrl       = document.getElementById('cfg-tts').value.trim()       || DEFAULTS.ttsUrl;
   cfg.token        = document.getElementById('cfg-token').value.trim();
   cfg.systemPrompt = document.getElementById('cfg-sysprompt').value.trim() || DEFAULTS.systemPrompt;
   localStorage.setItem(CFG_KEY, JSON.stringify(cfg));
-  document.getElementById('cfg-status').textContent = 'Saved.';
-  setTimeout(closeConfig, 700);
+  document.getElementById('cfg-msg').textContent = 'Saved.';
+  setTimeout(closeConfig, 600);
 }
 
-document.getElementById('btn-config').onclick = openConfig;
-/* Close on backdrop tap */
+document.getElementById('btn-cfg').onclick = openConfig;
 document.getElementById('cfg-modal').addEventListener('click', e => {
   if (e.target === document.getElementById('cfg-modal')) closeConfig();
 });
 
-/* ── First-run: show config if nothing saved ──────────────────── */
-if (!localStorage.getItem(CFG_KEY)) {
-  /* Slight delay so the orb loads first */
-  setTimeout(openConfig, 1200);
-}
+/* First-run: open config if nothing saved yet */
+if (!localStorage.getItem(CFG_KEY)) setTimeout(openConfig, 1100);
 
-/* ── URL param: ?listen=1 → autostart ───────────────────────── */
-if (new URLSearchParams(location.search).get('listen') === '1') {
-  /* If config not set, show setup first then skip autostart */
-  if (localStorage.getItem(CFG_KEY)) {
-    setTimeout(startListening, 900);
-  }
-}
-
-/* ── Service Worker ──────────────────────────────────────────── */
+/* ── SERVICE WORKER ──────────────────────────────────────────────── */
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('./sw.js', { scope: './' }).catch(() => {});
 }
