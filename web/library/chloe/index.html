@@ -10,6 +10,12 @@
 body{font-family:"Inter","Segoe UI",system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding:36px 20px 80px}
 a{color:var(--accent);text-decoration:none}
 .wrap{max-width:780px;margin:0 auto}
+
+/* ── Chloé orb ── */
+.orb-wrap{display:flex;justify-content:center;margin:0 auto 32px;position:relative;width:220px}
+#chloe-orb{display:block;cursor:crosshair;border-radius:50%;background:transparent}
+.orb-label{position:absolute;bottom:-18px;left:50%;transform:translateX(-50%);font-size:.68rem;color:rgba(139,92,246,.55);letter-spacing:.12em;text-transform:uppercase;white-space:nowrap;pointer-events:none}
+@media(prefers-reduced-motion:reduce){#chloe-orb{display:none}.orb-wrap{display:none}}
 .nav{font-size:.82rem;color:var(--muted);margin-bottom:24px}
 h1{font-size:1.7rem;font-weight:700;margin-bottom:4px}
 .sub{font-size:.88rem;color:var(--muted);margin-bottom:28px}
@@ -44,6 +50,12 @@ h1{font-size:1.7rem;font-weight:700;margin-bottom:4px}
 <body>
 <div class="wrap">
   <div class="nav"><a href="/web/library/">← Library</a></div>
+
+  <div class="orb-wrap">
+    <canvas id="chloe-orb" width="440" height="440" style="width:220px;height:220px"></canvas>
+    <span class="orb-label">Chloé · active</span>
+  </div>
+
   <h1>💜 Chloé Memory <span class="personal-badge">Personal</span></h1>
   <div class="sub">Chloé's canonical memory · Working rules, project context, decisions · Semantic search</div>
 
@@ -67,6 +79,173 @@ h1{font-size:1.7rem;font-weight:700;margin-bottom:4px}
 </div>
 
 <script src="/web/library/shared.js"></script>
+
+<script>
+/* ── Chloé dot-orb avatar — proximity-plexus sphere ────────────────
+   Sharp crisp dots, breathing/flowing, proximity connection lines,
+   audio-reactive (falls back to self-driving if no mic).
+   Expression layers: shape(breath), color(depth/hue), intensity(audio).
+──────────────────────────────────────────────────────────────────── */
+(function chloeOrb() {
+  const canvas = document.getElementById('chloe-orb');
+  if (!canvas || window.matchMedia('(prefers-reduced-motion:reduce)').matches) return;
+  const ctx = canvas.getContext('2d');
+  const W = 220, H = 220, DPR = 2; // canvas buffer is 440×440; we draw in CSS px space
+  ctx.setTransform(DPR, 0, 0, DPR, 0, 0);  // scale once — all draw calls use CSS coordinates
+  const CX = W / 2, CY = H / 2;
+  const R = 72;  // orb radius in CSS px — slightly fewer dots → less crowded
+  const N = 168; // slightly fewer than feature-branch 260
+
+  /* Fibonacci sphere distribution — even spread, crisp positions */
+  const DOTS = Array.from({ length: N }, (_, i) => {
+    const py  = 1 - (i / (N - 1)) * 2;          // y ∈ [-1,1]
+    const pr  = Math.sqrt(Math.max(0, 1 - py*py)); // ring radius
+    const theta = i * Math.PI * (3 - Math.sqrt(5)); // golden-angle increment
+    return { py, pr, theta };
+  });
+
+  /* Mouse tilt */
+  const mouse = { tx: 0, ty: 0, x: 0, y: 0 };
+  canvas.addEventListener('mousemove', e => {
+    const rect = canvas.getBoundingClientRect();
+    mouse.tx = ((e.clientX - rect.left) / W - 0.5) * 2;
+    mouse.ty = ((e.clientY - rect.top)  / H - 0.5) * 2;
+  });
+  canvas.addEventListener('mouseleave', () => { mouse.tx = 0; mouse.ty = 0; });
+
+  /* Audio reactivity — optional, degrades gracefully */
+  let audioLevel = 0;
+  let audioFailed = false;
+  /* Defer mic request until first click on orb to avoid auto-prompt */
+  canvas.addEventListener('click', () => {
+    if (audioFailed || audioLevel > 0) return;
+    navigator.mediaDevices?.getUserMedia({ audio: true, video: false })
+      .then(stream => {
+        const ac  = new (window.AudioContext || window.webkitAudioContext)();
+        const src = ac.createMediaStreamSource(stream);
+        const an  = ac.createAnalyser();
+        an.fftSize = 256;
+        src.connect(an);
+        const buf = new Float32Array(an.fftSize);
+        function measureAudio() {
+          an.getFloatTimeDomainData(buf);
+          let rms = 0;
+          for (let s of buf) rms += s * s;
+          audioLevel = Math.min(1, Math.sqrt(rms / buf.length) * 14);
+          requestAnimationFrame(measureAudio);
+        }
+        measureAudio();
+      })
+      .catch(() => { audioFailed = true; });
+  }, { once: true });
+
+  /* Self-driving audio simulation (used when no mic) */
+  function pseudoAudio(t) {
+    return 0.04 * (Math.sin(t * 1.7) * 0.5 + 0.5);
+  }
+
+  const LINK_THRESH = 38; // px — proximity line threshold
+  const LINK_THRESH_SQ = LINK_THRESH * LINK_THRESH;
+
+  function frame(now) {
+    requestAnimationFrame(frame);
+    const t = now / 1000;
+
+    /* Smooth mouse */
+    mouse.x += (mouse.tx - mouse.x) * 0.055;
+    mouse.y += (mouse.ty - mouse.y) * 0.055;
+
+    const audio  = audioFailed || audioLevel === 0 ? pseudoAudio(t) : audioLevel;
+
+    /* Expression — SHAPE: slow breathing + audio pulse */
+    const breath = 1 + 0.065 * Math.sin(t * 0.62) + audio * 0.35;
+
+    /* Expression — gradual flow: slow base rotation + gentle wave */
+    const rot = t * 0.20;
+
+    /* Camera tilt from mouse (gentle) */
+    const tiltX =  mouse.y * 0.28;
+    const tiltY = -mouse.x * 0.28;
+    const cosTX = Math.cos(tiltX), sinTX = Math.sin(tiltX);
+    const cosTY = Math.cos(tiltY), sinTY = Math.sin(tiltY);
+
+    /* Project dots to screen */
+    const pts = DOTS.map(d => {
+      const a   = d.theta + rot;
+      let x0    = d.pr * Math.cos(a);
+      let y0    = d.py;
+      let z0    = d.pr * Math.sin(a);
+
+      /* Subtle per-dot wave — living/flowing */
+      const wave = 0.015 * Math.sin(t * 1.1 + d.theta * 2.3);
+      x0 += wave * d.py;
+      y0 += wave * d.pr;
+
+      /* Tilt Y (around Y axis) */
+      const x1 =  x0 * cosTY + z0 * sinTY;
+      const z1 = -x0 * sinTY + z0 * cosTY;
+      /* Tilt X (around X axis) */
+      const y2 =  y0 * cosTX - z1 * sinTX;
+      const z2 =  y0 * sinTX + z1 * cosTX;
+
+      const sc = R * breath;
+      return {
+        sx: CX + x1 * sc,
+        sy: CY + y2 * sc,
+        depth: (z2 + 1) / 2, /* 0=back 1=front */
+      };
+    });
+
+    /* Sort back-to-front (painter's algorithm) */
+    pts.sort((a, b) => a.depth - b.depth);
+
+    ctx.clearRect(0, 0, W, H);
+
+    /* ── PROXIMITY LINES — drawn first (behind dots) ── */
+    for (let i = 0; i < pts.length; i++) {
+      for (let j = i + 1; j < pts.length; j++) {
+        const dx = pts[i].sx - pts[j].sx;
+        const dy = pts[i].sy - pts[j].sy;
+        const d2 = dx*dx + dy*dy;
+        if (d2 >= LINK_THRESH_SQ) continue;
+
+        /* Closer = more visible; far apart = invisible */
+        const strength = 1 - Math.sqrt(d2) / LINK_THRESH;
+        const avgDepth = (pts[i].depth + pts[j].depth) * 0.5;
+        /* Expression — COLOR: hue shifts from purple (back) to cyan (front) */
+        const hue   = 260 - avgDepth * 72;
+        const alpha = strength * 0.32 * avgDepth * (0.6 + audio * 1.8);
+
+        ctx.beginPath();
+        ctx.moveTo(pts[i].sx, pts[i].sy);
+        ctx.lineTo(pts[j].sx, pts[j].sy);
+        ctx.strokeStyle = `hsla(${hue},78%,68%,${alpha})`;
+        ctx.lineWidth   = 0.55 + strength * 0.45;
+        ctx.stroke();
+      }
+    }
+
+    /* ── DOTS — sharp solid circles, no blur ── */
+    for (const p of pts) {
+      /* Expression — INTENSITY: front dots brighter + audio brightens all */
+      const alpha = 0.14 + p.depth * 0.72 + audio * 0.45;
+      /* Expression — COLOR: purple (back) → cyan-blue (front) */
+      const hue   = 260 - p.depth * 72;
+      /* Expression — SIZE: front dots larger, audio inflates */
+      const size  = 1.05 + p.depth * 2.0 + audio * 2.8;
+
+      ctx.beginPath();
+      ctx.arc(p.sx, p.sy, size, 0, Math.PI * 2);
+      /* Crisp fill — no radial gradient, no blur → explicit not blurry */
+      ctx.fillStyle = `hsla(${hue},80%,72%,${alpha})`;
+      ctx.fill();
+    }
+  }
+
+  requestAnimationFrame(frame);
+})();
+</script>
+
 <script>
 function checkGate() {
   if (getToken()) { document.getElementById('gate').style.display = 'none'; document.getElementById('q').focus(); }

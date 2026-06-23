@@ -175,9 +175,57 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,san
 /* ── Footer ── */
 .page-note{text-align:center;padding:28px 20px 20px;font-size:.74em;color:var(--muted);border-top:1px solid var(--border);max-width:600px;margin:0 auto;line-height:1.6}
 
+/* ── Results reveal — animated entrance ── */
+#results.is-visible{animation:resultsReveal .55s cubic-bezier(.16,1,.3,1) both}
+@keyframes resultsReveal{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:none}}
+
+/* ── Wake header ── */
+.wake-header h2{animation:wakeIn .48s cubic-bezier(.16,1,.3,1) both}
+@keyframes wakeIn{from{opacity:0;transform:scale(.93) translateY(10px)}to{opacity:1;transform:none}}
+.wake-header .wake-sub{animation:wakeIn .48s cubic-bezier(.16,1,.3,1) .12s both}
+
+/* ── Life grid rows — staggered slide-in ── */
+.lg-row{opacity:0;animation:rowSlide .36s cubic-bezier(.16,1,.3,1) both}
+@keyframes rowSlide{from{opacity:0;transform:translateX(-10px)}to{opacity:1;transform:none}}
+
+/* ── Section separators ── */
+.life-grid-section{border-top:1px solid var(--border);padding-top:28px}
+.stats-grid{padding-top:4px}
+.hb-ticker{margin-bottom:40px}
+
+/* ── Pivot CTA framing ── */
+.pivot-wrap{
+  margin:12px 0 44px;
+  padding:32px 20px;
+  border-top:1px solid var(--border);
+  border-bottom:1px solid var(--border);
+  background:rgba(124,58,237,.03);
+  border-radius:14px;
+}
+@keyframes pivotGlow{
+  0%,100%{box-shadow:0 0 30px rgba(124,58,237,.22),0 6px 32px rgba(0,0,0,.3)}
+  50%    {box-shadow:0 0 56px rgba(124,58,237,.50),0 0 90px rgba(219,39,119,.18),0 6px 32px rgba(0,0,0,.3)}
+}
+.btn-pivot{animation:pivotGlow 3.2s ease-in-out infinite}
+
+/* ── Heartbeat — cardiac beat rhythm ── */
+@keyframes hbBeat{
+  0%,12%,22%,100%{transform:scale(1)}
+  7%             {transform:scale(1.022)}
+  16%            {transform:scale(1.011)}
+}
+.hb-ticker{animation:hbBeat .88s ease-in-out infinite,hbPulse 2.5s ease-in-out infinite}
+
+/* ── Positive section entrance ── */
+#positive.is-visible .positive-header h2{animation:posIn .6s cubic-bezier(.16,1,.3,1) both}
+#positive.is-visible .pos-sub{animation:posIn .6s cubic-bezier(.16,1,.3,1) .1s both}
+@keyframes posIn{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:none}}
+.peaks-section{border-top:1px solid var(--border);padding-top:28px}
+.timeline-section{border-top:1px solid var(--border);padding-top:24px}
+
 @media(prefers-reduced-motion:reduce){
-  .stat-card,.achiever-card{animation:none;opacity:1}
-  .hb-ticker,.kd.left,.ld.current{animation:none}
+  .stat-card,.achiever-card,.lg-row,#results{animation:none;opacity:1}
+  .hb-ticker,.kd.left,.ld.current,.btn-pivot{animation:none}
 }
 @media(max-width:600px){
   .form-card{padding:20px 16px}
@@ -187,6 +235,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,san
   .peak-axis-row{padding-left:104px;padding-right:4px}
   .peak-status-badge{display:none}
   .kid-block{padding:20px 16px}
+  .pivot-wrap{padding:24px 14px}
 }
 </style>
 </head>
@@ -390,7 +439,7 @@ function buildLifeGrid(age, lifeExp, childYear, birthYear) {
       else                  cls = isKid ? 'kid-left' : 'future';
       cells += '<span class="ld ' + cls + '" title="Age ' + yr + '"></span>';
     }
-    rows += '<div class="lg-row"><span class="lg-decade">' + label + '</span><div class="lg-cells">' + cells + '</div></div>';
+    rows += '<div class="lg-row" style="animation-delay:' + (d * 0.042) + 's"><span class="lg-decade">' + label + '</span><div class="lg-cells">' + cells + '</div></div>';
   }
   return rows;
 }
@@ -551,13 +600,23 @@ function calculate() {
     (kidLeft !== null ? ' <strong style="color:var(--orange)">' + kidLeft + ' summers</strong> with your children still at home.' : '') + '</p>';
 
   document.getElementById('positive').style.display = 'none';
-  document.getElementById('results').style.display = 'block';
-  setTimeout(function(){ document.getElementById('results').scrollIntoView({behavior:'smooth',block:'start'}); }, 80);
+  document.getElementById('positive').classList.remove('is-visible');
+  var resultsEl = document.getElementById('results');
+  resultsEl.style.display = 'block';
+  resultsEl.classList.remove('is-visible');
+  requestAnimationFrame(function(){ requestAnimationFrame(function(){
+    resultsEl.classList.add('is-visible');
+  }); });
+  setTimeout(function(){ resultsEl.scrollIntoView({behavior:'smooth',block:'start'}); }, 80);
 }
 
 function showPositive() {
   var pos = document.getElementById('positive');
   pos.style.display = 'block';
+  pos.classList.remove('is-visible');
+  requestAnimationFrame(function(){ requestAnimationFrame(function(){
+    pos.classList.add('is-visible');
+  }); });
   setTimeout(function(){ pos.scrollIntoView({behavior:'smooth',block:'start'}); }, 50);
 }
 
