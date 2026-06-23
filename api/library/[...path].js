@@ -1,30 +1,20 @@
-// Vercel serverless proxy — forwards all /api/library/* requests to KVM2 library API
-// Keeps browser from hitting HTTP directly (mixed-content block)
+"use strict";
+// Vercel serverless proxy — forwards all /api/library/* to KVM2 library API
+// Avoids browser mixed-content block (HTTPS page → HTTP backend)
 
 const KVM2_BASE = "http://187.127.86.176:8765";
 
-export const config = { runtime: "nodejs" };
-
-export default async function handler(req, res) {
-  // Build target URL from path segments
+module.exports = async function handler(req, res) {
   const pathSegments = req.query.path || [];
   const subpath = Array.isArray(pathSegments) ? pathSegments.join("/") : pathSegments;
-  const qs = new URLSearchParams(
-    Object.entries(req.query).filter(([k]) => k !== "path")
-  ).toString();
-  const target = `${KVM2_BASE}/${subpath}${qs ? "?" + qs : ""}`;
+  const filtered = Object.entries(req.query).filter(([k]) => k !== "path");
+  const qs = filtered.length ? "?" + new URLSearchParams(filtered).toString() : "";
+  const target = `${KVM2_BASE}/${subpath}${qs}`;
 
-  // Forward relevant headers
   const headers = { "Content-Type": "application/json" };
-  if (req.headers.authorization) {
-    headers["Authorization"] = req.headers.authorization;
-  }
+  if (req.headers.authorization) headers["Authorization"] = req.headers.authorization;
 
-  const fetchOpts = {
-    method: req.method,
-    headers,
-  };
-
+  const fetchOpts = { method: req.method, headers };
   if (req.method === "POST" && req.body) {
     fetchOpts.body = typeof req.body === "string" ? req.body : JSON.stringify(req.body);
   }
@@ -32,8 +22,9 @@ export default async function handler(req, res) {
   try {
     const upstream = await fetch(target, fetchOpts);
     const data = await upstream.json();
+    res.setHeader("Access-Control-Allow-Origin", "*");
     res.status(upstream.status).json(data);
   } catch (err) {
     res.status(502).json({ error: "Library API unreachable", detail: err.message });
   }
-}
+};
