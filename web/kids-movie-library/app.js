@@ -417,7 +417,11 @@ function setMovieState(movie, next) {
 }
 
 function allTags() {
-  return [...new Set(movies.flatMap((movie) => movie.tags))].sort();
+  return [...new Set(
+    movies
+      .filter((m) => !m.tags.includes("archive-import"))
+      .flatMap((m) => m.tags)
+  )].sort();
 }
 
 function renderOptions() {
