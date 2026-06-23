@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Library — sdforest</title>
+<style>
+:root {
+  --bg: #09090b;
+  --card-bg: rgba(24,24,27,.6);
+  --card-border: rgba(255,255,255,.08);
+  --text: #f8fafc;
+  --muted: #a1a1aa;
+  --accent: #0ea5e9;
+  --accent-glow: rgba(14,165,233,.35);
+  --purple: #8b5cf6;
+  --green: #22c55e;
+  --amber: #f59e0b;
+  --radius: 12px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"Inter","Segoe UI",system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding:40px 20px 80px}
+a{color:var(--accent);text-decoration:none}
+a:hover{text-decoration:underline}
+
+.wrap{max-width:960px;margin:0 auto}
+
+header{text-align:center;margin-bottom:48px}
+.logo{font-size:13px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:12px}
+h1{font-size:2.2rem;font-weight:700;background:linear-gradient(135deg,var(--accent),var(--purple));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.subtitle{color:var(--muted);font-size:.95rem;margin-top:8px}
+
+/* Global RAG box */
+.rag-box{background:var(--card-bg);border:1px solid var(--card-border);border-radius:var(--radius);padding:24px;margin-bottom:40px;backdrop-filter:blur(12px)}
+.rag-box h2{font-size:1rem;font-weight:600;margin-bottom:14px;color:var(--accent)}
+.rag-row{display:flex;gap:10px;flex-wrap:wrap}
+.rag-row input{flex:1;min-width:200px;background:rgba(255,255,255,.05);border:1px solid var(--card-border);border-radius:8px;color:var(--text);padding:10px 14px;font-size:.9rem;outline:none;transition:border-color .2s}
+.rag-row input:focus{border-color:var(--accent)}
+.rag-row button{background:var(--accent);color:#fff;border:none;border-radius:8px;padding:10px 20px;font-size:.9rem;font-weight:600;cursor:pointer;transition:opacity .2s}
+.rag-row button:hover{opacity:.85}
+
+.rag-sources{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+.src-chip{display:flex;align-items:center;gap:5px;font-size:.78rem;background:rgba(255,255,255,.05);border:1px solid var(--card-border);border-radius:6px;padding:4px 10px;cursor:pointer;user-select:none;transition:background .15s}
+.src-chip.on{background:rgba(14,165,233,.15);border-color:var(--accent);color:var(--accent)}
+.src-chip.personal{border-color:var(--purple)}
+.src-chip.personal.on{background:rgba(139,92,246,.15);color:var(--purple)}
+
+.rag-answer{margin-top:18px;display:none}
+.rag-answer.show{display:block}
+.rag-answer-text{background:rgba(14,165,233,.05);border-left:3px solid var(--accent);border-radius:0 8px 8px 0;padding:14px 16px;font-size:.92rem;line-height:1.65;white-space:pre-wrap;color:var(--text)}
+.rag-model{font-size:.75rem;color:var(--muted);margin-top:6px}
+.citations{margin-top:12px;display:flex;flex-wrap:wrap;gap:6px}
+.cite-chip{font-size:.75rem;background:rgba(255,255,255,.05);border:1px solid var(--card-border);border-radius:6px;padding:3px 8px;cursor:default}
+.cite-chip a{color:var(--muted)}
+.cite-chip a:hover{color:var(--accent)}
+
+/* Source grid */
+.sources-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;margin-bottom:48px}
+.src-card{background:var(--card-bg);border:1px solid var(--card-border);border-radius:var(--radius);padding:20px;text-decoration:none;color:var(--text);transition:border-color .2s,transform .2s;backdrop-filter:blur(8px);display:block}
+.src-card:hover{border-color:var(--accent);transform:translateY(-2px);text-decoration:none}
+.src-card.personal{border-left:3px solid var(--purple)}
+.src-card.personal:hover{border-color:var(--purple)}
+.src-icon{font-size:1.6rem;margin-bottom:10px}
+.src-name{font-size:1rem;font-weight:600;margin-bottom:4px}
+.src-desc{font-size:.82rem;color:var(--muted);line-height:1.5}
+.src-badge{display:inline-block;font-size:.7rem;padding:2px 7px;border-radius:4px;margin-top:8px;font-weight:500}
+.src-badge.pub{background:rgba(34,197,94,.1);color:var(--green)}
+.src-badge.priv{background:rgba(139,92,246,.1);color:var(--purple)}
+
+/* Auth modal */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;z-index:100}
+.modal-bg.open{display:flex}
+.modal{background:#18181b;border:1px solid var(--card-border);border-radius:16px;padding:28px;width:100%;max-width:380px}
+.modal h3{font-size:1.1rem;margin-bottom:6px}
+.modal p{font-size:.84rem;color:var(--muted);margin-bottom:18px}
+.modal input{width:100%;background:rgba(255,255,255,.05);border:1px solid var(--card-border);border-radius:8px;color:var(--text);padding:10px 14px;font-size:.9rem;outline:none;margin-bottom:12px}
+.modal input:focus{border-color:var(--accent)}
+.modal-btns{display:flex;gap:10px;justify-content:flex-end}
+.btn{border:none;border-radius:8px;padding:9px 18px;font-size:.88rem;font-weight:600;cursor:pointer}
+.btn-accent{background:var(--accent);color:#fff}
+.btn-accent:hover{opacity:.85}
+.btn-ghost{background:transparent;color:var(--muted);border:1px solid var(--card-border)}
+.btn-ghost:hover{color:var(--text)}
+.modal-err{font-size:.8rem;color:#f87171;margin-top:-6px;margin-bottom:10px;display:none}
+
+.status-bar{text-align:center;font-size:.78rem;color:var(--muted);margin-bottom:24px}
+.status-bar .logged-in{color:var(--green)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="logo">sdforest · ivan's workspace</div>
+    <h1>Library</h1>
+    <p class="subtitle">Semantic search + RAG across 5 knowledge sources</p>
+  </header>
+
+  <div id="statusBar" class="status-bar"></div>
+
+  <!-- Global RAG box -->
+  <div class="rag-box">
+    <h2>Ask across everything</h2>
+    <div class="rag-row">
+      <input id="ragQ" type="text" placeholder="What is a RAG pipeline? How does Chloé handle voice?…" />
+      <button onclick="doRag()">Ask</button>
+    </div>
+    <div class="rag-sources" id="srcChips"></div>
+    <div class="rag-answer" id="ragAnswer">
+      <div class="rag-answer-text" id="ragText"></div>
+      <div class="rag-model" id="ragModel"></div>
+      <div class="citations" id="ragCitations"></div>
+    </div>
+  </div>
+
+  <!-- Source cards -->
+  <div class="sources-grid">
+    <a class="src-card" href="/web/library/glossary/">
+      <div class="src-icon">📖</div>
+      <div class="src-name">Glossary</div>
+      <div class="src-desc">AI Engineering Knowledge Map — 353 terms, acronyms, and concepts with relationships</div>
+      <span class="src-badge pub">Public</span>
+    </a>
+    <a class="src-card" href="/web/library/platform/">
+      <div class="src-icon">🏛️</div>
+      <div class="src-name">Platform DB</div>
+      <div class="src-desc">LLM platform documentation index — LangChain, Anthropic, Twin, StackAI and more</div>
+      <span class="src-badge pub">Public</span>
+    </a>
+    <a class="src-card personal" href="/web/library/repos/">
+      <div class="src-icon">📦</div>
+      <div class="src-name">GitHub Repos</div>
+      <div class="src-desc">Ivan's 611-repo index — search by name, description, language, topics, and stars</div>
+      <span class="src-badge priv">Personal</span>
+    </a>
+    <a class="src-card personal" href="/web/library/memory/">
+      <div class="src-icon">🧠</div>
+      <div class="src-name">General Memory</div>
+      <div class="src-desc">Ivan's memory-md store — notes, decisions, and knowledge accumulated over time</div>
+      <span class="src-badge priv">Personal</span>
+    </a>
+    <a class="src-card personal" href="/web/library/chloe/">
+      <div class="src-icon">💜</div>
+      <div class="src-name">Chloé Memory</div>
+      <div class="src-desc">Chloé's canonical memory — working rules, project context, decisions with Ivan</div>
+      <span class="src-badge priv">Personal</span>
+    </a>
+  </div>
+</div>
+
+<!-- Auth modal -->
+<div class="modal-bg" id="authModal">
+  <div class="modal">
+    <h3>🔐 Personal Library</h3>
+    <p>Enter the library password to access personal sources in the global RAG box.</p>
+    <input type="password" id="authPw" placeholder="Library password…" onkeydown="if(event.key==='Enter')doAuth()" />
+    <div class="modal-err" id="authErr">Incorrect password. Try again.</div>
+    <div class="modal-btns">
+      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-accent" onclick="doAuth()">Unlock</button>
+    </div>
+  </div>
+</div>
+
+<script src="/web/library/shared.js"></script>
+<script>
+const SOURCES = [
+  { id: 'glossary',  label: '📖 Glossary',  personal: false },
+  { id: 'platform',  label: '🏛️ Platform', personal: false },
+  { id: 'repos',     label: '📦 Repos',      personal: true  },
+  { id: 'memory',    label: '🧠 Memory',     personal: true  },
+  { id: 'chloe',     label: '💜 Chloé',      personal: true  },
+];
+
+const selected = new Set(['glossary', 'platform']);
+
+function buildChips() {
+  const wrap = document.getElementById('srcChips');
+  wrap.innerHTML = SOURCES.map(s => `
+    <div class="src-chip ${s.personal?'personal':''} ${selected.has(s.id)?'on':''}"
+         onclick="toggleSrc('${s.id}',this)">${s.label}</div>
+  `).join('');
+}
+
+function toggleSrc(id, el) {
+  const src = SOURCES.find(s => s.id === id);
+  if (selected.has(id)) {
+    selected.delete(id);
+    el.classList.remove('on');
+  } else {
+    if (src.personal && !getToken()) {
+      openModal();
+      return;
+    }
+    selected.add(id);
+    el.classList.add('on');
+  }
+}
+
+async function doRag() {
+  const q = document.getElementById('ragQ').value.trim();
+  if (!q) return;
+
+  const personalNeeded = [...selected].some(id => SOURCES.find(s=>s.id===id)?.personal);
+  if (personalNeeded && !getToken()) { openModal(); return; }
+
+  const answerEl = document.getElementById('ragAnswer');
+  const textEl   = document.getElementById('ragText');
+  const modelEl  = document.getElementById('ragModel');
+  const citeEl   = document.getElementById('ragCitations');
+  answerEl.classList.remove('show');
+  textEl.textContent = '⏳ Searching…';
+  modelEl.textContent = '';
+  citeEl.innerHTML = '';
+  answerEl.classList.add('show');
+
+  try {
+    const data = await apiPost('rag/ask', {
+      q, sources: [...selected], limit: 5
+    });
+    textEl.textContent = data.answer;
+    modelEl.textContent = `Answered by ${data.model}`;
+    citeEl.innerHTML = data.citations.map(c => {
+      const link = c.url ? `<a href="${c.url}" target="_blank">${escHtml(c.title)}</a>` : escHtml(c.title);
+      return `<span class="cite-chip">[${c.source}] ${link} (${(c.score*100).toFixed(0)}%)</span>`;
+    }).join('');
+  } catch (err) {
+    if (err.status === 401 || err.status === 403) {
+      clearToken();
+      openModal();
+    } else {
+      textEl.textContent = `Error: ${err.message}`;
+    }
+  }
+}
+
+// Auth modal
+function openModal() {
+  document.getElementById('authModal').classList.add('open');
+  setTimeout(() => document.getElementById('authPw').focus(), 50);
+}
+function closeModal() {
+  document.getElementById('authModal').classList.remove('open');
+  document.getElementById('authErr').style.display = 'none';
+  document.getElementById('authPw').value = '';
+}
+
+async function doAuth() {
+  const pw = document.getElementById('authPw').value;
+  const ok = await verifyPassword(pw);
+  if (ok) {
+    setToken(pw);
+    closeModal();
+    updateStatusBar();
+    buildChips();
+  } else {
+    document.getElementById('authErr').style.display = 'block';
+  }
+}
+
+function updateStatusBar() {
+  const bar = document.getElementById('statusBar');
+  if (getToken()) {
+    bar.innerHTML = '<span class="logged-in">🔓 Personal library unlocked</span> · <a href="#" onclick="logout();return false">lock</a>';
+  } else {
+    bar.innerHTML = '<a href="#" onclick="openModal();return false">🔐 Unlock personal sources</a>';
+  }
+}
+
+function logout() {
+  clearToken();
+  updateStatusBar();
+  selected.delete('repos'); selected.delete('memory'); selected.delete('chloe');
+  buildChips();
+}
+
+document.getElementById('ragQ').addEventListener('keydown', e => {
+  if (e.key === 'Enter') doRag();
+});
+
+buildChips();
+updateStatusBar();
+</script>
+</body>
+</html>

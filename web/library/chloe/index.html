@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chloé Memory — Library</title>
+<style>
+:root{--bg:#09090b;--card-bg:rgba(24,24,27,.6);--card-border:rgba(255,255,255,.08);--text:#f8fafc;--muted:#a1a1aa;--accent:#0ea5e9;--purple:#8b5cf6;--radius:10px}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"Inter","Segoe UI",system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding:36px 20px 80px}
+a{color:var(--accent);text-decoration:none}
+.wrap{max-width:780px;margin:0 auto}
+.nav{font-size:.82rem;color:var(--muted);margin-bottom:24px}
+h1{font-size:1.7rem;font-weight:700;margin-bottom:4px}
+.sub{font-size:.88rem;color:var(--muted);margin-bottom:28px}
+.personal-badge{display:inline-block;font-size:.72rem;background:rgba(139,92,246,.1);color:var(--purple);border-radius:5px;padding:2px 8px;margin-left:8px;vertical-align:middle}
+.search-row{display:flex;gap:10px;margin-bottom:28px}
+.search-row input{flex:1;background:rgba(255,255,255,.05);border:1px solid var(--card-border);border-radius:9px;color:var(--text);padding:11px 16px;font-size:.95rem;outline:none;transition:border-color .2s}
+.search-row input:focus{border-color:var(--purple)}
+.search-row button{background:var(--purple);color:#fff;border:none;border-radius:9px;padding:11px 22px;font-size:.9rem;font-weight:600;cursor:pointer;transition:opacity .2s}
+.search-row button:hover{opacity:.85}
+#results{display:flex;flex-direction:column;gap:12px}
+.card{background:var(--card-bg);border:1px solid var(--card-border);border-radius:var(--radius);padding:16px 18px;backdrop-filter:blur(8px)}
+.card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+.card-title{font-weight:600;font-size:.95rem}
+.card-score{font-size:.8rem;font-weight:600}
+.card-snippet{font-size:.85rem;color:var(--muted);line-height:1.55}
+.card-footer{display:flex;gap:12px;align-items:center;margin-top:10px;font-size:.78rem;color:var(--muted)}
+.card-source{background:rgba(139,92,246,.1);color:var(--purple);border-radius:4px;padding:2px 7px}
+.empty{text-align:center;color:var(--muted);padding:60px 20px;font-size:.9rem}
+.count{font-size:.82rem;color:var(--muted);margin-bottom:14px}
+.gate{position:fixed;inset:0;background:rgba(0,0,0,.8);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;z-index:50}
+.gate-box{background:#18181b;border:1px solid rgba(139,92,246,.3);border-radius:16px;padding:30px;width:100%;max-width:360px;text-align:center}
+.gate-icon{font-size:2.4rem;margin-bottom:12px}
+.gate-box h2{font-size:1.1rem;margin-bottom:8px}
+.gate-box p{font-size:.84rem;color:var(--muted);margin-bottom:20px}
+.gate-box input{width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(139,92,246,.3);border-radius:8px;color:var(--text);padding:11px 14px;font-size:.9rem;outline:none;margin-bottom:12px;text-align:center}
+.gate-box input:focus{border-color:var(--purple)}
+.gate-btn{width:100%;background:var(--purple);color:#fff;border:none;border-radius:8px;padding:11px;font-size:.9rem;font-weight:600;cursor:pointer;transition:opacity .2s}
+.gate-btn:hover{opacity:.85}
+.gate-err{font-size:.8rem;color:#f87171;margin-top:-6px;margin-bottom:10px;display:none}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="nav"><a href="/web/library/">← Library</a></div>
+  <h1>💜 Chloé Memory <span class="personal-badge">Personal</span></h1>
+  <div class="sub">Chloé's canonical memory · Working rules, project context, decisions · Semantic search</div>
+
+  <div class="search-row">
+    <input id="q" type="text" placeholder="Search Chloé's memory, working rules, project context…" />
+    <button onclick="doSearch()">Search</button>
+  </div>
+  <div class="count" id="count"></div>
+  <div id="results"><div class="empty">Search Chloé's memory store</div></div>
+</div>
+
+<div class="gate" id="gate">
+  <div class="gate-box">
+    <div class="gate-icon">💜🔐</div>
+    <h2>Personal Section</h2>
+    <p>Enter your library password to access Chloé's memory.</p>
+    <input type="password" id="gatePw" placeholder="Library password…" onkeydown="if(event.key==='Enter')doUnlock()" />
+    <div class="gate-err" id="gateErr">Incorrect password.</div>
+    <button class="gate-btn" onclick="doUnlock()">Unlock</button>
+  </div>
+</div>
+
+<script src="/web/library/shared.js"></script>
+<script>
+function checkGate() {
+  if (getToken()) { document.getElementById('gate').style.display = 'none'; document.getElementById('q').focus(); }
+}
+async function doUnlock() {
+  const pw = document.getElementById('gatePw').value;
+  const ok = await verifyPassword(pw);
+  if (ok) { setToken(pw); document.getElementById('gate').style.display = 'none'; document.getElementById('q').focus(); }
+  else { document.getElementById('gateErr').style.display = 'block'; }
+}
+async function doSearch() {
+  const q = document.getElementById('q').value.trim();
+  if (!q) return;
+  if (!getToken()) { document.getElementById('gate').style.display = 'flex'; return; }
+  const res = document.getElementById('results');
+  res.innerHTML = '<div class="empty">Searching…</div>';
+  try {
+    const data = await apiGet('search/chloe', { q, limit: 12 });
+    document.getElementById('count').textContent = data.count ? `${data.count} results` : '';
+    if (!data.results.length) { res.innerHTML = '<div class="empty">No results found</div>'; return; }
+    res.innerHTML = data.results.map(r => renderCard(r, "Chloé Memory")).join('');
+  } catch (e) {
+    if (e.status === 401 || e.status === 403) { clearToken(); document.getElementById('gate').style.display = 'flex'; }
+    else { res.innerHTML = `<div class="empty">Error: ${e.message}</div>`; }
+  }
+}
+document.getElementById('q').addEventListener('keydown', e => { if (e.key === 'Enter') doSearch(); });
+checkGate();
+</script>
+</body>
+</html>

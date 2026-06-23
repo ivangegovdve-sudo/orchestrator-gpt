@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Glossary — Library</title>
+<style>
+:root{--bg:#09090b;--card-bg:rgba(24,24,27,.6);--card-border:rgba(255,255,255,.08);--text:#f8fafc;--muted:#a1a1aa;--accent:#0ea5e9;--purple:#8b5cf6;--radius:10px}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"Inter","Segoe UI",system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding:36px 20px 80px}
+a{color:var(--accent);text-decoration:none}
+.wrap{max-width:780px;margin:0 auto}
+.nav{font-size:.82rem;color:var(--muted);margin-bottom:24px}<br>
+h1{font-size:1.7rem;font-weight:700;margin-bottom:4px}
+.sub{font-size:.88rem;color:var(--muted);margin-bottom:28px}
+.search-row{display:flex;gap:10px;margin-bottom:28px}
+.search-row input{flex:1;background:rgba(255,255,255,.05);border:1px solid var(--card-border);border-radius:9px;color:var(--text);padding:11px 16px;font-size:.95rem;outline:none;transition:border-color .2s}
+.search-row input:focus{border-color:var(--accent)}
+.search-row button{background:var(--accent);color:#fff;border:none;border-radius:9px;padding:11px 22px;font-size:.9rem;font-weight:600;cursor:pointer;transition:opacity .2s}
+.search-row button:hover{opacity:.85}
+#results{display:flex;flex-direction:column;gap:12px}
+.card{background:var(--card-bg);border:1px solid var(--card-border);border-radius:var(--radius);padding:16px 18px;backdrop-filter:blur(8px)}
+.card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+.card-title{font-weight:600;font-size:.95rem}
+.card-score{font-size:.8rem;font-weight:600}
+.card-snippet{font-size:.85rem;color:var(--muted);line-height:1.55}
+.card-footer{display:flex;gap:12px;align-items:center;margin-top:10px;font-size:.78rem;color:var(--muted)}
+.card-source{background:rgba(14,165,233,.1);color:var(--accent);border-radius:4px;padding:2px 7px}
+.card-link{color:var(--accent)}
+.empty{text-align:center;color:var(--muted);padding:60px 20px;font-size:.9rem}
+.count{font-size:.82rem;color:var(--muted);margin-bottom:14px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="nav"><a href="/web/library/">← Library</a></div>
+  <h1>📖 Glossary</h1>
+  <div class="sub">AI Engineering Knowledge Map · 353 terms · Semantic search</div>
+
+  <div class="search-row">
+    <input id="q" type="text" placeholder="Search terms, acronyms, concepts…" autofocus />
+    <button onclick="doSearch()">Search</button>
+  </div>
+  <div class="count" id="count"></div>
+  <div id="results"><div class="empty">Type a term to search the AI glossary</div></div>
+</div>
+<script src="/web/library/shared.js"></script>
+<script>
+async function doSearch() {
+  const q = document.getElementById('q').value.trim();
+  if (!q) return;
+  const res = document.getElementById('results');
+  res.innerHTML = '<div class="empty">Searching…</div>';
+  try {
+    const data = await apiGet('search/glossary', { q, limit: 12 });
+    document.getElementById('count').textContent = data.count ? `${data.count} results` : '';
+    if (!data.results.length) {
+      res.innerHTML = '<div class="empty">No results found</div>';
+      return;
+    }
+    res.innerHTML = data.results.map(r => renderCard(r, 'Glossary')).join('');
+  } catch (e) {
+    res.innerHTML = `<div class="empty">Error: ${e.message}</div>`;
+  }
+}
+document.getElementById('q').addEventListener('keydown', e => { if (e.key === 'Enter') doSearch(); });
+</script>
+</body>
+</html>
