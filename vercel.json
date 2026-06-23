@@ -6,6 +6,6 @@
     "api/council.js": {
       "maxDuration": 300
     },
-    "api/library/[...path].js": {}
+    "api/library/[...path].js": { "maxDuration": 30 }
   }
 }
