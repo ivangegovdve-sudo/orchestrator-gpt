@@ -1,5 +1,23 @@
 const STORAGE_KEY = "forestKidsMoviesState";
 
+function backlogMovie(title, year, watched = false, tags = []) {
+  return {
+    title,
+    year,
+    platform: "Family archive",
+    imdb: null,
+    runtime: "Unspecified",
+    age: "Family",
+    bgAudio: "Unspecified",
+    category: watched ? "Already watched" : "Legacy watchlist",
+    tags: ["archive-import", ...tags],
+    note: watched
+      ? "Imported from the family list as previously watched."
+      : "Imported from the family list as a watchlist title.",
+    initialWatched: watched,
+  };
+}
+
 const movies = [
   {
     title: "Spirited Away",
@@ -36,6 +54,7 @@ const movies = [
     category: "Giving to others",
     tags: ["kindness", "community", "painterly", "holiday", "generosity"],
     note: "Kindness as choice, not mood; one good act can start a chain reaction.",
+    initialWatched: true,
   },
   {
     title: "My Neighbor Totoro",
@@ -192,6 +211,7 @@ const movies = [
     category: "Sibling collaboration",
     tags: ["folklore", "siblings", "grief", "gentle", "painterly", "Ireland"],
     note: "Tenderness between siblings through folklore: grief is best shared, not hidden.",
+    initialWatched: true,
   },
   {
     title: "Kubo and the Two Strings",
@@ -204,6 +224,7 @@ const movies = [
     category: "Mixed philosophical picks",
     tags: ["stop-motion", "grief", "family", "memory", "bravery", "Laika"],
     note: "Memory and love survive loss; stories are how we carry the people we lose.",
+    initialWatched: true,
   },
   {
     title: "Nausicaä of the Valley of the Wind",
@@ -289,19 +310,59 @@ const movies = [
     tags: ["kindness", "empathy", "outsider", "London", "British"],
     note: "Consistent kindness even when mistreated — a small bear who turns strangers into neighbours.",
   },
+  backlogMovie("Abominable", 2019, false, ["animated", "adventure", "cgi"]),
+  backlogMovie("Luca", 2021, true, ["animated", "cgi", "emotional"]),
+  backlogMovie("Ron's Gone Wrong", 2021, false, ["animated", "robots"]),
+  backlogMovie("The Bad Guys", 2022, true, ["animated", "comedy", "adventure"]),
+  backlogMovie("Rio", 2011, true, ["animated", "music", "adventure"]),
+  backlogMovie("Next Gen", 2018, true, ["animated", "robots"]),
+  backlogMovie("Legend of the Guardians: The Owls of Ga'Hoole", 2010, true, ["animated", "adventure", "fantasy"]),
+  backlogMovie("Tangled", 2010, true, ["animated", "fairy-tale", "music"]),
+  backlogMovie("The Lego Movie", 2014, true, ["animated", "comedy", "creativity"]),
+  backlogMovie("Meet the Robinsons", 2007, false, ["animated", "family", "future"]),
+  backlogMovie("Spirit: Stallion of the Cimarron", 2002, false, ["animated", "adventure"]),
+  backlogMovie("Mary and Max", 2009, false, ["animated", "stop-motion", "emotional"]),
+  backlogMovie("The Croods", 2013, true, ["animated", "family", "adventure"]),
+  backlogMovie("The Tale of Despereaux", 2008, false, ["animated", "storybook"]),
+  backlogMovie("The Good Dinosaur", 2015, true, ["animated", "family"]),
+  backlogMovie("Rango", 2011, true, ["animated", "western", "comedy"]),
+  backlogMovie("Puss in Boots", 2011, true, ["animated", "adventure", "comedy"]),
+  backlogMovie("Flushed Away", 2006, false, ["animated", "comedy"]),
+  backlogMovie("The Great Mouse Detective", 1986, false, ["animated", "mystery"]),
+  backlogMovie("Big Hero 6", 2014, true, ["animated", "teamwork", "superhero"]),
+  backlogMovie("Dragon Hunters: Chasseurs de dragons", 2008, false, ["animated", "fantasy", "adventure"]),
+  backlogMovie("Surf's Up", 2007, true, ["animated", "sports", "comedy"]),
+  backlogMovie("Epic", 2013, false, ["animated", "fantasy", "adventure"]),
+  backlogMovie("Turning Red", 2022, false, ["animated", "family", "identity"]),
+  backlogMovie("The Iron Giant", 1999, true, ["animated", "emotional", "friendship"]),
+  backlogMovie("Megamind", 2010, false, ["animated", "comedy", "superhero"]),
+  backlogMovie("Dinosaur", 2000, false, ["animated", "adventure"]),
+  backlogMovie("Migration", 2023, true, ["animated", "family", "adventure"]),
+  backlogMovie("The Road to El Dorado", 2000, true, ["animated", "adventure", "comedy"]),
+  backlogMovie("Atlantis: The Lost Empire", 2001, false, ["animated", "adventure"]),
+  backlogMovie("The Emperor's New Groove", 2000, false, ["animated", "comedy"]),
+  backlogMovie("Hercules", 1997, false, ["animated", "mythology", "music"]),
+  backlogMovie("Lion King", 1994, true, ["animated", "family", "music"]),
+  backlogMovie("The Return of Jafar", 1994, true, ["animated", "adventure"]),
+  backlogMovie("The Princess and the Frog", 2009, false, ["animated", "music", "fairy-tale"]),
+  backlogMovie("The Hunchback of Notre Dame", 1996, false, ["animated", "music"]),
+  backlogMovie("Pinocchio", 1940, false, ["animated", "classic"]),
+  backlogMovie("Peter Pan", 1991, true, ["animated", "classic", "adventure"]),
+  backlogMovie("Robin Hood", 1973, true, ["animated", "classic", "adventure"]),
+  backlogMovie("The Sword in the Stone", 1963, true, ["animated", "classic", "fantasy"]),
+  backlogMovie("Nimona", 2023, true, ["animated", "identity", "adventure"]),
+  backlogMovie("Robots", 2005, true, ["animated", "comedy", "robots"]),
+  backlogMovie("Wolfwalkers", 2020, true, ["animated", "folklore", "siblings"]),
+  backlogMovie("The Monkey King", 2023, true, ["animated", "folklore", "adventure"]),
+  backlogMovie("Orion and the Dark", 2024, true, ["animated", "fear", "friendship"]),
+  backlogMovie("In Your Dreams", 2025, true, ["animated", "siblings", "dreams"]),
+  backlogMovie("Jumanji", 1995, true, ["adventure", "family"]),
+  backlogMovie("The Mask", 1994, true, ["comedy", "fantasy"]),
+  backlogMovie("Pay It Forward", 2000, true, ["kindness", "generosity"]),
+  backlogMovie("The NeverEnding Story", 1984, true, ["fantasy", "classic"]),
 ];
 
-const alreadyWatched = [
-  "Wolfwalkers",
-  "Big Hero 6",
-  "The Monkey King",
-  "Orion and the Dark",
-  "In Your Dreams",
-  "Jumanji",
-  "The Mask",
-  "Pay It Forward",
-  "The NeverEnding Story",
-];
+const alreadyWatched = [];
 
 const els = {
   search: document.querySelector("#searchInput"),
@@ -337,7 +398,7 @@ function movieKey(movie) {
 }
 
 function getMovieState(movie) {
-  return saved[movieKey(movie)] || { watched: false, rating: 0 };
+  return saved[movieKey(movie)] || { watched: !!movie.initialWatched, rating: 0 };
 }
 
 function setMovieState(movie, next) {
@@ -397,7 +458,7 @@ function filteredMovies() {
       case "year_desc":
         return b.year - a.year;
       case "imdb_desc":
-        return b.imdb - a.imdb;
+        return (b.imdb ?? -1) - (a.imdb ?? -1);
       case "platform_az":
         return a.platform.localeCompare(b.platform) || a.title.localeCompare(b.title);
       case "title_az":
@@ -425,7 +486,7 @@ function createMovieCard(movie) {
     <div class="movie-head">
       <div>
         <h2>${movie.title}</h2>
-        <p>${movie.year} · ${movie.runtime} · IMDb ${movie.imdb.toFixed(1)}</p>
+        <p>${movie.year} · ${movie.runtime} · ${movie.imdb === null ? "IMDb pending" : `IMDb ${movie.imdb.toFixed(1)}`}</p>
       </div>
       <button type="button" class="watch-btn">${state.watched ? "Watched" : "Mark watched"}</button>
     </div>
@@ -458,6 +519,7 @@ function createMovieCard(movie) {
 
 function renderWatchedExclusions() {
   els.watchedList.innerHTML = "";
+  els.watchedList.closest(".already-watched").classList.toggle("hidden", alreadyWatched.length === 0);
   for (const title of alreadyWatched) {
     const li = document.createElement("li");
     li.textContent = title;
