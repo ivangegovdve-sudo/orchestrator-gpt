@@ -1,0 +1,26 @@
+{
+  "name": "Chloé",
+  "short_name": "Chloé",
+  "description": "Chloé — AI companion voice interface",
+  "start_url": "/web/chloe-pwa/?pwa=1",
+  "display": "fullscreen",
+  "orientation": "portrait",
+  "background_color": "#09090b",
+  "theme_color": "#8b5cf6",
+  "lang": "en-US",
+  "categories": ["utilities"],
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ]
+}
