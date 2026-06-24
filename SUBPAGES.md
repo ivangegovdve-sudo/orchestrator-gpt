@@ -105,11 +105,11 @@
 
 ---
 
-## Hypertrophy OS
+## Hyper Trophy OS
 
 **Route:** `/web/hypertrophyos/`
 **Files:** `web/hypertrophyos/index.html`
-**What it is:** Forest HUB wrapper embedding the live Lovable app `https://exercise-insight-engine.lovable.app/`. Source has been synced from Lovable to the private GitHub repo `ivangegovdve-sudo/exercise-insight-engine`.
+**What it is:** Forest HUB wrapper embedding the live Lovable app `https://hypertrophyos.lovable.app/`. Source has been synced from Lovable to the private GitHub repo `ivangegovdve-sudo/hypertrophyos-40f826ee`.
 **State:** Live Lovable embed once deployed. The GitHub source repo is private and connected to Lovable sync on `main`.
 **Next:** Decide whether this stays an iframe-backed Lovable app or moves to native SDForest/Vercel hosting after backend env variables are provisioned.
 
