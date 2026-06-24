@@ -1,23 +1,13 @@
-<!DOCTYPE html>
-<html lang="en">
+﻿<!DOCTYPE html>
+<html lang="it">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Manifesto for a Newborn — Forest HUB</title>
-<meta name="description" content="A letter to the newly arrived. On belonging, feeling, surviving the world's forgetting, and staying whole.">
-<meta property="og:title" content="Manifesto for a Newborn">
-<meta property="og:description" content="You've just crashed the party we call life. Before the world starts yelling its expectations, hear this.">
+<title>Manifesto per un neonato — Forest HUB</title>
+<meta name="description" content="Una lettera al neonato appena arrivato">
+<meta property="og:title" content="Manifesto per un neonato">
+<meta property="og:description" content="Hai appena fatto irruzione nella festa che chiamiamo vita. Non sai cos’è la fame, cosa significhi la paura, né nemmeno cosa faccia un corpo. Non c’è ancora un copione, solo pianti ">
 <meta property="og:type" content="website">
-<link rel="alternate" hreflang="en" href="./">
-<link rel="alternate" hreflang="bg" href="bg/">
-<link rel="alternate" hreflang="mk" href="mk/">
-<link rel="alternate" hreflang="es" href="es/">
-<link rel="alternate" hreflang="fr" href="fr/">
-<link rel="alternate" hreflang="de" href="de/">
-<link rel="alternate" hreflang="it" href="it/">
-<link rel="alternate" hreflang="pt" href="pt/">
-<link rel="alternate" hreflang="ru" href="ru/">
-<link rel="alternate" hreflang="zh-Hans" href="zh/">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;1,400;1,500&family=Inter:wght@300;400&display=swap" rel="stylesheet">
@@ -88,6 +78,8 @@ body {
 .lang {
   display: inline-flex;
   align-items: center;
+  flex-wrap: wrap;
+  justify-content: flex-end;
   gap: 9px;
   font-family: 'Inter', system-ui, sans-serif;
   font-size: 13px;
@@ -190,7 +182,8 @@ h1 em {
   letter-spacing: .01em;
 }
 
-/* ── Epigraph ── */
+/* ── Epigraph — deliberately a different font/treatment from the serif body,
+   so it reads as a separate attributed quote, not part of the manifesto ── */
 .epigraph {
   margin-top: clamp(44px, 7vw, 76px);
   padding-top: clamp(26px, 4vw, 38px);
@@ -237,62 +230,62 @@ footer {
 <div class="page">
   <div class="topbar">
     <a href="/" class="back">← Forest HUB</a>
-    <nav class="lang" aria-label="Language">
-      <span class="current" aria-current="true" title="English">EN</span>
+    <nav class="lang" aria-label="Language / Език">
+      <a href="../" hreflang="en" lang="en" title="English">EN</a>
       <span class="sep">·</span>
-      <a href="bg/" hreflang="bg" lang="bg" title="Български">BG</a>
+      <a href="../bg/" hreflang="bg" lang="bg" title="Български">BG</a>
       <span class="sep">·</span>
-      <a href="mk/" hreflang="mk" lang="mk" title="Македонски">МК</a>
+      <a href="../mk/" hreflang="mk" lang="mk" title="Македонски">МК</a>
       <span class="sep">·</span>
-      <a href="es/" hreflang="es" lang="es" title="Español">ES</a>
+      <a href="../es/" hreflang="es" lang="es" title="Español">ES</a>
       <span class="sep">·</span>
-      <a href="fr/" hreflang="fr" lang="fr" title="Français">FR</a>
+      <a href="../fr/" hreflang="fr" lang="fr" title="Français">FR</a>
       <span class="sep">·</span>
-      <a href="de/" hreflang="de" lang="de" title="Deutsch">DE</a>
+      <a href="../de/" hreflang="de" lang="de" title="Deutsch">DE</a>
       <span class="sep">·</span>
-      <a href="it/" hreflang="it" lang="it" title="Italiano">IT</a>
+      <span class="current" aria-current="true" title="Italiano">IT</span>
       <span class="sep">·</span>
-      <a href="pt/" hreflang="pt" lang="pt" title="Português">PT</a>
+      <a href="../pt/" hreflang="pt" lang="pt" title="Português">PT</a>
       <span class="sep">·</span>
-      <a href="ru/" hreflang="ru" lang="ru" title="Русский">RU</a>
+      <a href="../ru/" hreflang="ru" lang="ru" title="Русский">RU</a>
       <span class="sep">·</span>
-      <a href="zh/" hreflang="zh-Hans" lang="zh-Hans" title="中文">中文</a>
+      <a href="../zh/" hreflang="zh-Hans" lang="zh-Hans" title="中文">中文</a>
     </nav>
   </div>
 
   <header>
-    <p class="eyebrow">A letter to the newly arrived</p>
-    <h1>Manifesto for<br><em>a newborn</em></h1>
+    <p class="eyebrow">Una lettera al neonato appena arrivato</p>
+    <h1>Manifesto per<br><em>un neonato</em></h1>
     <div class="rule"></div>
   </header>
 
   <div class="body-text">
-    <p>You've just crashed the party we call life. You don't know what hunger is, what fear feels like, or even what a body does. There's no script yet, just cries and warm hands. Before the world starts yelling its expectations, hear this:</p>
+    <p>Hai appena fatto irruzione nella festa che chiamiamo vita. Non sai cos’è la fame, cosa significhi la paura, né nemmeno cosa faccia un corpo. Non c’è ancora un copione, solo pianti e mani calde. Prima che il mondo inizi a urlare le sue aspettative, ascolta questo:</p>
 
-    <p>You belong here. That's not contingent on being useful, charming, successful or easy. Your right to exist isn't doled out by parents, teachers, lovers or governments. It predates every report card, paycheck and trophy.</p>
+    <p>Tu appartieni a questo luogo. Non dipende dall’essere utile, affascinante, di successo o comodo. Il tuo diritto di esistere non è concesso da genitori, insegnanti, amanti o governi. È antecedente a ogni pagella, stipendio e trofeo.</p>
 
-    <p>You also get to feel things - joy, terror, confusion, anger, need. Those emotions aren't a problem to solve or an inconvenience to others. They're proof you're alive. They might unsettle people who never learned how to deal with their own feelings, but their discomfort doesn't make you wrong.</p>
+    <p>Ti spetta anche provare - gioia, terrore, confusione, rabbia, bisogno. Quelle emozioni non sono un problema da risolvere né un inconveniente per gli altri. Sono la prova che sei vivo. Possono turbare chi non ha mai imparato a gestire i propri sentimenti, ma il loro disagio non ti rende sbagliato.</p>
 
-    <p>Here's the bad news: the world won't always respect your rights. No law, culture or family can guarantee perpetual shelter for your vulnerability. People forget. Systems fail. Loved ones sometimes ask you to shrink because they don't know how to grow.</p>
+    <p>Ecco la cattiva notizia: il mondo non rispetterà sempre i tuoi diritti. Nessuna legge, cultura o famiglia può garantire un rifugio perpetuo per la tua vulnerabilità. Le persone dimenticano. I sistemi cedono. Gli affetti, a volte, ti chiedono di rimpicciolirti perché non sanno come crescere.</p>
 
-    <p>When pain comes - and it will - don't assume it's because you deserved it. Most wounds are collateral damage from a chaotic world, not evidence of a cosmic vendetta. Humanity is still fumbling along, dragging around inherited fears and bad habits while trying to pay rent and put dinner on the table.</p>
+    <p>Quando arriva il dolore - e arriverà - non pensare che sia perché lo meriti. La maggior parte delle ferite è danno collaterale di un mondo caotico, non prova di una vendetta cosmica. L’umanità, goffamente, si trascina, portando con sé paure ereditate e cattive abitudini, mentre cerca di pagare l’affitto e mettere la cena in tavola.</p>
 
-    <p>Your parents will blow up at you sometimes. They'll also love you ferociously. Both things can be true. They're not demigods with perfect emotional hygiene; they're flawed people suddenly responsible for a fragile life. Their outbursts aren't verdicts on your worth.</p>
+    <p>I tuoi genitori a volte esploderanno contro di te. Ti ameranno anche ferocemente. Entrambe le cose possono essere vere. Non sono semidei con un’igiene emotiva perfetta; sono persone imperfette, improvvisamente responsabili di una vita fragile. I loro scoppi d’ira non sono sentenze sul tuo valore.</p>
 
-    <p>So don't internalize their stress. You're not too much. You are not bad. Getting into trouble, making mistakes, needing care before you have learned how to offer care in return - none of that makes you selfish. It makes you new. It makes you human. It means you are still being taught how to live.</p>
+    <p>Quindi non interiorizzare il loro stress. Non sei troppo. Non sei cattivo. Metterti nei guai, commettere errori, aver bisogno di cure prima di aver imparato a offrirne in cambio - nulla di tutto ciò ti rende egoista. Ti rende nuovo. Ti rende umano. Significa che ti stanno ancora insegnando a vivere.</p>
 
-    <p>Life will teach you contradictory lessons. You'll see that love and harm coexist, that silence feels safer than truth, that laughter hides grief. You'll also learn to come back to yourself. When the world demands performance, return to being. When shame tells you to vanish, remind yourself you're still here.</p>
+    <p>La vita ti impartirà lezioni contraddittorie. Vedrai che amore e danno coesistono, che il silenzio sembra più sicuro della verità, che la risata nasconde il dolore. Imparerai anche a tornare a te stesso. Quando il mondo richiede performance, ritorna all’essere. Quando la vergogna ti dice di scomparire, ricorda a te stesso che sei ancora qui.</p>
 
-    <p>Safety isn't guaranteed, but authenticity is possible. You don't need to become stone to avoid being hurt; stones don't sing. The aim isn't to be untouchable; it's to stay alive without discarding yourself.</p>
+    <p>La sicurezza non è garantita, ma l’autenticità è possibile. Non devi diventare pietra per evitare di essere ferito; le pietre non cantano. L’obiettivo non è essere intoccabile; è rimanere vivo senza abbandonare te stesso.</p>
   </div>
 
   <div class="closing">
-    <p>Welcome to the mess. Welcome to milk and hunger, sleep and chaos, awkward hugs and shaky apologies. Welcome to imperfect love. Your rights - to exist, to feel, to need, to change, to take up space, to be - remain intact even when others fail to honor them.</p>
-    <p>Welcome to life.</p>
+    <p>Benvenuto nel caos. Benvenuto nel latte e nella fame, nel sonno e nell’incertezza, negli abbracci imbarazzanti e nelle scuse traballanti. Benvenuto nell’amore imperfetto. I tuoi diritti - di esistere, di sentire, di aver bisogno, di cambiare, di occupare spazio, di essere - rimangono intatti anche quando gli altri non li onorano.</p>
+    <p>Benvenuto nella vita.</p>
   </div>
 
   <div class="epigraph">
-    <p class="quote">"Take it easy, but take it!"</p>
+    <p class="quote">“Take it easy, but take it!”</p>
     <p class="attr">- Woody Guthrie</p>
   </div>
 
