@@ -1,5 +1,5 @@
 /* Chloé PWA — service worker (shell cache for installability) */
-const CACHE = 'chloe-pwa-v1';
+const CACHE = 'chloe-pwa-v2';
 const SHELL = ['./', './manifest.json', './icon.svg'];
 
 self.addEventListener('install', e => {
