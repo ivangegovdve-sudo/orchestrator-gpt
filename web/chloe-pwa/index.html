@@ -249,16 +249,16 @@ body {
 
     <div class="cfg-f">
       <label>Chat URL</label>
-      <input type="url" id="cfg-chat" placeholder="http://localhost:8766/chat" inputmode="url" autocomplete="off"/>
-      <div class="cfg-hint">localhost:8766 = Termux bridge (most secure). Or direct Tailscale HTTPS URL.</div>
+      <input type="url" id="cfg-chat" placeholder="https://kvm2-chloe.tail5837a3.ts.net/api/chat" inputmode="url" autocomplete="off"/>
+      <div class="cfg-hint">Public funnel URL (default). Bearer token required. Or http://localhost:8766/chat for Termux bridge.</div>
     </div>
     <div class="cfg-f">
       <label>TTS URL</label>
-      <input type="url" id="cfg-tts" placeholder="http://localhost:8766/tts" inputmode="url" autocomplete="off"/>
+      <input type="url" id="cfg-tts" placeholder="https://kvm2-chloe.tail5837a3.ts.net/api/tts" inputmode="url" autocomplete="off"/>
     </div>
     <div class="cfg-f">
-      <label>Bearer Token <span style="opacity:.45;font-size:.65rem">(leave blank if using Termux bridge — it injects auth)</span></label>
-      <input type="password" id="cfg-token" placeholder="optional" autocomplete="new-password"/>
+      <label>Bearer Token <span style="opacity:.45;font-size:.65rem">(required for funnel URLs — leave blank only if using Termux bridge)</span></label>
+      <input type="password" id="cfg-token" placeholder="required for public funnel" autocomplete="new-password"/>
       <div class="cfg-hint">Stored in localStorage on this device only. Never sent to sdforest.site servers.</div>
     </div>
     <div class="cfg-f">
@@ -289,8 +289,8 @@ const CFG_KEY = 'chloe_pwa_v1';
 let cfg = {};
 try { cfg = JSON.parse(localStorage.getItem(CFG_KEY) || '{}'); } catch (_) {}
 const DEFAULTS = {
-  chatUrl:      'http://localhost:8766/chat',
-  ttsUrl:       'http://localhost:8766/tts',
+  chatUrl:      'https://kvm2-chloe.tail5837a3.ts.net/api/chat',
+  ttsUrl:       'https://kvm2-chloe.tail5837a3.ts.net/api/tts',
   token:        '',
   systemPrompt: "You are Chloé, Ivan's AI companion. Be warm, direct, and concise — 2-3 sentences unless more detail is needed.",
 };
