@@ -1,7 +1,7 @@
 # SUBPAGES.md — Forest HUB sdforest.site Subpage Index
 
 **Purpose:** Concise per-subpage description of what each page currently is and its production state. Use this to decide what to improve next.
-**Last updated:** 2026-06-20
+**Last updated:** 2026-06-24
 **Production URL:** https://sdforest.site
 
 ---
@@ -102,6 +102,16 @@
 **What it is:** Printable yearly calendar generator. Saves settings to localStorage. Local image upload or remote URLs. Public holiday lookup via `https://kayaposoft.com/enrico/json/v1.0/`. Attribution: adapted from CalendarGenerator by Franco Mossotto, Apache 2.0.
 **State:** Live and working. Static. Degrades gracefully if holiday API is unavailable.
 **Next:** Preset themes, export, save/load templates.
+
+---
+
+## Hypertrophy OS
+
+**Route:** `/web/hypertrophyos/`
+**Files:** `web/hypertrophyos/index.html`
+**What it is:** Forest HUB wrapper embedding the live Lovable app `https://exercise-insight-engine.lovable.app/`. Source has been synced from Lovable to the private GitHub repo `ivangegovdve-sudo/exercise-insight-engine`.
+**State:** Live Lovable embed once deployed. The GitHub source repo is private and connected to Lovable sync on `main`.
+**Next:** Decide whether this stays an iframe-backed Lovable app or moves to native SDForest/Vercel hosting after backend env variables are provisioned.
 
 ---
 
