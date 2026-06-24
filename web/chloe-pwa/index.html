@@ -24,11 +24,10 @@
     • WAV blob URL cleanup: URL.revokeObjectURL — V2V useVoiceSynthesis.js
 
   Built new (not from V2V):
-    • Web Speech API STT (V2V uses WebRTC/Silero VAD)
-    • REST calls to KVM2 :8700 chat + :8660 TTS (V2V uses OpenAI Realtime)
+    • Server-side Whisper STT via MediaRecorder → KVM2 /api/stt (push-to-talk)
+    • REST calls to KVM2 :8700 chat + :8660 TTS + :8670 STT (funnel-gated)
     • Dot-orb visual (V2V uses Lottie+ring)
     • PWA manifest + service worker
-    • Localhost bridge design for HTTPS→Tailscale
     • localStorage config (token, URLs, system prompt)
   ────────────────────────────────────────────────────────────────────
 -->
@@ -233,7 +232,7 @@ body {
       <div id="tap-ring"></div>
     </div>
     <div id="status">idle</div>
-    <div id="tap-hint">tap to speak</div>
+    <div id="tap-hint">hold to record · release to send</div>
   </div>
 
   <div id="transcript-wrap">
@@ -255,6 +254,11 @@ body {
     <div class="cfg-f">
       <label>TTS URL</label>
       <input type="url" id="cfg-tts" placeholder="https://kvm2-chloe.tail5837a3.ts.net/api/tts" inputmode="url" autocomplete="off"/>
+    </div>
+    <div class="cfg-f">
+      <label>STT URL</label>
+      <input type="url" id="cfg-stt" placeholder="https://kvm2-chloe.tail5837a3.ts.net/api/stt" inputmode="url" autocomplete="off"/>
+      <div class="cfg-hint">Server-side Whisper STT — works in any browser. Bearer token required.</div>
     </div>
     <div class="cfg-f">
       <label>Bearer Token <span style="opacity:.45;font-size:.65rem">(required for funnel URLs — leave blank only if using Termux bridge)</span></label>
@@ -291,6 +295,7 @@ try { cfg = JSON.parse(localStorage.getItem(CFG_KEY) || '{}'); } catch (_) {}
 const DEFAULTS = {
   chatUrl:      'https://kvm2-chloe.tail5837a3.ts.net/api/chat',
   ttsUrl:       'https://kvm2-chloe.tail5837a3.ts.net/api/tts',
+  sttUrl:       'https://kvm2-chloe.tail5837a3.ts.net/api/stt',
   token:        '',
   systemPrompt: "You are Chloé, Ivan's AI companion. Be warm, direct, and concise — 2-3 sentences unless more detail is needed.",
 };
@@ -543,7 +548,7 @@ const transcriptWrap = document.getElementById('transcript-wrap');
 const STATUS_LABEL = {
   idle:         'idle',
   listening:    'listening…',
-  user_speaking:'hearing you…',
+  user_speaking:'recording…',
   thinking:     'thinking…',
   speaking:     'speaking…',
 };
@@ -597,100 +602,114 @@ function clearInterim() {
   if (interimEl) { interimEl.remove(); interimEl = null; }
 }
 
-/* ── WEB SPEECH API STT ──────────────────────────────────────────── */
+/* ── SERVER-SIDE WHISPER STT (MediaRecorder → KVM2 /api/stt) ───── */
 /*
- * V2V uses WebRTC VAD (server-side for OpenAI, Silero for local gateway).
- * We use the browser's Web Speech API instead — simpler, no WASM, works on
- * Android Chrome, and handles VAD internally.
- * Turn-taking: recognition.onend → startListening again (auto-listen loop).
+ * Replaces Web Speech API entirely — works in Brave, Chrome, Firefox,
+ * Android, iOS, any browser with getUserMedia + MediaRecorder.
+ * Push-to-talk UX: hold orb to record, release to send.
+ * Audio blob → POST /api/stt → {"text":"..."} → handleUserTurn().
  */
-const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-let recognition = null, recognizing = false;
+let mediaRecorder = null;
+let audioChunks   = [];
+let isRecording   = false;
 
-if (SR) {
-  recognition = new SR();
-  recognition.continuous      = false;
-  recognition.interimResults  = true;
-  recognition.lang            = 'en-US';
-  recognition.maxAlternatives = 1;
+async function startRecording() {
+  if (isRecording || convState === 'thinking' || convState === 'speaking') return;
+  await ensureAudio().catch(() => {});
+  if (!micStream) {
+    setState('idle', 'mic unavailable');
+    statusEl.className = 's-error';
+    return;
+  }
 
-  recognition.onstart = () => {
-    recognizing = true;
-    setState('listening');
-    clearTimeout(idleTimer);
-  };
+  audioChunks = [];
+  const mimeType = ['audio/webm;codecs=opus', 'audio/webm', 'audio/ogg;codecs=opus', 'audio/ogg']
+    .find(t => MediaRecorder.isTypeSupported(t)) || '';
+  try {
+    mediaRecorder = new MediaRecorder(micStream, mimeType ? { mimeType } : {});
+  } catch (_) {
+    mediaRecorder = new MediaRecorder(micStream);
+  }
 
-  recognition.onresult = e => {
-    let final = '', interim = '';
-    for (let i = e.resultIndex; i < e.results.length; i++) {
-      if (e.results[i].isFinal) final   += e.results[i][0].transcript;
-      else                       interim += e.results[i][0].transcript;
-    }
-    if (interim) {
-      setState('user_speaking'); /* V2V: input_audio_buffer.speech_started → user_speaking */
-      setInterim(interim.slice(0, 55));
-    }
-    if (final.trim()) handleUserTurn(final.trim());
-  };
+  mediaRecorder.ondataavailable = e => { if (e.data && e.data.size > 0) audioChunks.push(e.data); };
 
-  recognition.onerror = e => {
-    recognizing = false;
-    clearInterim();
-    if (e.error === 'no-speech' || e.error === 'aborted') {
-      setState('idle'); armIdle();
-    } else if (e.error === 'not-allowed') {
-      setState('idle', ''); statusEl.textContent = 'mic blocked — check permissions';
+  mediaRecorder.onstop = async () => {
+    isRecording = false;
+    tapRing.classList.remove('on');
+
+    const blob = new Blob(audioChunks, { type: mediaRecorder.mimeType || 'audio/webm' });
+    audioChunks = [];
+
+    if (blob.size < 500) { setState('idle'); armIdle(); return; }
+
+    setState('thinking', 'transcribing…');
+
+    const form = new FormData();
+    form.append('audio', blob, 'recording.webm');
+
+    const tok  = C('token');
+    const hdrs = tok ? { 'Authorization': 'Bearer ' + tok } : {};
+
+    try {
+      const r = await fetch(C('sttUrl'), { method: 'POST', headers: hdrs, body: form });
+      if (!r.ok) throw new Error('stt ' + r.status);
+      const d = await r.json();
+      const text = (d.text || '').trim();
+      if (!text) { setState('idle', 'no speech detected'); armIdle(3000); return; }
+      handleUserTurn(text);
+    } catch (err) {
+      setState('idle', 'stt: ' + err.message);
       statusEl.className = 's-error';
-    } else {
-      setState('idle', e.error); statusEl.className = 's-error'; armIdle(5000);
+      armIdle(5000);
     }
   };
 
-  recognition.onend = () => {
-    recognizing = false;
-    if (convState === 'listening' || convState === 'user_speaking') {
-      setState('idle'); armIdle();
-    }
-  };
-} else {
-  statusEl.textContent = 'Web Speech not supported';
-  statusEl.className   = 's-error';
+  mediaRecorder.onerror = () => { isRecording = false; setState('idle'); armIdle(); };
+  mediaRecorder.start(100);
+  isRecording = true;
+  setState('user_speaking');
+  tapRing.classList.add('on');
 }
 
-function startListening() {
-  if (!recognition) return;
-  if (recognizing || convState === 'thinking' || convState === 'speaking') return;
-  try { recognition.start(); } catch (_) {}
-}
-
-function stopListening() {
-  if (recognition && recognizing) try { recognition.stop(); } catch (_) {}
+function stopRecording() {
+  if (!isRecording || !mediaRecorder || mediaRecorder.state === 'inactive') return;
+  try { mediaRecorder.requestData(); mediaRecorder.stop(); } catch (_) {}
 }
 
 /* ── ORB INTERACTION ─────────────────────────────────────────────── */
-canvas.addEventListener('touchstart', async () => {
-  /* Unlock AudioContext on first touch (autoplay policy) */
+/* Push-to-talk: hold orb to record, release to send.
+   Tap during speaking to barge-in (cancel TTS).
+   Pointer events unify mouse + touch — no duplicate click+touchstart. */
+canvas.addEventListener('pointerdown', async e => {
+  e.preventDefault();
+  canvas.setPointerCapture(e.pointerId);
   await ensureAudio().catch(() => {});
-}, { passive: true });
-
-canvas.addEventListener('click', async () => {
-  await ensureAudio().catch(() => {});
-  if (convState === 'idle') { startListening(); return; }
-  /* V2V barge-in: tap orb during speaking → interrupt TTS, go back to listening */
   if (convState === 'speaking') {
     stopTTS();
     setState('idle');
-    setTimeout(startListening, 400);
+    return;
   }
+  if (convState === 'idle' || convState === 'listening') {
+    startRecording();
+  }
+}, { passive: false });
+
+canvas.addEventListener('pointerup', e => {
+  e.preventDefault();
+  if (isRecording) stopRecording();
+}, { passive: false });
+
+canvas.addEventListener('pointercancel', () => {
+  if (isRecording) stopRecording();
 });
 
-/* ── URL PARAM ?listen=1 → autostart ─────────────────────────────── */
-/* V2V wake-word gate: external daemon fronts the PWA and signals listen start.
-   We use ?listen=1 query param (set by Termux wake_word_pwa.py am start intent). */
+/* ── URL PARAM ?listen=1 → pre-warm mic ─────────────────────────── */
+/* Wake-word gate: external daemon signals listen start via ?listen=1.
+   With push-to-talk, just pre-warm the mic permission so the first
+   orb press is instant. User presses orb to actually record. */
 if (new URLSearchParams(location.search).get('listen') === '1' && localStorage.getItem(CFG_KEY)) {
   setTimeout(async () => {
     await ensureAudio().catch(() => {});
-    startListening();
   }, 900);
 }
 
@@ -770,17 +789,15 @@ async function handleUserTurn(text) {
 
   if (convState !== 'speaking') return;  /* barge-in already changed state */
 
-  setState('idle');                      /* V2V: response.done → 'listening' */
+  setState('idle');                      /* V2V: response.done — user presses orb to speak again */
   armIdle();
-
-  /* Auto-listen for follow-up (V2V: session stays open, model auto-listens) */
-  setTimeout(startListening, 1400);
 }
 
 /* ── CONFIG MODAL ────────────────────────────────────────────────── */
 function openConfig() {
   document.getElementById('cfg-chat').value     = C('chatUrl');
   document.getElementById('cfg-tts').value      = C('ttsUrl');
+  document.getElementById('cfg-stt').value      = C('sttUrl');
   document.getElementById('cfg-token').value    = C('token');
   document.getElementById('cfg-sysprompt').value = C('systemPrompt');
   document.getElementById('cfg-msg').textContent = '';
@@ -792,6 +809,7 @@ function closeConfig() {
 function saveConfig() {
   cfg.chatUrl      = document.getElementById('cfg-chat').value.trim()      || DEFAULTS.chatUrl;
   cfg.ttsUrl       = document.getElementById('cfg-tts').value.trim()       || DEFAULTS.ttsUrl;
+  cfg.sttUrl       = document.getElementById('cfg-stt').value.trim()       || DEFAULTS.sttUrl;
   cfg.token        = document.getElementById('cfg-token').value.trim();
   cfg.systemPrompt = document.getElementById('cfg-sysprompt').value.trim() || DEFAULTS.systemPrompt;
   localStorage.setItem(CFG_KEY, JSON.stringify(cfg));
