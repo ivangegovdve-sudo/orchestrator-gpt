@@ -170,6 +170,29 @@ footer {
 @media (prefers-reduced-motion: reduce) {
   #plexus { display: none; }
 }
+
+/* ── Language switcher ── */
+.lang-switch {
+  display: inline-flex;
+  gap: 6px;
+  margin-bottom: clamp(24px, 4vw, 36px);
+}
+.lang-btn {
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 11px;
+  font-weight: 400;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  background: none;
+  border: 1px solid rgba(255,255,255,.1);
+  color: var(--text-dim);
+  padding: 5px 14px;
+  border-radius: 99px;
+  cursor: pointer;
+  transition: border-color .2s, color .2s;
+}
+.lang-btn:hover { color: var(--text); border-color: rgba(255,255,255,.22); }
+.lang-btn.active { color: var(--warm); border-color: rgba(214,184,122,.45); }
 </style>
 </head>
 <body>
@@ -178,6 +201,13 @@ footer {
 
 <div class="page">
   <a href="/" class="back">← Forest HUB</a>
+
+  <div class="lang-switch" role="group" aria-label="Language">
+    <button class="lang-btn active" data-lang="en">EN</button>
+    <button class="lang-btn" data-lang="mk">МК</button>
+  </div>
+
+  <div id="content-en">
 
   <header>
     <p class="eyebrow">A letter to the newly arrived</p>
@@ -209,6 +239,43 @@ footer {
     <p>Welcome to the mess. Welcome to milk and hunger, sleep and chaos, awkward hugs and shaky apologies. Welcome to imperfect love. Your rights—to exist, to feel, to need, to change, to take up space—remain intact even when others fail to honor them.</p>
     <p>Welcome to life.</p>
   </div>
+
+  </div><!-- /content-en -->
+
+  <div id="content-mk" hidden>
+
+    <header>
+      <p class="eyebrow">Писмо до новопристигнатиот</p>
+      <h1>Манифест за<br><em>новороденото</em></h1>
+      <div class="rule"></div>
+    </header>
+
+    <div class="body-text">
+      <p>Штотуку упадна на забавата наречена живот. Не знаеш уште што е глад, каков е стравот, ниту пак на што служи телото. Сценарио сè уште нема — само плач и топли раце. Пред светот да почне да ги врека своите очекувања, слушни го ова:</p>
+
+      <p>Ти му припаѓаш на овој свет. Тоа не зависи од тоа дали си корисен, шармантен, успешен или лесен за живот. Твоето право да постоиш не го делат родителите, учителите, љубовниците или владите. Тоа право е постаро од секоја оценка, секоја плата и секој трофеј.</p>
+
+      <p>Ти исто така имаш право да чувствуваш — радост, ужас, збунетост, лутина, потреба. Тие емоции не се проблем за решавање ниту непријатност за другите. Тие се доказ дека си жив. Можат да вознемират луѓе кои никогаш не научиле да се справуваат со своите сопствени чувства — но нивната непријатност не те прави погрешен.</p>
+
+      <p>Еве ги лошите вести: светот нема секогаш да ги почитува твоите права. Нема закон, култура ниту семејство кои можат да гарантираат вечна заштита за твојата ранливост. Луѓето заборавуваат. Системите не успеваат. Блиските понекогаш те молат да се смалиш — затоа што самите не знаат да растат.</p>
+
+      <p>Кога болката ќе дојде — а ќе дојде — не претпоставувај дека си ја заслужил. Повеќето рани се колатерална штета на еден хаотичен свет, а не доказ за некоја космичка одмазда. Човештвото сè уште спотикнува, влечејќи ги наследените стравови и лоши навики, додека се обидува да плати кирија и да постави вечера на масата.</p>
+
+      <p>Твоите родители понекогаш ќе избликнат против тебе. Исто така ќе те сакаат неизмерно. И двете нешта можат да бидат вистинити. Тие не се полубогови со совршена емоционална хигиена — тие се несовршени луѓе кои одеднаш станаа одговорни за еден кревок живот. Нивните избливи не се пресуди за твојата вредност.</p>
+
+      <p>Затоа не го интернализирај нивниот стрес. Не си прекумерен. Ти не си лош. Да правиш непријатности, да грешиш, да имаш потреба за грижа пред да научиш да даваш грижа — ниту едно од тоа не те прави себичен. Тоа те прави нов. Тоа те прави човечки. Тоа значи дека сè уште учиш да живееш.</p>
+
+      <p>Животот ќе те учи спротивставени лекции. Ќе видиш дека љубовта и болот постојат истовремено, дека тишината се чини побезбедна од вистината, дека смеата крие тага. Исто така ќе научиш да се враќаш кај себе. Кога светот бара перформанс, врати се кон постоењето. Кога срамот ти кажува да исчезнеш, потсети се дека сè уште си тука.</p>
+
+      <p>Безбедноста не е загарантирана, но автентичноста е можна. Не треба да станеш камен за да не бидеш повреден — камењата не пеат. Целта не е да бидеш недопирлив; целта е да останеш жив без да се откажеш од себеси.</p>
+    </div>
+
+    <div class="closing">
+      <p>Добредојде во метежот. Добредојде во млекото и гладот, во сонот и хаосот, во незграпните прегратки и несигурните извинувања. Добредојде во несовршената љубов. Твоите права — да постоиш, да чувствуваш, да имаш потреба, да се менуваш, да заземаш простор — остануваат нетакнати дури и кога другите не успеваат да ги почитуваат.</p>
+      <p>Добредојде во животот.</p>
+    </div>
+
+  </div><!-- /content-mk -->
 
   <footer>Forest HUB &nbsp;·&nbsp; sdforest.site</footer>
 </div>
@@ -279,6 +346,38 @@ footer {
   resize();
   init();
   draw();
+})();
+</script>
+
+<script>
+(function () {
+  var btns = document.querySelectorAll('.lang-btn');
+  var enDiv = document.getElementById('content-en');
+  var mkDiv = document.getElementById('content-mk');
+
+  function switchLang(lang) {
+    if (lang === 'mk') {
+      enDiv.hidden = true;
+      mkDiv.hidden = false;
+    } else {
+      enDiv.hidden = false;
+      mkDiv.hidden = true;
+    }
+    btns.forEach(function (b) {
+      b.classList.toggle('active', b.dataset.lang === lang);
+    });
+    try { localStorage.setItem('manifesto-lang', lang); } catch (e) {}
+  }
+
+  btns.forEach(function (btn) {
+    btn.addEventListener('click', function () { switchLang(btn.dataset.lang); });
+  });
+
+  // Restore last choice
+  try {
+    var saved = localStorage.getItem('manifesto-lang');
+    if (saved === 'mk') switchLang('mk');
+  } catch (e) {}
 })();
 </script>
 </body>

@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Maria Popova — Five Pieces · Forest HUB</title>
+  <meta name="description" content="Five prose-poems on being here, on darkness, and on love. By Maria Popova, 2019–2021." />
+  <meta property="og:title" content="Maria Popova — Five Pieces" />
+  <meta property="og:description" content="Words that emerge from the dark as you read them. On being here, on darkness, love, and loss." />
+  <meta property="og:type" content="website" />
+  <meta name="theme-color" content="#0a0908" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;1,400&family=Inter:wght@300;400&display=swap" rel="stylesheet" />
+
+  <style>
+    :root {
+      --bg:     #0a0908;
+      --text:   #ede8df;
+      --muted:  #68625c;
+      --accent: #c88a28;
+      --col:    580px;
+      --gut:    clamp(20px, 5vw, 40px);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Lora', Georgia, 'Times New Roman', serif;
+      font-size: clamp(17px, 2vw, 19px);
+      line-height: 1.82;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+
+    /* ── Nav ── */
+    .nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 10;
+      padding: 16px var(--gut);
+      background: linear-gradient(to bottom, rgba(10,9,8,.92) 60%, transparent);
+    }
+    .back-link {
+      font-family: 'Inter', system-ui, sans-serif;
+      font-size: 12px;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      color: var(--muted);
+      text-decoration: none;
+      transition: color .25s;
+    }
+    .back-link:hover { color: var(--text); }
+
+    /* ── Page ── */
+    .page {
+      max-width: var(--col);
+      margin: 0 auto;
+      padding: clamp(80px, 12vw, 120px) var(--gut) clamp(80px, 12vw, 120px);
+    }
+
+    /* ── Hero ── */
+    .hero {
+      margin-bottom: clamp(72px, 11vw, 112px);
+      padding-top: 16px;
+    }
+    .hero-eyebrow {
+      font-family: 'Inter', system-ui, sans-serif;
+      font-size: 11px;
+      font-weight: 300;
+      letter-spacing: .2em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 20px;
+    }
+    .hero-title {
+      font-size: clamp(1.6em, 5vw, 2.4em);
+      font-weight: 400;
+      line-height: 1.22;
+      letter-spacing: -.01em;
+    }
+    .hero-rule {
+      width: 36px;
+      height: 1px;
+      background: var(--accent);
+      opacity: .5;
+      margin: 24px 0;
+    }
+    .scroll-hint {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-family: 'Inter', system-ui, sans-serif;
+      font-size: 11px;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: var(--muted);
+      animation: hintBob 2.6s ease-in-out infinite;
+    }
+    @keyframes hintBob {
+      0%,100% { opacity: .35; transform: translateY(0); }
+      50%      { opacity: .65; transform: translateY(4px); }
+    }
+
+    /* ── Poems ── */
+    .poems {
+      display: flex;
+      flex-direction: column;
+      gap: clamp(72px, 11vw, 104px);
+    }
+
+    /* ── Poem meta ── */
+    .poem-meta {
+      margin-bottom: clamp(22px, 3.5vw, 32px);
+    }
+    .poem-date {
+      display: block;
+      font-family: 'Inter', system-ui, sans-serif;
+      font-size: 11px;
+      font-weight: 300;
+      font-variant: small-caps;
+      letter-spacing: .18em;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+    .poem-title {
+      font-size: clamp(1.05em, 2.2vw, 1.25em);
+      font-weight: 500;
+      color: #c0b8a8;
+      margin-bottom: 10px;
+      letter-spacing: -.01em;
+    }
+    .artwork-desc {
+      font-family: 'Inter', system-ui, sans-serif;
+      font-size: 12px;
+      font-style: italic;
+      color: var(--muted);
+      line-height: 1.5;
+      opacity: .75;
+    }
+    .poem-divider {
+      width: 24px;
+      height: 1px;
+      background: rgba(200,190,170,.12);
+      margin: 18px 0;
+    }
+
+    /* ── Poem body ── */
+    .poem-body p {
+      margin-bottom: 1.35em;
+    }
+    .poem-body p:last-child { margin-bottom: 0; }
+
+    /* ── Word emergence ── */
+    .word {
+      opacity: 0;
+      transition: opacity 0.85s ease;
+    }
+    .word.visible { opacity: 1; }
+
+    .accent { color: var(--accent); }
+
+    @media (prefers-reduced-motion: reduce) {
+      .word { opacity: 1 !important; }
+      .scroll-hint { display: none; }
+    }
+
+    /* ── Footer ── */
+    .site-footer {
+      margin-top: clamp(72px, 11vw, 104px);
+      padding-top: 22px;
+      border-top: 1px solid rgba(255,255,255,.05);
+      font-family: 'Inter', system-ui, sans-serif;
+      font-size: 12px;
+      color: var(--muted);
+      letter-spacing: .04em;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .site-footer a {
+      color: var(--muted);
+      text-decoration: none;
+      transition: color .2s;
+    }
+    .site-footer a:hover { color: var(--text); }
+  </style>
+</head>
+<body>
+
+  <nav class="nav">
+    <a href="/" class="back-link">← Forest HUB</a>
+  </nav>
+
+  <div class="page">
+
+    <header class="hero">
+      <p class="hero-eyebrow">Maria Popova · Five Pieces</p>
+      <h1 class="hero-title">On being here,<br>on darkness,<br>and on love.</h1>
+      <div class="hero-rule"></div>
+      <span class="scroll-hint" aria-hidden="true">
+        <svg width="12" height="14" viewBox="0 0 12 14" fill="none" aria-hidden="true">
+          <path d="M6 1v10M6 11l-3.5-3M6 11l3.5-3" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        Scroll to read
+      </span>
+    </header>
+
+    <div class="poems">
+
+      <article class="poem-section">
+        <div class="poem-meta">
+          <time class="poem-date">30 Mar 2019</time>
+          <h2 class="poem-title">On Being Here</h2>
+          <p class="artwork-desc">Field of dark red tulips, a single yellow tulip standing alone among them</p>
+          <div class="poem-divider"></div>
+        </div>
+        <div class="poem-body">
+          <p data-emerge>You are here. The chances of you being here were millions to one. You could have been a poet, a scientist, a composer, a great leader or someone far worse. You could have been millions of other people and yet you are here. Life is fragile. It can be over before you know it. Loss will feel like parts of you are being ripped away unapologetically and violently. But you are here. <span class="accent">Live!</span> For the poet, the scientist, the leader that could have been but never was. <span class="accent">Live!</span></p>
+        </div>
+      </article>
+
+      <article class="poem-section">
+        <div class="poem-meta">
+          <time class="poem-date">21 Mar 2019</time>
+          <h2 class="poem-title">On Darkness</h2>
+          <p class="artwork-desc">Charcoal drawing — a figure hunched over, arms folded above head, dark and stark</p>
+          <div class="poem-divider"></div>
+        </div>
+        <div class="poem-body">
+          <p data-emerge>Darkness lives in you. It lives in all of us. We develop it after a certain age. Our greed, our vanity, our ignorance, our jealousy, they all feed into it. We grow it with time and try to numb it out. You can for a little while. But look inward and acknowledge it. Become fully aware of it. Don't be scared. It's not a demon, it's your own self. Face it and accept it. Take it by the hand and master it. It is a void waiting to be filled with kindness, compassion and love. <span class="accent">There's light in you</span> and you are stronger than you think you are.</p>
+        </div>
+      </article>
+
+      <article class="poem-section">
+        <div class="poem-meta">
+          <time class="poem-date">8 Mar 2019</time>
+          <h2 class="poem-title">On Solitude</h2>
+          <p class="artwork-desc">Dark seascape at dusk — rocks silhouetted against a deep amber horizon, vast dark sky</p>
+          <div class="poem-divider"></div>
+        </div>
+        <div class="poem-body">
+          <p data-emerge><span class="accent">Seek solitude.</span> Do not be afraid of the deafening silence in it. Let it engulf and obliterate you. When you come back from it you will realise you do not need the ocean for its calmness because the core of the ocean will be the same as the core of your own soul.</p>
+        </div>
+      </article>
+
+      <article class="poem-section">
+        <div class="poem-meta">
+          <time class="poem-date">2 Apr 2019</time>
+          <h2 class="poem-title">A Conversation with My Heart</h2>
+          <p class="artwork-desc">Banksy-style illustration — dark silhouette of a girl reaching toward a red heart-shaped balloon floating away, stormy sky</p>
+          <div class="poem-divider"></div>
+        </div>
+        <div class="poem-body">
+          <p data-emerge>One day I sat down to have a talk with my heart. It had a tendency to care for all the wrong people and that caused me a lot of pain.</p>
+          <p data-emerge>— Tell me, silly little heart, why do you always do this? You jump up and down for someone that doesn't even look in your direction properly. You make all these efforts and end up broken over and over again. When will you learn?</p>
+          <p data-emerge>My heart listened and we were both silent for a while. Then it spoke.</p>
+          <p data-emerge>— <span class="accent">I am here to love.</span> The same way the sun is here to rise each morning and set each night. That is my only purpose. Love doesn't need a reason to be here. It simply is. You are here to decide where to channel that love. I'm just the engine and you are in the driver's seat. Tell me then, silly little human, where do you want love to take you?</p>
+        </div>
+      </article>
+
+      <article class="poem-section">
+        <div class="poem-meta">
+          <time class="poem-date">14 Feb 2021</time>
+          <h2 class="poem-title">On Love and Loss</h2>
+          <p class="artwork-desc">White luminous swirling figure — abstract, like smoke or silk ribbons — against a black starfield</p>
+          <div class="poem-divider"></div>
+        </div>
+        <div class="poem-body">
+          <p data-emerge>Love changes you. In all its forms and shapes. Regardless whether you want to or not. It holds bliss and joy but brings loss and grief. But would you know one without the other? Every attachment you form during your life — family, friendship, romance, pets — every soul you let inside your heart will have power over you and you will give that power away freely. The stronger the love, the bigger the bond and the deeper the pain. Love itself will not hurt you. Loss will. Healing will. It can make you strong or it can make you fearful. It can make you brave or cynical. Choose! Choose where you give your heart away. The love you feel will shape the person that you are. Whatever choice you make, whatever shape your heart takes, I hope it's all worth it for you in the end. And yet I hope you choose to be brave and strong. <span class="accent">I hope you choose to love.</span></p>
+        </div>
+      </article>
+
+    </div><!-- /poems -->
+
+    <footer class="site-footer">
+      <span>Maria Popova · Facebook, 2019–2021</span>
+      <a href="/">Forest HUB · sdforest.site</a>
+    </footer>
+
+  </div><!-- /page -->
+
+  <script>
+    (function () {
+      var noMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      if (noMotion) return;
+
+      // Wrap text nodes into .word spans; add .word to existing elements (.accent)
+      function wrapWords(el) {
+        var children = Array.from(el.childNodes);
+        // Clear using removeChild to preserve references
+        while (el.firstChild) el.removeChild(el.firstChild);
+        children.forEach(function (node) {
+          if (node.nodeType === 3) { // text node
+            node.textContent.split(/(\s+)/).forEach(function (part) {
+              if (/^\s*$/.test(part)) {
+                el.appendChild(document.createTextNode(part));
+              } else if (part) {
+                var span = document.createElement('span');
+                span.className = 'word';
+                span.textContent = part;
+                el.appendChild(span);
+              }
+            });
+          } else {
+            // Element node (e.g. .accent span) — tag it as a word unit
+            node.classList.add('word');
+            el.appendChild(node);
+          }
+        });
+      }
+
+      document.querySelectorAll('[data-emerge]').forEach(wrapWords);
+
+      var io = new IntersectionObserver(function (entries) {
+        entries.forEach(function (entry) {
+          if (!entry.isIntersecting || entry.target._done) return;
+          entry.target._done = true;
+          var words = entry.target.querySelectorAll('.word');
+          words.forEach(function (w, i) {
+            setTimeout(function () { w.classList.add('visible'); }, i * 38);
+          });
+        });
+      }, { threshold: 0.05 });
+
+      document.querySelectorAll('[data-emerge]').forEach(function (p) { io.observe(p); });
+    })();
+  </script>
+
+</body>
+</html>

@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="description" content="Forest HUB — interactive projects, tools, and experiments. Life in Time calculator, AI glossary, periodic table, LLM platforms map, kids movie library, LLM Council, Manifesto for a Newborn, and more." />
   <meta property="og:title" content="Forest HUB" />
-  <meta property="og:description" content="Projects, tools, and experiments — built in the forest. 11 projects · 166 AI platforms · 527 glossary terms." />
+  <meta property="og:description" content="Projects, tools, and experiments — built in the forest. 12 projects · 166 AI platforms · 527 glossary terms." />
   <meta property="og:type" content="website" />
   <meta name="theme-color" content="#07070b" />
   <title>Forest HUB</title>
@@ -213,6 +213,7 @@
     .hub-card:nth-child(9){animation-delay:.45s}
     .hub-card:nth-child(10){animation-delay:.50s}
     .hub-card:nth-child(11){animation-delay:.55s}
+    .hub-card:nth-child(12){animation-delay:.60s}
     @keyframes cardIn {
       from { opacity: 0; transform: perspective(900px) translateY(20px) scale(.96); }
       to   { opacity: 1; transform: perspective(900px) translateY(0) scale(1); }
@@ -375,10 +376,10 @@
       <p class="hero-sub">Projects, tools, and experiments — built in the forest.</p>
 
       <div class="hero-stats" aria-label="Site statistics">
-        <span class="stat"><span class="num">11</span><span class="lbl">Projects</span></span>
+        <span class="stat"><span class="num">12</span><span class="lbl">Projects</span></span>
         <span class="stat"><span class="num">166</span><span class="lbl">Platforms</span></span>
         <span class="stat"><span class="num">527</span><span class="lbl">Terms</span></span>
-        <span class="stat"><span class="num">24</span><span class="lbl">Films</span></span>
+        <span class="stat"><span class="num">74</span><span class="lbl">Films</span></span>
       </div>
     </header>
 
@@ -387,7 +388,7 @@
       <div class="section-head">
         <h2>All Projects</h2>
         <span class="rule"></span>
-        <span class="count">11</span>
+        <span class="count">12</span>
       </div>
 
       <div class="hub-grid" id="hub-grid" style="margin-top:34px">
@@ -513,12 +514,23 @@
           </div>
         </a>
 
+        <a href="/web/m-popova/" class="hub-card"
+           style="--c:rgba(200,138,40,.42);--cp:rgba(200,138,40,.1);--ct:#c88a28;--icon-delay:1.43s">
+          <div class="hub-icon-ring"><span class="hub-icon">🌷</span></div>
+          <div class="hub-name">Maria Popova</div>
+          <div class="hub-pill">Poetry</div>
+          <div class="hub-desc-box">
+            <p class="hub-desc">Five prose-poems on being here, on darkness, love and loss. Words that emerge from the dark as you read.</p>
+            <span class="hub-cta">Read ↗</span>
+          </div>
+        </a>
+
       </div>
     </section>
 
     <footer class="site">
       <p>Forest HUB · Built by Ivan · Deployed on <a href="https://sdforest.site">sdforest.site</a></p>
-      <p class="meta">11 projects · 166 AI platforms · 527 glossary terms · 24 curated movies</p>
+      <p class="meta">12 projects · 166 AI platforms · 527 glossary terms · 74 curated movies</p>
     </footer>
   </div>
 
@@ -544,8 +556,8 @@
         const count = Math.max(36, Math.min(130, Math.round(area / 16000)));
         parts = Array.from({ length: count }, () => ({
           x: Math.random(), y: Math.random(),
-          vx: (Math.random() - 0.5) * 0.045,
-          vy: (Math.random() - 0.5) * 0.045,
+          vx: (Math.random() - 0.5) * 0.5,
+          vy: (Math.random() - 0.5) * 0.5,
           z: Math.random() * 0.7 + 0.3,
           hue: Math.random() > 0.5 ? 199 : 264,
         }));
