@@ -123,6 +123,18 @@ body {
 }
 @media(prefers-reduced-motion:reduce){ #chloe-orb { display: none; } }
 
+/* Blur halo behind orb (DOM layer for state-colour transitions) */
+#orb-halo {
+  position: absolute;
+  inset: -28%;
+  border-radius: 50%;
+  pointer-events: none;
+  background: radial-gradient(ellipse at center, rgba(139,92,246,.09) 0%, transparent 65%);
+  filter: blur(28px);
+  opacity: .65;
+  transition: background .6s ease, opacity .4s ease;
+}
+
 /* Listening ring — animated during user_speaking */
 #tap-ring {
   position: absolute; inset: -8px;
@@ -161,6 +173,14 @@ body {
   text-align: center; letter-spacing: .05em;
   transition: opacity .35s;
 }
+#latency-hint {
+  margin-top: 3px;
+  font-size: .6rem; color: rgba(139,92,246,.4);
+  text-align: center; letter-spacing: .04em;
+  min-height: 1em;
+  opacity: 0; transition: opacity .5s;
+}
+#latency-hint.show { opacity: 1; }
 
 /* ── Transcript ── */
 #transcript-wrap {
@@ -287,11 +307,13 @@ body {
 
   <div id="orb-section">
     <div id="orb-wrap">
+      <div id="orb-halo"></div>
       <canvas id="chloe-orb" aria-label="Chloé avatar"></canvas>
       <div id="tap-ring"></div>
     </div>
     <div id="status">idle</div>
     <div id="tap-hint">type below · ↵ to send</div>
+    <div id="latency-hint"></div>
   </div>
 
   <div id="transcript-wrap">
@@ -367,11 +389,12 @@ const DEFAULTS = {
 const C = k => (cfg[k] !== undefined && cfg[k] !== '') ? cfg[k] : DEFAULTS[k];
 
 /* ── ORB CANVAS SETUP ───────────────────────────────────────────── */
-const canvas  = document.getElementById('chloe-orb');
-const orbSect = document.getElementById('orb-section');
-const tapRing = document.getElementById('tap-ring');
-const DPR     = Math.min(window.devicePixelRatio || 2, 3);
-let orbCSS    = 300;
+const canvas    = document.getElementById('chloe-orb');
+const orbSect   = document.getElementById('orb-section');
+const tapRing   = document.getElementById('tap-ring');
+const orbHaloEl = document.getElementById('orb-halo');
+const DPR       = Math.min(window.devicePixelRatio || 2, 3);
+let orbCSS      = 300;
 
 function resizeOrb() {
   const avail = orbSect.clientHeight - 60;
@@ -392,7 +415,7 @@ window.addEventListener('resize', resizeOrb);
 (function orbAnim() {
   if (!canvas || window.matchMedia('(prefers-reduced-motion:reduce)').matches) return;
   const ctx = canvas.getContext('2d');
-  const N   = 168;
+  const N   = 90;
   const DOTS = Array.from({ length: N }, (_, i) => {
     const py    = 1 - (i / (N - 1)) * 2;
     const pr    = Math.sqrt(Math.max(0, 1 - py * py));
@@ -455,6 +478,19 @@ window.addEventListener('resize', resizeOrb);
     pts.sort((a, b) => a.depth - b.depth);
     ctx.clearRect(0, 0, W, H);
 
+    /* Canvas-layer glow halo — audio + state reactive */
+    const haloH  = (convState === 'speaking') ? 200 : 260;
+    const haloRd = R * breath * 1.65 + audio * R * 0.55;
+    const hGrd   = ctx.createRadialGradient(CX, CY, 0, CX, CY, haloRd);
+    hGrd.addColorStop(0,   `hsla(${haloH},72%,65%,${.14 + audio * .28})`);
+    hGrd.addColorStop(0.45,`hsla(${haloH},72%,65%,${.04 + audio * .10})`);
+    hGrd.addColorStop(1,   `hsla(${haloH},72%,65%,0)`);
+    ctx.beginPath(); ctx.arc(CX, CY, haloRd, 0, Math.PI * 2);
+    ctx.fillStyle = hGrd; ctx.fill();
+
+    /* Sync DOM halo opacity to audio energy */
+    if (orbHaloEl) orbHaloEl.style.opacity = String((.45 + audio * 1.4).toFixed(2));
+
     for (let i = 0; i < pts.length; i++) {
       for (let j = i + 1; j < pts.length; j++) {
         const dx = pts[i].sx - pts[j].sx, dy = pts[i].sy - pts[j].sy;
@@ -487,8 +523,10 @@ let micRafId     = null;
 let ttsActive    = false;
 let activeTtsSrc = null;
 let ttsAnalyser  = null, ttsBuf;
+let ttsTickGen   = 0;     /* generation counter — stops stale RAF loops between sentences */
 const ttsQueue   = [];
 let   ttsRunning = false;
+let   _turnStart = 0;     /* timestamp: user sends → first TTS audio */
 
 /* ensureAudioCtx: create AudioContext only — no mic permission.
    Safe to call in text mode. Required before any TTS playback. */
@@ -564,9 +602,23 @@ async function playTTS(wavBuf) {
   src.connect(ttsAnalyser);
   ttsAnalyser.connect(audioCtx.destination);
   ttsActive = true;
+  const myGen = ++ttsTickGen;
+
+  /* Latency: ms from user send → first audio chunk playing */
+  if (_turnStart > 0) {
+    const lat = Date.now() - _turnStart;
+    _turnStart = 0;
+    console.log('[chloe] round-trip latency:', lat, 'ms');
+    const lEl = document.getElementById('latency-hint');
+    if (lEl) {
+      lEl.textContent = '⚡ ' + (lat < 1000 ? lat + ' ms' : (lat / 1000).toFixed(1) + ' s');
+      lEl.classList.add('show');
+      setTimeout(() => lEl.classList.remove('show'), 9000);
+    }
+  }
 
   function tickTts() {
-    if (!ttsActive) { window.orbAudio = 0; return; }
+    if (!ttsActive || ttsTickGen !== myGen) return; /* stop when superseded or tts stopped */
     requestAnimationFrame(tickTts);
     ttsAnalyser.getByteFrequencyData(ttsBuf);
     const mid  = Math.floor(ttsBuf.length / 3);
@@ -623,6 +675,16 @@ function setState(s, label) {
   if (s === 'idle' || s === 'error') {
     textSendBtn.disabled = false;
   }
+  /* tint DOM halo for state */
+  if (orbHaloEl) {
+    if (s === 'speaking') {
+      orbHaloEl.style.background = 'radial-gradient(ellipse at center, rgba(14,165,233,.14) 0%, transparent 65%)';
+    } else if (s === 'user_speaking' || s === 'listening') {
+      orbHaloEl.style.background = 'radial-gradient(ellipse at center, rgba(14,165,233,.09) 0%, transparent 65%)';
+    } else {
+      orbHaloEl.style.background = 'radial-gradient(ellipse at center, rgba(139,92,246,.09) 0%, transparent 65%)';
+    }
+  }
 }
 
 function armIdle(ms = 14000) {
@@ -673,8 +735,13 @@ function setMicEnabled(on) {
   tapHintEl.textContent = on
     ? 'hold orb to record · release to send'
     : 'type below · ↵ to send';
-  /* In voice mode the orb is the input; hint the cursor differently */
   canvas.style.cursor = on ? 'pointer' : 'default';
+  if (on && (convState === 'idle' || convState === 'listening')) {
+    /* warm up mic + AudioContext so first hold is instant */
+    ensureAudio().catch(() => {}).then(() => {
+      if (micEnabled && convState === 'idle') setState('listening', 'ready — hold orb');
+    });
+  }
 }
 
 async function sendTextMessage() {
@@ -882,6 +949,7 @@ async function ttsDrain() {
 /* ── CONVERSATION TURN ───────────────────────────────────────────── */
 async function handleUserTurn(text) {
   if (!text) return;
+  _turnStart = Date.now();
   clearInterim();
   onTranscript('user', text);
   messages.push({ role: 'user', content: text });
