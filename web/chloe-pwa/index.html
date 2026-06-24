@@ -24,7 +24,8 @@
     • WAV blob URL cleanup: URL.revokeObjectURL — V2V useVoiceSynthesis.js
 
   Built new (not from V2V):
-    • Server-side Whisper STT via MediaRecorder → KVM2 /api/stt (push-to-talk)
+    • Text-only input mode (DEFAULT) — no mic permission required
+    • Server-side Whisper STT via MediaRecorder → KVM2 /api/stt (optional voice mode)
     • REST calls to KVM2 :8700 chat + :8660 TTS + :8670 STT (funnel-gated)
     • Dot-orb visual (V2V uses Lottie+ring)
     • PWA manifest + service worker
@@ -76,6 +77,25 @@ body {
   letter-spacing: .18em; text-transform: uppercase;
   color: rgba(139,92,246,.5);
 }
+.topbar-actions {
+  display: flex; gap: 6px; align-items: center;
+}
+#btn-mic {
+  background: none;
+  border: 1px solid rgba(255,255,255,.07);
+  border-radius: 8px;
+  color: var(--muted);
+  font-size: 1rem; line-height: 1;
+  cursor: pointer; padding: 5px 8px;
+  opacity: .55; transition: opacity .2s, border-color .2s, background .2s, color .2s;
+}
+#btn-mic.active {
+  opacity: 1;
+  border-color: rgba(14,165,233,.5);
+  background: rgba(14,165,233,.1);
+  color: rgba(14,165,233,.9);
+}
+#btn-mic:hover, #btn-mic:active { opacity: 1; }
 #btn-cfg {
   background: none;
   border: 1px solid rgba(255,255,255,.07);
@@ -177,6 +197,42 @@ body {
   align-self: flex-end; font-style: italic; font-size: .76rem;
 }
 
+/* ── Text input bar ── */
+#text-bar {
+  flex-shrink: 0;
+  display: flex; gap: 8px; align-items: flex-end;
+  padding: 6px 14px calc(8px + env(safe-area-inset-bottom, 0px));
+  border-top: 1px solid rgba(255,255,255,.04);
+}
+#text-msg {
+  flex: 1;
+  background: rgba(255,255,255,.05);
+  border: 1px solid rgba(139,92,246,.2);
+  border-radius: 14px; color: var(--text);
+  padding: 10px 14px; font-size: .88rem;
+  font-family: inherit; resize: none;
+  max-height: 120px; min-height: 44px;
+  outline: none; transition: border-color .15s;
+  -webkit-user-select: text; user-select: text;
+  line-height: 1.4;
+  overflow-y: auto;
+}
+#text-msg:focus { border-color: var(--purple); }
+#text-msg::placeholder { color: rgba(255,255,255,.22); }
+#text-send {
+  flex-shrink: 0;
+  background: var(--purple); border: none;
+  color: #fff; border-radius: 14px;
+  width: 44px; height: 44px;
+  font-size: 1.2rem; line-height: 1;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: opacity .15s;
+  padding: 0;
+}
+#text-send:disabled { opacity: .35; cursor: default; }
+#text-send:active:not(:disabled) { opacity: .75; }
+
 /* ── Config sheet ── */
 #cfg-modal {
   display: none; position: fixed; inset: 0;
@@ -223,20 +279,29 @@ body {
 <div id="app">
   <div id="topbar">
     <span class="wordmark">Chloé</span>
-    <button id="btn-cfg" title="Settings" aria-label="Settings">⚙</button>
+    <div class="topbar-actions">
+      <button id="btn-mic" title="Enable voice input" aria-label="Toggle microphone">🎤</button>
+      <button id="btn-cfg" title="Settings" aria-label="Settings">⚙</button>
+    </div>
   </div>
 
   <div id="orb-section">
     <div id="orb-wrap">
-      <canvas id="chloe-orb" aria-label="Chloé avatar — tap to speak"></canvas>
+      <canvas id="chloe-orb" aria-label="Chloé avatar"></canvas>
       <div id="tap-ring"></div>
     </div>
     <div id="status">idle</div>
-    <div id="tap-hint">hold to record · release to send</div>
+    <div id="tap-hint">type below · ↵ to send</div>
   </div>
 
   <div id="transcript-wrap">
     <div id="transcript"></div>
+  </div>
+
+  <!-- Text input bar — the primary input path (no mic needed) -->
+  <div id="text-bar">
+    <textarea id="text-msg" rows="1" placeholder="Message Chloé…" autocomplete="off" autocorrect="on" spellcheck="true"></textarea>
+    <button id="text-send" title="Send" aria-label="Send message">&#9658;</button>
   </div>
 </div>
 
@@ -256,9 +321,9 @@ body {
       <input type="url" id="cfg-tts" placeholder="https://kvm2-chloe.tail5837a3.ts.net/api/tts" inputmode="url" autocomplete="off"/>
     </div>
     <div class="cfg-f">
-      <label>STT URL</label>
+      <label>STT URL <span style="opacity:.4;font-size:.62rem">(voice mode only)</span></label>
       <input type="url" id="cfg-stt" placeholder="https://kvm2-chloe.tail5837a3.ts.net/api/stt" inputmode="url" autocomplete="off"/>
-      <div class="cfg-hint">Server-side Whisper STT — works in any browser. Bearer token required.</div>
+      <div class="cfg-hint">Server-side Whisper STT — only needed when voice input is enabled (🎤).</div>
     </div>
     <div class="cfg-f">
       <label>Bearer Token <span style="opacity:.45;font-size:.65rem">(required for funnel URLs — leave blank only if using Termux bridge)</span></label>
@@ -285,7 +350,7 @@ body {
      • FFT energy: getByteFrequencyData, speech-range focus, 0.3/0.7 smooth
      • Single shared AudioContext: mic analyser + TTS analyser
      • Status state machine: idle→listening→user_speaking→thinking→speaking
-   Built new: Web Speech API STT, REST→KVM2, dot-orb visual, PWA shell
+   Built new: text-only input (default), optional voice, REST→KVM2, dot-orb, PWA
    ════════════════════════════════════════════════════════════════════ */
 
 /* ── CONFIG ─────────────────────────────────────────────────────── */
@@ -415,16 +480,6 @@ window.addEventListener('resize', resizeOrb);
 })();
 
 /* ── AUDIO ENGINE (V2V patterns) ───────────────────────────────── */
-/*
- * V2V useAudioEnergy.js pattern:
- *   fftSize=512, smoothingTimeConstant=0.6, getByteFrequencyData,
- *   focus on mid-high bins (speech range 300–4000 Hz),
- *   0.3/0.7 smoothing on the output level.
- *
- * Single shared AudioContext drives:
- *   - micAnalyser: mic stream → orbAudio during listening/user_speaking
- *   - ttsAnalyser: WAV decode → orbAudio during speaking
- */
 let audioCtx     = null;
 let micStream    = null;
 let micAnalyser  = null, micBuf;
@@ -432,22 +487,29 @@ let micRafId     = null;
 let ttsActive    = false;
 let activeTtsSrc = null;
 let ttsAnalyser  = null, ttsBuf;
-/* Sentence-level TTS queue for streaming replies */
 const ttsQueue   = [];
 let   ttsRunning = false;
 
-/* Create/resume AudioContext + mic analyser on first user gesture (autoplay policy) */
-async function ensureAudio() {
+/* ensureAudioCtx: create AudioContext only — no mic permission.
+   Safe to call in text mode. Required before any TTS playback. */
+async function ensureAudioCtx() {
   if (audioCtx) {
     if (audioCtx.state === 'suspended') await audioCtx.resume();
     return;
   }
+  audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+}
+
+/* ensureAudio: full setup — AudioContext + getUserMedia + mic analyser.
+   Only called when micEnabled === true. */
+async function ensureAudio() {
+  await ensureAudioCtx();
+  if (micStream) return;  /* mic already connected */
   try {
     /* V2V getUserMedia with echoCancellation + noiseSuppression + autoGainControl */
     micStream = await navigator.mediaDevices.getUserMedia({
       audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true },
     });
-    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
     /* V2V useAudioEnergy: fftSize=512, smoothingTimeConstant=0.6 */
     micAnalyser = audioCtx.createAnalyser();
@@ -460,34 +522,31 @@ async function ensureAudio() {
     startMicEnergyLoop();
   } catch (err) {
     console.warn('[audio] getUserMedia failed:', err.message);
-    /* Fall back: create AudioContext only (for TTS), no mic energy */
-    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    /* AudioContext is still usable for TTS — mic just won't work */
   }
 }
 
-/* V2V useAudioEnergy loop: focus mid-high bins, 0.3/0.7 smooth — drives orb during listening */
+/* V2V useAudioEnergy loop: focus mid-high bins, 0.3/0.7 smooth */
 function startMicEnergyLoop() {
   if (!micAnalyser) return;
   cancelAnimationFrame(micRafId);
   function tick() {
     micRafId = requestAnimationFrame(tick);
-    if (ttsActive) return; /* TTS analyser takes over during speaking */
+    if (ttsActive) return;
     if (convState !== 'listening' && convState !== 'user_speaking') {
       window.orbAudio = Math.max(0, window.orbAudio - .02);
       return;
     }
     micAnalyser.getByteFrequencyData(micBuf);
-    /* V2V: focus on upper 2/3 of bins (speech/presence frequencies) */
     const mid  = Math.floor(micBuf.length / 3);
     const high = micBuf.slice(mid);
     const rms  = Math.sqrt(high.reduce((s, v) => s + v * v, 0) / high.length) / 255;
-    /* V2V 0.3/0.7 smoothing */
     window.orbAudio = window.orbAudio * .3 + rms * .7;
   }
   tick();
 }
 
-/* TTS playback: decode WAV with AudioContext + AnalyserNode → orb reacts to Chloé's voice */
+/* TTS playback: decode WAV with AudioContext + AnalyserNode → orb reacts */
 async function playTTS(wavBuf) {
   if (!audioCtx) return;
   if (audioCtx.state === 'suspended') await audioCtx.resume();
@@ -497,7 +556,6 @@ async function playTTS(wavBuf) {
   src.buffer    = decoded;
   activeTtsSrc  = src;
 
-  /* V2V pattern: separate analyser for TTS energy — same fftSize/smoothing */
   ttsAnalyser = audioCtx.createAnalyser();
   ttsAnalyser.fftSize = 512;
   ttsAnalyser.smoothingTimeConstant = 0.6;
@@ -524,30 +582,20 @@ async function playTTS(wavBuf) {
 
 function stopTTS() {
   ttsActive  = false;
-  ttsRunning = false;        /* stop sentence drain loop */
-  ttsQueue.length = 0;       /* drop any queued sentences */
+  ttsRunning = false;
+  ttsQueue.length = 0;
   window.orbAudio = 0;
   if (activeTtsSrc) { try { activeTtsSrc.stop(); } catch (_) {} activeTtsSrc = null; }
 }
 
 /* ── STATE MACHINE ──────────────────────────────────────────────── */
-/*
- * V2V events.js status states (adapted):
- *   idle → listening → user_speaking → thinking → speaking → listening
- *
- * idle:          no active session
- * listening:     recognition started, waiting for speech
- * user_speaking: speech detected (recognition onresult firing)
- * thinking:      sent to KVM2 chat, awaiting reply
- * speaking:      TTS playing
- */
 let convState   = 'idle';
 let messages    = [];
 let idleTimer   = null;
 
-const statusEl   = document.getElementById('status');
-const tapHintEl  = document.getElementById('tap-hint');
-const transcriptEl = document.getElementById('transcript');
+const statusEl       = document.getElementById('status');
+const tapHintEl      = document.getElementById('tap-hint');
+const transcriptEl   = document.getElementById('transcript');
 const transcriptWrap = document.getElementById('transcript-wrap');
 
 const STATUS_LABEL = {
@@ -569,7 +617,12 @@ function setState(s, label) {
   statusEl.textContent = label || STATUS_LABEL[s] || s;
   statusEl.className   = STATUS_CLS[s] || '';
   tapRing.classList[s === 'user_speaking' ? 'add' : 'remove']('on');
+  /* show tap-hint only when idle */
   tapHintEl.style.opacity = (s === 'idle') ? '1' : '0';
+  /* unlock text input when done */
+  if (s === 'idle' || s === 'error') {
+    textSendBtn.disabled = false;
+  }
 }
 
 function armIdle(ms = 14000) {
@@ -581,7 +634,6 @@ function armIdle(ms = 14000) {
 }
 
 /* ── TRANSCRIPT ──────────────────────────────────────────────────── */
-/* V2V TranscriptView pattern: onTranscript(role, text) appends entry */
 let interimEl = null;
 
 function onTranscript(role, text) {
@@ -607,24 +659,74 @@ function clearInterim() {
   if (interimEl) { interimEl.remove(); interimEl = null; }
 }
 
+/* ── TEXT INPUT MODE ─────────────────────────────────────────────── */
+let micEnabled = false;  /* default: text mode, no mic */
+
+const textMsgEl  = document.getElementById('text-msg');
+const textSendBtn = document.getElementById('text-send');
+
+function setMicEnabled(on) {
+  micEnabled = on;
+  const btn = document.getElementById('btn-mic');
+  btn.classList[on ? 'add' : 'remove']('active');
+  btn.title = on ? 'Disable voice input' : 'Enable voice input';
+  tapHintEl.textContent = on
+    ? 'hold orb to record · release to send'
+    : 'type below · ↵ to send';
+  /* In voice mode the orb is the input; hint the cursor differently */
+  canvas.style.cursor = on ? 'pointer' : 'default';
+}
+
+async function sendTextMessage() {
+  const text = textMsgEl.value.trim();
+  if (!text) return;
+  if (convState === 'thinking' || convState === 'speaking') return;
+
+  textMsgEl.value = '';
+  textMsgEl.style.height = '';
+  textSendBtn.disabled = true;
+
+  try {
+    await ensureAudioCtx();  /* need AudioContext for TTS; no mic permission */
+    await handleUserTurn(text);
+  } catch (err) {
+    console.error('[text-send]', err);
+    textSendBtn.disabled = false;
+  }
+}
+
+textSendBtn.addEventListener('click', sendTextMessage);
+
+textMsgEl.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    sendTextMessage();
+  }
+});
+
+/* Auto-grow textarea up to max-height */
+textMsgEl.addEventListener('input', () => {
+  textMsgEl.style.height = 'auto';
+  textMsgEl.style.height = Math.min(textMsgEl.scrollHeight, 120) + 'px';
+});
+
+document.getElementById('btn-mic').addEventListener('click', () => {
+  setMicEnabled(!micEnabled);
+});
+
 /* ── SERVER-SIDE WHISPER STT (MediaRecorder + RMS VAD → KVM2 /api/stt) ── */
-/*
- * Push-to-talk + VAD auto-send: hold orb OR speak then pause — both work.
- * MediaRecorder captures mic, RMS silence detection auto-stops after 800ms
- * of quiet. Manual release (pointerup) also stops immediately.
- * Audio blob → POST /api/stt → {"text":"..."} → handleUserTurn().
- */
 let mediaRecorder  = null;
 let audioChunks    = [];
 let isRecording    = false;
 let vadInterval    = null;
 let maxRecordTimer = null;
 
-const VAD_INTERVAL  = 80;   /* ms between energy checks */
-const VAD_SPEECH_T  = 0.018; /* RMS threshold to count as speech */
-const VAD_SILENCE_N = 10;   /* × VAD_INTERVAL = 800ms silence → auto-send */
+const VAD_INTERVAL  = 80;
+const VAD_SPEECH_T  = 0.018;
+const VAD_SILENCE_N = 10;
 
 async function startRecording() {
+  if (!micEnabled) return;
   if (isRecording || convState === 'thinking' || convState === 'speaking') return;
   await ensureAudio().catch(() => {});
   if (!micStream) {
@@ -681,10 +783,7 @@ async function startRecording() {
   isRecording = true;
   setState('user_speaking');
   tapRing.classList.add('on');
-
-  /* VAD: detect speech then auto-send after silence */
   startVAD();
-  /* Safety cap: 30s max recording */
   maxRecordTimer = setTimeout(stopRecording, 30000);
 }
 
@@ -715,18 +814,18 @@ function stopVAD() {
 }
 
 /* ── ORB INTERACTION ─────────────────────────────────────────────── */
-/* Push-to-talk: hold orb to record, release to send.
-   Tap during speaking to barge-in (cancel TTS).
-   Pointer events unify mouse + touch — no duplicate click+touchstart. */
+/* In text mode: tap orb = barge-in only (during speaking).
+   In voice mode: hold to record, release to send; tap during speaking = barge-in. */
 canvas.addEventListener('pointerdown', async e => {
   e.preventDefault();
   canvas.setPointerCapture(e.pointerId);
-  await ensureAudio().catch(() => {});
   if (convState === 'speaking') {
     stopTTS();
     setState('idle');
     return;
   }
+  if (!micEnabled) return;
+  await ensureAudio().catch(() => {});
   if (convState === 'idle' || convState === 'listening') {
     startRecording();
   }
@@ -741,22 +840,17 @@ canvas.addEventListener('pointercancel', () => {
   if (isRecording) stopRecording();
 });
 
-/* ── URL PARAM ?listen=1 → pre-warm mic ─────────────────────────── */
-/* Wake-word gate: external daemon signals listen start via ?listen=1.
-   With push-to-talk, just pre-warm the mic permission so the first
-   orb press is instant. User presses orb to actually record. */
+/* ── URL PARAM ?listen=1 → pre-warm AudioContext ────────────────── */
 if (new URLSearchParams(location.search).get('listen') === '1' && localStorage.getItem(CFG_KEY)) {
   setTimeout(async () => {
-    await ensureAudio().catch(() => {});
+    /* Pre-warm AudioContext (no mic permission in text mode) */
+    await ensureAudioCtx().catch(() => {});
+    /* If mic was previously enabled, also warm up mic */
+    if (micEnabled) await ensureAudio().catch(() => {});
   }, 900);
 }
 
 /* ── SENTENCE-LEVEL TTS QUEUE ───────────────────────────────────── */
-/*
- * Sentences stream in as chat chunks arrive. Each complete sentence is
- * immediately sent to TTS and queued for playback, so she starts
- * speaking on her FIRST sentence while the rest is still generating.
- */
 function ttsSend(sentence) {
   ttsQueue.push(sentence);
   if (!ttsRunning) { ttsRunning = true; ttsDrain(); }
@@ -765,7 +859,7 @@ function ttsSend(sentence) {
 async function ttsDrain() {
   if (!ttsQueue.length || !ttsRunning) { ttsRunning = false; return; }
   const sentence = ttsQueue.shift();
-  if (convState !== 'speaking') { ttsDrain(); return; } /* barge-in: skip */
+  if (convState !== 'speaking') { ttsDrain(); return; }
 
   const tok = C('token');
   const hdrs = { 'Content-Type': 'application/json' };
@@ -786,13 +880,6 @@ async function ttsDrain() {
 }
 
 /* ── CONVERSATION TURN ───────────────────────────────────────────── */
-/*
- * Streaming flow for low latency:
- *   user → STT → handleUserTurn()             [thinking/transcribing]
- *   → chat SSE stream → first sentence → TTS  [speaking, immediately]
- *   → remaining sentences → TTS queue         [still speaking]
- *   → TTS drained → auto-restart recording    [continuous turn-taking]
- */
 async function handleUserTurn(text) {
   if (!text) return;
   clearInterim();
@@ -815,7 +902,6 @@ async function handleUserTurn(text) {
     ],
   };
 
-  /* SSE streaming with sentence-level TTS — falls back to non-streaming */
   let fullReply = '';
   try {
     const r = await fetch(C('chatUrl'), { method: 'POST', headers: hdrs, body: JSON.stringify(payload) });
@@ -829,7 +915,6 @@ async function handleUserTurn(text) {
       const dec    = new TextDecoder();
       let buf = '', pending = '';
 
-      /* Clear queue; ttsSend() will arm ttsRunning when first sentence arrives */
       ttsQueue.length = 0;
       ttsRunning = false;
 
@@ -838,7 +923,7 @@ async function handleUserTurn(text) {
         if (done) break;
         buf += dec.decode(value, { stream: true });
         const lines = buf.split('\n');
-        buf = lines.pop();                /* keep incomplete line */
+        buf = lines.pop();
 
         for (const line of lines) {
           if (!line.startsWith('data: ')) continue;
@@ -850,7 +935,6 @@ async function handleUserTurn(text) {
           fullReply += delta;
           pending   += delta;
 
-          /* Flush on sentence boundary: [.!?] followed by space/newline */
           const m = pending.match(/^([\s\S]*?[.!?…])[""']?(?=\s|$)/);
           if (m && pending.length > m[1].length) {
             const sentence = m[1].trim();
@@ -862,7 +946,6 @@ async function handleUserTurn(text) {
           }
         }
       }
-      /* Flush any remainder (last sentence may lack trailing space) */
       if (pending.trim().length > 2) {
         if (convState === 'thinking') { setState('speaking'); window.orbAudio = 0; }
         ttsSend(pending.trim());
@@ -875,7 +958,7 @@ async function handleUserTurn(text) {
       if (!fullReply) throw new Error('empty reply');
       ttsQueue.length = 0; ttsRunning = false;
       setState('speaking'); window.orbAudio = 0;
-      ttsSend(fullReply); /* ttsSend arms ttsRunning and starts drain */
+      ttsSend(fullReply);
     }
 
     if (!fullReply.trim()) throw new Error('empty reply');
@@ -887,11 +970,12 @@ async function handleUserTurn(text) {
     window.orbAudio = 0;
     setState('idle', 'chat: ' + err.message);
     statusEl.className = 's-error';
+    textSendBtn.disabled = false;
     armIdle(6000);
     return;
   }
 
-  /* Wait for TTS queue to drain (sentences still playing from stream) */
+  /* Wait for TTS to drain */
   while (ttsRunning || ttsQueue.length > 0) {
     await new Promise(res => setTimeout(res, 60));
   }
@@ -899,13 +983,14 @@ async function handleUserTurn(text) {
   ttsActive = false;
   window.orbAudio = 0;
 
-  if (convState !== 'speaking') return; /* barge-in already changed state */
+  if (convState !== 'speaking') return;
 
   setState('idle');
   armIdle();
+  textSendBtn.disabled = false;
 
-  /* Continuous mode: auto-resume listening after she finishes speaking */
-  setTimeout(startRecording, 650);
+  /* Continuous listening: only in voice mode */
+  if (micEnabled) setTimeout(startRecording, 650);
 }
 
 /* ── CONFIG MODAL ────────────────────────────────────────────────── */
