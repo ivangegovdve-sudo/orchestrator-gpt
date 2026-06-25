@@ -30,3 +30,4 @@ checkpoints/
 # Local media memory store
 media-memory/
 .vercel
+.vercel_python_packages/
