@@ -24,6 +24,7 @@ vercel-public/
 
 # SD-related local paths (never commit raw outputs here)
 outputs/
+output/
 checkpoints/
 
 # Local media memory store
