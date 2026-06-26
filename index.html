@@ -3,713 +3,726 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Forest HUB — interactive projects, tools, and experiments. Life in Time calculator, AI glossary, periodic table, LLM platforms map, kids movie library, LLM Council, Manifesto for a Newborn, and more." />
+  <meta property="og:title" content="Forest HUB" />
+  <meta property="og:description" content="Projects, tools, and experiments — built in the forest. 14 projects · 166 AI platforms · 527 glossary terms." />
+  <meta property="og:type" content="website" />
+  <meta name="theme-color" content="#07070b" />
   <title>Forest HUB</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
   <style>
+    /* ─────────────────────────────────────────────
+       Forest HUB — design tokens
+       Cosmic dark surface, per-project accent system.
+       Redesign: impeccable + taste-skill craft pass.
+    ───────────────────────────────────────────── */
     :root {
-      --bg: #09090b;
-      --card-bg: rgba(24, 24, 27, 0.6);
-      --card-border: rgba(255, 255, 255, 0.08);
-      --text: #f8fafc;
-      --muted: #a1a1aa;
-      --accent: #0ea5e9;
-      --accent-glow: rgba(14, 165, 233, 0.4);
-      --warm: #fbbf24;
-      --warm-glow: rgba(251, 191, 36, 0.42);
-      --purple: #8b5cf6;
-      --purple-glow: rgba(139, 92, 246, 0.4);
+      --bg:        #07070b;
+      --surface:   rgba(17,17,23,0.72);
+      --surface-2: rgba(22,22,30,0.55);
+      --text:      #f4f5f7;
+      --text-soft: #c4c8d2;
+      --muted:     #8a90a0;
+      --faint:     #565d6e;
+      --hairline:  rgba(255,255,255,0.08);
+      --hairline-strong: rgba(255,255,255,0.16);
+
+      --accent:    #56c7ff;
+      --accent-2:  #b69bff;
+      --accent-3:  #5eead4;
+
+      --display: "Space Grotesk", "Segoe UI", system-ui, sans-serif;
+      --body:    "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+
+      --gut: clamp(16px, 4vw, 26px);
+      --maxw: 1140px;
+
+      --ease-out: cubic-bezier(.16, 1, .3, 1);
+      --ease-spring: cubic-bezier(.34, 1.56, .64, 1);
     }
 
-    * {
-      box-sizing: border-box;
-    }
+    *, *::before, *::after { box-sizing: border-box; }
+    html { -webkit-text-size-adjust: 100%; }
 
     body {
       margin: 0;
       min-height: 100vh;
       background-color: var(--bg);
       background-image:
-        radial-gradient(circle at 14% 22%, rgba(251, 191, 36, 0.12), transparent 34%),
-        radial-gradient(circle at 18% 50%, rgba(14, 165, 233, 0.10), transparent 40%),
-        radial-gradient(circle at 86% 30%, rgba(236, 72, 153, 0.10), transparent 40%),
-        url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+        radial-gradient(900px circle at 12% 8%, rgba(86,199,255,.07), transparent 55%),
+        radial-gradient(820px circle at 88% 14%, rgba(182,155,255,.07), transparent 55%),
+        radial-gradient(900px circle at 50% 100%, rgba(94,234,212,.05), transparent 55%);
       color: var(--text);
-      font-family: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
-      padding: 40px 20px 60px;
+      font-family: var(--body);
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+      padding: clamp(28px, 5vw, 56px) var(--gut) 96px;
       overflow-x: hidden;
     }
 
+    /* ── Global plexus background layer (behind everything) ── */
+    #bg-plexus {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 0;
+      opacity: .55;
+      pointer-events: none;
+    }
+    /* readability scrim */
+    body::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      background: radial-gradient(120% 90% at 50% 30%, transparent 40%, rgba(7,7,11,.55) 100%);
+    }
+
     .page {
-      max-width: 1100px;
+      position: relative;
+      z-index: 1;
+      max-width: var(--maxw);
       margin: 0 auto;
       display: flex;
       flex-direction: column;
-      gap: 32px;
-      animation: fadeIn 0.8s ease-out forwards;
+      gap: clamp(40px, 7vw, 64px);
+      animation: pageIn .8s var(--ease-out) both;
     }
-
-    @keyframes fadeIn {
+    @keyframes pageIn {
       from { opacity: 0; transform: translateY(10px); }
-      to { opacity: 1; transform: translateY(0); }
+      to   { opacity: 1; transform: none; }
     }
 
-    header {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
+    /* ── Hero ── */
+    .hero {
+      position: relative;
       text-align: center;
-      margin-bottom: 10px;
-      position: relative;
+      padding: clamp(48px, 9vw, 96px) 0 clamp(36px, 6vw, 60px);
     }
-
-    header::after {
-      content: '';
+    .orbit-ring {
       position: absolute;
-      bottom: -16px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 60px;
-      height: 4px;
-      background: linear-gradient(90deg, var(--warm), var(--accent), var(--purple));
-      border-radius: 4px;
-    }
-
-    h1 {
-      margin: 0;
-      font-size: 38px;
-      font-weight: 800;
-      letter-spacing: -0.02em;
-      background: linear-gradient(135deg, #fff 0%, #cbd5e1 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      text-shadow: 0 4px 12px rgba(0,0,0,0.5);
-    }
-
-    .subtitle {
-      margin: 0;
-      color: var(--muted);
-      font-size: 16px;
-      font-weight: 400;
-      letter-spacing: 0.01em;
-    }
-
-    .hero-card {
-      position: relative;
-      border-radius: 20px;
-      border: 1px solid var(--card-border);
-      background:
-        radial-gradient(circle at 26% 18%, rgba(251, 191, 36, 0.18), transparent 34%),
-        radial-gradient(circle at 74% 34%, rgba(14, 165, 233, 0.18), transparent 36%),
-        #000;
-      overflow: hidden;
-      box-shadow: 0 28px 80px -28px rgba(0, 0, 0, 0.9), 0 0 48px -26px var(--warm-glow);
-      animation: revealHero 1s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
-      animation-delay: 0.2s;
-      opacity: 0;
-      transform: scale(0.98);
-    }
-
-    @keyframes revealHero {
-      from { opacity: 0; transform: scale(0.98) translateY(20px); }
-      to { opacity: 1; transform: scale(1) translateY(0); }
-    }
-
-    .hero-card::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background:
-        linear-gradient(to top, rgba(9, 9, 11, 0.9) 0%, transparent 62%),
-        radial-gradient(circle at var(--hero-x, 50%) var(--hero-y, 50%), rgba(255, 255, 255, 0.16), transparent 28%);
-      z-index: 1;
+      top: 46%; left: 50%;
+      border-radius: 50%;
+      border: 1px solid rgba(255,255,255,.045);
+      animation: spin linear infinite;
       pointer-events: none;
     }
+    .orbit-ring.r1 { width: 240px; height: 240px; margin: -120px 0 0 -120px; animation-duration: 34s; }
+    .orbit-ring.r2 { width: 420px; height: 420px; margin: -210px 0 0 -210px; animation-duration: 52s; animation-direction: reverse; }
+    .orbit-ring.r3 { width: 640px; height: 640px; margin: -320px 0 0 -320px; animation-duration: 78s; border-color: rgba(255,255,255,.03); }
+    @keyframes spin { to { transform: rotate(360deg); } }
 
-    .hero-card::after {
-      content: '';
-      position: absolute;
-      inset: 18px;
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      border-radius: 16px;
-      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
-      pointer-events: none;
-      z-index: 2;
-    }
-
-    .hero-card img {
-      width: 100%;
-      display: block;
-      object-fit: cover;
-      max-height: 400px;
-      opacity: 0.85;
-      transition: opacity 0.5s ease, transform 0.5s ease;
-    }
-
-    .hero-card:hover img {
-      opacity: 1;
-      transform: scale(1.02);
-    }
-
-    .tool-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-      gap: 20px;
-    }
-
-    /* Cards Stagger Animation */
-    .tool-card {
-      opacity: 0;
-      animation: slideUpFade 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-    }
-
-    .tool-card:nth-child(1) { animation-delay: 0.3s; }
-    .tool-card:nth-child(2) { animation-delay: 0.4s; }
-    .tool-card:nth-child(3) { animation-delay: 0.5s; }
-    .tool-card:nth-child(4) { animation-delay: 0.6s; }
-    .tool-card:nth-child(5) { animation-delay: 0.7s; }
-    .tool-card:nth-child(6) { animation-delay: 0.8s; }
-
-    @keyframes slideUpFade {
-      from { opacity: 0; transform: translateY(30px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    /* Prompt Builder tile styles */
-    .tool-card {
+    .eyebrow {
       position: relative;
-      display: flex;
-      flex-direction: column;
-      text-decoration: none;
-      border-radius: 16px;
-      border: 1px solid var(--card-border);
-      background: var(--card-bg);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      padding: 22px;
+      display: inline-flex; align-items: center; gap: 9px;
+      font-size: 11px; letter-spacing: .22em; text-transform: uppercase;
+      color: var(--muted); font-weight: 600;
+      margin: 0 0 22px;
+    }
+    .eyebrow::before {
+      content: '';
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--accent-3);
+      box-shadow: 0 0 10px var(--accent-3);
+      animation: livePulse 2.4s ease-in-out infinite;
+    }
+    @keyframes livePulse { 0%,100% { opacity: .5; } 50% { opacity: 1; } }
+
+    h1.wordmark {
+      position: relative; margin: 0;
+      font-family: var(--display); font-weight: 700;
+      font-size: clamp(44px, 11vw, 104px);
+      line-height: .94; letter-spacing: -0.04em;
       color: var(--text);
-      transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-      overflow: hidden;
-      z-index: 1;
     }
+    h1.wordmark .leaf { color: var(--accent-3); }
 
-    .tool-card::before {
-      content: '';
-      position: absolute;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background: radial-gradient(800px circle at var(--mouse-x, 50%) var(--mouse-y, 50%), rgba(255,255,255,0.06), transparent 40%);
-      z-index: -1;
-      opacity: 0;
-      transition: opacity 0.3s;
-    }
-
-    .tool-card:hover {
-      transform: translateY(-6px) scale(1.01);
-      box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.5), 0 0 20px var(--accent-glow);
-      border-color: rgba(14, 165, 233, 0.4);
-      background: rgba(30, 41, 59, 0.7);
-    }
-
-    .tool-card:hover::before {
-      opacity: 1;
-    }
-
-    /* Give external links a distinct hover color */
-    .tool-card[href^="http"]:hover {
-       box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.5), 0 0 20px var(--purple-glow);
-       border-color: rgba(139, 92, 246, 0.4);
-    }
-
-    .tool-card-body {
-      display: flex;
-      flex-direction: column;
-      height: 100%;
-    }
-
-    .tool-card-title {
-      font-size: 18px;
-      font-weight: 700;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      margin-bottom: 10px;
-      letter-spacing: -0.01em;
-    }
-
-    .tool-card-subtitle {
-      font-size: 14px;
-      line-height: 1.5;
-      color: var(--muted);
-      margin-bottom: 18px;
-      flex-grow: 1;
-    }
-
-    .tool-card-meta {
-      font-size: 11px;
-      color: #64748b;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      margin-top: auto;
-      padding-top: 14px;
-      border-top: 1px solid rgba(255,255,255,0.05);
-    }
-
-    .tool-card-meta span {
-      background: rgba(0,0,0,0.3);
-      padding: 3px 8px;
-      border-radius: 4px;
-    }
-
-    .tool-pill {
-      font-size: 10px;
-      padding: 3px 8px;
-      border-radius: 6px;
-      background: rgba(14, 165, 233, 0.1);
-      border: 1px solid rgba(14, 165, 233, 0.3);
-      color: var(--accent);
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      font-weight: 600;
-      margin-left: auto;
-    }
-
-    .tool-card[href^="http"] .tool-pill {
-      background: rgba(139, 92, 246, 0.1);
-      border-color: rgba(139, 92, 246, 0.3);
-      color: var(--purple);
-    }
-
-    .tool-card-progress {
-      width: 100%;
-      height: 4px;
-      background: rgba(255, 255, 255, 0.1);
-      border-radius: 2px;
-      margin-top: 10px;
-      overflow: hidden;
+    .hero-sub {
       position: relative;
-    }
-    .tool-card-progress-bar {
-      height: 100%;
-      background: linear-gradient(90deg, var(--accent), var(--purple));
-      border-radius: 2px;
-      transition: width 0.5s ease-in-out;
-    }
-    .tool-card-progress-text {
-      font-size: 10px;
-      color: var(--muted);
-      margin-top: 4px;
-      text-align: right;
+      margin: 22px auto 0; max-width: 30ch;
+      color: var(--text-soft);
+      font-size: clamp(15px, 2.4vw, 19px); line-height: 1.55; font-weight: 400;
     }
 
-    /* Accessibility focus styles */
-    .tool-card:focus-visible,
-    a:focus-visible,
-    button:focus-visible {
-      outline: 3px solid var(--accent);
-      outline-offset: 4px;
-      border-radius: 16px;
+    .hero-stats {
+      position: relative;
+      margin: 30px auto 0;
+      display: inline-flex; flex-wrap: wrap; align-items: center; justify-content: center;
+      padding: 10px 6px;
+      border: 1px solid var(--hairline); border-radius: 99px;
+      background: var(--surface-2);
+      backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
     }
+    .hero-stats .stat { display: inline-flex; flex-direction: column; align-items: center; padding: 2px 20px; }
+    .hero-stats .stat + .stat { border-left: 1px solid var(--hairline); }
+    .hero-stats .num {
+      font-family: var(--display); font-weight: 600; font-size: 18px;
+      letter-spacing: -.02em; color: var(--text);
+    }
+    .hero-stats .lbl { font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); margin-top: 2px; }
+
+    /* ── Section heading ── */
+    .section-head { display: flex; align-items: baseline; gap: 14px; margin-bottom: -14px; }
+    .section-head h2 {
+      margin: 0; font-family: var(--display); font-size: 13px; font-weight: 600;
+      letter-spacing: .18em; text-transform: uppercase; color: var(--text-soft);
+    }
+    .section-head .rule { flex: 1; height: 1px; background: linear-gradient(90deg, var(--hairline), transparent); }
+    .section-head .count { font-size: 12px; color: var(--faint); font-variant-numeric: tabular-nums; }
+
+    /* ── Hub grid ── */
+    .hub-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(252px, 1fr));
+      gap: 18px;
+    }
+
+    /* ── Card ── */
+    .hub-card {
+      position: relative;
+      display: flex; flex-direction: column; align-items: center; text-align: center;
+      text-decoration: none; color: var(--text);
+      border-radius: 22px;
+      border: 1px solid var(--hairline);
+      background: var(--surface);
+      backdrop-filter: blur(16px) saturate(115%);
+      -webkit-backdrop-filter: blur(16px) saturate(115%);
+      padding: 40px 24px 30px;
+      overflow: hidden; cursor: pointer;
+      transform: perspective(900px) rotateX(0) rotateY(0) scale(1);
+      transition: transform .16s var(--ease-out), box-shadow .35s ease, border-color .35s ease;
+      will-change: transform;
+      opacity: 0;
+      animation: cardIn .6s var(--ease-out) both;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.05), 0 18px 40px -22px rgba(0,0,0,.9);
+    }
+    .hub-card:nth-child(1){animation-delay:.05s}
+    .hub-card:nth-child(2){animation-delay:.10s}
+    .hub-card:nth-child(3){animation-delay:.15s}
+    .hub-card:nth-child(4){animation-delay:.20s}
+    .hub-card:nth-child(5){animation-delay:.25s}
+    .hub-card:nth-child(6){animation-delay:.30s}
+    .hub-card:nth-child(7){animation-delay:.35s}
+    .hub-card:nth-child(8){animation-delay:.40s}
+    .hub-card:nth-child(9){animation-delay:.45s}
+    .hub-card:nth-child(10){animation-delay:.50s}
+    .hub-card:nth-child(11){animation-delay:.55s}
+    .hub-card:nth-child(12){animation-delay:.60s}
+    @keyframes cardIn {
+      from { opacity: 0; transform: perspective(900px) translateY(20px) scale(.96); }
+      to   { opacity: 1; transform: perspective(900px) translateY(0) scale(1); }
+    }
+
+    .hub-card::before {
+      content: '';
+      position: absolute; inset: 0; border-radius: inherit;
+      background: radial-gradient(420px circle at var(--mx,50%) var(--my,50%), rgba(255,255,255,.06), transparent 50%);
+      opacity: 0; transition: opacity .3s; pointer-events: none; z-index: 0;
+    }
+    .hub-card:hover::before { opacity: 1; }
+
+    .hub-card::after {
+      content: '';
+      position: absolute; top: -26px; left: 50%;
+      width: 120px; height: 120px; transform: translateX(-50%);
+      border-radius: 50%;
+      background: radial-gradient(circle, var(--c, rgba(86,199,255,.5)) 0%, transparent 70%);
+      opacity: .18;
+      transition: width .6s var(--ease-out), height .6s var(--ease-out), opacity .6s ease, top .6s ease;
+      pointer-events: none; z-index: 0;
+    }
+    .hub-card:hover::after, .hub-card.open::after { width: 360px; height: 360px; top: -64px; opacity: .13; }
+
+    .hub-card:hover {
+      border-color: var(--hairline-strong);
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,.08),
+        0 26px 60px -16px rgba(0,0,0,.85),
+        0 0 52px var(--c, rgba(86,199,255,.16));
+    }
+
+    .hub-icon-ring {
+      position: relative; z-index: 2;
+      width: 86px; height: 86px;
+      display: flex; align-items: center; justify-content: center;
+      border-radius: 50%;
+      background: rgba(255,255,255,.035);
+      border: 1px solid var(--hairline);
+      margin-bottom: 20px;
+      transition: box-shadow .4s ease, background .4s ease, border-color .4s ease,
+                  transform .45s var(--ease-spring);
+    }
+    .hub-card:hover .hub-icon-ring {
+      box-shadow: 0 0 34px var(--c, rgba(86,199,255,.4));
+      background: rgba(255,255,255,.06);
+      border-color: var(--hairline-strong);
+      transform: scale(1.08) translateY(-3px);
+    }
+
+    .hub-icon {
+      font-size: 42px; line-height: 1; display: block;
+      filter: drop-shadow(0 3px 10px rgba(0,0,0,.55));
+      animation: floatIcon 6s ease-in-out infinite;
+      animation-delay: var(--icon-delay, 0s);
+    }
+    .hub-card:hover .hub-icon { animation-play-state: paused; }
+    @keyframes floatIcon {
+      0%,100% { transform: translateY(0) rotate(0); }
+      33%     { transform: translateY(-5px) rotate(-2deg); }
+      66%     { transform: translateY(-2px) rotate(2deg); }
+    }
+
+    .hub-name {
+      font-family: var(--display);
+      font-size: 17px; font-weight: 600; letter-spacing: -.01em;
+      position: relative; z-index: 2; margin-bottom: 8px;
+      transition: color .2s;
+    }
+    .hub-card:hover .hub-name { color: #fff; }
+
+    .hub-pill {
+      font-size: 10px; padding: 3px 11px; border-radius: 99px;
+      background: rgba(255,255,255,.05); border: 1px solid var(--hairline);
+      color: var(--muted); text-transform: uppercase; letter-spacing: .08em; font-weight: 600;
+      position: relative; z-index: 2; margin-bottom: 18px;
+      transition: background .25s, border-color .25s, color .25s;
+    }
+    .hub-card:hover .hub-pill {
+      background: var(--cp, rgba(86,199,255,.12));
+      border-color: var(--c, rgba(86,199,255,.4));
+      color: var(--ct, var(--accent));
+    }
+
+    .hub-desc-box {
+      position: relative; z-index: 2; overflow: hidden;
+      max-height: 0; opacity: 0; width: 100%;
+      transition: max-height .5s var(--ease-out), opacity .3s ease .05s;
+    }
+    .hub-card:hover .hub-desc-box, .hub-card.open .hub-desc-box { max-height: 200px; opacity: 1; }
+
+    .hub-desc { font-size: 13px; line-height: 1.66; color: var(--text-soft); margin: 0 0 16px; }
+
+    .hub-cta {
+      display: inline-flex; align-items: center; gap: 5px;
+      font-size: 12px; font-weight: 700; letter-spacing: .04em;
+      color: var(--ct, var(--accent));
+      padding: 8px 18px; border-radius: 99px;
+      background: var(--cp, rgba(86,199,255,.1));
+      border: 1px solid var(--c, rgba(86,199,255,.3));
+      transition: transform .2s; pointer-events: none;
+    }
+    .hub-card:hover .hub-cta { transform: translateY(-1px); }
+
+    .hub-card:focus-visible { outline: 2px solid var(--ct, var(--accent)); outline-offset: 4px; }
+
+    /* ── Footer ── */
+    footer.site {
+      text-align: center; padding-top: 28px;
+      border-top: 1px solid var(--hairline);
+      color: var(--faint); font-size: 12px; line-height: 1.7;
+    }
+    footer.site a { color: var(--muted); text-decoration: none; transition: color .2s; }
+    footer.site a:hover { color: var(--accent); }
+    footer.site .meta { opacity: .65; }
+
+    /* ── Reduced motion ── */
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation: none !important; transition: none !important; }
+      .hub-card { opacity: 1; transform: none; }
+      .hub-desc-box { max-height: 200px; opacity: 1; }
+      #bg-plexus { opacity: .35; }
+    }
+
+    /* ── Touch ── */
+    @media (pointer: coarse) {
+      .hub-desc-box { max-height: 76px; opacity: .8; }
+      .hub-cta { display: none; }
+    }
+
+    /* ── Mobile ── */
+    @media (max-width: 640px) {
+      .hub-grid { grid-template-columns: 1fr 1fr; gap: 12px; }
+      .hub-card { padding: 28px 14px 22px; border-radius: 18px; }
+      .hub-icon-ring { width: 66px; height: 66px; margin-bottom: 14px; }
+      .hub-icon { font-size: 32px; }
+      .hub-name { font-size: 14px; }
+      .hub-pill { margin-bottom: 12px; }
+      .hero-stats .stat { padding: 2px 13px; }
+      .orbit-ring.r3 { display: none; }
+    }
+    @media (max-width: 380px) { .hub-grid { grid-template-columns: 1fr; } }
   </style>
-
 </head>
 <body>
+  <!-- Global interactive plexus field — behind the entire hub -->
+  <canvas id="bg-plexus" aria-hidden="true"></canvas>
+
   <div class="page">
-    <header>
-      <h1>Forest HUB</h1>
-      <p class="subtitle">Command center for generative workflows and tools.</p>
+
+    <!-- ── Hero ── -->
+    <header class="hero">
+      <div class="orbit-ring r1"></div>
+      <div class="orbit-ring r2"></div>
+      <div class="orbit-ring r3"></div>
+
+      <p class="eyebrow">Forest HUB · sdforest.site</p>
+      <h1 class="wordmark">Forest<span class="leaf">.</span>HUB</h1>
+      <p class="hero-sub">Projects, tools, and experiments — built in the forest.</p>
+
+      <div class="hero-stats" aria-label="Site statistics">
+        <span class="stat"><span class="num">14</span><span class="lbl">Projects</span></span>
+        <span class="stat"><span class="num">166</span><span class="lbl">Platforms</span></span>
+        <span class="stat"><span class="num">527</span><span class="lbl">Terms</span></span>
+        <span class="stat"><span class="num">74</span><span class="lbl">Films</span></span>
+      </div>
     </header>
 
-        <div class="hero-card" style="min-height: 300px; display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden;">
-      <canvas id="hero-canvas" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 0;"></canvas>
-      <div style="position: relative; z-index: 2; text-align: center; pointer-events: none;">
-        <h2 style="font-size: 42px; font-weight: 800; margin: 0; background: linear-gradient(135deg, #fbbf24 0%, #0ea5e9 52%, #ec4899 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-shadow: 0 4px 12px rgba(0,0,0,0.5);">Welcome to Forest HUB</h2>
-        <p style="color: #cbd5e1; font-size: 18px; margin-top: 10px; max-width: 600px; text-shadow: 0 2px 4px rgba(0,0,0,0.8);">Explore, build, and orchestrate AI applications.</p>
+    <!-- ── Projects ── -->
+    <section>
+      <div class="section-head">
+        <h2>All Projects</h2>
+        <span class="rule"></span>
+        <span class="count">14</span>
       </div>
-    </div>
 
-    <div class="tool-grid">
-      <!-- Prompt Builder tile -->
-      <a href="/web/prompt-builder/" class="tool-card">
-        <div class="tool-card-body">
-          <div class="tool-card-title">
-            Prompt Builder
-            <span class="tool-pill">Orchestrator</span>
-          </div>
-          <div class="tool-card-subtitle">
-            Build dynamic SD prompts with curated LoRAs, JSON presets, and optional A1111 API output.
-          </div>
-          <div class="tool-card-meta">
-            <span>Reads: /data/presets/newPresets.json</span>
-            <span>Reads: /data/sd_inventory_curated.json</span>
-          </div>
+      <div class="hub-grid" id="hub-grid" style="margin-top:34px">
 
-          <div class="tool-card-progress">
-            <div class="tool-card-progress-bar" style="width: 95%;"></div>
+        <a href="web/life-in-time/" class="hub-card"
+           style="--c:rgba(251,191,36,.42);--cp:rgba(251,191,36,.1);--ct:#fbbf24;--icon-delay:.00s">
+          <div class="hub-icon-ring"><span class="hub-icon">⏳</span></div>
+          <div class="hub-name">Life in Time</div>
+          <div class="hub-pill">Personal</div>
+          <div class="hub-desc-box">
+            <p class="hub-desc">Time remaining in summers, heartbeats, Christmases — year-progress bar, late-achiever pivot, and shareable link.</p>
+            <span class="hub-cta">Explore ↗</span>
           </div>
-          <div class="tool-card-progress-text">95% Complete</div>
-        </div>
-      </a>
+        </a>
 
-      <a href="/web/a1111-debug/index.html" class="tool-card">
-        <div class="tool-card-body">
-          <div class="tool-card-title">
-            A1111 ControlNet Debug
-            <span class="tool-pill">Local API</span>
+        <a href="https://vfxportfolio.lovable.app" target="_blank" rel="noopener noreferrer" class="hub-card"
+           style="--c:rgba(236,72,153,.42);--cp:rgba(236,72,153,.1);--ct:#ec4899;--icon-delay:.15s">
+          <div class="hub-icon-ring"><span class="hub-icon">🎨</span></div>
+          <div class="hub-name">VFX Portfolio</div>
+          <div class="hub-pill">External</div>
+          <div class="hub-desc-box">
+            <p class="hub-desc">Animation Lead &amp; VFX reel — slot games, animated series, and commercials.</p>
+            <span class="hub-cta">View Portfolio ↗</span>
           </div>
-          <div class="tool-card-subtitle">
-            Test local A1111 API, ControlNet models, and Canny detection.
-          </div>
-          <div class="tool-card-meta">
-            <span>Link: /web/a1111-debug/index.html</span>
-          </div>
+        </a>
 
-          <div class="tool-card-progress">
-            <div class="tool-card-progress-bar" style="width: 90%;"></div>
+        <a href="/web/mendeleev-bg/" class="hub-card"
+           style="--c:rgba(16,185,129,.42);--cp:rgba(16,185,129,.1);--ct:#10b981;--icon-delay:.30s">
+          <div class="hub-icon-ring"><span class="hub-icon">⚗️</span></div>
+          <div class="hub-name">Mendeleev BG</div>
+          <div class="hub-pill">Interactive</div>
+          <div class="hub-desc-box">
+            <p class="hub-desc">Bulgarian-language periodic table with compound highlighting and deep-dive element panels.</p>
+            <span class="hub-cta">Explore ↗</span>
           </div>
-          <div class="tool-card-progress-text">90% Complete</div>
-        </div>
-      </a>
+        </a>
 
-      <a href="/movies/" class="tool-card">
-        <div class="tool-card-body">
-          <div class="tool-card-title">
-            Kids Movie Library
-            <span class="tool-pill">SQLite</span>
+        <a href="/web/mendeleev/" class="hub-card"
+           style="--c:rgba(52,211,153,.42);--cp:rgba(52,211,153,.1);--ct:#34d399;--icon-delay:.38s">
+          <div class="hub-icon-ring"><span class="hub-icon">🧪</span></div>
+          <div class="hub-name">Periodic Table</div>
+          <div class="hub-pill">Interactive</div>
+          <div class="hub-desc-box">
+            <p class="hub-desc">Interactive periodic table with compound-mode highlighting — click any element for a full detail panel.</p>
+            <span class="hub-cta">Explore ↗</span>
           </div>
-          <div class="tool-card-subtitle">
-            Browse and manage a family movie database with watched tracking, ratings, and bulk import.
-          </div>
-          <div class="tool-card-meta">
-            <span>Link: /movies/</span>
-            <span>API: /api/movies</span>
-          </div>
+        </a>
 
-          <div class="tool-card-progress">
-            <div class="tool-card-progress-bar" style="width: 100%;"></div>
+        <a href="https://dist-omega-lyart-23.vercel.app/" target="_blank" rel="noopener noreferrer" class="hub-card"
+           style="--c:rgba(56,199,255,.42);--cp:rgba(56,199,255,.1);--ct:#38bdf8;--icon-delay:.45s">
+          <div class="hub-icon-ring"><span class="hub-icon">🎙️</span></div>
+          <div class="hub-name">Voice2Voice Buddy</div>
+          <div class="hub-pill">External</div>
+          <div class="hub-desc-box">
+            <p class="hub-desc">Voice-production control room — recording sessions, editing, deliverables, and producer notes.</p>
+            <span class="hub-cta">Open App ↗</span>
           </div>
-          <div class="tool-card-progress-text">100% Complete</div>
-        </div>
-      </a>
+        </a>
 
-      <a href="/web/ai-init/" class="tool-card">
-        <div class="tool-card-body">
-          <div class="tool-card-title">
-            AI_INIT Glossary
-            <span class="tool-pill">Reference</span>
+        <a href="/web/kids-movie-library/" class="hub-card"
+           style="--c:rgba(249,115,22,.42);--cp:rgba(249,115,22,.1);--ct:#f97316;--icon-delay:.60s">
+          <div class="hub-icon-ring"><span class="hub-icon">🎬</span></div>
+          <div class="hub-name">Kids Movie Library</div>
+          <div class="hub-pill">Static</div>
+          <div class="hub-desc-box">
+            <p class="hub-desc">Curated family movie catalog with watch tracking, ratings, age guidance, and category filtering.</p>
+            <span class="hub-cta">Browse ↗</span>
           </div>
-          <div class="tool-card-subtitle">
-            Browse AI and IT abbreviations with category navigation for quick lookup.
-          </div>
-          <div class="tool-card-meta">
-            <span>Link: /web/ai-init/</span>
-          </div>
+        </a>
 
-          <div class="tool-card-progress">
-            <div class="tool-card-progress-bar" style="width: 100%;"></div>
+        <a href="/web/council/" class="hub-card"
+           style="--c:rgba(139,92,246,.42);--cp:rgba(139,92,246,.1);--ct:#a78bfa;--icon-delay:.75s">
+          <div class="hub-icon-ring"><span class="hub-icon">🤖</span></div>
+          <div class="hub-name">LLM Council</div>
+          <div class="hub-pill">Free AI</div>
+          <div class="hub-desc-box">
+            <p class="hub-desc">4-stage free-tier deliberation: Proposer → Critic → Synthesizer → Judge. Watch the full reasoning chain live.</p>
+            <span class="hub-cta">Start Debate ↗</span>
           </div>
-          <div class="tool-card-progress-text">100% Complete</div>
-        </div>
-      </a>
+        </a>
 
-      <a href="/web/shared-calendar/" class="tool-card">
-        <div class="tool-card-body">
-          <div class="tool-card-title">
-            Shared Calendar
-            <span class="tool-pill">Local App</span>
+        <a href="/web/ai-init/" class="hub-card"
+           style="--c:rgba(99,102,241,.42);--cp:rgba(99,102,241,.1);--ct:#818cf8;--icon-delay:.90s">
+          <div class="hub-icon-ring"><span class="hub-icon">📚</span></div>
+          <div class="hub-name">AI Glossary</div>
+          <div class="hub-pill">Reference</div>
+          <div class="hub-desc-box">
+            <p class="hub-desc">527+ searchable AI, compute &amp; infra abbreviations — Transformer, Attention, GPU/TPU/LPU, LoRA, vLLM, RAG, and more.</p>
+            <span class="hub-cta">Look Up ↗</span>
           </div>
-          <div class="tool-card-subtitle">
-            Drag-and-drop calendar blocks for school subjects and fun activities. Saved to local storage.
-          </div>
-          <div class="tool-card-meta">
-            <span>Link: /web/shared-calendar/</span>
-          </div>
+        </a>
 
-          <div class="tool-card-progress">
-            <div class="tool-card-progress-bar" style="width: 80%;"></div>
+        <a href="/web/llm-db/index.html" class="hub-card"
+           style="--c:rgba(45,212,191,.42);--cp:rgba(45,212,191,.1);--ct:#2dd4bf;--icon-delay:1.05s">
+          <div class="hub-icon-ring"><span class="hub-icon">🗺️</span></div>
+          <div class="hub-name">AI Platforms Map</div>
+          <div class="hub-pill">Directory</div>
+          <div class="hub-desc-box">
+            <p class="hub-desc">Browsable map of the AI ecosystem — 166 platforms across LLM APIs, coding, agents, image, voice, gaming, and infra.</p>
+            <span class="hub-cta">Explore Map ↗</span>
           </div>
-          <div class="tool-card-progress-text">80% Complete</div>
-        </div>
-      </a>
+        </a>
 
-      <a href="/calendar/" class="tool-card">
-        <div class="tool-card-body">
-          <div class="tool-card-title">
-            Calendar Generator
-            <span class="tool-pill">Print Tool</span>
+        <a href="/web/calendar/" class="hub-card"
+           style="--c:rgba(234,179,8,.42);--cp:rgba(234,179,8,.1);--ct:#facc15;--icon-delay:1.20s">
+          <div class="hub-icon-ring"><span class="hub-icon">📅</span></div>
+          <div class="hub-name">Calendar Generator</div>
+          <div class="hub-pill">Print Tool</div>
+          <div class="hub-desc-box">
+            <p class="hub-desc">Build a printable 13-page calendar with holiday lookup, custom image URLs, and Forest HUB integration.</p>
+            <span class="hub-cta">Build Calendar ↗</span>
           </div>
-          <div class="tool-card-subtitle">
-            Build a printable cover plus thirteen month pages with custom artwork, holiday lookup, and local saved settings.
-          </div>
-          <div class="tool-card-meta">
-            <span>Link: /calendar/</span>
-            <span>Static only</span>
-          </div>
+        </a>
 
-          <div class="tool-card-progress">
-            <div class="tool-card-progress-bar" style="width: 100%;"></div>
+        <a href="/web/hypertrophyos/" class="hub-card"
+           style="--c:rgba(190,242,100,.42);--cp:rgba(190,242,100,.1);--ct:#bef264;--icon-delay:1.28s">
+          <div class="hub-icon-ring"><span class="hub-icon">💪</span></div>
+          <div class="hub-name">Hyper Trophy OS</div>
+          <div class="hub-pill">Training</div>
+          <div class="hub-desc-box">
+            <p class="hub-desc">Exercise intelligence dashboard for science-backed rules, calculators, sources, and ingestion pipeline tracking.</p>
+            <span class="hub-cta">Open App ↗</span>
           </div>
-          <div class="tool-card-progress-text">100% Complete</div>
-        </div>
-      </a>
+        </a>
 
-      <a href="https://vfxportfolio.lovable.app" target="_blank" rel="noopener noreferrer" class="tool-card">
-        <div class="tool-card-body">
-          <div class="tool-card-title">
-            VFX Portfolio
-            <span class="tool-pill">External</span>
+        <a href="/web/manifesto-newborn/" class="hub-card"
+           style="--c:rgba(214,190,122,.40);--cp:rgba(214,190,122,.09);--ct:#d6b87a;--icon-delay:1.35s">
+          <div class="hub-icon-ring"><span class="hub-icon">🕊️</span></div>
+          <div class="hub-name">Manifesto for a Newborn</div>
+          <div class="hub-pill">Letter</div>
+          <div class="hub-desc-box">
+            <p class="hub-desc">A quiet letter to the newly arrived. On belonging, feeling, surviving the world's forgetting, and staying whole.</p>
+            <span class="hub-cta">Read ↗</span>
           </div>
-          <div class="tool-card-subtitle">
-            Animation Lead and VFX professional portfolio showcasing slot games, animated series, and commercials.
-          </div>
-          <div class="tool-card-meta">
-            <span>Repo: vfxportfolio-ee820969</span>
-          </div>
+        </a>
 
-          <div class="tool-card-progress">
-            <div class="tool-card-progress-bar" style="width: 100%;"></div>
+        <a href="/web/m-popova/" class="hub-card"
+           style="--c:rgba(200,138,40,.42);--cp:rgba(200,138,40,.1);--ct:#c88a28;--icon-delay:1.43s">
+          <div class="hub-icon-ring"><span class="hub-icon">🌷</span></div>
+          <div class="hub-name">M.Popova — Poetry Space</div>
+          <div class="hub-pill">Poetry</div>
+          <div class="hub-desc-box">
+            <p class="hub-desc">Five prose-poems on being here, on darkness, love and loss. Words that emerge from the dark as you read.</p>
+            <span class="hub-cta">Read ↗</span>
           </div>
-          <div class="tool-card-progress-text">100% Complete</div>
-        </div>
-      </a>
+        </a>
 
-      <a href="/web/llm-db/index.html" class="tool-card">
-        <div class="tool-card-body">
-          <div class="tool-card-title">
-            LLM Platforms DB
-            <span class="tool-pill">API/UI</span>
+        <a href="/web/power-law-odyssey/" class="hub-card"
+           style="--c:rgba(251,191,36,.42);--cp:rgba(251,191,36,.1);--ct:#fbbf24;--icon-delay:1.50s">
+          <div class="hub-icon-ring"><span class="hub-icon">📈</span></div>
+          <div class="hub-name">Power Law Odyssey</div>
+          <div class="hub-pill">Scrollytelling</div>
+          <div class="hub-desc-box">
+            <p class="hub-desc">3D scroll narrative about normal curves, power laws, asymmetric upside, and repeated intelligent bets.</p>
+            <span class="hub-cta">Enter Odyssey ↗</span>
           </div>
-          <div class="tool-card-subtitle">
-            Structured documentation for LLM platforms and integrations.
-          </div>
-          <div class="tool-card-meta">
-            <span>Status: Functional</span>
-          </div>
+        </a>
 
-          <div class="tool-card-progress">
-            <div class="tool-card-progress-bar" style="width: 100%;"></div>
-          </div>
-          <div class="tool-card-progress-text">100% Complete</div>
-        </div>
-      </a>
+      </div>
+    </section>
 
-      <a href="/web/power-law-odyssey/" class="tool-card">
-        <div class="tool-card-body">
-          <div class="tool-card-title">
-            Power Law Odyssey
-            <span class="tool-pill">Scrollytelling</span>
-          </div>
-          <div class="tool-card-subtitle">
-            A 3D scroll narrative about power laws, asymmetric upside, and repeated intelligent bets.
-          </div>
-          <div class="tool-card-meta">
-            <span>Link: /web/power-law-odyssey/</span>
-            <span>Source: Drive PDF blueprint</span>
-          </div>
-
-          <div class="tool-card-progress">
-            <div class="tool-card-progress-bar" style="width: 100%;"></div>
-          </div>
-          <div class="tool-card-progress-text">100% Complete</div>
-        </div>
-      </a>
-
-      
-      <!-- Life in Time -->
-      <a href="https://life-in-time-kqqzy3pgi-ivans-projects-1a79b2cd.vercel.app/" target="_blank" rel="noopener noreferrer" class="tool-card">
-        <div class="tool-card-body">
-          <div class="tool-card-title">
-            Life in Time
-            <span class="tool-pill">External</span>
-          </div>
-          <div class="tool-card-subtitle">
-            Visualize your entire life in weeks, heartbeats, summers, and Christmases
-            and how much time remains with your children before they grow up.
-          </div>
-          <div class="tool-card-meta">
-            <span>React / Vite</span>
-            <span>Vercel</span>
-          </div>
-          <div class="tool-card-progress">
-            <div class="tool-card-progress-bar" style="width: 100%;"></div>
-          </div>
-          <div class="tool-card-progress-text">100% Complete</div>
-        </div>
-      </a>
-
-      <a href="https://dist-omega-lyart-23.vercel.app/" target="_blank" rel="noopener noreferrer" class="tool-card">
-        <div class="tool-card-body">
-          <div class="tool-card-title">
-            Voice Project Dashboard
-            <span class="tool-pill">External</span>
-          </div>
-          <div class="tool-card-subtitle">
-            Voice-production control room for tracking recording, editing, deliverables, and producer notes.
-          </div>
-          <div class="tool-card-meta">
-            <span>Source: /voice-project-dashboard/apps/mobile</span>
-            <span>Expo Web</span>
-            <span>Vercel</span>
-          </div>
-
-          <div class="tool-card-progress">
-            <div class="tool-card-progress-bar" style="width: 100%;"></div>
-          </div>
-          <div class="tool-card-progress-text">100% Complete</div>
-        </div>
-      </a>
-
-      <a href="#" class="tool-card">
-        <div class="tool-card-body">
-          <div class="tool-card-title">
-            Python Learning Orchestrated
-            <span class="tool-pill" style="background: rgba(100, 116, 139, 0.1); border-color: rgba(100, 116, 139, 0.3); color: #94a3b8;">Empty</span>
-          </div>
-          <div class="tool-card-subtitle">
-            A structured path for learning Python and orchestration tools.
-          </div>
-          <div class="tool-card-meta">
-            <span>Status: Not Started</span>
-          </div>
-
-          <div class="tool-card-progress">
-            <div class="tool-card-progress-bar" style="width: 0%; background: linear-gradient(90deg, #64748b, #475569);"></div>
-          </div>
-          <div class="tool-card-progress-text">0% Complete</div>
-        </div>
-      </a>
-
-      <a href="https://github.com/IvanGegovDVE-Sudo/ClipMart" target="_blank" rel="noopener noreferrer" class="tool-card">
-        <div class="tool-card-body">
-          <div class="tool-card-title">
-            Clip Mart
-            <span class="tool-pill">Repo</span>
-          </div>
-          <div class="tool-card-subtitle">
-            GitHub repository for video and clip management.
-          </div>
-          <div class="tool-card-meta">
-            <span>Source: GitHub</span>
-          </div>
-
-          <div class="tool-card-progress">
-            <div class="tool-card-progress-bar" style="width: 15%; background: linear-gradient(90deg, #3b82f6, #2563eb);"></div>
-          </div>
-          <div class="tool-card-progress-text">15% Complete</div>
-        </div>
-      </a>
-    </div>
+    <footer class="site">
+      <p>Forest HUB · Built by Ivan · Deployed on <a href="https://sdforest.site">sdforest.site</a></p>
+      <p class="meta">14 projects · 166 AI platforms · 527 glossary terms · 74 curated movies</p>
+    </footer>
   </div>
 
   <script>
-    // Subtle mouse tracking glow effect for cards
-    document.querySelectorAll('.tool-card').forEach(card => {
-      card.addEventListener('mousemove', e => {
-        const rect = card.getBoundingClientRect();
-        const x = e.clientX - rect.left;
-        const y = e.clientY - rect.top;
-        card.style.setProperty('--mouse-x', `${x}px`);
-        card.style.setProperty('--mouse-y', `${y}px`);
-      });
-    });
+    /* ─────────────────────────────────────────────
+       Global interactive plexus field
+       Depth-layered constellation network with mouse
+       parallax + attraction. Site-wide, behind all
+       content, scaled to viewport + DPR.
+    ───────────────────────────────────────────── */
+    const noMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const isTouch  = window.matchMedia('(pointer: coarse)').matches;
 
-    // Interactive orbital particle field for hero canvas
-    const canvas = document.getElementById('hero-canvas');
-    if (canvas) {
+    (function plexus() {
+      const canvas = document.getElementById('bg-plexus');
+      if (!canvas) return;
       const ctx = canvas.getContext('2d');
-      const hero = canvas.parentElement;
-      let dpr = Math.min(window.devicePixelRatio || 1, 2);
-      let width = 0;
-      let height = 0;
+      let W, H, DPR;
 
-      function resizeCanvas() {
-        dpr = Math.min(window.devicePixelRatio || 1, 2);
-        width = hero.offsetWidth;
-        height = hero.offsetHeight;
-        canvas.width = Math.max(1, Math.floor(width * dpr));
-        canvas.height = Math.max(1, Math.floor(height * dpr));
-        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      let parts = [];
+      function build() {
+        const area = window.innerWidth * window.innerHeight;
+        const count = Math.max(36, Math.min(130, Math.round(area / 16000)));
+        parts = Array.from({ length: count }, () => ({
+          x: Math.random(), y: Math.random(),
+          vx: (Math.random() - 0.5) * 0.5,
+          vy: (Math.random() - 0.5) * 0.5,
+          z: Math.random() * 0.7 + 0.3,
+          hue: Math.random() > 0.5 ? 199 : 264,
+        }));
       }
 
-      resizeCanvas();
-      window.addEventListener('resize', resizeCanvas);
+      function resize() {
+        DPR = Math.min(window.devicePixelRatio || 1, 2);
+        W = window.innerWidth; H = window.innerHeight;
+        canvas.width  = W * DPR; canvas.height = H * DPR;
+        canvas.style.width = W + 'px'; canvas.style.height = H + 'px';
+        ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+        build();
+      }
+      resize();
+      window.addEventListener('resize', resize);
 
-      const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-      const mouse = { x: 0, y: 0, tx: 0, ty: 0 };
-      const dots = Array.from({ length: 260 }, (_, index) => {
-        const offset = 2 / 260;
-        const y = index * offset - 1 + offset / 2;
-        const radius = Math.sqrt(1 - y * y);
-        const theta = index * Math.PI * (3 - Math.sqrt(5));
-        return { theta, y, radius, depth: 0.5 + (index % 19) / 38 };
-      });
+      const mouse = { x: W / 2, y: H / 2, sx: W / 2, sy: H / 2, active: false };
+      if (!isTouch) {
+        window.addEventListener('mousemove', e => { mouse.x = e.clientX; mouse.y = e.clientY; mouse.active = true; });
+        window.addEventListener('mouseout', () => { mouse.active = false; });
+      }
 
-      hero.addEventListener('mousemove', (e) => {
-        const rect = canvas.getBoundingClientRect();
-        mouse.tx = ((e.clientX - rect.left) / Math.max(rect.width, 1) - 0.5) * 2;
-        mouse.ty = ((e.clientY - rect.top) / Math.max(rect.height, 1) - 0.5) * 2;
-        hero.style.setProperty('--hero-x', `${e.clientX - rect.left}px`);
-        hero.style.setProperty('--hero-y', `${e.clientY - rect.top}px`);
-      });
+      const LINK = 132, PULL = 124;
 
-      hero.addEventListener('mouseleave', () => {
-        mouse.tx = 0;
-        mouse.ty = 0;
-        hero.style.setProperty('--hero-x', '50%');
-        hero.style.setProperty('--hero-y', '50%');
-      });
+      if (noMotion) { drawStatic(); return; }
 
-      function animate(now) {
-        mouse.x += (mouse.tx - mouse.x) * 0.055;
-        mouse.y += (mouse.ty - mouse.y) * 0.055;
-        ctx.clearRect(0, 0, width, height);
+      function frame() {
+        requestAnimationFrame(frame);
+        ctx.clearRect(0, 0, W, H);
 
-        const t = reduceMotion ? 0 : now / 1000;
-        const cx = width * (0.5 + mouse.x * 0.04);
-        const cy = height * (0.5 + mouse.y * 0.05);
-        const r = Math.min(width, height) * 0.45;
-        const rot = t * 0.28 + mouse.x * 0.45;
+        mouse.sx += (mouse.x - mouse.sx) * 0.06;
+        mouse.sy += (mouse.y - mouse.sy) * 0.06;
+        const offX = (mouse.sx - W / 2) / W;
+        const offY = (mouse.sy - H / 2) / H;
 
-        const glow = ctx.createRadialGradient(width * (0.28 + mouse.x * 0.08), height * 0.18, 0, width * 0.4, height * 0.28, height * 0.9);
-        glow.addColorStop(0, 'rgba(251, 191, 36, 0.28)');
-        glow.addColorStop(0.22, 'rgba(14, 165, 233, 0.16)');
-        glow.addColorStop(1, 'rgba(0, 0, 0, 0)');
-        ctx.fillStyle = glow;
-        ctx.fillRect(0, 0, width, height);
+        const px = new Array(parts.length);
+        const py = new Array(parts.length);
+        for (let i = 0; i < parts.length; i++) {
+          const p = parts[i];
+          p.x += p.vx / W; p.y += p.vy / H;
+          if (p.x < 0) p.x += 1; else if (p.x > 1) p.x -= 1;
+          if (p.y < 0) p.y += 1; else if (p.y > 1) p.y -= 1;
 
-        ctx.save();
-        ctx.translate(cx, cy);
+          let X = p.x * W + offX * 60 * p.z;
+          let Y = p.y * H + offY * 40 * p.z;
 
-        for (let ring = 0; ring < 18; ring++) {
-          const ringT = ring / 18;
-          const rr = r * (0.36 + ringT * 1.05);
-          ctx.beginPath();
-          ctx.ellipse(0, 0, rr, rr * 0.28, rot * 0.25, 0, Math.PI * 2);
-          ctx.strokeStyle = `rgba(14, 165, 233, ${0.025 + (1 - ringT) * 0.055})`;
-          ctx.lineWidth = 1;
-          ctx.stroke();
+          if (mouse.active) {
+            const dx = mouse.sx - X, dy = mouse.sy - Y;
+            const d = Math.hypot(dx, dy);
+            if (d < PULL && d > 0.1) {
+              const f = (PULL - d) / PULL * 0.6;
+              X += dx / d * f; Y += dy / d * f;
+            }
+          }
+          px[i] = X; py[i] = Y;
         }
 
-        dots.forEach((dot) => {
-          const theta = dot.theta + rot * dot.depth;
-          const x0 = Math.cos(theta) * dot.radius;
-          const z0 = Math.sin(theta) * dot.radius;
-          const perspective = 0.72 + z0 * 0.28;
-          const x = x0 * r * perspective;
-          const y = dot.y * r * 0.78 * perspective;
-          const pointerDistance = Math.hypot(x / r - mouse.x * 0.38, y / r - mouse.y * 0.38);
-          const pulse = Math.max(0, 1 - pointerDistance * 2);
-          const size = 1.2 + perspective * 2.2 + pulse * 2.2;
-          const alpha = Math.max(0.06, 0.12 + z0 * 0.18 + pulse * 0.35);
-          ctx.beginPath();
-          ctx.arc(x + mouse.x * pulse * 12, y + mouse.y * pulse * 12, size, 0, Math.PI * 2);
-          ctx.fillStyle = `rgba(255, ${Math.floor(190 + perspective * 44)}, ${Math.floor(92 + perspective * 90)}, ${alpha})`;
-          ctx.fill();
-        });
+        for (let i = 0; i < parts.length; i++) {
+          for (let j = i + 1; j < parts.length; j++) {
+            const dx = px[i] - px[j], dy = py[i] - py[j];
+            const d = Math.hypot(dx, dy);
+            if (d < LINK) {
+              const a = (1 - d / LINK) * 0.32;
+              ctx.strokeStyle = `rgba(150,170,205,${a})`;
+              ctx.lineWidth = 0.6;
+              ctx.beginPath();
+              ctx.moveTo(px[i], py[i]); ctx.lineTo(px[j], py[j]);
+              ctx.stroke();
+            }
+          }
+        }
 
-        ctx.restore();
-
-        if (!reduceMotion) requestAnimationFrame(animate);
+        for (let i = 0; i < parts.length; i++) {
+          const p = parts[i];
+          const r = p.z * 1.7 + 0.5;
+          const X = px[i], Y = py[i];
+          const g = ctx.createRadialGradient(X, Y, 0, X, Y, r * 3.5);
+          g.addColorStop(0, `hsla(${p.hue},90%,72%,${0.5 * p.z})`);
+          g.addColorStop(1, `hsla(${p.hue},90%,72%,0)`);
+          ctx.fillStyle = g;
+          ctx.beginPath(); ctx.arc(X, Y, r * 3.5, 0, Math.PI * 2); ctx.fill();
+          ctx.fillStyle = `hsla(${p.hue},100%,92%,${0.7 * p.z})`;
+          ctx.beginPath(); ctx.arc(X, Y, r, 0, Math.PI * 2); ctx.fill();
+        }
       }
-      requestAnimationFrame(animate);
+      frame();
+
+      function drawStatic() {
+        ctx.clearRect(0, 0, W, H);
+        const pts = parts.map(p => ({ x: p.x * W, y: p.y * H, hue: p.hue, z: p.z }));
+        for (let i = 0; i < pts.length; i++) {
+          for (let j = i + 1; j < pts.length; j++) {
+            const d = Math.hypot(pts[i].x - pts[j].x, pts[i].y - pts[j].y);
+            if (d < LINK) {
+              ctx.strokeStyle = `rgba(150,170,205,${(1 - d / LINK) * 0.25})`;
+              ctx.lineWidth = 0.6;
+              ctx.beginPath(); ctx.moveTo(pts[i].x, pts[i].y); ctx.lineTo(pts[j].x, pts[j].y); ctx.stroke();
+            }
+          }
+        }
+        pts.forEach(p => {
+          ctx.fillStyle = `hsla(${p.hue},100%,90%,${0.6 * p.z})`;
+          ctx.beginPath(); ctx.arc(p.x, p.y, p.z * 1.6 + 0.5, 0, Math.PI * 2); ctx.fill();
+        });
+      }
+    })();
+
+    /* ── Card 3D tilt + mouse sheen (desktop) ── */
+    if (!noMotion && !isTouch) {
+      const MAX_TILT = 10;
+      document.querySelectorAll('.hub-card').forEach(card => {
+        card.addEventListener('mousemove', e => {
+          const r = card.getBoundingClientRect();
+          const cx = r.width / 2, cy = r.height / 2;
+          const dx = (e.clientX - r.left - cx) / cx;
+          const dy = (e.clientY - r.top  - cy) / cy;
+          card.style.transform =
+            `perspective(900px) rotateX(${-dy * MAX_TILT}deg) rotateY(${dx * MAX_TILT}deg) scale(1.025)`;
+          card.style.setProperty('--mx', `${e.clientX - r.left}px`);
+          card.style.setProperty('--my', `${e.clientY - r.top}px`);
+        });
+        card.addEventListener('mouseleave', () => {
+          card.style.transform = 'perspective(900px) rotateX(0) rotateY(0) scale(1)';
+        });
+      });
+    }
+
+    /* ── Mobile tap-to-reveal (first tap reveals, second navigates) ── */
+    if (isTouch) {
+      document.querySelectorAll('.hub-card').forEach(card => {
+        card.addEventListener('click', e => {
+          if (!card.classList.contains('open')) {
+            e.preventDefault();
+            document.querySelectorAll('.hub-card.open').forEach(c => c.classList.remove('open'));
+            card.classList.add('open');
+          }
+        });
+      });
+      document.addEventListener('click', e => {
+        if (!e.target.closest('.hub-card')) {
+          document.querySelectorAll('.hub-card.open').forEach(c => c.classList.remove('open'));
+        }
+      });
     }
   </script>
 </body>
