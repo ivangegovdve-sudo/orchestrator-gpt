@@ -123,7 +123,19 @@ h1{text-align:center;padding:16px 10px 2px;font-size:1.7em;color:#00d4ff;text-sh
   .mbody{flex-direction:column}
   .stat-panel{width:100%;border-right:none;border-bottom:1px solid rgba(0,212,255,.12);display:grid;grid-template-columns:1fr 1fr}
 }
-</style>
+
+/* ── Mobile adaptive ─────────────────────────────────────────────── */
+/* Rotation overlay */
+#rotate-overlay{display:none;position:fixed;inset:0;background:rgba(4,12,20,.93);z-index:9999;flex-direction:column;align-items:center;justify-content:center;gap:18px;color:#a0e8ff;font-family:'Segoe UI',Tahoma,sans-serif;text-align:center;padding:30px;cursor:pointer}
+#rotate-overlay .rot-icon{font-size:60px;animation:rotpulse 2s ease-in-out infinite}
+@keyframes rotpulse{0%,100%{transform:rotate(-10deg)}50%{transform:rotate(80deg)}}
+#rotate-overlay p{font-size:1.15em;line-height:1.4;color:#00d4ff}
+#rotate-overlay small{opacity:.5;font-size:.78em}
+/* Scale wrapper for small viewports */
+.pt-scale-host{transform-origin:top left;display:inline-block}
+/* Touch feedback mimics hover */
+.el.m-hover::after{opacity:.07!important}
+@media(hover:none){.el:hover::after{opacity:0}}</style>
 </head>
 <body>
 <h1>⚗ ПЕРИОДИЧНА ТАБЛИЦА ⚗</h1>
@@ -806,5 +818,64 @@ function closeModal(){document.getElementById('overlay').classList.remove('on');
 document.getElementById('overlay').addEventListener('click',e=>{if(e.target===e.currentTarget)closeModal();});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeModal();closeMini();}});
 </script>
-</body>
+
+<script>
+/* Mobile adaptive — rotation overlay + CSS scale */
+(function(){
+  /* --- Inject overlay HTML --- */
+  var ov=document.createElement('div');
+  ov.id='rotate-overlay';
+  ov.innerHTML='<div class="rot-icon">📱</div><p>Rotate your phone for the best experience</p><small>Tap to dismiss</small>';
+  document.body.prepend(ov);
+
+  /* --- Scale the grid to fit viewport --- */
+  var grid=document.querySelector('.pt-grid');
+  function scaleTable(){
+    if(!grid)return;
+    var vw=window.innerWidth;
+    // Full grid width: 18*50 + 17*2 = 934px; add 20px padding = ~954
+    var naturalW=954;
+    if(vw<naturalW){
+      var sc=Math.max(0.32, vw/naturalW);
+      grid.style.transform='scale('+sc+')';
+      grid.style.transformOrigin='top left';
+      // Collapse the wrapper height to match scaled height
+      // Grid natural height: 10*50 + 9*2 + 20 = 538px
+      var naturalH=538;
+      var wrap=grid.parentElement;
+      if(wrap){ wrap.style.height=(naturalH*sc)+'px'; wrap.style.overflow='visible'; }
+    }else{
+      grid.style.transform='';
+      var wrap=grid.parentElement;
+      if(wrap){ wrap.style.height=''; }
+    }
+  }
+
+  /* --- Rotation overlay logic --- */
+  var dismissed=false;
+  function checkOverlay(){
+    if(dismissed){ov.style.display='none';return;}
+    var portrait=window.innerHeight>window.innerWidth;
+    var narrowish=Math.min(window.innerWidth,window.innerHeight)<600;
+    ov.style.display=(portrait&&narrowish)?'flex':'none';
+  }
+  ov.addEventListener('click',function(){dismissed=true;ov.style.display='none';});
+  window.addEventListener('orientationchange',function(){
+    setTimeout(function(){scaleTable();checkOverlay();},200);
+  });
+  window.addEventListener('resize',function(){scaleTable();checkOverlay();});
+
+  /* --- Touch hover feedback --- */
+  document.addEventListener('touchstart',function(e){
+    var el=e.target.closest&&e.target.closest('.el');
+    if(el){el.classList.add('m-hover');setTimeout(function(){el.classList.remove('m-hover');},400);}
+  },{passive:true});
+
+  /* init */
+  scaleTable();
+  checkOverlay();
+})();
+</script></body>
 </html>
+
+
