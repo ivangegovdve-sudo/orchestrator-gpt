@@ -1,42 +1,50 @@
 "use strict";
 const https = require("https");
 
-// ── Diverse free-tier model roster ──────────────────────────────────────────
-// 6 stages, 4 distinct vendor families, all non-Venice, all :free.
-// All slugs verified against OpenRouter /api/v1/models or live-tested, June 2026.
+// ─────────────────────────────────────────────────────────────────────────────
+// SD Forest — LLM Council (free-tier, $0)
 //
-// Session-empirical findings (June 21 2026):
-//   Venice-hosted (rate-limits aggressively): Nous Hermes, Qwen3-*, Meta Llama.
-//   Queues for 60s+ (too slow on free tier): gpt-oss-120b, nemotron-ultra.
-//   Confirmed fast and reliable: nemotron-super (12B active), gemma-4-26b MoE (4B active),
-//     gemma-4-31b (31B dense), gpt-oss-20b (20B), nex-n2-pro (17B active MoE).
+// RESILIENCE MODEL (rewritten 2026-06-21):
+//   The old pipeline called free models one at a time with a flat 40s/75s
+//   per-model timeout. Free-tier models on OpenRouter routinely *queue* for
+//   longer than that, so a single slow/queued stage would burn 40–150s of
+//   silence, the browser's streaming fetch would drop ("Network error"), and
+//   the run died after stage 1.
 //
-// Family map across 6 stages:
-//   Stage         Primary slug                          Family
-//   -----------   ------------------------------------  --------
-//   Proposer R1   openai/gpt-oss-120b                   OpenAI 120B
-//   Critic 1      nvidia/nemotron-3-ultra-550b-a55b     NVIDIA Ultra (55B active)
-//   Proposer R2   google/gemma-4-31b-it                 Google 31B
-//   Critic 2      nex-agi/nex-n2-pro                    Nex AGI (17B active MoE) <- NEW family
-//   Synthesizer   google/gemma-4-26b-a4b-it             Google MoE (4B active)
-//   Judge         openai/gpt-oss-20b                    OpenAI 20B
+//   Fixes:
+//   1. STREAMING calls (stream:true) with a short FIRST-TOKEN timeout. A queued
+//      / rate-limited free model does not emit a first token quickly, so we
+//      abort and fall through to the next model in ~22s instead of 40–75s.
+//   2. Larger free-only fallback rosters per stage (every slug verified present
+//      on OpenRouter's /models as a :free variant).
+//   3. Token deltas are forwarded to the client live (shows the thinking
+//      process AND keeps bytes flowing = natural keep-alive).
+//   4. Heartbeats during any gap so proxies/browsers never see an idle stream.
+//   5. Per-stage graceful degradation: a fully-failed stage emits status
+//      "failed" and the pipeline continues where it can instead of aborting.
 //
-// 4 distinct vendor families: OpenAI * NVIDIA * Google * Nex AGI
-// Critic 1 (NVIDIA Ultra) uses TIMEOUT_ULTRA = 75s -- Ivan wants the quality.
-// All other stages use TIMEOUT_NORMAL = 40s with fast fallbacks.
+//   Cost stays $0: PAID_FALLBACK kill-gate blocks any non-:free slug.
+// ─────────────────────────────────────────────────────────────────────────────
+
+// Every slug here is a verified-available :free model on OpenRouter (June 2026).
+// Order = preference; first model to emit a first token within the timeout wins.
+//
+// SPEED-FIRST ordering (2026-06-21): the pipeline must finish well under Vercel's
+// 300s function limit, or the function is killed mid-stream and the browser shows
+// "Network error". So FAST, well-behaved (max_tokens-respecting) models lead every
+// stage; slow reasoning giants (gpt-oss-120b, nemotron-ultra-550b) are demoted to
+// LAST-RESORT fallbacks only. gpt-oss-120b previously hit the 72s hard cap emitting
+// 9000+ chars (it ignores max_tokens) and single-handedly blew the time budget.
 const ROSTER = {
-  proposer_r1:  ["openai/gpt-oss-120b:free",                 "openai/gpt-oss-20b:free"],
-  critic:       ["nvidia/nemotron-3-ultra-550b-a55b:free",   "nvidia/nemotron-3-super-120b-a12b:free"],
-  proposer_rev: ["google/gemma-4-31b-it:free",               "nvidia/nemotron-3-nano-30b-a3b:free"],
-  critic2:      ["nex-agi/nex-n2-pro:free",                  "cohere/north-mini-code:free"],
-  synthesizer:  ["google/gemma-4-26b-a4b-it:free",           "nvidia/nemotron-3-super-120b-a12b:free"],
-  judge:        ["openai/gpt-oss-20b:free",                  "nvidia/nemotron-3-super-120b-a12b:free"],
+  proposer_r1:  ["google/gemma-4-31b-it:free", "meta-llama/llama-3.3-70b-instruct:free", "openai/gpt-oss-20b:free", "nvidia/nemotron-3-super-120b-a12b:free"],
+  critic:       ["nvidia/nemotron-3-super-120b-a12b:free", "qwen/qwen3-next-80b-a3b-instruct:free", "meta-llama/llama-3.3-70b-instruct:free", "google/gemma-4-31b-it:free"],
+  proposer_rev: ["google/gemma-4-31b-it:free", "nvidia/nemotron-3-nano-30b-a3b:free", "meta-llama/llama-3.3-70b-instruct:free", "openai/gpt-oss-20b:free"],
+  critic2:      ["nex-agi/nex-n2-pro:free", "qwen/qwen3-next-80b-a3b-instruct:free", "nvidia/nemotron-3-super-120b-a12b:free", "meta-llama/llama-3.3-70b-instruct:free"],
+  synthesizer:  ["google/gemma-4-26b-a4b-it:free", "meta-llama/llama-3.3-70b-instruct:free", "nvidia/nemotron-3-super-120b-a12b:free", "google/gemma-4-31b-it:free"],
+  judge:        ["openai/gpt-oss-20b:free", "google/gemma-4-31b-it:free", "nvidia/nemotron-3-nano-30b-a3b:free"],
 };
 
-// ── PAID-FALLBACK KILL GATE (2026-06-21) ────────────────────────────────────
-// Free-only policy. When PAID_FALLBACK_ENABLED=false (default), any model slug
-// NOT ending in ":free" is blocked before the request -- council stays $0.
-//   RE-ENABLE after OpenRouter top-up: set Vercel env  PAID_FALLBACK_ENABLED=true
+// ── PAID-FALLBACK KILL GATE (Ivan's free-only lockdown) ─────────────────────
 const PAID_FALLBACK_ENABLED = /^(1|true|yes|on|enabled)$/i.test(
   (process.env.PAID_FALLBACK_ENABLED || "").trim()
 );
@@ -45,27 +53,117 @@ function isFreeSlug(model) {
 }
 
 const DEFAULT_ROUNDS = 2;
-// TIMEOUT_ULTRA: NVIDIA Ultra (550B, 55B active) is slow -- give it headroom.
-// TIMEOUT_NORMAL: fast/mid models; falls back quickly so total budget stays sane.
-// req.setTimeout only fires on socket inactivity; Promise.race fires on wall-clock.
-const TIMEOUT_ULTRA  = 75000;
-const TIMEOUT_NORMAL = 40000;
+// First-token timeout: how long we wait for the model to START streaming before
+// giving up and trying the next one. Short enough to dodge queued free models.
+const FIRST_TOKEN_TIMEOUT = 15000;
+// Hard cap once tokens are flowing — stops a runaway (verbose reasoning) model.
+// Tight so no single stage can dominate the wall-clock budget.
+const STREAM_HARD_CAP = 38000;
+// Global wall-clock budget. Vercel maxDuration is 300s; we keep the WHOLE run well
+// under that (the real "Network error" was the function being killed mid-stream on
+// a slow free-tier run). Once the budget is nearly spent we skip remaining optional
+// debate stages and always reserve enough time to still deliver synthesizer + judge.
+const TOTAL_BUDGET_MS = 210000;
+const SYNTH_JUDGE_RESERVE_MS = 80000;
+// Per-stage output caps (tokens). Kept modest so generations finish fast; the
+// council's value is the multi-model debate, not 9000-char monologues.
+const MAXTOK = { propose: 420, critique: 320, revise: 420, critique2: 320, synth: 560, judge: 340 };
 
-// Short label for SSE display (last path segment, strip :free)
+// ── Council modes ───────────────────────────────────────────────────────────
+// IMPORTANT: modes are NOT personas. They are INSTRUCTIONS for HOW each member
+// should TREAT the response handed to it by the previous member. Same panel of
+// models every time; only the treatment changes.
+const MODES = {
+  default: {
+    label: "Balanced",
+    temperature: 0.65,
+    propose: "Give a thorough, well-reasoned answer. Be direct, substantive, and confident. Prioritize depth over hedging.",
+    critique: "Identify the key weaknesses, blind spots, or missing nuance in the proposal. Be specific and constructive. Note at least two concrete concerns.",
+    revise: "A critic identified weaknesses in your previous answer. Revise to address those concerns while preserving your core insights.",
+    synth: "Incorporate the strongest points from all rounds and address all critiques. Produce the definitive, balanced final answer.",
+  },
+  adversarial: {
+    label: "Adversarial",
+    temperature: 0.7,
+    propose: "Give a strong, committed answer — you will have to defend it under fire.",
+    critique: "PUSH BACK HARD on the previous response. Attack its weakest assumptions, expose every flaw, steelman the opposing view, and do not concede easily. Be relentless but precise — at least three sharp objections.",
+    revise: "Your answer was attacked aggressively. Defend what is defensible, concede only what is truly indefensible, and counter-argue. Come back stronger.",
+    synth: "The members fought hard. Weigh the strongest attacks against the strongest defenses and deliver the answer that actually survives scrutiny — note where genuine disagreement remains.",
+  },
+  chaos: {
+    label: "Chaos",
+    temperature: 1.0,
+    propose: "Answer from an unexpected angle. Make a surprising connection. Avoid the obvious framing entirely.",
+    critique: "React to the previous response with lateral, divergent thinking. Introduce wild-card considerations, unlikely scenarios, and angles nobody asked for. Break the frame.",
+    revise: "Embrace the chaos the critic introduced. Mutate your answer in a bold, non-linear direction — keep what's alive, discard what's safe.",
+    synth: "Weave the divergent threads into something genuinely novel. Favor the surprising-but-true over the safe-and-obvious.",
+  },
+  dreamer: {
+    label: "Dreamer",
+    temperature: 0.9,
+    propose: "Answer expansively and imaginatively. Explore the best-case, the visionary, the 10x version. Think big and paint the possibility.",
+    critique: "Build on the previous response's vision — amplify it, extend it further, and add even more imaginative possibility. Where it played small, dream bigger.",
+    revise: "Take the expanded vision and make it richer and more vivid while keeping a thread to reality. Reach further.",
+    synth: "Synthesize the most inspiring, expansive version of the answer — bold and visionary, yet coherent enough to act on.",
+  },
+  "problem-solver": {
+    label: "Problem-Solver",
+    temperature: 0.6,
+    propose: "Treat the input as a PROBLEM to be solved, not a question to be answered. Lay out 2–4 distinct ways to APPROACH it, with the trade-offs of each. Do not just give one answer.",
+    critique: "Pressure-test the proposed approaches. Which would fail in practice, which are over-engineered, what approach is missing entirely? Be concrete about failure modes.",
+    revise: "Refine the set of approaches using the critique. Drop weak ones, add missing ones, sharpen the trade-offs and the conditions under which each approach wins.",
+    synth: "Deliver a clear menu of approaches to the problem: for each, when to use it, the key trade-off, and the first concrete step. End with a recommended default.",
+  },
+};
+function getMode(name) {
+  return MODES[String(name || "").trim().toLowerCase()] || MODES.default;
+}
+
 function shortName(slug) {
   return slug.split("/").pop().replace(/:free$/, "");
 }
 
-function callSingleModel(messages, apiKey, model, maxTokens, timeoutMs) {
-  const tMs = timeoutMs || TIMEOUT_NORMAL;
-  const requestPromise = new Promise((resolve, reject) => {
+// ─────────────────────────────────────────────────────────────────────────────
+// Streaming OpenRouter call.
+//   onToken(deltaText) is invoked for every content delta as it arrives.
+//   Resolves with the full accumulated text, or rejects (HTTP error / timeout /
+//   no-first-token) so the caller can fall through to the next model.
+// ─────────────────────────────────────────────────────────────────────────────
+function streamSingleModel(messages, apiKey, model, maxTokens, temperature, onToken) {
+  return new Promise((resolve, reject) => {
     const body = JSON.stringify({
       model,
       messages,
       max_tokens: maxTokens || 600,
-      temperature: 0.65,
+      temperature: typeof temperature === "number" ? temperature : 0.65,
+      stream: true,
     });
-    const req = https.request(
+
+    let settled = false;
+    let firstTokenSeen = false;
+    let full = "";
+    let req;
+
+    const finish = (fn, arg) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(firstTokenTimer);
+      clearTimeout(hardCapTimer);
+      try { if (req) req.destroy(); } catch (_) {}
+      fn(arg);
+    };
+
+    const firstTokenTimer = setTimeout(() => {
+      finish(reject, new Error("No first token in " + FIRST_TOKEN_TIMEOUT + "ms: " + model));
+    }, FIRST_TOKEN_TIMEOUT);
+
+    const hardCapTimer = setTimeout(() => {
+      // We have partial text — keep whatever streamed so far.
+      if (full.trim()) finish(resolve, full);
+      else finish(reject, new Error("Hard cap " + STREAM_HARD_CAP + "ms: " + model));
+    }, STREAM_HARD_CAP);
+
+    req = https.request(
       {
         hostname: "openrouter.ai",
         path: "/api/v1/chat/completions",
@@ -76,61 +174,71 @@ function callSingleModel(messages, apiKey, model, maxTokens, timeoutMs) {
           "HTTP-Referer": "https://sdforest.site",
           "X-Title": "SD Forest LLM Council",
           "Content-Length": Buffer.byteLength(body),
+          Accept: "text/event-stream",
         },
       },
       (res) => {
-        let data = "";
-        res.on("data", (c) => { data += c; });
-        res.on("end", () => {
-          if (res.statusCode < 200 || res.statusCode >= 300) {
-            return reject(new Error(`HTTP ${res.statusCode}: ${data.slice(0, 300)}`));
-          }
-          try {
-            const parsed = JSON.parse(data);
-            const content = parsed && parsed.choices && parsed.choices[0] &&
-              parsed.choices[0].message && parsed.choices[0].message.content;
-            if (!content) return reject(new Error("Empty response: " + data.slice(0, 200)));
-            resolve(content);
-          } catch (e) {
-            reject(new Error("Parse error: " + data.slice(0, 200)));
+        if (res.statusCode < 200 || res.statusCode >= 300) {
+          let errData = "";
+          res.on("data", (c) => { errData += c; });
+          res.on("end", () => finish(reject, new Error("HTTP " + res.statusCode + " " + model + ": " + errData.slice(0, 200))));
+          return;
+        }
+
+        res.setEncoding("utf8");
+        let buf = "";
+        res.on("data", (chunk) => {
+          buf += chunk;
+          let nl;
+          while ((nl = buf.indexOf("\n")) !== -1) {
+            const line = buf.slice(0, nl).trim();
+            buf = buf.slice(nl + 1);
+            if (!line || line.startsWith(":")) continue;          // SSE comment / keep-alive
+            if (!line.startsWith("data:")) continue;
+            const payload = line.slice(5).trim();
+            if (payload === "[DONE]") { finish(resolve, full); return; }
+            try {
+              const obj = JSON.parse(payload);
+              const delta = obj && obj.choices && obj.choices[0] &&
+                obj.choices[0].delta && obj.choices[0].delta.content;
+              if (delta) {
+                if (!firstTokenSeen) { firstTokenSeen = true; clearTimeout(firstTokenTimer); }
+                full += delta;
+                try { onToken && onToken(delta); } catch (_) {}
+              }
+            } catch (_) { /* ignore partial/non-JSON keepalive lines */ }
           }
         });
+        res.on("end", () => {
+          if (full.trim()) finish(resolve, full);
+          else finish(reject, new Error("Empty stream: " + model));
+        });
+        res.on("error", (e) => finish(reject, e));
       }
     );
-    req.on("error", reject);
+    req.on("error", (e) => finish(reject, e));
     req.write(body);
     req.end();
   });
-
-  const timeoutPromise = new Promise((_, reject) =>
-    setTimeout(
-      () => reject(new Error("Timed out after " + tMs + "ms: " + model)),
-      tMs
-    )
-  );
-
-  return Promise.race([requestPromise, timeoutPromise]);
 }
 
-// Try each model in order; return { text, model } for the first that succeeds.
-async function callWithFallback(messages, apiKey, modelList, maxTokens, timeoutMs) {
-  const tMs = timeoutMs || TIMEOUT_NORMAL;
+// Try each model in the roster; the first to stream wins. onAttempt(model) lets
+// the caller reset/relabel the live view each time a new model is tried.
+async function streamWithFallback(messages, apiKey, modelList, maxTokens, temperature, onAttempt, onToken) {
   let lastErr;
   for (const model of modelList) {
-    // PAID-FALLBACK KILL GATE: never call a paid model while the gate is off.
     if (!PAID_FALLBACK_ENABLED && !isFreeSlug(model)) {
-      lastErr = new Error(
-        `PAID_FALLBACK_BLOCKED: '${model}' is not a :free model and ` +
-        `PAID_FALLBACK_ENABLED=false -- skipped (no spend).`
-      );
+      lastErr = new Error("PAID_FALLBACK_BLOCKED: '" + model + "' is not :free — skipped (no spend).");
       continue;
     }
     try {
-      const text = await callSingleModel(messages, apiKey, model, maxTokens, tMs);
-      return { text, model };
+      onAttempt && onAttempt(model);
+      const text = await streamSingleModel(messages, apiKey, model, maxTokens, temperature, onToken);
+      if (text && text.trim()) return { text, model };
+      lastErr = new Error("Empty result from " + model);
     } catch (err) {
       lastErr = err;
-      // Continue to next model on rate-limit, timeout, 5xx, or parse error
+      // 429 / timeout / no-first-token / 5xx → next model.
     }
   }
   throw lastErr || new Error("All models in roster failed");
@@ -155,13 +263,26 @@ module.exports = async function handler(req, res) {
     req.on("end", resolve);
   });
 
-  let question, rounds;
+  let question, rounds, modeName, priorContext, code;
   try {
     const parsed = JSON.parse(body);
     question = parsed.question;
     rounds = parsed.rounds;
+    modeName = parsed.mode;
+    priorContext = parsed.priorContext;
+    code = parsed.code;
   } catch (e) {
     return res.status(400).json({ error: "Invalid JSON body." });
+  }
+
+  // ── 4-digit access gate ────────────────────────────────────────────────────
+  // Lightweight shared-secret to stop anonymous over-use of the free OpenRouter
+  // quota (which itself causes "network error" via rate-limit starvation). The
+  // code is validated SERVER-SIDE and never shipped in client source, so it can't
+  // be scraped from the page. Configurable via env; falls back to a default.
+  const ACCESS_CODE = String(process.env.COUNCIL_ACCESS_CODE || "2142").trim();
+  if (String(code || "").trim() !== ACCESS_CODE) {
+    return res.status(401).json({ error: "Invalid access code. Ask Ivan for the 4-digit council code." });
   }
 
   if (!question || typeof question !== "string" || question.trim().length === 0) {
@@ -170,192 +291,163 @@ module.exports = async function handler(req, res) {
 
   const q = question.trim().slice(0, 2000);
   const numRounds = Math.max(2, Math.min(3, parseInt(rounds, 10) || DEFAULT_ROUNDS));
+  const mode = getMode(modeName);
+  const ctx = typeof priorContext === "string" ? priorContext.trim().slice(0, 4000) : "";
+
+  // Shared user-facing framing of the task — carries any prior-round context so
+  // follow-up rounds (B4: interactive) build on the previous deliberation.
+  const taskFraming =
+    (ctx ? "Earlier in this deliberation the council concluded:\n" + ctx + "\n\nThe user now follows up with:\n" : "") +
+    q;
 
   res.setHeader("Content-Type", "text/event-stream; charset=utf-8");
   res.setHeader("Cache-Control", "no-cache, no-transform");
   res.setHeader("X-Accel-Buffering", "no");
   res.status(200);
 
-  const send = (data) => res.write("data: " + JSON.stringify(data) + "\n\n");
+  const send = (data) => { try { res.write("data: " + JSON.stringify(data) + "\n\n"); } catch (_) {} };
+  // Heartbeat: SSE comment line, ignored by the client parser, keeps the
+  // connection from going idle during the gaps between/within stages.
+  const heartbeat = setInterval(() => { try { res.write(": ping\n\n"); } catch (_) {} }, 8000);
+
+  // Global wall-clock guard — see TOTAL_BUDGET_MS above.
+  const deadline = Date.now() + TOTAL_BUDGET_MS;
+  const timeLeft = () => deadline - Date.now();
+
+  send({ stage: "meta", mode: mode.label, rounds: numRounds });
+
+  // Run one council stage with live streaming + graceful failure.
+  //   keys: { stage, round?, extra? } — passed straight back to the client.
+  async function runStage(keys, roster, messages, maxTokens) {
+    send(Object.assign({}, keys, { status: "thinking", roster: roster.map(shortName) }));
+    try {
+      const result = await streamWithFallback(
+        messages, apiKey, roster, maxTokens, mode.temperature,
+        (model) => send(Object.assign({}, keys, { status: "model", model: shortName(model) })),
+        (delta) => send(Object.assign({}, keys, { status: "delta", delta }))
+      );
+      send(Object.assign({}, keys, { status: "done", text: result.text, model: shortName(result.model) }));
+      return result;
+    } catch (err) {
+      send(Object.assign({}, keys, { status: "failed", error: err.message }));
+      return null;
+    }
+  }
 
   try {
     const proposerTexts  = [];
     const proposerModels = [];
-    const criticTexts    = [];  // all critic rounds (in-loop + critic2)
+    const criticTexts    = [];
     const criticModels   = [];
 
-    // -- Round 1: Initial Proposal ------------------------------------------
-    send({ stage: "proposer", round: 1, status: "thinking", roster: ROSTER.proposer_r1.map(shortName) });
-
-    const p1 = await callWithFallback(
+    // ── Round 1: initial proposal ──────────────────────────────────────────
+    const p1 = await runStage(
+      { stage: "proposer", round: 1 },
+      ROSTER.proposer_r1,
       [
-        {
-          role: "system",
-          content:
-            "You are the Proposer in a multi-role LLM Council. " +
-            "Give a thorough, well-reasoned initial answer. " +
-            "Be direct, substantive, and confident. Prioritize depth over hedging.",
-        },
-        { role: "user", content: q },
+        { role: "system", content: "You are the Proposer in a multi-role LLM Council. " + mode.propose },
+        { role: "user", content: taskFraming },
       ],
-      apiKey, ROSTER.proposer_r1, 600, TIMEOUT_NORMAL
+      MAXTOK.propose
     );
+    if (!p1) throw new Error("The initial proposal stage could not get any free model to respond. Free-tier models may be rate-limited right now — please retry in a minute.");
     proposerTexts.push(p1.text);
     proposerModels.push(p1.model);
-    send({ stage: "proposer", round: 1, status: "done", text: p1.text, model: shortName(p1.model) });
 
-    // -- Rounds 2..numRounds: Critique then Revise --------------------------
+    // ── Rounds 2..N: critique then revise ──────────────────────────────────
     for (let r = 2; r <= numRounds; r++) {
+      // Budget guard: if we can't fit another critique+revision AND still leave
+      // room for synthesis+judge, skip the rest of the debate and synthesize now.
+      if (timeLeft() < SYNTH_JUDGE_RESERVE_MS) {
+        send({ stage: "notice", text: "Free-tier was slow — skipping remaining debate rounds to deliver the synthesis & verdict in time." });
+        break;
+      }
       const prevProposal = proposerTexts[r - 2];
-      const criticRound  = r - 1;  // critic N critiques proposer N
-      send({ stage: "critic", round: criticRound, status: "thinking", roster: ROSTER.critic.map(shortName) });
+      const criticRound = r - 1;
 
-      const c = await callWithFallback(
+      const c = await runStage(
+        { stage: "critic", round: criticRound },
+        ROSTER.critic,
         [
-          {
-            role: "system",
-            content:
-              "You are the Critic in a multi-role LLM Council. " +
-              "Identify the key weaknesses, blind spots, or missing nuance in the proposal. " +
-              "Be specific and constructive. Note at least two concrete concerns. Be concise.",
-          },
-          {
-            role: "user",
-            content:
-              "Original question:\n" + q + "\n\n" +
-              "Proposed answer (Round " + (r - 1) + "):\n" + prevProposal + "\n\n" +
-              "Critique the proposal above.",
-          },
+          { role: "system", content: "You are the Critic in a multi-role LLM Council, reacting to the previous member's response. " + mode.critique + " Be concise." },
+          { role: "user", content: "Original input:\n" + taskFraming + "\n\nPrevious member's response (Round " + (r - 1) + "):\n" + prevProposal + "\n\nNow apply your treatment to the response above." },
         ],
-        apiKey, ROSTER.critic, 500, TIMEOUT_ULTRA  // Ultra gets generous timeout
+        MAXTOK.critique
       );
-      criticTexts.push(c.text);
-      criticModels.push(c.model);
-      send({ stage: "critic", round: criticRound, status: "done", text: c.text, model: shortName(c.model) });
+      const criticText = c ? c.text : "(critic stage unavailable — proceeding)";
+      if (c) { criticTexts.push(c.text); criticModels.push(c.model); }
 
       const revRoster = r === 2 ? ROSTER.proposer_rev : ROSTER.proposer_r1;
-      send({ stage: "proposer", round: r, status: "thinking", roster: revRoster.map(shortName) });
-
-      const p = await callWithFallback(
+      const p = await runStage(
+        { stage: "proposer", round: r },
+        revRoster,
         [
-          {
-            role: "system",
-            content:
-              "You are the Proposer in a multi-role LLM Council. " +
-              "A critic from a different AI family identified weaknesses in your previous answer. " +
-              "Revise to address those concerns while preserving your core insights. Be direct.",
-          },
-          {
-            role: "user",
-            content:
-              "Original question:\n" + q + "\n\n" +
-              "Your previous answer (Round " + (r - 1) + "):\n" + prevProposal + "\n\n" +
-              "Critic's feedback:\n" + c.text + "\n\n" +
-              "Write your revised answer for Round " + r + ".",
-          },
+          { role: "system", content: "You are the Proposer in a multi-role LLM Council. " + mode.revise + " Be direct." },
+          { role: "user", content: "Original input:\n" + taskFraming + "\n\nYour previous answer (Round " + (r - 1) + "):\n" + prevProposal + "\n\nThe previous member's reaction:\n" + criticText + "\n\nWrite your Round " + r + " response." },
         ],
-        apiKey, revRoster, 600, TIMEOUT_NORMAL
+        MAXTOK.revise
       );
-      proposerTexts.push(p.text);
-      proposerModels.push(p.model);
-      send({ stage: "proposer", round: r, status: "done", text: p.text, model: shortName(p.model) });
+      if (p) { proposerTexts.push(p.text); proposerModels.push(p.model); }
+      else { proposerTexts.push(prevProposal); proposerModels.push(proposerModels[proposerModels.length - 1]); }
     }
 
-    // -- Second Critic (different family from first) ------------------------
-    // Critiques the FINAL revised proposal. Sent as critic round=numRounds
-    // so the frontend renders "Critic -- Round N" with a different model badge.
-    const finalProposal   = proposerTexts[proposerTexts.length - 1];
+    // ── Second critic (different family) on the final proposal ─────────────
+    const finalProposal = proposerTexts[proposerTexts.length - 1];
     const firstCriticText = criticTexts[0] || "";
-    send({ stage: "critic", round: numRounds, status: "thinking", roster: ROSTER.critic2.map(shortName) });
-
-    const c2 = await callWithFallback(
+    const c2 = (timeLeft() < SYNTH_JUDGE_RESERVE_MS) ? null : await runStage(
+      { stage: "critic", round: numRounds },
+      ROSTER.critic2,
       [
-        {
-          role: "system",
-          content:
-            "You are the Second Critic in a multi-role LLM Council -- a DIFFERENT AI system from the first critic. " +
-            "The proposer has already addressed one round of feedback. Your job: identify what REMAINS " +
-            "unaddressed, find angles the first critic missed, or raise new objections. " +
-            "Be specific. Note at least two distinct concerns.",
-        },
-        {
-          role: "user",
-          content:
-            "Original question:\n" + q + "\n\n" +
-            "Proposer's revised answer:\n" + finalProposal + "\n\n" +
-            "First critic's concerns (already incorporated by the proposer):\n" + firstCriticText.slice(0, 600) + "\n\n" +
-            "What important angles remain unaddressed or need deeper scrutiny?",
-        },
+        { role: "system", content: "You are the Second Critic in a multi-role LLM Council — a DIFFERENT AI system from the first critic, reacting to the latest response. " + mode.critique + " Find what the first critic missed." },
+        { role: "user", content: "Original input:\n" + taskFraming + "\n\nLatest response to react to:\n" + finalProposal + "\n\nThe first critic already raised:\n" + firstCriticText.slice(0, 600) + "\n\nApply your treatment — surface what remains." },
       ],
-      apiKey, ROSTER.critic2, 500, TIMEOUT_NORMAL
+      MAXTOK.critique2
     );
-    criticTexts.push(c2.text);
-    criticModels.push(c2.model);
-    send({ stage: "critic", round: numRounds, status: "done", text: c2.text, model: shortName(c2.model) });
+    if (c2) { criticTexts.push(c2.text); criticModels.push(c2.model); }
 
-    // -- Synthesizer --------------------------------------------------------
-    send({ stage: "synthesizer", status: "thinking", roster: ROSTER.synthesizer.map(shortName) });
-
+    // ── Synthesizer ────────────────────────────────────────────────────────
     const allRoundsCtx =
-      proposerTexts.map((t, i) =>
-        "Proposer Round " + (i + 1) + " (" + shortName(proposerModels[i]) + "):\n" + t
-      ).join("\n\n") +
+      proposerTexts.map((t, i) => "Proposer Round " + (i + 1) + " (" + (proposerModels[i] || "?") + "):\n" + t).join("\n\n") +
       "\n\n" +
-      criticTexts.map((t, i) =>
-        "Critic " + (i + 1) + " (" + shortName(criticModels[i]) + "):\n" + t
-      ).join("\n\n");
+      criticTexts.map((t, i) => "Critic " + (i + 1) + " (" + (criticModels[i] || "?") + "):\n" + t).join("\n\n");
 
-    const synth = await callWithFallback(
+    const synth = await runStage(
+      { stage: "synthesizer" },
+      ROSTER.synthesizer,
       [
-        {
-          role: "system",
-          content:
-            "You are the Synthesizer in a multi-role LLM Council. " +
-            "You have received proposals and critiques from MULTIPLE distinct AI model families. " +
-            "Produce the definitive final answer -- incorporate the strongest points from all rounds " +
-            "and address ALL critiques. Be comprehensive yet concise.",
-        },
-        {
-          role: "user",
-          content: "Original question:\n" + q + "\n\n" + allRoundsCtx + "\n\nSynthesize the best final answer.",
-        },
+        { role: "system", content: "You are the Synthesizer in a multi-role LLM Council. You received responses and reactions from MULTIPLE distinct AI model families. " + mode.synth + " Be comprehensive yet concise." },
+        { role: "user", content: "Original input:\n" + taskFraming + "\n\n" + allRoundsCtx + "\n\nSynthesize the best final result." },
       ],
-      apiKey, ROSTER.synthesizer, 700, TIMEOUT_NORMAL
+      MAXTOK.synth
     );
-    send({ stage: "synthesizer", status: "done", text: synth.text, model: shortName(synth.model) });
+    const synthText = synth ? synth.text : finalProposal;
 
-    // -- Judge -- decisive final verdict ------------------------------------
-    send({ stage: "judge", status: "thinking", roster: ROSTER.judge.map(shortName) });
-
-    const judge = await callWithFallback(
+    // ── Judge — decisive verdict ───────────────────────────────────────────
+    await runStage(
+      { stage: "judge" },
+      ROSTER.judge,
       [
         {
           role: "system",
           content:
-            "You are the Judge in a multi-role LLM Council. " +
-            "Output EXACTLY this structure and nothing else:\n" +
+            "You are the Judge in a multi-role LLM Council. Output EXACTLY this structure and nothing else:\n" +
             "VERDICT: [one decisive sentence]\n" +
-            "CONFIDENCE: [High or Medium or Low -- one-line reason]\n" +
+            "CONFIDENCE: [High or Medium or Low — one-line reason]\n" +
             "KEY REASONING:\n- [point 1]\n- [point 2]\n- [point 3]\n" +
             "CALL TO ACTION: [the single most important first step]\n" +
             "Start immediately with VERDICT:. No preamble.",
         },
-        {
-          role: "user",
-          content:
-            "Original question:\n" + q + "\n\n" +
-            "Council synthesis:\n" + synth.text.slice(0, 1400) + "\n\n" +
-            "Deliver your verdict now.",
-        },
+        { role: "user", content: "Original input:\n" + taskFraming + "\n\nCouncil synthesis:\n" + synthText.slice(0, 1400) + "\n\nDeliver your verdict now." },
       ],
-      apiKey, ROSTER.judge, 500, TIMEOUT_NORMAL
+      MAXTOK.judge
     );
-    send({ stage: "judge", status: "done", text: judge.text, model: shortName(judge.model) });
 
-    send({ stage: "complete" });
+    // Send the synthesis text so the client can seed the next interactive round.
+    send({ stage: "complete", synthesis: synthText.slice(0, 4000) });
   } catch (err) {
     send({ stage: "error", error: err.message });
+  } finally {
+    clearInterval(heartbeat);
+    res.end();
   }
-
-  res.end();
 };
