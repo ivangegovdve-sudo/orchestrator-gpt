@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="description" content="Forest HUB — interactive projects, tools, and experiments. Life in Time calculator, AI glossary, periodic table, LLM platforms map, kids movie library, LLM Council, Manifesto for a Newborn, and more." />
   <meta property="og:title" content="Forest HUB" />
-  <meta property="og:description" content="Projects, tools, and experiments — built in the forest. 11 projects · 166 AI platforms · 527 glossary terms." />
+  <meta property="og:description" content="Projects, tools, and experiments — built in the forest. 14 projects · 166 AI platforms · 527 glossary terms." />
   <meta property="og:type" content="website" />
   <meta name="theme-color" content="#07070b" />
   <title>Forest HUB</title>
@@ -213,6 +213,7 @@
     .hub-card:nth-child(9){animation-delay:.45s}
     .hub-card:nth-child(10){animation-delay:.50s}
     .hub-card:nth-child(11){animation-delay:.55s}
+    .hub-card:nth-child(12){animation-delay:.60s}
     @keyframes cardIn {
       from { opacity: 0; transform: perspective(900px) translateY(20px) scale(.96); }
       to   { opacity: 1; transform: perspective(900px) translateY(0) scale(1); }
@@ -375,7 +376,7 @@
       <p class="hero-sub">Projects, tools, and experiments — built in the forest.</p>
 
       <div class="hero-stats" aria-label="Site statistics">
-        <span class="stat"><span class="num">11</span><span class="lbl">Projects</span></span>
+        <span class="stat"><span class="num">14</span><span class="lbl">Projects</span></span>
         <span class="stat"><span class="num">166</span><span class="lbl">Platforms</span></span>
         <span class="stat"><span class="num">527</span><span class="lbl">Terms</span></span>
         <span class="stat"><span class="num">74</span><span class="lbl">Films</span></span>
@@ -387,7 +388,7 @@
       <div class="section-head">
         <h2>All Projects</h2>
         <span class="rule"></span>
-        <span class="count">11</span>
+        <span class="count">14</span>
       </div>
 
       <div class="hub-grid" id="hub-grid" style="margin-top:34px">
@@ -425,14 +426,14 @@
           </div>
         </a>
 
-        <a href="/web/replicator-void/" class="hub-card"
-           style="--c:rgba(88,242,255,.42);--cp:rgba(88,242,255,.1);--ct:#58f2ff;--icon-delay:.38s">
-          <div class="hub-icon-ring"><span class="hub-icon">🧬</span></div>
-          <div class="hub-name">Replicator Void</div>
-          <div class="hub-pill">Browser Game</div>
+        <a href="/web/mendeleev/" class="hub-card"
+           style="--c:rgba(52,211,153,.42);--cp:rgba(52,211,153,.1);--ct:#34d399;--icon-delay:.38s">
+          <div class="hub-icon-ring"><span class="hub-icon">🧪</span></div>
+          <div class="hub-name">Periodic Table</div>
+          <div class="hub-pill">Interactive</div>
           <div class="hub-desc-box">
-            <p class="hub-desc">Evolution roguelite simulation with gene drift, void pulses, resource blooms, and cycle-based upgrades.</p>
-            <span class="hub-cta">Play ↗</span>
+            <p class="hub-desc">Interactive periodic table with compound-mode highlighting — click any element for a full detail panel.</p>
+            <span class="hub-cta">Explore ↗</span>
           </div>
         </a>
 
@@ -535,25 +536,32 @@
           </div>
         </a>
 
+        <a href="/web/power-law-odyssey/" class="hub-card"
+           style="--c:rgba(251,191,36,.42);--cp:rgba(251,191,36,.1);--ct:#fbbf24;--icon-delay:1.50s">
+          <div class="hub-icon-ring"><span class="hub-icon">📈</span></div>
+          <div class="hub-name">Power Law Odyssey</div>
+          <div class="hub-pill">Scrollytelling</div>
+          <div class="hub-desc-box">
+            <p class="hub-desc">3D scroll narrative about normal curves, power laws, asymmetric upside, and repeated intelligent bets.</p>
+            <span class="hub-cta">Enter Odyssey ↗</span>
+          </div>
+        </a>
+
       </div>
     </section>
 
     <footer class="site">
       <p>Forest HUB · Built by Ivan · Deployed on <a href="https://sdforest.site">sdforest.site</a></p>
-      <p class="meta">11 projects · 166 AI platforms · 527 glossary terms · 24 curated movies</p>
+      <p class="meta">14 projects · 166 AI platforms · 527 glossary terms · 74 curated movies</p>
     </footer>
   </div>
 
   <script>
     /* ─────────────────────────────────────────────
-       Global interactive constellation field.
-       Sparse — every particle owns an independent
-       velocity + heading (no shared/parallax motion),
-       bounces off the viewport edges, and is pushed
-       AWAY from the cursor. Dots that drift close are
-       joined by proximity lines whose opacity fades in
-       with closeness (and brightens near the cursor).
-       Site-wide, DPR-aware.
+       Global interactive plexus field
+       Depth-layered constellation network with mouse
+       parallax + attraction. Site-wide, behind all
+       content, scaled to viewport + DPR.
     ───────────────────────────────────────────── */
     const noMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     const isTouch  = window.matchMedia('(pointer: coarse)').matches;
@@ -564,25 +572,17 @@
       const ctx = canvas.getContext('2d');
       let W, H, DPR;
 
-      // Sparse field. Each particle gets its OWN heading + speed in pixel space —
-      // no shared offset, so nothing moves in lockstep.
       let parts = [];
       function build() {
         const area = window.innerWidth * window.innerHeight;
-        const count = Math.max(26, Math.min(72, Math.round(area / 22000)));
-        parts = Array.from({ length: count }, () => {
-          const ang = Math.random() * Math.PI * 2;
-          const spd = Math.random() * 0.45 + 0.16;   // px/frame, independent per dot
-          return {
-            x: Math.random() * window.innerWidth,
-            y: Math.random() * window.innerHeight,
-            vx: Math.cos(ang) * spd,
-            vy: Math.sin(ang) * spd,
-            r: Math.random() * 1.7 + 0.8,
-            hue: Math.random() > 0.5 ? 199 : 264,
-            alpha: Math.random() * 0.4 + 0.45,
-          };
-        });
+        const count = Math.max(36, Math.min(130, Math.round(area / 16000)));
+        parts = Array.from({ length: count }, () => ({
+          x: Math.random(), y: Math.random(),
+          vx: (Math.random() - 0.5) * 0.5,
+          vy: (Math.random() - 0.5) * 0.5,
+          z: Math.random() * 0.7 + 0.3,
+          hue: Math.random() > 0.5 ? 199 : 264,
+        }));
       }
 
       function resize() {
@@ -596,16 +596,13 @@
       resize();
       window.addEventListener('resize', resize);
 
-      const mouse = { x: -1e4, y: -1e4, sx: -1e4, sy: -1e4, active: false };
+      const mouse = { x: W / 2, y: H / 2, sx: W / 2, sy: H / 2, active: false };
       if (!isTouch) {
-        window.addEventListener('mousemove', e => {
-          if (!mouse.active) { mouse.sx = e.clientX; mouse.sy = e.clientY; }
-          mouse.x = e.clientX; mouse.y = e.clientY; mouse.active = true;
-        });
+        window.addEventListener('mousemove', e => { mouse.x = e.clientX; mouse.y = e.clientY; mouse.active = true; });
         window.addEventListener('mouseout', () => { mouse.active = false; });
       }
 
-      const LINK = 165, REPEL = 130, GLOW = 185;
+      const LINK = 132, PULL = 124;
 
       if (noMotion) { drawStatic(); return; }
 
@@ -613,87 +610,79 @@
         requestAnimationFrame(frame);
         ctx.clearRect(0, 0, W, H);
 
-        if (mouse.active) {
-          mouse.sx += (mouse.x - mouse.sx) * 0.12;
-          mouse.sy += (mouse.y - mouse.sy) * 0.12;
-        }
+        mouse.sx += (mouse.x - mouse.sx) * 0.06;
+        mouse.sy += (mouse.y - mouse.sy) * 0.06;
+        const offX = (mouse.sx - W / 2) / W;
+        const offY = (mouse.sy - H / 2) / H;
 
-        // Per-particle: drift by own velocity, bounce off edges, flee the cursor.
+        const px = new Array(parts.length);
+        const py = new Array(parts.length);
         for (let i = 0; i < parts.length; i++) {
           const p = parts[i];
-          p.x += p.vx; p.y += p.vy;
-          if (p.x < 0)      { p.x = 0; p.vx = -p.vx; }
-          else if (p.x > W) { p.x = W; p.vx = -p.vx; }
-          if (p.y < 0)      { p.y = 0; p.vy = -p.vy; }
-          else if (p.y > H) { p.y = H; p.vy = -p.vy; }
+          p.x += p.vx / W; p.y += p.vy / H;
+          if (p.x < 0) p.x += 1; else if (p.x > 1) p.x -= 1;
+          if (p.y < 0) p.y += 1; else if (p.y > 1) p.y -= 1;
+
+          let X = p.x * W + offX * 60 * p.z;
+          let Y = p.y * H + offY * 40 * p.z;
 
           if (mouse.active) {
-            const dx = p.x - mouse.sx, dy = p.y - mouse.sy;
+            const dx = mouse.sx - X, dy = mouse.sy - Y;
             const d = Math.hypot(dx, dy);
-            if (d < REPEL && d > 0.01) {
-              const f = (REPEL - d) / REPEL * 2.4;   // push AWAY from the pointer
-              p.x += dx / d * f; p.y += dy / d * f;
+            if (d < PULL && d > 0.1) {
+              const f = (PULL - d) / PULL * 0.6;
+              X += dx / d * f; Y += dy / d * f;
             }
           }
+          px[i] = X; py[i] = Y;
         }
 
-        // Proximity links — opacity fades IN as two dots approach, OUT as they
-        // separate. Segments near the cursor brighten.
         for (let i = 0; i < parts.length; i++) {
-          const ax = parts[i].x, ay = parts[i].y;
           for (let j = i + 1; j < parts.length; j++) {
-            const bx = parts[j].x, by = parts[j].y;
-            const dx = ax - bx, dy = ay - by;
+            const dx = px[i] - px[j], dy = py[i] - py[j];
             const d = Math.hypot(dx, dy);
             if (d < LINK) {
-              let a = (1 - d / LINK) * 0.45;          // closer ⇒ stronger
-              let col = '150,170,205';
-              if (mouse.active) {
-                const md = Math.hypot((ax + bx) / 2 - mouse.sx, (ay + by) / 2 - mouse.sy);
-                if (md < GLOW) {
-                  a += (1 - md / GLOW) * 0.5;          // nearer the pointer ⇒ brighter
-                  col = '175,205,255';
-                }
-              }
-              ctx.strokeStyle = `rgba(${col},${a < 0.9 ? a : 0.9})`;
-              ctx.lineWidth = 0.7;
+              const a = (1 - d / LINK) * 0.32;
+              ctx.strokeStyle = `rgba(150,170,205,${a})`;
+              ctx.lineWidth = 0.6;
               ctx.beginPath();
-              ctx.moveTo(ax, ay); ctx.lineTo(bx, by);
+              ctx.moveTo(px[i], py[i]); ctx.lineTo(px[j], py[j]);
               ctx.stroke();
             }
           }
         }
 
-        // Glowing nodes.
         for (let i = 0; i < parts.length; i++) {
           const p = parts[i];
-          const g = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.r * 3.2);
-          g.addColorStop(0, `hsla(${p.hue},90%,72%,${p.alpha})`);
+          const r = p.z * 1.7 + 0.5;
+          const X = px[i], Y = py[i];
+          const g = ctx.createRadialGradient(X, Y, 0, X, Y, r * 3.5);
+          g.addColorStop(0, `hsla(${p.hue},90%,72%,${0.5 * p.z})`);
           g.addColorStop(1, `hsla(${p.hue},90%,72%,0)`);
           ctx.fillStyle = g;
-          ctx.beginPath(); ctx.arc(p.x, p.y, p.r * 3.2, 0, Math.PI * 2); ctx.fill();
-          ctx.fillStyle = `hsla(${p.hue},100%,93%,${Math.min(1, p.alpha + 0.2)})`;
-          ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2); ctx.fill();
+          ctx.beginPath(); ctx.arc(X, Y, r * 3.5, 0, Math.PI * 2); ctx.fill();
+          ctx.fillStyle = `hsla(${p.hue},100%,92%,${0.7 * p.z})`;
+          ctx.beginPath(); ctx.arc(X, Y, r, 0, Math.PI * 2); ctx.fill();
         }
       }
       frame();
 
       function drawStatic() {
         ctx.clearRect(0, 0, W, H);
-        for (let i = 0; i < parts.length; i++) {
-          for (let j = i + 1; j < parts.length; j++) {
-            const dx = parts[i].x - parts[j].x, dy = parts[i].y - parts[j].y;
-            const d = Math.hypot(dx, dy);
+        const pts = parts.map(p => ({ x: p.x * W, y: p.y * H, hue: p.hue, z: p.z }));
+        for (let i = 0; i < pts.length; i++) {
+          for (let j = i + 1; j < pts.length; j++) {
+            const d = Math.hypot(pts[i].x - pts[j].x, pts[i].y - pts[j].y);
             if (d < LINK) {
               ctx.strokeStyle = `rgba(150,170,205,${(1 - d / LINK) * 0.25})`;
               ctx.lineWidth = 0.6;
-              ctx.beginPath(); ctx.moveTo(parts[i].x, parts[i].y); ctx.lineTo(parts[j].x, parts[j].y); ctx.stroke();
+              ctx.beginPath(); ctx.moveTo(pts[i].x, pts[i].y); ctx.lineTo(pts[j].x, pts[j].y); ctx.stroke();
             }
           }
         }
-        parts.forEach(p => {
-          ctx.fillStyle = `hsla(${p.hue},100%,90%,${p.alpha})`;
-          ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2); ctx.fill();
+        pts.forEach(p => {
+          ctx.fillStyle = `hsla(${p.hue},100%,90%,${0.6 * p.z})`;
+          ctx.beginPath(); ctx.arc(p.x, p.y, p.z * 1.6 + 0.5, 0, Math.PI * 2); ctx.fill();
         });
       }
     })();

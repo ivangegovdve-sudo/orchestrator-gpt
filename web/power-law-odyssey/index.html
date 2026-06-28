@@ -1,0 +1,821 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>The Power Law Odyssey | Forest HUB</title>
+  <meta name="description" content="A 3D scrollytelling page about normal distributions, power laws, compounding, asymmetric risk, and repeated intelligent bets.">
+  <style>
+    :root {
+      --bg: #07080b;
+      --ink: #f7f7fb;
+      --muted: #a5adba;
+      --line: rgba(255,255,255,.12);
+      --panel: rgba(14,18,26,.72);
+      --cyan: #38bdf8;
+      --gold: #fbbf24;
+      --green: #34d399;
+      --rose: #fb7185;
+      --violet: #8b5cf6;
+      --orange: #f97316;
+      --scroll-p: 0;
+    }
+
+    * { box-sizing: border-box; }
+    html { background: var(--bg); scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      font-family: Inter, "Segoe UI", system-ui, -apple-system, sans-serif;
+      background:
+        radial-gradient(circle at 50% -20%, rgba(56,189,248,.18), transparent 34rem),
+        linear-gradient(180deg, #07080b 0%, #0c1018 50%, #07080b 100%);
+      overflow-x: hidden;
+    }
+
+    a { color: inherit; }
+    .back-link {
+      position: fixed;
+      z-index: 20;
+      top: 18px;
+      left: 18px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 12px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(7,8,11,.72);
+      color: var(--muted);
+      text-decoration: none;
+      backdrop-filter: blur(14px);
+    }
+    .back-link:hover { color: var(--ink); border-color: rgba(255,255,255,.24); }
+
+    .progress-rail {
+      position: fixed;
+      z-index: 18;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 3px;
+      background: rgba(255,255,255,.08);
+    }
+    .progress-fill {
+      height: 100%;
+      width: calc(var(--scroll-p) * 100%);
+      background: linear-gradient(90deg, var(--cyan), var(--gold), var(--rose));
+    }
+
+    .scroll-container {
+      height: 700vh;
+      position: relative;
+    }
+    .viewport-sticky {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      width: 100vw;
+      overflow: hidden;
+      isolation: isolate;
+    }
+    .stage-3d {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      perspective: 1100px;
+      transform-style: preserve-3d;
+    }
+    .starfield {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      z-index: -2;
+      opacity: .9;
+    }
+    .vignette {
+      position: absolute;
+      inset: 0;
+      z-index: -1;
+      background:
+        radial-gradient(circle at 50% 46%, transparent 0 26%, rgba(7,8,11,.32) 58%, rgba(7,8,11,.94) 100%),
+        linear-gradient(90deg, rgba(7,8,11,.75), transparent 24%, transparent 76%, rgba(7,8,11,.75));
+      pointer-events: none;
+    }
+
+    .layer {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      align-items: center;
+      justify-items: center;
+      padding: clamp(28px, 5vw, 72px);
+      text-align: center;
+      backface-visibility: hidden;
+      will-change: transform, opacity;
+      transform-style: preserve-3d;
+    }
+    .layer-inner {
+      width: min(1120px, 100%);
+      display: grid;
+      gap: 24px;
+      justify-items: center;
+    }
+    .eyebrow {
+      margin: 0;
+      color: var(--cyan);
+      font-size: 12px;
+      letter-spacing: .18em;
+      text-transform: uppercase;
+      font-weight: 800;
+    }
+    h1, h2 {
+      margin: 0;
+      max-width: 960px;
+      font-weight: 900;
+      line-height: .96;
+      letter-spacing: 0;
+      text-wrap: balance;
+    }
+    h1 { font-size: clamp(3rem, 10vw, 8.5rem); }
+    h2 { font-size: clamp(2rem, 6.5vw, 5.9rem); }
+    p {
+      margin: 0;
+      max-width: 760px;
+      color: var(--muted);
+      font-size: clamp(1rem, 2vw, 1.35rem);
+      line-height: 1.55;
+    }
+    .thesis {
+      color: #dbeafe;
+      font-weight: 680;
+    }
+    .scroll-cue {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      color: rgba(255,255,255,.72);
+      font-size: 13px;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+    .scroll-cue::before {
+      content: "";
+      width: 8px;
+      height: 28px;
+      border: 1px solid rgba(255,255,255,.28);
+      border-radius: 99px;
+      box-shadow: inset 0 -10px 0 var(--cyan);
+    }
+
+    #layer1 {
+      transform: translate3d(0, 0, calc(var(--scroll-p) * 1900px));
+      opacity: clamp(0, calc(1 - var(--scroll-p) * 6), 1);
+    }
+    #layer2 {
+      transform: translate3d(0, 0, calc(-1700px + var(--scroll-p) * 4200px));
+      opacity: clamp(0, min(calc((var(--scroll-p) - .08) * 12), calc((.32 - var(--scroll-p)) * 12)), 1);
+    }
+    #layer3 {
+      transform: translate3d(0, 0, calc(-2100px + var(--scroll-p) * 3900px));
+      opacity: clamp(0, min(calc((var(--scroll-p) - .24) * 12), calc((.50 - var(--scroll-p)) * 10)), 1);
+    }
+    #layer4 {
+      transform: translate3d(0, 0, calc(-2300px + var(--scroll-p) * 3600px));
+      opacity: clamp(0, min(calc((var(--scroll-p) - .43) * 11), calc((.69 - var(--scroll-p)) * 10)), 1);
+    }
+    #layer5 {
+      transform: translate3d(0, 0, calc(-2500px + var(--scroll-p) * 3300px));
+      opacity: clamp(0, min(calc((var(--scroll-p) - .60) * 11), calc((.86 - var(--scroll-p)) * 10)), 1);
+    }
+    #layer6 {
+      transform: translate3d(0, 0, calc(-2300px + var(--scroll-p) * 2600px));
+      opacity: clamp(0, calc((var(--scroll-p) - .80) * 8), 1);
+    }
+
+    .matrix {
+      width: min(980px, 96vw);
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+      align-items: stretch;
+    }
+    .chart-panel, .sandbox, .risk-panel, .branch-panel {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(8,12,18,.68);
+      padding: 18px;
+      box-shadow: 0 24px 80px rgba(0,0,0,.34);
+      backdrop-filter: blur(12px);
+    }
+    .chart-title {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 12px;
+      color: #e5e7eb;
+      font-weight: 800;
+      font-size: 13px;
+      text-align: left;
+    }
+    .chart-title span:last-child { color: var(--muted); font-weight: 600; }
+    svg { width: 100%; height: auto; display: block; overflow: visible; }
+    .axis { stroke: rgba(255,255,255,.18); stroke-width: 1; }
+    .normal-curve { fill: none; stroke: var(--cyan); stroke-width: 4; }
+    .power-curve { fill: none; stroke: var(--gold); stroke-width: 4; }
+    .tail-zone { fill: rgba(251,191,36,.14); }
+    .dot { fill: currentColor; }
+
+    .branch-panel { width: min(980px, 96vw); }
+    .branches {
+      min-height: 270px;
+      position: relative;
+      overflow: hidden;
+    }
+    .branches span {
+      position: absolute;
+      left: 50%;
+      bottom: 18px;
+      width: 2px;
+      height: var(--h);
+      background: linear-gradient(var(--gold), rgba(251,191,36,0));
+      transform-origin: bottom;
+      transform: rotate(var(--r)) translateY(var(--y));
+      opacity: var(--o);
+    }
+    .formula-row {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+      width: min(760px, 100%);
+    }
+    .formula {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 14px;
+      background: rgba(255,255,255,.04);
+      text-align: left;
+    }
+    .formula strong {
+      display: block;
+      margin-bottom: 8px;
+      color: #fff;
+      font-size: 14px;
+    }
+    .formula code {
+      color: var(--gold);
+      font-size: clamp(1rem, 2vw, 1.4rem);
+    }
+
+    .risk-panel {
+      width: min(900px, 96vw);
+      display: grid;
+      gap: 18px;
+    }
+    .risk-scale {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      align-items: end;
+      min-height: 300px;
+    }
+    .risk-side {
+      position: relative;
+      min-height: 260px;
+      border-bottom: 2px solid rgba(255,255,255,.25);
+      display: grid;
+      align-items: end;
+      justify-items: center;
+      color: #fff;
+    }
+    .downside {
+      height: 52px;
+      width: 70%;
+      background: linear-gradient(180deg, rgba(251,113,133,.85), rgba(251,113,133,.18));
+      border-radius: 8px 8px 0 0;
+    }
+    .upside {
+      height: 240px;
+      width: 70%;
+      background: linear-gradient(180deg, rgba(52,211,153,.1), rgba(52,211,153,.88));
+      border-radius: 8px 8px 0 0;
+      position: relative;
+    }
+    .upside::before {
+      content: "";
+      position: absolute;
+      left: 50%;
+      bottom: 100%;
+      width: 3px;
+      height: 120px;
+      background: linear-gradient(rgba(52,211,153,0), var(--green));
+      transform: translateX(-50%);
+    }
+    .risk-labels {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .sandbox {
+      width: min(980px, 96vw);
+      display: grid;
+      gap: 16px;
+    }
+    .sandbox-head {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+      text-align: left;
+    }
+    .sandbox-stats {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .sandbox-stats span {
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      padding: 7px 9px;
+      background: rgba(255,255,255,.04);
+    }
+    .bet-button {
+      border: 0;
+      border-radius: 8px;
+      padding: 12px 16px;
+      color: #061015;
+      background: linear-gradient(135deg, var(--gold), var(--green));
+      font-weight: 900;
+      cursor: pointer;
+    }
+    .bet-button:focus-visible, .back-link:focus-visible {
+      outline: 3px solid var(--cyan);
+      outline-offset: 3px;
+    }
+    .bet-field {
+      position: relative;
+      height: 300px;
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius: 8px;
+      overflow: hidden;
+      background:
+        linear-gradient(rgba(255,255,255,.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,.04) 1px, transparent 1px),
+        rgba(0,0,0,.26);
+      background-size: 40px 40px;
+    }
+    .trajectory {
+      position: absolute;
+      left: 14px;
+      bottom: 34px;
+      height: 2px;
+      width: var(--w);
+      background: var(--c);
+      transform: rotate(var(--a));
+      transform-origin: left center;
+      box-shadow: 0 0 18px var(--c);
+    }
+    .trajectory.hit {
+      height: 4px;
+      width: 118%;
+      transform: rotate(-32deg);
+      background: var(--gold);
+      box-shadow: 0 0 34px var(--gold);
+    }
+
+    .final-list {
+      width: min(860px, 100%);
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+    }
+    .final-list div {
+      min-height: 120px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 18px;
+      background: rgba(255,255,255,.05);
+      text-align: left;
+    }
+    .final-list strong {
+      display: block;
+      color: #fff;
+      margin-bottom: 8px;
+    }
+    .final-list span {
+      color: var(--muted);
+      line-height: 1.45;
+      font-size: 14px;
+    }
+
+    .blueprint {
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 84px 20px 110px;
+    }
+    .blueprint h2 {
+      max-width: 900px;
+      margin-bottom: 16px;
+      font-size: clamp(2rem, 5vw, 4.8rem);
+    }
+    .blueprint p { text-align: left; }
+    .blueprint-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+      margin-top: 28px;
+    }
+    .blueprint-card {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 20px;
+      background: var(--panel);
+    }
+    .blueprint-card h3 {
+      margin: 0 0 10px;
+      color: #fff;
+      font-size: 18px;
+    }
+    .blueprint-card p, .blueprint-card li {
+      color: var(--muted);
+      font-size: 15px;
+      line-height: 1.6;
+    }
+    .blueprint-card ul {
+      margin: 0;
+      padding-left: 18px;
+    }
+    .wide { grid-column: 1 / -1; }
+    .component-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+      color: var(--muted);
+    }
+    .component-table th, .component-table td {
+      border-bottom: 1px solid rgba(255,255,255,.08);
+      padding: 12px;
+      text-align: left;
+      vertical-align: top;
+    }
+    .component-table th { color: #fff; }
+    pre {
+      margin: 0;
+      overflow: auto;
+      padding: 18px;
+      border-radius: 8px;
+      background: #050609;
+      border: 1px solid rgba(255,255,255,.08);
+      color: #d1d5db;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    @media (max-width: 760px) {
+      .back-link { position: absolute; }
+      .matrix, .formula-row, .risk-scale, .risk-labels, .final-list, .blueprint-grid {
+        grid-template-columns: 1fr;
+      }
+      .layer { padding: 78px 18px 26px; align-items: start; }
+      .layer-inner { gap: 16px; }
+      .chart-panel, .sandbox, .risk-panel, .branch-panel { padding: 14px; }
+      .bet-field { height: 240px; }
+      .blueprint { padding-top: 56px; }
+      .component-table { display: block; overflow-x: auto; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      .scroll-container { height: auto; }
+      .viewport-sticky { position: relative; height: auto; overflow: visible; }
+      .layer {
+        position: relative;
+        min-height: 92vh;
+        opacity: 1 !important;
+        transform: none !important;
+      }
+      .starfield, .vignette { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <a class="back-link" href="/">Forest HUB</a>
+  <div class="progress-rail" aria-hidden="true"><div class="progress-fill"></div></div>
+
+  <div class="scroll-container" id="scrollTrack">
+    <div class="viewport-sticky">
+      <canvas class="starfield" id="starfield" aria-hidden="true"></canvas>
+      <div class="vignette" aria-hidden="true"></div>
+      <main class="stage-3d" aria-label="Power Law Odyssey scrollytelling">
+        <section class="layer" id="layer1">
+          <div class="layer-inner">
+            <p class="eyebrow">0-15% Scroll | Disruption</p>
+            <h1>Are you playing the game of life wrong?</h1>
+            <p>Most people optimize as if life rewards additive consistency and safe averages. This odyssey asks whether opportunity obeys another law.</p>
+            <span class="scroll-cue">Scroll to reveal hidden pattern</span>
+          </div>
+        </section>
+
+        <section class="layer" id="layer2">
+          <div class="layer-inner">
+            <p class="eyebrow">15-35% Scroll | Bifurcation Matrix</p>
+            <h2>Reality splits into two operating systems.</h2>
+            <p>Normal distributions describe bounded physical systems. Power laws describe scale-free systems where rare outliers define total outcome.</p>
+            <div class="matrix" aria-label="Normal distribution and power-law comparison">
+              <div class="chart-panel">
+                <div class="chart-title"><span>Normal curve</span><span>bounded systems</span></div>
+                <svg viewBox="0 0 360 190" role="img" aria-label="Symmetric normal curve with thin tails">
+                  <line class="axis" x1="20" y1="160" x2="340" y2="160"></line>
+                  <path class="normal-curve" d="M30 158 C70 158 83 150 110 104 C137 58 155 26 180 26 C205 26 223 58 250 104 C277 150 290 158 330 158"></path>
+                  <g style="color:#38bdf8">
+                    <circle class="dot" cx="180" cy="26" r="5"></circle>
+                    <circle class="dot" cx="74" cy="153" r="3"></circle>
+                    <circle class="dot" cx="286" cy="153" r="3"></circle>
+                  </g>
+                </svg>
+              </div>
+              <div class="chart-panel">
+                <div class="chart-title"><span>Power law</span><span>scale-free systems</span></div>
+                <svg viewBox="0 0 360 190" role="img" aria-label="Skewed power-law curve with long tail">
+                  <line class="axis" x1="20" y1="160" x2="340" y2="160"></line>
+                  <path class="tail-zone" d="M128 160 C190 146 246 132 338 108 L338 160 Z"></path>
+                  <path class="power-curve" d="M32 26 C50 88 72 125 104 142 C148 166 224 146 338 108"></path>
+                  <g style="color:#fbbf24">
+                    <circle class="dot" cx="32" cy="26" r="5"></circle>
+                    <circle class="dot" cx="260" cy="129" r="4"></circle>
+                    <circle class="dot" cx="338" cy="108" r="5"></circle>
+                  </g>
+                </svg>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="layer" id="layer3">
+          <div class="layer-inner">
+            <p class="eyebrow">35-55% Scroll | Multiplication Avalanche</p>
+            <h2>Addition cancels. Multiplication compounds.</h2>
+            <p>Random factors that add together tend toward normal curves. Random factors that multiply create lognormal, power-law, preferential-attachment worlds.</p>
+            <div class="branch-panel">
+              <div class="branches" id="branches" aria-hidden="true"></div>
+              <div class="formula-row">
+                <div class="formula"><strong>Additive frame</strong><code>x = a + b + c</code><p>Fluctuations cancel toward center.</p></div>
+                <div class="formula"><strong>Multiplicative frame</strong><code>x = a * b * c</code><p>Small advantages cascade into extreme spread.</p></div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="layer" id="layer4">
+          <div class="layer-inner">
+            <p class="eyebrow">55-75% Scroll | Asymmetric Risk</p>
+            <h2>Failure has a floor. Upside has altitude.</h2>
+            <p>The cold email ignored, prototype rejected, or small project missed often caps loss near zero. The right hit can scale across orders of magnitude.</p>
+            <div class="risk-panel">
+              <div class="risk-scale" aria-label="Downside capped and upside open">
+                <div class="risk-side"><div class="downside"></div></div>
+                <div class="risk-side"><div class="upside"></div></div>
+              </div>
+              <div class="risk-labels">
+                <div><strong style="color:var(--rose)">Downside risk:</strong> bounded, recoverable, finite.</div>
+                <div><strong style="color:var(--green)">Upside potential:</strong> open, compounding, extreme.</div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="layer" id="layer5">
+          <div class="layer-inner">
+            <p class="eyebrow">75-90% Scroll | Venture Bet Sandbox</p>
+            <h2>Most attempts flatline. One outlier can pay for all of them.</h2>
+            <p>Click the sandbox. It models a 94% base failure rate and a rare outlier trajectory that recovers cumulative losses.</p>
+            <div class="sandbox">
+              <div class="sandbox-head">
+                <button class="bet-button" id="betButton" type="button">Place intelligent bet</button>
+                <div class="sandbox-stats" aria-live="polite">
+                  <span>Attempts: <strong id="attemptCount">0</strong></span>
+                  <span>Failures: <strong id="failureCount">0</strong></span>
+                  <span>Outliers: <strong id="hitCount">0</strong></span>
+                </div>
+              </div>
+              <div class="bet-field" id="betField" aria-label="Interactive bet trajectories"></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="layer" id="layer6">
+          <div class="layer-inner">
+            <p class="eyebrow">90-100% Scroll | Epiphany</p>
+            <h2>Do not be average on a safe curve.</h2>
+            <p class="thesis">In volatile systems with capped downside and exponential upside, repeated intelligent chances are not reckless. Persistence becomes raw mathematics.</p>
+            <div class="final-list">
+              <div><strong>Choose volatile arenas</strong><span>Prefer domains where outcomes can compound, spread, and scale.</span></div>
+              <div><strong>Cap downside</strong><span>Keep each miss survivable so attempts can repeat.</span></div>
+              <div><strong>Persist through skew</strong><span>Let many small misses fund rare, system-defining hits.</span></div>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <section class="blueprint" aria-label="Full technical blueprint">
+    <p class="eyebrow">Blueprint Appendix</p>
+    <h2>Technical blueprint and narrative architecture</h2>
+    <p>This page converts the PDF brief into a standalone HTML experience and keeps the full information visible: core thesis, six narrative milestones, scroll-to-Z-space architecture, formulas, component responsibilities, and production implementation baseline.</p>
+
+    <div class="blueprint-grid">
+      <article class="blueprint-card wide">
+        <h3>1. Narrative Core: Philosophical Vision & End Goal</h3>
+        <p>The experience translates the scientific and mathematical insight popularized by Veritasium's "You've (Likely) Been Playing The Game of Life Wrong." The visitor begins with the common subconscious model that life behaves like an additive normal distribution: consistency, low deviation, and aiming for the statistical mean. The page then moves them into a power-law model where averages can become irrelevant because extreme outliers dominate total outcome.</p>
+        <p><strong style="color:#fff">Critical thesis:</strong> Move the user's mental frame from additive consistency to multiplicative persistence. In volatile systems with capped downside and open exponential upside, aiming for the safe mean is mathematically suboptimal; life should be approached through repeated, intelligent chances.</p>
+      </article>
+
+      <article class="blueprint-card">
+        <h3>Step 1: Disruption</h3>
+        <p>A dark, minimalist, vacuum-like opening asks: "Are you playing the game of life wrong?" It interrupts standard landing-page rhythm and asks the user to scroll for the answer.</p>
+      </article>
+      <article class="blueprint-card">
+        <h3>Step 2: Bifurcation Matrix</h3>
+        <p>A normal curve sits beside a skewed long-tail curve. It isolates two frameworks: bounded physical systems like height, and scale-free systems like wealth, attention, creative output, or venture returns.</p>
+      </article>
+      <article class="blueprint-card">
+        <h3>Step 3: Multiplication Avalanche</h3>
+        <p>Additive random factors cancel toward normality. Multiplicative factors compound into asymmetric lognormal or power-law outcomes, shown as self-similar branches, preferential attachment, and compounding effects.</p>
+      </article>
+      <article class="blueprint-card">
+        <h3>Step 4: Visualizing Asymmetric Risk</h3>
+        <p>A physical risk model shows downside hitting a floor at zero while upside extends vertically. This reframes failure: a missed email or failed small project is bounded; a successful hit can scale across orders of magnitude.</p>
+      </article>
+      <article class="blueprint-card">
+        <h3>Step 5: Venture Bet Sandbox</h3>
+        <p>An interactive simulation lets the user place repeated bets. Most attempts flatline, mirroring a 94% base failure rate in startups or creative output, but one outlier can recover cumulative losses.</p>
+      </article>
+      <article class="blueprint-card">
+        <h3>Step 6: Epiphany</h3>
+        <p>Abstract data collapses into personal strategy: do not strive to be average on a safe curve. Make repeated intelligent bets, optimize for persistence over standard consistency, and leverage structural volatility.</p>
+      </article>
+
+      <article class="blueprint-card wide">
+        <h3>3. Scroll-to-Z-Space Rig</h3>
+        <p>Instead of moving panels upward on the Y-axis, the interface maps native scroll progress to a Z-axis camera timeline. HTML layers sit at different virtual depths, and the camera appears to push through them. Native scroll is decoupled from viewport rendering, lowering layout recalculation risk and keeping transforms on the compositor.</p>
+        <table class="component-table">
+          <thead><tr><th>Component</th><th>CSS/JS configuration</th><th>Functional responsibility</th></tr></thead>
+          <tbody>
+            <tr><td>Scroll Track Container</td><td><code>height: 700vh; position: relative;</code></td><td>Establishes total travel length and master timeline for interpolation.</td></tr>
+            <tr><td>Sticky Viewport Anchor</td><td><code>position: sticky; top: 0; height: 100vh; overflow: hidden;</code></td><td>Locks the visual canvas while the user scrolls through the track.</td></tr>
+            <tr><td>3D Stage Container</td><td><code>perspective: 1100px; transform-style: preserve-3d;</code></td><td>Creates depth context for layers and camera-like motion.</td></tr>
+            <tr><td>GPU Compositor Layers</td><td><code>translate3d(); will-change: transform, opacity;</code></td><td>Maps each narrative panel to scroll progress with depth and opacity functions.</td></tr>
+          </tbody>
+        </table>
+      </article>
+
+      <article class="blueprint-card">
+        <h3>Z-Space Translation Map</h3>
+        <p>Let normalized scroll progress be <code>p</code>, where <code>0.0 <= p <= 1.0</code>. Layer depth is computed as:</p>
+        <pre><code>Tz = Oz + (p * v)</code></pre>
+        <p><code>Oz</code> is the layer depth offset and <code>v</code> is velocity through camera space. Opacity is localized around each layer's active scroll band.</p>
+      </article>
+      <article class="blueprint-card">
+        <h3>Production Implementation Notes</h3>
+        <ul>
+          <li>Use a standalone HTML route with no framework dependency.</li>
+          <li>Set <code>--scroll-p</code> via <code>requestAnimationFrame</code>, not direct scroll mutation.</li>
+          <li>Prefer CSS transforms and opacity for low-latency compositor work.</li>
+          <li>Provide reduced-motion fallback where layers become normal stacked sections.</li>
+          <li>Keep interactive sandbox state local and deterministic enough to demonstrate skew.</li>
+        </ul>
+      </article>
+
+      <article class="blueprint-card wide">
+        <h3>4. Baseline Implementation Pattern</h3>
+        <pre><code>&lt;div class="scroll-container" id="scrollTrack"&gt;
+  &lt;div class="viewport-sticky"&gt;
+    &lt;main class="stage-3d"&gt;
+      &lt;section class="layer" id="layer1"&gt;...&lt;/section&gt;
+      &lt;section class="layer" id="layer2"&gt;...&lt;/section&gt;
+      &lt;section class="layer" id="layer3"&gt;...&lt;/section&gt;
+    &lt;/main&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+
+const progress = Math.max(0, Math.min(1, scrollTop / trackHeight));
+document.documentElement.style.setProperty("--scroll-p", progress);</code></pre>
+      </article>
+    </div>
+  </section>
+
+  <script>
+    const track = document.getElementById("scrollTrack");
+    const root = document.documentElement;
+    let ticking = false;
+
+    function updateScrollProgress() {
+      const trackHeight = Math.max(1, track.scrollHeight - window.innerHeight);
+      const progress = Math.max(0, Math.min(1, window.scrollY / trackHeight));
+      root.style.setProperty("--scroll-p", progress.toFixed(4));
+      ticking = false;
+    }
+
+    window.addEventListener("scroll", () => {
+      if (!ticking) {
+        window.requestAnimationFrame(updateScrollProgress);
+        ticking = true;
+      }
+    }, { passive: true });
+    window.addEventListener("resize", updateScrollProgress);
+    updateScrollProgress();
+
+    const branches = document.getElementById("branches");
+    for (let i = 0; i < 90; i += 1) {
+      const branch = document.createElement("span");
+      const side = i % 2 ? 1 : -1;
+      const level = Math.floor(i / 10);
+      branch.style.setProperty("--h", `${70 + (i % 9) * 19}px`);
+      branch.style.setProperty("--r", `${side * (8 + (i % 15) * 3 + level * 4)}deg`);
+      branch.style.setProperty("--y", `${-level * 9}px`);
+      branch.style.setProperty("--o", `${0.18 + (i % 10) / 16}`);
+      branches.appendChild(branch);
+    }
+
+    const betButton = document.getElementById("betButton");
+    const betField = document.getElementById("betField");
+    const attemptCount = document.getElementById("attemptCount");
+    const failureCount = document.getElementById("failureCount");
+    const hitCount = document.getElementById("hitCount");
+    let attempts = 0;
+    let failures = 0;
+    let hits = 0;
+
+    function addBet(forceHit) {
+      attempts += 1;
+      const hit = forceHit || attempts % 17 === 0 || Math.random() > 0.94;
+      if (hit) hits += 1;
+      else failures += 1;
+      const line = document.createElement("span");
+      line.className = `trajectory${hit ? " hit" : ""}`;
+      line.style.setProperty("--w", hit ? "118%" : `${30 + Math.random() * 34}%`);
+      line.style.setProperty("--a", hit ? "-32deg" : `${-4 + Math.random() * 10}deg`);
+      line.style.setProperty("--c", hit ? "#fbbf24" : "rgba(251,113,133,.72)");
+      line.style.bottom = `${28 + Math.random() * 84}px`;
+      betField.appendChild(line);
+      while (betField.children.length > 26) betField.removeChild(betField.firstChild);
+      attemptCount.textContent = attempts;
+      failureCount.textContent = failures;
+      hitCount.textContent = hits;
+    }
+    betButton.addEventListener("click", () => addBet(false));
+    for (let i = 0; i < 12; i += 1) addBet(i === 10);
+
+    const canvas = document.getElementById("starfield");
+    const ctx = canvas.getContext("2d");
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    let width = 0;
+    let height = 0;
+    let dpr = 1;
+    const stars = Array.from({ length: 360 }, (_, i) => ({
+      x: Math.random(),
+      y: Math.random(),
+      z: Math.random(),
+      r: 0.5 + Math.random() * 1.7,
+      hue: i % 7 === 0 ? "251,191,36" : "148,163,184"
+    }));
+
+    function resizeCanvas() {
+      dpr = Math.min(window.devicePixelRatio || 1, 2);
+      width = window.innerWidth;
+      height = window.innerHeight;
+      canvas.width = Math.max(1, Math.floor(width * dpr));
+      canvas.height = Math.max(1, Math.floor(height * dpr));
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+    window.addEventListener("resize", resizeCanvas);
+    resizeCanvas();
+
+    function drawStars(now) {
+      ctx.clearRect(0, 0, width, height);
+      const p = Number(getComputedStyle(root).getPropertyValue("--scroll-p")) || 0;
+      const t = reduceMotion ? 0 : now / 1000;
+      for (const star of stars) {
+        const drift = (p * 1.8 + t * 0.012 * (star.z + .2)) % 1;
+        const sx = (star.x - .5) * (1 + drift * 1.8) * width + width / 2;
+        const sy = (star.y - .5) * (1 + drift * 1.8) * height + height / 2;
+        const alpha = Math.max(0, .18 + star.z * .65 - drift * .25);
+        ctx.beginPath();
+        ctx.arc(sx, sy, star.r * (1 + drift * 2.2), 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(${star.hue}, ${alpha})`;
+        ctx.fill();
+      }
+      if (!reduceMotion) requestAnimationFrame(drawStars);
+    }
+    requestAnimationFrame(drawStars);
+  </script>
+</body>
+</html>

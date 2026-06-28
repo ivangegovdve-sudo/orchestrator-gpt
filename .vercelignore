@@ -17,4 +17,3 @@ data/movies.db
 data/migrations
 data/cloudflare
 *.log
-web/chloe-android/
