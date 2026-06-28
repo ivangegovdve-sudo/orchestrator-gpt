@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Replicator Void</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg: #020308;
+        --panel: rgba(7, 11, 18, 0.82);
+        --panel-strong: rgba(10, 16, 25, 0.96);
+        --line: rgba(135, 244, 255, 0.24);
+        --text: #d8f8ff;
+        --muted: #7d9aa2;
+        --accent: #58f2ff;
+        --danger: #ff4f78;
+        --good: #73ff9b;
+      }
+
+      * { box-sizing: border-box; }
+      html, body, #game-root { width: 100%; height: 100%; margin: 0; overflow: hidden; }
+      body {
+        background: var(--bg);
+        color: var(--text);
+        font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+
+      #game-root { position: relative; }
+      #pixi-stage { position: absolute; inset: 0; background: radial-gradient(circle at center, #07101a 0%, #020308 64%); }
+      #pixi-stage canvas { display: block; width: 100%; height: 100%; }
+
+      .hud {
+        position: absolute;
+        inset: 14px;
+        pointer-events: none;
+        display: grid;
+        grid-template-columns: minmax(260px, 420px) 1fr minmax(190px, 280px);
+        grid-template-rows: auto 1fr auto;
+        gap: 10px;
+      }
+
+      .panel {
+        pointer-events: auto;
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        box-shadow: 0 18px 40px rgba(0, 0, 0, 0.28);
+        backdrop-filter: blur(8px);
+      }
+
+      #hud-stats {
+        grid-column: 1 / 2;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 6px 12px;
+        padding: 10px;
+        font-size: 12px;
+        line-height: 1.1;
+        letter-spacing: 0;
+      }
+
+      #hud-stats span, #hud-traits span {
+        color: var(--muted);
+        white-space: nowrap;
+      }
+
+      #hud-traits {
+        grid-column: 3 / 4;
+        justify-self: end;
+        display: grid;
+        gap: 5px;
+        padding: 10px 12px;
+        font-size: 12px;
+      }
+
+      .actions {
+        grid-column: 1 / 2;
+        grid-row: 3 / 4;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        align-self: end;
+      }
+
+      button {
+        min-height: 34px;
+        border: 1px solid rgba(88, 242, 255, 0.34);
+        border-radius: 7px;
+        color: var(--text);
+        background: rgba(16, 30, 42, 0.92);
+        padding: 0 12px;
+        font: inherit;
+        font-size: 12px;
+        cursor: pointer;
+      }
+
+      button:hover { border-color: var(--accent); background: rgba(18, 46, 62, 0.98); }
+
+      .control-link {
+        min-height: 34px;
+        display: inline-flex;
+        align-items: center;
+        border: 1px solid rgba(88, 242, 255, 0.34);
+        border-radius: 7px;
+        color: var(--text);
+        background: rgba(16, 30, 42, 0.92);
+        padding: 0 12px;
+        font-size: 12px;
+        text-decoration: none;
+      }
+
+      .control-link:hover { border-color: var(--accent); background: rgba(18, 46, 62, 0.98); }
+
+      #hud-status {
+        grid-column: 2 / 3;
+        grid-row: 3 / 4;
+        justify-self: center;
+        align-self: end;
+        padding: 8px 12px;
+        color: var(--good);
+        font-size: 12px;
+      }
+
+      .modal {
+        position: absolute;
+        inset: 0;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        background: rgba(0, 0, 0, 0.3);
+      }
+
+      .modal.open { display: flex; }
+      .modal-card {
+        width: min(560px, calc(100vw - 28px));
+        background: var(--panel-strong);
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        padding: 18px;
+        box-shadow: 0 28px 80px rgba(0, 0, 0, 0.5);
+      }
+
+      .modal-card h1 {
+        margin: 0 0 14px;
+        font-size: 18px;
+        font-weight: 650;
+        letter-spacing: 0;
+      }
+
+      .modal-card p {
+        margin: 0 0 14px;
+        color: var(--muted);
+        font-size: 14px;
+        line-height: 1.5;
+      }
+
+      .trait-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+      }
+
+      .trait-upgrade {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        min-height: 46px;
+      }
+
+      .trait-upgrade b { color: var(--accent); font-weight: 600; }
+      .modal-actions { display: flex; justify-content: flex-end; margin-top: 14px; }
+
+      #toast, #error-slot {
+        position: absolute;
+        right: 14px;
+        bottom: 14px;
+        max-width: min(420px, calc(100vw - 28px));
+        display: none;
+        padding: 10px 12px;
+        font-size: 12px;
+      }
+
+      #toast.visible, #error-slot.visible { display: block; }
+      #error-slot { color: var(--danger); }
+
+      @media (max-width: 760px) {
+        .hud {
+          inset: 8px;
+          grid-template-columns: 1fr;
+          grid-template-rows: auto auto 1fr auto auto;
+        }
+        #hud-stats, #hud-traits, #hud-status, .actions {
+          grid-column: 1 / 2;
+          justify-self: stretch;
+        }
+        #hud-traits { grid-row: 2 / 3; grid-template-columns: repeat(2, 1fr); }
+        #hud-status { grid-row: 4 / 5; }
+        .actions { grid-row: 5 / 6; }
+        .trait-grid { grid-template-columns: 1fr; }
+      }
+    </style>
+    <script type="module" crossorigin src="./assets/index-fWcu6nyk.js"></script>
+  </head>
+  <body>
+    <main id="game-root">
+      <div id="pixi-stage" aria-label="Replicator Void simulation stage"></div>
+
+      <section class="hud" aria-label="Game HUD">
+        <div id="hud-stats" class="panel"></div>
+        <div id="hud-traits" class="panel"></div>
+        <div id="hud-status" class="panel">Starting void</div>
+        <div class="actions">
+          <a class="control-link" href="/" title="Return to Forest HUB">Forest</a>
+          <button id="btn-pause" title="Pause or resume simulation">Pause</button>
+          <button id="btn-bloom" title="Spend 2 tokens to accelerate replication">Bloom (B)</button>
+          <button id="btn-pulse" title="Spend 2 tokens to pressure weak strains">Pulse (V)</button>
+          <button id="btn-restart" title="Restart simulation">Restart (R)</button>
+        </div>
+      </section>
+
+      <section id="upgrade-modal" class="modal" aria-modal="true">
+        <div class="modal-card">
+          <h1 id="modal-title">Evolution Gate</h1>
+          <div id="modal-body"></div>
+        </div>
+      </section>
+
+      <div id="toast" class="panel" role="status"></div>
+      <div id="error-slot" class="panel" role="alert"></div>
+    </main>
+  </body>
+</html>

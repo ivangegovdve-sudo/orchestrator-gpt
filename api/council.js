@@ -69,6 +69,39 @@ const SYNTH_JUDGE_RESERVE_MS = 80000;
 // council's value is the multi-model debate, not 9000-char monologues.
 const MAXTOK = { propose: 420, critique: 320, revise: 420, critique2: 320, synth: 560, judge: 340 };
 
+// ── AGENTIC UPGRADE (2026-06-22): web search + RAG grounding + fleet delegation ──
+// All additive and non-fatal: each step injects context into the deliberation and
+// can fail without breaking the propose→critique→synth→judge flow. Free-only stays
+// in force (web search uses Tavily/DDG, not a paid LLM; delegation hits Chloé's
+// own free gateway). The 2142 access gate is untouched.
+//
+// WEB SEARCH / RAG (§3.1): every member deliberates over fresh, URL-cited web facts.
+//   Reuses the same provider stack as the fleet's tools/web_search.py (Tavily primary,
+//   key from Vercel env TAVILY_API_KEY; DuckDuckGo HTML fallback, no key).
+const WEBSEARCH_ENABLED = !/^(0|false|no|off)$/i.test((process.env.COUNCIL_WEBSEARCH_ENABLED || "1").trim());
+const WEBSEARCH_K       = Math.max(1, Math.min(8, parseInt(process.env.COUNCIL_WEBSEARCH_K || "5", 10) || 5));
+// Per-provider socket timeout AND a hard overall cap. The grounding step runs
+// BEFORE the proposer, so it must never add a long silent gap before stage 1.
+// Whatever happens (provider hang, DNS stall, key issue), we give up at
+// WEBSEARCH_TOTAL_MS and proceed to the proposers ungrounded-with-a-note.
+const WEBSEARCH_TIMEOUT_MS = 5000;
+const WEBSEARCH_TOTAL_MS   = Math.max(3000, Math.min(12000, parseInt(process.env.COUNCIL_WEBSEARCH_TOTAL_MS || "7000", 10) || 7000));
+const TAVILY_API_KEY    = process.env.TAVILY_API_KEY || "";
+//
+// DELEGATION to Chloé (§3.2–§3.4): between rounds the council can delegate ONE
+//   sub-question to Chloé's gateway, then fold her grounded answer into synthesis.
+//   IMPORTANT: Vercel's serverless functions are NOT on the Tailscale network, so the
+//   KVM2 gateway (100.77.50.41, CGNAT) is unreachable from here. Public delegation is
+//   therefore OFF unless COUNCIL_DELEGATE_ENDPOINT is a *public* https URL (e.g. a
+//   Tailscale Funnel / Cloudflare tunnel in front of Chloé's gateway). When unset, the
+//   step is skipped silently (no latency); when set but unreachable/slow, it degrades
+//   gracefully with a visible notice and the council proceeds from members only.
+const DELEGATE_ENDPOINT   = (process.env.COUNCIL_DELEGATE_ENDPOINT || "").trim();   // public https URL or ""
+const DELEGATE_KEY        = (process.env.COUNCIL_DELEGATE_KEY || "").trim();        // Bearer for the gateway
+const DELEGATE_MODEL      = (process.env.COUNCIL_DELEGATE_MODEL || "chloe").trim();
+const DELEGATE_TIMEOUT_MS = Math.max(10000, Math.min(90000, parseInt(process.env.COUNCIL_DELEGATE_TIMEOUT_MS || "70000", 10) || 70000));
+const DELEGATION_ENABLED  = !/^(0|false|no|off)$/i.test((process.env.COUNCIL_DELEGATION_ENABLED || "1").trim()) && !!DELEGATE_ENDPOINT;
+
 // ── Council modes ───────────────────────────────────────────────────────────
 // IMPORTANT: modes are NOT personas. They are INSTRUCTIONS for HOW each member
 // should TREAT the response handed to it by the previous member. Same panel of
@@ -244,6 +277,227 @@ async function streamWithFallback(messages, apiKey, modelList, maxTokens, temper
   throw lastErr || new Error("All models in roster failed");
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Web search (Node-native, built-in https only — no npm deps on Vercel).
+// Tavily primary (vaulted key via env), DuckDuckGo HTML fallback. Never throws.
+// ─────────────────────────────────────────────────────────────────────────────
+function httpsRequest(opts, bodyStr, timeoutMs) {
+  return new Promise((resolve, reject) => {
+    let settled = false;
+    const done = (fn, arg) => { if (settled) return; settled = true; clearTimeout(timer); try { req.destroy(); } catch (_) {} fn(arg); };
+    const timer = setTimeout(() => done(reject, new Error("timeout")), timeoutMs || 9000);
+    const req = https.request(opts, (res) => {
+      let data = "";
+      res.setEncoding("utf8");
+      res.on("data", (c) => { data += c; });
+      res.on("end", () => done(resolve, { statusCode: res.statusCode, body: data }));
+      res.on("error", (e) => done(reject, e));
+    });
+    req.on("error", (e) => done(reject, e));
+    if (bodyStr) req.write(bodyStr);
+    req.end();
+  });
+}
+
+async function tavilySearch(query, limit) {
+  if (!TAVILY_API_KEY) throw new Error("no tavily key");
+  const body = JSON.stringify({
+    api_key: TAVILY_API_KEY, query, search_depth: "basic",
+    max_results: Math.min(limit, 10), include_answer: false,
+  });
+  const r = await httpsRequest({
+    hostname: "api.tavily.com", path: "/search", method: "POST",
+    headers: { "Content-Type": "application/json", "Content-Length": Buffer.byteLength(body) },
+  }, body, WEBSEARCH_TIMEOUT_MS);
+  if (r.statusCode < 200 || r.statusCode >= 300) throw new Error("tavily HTTP " + r.statusCode);
+  const data = JSON.parse(r.body);
+  return (data.results || []).slice(0, limit).map((x) => ({
+    title: x.title || "", url: x.url || "", snippet: (x.content || "").slice(0, 400), provider: "tavily",
+  }));
+}
+
+async function ddgSearch(query, limit) {
+  const r = await httpsRequest({
+    hostname: "html.duckduckgo.com", path: "/html/?q=" + encodeURIComponent(query), method: "GET",
+    headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/124.0 Safari/537.36", "Accept-Language": "en-US,en;q=0.9" },
+  }, null, WEBSEARCH_TIMEOUT_MS);
+  if (r.statusCode < 200 || r.statusCode >= 300) throw new Error("ddg HTTP " + r.statusCode);
+  const out = [];
+  const re = /<a[^>]+class="result__a"[^>]+href="([^"]+)"[^>]*>([\s\S]*?)<\/a>[\s\S]*?<a[^>]*class="result__snippet"[^>]*>([\s\S]*?)<\/a>/g;
+  let m;
+  const strip = (s) => s.replace(/<[^>]+>/g, "").replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&#x27;/g, "'").replace(/&quot;/g, '"').trim();
+  while ((m = re.exec(r.body)) && out.length < limit) {
+    let href = m[1];
+    const um = /uddg=([^&"]+)/.exec(href);
+    if (um) href = decodeURIComponent(um[1]);
+    if (href.startsWith("//")) href = "https:" + href;
+    out.push({ title: strip(m[2]), url: href, snippet: strip(m[3]).slice(0, 400), provider: "ddg" });
+  }
+  return out;
+}
+
+async function webSearch(query, limit) {
+  // Hard overall bound: grounding may NEVER delay the first proposer by more than
+  // WEBSEARCH_TOTAL_MS. We race the real lookup against a deadline that resolves
+  // to "no results"; the proposer always starts on time. Providers run in
+  // PARALLEL (Tavily keyed + DDG keyless) so a slow one can't gate the fast one.
+  const deadline = new Promise((resolve) => setTimeout(() => resolve([]), WEBSEARCH_TOTAL_MS));
+  const lookup = (async () => {
+    const tasks = [
+      tavilySearch(query, limit).catch(() => []),
+      ddgSearch(query, limit).catch(() => []),
+    ];
+    // Prefer Tavily (richer) if it returns in time; else first non-empty.
+    const [tav, ddg] = await Promise.all(tasks);
+    if (tav && tav.length) return tav;
+    if (ddg && ddg.length) return ddg;
+    return [];
+  })();
+  try { return await Promise.race([lookup, deadline]); } catch (_) { return []; }
+}
+
+function formatWebBlock(results) {
+  const lines = results.map((r, i) =>
+    (i + 1) + ". " + (r.title || "(untitled)") + "\n   " + (r.url || "") + "\n   " + (r.snippet || "").replace(/\s+/g, " ").slice(0, 360));
+  return "## LIVE WEB CONTEXT (retrieved just now — cite URLs where used)\n" + lines.join("\n") +
+    "\n[sources: " + results.length + " results via " + (results[0] && results[0].provider || "?") + "]";
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Delegation to Chloé (single endpoint). Non-streaming POST /v1/chat/completions,
+// hard deadline, NEVER throws — always returns a structured result. Degrades to a
+// note when the (public) endpoint is unset, unreachable, or slow.
+// ─────────────────────────────────────────────────────────────────────────────
+function delegationSystemPrompt(hint) {
+  const route = hint === "research"
+    ? "Route this to Iris (research/web) and ground the answer in sources."
+    : hint === "code"
+      ? "Route this to Anderson in ADVISE-ONLY mode (solutions/answers only, never write code)."
+      : "Decide the best route (Iris for research, Anderson for code, or answer yourself).";
+  return "You are receiving a COUNCIL DELEGATION — one focused sub-question an expert council needs grounded before it finalizes. " +
+    route + " Return a single concise, grounded answer with sources where available. NEVER return an error — if the fleet cannot help, answer from your own best knowledge.";
+}
+
+async function delegateToChloe(subQuestion, hint) {
+  const result = { answer: "", route: hint || "self", degraded: false, reason: "", elapsed_ms: 0 };
+  if (!DELEGATE_ENDPOINT) { result.degraded = true; result.reason = "no_public_endpoint"; return result; }
+  const url = new URL(DELEGATE_ENDPOINT.replace(/\/$/, "") + "/v1/chat/completions");
+  const body = JSON.stringify({
+    model: DELEGATE_MODEL, stream: false, max_tokens: 1024,
+    messages: [
+      { role: "system", content: delegationSystemPrompt(hint) },
+      { role: "user", content: subQuestion },
+    ],
+  });
+  const headers = { "Content-Type": "application/json", "Content-Length": Buffer.byteLength(body) };
+  if (DELEGATE_KEY) headers.Authorization = "Bearer " + DELEGATE_KEY;
+  const t0 = Date.now();
+  try {
+    const r = await httpsRequest({
+      hostname: url.hostname, port: url.port || 443, path: url.pathname + url.search,
+      method: "POST", headers,
+    }, body, DELEGATE_TIMEOUT_MS);
+    result.elapsed_ms = Date.now() - t0;
+    if (r.statusCode < 200 || r.statusCode >= 300) { result.degraded = true; result.reason = "http_" + r.statusCode; return result; }
+    const data = JSON.parse(r.body);
+    const answer = (data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content || "").trim();
+    if (!answer) { result.degraded = true; result.reason = "empty_answer"; return result; }
+    result.answer = answer;
+    return result;
+  } catch (e) {
+    result.elapsed_ms = Date.now() - t0;
+    result.degraded = true;
+    result.reason = (e && e.message === "timeout") ? "timeout_" + Math.round(DELEGATE_TIMEOUT_MS / 1000) + "s" : "error:" + (e && e.message || "unknown").slice(0, 60);
+    return result;
+  }
+}
+
+// One cheap free-model JSON classification: is a sub-question worth delegating?
+async function delegationDecision(taskFraming, proposal, apiKey) {
+  const sys = "You are a council delegation router. Decide whether the council would benefit from delegating ONE focused sub-question to a fleet (Iris=research/web, Anderson=code). Reply with STRICT JSON only: " +
+    '{"delegatable":bool,"would_benefit":bool,"target_hint":"research|code|self","sub_question":"..."}. ' +
+    "would_benefit=true only when an external grounded answer would materially improve the synthesis.";
+  const user = "Question:\n" + taskFraming.slice(0, 1500) + "\n\nRound-1 proposal:\n" + (proposal || "").slice(0, 1200) + "\n\nReturn the JSON verdict.";
+  try {
+    const { text } = await streamWithFallback(
+      [{ role: "system", content: sys }, { role: "user", content: user }],
+      apiKey, ROSTER.judge, 180, 0, null, null);
+    const m = /\{[\s\S]*\}/.exec(text);
+    const v = JSON.parse(m ? m[0] : text);
+    return {
+      delegatable: !!v.delegatable, would_benefit: !!v.would_benefit,
+      target_hint: ["research", "code", "self"].includes(v.target_hint) ? v.target_hint : "self",
+      sub_question: typeof v.sub_question === "string" ? v.sub_question.trim() : "",
+    };
+  } catch (_) {
+    return { delegatable: false, would_benefit: false, target_hint: "self", sub_question: "" };
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// In-memory RUN REGISTRY for tab-blur persistence (no external infra, $0).
+//
+// A council run executes server-side to completion regardless of whether the
+// client stays connected (the async pipeline reads from OpenRouter, not from the
+// browser — closing the tab never aborts it). Every SSE event is ALSO mirrored
+// here with a monotonic seq. If the browser drops the stream on tab-blur and then
+// re-attaches with {resume:true, runId, lastSeq}, we REPLAY only the events it
+// missed (seq > lastSeq) and, if the run is still going, stream the live tail —
+// so the user RESUMES instead of restarting the whole council.
+//
+// Cross-instance caveat: Vercel may route the re-attach to a different warm
+// instance that doesn't hold this run. In that case we emit {stage:"resume_miss"}
+// and the client falls back to the previous seeded-rerun behaviour — i.e. NEVER
+// worse than today. Best case: true resume. Worst case: today's behaviour.
+// ─────────────────────────────────────────────────────────────────────────────
+const RUNS = new Map(); // runId -> { events:[{...,seq}], seq, done, createdAt }
+const RUN_TTL_MS = 12 * 60 * 1000;
+const RUN_MAX = 80;
+function pruneRuns() {
+  const now = Date.now();
+  for (const [k, v] of RUNS) {
+    if (now - v.createdAt > RUN_TTL_MS) RUNS.delete(k);
+  }
+  if (RUNS.size > RUN_MAX) {
+    // Drop oldest beyond the cap.
+    const sorted = [...RUNS.entries()].sort((a, b) => a[1].createdAt - b[1].createdAt);
+    for (let i = 0; i < sorted.length - RUN_MAX; i++) RUNS.delete(sorted[i][0]);
+  }
+}
+
+function writeSSE(res, obj) {
+  try { res.write("data: " + JSON.stringify(obj) + "\n\n"); } catch (_) {}
+}
+
+// Re-attach to an in-progress / completed run: replay missed events, then tail
+// live updates until the run finishes or the client disconnects. Never starts a
+// new council. Resolves a boolean: true if the run was found and served.
+async function handleReattach(res, runId, lastSeq) {
+  const run = RUNS.get(runId);
+  if (!run) { writeSSE(res, { stage: "resume_miss" }); res.end(); return false; }
+
+  let lastWritten = lastSeq;
+  const flushNew = () => {
+    for (const ev of run.events) {
+      if (ev.seq > lastWritten) { writeSSE(res, ev); lastWritten = ev.seq; }
+    }
+  };
+  flushNew();
+  if (run.done) { res.end(); return true; }
+
+  // Tail the still-running original invocation (same warm instance).
+  await new Promise((resolve) => {
+    let closed = false;
+    const stop = () => { if (closed) return; closed = true; clearInterval(poll); clearInterval(hb); resolve(); };
+    const hb = setInterval(() => { try { res.write(": ping\n\n"); } catch (_) {} }, 8000);
+    const poll = setInterval(() => { flushNew(); if (run.done) stop(); }, 140);
+    res.on("close", stop);
+    res.on("error", stop);
+  });
+  try { res.end(); } catch (_) {}
+  return true;
+}
+
 module.exports = async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
@@ -263,9 +517,9 @@ module.exports = async function handler(req, res) {
     req.on("end", resolve);
   });
 
-  let question, rounds, modeName, priorContext, code;
+  let question, rounds, modeName, priorContext, code, parsed;
   try {
-    const parsed = JSON.parse(body);
+    parsed = JSON.parse(body);
     question = parsed.question;
     rounds = parsed.rounds;
     modeName = parsed.mode;
@@ -275,6 +529,21 @@ module.exports = async function handler(req, res) {
     return res.status(400).json({ error: "Invalid JSON body." });
   }
 
+  // ── Per-request feature toggles (UI ticks) ──────────────────────────────────
+  // Web search is on-by-default (it works) but the user can switch it OFF for a
+  // faster, model-knowledge-only run. Delegation is off-by-default (no public
+  // Chloé endpoint yet); turning it on still no-ops gracefully unless a public
+  // COUNCIL_DELEGATE_ENDPOINT is configured. Both override the env defaults
+  // ONLY when the client sends an explicit boolean.
+  const reqWebSearch = (typeof parsed.webSearch === "boolean") ? parsed.webSearch : WEBSEARCH_ENABLED;
+  const reqDelegate  = (typeof parsed.delegate === "boolean") ? parsed.delegate : DELEGATION_ENABLED;
+  const delegateActive = reqDelegate && !!DELEGATE_ENDPOINT;
+
+  // ── Resume / reattach plumbing (tab-blur persistence) ───────────────────────
+  const runId   = typeof parsed.runId === "string" ? parsed.runId.slice(0, 64) : "";
+  const isResume = parsed.resume === true;
+  const lastSeq = Math.max(0, parseInt(parsed.lastSeq, 10) || 0);
+
   // ── 4-digit access gate ────────────────────────────────────────────────────
   // Lightweight shared-secret to stop anonymous over-use of the free OpenRouter
   // quota (which itself causes "network error" via rate-limit starvation). The
@@ -283,6 +552,19 @@ module.exports = async function handler(req, res) {
   const ACCESS_CODE = String(process.env.COUNCIL_ACCESS_CODE || "2142").trim();
   if (String(code || "").trim() !== ACCESS_CODE) {
     return res.status(401).json({ error: "Invalid access code. Ask Ivan for the 4-digit council code." });
+  }
+
+  // SSE headers for both the fresh-run and the re-attach branch.
+  res.setHeader("Content-Type", "text/event-stream; charset=utf-8");
+  res.setHeader("Cache-Control", "no-cache, no-transform");
+  res.setHeader("X-Accel-Buffering", "no");
+  res.status(200);
+
+  // ── RE-ATTACH branch: resume an in-progress/finished run, never re-run it ────
+  if (isResume && runId) {
+    pruneRuns();
+    await handleReattach(res, runId, lastSeq);
+    return;
   }
 
   if (!question || typeof question !== "string" || question.trim().length === 0) {
@@ -296,16 +578,23 @@ module.exports = async function handler(req, res) {
 
   // Shared user-facing framing of the task — carries any prior-round context so
   // follow-up rounds (B4: interactive) build on the previous deliberation.
-  const taskFraming =
+  let taskFraming =
     (ctx ? "Earlier in this deliberation the council concluded:\n" + ctx + "\n\nThe user now follows up with:\n" : "") +
     q;
 
-  res.setHeader("Content-Type", "text/event-stream; charset=utf-8");
-  res.setHeader("Cache-Control", "no-cache, no-transform");
-  res.setHeader("X-Accel-Buffering", "no");
-  res.status(200);
+  // Register this run so a re-attaching client can replay/resume it. The pipeline
+  // runs to completion server-side even if THIS response socket later drops.
+  pruneRuns();
+  const run = { events: [], seq: 0, done: false, createdAt: Date.now() };
+  if (runId) RUNS.set(runId, run);
 
-  const send = (data) => { try { res.write("data: " + JSON.stringify(data) + "\n\n"); } catch (_) {} };
+  // Every event is stamped with a monotonic seq, mirrored into the registry
+  // (for resume), and written to the live socket (no-op once the client drops).
+  const send = (data) => {
+    data.seq = ++run.seq;
+    run.events.push(data);
+    try { res.write("data: " + JSON.stringify(data) + "\n\n"); } catch (_) {}
+  };
   // Heartbeat: SSE comment line, ignored by the client parser, keeps the
   // connection from going idle during the gaps between/within stages.
   const heartbeat = setInterval(() => { try { res.write(": ping\n\n"); } catch (_) {} }, 8000);
@@ -315,6 +604,25 @@ module.exports = async function handler(req, res) {
   const timeLeft = () => deadline - Date.now();
 
   send({ stage: "meta", mode: mode.label, rounds: numRounds });
+
+  // ── RAG pre-step: live web search → grounding injected into every member ──────
+  // (§3.1) Non-fatal: on any failure the council proceeds ungrounded. Controlled
+  // by the page's "Web Search" tick (reqWebSearch) — when OFF we skip grounding
+  // entirely and go straight to the proposers for a faster run.
+  if (reqWebSearch) {
+    send({ stage: "notice", text: "Searching the live web for grounding…" });
+    try {
+      const results = await webSearch(q, WEBSEARCH_K);
+      if (results.length) {
+        taskFraming = formatWebBlock(results) + "\n\n" + taskFraming;
+        send({ stage: "notice", text: "Web grounding: pulled " + results.length + " live source" + (results.length === 1 ? "" : "s") + " (" + (results[0].provider) + ") into the deliberation." });
+      } else {
+        send({ stage: "notice", text: "Web grounding: no results — proceeding from model knowledge." });
+      }
+    } catch (e) {
+      send({ stage: "notice", text: "Web grounding unavailable — proceeding from model knowledge." });
+    }
+  }
 
   // Run one council stage with live streaming + graceful failure.
   //   keys: { stage, round?, extra? } — passed straight back to the client.
@@ -405,11 +713,41 @@ module.exports = async function handler(req, res) {
     );
     if (c2) { criticTexts.push(c2.text); criticModels.push(c2.model); }
 
+    // ── Fleet delegation (§3.2–§3.4): one sub-question to Chloé, folded into synthesis.
+    // Controlled by the page's "Delegation" tick (delegateActive) AND budget-guarded
+    // + non-fatal. Stays OFF unless COUNCIL_DELEGATE_ENDPOINT is a public URL; if the
+    // user ticked it on but no public endpoint exists, we say so and proceed.
+    let delegationBlock = "";
+    if (reqDelegate && !DELEGATE_ENDPOINT) {
+      send({ stage: "notice", text: "Delegation requested, but no public fleet endpoint is configured yet — proceeding with the council only." });
+    }
+    if (delegateActive && timeLeft() > SYNTH_JUDGE_RESERVE_MS + DELEGATE_TIMEOUT_MS) {
+      send({ stage: "notice", text: "Considering a fleet delegation to Chloé…" });
+      try {
+        const d = await delegationDecision(taskFraming, proposerTexts[0], apiKey);
+        if (d.delegatable && d.would_benefit && d.sub_question) {
+          send({ stage: "notice", text: "Delegating to Chloé (" + d.target_hint + "): " + d.sub_question.slice(0, 120) });
+          const ans = await delegateToChloe(d.sub_question, d.target_hint);
+          if (!ans.degraded && ans.answer) {
+            delegationBlock = "\n\nFleet delegation (Chloé → " + ans.route + ", " + ans.elapsed_ms + "ms):\n" + ans.answer + "\n";
+            send({ stage: "notice", text: "Fleet answer folded into synthesis (route=" + ans.route + ")." });
+          } else {
+            send({ stage: "notice", text: "Fleet delegation unavailable (" + ans.reason + ") — synthesizing from council members only." });
+          }
+        } else {
+          send({ stage: "notice", text: "No fleet delegation needed — the council has enough to synthesize." });
+        }
+      } catch (e) {
+        send({ stage: "notice", text: "Delegation step skipped (non-fatal)." });
+      }
+    }
+
     // ── Synthesizer ────────────────────────────────────────────────────────
     const allRoundsCtx =
       proposerTexts.map((t, i) => "Proposer Round " + (i + 1) + " (" + (proposerModels[i] || "?") + "):\n" + t).join("\n\n") +
       "\n\n" +
-      criticTexts.map((t, i) => "Critic " + (i + 1) + " (" + (criticModels[i] || "?") + "):\n" + t).join("\n\n");
+      criticTexts.map((t, i) => "Critic " + (i + 1) + " (" + (criticModels[i] || "?") + "):\n" + t).join("\n\n") +
+      delegationBlock;
 
     const synth = await runStage(
       { stage: "synthesizer" },
@@ -447,7 +785,8 @@ module.exports = async function handler(req, res) {
   } catch (err) {
     send({ stage: "error", error: err.message });
   } finally {
+    run.done = true; // unblocks any re-attached client tailing this run
     clearInterval(heartbeat);
-    res.end();
+    try { res.end(); } catch (_) {}
   }
 };

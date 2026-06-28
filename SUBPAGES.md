@@ -1,7 +1,7 @@
 # SUBPAGES.md — Forest HUB sdforest.site Subpage Index
 
 **Purpose:** Concise per-subpage description of what each page currently is and its production state. Use this to decide what to improve next.
-**Last updated:** 2026-06-24
+**Last updated:** 2026-06-25
 **Production URL:** https://sdforest.site
 
 ---
@@ -33,6 +33,16 @@
 **What it is:** Interactive periodic table of elements in Bulgarian. Clickable elements show details, compound highlighting.
 **State:** Live and working. Static. Source of truth is the `mendeleev-bg` repo; this is a copy.
 **Next:** Keep in sync with source repo on updates.
+
+---
+
+## Replicator Void
+
+**Route:** `/web/replicator-void/`
+**Files:** `web/replicator-void/index.html`, `web/replicator-void/assets/*`
+**What it is:** Browser-playable ecosystem roguelite simulation. Replicators drift, replicate, mutate, and decay in a PixiJS playfield. Player spends evolution tokens during 45-second cycle gates, uses resource bloom and void pulse interventions, and can play with keyboard or on-screen controls.
+**State:** Live static subpage copied from the private `ivangegovdve-sudo/replicator-void` repo build output. Not embedded on the Forest HUB homepage; launched by a card and includes a Forest return control.
+**Next:** Re-copy a fresh `npm run build` output from the game repo when gameplay changes.
 
 ---
 
