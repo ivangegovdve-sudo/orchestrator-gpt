@@ -1,0 +1,599 @@
+{
+  "generated_at": "2026-07-02T17:28:05.081943+00:00",
+  "query": "in:inbox -in:spam -in:trash",
+  "message_count": 11,
+  "entity_count": 10,
+  "entities": [
+    {
+      "key": "tldrnewsletter.com",
+      "display_name": "TLDR AI",
+      "email": "dan@tldrnewsletter.com",
+      "domain": "tldrnewsletter.com",
+      "url": "https://tldrnewsletter.com",
+      "count": 2,
+      "unread_count": 1,
+      "important_count": 2,
+      "starred_count": 2,
+      "latest_date": "2026-07-02T13:47:56+00:00",
+      "labels": {
+        "CATEGORY_UPDATES": 2,
+        "IMPORTANT": 2,
+        "INBOX": 2,
+        "STARRED": 2,
+        "UNREAD": 1
+      },
+      "subjects": [
+        "Gemini Flash upgrade, Meta AI cloud, ZCode",
+        "GCash to raise $1.5B, UK dilutes stablecoin capital requirement"
+      ],
+      "categories": {
+        "Newsletters and marketing": 2
+      },
+      "evidence_terms": {
+        "newsletter": 2,
+        "digest": 2
+      },
+      "examples": [
+        {
+          "date": "2026-07-02",
+          "subject": "Gemini Flash upgrade, Meta AI cloud, ZCode",
+          "url": "https://mail.google.com/mail/#all/19f231614a89a483"
+        },
+        {
+          "date": "2026-07-02",
+          "subject": "GCash to raise $1.5B, UK dilutes stablecoin capital requirement",
+          "url": "https://mail.google.com/mail/#all/19f230a3c39d2a3e"
+        }
+      ],
+      "recommended_category": "Newsletters and marketing",
+      "newsletter_likely": true,
+      "account_likely": false,
+      "paid_or_billing_likely": false,
+      "unsubscribe_candidate": true,
+      "importance_score": 19.25
+    },
+    {
+      "key": "joinsuperhuman.ai",
+      "display_name": "Superhuman - Zain Kahn",
+      "email": "superhuman@mail.joinsuperhuman.ai",
+      "domain": "joinsuperhuman.ai",
+      "url": "https://joinsuperhuman.ai",
+      "count": 1,
+      "unread_count": 1,
+      "important_count": 1,
+      "starred_count": 1,
+      "latest_date": "2026-07-02T11:07:14+00:00",
+      "labels": {
+        "CATEGORY_UPDATES": 1,
+        "IMPORTANT": 1,
+        "INBOX": 1,
+        "STARRED": 1,
+        "UNREAD": 1
+      },
+      "subjects": [
+        "Etched exits stealth at $5B"
+      ],
+      "categories": {
+        "Newsletters and marketing": 1
+      },
+      "evidence_terms": {
+        "newsletter": 1
+      },
+      "examples": [
+        {
+          "date": "2026-07-02",
+          "subject": "Etched exits stealth at $5B",
+          "url": "https://mail.google.com/mail/#all/19f2282fbb657b47"
+        }
+      ],
+      "recommended_category": "Newsletters and marketing",
+      "newsletter_likely": true,
+      "account_likely": false,
+      "paid_or_billing_likely": false,
+      "unsubscribe_candidate": false,
+      "importance_score": 11.0
+    },
+    {
+      "key": "linkedin.com",
+      "display_name": "Petyo Petkov",
+      "email": "inmail-hit-reply@linkedin.com",
+      "domain": "linkedin.com",
+      "url": "https://linkedin.com",
+      "count": 1,
+      "unread_count": 0,
+      "important_count": 1,
+      "starred_count": 1,
+      "latest_date": "2026-07-02T15:02:40+00:00",
+      "labels": {
+        "CATEGORY_UPDATES": 1,
+        "IMPORTANT": 1,
+        "INBOX": 1,
+        "STARRED": 1
+      },
+      "subjects": [
+        "Game Animator Opportunity at EGT Digital, Online Games"
+      ],
+      "categories": {
+        "People and work": 1
+      },
+      "evidence_terms": {
+        "opportunity": 1
+      },
+      "examples": [
+        {
+          "date": "2026-07-02",
+          "subject": "Game Animator Opportunity at EGT Digital, Online Games",
+          "url": "https://mail.google.com/mail/#all/19f235a7f5bc2ab3"
+        }
+      ],
+      "recommended_category": "People and work",
+      "newsletter_likely": false,
+      "account_likely": false,
+      "paid_or_billing_likely": false,
+      "unsubscribe_candidate": false,
+      "importance_score": 10.75
+    },
+    {
+      "key": "updates.langfuse.com",
+      "display_name": "Marc",
+      "email": "marc@updates.langfuse.com",
+      "domain": "updates.langfuse.com",
+      "url": "https://updates.langfuse.com",
+      "count": 1,
+      "unread_count": 0,
+      "important_count": 1,
+      "starred_count": 1,
+      "latest_date": "2026-07-02T05:08:56+00:00",
+      "labels": {
+        "CATEGORY_UPDATES": 1,
+        "IMPORTANT": 1,
+        "INBOX": 1,
+        "STARRED": 1
+      },
+      "subjects": [
+        "Langfuse June Update: Monitors & Alerts, Assistant & Filter Search Bar"
+      ],
+      "categories": {
+        "Newsletters and marketing": 1
+      },
+      "evidence_terms": {
+        "newsletter": 1
+      },
+      "examples": [
+        {
+          "date": "2026-07-02",
+          "subject": "Langfuse June Update: Monitors & Alerts, Assistant & Filter Search Bar",
+          "url": "https://mail.google.com/mail/#all/19f213ae8e9ff072"
+        }
+      ],
+      "recommended_category": "Newsletters and marketing",
+      "newsletter_likely": true,
+      "account_likely": false,
+      "paid_or_billing_likely": false,
+      "unsubscribe_candidate": false,
+      "importance_score": 10.75
+    },
+    {
+      "key": "marmot-books.com",
+      "display_name": "Radi at Marmot",
+      "email": "radi@marmot-books.com",
+      "domain": "marmot-books.com",
+      "url": "https://marmot-books.com",
+      "count": 1,
+      "unread_count": 1,
+      "important_count": 1,
+      "starred_count": 1,
+      "latest_date": "2026-07-02T12:15:31+00:00",
+      "labels": {
+        "CATEGORY_PROMOTIONS": 1,
+        "IMPORTANT": 1,
+        "INBOX": 1,
+        "STARRED": 1,
+        "UNREAD": 1
+      },
+      "subjects": [
+        "OFFLINE summer with Marmot is here"
+      ],
+      "categories": {
+        "Newsletters and marketing": 1
+      },
+      "evidence_terms": {},
+      "examples": [
+        {
+          "date": "2026-07-02",
+          "subject": "OFFLINE summer with Marmot is here",
+          "url": "https://mail.google.com/mail/#all/19f22c17ae6b0296"
+        }
+      ],
+      "recommended_category": "Newsletters and marketing",
+      "newsletter_likely": true,
+      "account_likely": false,
+      "paid_or_billing_likely": false,
+      "unsubscribe_candidate": false,
+      "importance_score": 9.75
+    },
+    {
+      "key": "pictory.ai",
+      "display_name": "Kate at Pictory",
+      "email": "kate@pictory.ai",
+      "domain": "pictory.ai",
+      "url": "https://pictory.ai",
+      "count": 1,
+      "unread_count": 1,
+      "important_count": 1,
+      "starred_count": 1,
+      "latest_date": "2026-07-02T10:14:53+00:00",
+      "labels": {
+        "CATEGORY_PROMOTIONS": 1,
+        "IMPORTANT": 1,
+        "INBOX": 1,
+        "STARRED": 1,
+        "UNREAD": 1
+      },
+      "subjects": [
+        "So many magical ways to create your 1st AI video"
+      ],
+      "categories": {
+        "Newsletters and marketing": 1
+      },
+      "evidence_terms": {},
+      "examples": [
+        {
+          "date": "2026-07-02",
+          "subject": "So many magical ways to create your 1st AI video",
+          "url": "https://mail.google.com/mail/#all/19f225302da07fbb"
+        }
+      ],
+      "recommended_category": "Newsletters and marketing",
+      "newsletter_likely": true,
+      "account_likely": false,
+      "paid_or_billing_likely": false,
+      "unsubscribe_candidate": false,
+      "importance_score": 9.75
+    },
+    {
+      "key": "glaido.com",
+      "display_name": "Glaido",
+      "email": "hello@glaido.com",
+      "domain": "glaido.com",
+      "url": "https://glaido.com",
+      "count": 1,
+      "unread_count": 0,
+      "important_count": 1,
+      "starred_count": 1,
+      "latest_date": "2026-07-02T14:52:15+00:00",
+      "labels": {
+        "CATEGORY_UPDATES": 1,
+        "IMPORTANT": 1,
+        "INBOX": 1,
+        "STARRED": 1
+      },
+      "subjects": [
+        "Upcoming scheduled maintenance on July 7"
+      ],
+      "categories": {
+        "Operational updates": 1
+      },
+      "evidence_terms": {},
+      "examples": [
+        {
+          "date": "2026-07-02",
+          "subject": "Upcoming scheduled maintenance on July 7",
+          "url": "https://mail.google.com/mail/#all/19f2350f546d25ad"
+        }
+      ],
+      "recommended_category": "Operational updates",
+      "newsletter_likely": false,
+      "account_likely": false,
+      "paid_or_billing_likely": false,
+      "unsubscribe_candidate": false,
+      "importance_score": 9.5
+    },
+    {
+      "key": "alphasignal.ai",
+      "display_name": "AlphaSignal",
+      "email": "news@alphasignal.ai",
+      "domain": "alphasignal.ai",
+      "url": "https://alphasignal.ai",
+      "count": 1,
+      "unread_count": 1,
+      "important_count": 0,
+      "starred_count": 0,
+      "latest_date": "2026-07-02T13:07:16+00:00",
+      "labels": {
+        "CATEGORY_UPDATES": 1,
+        "INBOX": 1,
+        "UNREAD": 1
+      },
+      "subjects": [
+        "Anthropic Claude Sonnet 5: flagship reasoning at 40% of Opus cost"
+      ],
+      "categories": {
+        "Newsletters and marketing": 1
+      },
+      "evidence_terms": {
+        "newsletter": 1,
+        "daily": 1
+      },
+      "examples": [
+        {
+          "date": "2026-07-02",
+          "subject": "Anthropic Claude Sonnet 5: flagship reasoning at 40% of Opus cost",
+          "url": "https://mail.google.com/mail/#all/19f22f0d962013f2"
+        }
+      ],
+      "recommended_category": "Newsletters and marketing",
+      "newsletter_likely": true,
+      "account_likely": false,
+      "paid_or_billing_likely": false,
+      "unsubscribe_candidate": false,
+      "importance_score": 8.75
+    },
+    {
+      "key": "google.com",
+      "display_name": "Google Payments",
+      "email": "payments-noreply@google.com",
+      "domain": "google.com",
+      "url": "https://google.com",
+      "count": 1,
+      "unread_count": 0,
+      "important_count": 1,
+      "starred_count": 0,
+      "latest_date": "2026-07-02T00:33:39-07:00",
+      "labels": {
+        "CATEGORY_UPDATES": 1,
+        "IMPORTANT": 1,
+        "INBOX": 1
+      },
+      "subjects": [
+        "Google Cloud Platform & APIs: Your invoice is available"
+      ],
+      "categories": {
+        "Money and account access": 1
+      },
+      "evidence_terms": {
+        "invoice": 1
+      },
+      "examples": [
+        {
+          "date": "2026-07-02",
+          "subject": "Google Cloud Platform & APIs: Your invoice is available",
+          "url": "https://mail.google.com/mail/#all/19f21bf8016e721a"
+        }
+      ],
+      "recommended_category": "Money and account access",
+      "newsletter_likely": false,
+      "account_likely": false,
+      "paid_or_billing_likely": true,
+      "unsubscribe_candidate": false,
+      "importance_score": 8.75
+    },
+    {
+      "key": "speedy.bg",
+      "display_name": "Speedy",
+      "email": "no-reply@speedy.bg",
+      "domain": "speedy.bg",
+      "url": "https://speedy.bg",
+      "count": 1,
+      "unread_count": 0,
+      "important_count": 1,
+      "starred_count": 0,
+      "latest_date": "2026-07-02T06:05:12+00:00",
+      "labels": {
+        "CATEGORY_UPDATES": 1,
+        "IMPORTANT": 1,
+        "INBOX": 1
+      },
+      "subjects": [
+        "Speedy shipment 63652530579 ready for pickup"
+      ],
+      "categories": {
+        "Operational updates": 1
+      },
+      "evidence_terms": {},
+      "examples": [
+        {
+          "date": "2026-07-02",
+          "subject": "Speedy shipment 63652530579 ready for pickup",
+          "url": "https://mail.google.com/mail/#all/19f216e6d559ba17"
+        }
+      ],
+      "recommended_category": "Operational updates",
+      "newsletter_likely": false,
+      "account_likely": false,
+      "paid_or_billing_likely": false,
+      "unsubscribe_candidate": false,
+      "importance_score": 7.5
+    }
+  ],
+  "messages": [
+    {
+      "id": "19f235a7f5bc2ab3",
+      "thread_id": "19f235a7f5bc2ab3",
+      "sender_name": "Petyo Petkov",
+      "sender_email": "inmail-hit-reply@linkedin.com",
+      "sender_domain": "linkedin.com",
+      "subject": "Game Animator Opportunity at EGT Digital, Online Games",
+      "snippet": "LinkedIn profile outreach about a game animator opportunity.",
+      "labels": [
+        "CATEGORY_UPDATES",
+        "IMPORTANT",
+        "INBOX",
+        "STARRED"
+      ],
+      "internal_date": "2026-07-02T15:02:40+00:00",
+      "gmail_url": "https://mail.google.com/mail/#all/19f235a7f5bc2ab3"
+    },
+    {
+      "id": "19f2350f546d25ad",
+      "thread_id": "19f2350f546d25ad",
+      "sender_name": "Glaido",
+      "sender_email": "hello@glaido.com",
+      "sender_domain": "glaido.com",
+      "subject": "Upcoming scheduled maintenance on July 7",
+      "snippet": "Scheduled maintenance and product stability update.",
+      "labels": [
+        "CATEGORY_UPDATES",
+        "IMPORTANT",
+        "INBOX",
+        "STARRED"
+      ],
+      "internal_date": "2026-07-02T14:52:15+00:00",
+      "gmail_url": "https://mail.google.com/mail/#all/19f2350f546d25ad"
+    },
+    {
+      "id": "19f231614a89a483",
+      "thread_id": "19f231614a89a483",
+      "sender_name": "TLDR AI",
+      "sender_email": "dan@tldrnewsletter.com",
+      "sender_domain": "tldrnewsletter.com",
+      "subject": "Gemini Flash upgrade, Meta AI cloud, ZCode",
+      "snippet": "AI newsletter digest covering Gemini, Meta AI cloud, and developer tooling.",
+      "labels": [
+        "CATEGORY_UPDATES",
+        "IMPORTANT",
+        "INBOX",
+        "STARRED"
+      ],
+      "internal_date": "2026-07-02T13:47:56+00:00",
+      "gmail_url": "https://mail.google.com/mail/#all/19f231614a89a483"
+    },
+    {
+      "id": "19f230a3c39d2a3e",
+      "thread_id": "19f230a3c39d2a3e",
+      "sender_name": "TLDR Fintech",
+      "sender_email": "dan@tldrnewsletter.com",
+      "sender_domain": "tldrnewsletter.com",
+      "subject": "GCash to raise $1.5B, UK dilutes stablecoin capital requirement",
+      "snippet": "Fintech newsletter digest.",
+      "labels": [
+        "CATEGORY_UPDATES",
+        "IMPORTANT",
+        "INBOX",
+        "STARRED",
+        "UNREAD"
+      ],
+      "internal_date": "2026-07-02T13:35:00+00:00",
+      "gmail_url": "https://mail.google.com/mail/#all/19f230a3c39d2a3e"
+    },
+    {
+      "id": "19f22f0d962013f2",
+      "thread_id": "19f22f0d962013f2",
+      "sender_name": "AlphaSignal",
+      "sender_email": "news@alphasignal.ai",
+      "sender_domain": "alphasignal.ai",
+      "subject": "Anthropic Claude Sonnet 5: flagship reasoning at 40% of Opus cost",
+      "snippet": "Daily AI news, papers, and repos newsletter.",
+      "labels": [
+        "CATEGORY_UPDATES",
+        "INBOX",
+        "UNREAD"
+      ],
+      "internal_date": "2026-07-02T13:07:16+00:00",
+      "gmail_url": "https://mail.google.com/mail/#all/19f22f0d962013f2"
+    },
+    {
+      "id": "19f22c17ae6b0296",
+      "thread_id": "19f22c17ae6b0296",
+      "sender_name": "Radi at Marmot",
+      "sender_email": "radi@marmot-books.com",
+      "sender_domain": "marmot-books.com",
+      "subject": "OFFLINE summer with Marmot is here",
+      "snippet": "Promotional book discounts, gifts, and bundles.",
+      "labels": [
+        "CATEGORY_PROMOTIONS",
+        "IMPORTANT",
+        "INBOX",
+        "STARRED",
+        "UNREAD"
+      ],
+      "internal_date": "2026-07-02T12:15:31+00:00",
+      "gmail_url": "https://mail.google.com/mail/#all/19f22c17ae6b0296"
+    },
+    {
+      "id": "19f2282fbb657b47",
+      "thread_id": "19f2282fbb657b47",
+      "sender_name": "Superhuman - Zain Kahn",
+      "sender_email": "superhuman@mail.joinsuperhuman.ai",
+      "sender_domain": "joinsuperhuman.ai",
+      "subject": "Etched exits stealth at $5B",
+      "snippet": "AI and productivity newsletter, including Excel and ChatGPT workflow content.",
+      "labels": [
+        "CATEGORY_UPDATES",
+        "IMPORTANT",
+        "INBOX",
+        "STARRED",
+        "UNREAD"
+      ],
+      "internal_date": "2026-07-02T11:07:14+00:00",
+      "gmail_url": "https://mail.google.com/mail/#all/19f2282fbb657b47"
+    },
+    {
+      "id": "19f225302da07fbb",
+      "thread_id": "19f225302da07fbb",
+      "sender_name": "Kate at Pictory",
+      "sender_email": "kate@pictory.ai",
+      "sender_domain": "pictory.ai",
+      "subject": "So many magical ways to create your 1st AI video",
+      "snippet": "Promotional product onboarding email for AI video workflows.",
+      "labels": [
+        "CATEGORY_PROMOTIONS",
+        "IMPORTANT",
+        "INBOX",
+        "STARRED",
+        "UNREAD"
+      ],
+      "internal_date": "2026-07-02T10:14:53+00:00",
+      "gmail_url": "https://mail.google.com/mail/#all/19f225302da07fbb"
+    },
+    {
+      "id": "19f21bf8016e721a",
+      "thread_id": "19f21bf8016e721a",
+      "sender_name": "Google Payments",
+      "sender_email": "payments-noreply@google.com",
+      "sender_domain": "google.com",
+      "subject": "Google Cloud Platform & APIs: Your invoice is available",
+      "snippet": "Monthly Google Cloud invoice is available with PDF attachment.",
+      "labels": [
+        "CATEGORY_UPDATES",
+        "IMPORTANT",
+        "INBOX"
+      ],
+      "internal_date": "2026-07-02T00:33:39-07:00",
+      "gmail_url": "https://mail.google.com/mail/#all/19f21bf8016e721a"
+    },
+    {
+      "id": "19f216e6d559ba17",
+      "thread_id": "19f216e6d559ba17",
+      "sender_name": "Speedy",
+      "sender_email": "no-reply@speedy.bg",
+      "sender_domain": "speedy.bg",
+      "subject": "Speedy shipment 63652530579 ready for pickup",
+      "snippet": "Delivery notification for package pickup at office.",
+      "labels": [
+        "CATEGORY_UPDATES",
+        "IMPORTANT",
+        "INBOX"
+      ],
+      "internal_date": "2026-07-02T06:05:12+00:00",
+      "gmail_url": "https://mail.google.com/mail/#all/19f216e6d559ba17"
+    },
+    {
+      "id": "19f213ae8e9ff072",
+      "thread_id": "19f213ae8e9ff072",
+      "sender_name": "Marc",
+      "sender_email": "marc@updates.langfuse.com",
+      "sender_domain": "updates.langfuse.com",
+      "subject": "Langfuse June Update: Monitors & Alerts, Assistant & Filter Search Bar",
+      "snippet": "Product update newsletter for Langfuse.",
+      "labels": [
+        "CATEGORY_UPDATES",
+        "IMPORTANT",
+        "INBOX",
+        "STARRED"
+      ],
+      "internal_date": "2026-07-02T05:08:56+00:00",
+      "gmail_url": "https://mail.google.com/mail/#all/19f213ae8e9ff072"
+    }
+  ]
+}
