@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Forest HUB wrapper for the TinyLM Glass Box experiment. Inline embed when allowed, launch fallback when not." />
+  <meta property="og:title" content="TinyLM Glass Box - Forest HUB" />
+  <meta property="og:description" content="A public glass-box experiment for tiny model councils, available as a routed SD Forest subpage." />
+  <meta property="og:type" content="website" />
+  <meta name="theme-color" content="#07070b" />
+  <title>TinyLM Glass Box - Forest HUB</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <main class="page">
+    <section class="hero">
+      <a class="back-link" href="/">Back to Forest HUB</a>
+      <p class="eyebrow">Forest HUB · TinyLM Glass Box · Preview Route</p>
+      <h1>TinyLM Glass Box</h1>
+      <p class="lede">
+        A public glass-box experiment for tiny model councils. This SD Forest route tries to embed the
+        current live console when the target allows framing and falls back to a direct launch when it does not.
+      </p>
+      <div class="hero-notes">
+        <article class="note-card">
+          <h2>Mode</h2>
+          <p>Public glass-box first. Private-run mode stays a later build, and this page says so plainly.</p>
+        </article>
+        <article class="note-card">
+          <h2>Runtime</h2>
+          <p>The live target is configurable so we can switch among local, Chloe/KVM2, and public hosts without changing the route.</p>
+        </article>
+        <article class="note-card">
+          <h2>Safety</h2>
+          <p>This release is route-only. It does not alter the Forest HUB homepage until the direct route proves stable.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="status-panel" id="status-panel">
+      <p class="status-label" id="status-label">Loading target status...</p>
+      <p class="status-copy" id="status-copy">Reading TinyLM route configuration and preparing the safest display path.</p>
+    </section>
+
+    <section class="embed-shell">
+      <div class="embed-head">
+        <div>
+          <p class="embed-eyebrow">Live Console</p>
+          <h2 id="embed-title">TinyLM target</h2>
+        </div>
+        <a class="launch-link secondary" id="launch-link-inline" href="#" target="_blank" rel="noopener noreferrer">Open live console</a>
+      </div>
+
+      <iframe id="glass-box-frame" title="TinyLM Glass Box" loading="lazy"></iframe>
+
+      <div class="fallback" id="fallback-panel" hidden>
+        <p class="fallback-title">Inline embed is unavailable for the current target.</p>
+        <p class="fallback-copy" id="fallback-copy">Use the launch button to open the live TinyLM console directly.</p>
+        <div class="fallback-actions">
+          <a class="launch-link" id="launch-link" href="#" target="_blank" rel="noopener noreferrer">Open live console</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script type="module" src="./app.js"></script>
+</body>
+</html>

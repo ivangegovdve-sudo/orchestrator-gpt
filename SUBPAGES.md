@@ -96,12 +96,13 @@
 
 ---
 
-## LLM Council Page
+## TinyLM Glass Box
 
-**Route:** Not yet in repo
-**What it is:** A new hub subpage for the LLM Council project. Not yet created.
-**State:** Planned. To be added to this repo.
-**Next:** Create `/web/llm-council/` subpage linking to or embedding the council workflow. Add hub card in `index.html`.
+**Route:** `/web/tinylm-glass-box/`
+**Files:** `web/tinylm-glass-box/index.html`, `app.js`, `styles.css`, `config.json`
+**What it is:** Forest HUB wrapper subpage for the TinyLM Glass Box project. Attempts inline embed of the live TinyLM console and falls back to launching it externally.
+**State:** Preview-first route. Not yet linked from the homepage card grid. Target URL is controlled through local route config.
+**Next:** Verify preview behavior, reconcile with latest `origin/main`, then production-launch the direct route. Add the hub card only in a later release after the route proves stable.
 
 ---
 

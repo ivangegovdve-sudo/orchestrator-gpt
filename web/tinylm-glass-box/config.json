@@ -1,0 +1,7 @@
+{
+  "title": "TinyLM Glass Box",
+  "targetUrl": "https://example-host/tinylm-glass-box/",
+  "allowEmbed": true,
+  "launchLabel": "Open live console",
+  "statusLabel": "Preview target"
+}
