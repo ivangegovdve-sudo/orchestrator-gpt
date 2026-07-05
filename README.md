@@ -1,86 +1,56 @@
-# Forest HUB / orchestrator-gpt
+# Forest HUB — sdforest.site
 
-This repository is a static web dashboard plus a small FastAPI backend. It hosts the Forest HUB landing page, several self-contained mini-projects under `web/`, and API-backed tools such as the movie library and the LLM docs database.
+Forest HUB is a static web dashboard plus a small FastAPI backend. It hosts the landing page at [sdforest.site](https://sdforest.site) and a collection of self-contained mini-projects under `web/` — reference tools, kids' games, poetry pages, and scroll-driven stories.
 
-The repo is not a packaged frontend app with a build step. Most pages are plain HTML, CSS, and JavaScript. The backend is Python + FastAPI + SQLite.
+Most pages are plain HTML, CSS, and JavaScript with no build step. The backend is Python + FastAPI + SQLite.
+
+## Live deployment
+
+| Layer | Where | Notes |
+|---|---|---|
+| Static site | Vercel → [sdforest.site](https://sdforest.site) | `npm run vercel-build` runs `build-vercel-static.cjs`, which assembles `vercel-public/` |
+| Backend API | VPS — `http://187.127.86.176:8001` | systemd unit `forest-hub.service`; health check at `/health` |
+| API domain | `api.sdforest.site` | DNS lives at Vercel; pending A-record update + TLS before HTTPS works |
+
+The landing page footer shows a live API status dot. It probes `https://api.sdforest.site/health` on the production (HTTPS) site and `http://187.127.86.176:8001/health` when served over plain HTTP locally — browsers block mixed content, so the raw-IP endpoint can't be probed from HTTPS.
 
 ## What lives here
 
-- `index.html`
-  Forest HUB landing page and project card grid.
-- `web/prompt-builder/`
-  Stable Diffusion prompt builder with optional AUTOMATIC1111 integration.
-- `web/a1111-debug/` and `web/debug-a1111/`
-  Local debug harnesses for AUTOMATIC1111 + ControlNet.
-- `web/kids-movie-library/`
-  Static Kids Movie Library built from `kidsMoviesReport.md`, with local watch flags and ratings.
-- `movies/index.html`
-  Redirect shim to `/web/kids-movie-library/`.
-- `web/mendeleev-bg/`
-  Interactive Bulgarian periodic table copied from `ivangegovdve-sudo/mendeleev-bg`.
-- `web/math-mania/`
-  Forest HUB subpage embedding the live Lovable Math Mania app.
-- `web/math-forest/`
-  Reserved route for the Math Forest rebuild; original app currently appears unavailable.
-- `web/llm-db/`
-  LLM Platforms DB UI.
-- `web/ai-init/`
-  AI/IT glossary app plus embeddable search.
-- `web/calendar/`
-  Printable calendar generator adapted from CalendarGenerator, with local saved settings and holiday lookup.
-- `calendar/index.html`
-  Redirect shim to `/web/calendar/`.
-- `web/shared-calendar/`
-  Local-only shared calendar.
-- `web/dice/`
-  Static 3D dice roller.
-- `frontend/index.html`
-  Standalone Runware item-icon generator demo.
-- `voice-project-dashboard/apps/mobile/`
-  Expo-based Voice Project Dashboard source deployed separately to Vercel.
-- `backend/`
-  FastAPI app, movies API, jobs API, LLM DB API, SQLite helpers, and tests.
-- `data/`
-  SQLite database, migrations, preset JSON, and curated inventory data.
+- `index.html` — Forest HUB landing page: hero, project card grid, about section, API status footer.
+- `web/ai-init/` — AI/IT glossary (527+ terms) plus embeddable search.
+- `web/calendar/` — printable calendar generator with holiday lookup (redirect shim at `calendar/`).
+- `web/chloe-pwa/` — Chloé assistant PWA shell (not linked from the hub yet).
+- `web/council/` — LLM Council: 4-stage free-tier deliberation UI.
+- `web/hypertrophyos/` — Hyper Trophy OS exercise-intelligence dashboard.
+- `web/kids-movie-library/` — curated family movie catalog with localStorage watch/rating state (redirect shim at `movies/`).
+- `web/library/` — sdforest library page (not linked from the hub yet).
+- `web/life-in-time/` — time-remaining calculator with shareable links.
+- `web/llm-db/` — LLM Platforms DB UI (166 platforms); expects same-origin `/api/llm-db`.
+- `web/m-popova/` — M.Popova poetry space.
+- `web/manifesto-newborn/` — Manifesto for a Newborn, a letter page.
+- `web/math-forest/` — reserved route for the Math Forest rebuild (placeholder).
+- `web/math-mania/` — kids' math game, embedding the live Lovable app (`forest-math-plus.lovable.app`).
+- `web/mendeleev-bg/` — interactive Bulgarian periodic table.
+- `web/power-law-odyssey/` — 3D scrollytelling piece on power laws.
+- `web/replicator-void/` — Replicator Void experiment (not linked from the hub yet).
+- `frontend/index.html` — standalone Runware item-icon generator demo.
+- `backend/` — FastAPI app: movies API, jobs API, LLM DB API, IMDb service, SQLite helpers, and tests.
+- `data/` — SQLite database, migrations, preset JSON, and curated inventory data.
+- `build-vercel-static.cjs` — copies the static site into `vercel-public/` for Vercel.
 
-## Current architecture
+## API surface
 
-There are two runtime layers:
-
-1. Static pages
-   Served from the repo root with any static file server.
-2. FastAPI
-   Serves `/api/movies`, `/api/llm-db`, `/jobs`, `/health`, `/api/schema`, and `/api/item-icon`.
-
-Important local-dev detail:
-
-- `web/kids-movie-library/` is static and stores family watch/rating state in localStorage.
-- `web/llm-db/` currently assumes same-origin requests to `/api/llm-db`.
-- `backend/app.py` only allows browser CORS from `http://localhost:8080` and `http://127.0.0.1:8080`.
-
-Because of that, split-server mode works for most pages, but a truly "everything works" local setup needs either:
-
-- same-origin serving for static files and FastAPI, or
-- a code change to make `web/llm-db/` use a configurable API base.
+FastAPI serves `/api/movies`, `/api/llm-db`, `/jobs`, `/health`, `/api/schema`, and `/api/item-icon`. See `backend/app.py` for the app wiring.
 
 ## Quick start
 
-### 1. Create a Python environment
-
-PowerShell:
+### 1. Python environment
 
 ```powershell
 python -m venv .venv
 .venv\Scripts\Activate.ps1
-python -m pip install --upgrade pip
-python -m pip install fastapi uvicorn pydantic pytest httpx
+python -m pip install -r requirements.txt
 ```
-
-Notes:
-
-- This repo does not currently ship a locked `requirements.txt` or `pyproject.toml`.
-- The backend uses the standard library for SQLite and URL fetching.
-- `pytest` and `httpx` are needed for the existing backend tests.
 
 ### 2. Start the backend
 
@@ -88,404 +58,42 @@ Notes:
 python -m uvicorn backend.app:app --reload --port 8000
 ```
 
-The backend auto-applies migrations in `data/migrations/` and initializes `data/movies.db`.
+Migrations in `data/migrations/` are auto-applied and `data/movies.db` is initialized on startup.
 
 ### 3. Start a static server
 
-In a second terminal from the repo root:
+From the repo root in a second terminal:
 
 ```powershell
 python -m http.server 8080
 ```
 
-Open:
-
-- Hub: `http://127.0.0.1:8080/index.html`
-- Calendar Generator: `http://127.0.0.1:8080/calendar/`
-- Movies: `http://127.0.0.1:8080/movies/`
-- Prompt Builder: `http://127.0.0.1:8080/web/prompt-builder/`
-- AI_INIT: `http://127.0.0.1:8080/web/ai-init/`
-
-Do not use `file://` for these pages. Several tools rely on fetch, clipboard, localStorage, or CORS and need a real local server.
+Open `http://127.0.0.1:8080/` for the hub. Don't use `file://` — several pages rely on fetch, clipboard, or localStorage and need a real server.
 
 ## Local development modes
 
-### Split mode
-
-Use this when you want quick local iteration:
-
-- static files on `http://127.0.0.1:8080`
-- FastAPI on `http://127.0.0.1:8000`
-
-This is the expected mode for:
-
-- hub
-- AI_INIT
-- shared calendar
-- dice
-- prompt builder static features
-- A1111 debug pages
-- movies
-- frontend item-icon demo
-- voice-project-dashboard source app
-
-### Same-origin mode
-
-Use this when you want the entire dashboard to be fully functional behind one origin.
-
-Recommended approach for future work:
-
-- serve `index.html`, `movies/`, `web/**`, `frontend/**`, `data/**`, and `/api/**` from the same origin, preferably `http://127.0.0.1:8000`
-
-This is the cleanest path for:
-
-- `web/llm-db/`, which currently hardcodes `const API_BASE = '/api/llm-db'`
-
-If you keep split mode, make `web/llm-db/` configurable before calling the dashboard fully functional.
-
-## Mini-project run instructions
-
-### Forest HUB
-
-- Route: `/index.html`
-- Files: `index.html`
-- Runtime: static only
-- Done when:
-  - every visible in-repo tile opens a working destination
-  - no dead production links remain as `href="#"`
-  - titles, status text, and routes match the real project state
-
-### Prompt Builder
-
-- Route: `/web/prompt-builder/`
-- Files: `web/prompt-builder/index.html`
-- Runtime: static only for prompt composition, optional A1111 for generation
-- Reads:
-  - `data/presets/newPresets.json`
-  - `data/sd_inventory_curated.json` (optional enhancement)
-- External dependency for generation:
-  - AUTOMATIC1111 WebUI with API enabled, usually `http://127.0.0.1:7860`
-- Expected A1111 startup flags:
-  - `--api`
-  - CORS enabled for your local page origin if needed
-- Done when:
-  - presets load if the JSON file exists
-  - manual mode still works if preset files fail to load
-  - A1111 health/model checks work when the local SD server is available
-  - txt2img or img2img requests succeed when configured
-
-### A1111 Debug pages
-
-- Routes:
-  - `/web/a1111-debug/index.html`
-  - `/web/debug-a1111/index.html`
-- Runtime: static only, requires external A1111 API to do useful work
-- Default external API base:
-  - `http://127.0.0.1:7860`
-- Done when:
-  - model listing works
-  - ControlNet detect works with an uploaded image
-  - txt2img or img2img test requests return an image
-  - failures show useful debug output instead of silent breakage
-
-### Kids Movie Library
-
-- Routes:
-  - `/movies/`
-  - `/web/kids-movie-library/`
-- Files:
-  - `web/kids-movie-library/index.html`
-  - `web/kids-movie-library/app.js`
-  - `web/kids-movie-library/styles.css`
-- Runtime:
-  - static only
-- Source:
-  - `D:\projects\ivan-websites\kidsMoviesReport.md`
-- Data:
-  - 15 curated recommendations from the report
-  - 9 already-watched exclusions from the report
-  - family watch/rating state stored in localStorage
-- Done when:
-  - search works
-  - theme, tag, Bulgarian audio, status, and sort filters work
-  - watched toggle persists
-  - family ratings persist
-
-### Mendeleev BG
-
-- Route:
-  - `/web/mendeleev-bg/`
-- Source repo:
-  - `ivangegovdve-sudo/mendeleev-bg`
-- Files:
-  - `web/mendeleev-bg/index.html`
-- Runtime:
-  - static only
-- Done when:
-  - periodic table opens from Forest HUB
-  - element popups work
-  - compound highlighting works
-  - Bulgarian text renders correctly
-
-### Math Mania
-
-- Route:
-  - `/web/math-mania/`
-- Current state:
-  - live Lovable app embedded from `https://forest-math-plus.lovable.app`
-- Runtime:
-  - static page with iframe
-- Done when:
-  - embedded app loads from Forest HUB route
-  - full-screen link opens Lovable app
-
-### Math Forest
-
-- Route:
-  - `/web/math-forest/`
-- Current state:
-  - rebuild route exists
-  - user confirmed original Forest Math appears gone
-- Runtime:
-  - static rebuild placeholder today
-  - expected playable game/app after rebuild
-- Done when:
-  - working playable Math Forest app loads from this route
-  - Forest HUB card no longer says rebuild
-
-### LLM Platforms DB
-
-- Route: `/web/llm-db/index.html`
-- Files:
-  - `web/llm-db/index.html`
-  - `backend/llm_db/api.py`
-  - `backend/llm_db/db.py`
-- Runtime:
-  - FastAPI required
-  - currently expects same-origin `/api/llm-db`
-- Database tables:
-  - stored in `data/movies.db` via migration `003_llm_docs.sql`
-- Ingestion behavior:
-  - fetches remote `http` and `https` content only
-  - blocks local/private IP targets and unsafe redirects
-- Done when:
-  - source ingest works
-  - source list loads
-  - document search works
-  - document detail expansion works
-  - unsafe URLs remain blocked
-- Important:
-  - if served from `8080` while API stays on `8000`, this page is not fully wired yet
-
-### AI_INIT Glossary
-
-- Routes:
-  - `/web/ai-init/`
-  - `/web/ai-init/embed/`
-- Files:
-  - `web/ai-init/index.html`
-  - `web/ai-init/app.js`
-  - `web/ai-init/glossary-search.js`
-  - `web/ai-init/glossary-data.js`
-  - `web/ai-init/embed/index.html`
-  - `web/ai-init/embed/embed.js`
-- Runtime: static only
-- Done when:
-  - home search returns ranked results
-  - library view opens and browses categories
-  - clicking entries copies `ABBR - Expansion`
-  - embed view works as a lightweight search surface
-
-### Calendar Generator
-
-- Routes:
-  - `/calendar/`
-  - `/web/calendar/`
-- Files:
-  - `web/calendar/index.html`
-  - `web/calendar/app.js`
-  - `web/calendar/styles.css`
-  - `web/calendar/assets/pics/`
-  - `web/calendar/NOTICE.md`
-- Runtime: static only
-- External dependency:
-  - public holiday lookup from `https://kayaposoft.com/enrico/json/v1.0/`
-- Behavior:
-  - stores settings in localStorage
-  - supports local sample images or remote image URLs
-  - remains printable even if the holiday API is unavailable
-- Attribution:
-  - adapted from `CalendarGenerator` by Franco Mossotto under Apache 2.0
-
-### Shared Calendar
-
-- Route: `/web/shared-calendar/`
-- Files: `web/shared-calendar/index.html`
-- Runtime: static only
-- Storage:
-  - localStorage key `sharedCalendarActivities`
-- Done when:
-  - add/edit/delete works
-  - drag and drop between days works
-  - data persists across reloads
-
-### Dice
-
-- Route: `/web/dice/`
-- Files: `web/dice/index.html`
-- Runtime: static only
-- Done when:
-  - roll controls work
-  - D6 and D12 visuals animate correctly
-  - layout works on desktop and mobile
-
-### Voice Project Dashboard
-
-- Hub entry:
-  - external card in `index.html`
-- Source:
-  - `voice-project-dashboard/apps/mobile/`
-- Runtime:
-  - Expo web app, deployed separately to Vercel
-  - local edits persist in browser storage
-- Local commands:
-
-```powershell
-cd voice-project-dashboard/apps/mobile
-npm ci
-npm run web
-```
-
-- Build command:
-
-```powershell
-cd voice-project-dashboard/apps/mobile
-npm run build:web
-```
-
-- Done when:
-  - search and stage filters work
-  - task and deliverable toggles update project progress
-  - producer notes persist after reload
-  - the live Vercel deployment opens from the Forest HUB card
-
-### Runware Item Icon Generator
-
-- Route:
-  - standalone page at `frontend/index.html`
-- Files:
-  - `frontend/index.html`
-  - `backend/app.py`
-  - `config/runware-item-icons.json`
-- Runtime:
-  - static page
-  - FastAPI on `8000`
-  - `RUNWARE_API_KEY` must be set
-- Env:
-
-```powershell
-$env:RUNWARE_API_KEY="your-key"
-python -m uvicorn backend.app:app --reload --port 8000
-```
-
-- API endpoint:
-  - `POST /api/item-icon`
-- Done when:
-  - schema loads from config
-  - request validates
-  - Runware preprocess + inference return an image URL
-  - the UI shows the returned image
-
-### Jobs API
-
-- API only right now, no dashboard page yet
-- Files:
-  - `backend/jobs_api.py`
-- Routes:
-  - `POST /jobs/intake`
-  - `GET /jobs`
-  - `GET /jobs/top`
-  - `GET /jobs/{job_id}`
-  - `POST /jobs/{job_id}/status`
-  - `DELETE /jobs/{job_id}`
-- If you build a UI for this, add it as a real mini-project under `web/<slug>/` and link it from the hub
-
-## External links and placeholders
-
-The current hub also contains:
-
-- `VFX Portfolio`
-  external link
-- `Clip Mart`
-  external GitHub link
-- `Retail AI`
-  placeholder card right now
-- `Python Learning Orchestrated`
-  placeholder card right now
-
-Do not call the hub complete while placeholder cards still point to `#`. Either:
-
-- replace them with real working pages in this repo, or
-- keep them explicitly labeled as placeholders and do not represent them as functional
-
-## Useful files
-
-- Backend app: `backend/app.py`
-- Movies API: `backend/movies_api.py`
-- LLM DB API: `backend/llm_db/api.py`
-- Movie DB helpers: `backend/movies_db.py`
-- Prompt Builder presets: `data/presets/newPresets.json`
-- Curated SD inventory: `data/sd_inventory_curated.json`
-- Runware config: `config/runware-item-icons.json`
+- **Split mode** (static on `8080`, API on `8000`) — fine for the hub and all static pages. Note `backend/app.py` only allows browser CORS from `http://localhost:8080` and `http://127.0.0.1:8080`.
+- **Same-origin mode** — required for `web/llm-db/`, which hardcodes `const API_BASE = '/api/llm-db'`. Serve static files and the API from one origin (e.g. all from FastAPI on `8000`) for a fully working dashboard.
 
 ## Verification
 
-### Python backend tests
+Backend tests:
 
 ```powershell
 pytest backend/tests
 ```
 
-### AI_INIT lightweight checks
-
-Static checks:
+AI_INIT glossary checks:
 
 ```powershell
 node scratch/tests/lint-glossary.js
 node --test scratch/tests/glossary-search.test.js
 ```
 
-Optional Playwright smoke test:
+## Known gaps
 
-```powershell
-cd scratch/tests
-npm install
-npx playwright install
-cd ../..
-node scratch/tests/glossary-e2e.mjs
-```
-
-## Current gaps agents should know about
-
-- `web/llm-db/` is same-origin only right now.
-- `index.html` still contains placeholder cards.
-- `frontend/index.html` is functional as a standalone page but is not linked from the main hub.
-- There is no locked Python dependency file yet.
-
-If the goal is "make the whole site functional," the first high-value task is to unify static + API serving or make every API-backed page configurable enough to work in split mode.
-
-## Composio Gmail agent example
-
-A sanitized example script is available at `scratch/composio_email_manager_example.py`.
-
-Set these environment variables before running it:
-
-- `COMPOSIO_API_KEY`
-- `COMPOSIO_EXTERNAL_USER_ID`
-- `COMPOSIO_TEST_RECIPIENT`
-
-Run:
-
-```bash
-python scratch/composio_email_manager_example.py
-```
+- `web/llm-db/` works same-origin only; make its API base configurable to support split mode.
+- `web/chloe-pwa/`, `web/library/`, `web/replicator-void/`, and `frontend/index.html` exist but aren't linked from the hub grid.
+- `web/math-forest/` is a placeholder awaiting the rebuild.
+- `api.sdforest.site` needs its DNS A record pointed at the VPS and TLS termination before the production API status dot can go green.
+- Jobs API has no dashboard page yet (`backend/jobs_api.py`) — if you build one, add it under `web/<slug>/` and link it from the hub.

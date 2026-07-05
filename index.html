@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="Forest HUB — interactive projects, tools, and experiments. Life in Time calculator, AI glossary, periodic table, LLM platforms map, kids movie library, LLM Council, Manifesto for a Newborn, and more." />
+  <meta name="description" content="Forest HUB — interactive projects, tools, and experiments. Life in Time calculator, AI glossary, periodic table, LLM platforms map, kids movie library, Math Mania, LLM Council, Manifesto for a Newborn, and more." />
   <meta property="og:title" content="Forest HUB" />
   <meta property="og:description" content="Projects, tools, and experiments — built in the forest. 14 projects · 166 AI platforms · 527 glossary terms." />
   <meta property="og:type" content="website" />
@@ -214,6 +214,8 @@
     .hub-card:nth-child(10){animation-delay:.50s}
     .hub-card:nth-child(11){animation-delay:.55s}
     .hub-card:nth-child(12){animation-delay:.60s}
+    .hub-card:nth-child(13){animation-delay:.65s}
+    .hub-card:nth-child(14){animation-delay:.70s}
     @keyframes cardIn {
       from { opacity: 0; transform: perspective(900px) translateY(20px) scale(.96); }
       to   { opacity: 1; transform: perspective(900px) translateY(0) scale(1); }
@@ -321,6 +323,33 @@
 
     .hub-card:focus-visible { outline: 2px solid var(--ct, var(--accent)); outline-offset: 4px; }
 
+    /* ── About ── */
+    .about-body {
+      margin-top: 26px; max-width: 62ch;
+      color: var(--text-soft); font-size: 14.5px; line-height: 1.75;
+    }
+    .about-body p { margin: 0 0 14px; }
+    .about-body a { color: var(--accent); text-decoration: none; }
+    .about-body a:hover { text-decoration: underline; }
+    .about-body code {
+      font-size: 13px; padding: 1px 6px; border-radius: 6px;
+      background: rgba(255,255,255,.06); border: 1px solid var(--hairline);
+    }
+
+    /* ── API status indicator ── */
+    .api-status {
+      display: inline-flex; align-items: center; gap: 7px;
+      margin-top: 6px; font-size: 11px; letter-spacing: .04em;
+    }
+    .api-status .dot {
+      width: 7px; height: 7px; border-radius: 50%;
+      background: var(--faint);
+      transition: background .4s, box-shadow .4s;
+    }
+    .api-status[data-state="checking"] .dot { animation: livePulse 1.2s ease-in-out infinite; }
+    .api-status[data-state="online"] .dot { background: #34d399; box-shadow: 0 0 8px rgba(52,211,153,.7); }
+    .api-status[data-state="offline"] .dot { background: #f87171; box-shadow: 0 0 8px rgba(248,113,113,.5); }
+
     /* ── Footer ── */
     footer.site {
       text-align: center; padding-top: 28px;
@@ -393,7 +422,7 @@
 
       <div class="hub-grid" id="hub-grid" style="margin-top:34px">
 
-        <a href="web/life-in-time/" class="hub-card"
+        <a href="/web/life-in-time/" class="hub-card"
            style="--c:rgba(251,191,36,.42);--cp:rgba(251,191,36,.1);--ct:#fbbf24;--icon-delay:.00s">
           <div class="hub-icon-ring"><span class="hub-icon">⏳</span></div>
           <div class="hub-name">Life in Time</div>
@@ -426,14 +455,14 @@
           </div>
         </a>
 
-        <a href="/web/mendeleev/" class="hub-card"
+        <a href="/web/math-mania/" class="hub-card"
            style="--c:rgba(52,211,153,.42);--cp:rgba(52,211,153,.1);--ct:#34d399;--icon-delay:.38s">
-          <div class="hub-icon-ring"><span class="hub-icon">🧪</span></div>
-          <div class="hub-name">Periodic Table</div>
-          <div class="hub-pill">Interactive</div>
+          <div class="hub-icon-ring"><span class="hub-icon">➗</span></div>
+          <div class="hub-name">Math Mania</div>
+          <div class="hub-pill">Kids</div>
           <div class="hub-desc-box">
-            <p class="hub-desc">Interactive periodic table with compound-mode highlighting — click any element for a full detail panel.</p>
-            <span class="hub-cta">Explore ↗</span>
+            <p class="hub-desc">Math practice game for kids — quick-fire arithmetic rounds, embedded live from the Lovable app.</p>
+            <span class="hub-cta">Play ↗</span>
           </div>
         </a>
 
@@ -550,9 +579,35 @@
       </div>
     </section>
 
+    <!-- ── About ── -->
+    <section class="about" aria-label="About Forest HUB">
+      <div class="section-head">
+        <h2>About</h2>
+        <span class="rule"></span>
+      </div>
+      <div class="about-body">
+        <p>
+          Forest HUB is a family workshop on the open web — a single place where our
+          tools, games, and experiments live. Reference apps like the AI Glossary and
+          Platforms Map sit next to kids' games, printable calendars, poetry, and
+          scroll-driven stories. Everything here is hand-built: plain HTML, CSS, and
+          JavaScript on the front, a small FastAPI backend behind it.
+        </p>
+        <p>
+          New projects land as self-contained pages under <code>/web/</code>, so each
+          card above is a complete little world of its own. Source lives on
+          <a href="https://github.com/ivangegovdve-sudo/orchestrator-gpt" rel="noopener noreferrer" target="_blank">GitHub</a>.
+        </p>
+      </div>
+    </section>
+
     <footer class="site">
       <p>Forest HUB · Built by Ivan · Deployed on <a href="https://sdforest.site">sdforest.site</a></p>
       <p class="meta">14 projects · 166 AI platforms · 527 glossary terms · 74 curated movies</p>
+      <p class="api-status" id="api-status" data-state="checking">
+        <span class="dot" aria-hidden="true"></span>
+        <span id="api-status-label">Forest HUB API — checking…</span>
+      </p>
     </footer>
   </div>
 
@@ -706,6 +761,33 @@
         });
       });
     }
+
+    /* ── Forest HUB API status (footer indicator) ──
+       Backend has no CORS headers, so we probe with a no-cors fetch:
+       an opaque response resolving means the API is reachable.
+       HTTPS pages can't call the plain-HTTP IP (mixed content), so
+       production probes api.sdforest.site instead. */
+    (function apiStatus() {
+      const el = document.getElementById('api-status');
+      const label = document.getElementById('api-status-label');
+      if (!el || !label) return;
+      const secure = location.protocol === 'https:';
+      const endpoint = secure
+        ? 'https://api.sdforest.site/health'
+        : 'http://187.127.86.176:8001/health';
+      const ctrl = new AbortController();
+      const timer = setTimeout(() => ctrl.abort(), 6000);
+      fetch(endpoint, { mode: 'no-cors', cache: 'no-store', signal: ctrl.signal })
+        .then(() => {
+          el.dataset.state = 'online';
+          label.textContent = 'Forest HUB API — online';
+        })
+        .catch(() => {
+          el.dataset.state = 'offline';
+          label.textContent = 'Forest HUB API — unreachable';
+        })
+        .finally(() => clearTimeout(timer));
+    })();
 
     /* ── Mobile tap-to-reveal (first tap reveals, second navigates) ── */
     if (isTouch) {
