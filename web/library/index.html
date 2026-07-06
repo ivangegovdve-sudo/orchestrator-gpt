@@ -4,13 +4,16 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Library — sdforest</title>
+<meta name="description" content="The Forest Library — a searchable AI & tech glossary side-by-side with a reference of 160+ AI platforms and tools. One floating search filters both at once; filter by tag.">
 <style>
 :root {
   --bg: #09090b;
-  --card-bg: rgba(24,24,27,.6);
+  --panel: rgba(24,24,27,.55);
+  --card-bg: rgba(255,255,255,.03);
   --card-border: rgba(255,255,255,.08);
   --text: #f8fafc;
   --muted: #a1a1aa;
+  --dim: #64748b;
   --accent: #0ea5e9;
   --accent-glow: rgba(14,165,233,.35);
   --purple: #8b5cf6;
@@ -18,267 +21,350 @@
   --amber: #f59e0b;
   --radius: 12px;
 }
-*{box-sizing:border-box;margin:0;padding:0}
-body{font-family:"Inter","Segoe UI",system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding:40px 20px 80px}
-a{color:var(--accent);text-decoration:none}
-a:hover{text-decoration:underline}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; }
+body {
+  font-family: "Inter","Segoe UI",system-ui,sans-serif;
+  background-color: var(--bg);
+  background-image:
+    radial-gradient(circle at 15% 10%, rgba(14,165,233,.08), transparent 40%),
+    radial-gradient(circle at 85% 8%, rgba(139,92,246,.08), transparent 40%);
+  color: var(--text);
+  min-height: 100vh;
+}
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+code { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: .85em; }
 
-.wrap{max-width:960px;margin:0 auto}
+.wrap { max-width: 1280px; margin: 0 auto; padding: 32px 22px 40px; }
 
-header{text-align:center;margin-bottom:48px}
-.logo{font-size:13px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:12px}
-h1{font-size:2.2rem;font-weight:700;background:linear-gradient(135deg,var(--accent),var(--purple));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
-.subtitle{color:var(--muted);font-size:.95rem;margin-top:8px}
+/* ── Header ─────────────────────────────────────────── */
+.nav { font-size: .82rem; color: var(--muted); margin-bottom: 18px; }
+header.hero { text-align: center; margin-bottom: 22px; }
+.logo { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--dim); margin-bottom: 10px; }
+h1 {
+  font-size: 2.3rem; font-weight: 800; letter-spacing: -.02em;
+  background: linear-gradient(135deg, var(--accent), var(--purple));
+  -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+}
+.subtitle { color: var(--muted); font-size: .95rem; margin-top: 8px; }
 
-/* Global RAG box */
-.rag-box{background:var(--card-bg);border:1px solid var(--card-border);border-radius:var(--radius);padding:24px;margin-bottom:40px;backdrop-filter:blur(12px)}
-.rag-box h2{font-size:1rem;font-weight:600;margin-bottom:14px;color:var(--accent)}
-.rag-row{display:flex;gap:10px;flex-wrap:wrap}
-.rag-row input{flex:1;min-width:200px;background:rgba(255,255,255,.05);border:1px solid var(--card-border);border-radius:8px;color:var(--text);padding:10px 14px;font-size:.9rem;outline:none;transition:border-color .2s}
-.rag-row input:focus{border-color:var(--accent)}
-.rag-row button{background:var(--accent);color:#fff;border:none;border-radius:8px;padding:10px 20px;font-size:.9rem;font-weight:600;cursor:pointer;transition:opacity .2s}
-.rag-row button:hover{opacity:.85}
+/* ── Floating search bubble ─────────────────────────── */
+.search-dock { position: sticky; top: 14px; z-index: 40; display: flex; justify-content: center; margin: 8px 0 26px; }
+.search-bubble {
+  display: flex; align-items: center; gap: 10px; width: 100%; max-width: 620px;
+  background: rgba(15,15,18,.82); border: 1px solid rgba(255,255,255,.12);
+  border-radius: 999px; padding: 12px 18px; backdrop-filter: blur(16px);
+  box-shadow: 0 10px 40px rgba(0,0,0,.5), 0 0 0 1px rgba(14,165,233,.05);
+  transition: border-color .2s, box-shadow .2s;
+}
+.search-bubble:focus-within { border-color: var(--accent); box-shadow: 0 10px 40px rgba(0,0,0,.5), 0 0 0 3px var(--accent-glow); }
+.search-bubble .icon { font-size: 1.05rem; opacity: .7; }
+.search-bubble input {
+  flex: 1; background: transparent; border: none; outline: none;
+  color: var(--text); font-family: inherit; font-size: 1rem;
+}
+.search-bubble input::placeholder { color: var(--dim); }
+.search-clear {
+  background: rgba(255,255,255,.06); border: none; color: var(--muted);
+  width: 24px; height: 24px; border-radius: 50%; cursor: pointer; font-size: 14px;
+  display: none; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.search-clear.show { display: flex; }
+.search-clear:hover { background: rgba(255,255,255,.12); color: var(--text); }
+.search-meta { font-size: .72rem; color: var(--dim); white-space: nowrap; }
 
-.rag-sources{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
-.src-chip{display:flex;align-items:center;gap:5px;font-size:.78rem;background:rgba(255,255,255,.05);border:1px solid var(--card-border);border-radius:6px;padding:4px 10px;cursor:pointer;user-select:none;transition:background .15s}
-.src-chip.on{background:rgba(14,165,233,.15);border-color:var(--accent);color:var(--accent)}
-.src-chip.personal{border-color:var(--purple)}
-.src-chip.personal.on{background:rgba(139,92,246,.15);color:var(--purple)}
+/* ── Split screen ───────────────────────────────────── */
+.split { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; align-items: start; }
+.panel {
+  background: var(--panel); border: 1px solid var(--card-border); border-radius: var(--radius);
+  backdrop-filter: blur(10px); display: flex; flex-direction: column;
+  max-height: calc(100vh - 60px); position: sticky; top: 84px; overflow: hidden;
+}
+.panel-head { padding: 16px 18px 12px; border-bottom: 1px solid var(--card-border); }
+.panel-title { display: flex; align-items: baseline; gap: 10px; }
+.panel-title h2 { font-size: 1.05rem; font-weight: 700; }
+.panel-title .count { font-size: .78rem; color: var(--muted); }
+.panel-title .accent-g { color: var(--accent); }
+.panel-title .accent-p { color: var(--purple); }
+.panel-sub { font-size: .76rem; color: var(--dim); margin-top: 3px; }
 
-.rag-answer{margin-top:18px;display:none}
-.rag-answer.show{display:block}
-.rag-answer-text{background:rgba(14,165,233,.05);border-left:3px solid var(--accent);border-radius:0 8px 8px 0;padding:14px 16px;font-size:.92rem;line-height:1.65;white-space:pre-wrap;color:var(--text)}
-.rag-model{font-size:.75rem;color:var(--muted);margin-top:6px}
-.citations{margin-top:12px;display:flex;flex-wrap:wrap;gap:6px}
-.cite-chip{font-size:.75rem;background:rgba(255,255,255,.05);border:1px solid var(--card-border);border-radius:6px;padding:3px 8px;cursor:default}
-.cite-chip a{color:var(--muted)}
-.cite-chip a:hover{color:var(--accent)}
+.tagbar { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+.tag-chip {
+  font-size: .72rem; background: var(--card-bg); border: 1px solid var(--card-border);
+  border-radius: 999px; padding: 4px 11px; cursor: pointer; color: var(--muted);
+  user-select: none; transition: all .15s; white-space: nowrap;
+}
+.tag-chip:hover { border-color: rgba(255,255,255,.2); color: var(--text); }
+.tag-chip.on.g { background: rgba(14,165,233,.16); border-color: var(--accent); color: #7dd3fc; }
+.tag-chip.on.p { background: rgba(139,92,246,.16); border-color: var(--purple); color: #c4b5fd; }
+.tag-chip .n { opacity: .6; font-size: .92em; }
 
-/* Source grid */
-.sources-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;margin-bottom:48px}
-.src-card{background:var(--card-bg);border:1px solid var(--card-border);border-radius:var(--radius);padding:20px;text-decoration:none;color:var(--text);transition:border-color .2s,transform .2s;backdrop-filter:blur(8px);display:block}
-.src-card:hover{border-color:var(--accent);transform:translateY(-2px);text-decoration:none}
-.src-card.personal{border-left:3px solid var(--purple)}
-.src-card.personal:hover{border-color:var(--purple)}
-.src-icon{font-size:1.6rem;margin-bottom:10px}
-.src-name{font-size:1rem;font-weight:600;margin-bottom:4px}
-.src-desc{font-size:.82rem;color:var(--muted);line-height:1.5}
-.src-badge{display:inline-block;font-size:.7rem;padding:2px 7px;border-radius:4px;margin-top:8px;font-weight:500}
-.src-badge.pub{background:rgba(34,197,94,.1);color:var(--green)}
-.src-badge.priv{background:rgba(139,92,246,.1);color:var(--purple)}
+.panel-body { overflow-y: auto; padding: 8px; scrollbar-width: thin; scrollbar-color: rgba(255,255,255,.15) transparent; }
+.panel-body::-webkit-scrollbar { width: 8px; }
+.panel-body::-webkit-scrollbar-thumb { background: rgba(255,255,255,.12); border-radius: 4px; }
 
-/* Auth modal */
-.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;z-index:100}
-.modal-bg.open{display:flex}
-.modal{background:#18181b;border:1px solid var(--card-border);border-radius:16px;padding:28px;width:100%;max-width:380px}
-.modal h3{font-size:1.1rem;margin-bottom:6px}
-.modal p{font-size:.84rem;color:var(--muted);margin-bottom:18px}
-.modal input{width:100%;background:rgba(255,255,255,.05);border:1px solid var(--card-border);border-radius:8px;color:var(--text);padding:10px 14px;font-size:.9rem;outline:none;margin-bottom:12px}
-.modal input:focus{border-color:var(--accent)}
-.modal-btns{display:flex;gap:10px;justify-content:flex-end}
-.btn{border:none;border-radius:8px;padding:9px 18px;font-size:.88rem;font-weight:600;cursor:pointer}
-.btn-accent{background:var(--accent);color:#fff}
-.btn-accent:hover{opacity:.85}
-.btn-ghost{background:transparent;color:var(--muted);border:1px solid var(--card-border)}
-.btn-ghost:hover{color:var(--text)}
-.modal-err{font-size:.8rem;color:#f87171;margin-top:-6px;margin-bottom:10px;display:none}
+/* Alphabetical section header (glossary) */
+.alpha-head {
+  font-size: .72rem; font-weight: 700; letter-spacing: .08em; color: var(--dim);
+  padding: 10px 12px 4px; position: sticky; top: 0; background: linear-gradient(180deg, rgba(20,20,24,.96), rgba(20,20,24,.7)); backdrop-filter: blur(4px);
+}
 
-.status-bar{text-align:center;font-size:.78rem;color:var(--muted);margin-bottom:24px}
-.status-bar .logged-in{color:var(--green)}
+/* Entry cards */
+.entry {
+  padding: 11px 13px; border-radius: 10px; transition: background .12s;
+}
+.entry:hover { background: var(--card-bg); }
+.entry + .entry { border-top: 1px solid rgba(255,255,255,.04); }
+.entry-head { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+.entry-abbr { font-weight: 700; font-size: .95rem; color: var(--text); }
+.entry-exp { font-size: .82rem; color: var(--accent); }
+.entry-by { font-size: .74rem; color: var(--dim); margin-left: auto; }
+.entry-desc { font-size: .82rem; color: var(--muted); line-height: 1.55; margin-top: 4px; }
+.entry-tags { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 7px; }
+.mini-tag {
+  font-size: .66rem; background: rgba(255,255,255,.05); border: 1px solid var(--card-border);
+  border-radius: 5px; padding: 1px 7px; color: var(--muted); cursor: pointer; transition: all .15s;
+}
+.mini-tag:hover { border-color: var(--accent); color: #7dd3fc; }
+.mini-tag.cat { color: var(--dim); cursor: default; }
+.mini-tag.new { color: var(--amber); border-color: rgba(245,158,11,.3); background: rgba(245,158,11,.08); cursor: default; }
+.entry-link { font-size: .74rem; margin-top: 6px; display: inline-flex; align-items: center; gap: 4px; word-break: break-all; }
+
+.empty { text-align: center; color: var(--dim); padding: 48px 20px; font-size: .88rem; }
+.match-hi { background: rgba(14,165,233,.25); border-radius: 3px; padding: 0 1px; color: #e0f2fe; }
+
+footer { text-align: center; color: var(--dim); font-size: .76rem; margin-top: 30px; line-height: 1.7; }
+
+/* ── Responsive: stack on mobile, columns scroll with the page ──────────── */
+@media (max-width: 860px) {
+  .wrap { padding: 22px 14px 32px; }
+  h1 { font-size: 1.85rem; }
+  .split { grid-template-columns: 1fr; gap: 14px; }
+  .panel { max-height: none; position: static; }
+  .panel-body { max-height: 62vh; }
+  .search-dock { top: 8px; }
+}
 </style>
 </head>
 <body>
 <div class="wrap">
-  <header>
-    <div class="logo">sdforest · ivan's workspace</div>
-    <h1>Library</h1>
-    <p class="subtitle">Semantic search + RAG across 5 knowledge sources</p>
+  <div class="nav"><a href="/">&#8592; Forest HUB</a></div>
+  <header class="hero">
+    <div class="logo">Forest · Reference</div>
+    <h1>&#128218; The Library</h1>
+    <p class="subtitle">The AI &amp; tech glossary and the platform reference, side by side. One search filters both.</p>
   </header>
 
-  <div id="statusBar" class="status-bar"></div>
-
-  <!-- Global RAG box -->
-  <div class="rag-box">
-    <h2>Ask across everything</h2>
-    <div class="rag-row">
-      <input id="ragQ" type="text" placeholder="What is a RAG pipeline? How does Chloé handle voice?…" />
-      <button onclick="doRag()">Ask</button>
-    </div>
-    <div class="rag-sources" id="srcChips"></div>
-    <div class="rag-answer" id="ragAnswer">
-      <div class="rag-answer-text" id="ragText"></div>
-      <div class="rag-model" id="ragModel"></div>
-      <div class="citations" id="ragCitations"></div>
+  <!-- Floating search bubble: filters BOTH columns simultaneously -->
+  <div class="search-dock">
+    <div class="search-bubble">
+      <span class="icon">&#128269;</span>
+      <input id="q" type="text" placeholder="Search terms, tools, tags &mdash; both columns at once&#8230;" autocomplete="off" autofocus aria-label="Search the library">
+      <span class="search-meta" id="search-meta"></span>
+      <button class="search-clear" id="search-clear" aria-label="Clear search" onclick="clearSearch()">&#10005;</button>
     </div>
   </div>
 
-  <!-- Source cards -->
-  <div class="sources-grid">
-    <a class="src-card" href="/web/library/glossary/">
-      <div class="src-icon">📖</div>
-      <div class="src-name">Glossary</div>
-      <div class="src-desc">AI Engineering Knowledge Map — 353 terms, acronyms, and concepts with relationships</div>
-      <span class="src-badge pub">Public</span>
-    </a>
-    <a class="src-card" href="/web/library/platform/">
-      <div class="src-icon">🏛️</div>
-      <div class="src-name">Platform DB</div>
-      <div class="src-desc">LLM platform documentation index — LangChain, Anthropic, Twin, StackAI and more</div>
-      <span class="src-badge pub">Public</span>
-    </a>
-    <a class="src-card personal" href="/web/library/repos/">
-      <div class="src-icon">📦</div>
-      <div class="src-name">GitHub Repos</div>
-      <div class="src-desc">Ivan's 611-repo index — search by name, description, language, topics, and stars</div>
-      <span class="src-badge priv">Personal</span>
-    </a>
-    <a class="src-card personal" href="/web/library/general/">
-      <div class="src-icon">🧠</div>
-      <div class="src-name">General Memory</div>
-      <div class="src-desc">Ivan's memory-md store — notes, decisions, and knowledge accumulated over time</div>
-      <span class="src-badge priv">Personal</span>
-    </a>
-    <a class="src-card personal" href="/web/library/chloe/">
-      <div class="src-icon">💜</div>
-      <div class="src-name">Chloé Memory</div>
-      <div class="src-desc">Chloé's canonical memory — working rules, project context, decisions with Ivan</div>
-      <span class="src-badge priv">Personal</span>
-    </a>
+  <div class="split">
+    <!-- LEFT: Glossary -->
+    <section class="panel" id="panel-glossary">
+      <div class="panel-head">
+        <div class="panel-title">
+          <h2>&#128214; <span class="accent-g">Glossary</span></h2>
+          <span class="count" id="g-count"></span>
+        </div>
+        <div class="panel-sub">AI, compute &amp; infra terms &mdash; alphabetical, tag-filtered</div>
+        <div class="tagbar" id="g-tagbar"></div>
+      </div>
+      <div class="panel-body" id="g-list"></div>
+    </section>
+
+    <!-- RIGHT: Platforms -->
+    <section class="panel" id="panel-platform">
+      <div class="panel-head">
+        <div class="panel-title">
+          <h2>&#127963;&#65039; <span class="accent-p">Platforms &amp; Tools</span></h2>
+          <span class="count" id="p-count"></span>
+        </div>
+        <div class="panel-sub">The AI ecosystem &mdash; APIs, agents, infra &amp; more, with links</div>
+        <div class="tagbar" id="p-tagbar"></div>
+      </div>
+      <div class="panel-body" id="p-list"></div>
+    </section>
   </div>
+
+  <footer>
+    Forest Library &middot; glossary &amp; platform reference merged &middot;
+    <a href="/web/ai-init/">full glossary explorer</a> &middot;
+    <a href="/web/llm-db/index.html">platform map</a> &middot;
+    <a href="/web/library/rag.html">RAG hub</a>
+  </footer>
 </div>
 
-<!-- Auth modal -->
-<div class="modal-bg" id="authModal">
-  <div class="modal">
-    <h3>🔐 Personal Library</h3>
-    <p>Enter the library password to access personal sources in the global RAG box.</p>
-    <input type="password" id="authPw" placeholder="Library password…" onkeydown="if(event.key==='Enter')doAuth()" />
-    <div class="modal-err" id="authErr">Incorrect password. Try again.</div>
-    <div class="modal-btns">
-      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
-      <button class="btn btn-accent" onclick="doAuth()">Unlock</button>
-    </div>
-  </div>
-</div>
-
-<script src="/web/library/shared.js"></script>
+<!-- ?v bumped when the data changes so returning visitors never run a stale (or
+     previously broken) copy from HTTP cache. -->
+<script src="/web/ai-init/glossary-data.js?v=20260706"></script>
+<script src="/web/library/platforms-data.js?v=20260706"></script>
 <script>
-const SOURCES = [
-  { id: 'glossary',  label: '📖 Glossary',  personal: false },
-  { id: 'platform',  label: '🏛️ Platform', personal: false },
-  { id: 'repos',     label: '📦 Repos',      personal: true  },
-  { id: 'memory',    label: '🧠 Memory',     personal: true  },
-  { id: 'chloe',     label: '💜 Chloé',      personal: true  },
-];
+(function () {
+  "use strict";
+  var GLOSSARY = (window.AI_INIT_GLOSSARY_DATA || []).slice();
+  var PLATFORMS = (window.LIBRARY_PLATFORMS || []).slice();
 
-const selected = new Set(['glossary', 'platform']);
+  // Friendly labels for the platform `tag` codes.
+  var PTAG_LABELS = {
+    "llm-api": "LLM APIs", "coding": "Coding", "builder": "App Builders",
+    "agents": "Agents", "search-rag": "Search & RAG", "image-vid": "Image & Video",
+    "voice": "Voice & Audio", "comms": "Comms", "infra": "Infra", "cloud": "Cloud",
+    "data": "Data", "digital-twin": "Digital Twins", "game": "Gaming"
+  };
 
-function buildChips() {
-  const wrap = document.getElementById('srcChips');
-  wrap.innerHTML = SOURCES.map(s => `
-    <div class="src-chip ${s.personal?'personal':''} ${selected.has(s.id)?'on':''}"
-         onclick="toggleSrc('${s.id}',this)">${s.label}</div>
-  `).join('');
-}
+  var state = { q: "", gTag: null, pTag: null };
 
-function toggleSrc(id, el) {
-  const src = SOURCES.find(s => s.id === id);
-  if (selected.has(id)) {
-    selected.delete(id);
-    el.classList.remove('on');
-  } else {
-    if (src.personal && !getToken()) {
-      openModal();
-      return;
-    }
-    selected.add(id);
-    el.classList.add('on');
+  function esc(s) {
+    return String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
   }
-}
+  // Escape + highlight the query term inside already-escaped text.
+  function hi(text) {
+    var t = esc(text);
+    var q = state.q.trim();
+    if (!q) return t;
+    try {
+      var re = new RegExp("(" + q.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + ")", "ig");
+      return t.replace(re, '<span class="match-hi">$1</span>');
+    } catch (e) { return t; }
+  }
 
-async function doRag() {
-  const q = document.getElementById('ragQ').value.trim();
-  if (!q) return;
+  // ── Build glossary tag filter bar (top tags by frequency) ────────────────
+  var gTagCounts = {};
+  GLOSSARY.forEach(function (e) {
+    (e.tags || []).forEach(function (t) { if (t) gTagCounts[t] = (gTagCounts[t] || 0) + 1; });
+  });
+  var gTags = Object.keys(gTagCounts).sort(function (a, b) { return gTagCounts[b] - gTagCounts[a]; }).slice(0, 12);
 
-  const personalNeeded = [...selected].some(id => SOURCES.find(s=>s.id===id)?.personal);
-  if (personalNeeded && !getToken()) { openModal(); return; }
+  // ── Build platform tag filter bar (by frequency) ─────────────────────────
+  var pTagCounts = {};
+  PLATFORMS.forEach(function (p) { if (p.tag) pTagCounts[p.tag] = (pTagCounts[p.tag] || 0) + 1; });
+  var pTags = Object.keys(pTagCounts).sort(function (a, b) { return pTagCounts[b] - pTagCounts[a]; });
 
-  const answerEl = document.getElementById('ragAnswer');
-  const textEl   = document.getElementById('ragText');
-  const modelEl  = document.getElementById('ragModel');
-  const citeEl   = document.getElementById('ragCitations');
-  answerEl.classList.remove('show');
-  textEl.textContent = '⏳ Searching…';
-  modelEl.textContent = '';
-  citeEl.innerHTML = '';
-  answerEl.classList.add('show');
+  function renderTagbars() {
+    var g = document.getElementById("g-tagbar");
+    g.innerHTML = gTags.map(function (t) {
+      var on = state.gTag === t;
+      return '<span class="tag-chip g' + (on ? " on" : "") + '" onclick="toggleGTag(\'' + esc(t) + '\')">' +
+        esc(t) + ' <span class="n">' + gTagCounts[t] + '</span></span>';
+    }).join("");
+    var p = document.getElementById("p-tagbar");
+    p.innerHTML = pTags.map(function (t) {
+      var on = state.pTag === t;
+      return '<span class="tag-chip p' + (on ? " on" : "") + '" onclick="togglePTag(\'' + esc(t) + '\')">' +
+        esc(PTAG_LABELS[t] || t) + ' <span class="n">' + pTagCounts[t] + '</span></span>';
+    }).join("");
+  }
 
-  try {
-    const data = await apiPost('rag/ask', {
-      q, sources: [...selected], limit: 5
+  // ── Filtering ────────────────────────────────────────────────────────────
+  function matchesQuery(hay) {
+    var q = state.q.trim().toLowerCase();
+    if (!q) return true;
+    return hay.toLowerCase().indexOf(q) !== -1;
+  }
+  function filterGlossary() {
+    return GLOSSARY.filter(function (e) {
+      if (state.gTag && (e.tags || []).indexOf(state.gTag) === -1) return false;
+      if (!state.q.trim()) return true;
+      return matchesQuery((e.abbr || "") + " " + (e.expansion || "") + " " + (e.desc || "") + " " + (e.category || "") + " " + (e.tags || []).join(" "));
+    }).sort(function (a, b) {
+      return (a.abbr || "").toLowerCase().localeCompare((b.abbr || "").toLowerCase());
     });
-    textEl.textContent = data.answer;
-    modelEl.textContent = `Answered by ${data.model}`;
-    citeEl.innerHTML = data.citations.map(c => {
-      const link = c.url ? `<a href="${c.url}" target="_blank">${escHtml(c.title)}</a>` : escHtml(c.title);
-      return `<span class="cite-chip">[${c.source}] ${link} (${(c.score*100).toFixed(0)}%)</span>`;
-    }).join('');
-  } catch (err) {
-    if (err.status === 401 || err.status === 403) {
-      clearToken();
-      openModal();
-    } else {
-      textEl.textContent = `Error: ${err.message}`;
-    }
   }
-}
-
-// Auth modal
-function openModal() {
-  document.getElementById('authModal').classList.add('open');
-  setTimeout(() => document.getElementById('authPw').focus(), 50);
-}
-function closeModal() {
-  document.getElementById('authModal').classList.remove('open');
-  document.getElementById('authErr').style.display = 'none';
-  document.getElementById('authPw').value = '';
-}
-
-async function doAuth() {
-  const pw = document.getElementById('authPw').value;
-  const ok = await verifyPassword(pw);
-  if (ok) {
-    setToken(pw);
-    closeModal();
-    updateStatusBar();
-    buildChips();
-  } else {
-    document.getElementById('authErr').style.display = 'block';
+  function filterPlatforms() {
+    return PLATFORMS.filter(function (p) {
+      if (state.pTag && p.tag !== state.pTag) return false;
+      if (!state.q.trim()) return true;
+      return matchesQuery((p.name || "") + " " + (p.by || "") + " " + (p.desc || "") + " " + (p.cat || "") + " " + (p.tag || ""));
+    }).sort(function (a, b) {
+      return (a.name || "").toLowerCase().localeCompare((b.name || "").toLowerCase());
+    });
   }
-}
 
-function updateStatusBar() {
-  const bar = document.getElementById('statusBar');
-  if (getToken()) {
-    bar.innerHTML = '<span class="logged-in">🔓 Personal library unlocked</span> · <a href="#" onclick="logout();return false">lock</a>';
-  } else {
-    bar.innerHTML = '<a href="#" onclick="openModal();return false">🔐 Unlock personal sources</a>';
+  // ── Rendering ────────────────────────────────────────────────────────────
+  function renderGlossary() {
+    var list = filterGlossary();
+    document.getElementById("g-count").textContent = list.length + " / " + GLOSSARY.length + " terms";
+    var host = document.getElementById("g-list");
+    if (!list.length) { host.innerHTML = '<div class="empty">No matching terms.</div>'; return; }
+    var html = "", curLetter = "";
+    list.forEach(function (e) {
+      var letter = (e.abbr || "#").charAt(0).toUpperCase();
+      if (!/[A-Z]/.test(letter)) letter = "#";
+      if (letter !== curLetter) { curLetter = letter; html += '<div class="alpha-head">' + letter + "</div>"; }
+      var tags = (e.tags || []).map(function (t) {
+        return '<span class="mini-tag" onclick="toggleGTag(\'' + esc(t) + '\')">' + esc(t) + "</span>";
+      }).join("");
+      var cat = e.category ? '<span class="mini-tag cat">' + esc(e.category) + "</span>" : "";
+      html += '<div class="entry">' +
+        '<div class="entry-head"><span class="entry-abbr">' + hi(e.abbr) + "</span>" +
+        (e.expansion && e.expansion !== e.abbr ? '<span class="entry-exp">' + hi(e.expansion) + "</span>" : "") +
+        "</div>" +
+        '<div class="entry-desc">' + hi(e.desc) + "</div>" +
+        (tags || cat ? '<div class="entry-tags">' + tags + cat + "</div>" : "") +
+        "</div>";
+    });
+    host.innerHTML = html;
+    host.scrollTop = 0;
   }
-}
+  function renderPlatforms() {
+    var list = filterPlatforms();
+    document.getElementById("p-count").textContent = list.length + " / " + PLATFORMS.length + " tools";
+    var host = document.getElementById("p-list");
+    if (!list.length) { host.innerHTML = '<div class="empty">No matching platforms.</div>'; return; }
+    host.innerHTML = list.map(function (p) {
+      var link = p.url ? '<a class="entry-link" href="' + esc(p.url) + '" target="_blank" rel="noopener noreferrer">&#8599; ' + esc((p.url || "").replace(/^https?:\/\//, "").replace(/\/$/, "")) + "</a>" : "";
+      var newTag = p.isNew ? '<span class="mini-tag new">new</span>' : "";
+      return '<div class="entry">' +
+        '<div class="entry-head"><span class="entry-abbr">' + hi(p.name) + "</span>" +
+        '<span class="entry-by">' + hi(p.by) + "</span></div>" +
+        '<div class="entry-desc">' + hi(p.desc) + "</div>" +
+        '<div class="entry-tags"><span class="mini-tag" onclick="togglePTag(\'' + esc(p.tag) + '\')">' + esc(PTAG_LABELS[p.tag] || p.tag) + "</span>" +
+        '<span class="mini-tag cat">' + esc(p.cat) + "</span>" + newTag + "</div>" +
+        link +
+        "</div>";
+    }).join("");
+    host.scrollTop = 0;
+  }
+  function renderMeta() {
+    var q = state.q.trim();
+    var meta = document.getElementById("search-meta");
+    var clear = document.getElementById("search-clear");
+    if (q || state.gTag || state.pTag) { clear.classList.add("show"); } else { clear.classList.remove("show"); }
+    if (q) {
+      var g = filterGlossary().length, p = filterPlatforms().length;
+      meta.textContent = (g + p) + " hits";
+    } else { meta.textContent = ""; }
+  }
+  function renderAll() { renderTagbars(); renderGlossary(); renderPlatforms(); renderMeta(); }
 
-function logout() {
-  clearToken();
-  updateStatusBar();
-  selected.delete('repos'); selected.delete('memory'); selected.delete('chloe');
-  buildChips();
-}
+  // ── Interactions (exposed globally for inline handlers) ──────────────────
+  window.toggleGTag = function (t) { state.gTag = state.gTag === t ? null : t; renderAll(); };
+  window.togglePTag = function (t) { state.pTag = state.pTag === t ? null : t; renderAll(); };
+  window.clearSearch = function () {
+    state.q = ""; state.gTag = null; state.pTag = null;
+    var el = document.getElementById("q"); el.value = ""; el.focus();
+    renderAll();
+  };
 
-document.getElementById('ragQ').addEventListener('keydown', e => {
-  if (e.key === 'Enter') doRag();
-});
+  var qEl = document.getElementById("q");
+  var t = null;
+  qEl.addEventListener("input", function () {
+    state.q = qEl.value;
+    clearTimeout(t);
+    t = setTimeout(renderAll, 60);
+  });
+  qEl.addEventListener("keydown", function (e) { if (e.key === "Escape") window.clearSearch(); });
 
-buildChips();
-updateStatusBar();
+  renderAll();
+})();
 </script>
 </body>
 </html>

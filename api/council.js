@@ -52,6 +52,36 @@ function isFreeSlug(model) {
   return String(model || "").trim().toLowerCase().endsWith(":free");
 }
 
+// ── Per-request roster override (from the council page's model picker) ───────
+// The client may send `roster` = { stage: [slugs...] } to steer which models
+// fill each council seat. We NEVER trust it blindly: every slug must pass the
+// :free kill-gate, unknown stage keys are ignored, and each stage always keeps
+// the verified default list appended as fallback so a run can still complete.
+// If the client sends nothing (or nothing valid), behaviour is unchanged.
+function sanitizeRoster(raw) {
+  const out = {};
+  if (!raw || typeof raw !== "object") return out;
+  for (const stage of Object.keys(ROSTER)) {
+    const req = Array.isArray(raw[stage]) ? raw[stage] : null;
+    if (!req) continue;
+    const clean = [];
+    for (const slug of req) {
+      const s = String(slug || "").trim();
+      if (!s || s.length > 120) continue;
+      if (!PAID_FALLBACK_ENABLED && !isFreeSlug(s)) continue; // free-only lockdown
+      if (clean.indexOf(s) === -1) clean.push(s);
+      if (clean.length >= 8) break;
+    }
+    if (!clean.length) continue;
+    // Always keep the verified default chain as fallback (deduped).
+    const merged = clean.concat(ROSTER[stage]);
+    const seen = {}, dedup = [];
+    for (const m of merged) { if (!seen[m]) { seen[m] = 1; dedup.push(m); } }
+    out[stage] = dedup;
+  }
+  return out;
+}
+
 const DEFAULT_ROUNDS = 2;
 // First-token timeout: how long we wait for the model to START streaming before
 // giving up and trying the next one. Short enough to dodge queued free models.
@@ -539,6 +569,12 @@ module.exports = async function handler(req, res) {
   const reqDelegate  = (typeof parsed.delegate === "boolean") ? parsed.delegate : DELEGATION_ENABLED;
   const delegateActive = reqDelegate && !!DELEGATE_ENDPOINT;
 
+  // Per-request model picks (from the page's model tree). Validated + fallback-
+  // backed by sanitizeRoster; each stage resolves to activeRoster[stage] or the
+  // verified default. Absent/invalid → identical to the previous behaviour.
+  const rosterOverride = sanitizeRoster(parsed.roster);
+  const activeRoster = Object.assign({}, ROSTER, rosterOverride);
+
   // ── Resume / reattach plumbing (tab-blur persistence) ───────────────────────
   const runId   = typeof parsed.runId === "string" ? parsed.runId.slice(0, 64) : "";
   const isResume = parsed.resume === true;
@@ -572,7 +608,10 @@ module.exports = async function handler(req, res) {
   }
 
   const q = question.trim().slice(0, 2000);
-  const numRounds = Math.max(2, Math.min(3, parseInt(rounds, 10) || DEFAULT_ROUNDS));
+  // Rounds 1–5 (was 2–3). The debate loop is self-protecting: the wall-clock
+  // guard below skips remaining rounds if free-tier is slow, so a high pick can
+  // never blow the Vercel function budget — it just degrades gracefully.
+  const numRounds = Math.max(1, Math.min(5, parseInt(rounds, 10) || DEFAULT_ROUNDS));
   const mode = getMode(modeName);
   const ctx = typeof priorContext === "string" ? priorContext.trim().slice(0, 4000) : "";
 
@@ -651,7 +690,7 @@ module.exports = async function handler(req, res) {
     // ── Round 1: initial proposal ──────────────────────────────────────────
     const p1 = await runStage(
       { stage: "proposer", round: 1 },
-      ROSTER.proposer_r1,
+      activeRoster.proposer_r1,
       [
         { role: "system", content: "You are the Proposer in a multi-role LLM Council. " + mode.propose },
         { role: "user", content: taskFraming },
@@ -675,7 +714,7 @@ module.exports = async function handler(req, res) {
 
       const c = await runStage(
         { stage: "critic", round: criticRound },
-        ROSTER.critic,
+        activeRoster.critic,
         [
           { role: "system", content: "You are the Critic in a multi-role LLM Council, reacting to the previous member's response. " + mode.critique + " Be concise." },
           { role: "user", content: "Original input:\n" + taskFraming + "\n\nPrevious member's response (Round " + (r - 1) + "):\n" + prevProposal + "\n\nNow apply your treatment to the response above." },
@@ -685,7 +724,7 @@ module.exports = async function handler(req, res) {
       const criticText = c ? c.text : "(critic stage unavailable — proceeding)";
       if (c) { criticTexts.push(c.text); criticModels.push(c.model); }
 
-      const revRoster = r === 2 ? ROSTER.proposer_rev : ROSTER.proposer_r1;
+      const revRoster = r === 2 ? activeRoster.proposer_rev : activeRoster.proposer_r1;
       const p = await runStage(
         { stage: "proposer", round: r },
         revRoster,
@@ -704,7 +743,7 @@ module.exports = async function handler(req, res) {
     const firstCriticText = criticTexts[0] || "";
     const c2 = (timeLeft() < SYNTH_JUDGE_RESERVE_MS) ? null : await runStage(
       { stage: "critic", round: numRounds },
-      ROSTER.critic2,
+      activeRoster.critic2,
       [
         { role: "system", content: "You are the Second Critic in a multi-role LLM Council — a DIFFERENT AI system from the first critic, reacting to the latest response. " + mode.critique + " Find what the first critic missed." },
         { role: "user", content: "Original input:\n" + taskFraming + "\n\nLatest response to react to:\n" + finalProposal + "\n\nThe first critic already raised:\n" + firstCriticText.slice(0, 600) + "\n\nApply your treatment — surface what remains." },
@@ -751,7 +790,7 @@ module.exports = async function handler(req, res) {
 
     const synth = await runStage(
       { stage: "synthesizer" },
-      ROSTER.synthesizer,
+      activeRoster.synthesizer,
       [
         { role: "system", content: "You are the Synthesizer in a multi-role LLM Council. You received responses and reactions from MULTIPLE distinct AI model families. " + mode.synth + " Be comprehensive yet concise." },
         { role: "user", content: "Original input:\n" + taskFraming + "\n\n" + allRoundsCtx + "\n\nSynthesize the best final result." },
@@ -763,7 +802,7 @@ module.exports = async function handler(req, res) {
     // ── Judge — decisive verdict ───────────────────────────────────────────
     await runStage(
       { stage: "judge" },
-      ROSTER.judge,
+      activeRoster.judge,
       [
         {
           role: "system",

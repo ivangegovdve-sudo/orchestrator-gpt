@@ -4,9 +4,9 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>LLM Council — Free-Tier AI Deliberation</title>
-  <meta name="description" content="Ask a council of distinct AI families to deliberate live across multiple stages: Propose → Critique → Revise → Synthesize → Judge. Selectable modes, live thinking, interactive rounds. OpenRouter free models, $0 cost.">
+  <meta name="description" content="Ask a council of distinct AI families to deliberate live across multiple stages: Propose → Critique → Revise → Synthesize → Judge. Pick which free OpenRouter models participate, choose the number of rounds, and watch the debate flow through the council tree. $0 cost.">
   <meta property="og:title" content="LLM Council — Free-Tier AI Deliberation">
-  <meta property="og:description" content="Heterogeneous free-tier deliberation: OpenAI · NVIDIA · Google · Nex AGI · Qwen — distinct model families, live thinking, selectable modes, $0 cost.">
+  <meta property="og:description" content="Heterogeneous free-tier deliberation: pick your models (Fast · Balanced · Deep), set the rounds, and watch the question flow through Propose → Critique → Revise → Synthesize → Judge. $0 cost.">
   <meta property="og:type" content="website">
   <style>
     :root {
@@ -36,7 +36,7 @@
       padding: 40px 20px 60px;
     }
 
-    .page { max-width: 780px; margin: 0 auto; display: flex; flex-direction: column; gap: 28px; }
+    .page { max-width: 820px; margin: 0 auto; display: flex; flex-direction: column; gap: 26px; }
 
     .back-link { display: inline-flex; align-items: center; gap: 6px; color: var(--muted); text-decoration: none; font-size: 13px; transition: color 0.2s; }
     .back-link:hover { color: var(--text); }
@@ -55,22 +55,53 @@
 
     .tagline { margin: 0; color: var(--muted); font-size: 15px; line-height: 1.5; }
 
-    .flow-row { display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 12px; color: var(--muted); flex-wrap: wrap; }
-    .role-badge {
-      padding: 3px 10px; border-radius: 20px; font-weight: 600;
-      font-size: 11px; letter-spacing: 0.04em; text-transform: uppercase;
-    }
-    .role-badge.proposer { background: rgba(14,165,233,0.12); border: 1px solid rgba(14,165,233,0.3); color: var(--accent); }
-    .role-badge.critic   { background: rgba(244,63,94,0.12);  border: 1px solid rgba(244,63,94,0.3);  color: var(--rose); }
-    .role-badge.synth    { background: rgba(34,197,94,0.12);  border: 1px solid rgba(34,197,94,0.3);  color: var(--green); }
-    .role-badge.judge    { background: rgba(245,158,11,0.12); border: 1px solid rgba(245,158,11,0.3); color: var(--amber); }
-    .arrow { color: #475569; }
-
-    .input-card {
+    /* ── Section shell ─────────────────────────────────────── */
+    .card {
       background: var(--card-bg); border: 1px solid var(--card-border);
-      border-radius: 16px; padding: 24px; backdrop-filter: blur(12px);
+      border-radius: 16px; padding: 22px; backdrop-filter: blur(12px);
       display: flex; flex-direction: column; gap: 14px;
     }
+    .section-label { font-size: 11px; color: #64748b; text-transform: uppercase; letter-spacing: 0.06em; font-weight: 700; }
+    .section-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+    .section-sub { font-size: 12px; color: var(--muted); line-height: 1.5; margin: -6px 0 2px; }
+
+    /* ── Council flow tree ─────────────────────────────────── */
+    .flow-card { padding: 20px 18px; }
+    .flow-tree { display: flex; flex-direction: column; gap: 0; }
+    .flow-stage {
+      display: grid; grid-template-columns: 40px 1fr; gap: 12px; align-items: start;
+      position: relative; padding: 8px 0;
+    }
+    /* connector line down the left rail */
+    .flow-stage:not(:last-child)::before {
+      content: ""; position: absolute; left: 19px; top: 40px; bottom: -8px;
+      width: 2px; background: linear-gradient(180deg, rgba(255,255,255,0.14), rgba(255,255,255,0.05));
+    }
+    .flow-node {
+      width: 40px; height: 40px; border-radius: 11px; display: flex; align-items: center;
+      justify-content: center; font-size: 18px; flex-shrink: 0; position: relative; z-index: 1;
+      border: 1px solid transparent;
+    }
+    .flow-node.proposer { background: rgba(14,165,233,0.14); border-color: rgba(14,165,233,0.3); }
+    .flow-node.critic   { background: rgba(244,63,94,0.14);  border-color: rgba(244,63,94,0.3); }
+    .flow-node.synth    { background: rgba(34,197,94,0.14);  border-color: rgba(34,197,94,0.3); }
+    .flow-node.judge    { background: rgba(245,158,11,0.14); border-color: rgba(245,158,11,0.3); }
+    .flow-body { padding-top: 2px; }
+    .flow-name { font-size: 13.5px; font-weight: 700; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .flow-role {
+      font-size: 9px; letter-spacing: 0.05em; text-transform: uppercase; font-weight: 700;
+      padding: 2px 7px; border-radius: 20px;
+    }
+    .flow-role.proposer { background: rgba(14,165,233,0.12); color: var(--accent); }
+    .flow-role.critic   { background: rgba(244,63,94,0.12);  color: var(--rose); }
+    .flow-role.synth    { background: rgba(34,197,94,0.12);  color: var(--green); }
+    .flow-role.judge    { background: rgba(245,158,11,0.12); color: var(--amber); }
+    .flow-desc { font-size: 11.5px; color: var(--muted); margin-top: 3px; line-height: 1.5; }
+    .flow-models { font-size: 10px; color: #7dd3fc; font-family: monospace; margin-top: 4px; word-break: break-word; }
+    .flow-loop-tag { font-size: 10px; color: var(--purple); font-weight: 600; }
+
+    /* accordion toggle only used on mobile */
+    .flow-toggle { display: none; }
 
     textarea {
       width: 100%; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1);
@@ -81,9 +112,84 @@
     textarea:focus { border-color: rgba(14,165,233,0.5); }
     textarea::placeholder { color: #475569; }
 
+    /* ── Model selection tree ──────────────────────────────── */
+    .models-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+    .mini-btn {
+      background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 7px; color: var(--muted); cursor: pointer; font-size: 11px;
+      padding: 5px 11px; font-family: inherit; font-weight: 600; transition: all 0.18s;
+    }
+    .mini-btn:hover { background: rgba(255,255,255,0.09); color: var(--text); }
+
+    .model-group { border: 1px solid rgba(255,255,255,0.07); border-radius: 12px; overflow: hidden; }
+    .model-group + .model-group { margin-top: 10px; }
+    .group-head {
+      display: flex; align-items: center; gap: 10px; padding: 11px 14px; cursor: pointer;
+      user-select: none; background: rgba(255,255,255,0.02);
+    }
+    .group-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
+    .group-dot.fast { background: var(--green); box-shadow: 0 0 8px rgba(34,197,94,0.5); }
+    .group-dot.balanced { background: var(--accent); box-shadow: 0 0 8px rgba(14,165,233,0.5); }
+    .group-dot.deep { background: var(--purple); box-shadow: 0 0 8px rgba(139,92,246,0.5); }
+    .group-title { font-size: 13px; font-weight: 700; }
+    .group-blurb { font-size: 11px; color: #64748b; }
+    .group-count { margin-left: auto; font-size: 11px; color: var(--muted); }
+    .group-chev { font-size: 10px; color: var(--muted); transition: transform 0.25s; }
+    .model-group.collapsed .group-chev { transform: rotate(-90deg); }
+    .model-group.collapsed .group-body { display: none; }
+
+    .group-body { display: flex; flex-direction: column; padding: 4px; gap: 2px; }
+    .model-row {
+      display: grid; grid-template-columns: 22px 1fr auto; gap: 10px; align-items: center;
+      padding: 9px 10px; border-radius: 9px; cursor: pointer; transition: background 0.15s;
+    }
+    .model-row:hover { background: rgba(255,255,255,0.04); }
+    .model-row.on { background: rgba(14,165,233,0.08); }
+    .model-check {
+      width: 18px; height: 18px; border-radius: 6px; border: 1.5px solid rgba(255,255,255,0.2);
+      display: flex; align-items: center; justify-content: center; font-size: 12px; color: #fff;
+      transition: all 0.15s; flex-shrink: 0;
+    }
+    .model-row.on .model-check { background: var(--accent); border-color: var(--accent); }
+    .model-info { min-width: 0; }
+    .model-name { font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 7px; flex-wrap: wrap; }
+    .model-slug { font-family: monospace; font-size: 10px; color: #64748b; word-break: break-all; margin-top: 1px; }
+    .model-specialty { font-size: 11px; color: var(--muted); margin-top: 2px; }
+    .model-metrics { display: flex; flex-direction: column; align-items: flex-end; gap: 3px; flex-shrink: 0; }
+    .model-size { font-size: 11px; color: #94a3b8; font-family: monospace; }
+    .speed-bars { display: flex; gap: 2px; align-items: flex-end; height: 12px; }
+    .speed-bar { width: 3px; background: rgba(255,255,255,0.15); border-radius: 1px; }
+    .speed-bar.lit.fast { background: var(--green); }
+    .speed-bar.lit.balanced { background: var(--accent); }
+    .speed-bar.lit.deep { background: var(--purple); }
+    .verified-tag {
+      font-size: 8.5px; letter-spacing: 0.03em; text-transform: uppercase; font-weight: 700;
+      color: var(--green); background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.25);
+      border-radius: 4px; padding: 1px 5px;
+    }
+    .free-badge {
+      background: rgba(34,197,94,0.12); border: 1px solid rgba(34,197,94,0.25);
+      color: var(--green); padding: 2px 7px; border-radius: 4px;
+      font-size: 10px; font-weight: 600; text-transform: uppercase;
+    }
+    .models-summary { font-size: 11.5px; color: var(--muted); line-height: 1.6; }
+    .models-summary strong { color: #c4b5fd; }
+
+    /* ── Round selector ────────────────────────────────────── */
+    .rounds-row { display: flex; gap: 8px; flex-wrap: wrap; }
+    .round-pill {
+      flex: 1; min-width: 54px; text-align: center; background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; color: var(--muted);
+      cursor: pointer; padding: 10px 6px; font-family: inherit; font-weight: 700; font-size: 15px;
+      transition: all 0.18s;
+    }
+    .round-pill small { display: block; font-size: 9px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: #64748b; margin-top: 2px; }
+    .round-pill:hover { background: rgba(255,255,255,0.08); color: var(--text); }
+    .round-pill.selected { background: linear-gradient(135deg, rgba(14,165,233,0.25), rgba(139,92,246,0.25)); border-color: rgba(139,92,246,0.5); color: var(--text); }
+    .round-est { font-size: 11.5px; color: var(--muted); display: flex; align-items: center; gap: 6px; }
+    .round-est b { color: var(--amber); font-weight: 700; }
+
     /* ── Mode selector ─────────────────────────────────────── */
-    .modes-wrap { display: flex; flex-direction: column; gap: 8px; }
-    .modes-label { font-size: 11px; color: #64748b; text-transform: uppercase; letter-spacing: 0.06em; font-weight: 600; }
     .mode-row { display: flex; flex-wrap: wrap; gap: 8px; }
     .mode-pill {
       background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1);
@@ -95,9 +201,7 @@
     .mode-pill.selected { background: linear-gradient(135deg, rgba(14,165,233,0.25), rgba(139,92,246,0.25)); border-color: rgba(139,92,246,0.5); color: var(--text); }
     .mode-desc { font-size: 11.5px; color: #64748b; line-height: 1.5; min-height: 16px; }
 
-    /* ── Capability toggles (Web Search / Delegation) ──────────── */
-    .toggles-wrap { display: flex; flex-direction: column; gap: 8px; }
-    .toggles-label { font-size: 11px; color: #64748b; text-transform: uppercase; letter-spacing: 0.06em; font-weight: 600; }
+    /* ── Capability toggles ────────────────────────────────── */
     .toggle-row { display: flex; flex-wrap: wrap; gap: 10px; }
     .toggle-pill {
       display: inline-flex; align-items: center; gap: 9px; cursor: pointer;
@@ -122,24 +226,6 @@
     .toggle-hint { font-size: 10px; color: #64748b; font-weight: 500; }
 
     .input-footer { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-
-    .model-label { font-size: 11px; color: #475569; display: flex; align-items: center; gap: 6px; }
-    .free-badge {
-      background: rgba(34,197,94,0.12); border: 1px solid rgba(34,197,94,0.25);
-      color: var(--green); padding: 2px 7px; border-radius: 4px;
-      font-size: 10px; font-weight: 600; text-transform: uppercase;
-    }
-
-    .submit-btn {
-      background: linear-gradient(135deg, var(--accent), var(--purple));
-      border: none; border-radius: 10px; color: #fff; cursor: pointer;
-      font-family: inherit; font-size: 14px; font-weight: 600; padding: 10px 24px;
-      transition: opacity 0.2s, transform 0.15s; white-space: nowrap;
-    }
-    .submit-btn:hover:not(:disabled) { opacity: 0.9; transform: translateY(-1px); }
-    .submit-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
-
-    /* ── 4-digit access gate ───────────────────────────────── */
     .gate-wrap { display: flex; align-items: center; gap: 8px; }
     .gate-label { font-size: 11px; color: #64748b; white-space: nowrap; }
     .code-input {
@@ -150,9 +236,17 @@
     }
     .code-input:focus { border-color: rgba(139,92,246,0.6); }
     .code-input.bad { border-color: var(--rose); }
-    .gate-hint { font-size: 11px; color: #475569; margin-top: 10px; display: flex; align-items: center; gap: 6px; }
+    .gate-hint { font-size: 11px; color: #475569; margin-top: 4px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
 
-    /* ── Collapsible suggestions ───────────────────────────── */
+    .submit-btn {
+      background: linear-gradient(135deg, var(--accent), var(--purple));
+      border: none; border-radius: 10px; color: #fff; cursor: pointer;
+      font-family: inherit; font-size: 14px; font-weight: 600; padding: 11px 26px;
+      transition: opacity 0.2s, transform 0.15s; white-space: nowrap;
+    }
+    .submit-btn:hover:not(:disabled) { opacity: 0.9; transform: translateY(-1px); }
+    .submit-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
     .suggest-toggle {
       align-self: flex-start; background: rgba(255,255,255,0.04);
       border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: var(--muted);
@@ -162,30 +256,14 @@
     .suggest-toggle:hover { background: rgba(255,255,255,0.08); color: var(--text); }
     .suggest-toggle .chev { transition: transform 0.25s; font-size: 10px; }
     .suggest-toggle.open .chev { transform: rotate(180deg); }
-
-    .suggest-panel {
-      display: none; flex-wrap: wrap; gap: 8px; padding-top: 4px;
-    }
+    .suggest-panel { display: none; flex-wrap: wrap; gap: 8px; padding-top: 4px; }
     .suggest-panel.open { display: flex; }
-
     .example-q {
       background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);
       border-radius: 8px; color: var(--muted); cursor: pointer; font-size: 12px;
       padding: 6px 12px; font-family: inherit; transition: all 0.2s; text-align: left;
     }
     .example-q:hover { background: rgba(255,255,255,0.08); color: var(--text); border-color: rgba(255,255,255,0.15); }
-
-    .roster-info {
-      background: rgba(139,92,246,0.06); border: 1px solid rgba(139,92,246,0.15);
-      border-radius: 10px; padding: 10px 14px; font-size: 11px; color: #9ca3af;
-      line-height: 1.7;
-    }
-    .roster-info strong { color: #c4b5fd; }
-    .model-chip {
-      display: inline-block; background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.1);
-      border-radius: 4px; padding: 1px 6px; font-family: monospace; font-size: 10px;
-      color: #94a3b8; margin: 1px;
-    }
 
     .error-banner {
       background: rgba(244,63,94,0.1); border: 1px solid rgba(244,63,94,0.3);
@@ -194,7 +272,6 @@
     .error-banner.visible { display: block; }
 
     .stages { display: flex; flex-direction: column; gap: 12px; }
-
     .round-header { display: flex; align-items: center; gap: 10px; margin-top: 4px; }
     .round-label { font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #475569; white-space: nowrap; }
     .round-line  { flex: 1; height: 1px; background: rgba(255,255,255,0.06); }
@@ -209,55 +286,47 @@
     .stage-card.judge-card { background: rgba(20, 16, 4, 0.7); }
     .stage-card.judge-card.active { border-color: rgba(245,158,11,0.5); }
     .stage-card.judge-card.done   { border-color: rgba(245,158,11,0.3); }
-
     .stage-header { display: flex; align-items: center; gap: 12px; padding: 15px 20px; cursor: pointer; user-select: none; }
-
     .stage-icon { width: 30px; height: 30px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 15px; flex-shrink: 0; }
     .stage-icon.proposer { background: rgba(14,165,233,0.15); }
     .stage-icon.critic   { background: rgba(244,63,94,0.15); }
     .stage-icon.synth    { background: rgba(34,197,94,0.15); }
     .stage-icon.judge    { background: rgba(245,158,11,0.15); }
-
     .stage-meta { flex: 1; min-width: 0; }
     .stage-name { font-size: 13px; font-weight: 700; display: flex; align-items: center; gap: 7px; flex-wrap: wrap; }
     .stage-desc { font-size: 11px; color: var(--muted); margin-top: 2px; }
-
+    .role-badge { padding: 3px 10px; border-radius: 20px; font-weight: 600; font-size: 11px; letter-spacing: 0.04em; text-transform: uppercase; }
+    .role-badge.proposer { background: rgba(14,165,233,0.12); border: 1px solid rgba(14,165,233,0.3); color: var(--accent); }
+    .role-badge.critic   { background: rgba(244,63,94,0.12);  border: 1px solid rgba(244,63,94,0.3);  color: var(--rose); }
+    .role-badge.synth    { background: rgba(34,197,94,0.12);  border: 1px solid rgba(34,197,94,0.3);  color: var(--green); }
+    .role-badge.judge    { background: rgba(245,158,11,0.12); border: 1px solid rgba(245,158,11,0.3); color: var(--amber); }
     .model-tag-badge {
       font-size: 9px; font-family: monospace; color: #7dd3fc;
       background: rgba(14,165,233,0.08); border: 1px solid rgba(14,165,233,0.2);
       border-radius: 4px; padding: 1px 5px; white-space: nowrap; display: none;
     }
     .stage-card .model-tag-badge.show { display: inline-block; }
-
     .stage-status { font-size: 11px; color: var(--muted); display: flex; align-items: center; gap: 5px; flex-shrink: 0; }
     .stage-status.thinking { color: var(--accent); }
     .stage-status.done     { color: var(--green); }
     .stage-status.failed   { color: var(--rose); }
     .judge-card .stage-status.done { color: var(--amber); }
-
     .spinner { width: 11px; height: 11px; border: 2px solid currentColor; border-top-color: transparent; border-radius: 50%; animation: spin 0.8s linear infinite; display: inline-block; }
     @keyframes spin { to { transform: rotate(360deg); } }
-
     .chevron { color: var(--muted); font-size: 11px; transition: transform 0.3s; flex-shrink: 0; }
     .stage-card.open .chevron { transform: rotate(180deg); }
-
     .stage-body { max-height: 0; overflow: hidden; transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
     .stage-card.open .stage-body { max-height: 4000px; }
-
     .stage-content {
       padding: 14px 20px 18px; border-top: 1px solid rgba(255,255,255,0.05);
       font-size: 13.5px; line-height: 1.75; color: #cbd5e1; white-space: pre-wrap; word-break: break-word;
     }
     .judge-card .stage-content { color: #fef3c7; }
-
-    /* blinking caret while a stage streams live */
     .stage-content.streaming::after {
       content: "▌"; color: var(--accent); animation: caret 1s steps(1) infinite; margin-left: 1px;
     }
     @keyframes caret { 50% { opacity: 0; } }
-
     .placeholder-text { color: #3f4f62; font-style: italic; font-size: 13px; }
-
     .copy-btn {
       float: right; clear: right; margin: 10px 20px 0 0;
       background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
@@ -269,7 +338,6 @@
     .copy-btn:hover { background: rgba(255,255,255,0.1); color: var(--text); }
     .copy-btn.copied { color: var(--green); border-color: rgba(34,197,94,0.3); }
 
-    /* ── Interactive follow-up ─────────────────────────────── */
     .followup-card {
       background: rgba(14,165,233,0.05); border: 1px solid rgba(14,165,233,0.2);
       border-radius: 14px; padding: 18px 20px; display: none; flex-direction: column; gap: 12px;
@@ -277,13 +345,22 @@
     .followup-card.visible { display: flex; }
     .followup-title { font-size: 13px; font-weight: 700; color: #7dd3fc; display: flex; align-items: center; gap: 8px; }
     .followup-sub { font-size: 11.5px; color: var(--muted); margin-top: -6px; }
-
     .footer-tag { font-size: 10px; color: #475569; text-align: center; padding-top: 4px; }
 
-    @media (max-width: 520px) {
+    /* ── Responsive: mobile collapses the flow tree to an accordion ──────────── */
+    @media (max-width: 560px) {
+      body { padding: 28px 14px 50px; }
       h1 { font-size: 26px; }
       .input-footer { flex-direction: column; align-items: stretch; }
       .submit-btn { text-align: center; }
+      .model-row { grid-template-columns: 22px 1fr; }
+      .model-metrics { grid-column: 2; flex-direction: row; align-items: center; justify-content: flex-start; gap: 10px; margin-top: 3px; }
+
+      /* Flow tree becomes a tap-to-expand accordion on mobile */
+      .flow-toggle { display: flex; }
+      .flow-card.collapsed .flow-tree { display: none; }
+      .flow-card .flow-desc, .flow-card .flow-models { display: none; }
+      .flow-card.expanded .flow-desc, .flow-card.expanded .flow-models { display: block; }
     }
   </style>
 </head>
@@ -293,60 +370,75 @@
 
     <header>
       <h1>&#9878;&#65039; LLM Council</h1>
-      <p class="tagline">Heterogeneous AI panel &mdash; each role a different model family &mdash; deliberating live, $0.</p>
+      <p class="tagline">A heterogeneous AI panel &mdash; each role a different model family &mdash; deliberating live. Pick the models, set the rounds, watch the debate. $0.</p>
     </header>
 
-    <div class="flow-row">
-      <span class="role-badge proposer">Propose</span>
-      <span class="arrow">&rarr;</span>
-      <span class="role-badge critic">Critique 1</span>
-      <span class="arrow">&rarr;</span>
-      <span class="role-badge proposer">Revise</span>
-      <span class="arrow">&rarr;</span>
-      <span class="role-badge critic">Critique 2</span>
-      <span class="arrow">&rarr;</span>
-      <span class="role-badge synth">Synthesize</span>
-      <span class="arrow">&rarr;</span>
-      <span class="role-badge judge">Judge</span>
+    <!-- ── Council flow tree (how a question travels through the council) ─────── -->
+    <div class="card flow-card collapsed" id="flow-card">
+      <div class="section-head">
+        <span class="section-label">&#127793; How the council deliberates</span>
+        <button type="button" class="mini-btn flow-toggle" id="flow-toggle" onclick="toggleFlow()">Show tree</button>
+      </div>
+      <div class="flow-tree" id="flow-tree"></div>
     </div>
 
-    <div class="input-card">
+    <!-- ── Question ──────────────────────────────────────────────────────────── -->
+    <div class="card">
+      <span class="section-label">&#10067; Your question</span>
       <textarea id="question" placeholder="Ask the council anything &#8212; a decision, a concept, a plan&#8230;" rows="3"></textarea>
-
-      <!-- Collapsible suggestions (B1) -->
       <button type="button" class="suggest-toggle" id="suggest-toggle" onclick="toggleSuggest()">
         <span>&#128161; Show suggestions</span><span class="chev">&#9660;</span>
       </button>
       <div class="suggest-panel" id="suggest-panel"></div>
+    </div>
 
-      <!-- Council modes (B3) -->
-      <div class="modes-wrap">
-        <span class="modes-label">Council mode</span>
-        <div class="mode-row" id="mode-row"></div>
-        <div class="mode-desc" id="mode-desc"></div>
-      </div>
-
-      <!-- Capability toggles: Web Search + Delegation -->
-      <div class="toggles-wrap">
-        <span class="toggles-label">Capabilities</span>
-        <div class="toggle-row">
-          <div class="toggle-pill on" id="toggle-websearch" role="switch" aria-checked="true" tabindex="0" onclick="toggleWebSearch()">
-            <span class="toggle-switch"></span>
-            <span class="toggle-text">
-              <span class="toggle-name">&#127758; Web Search</span>
-              <span class="toggle-hint">Ground the debate in live web results (slower)</span>
-            </span>
-          </div>
-          <div class="toggle-pill" id="toggle-delegation" role="switch" aria-checked="false" tabindex="0" onclick="toggleDelegation()">
-            <span class="toggle-switch"></span>
-            <span class="toggle-text">
-              <span class="toggle-name">&#129309; Delegation</span>
-              <span class="toggle-hint">Delegate a sub-question to the fleet (Chlo&eacute;)</span>
-            </span>
-          </div>
+    <!-- ── Model selection tree ──────────────────────────────────────────────── -->
+    <div class="card">
+      <div class="section-head">
+        <span class="section-label">&#129504; Council members <span class="free-badge">all :free</span></span>
+        <div class="models-actions">
+          <button type="button" class="mini-btn" onclick="selectRecommended()">Recommended</button>
+          <button type="button" class="mini-btn" onclick="selectAllModels(true)">All</button>
+          <button type="button" class="mini-btn" onclick="selectAllModels(false)">None</button>
         </div>
       </div>
+      <p class="section-sub">Choose which free OpenRouter models sit on the panel. Picks are distributed across the council roles by fit; the verified core stays on as fallback so a run always completes. The <code>:free</code> suffix is always kept &mdash; $0, guaranteed.</p>
+      <div id="model-groups"></div>
+      <div class="models-summary" id="models-summary"></div>
+    </div>
 
+    <!-- ── Rounds + mode ─────────────────────────────────────────────────────── -->
+    <div class="card">
+      <span class="section-label">&#128260; Debate rounds</span>
+      <p class="section-sub">Each round adds a propose&rarr;critique&rarr;revise cycle before the final synthesis &amp; verdict. More rounds = deeper deliberation, but slower.</p>
+      <div class="rounds-row" id="rounds-row"></div>
+      <div class="round-est" id="round-est"></div>
+
+      <span class="section-label" style="margin-top:6px;">&#127917; Council mode</span>
+      <div class="mode-row" id="mode-row"></div>
+      <div class="mode-desc" id="mode-desc"></div>
+
+      <span class="section-label" style="margin-top:6px;">&#9889; Capabilities</span>
+      <div class="toggle-row">
+        <div class="toggle-pill on" id="toggle-websearch" role="switch" aria-checked="true" tabindex="0" onclick="toggleWebSearch()">
+          <span class="toggle-switch"></span>
+          <span class="toggle-text">
+            <span class="toggle-name">&#127758; Web Search</span>
+            <span class="toggle-hint">Ground the debate in live web results (slower)</span>
+          </span>
+        </div>
+        <div class="toggle-pill" id="toggle-delegation" role="switch" aria-checked="false" tabindex="0" onclick="toggleDelegation()">
+          <span class="toggle-switch"></span>
+          <span class="toggle-text">
+            <span class="toggle-name">&#129309; Delegation</span>
+            <span class="toggle-hint">Delegate a sub-question to the fleet (Chlo&eacute;)</span>
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Convene ───────────────────────────────────────────────────────────── -->
+    <div class="card">
       <div class="input-footer">
         <div class="gate-wrap">
           <span class="gate-label">&#128274; Access code</span>
@@ -358,21 +450,10 @@
       <div class="gate-hint">Shared with you by Ivan &mdash; keeps the free council from being over-used. <span class="free-badge">free</span> &middot; $0</div>
     </div>
 
-    <div class="roster-info">
-      <strong>Distinct vendor families</strong> &mdash; all <code>:free</code>, $0, with fast fallback if any provider rate-limits:<br>
-      <span class="model-chip">Proposer</span> Google Gemma-4 / Llama-3.3 &nbsp;
-      <span class="model-chip">Critic 1</span> NVIDIA Nemotron Super / Qwen3 &nbsp;
-      <span class="model-chip">Revision</span> Google Gemma-4 &nbsp;
-      <span class="model-chip">Critic 2</span> Nex AGI / Qwen3 &nbsp;
-      <span class="model-chip">Synth</span> Google Gemma MoE &nbsp;
-      <span class="model-chip">Judge</span> OpenAI gpt-oss-20b
-    </div>
-
     <div class="error-banner" id="error-banner"></div>
 
     <div class="stages" id="stages" style="display:none;"></div>
 
-    <!-- Interactive follow-up round (B4) -->
     <div class="followup-card" id="followup-card">
       <div class="followup-title">&#128172; Continue the deliberation</div>
       <div class="followup-sub">Add a follow-up &mdash; it feeds into a new round seeded with the council's last synthesis.</div>
@@ -382,18 +463,238 @@
       </div>
     </div>
 
-    <p class="footer-tag">Free tier &middot; OpenAI &middot; NVIDIA Nemotron &middot; Google Gemma-4 &middot; Nex AGI &middot; Qwen3 &mdash; via OpenRouter &mdash; $0</p>
+    <p class="footer-tag">Free tier &middot; OpenRouter <code>:free</code> models &middot; heterogeneous families &middot; $0</p>
   </div>
 
   <script>
-    // ── Canonical API host (B/A fix): the council page may be loaded from the
-    // apex domain, which 307-redirects /api/* to www. A redirected streaming
-    // POST is fragile, so we post straight to the canonical www host. ──────────
-    var API_URL = (location.hostname === 'sdforest.site')
-      ? 'https://www.sdforest.site/api/council'
-      : '/api/council';
+    // ─────────────────────────────────────────────────────────────────────────
+    // MODEL CATALOG — every slug is an OpenRouter :free variant. The `verified`
+    // set is the roster the server has run reliably; the rest are additional
+    // free options a visitor can opt into. The :free suffix is ALWAYS kept — the
+    // server's kill-gate rejects any non-:free slug, so cost stays $0.
+    //   tier:  fast | balanced | deep   (drives grouping + speed bars)
+    //   roles: which council seats a model is well-suited to fill
+    // ─────────────────────────────────────────────────────────────────────────
+    var MODEL_CATALOG = [
+      // ── FAST ────────────────────────────────────────────────────────────────
+      { slug: "microsoft/phi-3-mini-128k-instruct:free", name: "Phi-3 Mini", family: "Microsoft", tier: "fast", size: "3.8B", specialty: "Tiny, quick reasoning · 128k context", roles: ["judge","proposer"] },
+      { slug: "mistralai/mistral-7b-instruct:free", name: "Mistral 7B", family: "Mistral", tier: "fast", size: "7B", specialty: "Snappy generalist, clean prose", roles: ["proposer","judge"] },
+      { slug: "openai/gpt-oss-20b:free", name: "gpt-oss 20B", family: "OpenAI", tier: "fast", size: "20B", specialty: "Crisp reasoning & verdicts", roles: ["judge","proposer"], verified: true },
+      { slug: "nvidia/nemotron-3-nano-30b-a3b:free", name: "Nemotron 3 Nano", family: "NVIDIA", tier: "fast", size: "30B·A3B", specialty: "Efficient MoE, fast revision", roles: ["proposer"], verified: true },
+      { slug: "google/gemma-4-26b-a4b-it:free", name: "Gemma-4 MoE", family: "Google", tier: "fast", size: "26B·A4B", specialty: "Fast fluent synthesis", roles: ["synthesizer"], verified: true },
 
-    // ── Suggestions (collapsed by default; longer list on expand) ─────────────
+      // ── BALANCED ──────────────────────────────────────────────────────────────
+      { slug: "google/gemma-4-31b-it:free", name: "Gemma-4 31B", family: "Google", tier: "balanced", size: "31B", specialty: "Reliable, instruction-tight generalist", roles: ["proposer","synthesizer"], verified: true },
+      { slug: "meta-llama/llama-3.3-70b-instruct:free", name: "Llama 3.3 70B", family: "Meta", tier: "balanced", size: "70B", specialty: "Strong all-round reasoner", roles: ["proposer","critic","synthesizer","judge"], verified: true },
+      { slug: "qwen/qwen3-next-80b-a3b-instruct:free", name: "Qwen3-Next 80B", family: "Qwen", tier: "balanced", size: "80B·A3B", specialty: "Multilingual, coding, sharp critique", roles: ["critic","proposer"], verified: true },
+      { slug: "google/gemini-2.5-flash:free", name: "Gemini 2.5 Flash", family: "Google", tier: "balanced", size: "Flash", specialty: "Fast flagship, long context", roles: ["proposer","synthesizer","judge"] },
+      { slug: "nex-agi/nex-n2-pro:free", name: "Nex N2 Pro", family: "Nex AGI", tier: "balanced", size: "Pro", specialty: "Agentic, adversarial critique", roles: ["critic"], verified: true },
+
+      // ── DEEP ────────────────────────────────────────────────────────────────
+      { slug: "nvidia/nemotron-3-super-120b-a12b:free", name: "Nemotron 3 Super", family: "NVIDIA", tier: "deep", size: "120B·A12B", specialty: "Heavyweight reasoning & critique", roles: ["critic","synthesizer"], verified: true },
+      { slug: "qwen/qwen3-235b-a22b:free", name: "Qwen3 235B", family: "Qwen", tier: "deep", size: "235B·A22B", specialty: "Frontier-tier reasoning MoE", roles: ["critic","synthesizer"] },
+      { slug: "deepseek/deepseek-r1:free", name: "DeepSeek R1", family: "DeepSeek", tier: "deep", size: "671B·A37B", specialty: "o1-class chain-of-thought reasoning", roles: ["critic","synthesizer"] }
+    ];
+
+    var TIER_INFO = {
+      fast:     { label: "Fast",     blurb: "Small & snappy — quick turns, low latency", bars: 3 },
+      balanced: { label: "Balanced", blurb: "The sweet spot — capable and reasonably quick", bars: 2 },
+      deep:     { label: "Deep",     blurb: "Big reasoners — slower, heaviest thinking", bars: 1 }
+    };
+
+    // Server default roster (the verified pipeline). Selected models are layered
+    // ON TOP of these per stage; these always remain as fallback so runs finish.
+    var DEFAULT_ROSTER = {
+      proposer_r1:  ["google/gemma-4-31b-it:free", "meta-llama/llama-3.3-70b-instruct:free", "openai/gpt-oss-20b:free", "nvidia/nemotron-3-super-120b-a12b:free"],
+      critic:       ["nvidia/nemotron-3-super-120b-a12b:free", "qwen/qwen3-next-80b-a3b-instruct:free", "meta-llama/llama-3.3-70b-instruct:free", "google/gemma-4-31b-it:free"],
+      proposer_rev: ["google/gemma-4-31b-it:free", "nvidia/nemotron-3-nano-30b-a3b:free", "meta-llama/llama-3.3-70b-instruct:free", "openai/gpt-oss-20b:free"],
+      critic2:      ["nex-agi/nex-n2-pro:free", "qwen/qwen3-next-80b-a3b-instruct:free", "nvidia/nemotron-3-super-120b-a12b:free", "meta-llama/llama-3.3-70b-instruct:free"],
+      synthesizer:  ["google/gemma-4-26b-a4b-it:free", "meta-llama/llama-3.3-70b-instruct:free", "nvidia/nemotron-3-super-120b-a12b:free", "google/gemma-4-31b-it:free"],
+      judge:        ["openai/gpt-oss-20b:free", "google/gemma-4-31b-it:free", "nvidia/nemotron-3-nano-30b-a3b:free"]
+    };
+
+    // Recommended default selection = the verified core (reliable + heterogeneous).
+    var selectedModels = new Set(MODEL_CATALOG.filter(function (m) { return m.verified; }).map(function (m) { return m.slug; }));
+
+    function shortSlug(slug) { return slug.replace(/:free$/, "").split("/").pop(); }
+
+    // ── Council flow tree definition ──────────────────────────────────────────
+    var FLOW = [
+      { role: "proposer", cls: "proposer", icon: "&#128161;", name: "Proposer", stageKey: "proposer_r1",
+        desc: "Forms the initial answer — direct and substantive.", loop: true },
+      { role: "critic", cls: "critic", icon: "&#128269;", name: "Critic", stageKey: "critic",
+        desc: "A different family stress-tests it per the chosen mode.", loop: true },
+      { role: "proposer", cls: "proposer", icon: "&#128260;", name: "Reviser", stageKey: "proposer_rev",
+        desc: "The proposer revises, absorbing the critique. (Repeats each round.)", loop: true },
+      { role: "synth", cls: "synth", icon: "&#9989;", name: "Synthesizer (Chairman)", stageKey: "synthesizer",
+        desc: "Weaves every response & reaction into one definitive answer." },
+      { role: "judge", cls: "judge", icon: "&#9878;&#65039;", name: "Judge", stageKey: "judge",
+        desc: "Delivers the final call, confidence, and next action." }
+    ];
+
+    function rosterForStage(stageKey) {
+      // selected models suited to this stage's role, ordered, + default fallback.
+      var roleOf = stageKey.indexOf("proposer") === 0 ? "proposer"
+                 : stageKey.indexOf("critic") === 0 ? "critic"
+                 : stageKey === "synthesizer" ? "synthesizer" : "judge";
+      var picked = MODEL_CATALOG.filter(function (m) {
+        return selectedModels.has(m.slug) && m.roles.indexOf(roleOf) !== -1;
+      }).map(function (m) { return m.slug; });
+      // If the user selected models but none fit this role, fall back to any picks.
+      if (!picked.length) {
+        picked = MODEL_CATALOG.filter(function (m) { return selectedModels.has(m.slug); }).map(function (m) { return m.slug; });
+      }
+      var merged = picked.concat(DEFAULT_ROSTER[stageKey]);
+      var seen = {}, out = [];
+      for (var i = 0; i < merged.length; i++) { if (!seen[merged[i]]) { seen[merged[i]] = 1; out.push(merged[i]); } }
+      return out;
+    }
+
+    function buildRosterOverride() {
+      // Only send an override when the selection actually differs from the
+      // recommended verified core — otherwise let the server use its defaults.
+      var r = {};
+      Object.keys(DEFAULT_ROSTER).forEach(function (k) { r[k] = rosterForStage(k); });
+      return r;
+    }
+
+    function renderFlow() {
+      var tree = document.getElementById("flow-tree");
+      tree.innerHTML = FLOW.map(function (f) {
+        var models = f.stageKey ? rosterForStage(f.stageKey).slice(0, 2).map(shortSlug).join(" · ") : "";
+        return '<div class="flow-stage">' +
+            '<div class="flow-node ' + f.cls + '">' + f.icon + '</div>' +
+            '<div class="flow-body">' +
+              '<div class="flow-name">' + f.name +
+                '<span class="flow-role ' + f.cls + '">' + f.role + '</span>' +
+                (f.loop ? '<span class="flow-loop-tag">&#8635; ×rounds</span>' : '') +
+              '</div>' +
+              '<div class="flow-desc">' + f.desc + '</div>' +
+              (models ? '<div class="flow-models">' + models + '</div>' : '') +
+            '</div>' +
+          '</div>';
+      }).join("");
+    }
+    function toggleFlow() {
+      var card = document.getElementById("flow-card");
+      var btn = document.getElementById("flow-toggle");
+      var open = card.classList.toggle("expanded");
+      card.classList.toggle("collapsed", !open);
+      btn.textContent = open ? "Hide tree" : "Show tree";
+    }
+
+    // ── Model tree rendering ──────────────────────────────────────────────────
+    function speedBarsHtml(tier) {
+      var lit = TIER_INFO[tier].bars;   // fast=3, balanced=2, deep=1 (bars lit LTR by speed)
+      var heights = [6, 9, 12];
+      var out = "";
+      for (var i = 0; i < 3; i++) {
+        var on = i < lit ? " lit " + tier : "";
+        out += '<span class="speed-bar' + on + '" style="height:' + heights[i] + 'px"></span>';
+      }
+      return '<span class="speed-bars" title="' + TIER_INFO[tier].label + ' speed">' + out + '</span>';
+    }
+    function renderModels() {
+      var host = document.getElementById("model-groups");
+      var tiers = ["fast", "balanced", "deep"];
+      host.innerHTML = tiers.map(function (tier) {
+        var models = MODEL_CATALOG.filter(function (m) { return m.tier === tier; });
+        var onCount = models.filter(function (m) { return selectedModels.has(m.slug); }).length;
+        var rows = models.map(function (m) {
+          var on = selectedModels.has(m.slug);
+          return '<div class="model-row' + (on ? " on" : "") + '" data-slug="' + m.slug + '" onclick="toggleModel(\'' + m.slug + '\')">' +
+              '<div class="model-check">' + (on ? "&#10003;" : "") + '</div>' +
+              '<div class="model-info">' +
+                '<div class="model-name">' + m.name +
+                  (m.verified ? '<span class="verified-tag">core</span>' : '') +
+                '</div>' +
+                '<div class="model-slug">' + m.slug + '</div>' +
+                '<div class="model-specialty">' + m.family + ' &middot; ' + m.specialty + '</div>' +
+              '</div>' +
+              '<div class="model-metrics">' +
+                '<span class="model-size">' + m.size + '</span>' +
+                speedBarsHtml(m.tier) +
+              '</div>' +
+            '</div>';
+        }).join("");
+        return '<div class="model-group" data-tier="' + tier + '">' +
+            '<div class="group-head" onclick="toggleGroup(\'' + tier + '\')">' +
+              '<span class="group-dot ' + tier + '"></span>' +
+              '<span class="group-title">' + TIER_INFO[tier].label + '</span>' +
+              '<span class="group-blurb">' + TIER_INFO[tier].blurb + '</span>' +
+              '<span class="group-count" data-tier-count="' + tier + '">' + onCount + '/' + models.length + '</span>' +
+              '<span class="group-chev">&#9660;</span>' +
+            '</div>' +
+            '<div class="group-body">' + rows + '</div>' +
+          '</div>';
+      }).join("");
+      updateModelsSummary();
+    }
+    function toggleGroup(tier) {
+      var g = document.querySelector('.model-group[data-tier="' + tier + '"]');
+      if (g) g.classList.toggle("collapsed");
+    }
+    function toggleModel(slug) {
+      if (selectedModels.has(slug)) selectedModels.delete(slug); else selectedModels.add(slug);
+      renderModels();
+      renderFlow();
+    }
+    function selectAllModels(on) {
+      selectedModels = new Set(on ? MODEL_CATALOG.map(function (m) { return m.slug; }) : []);
+      renderModels(); renderFlow();
+    }
+    function selectRecommended() {
+      selectedModels = new Set(MODEL_CATALOG.filter(function (m) { return m.verified; }).map(function (m) { return m.slug; }));
+      renderModels(); renderFlow();
+    }
+    function updateModelsSummary() {
+      var n = selectedModels.size;
+      var el = document.getElementById("models-summary");
+      var fams = {};
+      MODEL_CATALOG.forEach(function (m) { if (selectedModels.has(m.slug)) fams[m.family] = 1; });
+      var famCount = Object.keys(fams).length;
+      if (n === 0) {
+        el.innerHTML = '<strong>No models selected</strong> — the council will run on the verified default roster.';
+      } else {
+        el.innerHTML = '<strong>' + n + ' model' + (n === 1 ? "" : "s") + '</strong> across <strong>' + famCount +
+          ' famil' + (famCount === 1 ? "y" : "ies") + '</strong> selected. Each council seat draws first from your picks, then the verified core as fallback.';
+      }
+    }
+
+    // ── Rounds selector ───────────────────────────────────────────────────────
+    var selectedRounds = 2;
+    var ROUND_META = [
+      { n: 1, label: "Quick",   secs: 45 },
+      { n: 2, label: "Default", secs: 80 },
+      { n: 3, label: "Deep",    secs: 120 },
+      { n: 4, label: "Deeper",  secs: 165 },
+      { n: 5, label: "Max",     secs: 210 }
+    ];
+    function renderRounds() {
+      var row = document.getElementById("rounds-row");
+      row.innerHTML = ROUND_META.map(function (r) {
+        return '<button type="button" class="round-pill' + (r.n === selectedRounds ? " selected" : "") +
+          '" data-round="' + r.n + '" onclick="selectRounds(' + r.n + ')">' + r.n + '<small>' + r.label + '</small></button>';
+      }).join("");
+      updateRoundEst();
+    }
+    function selectRounds(n) {
+      selectedRounds = n;
+      var pills = document.querySelectorAll(".round-pill");
+      for (var i = 0; i < pills.length; i++) pills[i].classList.toggle("selected", parseInt(pills[i].getAttribute("data-round"), 10) === n);
+      updateRoundEst();
+    }
+    function updateRoundEst() {
+      var m = ROUND_META.filter(function (r) { return r.n === selectedRounds; })[0];
+      var secs = m.secs + (webSearchOn ? 15 : 0);
+      var mins = Math.round(secs / 15) * 15;
+      var txt = mins >= 60 ? "~" + (mins / 60).toFixed(1).replace(".0", "") + " min" : "~" + mins + "s";
+      document.getElementById("round-est").innerHTML = "Estimated time: <b>" + txt + "</b> &middot; " +
+        selectedRounds + " round" + (selectedRounds === 1 ? "" : "s") + (webSearchOn ? " + web grounding" : "") +
+        " &middot; free-tier, so real time varies with queue depth.";
+    }
+
+    // ── Suggestions ───────────────────────────────────────────────────────────
     var SUGGESTIONS = [
       "Should I learn Rust or Go?",
       "What makes a good API design?",
@@ -413,204 +714,162 @@
       "What's a contrarian but correct take on productivity?"
     ];
     function buildSuggestions() {
-      var panel = document.getElementById('suggest-panel');
+      var panel = document.getElementById("suggest-panel");
       panel.innerHTML = SUGGESTIONS.map(function (s) {
         return '<button type="button" class="example-q" onclick="fillQ(this)">' +
-          s.replace(/&/g, '&amp;').replace(/</g, '&lt;') + '</button>';
-      }).join('');
+          s.replace(/&/g, "&amp;").replace(/</g, "&lt;") + "</button>";
+      }).join("");
     }
     function toggleSuggest() {
-      var t = document.getElementById('suggest-toggle');
-      var p = document.getElementById('suggest-panel');
-      var open = p.classList.toggle('open');
-      t.classList.toggle('open', open);
-      t.querySelector('span').innerHTML = open ? '&#128161; Hide suggestions' : '&#128161; Show suggestions';
+      var t = document.getElementById("suggest-toggle");
+      var p = document.getElementById("suggest-panel");
+      var open = p.classList.toggle("open");
+      t.classList.toggle("open", open);
+      t.querySelector("span").innerHTML = open ? "&#128161; Hide suggestions" : "&#128161; Show suggestions";
     }
     function fillQ(btn) {
-      document.getElementById('question').value = btn.textContent.trim();
-      document.getElementById('question').focus();
+      document.getElementById("question").value = btn.textContent.trim();
+      document.getElementById("question").focus();
     }
 
-    // ── Modes (treatment instructions, picked before running) ─────────────────
+    // ── Modes ─────────────────────────────────────────────────────────────────
     var MODES = [
-      { id: 'default',        label: '⚖️ Balanced',       desc: 'The clean default — each member fairly weighs and builds on the prior response.' },
-      { id: 'adversarial',    label: '⚔️ Adversarial',    desc: 'Members push back hard on the prior response — attack assumptions, steelman the opposition, concede little.' },
-      { id: 'chaos',          label: '🎲 Chaos',          desc: 'Lateral, divergent, randomized — surprising connections and wild-card angles over the obvious.' },
-      { id: 'dreamer',        label: '🌌 Dreamer',        desc: 'Expansive and imaginative — each member amplifies the vision and dreams bigger.' },
-      { id: 'problem-solver', label: '🧩 Problem-Solver', desc: 'Frames the input as a PROBLEM and returns multiple ways to APPROACH it, with trade-offs — not just one answer.' }
+      { id: "default",        label: "⚖️ Balanced",       desc: "The clean default — each member fairly weighs and builds on the prior response." },
+      { id: "adversarial",    label: "⚔️ Adversarial",    desc: "Members push back hard on the prior response — attack assumptions, steelman the opposition, concede little." },
+      { id: "chaos",          label: "🎲 Chaos",          desc: "Lateral, divergent, randomized — surprising connections and wild-card angles over the obvious." },
+      { id: "dreamer",        label: "🌌 Dreamer",        desc: "Expansive and imaginative — each member amplifies the vision and dreams bigger." },
+      { id: "problem-solver", label: "🧩 Problem-Solver", desc: "Frames the input as a PROBLEM and returns multiple ways to APPROACH it, with trade-offs — not just one answer." }
     ];
-    var selectedMode = 'default';
+    var selectedMode = "default";
     function buildModes() {
-      var row = document.getElementById('mode-row');
+      var row = document.getElementById("mode-row");
       row.innerHTML = MODES.map(function (m) {
-        return '<button type="button" class="mode-pill' + (m.id === selectedMode ? ' selected' : '') +
-          '" data-mode="' + m.id + '" onclick="selectMode(\'' + m.id + '\')">' + m.label + '</button>';
-      }).join('');
+        return '<button type="button" class="mode-pill' + (m.id === selectedMode ? " selected" : "") +
+          '" data-mode="' + m.id + '" onclick="selectMode(\'' + m.id + '\')">' + m.label + "</button>";
+      }).join("");
       updateModeDesc();
     }
     function selectMode(id) {
       selectedMode = id;
-      var pills = document.querySelectorAll('.mode-pill');
-      for (var i = 0; i < pills.length; i++) pills[i].classList.toggle('selected', pills[i].getAttribute('data-mode') === id);
+      var pills = document.querySelectorAll(".mode-pill");
+      for (var i = 0; i < pills.length; i++) pills[i].classList.toggle("selected", pills[i].getAttribute("data-mode") === id);
       updateModeDesc();
     }
     function updateModeDesc() {
       var m = MODES.filter(function (x) { return x.id === selectedMode; })[0];
-      document.getElementById('mode-desc').textContent = m ? m.desc : '';
+      document.getElementById("mode-desc").textContent = m ? m.desc : "";
     }
 
     // ── Capability toggles ────────────────────────────────────────────────────
-    // Web Search defaults ON (it works); user can switch it OFF for a faster,
-    // model-knowledge-only run. Delegation defaults OFF (no public fleet endpoint
-    // yet). Each value is sent in the payload and gates the matching server stage.
     var webSearchOn = true;
     var delegationOn = false;
     function paintToggle(id, on) {
       var el = document.getElementById(id);
       if (!el) return;
-      el.classList.toggle('on', !!on);
-      el.setAttribute('aria-checked', on ? 'true' : 'false');
+      el.classList.toggle("on", !!on);
+      el.setAttribute("aria-checked", on ? "true" : "false");
     }
-    function toggleWebSearch() { webSearchOn = !webSearchOn; paintToggle('toggle-websearch', webSearchOn); }
-    function toggleDelegation() { delegationOn = !delegationOn; paintToggle('toggle-delegation', delegationOn); }
-    // Keyboard a11y for the switch role.
-    ['toggle-websearch', 'toggle-delegation'].forEach(function (id) {
+    function toggleWebSearch() { webSearchOn = !webSearchOn; paintToggle("toggle-websearch", webSearchOn); updateRoundEst(); }
+    function toggleDelegation() { delegationOn = !delegationOn; paintToggle("toggle-delegation", delegationOn); }
+    ["toggle-websearch", "toggle-delegation"].forEach(function (id) {
       var el = document.getElementById(id);
-      if (el) el.addEventListener('keydown', function (e) {
-        if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); el.click(); }
+      if (el) el.addEventListener("keydown", function (e) {
+        if (e.key === " " || e.key === "Enter") { e.preventDefault(); el.click(); }
       });
     });
 
-    // ── Stage rendering ───────────────────────────────────────────────────────
-    var passNum = 0;          // each run/follow-up is a "pass"; namespaces card ids
-    var lastSynthesis = '';   // seeds the next interactive round
-    var liveBuffers = {};     // cardId -> accumulating streamed text
-    var runCompleted = false; // set true when the server sends {stage:'complete'}
-    var currentRunId = '';    // server-registry key for resume-on-reattach
-    var lastSeq = 0;          // highest event seq the client has fully processed
-    function genRunId() {
-      return 'r' + Date.now().toString(36) + Math.random().toString(36).slice(2, 10);
-    }
+    // ─────────────────────────────────────────────────────────────────────────
+    //  STREAMING PIPELINE  (ported verbatim from the proven council client —
+    //  resilient SSE with resume/reattach, live token deltas, graceful failure)
+    // ─────────────────────────────────────────────────────────────────────────
+    var API_URL = (location.hostname === "sdforest.site")
+      ? "https://www.sdforest.site/api/council"
+      : "/api/council";
 
-    // ── Tab-switch / connection resilience ────────────────────────────────────
-    // The run is NEVER tied to tab focus — we add no blur/visibility handler that
-    // aborts it. Continuous token streaming + the server's 8s heartbeats keep the
-    // connection alive across a backgrounded tab. As a safety net, if the stream
-    // is dropped mid-run (mobile suspend / proxy), we transparently reconnect and
-    // RESUME into the same cards (seeded with any synthesis so far) instead of
-    // wiping the screen and starting from scratch.
+    var passNum = 0;
+    var lastSynthesis = "";
+    var liveBuffers = {};
+    var runCompleted = false;
+    var currentRunId = "";
+    var lastSeq = 0;
+    function genRunId() { return "r" + Date.now().toString(36) + Math.random().toString(36).slice(2, 10); }
+
     var wakeLock = null;
     async function acquireWakeLock() {
-      try { if (navigator.wakeLock && document.visibilityState === 'visible') wakeLock = await navigator.wakeLock.request('screen'); } catch (e) {}
+      try { if (navigator.wakeLock && document.visibilityState === "visible") wakeLock = await navigator.wakeLock.request("screen"); } catch (e) {}
     }
     function releaseWakeLock() { try { if (wakeLock) { wakeLock.release(); wakeLock = null; } } catch (e) {} }
-    document.addEventListener('visibilitychange', function () {
-      // Re-acquire the wake lock on return; do NOT touch the in-flight run.
-      if (document.visibilityState === 'visible' && !runCompleted) acquireWakeLock();
+    document.addEventListener("visibilitychange", function () {
+      if (document.visibilityState === "visible" && !runCompleted) acquireWakeLock();
     });
     function sleep(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
     function reconnectNotice(attempt) {
-      var n = document.createElement('div');
-      n.className = 'round-header';
+      var n = document.createElement("div");
+      n.className = "round-header";
       n.innerHTML = '<div class="round-label" style="color:var(--accent);text-transform:none;letter-spacing:0;font-weight:600;">&#8635; Connection paused &mdash; resuming the deliberation (attempt ' + attempt + ')&#8230;</div><div class="round-line"></div>';
-      document.getElementById('stages').appendChild(n);
+      document.getElementById("stages").appendChild(n);
     }
-
-    // ── Modes (treatment instructions, picked before running) ─────────────────
-    var MODES = [
-      { id: 'default',        label: '⚖️ Balanced',       desc: 'The clean default — each member fairly weighs and builds on the prior response.' },
-      { id: 'adversarial',    label: '⚔️ Adversarial',    desc: 'Members push back hard on the prior response — attack assumptions, steelman the opposition, concede little.' },
-      { id: 'chaos',          label: '🎲 Chaos',          desc: 'Lateral, divergent, randomized — surprising connections and wild-card angles over the obvious.' },
-      { id: 'dreamer',        label: '🌌 Dreamer',        desc: 'Expansive and imaginative — each member amplifies the vision and dreams bigger.' },
-      { id: 'problem-solver', label: '🧩 Problem-Solver', desc: 'Frames the input as a PROBLEM and returns multiple ways to APPROACH it, with trade-offs — not just one answer.' }
-    ];
-    var selectedMode = 'default';
-    function buildModes() {
-      var row = document.getElementById('mode-row');
-      row.innerHTML = MODES.map(function (m) {
-        return '<button type="button" class="mode-pill' + (m.id === selectedMode ? ' selected' : '') +
-          '" data-mode="' + m.id + '" onclick="selectMode(\'' + m.id + '\')">' + m.label + '</button>';
-      }).join('');
-      updateModeDesc();
-    }
-    function selectMode(id) {
-      selectedMode = id;
-      var pills = document.querySelectorAll('.mode-pill');
-      for (var i = 0; i < pills.length; i++) pills[i].classList.toggle('selected', pills[i].getAttribute('data-mode') === id);
-      updateModeDesc();
-    }
-    function updateModeDesc() {
-      var m = MODES.filter(function (x) { return x.id === selectedMode; })[0];
-      document.getElementById('mode-desc').textContent = m ? m.desc : '';
-    }
-
-    // ── Stage rendering ───────────────────────────────────────────────────────
-    var passNum = 0;          // each run/follow-up is a "pass"; namespaces card ids
-    var lastSynthesis = '';   // seeds the next interactive round
-    var liveBuffers = {};     // cardId -> accumulating streamed text
 
     function copyStage(cardId) {
-      var el = document.getElementById('content-' + cardId);
+      var el = document.getElementById("content-" + cardId);
       if (!el) return;
       var text = el.textContent;
       if (!text || !text.trim()) return;
       navigator.clipboard.writeText(text.trim()).then(function () {
-        var btn = document.querySelector('#stage-' + cardId + ' .copy-btn');
+        var btn = document.querySelector("#stage-" + cardId + " .copy-btn");
         if (!btn) return;
         var orig = btn.textContent;
-        btn.textContent = 'Copied'; btn.classList.add('copied');
-        setTimeout(function () { btn.textContent = orig; btn.classList.remove('copied'); }, 2000);
+        btn.textContent = "Copied"; btn.classList.add("copied");
+        setTimeout(function () { btn.textContent = orig; btn.classList.remove("copied"); }, 2000);
       }).catch(function () {});
     }
     function toggleStage(cardId) {
-      var card = document.getElementById('stage-' + cardId);
-      if (card) card.classList.toggle('open');
+      var card = document.getElementById("stage-" + cardId);
+      if (card) card.classList.toggle("open");
     }
     function setStatus(cardId, type, html) {
-      var el = document.getElementById('status-' + cardId);
+      var el = document.getElementById("status-" + cardId);
       if (!el) return;
-      el.className = 'stage-status ' + type;
-      el.innerHTML = type === 'thinking' ? '<span class="spinner"></span> ' + html : html;
+      el.className = "stage-status " + type;
+      el.innerHTML = type === "thinking" ? '<span class="spinner"></span> ' + html : html;
     }
     function setModelBadge(cardId, modelName) {
-      var el = document.getElementById('modelbadge-' + cardId);
-      if (el && modelName) { el.textContent = modelName; el.classList.add('show'); }
+      var el = document.getElementById("modelbadge-" + cardId);
+      if (el && modelName) { el.textContent = modelName; el.classList.add("show"); }
     }
     function openCard(cardId) {
-      var card = document.getElementById('stage-' + cardId);
-      if (card) card.classList.add('open', 'active');
+      var card = document.getElementById("stage-" + cardId);
+      if (card) card.classList.add("open", "active");
     }
     function doneCard(cardId, cls) {
-      var card = document.getElementById('stage-' + cardId);
+      var card = document.getElementById("stage-" + cardId);
       if (!card) return;
-      card.classList.remove('active');
-      card.classList.add(cls || 'done');
+      card.classList.remove("active");
+      card.classList.add(cls || "done");
     }
-
     function ensureRoundHeader(round) {
-      var id = 'round-hdr-' + passNum + '-' + round;
+      var id = "round-hdr-" + passNum + "-" + round;
       if (!document.getElementById(id)) {
-        var hdr = document.createElement('div');
-        hdr.id = id; hdr.className = 'round-header';
+        var hdr = document.createElement("div");
+        hdr.id = id; hdr.className = "round-header";
         hdr.innerHTML = '<div class="round-label">Round ' + round + '</div><div class="round-line"></div>';
-        document.getElementById('stages').appendChild(hdr);
+        document.getElementById("stages").appendChild(hdr);
       }
     }
     function ensureDivider(key, label, color) {
-      var divId = 'div-' + passNum + '-' + key;
+      var divId = "div-" + passNum + "-" + key;
       if (!document.getElementById(divId)) {
-        var hdr = document.createElement('div');
-        hdr.id = divId; hdr.className = 'round-header';
-        hdr.innerHTML = '<div class="round-label" style="color:' + (color || '#475569') + '">' + label + '</div><div class="round-line"></div>';
-        document.getElementById('stages').appendChild(hdr);
+        var hdr = document.createElement("div");
+        hdr.id = divId; hdr.className = "round-header";
+        hdr.innerHTML = '<div class="round-label" style="color:' + (color || "#475569") + '">' + label + '</div><div class="round-line"></div>';
+        document.getElementById("stages").appendChild(hdr);
       }
     }
-
     function createCard(cardId, roleClass, icon, name, desc, extraClass) {
-      if (document.getElementById('stage-' + cardId)) return;
-      var card = document.createElement('div');
-      card.id = 'stage-' + cardId;
-      card.className = 'stage-card' + (extraClass ? ' ' + extraClass : '');
+      if (document.getElementById("stage-" + cardId)) return;
+      var card = document.createElement("div");
+      card.id = "stage-" + cardId;
+      card.className = "stage-card" + (extraClass ? " " + extraClass : "");
       var roleCap = roleClass.charAt(0).toUpperCase() + roleClass.slice(1);
       card.innerHTML =
         '<div class="stage-header" onclick="toggleStage(\'' + cardId + '\')">' +
@@ -629,184 +888,167 @@
           '<button class="copy-btn" onclick="copyStage(\'' + cardId + '\')">Copy</button>' +
           '<div class="stage-content" id="content-' + cardId + '"><span class="placeholder-text">Generating&#8230;</span></div>' +
         '</div>';
-      document.getElementById('stages').appendChild(card);
+      document.getElementById("stages").appendChild(card);
     }
-
-    // Resolve the {stage, round} of an event to a namespaced card id + metadata.
     function cardFor(event) {
       var stage = event.stage, round = event.round;
-      if (stage === 'proposer') {
+      if (stage === "proposer") {
         return {
-          id: 'p' + passNum + '-proposer-r' + round, role: 'proposer', icon: '&#128161;',
-          name: round === 1 ? 'Proposer &#8212; Initial' : 'Proposer &#8212; Revision ' + round,
-          desc: round === 1 ? 'Forms the initial response &mdash; direct and substantive'
-                            : 'Revises based on the previous member&#39;s reaction',
-          headerRound: round, extra: ''
+          id: "p" + passNum + "-proposer-r" + round, role: "proposer", icon: "&#128161;",
+          name: round === 1 ? "Proposer &#8212; Initial" : "Proposer &#8212; Revision " + round,
+          desc: round === 1 ? "Forms the initial response &mdash; direct and substantive"
+                            : "Revises based on the previous member&#39;s reaction",
+          headerRound: round, extra: ""
         };
       }
-      if (stage === 'critic') {
+      if (stage === "critic") {
         return {
-          id: 'p' + passNum + '-critic-r' + round, role: 'critic', icon: '&#128269;',
-          name: 'Critic &#8212; Round ' + round,
-          desc: 'Different AI family &mdash; treats the prior response per the chosen mode',
-          headerRound: round, extra: ''
+          id: "p" + passNum + "-critic-r" + round, role: "critic", icon: "&#128269;",
+          name: "Critic &#8212; Round " + round,
+          desc: "Different AI family &mdash; treats the prior response per the chosen mode",
+          headerRound: round, extra: ""
         };
       }
-      if (stage === 'synthesizer') {
+      if (stage === "synthesizer") {
         return {
-          id: 'p' + passNum + '-synthesizer', role: 'synth', icon: '&#9989;',
-          name: 'Synthesizer', desc: 'Weaves all responses &amp; reactions into the definitive result',
-          divider: ['synth', 'Synthesis', '#475569'], extra: ''
+          id: "p" + passNum + "-synthesizer", role: "synth", icon: "&#9989;",
+          name: "Synthesizer", desc: "Weaves all responses &amp; reactions into the definitive result",
+          divider: ["synth", "Synthesis", "#475569"], extra: ""
         };
       }
-      if (stage === 'judge') {
+      if (stage === "judge") {
         return {
-          id: 'p' + passNum + '-judge', role: 'judge', icon: '&#9878;&#65039;',
-          name: 'Judge &#8212; Verdict', desc: 'Delivers the final decision, confidence &amp; call to action',
-          divider: ['judge', 'Verdict', 'var(--amber)'], extra: 'judge-card'
+          id: "p" + passNum + "-judge", role: "judge", icon: "&#9878;&#65039;",
+          name: "Judge &#8212; Verdict", desc: "Delivers the final decision, confidence &amp; call to action",
+          divider: ["judge", "Verdict", "var(--amber)"], extra: "judge-card"
         };
       }
       return null;
     }
-
     function handleEvent(event) {
-      if (event.stage === 'meta' || event.stage === 'complete') return; // handled in runStream
-      if (event.stage === 'error') throw new Error(event.error || 'Unknown error from council');
-      if (event.stage === 'notice') {
-        var n = document.createElement('div');
-        n.className = 'round-header';
+      if (event.stage === "meta" || event.stage === "complete") return;
+      if (event.stage === "error") throw new Error(event.error || "Unknown error from council");
+      if (event.stage === "notice") {
+        var n = document.createElement("div");
+        n.className = "round-header";
         n.innerHTML = '<div class="round-label" style="color:var(--amber);text-transform:none;letter-spacing:0;font-weight:600;">&#9888; ' +
-          (event.text || '').replace(/</g, '&lt;') + '</div>';
-        document.getElementById('stages').appendChild(n);
+          (event.text || "").replace(/</g, "&lt;") + "</div>";
+        document.getElementById("stages").appendChild(n);
         return;
       }
-
       var c = cardFor(event);
       if (!c) return;
-
-      if (!document.getElementById('stage-' + c.id)) {
+      if (!document.getElementById("stage-" + c.id)) {
         if (c.headerRound) ensureRoundHeader(c.headerRound);
         if (c.divider) ensureDivider(c.divider[0], c.divider[1], c.divider[2]);
         createCard(c.id, c.role, c.icon, c.name, c.desc, c.extra);
       }
-
       var status = event.status;
-      var contentEl = document.getElementById('content-' + c.id);
-
-      if (status === 'thinking') {
+      var contentEl = document.getElementById("content-" + c.id);
+      if (status === "thinking") {
         openCard(c.id);
-        var hint = event.roster ? ' (' + event.roster[0] + ')' : '';
-        setStatus(c.id, 'thinking', (c.role === 'judge' ? 'Deliberating&#8230;' : 'Thinking&#8230;') + hint);
-      } else if (status === 'model') {
-        // A (new) model attempt started streaming — reset the live buffer so a
-        // failed-then-retried stage doesn't show concatenated garbage.
-        liveBuffers[c.id] = '';
-        if (contentEl) { contentEl.textContent = ''; contentEl.classList.add('streaming'); }
+        var hint = event.roster ? " (" + event.roster[0] + ")" : "";
+        setStatus(c.id, "thinking", (c.role === "judge" ? "Deliberating&#8230;" : "Thinking&#8230;") + hint);
+      } else if (status === "model") {
+        liveBuffers[c.id] = "";
+        if (contentEl) { contentEl.textContent = ""; contentEl.classList.add("streaming"); }
         setModelBadge(c.id, event.model);
-        setStatus(c.id, 'thinking', 'Streaming&#8230; (' + event.model + ')');
-      } else if (status === 'delta') {
-        liveBuffers[c.id] = (liveBuffers[c.id] || '') + (event.delta || '');
+        setStatus(c.id, "thinking", "Streaming&#8230; (" + event.model + ")");
+      } else if (status === "delta") {
+        liveBuffers[c.id] = (liveBuffers[c.id] || "") + (event.delta || "");
         if (contentEl) {
-          contentEl.classList.add('streaming');
+          contentEl.classList.add("streaming");
           contentEl.textContent = liveBuffers[c.id];
         }
-      } else if (status === 'done') {
-        if (contentEl) { contentEl.classList.remove('streaming'); contentEl.textContent = event.text; }
+      } else if (status === "done") {
+        if (contentEl) { contentEl.classList.remove("streaming"); contentEl.textContent = event.text; }
         if (event.model) setModelBadge(c.id, event.model);
-        setStatus(c.id, 'done', c.role === 'judge' ? '&#10003; Verdict' : '&#10003; Done');
-        doneCard(c.id, 'done');
-      } else if (status === 'failed') {
+        setStatus(c.id, "done", c.role === "judge" ? "&#10003; Verdict" : "&#10003; Done");
+        doneCard(c.id, "done");
+      } else if (status === "failed") {
         if (contentEl) {
-          contentEl.classList.remove('streaming');
+          contentEl.classList.remove("streaming");
           contentEl.innerHTML = '<span class="placeholder-text">All free models for this stage were rate-limited or timed out. The council continued with the remaining stages.</span>';
         }
-        setStatus(c.id, 'failed', '&#9888; Skipped');
-        doneCard(c.id, 'failed');
+        setStatus(c.id, "failed", "&#9888; Skipped");
+        doneCard(c.id, "failed");
       }
     }
-
     async function runStream(payload) {
       var res = await fetch(API_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
-
       if (!res.ok) {
         var err = await res.json().catch(function () { return { error: res.statusText }; });
-        throw new Error(err.error || 'HTTP ' + res.status);
+        throw new Error(err.error || "HTTP " + res.status);
       }
-
       var reader = res.body.getReader();
       var decoder = new TextDecoder();
-      var buf = '';
+      var buf = "";
       while (true) {
         var chunk = await reader.read();
         if (chunk.done) break;
         buf += decoder.decode(chunk.value, { stream: true });
-        var lines = buf.split('\n');
+        var lines = buf.split("\n");
         buf = lines.pop();
         for (var i = 0; i < lines.length; i++) {
           var line = lines[i];
-          if (!line || line.charAt(0) === ':') continue;       // SSE heartbeat comment
-          var trimmed = line.replace(/^data:\s*/, '').trim();
+          if (!line || line.charAt(0) === ":") continue;
+          var trimmed = line.replace(/^data:\s*/, "").trim();
           if (!trimmed) continue;
           var event;
           try { event = JSON.parse(trimmed); } catch (e) { continue; }
-          // Server couldn't find the run to resume (cold / different instance) →
-          // bubble up so the caller falls back to a seeded fresh run.
-          if (event.stage === 'resume_miss') throw new Error('RESUME_MISS');
-          // Idempotent replay guard: on reattach the server resends only seq>lastSeq,
-          // but ignore any straggler we've already rendered.
-          if (typeof event.seq === 'number') {
+          if (event.stage === "resume_miss") throw new Error("RESUME_MISS");
+          if (typeof event.seq === "number") {
             if (event.seq <= lastSeq) continue;
             lastSeq = event.seq;
           }
-          if (event.stage === 'complete') {
+          if (event.stage === "complete") {
             runCompleted = true;
-            if (event.synthesis) { lastSynthesis = event.synthesis; try { sessionStorage.setItem('council_last_synth', lastSynthesis); } catch (e) {} }
+            if (event.synthesis) { lastSynthesis = event.synthesis; try { sessionStorage.setItem("council_last_synth", lastSynthesis); } catch (e) {} }
             continue;
           }
           handleEvent(event);
         }
       }
-      // Reader ended. If the server never sent {stage:'complete'} and never threw
-      // an error, the connection was dropped mid-run — signal a resumable drop.
-      if (!runCompleted) throw new Error('STREAM_DROPPED');
+      if (!runCompleted) throw new Error("STREAM_DROPPED");
     }
-
     async function convene(question, priorContext, isFollowup) {
-      var btn = document.getElementById('submit-btn');
-      var fbtn = document.getElementById('followup-btn');
-      var errorEl = document.getElementById('error-banner');
-      var stagesEl = document.getElementById('stages');
-      var followCard = document.getElementById('followup-card');
+      var btn = document.getElementById("submit-btn");
+      var fbtn = document.getElementById("followup-btn");
+      var errorEl = document.getElementById("error-banner");
+      var stagesEl = document.getElementById("stages");
+      var followCard = document.getElementById("followup-card");
 
       btn.disabled = true; fbtn.disabled = true;
-      btn.textContent = 'Convening…';
-      errorEl.className = 'error-banner';
-      followCard.classList.remove('visible');
+      btn.textContent = "Convening…";
+      errorEl.className = "error-banner";
+      followCard.classList.remove("visible");
 
       if (isFollowup) {
         passNum++;
-        ensureDivider('followup', '&#128172; Follow-up ' + passNum, 'var(--purple)');
+        ensureDivider("followup", "&#128172; Follow-up " + passNum, "var(--purple)");
       } else {
         passNum = 0;
-        stagesEl.innerHTML = '';
+        stagesEl.innerHTML = "";
         liveBuffers = {};
       }
-      stagesEl.style.display = 'flex';
+      stagesEl.style.display = "flex";
       runCompleted = false;
       currentRunId = genRunId();
       lastSeq = 0;
       acquireWakeLock();
 
-      // Fresh-run payload carries the runId + capability toggles. The server runs
-      // this council to completion server-side and mirrors every event under runId.
+      // Fresh-run payload now carries the user's ROSTER override + ROUNDS. The
+      // server validates every slug is :free and falls back to its verified
+      // roster per stage, so the run always completes.
       var freshPayload = {
-        question: question, mode: selectedMode, priorContext: priorContext || '',
+        question: question, mode: selectedMode, priorContext: priorContext || "",
         code: accessCode(), runId: currentRunId,
         webSearch: webSearchOn, delegate: delegationOn,
+        rounds: selectedRounds, roster: buildRosterOverride(),
       };
       var payload = freshPayload;
       var attempts = 0;
@@ -814,20 +1056,16 @@
         while (true) {
           try {
             await runStream(payload);
-            break; // server sent {complete} (or ended cleanly after it)
+            break;
           } catch (err) {
             var m = err && err.message;
-            if ((m === 'STREAM_DROPPED' || m === 'RESUME_MISS') && attempts < 5) {
+            if ((m === "STREAM_DROPPED" || m === "RESUME_MISS") && attempts < 5) {
               attempts++;
               reconnectNotice(attempts);
-              if (m === 'STREAM_DROPPED') {
-                // TRUE RESUME: re-attach to the same server-side run and replay only
-                // the events we missed (seq > lastSeq) — no restart of the council.
+              if (m === "STREAM_DROPPED") {
                 runCompleted = false;
                 payload = { resume: true, runId: currentRunId, lastSeq: lastSeq, code: accessCode() };
               } else {
-                // Re-attach missed (cold/other instance) → seeded fresh run as a
-                // safe fallback, never worse than the old behaviour.
                 runCompleted = false;
                 currentRunId = genRunId();
                 lastSeq = 0;
@@ -842,74 +1080,72 @@
             throw err;
           }
         }
-        // Offer an interactive next round once we have a synthesis to build on.
         if (lastSynthesis) {
-          document.getElementById('followup-input').value = '';
-          followCard.classList.add('visible');
+          document.getElementById("followup-input").value = "";
+          followCard.classList.add("visible");
         }
       } catch (err) {
-        var dropped = err && (err.message === 'STREAM_DROPPED' || err.message === 'RESUME_MISS');
+        var dropped = err && (err.message === "STREAM_DROPPED" || err.message === "RESUME_MISS");
         var msg = dropped
-          ? 'The connection dropped and could not be resumed after several attempts. Please tap Convene again — your access code is remembered.'
-          : (err && err.message) || 'Unexpected error.';
+          ? "The connection dropped and could not be resumed after several attempts. Please tap Convene again — your access code is remembered."
+          : (err && err.message) || "Unexpected error.";
         errorEl.textContent = msg;
-        errorEl.className = 'error-banner visible';
+        errorEl.className = "error-banner visible";
       } finally {
         releaseWakeLock();
         btn.disabled = false; fbtn.disabled = false;
-        btn.textContent = 'Convene Council';
+        btn.textContent = "Convene Council";
       }
     }
 
-    // ── 4-digit access gate (client side) ─────────────────────────────────────
-    // The code is validated SERVER-SIDE; this is just format-checking + UX. The
-    // real value is never in this file, so it can't be scraped from the page.
-    var codeEl = document.getElementById('access-code');
-    try { var saved = localStorage.getItem('council_code'); if (saved) codeEl.value = saved; } catch (e) {}
-    function accessCode() { return (codeEl.value || '').replace(/\D/g, '').slice(0, 4); }
+    // ── 4-digit access gate (client side; validated server-side) ──────────────
+    var codeEl = document.getElementById("access-code");
+    try { var saved = localStorage.getItem("council_code"); if (saved) codeEl.value = saved; } catch (e) {}
+    function accessCode() { return (codeEl.value || "").replace(/\D/g, "").slice(0, 4); }
     function gateOk() {
       var c = accessCode();
       if (c.length !== 4) {
-        var errorEl = document.getElementById('error-banner');
-        errorEl.textContent = 'Enter the 4-digit access code (ask Ivan) to convene the council.';
-        errorEl.className = 'error-banner visible';
-        codeEl.classList.add('bad'); codeEl.focus();
+        var errorEl = document.getElementById("error-banner");
+        errorEl.textContent = "Enter the 4-digit access code (ask Ivan) to convene the council.";
+        errorEl.className = "error-banner visible";
+        codeEl.classList.add("bad"); codeEl.focus();
         return false;
       }
-      codeEl.classList.remove('bad');
-      try { localStorage.setItem('council_code', c); } catch (e) {}
+      codeEl.classList.remove("bad");
+      try { localStorage.setItem("council_code", c); } catch (e) {}
       return true;
     }
-
     function runCouncil() {
-      var question = document.getElementById('question').value.trim();
+      var question = document.getElementById("question").value.trim();
       if (!question) {
-        var errorEl = document.getElementById('error-banner');
-        errorEl.textContent = 'Please enter a question first.';
-        errorEl.className = 'error-banner visible';
-        document.getElementById('question').focus();
+        var errorEl = document.getElementById("error-banner");
+        errorEl.textContent = "Please enter a question first.";
+        errorEl.className = "error-banner visible";
+        document.getElementById("question").focus();
         return;
       }
       if (!gateOk()) return;
-      convene(question, '', false);
+      convene(question, "", false);
     }
-
     function runFollowup() {
-      var follow = document.getElementById('followup-input').value.trim();
-      if (!follow) { document.getElementById('followup-input').focus(); return; }
+      var follow = document.getElementById("followup-input").value.trim();
+      if (!follow) { document.getElementById("followup-input").focus(); return; }
       if (!gateOk()) return;
       convene(follow, lastSynthesis, true);
     }
-
-    document.getElementById('question').addEventListener('keydown', function (e) {
-      if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') runCouncil();
+    document.getElementById("question").addEventListener("keydown", function (e) {
+      if ((e.ctrlKey || e.metaKey) && e.key === "Enter") runCouncil();
     });
-    document.getElementById('followup-input').addEventListener('keydown', function (e) {
-      if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') runFollowup();
+    document.getElementById("followup-input").addEventListener("keydown", function (e) {
+      if ((e.ctrlKey || e.metaKey) && e.key === "Enter") runFollowup();
     });
 
+    // ── Boot ──────────────────────────────────────────────────────────────────
     buildSuggestions();
     buildModes();
+    renderModels();
+    renderRounds();
+    renderFlow();
   </script>
 </body>
 </html>
