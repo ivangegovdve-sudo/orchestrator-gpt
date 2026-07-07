@@ -38,3 +38,7 @@ data/gmail-inbox-index/gmail-device-auth.json
 data/gmail-inbox-index/gmail-auth-url.txt
 data/gmail-inbox-index/gmail-auth.log
 data/gmail-inbox-index/gmail-auth.err.log
+
+.vercel_python_packages/
+.claude/
+docs/superpowers/
