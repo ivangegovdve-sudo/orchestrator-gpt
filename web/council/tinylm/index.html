@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TinyLM Forest Council · SD Forest</title>
+  <meta name="description" content="Small open models (135M–3B) deliberate live on the fleet's own Oracle ARM server — streamed to your browser token by token. No cloud APIs.">
+  <style>
+    :root {
+      --bg: #09090b;
+      --card-bg: rgba(24, 24, 27, 0.6);
+      --card-border: rgba(255, 255, 255, 0.08);
+      --text: #f8fafc;
+      --muted: #a1a1aa;
+      --green: #22c55e;
+      --accent: #0ea5e9;
+      --purple: #8b5cf6;
+      --rose: #f43f5e;
+      --amber: #f59e0b;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; min-height: 100vh;
+      background-color: var(--bg);
+      background-image:
+        radial-gradient(circle at 20% 35%, rgba(34, 197, 94, 0.08), transparent 45%),
+        radial-gradient(circle at 80% 15%, rgba(14, 165, 233, 0.07), transparent 45%);
+      color: var(--text);
+      font-family: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+      padding: 28px 20px 60px;
+    }
+    .page { max-width: 860px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
+    .topbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+    .back-link { color: var(--muted); text-decoration: none; font-size: 13px; }
+    .back-link:hover { color: var(--text); }
+    .gate-wrap { display: flex; align-items: center; gap: 8px; }
+    .gate-label { font-size: 11px; color: #64748b; white-space: nowrap; }
+    .code-input {
+      width: 74px; background: rgba(0,0,0,0.35); border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 8px; color: var(--text); font-family: monospace; font-size: 14px;
+      letter-spacing: 0.35em; text-align: center; padding: 7px 6px; outline: none;
+    }
+    .code-input:focus { border-color: rgba(34,197,94,0.6); }
+    .code-input.bad { border-color: var(--rose); }
+    h1 { margin: 0 0 6px; font-size: 28px; letter-spacing: -0.4px; }
+    .tagline { margin: 0; color: var(--muted); font-size: 14.5px; line-height: 1.5; }
+    .card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 16px; padding: 18px; }
+    .section-label { display: block; font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin-bottom: 10px; }
+    textarea {
+      width: 100%; resize: vertical; background: rgba(0,0,0,0.35); border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 12px; color: var(--text); font-family: inherit; font-size: 14px;
+      padding: 12px 14px; outline: none; min-height: 68px;
+    }
+    textarea:focus { border-color: rgba(34,197,94,0.5); }
+    .go-row { display: flex; justify-content: flex-end; margin-top: 12px; align-items: center; gap: 12px; }
+    .note { font-size: 11.5px; color: #64748b; }
+    .go-btn {
+      background: linear-gradient(135deg, #22c55e, #0ea5e9); border: none; border-radius: 12px;
+      color: #04120a; font-weight: 800; font-size: 14px; padding: 11px 24px; cursor: pointer;
+      transition: transform 0.15s, opacity 0.2s;
+    }
+    .go-btn:hover { transform: translateY(-1px); }
+    .go-btn:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
+    .error-banner { display: none; background: rgba(244,63,94,0.08); border: 1px solid rgba(244,63,94,0.3); color: #fda4af; font-size: 13px; border-radius: 12px; padding: 12px 16px; }
+    .seats { display: none; flex-direction: column; gap: 14px; }
+    .seat { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 14px; padding: 16px 18px; }
+    .seat-head { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; margin-bottom: 8px; }
+    .seat-role { font-size: 14px; font-weight: 700; }
+    .seat-model { font-size: 11px; color: var(--muted); font-family: monospace; }
+    .seat-status { margin-left: auto; font-size: 11px; font-weight: 600; letter-spacing: 0.04em; }
+    .seat.waiting  { opacity: 0.55; }
+    .seat.waiting  .seat-status { color: #64748b; }
+    .seat.thinking .seat-status { color: var(--amber); }
+    .seat.thinking { border-color: rgba(245,158,11,0.35); }
+    .seat.done     .seat-status { color: var(--green); }
+    .seat.failed   .seat-status { color: var(--rose); }
+    .seat-text { font-size: 13.5px; line-height: 1.6; color: #e4e4e7; white-space: pre-wrap; word-wrap: break-word; min-height: 1.2em; }
+    .seat-text:empty::before { content: "\2026"; color: #3f3f46; }
+    .seat.synthesis { border-top: 2px solid var(--green); }
+    .cursor { display: inline-block; width: 7px; height: 15px; background: var(--green); vertical-align: -2px; margin-left: 2px; animation: blink 0.9s steps(1) infinite; }
+    @keyframes blink { 50% { opacity: 0; } }
+    .footer-tag { text-align: center; font-size: 11px; color: #52525b; }
+    .footer-tag code { background: rgba(255,255,255,0.06); padding: 1px 6px; border-radius: 5px; }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="topbar">
+      <a href="../" class="back-link">&#8592; Councils</a>
+      <div class="gate-wrap">
+        <span class="gate-label">&#128274; Access code</span>
+        <input id="access-code" class="code-input" inputmode="numeric" pattern="[0-9]*" maxlength="4"
+               placeholder="&bull;&bull;&bull;&bull;" autocomplete="off" aria-label="4-digit access code" />
+      </div>
+    </div>
+
+    <header>
+      <h1>&#127793; TinyLM Forest Council</h1>
+      <p class="tagline">Five small open models (135M&ndash;3B params) deliberate in sequence on the fleet&#39;s Oracle ARM server &mdash; every token generated on our own silicon and streamed straight here. Zero cloud LLM calls.</p>
+    </header>
+
+    <div class="card">
+      <span class="section-label">&#10067; Your question</span>
+      <textarea id="question" placeholder="Ask the tiny council anything &mdash; expect charming, scrappy reasoning, not GPT-4&hellip;" rows="3"></textarea>
+      <div class="go-row">
+        <span class="note">Small models on 4 ARM cores &mdash; a full run takes a couple of minutes.</span>
+        <button class="go-btn" id="go" onclick="convene()">Convene</button>
+      </div>
+    </div>
+
+    <div class="error-banner" id="error-banner"></div>
+    <div class="seats" id="seats"></div>
+
+    <p class="footer-tag">browser &rarr; <code>chloe.blumenkraft.cloud/council/stream</code> &rarr; soul-server &rarr; Ollama on Oracle (aarch64, 4 OCPU) &middot; $0 &middot; no external LLM API</p>
+  </div>
+
+  <script>
+    var BASE = "https://chloe.blumenkraft.cloud";
+    var seatsEl = document.getElementById("seats");
+    var errEl = document.getElementById("error-banner");
+    var goBtn = document.getElementById("go");
+    var codeEl = document.getElementById("access-code");
+    var es = null;
+    var seatDom = {};   // seat key -> {root,text,status}
+
+    codeEl.value = sessionStorage.getItem("sdf-code") || "";
+
+    function fail(msg) {
+      errEl.textContent = msg;
+      errEl.style.display = "block";
+      goBtn.disabled = false;
+      if (es) { es.close(); es = null; }
+    }
+
+    function buildSeat(seat, role, model) {
+      var root = document.createElement("div");
+      root.className = "seat waiting" + (seat === "synthesis" ? " synthesis" : "");
+      root.innerHTML =
+        '<div class="seat-head"><span class="seat-role"></span>' +
+        '<span class="seat-model"></span><span class="seat-status">Waiting</span></div>' +
+        '<div class="seat-text"></div>';
+      root.querySelector(".seat-role").textContent = role;
+      root.querySelector(".seat-model").textContent = model;
+      seatsEl.appendChild(root);
+      seatDom[seat] = {
+        root: root,
+        text: root.querySelector(".seat-text"),
+        status: root.querySelector(".seat-status")
+      };
+    }
+
+    function setState(seat, cls, label) {
+      var d = seatDom[seat];
+      if (!d) return;
+      d.root.className = d.root.className.replace(/\b(waiting|thinking|done|failed)\b/g, "").trim() + " " + cls;
+      d.status.textContent = label;
+    }
+
+    function convene() {
+      var q = document.getElementById("question").value.trim();
+      var code = codeEl.value.trim();
+      if (!q) { fail("Type a question first."); return; }
+      if (!/^\d{4}$/.test(code)) { codeEl.classList.add("bad"); fail("Enter the 4-digit access code (ask Ivan)."); return; }
+      codeEl.classList.remove("bad");
+      sessionStorage.setItem("sdf-code", code);
+
+      errEl.style.display = "none";
+      seatsEl.innerHTML = ""; seatDom = {};
+      seatsEl.style.display = "flex";
+      goBtn.disabled = true;
+      if (es) es.close();
+
+      es = new EventSource(BASE + "/council/stream?q=" + encodeURIComponent(q) + "&code=" + encodeURIComponent(code));
+
+      es.onmessage = function (evt) {
+        var d;
+        try { d = JSON.parse(evt.data); } catch (e) { return; }
+        if (d.type === "meta") {
+          for (var i = 0; i < d.roster.length; i++) buildSeat(d.roster[i].seat, d.roster[i].label, d.roster[i].model);
+        } else if (d.type === "seat") {
+          var s = seatDom[d.seat];
+          if (!s) return;
+          if (d.status === "start") { setState(d.seat, "thinking", "Thinking"); s.cur = document.createElement("span"); s.cur.className = "cursor"; s.text.appendChild(s.cur); }
+          else if (d.status === "delta" && d.delta) {
+            if (s.cur) s.text.insertBefore(document.createTextNode(d.delta), s.cur);
+            else s.text.appendChild(document.createTextNode(d.delta));
+          }
+          else if (d.status === "done") { if (s.cur) { s.cur.remove(); s.cur = null; } setState(d.seat, "done", "Done"); }
+          else if (d.status === "failed") { if (s.cur) { s.cur.remove(); s.cur = null; } setState(d.seat, "failed", d.error ? "Failed — " + d.error : "Failed"); }
+        } else if (d.type === "complete") {
+          goBtn.disabled = false;
+          es.close(); es = null;
+        } else if (d.type === "error") {
+          fail(d.error || "Council error.");
+        }
+      };
+
+      es.onerror = function () {
+        // EventSource fires error on stream end too; only surface if we never completed
+        if (es && es.readyState === EventSource.CLOSED) {
+          fail("Stream dropped — the tiny council may be busy or the access code was wrong. Try again.");
+        }
+      };
+    }
+
+    document.getElementById("question").addEventListener("keydown", function (e) {
+      if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) { e.preventDefault(); convene(); }
+    });
+  </script>
+</body>
+</html>

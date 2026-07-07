@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Chloé — Fleet Voice · SD Forest</title>
+  <meta name="description" content="Talk directly to Chloé, the orchestrator of Ivan's agent fleet — answered live by her soul-server brain on Oracle.">
+  <style>
+    :root {
+      --bg: #09090b;
+      --card-bg: rgba(24, 24, 27, 0.6);
+      --card-border: rgba(255, 255, 255, 0.08);
+      --text: #f8fafc;
+      --muted: #a1a1aa;
+      --accent: #0ea5e9;
+      --rose: #f43f5e;
+      --green: #22c55e;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; min-height: 100vh;
+      background-color: var(--bg);
+      background-image:
+        radial-gradient(circle at 25% 30%, rgba(244, 63, 94, 0.09), transparent 45%),
+        radial-gradient(circle at 80% 15%, rgba(139, 92, 246, 0.08), transparent 45%);
+      color: var(--text);
+      font-family: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+      padding: 28px 20px 60px;
+    }
+    .page { max-width: 760px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
+    .back-link { color: var(--muted); text-decoration: none; font-size: 13px; }
+    .back-link:hover { color: var(--text); }
+    h1 { margin: 0 0 6px; font-size: 28px; letter-spacing: -0.4px; }
+    .tagline { margin: 0; color: var(--muted); font-size: 14.5px; line-height: 1.5; }
+    .status-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #52525b; margin-right: 6px; vertical-align: 1px; }
+    .status-dot.up { background: var(--green); box-shadow: 0 0 8px rgba(34,197,94,0.6); }
+    .status-dot.down { background: var(--rose); }
+    .status-line { font-size: 12px; color: var(--muted); }
+    .chat {
+      background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 16px;
+      padding: 18px; display: flex; flex-direction: column; gap: 14px;
+      min-height: 320px; max-height: 60vh; overflow-y: auto;
+    }
+    .msg { max-width: 84%; padding: 11px 15px; border-radius: 14px; font-size: 14px; line-height: 1.55; white-space: pre-wrap; word-wrap: break-word; }
+    .msg.user { align-self: flex-end; background: rgba(14,165,233,0.16); border: 1px solid rgba(14,165,233,0.25); border-bottom-right-radius: 4px; }
+    .msg.chloe { align-self: flex-start; background: rgba(244,63,94,0.10); border: 1px solid rgba(244,63,94,0.22); border-bottom-left-radius: 4px; }
+    .msg.chloe .who { display: block; font-size: 10.5px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: #fda4af; margin-bottom: 5px; }
+    .msg.meta { align-self: center; background: none; border: none; color: #52525b; font-size: 11.5px; padding: 2px; }
+    .msg.err { align-self: center; background: rgba(244,63,94,0.08); border: 1px solid rgba(244,63,94,0.3); color: #fda4af; font-size: 12.5px; }
+    .typing { align-self: flex-start; color: var(--muted); font-size: 13px; padding: 6px 4px; }
+    .typing::after { content: ""; display: inline-block; width: 1.2em; text-align: left; animation: dots 1.2s steps(4) infinite; }
+    @keyframes dots { 0% { content: ""; } 25% { content: "."; } 50% { content: ".."; } 75% { content: "..."; } }
+    .composer { display: flex; gap: 10px; }
+    .composer textarea {
+      flex: 1; resize: none; background: rgba(0,0,0,0.35); border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 12px; color: var(--text); font-family: inherit; font-size: 14px;
+      padding: 12px 14px; outline: none; min-height: 52px;
+    }
+    .composer textarea:focus { border-color: rgba(244,63,94,0.5); }
+    .composer button {
+      background: linear-gradient(135deg, #f43f5e, #8b5cf6); border: none; border-radius: 12px;
+      color: white; font-weight: 700; font-size: 14px; padding: 0 22px; cursor: pointer;
+      transition: opacity 0.2s, transform 0.15s;
+    }
+    .composer button:hover { transform: translateY(-1px); }
+    .composer button:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
+    .footer-tag { text-align: center; font-size: 11px; color: #52525b; }
+    .footer-tag code { background: rgba(255,255,255,0.06); padding: 1px 6px; border-radius: 5px; }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div><a href="../" class="back-link">&#8592; Councils</a></div>
+
+    <header>
+      <h1>&#128172; Chlo&eacute; &mdash; Fleet Voice</h1>
+      <p class="tagline">Straight line to the orchestrator of Ivan&#39;s agent fleet. Answers come live from her soul-server brain on Oracle &mdash; SOUL.md loaded, fleet behind her.</p>
+      <p class="status-line" id="status-line"><span class="status-dot" id="status-dot"></span><span id="status-text">checking her pulse&hellip;</span></p>
+    </header>
+
+    <div class="chat" id="chat">
+      <div class="msg meta">Conversation stays in this tab only &mdash; Chlo&eacute; sees one message at a time.</div>
+    </div>
+
+    <div class="composer">
+      <textarea id="input" rows="2" placeholder="Say something to Chlo&eacute;&hellip;" aria-label="Message for Chloé"></textarea>
+      <button id="send" onclick="sendMsg()">Send</button>
+    </div>
+
+    <p class="footer-tag">browser &rarr; <code>chloe.blumenkraft.cloud</code> &rarr; soul-server :8654 (Groq llama-3.3-70b) &middot; no key needed</p>
+  </div>
+
+  <script>
+    var BASE = "https://chloe.blumenkraft.cloud";
+    var chat = document.getElementById("chat");
+    var input = document.getElementById("input");
+    var sendBtn = document.getElementById("send");
+
+    function add(cls, text, who) {
+      var d = document.createElement("div");
+      d.className = "msg " + cls;
+      if (who) {
+        var w = document.createElement("span");
+        w.className = "who"; w.textContent = who;
+        d.appendChild(w);
+      }
+      d.appendChild(document.createTextNode(text));
+      chat.appendChild(d);
+      chat.scrollTop = chat.scrollHeight;
+      return d;
+    }
+
+    // Health ping on load
+    (function () {
+      fetch(BASE + "/health", { method: "GET" }).then(function (r) { return r.json(); }).then(function (j) {
+        document.getElementById("status-dot").className = "status-dot up";
+        document.getElementById("status-text").textContent = "soul-server online (v" + (j.version || "?") + ")";
+      }).catch(function () {
+        document.getElementById("status-dot").className = "status-dot down";
+        document.getElementById("status-text").textContent = "soul-server unreachable right now";
+      });
+    })();
+
+    var busy = false;
+    async function sendMsg() {
+      var text = input.value.trim();
+      if (!text || busy) return;
+      busy = true; sendBtn.disabled = true; input.value = "";
+      add("user", text);
+      var typing = document.createElement("div");
+      typing.className = "typing"; typing.textContent = "Chloé is thinking";
+      chat.appendChild(typing); chat.scrollTop = chat.scrollHeight;
+      try {
+        var ctrl = new AbortController();
+        var t = setTimeout(function () { ctrl.abort(); }, 60000);
+        var r = await fetch(BASE + "/chat", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ message: text }),
+          signal: ctrl.signal
+        });
+        clearTimeout(t);
+        var j = await r.json();
+        typing.remove();
+        if (j && j.reply) {
+          add("chloe", j.reply, "Chloé · " + (j.model || "fleet"));
+        } else {
+          add("err", (j && j.error) ? String(j.error) : "Chloé didn't answer — try again in a moment.");
+        }
+      } catch (e) {
+        typing.remove();
+        add("err", e.name === "AbortError" ? "Timed out after 60s — Chloé may be busy. Try again." : "Couldn't reach Chloé: " + e.message);
+      }
+      busy = false; sendBtn.disabled = false; input.focus();
+    }
+
+    input.addEventListener("keydown", function (e) {
+      if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMsg(); }
+    });
+  </script>
+</body>
+</html>
