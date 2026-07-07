@@ -70,7 +70,15 @@
 </head>
 <body>
   <div class="page">
-    <div><a href="../" class="back-link">&#8592; Councils</a></div>
+    <div class="topbar-row" style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+      <a href="../" class="back-link">&#8592; Councils</a>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span style="font-size:11px;color:#64748b;white-space:nowrap;">&#128274; Access code</span>
+        <input id="access-code" inputmode="numeric" pattern="[0-9]*" maxlength="4"
+               placeholder="&bull;&bull;&bull;&bull;" autocomplete="off" aria-label="4-digit access code"
+               style="width:74px;background:rgba(0,0,0,0.35);border:1px solid rgba(255,255,255,0.12);border-radius:8px;color:var(--text);font-family:monospace;font-size:14px;letter-spacing:0.35em;text-align:center;padding:7px 6px;outline:none;" />
+      </div>
+    </div>
 
     <header>
       <h1>&#128172; Chlo&eacute; &mdash; Fleet Voice</h1>
@@ -87,7 +95,7 @@
       <button id="send" onclick="sendMsg()">Send</button>
     </div>
 
-    <p class="footer-tag">browser &rarr; <code>chloe.blumenkraft.cloud</code> &rarr; soul-server :8654 (Groq llama-3.3-70b) &middot; no key needed</p>
+    <p class="footer-tag">browser &rarr; <code>chloe.blumenkraft.cloud</code> &rarr; soul-server :8654 (Groq llama-3.3-70b) &middot; access-gated (ask Ivan for the code)</p>
   </div>
 
   <script>
@@ -95,6 +103,8 @@
     var chat = document.getElementById("chat");
     var input = document.getElementById("input");
     var sendBtn = document.getElementById("send");
+    var codeEl = document.getElementById("access-code");
+    codeEl.value = sessionStorage.getItem("sdf-code") || "";
 
     function add(cls, text, who) {
       var d = document.createElement("div");
@@ -124,7 +134,10 @@
     var busy = false;
     async function sendMsg() {
       var text = input.value.trim();
+      var code = codeEl.value.trim();
       if (!text || busy) return;
+      if (!/^\d{4}$/.test(code)) { codeEl.focus(); add("err", "Enter the 4-digit access code first (ask Ivan)."); return; }
+      sessionStorage.setItem("sdf-code", code);
       busy = true; sendBtn.disabled = true; input.value = "";
       add("user", text);
       var typing = document.createElement("div");
@@ -136,12 +149,16 @@
         var r = await fetch(BASE + "/chat", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ message: text }),
+          body: JSON.stringify({ message: text, code: code }),
           signal: ctrl.signal
         });
         clearTimeout(t);
-        var j = await r.json();
         typing.remove();
+        if (r.status === 401) {
+          add("err", "Access code rejected — check it with Ivan.");
+          busy = false; sendBtn.disabled = false; return;
+        }
+        var j = await r.json();
         if (j && j.reply) {
           add("chloe", j.reply, "Chloé · " + (j.model || "fleet"));
         } else {
