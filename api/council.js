@@ -130,7 +130,12 @@ const DELEGATE_ENDPOINT   = (process.env.COUNCIL_DELEGATE_ENDPOINT || "").trim()
 const DELEGATE_KEY        = (process.env.COUNCIL_DELEGATE_KEY || "").trim();        // Bearer for the gateway
 const DELEGATE_MODEL      = (process.env.COUNCIL_DELEGATE_MODEL || "chloe").trim();
 const DELEGATE_TIMEOUT_MS = Math.max(10000, Math.min(90000, parseInt(process.env.COUNCIL_DELEGATE_TIMEOUT_MS || "70000", 10) || 70000));
-const DELEGATION_ENABLED  = !/^(0|false|no|off)$/i.test((process.env.COUNCIL_DELEGATION_ENABLED || "1").trim()) && !!DELEGATE_ENDPOINT;
+// FLEET_BASE (2026-07-07): chloe.blumenkraft.cloud is live with a valid cert —
+// soul-server on Oracle fronts code-gated /council/recall (fleet memory RAG) and
+// /council/delegate (forwards one sub-question to Chloé's brain). Delegation no
+// longer requires a Vercel env var; DELEGATE_ENDPOINT still overrides when set.
+const FLEET_BASE          = (process.env.COUNCIL_FLEET_BASE || "https://chloe.blumenkraft.cloud").trim().replace(/\/$/, "");
+const DELEGATION_ENABLED  = !/^(0|false|no|off)$/i.test((process.env.COUNCIL_DELEGATION_ENABLED || "1").trim()) && !!(DELEGATE_ENDPOINT || FLEET_BASE);
 
 // ── Council modes ───────────────────────────────────────────────────────────
 // IMPORTANT: modes are NOT personas. They are INSTRUCTIONS for HOW each member
@@ -393,6 +398,31 @@ function formatWebBlock(results) {
     "\n[sources: " + results.length + " results via " + (results[0] && results[0].provider || "?") + "]";
 }
 
+// ── Fleet memory recall (Personal Round Table grounding) ────────────────────
+// Pulls top-k snippets from the chloe-memory corpus via soul-server's
+// code-gated /council/recall on Oracle. Non-fatal, hard 8s bound: on any
+// failure the council simply deliberates without fleet memory.
+async function fleetRecall(query, accessCode) {
+  if (!FLEET_BASE) return [];
+  const u = new URL(FLEET_BASE + "/council/recall");
+  u.searchParams.set("query", String(query).slice(0, 300));
+  u.searchParams.set("code", String(accessCode || ""));
+  const r = await httpsRequest({
+    hostname: u.hostname, port: u.port || 443, path: u.pathname + u.search, method: "GET",
+    headers: { "Accept": "application/json" },
+  }, null, 8000);
+  if (r.statusCode < 200 || r.statusCode >= 300) throw new Error("recall HTTP " + r.statusCode);
+  const data = JSON.parse(r.body);
+  return Array.isArray(data.results) ? data.results : [];
+}
+
+function formatMemoryBlock(results) {
+  const lines = results.map((m, i) =>
+    (i + 1) + ". [" + (m.file || "?") + "]\n   " + (m.snippet || "").replace(/\s+/g, " ").slice(0, 420));
+  return "## FLEET MEMORY CONTEXT (from Chloé's memory on Oracle — current fleet state; trust over stale model knowledge)\n" +
+    lines.join("\n") + "\n[memory: " + results.length + " snippets]";
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Delegation to Chloé (single endpoint). Non-streaming POST /v1/chat/completions,
 // hard deadline, NEVER throws — always returns a structured result. Degrades to a
@@ -408,9 +438,34 @@ function delegationSystemPrompt(hint) {
     route + " Return a single concise, grounded answer with sources where available. NEVER return an error — if the fleet cannot help, answer from your own best knowledge.";
 }
 
-async function delegateToChloe(subQuestion, hint) {
+async function delegateToChloe(subQuestion, hint, accessCode) {
   const result = { answer: "", route: hint || "self", degraded: false, reason: "", elapsed_ms: 0 };
-  if (!DELEGATE_ENDPOINT) { result.degraded = true; result.reason = "no_public_endpoint"; return result; }
+  if (!DELEGATE_ENDPOINT) {
+    // Default path: soul-server's code-gated council delegation on Oracle.
+    if (!FLEET_BASE) { result.degraded = true; result.reason = "no_public_endpoint"; return result; }
+    const fu = new URL(FLEET_BASE + "/council/delegate");
+    const fbody = JSON.stringify({ sub_question: subQuestion, hint: hint || "self", code: String(accessCode || "") });
+    const t0f = Date.now();
+    try {
+      const r = await httpsRequest({
+        hostname: fu.hostname, port: fu.port || 443, path: fu.pathname,
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Content-Length": Buffer.byteLength(fbody) },
+      }, fbody, DELEGATE_TIMEOUT_MS);
+      result.elapsed_ms = Date.now() - t0f;
+      if (r.statusCode < 200 || r.statusCode >= 300) { result.degraded = true; result.reason = "http_" + r.statusCode; return result; }
+      const data = JSON.parse(r.body);
+      if (!data.answer) { result.degraded = true; result.reason = String(data.error || "empty_answer").slice(0, 60); return result; }
+      result.answer = String(data.answer);
+      result.route = String(data.route || "chloe");
+      return result;
+    } catch (e) {
+      result.elapsed_ms = Date.now() - t0f;
+      result.degraded = true;
+      result.reason = (e && e.message === "timeout") ? "timeout_" + Math.round(DELEGATE_TIMEOUT_MS / 1000) + "s" : "error:" + (e && e.message || "unknown").slice(0, 60);
+      return result;
+    }
+  }
   const url = new URL(DELEGATE_ENDPOINT.replace(/\/$/, "") + "/v1/chat/completions");
   const body = JSON.stringify({
     model: DELEGATE_MODEL, stream: false, max_tokens: 1024,
@@ -567,7 +622,7 @@ module.exports = async function handler(req, res) {
   // ONLY when the client sends an explicit boolean.
   const reqWebSearch = (typeof parsed.webSearch === "boolean") ? parsed.webSearch : WEBSEARCH_ENABLED;
   const reqDelegate  = (typeof parsed.delegate === "boolean") ? parsed.delegate : DELEGATION_ENABLED;
-  const delegateActive = reqDelegate && !!DELEGATE_ENDPOINT;
+  const delegateActive = reqDelegate && !!(DELEGATE_ENDPOINT || FLEET_BASE);
 
   // Per-request model picks (from the page's model tree). Validated + fallback-
   // backed by sanitizeRoster; each stage resolves to activeRoster[stage] or the
@@ -661,6 +716,19 @@ module.exports = async function handler(req, res) {
     } catch (e) {
       send({ stage: "notice", text: "Web grounding unavailable — proceeding from model knowledge." });
     }
+  }
+
+  // ── Fleet memory grounding: the Round Table knows the fleet's actual state ──
+  // Always attempted (cheap, 8s-bounded, non-fatal): current facts about Oracle,
+  // Chloé's whereabouts, and active projects flow into every member's context.
+  try {
+    const mem = await fleetRecall(q, code);
+    if (mem.length) {
+      taskFraming = formatMemoryBlock(mem) + "\n\n" + taskFraming;
+      send({ stage: "notice", text: "Fleet memory: folded " + mem.length + " snippet" + (mem.length === 1 ? "" : "s") + " from Chloé's memory into the deliberation." });
+    }
+  } catch (e) {
+    send({ stage: "notice", text: "Fleet memory unreachable — deliberating without it." });
   }
 
   // Run one council stage with live streaming + graceful failure.
@@ -757,16 +825,13 @@ module.exports = async function handler(req, res) {
     // + non-fatal. Stays OFF unless COUNCIL_DELEGATE_ENDPOINT is a public URL; if the
     // user ticked it on but no public endpoint exists, we say so and proceed.
     let delegationBlock = "";
-    if (reqDelegate && !DELEGATE_ENDPOINT) {
-      send({ stage: "notice", text: "Delegation requested, but no public fleet endpoint is configured yet — proceeding with the council only." });
-    }
     if (delegateActive && timeLeft() > SYNTH_JUDGE_RESERVE_MS + DELEGATE_TIMEOUT_MS) {
       send({ stage: "notice", text: "Considering a fleet delegation to Chloé…" });
       try {
         const d = await delegationDecision(taskFraming, proposerTexts[0], apiKey);
         if (d.delegatable && d.would_benefit && d.sub_question) {
           send({ stage: "notice", text: "Delegating to Chloé (" + d.target_hint + "): " + d.sub_question.slice(0, 120) });
-          const ans = await delegateToChloe(d.sub_question, d.target_hint);
+          const ans = await delegateToChloe(d.sub_question, d.target_hint, code);
           if (!ans.degraded && ans.answer) {
             delegationBlock = "\n\nFleet delegation (Chloé → " + ans.route + ", " + ans.elapsed_ms + "ms):\n" + ans.answer + "\n";
             send({ stage: "notice", text: "Fleet answer folded into synthesis (route=" + ans.route + ")." });
