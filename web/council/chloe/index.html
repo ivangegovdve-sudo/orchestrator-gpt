@@ -66,9 +66,32 @@
     .composer button:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
     .footer-tag { text-align: center; font-size: 11px; color: #52525b; }
     .footer-tag code { background: rgba(255,255,255,0.06); padding: 1px 6px; border-radius: 5px; }
+  
+    /* ── Private-council lock gate (added 2026-07-07) ── */
+    .lockgate { position: fixed; inset: 0; z-index: 9999; display: flex; align-items: center; justify-content: center; background: rgba(5,6,15,.72); backdrop-filter: blur(3px); padding: 20px; }
+    .lockgate-card { background: rgba(24,24,27,.96); border: 1px solid rgba(255,255,255,.12); border-radius: 18px; padding: 30px 26px; max-width: 340px; text-align: center; box-shadow: 0 20px 60px rgba(0,0,0,.6); }
+    .lockgate-ico { font-size: 34px; margin-bottom: 8px; }
+    .lockgate-ttl { font-size: 19px; font-weight: 800; margin-bottom: 8px; }
+    .lockgate-sub { font-size: 13px; color: #a1a1aa; line-height: 1.5; margin-bottom: 16px; }
+    .lockgate-card input { width: 120px; text-align: center; letter-spacing: .4em; font-family: monospace; font-size: 18px; padding: 10px; border-radius: 10px; border: 1px solid rgba(255,255,255,.15); background: rgba(0,0,0,.4); color: #fff; outline: none; }
+    .lockgate-card button { display: block; margin: 14px auto 0; background: linear-gradient(135deg,#8b5cf6,#0ea5e9); border: 0; border-radius: 10px; color: #fff; font-weight: 700; font-size: 14px; padding: 10px 26px; cursor: pointer; }
+    .lockgate-err { color: #fda4af; font-size: 12px; margin-top: 10px; min-height: 1em; }
+    body.locked .page { filter: blur(7px); pointer-events: none; user-select: none; }
+    body:not(.locked) .lockgate { display: none; }
   </style>
 </head>
-<body>
+<body class="locked">
+  <div id="lockgate" class="lockgate" role="dialog" aria-label="Private council — access required">
+    <div class="lockgate-card">
+      <div class="lockgate-ico">&#128274;</div>
+      <div class="lockgate-ttl">Private council</div>
+      <div class="lockgate-sub">This panel reads Chlo&eacute;&#39;s fleet state / private memory, so it&#39;s access-gated. Enter the code to unlock.</div>
+      <input id="lockgate-code" inputmode="numeric" pattern="[0-9]*" maxlength="4" placeholder="&bull;&bull;&bull;&bull;" autocomplete="off" aria-label="Access code" />
+      <button id="lockgate-btn" type="button">Unlock</button>
+      <div class="lockgate-err" id="lockgate-err"></div>
+    </div>
+  </div>
+
   <div class="page">
     <div class="topbar-row" style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
       <a href="../" class="back-link">&#8592; Councils</a>
@@ -174,6 +197,27 @@
     input.addEventListener("keydown", function (e) {
       if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMsg(); }
     });
+  </script>
+  <script>
+    (function () {
+      var body = document.body;
+      var codeI = document.getElementById('lockgate-code');
+      var btn = document.getElementById('lockgate-btn');
+      var err = document.getElementById('lockgate-err');
+      function unlock(v) {
+        body.classList.remove('locked');
+        if (v) { var ac = document.getElementById('access-code'); if (ac) ac.value = v; }
+      }
+      var stored = sessionStorage.getItem('sdf-code') || '';
+      if (/^\d{4}$/.test(stored)) unlock(stored);
+      function tryUnlock() {
+        var v = (codeI.value || '').trim();
+        if (/^\d{4}$/.test(v)) { sessionStorage.setItem('sdf-code', v); err.textContent = ''; unlock(v); }
+        else { err.textContent = 'Enter the 4-digit access code (ask Ivan).'; }
+      }
+      btn.addEventListener('click', tryUnlock);
+      codeI.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); tryUnlock(); } });
+    })();
   </script>
 </body>
 </html>
