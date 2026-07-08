@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-02T17:28:05.081943+00:00",
+  "generated_at": "2026-07-02T17:37:06.147065+00:00",
   "query": "in:inbox -in:spam -in:trash",
   "message_count": 11,
   "entity_count": 10,

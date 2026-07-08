@@ -84,7 +84,12 @@
       width: 100%;
       height: 100%;
       perspective: 1100px;
-      transform-style: preserve-3d;
+      /* Flat stacking: the parent's perspective still applies the depth zoom to
+         each layer's translateZ, but paint order is now governed by z-index
+         instead of 3D Z-sorting. That lets us always keep the *active* layer on
+         top during a crossfade, so an outgoing layer's large heading can never
+         render over the incoming section's UI. */
+      transform-style: flat;
     }
     .starfield {
       position: absolute;
@@ -114,8 +119,14 @@
       text-align: center;
       backface-visibility: hidden;
       will-change: transform, opacity;
-      transform-style: preserve-3d;
+      /* Base: sit behind and ignore pointer input. The active layer (set from JS
+         by whichever band dominates the current scroll position) is lifted on top
+         and re-enabled for interaction, so a transparent inactive layer can never
+         intercept clicks meant for the layer the reader is actually looking at. */
+      z-index: 1;
+      pointer-events: none;
     }
+    .layer.is-active { z-index: 5; pointer-events: auto; }
     .layer-inner {
       width: min(1120px, 100%);
       display: grid;
@@ -500,6 +511,8 @@
         min-height: 92vh;
         opacity: 1 !important;
         transform: none !important;
+        pointer-events: auto !important;
+        z-index: auto !important;
       }
       .starfield, .vignette { display: none; }
     }
@@ -717,10 +730,42 @@ document.documentElement.style.setProperty("--scroll-p", progress);</code></pre>
     const root = document.documentElement;
     let ticking = false;
 
+    // Layers in DOM/scroll order. We recompute which one dominates the current
+    // scroll position (same opacity bands as the CSS) and flag it `.is-active`
+    // so it — and only it — is on top and interactive. This is what keeps the
+    // outgoing layer's giant heading from covering the incoming layer's UI, and
+    // stops a faded-out layer from swallowing clicks meant for the sandbox.
+    const layers = Array.from(document.querySelectorAll(".stage-3d .layer"));
+    const clamp01 = (v) => Math.max(0, Math.min(1, v));
+    function layerOpacity(i, p) {
+      switch (i) {
+        case 0: return clamp01(1 - p * 6);
+        case 1: return clamp01(Math.min((p - 0.08) * 12, (0.32 - p) * 12));
+        case 2: return clamp01(Math.min((p - 0.24) * 12, (0.50 - p) * 10));
+        case 3: return clamp01(Math.min((p - 0.43) * 11, (0.69 - p) * 10));
+        case 4: return clamp01(Math.min((p - 0.60) * 11, (0.86 - p) * 10));
+        case 5: return clamp01((p - 0.80) * 8);
+        default: return 0;
+      }
+    }
+    let activeLayer = -1;
+    function updateActiveLayer(p) {
+      let best = 0, bestOp = -1;
+      for (let i = 0; i < layers.length; i += 1) {
+        const op = layerOpacity(i, p);
+        if (op > bestOp) { bestOp = op; best = i; }
+      }
+      if (best === activeLayer) return;
+      if (activeLayer >= 0 && layers[activeLayer]) layers[activeLayer].classList.remove("is-active");
+      layers[best].classList.add("is-active");
+      activeLayer = best;
+    }
+
     function updateScrollProgress() {
       const trackHeight = Math.max(1, track.scrollHeight - window.innerHeight);
       const progress = Math.max(0, Math.min(1, window.scrollY / trackHeight));
       root.style.setProperty("--scroll-p", progress.toFixed(4));
+      updateActiveLayer(progress);
       ticking = false;
     }
 

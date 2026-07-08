@@ -491,22 +491,22 @@
         <a href="/web/council/" class="hub-card"
            style="--c:rgba(139,92,246,.42);--cp:rgba(139,92,246,.1);--ct:#a78bfa;--icon-delay:.75s">
           <div class="hub-icon-ring"><span class="hub-icon">🤖</span></div>
-          <div class="hub-name">LLM Council</div>
-          <div class="hub-pill">Free AI</div>
+          <div class="hub-name">Councils</div>
+          <div class="hub-pill">4 Panels</div>
           <div class="hub-desc-box">
-            <p class="hub-desc">4-stage free-tier deliberation: Proposer → Critic → Synthesizer → Judge. Watch the full reasoning chain live.</p>
-            <span class="hub-cta">Start Debate ↗</span>
+            <p class="hub-desc">Four ways to deliberate: TinyLM models on our own Oracle silicon, a BYOK free-model council, Ivan's gated Round Table, and Chloé — the fleet's live voice.</p>
+            <span class="hub-cta">Enter the Councils ↗</span>
           </div>
         </a>
 
-        <a href="/web/ai-init/" class="hub-card"
+        <a href="/web/library/" class="hub-card"
            style="--c:rgba(99,102,241,.42);--cp:rgba(99,102,241,.1);--ct:#818cf8;--icon-delay:.90s">
           <div class="hub-icon-ring"><span class="hub-icon">📚</span></div>
-          <div class="hub-name">AI Glossary</div>
+          <div class="hub-name">Library</div>
           <div class="hub-pill">Reference</div>
           <div class="hub-desc-box">
-            <p class="hub-desc">527+ searchable AI, compute &amp; infra abbreviations — Transformer, Attention, GPU/TPU/LPU, LoRA, vLLM, RAG, and more.</p>
-            <span class="hub-cta">Look Up ↗</span>
+            <p class="hub-desc">Glossary + platforms, side by side. 527+ AI &amp; infra terms next to 160+ tools — one search filters both, filter by tag.</p>
+            <span class="hub-cta">Open Library ↗</span>
           </div>
         </a>
 
@@ -762,29 +762,25 @@
       });
     }
 
-    /* ── Forest HUB API status (footer indicator) ──
-       Backend has no CORS headers, so we probe with a no-cors fetch:
-       an opaque response resolving means the API is reachable.
-       HTTPS pages can't call the plain-HTTP IP (mixed content), so
-       production probes api.sdforest.site instead. */
+    /* ── Fleet brain status (footer indicator) ──
+       Probes Chloé's soul-server on Oracle via its public HTTPS front
+       (chloe.blumenkraft.cloud → nginx → 127.0.0.1:8654). soul-server
+       sends CORS headers for sdforest.site, so a plain fetch works. */
     (function apiStatus() {
       const el = document.getElementById('api-status');
       const label = document.getElementById('api-status-label');
       if (!el || !label) return;
-      const secure = location.protocol === 'https:';
-      const endpoint = secure
-        ? 'https://api.sdforest.site/health'
-        : 'http://187.127.86.176:8001/health';
+      const endpoint = 'https://chloe.blumenkraft.cloud/health';
       const ctrl = new AbortController();
       const timer = setTimeout(() => ctrl.abort(), 6000);
-      fetch(endpoint, { mode: 'no-cors', cache: 'no-store', signal: ctrl.signal })
+      fetch(endpoint, { cache: 'no-store', signal: ctrl.signal })
         .then(() => {
           el.dataset.state = 'online';
-          label.textContent = 'Forest HUB API — online';
+          label.textContent = 'Fleet brain (Oracle) — online';
         })
         .catch(() => {
           el.dataset.state = 'offline';
-          label.textContent = 'Forest HUB API — unreachable';
+          label.textContent = 'Fleet brain — unreachable';
         })
         .finally(() => clearTimeout(timer));
     })();
@@ -806,6 +802,55 @@
         }
       });
     }
+  </script>
+
+  <!-- ── Chloé live avatar widget (Oracle: /avatar/ + wss /avatar-ws) ──
+       Collapsed dot by default; click loads the live avatar in an iframe.
+       The iframe page connects to its own host's nginx WS bridge itself. -->
+  <style>
+    #chloe-widget { position: fixed; right: 18px; bottom: 18px; z-index: 9000; font-family: inherit; }
+    #chloe-widget .cw-toggle {
+      display: flex; align-items: center; gap: 8px; cursor: pointer; user-select: none;
+      background: rgba(24,24,27,0.85); border: 1px solid rgba(244,63,94,0.35);
+      border-radius: 999px; padding: 9px 15px; color: #fda4af; font-size: 13px; font-weight: 600;
+      backdrop-filter: blur(8px); box-shadow: 0 8px 26px rgba(0,0,0,0.5);
+      transition: transform .15s, border-color .2s;
+    }
+    #chloe-widget .cw-toggle:hover { transform: translateY(-2px); border-color: rgba(244,63,94,0.7); }
+    #chloe-widget .cw-dot { width: 8px; height: 8px; border-radius: 50%; background: #f43f5e; animation: cwpulse 2.2s infinite; }
+    @keyframes cwpulse { 0%,100% { box-shadow: 0 0 0 0 rgba(244,63,94,0.5);} 55% { box-shadow: 0 0 0 7px rgba(244,63,94,0);} }
+    #chloe-widget .cw-frame {
+      display: none; width: 300px; height: 340px; margin-bottom: 10px;
+      border: 1px solid rgba(244,63,94,0.3); border-radius: 18px; overflow: hidden;
+      background: #0b0b0d; box-shadow: 0 16px 44px rgba(0,0,0,0.6);
+    }
+    #chloe-widget.open .cw-frame { display: block; }
+    #chloe-widget .cw-frame iframe { width: 100%; height: 100%; border: 0; }
+    @media (max-width: 640px) { #chloe-widget .cw-frame { width: min(300px, calc(100vw - 44px)); } }
+  </style>
+  <div id="chloe-widget">
+    <div class="cw-frame"></div>
+    <div class="cw-toggle" id="cw-toggle" role="button" aria-label="Toggle Chloé's live avatar">
+      <span class="cw-dot"></span><span>Chlo&eacute; &mdash; live</span>
+    </div>
+  </div>
+  <script>
+    (function () {
+      const w = document.getElementById('chloe-widget');
+      const frame = w.querySelector('.cw-frame');
+      let loaded = false;
+      document.getElementById('cw-toggle').addEventListener('click', () => {
+        w.classList.toggle('open');
+        if (w.classList.contains('open') && !loaded) {
+          loaded = true;
+          const ifr = document.createElement('iframe');
+          ifr.src = 'https://chloe.blumenkraft.cloud/avatar/';
+          ifr.title = "Chloé's live avatar";
+          ifr.loading = 'lazy';
+          frame.appendChild(ifr);
+        }
+      });
+    })();
   </script>
 </body>
 </html>

@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Upload to the Fleet · SD Forest</title>
+  <meta name="description" content="Send a file to Chloé's ingest inbox on Oracle — from any device, access-gated.">
+  <style>
+    :root {
+      --bg: #09090b;
+      --card-bg: rgba(24, 24, 27, 0.6);
+      --card-border: rgba(255, 255, 255, 0.08);
+      --text: #f8fafc;
+      --muted: #a1a1aa;
+      --accent: #0ea5e9;
+      --green: #22c55e;
+      --rose: #f43f5e;
+      --amber: #f59e0b;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; min-height: 100vh;
+      background-color: var(--bg);
+      background-image:
+        radial-gradient(circle at 25% 30%, rgba(14, 165, 233, 0.08), transparent 45%),
+        radial-gradient(circle at 80% 20%, rgba(34, 197, 94, 0.07), transparent 45%);
+      color: var(--text);
+      font-family: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+      padding: 28px 20px 60px;
+    }
+    .page { max-width: 640px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
+    .topbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+    .back-link { color: var(--muted); text-decoration: none; font-size: 13px; }
+    .back-link:hover { color: var(--text); }
+    .gate-wrap { display: flex; align-items: center; gap: 8px; }
+    .gate-label { font-size: 11px; color: #64748b; white-space: nowrap; }
+    .code-input {
+      width: 74px; background: rgba(0,0,0,0.35); border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 8px; color: var(--text); font-family: monospace; font-size: 14px;
+      letter-spacing: 0.35em; text-align: center; padding: 7px 6px; outline: none;
+    }
+    .code-input:focus { border-color: rgba(14,165,233,0.6); }
+    .code-input.bad { border-color: var(--rose); }
+    h1 { margin: 0 0 6px; font-size: 28px; letter-spacing: -0.4px; }
+    .tagline { margin: 0; color: var(--muted); font-size: 14.5px; line-height: 1.5; }
+    .drop {
+      background: var(--card-bg); border: 2px dashed rgba(255,255,255,0.16); border-radius: 16px;
+      padding: 42px 22px; text-align: center; cursor: pointer; transition: border-color 0.2s, background 0.2s;
+    }
+    .drop:hover, .drop.over { border-color: rgba(14,165,233,0.55); background: rgba(14,165,233,0.05); }
+    .drop .big { font-size: 34px; }
+    .drop .hint { color: var(--muted); font-size: 13.5px; margin-top: 8px; }
+    .drop input { display: none; }
+    .queue { display: flex; flex-direction: column; gap: 8px; }
+    .item {
+      display: flex; align-items: center; gap: 12px; background: var(--card-bg);
+      border: 1px solid var(--card-border); border-radius: 12px; padding: 11px 15px; font-size: 13.5px;
+    }
+    .item .name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .item .size { color: #64748b; font-size: 11.5px; }
+    .item .state { font-size: 11.5px; font-weight: 700; }
+    .item.sending .state { color: var(--amber); }
+    .item.ok .state { color: var(--green); }
+    .item.err .state { color: var(--rose); }
+    .footer-tag { text-align: center; font-size: 11px; color: #52525b; }
+    .footer-tag code { background: rgba(255,255,255,0.06); padding: 1px 6px; border-radius: 5px; }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="topbar">
+      <a href="/" class="back-link">&#8592; Forest HUB</a>
+      <div class="gate-wrap">
+        <span class="gate-label">&#128274; Access code</span>
+        <input id="access-code" class="code-input" inputmode="numeric" pattern="[0-9]*" maxlength="4"
+               placeholder="&bull;&bull;&bull;&bull;" autocomplete="off" aria-label="4-digit access code" />
+      </div>
+    </div>
+
+    <header>
+      <h1>&#128228; Upload to the Fleet</h1>
+      <p class="tagline">Files land in Chlo&eacute;&#39;s ingest inbox on Oracle &mdash; logged, dated, ready for the fleet to process. Works from any phone or laptop.</p>
+    </header>
+
+    <label class="drop" id="drop">
+      <span class="big">&#127811;</span>
+      <div><strong>Tap to pick a file</strong> or drop it here</div>
+      <div class="hint">up to 25&nbsp;MB per file &middot; several at once is fine</div>
+      <input type="file" id="file-input" multiple />
+    </label>
+
+    <div class="queue" id="queue"></div>
+
+    <p class="footer-tag">browser &rarr; <code>chloe.blumenkraft.cloud/ingest</code> &rarr; <code>/opt/sdforest-data/ingest/</code> on Oracle</p>
+  </div>
+
+  <script>
+    var BASE = "https://chloe.blumenkraft.cloud";
+    var codeEl = document.getElementById("access-code");
+    var queue = document.getElementById("queue");
+    var drop = document.getElementById("drop");
+    var input = document.getElementById("file-input");
+
+    codeEl.value = sessionStorage.getItem("sdf-code") || "";
+
+    function fmtSize(n) {
+      if (n > 1048576) return (n / 1048576).toFixed(1) + " MB";
+      if (n > 1024) return (n / 1024).toFixed(0) + " KB";
+      return n + " B";
+    }
+
+    function addItem(file) {
+      var d = document.createElement("div");
+      d.className = "item sending";
+      d.innerHTML = '<span class="name"></span><span class="size"></span><span class="state">Sending&hellip;</span>';
+      d.querySelector(".name").textContent = file.name;
+      d.querySelector(".size").textContent = fmtSize(file.size);
+      queue.prepend(d);
+      return d;
+    }
+
+    function setState(d, cls, label) {
+      d.className = "item " + cls;
+      d.querySelector(".state").textContent = label;
+    }
+
+    async function sendFile(file) {
+      var code = codeEl.value.trim();
+      var d = addItem(file);
+      if (!/^\d{4}$/.test(code)) { codeEl.classList.add("bad"); setState(d, "err", "Enter the 4-digit code first"); return; }
+      codeEl.classList.remove("bad");
+      sessionStorage.setItem("sdf-code", code);
+      if (file.size > 25 * 1048576) { setState(d, "err", "Too large (25 MB max)"); return; }
+      try {
+        var buf = await file.arrayBuffer();
+        var bytes = new Uint8Array(buf);
+        var bin = "";
+        var CHUNK = 0x8000;
+        for (var i = 0; i < bytes.length; i += CHUNK) {
+          bin += String.fromCharCode.apply(null, bytes.subarray(i, i + CHUNK));
+        }
+        var b64 = btoa(bin);
+        var r = await fetch(BASE + "/ingest", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ filename: file.name, content_b64: b64, source: "web-upload", code: code })
+        });
+        var j = await r.json();
+        if (j.status === "ok") setState(d, "ok", "Ingested ✓ (" + fmtSize(j.bytes) + ")");
+        else setState(d, "err", j.error || "Rejected");
+      } catch (e) {
+        setState(d, "err", "Failed: " + e.message);
+      }
+    }
+
+    input.addEventListener("change", function () {
+      Array.prototype.forEach.call(input.files, sendFile);
+      input.value = "";
+    });
+    drop.addEventListener("dragover", function (e) { e.preventDefault(); drop.classList.add("over"); });
+    drop.addEventListener("dragleave", function () { drop.classList.remove("over"); });
+    drop.addEventListener("drop", function (e) {
+      e.preventDefault(); drop.classList.remove("over");
+      Array.prototype.forEach.call(e.dataTransfer.files, sendFile);
+    });
+  </script>
+</body>
+</html>

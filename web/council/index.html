@@ -3,10 +3,10 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>LLM Council — Free-Tier AI Deliberation</title>
-  <meta name="description" content="Ask a council of distinct AI families to deliberate live across multiple stages: Propose → Critique → Revise → Synthesize → Judge. Selectable modes, live thinking, interactive rounds. OpenRouter free models, $0 cost.">
-  <meta property="og:title" content="LLM Council — Free-Tier AI Deliberation">
-  <meta property="og:description" content="Heterogeneous free-tier deliberation: OpenAI · NVIDIA · Google · Nex AGI · Qwen — distinct model families, live thinking, selectable modes, $0 cost.">
+  <title>SD Forest Councils — Four Ways to Deliberate</title>
+  <meta name="description" content="Four AI councils: the TinyLM Forest Council on Oracle hardware, a bring-your-own-key free-model council, Ivan's Personal Round Table, and Chloé — the fleet's voice.">
+  <meta property="og:title" content="SD Forest Councils">
+  <meta property="og:description" content="Four separated council panels — local TinyLM deliberation, BYOK free-tier council, the Personal Round Table, and direct chat with Chloé.">
   <meta property="og:type" content="website">
   <style>
     :root {
@@ -21,895 +21,104 @@
       --rose: #f43f5e;
       --amber: #f59e0b;
     }
-
     * { box-sizing: border-box; }
-
     body {
-      margin: 0;
-      min-height: 100vh;
+      margin: 0; min-height: 100vh;
       background-color: var(--bg);
       background-image:
         radial-gradient(circle at 20% 40%, rgba(14, 165, 233, 0.1), transparent 45%),
         radial-gradient(circle at 80% 20%, rgba(139, 92, 246, 0.1), transparent 45%);
       color: var(--text);
       font-family: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
-      padding: 40px 20px 60px;
+      padding: 28px 20px 60px;
     }
-
-    .page { max-width: 780px; margin: 0 auto; display: flex; flex-direction: column; gap: 28px; }
-
+    .page { max-width: 900px; margin: 0 auto; display: flex; flex-direction: column; gap: 26px; }
     .back-link { display: inline-flex; align-items: center; gap: 6px; color: var(--muted); text-decoration: none; font-size: 13px; transition: color 0.2s; }
     .back-link:hover { color: var(--text); }
-
-    header { text-align: center; }
-
-    h1 {
-      margin: 0 0 8px;
-      font-size: 36px;
-      font-weight: 800;
-      letter-spacing: -0.02em;
-      background: linear-gradient(135deg, var(--accent) 0%, var(--purple) 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-    }
-
+    h1 { margin: 0 0 6px; font-size: 32px; letter-spacing: -0.5px; }
     .tagline { margin: 0; color: var(--muted); font-size: 15px; line-height: 1.5; }
-
-    .flow-row { display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 12px; color: var(--muted); flex-wrap: wrap; }
-    .role-badge {
-      padding: 3px 10px; border-radius: 20px; font-weight: 600;
-      font-size: 11px; letter-spacing: 0.04em; text-transform: uppercase;
-    }
-    .role-badge.proposer { background: rgba(14,165,233,0.12); border: 1px solid rgba(14,165,233,0.3); color: var(--accent); }
-    .role-badge.critic   { background: rgba(244,63,94,0.12);  border: 1px solid rgba(244,63,94,0.3);  color: var(--rose); }
-    .role-badge.synth    { background: rgba(34,197,94,0.12);  border: 1px solid rgba(34,197,94,0.3);  color: var(--green); }
-    .role-badge.judge    { background: rgba(245,158,11,0.12); border: 1px solid rgba(245,158,11,0.3); color: var(--amber); }
-    .arrow { color: #475569; }
-
-    .input-card {
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+    @media (max-width: 640px) { .grid { grid-template-columns: 1fr; } }
+    .panel {
+      display: flex; flex-direction: column; gap: 10px;
       background: var(--card-bg); border: 1px solid var(--card-border);
-      border-radius: 16px; padding: 24px; backdrop-filter: blur(12px);
-      display: flex; flex-direction: column; gap: 14px;
+      border-radius: 16px; padding: 22px; text-decoration: none; color: var(--text);
+      transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
+      position: relative; overflow: hidden;
     }
-
-    textarea {
-      width: 100%; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1);
-      border-radius: 10px; color: var(--text); font-family: inherit; font-size: 15px;
-      line-height: 1.6; padding: 14px 16px; resize: vertical; min-height: 90px;
-      transition: border-color 0.2s; outline: none;
+    .panel:hover { transform: translateY(-3px); border-color: rgba(255,255,255,0.18); box-shadow: 0 12px 34px rgba(0,0,0,0.45); }
+    .panel .ico { font-size: 30px; line-height: 1; }
+    .panel .name { font-size: 18px; font-weight: 700; letter-spacing: -0.2px; }
+    .panel .desc { font-size: 13px; color: var(--muted); line-height: 1.55; flex: 1; }
+    .panel .cta { font-size: 12.5px; font-weight: 600; }
+    .pill {
+      position: absolute; top: 14px; right: 14px; font-size: 10px; font-weight: 700;
+      letter-spacing: 0.06em; text-transform: uppercase; padding: 4px 9px; border-radius: 999px;
     }
-    textarea:focus { border-color: rgba(14,165,233,0.5); }
-    textarea::placeholder { color: #475569; }
-
-    /* ── Mode selector ─────────────────────────────────────── */
-    .modes-wrap { display: flex; flex-direction: column; gap: 8px; }
-    .modes-label { font-size: 11px; color: #64748b; text-transform: uppercase; letter-spacing: 0.06em; font-weight: 600; }
-    .mode-row { display: flex; flex-wrap: wrap; gap: 8px; }
-    .mode-pill {
-      background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1);
-      border-radius: 999px; color: var(--muted); cursor: pointer; font-size: 12px;
-      padding: 7px 14px; font-family: inherit; transition: all 0.18s; font-weight: 600;
-      display: inline-flex; align-items: center; gap: 6px;
-    }
-    .mode-pill:hover { background: rgba(255,255,255,0.08); color: var(--text); }
-    .mode-pill.selected { background: linear-gradient(135deg, rgba(14,165,233,0.25), rgba(139,92,246,0.25)); border-color: rgba(139,92,246,0.5); color: var(--text); }
-    .mode-desc { font-size: 11.5px; color: #64748b; line-height: 1.5; min-height: 16px; }
-
-    /* ── Capability toggles (Web Search / Delegation) ──────────── */
-    .toggles-wrap { display: flex; flex-direction: column; gap: 8px; }
-    .toggles-label { font-size: 11px; color: #64748b; text-transform: uppercase; letter-spacing: 0.06em; font-weight: 600; }
-    .toggle-row { display: flex; flex-wrap: wrap; gap: 10px; }
-    .toggle-pill {
-      display: inline-flex; align-items: center; gap: 9px; cursor: pointer;
-      background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1);
-      border-radius: 10px; padding: 8px 13px; font-size: 12px; color: var(--muted);
-      font-weight: 600; transition: all 0.18s; user-select: none;
-    }
-    .toggle-pill:hover { background: rgba(255,255,255,0.07); color: var(--text); }
-    .toggle-pill.on { border-color: rgba(34,197,94,0.45); color: var(--text); background: rgba(34,197,94,0.08); }
-    .toggle-switch {
-      position: relative; width: 34px; height: 19px; border-radius: 999px; flex-shrink: 0;
-      background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.15); transition: background 0.2s, border-color 0.2s;
-    }
-    .toggle-pill.on .toggle-switch { background: var(--green); border-color: var(--green); }
-    .toggle-switch::after {
-      content: ""; position: absolute; top: 1.5px; left: 1.5px; width: 14px; height: 14px;
-      border-radius: 50%; background: #fff; transition: transform 0.2s;
-    }
-    .toggle-pill.on .toggle-switch::after { transform: translateX(15px); }
-    .toggle-text { display: flex; flex-direction: column; gap: 1px; line-height: 1.25; }
-    .toggle-name { font-size: 12px; }
-    .toggle-hint { font-size: 10px; color: #64748b; font-weight: 500; }
-
-    .input-footer { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-
-    .model-label { font-size: 11px; color: #475569; display: flex; align-items: center; gap: 6px; }
-    .free-badge {
-      background: rgba(34,197,94,0.12); border: 1px solid rgba(34,197,94,0.25);
-      color: var(--green); padding: 2px 7px; border-radius: 4px;
-      font-size: 10px; font-weight: 600; text-transform: uppercase;
-    }
-
-    .submit-btn {
-      background: linear-gradient(135deg, var(--accent), var(--purple));
-      border: none; border-radius: 10px; color: #fff; cursor: pointer;
-      font-family: inherit; font-size: 14px; font-weight: 600; padding: 10px 24px;
-      transition: opacity 0.2s, transform 0.15s; white-space: nowrap;
-    }
-    .submit-btn:hover:not(:disabled) { opacity: 0.9; transform: translateY(-1px); }
-    .submit-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
-
-    /* ── 4-digit access gate ───────────────────────────────── */
-    .gate-wrap { display: flex; align-items: center; gap: 8px; }
-    .gate-label { font-size: 11px; color: #64748b; white-space: nowrap; }
-    .code-input {
-      width: 76px; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.12);
-      border-radius: 8px; color: var(--text); font-family: monospace; font-size: 18px;
-      letter-spacing: 6px; text-align: center; padding: 8px 10px; outline: none;
-      transition: border-color 0.2s;
-    }
-    .code-input:focus { border-color: rgba(139,92,246,0.6); }
-    .code-input.bad { border-color: var(--rose); }
-    .gate-hint { font-size: 11px; color: #475569; margin-top: 10px; display: flex; align-items: center; gap: 6px; }
-
-    /* ── Collapsible suggestions ───────────────────────────── */
-    .suggest-toggle {
-      align-self: flex-start; background: rgba(255,255,255,0.04);
-      border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: var(--muted);
-      cursor: pointer; font-size: 12px; padding: 6px 12px; font-family: inherit;
-      transition: all 0.2s; display: inline-flex; align-items: center; gap: 7px;
-    }
-    .suggest-toggle:hover { background: rgba(255,255,255,0.08); color: var(--text); }
-    .suggest-toggle .chev { transition: transform 0.25s; font-size: 10px; }
-    .suggest-toggle.open .chev { transform: rotate(180deg); }
-
-    .suggest-panel {
-      display: none; flex-wrap: wrap; gap: 8px; padding-top: 4px;
-    }
-    .suggest-panel.open { display: flex; }
-
-    .example-q {
-      background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);
-      border-radius: 8px; color: var(--muted); cursor: pointer; font-size: 12px;
-      padding: 6px 12px; font-family: inherit; transition: all 0.2s; text-align: left;
-    }
-    .example-q:hover { background: rgba(255,255,255,0.08); color: var(--text); border-color: rgba(255,255,255,0.15); }
-
-    .roster-info {
-      background: rgba(139,92,246,0.06); border: 1px solid rgba(139,92,246,0.15);
-      border-radius: 10px; padding: 10px 14px; font-size: 11px; color: #9ca3af;
-      line-height: 1.7;
-    }
-    .roster-info strong { color: #c4b5fd; }
-    .model-chip {
-      display: inline-block; background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.1);
-      border-radius: 4px; padding: 1px 6px; font-family: monospace; font-size: 10px;
-      color: #94a3b8; margin: 1px;
-    }
-
-    .error-banner {
-      background: rgba(244,63,94,0.1); border: 1px solid rgba(244,63,94,0.3);
-      border-radius: 10px; padding: 14px 18px; color: var(--rose); font-size: 13px; display: none;
-    }
-    .error-banner.visible { display: block; }
-
-    .stages { display: flex; flex-direction: column; gap: 12px; }
-
-    .round-header { display: flex; align-items: center; gap: 10px; margin-top: 4px; }
-    .round-label { font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #475569; white-space: nowrap; }
-    .round-line  { flex: 1; height: 1px; background: rgba(255,255,255,0.06); }
-
-    .stage-card {
-      background: var(--card-bg); border: 1px solid var(--card-border);
-      border-radius: 14px; overflow: hidden; transition: border-color 0.3s;
-    }
-    .stage-card.active { border-color: rgba(14,165,233,0.4); }
-    .stage-card.done   { border-color: rgba(255,255,255,0.12); }
-    .stage-card.failed { border-color: rgba(244,63,94,0.4); }
-    .stage-card.judge-card { background: rgba(20, 16, 4, 0.7); }
-    .stage-card.judge-card.active { border-color: rgba(245,158,11,0.5); }
-    .stage-card.judge-card.done   { border-color: rgba(245,158,11,0.3); }
-
-    .stage-header { display: flex; align-items: center; gap: 12px; padding: 15px 20px; cursor: pointer; user-select: none; }
-
-    .stage-icon { width: 30px; height: 30px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 15px; flex-shrink: 0; }
-    .stage-icon.proposer { background: rgba(14,165,233,0.15); }
-    .stage-icon.critic   { background: rgba(244,63,94,0.15); }
-    .stage-icon.synth    { background: rgba(34,197,94,0.15); }
-    .stage-icon.judge    { background: rgba(245,158,11,0.15); }
-
-    .stage-meta { flex: 1; min-width: 0; }
-    .stage-name { font-size: 13px; font-weight: 700; display: flex; align-items: center; gap: 7px; flex-wrap: wrap; }
-    .stage-desc { font-size: 11px; color: var(--muted); margin-top: 2px; }
-
-    .model-tag-badge {
-      font-size: 9px; font-family: monospace; color: #7dd3fc;
-      background: rgba(14,165,233,0.08); border: 1px solid rgba(14,165,233,0.2);
-      border-radius: 4px; padding: 1px 5px; white-space: nowrap; display: none;
-    }
-    .stage-card .model-tag-badge.show { display: inline-block; }
-
-    .stage-status { font-size: 11px; color: var(--muted); display: flex; align-items: center; gap: 5px; flex-shrink: 0; }
-    .stage-status.thinking { color: var(--accent); }
-    .stage-status.done     { color: var(--green); }
-    .stage-status.failed   { color: var(--rose); }
-    .judge-card .stage-status.done { color: var(--amber); }
-
-    .spinner { width: 11px; height: 11px; border: 2px solid currentColor; border-top-color: transparent; border-radius: 50%; animation: spin 0.8s linear infinite; display: inline-block; }
-    @keyframes spin { to { transform: rotate(360deg); } }
-
-    .chevron { color: var(--muted); font-size: 11px; transition: transform 0.3s; flex-shrink: 0; }
-    .stage-card.open .chevron { transform: rotate(180deg); }
-
-    .stage-body { max-height: 0; overflow: hidden; transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
-    .stage-card.open .stage-body { max-height: 4000px; }
-
-    .stage-content {
-      padding: 14px 20px 18px; border-top: 1px solid rgba(255,255,255,0.05);
-      font-size: 13.5px; line-height: 1.75; color: #cbd5e1; white-space: pre-wrap; word-break: break-word;
-    }
-    .judge-card .stage-content { color: #fef3c7; }
-
-    /* blinking caret while a stage streams live */
-    .stage-content.streaming::after {
-      content: "▌"; color: var(--accent); animation: caret 1s steps(1) infinite; margin-left: 1px;
-    }
-    @keyframes caret { 50% { opacity: 0; } }
-
-    .placeholder-text { color: #3f4f62; font-style: italic; font-size: 13px; }
-
-    .copy-btn {
-      float: right; clear: right; margin: 10px 20px 0 0;
-      background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
-      border-radius: 6px; color: var(--muted); cursor: pointer; font-size: 11px;
-      font-weight: 600; padding: 3px 9px; font-family: inherit; transition: all 0.18s;
-      opacity: 0; pointer-events: none;
-    }
-    .stage-card.done .copy-btn { opacity: 1; pointer-events: auto; }
-    .copy-btn:hover { background: rgba(255,255,255,0.1); color: var(--text); }
-    .copy-btn.copied { color: var(--green); border-color: rgba(34,197,94,0.3); }
-
-    /* ── Interactive follow-up ─────────────────────────────── */
-    .followup-card {
-      background: rgba(14,165,233,0.05); border: 1px solid rgba(14,165,233,0.2);
-      border-radius: 14px; padding: 18px 20px; display: none; flex-direction: column; gap: 12px;
-    }
-    .followup-card.visible { display: flex; }
-    .followup-title { font-size: 13px; font-weight: 700; color: #7dd3fc; display: flex; align-items: center; gap: 8px; }
-    .followup-sub { font-size: 11.5px; color: var(--muted); margin-top: -6px; }
-
-    .footer-tag { font-size: 10px; color: #475569; text-align: center; padding-top: 4px; }
-
-    @media (max-width: 520px) {
-      h1 { font-size: 26px; }
-      .input-footer { flex-direction: column; align-items: stretch; }
-      .submit-btn { text-align: center; }
-    }
+    .panel.tinylm     { border-top: 2px solid var(--green); }
+    .panel.tinylm .pill { background: rgba(34,197,94,0.14); color: var(--green); }
+    .panel.tinylm .cta  { color: var(--green); }
+    .panel.byok       { border-top: 2px solid var(--accent); }
+    .panel.byok .pill { background: rgba(14,165,233,0.14); color: var(--accent); }
+    .panel.byok .cta  { color: var(--accent); }
+    .panel.roundtable { border-top: 2px solid var(--purple); }
+    .panel.roundtable .pill { background: rgba(139,92,246,0.16); color: #c4b5fd; }
+    .panel.roundtable .cta  { color: #c4b5fd; }
+    .panel.chloe      { border-top: 2px solid var(--rose); }
+    .panel.chloe .pill { background: rgba(244,63,94,0.14); color: #fda4af; }
+    .panel.chloe .cta  { color: #fda4af; }
+    .footer-tag { text-align: center; font-size: 11.5px; color: #52525b; }
+    .footer-tag code { background: rgba(255,255,255,0.06); padding: 1px 6px; border-radius: 5px; }
   </style>
 </head>
 <body>
   <div class="page">
-    <a href="/" class="back-link">&#8592; Forest HUB</a>
+    <div><a href="/" class="back-link">&#8592; Forest HUB</a></div>
 
     <header>
-      <h1>&#9878;&#65039; LLM Council</h1>
-      <p class="tagline">Heterogeneous AI panel &mdash; each role a different model family &mdash; deliberating live, $0.</p>
+      <h1>&#127794; SD Forest Councils</h1>
+      <p class="tagline">Four separated deliberation panels &mdash; from tiny local models thinking out loud on Oracle silicon to Ivan&#39;s access-gated personal round table.</p>
     </header>
 
-    <div class="flow-row">
-      <span class="role-badge proposer">Propose</span>
-      <span class="arrow">&rarr;</span>
-      <span class="role-badge critic">Critique 1</span>
-      <span class="arrow">&rarr;</span>
-      <span class="role-badge proposer">Revise</span>
-      <span class="arrow">&rarr;</span>
-      <span class="role-badge critic">Critique 2</span>
-      <span class="arrow">&rarr;</span>
-      <span class="role-badge synth">Synthesize</span>
-      <span class="arrow">&rarr;</span>
-      <span class="role-badge judge">Judge</span>
+    <div class="grid">
+      <a class="panel tinylm" href="tinylm/">
+        <span class="pill">&#128274; Private</span>
+        <span class="ico">&#127793;</span>
+        <span class="name">TinyLM Forest Council</span>
+        <span class="desc">Small open models (0.1B&ndash;3B) running on the fleet&#39;s own Oracle ARM server deliberate in sequence &mdash; proposer, analyst, critic, consciousness observer &mdash; streamed to your browser token by token. No cloud APIs at all.</span>
+        <span class="cta">Convene the tiny council &#8599;</span>
+      </a>
+
+      <a class="panel byok" href="byok/">
+        <span class="pill">Public &middot; $0</span>
+        <span class="ico">&#9878;&#65039;</span>
+        <span class="name">LLM Council (BYOK)</span>
+        <span class="desc">A heterogeneous panel of free OpenRouter models &mdash; Proposer &rarr; Critic &rarr; Chairman across 1&ndash;5 rounds &mdash; streamed straight from OpenRouter to your browser. Bring your own free key; it never leaves your machine.</span>
+        <span class="cta">Start a deliberation &#8599;</span>
+      </a>
+
+      <a class="panel roundtable" href="roundtable/">
+        <span class="pill">&#128274; Private</span>
+        <span class="ico">&#127919;</span>
+        <span class="name">Personal Round Table</span>
+        <span class="desc">Ivan&#39;s private council: free-model panel with live web grounding and fleet delegation &mdash; a sub-question can be handed to Chlo&eacute; mid-deliberation and her grounded answer folded into the synthesis. 4-digit code required.</span>
+        <span class="cta">Enter the round table &#8599;</span>
+      </a>
+
+      <a class="panel chloe" href="chloe/">
+        <span class="pill">&#128274; Private</span>
+        <span class="ico">&#128172;</span>
+        <span class="name">Chlo&eacute; &mdash; Fleet Voice</span>
+        <span class="desc">Talk directly to Chlo&eacute;, the orchestrator of Ivan&#39;s agent fleet &mdash; answered live by her soul-server brain on Oracle (Groq llama-3.3-70b with her SOUL.md loaded). One voice, whole forest behind it.</span>
+        <span class="cta">Say hi to Chlo&eacute; &#8599;</span>
+      </a>
     </div>
 
-    <div class="input-card">
-      <textarea id="question" placeholder="Ask the council anything &#8212; a decision, a concept, a plan&#8230;" rows="3"></textarea>
-
-      <!-- Collapsible suggestions (B1) -->
-      <button type="button" class="suggest-toggle" id="suggest-toggle" onclick="toggleSuggest()">
-        <span>&#128161; Show suggestions</span><span class="chev">&#9660;</span>
-      </button>
-      <div class="suggest-panel" id="suggest-panel"></div>
-
-      <!-- Council modes (B3) -->
-      <div class="modes-wrap">
-        <span class="modes-label">Council mode</span>
-        <div class="mode-row" id="mode-row"></div>
-        <div class="mode-desc" id="mode-desc"></div>
-      </div>
-
-      <!-- Capability toggles: Web Search + Delegation -->
-      <div class="toggles-wrap">
-        <span class="toggles-label">Capabilities</span>
-        <div class="toggle-row">
-          <div class="toggle-pill on" id="toggle-websearch" role="switch" aria-checked="true" tabindex="0" onclick="toggleWebSearch()">
-            <span class="toggle-switch"></span>
-            <span class="toggle-text">
-              <span class="toggle-name">&#127758; Web Search</span>
-              <span class="toggle-hint">Ground the debate in live web results (slower)</span>
-            </span>
-          </div>
-          <div class="toggle-pill" id="toggle-delegation" role="switch" aria-checked="false" tabindex="0" onclick="toggleDelegation()">
-            <span class="toggle-switch"></span>
-            <span class="toggle-text">
-              <span class="toggle-name">&#129309; Delegation</span>
-              <span class="toggle-hint">Delegate a sub-question to the fleet (Chlo&eacute;)</span>
-            </span>
-          </div>
-        </div>
-      </div>
-
-      <div class="input-footer">
-        <div class="gate-wrap">
-          <span class="gate-label">&#128274; Access code</span>
-          <input id="access-code" class="code-input" inputmode="numeric" pattern="[0-9]*" maxlength="4"
-                 placeholder="••••" autocomplete="off" aria-label="4-digit access code" />
-        </div>
-        <button class="submit-btn" id="submit-btn" onclick="runCouncil()">Convene Council</button>
-      </div>
-      <div class="gate-hint">Shared with you by Ivan &mdash; keeps the free council from being over-used. <span class="free-badge">free</span> &middot; $0</div>
-    </div>
-
-    <div class="roster-info">
-      <strong>Distinct vendor families</strong> &mdash; all <code>:free</code>, $0, with fast fallback if any provider rate-limits:<br>
-      <span class="model-chip">Proposer</span> Google Gemma-4 / Llama-3.3 &nbsp;
-      <span class="model-chip">Critic 1</span> NVIDIA Nemotron Super / Qwen3 &nbsp;
-      <span class="model-chip">Revision</span> Google Gemma-4 &nbsp;
-      <span class="model-chip">Critic 2</span> Nex AGI / Qwen3 &nbsp;
-      <span class="model-chip">Synth</span> Google Gemma MoE &nbsp;
-      <span class="model-chip">Judge</span> OpenAI gpt-oss-20b
-    </div>
-
-    <div class="error-banner" id="error-banner"></div>
-
-    <div class="stages" id="stages" style="display:none;"></div>
-
-    <!-- Interactive follow-up round (B4) -->
-    <div class="followup-card" id="followup-card">
-      <div class="followup-title">&#128172; Continue the deliberation</div>
-      <div class="followup-sub">Add a follow-up &mdash; it feeds into a new round seeded with the council's last synthesis.</div>
-      <textarea id="followup-input" placeholder="Push back, add a constraint, or ask a follow-up&#8230;" rows="2"></textarea>
-      <div style="display:flex; justify-content:flex-end;">
-        <button class="submit-btn" id="followup-btn" onclick="runFollowup()">Continue &rarr;</button>
-      </div>
-    </div>
-
-    <p class="footer-tag">Free tier &middot; OpenAI &middot; NVIDIA Nemotron &middot; Google Gemma-4 &middot; Nex AGI &middot; Qwen3 &mdash; via OpenRouter &mdash; $0</p>
+    <p class="footer-tag">
+      <strong>Public</strong>: the BYOK council is a pure-LLM showcase, open to anyone &middot;
+      <strong>&#128274; Private</strong>: the TinyLM, Round Table and Chlo&eacute; panels read the fleet&#39;s
+      internal state or private memory &mdash; they stay locked until you enter the access code.
+    </p>
   </div>
-
-  <script>
-    // ── Canonical API host (B/A fix): the council page may be loaded from the
-    // apex domain, which 307-redirects /api/* to www. A redirected streaming
-    // POST is fragile, so we post straight to the canonical www host. ──────────
-    var API_URL = (location.hostname === 'sdforest.site')
-      ? 'https://www.sdforest.site/api/council'
-      : '/api/council';
-
-    // ── Suggestions (collapsed by default; longer list on expand) ─────────────
-    var SUGGESTIONS = [
-      "Should I learn Rust or Go?",
-      "What makes a good API design?",
-      "Best way to give critical feedback?",
-      "Should I quit my job and freelance?",
-      "Is journaling actually useful?",
-      "What's the best diet for longevity?",
-      "How should I approach AI alignment as a founder?",
-      "Is remote work better than in-office for a small team?",
-      "How do I price a SaaS product with no track record?",
-      "What's the strongest argument against my startup idea?",
-      "Should I optimize for growth or profitability first?",
-      "How do I structure a difficult conversation with a cofounder?",
-      "Is it worth learning a new language at 35?",
-      "What habits compound the most over a decade?",
-      "How should I think about taking on debt for a house?",
-      "What's a contrarian but correct take on productivity?"
-    ];
-    function buildSuggestions() {
-      var panel = document.getElementById('suggest-panel');
-      panel.innerHTML = SUGGESTIONS.map(function (s) {
-        return '<button type="button" class="example-q" onclick="fillQ(this)">' +
-          s.replace(/&/g, '&amp;').replace(/</g, '&lt;') + '</button>';
-      }).join('');
-    }
-    function toggleSuggest() {
-      var t = document.getElementById('suggest-toggle');
-      var p = document.getElementById('suggest-panel');
-      var open = p.classList.toggle('open');
-      t.classList.toggle('open', open);
-      t.querySelector('span').innerHTML = open ? '&#128161; Hide suggestions' : '&#128161; Show suggestions';
-    }
-    function fillQ(btn) {
-      document.getElementById('question').value = btn.textContent.trim();
-      document.getElementById('question').focus();
-    }
-
-    // ── Modes (treatment instructions, picked before running) ─────────────────
-    var MODES = [
-      { id: 'default',        label: '⚖️ Balanced',       desc: 'The clean default — each member fairly weighs and builds on the prior response.' },
-      { id: 'adversarial',    label: '⚔️ Adversarial',    desc: 'Members push back hard on the prior response — attack assumptions, steelman the opposition, concede little.' },
-      { id: 'chaos',          label: '🎲 Chaos',          desc: 'Lateral, divergent, randomized — surprising connections and wild-card angles over the obvious.' },
-      { id: 'dreamer',        label: '🌌 Dreamer',        desc: 'Expansive and imaginative — each member amplifies the vision and dreams bigger.' },
-      { id: 'problem-solver', label: '🧩 Problem-Solver', desc: 'Frames the input as a PROBLEM and returns multiple ways to APPROACH it, with trade-offs — not just one answer.' }
-    ];
-    var selectedMode = 'default';
-    function buildModes() {
-      var row = document.getElementById('mode-row');
-      row.innerHTML = MODES.map(function (m) {
-        return '<button type="button" class="mode-pill' + (m.id === selectedMode ? ' selected' : '') +
-          '" data-mode="' + m.id + '" onclick="selectMode(\'' + m.id + '\')">' + m.label + '</button>';
-      }).join('');
-      updateModeDesc();
-    }
-    function selectMode(id) {
-      selectedMode = id;
-      var pills = document.querySelectorAll('.mode-pill');
-      for (var i = 0; i < pills.length; i++) pills[i].classList.toggle('selected', pills[i].getAttribute('data-mode') === id);
-      updateModeDesc();
-    }
-    function updateModeDesc() {
-      var m = MODES.filter(function (x) { return x.id === selectedMode; })[0];
-      document.getElementById('mode-desc').textContent = m ? m.desc : '';
-    }
-
-    // ── Capability toggles ────────────────────────────────────────────────────
-    // Web Search defaults ON (it works); user can switch it OFF for a faster,
-    // model-knowledge-only run. Delegation defaults OFF (no public fleet endpoint
-    // yet). Each value is sent in the payload and gates the matching server stage.
-    var webSearchOn = true;
-    var delegationOn = false;
-    function paintToggle(id, on) {
-      var el = document.getElementById(id);
-      if (!el) return;
-      el.classList.toggle('on', !!on);
-      el.setAttribute('aria-checked', on ? 'true' : 'false');
-    }
-    function toggleWebSearch() { webSearchOn = !webSearchOn; paintToggle('toggle-websearch', webSearchOn); }
-    function toggleDelegation() { delegationOn = !delegationOn; paintToggle('toggle-delegation', delegationOn); }
-    // Keyboard a11y for the switch role.
-    ['toggle-websearch', 'toggle-delegation'].forEach(function (id) {
-      var el = document.getElementById(id);
-      if (el) el.addEventListener('keydown', function (e) {
-        if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); el.click(); }
-      });
-    });
-
-    // ── Stage rendering ───────────────────────────────────────────────────────
-    var passNum = 0;          // each run/follow-up is a "pass"; namespaces card ids
-    var lastSynthesis = '';   // seeds the next interactive round
-    var liveBuffers = {};     // cardId -> accumulating streamed text
-    var runCompleted = false; // set true when the server sends {stage:'complete'}
-    var currentRunId = '';    // server-registry key for resume-on-reattach
-    var lastSeq = 0;          // highest event seq the client has fully processed
-    function genRunId() {
-      return 'r' + Date.now().toString(36) + Math.random().toString(36).slice(2, 10);
-    }
-
-    // ── Tab-switch / connection resilience ────────────────────────────────────
-    // The run is NEVER tied to tab focus — we add no blur/visibility handler that
-    // aborts it. Continuous token streaming + the server's 8s heartbeats keep the
-    // connection alive across a backgrounded tab. As a safety net, if the stream
-    // is dropped mid-run (mobile suspend / proxy), we transparently reconnect and
-    // RESUME into the same cards (seeded with any synthesis so far) instead of
-    // wiping the screen and starting from scratch.
-    var wakeLock = null;
-    async function acquireWakeLock() {
-      try { if (navigator.wakeLock && document.visibilityState === 'visible') wakeLock = await navigator.wakeLock.request('screen'); } catch (e) {}
-    }
-    function releaseWakeLock() { try { if (wakeLock) { wakeLock.release(); wakeLock = null; } } catch (e) {} }
-    document.addEventListener('visibilitychange', function () {
-      // Re-acquire the wake lock on return; do NOT touch the in-flight run.
-      if (document.visibilityState === 'visible' && !runCompleted) acquireWakeLock();
-    });
-    function sleep(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
-    function reconnectNotice(attempt) {
-      var n = document.createElement('div');
-      n.className = 'round-header';
-      n.innerHTML = '<div class="round-label" style="color:var(--accent);text-transform:none;letter-spacing:0;font-weight:600;">&#8635; Connection paused &mdash; resuming the deliberation (attempt ' + attempt + ')&#8230;</div><div class="round-line"></div>';
-      document.getElementById('stages').appendChild(n);
-    }
-
-    // ── Modes (treatment instructions, picked before running) ─────────────────
-    var MODES = [
-      { id: 'default',        label: '⚖️ Balanced',       desc: 'The clean default — each member fairly weighs and builds on the prior response.' },
-      { id: 'adversarial',    label: '⚔️ Adversarial',    desc: 'Members push back hard on the prior response — attack assumptions, steelman the opposition, concede little.' },
-      { id: 'chaos',          label: '🎲 Chaos',          desc: 'Lateral, divergent, randomized — surprising connections and wild-card angles over the obvious.' },
-      { id: 'dreamer',        label: '🌌 Dreamer',        desc: 'Expansive and imaginative — each member amplifies the vision and dreams bigger.' },
-      { id: 'problem-solver', label: '🧩 Problem-Solver', desc: 'Frames the input as a PROBLEM and returns multiple ways to APPROACH it, with trade-offs — not just one answer.' }
-    ];
-    var selectedMode = 'default';
-    function buildModes() {
-      var row = document.getElementById('mode-row');
-      row.innerHTML = MODES.map(function (m) {
-        return '<button type="button" class="mode-pill' + (m.id === selectedMode ? ' selected' : '') +
-          '" data-mode="' + m.id + '" onclick="selectMode(\'' + m.id + '\')">' + m.label + '</button>';
-      }).join('');
-      updateModeDesc();
-    }
-    function selectMode(id) {
-      selectedMode = id;
-      var pills = document.querySelectorAll('.mode-pill');
-      for (var i = 0; i < pills.length; i++) pills[i].classList.toggle('selected', pills[i].getAttribute('data-mode') === id);
-      updateModeDesc();
-    }
-    function updateModeDesc() {
-      var m = MODES.filter(function (x) { return x.id === selectedMode; })[0];
-      document.getElementById('mode-desc').textContent = m ? m.desc : '';
-    }
-
-    // ── Stage rendering ───────────────────────────────────────────────────────
-    var passNum = 0;          // each run/follow-up is a "pass"; namespaces card ids
-    var lastSynthesis = '';   // seeds the next interactive round
-    var liveBuffers = {};     // cardId -> accumulating streamed text
-
-    function copyStage(cardId) {
-      var el = document.getElementById('content-' + cardId);
-      if (!el) return;
-      var text = el.textContent;
-      if (!text || !text.trim()) return;
-      navigator.clipboard.writeText(text.trim()).then(function () {
-        var btn = document.querySelector('#stage-' + cardId + ' .copy-btn');
-        if (!btn) return;
-        var orig = btn.textContent;
-        btn.textContent = 'Copied'; btn.classList.add('copied');
-        setTimeout(function () { btn.textContent = orig; btn.classList.remove('copied'); }, 2000);
-      }).catch(function () {});
-    }
-    function toggleStage(cardId) {
-      var card = document.getElementById('stage-' + cardId);
-      if (card) card.classList.toggle('open');
-    }
-    function setStatus(cardId, type, html) {
-      var el = document.getElementById('status-' + cardId);
-      if (!el) return;
-      el.className = 'stage-status ' + type;
-      el.innerHTML = type === 'thinking' ? '<span class="spinner"></span> ' + html : html;
-    }
-    function setModelBadge(cardId, modelName) {
-      var el = document.getElementById('modelbadge-' + cardId);
-      if (el && modelName) { el.textContent = modelName; el.classList.add('show'); }
-    }
-    function openCard(cardId) {
-      var card = document.getElementById('stage-' + cardId);
-      if (card) card.classList.add('open', 'active');
-    }
-    function doneCard(cardId, cls) {
-      var card = document.getElementById('stage-' + cardId);
-      if (!card) return;
-      card.classList.remove('active');
-      card.classList.add(cls || 'done');
-    }
-
-    function ensureRoundHeader(round) {
-      var id = 'round-hdr-' + passNum + '-' + round;
-      if (!document.getElementById(id)) {
-        var hdr = document.createElement('div');
-        hdr.id = id; hdr.className = 'round-header';
-        hdr.innerHTML = '<div class="round-label">Round ' + round + '</div><div class="round-line"></div>';
-        document.getElementById('stages').appendChild(hdr);
-      }
-    }
-    function ensureDivider(key, label, color) {
-      var divId = 'div-' + passNum + '-' + key;
-      if (!document.getElementById(divId)) {
-        var hdr = document.createElement('div');
-        hdr.id = divId; hdr.className = 'round-header';
-        hdr.innerHTML = '<div class="round-label" style="color:' + (color || '#475569') + '">' + label + '</div><div class="round-line"></div>';
-        document.getElementById('stages').appendChild(hdr);
-      }
-    }
-
-    function createCard(cardId, roleClass, icon, name, desc, extraClass) {
-      if (document.getElementById('stage-' + cardId)) return;
-      var card = document.createElement('div');
-      card.id = 'stage-' + cardId;
-      card.className = 'stage-card' + (extraClass ? ' ' + extraClass : '');
-      var roleCap = roleClass.charAt(0).toUpperCase() + roleClass.slice(1);
-      card.innerHTML =
-        '<div class="stage-header" onclick="toggleStage(\'' + cardId + '\')">' +
-          '<div class="stage-icon ' + roleClass + '">' + icon + '</div>' +
-          '<div class="stage-meta">' +
-            '<div class="stage-name">' + name +
-              '<span class="role-badge ' + roleClass + '" style="font-size:9px;">' + roleCap + '</span>' +
-              '<span class="model-tag-badge" id="modelbadge-' + cardId + '"></span>' +
-            '</div>' +
-            '<div class="stage-desc">' + desc + '</div>' +
-          '</div>' +
-          '<div class="stage-status" id="status-' + cardId + '">Waiting</div>' +
-          '<div class="chevron">&#9660;</div>' +
-        '</div>' +
-        '<div class="stage-body">' +
-          '<button class="copy-btn" onclick="copyStage(\'' + cardId + '\')">Copy</button>' +
-          '<div class="stage-content" id="content-' + cardId + '"><span class="placeholder-text">Generating&#8230;</span></div>' +
-        '</div>';
-      document.getElementById('stages').appendChild(card);
-    }
-
-    // Resolve the {stage, round} of an event to a namespaced card id + metadata.
-    function cardFor(event) {
-      var stage = event.stage, round = event.round;
-      if (stage === 'proposer') {
-        return {
-          id: 'p' + passNum + '-proposer-r' + round, role: 'proposer', icon: '&#128161;',
-          name: round === 1 ? 'Proposer &#8212; Initial' : 'Proposer &#8212; Revision ' + round,
-          desc: round === 1 ? 'Forms the initial response &mdash; direct and substantive'
-                            : 'Revises based on the previous member&#39;s reaction',
-          headerRound: round, extra: ''
-        };
-      }
-      if (stage === 'critic') {
-        return {
-          id: 'p' + passNum + '-critic-r' + round, role: 'critic', icon: '&#128269;',
-          name: 'Critic &#8212; Round ' + round,
-          desc: 'Different AI family &mdash; treats the prior response per the chosen mode',
-          headerRound: round, extra: ''
-        };
-      }
-      if (stage === 'synthesizer') {
-        return {
-          id: 'p' + passNum + '-synthesizer', role: 'synth', icon: '&#9989;',
-          name: 'Synthesizer', desc: 'Weaves all responses &amp; reactions into the definitive result',
-          divider: ['synth', 'Synthesis', '#475569'], extra: ''
-        };
-      }
-      if (stage === 'judge') {
-        return {
-          id: 'p' + passNum + '-judge', role: 'judge', icon: '&#9878;&#65039;',
-          name: 'Judge &#8212; Verdict', desc: 'Delivers the final decision, confidence &amp; call to action',
-          divider: ['judge', 'Verdict', 'var(--amber)'], extra: 'judge-card'
-        };
-      }
-      return null;
-    }
-
-    function handleEvent(event) {
-      if (event.stage === 'meta' || event.stage === 'complete') return; // handled in runStream
-      if (event.stage === 'error') throw new Error(event.error || 'Unknown error from council');
-      if (event.stage === 'notice') {
-        var n = document.createElement('div');
-        n.className = 'round-header';
-        n.innerHTML = '<div class="round-label" style="color:var(--amber);text-transform:none;letter-spacing:0;font-weight:600;">&#9888; ' +
-          (event.text || '').replace(/</g, '&lt;') + '</div>';
-        document.getElementById('stages').appendChild(n);
-        return;
-      }
-
-      var c = cardFor(event);
-      if (!c) return;
-
-      if (!document.getElementById('stage-' + c.id)) {
-        if (c.headerRound) ensureRoundHeader(c.headerRound);
-        if (c.divider) ensureDivider(c.divider[0], c.divider[1], c.divider[2]);
-        createCard(c.id, c.role, c.icon, c.name, c.desc, c.extra);
-      }
-
-      var status = event.status;
-      var contentEl = document.getElementById('content-' + c.id);
-
-      if (status === 'thinking') {
-        openCard(c.id);
-        var hint = event.roster ? ' (' + event.roster[0] + ')' : '';
-        setStatus(c.id, 'thinking', (c.role === 'judge' ? 'Deliberating&#8230;' : 'Thinking&#8230;') + hint);
-      } else if (status === 'model') {
-        // A (new) model attempt started streaming — reset the live buffer so a
-        // failed-then-retried stage doesn't show concatenated garbage.
-        liveBuffers[c.id] = '';
-        if (contentEl) { contentEl.textContent = ''; contentEl.classList.add('streaming'); }
-        setModelBadge(c.id, event.model);
-        setStatus(c.id, 'thinking', 'Streaming&#8230; (' + event.model + ')');
-      } else if (status === 'delta') {
-        liveBuffers[c.id] = (liveBuffers[c.id] || '') + (event.delta || '');
-        if (contentEl) {
-          contentEl.classList.add('streaming');
-          contentEl.textContent = liveBuffers[c.id];
-        }
-      } else if (status === 'done') {
-        if (contentEl) { contentEl.classList.remove('streaming'); contentEl.textContent = event.text; }
-        if (event.model) setModelBadge(c.id, event.model);
-        setStatus(c.id, 'done', c.role === 'judge' ? '&#10003; Verdict' : '&#10003; Done');
-        doneCard(c.id, 'done');
-      } else if (status === 'failed') {
-        if (contentEl) {
-          contentEl.classList.remove('streaming');
-          contentEl.innerHTML = '<span class="placeholder-text">All free models for this stage were rate-limited or timed out. The council continued with the remaining stages.</span>';
-        }
-        setStatus(c.id, 'failed', '&#9888; Skipped');
-        doneCard(c.id, 'failed');
-      }
-    }
-
-    async function runStream(payload) {
-      var res = await fetch(API_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
-
-      if (!res.ok) {
-        var err = await res.json().catch(function () { return { error: res.statusText }; });
-        throw new Error(err.error || 'HTTP ' + res.status);
-      }
-
-      var reader = res.body.getReader();
-      var decoder = new TextDecoder();
-      var buf = '';
-      while (true) {
-        var chunk = await reader.read();
-        if (chunk.done) break;
-        buf += decoder.decode(chunk.value, { stream: true });
-        var lines = buf.split('\n');
-        buf = lines.pop();
-        for (var i = 0; i < lines.length; i++) {
-          var line = lines[i];
-          if (!line || line.charAt(0) === ':') continue;       // SSE heartbeat comment
-          var trimmed = line.replace(/^data:\s*/, '').trim();
-          if (!trimmed) continue;
-          var event;
-          try { event = JSON.parse(trimmed); } catch (e) { continue; }
-          // Server couldn't find the run to resume (cold / different instance) →
-          // bubble up so the caller falls back to a seeded fresh run.
-          if (event.stage === 'resume_miss') throw new Error('RESUME_MISS');
-          // Idempotent replay guard: on reattach the server resends only seq>lastSeq,
-          // but ignore any straggler we've already rendered.
-          if (typeof event.seq === 'number') {
-            if (event.seq <= lastSeq) continue;
-            lastSeq = event.seq;
-          }
-          if (event.stage === 'complete') {
-            runCompleted = true;
-            if (event.synthesis) { lastSynthesis = event.synthesis; try { sessionStorage.setItem('council_last_synth', lastSynthesis); } catch (e) {} }
-            continue;
-          }
-          handleEvent(event);
-        }
-      }
-      // Reader ended. If the server never sent {stage:'complete'} and never threw
-      // an error, the connection was dropped mid-run — signal a resumable drop.
-      if (!runCompleted) throw new Error('STREAM_DROPPED');
-    }
-
-    async function convene(question, priorContext, isFollowup) {
-      var btn = document.getElementById('submit-btn');
-      var fbtn = document.getElementById('followup-btn');
-      var errorEl = document.getElementById('error-banner');
-      var stagesEl = document.getElementById('stages');
-      var followCard = document.getElementById('followup-card');
-
-      btn.disabled = true; fbtn.disabled = true;
-      btn.textContent = 'Convening…';
-      errorEl.className = 'error-banner';
-      followCard.classList.remove('visible');
-
-      if (isFollowup) {
-        passNum++;
-        ensureDivider('followup', '&#128172; Follow-up ' + passNum, 'var(--purple)');
-      } else {
-        passNum = 0;
-        stagesEl.innerHTML = '';
-        liveBuffers = {};
-      }
-      stagesEl.style.display = 'flex';
-      runCompleted = false;
-      currentRunId = genRunId();
-      lastSeq = 0;
-      acquireWakeLock();
-
-      // Fresh-run payload carries the runId + capability toggles. The server runs
-      // this council to completion server-side and mirrors every event under runId.
-      var freshPayload = {
-        question: question, mode: selectedMode, priorContext: priorContext || '',
-        code: accessCode(), runId: currentRunId,
-        webSearch: webSearchOn, delegate: delegationOn,
-      };
-      var payload = freshPayload;
-      var attempts = 0;
-      try {
-        while (true) {
-          try {
-            await runStream(payload);
-            break; // server sent {complete} (or ended cleanly after it)
-          } catch (err) {
-            var m = err && err.message;
-            if ((m === 'STREAM_DROPPED' || m === 'RESUME_MISS') && attempts < 5) {
-              attempts++;
-              reconnectNotice(attempts);
-              if (m === 'STREAM_DROPPED') {
-                // TRUE RESUME: re-attach to the same server-side run and replay only
-                // the events we missed (seq > lastSeq) — no restart of the council.
-                runCompleted = false;
-                payload = { resume: true, runId: currentRunId, lastSeq: lastSeq, code: accessCode() };
-              } else {
-                // Re-attach missed (cold/other instance) → seeded fresh run as a
-                // safe fallback, never worse than the old behaviour.
-                runCompleted = false;
-                currentRunId = genRunId();
-                lastSeq = 0;
-                payload = Object.assign({}, freshPayload, {
-                  runId: currentRunId,
-                  priorContext: lastSynthesis || freshPayload.priorContext,
-                });
-              }
-              await sleep(500 * attempts);
-              continue;
-            }
-            throw err;
-          }
-        }
-        // Offer an interactive next round once we have a synthesis to build on.
-        if (lastSynthesis) {
-          document.getElementById('followup-input').value = '';
-          followCard.classList.add('visible');
-        }
-      } catch (err) {
-        var dropped = err && (err.message === 'STREAM_DROPPED' || err.message === 'RESUME_MISS');
-        var msg = dropped
-          ? 'The connection dropped and could not be resumed after several attempts. Please tap Convene again — your access code is remembered.'
-          : (err && err.message) || 'Unexpected error.';
-        errorEl.textContent = msg;
-        errorEl.className = 'error-banner visible';
-      } finally {
-        releaseWakeLock();
-        btn.disabled = false; fbtn.disabled = false;
-        btn.textContent = 'Convene Council';
-      }
-    }
-
-    // ── 4-digit access gate (client side) ─────────────────────────────────────
-    // The code is validated SERVER-SIDE; this is just format-checking + UX. The
-    // real value is never in this file, so it can't be scraped from the page.
-    var codeEl = document.getElementById('access-code');
-    try { var saved = localStorage.getItem('council_code'); if (saved) codeEl.value = saved; } catch (e) {}
-    function accessCode() { return (codeEl.value || '').replace(/\D/g, '').slice(0, 4); }
-    function gateOk() {
-      var c = accessCode();
-      if (c.length !== 4) {
-        var errorEl = document.getElementById('error-banner');
-        errorEl.textContent = 'Enter the 4-digit access code (ask Ivan) to convene the council.';
-        errorEl.className = 'error-banner visible';
-        codeEl.classList.add('bad'); codeEl.focus();
-        return false;
-      }
-      codeEl.classList.remove('bad');
-      try { localStorage.setItem('council_code', c); } catch (e) {}
-      return true;
-    }
-
-    function runCouncil() {
-      var question = document.getElementById('question').value.trim();
-      if (!question) {
-        var errorEl = document.getElementById('error-banner');
-        errorEl.textContent = 'Please enter a question first.';
-        errorEl.className = 'error-banner visible';
-        document.getElementById('question').focus();
-        return;
-      }
-      if (!gateOk()) return;
-      convene(question, '', false);
-    }
-
-    function runFollowup() {
-      var follow = document.getElementById('followup-input').value.trim();
-      if (!follow) { document.getElementById('followup-input').focus(); return; }
-      if (!gateOk()) return;
-      convene(follow, lastSynthesis, true);
-    }
-
-    document.getElementById('question').addEventListener('keydown', function (e) {
-      if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') runCouncil();
-    });
-    document.getElementById('followup-input').addEventListener('keydown', function (e) {
-      if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') runFollowup();
-    });
-
-    buildSuggestions();
-    buildModes();
-  </script>
 </body>
 </html>

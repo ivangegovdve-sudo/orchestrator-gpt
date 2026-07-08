@@ -52,6 +52,36 @@ function isFreeSlug(model) {
   return String(model || "").trim().toLowerCase().endsWith(":free");
 }
 
+// ── Per-request roster override (from the council page's model picker) ───────
+// The client may send `roster` = { stage: [slugs...] } to steer which models
+// fill each council seat. We NEVER trust it blindly: every slug must pass the
+// :free kill-gate, unknown stage keys are ignored, and each stage always keeps
+// the verified default list appended as fallback so a run can still complete.
+// If the client sends nothing (or nothing valid), behaviour is unchanged.
+function sanitizeRoster(raw) {
+  const out = {};
+  if (!raw || typeof raw !== "object") return out;
+  for (const stage of Object.keys(ROSTER)) {
+    const req = Array.isArray(raw[stage]) ? raw[stage] : null;
+    if (!req) continue;
+    const clean = [];
+    for (const slug of req) {
+      const s = String(slug || "").trim();
+      if (!s || s.length > 120) continue;
+      if (!PAID_FALLBACK_ENABLED && !isFreeSlug(s)) continue; // free-only lockdown
+      if (clean.indexOf(s) === -1) clean.push(s);
+      if (clean.length >= 8) break;
+    }
+    if (!clean.length) continue;
+    // Always keep the verified default chain as fallback (deduped).
+    const merged = clean.concat(ROSTER[stage]);
+    const seen = {}, dedup = [];
+    for (const m of merged) { if (!seen[m]) { seen[m] = 1; dedup.push(m); } }
+    out[stage] = dedup;
+  }
+  return out;
+}
+
 const DEFAULT_ROUNDS = 2;
 // First-token timeout: how long we wait for the model to START streaming before
 // giving up and trying the next one. Short enough to dodge queued free models.
@@ -100,7 +130,12 @@ const DELEGATE_ENDPOINT   = (process.env.COUNCIL_DELEGATE_ENDPOINT || "").trim()
 const DELEGATE_KEY        = (process.env.COUNCIL_DELEGATE_KEY || "").trim();        // Bearer for the gateway
 const DELEGATE_MODEL      = (process.env.COUNCIL_DELEGATE_MODEL || "chloe").trim();
 const DELEGATE_TIMEOUT_MS = Math.max(10000, Math.min(90000, parseInt(process.env.COUNCIL_DELEGATE_TIMEOUT_MS || "70000", 10) || 70000));
-const DELEGATION_ENABLED  = !/^(0|false|no|off)$/i.test((process.env.COUNCIL_DELEGATION_ENABLED || "1").trim()) && !!DELEGATE_ENDPOINT;
+// FLEET_BASE (2026-07-07): chloe.blumenkraft.cloud is live with a valid cert —
+// soul-server on Oracle fronts code-gated /council/recall (fleet memory RAG) and
+// /council/delegate (forwards one sub-question to Chloé's brain). Delegation no
+// longer requires a Vercel env var; DELEGATE_ENDPOINT still overrides when set.
+const FLEET_BASE          = (process.env.COUNCIL_FLEET_BASE || "https://chloe.blumenkraft.cloud").trim().replace(/\/$/, "");
+const DELEGATION_ENABLED  = !/^(0|false|no|off)$/i.test((process.env.COUNCIL_DELEGATION_ENABLED || "1").trim()) && !!(DELEGATE_ENDPOINT || FLEET_BASE);
 
 // ── Council modes ───────────────────────────────────────────────────────────
 // IMPORTANT: modes are NOT personas. They are INSTRUCTIONS for HOW each member
@@ -363,6 +398,31 @@ function formatWebBlock(results) {
     "\n[sources: " + results.length + " results via " + (results[0] && results[0].provider || "?") + "]";
 }
 
+// ── Fleet memory recall (Personal Round Table grounding) ────────────────────
+// Pulls top-k snippets from the chloe-memory corpus via soul-server's
+// code-gated /council/recall on Oracle. Non-fatal, hard 8s bound: on any
+// failure the council simply deliberates without fleet memory.
+async function fleetRecall(query, accessCode) {
+  if (!FLEET_BASE) return [];
+  const u = new URL(FLEET_BASE + "/council/recall");
+  u.searchParams.set("query", String(query).slice(0, 300));
+  u.searchParams.set("code", String(accessCode || ""));
+  const r = await httpsRequest({
+    hostname: u.hostname, port: u.port || 443, path: u.pathname + u.search, method: "GET",
+    headers: { "Accept": "application/json" },
+  }, null, 8000);
+  if (r.statusCode < 200 || r.statusCode >= 300) throw new Error("recall HTTP " + r.statusCode);
+  const data = JSON.parse(r.body);
+  return Array.isArray(data.results) ? data.results : [];
+}
+
+function formatMemoryBlock(results) {
+  const lines = results.map((m, i) =>
+    (i + 1) + ". [" + (m.file || "?") + "]\n   " + (m.snippet || "").replace(/\s+/g, " ").slice(0, 420));
+  return "## FLEET MEMORY CONTEXT (from Chloé's memory on Oracle — current fleet state; trust over stale model knowledge)\n" +
+    lines.join("\n") + "\n[memory: " + results.length + " snippets]";
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Delegation to Chloé (single endpoint). Non-streaming POST /v1/chat/completions,
 // hard deadline, NEVER throws — always returns a structured result. Degrades to a
@@ -378,9 +438,34 @@ function delegationSystemPrompt(hint) {
     route + " Return a single concise, grounded answer with sources where available. NEVER return an error — if the fleet cannot help, answer from your own best knowledge.";
 }
 
-async function delegateToChloe(subQuestion, hint) {
+async function delegateToChloe(subQuestion, hint, accessCode) {
   const result = { answer: "", route: hint || "self", degraded: false, reason: "", elapsed_ms: 0 };
-  if (!DELEGATE_ENDPOINT) { result.degraded = true; result.reason = "no_public_endpoint"; return result; }
+  if (!DELEGATE_ENDPOINT) {
+    // Default path: soul-server's code-gated council delegation on Oracle.
+    if (!FLEET_BASE) { result.degraded = true; result.reason = "no_public_endpoint"; return result; }
+    const fu = new URL(FLEET_BASE + "/council/delegate");
+    const fbody = JSON.stringify({ sub_question: subQuestion, hint: hint || "self", code: String(accessCode || "") });
+    const t0f = Date.now();
+    try {
+      const r = await httpsRequest({
+        hostname: fu.hostname, port: fu.port || 443, path: fu.pathname,
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Content-Length": Buffer.byteLength(fbody) },
+      }, fbody, DELEGATE_TIMEOUT_MS);
+      result.elapsed_ms = Date.now() - t0f;
+      if (r.statusCode < 200 || r.statusCode >= 300) { result.degraded = true; result.reason = "http_" + r.statusCode; return result; }
+      const data = JSON.parse(r.body);
+      if (!data.answer) { result.degraded = true; result.reason = String(data.error || "empty_answer").slice(0, 60); return result; }
+      result.answer = String(data.answer);
+      result.route = String(data.route || "chloe");
+      return result;
+    } catch (e) {
+      result.elapsed_ms = Date.now() - t0f;
+      result.degraded = true;
+      result.reason = (e && e.message === "timeout") ? "timeout_" + Math.round(DELEGATE_TIMEOUT_MS / 1000) + "s" : "error:" + (e && e.message || "unknown").slice(0, 60);
+      return result;
+    }
+  }
   const url = new URL(DELEGATE_ENDPOINT.replace(/\/$/, "") + "/v1/chat/completions");
   const body = JSON.stringify({
     model: DELEGATE_MODEL, stream: false, max_tokens: 1024,
@@ -537,7 +622,13 @@ module.exports = async function handler(req, res) {
   // ONLY when the client sends an explicit boolean.
   const reqWebSearch = (typeof parsed.webSearch === "boolean") ? parsed.webSearch : WEBSEARCH_ENABLED;
   const reqDelegate  = (typeof parsed.delegate === "boolean") ? parsed.delegate : DELEGATION_ENABLED;
-  const delegateActive = reqDelegate && !!DELEGATE_ENDPOINT;
+  const delegateActive = reqDelegate && !!(DELEGATE_ENDPOINT || FLEET_BASE);
+
+  // Per-request model picks (from the page's model tree). Validated + fallback-
+  // backed by sanitizeRoster; each stage resolves to activeRoster[stage] or the
+  // verified default. Absent/invalid → identical to the previous behaviour.
+  const rosterOverride = sanitizeRoster(parsed.roster);
+  const activeRoster = Object.assign({}, ROSTER, rosterOverride);
 
   // ── Resume / reattach plumbing (tab-blur persistence) ───────────────────────
   const runId   = typeof parsed.runId === "string" ? parsed.runId.slice(0, 64) : "";
@@ -572,7 +663,10 @@ module.exports = async function handler(req, res) {
   }
 
   const q = question.trim().slice(0, 2000);
-  const numRounds = Math.max(2, Math.min(3, parseInt(rounds, 10) || DEFAULT_ROUNDS));
+  // Rounds 1–5 (was 2–3). The debate loop is self-protecting: the wall-clock
+  // guard below skips remaining rounds if free-tier is slow, so a high pick can
+  // never blow the Vercel function budget — it just degrades gracefully.
+  const numRounds = Math.max(1, Math.min(5, parseInt(rounds, 10) || DEFAULT_ROUNDS));
   const mode = getMode(modeName);
   const ctx = typeof priorContext === "string" ? priorContext.trim().slice(0, 4000) : "";
 
@@ -624,6 +718,19 @@ module.exports = async function handler(req, res) {
     }
   }
 
+  // ── Fleet memory grounding: the Round Table knows the fleet's actual state ──
+  // Always attempted (cheap, 8s-bounded, non-fatal): current facts about Oracle,
+  // Chloé's whereabouts, and active projects flow into every member's context.
+  try {
+    const mem = await fleetRecall(q, code);
+    if (mem.length) {
+      taskFraming = formatMemoryBlock(mem) + "\n\n" + taskFraming;
+      send({ stage: "notice", text: "Fleet memory: folded " + mem.length + " snippet" + (mem.length === 1 ? "" : "s") + " from Chloé's memory into the deliberation." });
+    }
+  } catch (e) {
+    send({ stage: "notice", text: "Fleet memory unreachable — deliberating without it." });
+  }
+
   // Run one council stage with live streaming + graceful failure.
   //   keys: { stage, round?, extra? } — passed straight back to the client.
   async function runStage(keys, roster, messages, maxTokens) {
@@ -651,7 +758,7 @@ module.exports = async function handler(req, res) {
     // ── Round 1: initial proposal ──────────────────────────────────────────
     const p1 = await runStage(
       { stage: "proposer", round: 1 },
-      ROSTER.proposer_r1,
+      activeRoster.proposer_r1,
       [
         { role: "system", content: "You are the Proposer in a multi-role LLM Council. " + mode.propose },
         { role: "user", content: taskFraming },
@@ -675,7 +782,7 @@ module.exports = async function handler(req, res) {
 
       const c = await runStage(
         { stage: "critic", round: criticRound },
-        ROSTER.critic,
+        activeRoster.critic,
         [
           { role: "system", content: "You are the Critic in a multi-role LLM Council, reacting to the previous member's response. " + mode.critique + " Be concise." },
           { role: "user", content: "Original input:\n" + taskFraming + "\n\nPrevious member's response (Round " + (r - 1) + "):\n" + prevProposal + "\n\nNow apply your treatment to the response above." },
@@ -685,7 +792,7 @@ module.exports = async function handler(req, res) {
       const criticText = c ? c.text : "(critic stage unavailable — proceeding)";
       if (c) { criticTexts.push(c.text); criticModels.push(c.model); }
 
-      const revRoster = r === 2 ? ROSTER.proposer_rev : ROSTER.proposer_r1;
+      const revRoster = r === 2 ? activeRoster.proposer_rev : activeRoster.proposer_r1;
       const p = await runStage(
         { stage: "proposer", round: r },
         revRoster,
@@ -704,7 +811,7 @@ module.exports = async function handler(req, res) {
     const firstCriticText = criticTexts[0] || "";
     const c2 = (timeLeft() < SYNTH_JUDGE_RESERVE_MS) ? null : await runStage(
       { stage: "critic", round: numRounds },
-      ROSTER.critic2,
+      activeRoster.critic2,
       [
         { role: "system", content: "You are the Second Critic in a multi-role LLM Council — a DIFFERENT AI system from the first critic, reacting to the latest response. " + mode.critique + " Find what the first critic missed." },
         { role: "user", content: "Original input:\n" + taskFraming + "\n\nLatest response to react to:\n" + finalProposal + "\n\nThe first critic already raised:\n" + firstCriticText.slice(0, 600) + "\n\nApply your treatment — surface what remains." },
@@ -718,16 +825,13 @@ module.exports = async function handler(req, res) {
     // + non-fatal. Stays OFF unless COUNCIL_DELEGATE_ENDPOINT is a public URL; if the
     // user ticked it on but no public endpoint exists, we say so and proceed.
     let delegationBlock = "";
-    if (reqDelegate && !DELEGATE_ENDPOINT) {
-      send({ stage: "notice", text: "Delegation requested, but no public fleet endpoint is configured yet — proceeding with the council only." });
-    }
     if (delegateActive && timeLeft() > SYNTH_JUDGE_RESERVE_MS + DELEGATE_TIMEOUT_MS) {
       send({ stage: "notice", text: "Considering a fleet delegation to Chloé…" });
       try {
         const d = await delegationDecision(taskFraming, proposerTexts[0], apiKey);
         if (d.delegatable && d.would_benefit && d.sub_question) {
           send({ stage: "notice", text: "Delegating to Chloé (" + d.target_hint + "): " + d.sub_question.slice(0, 120) });
-          const ans = await delegateToChloe(d.sub_question, d.target_hint);
+          const ans = await delegateToChloe(d.sub_question, d.target_hint, code);
           if (!ans.degraded && ans.answer) {
             delegationBlock = "\n\nFleet delegation (Chloé → " + ans.route + ", " + ans.elapsed_ms + "ms):\n" + ans.answer + "\n";
             send({ stage: "notice", text: "Fleet answer folded into synthesis (route=" + ans.route + ")." });
@@ -751,7 +855,7 @@ module.exports = async function handler(req, res) {
 
     const synth = await runStage(
       { stage: "synthesizer" },
-      ROSTER.synthesizer,
+      activeRoster.synthesizer,
       [
         { role: "system", content: "You are the Synthesizer in a multi-role LLM Council. You received responses and reactions from MULTIPLE distinct AI model families. " + mode.synth + " Be comprehensive yet concise." },
         { role: "user", content: "Original input:\n" + taskFraming + "\n\n" + allRoundsCtx + "\n\nSynthesize the best final result." },
@@ -763,7 +867,7 @@ module.exports = async function handler(req, res) {
     // ── Judge — decisive verdict ───────────────────────────────────────────
     await runStage(
       { stage: "judge" },
-      ROSTER.judge,
+      activeRoster.judge,
       [
         {
           role: "system",
