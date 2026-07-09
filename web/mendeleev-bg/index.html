@@ -534,6 +534,9 @@ const TRANSLATIONS = {
 };
 
 let currentLang = 'bg';
+let activeCompound = null;   // currently highlighted compound key (declared so
+                             // renderCompounds() can read it during init without
+                             // throwing a ReferenceError)
 
 // ── Compounds (100% element coverage) ──────────────────────────────────────
 const COMPOUNDS = {

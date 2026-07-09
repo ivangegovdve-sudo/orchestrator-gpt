@@ -175,17 +175,45 @@
     }
     .example-q:hover { background: rgba(255,255,255,0.08); color: var(--text); border-color: rgba(255,255,255,0.15); }
 
-    .roster-info {
-      background: rgba(139,92,246,0.06); border: 1px solid rgba(139,92,246,0.15);
-      border-radius: 10px; padding: 10px 14px; font-size: 11px; color: #9ca3af;
-      line-height: 1.7;
+    /* ── Roster card: pipeline + seats, clearly labelled ───────── */
+    .roster-card {
+      background: var(--card-bg); border: 1px solid var(--card-border);
+      border-radius: 16px; padding: 16px 18px; display: flex; flex-direction: column; gap: 12px;
     }
-    .roster-info strong { color: #c4b5fd; }
-    .model-chip {
-      display: inline-block; background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.1);
-      border-radius: 4px; padding: 1px 6px; font-family: monospace; font-size: 10px;
-      color: #94a3b8; margin: 1px;
+    .roster-title {
+      display: flex; align-items: center; justify-content: space-between; gap: 10px;
+      font-size: 11px; color: #64748b; text-transform: uppercase; letter-spacing: 0.06em; font-weight: 600;
     }
+    .roster-grid {
+      display: grid; gap: 8px;
+      grid-template-columns: repeat(auto-fit, minmax(115px, 1fr));
+    }
+    .roster-seat {
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 10px; padding: 9px 11px;
+      background: rgba(0,0,0,0.25);
+      display: flex; flex-direction: column; gap: 3px; min-width: 0;
+    }
+    .roster-seat .rs-role { font-size: 10px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; }
+    .roster-seat .rs-model { font-size: 10.5px; font-family: monospace; color: #94a3b8; line-height: 1.4; overflow-wrap: break-word; }
+    .roster-seat.proposer .rs-role { color: var(--accent); }
+    .roster-seat.critic   .rs-role { color: var(--rose); }
+    .roster-seat.synth    .rs-role { color: var(--green); }
+    .roster-seat.judge    .rs-role { color: var(--amber); }
+
+    /* ── Collapsible options (mode / capabilities / suggestions) ── */
+    .options-toggle {
+      align-self: flex-start; background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: var(--muted);
+      cursor: pointer; font-size: 12px; padding: 7px 13px; font-family: inherit;
+      transition: all 0.2s; display: inline-flex; align-items: center; gap: 8px; font-weight: 600;
+    }
+    .options-toggle:hover { background: rgba(255,255,255,0.08); color: var(--text); }
+    .options-toggle .chev { transition: transform 0.25s; font-size: 10px; }
+    .options-toggle.open .chev { transform: rotate(180deg); }
+    .options-toggle .opt-current { color: #7dd3fc; font-weight: 600; }
+    .options-panel { display: none; flex-direction: column; gap: 14px; padding-top: 2px; }
+    .options-panel.open { display: flex; }
 
     .error-banner {
       background: rgba(244,63,94,0.1); border: 1px solid rgba(244,63,94,0.3);
@@ -319,56 +347,8 @@
       <p class="tagline">Ivan&#39;s private council &mdash; free-model panel with web grounding and fleet delegation to Chlo&eacute;. Access-gated.</p>
     </header>
 
-    <div class="flow-row">
-      <span class="role-badge proposer">Propose</span>
-      <span class="arrow">&rarr;</span>
-      <span class="role-badge critic">Critique 1</span>
-      <span class="arrow">&rarr;</span>
-      <span class="role-badge proposer">Revise</span>
-      <span class="arrow">&rarr;</span>
-      <span class="role-badge critic">Critique 2</span>
-      <span class="arrow">&rarr;</span>
-      <span class="role-badge synth">Synthesize</span>
-      <span class="arrow">&rarr;</span>
-      <span class="role-badge judge">Judge</span>
-    </div>
-
     <div class="input-card">
       <textarea id="question" placeholder="Ask the council anything &#8212; a decision, a concept, a plan&#8230;" rows="3"></textarea>
-
-      <!-- Collapsible suggestions (B1) -->
-      <button type="button" class="suggest-toggle" id="suggest-toggle" onclick="toggleSuggest()">
-        <span>&#128161; Show suggestions</span><span class="chev">&#9660;</span>
-      </button>
-      <div class="suggest-panel" id="suggest-panel"></div>
-
-      <!-- Council modes (B3) -->
-      <div class="modes-wrap">
-        <span class="modes-label">Council mode</span>
-        <div class="mode-row" id="mode-row"></div>
-        <div class="mode-desc" id="mode-desc"></div>
-      </div>
-
-      <!-- Capability toggles: Web Search + Delegation -->
-      <div class="toggles-wrap">
-        <span class="toggles-label">Capabilities</span>
-        <div class="toggle-row">
-          <div class="toggle-pill on" id="toggle-websearch" role="switch" aria-checked="true" tabindex="0" onclick="toggleWebSearch()">
-            <span class="toggle-switch"></span>
-            <span class="toggle-text">
-              <span class="toggle-name">&#127758; Web Search</span>
-              <span class="toggle-hint">Ground the debate in live web results (slower)</span>
-            </span>
-          </div>
-          <div class="toggle-pill" id="toggle-delegation" role="switch" aria-checked="false" tabindex="0" onclick="toggleDelegation()">
-            <span class="toggle-switch"></span>
-            <span class="toggle-text">
-              <span class="toggle-name">&#129309; Delegation</span>
-              <span class="toggle-hint">Delegate a sub-question to the fleet (Chlo&eacute;)</span>
-            </span>
-          </div>
-        </div>
-      </div>
 
       <div class="input-footer">
         <div class="gate-wrap">
@@ -378,17 +358,96 @@
         </div>
         <button class="submit-btn" id="submit-btn" onclick="runCouncil()">Convene Council</button>
       </div>
+
+      <!-- Collapsed by default: mode, capabilities, suggestions -->
+      <button type="button" class="options-toggle" id="options-toggle" onclick="toggleOptions()">
+        <span>&#9881;&#65039; Options</span>
+        <span class="opt-current" id="opt-current">&#9878;&#65039; Balanced &middot; &#127758; Web</span>
+        <span class="chev">&#9660;</span>
+      </button>
+      <div class="options-panel" id="options-panel">
+        <!-- Council modes (B3) -->
+        <div class="modes-wrap">
+          <span class="modes-label">Council mode</span>
+          <div class="mode-row" id="mode-row"></div>
+          <div class="mode-desc" id="mode-desc"></div>
+        </div>
+
+        <!-- Capability toggles: Web Search + Delegation -->
+        <div class="toggles-wrap">
+          <span class="toggles-label">Capabilities</span>
+          <div class="toggle-row">
+            <div class="toggle-pill on" id="toggle-websearch" role="switch" aria-checked="true" tabindex="0" onclick="toggleWebSearch()">
+              <span class="toggle-switch"></span>
+              <span class="toggle-text">
+                <span class="toggle-name">&#127758; Web Search</span>
+                <span class="toggle-hint">Ground the debate in live web results (slower)</span>
+              </span>
+            </div>
+            <div class="toggle-pill" id="toggle-delegation" role="switch" aria-checked="false" tabindex="0" onclick="toggleDelegation()">
+              <span class="toggle-switch"></span>
+              <span class="toggle-text">
+                <span class="toggle-name">&#129309; Delegation</span>
+                <span class="toggle-hint">Delegate a sub-question to the fleet (Chlo&eacute;)</span>
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Collapsible suggestions (B1) -->
+        <div class="modes-wrap">
+          <span class="modes-label">Example questions</span>
+          <div class="suggest-panel open" id="suggest-panel"></div>
+        </div>
+      </div>
+
       <div class="gate-hint">Shared with you by Ivan &mdash; keeps the free council from being over-used. <span class="free-badge">free</span> &middot; $0</div>
     </div>
 
-    <div class="roster-info">
-      <strong>Distinct vendor families</strong> &mdash; all <code>:free</code>, $0, with fast fallback if any provider rate-limits:<br>
-      <span class="model-chip">Proposer</span> Google Gemma-4 / Llama-3.3 &nbsp;
-      <span class="model-chip">Critic 1</span> NVIDIA Nemotron Super / Qwen3 &nbsp;
-      <span class="model-chip">Revision</span> Google Gemma-4 &nbsp;
-      <span class="model-chip">Critic 2</span> Nex AGI / Qwen3 &nbsp;
-      <span class="model-chip">Synth</span> Google Gemma MoE &nbsp;
-      <span class="model-chip">Judge</span> OpenAI gpt-oss-20b
+    <div class="roster-card">
+      <div class="roster-title">
+        <span>The round table &mdash; distinct vendor families, all <code>:free</code></span>
+        <span class="free-badge">$0</span>
+      </div>
+      <div class="flow-row" style="justify-content:flex-start;">
+        <span class="role-badge proposer">Propose</span>
+        <span class="arrow">&rarr;</span>
+        <span class="role-badge critic">Critique 1</span>
+        <span class="arrow">&rarr;</span>
+        <span class="role-badge proposer">Revise</span>
+        <span class="arrow">&rarr;</span>
+        <span class="role-badge critic">Critique 2</span>
+        <span class="arrow">&rarr;</span>
+        <span class="role-badge synth">Synthesize</span>
+        <span class="arrow">&rarr;</span>
+        <span class="role-badge judge">Judge</span>
+      </div>
+      <div class="roster-grid">
+        <div class="roster-seat proposer">
+          <span class="rs-role">Proposer</span>
+          <span class="rs-model">Gemma-4 / Llama-3.3</span>
+        </div>
+        <div class="roster-seat critic">
+          <span class="rs-role">Critic 1</span>
+          <span class="rs-model">Nemotron Super / Qwen3</span>
+        </div>
+        <div class="roster-seat proposer">
+          <span class="rs-role">Revision</span>
+          <span class="rs-model">Gemma-4</span>
+        </div>
+        <div class="roster-seat critic">
+          <span class="rs-role">Critic 2</span>
+          <span class="rs-model">Nex AGI / Qwen3</span>
+        </div>
+        <div class="roster-seat synth">
+          <span class="rs-role">Synthesizer</span>
+          <span class="rs-model">Gemma MoE</span>
+        </div>
+        <div class="roster-seat judge">
+          <span class="rs-role">Judge</span>
+          <span class="rs-model">gpt-oss-20b</span>
+        </div>
+      </div>
     </div>
 
     <div class="error-banner" id="error-banner"></div>
@@ -442,12 +501,19 @@
           s.replace(/&/g, '&amp;').replace(/</g, '&lt;') + '</button>';
       }).join('');
     }
-    function toggleSuggest() {
-      var t = document.getElementById('suggest-toggle');
-      var p = document.getElementById('suggest-panel');
+    // ── Collapsed options drawer: mode + capabilities + suggestions ───────────
+    function toggleOptions() {
+      var t = document.getElementById('options-toggle');
+      var p = document.getElementById('options-panel');
       var open = p.classList.toggle('open');
       t.classList.toggle('open', open);
-      t.querySelector('span').innerHTML = open ? '&#128161; Hide suggestions' : '&#128161; Show suggestions';
+    }
+    function updateOptCurrent() {
+      var m = MODES.filter(function (x) { return x.id === selectedMode; })[0];
+      var bits = [m ? m.label : ''];
+      if (webSearchOn) bits.push('&#127758; Web');
+      if (delegationOn) bits.push('&#129309; Fleet');
+      document.getElementById('opt-current').innerHTML = bits.join(' &middot; ');
     }
     function fillQ(btn) {
       document.getElementById('question').value = btn.textContent.trim();
@@ -476,6 +542,7 @@
       var pills = document.querySelectorAll('.mode-pill');
       for (var i = 0; i < pills.length; i++) pills[i].classList.toggle('selected', pills[i].getAttribute('data-mode') === id);
       updateModeDesc();
+      updateOptCurrent();
     }
     function updateModeDesc() {
       var m = MODES.filter(function (x) { return x.id === selectedMode; })[0];
@@ -494,8 +561,8 @@
       el.classList.toggle('on', !!on);
       el.setAttribute('aria-checked', on ? 'true' : 'false');
     }
-    function toggleWebSearch() { webSearchOn = !webSearchOn; paintToggle('toggle-websearch', webSearchOn); }
-    function toggleDelegation() { delegationOn = !delegationOn; paintToggle('toggle-delegation', delegationOn); }
+    function toggleWebSearch() { webSearchOn = !webSearchOn; paintToggle('toggle-websearch', webSearchOn); updateOptCurrent(); }
+    function toggleDelegation() { delegationOn = !delegationOn; paintToggle('toggle-delegation', delegationOn); updateOptCurrent(); }
     // Keyboard a11y for the switch role.
     ['toggle-websearch', 'toggle-delegation'].forEach(function (id) {
       var el = document.getElementById(id);
@@ -538,39 +605,6 @@
       n.innerHTML = '<div class="round-label" style="color:var(--accent);text-transform:none;letter-spacing:0;font-weight:600;">&#8635; Connection paused &mdash; resuming the deliberation (attempt ' + attempt + ')&#8230;</div><div class="round-line"></div>';
       document.getElementById('stages').appendChild(n);
     }
-
-    // ── Modes (treatment instructions, picked before running) ─────────────────
-    var MODES = [
-      { id: 'default',        label: '⚖️ Balanced',       desc: 'The clean default — each member fairly weighs and builds on the prior response.' },
-      { id: 'adversarial',    label: '⚔️ Adversarial',    desc: 'Members push back hard on the prior response — attack assumptions, steelman the opposition, concede little.' },
-      { id: 'chaos',          label: '🎲 Chaos',          desc: 'Lateral, divergent, randomized — surprising connections and wild-card angles over the obvious.' },
-      { id: 'dreamer',        label: '🌌 Dreamer',        desc: 'Expansive and imaginative — each member amplifies the vision and dreams bigger.' },
-      { id: 'problem-solver', label: '🧩 Problem-Solver', desc: 'Frames the input as a PROBLEM and returns multiple ways to APPROACH it, with trade-offs — not just one answer.' }
-    ];
-    var selectedMode = 'default';
-    function buildModes() {
-      var row = document.getElementById('mode-row');
-      row.innerHTML = MODES.map(function (m) {
-        return '<button type="button" class="mode-pill' + (m.id === selectedMode ? ' selected' : '') +
-          '" data-mode="' + m.id + '" onclick="selectMode(\'' + m.id + '\')">' + m.label + '</button>';
-      }).join('');
-      updateModeDesc();
-    }
-    function selectMode(id) {
-      selectedMode = id;
-      var pills = document.querySelectorAll('.mode-pill');
-      for (var i = 0; i < pills.length; i++) pills[i].classList.toggle('selected', pills[i].getAttribute('data-mode') === id);
-      updateModeDesc();
-    }
-    function updateModeDesc() {
-      var m = MODES.filter(function (x) { return x.id === selectedMode; })[0];
-      document.getElementById('mode-desc').textContent = m ? m.desc : '';
-    }
-
-    // ── Stage rendering ───────────────────────────────────────────────────────
-    var passNum = 0;          // each run/follow-up is a "pass"; namespaces card ids
-    var lastSynthesis = '';   // seeds the next interactive round
-    var liveBuffers = {};     // cardId -> accumulating streamed text
 
     function copyStage(cardId) {
       var el = document.getElementById('content-' + cardId);
@@ -933,6 +967,7 @@
 
     buildSuggestions();
     buildModes();
+    updateOptCurrent();
   </script>
   <script>
     (function () {
