@@ -3,40 +3,311 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta http-equiv="refresh" content="0; url=/web/tinylm/" />
-  <link rel="canonical" href="/web/tinylm/" />
-  <meta name="robots" content="noindex" />
-  <meta name="theme-color" content="#07070b" />
-  <title>TinyLM has moved — Forest HUB</title>
+  <title>TinyLM Forest Council · SD Forest</title>
+  <meta name="description" content="Small open models (135M–3B) deliberate live on the fleet's own Oracle ARM server — streamed to your browser token by token. No cloud APIs.">
   <style>
     :root {
-      --bg: #07070b; --surface: #0f0f15;
-      --border: rgba(255,255,255,0.08);
-      --text-primary: #f3f4f6; --text-muted: #9ca3af;
-      --accent-green: #22c55e; --radius: 8px;
+      --bg: #09090b;
+      --card-bg: rgba(24, 24, 27, 0.6);
+      --card-border: rgba(255, 255, 255, 0.08);
+      --text: #f8fafc;
+      --muted: #a1a1aa;
+      --green: #22c55e;
+      --accent: #0ea5e9;
+      --purple: #8b5cf6;
+      --rose: #f43f5e;
+      --amber: #f59e0b;
     }
+    * { box-sizing: border-box; }
     body {
       margin: 0; min-height: 100vh;
-      display: grid; place-items: center;
-      background: var(--bg); color: var(--text-primary);
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background-color: var(--bg);
+      background-image:
+        radial-gradient(circle at 20% 35%, rgba(34, 197, 94, 0.08), transparent 45%),
+        radial-gradient(circle at 80% 15%, rgba(14, 165, 233, 0.07), transparent 45%);
+      color: var(--text);
+      font-family: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+      padding: 28px 20px 60px;
     }
-    .card {
-      background: var(--surface); border: 1px solid var(--border);
-      border-radius: var(--radius); padding: 32px 40px;
-      text-align: center; max-width: 420px;
+    .page { max-width: 860px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
+    .topbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+    .back-link { color: var(--muted); text-decoration: none; font-size: 13px; }
+    .back-link:hover { color: var(--text); }
+    .gate-wrap { display: flex; align-items: center; gap: 8px; }
+    .gate-label { font-size: 11px; color: #64748b; white-space: nowrap; }
+    .code-input {
+      width: 74px; background: rgba(0,0,0,0.35); border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 8px; color: var(--text); font-family: monospace; font-size: 14px;
+      letter-spacing: 0.35em; text-align: center; padding: 7px 6px; outline: none;
     }
-    p { color: var(--text-muted); line-height: 1.6; }
-    a { color: var(--accent-green); }
+    .code-input:focus { border-color: rgba(34,197,94,0.6); }
+    .code-input.bad { border-color: var(--rose); }
+    h1 { margin: 0 0 6px; font-size: 28px; letter-spacing: -0.4px; }
+    .tagline { margin: 0; color: var(--muted); font-size: 14.5px; line-height: 1.5; }
+    .card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 16px; padding: 18px; }
+    .section-label { display: block; font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin-bottom: 10px; }
+    textarea {
+      width: 100%; resize: vertical; background: rgba(0,0,0,0.35); border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 12px; color: var(--text); font-family: inherit; font-size: 14px;
+      padding: 12px 14px; outline: none; min-height: 68px;
+    }
+    textarea:focus { border-color: rgba(34,197,94,0.5); }
+    .go-row { display: flex; justify-content: flex-end; margin-top: 12px; align-items: center; gap: 12px; }
+    .note { font-size: 11.5px; color: #64748b; }
+    .go-btn {
+      background: linear-gradient(135deg, #22c55e, #0ea5e9); border: none; border-radius: 12px;
+      color: #04120a; font-weight: 800; font-size: 14px; padding: 11px 24px; cursor: pointer;
+      transition: transform 0.15s, opacity 0.2s;
+    }
+    .go-btn:hover { transform: translateY(-1px); }
+    .go-btn:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
+    .error-banner { display: none; background: rgba(244,63,94,0.08); border: 1px solid rgba(244,63,94,0.3); color: #fda4af; font-size: 13px; border-radius: 12px; padding: 12px 16px; }
+    .seats { display: none; flex-direction: column; gap: 14px; }
+    .seat { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 14px; padding: 16px 18px; }
+    .seat-head { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; margin-bottom: 8px; }
+    .seat-role { font-size: 14px; font-weight: 700; }
+    .seat-model { font-size: 11px; color: var(--muted); font-family: monospace; }
+    .seat-status { margin-left: auto; font-size: 11px; font-weight: 600; letter-spacing: 0.04em; }
+    .seat.waiting  { opacity: 0.55; }
+    .seat.waiting  .seat-status { color: #64748b; }
+    .seat.thinking .seat-status { color: var(--amber); }
+    .seat.thinking { border-color: rgba(245,158,11,0.35); }
+    .seat.done     .seat-status { color: var(--green); }
+    .seat.failed   .seat-status { color: var(--rose); }
+    .seat-text { font-size: 13.5px; line-height: 1.6; color: #e4e4e7; white-space: pre-wrap; word-wrap: break-word; min-height: 1.2em; }
+    .seat-text:empty::before { content: "\2026"; color: #3f3f46; }
+    .seat.synthesis { border-top: 2px solid var(--green); }
+    .cursor { display: inline-block; width: 7px; height: 15px; background: var(--green); vertical-align: -2px; margin-left: 2px; animation: blink 0.9s steps(1) infinite; }
+    @keyframes blink { 50% { opacity: 0; } }
+    .footer-tag { text-align: center; font-size: 11px; color: #52525b; }
+    .footer-tag code { background: rgba(255,255,255,0.06); padding: 1px 6px; border-radius: 5px; }
+    /* ── Inner voice feed (curator → /tinylm-feed, added 2026-07-09) ── */
+    .feed-list { display: flex; flex-direction: column; gap: 10px; max-height: 420px; overflow-y: auto; }
+    .feed-item { display: flex; gap: 10px; align-items: flex-start; background: rgba(0,0,0,0.25); border: 1px solid rgba(255,255,255,0.06); border-radius: 12px; padding: 10px 12px; }
+    .feed-emoji { font-size: 18px; line-height: 1.3; flex: none; }
+    .feed-body { min-width: 0; }
+    .feed-snippet { font-size: 13px; line-height: 1.55; color: #d4d4d8; word-wrap: break-word; }
+    .feed-meta { margin-top: 4px; font-size: 10.5px; color: #64748b; }
+    .feed-meta .cat { color: #a1a1aa; font-weight: 600; }
+    .feed-empty { font-size: 12.5px; color: #64748b; padding: 6px 2px; }
+  
+    /* ── Private-council lock gate (added 2026-07-07) ── */
+    .lockgate { position: fixed; inset: 0; z-index: 9999; display: flex; align-items: center; justify-content: center; background: rgba(5,6,15,.72); backdrop-filter: blur(3px); padding: 20px; }
+    .lockgate-card { background: rgba(24,24,27,.96); border: 1px solid rgba(255,255,255,.12); border-radius: 18px; padding: 30px 26px; max-width: 340px; text-align: center; box-shadow: 0 20px 60px rgba(0,0,0,.6); }
+    .lockgate-ico { font-size: 34px; margin-bottom: 8px; }
+    .lockgate-ttl { font-size: 19px; font-weight: 800; margin-bottom: 8px; }
+    .lockgate-sub { font-size: 13px; color: #a1a1aa; line-height: 1.5; margin-bottom: 16px; }
+    .lockgate-card input { width: 120px; text-align: center; letter-spacing: .4em; font-family: monospace; font-size: 18px; padding: 10px; border-radius: 10px; border: 1px solid rgba(255,255,255,.15); background: rgba(0,0,0,.4); color: #fff; outline: none; }
+    .lockgate-card button { display: block; margin: 14px auto 0; background: linear-gradient(135deg,#8b5cf6,#0ea5e9); border: 0; border-radius: 10px; color: #fff; font-weight: 700; font-size: 14px; padding: 10px 26px; cursor: pointer; }
+    .lockgate-err { color: #fda4af; font-size: 12px; margin-top: 10px; min-height: 1em; }
+    body.locked .page { filter: blur(7px); pointer-events: none; user-select: none; }
+    body:not(.locked) .lockgate { display: none; }
   </style>
 </head>
-<body>
-  <div class="card">
-    <h1>Now a public experiment</h1>
-    <p>The TinyLM council is now the public
-      <a href="/web/tinylm/">TinyLM Consciousness Experiment</a> — no access code needed.</p>
-    <p>Redirecting…</p>
+<body class="locked">
+  <div id="lockgate" class="lockgate" role="dialog" aria-label="Private council — access required">
+    <div class="lockgate-card">
+      <div class="lockgate-ico">&#128274;</div>
+      <div class="lockgate-ttl">Private council</div>
+      <div class="lockgate-sub">This panel reads Chlo&eacute;&#39;s fleet state / private memory, so it&#39;s access-gated. Enter the code to unlock.</div>
+      <input id="lockgate-code" inputmode="numeric" pattern="[0-9]*" maxlength="4" placeholder="&bull;&bull;&bull;&bull;" autocomplete="off" aria-label="Access code" />
+      <button id="lockgate-btn" type="button">Unlock</button>
+      <div class="lockgate-err" id="lockgate-err"></div>
+    </div>
   </div>
-  <script>location.replace("/web/tinylm/");</script>
+
+  <div class="page">
+    <div class="topbar">
+      <a href="../" class="back-link">&#8592; Councils</a>
+      <div class="gate-wrap">
+        <span class="gate-label">&#128274; Access code</span>
+        <input id="access-code" class="code-input" inputmode="numeric" pattern="[0-9]*" maxlength="4"
+               placeholder="&bull;&bull;&bull;&bull;" autocomplete="off" aria-label="4-digit access code" />
+      </div>
+    </div>
+
+    <header>
+      <h1>&#127793; TinyLM Forest Council</h1>
+      <p class="tagline">Five small open models (135M&ndash;3B params) deliberate in sequence on the fleet&#39;s Oracle ARM server &mdash; every token generated on our own silicon and streamed straight here. Zero cloud LLM calls.</p>
+    </header>
+
+    <div class="card">
+      <span class="section-label">&#10067; Your question</span>
+      <textarea id="question" placeholder="Ask the tiny council anything &mdash; expect charming, scrappy reasoning, not GPT-4&hellip;" rows="3"></textarea>
+      <div class="go-row">
+        <span class="note">Small models sharing 4 ARM cores with the fleet&#39;s own thinking daemons &mdash; a full run takes 5&ndash;15 minutes. Leave the tab open.</span>
+        <button class="go-btn" id="go" onclick="convene()">Convene</button>
+      </div>
+    </div>
+
+    <div class="error-banner" id="error-banner"></div>
+    <div class="seats" id="seats"></div>
+
+    <div class="card">
+      <span class="section-label">&#128225; Inner voice feed &mdash; curated moments from the fleet&#39;s thinking daemons</span>
+      <div class="feed-list" id="feed-list"><div class="feed-empty">Listening for thoughts&hellip;</div></div>
+    </div>
+
+    <p class="footer-tag">browser &rarr; <code>chloe.blumenkraft.cloud/council/stream</code> &rarr; soul-server &rarr; Ollama on Oracle (aarch64, 4 OCPU) &middot; $0 &middot; no external LLM API</p>
+  </div>
+
+  <script>
+    var BASE = "https://chloe.blumenkraft.cloud";
+    var seatsEl = document.getElementById("seats");
+    var errEl = document.getElementById("error-banner");
+    var goBtn = document.getElementById("go");
+    var codeEl = document.getElementById("access-code");
+    var es = null;
+    var seatDom = {};   // seat key -> {root,text,status}
+
+    codeEl.value = sessionStorage.getItem("sdf-code") || "";
+
+    function fail(msg) {
+      errEl.textContent = msg;
+      errEl.style.display = "block";
+      goBtn.disabled = false;
+      if (es) { es.close(); es = null; }
+    }
+
+    function buildSeat(seat, role, model) {
+      var root = document.createElement("div");
+      root.className = "seat waiting" + (seat === "synthesis" ? " synthesis" : "");
+      root.innerHTML =
+        '<div class="seat-head"><span class="seat-role"></span>' +
+        '<span class="seat-model"></span><span class="seat-status">Waiting</span></div>' +
+        '<div class="seat-text"></div>';
+      root.querySelector(".seat-role").textContent = role;
+      root.querySelector(".seat-model").textContent = model;
+      seatsEl.appendChild(root);
+      seatDom[seat] = {
+        root: root,
+        text: root.querySelector(".seat-text"),
+        status: root.querySelector(".seat-status")
+      };
+    }
+
+    function setState(seat, cls, label) {
+      var d = seatDom[seat];
+      if (!d) return;
+      d.root.className = d.root.className.replace(/\b(waiting|thinking|done|failed)\b/g, "").trim() + " " + cls;
+      d.status.textContent = label;
+    }
+
+    function convene() {
+      var q = document.getElementById("question").value.trim();
+      var code = codeEl.value.trim();
+      if (!q) { fail("Type a question first."); return; }
+      if (!/^\d{4}$/.test(code)) { codeEl.classList.add("bad"); fail("Enter the 4-digit access code (ask Ivan)."); return; }
+      codeEl.classList.remove("bad");
+      sessionStorage.setItem("sdf-code", code);
+
+      errEl.style.display = "none";
+      seatsEl.innerHTML = ""; seatDom = {};
+      seatsEl.style.display = "flex";
+      goBtn.disabled = true;
+      if (es) es.close();
+
+      es = new EventSource(BASE + "/council/stream?q=" + encodeURIComponent(q) + "&code=" + encodeURIComponent(code));
+
+      es.onmessage = function (evt) {
+        var d;
+        try { d = JSON.parse(evt.data); } catch (e) { return; }
+        if (d.type === "meta") {
+          for (var i = 0; i < d.roster.length; i++) buildSeat(d.roster[i].seat, d.roster[i].label, d.roster[i].model);
+        } else if (d.type === "seat") {
+          var s = seatDom[d.seat];
+          if (!s) return;
+          if (d.status === "start") { setState(d.seat, "thinking", "Thinking"); s.cur = document.createElement("span"); s.cur.className = "cursor"; s.text.appendChild(s.cur); }
+          else if (d.status === "delta" && d.delta) {
+            if (s.cur) s.text.insertBefore(document.createTextNode(d.delta), s.cur);
+            else s.text.appendChild(document.createTextNode(d.delta));
+          }
+          else if (d.status === "done") { if (s.cur) { s.cur.remove(); s.cur = null; } setState(d.seat, "done", "Done"); }
+          else if (d.status === "failed") { if (s.cur) { s.cur.remove(); s.cur = null; } setState(d.seat, "failed", d.error ? "Failed — " + d.error : "Failed"); }
+        } else if (d.type === "complete") {
+          goBtn.disabled = false;
+          es.close(); es = null;
+        } else if (d.type === "error") {
+          fail(d.error || "Council error.");
+        }
+      };
+
+      es.onerror = function () {
+        // EventSource fires error on stream end too; only surface if we never completed
+        if (es && es.readyState === EventSource.CLOSED) {
+          fail("Stream dropped — the tiny council may be busy or the access code was wrong. Try again.");
+        }
+      };
+    }
+
+    document.getElementById("question").addEventListener("keydown", function (e) {
+      if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) { e.preventDefault(); convene(); }
+    });
+
+    // ── Inner voice feed: poll the curator feed every 60s (public entries only) ──
+    (function () {
+      var listEl = document.getElementById("feed-list");
+      function render(entries) {
+        if (!entries || !entries.length) {
+          listEl.innerHTML = '<div class="feed-empty">The daemons are quiet right now &mdash; check back soon.</div>';
+          return;
+        }
+        listEl.innerHTML = "";
+        for (var i = entries.length - 1; i >= 0; i--) {  // newest first
+          var e = entries[i];
+          var item = document.createElement("div");
+          item.className = "feed-item";
+          var emoji = document.createElement("div");
+          emoji.className = "feed-emoji";
+          emoji.textContent = e.emoji || "💡";
+          var body = document.createElement("div");
+          body.className = "feed-body";
+          var snip = document.createElement("div");
+          snip.className = "feed-snippet";
+          snip.textContent = e.snippet || "";
+          var meta = document.createElement("div");
+          meta.className = "feed-meta";
+          var when = "";
+          try { when = new Date(e.timestamp).toLocaleString(); } catch (_) {}
+          meta.innerHTML = '<span class="cat"></span> &middot; <span class="src"></span> &middot; <span class="when"></span>';
+          meta.querySelector(".cat").textContent = e.category || "";
+          meta.querySelector(".src").textContent = e.source || "";
+          meta.querySelector(".when").textContent = when;
+          body.appendChild(snip); body.appendChild(meta);
+          item.appendChild(emoji); item.appendChild(body);
+          listEl.appendChild(item);
+        }
+      }
+      function poll() {
+        fetch(BASE + "/tinylm-feed?public=1")
+          .then(function (r) { return r.json(); })
+          .then(function (d) { render(d.entries || []); })
+          .catch(function () { /* keep last render on transient errors */ });
+      }
+      poll();
+      setInterval(poll, 60000);
+    })();
+  </script>
+  <script>
+    (function () {
+      var body = document.body;
+      var codeI = document.getElementById('lockgate-code');
+      var btn = document.getElementById('lockgate-btn');
+      var err = document.getElementById('lockgate-err');
+      function unlock(v) {
+        body.classList.remove('locked');
+        if (v) { var ac = document.getElementById('access-code'); if (ac) ac.value = v; }
+      }
+      var stored = sessionStorage.getItem('sdf-code') || '';
+      if (/^\d{4}$/.test(stored)) unlock(stored);
+      function tryUnlock() {
+        var v = (codeI.value || '').trim();
+        if (/^\d{4}$/.test(v)) { sessionStorage.setItem('sdf-code', v); err.textContent = ''; unlock(v); }
+        else { err.textContent = 'Enter the 4-digit access code (ask Ivan).'; }
+      }
+      btn.addEventListener('click', tryUnlock);
+      codeI.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); tryUnlock(); } });
+    })();
+  </script>
 </body>
 </html>
