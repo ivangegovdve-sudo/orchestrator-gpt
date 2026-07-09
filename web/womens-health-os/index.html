@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Women's Health OS — Forest HUB</title>
+  <meta name="description" content="A research intelligence base for women's health — thousands of evidence-graded facts, synthesized rules, and verifiable claims distilled from peer-reviewed papers across the menstrual cycle, hormones, fertility, PCOS, menopause and more." />
+  <meta property="og:title" content="Women's Health OS — Forest HUB" />
+  <meta property="og:description" content="Evidence-graded facts, rules, and claims for women's health, distilled from peer-reviewed research." />
+  <meta property="og:type" content="website" />
+  <meta name="theme-color" content="#07070b" />
+  <style>
+    :root {
+      --bg: #07070b;
+      --surface: #0f0f15;
+      --surface-2: #14141c;
+      --border: rgba(255,255,255,0.08);
+      --text-primary: #f3f4f6;
+      --text-muted: #9ca3af;
+      --dim: #64748b;
+      --accent: #4f46e5;
+      --accent-green: #22c55e;
+      --radius: 8px;
+      --font: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+
+      --rose: #f472b6;
+      --plum: #a78bfa;
+      --amber: #f59e0b;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; min-height: 100vh;
+      background-color: var(--bg);
+      background-image:
+        radial-gradient(760px circle at 15% 6%, rgba(244,114,182,.08), transparent 55%),
+        radial-gradient(760px circle at 85% 12%, rgba(167,139,250,.07), transparent 55%);
+      color: var(--text-primary);
+      font-family: var(--font);
+      -webkit-font-smoothing: antialiased;
+      padding: 28px 18px 80px;
+    }
+    .page { max-width: 960px; margin: 0 auto; display: flex; flex-direction: column; gap: 22px; }
+
+    .topbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+    .back-link { color: var(--text-muted); text-decoration: none; font-size: 13px; }
+    .back-link:hover { color: var(--text-primary); }
+    .status-dot {
+      display: inline-flex; align-items: center; gap: 7px;
+      font-size: 12px; color: var(--text-muted);
+      border: 1px solid var(--border); border-radius: 999px; padding: 5px 12px;
+    }
+    .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--dim); }
+    .status-dot.online .dot { background: var(--accent-green); box-shadow: 0 0 8px var(--accent-green); }
+    .status-dot.offline .dot { background: var(--amber); }
+
+    header h1 { margin: 0 0 8px; font-size: clamp(28px, 5vw, 38px); letter-spacing: -0.5px; }
+    header h1 .accent { color: var(--rose); }
+    .tagline { margin: 0; color: var(--text-muted); font-size: 15px; line-height: 1.6; max-width: 66ch; }
+
+    .stat-row { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 4px; }
+    .stat {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 12px 18px; min-width: 96px;
+    }
+    .stat .num { font-size: 24px; font-weight: 700; letter-spacing: -0.5px; }
+    .stat .lbl { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; }
+
+    .tabs { display: flex; gap: 6px; flex-wrap: wrap; border-bottom: 1px solid var(--border); padding-bottom: 2px; }
+    .tab {
+      background: none; border: none; border-bottom: 2px solid transparent;
+      color: var(--text-muted); cursor: pointer; font-family: inherit; font-size: 13.5px; font-weight: 600;
+      padding: 9px 14px; transition: color .18s, border-color .18s;
+    }
+    .tab:hover { color: var(--text-primary); }
+    .tab.active { color: var(--text-primary); border-bottom-color: var(--rose); }
+
+    .controls { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+    .search {
+      flex: 1; min-width: 200px;
+      background: rgba(0,0,0,0.35); border: 1px solid var(--border);
+      border-radius: var(--radius); color: var(--text-primary); font-family: inherit; font-size: 14px;
+      padding: 10px 14px; outline: none;
+    }
+    .search:focus { border-color: rgba(244,114,182,0.5); }
+    select.topic {
+      background: var(--surface-2); border: 1px solid var(--border);
+      border-radius: var(--radius); color: var(--text-primary); font-family: inherit; font-size: 13.5px;
+      padding: 10px 12px; outline: none; cursor: pointer;
+    }
+
+    .list { display: flex; flex-direction: column; gap: 10px; margin-top: 4px; }
+    .item {
+      background: var(--surface); border: 1px solid var(--border);
+      border-left: 3px solid var(--border);
+      border-radius: var(--radius); padding: 14px 16px;
+    }
+    .item.high { border-left-color: var(--accent-green); }
+    .item.medium { border-left-color: var(--amber); }
+    .item.low { border-left-color: var(--dim); }
+    .item .body { font-size: 14px; line-height: 1.6; color: #e4e4e7; }
+    .item .meta { margin-top: 8px; display: flex; gap: 8px; flex-wrap: wrap; align-items: center; font-size: 11px; color: var(--text-muted); }
+    .chip {
+      font-size: 10.5px; font-weight: 600; letter-spacing: 0.04em;
+      border: 1px solid var(--border); border-radius: 999px; padding: 2px 9px;
+      color: var(--text-muted); text-transform: uppercase;
+    }
+    .chip.conf-high { color: var(--accent-green); border-color: rgba(34,197,94,.3); }
+    .chip.conf-medium { color: var(--amber); border-color: rgba(245,158,11,.3); }
+    .chip.conf-low { color: var(--dim); }
+    .item .src { color: var(--dim); }
+    .item .src a { color: var(--plum); text-decoration: none; }
+    .item .src a:hover { text-decoration: underline; }
+
+    /* Cycle phases */
+    .phase-grid { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); }
+    .phase {
+      background: var(--surface); border: 1px solid var(--border);
+      border-top: 3px solid var(--rose); border-radius: var(--radius); padding: 16px;
+    }
+    .phase h3 { margin: 0 0 4px; font-size: 15px; }
+    .phase .days { font-size: 11px; color: var(--text-muted); margin-bottom: 10px; }
+    .phase ul { margin: 0; padding-left: 18px; }
+    .phase li { font-size: 12.5px; line-height: 1.55; color: #d4d4d8; margin-bottom: 6px; }
+
+    .empty, .offline-note {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 22px; text-align: center; color: var(--text-muted);
+      line-height: 1.65; font-size: 13.5px;
+    }
+    .offline-note code { background: rgba(255,255,255,0.06); padding: 2px 7px; border-radius: 5px; color: #e4e4e7; }
+    .offline-note .api-form { margin-top: 14px; display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
+    .offline-note .api-form input {
+      background: rgba(0,0,0,0.4); border: 1px solid var(--border); border-radius: var(--radius);
+      color: var(--text-primary); font-family: monospace; font-size: 13px; padding: 8px 12px; min-width: 220px;
+    }
+    .offline-note .api-form button {
+      background: var(--rose); border: none; border-radius: var(--radius);
+      color: #1a0710; font-weight: 700; font-size: 13px; padding: 8px 16px; cursor: pointer;
+    }
+
+    .footer-tag { text-align: center; font-size: 11px; color: var(--dim); line-height: 1.7; }
+    .footer-tag code { background: rgba(255,255,255,0.06); padding: 1px 6px; border-radius: 5px; }
+    .disclaimer { text-align: center; font-size: 11.5px; color: var(--dim); max-width: 60ch; margin: 0 auto; line-height: 1.6; }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="topbar">
+      <a href="/" class="back-link">&#8592; Forest HUB</a>
+      <span class="status-dot" id="status"><span class="dot"></span><span id="status-text">Connecting&hellip;</span></span>
+    </div>
+
+    <header>
+      <h1>&#127800; Women&#39;s Health<span class="accent"> OS</span></h1>
+      <p class="tagline">
+        A research intelligence base distilled from peer-reviewed papers on women&#39;s health &mdash;
+        evidence-graded <strong>facts</strong>, synthesized <strong>rules</strong>, and verifiable
+        <strong>claims</strong> across the menstrual cycle, hormones, fertility, PCOS, perimenopause,
+        thyroid, and more. Built by Iris, the fleet&#39;s research agent.
+      </p>
+    </header>
+
+    <div class="stat-row" id="stat-row" style="display:none;">
+      <div class="stat"><div class="num" id="stat-papers">–</div><div class="lbl">Papers</div></div>
+      <div class="stat"><div class="num" id="stat-facts">–</div><div class="lbl">Facts</div></div>
+      <div class="stat"><div class="num" id="stat-rules">–</div><div class="lbl">Rules</div></div>
+      <div class="stat"><div class="num" id="stat-claims">–</div><div class="lbl">Claims</div></div>
+    </div>
+
+    <div class="tabs" id="tabs">
+      <button class="tab active" data-tab="facts">Facts</button>
+      <button class="tab" data-tab="rules">Rules</button>
+      <button class="tab" data-tab="claims">Claims</button>
+      <button class="tab" data-tab="papers">Papers</button>
+      <button class="tab" data-tab="cycle">Cycle phases</button>
+    </div>
+
+    <div class="controls" id="controls">
+      <input class="search" id="search" type="search" placeholder="Search&hellip;" />
+      <select class="topic" id="topic"><option value="">All topics</option></select>
+    </div>
+
+    <div id="view"></div>
+
+    <p class="disclaimer">Educational research summaries only &mdash; not medical advice. Always consult a qualified clinician for personal health decisions.</p>
+    <p class="footer-tag">
+      served from a local <code>Women&#39;s Health OS</code> FastAPI (port 8091) &middot;
+      retrieval-augmented, Iris-curated &middot; part of <a href="/" style="color:var(--text-muted);">Forest HUB</a>
+    </p>
+  </div>
+
+  <script>
+    // API base resolution order: ?api= param → saved override → localhost default.
+    // The API runs on Ivan's machine (127.0.0.1:8091) and isn't publicly exposed,
+    // so public visitors see the offline explainer; opening it locally lights it up.
+    var params = new URLSearchParams(location.search);
+    var API = params.get("api") || localStorage.getItem("wh_api") || "http://127.0.0.1:8091";
+    if (params.get("api")) { try { localStorage.setItem("wh_api", params.get("api")); } catch (e) {} }
+
+    var state = { tab: "facts", online: false, topics: [] };
+    var viewEl = document.getElementById("view");
+    var searchEl = document.getElementById("search");
+    var topicEl = document.getElementById("topic");
+    var controlsEl = document.getElementById("controls");
+
+    function esc(s) { return String(s == null ? "" : s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+    function api(path) {
+      var ctrl = new AbortController();
+      var t = setTimeout(function () { ctrl.abort(); }, 8000);
+      return fetch(API.replace(/\/$/, "") + path, { signal: ctrl.signal })
+        .then(function (r) { clearTimeout(t); if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); });
+    }
+
+    function setStatus(online) {
+      state.online = online;
+      var el = document.getElementById("status");
+      el.className = "status-dot " + (online ? "online" : "offline");
+      document.getElementById("status-text").textContent = online ? "API online" : "API offline";
+    }
+
+    function offlineNote() {
+      controlsEl.style.display = "none";
+      viewEl.innerHTML =
+        '<div class="offline-note">' +
+        "The Women&#39;s Health OS API isn&#39;t reachable from here. It runs locally on Ivan&#39;s machine " +
+        "(<code>127.0.0.1:8091</code>) and isn&#39;t publicly exposed. Open this page on that machine, or point it " +
+        "at a reachable API below." +
+        '<div class="api-form">' +
+        '<input id="api-input" value="' + esc(API) + '" spellcheck="false" />' +
+        '<button onclick="saveApi()">Connect</button>' +
+        "</div></div>";
+    }
+    function saveApi() {
+      var v = (document.getElementById("api-input").value || "").trim();
+      if (!v) return;
+      try { localStorage.setItem("wh_api", v); } catch (e) {}
+      API = v; boot();
+    }
+
+    function confClass(label, conf) {
+      var l = (label || "").toUpperCase();
+      if (!l && typeof conf === "number") l = conf >= 0.8 ? "HIGH" : conf >= 0.5 ? "MEDIUM" : "LOW";
+      return l === "HIGH" ? "high" : l === "MEDIUM" ? "medium" : "low";
+    }
+
+    function paperLink(doi, pmcid) {
+      if (pmcid) return '<a href="https://www.ncbi.nlm.nih.gov/pmc/articles/' + esc(pmcid) + '/" target="_blank" rel="noopener">' + esc(pmcid) + "</a>";
+      if (doi) return '<a href="https://doi.org/' + esc(doi) + '" target="_blank" rel="noopener">' + esc(doi) + "</a>";
+      return "";
+    }
+
+    function renderFacts(rows) {
+      if (!rows.length) return empty();
+      viewEl.innerHTML = '<div class="list">' + rows.map(function (f) {
+        var cc = confClass(f.confidence_label, f.confidence);
+        return '<div class="item ' + cc + '"><div class="body">' + esc(f.fact) + "</div>" +
+          '<div class="meta">' +
+          '<span class="chip conf-' + cc + '">' + esc(f.confidence_label || cc) + "</span>" +
+          '<span class="chip">' + esc(f.category || f.paper_topic || "") + "</span>" +
+          '<span class="src">' + esc(f.paper_title || "") + " " + paperLink(f.paper_doi, f.paper_pmcid) + "</span>" +
+          "</div></div>";
+      }).join("") + "</div>";
+    }
+    function renderRules(rows) {
+      if (!rows.length) return empty();
+      viewEl.innerHTML = '<div class="list">' + rows.map(function (r) {
+        var cc = confClass(null, r.confidence);
+        return '<div class="item ' + cc + '"><div class="body">' + esc(r.rule) + "</div>" +
+          '<div class="meta">' +
+          '<span class="chip">' + esc(r.applies_to || "") + "</span>" +
+          '<span class="chip">' + (r.evidence_count || 0) + " sources</span>" +
+          "</div></div>";
+      }).join("") + "</div>";
+    }
+    function renderClaims(rows) {
+      if (!rows.length) return empty();
+      viewEl.innerHTML = '<div class="list">' + rows.map(function (c) {
+        var cc = confClass((c.confidence || "").toUpperCase());
+        return '<div class="item ' + cc + '"><div class="body">' + esc(c.statement || c.title) + "</div>" +
+          '<div class="meta">' +
+          '<span class="chip conf-' + cc + '">' + esc(c.confidence || "") + "</span>" +
+          '<span class="chip">' + esc(c.category || "") + "</span>" +
+          (c.contradictions && c.contradictions !== "None found"
+            ? '<span class="src">&#9888; ' + esc(c.contradictions) + "</span>" : "") +
+          "</div></div>";
+      }).join("") + "</div>";
+    }
+    function renderPapers(rows) {
+      if (!rows.length) return empty();
+      viewEl.innerHTML = '<div class="list">' + rows.map(function (p) {
+        return '<div class="item"><div class="body">' + esc(p.title) + "</div>" +
+          '<div class="meta">' +
+          '<span class="chip">' + esc(p.topic_category || "") + "</span>" +
+          '<span class="src">' + esc(p.authors || "") + (p.year ? " &middot; " + p.year : "") + " " +
+          paperLink(p.doi, p.pmcid) + "</span>" +
+          "</div></div>";
+      }).join("") + "</div>";
+    }
+    function renderCycle(data) {
+      var phases = data.phases || data || [];
+      if (!phases.length) return empty();
+      controlsEl.style.display = "none";
+      viewEl.innerHTML = '<div class="phase-grid">' + phases.map(function (ph) {
+        var facts = (ph.facts || []).slice(0, 4);
+        return '<div class="phase"><h3>' + esc(ph.phase || ph.name) + "</h3>" +
+          '<div class="days">' + esc(ph.days || ph.day_range || "") + "</div>" +
+          "<ul>" + facts.map(function (f) { return "<li>" + esc(typeof f === "string" ? f : f.fact) + "</li>"; }).join("") + "</ul></div>";
+      }).join("") + "</div>";
+    }
+    function empty() { viewEl.innerHTML = '<div class="empty">No entries match.</div>'; }
+
+    function load() {
+      if (!state.online) return;
+      var q = encodeURIComponent(searchEl.value.trim());
+      var topic = encodeURIComponent(topicEl.value);
+      var tab = state.tab;
+      controlsEl.style.display = (tab === "cycle") ? "none" : "flex";
+      viewEl.innerHTML = '<div class="empty">Loading&hellip;</div>';
+      var qs = "?limit=100" + (q ? "&search=" + q : "") + (topic ? "&topic=" + topic : "");
+      if (tab === "facts")  return api("/facts" + qs).then(function (d) { renderFacts(d.facts || []); }).catch(fail);
+      if (tab === "rules")  return api("/rules" + qs).then(function (d) { renderRules(d.rules || []); }).catch(fail);
+      if (tab === "claims") return api("/claims").then(function (d) { renderClaims(d.claims || []); }).catch(fail);
+      if (tab === "papers") return api("/papers" + qs).then(function (d) { renderPapers(d.papers || []); }).catch(fail);
+      if (tab === "cycle")  return api("/cycle-phases").then(renderCycle).catch(fail);
+    }
+    function fail() { viewEl.innerHTML = '<div class="empty">Couldn&#39;t load this view from the API.</div>'; }
+
+    document.querySelectorAll(".tab").forEach(function (t) {
+      t.addEventListener("click", function () {
+        document.querySelectorAll(".tab").forEach(function (x) { x.classList.remove("active"); });
+        t.classList.add("active");
+        state.tab = t.getAttribute("data-tab");
+        searchEl.value = "";
+        load();
+      });
+    });
+    var searchTimer;
+    searchEl.addEventListener("input", function () { clearTimeout(searchTimer); searchTimer = setTimeout(load, 220); });
+    topicEl.addEventListener("change", load);
+
+    function boot() {
+      api("/health").then(function (h) {
+        setStatus(true);
+        document.getElementById("stat-row").style.display = "flex";
+        document.getElementById("stat-papers").textContent = h.papers != null ? h.papers : "–";
+        document.getElementById("stat-facts").textContent = h.facts != null ? h.facts : "–";
+        document.getElementById("stat-rules").textContent = h.rules != null ? h.rules : "–";
+        return api("/claims").then(function (c) {
+          document.getElementById("stat-claims").textContent = c.count != null ? c.count : "–";
+        }).catch(function () {});
+      }).then(function () {
+        return api("/topics").then(function (d) {
+          state.topics = d.topics || [];
+          topicEl.innerHTML = '<option value="">All topics</option>' + state.topics.map(function (t) {
+            return '<option value="' + esc(t.name) + '">' + esc(t.name.replace(/_/g, " ")) + " (" + (t.facts || 0) + ")</option>";
+          }).join("");
+        }).catch(function () {});
+      }).then(function () {
+        load();
+      }).catch(function () {
+        setStatus(false);
+        document.getElementById("stat-row").style.display = "none";
+        offlineNote();
+      });
+    }
+
+    boot();
+  </script>
+</body>
+</html>
