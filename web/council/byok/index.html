@@ -3,10 +3,10 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>LLM Council — Free-Tier AI Deliberation</title>
-  <meta name="description" content="A heterogeneous council of free OpenRouter models deliberates live in your browser: Proposer → Critic → Chairman across 1–5 rounds. Bring your own key — it never leaves your browser. $0 cost.">
-  <meta property="og:title" content="LLM Council — Free-Tier AI Deliberation">
-  <meta property="og:description" content="Pick a :free model for each council seat, set the rounds, and watch Proposer → Critic → Chairman deliberate live — streamed straight from OpenRouter to your browser. $0.">
+  <title>Open Round Table — Free-Model Council · SD Forest</title>
+  <meta name="description" content="A heterogeneous council of free OpenRouter models deliberates live: Proposer → Critic → Chairman across 1–5 rounds. Powered by Ivan's OR key by default — no setup needed. Toggle to BYOK.">
+  <meta property="og:title" content="Open Round Table — SD Forest">
+  <meta property="og:description" content="Free-model council streamed live: Proposer → Critic → Chairman. Ivan's OpenRouter key powers it by default — no setup. Toggle BYOK to use your own key. $0.">
   <meta property="og:type" content="website">
   <style>
     :root {
@@ -38,14 +38,31 @@
 
     .page { max-width: 860px; margin: 0 auto; display: flex; flex-direction: column; gap: 24px; }
 
-    /* ── Top bar: back link + unobtrusive BYOK key field ─────── */
+    /* ── Top bar ─────────────────────────────────────────────── */
     .topbar { display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; flex-wrap: wrap; }
     .back-link { display: inline-flex; align-items: center; gap: 6px; color: var(--muted); text-decoration: none; font-size: 13px; transition: color 0.2s; padding-top: 6px; }
     .back-link:hover { color: var(--text); }
 
-    .key-chip { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
-    .key-row { display: flex; align-items: center; gap: 7px; }
-    .key-row .key-ico { font-size: 13px; opacity: .75; }
+    /* BYOK toggle chip */
+    .byok-chip { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
+    .byok-toggle-row { display: flex; align-items: center; gap: 8px; cursor: pointer; user-select: none; }
+    .byok-label { font-size: 11.5px; color: var(--muted); }
+    .byok-switch {
+      width: 36px; height: 20px; border-radius: 999px;
+      background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.18);
+      position: relative; transition: background 0.2s;
+      flex-shrink: 0;
+    }
+    .byok-switch::after {
+      content: ''; position: absolute; top: 2px; left: 2px;
+      width: 14px; height: 14px; border-radius: 50%;
+      background: #94a3b8; transition: left 0.2s, background 0.2s;
+    }
+    .byok-chip.on .byok-switch { background: rgba(79,70,229,0.45); border-color: rgba(79,70,229,0.6); }
+    .byok-chip.on .byok-switch::after { left: 18px; background: var(--accent); }
+    .byok-chip.on .byok-label { color: var(--text); }
+    .byok-key-row { display: flex; align-items: center; gap: 7px; display: none; }
+    .byok-chip.on .byok-key-row { display: flex; }
     #or-key {
       width: 190px; background: rgba(0,0,0,0.35); border: 1px solid rgba(255,255,255,0.12);
       border-radius: 8px; color: var(--text); font-family: monospace; font-size: 11.5px;
@@ -317,22 +334,25 @@
 </head>
 <body>
   <div class="page">
-    <!-- ── Top bar: back link + BYOK key (unobtrusive, top-right) ──────────── -->
+    <!-- ── Top bar: back link + BYOK toggle ─────────────────────────────────── -->
     <div class="topbar">
       <a href="../" class="back-link">&#8592; Councils</a>
-      <div class="key-chip">
-        <div class="key-row">
-          <span class="key-ico">&#128273;</span>
-          <input id="or-key" type="password" placeholder="OpenRouter API key (sk-or-&hellip;)"
+      <div class="byok-chip" id="byok-chip">
+        <label class="byok-toggle-row" for="byok-check" style="cursor:pointer;">
+          <span class="byok-label">Use your own OR key</span>
+          <div class="byok-switch" id="byok-switch"></div>
+        </label>
+        <div class="byok-key-row">
+          <input id="or-key" type="password" placeholder="sk-or-&hellip;"
                  autocomplete="off" spellcheck="false" aria-label="Your OpenRouter API key" />
         </div>
-        <span class="key-note">&#128274; your key stays in your browser &middot; <a href="https://openrouter.ai/settings/keys" target="_blank" rel="noopener noreferrer">get a free key &#8599;</a></span>
+        <span class="key-note" id="byok-note">Powered by Ivan&rsquo;s key &middot; <a href="https://openrouter.ai/settings/keys" target="_blank" rel="noopener noreferrer">get your own &#8599;</a></span>
       </div>
     </div>
 
     <header>
-      <h1>&#9878;&#65039; LLM Council</h1>
-      <p class="tagline">A heterogeneous panel of free models deliberates live &mdash; streamed from OpenRouter straight to your browser. No server, no cost. $0.</p>
+      <h1>&#9878;&#65039; Open Round Table</h1>
+      <p class="tagline">Free-model council powered by Ivan&rsquo;s OpenRouter account &mdash; no key needed. Proposer &rarr; Critic &rarr; Chairman across 1&ndash;5 rounds, streamed live. Toggle to use your own key.</p>
     </header>
 
     <!-- ── Council flow tree ───────────────────────────────────────────────── -->
@@ -394,8 +414,8 @@
     </div>
 
     <p class="footer-tag">
-      Bring-your-own-key &middot; requests go browser &rarr; OpenRouter directly, no server in between &middot;
-      only <code>:free</code> models &middot; $0
+      Powered by Ivan&rsquo;s OpenRouter key via <code>chloe.blumenkraft.cloud/council/relay</code> &middot;
+      only <code>:free</code> models &middot; toggle BYOK to use your own key &middot; $0
     </p>
   </div>
 
@@ -642,7 +662,24 @@
       document.getElementById("question").focus();
     }
 
-    // ── BYOK key (sessionStorage only — never sent anywhere but OpenRouter) ──
+    // ── Relay URL (soul-server public OR proxy) ───────────────────────────────
+    var RELAY_URL = "https://chloe.blumenkraft.cloud/council/relay";
+
+    // ── BYOK toggle ────────────────────────────────────────────────────────────
+    var byokChip = document.getElementById("byok-chip");
+    var byokSwitch = document.getElementById("byok-switch");
+    var byokNote = document.getElementById("byok-note");
+    var byokOn = false;
+
+    byokSwitch.addEventListener("click", function () {
+      byokOn = !byokOn;
+      byokChip.classList.toggle("on", byokOn);
+      byokNote.innerHTML = byokOn
+        ? "Your key stays in your browser only &middot; <a href=\"https://openrouter.ai/settings/keys\" target=\"_blank\" rel=\"noopener noreferrer\">get a free key &#8599;</a>"
+        : "Powered by Ivan&rsquo;s key &middot; <a href=\"https://openrouter.ai/settings/keys\" target=\"_blank\" rel=\"noopener noreferrer\">get your own &#8599;</a>";
+    });
+
+    // ── BYOK key (sessionStorage only) ────────────────────────────────────────
     var keyEl = document.getElementById("or-key");
     try { var savedKey = sessionStorage.getItem("openrouter_api_key"); if (savedKey) { keyEl.value = savedKey; keyEl.classList.add("ok"); } } catch (e) {}
     keyEl.addEventListener("input", function () {
@@ -651,7 +688,7 @@
       keyEl.classList.toggle("ok", !!v);
       keyEl.classList.remove("bad");
     });
-    function getKey() { return (keyEl.value || "").trim(); }
+    function getKey() { return byokOn ? (keyEl.value || "").trim() : ""; }
 
     // ── Stage cards (streaming UI) ────────────────────────────────────────────
     var passNum = 0;
@@ -862,6 +899,8 @@
       try {
         var result = await Council.runCouncil({
           apiKey: getKey(),
+          byokKey: byokOn ? getKey() : "",
+          apiUrl: byokOn ? null : RELAY_URL,
           question: question,
           priorContext: priorContext || "",
           rounds: selectedRounds,
@@ -891,14 +930,13 @@
     }
 
     function preflight() {
-      var question = document.getElementById("question").value.trim();
-      if (!getKey()) {
-        showError("Paste your OpenRouter API key (top-right) first — it stays in your browser and only :free models are ever called.");
+      if (byokOn && !getKey()) {
+        showError("Paste your OpenRouter API key first — it stays in your browser and only :free models are ever called.");
         keyEl.classList.add("bad");
         keyEl.focus();
         return null;
       }
-      return question;
+      return true;
     }
     function runCouncilClick() {
       if (controller) { controller.abort(); return; }   // acting as the Stop button

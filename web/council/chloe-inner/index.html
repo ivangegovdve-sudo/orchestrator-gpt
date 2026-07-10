@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Chloe's Inner Voice · SD Forest</title>
+  <meta name="description" content="Watch Chloe's inner council deliberate in real time — tiny local models on Oracle ARM reading the fleet's Kanban board and synthesizing a verdict every few minutes.">
+  <style>
+    :root {
+      --bg: #07070b;
+      --surface: #0f0f15;
+      --border: rgba(255,255,255,0.08);
+      --text: #f3f4f6;
+      --muted: #9ca3af;
+      --accent: #4f46e5;
+      --rose: #f43f5e;
+      --green: #22c55e;
+      --amber: #f59e0b;
+      --radius: 8px;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      min-height: 100vh;
+      background: var(--bg);
+      background-image:
+        radial-gradient(circle at 20% 35%, rgba(79,70,229,0.09), transparent 45%),
+        radial-gradient(circle at 80% 15%, rgba(244,63,94,0.07), transparent 45%);
+      color: var(--text);
+      font-family: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+      padding: 28px 20px 60px;
+    }
+    .page { max-width: 720px; margin: 0 auto; display: flex; flex-direction: column; gap: 22px; }
+    .back-link { color: var(--muted); text-decoration: none; font-size: 13px; }
+    .back-link:hover { color: var(--text); }
+
+    h1 { font-size: 28px; font-weight: 800; letter-spacing: -0.4px; margin-bottom: 6px; }
+    .tagline { color: var(--muted); font-size: 14.5px; line-height: 1.55; }
+
+    .status-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .dot { width: 8px; height: 8px; border-radius: 50%; background: #52525b; flex-shrink: 0; }
+    .dot.live { background: var(--green); box-shadow: 0 0 8px rgba(34,197,94,0.55); }
+    .dot.err  { background: var(--rose); }
+    .status-txt { font-size: 12px; color: var(--muted); }
+
+    .start-btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: var(--accent); border: none; border-radius: 10px;
+      color: #fff; font-size: 14px; font-weight: 700;
+      padding: 11px 24px; cursor: pointer;
+      transition: opacity 0.2s, transform 0.15s;
+      align-self: flex-start;
+    }
+    .start-btn:hover { opacity: 0.88; transform: translateY(-1px); }
+    .start-btn:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
+
+    .panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 22px;
+      display: flex; flex-direction: column; gap: 16px;
+    }
+    .empty-state {
+      text-align: center; padding: 48px 20px;
+      color: #475569; font-size: 14px; line-height: 1.6;
+    }
+    .empty-ico { font-size: 40px; margin-bottom: 12px; }
+
+    .cycle-ts {
+      font-size: 11px; color: #52525b; letter-spacing: 0.04em;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .cycle-ts .src { background: rgba(255,255,255,0.05); padding: 2px 7px; border-radius: 5px; }
+
+    .synthesis {
+      font-size: 15px; line-height: 1.65; color: var(--text);
+      border-left: 3px solid var(--accent);
+      padding-left: 14px;
+    }
+
+    .meta-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+    }
+    @media (max-width: 480px) { .meta-grid { grid-template-columns: 1fr; } }
+
+    .meta-card {
+      background: rgba(255,255,255,0.03); border: 1px solid var(--border);
+      border-radius: 8px; padding: 12px 14px;
+    }
+    .meta-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; color: #52525b; font-weight: 600; margin-bottom: 5px; }
+    .meta-val { font-size: 13.5px; color: var(--muted); line-height: 1.5; word-break: break-word; }
+    .conf-bar { height: 4px; border-radius: 2px; background: rgba(255,255,255,0.08); margin-top: 7px; }
+    .conf-fill { height: 100%; border-radius: 2px; background: var(--green); }
+
+    .fleet-down { font-size: 13px; color: var(--rose); }
+    .fleet-ok   { font-size: 13px; color: var(--green); }
+
+    .raw-toggle { font-size: 11px; color: #475569; cursor: pointer; align-self: flex-start; }
+    .raw-toggle:hover { color: var(--muted); }
+    .raw-pre {
+      display: none; font-family: monospace; font-size: 11px; color: #64748b;
+      background: rgba(0,0,0,0.3); border-radius: 8px; padding: 12px;
+      overflow-x: auto; white-space: pre-wrap; word-break: break-all;
+    }
+    .raw-pre.open { display: block; }
+
+    .refresh-note { font-size: 11.5px; color: #374151; text-align: center; }
+    .footer-tag { text-align: center; font-size: 11px; color: #374151; }
+    .footer-tag code { background: rgba(255,255,255,0.05); padding: 1px 6px; border-radius: 5px; }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <a href="../" class="back-link">← Councils</a>
+
+    <header>
+      <h1>&#128065; Chloe's Inner Voice</h1>
+      <p class="tagline">Watch Chloe's inner council deliberate in real time — tiny local models on the fleet's Oracle ARM server reading the Kanban board every few minutes and synthesising a verdict. No input needed: just observe.</p>
+    </header>
+
+    <div class="status-row">
+      <div class="dot" id="dot"></div>
+      <span class="status-txt" id="status-txt">Not started</span>
+      <button class="start-btn" id="start-btn" onclick="toggle()">&#9654; Start watching</button>
+    </div>
+
+    <div class="panel" id="panel">
+      <div class="empty-state" id="empty">
+        <div class="empty-ico">&#129504;</div>
+        Press <strong>Start watching</strong> to load the latest inner deliberation.<br>
+        The oracle's inner council runs every few minutes autonomously.
+      </div>
+      <!-- filled by JS -->
+    </div>
+
+    <p class="refresh-note" id="refresh-note"></p>
+    <p class="footer-tag">browser &rarr; <code>chloe.blumenkraft.cloud/council/inner-observer</code> &rarr; soul-server &rarr; inner_observer blackboard on Oracle</p>
+  </div>
+
+  <script>
+    var BASE = "https://chloe.blumenkraft.cloud";
+    var dot = document.getElementById("dot");
+    var statusTxt = document.getElementById("status-txt");
+    var startBtn = document.getElementById("start-btn");
+    var panel = document.getElementById("panel");
+    var refreshNote = document.getElementById("refresh-note");
+    var watching = false;
+    var refreshTimer = null;
+    var REFRESH_MS = 90000; // poll every 90s
+
+    function esc(s) {
+      return String(s == null ? "" : s)
+        .replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+    }
+
+    function toggle() {
+      if (watching) {
+        stopWatching();
+      } else {
+        startWatching();
+      }
+    }
+
+    function startWatching() {
+      watching = true;
+      startBtn.textContent = "⏹ Stop";
+      fetch_cycle();
+      refreshTimer = setInterval(fetch_cycle, REFRESH_MS);
+    }
+
+    function stopWatching() {
+      watching = false;
+      clearInterval(refreshTimer);
+      refreshTimer = null;
+      startBtn.textContent = "▶ Start watching";
+      dot.className = "dot";
+      statusTxt.textContent = "Stopped";
+      refreshNote.textContent = "";
+    }
+
+    async function fetch_cycle() {
+      statusTxt.textContent = "Fetching…";
+      try {
+        var r = await fetch(BASE + "/council/inner-observer", { cache: "no-store" });
+        var j = await r.json();
+        if (!j.ok) throw new Error(j.error || "unknown error");
+        dot.className = "dot live";
+        statusTxt.textContent = "Live";
+        render(j.entry, j.source);
+        var next = new Date(Date.now() + REFRESH_MS);
+        refreshNote.textContent = "Refreshes automatically at " + next.toLocaleTimeString() + " (every 90s)";
+      } catch (e) {
+        dot.className = "dot err";
+        statusTxt.textContent = "Error: " + e.message;
+        refreshNote.textContent = "";
+      }
+    }
+
+    function render(entry, source) {
+      var ts = entry.ts || entry.timestamp || "";
+      var synthesis = entry.synthesis || entry.deliberation || entry.verdict || JSON.stringify(entry);
+      var confidence = typeof entry.confidence === "number" ? entry.confidence : null;
+      var route = entry.route || entry.directive || "";
+      var fleetDown = Array.isArray(entry.fleet_down) ? entry.fleet_down : [];
+      var models = Array.isArray(entry.models) ? entry.models : [];
+
+      var tsStr = "";
+      try { tsStr = ts ? new Date(ts).toLocaleString() : ""; } catch(e){}
+
+      panel.innerHTML =
+        '<div class="cycle-ts">' +
+          (tsStr ? '<span>' + esc(tsStr) + '</span>' : '') +
+          '<span class="src">' + esc(source) + '</span>' +
+        '</div>' +
+
+        '<div class="synthesis">' + esc(synthesis) + '</div>' +
+
+        '<div class="meta-grid">' +
+          (confidence !== null ? (
+            '<div class="meta-card">' +
+              '<div class="meta-label">Confidence</div>' +
+              '<div class="meta-val">' + Math.round(confidence * 100) + '%</div>' +
+              '<div class="conf-bar"><div class="conf-fill" style="width:' + Math.round(confidence * 100) + '%"></div></div>' +
+            '</div>'
+          ) : '') +
+          (route ? (
+            '<div class="meta-card">' +
+              '<div class="meta-label">Directive / Route</div>' +
+              '<div class="meta-val">' + esc(route) + '</div>' +
+            '</div>'
+          ) : '') +
+          '<div class="meta-card">' +
+            '<div class="meta-label">Fleet down</div>' +
+            '<div class="' + (fleetDown.length ? "fleet-down" : "fleet-ok") + '">' +
+              (fleetDown.length ? esc(fleetDown.join(", ")) : "All systems nominal") +
+            '</div>' +
+          '</div>' +
+          (models.length ? (
+            '<div class="meta-card">' +
+              '<div class="meta-label">Council models</div>' +
+              '<div class="meta-val">' + esc(models.join(" · ")) + '</div>' +
+            '</div>'
+          ) : '') +
+        '</div>' +
+
+        '<span class="raw-toggle" onclick="this.nextElementSibling.classList.toggle(\'open\')">&#128464; Raw JSON</span>' +
+        '<pre class="raw-pre">' + esc(JSON.stringify(entry, null, 2)) + '</pre>';
+    }
+  </script>
+</body>
+</html>

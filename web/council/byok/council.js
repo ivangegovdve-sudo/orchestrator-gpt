@@ -123,15 +123,17 @@
     try {
       var res;
       try {
-        res = await fetch(OPENROUTER_URL, {
-          method: "POST",
-          headers: {
-            "Authorization": "Bearer " + o.apiKey,
+        var _url = o.apiUrl || OPENROUTER_URL;
+      var _hdrs = {
             "Content-Type": "application/json",
-            // Attribution headers OpenRouter asks browser apps to send.
             "HTTP-Referer": (typeof location !== "undefined" && location.origin) || "https://sdforest.site",
             "X-Title": "SD Forest LLM Council"
-          },
+          };
+      if (o.apiKey) _hdrs["Authorization"] = "Bearer " + o.apiKey;
+      if (o.byokKey) _hdrs["X-BYOK-Key"] = o.byokKey;
+      res = await fetch(_url, {
+          method: "POST",
+          headers: _hdrs,
           body: JSON.stringify({
             model: o.model,
             messages: o.messages,
@@ -209,7 +211,8 @@
         try {
           if (o.onModel) o.onModel(model, attempt);
           var text = await streamOnce({
-            apiKey: o.apiKey, model: model, messages: o.messages,
+            apiKey: o.apiKey, byokKey: o.byokKey, apiUrl: o.apiUrl,
+            model: model, messages: o.messages,
             maxTokens: o.maxTokens, temperature: o.temperature,
             signal: o.signal, onToken: o.onToken
           });
@@ -244,7 +247,7 @@
   // stage events: {seat, round, status:'thinking'|'model'|'delta'|'done'|'failed', ...}
   // (round 0 = the chairman's synthesis turn)
   async function runCouncil(o) {
-    if (!o || !o.apiKey || !String(o.apiKey).trim()) throw new Error("An OpenRouter API key is required — paste yours top-right (it never leaves your browser).");
+    if (!o || (!o.apiUrl && (!o.apiKey || !String(o.apiKey).trim()))) throw new Error("An OpenRouter API key is required — paste yours top-right (it never leaves your browser).");
     var mode = MODES[o.mode] || MODES["default"];
     var rounds = Math.max(1, Math.min(5, parseInt(o.rounds, 10) || 2));
 
@@ -265,7 +268,8 @@
     async function seatCall(seat, round, messages, maxTokens) {
       emit(seat, round, { status: "thinking", roster: o.seats[seat].map(shortName) });
       var res = await runSeat({
-        apiKey: o.apiKey, roster: o.seats[seat], messages: messages,
+        apiKey: o.apiKey, byokKey: o.byokKey, apiUrl: o.apiUrl,
+        roster: o.seats[seat], messages: messages,
         maxTokens: maxTokens, temperature: mode.temperature, signal: o.signal,
         onModel: function (m, attempt) { emit(seat, round, { status: "model", model: shortName(m), attempt: attempt }); },
         onToken: function (d) { emit(seat, round, { status: "delta", delta: d }); },
