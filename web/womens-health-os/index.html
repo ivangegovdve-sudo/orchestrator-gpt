@@ -190,11 +190,11 @@
   </div>
 
   <script>
-    // API base resolution order: ?api= param → saved override → localhost default.
-    // The API runs on Ivan's machine (127.0.0.1:8091) and isn't publicly exposed,
-    // so public visitors see the offline explainer; opening it locally lights it up.
+    // API base resolution order: ?api= param → saved override → public Oracle proxy.
+    // The API is served from Oracle via nginx at chloe.blumenkraft.cloud/womens-health,
+    // so public visitors get live data; a ?api= override still works for local dev.
     var params = new URLSearchParams(location.search);
-    var API = params.get("api") || localStorage.getItem("wh_api") || "http://127.0.0.1:8091";
+    var API = params.get("api") || localStorage.getItem("wh_api") || "https://chloe.blumenkraft.cloud/womens-health";
     if (params.get("api")) { try { localStorage.setItem("wh_api", params.get("api")); } catch (e) {} }
 
     var state = { tab: "facts", online: false, topics: [] };
@@ -365,6 +365,179 @@
     }
 
     boot();
+  </script>
+
+  <!-- ── Research chat widget (Oracle DB + live PubMed) ── -->
+  <style>
+    .wh-chat-fab {
+      position: fixed; z-index: 200; right: 20px; bottom: 20px;
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 12px 18px; border: 0; cursor: pointer; border-radius: 999px;
+      background: var(--accent); color: #fff; font-family: var(--font);
+      font-size: 14px; font-weight: 700; letter-spacing: .01em;
+      box-shadow: 0 8px 28px rgba(79,70,229,.4);
+      transition: transform .18s, box-shadow .18s;
+    }
+    .wh-chat-fab:hover { transform: translateY(-2px); box-shadow: 0 12px 34px rgba(79,70,229,.55); }
+    .wh-chat-fab svg { width: 18px; height: 18px; }
+    .wh-chat-panel {
+      position: fixed; z-index: 210; right: 20px; bottom: 20px;
+      width: min(420px, calc(100vw - 32px)); height: min(620px, calc(100vh - 76px));
+      display: none; flex-direction: column; background: var(--surface);
+      border: 1px solid var(--border); border-radius: 14px;
+      box-shadow: 0 24px 70px rgba(0,0,0,.6); overflow: hidden; font-family: var(--font);
+    }
+    .wh-chat-panel.open { display: flex; }
+    .wh-chat-head {
+      display: flex; align-items: center; gap: 10px; padding: 13px 15px;
+      border-bottom: 1px solid var(--border);
+      background: linear-gradient(180deg, rgba(79,70,229,.12), transparent);
+    }
+    .wh-chat-head .d { width: 9px; height: 9px; border-radius: 50%; background: var(--accent-green); box-shadow: 0 0 8px var(--accent-green); }
+    .wh-chat-head h2 { font-size: 14px; color: var(--text-primary); font-weight: 700; margin: 0; }
+    .wh-chat-head p { font-size: 11px; color: var(--text-muted); margin: 1px 0 0; }
+    .wh-chat-close { margin-left: auto; background: none; border: 0; cursor: pointer; color: var(--text-muted); font-size: 20px; line-height: 1; padding: 2px 6px; }
+    .wh-chat-close:hover { color: var(--text-primary); }
+    .wh-chat-log { flex: 1; overflow-y: auto; padding: 14px; display: flex; flex-direction: column; gap: 12px; }
+    .wh-msg { font-size: 13.5px; line-height: 1.5; }
+    .wh-msg.user { align-self: flex-end; max-width: 85%; background: var(--accent); color: #fff; font-weight: 600; padding: 9px 13px; border-radius: 13px 13px 3px 13px; }
+    .wh-msg.bot { align-self: flex-start; max-width: 100%; color: var(--text-primary); }
+    .wh-msg.bot .answer { background: var(--surface-2); border: 1px solid var(--border); padding: 11px 13px; border-radius: 3px 13px 13px 13px; white-space: pre-wrap; }
+    .wh-sources { display: flex; gap: 6px; flex-wrap: wrap; margin: 9px 0 2px; }
+    .wh-badge { font-size: 10.5px; font-weight: 700; letter-spacing: .02em; padding: 3px 9px; border-radius: 999px; border: 1px solid; }
+    .wh-badge.oracle { color: var(--accent); border-color: rgba(79,70,229,.45); background: rgba(79,70,229,.1); }
+    .wh-badge.pubmed { color: var(--rose); border-color: rgba(244,114,182,.4); background: rgba(244,114,182,.08); }
+    .wh-badge.none { color: var(--text-muted); border-color: var(--border); }
+    .wh-refs { margin-top: 9px; }
+    .wh-refs h4 { font-size: 10.5px; text-transform: uppercase; letter-spacing: .07em; color: var(--text-muted); margin: 0 0 6px; }
+    .wh-ref { display: block; font-size: 12px; color: var(--text-muted); padding: 6px 9px; margin-bottom: 5px; background: var(--surface-2); border: 1px solid var(--border); border-radius: 7px; text-decoration: none; }
+    a.wh-ref:hover { color: var(--text-primary); border-color: rgba(79,70,229,.4); }
+    .wh-ref .pmid { color: var(--rose); font-weight: 700; }
+    .wh-ref .meta { color: var(--dim); }
+    .wh-empty { color: var(--text-muted); font-size: 13px; line-height: 1.6; text-align: center; margin: auto 8px; }
+    .wh-empty strong { color: var(--text-primary); }
+    .wh-suggest { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; margin-top: 12px; }
+    .wh-suggest button { font-size: 11.5px; color: var(--accent); cursor: pointer; background: rgba(79,70,229,.08); border: 1px solid rgba(79,70,229,.28); padding: 6px 10px; border-radius: 999px; font-family: var(--font); }
+    .wh-suggest button:hover { background: rgba(79,70,229,.16); }
+    .wh-chat-form { display: flex; gap: 8px; padding: 12px; border-top: 1px solid var(--border); }
+    .wh-chat-form input { flex: 1; background: var(--surface-2); border: 1px solid var(--border); border-radius: 9px; color: var(--text-primary); padding: 10px 12px; font-size: 13.5px; font-family: var(--font); }
+    .wh-chat-form input:focus { outline: none; border-color: rgba(79,70,229,.5); }
+    .wh-chat-form button { background: var(--accent); border: 0; border-radius: 9px; cursor: pointer; color: #fff; font-weight: 700; padding: 0 15px; font-size: 13.5px; font-family: var(--font); }
+    .wh-chat-form button:disabled { opacity: .5; cursor: default; }
+    .wh-typing { display: inline-flex; gap: 4px; padding: 4px 2px; }
+    .wh-typing span { width: 6px; height: 6px; border-radius: 50%; background: var(--text-muted); animation: whblink 1.2s infinite both; }
+    .wh-typing span:nth-child(2) { animation-delay: .2s; }
+    .wh-typing span:nth-child(3) { animation-delay: .4s; }
+    @keyframes whblink { 0%,80%,100%{opacity:.2} 40%{opacity:1} }
+  </style>
+
+  <button class="wh-chat-fab" id="whChatFab" aria-label="Open research chat">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+    Ask research
+  </button>
+
+  <section class="wh-chat-panel" id="whChatPanel" aria-label="Research chat">
+    <header class="wh-chat-head">
+      <span class="d"></span>
+      <div><h2>Research Chat</h2><p>Local corpus + live PubMed</p></div>
+      <button class="wh-chat-close" id="whChatClose" aria-label="Close">&times;</button>
+    </header>
+    <div class="wh-chat-log" id="whChatLog">
+      <div class="wh-empty" id="whChatEmpty">
+        Ask a women&#39;s-health question. Answers synthesise the ingested
+        <strong>Oracle facts &amp; rules</strong> and live <strong>PubMed</strong>
+        papers, with source attribution.
+        <div class="wh-suggest">
+          <button data-q="How does training differ across the menstrual cycle?">Cycle &amp; training</button>
+          <button data-q="What helps manage PCOS insulin resistance?">PCOS</button>
+          <button data-q="Does HRT reduce menopausal hot flashes?">Menopause &amp; HRT</button>
+        </div>
+      </div>
+    </div>
+    <form class="wh-chat-form" id="whChatForm">
+      <input id="whChatInput" type="text" autocomplete="off" placeholder="Ask about women&#39;s-health science…" />
+      <button type="submit" id="whChatSend">Ask</button>
+    </form>
+  </section>
+
+  <script>
+    (function () {
+      var fab = document.getElementById("whChatFab");
+      var panel = document.getElementById("whChatPanel");
+      var logEl = document.getElementById("whChatLog");
+      var emptyEl = document.getElementById("whChatEmpty");
+      var form = document.getElementById("whChatForm");
+      var input = document.getElementById("whChatInput");
+      var sendBtn = document.getElementById("whChatSend");
+
+      function esc(s) { return String(s == null ? "" : s).replace(/[&<>"]/g, function (c) { return ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;" })[c]; }); }
+      function el(tag, cls, html) { var e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; return e; }
+
+      fab.addEventListener("click", function () { panel.classList.add("open"); fab.style.display = "none"; input.focus(); });
+      document.getElementById("whChatClose").addEventListener("click", function () { panel.classList.remove("open"); fab.style.display = ""; });
+      Array.prototype.forEach.call(document.querySelectorAll(".wh-suggest button"), function (b) {
+        b.addEventListener("click", function () { input.value = b.getAttribute("data-q"); form.requestSubmit(); });
+      });
+
+      function srcBadges(sources) {
+        var wrap = el("div", "wh-sources");
+        if (!sources || !sources.length) { wrap.appendChild(el("span", "wh-badge none", "No source")); return wrap; }
+        sources.forEach(function (s) { wrap.appendChild(el("span", "wh-badge " + (s === "PubMed" ? "pubmed" : "oracle"), esc(s))); });
+        return wrap;
+      }
+
+      function renderBot(data) {
+        var bot = el("div", "wh-msg bot");
+        bot.appendChild(srcBadges(data.sources));
+        bot.appendChild(el("div", "answer", esc(data.answer || data.note || "No answer available.")));
+        var facts = data.facts || [], pubmed = data.pubmed || [];
+        if (facts.length || pubmed.length) {
+          var refs = el("div", "wh-refs");
+          if (facts.length) {
+            refs.appendChild(el("h4", null, "Oracle DB · " + facts.length + " supporting fact" + (facts.length > 1 ? "s" : "")));
+            facts.slice(0, 3).forEach(function (f) {
+              var src = esc((f.paper_title || "").slice(0, 70));
+              refs.appendChild(el("div", "wh-ref", esc((f.fact || "").slice(0, 140)) + (src ? ' <span class="meta">— ' + src + "</span>" : "")));
+            });
+          }
+          if (pubmed.length) {
+            refs.appendChild(el("h4", null, "PubMed · " + pubmed.length + " paper" + (pubmed.length > 1 ? "s" : "")));
+            pubmed.forEach(function (p) {
+              var meta = [p.journal, p.year].filter(Boolean).map(esc).join(" · ");
+              var a = el("a", "wh-ref", '<span class="pmid">PMID:' + esc(p.pmid) + "</span> " + esc(p.title) + (meta ? ' <span class="meta">(' + meta + ")</span>" : ""));
+              a.href = p.url; a.target = "_blank"; a.rel = "noopener noreferrer";
+              refs.appendChild(a);
+            });
+          }
+          bot.appendChild(refs);
+        }
+        return bot;
+      }
+
+      function ask(question) {
+        if (emptyEl) emptyEl.style.display = "none";
+        logEl.appendChild(el("div", "wh-msg user", esc(question)));
+        var typing = el("div", "wh-msg bot");
+        typing.innerHTML = '<div class="answer"><span class="wh-typing"><span></span><span></span><span></span></span></div>';
+        logEl.appendChild(typing);
+        logEl.scrollTop = logEl.scrollHeight;
+        sendBtn.disabled = true;
+        var base = (typeof API === "string" ? API : "https://chloe.blumenkraft.cloud/womens-health").replace(/\/$/, "");
+        fetch(base + "/query", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ question: question }) })
+          .then(function (r) { return r.json(); })
+          .then(function (data) { typing.replaceWith(renderBot(data)); })
+          .catch(function () { typing.replaceWith(renderBot({ answer: "Couldn't reach the research API. Please try again.", sources: [] })); })
+          .then(function () { sendBtn.disabled = false; logEl.scrollTop = logEl.scrollHeight; input.focus(); });
+      }
+
+      form.addEventListener("submit", function (e) {
+        e.preventDefault();
+        var q = input.value.trim();
+        if (!q) return;
+        input.value = "";
+        ask(q);
+      });
+    })();
   </script>
 </body>
 </html>
