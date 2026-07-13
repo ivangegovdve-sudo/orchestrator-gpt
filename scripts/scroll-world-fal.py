@@ -90,9 +90,9 @@ def main():
     cfg_path = Path(sys.argv[1])
     phase = sys.argv[2] if len(sys.argv) > 2 else "all"
     cfg = json.loads(cfg_path.read_text())
-    root = cfg_path.resolve().parent.parent  # repo root (configs live in scripts/…)
-    work = (root / cfg["workdir"]).resolve() if not Path(cfg["workdir"]).is_absolute() else Path(cfg["workdir"])
-    assets = (root / cfg["assets_dir"]).resolve()
+    # Relative config paths resolve against the CWD — run from the repo root.
+    work = Path(cfg["workdir"]).resolve()
+    assets = Path(cfg["assets_dir"]).resolve()
     (assets / "vid").mkdir(parents=True, exist_ok=True)
     work.mkdir(parents=True, exist_ok=True)
     if not os.environ.get("FAL_KEY"):
