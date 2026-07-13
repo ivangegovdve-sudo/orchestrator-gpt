@@ -1,0 +1,170 @@
+/* ═══════════════════════════════════════════════════════════════
+   FOREST MOTION — shared design-system layer for sdforest.site
+   Per-portal color themes · uMouse cursor · uClick ripple ·
+   reveal presets · reduced-motion + touch guards.
+   Pure additive layer: it never restyles page content, it only
+   provides tokens, cursor/ripple chrome, and [data-fm-*] hooks.
+   ═══════════════════════════════════════════════════════════════ */
+
+:root {
+  /* Base forest surface (matches site tokens) */
+  --fm-bg: #07070b;
+  --fm-surface: rgba(17, 17, 23, 0.72);
+  --fm-hairline: rgba(255, 255, 255, 0.08);
+  --fm-text: #f3f4f6;
+  --fm-muted: #9ca3af;
+
+  /* Active portal accent pair — overridden by [data-forest-theme] */
+  --fm-a: #fbbf24;           /* primary accent  (gold filament)   */
+  --fm-b: #8b5cf6;           /* secondary accent (violet filament) */
+  --fm-a-soft: rgba(251, 191, 36, 0.14);
+  --fm-b-soft: rgba(139, 92, 246, 0.14);
+
+  --fm-ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --fm-ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --fm-dur-1: 0.35s;
+  --fm-dur-2: 0.7s;
+  --fm-dur-3: 1.2s;
+}
+
+/* ── Per-portal color presets (from the design mockups) ───────── */
+[data-forest-theme="life-in-time"]    { --fm-a:#fbbf24; --fm-b:#6366f1; --fm-a-soft:rgba(251,191,36,.14);  --fm-b-soft:rgba(99,102,241,.14); }
+[data-forest-theme="kids"]            { --fm-a:#a855f7; --fm-b:#22d3ee; --fm-a-soft:rgba(168,85,247,.14);  --fm-b-soft:rgba(34,211,238,.14); }
+[data-forest-theme="womens-health"]   { --fm-a:#fb7185; --fm-b:#2dd4bf; --fm-a-soft:rgba(251,113,133,.14); --fm-b-soft:rgba(45,212,191,.14); }
+[data-forest-theme="council"]         { --fm-a:#34d399; --fm-b:#60a5fa; --fm-a-soft:rgba(52,211,153,.14);  --fm-b-soft:rgba(96,165,250,.14); }
+[data-forest-theme="library"]         { --fm-a:#8b5cf6; --fm-b:#818cf8; --fm-a-soft:rgba(139,92,246,.14);  --fm-b-soft:rgba(129,140,248,.14); }
+[data-forest-theme="calendar"]        { --fm-a:#6366f1; --fm-b:#22d3ee; --fm-a-soft:rgba(99,102,241,.14);  --fm-b-soft:rgba(34,211,238,.14); }
+[data-forest-theme="hypertrophy"]     { --fm-a:#a3e635; --fm-b:#34d399; --fm-a-soft:rgba(163,230,53,.14);  --fm-b-soft:rgba(52,211,153,.14); }
+[data-forest-theme="manifesto"]       { --fm-a:#d6b87a; --fm-b:#a1887f; --fm-a-soft:rgba(214,184,122,.14); --fm-b-soft:rgba(161,136,127,.14); }
+[data-forest-theme="m-popova"]        { --fm-a:#c88a28; --fm-b:#fb7185; --fm-a-soft:rgba(200,138,40,.14);  --fm-b-soft:rgba(251,113,133,.14); }
+[data-forest-theme="power-law"]       { --fm-a:#22d3ee; --fm-b:#fbbf24; --fm-a-soft:rgba(34,211,238,.14);  --fm-b-soft:rgba(251,191,36,.14); }
+[data-forest-theme="replicator-void"] { --fm-a:#22d3ee; --fm-b:#22c55e; --fm-a-soft:rgba(34,211,238,.14);  --fm-b-soft:rgba(34,197,94,.14); }
+[data-forest-theme="tinylm"]          { --fm-a:#22c55e; --fm-b:#60a5fa; --fm-a-soft:rgba(34,197,94,.14);   --fm-b-soft:rgba(96,165,250,.14); }
+[data-forest-theme="external"]        { --fm-a:#fbbf24; --fm-b:#a78bfa; --fm-a-soft:rgba(251,191,36,.14);  --fm-b-soft:rgba(167,139,250,.14); }
+
+/* ── uMouse — intelligent pointer ─────────────────────────────
+   A dot that hugs the real pointer + a lagging halo ring that
+   swells over interactive targets. Only mounted on fine pointers
+   with motion allowed (JS adds .fm-cursor-on to <html>). */
+.fm-cursor-on { cursor: none; }
+.fm-cursor-on a, .fm-cursor-on button, .fm-cursor-on [role="button"],
+.fm-cursor-on input, .fm-cursor-on select, .fm-cursor-on textarea, .fm-cursor-on label { cursor: none; }
+
+#fm-cursor-dot, #fm-cursor-ring {
+  position: fixed; top: 0; left: 0; z-index: 99990;
+  pointer-events: none;
+  border-radius: 50%;
+  will-change: transform;
+}
+#fm-cursor-dot {
+  width: 6px; height: 6px; margin: -3px 0 0 -3px;
+  background: var(--fm-a);
+  box-shadow: 0 0 12px var(--fm-a);
+  transition: opacity .25s ease, background .4s ease;
+}
+#fm-cursor-ring {
+  width: 34px; height: 34px; margin: -17px 0 0 -17px;
+  border: 1px solid color-mix(in srgb, var(--fm-a) 55%, transparent);
+  transition: width .3s var(--fm-ease-out), height .3s var(--fm-ease-out),
+              margin .3s var(--fm-ease-out), border-color .3s ease,
+              opacity .25s ease, background-color .3s ease;
+}
+#fm-cursor-ring.fm-hot {
+  width: 52px; height: 52px; margin: -26px 0 0 -26px;
+  border-color: var(--fm-a);
+  background: color-mix(in srgb, var(--fm-a) 8%, transparent);
+}
+#fm-cursor-dot.fm-down { transform-origin: center; }
+.fm-cursor-hidden #fm-cursor-dot, .fm-cursor-hidden #fm-cursor-ring { opacity: 0; }
+
+/* ── uClick — click pulse ripple ──────────────────────────────── */
+.fm-ripple {
+  position: fixed; z-index: 99989;
+  width: 12px; height: 12px; margin: -6px 0 0 -6px;
+  border-radius: 50%;
+  border: 1.5px solid var(--fm-a);
+  pointer-events: none;
+  animation: fm-ripple-out .6s var(--fm-ease-out) forwards;
+}
+@keyframes fm-ripple-out {
+  from { transform: scale(1); opacity: .85; }
+  to   { transform: scale(7); opacity: 0; }
+}
+
+/* ── Iris page transition (Reel Aperture) ─────────────────────
+   Circular aperture wipe used when leaving through a portal. */
+#fm-iris {
+  position: fixed; inset: 0; z-index: 99995;
+  pointer-events: none;
+  background: var(--fm-bg);
+  opacity: 0;
+  -webkit-clip-path: circle(0% at var(--fm-ix, 50%) var(--fm-iy, 50%));
+  clip-path: circle(0% at var(--fm-ix, 50%) var(--fm-iy, 50%));
+}
+#fm-iris.fm-iris-close {
+  pointer-events: auto;
+  animation: fm-iris-close .52s var(--fm-ease-out) forwards;
+}
+#fm-iris.fm-iris-open {
+  animation: fm-iris-open .9s var(--fm-ease-out) forwards;
+}
+@keyframes fm-iris-close {
+  from { opacity: 1; -webkit-clip-path: circle(0% at var(--fm-ix,50%) var(--fm-iy,50%)); clip-path: circle(0% at var(--fm-ix,50%) var(--fm-iy,50%)); }
+  to   { opacity: 1; -webkit-clip-path: circle(150% at var(--fm-ix,50%) var(--fm-iy,50%)); clip-path: circle(150% at var(--fm-ix,50%) var(--fm-iy,50%)); }
+}
+@keyframes fm-iris-open {
+  from { opacity: 1; -webkit-clip-path: circle(150% at 50% 50%); clip-path: circle(150% at 50% 50%); }
+  to   { opacity: 1; -webkit-clip-path: circle(0% at 50% 50%); clip-path: circle(0% at 50% 50%); }
+}
+
+/* ── Portal-opening overlay canvas (per-portal motion preset) ── */
+#fm-portal-open {
+  position: fixed; inset: 0; z-index: 99994;
+  pointer-events: none;
+}
+
+/* ── Reveal presets — annotate any element with data-fm-reveal ──
+   Values: rise | fade | scale | blur | left | right
+   Optional data-fm-delay="120" (ms). JS flips .fm-in when the
+   element enters the viewport. */
+[data-fm-reveal] {
+  opacity: 0;
+  transition: opacity var(--fm-dur-2) var(--fm-ease-out),
+              transform var(--fm-dur-2) var(--fm-ease-out),
+              filter var(--fm-dur-2) var(--fm-ease-out);
+  transition-delay: var(--fm-delay, 0s);
+  will-change: opacity, transform;
+}
+[data-fm-reveal="rise"]  { transform: translateY(26px); }
+[data-fm-reveal="fade"]  { transform: none; }
+[data-fm-reveal="scale"] { transform: scale(0.92); }
+[data-fm-reveal="blur"]  { filter: blur(10px); transform: translateY(10px); }
+[data-fm-reveal="left"]  { transform: translateX(-30px); }
+[data-fm-reveal="right"] { transform: translateX(30px); }
+[data-fm-reveal].fm-in {
+  opacity: 1;
+  transform: none;
+  filter: none;
+}
+
+/* ── Focus rings — keyboard navigation stays first-class ─────── */
+.fm-cursor-on :focus-visible,
+:focus-visible {
+  outline: 2px solid var(--fm-a);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+/* ── Ambient preset canvas hook ───────────────────────────────── */
+[data-fm-ambient] { display: block; }
+
+/* ── Accessibility & device guards ────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  #fm-cursor-dot, #fm-cursor-ring, .fm-ripple, #fm-iris, #fm-portal-open { display: none !important; }
+  .fm-cursor-on { cursor: auto; }
+  .fm-cursor-on a, .fm-cursor-on button, .fm-cursor-on [role="button"] { cursor: pointer; }
+  [data-fm-reveal] { opacity: 1 !important; transform: none !important; filter: none !important; transition: none !important; }
+}
+@media (pointer: coarse) {
+  #fm-cursor-dot, #fm-cursor-ring { display: none !important; }
+}
