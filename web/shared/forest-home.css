@@ -261,12 +261,14 @@ a, button { -webkit-tap-highlight-color: transparent; }
   padding: clamp(16px, 2vw, 26px);
   transform: translateX(calc((1 - var(--assembly-e)) * -112%)) rotateY(calc((1 - var(--assembly-e)) * 13deg));
   transform-origin: right center;
+  will-change: transform, opacity;
 }
 
 .preview-stage {
   min-height: 690px;
   transform: translateX(calc((1 - var(--assembly-e)) * 112%)) rotateY(calc((1 - var(--assembly-e)) * -13deg));
   transform-origin: left center;
+  will-change: transform, opacity;
 }
 
 .portal-board::after,
@@ -684,6 +686,7 @@ a, button { -webkit-tap-highlight-color: transparent; }
   .preview-stage {
     opacity: 1;
     transform: none;
+    will-change: auto;
   }
   .preview-stage { min-height: 580px; order: -1; }
   .portal { height: 112px; opacity: 1; translate: none; }

@@ -158,6 +158,15 @@ body[data-council] .spinner {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  /* Blanket stop for these standalone pages (they do not load the shell CSS,
+     so native animations like the streaming caret are silenced here too). */
+  body[data-council] *,
+  body[data-council] *::before,
+  body[data-council] *::after {
+    animation-duration: .001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .001ms !important;
+  }
   body[data-council] .spinner {
     animation: none;
     box-shadow: -9px 0 0 0 color-mix(in srgb, currentColor 45%, transparent), 9px 0 0 0 color-mix(in srgb, currentColor 45%, transparent);
