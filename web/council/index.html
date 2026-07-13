@@ -33,12 +33,38 @@
     .mode-number { color:var(--mode); font:700 10px/1 var(--forest-body); letter-spacing:.2em; text-transform:uppercase; }
     .mode-badge { min-height:28px; display:inline-flex; align-items:center; padding:0 10px; border:1px solid color-mix(in srgb,var(--mode) 30%,transparent); border-radius:999px; color:var(--mode); background:color-mix(in srgb,var(--mode) 7%,transparent); font:700 9px/1 var(--forest-body); letter-spacing:.1em; text-transform:uppercase; }
     .dialogue-visual { position:relative; flex:1; min-height:170px; display:grid; place-items:center; color:var(--mode); }
-    .dialogue-node { position:absolute; width:12px; height:12px; border:2px solid currentColor; border-radius:50%; box-shadow:0 0 18px currentColor; animation:node-breathe 3.2s ease-in-out infinite; }
-    .dialogue-node:nth-child(1){transform:translate(-72px,-34px)} .dialogue-node:nth-child(2){transform:translate(73px,-26px);animation-delay:-1s}.dialogue-node:nth-child(3){transform:translate(0,64px);animation-delay:-2s}
-    .dialogue-ribbon { width:180px; height:100px; overflow:visible; }
-    .dialogue-ribbon path { fill:none; stroke:currentColor; stroke-width:1; stroke-dasharray:5 7; animation:ribbon-run 7s linear infinite; }
-    @keyframes ribbon-run { to { stroke-dashoffset:-120; } }
-    @keyframes node-breathe { 50% { opacity:.35; box-shadow:0 0 4px currentColor; } }
+    /* Deliberation graph: each node is a council seat; a packet of "speech"
+       travels the edges in sequence. Tempo is the council's personality —
+       TinyLM's five local models take the floor slowly, the routed trio is quick. */
+    .council-graph { width:min(250px,80%); overflow:visible; transition:transform .45s cubic-bezier(.22,1,.36,1); }
+    .mode-card:hover .council-graph { transform:scale(1.06); }
+    .g-wire { fill:none; stroke:currentColor; stroke-width:.8; opacity:.16; }
+    .g-edge { fill:none; stroke:currentColor; stroke-width:1.6; stroke-linecap:round; stroke-dasharray:14 186; stroke-dashoffset:14; opacity:0; animation:g-packet var(--tempo) linear infinite; animation-delay:calc(var(--tempo) * (var(--gi) + .45) / var(--gn) - var(--tempo)); }
+    .g-node { fill:currentColor; opacity:.4; transform-box:fill-box; transform-origin:center; animation:g-speak var(--tempo) ease-in-out infinite; animation-delay:calc(var(--tempo) * var(--gi) / var(--gn) - var(--tempo)); }
+    .g-halo { fill:none; stroke:currentColor; stroke-width:1; opacity:.2; }
+    @keyframes g-packet {
+      0% { stroke-dashoffset:14; opacity:0; }
+      2% { opacity:.95; }
+      17% { stroke-dashoffset:-100; opacity:.95; }
+      18%, 100% { stroke-dashoffset:-100; opacity:0; }
+    }
+    @keyframes g-speak {
+      0%, 100% { transform:scale(1); opacity:.4; filter:none; }
+      7% { transform:scale(1.55); opacity:1; filter:drop-shadow(0 0 7px currentColor); }
+      22% { transform:scale(1.55); opacity:1; filter:drop-shadow(0 0 7px currentColor); }
+      34% { transform:scale(1); opacity:.4; filter:none; }
+    }
+    /* Convening: the hero settles first, then the two chambers take their seats. */
+    @media (prefers-reduced-motion: no-preference) {
+      .council-hero .forest-kicker { animation:hero-rise .7s cubic-bezier(.16,1,.3,1) backwards; }
+      .council-hero .forest-title { animation:hero-rise .85s cubic-bezier(.16,1,.3,1) .08s backwards; }
+      .council-hero .forest-lede { animation:hero-rise .85s cubic-bezier(.16,1,.3,1) .18s backwards; }
+      .mode-card { animation:card-convene .9s cubic-bezier(.16,1,.3,1) backwards; }
+      .mode-card:nth-child(2) { animation-delay:.14s; }
+      .truth-note { animation:hero-rise .8s ease .5s backwards; }
+    }
+    @keyframes hero-rise { from { opacity:0; transform:translateY(22px); filter:blur(5px); } to { filter:blur(0); } }
+    @keyframes card-convene { from { opacity:0; transform:translateY(34px) scale(.97); } }
     .mode-card h2 { max-width:8ch; margin:0; font:700 clamp(36px,5vw,62px)/.88 var(--forest-display); letter-spacing:-.06em; }
     .mode-card p { max-width:48ch; margin:20px 0 0; color:var(--forest-soft); font-size:14px; line-height:1.65; }
     .limit-row { display:flex; flex-wrap:wrap; gap:7px; margin-top:20px; }
@@ -65,8 +91,20 @@
       <a class="mode-card" id="tinylm" style="--mode:#79f2a8" href="/web/council/tinylm/index.html" data-council-mode="tinylm">
         <div class="mode-top"><span class="mode-number">Mode 01 · Local</span><span class="mode-badge">Public · $0</span></div>
         <div class="dialogue-visual" aria-hidden="true">
-          <span class="dialogue-node"></span><span class="dialogue-node"></span><span class="dialogue-node"></span>
-          <svg class="dialogue-ribbon" viewBox="0 0 180 100"><path d="M18 24C66 9 70 87 91 84S122 5 163 29M17 25C52 55 73 47 90 84m73-55c-26 20-34 45-72 55"/></svg>
+          <svg class="council-graph" viewBox="0 0 220 140" style="--tempo:7s;--gn:5">
+            <path class="g-wire" d="M110 26Q158 30 186 56"/><path class="g-wire" d="M186 56Q180 88 157 106"/><path class="g-wire" d="M157 106Q110 122 63 106"/><path class="g-wire" d="M63 106Q40 88 34 56"/><path class="g-wire" d="M34 56Q62 30 110 26"/>
+            <path class="g-edge" style="--gi:0" pathLength="100" d="M110 26Q158 30 186 56"/>
+            <path class="g-edge" style="--gi:1" pathLength="100" d="M186 56Q180 88 157 106"/>
+            <path class="g-edge" style="--gi:2" pathLength="100" d="M157 106Q110 122 63 106"/>
+            <path class="g-edge" style="--gi:3" pathLength="100" d="M63 106Q40 88 34 56"/>
+            <path class="g-edge" style="--gi:4" pathLength="100" d="M34 56Q62 30 110 26"/>
+            <circle class="g-halo" cx="110" cy="26" r="8"/><circle class="g-halo" cx="186" cy="56" r="8"/><circle class="g-halo" cx="157" cy="106" r="8"/><circle class="g-halo" cx="63" cy="106" r="8"/><circle class="g-halo" cx="34" cy="56" r="8"/>
+            <circle class="g-node" style="--gi:0" cx="110" cy="26" r="4"/>
+            <circle class="g-node" style="--gi:1" cx="186" cy="56" r="4"/>
+            <circle class="g-node" style="--gi:2" cx="157" cy="106" r="4"/>
+            <circle class="g-node" style="--gi:3" cx="63" cy="106" r="4"/>
+            <circle class="g-node" style="--gi:4" cx="34" cy="56" r="4"/>
+          </svg>
         </div>
         <h2>TinyLM Local Oracle</h2>
         <p>Five tiny open models deliberate in sequence on Oracle ARM hardware and stream their tokens as they think. It is intentionally slow, small, and transparent—not a polished frontier-model answer.</p>
@@ -77,8 +115,16 @@
       <a class="mode-card" style="--mode:#73e9ff" href="/web/council/byok/index.html" data-council-mode="openrouter">
         <div class="mode-top"><span class="mode-number">Mode 02 · Routed</span><span class="mode-badge">Public · free models</span></div>
         <div class="dialogue-visual" aria-hidden="true">
-          <span class="dialogue-node"></span><span class="dialogue-node"></span><span class="dialogue-node"></span>
-          <svg class="dialogue-ribbon" viewBox="0 0 180 100"><path d="M18 24C66 9 70 87 91 84S122 5 163 29M17 25C52 55 73 47 90 84m73-55c-26 20-34 45-72 55"/></svg>
+          <svg class="council-graph" viewBox="0 0 220 140" style="--tempo:2.6s;--gn:3">
+            <path class="g-wire" d="M110 24Q60 60 36 104"/><path class="g-wire" d="M36 104Q110 128 184 104"/><path class="g-wire" d="M184 104Q160 60 110 24"/>
+            <path class="g-edge" style="--gi:0" pathLength="100" d="M110 24Q60 60 36 104"/>
+            <path class="g-edge" style="--gi:1" pathLength="100" d="M36 104Q110 128 184 104"/>
+            <path class="g-edge" style="--gi:2" pathLength="100" d="M184 104Q160 60 110 24"/>
+            <circle class="g-halo" cx="110" cy="24" r="11"/><circle class="g-halo" cx="36" cy="104" r="11"/><circle class="g-halo" cx="184" cy="104" r="11"/>
+            <circle class="g-node" style="--gi:0" cx="110" cy="24" r="5.5"/>
+            <circle class="g-node" style="--gi:1" cx="36" cy="104" r="5.5"/>
+            <circle class="g-node" style="--gi:2" cx="184" cy="104" r="5.5"/>
+          </svg>
         </div>
         <h2>OpenRouter Free</h2>
         <p>A proposer, critic, and chairman use free-tier OpenRouter models across one to five rounds. The public relay works without setup, with an optional bring-your-own-key mode in the browser.</p>

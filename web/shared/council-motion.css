@@ -1,0 +1,166 @@
+/* Council motion layer — shared by the four council chat surfaces.
+   Per-council identity is keyed off body[data-council]; everything here is
+   presentation only and degrades to static under prefers-reduced-motion. */
+
+body[data-council] {
+  --cm-accent: #8b5cf6;
+  --cm-accent-2: #c4b5fd;
+  --cm-rgb: 139, 92, 246;
+}
+
+body[data-council="open"] {
+  --cm-accent: #5eead4;
+  --cm-accent-2: #67e8f9;
+  --cm-rgb: 94, 234, 212;
+}
+
+body[data-council="chloe"] {
+  --cm-accent: #f43f5e;
+  --cm-accent-2: #fb7185;
+  --cm-rgb: 244, 63, 94;
+}
+
+body[data-council="inner"] {
+  --cm-accent: #a5b4fc;
+  --cm-accent-2: #818cf8;
+  --cm-rgb: 165, 180, 252;
+}
+
+.cm-field {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+/* Council identity threaded through the page chrome. */
+body[data-council] h1 {
+  background-image: linear-gradient(120deg, var(--cm-accent), var(--cm-accent-2));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+body[data-council] textarea:focus,
+body[data-council] .composer textarea:focus {
+  border-color: color-mix(in srgb, var(--cm-accent) 55%, transparent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--cm-accent) 12%, transparent);
+}
+
+body[data-council] .stage-content.streaming::after { color: var(--cm-accent); }
+
+@media (prefers-reduced-motion: no-preference) {
+  /* Page settles in as one choreography: chrome first, panels follow. */
+  body[data-council] .page > * {
+    animation: cm-rise .65s cubic-bezier(.16, 1, .3, 1) backwards;
+  }
+  body[data-council] .page > :nth-child(2) { animation-delay: .06s; }
+  body[data-council] .page > :nth-child(3) { animation-delay: .12s; }
+  body[data-council] .page > :nth-child(4) { animation-delay: .18s; }
+  body[data-council] .page > :nth-child(5) { animation-delay: .24s; }
+  body[data-council] .page > :nth-child(6) { animation-delay: .3s; }
+  body[data-council] .page > :nth-child(n+7) { animation-delay: .36s; }
+
+  /* Deliberation artifacts arrive, they do not pop. Cards are appended one at
+     a time by the stream, so each insertion carries its own entrance. */
+  body[data-council] .stages .stage-card,
+  body[data-council] .stages .round-header,
+  body[data-council] .followup-card.visible {
+    animation: cm-arrive .6s cubic-bezier(.16, 1, .3, 1) backwards;
+  }
+
+  body[data-council] .chat .msg { animation: cm-msg-left .42s cubic-bezier(.16, 1, .3, 1) backwards; }
+  body[data-council] .chat .msg.user { animation-name: cm-msg-right; }
+  body[data-council] .chat .msg.meta { animation-name: cm-rise; }
+
+  /* Speaking agent: the active card breathes; its sigil pulses; the name is
+     underlined by a slow accent sweep so the current voice is unmissable.
+     Arrival stays in the list so a card born active still slides in. */
+  body[data-council] .stage-card.active {
+    animation: cm-arrive .6s cubic-bezier(.16, 1, .3, 1) backwards, cm-speaking 2.4s ease-in-out infinite;
+  }
+  body[data-council] .stage-card.active .stage-icon {
+    animation: cm-sigil 1.7s ease-in-out infinite;
+  }
+  body[data-council] .stage-card.active .stage-name {
+    background-image: linear-gradient(90deg, transparent 0 44%, color-mix(in srgb, var(--cm-accent) 24%, transparent) 50%, transparent 56% 100%);
+    background-size: 240% 100%;
+    animation: cm-name-sweep 2.8s linear infinite;
+  }
+
+  body[data-council] .typing { animation: cm-ponder 1.9s ease-in-out infinite; }
+}
+
+@keyframes cm-rise {
+  from { opacity: 0; transform: translateY(16px); }
+}
+
+@keyframes cm-arrive {
+  from { opacity: 0; transform: translateY(14px) scale(.985); }
+}
+
+@keyframes cm-msg-left {
+  from { opacity: 0; transform: translateX(-14px) scale(.97); }
+}
+
+@keyframes cm-msg-right {
+  from { opacity: 0; transform: translateX(14px) scale(.97); }
+}
+
+@keyframes cm-speaking {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(var(--cm-rgb), 0); }
+  50% { box-shadow: 0 0 30px -4px rgba(var(--cm-rgb), .22), inset 0 0 24px rgba(var(--cm-rgb), .05); }
+}
+
+@keyframes cm-sigil {
+  0%, 100% { transform: scale(1); filter: none; }
+  50% { transform: scale(1.09); filter: drop-shadow(0 0 7px rgba(var(--cm-rgb), .55)); }
+}
+
+@keyframes cm-name-sweep {
+  from { background-position: 120% 0; }
+  to { background-position: -120% 0; }
+}
+
+@keyframes cm-ponder {
+  0%, 100% { opacity: .68; }
+  50% { opacity: 1; }
+}
+
+/* Thinking state: the generic ring spinner becomes three deliberation dots
+   passing the floor between them. Same element, new personality. */
+body[data-council] .spinner {
+  width: 5px;
+  height: 5px;
+  margin: 0 11px 0 9px;
+  border: 0;
+  border-radius: 50%;
+  background: currentColor;
+  box-shadow: -9px 0 0 0 currentColor, 9px 0 0 0 currentColor;
+  animation: cm-deliberate 1.15s ease-in-out infinite;
+}
+
+@keyframes cm-deliberate {
+  0%, 100% {
+    background: currentColor;
+    box-shadow: -9px 0 0 0 color-mix(in srgb, currentColor 30%, transparent), 9px 0 0 0 color-mix(in srgb, currentColor 30%, transparent);
+  }
+  33% {
+    background: color-mix(in srgb, currentColor 30%, transparent);
+    box-shadow: -9px 0 0 0 currentColor, 9px 0 0 0 color-mix(in srgb, currentColor 30%, transparent);
+  }
+  66% {
+    background: color-mix(in srgb, currentColor 30%, transparent);
+    box-shadow: -9px 0 0 0 color-mix(in srgb, currentColor 30%, transparent), 9px 0 0 0 currentColor;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body[data-council] .spinner {
+    animation: none;
+    box-shadow: -9px 0 0 0 color-mix(in srgb, currentColor 45%, transparent), 9px 0 0 0 color-mix(in srgb, currentColor 45%, transparent);
+  }
+  .cm-field { opacity: .5; }
+}
