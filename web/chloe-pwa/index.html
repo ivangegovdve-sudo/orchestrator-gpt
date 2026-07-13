@@ -11,27 +11,9 @@
 <title>Chloé</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon.svg">
-<!--
-  CHLOÉ PWA — fullscreen avatar conversation
-  ────────────────────────────────────────────────────────────────────
-  Audio engine:   voice2voice-buddy patterns
-    • getUserMedia → AudioContext → AnalyserNode (FFT, speech-range,
-      smoothingTimeConstant=0.6, 0.3/0.7 smoothing) — V2V useAudioEnergy.js
-    • Single shared AudioContext: mic energy (listening) + TTS energy (speaking)
-    • Status state machine: idle→listening→user_speaking→thinking→speaking
-      mirrors V2V events.js (response.created=thinking, response.done=listening)
-    • Barge-in: tap orb during speaking to interrupt (V2V concept)
-    • WAV blob URL cleanup: URL.revokeObjectURL — V2V useVoiceSynthesis.js
-
-  Built new (not from V2V):
-    • Text-only input mode (DEFAULT) — no mic permission required
-    • Server-side Whisper STT via MediaRecorder → KVM2 /api/stt (optional voice mode)
-    • REST calls to KVM2 :8700 chat + :8660 TTS + :8670 STT (funnel-gated)
-    • Dot-orb visual (V2V uses Lottie+ring)
-    • PWA manifest + service worker
-    • localStorage config (token, URLs, system prompt)
-  ────────────────────────────────────────────────────────────────────
--->
+<!-- CHLOÉ PWA — fullscreen avatar conversation with text-first input,
+     optional microphone/Whisper input, REST chat and speech synthesis,
+     an audio-reactive dot orb, local device settings, and a service worker. -->
 <style>
 :root {
   --bg:      #09090b;
@@ -76,6 +58,7 @@ body {
   font-size: .75rem; font-weight: 600;
   letter-spacing: .18em; text-transform: uppercase;
   color: rgba(139,92,246,.5);
+  text-decoration: none;
 }
 .topbar-actions {
   display: flex; gap: 6px; align-items: center;
@@ -298,7 +281,7 @@ body {
 <body>
 <div id="app">
   <div id="topbar">
-    <span class="wordmark">Chloé</span>
+    <a class="wordmark" href="/" aria-label="Return to SDForest">← SDForest · Chloé</a>
     <div class="topbar-actions">
       <button id="btn-mic" title="Enable voice input" aria-label="Toggle microphone">🎤</button>
       <button id="btn-cfg" title="Settings" aria-label="Settings">⚙</button>
@@ -366,14 +349,8 @@ body {
 </div>
 
 <script>
-/* ════════════════════════════════════════════════════════════════════
-   CHLOÉ PWA — fullscreen avatar conversation
-   Audio plumbing adapted from voice2voice-buddy (V2V):
-     • FFT energy: getByteFrequencyData, speech-range focus, 0.3/0.7 smooth
-     • Single shared AudioContext: mic analyser + TTS analyser
-     • Status state machine: idle→listening→user_speaking→thinking→speaking
-   Built new: text-only input (default), optional voice, REST→KVM2, dot-orb, PWA
-   ════════════════════════════════════════════════════════════════════ */
+/* CHLOÉ PWA — text-first conversation, optional voice, REST services,
+   a shared audio analyser, and a status-reactive dot orb. */
 
 /* ── CONFIG ─────────────────────────────────────────────────────── */
 const CFG_KEY = 'chloe_pwa_v1';
@@ -410,8 +387,7 @@ window.addEventListener('resize', resizeOrb);
 
 /* ── ORB ANIMATION ──────────────────────────────────────────────── */
 /* Dot-orb: Fibonacci sphere, proximity lines, breathing, audio-reactive.
-   Ported from /web/library/chloe/index.html (the polished version).
-   Visual component swapped from V2V's Lottie+ring to this canvas orb. */
+   Shared with the polished library avatar surface. */
 (function orbAnim() {
   if (!canvas || window.matchMedia('(prefers-reduced-motion:reduce)').matches) return;
   const ctx = canvas.getContext('2d');
@@ -515,7 +491,7 @@ window.addEventListener('resize', resizeOrb);
   });
 })();
 
-/* ── AUDIO ENGINE (V2V patterns) ───────────────────────────────── */
+/* ── AUDIO ENGINE ──────────────────────────────────────────────── */
 let audioCtx     = null;
 let micStream    = null;
 let micAnalyser  = null, micBuf;
@@ -544,12 +520,12 @@ async function ensureAudio() {
   await ensureAudioCtx();
   if (micStream) return;  /* mic already connected */
   try {
-    /* V2V getUserMedia with echoCancellation + noiseSuppression + autoGainControl */
+    /* Microphone capture with browser speech-processing constraints. */
     micStream = await navigator.mediaDevices.getUserMedia({
       audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true },
     });
 
-    /* V2V useAudioEnergy: fftSize=512, smoothingTimeConstant=0.6 */
+    /* Speech-range analyser tuned for stable orb movement. */
     micAnalyser = audioCtx.createAnalyser();
     micAnalyser.fftSize = 512;
     micAnalyser.smoothingTimeConstant = 0.6;
@@ -564,7 +540,7 @@ async function ensureAudio() {
   }
 }
 
-/* V2V useAudioEnergy loop: focus mid-high bins, 0.3/0.7 smooth */
+/* Focus mid-high bins and smooth energy to avoid visual jitter. */
 function startMicEnergyLoop() {
   if (!micAnalyser) return;
   cancelAnimationFrame(micRafId);

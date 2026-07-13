@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>The Power Law Odyssey | Forest HUB</title>
   <meta name="description" content="A 3D scrollytelling page about normal distributions, power laws, compounding, asymmetric risk, and repeated intelligent bets.">
+  <link rel="stylesheet" href="/web/shared/forest-shell.css?v=20260713">
   <style>
     :root {
       --bg: #07080b;
@@ -367,6 +368,9 @@
       font-weight: 900;
       cursor: pointer;
     }
+    .sandbox-actions { display:flex; flex-wrap:wrap; gap:8px; }
+    .bet-button.secondary { color:var(--ink); background:rgba(255,255,255,.055); border:1px solid var(--line); }
+    .seed-readout { width:100%; color:var(--muted); font:11px/1.5 ui-monospace,monospace; }
     .bet-button:focus-visible, .back-link:focus-visible {
       outline: 3px solid var(--accent);
       outline-offset: 3px;
@@ -519,7 +523,7 @@
     }
   </style>
 </head>
-<body>
+<body data-forest-page="power">
   <a class="back-link" href="/">Forest HUB</a>
   <div class="progress-rail" aria-hidden="true"><div class="progress-fill"></div></div>
 
@@ -612,12 +616,15 @@
             <p>Click the sandbox. It models a 94% base failure rate and a rare outlier trajectory that recovers cumulative losses.</p>
             <div class="sandbox">
               <div class="sandbox-head">
-                <button class="bet-button" id="betButton" type="button">Place intelligent bet</button>
+                <div class="sandbox-actions"><button class="bet-button" id="betButton" type="button">Place one-unit bet</button><button class="bet-button secondary" id="batchButton" type="button">Run 25</button><button class="bet-button secondary" id="resetBets" type="button">Reset</button></div>
                 <div class="sandbox-stats" aria-live="polite">
                   <span>Attempts: <strong id="attemptCount">0</strong></span>
                   <span>Failures: <strong id="failureCount">0</strong></span>
                   <span>Outliers: <strong id="hitCount">0</strong></span>
+                  <span>Balance: <strong id="balanceCount">0</strong></span>
+                  <span>Best hit: <strong id="bestHitCount">0</strong></span>
                 </div>
+                <div class="seed-readout">Simulated · one-unit bets · seed: <strong id="seedValue"></strong></div>
               </div>
               <div class="bet-field" id="betField" aria-label="Interactive bet trajectories"></div>
             </div>
@@ -726,6 +733,7 @@ document.documentElement.style.setProperty("--scroll-p", progress);</code></pre>
     </div>
   </section>
 
+  <script src="/web/power-law-odyssey/power-law-engine.js?v=20260713"></script>
   <script>
     const track = document.getElementById("scrollTrack");
     const root = document.documentElement;
@@ -796,29 +804,39 @@ document.documentElement.style.setProperty("--scroll-p", progress);</code></pre>
     const attemptCount = document.getElementById("attemptCount");
     const failureCount = document.getElementById("failureCount");
     const hitCount = document.getElementById("hitCount");
-    let attempts = 0;
-    let failures = 0;
-    let hits = 0;
+    const balanceCount = document.getElementById("balanceCount");
+    const bestHitCount = document.getElementById("bestHitCount");
+    const seedParams = new URLSearchParams(location.search);
+    const simulationSeed = seedParams.get("seed") || "forest-2026";
+    if (!seedParams.has("seed")) {
+      seedParams.set("seed", simulationSeed);
+      history.replaceState(null, "", `${location.pathname}?${seedParams}${location.hash}`);
+    }
+    document.getElementById("seedValue").textContent = simulationSeed;
+    const betEngine = PowerLawEngine.createPowerLawEngine(simulationSeed);
 
-    function addBet(forceHit) {
-      attempts += 1;
-      const hit = forceHit || attempts % 17 === 0 || Math.random() > 0.94;
-      if (hit) hits += 1;
-      else failures += 1;
+    function renderBet(result) {
       const line = document.createElement("span");
-      line.className = `trajectory${hit ? " hit" : ""}`;
-      line.style.setProperty("--w", hit ? "118%" : `${30 + Math.random() * 34}%`);
-      line.style.setProperty("--a", hit ? "-32deg" : `${-4 + Math.random() * 10}deg`);
-      line.style.setProperty("--c", hit ? "#fbbf24" : "rgba(251,113,133,.72)");
-      line.style.bottom = `${28 + Math.random() * 84}px`;
+      line.className = `trajectory${result.hit ? " hit" : ""}`;
+      line.style.setProperty("--w", `${result.visual.width}%`);
+      line.style.setProperty("--a", `${result.visual.angle}deg`);
+      line.style.setProperty("--c", result.hit ? "#fbbf24" : "rgba(251,113,133,.72)");
+      line.style.bottom = `${result.visual.bottom}px`;
+      line.title = result.hit ? `Outlier payout: ${result.payout}` : "One-unit miss";
       betField.appendChild(line);
       while (betField.children.length > 26) betField.removeChild(betField.firstChild);
-      attemptCount.textContent = attempts;
-      failureCount.textContent = failures;
-      hitCount.textContent = hits;
+      const state = betEngine.state();
+      attemptCount.textContent = state.attempts;
+      failureCount.textContent = state.failures;
+      hitCount.textContent = state.hits;
+      balanceCount.textContent = state.balance;
+      bestHitCount.textContent = state.bestHit;
     }
-    betButton.addEventListener("click", () => addBet(false));
-    for (let i = 0; i < 12; i += 1) addBet(i === 10);
+    function addBet() { renderBet(betEngine.bet()); }
+    betButton.addEventListener("click", addBet);
+    document.getElementById("batchButton").addEventListener("click", () => betEngine.batch(25).forEach(renderBet));
+    document.getElementById("resetBets").addEventListener("click", () => { betEngine.reset(); betField.replaceChildren(); betEngine.batch(12).forEach(renderBet); });
+    betEngine.batch(12).forEach(renderBet);
 
     const canvas = document.getElementById("starfield");
     const ctx = canvas.getContext("2d");
@@ -863,5 +881,6 @@ document.documentElement.style.setProperty("--scroll-p", progress);</code></pre>
     }
     requestAnimationFrame(drawStars);
   </script>
+  <script src="/web/shared/forest-motion.js?v=20260713"></script>
 </body>
 </html>

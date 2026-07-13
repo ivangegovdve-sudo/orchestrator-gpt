@@ -9,6 +9,7 @@
   <meta property="og:description" content="Evidence-graded facts, rules, and claims for women's health, distilled from peer-reviewed research." />
   <meta property="og:type" content="website" />
   <meta name="theme-color" content="#07070b" />
+  <link rel="stylesheet" href="/web/shared/forest-shell.css?v=20260713">
   <style>
     :root {
       --bg: #07070b;
@@ -141,9 +142,12 @@
     .footer-tag { text-align: center; font-size: 11px; color: var(--dim); line-height: 1.7; }
     .footer-tag code { background: rgba(255,255,255,0.06); padding: 1px 6px; border-radius: 5px; }
     .disclaimer { text-align: center; font-size: 11.5px; color: var(--dim); max-width: 60ch; margin: 0 auto; line-height: 1.6; }
+    .offline-atlas { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; margin:18px 0; }
+    .offline-topic { min-height:96px; display:flex; align-items:flex-end; padding:15px; border:1px solid rgba(244,114,182,.18); border-radius:12px; background:linear-gradient(145deg,rgba(244,114,182,.08),rgba(255,255,255,.018)); color:var(--text-primary); font-size:12px; font-weight:700; letter-spacing:.04em; }
+    @media (max-width:640px) { .offline-atlas { grid-template-columns:repeat(2,minmax(0,1fr)); } }
   </style>
 </head>
-<body>
+<body data-forest-page="health">
   <div class="page">
     <div class="topbar">
       <a href="/" class="back-link">&#8592; Forest HUB</a>
@@ -180,7 +184,7 @@
       <select class="topic" id="topic"><option value="">All topics</option></select>
     </div>
 
-    <div id="view"></div>
+    <div id="view"><div class="empty">Connecting to the evidence index&hellip;</div></div>
 
     <p class="disclaimer">Educational research summaries only &mdash; not medical advice. Always consult a qualified clinician for personal health decisions.</p>
     <p class="footer-tag">
@@ -206,7 +210,7 @@
     function esc(s) { return String(s == null ? "" : s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
     function api(path) {
       var ctrl = new AbortController();
-      var t = setTimeout(function () { ctrl.abort(); }, 8000);
+      var t = setTimeout(function () { ctrl.abort(); }, 3500);
       return fetch(API.replace(/\/$/, "") + path, { signal: ctrl.signal })
         .then(function (r) { clearTimeout(t); if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); });
     }
@@ -222,9 +226,8 @@
       controlsEl.style.display = "none";
       viewEl.innerHTML =
         '<div class="offline-note">' +
-        "The Women&#39;s Health OS API isn&#39;t reachable from here. It runs locally on Ivan&#39;s machine " +
-        "(<code>127.0.0.1:8091</code>) and isn&#39;t publicly exposed. Open this page on that machine, or point it " +
-        "at a reachable API below." +
+        "The live evidence index is unavailable right now. The research space remains visible instead of rendering blank; reconnect below when the public service is reachable." +
+        '<div class="offline-atlas" aria-label="Research areas"><div class="offline-topic">Menstrual cycle</div><div class="offline-topic">Hormones</div><div class="offline-topic">Fertility</div><div class="offline-topic">PCOS</div><div class="offline-topic">Perimenopause</div><div class="offline-topic">Thyroid</div></div>' +
         '<div class="api-form">' +
         '<input id="api-input" value="' + esc(API) + '" spellcheck="false" />' +
         '<button onclick="saveApi()">Connect</button>' +
@@ -539,5 +542,6 @@
       });
     })();
   </script>
+  <script src="/web/shared/forest-motion.js?v=20260713"></script>
 </body>
 </html>
