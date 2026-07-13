@@ -1141,6 +1141,7 @@
       window.addEventListener('resize', resize);
 
       var born = performance.now();
+      var prevT = born;
       var pt = { x: 0, y: 0 }, pt2 = { x: 0, y: 0 };
 
       function writeVert(arr, vi, x, y, size, col, a) {
@@ -1151,7 +1152,9 @@
 
       function frame(now) {
         requestAnimationFrame(frame);
-        if (document.hidden) return;
+        if (document.hidden) { prevT = now; return; }
+        var dt = Math.min((now - prevT) / 1000, 0.25);
+        prevT = now;
         var t = (now - born) / 1000;
         var growth = easeOut(clamp01(t / 2.6));       /* the forest awakens */
         var fade = 1 - scrollP * 0.55;                /* recede while scrolling */
@@ -1196,7 +1199,7 @@
         /* flowing particles along filaments */
         for (var k = 0; k < flow.length; k++) {
           var fp = flow[k];
-          fp.t += fp.v / 60;
+          fp.t += fp.v * dt;
           if (fp.t > 1) fp.t -= 1;
           var ff = filaments[fp.f];
           var u2 = fp.t * growth;
@@ -1222,7 +1225,7 @@
         /* free spores */
         for (var sp = 0; sp < SPORES; sp++) {
           var o = spores[sp];
-          o.x += o.vx / 900; o.y += o.vy / 900;
+          o.x += o.vx * dt / 15; o.y += o.vy * dt / 15;
           if (o.y < -0.02) { o.y = 1.02; o.x = Math.random(); }
           if (o.x < -0.02) o.x = 1.02; else if (o.x > 1.02) o.x = -0.02;
           pt2.x = o.x * W; pt2.y = o.y * H;
@@ -1304,54 +1307,66 @@
       document.documentElement.classList.add('assembling');
       grid.classList.add('assembling');
 
-      var metrics = [];
+      /* measure untransformed document-space geometry once —
+         getBoundingClientRect during the scrub would feed back the
+         very transforms we're applying */
+      var metrics = [], settled = [], done = false;
       function measure() {
+        slots.forEach(function (el) { el.style.transform = ''; el.style.filter = ''; });
         var g = grid.getBoundingClientRect();
         var gcx = g.left + g.width / 2, gcy = g.top + g.height / 2;
         metrics = slots.map(function (el) {
           var r = el.getBoundingClientRect();
-          return { dx: gcx - (r.left + r.width / 2), dy: gcy - (r.top + r.height / 2) };
+          return {
+            dx: gcx - (r.left + r.width / 2),
+            dy: gcy - (r.top + r.height / 2),
+            top: r.top + window.scrollY
+          };
         });
       }
 
-      var target = 0, shown = -1;
-      function progressTarget() {
-        var r = grid.getBoundingClientRect();
+      /* per-slot target progress: each portal assembles as IT enters the
+         viewport (guaranteed completion), with a small index stagger */
+      function targetFor(i) {
         var vh = window.innerHeight;
-        /* 0 when grid top hits 96% of viewport → 1 when it reaches 38% */
-        return clamp01((vh * 0.96 - r.top) / (vh * 0.58));
+        var y = metrics[i].top - window.scrollY;      /* untransformed viewport top */
+        var base = (vh * 0.94 - y) / (vh * 0.40);
+        return clamp01(base - (i % 4) * 0.09);
       }
 
-      function apply(q) {
-        for (var i = 0; i < slots.length; i++) {
-          var st = i * 0.05;
-          var p = clamp01((q - st) / 0.42);
-          if (p === 1 && shown >= i) continue;       /* settled — leave it alone */
-          var e = easeOut(p);
-          var m = metrics[i];
-          var el = slots[i];
-          if (p >= 1) {
-            el.style.transform = '';
-            el.style.opacity = '';
-            el.style.filter = '';
-            if (shown < i) shown = i;
-          } else {
-            el.style.transform = 'translate(' + (m.dx * (1 - e) * 0.85) + 'px,' + (m.dy * (1 - e) * 0.85 + 40 * (1 - e)) + 'px) scale(' + (0.6 + 0.4 * e) + ')';
-            el.style.opacity = e.toFixed(3);
-            el.style.filter = 'blur(' + (6 * (1 - e)).toFixed(1) + 'px)';
-          }
-        }
-      }
-
-      var current = 0, raf = 0;
-      function loop() {
+      var current = slots.map(function () { return 0; });
+      var raf = 0, prev = 0;
+      function loop(now) {
         raf = requestAnimationFrame(loop);
-        target = progressTarget();
-        current = lerp(current, target, 0.14);
-        if (Math.abs(current - target) < 0.001) current = target;
-        apply(current);
-        if (current >= 1 && shown >= slots.length - 1) {
-          cancelAnimationFrame(raf);                 /* fully assembled — stop scrubbing */
+        var dt = prev ? Math.min((now - prev) / 1000, 0.25) : 1 / 60;
+        prev = now;
+        /* frame-rate-independent scrub — same feel at 20fps and 144fps */
+        var k = 1 - Math.pow(1 - 0.13, dt * 60);
+        var allDone = true;
+        for (var i = 0; i < slots.length; i++) {
+          if (settled[i]) continue;
+          var t = targetFor(i);
+          var c = lerp(current[i], t, k);
+          if (t >= 1 && c > 0.999) c = 1;
+          current[i] = c;
+          var el = slots[i];
+          if (c >= 1) {
+            settled[i] = true;
+            el.style.transform = '';
+            el.style.filter = '';
+            el.style.opacity = '1';                   /* beats .assembling's opacity:0 */
+            continue;
+          }
+          allDone = false;
+          var e = easeOut(c);
+          var m = metrics[i];
+          el.style.transform = 'translate(' + (m.dx * (1 - e) * 0.85) + 'px,' + (m.dy * (1 - e) * 0.85 + 40 * (1 - e)) + 'px) scale(' + (0.6 + 0.4 * e) + ')';
+          el.style.opacity = e.toFixed(3);
+          el.style.filter = 'blur(' + (6 * (1 - e)).toFixed(1) + 'px)';
+        }
+        if (allDone) {
+          done = true;
+          cancelAnimationFrame(raf);
           grid.classList.remove('assembling');
           document.documentElement.classList.remove('assembling');
           slots.forEach(function (el) { el.style.transform = ''; el.style.opacity = ''; el.style.filter = ''; });
@@ -1361,7 +1376,10 @@
       function start() { measure(); loop(); }
       if (document.fonts && document.fonts.ready) document.fonts.ready.then(start);
       else setTimeout(start, 120);
-      window.addEventListener('resize', measure);
+      window.addEventListener('resize', function () {
+        if (done) return;
+        measure();
+      });
     })();
 
     /* ═════════════════════════════════════════════
@@ -1373,7 +1391,6 @@
       var panel = document.getElementById('preview');
       var cv = document.getElementById('preview-canvas');
       if (!panel || !cv || !window.ForestMotion) return;
-      if (window.matchMedia('(max-width: 1080px)').matches) return;
 
       var cards = Array.prototype.slice.call(document.querySelectorAll('.hub-card'));
       var nameEl = panel.querySelector('.p-name');
@@ -1425,16 +1442,26 @@
         stop = window.ForestMotion.ambient(cv, preset, { colors: { a: cols.ct, b: c2 }, seed: Math.random() * 10 });
       }
 
-      var hoverTimer = null;
-      cards.forEach(function (card) {
-        card.addEventListener('mouseenter', function () {
-          clearTimeout(hoverTimer);
-          hoverTimer = setTimeout(function () { select(card); }, 90);
+      /* mount lazily — the panel only exists at desktop widths, and the
+         viewport may cross the breakpoint after load */
+      var mq = window.matchMedia('(max-width: 1080px)');
+      var mounted = false;
+      function mount() {
+        if (mounted || mq.matches) return;
+        mounted = true;
+        var hoverTimer = null;
+        cards.forEach(function (card) {
+          card.addEventListener('mouseenter', function () {
+            clearTimeout(hoverTimer);
+            hoverTimer = setTimeout(function () { select(card); }, 90);
+          });
+          card.addEventListener('focus', function () { select(card); });
         });
-        card.addEventListener('focus', function () { select(card); });
-      });
-
-      select(cards[0]);
+        select(cards[0]);
+      }
+      mount();
+      if (mq.addEventListener) mq.addEventListener('change', mount);
+      else if (mq.addListener) mq.addListener(mount);
     })();
 
     /* ─────────────────────────────────────────────

@@ -84,14 +84,18 @@
     win.addEventListener('mousedown', function () { pointer.down = true; dot.style.transform += ' scale(1.8)'; });
     win.addEventListener('mouseup', function () { pointer.down = false; });
 
-    (function loop() {
-      rx = lerp(rx, pointer.x, 0.16);
-      ry = lerp(ry, pointer.y, 0.16);
+    var prev = 0;
+    (function loop(now) {
+      requestAnimationFrame(loop);
+      var dt = prev && now ? Math.min((now - prev) / 1000, 0.25) : 1 / 60;
+      prev = now || 0;
+      var k = 1 - Math.pow(1 - 0.16, dt * 60);   /* frame-rate independent follow */
+      rx = lerp(rx, pointer.x, k);
+      ry = lerp(ry, pointer.y, k);
       pointer.sx = rx; pointer.sy = ry;
       dot.style.transform = 'translate(' + pointer.x + 'px,' + pointer.y + 'px)' + (pointer.down ? ' scale(1.8)' : '');
       ring.style.transform = 'translate(' + rx + 'px,' + ry + 'px)';
-      requestAnimationFrame(loop);
-    })();
+    })(0);
   }
 
   /* ══════════════════════════════════════════════════════════════
