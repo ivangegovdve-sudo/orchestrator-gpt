@@ -69,6 +69,31 @@
       background: linear-gradient(90deg, var(--cyan), var(--gold), var(--rose));
     }
 
+    /* --- scroll-world hero (fly-through) — theme + gating ------------------ */
+    #plWorld {
+      --sw-bg: #07080b;
+      --sw-ink: #f7f7fb;
+      --sw-ink-soft: #a5adba;
+      --sw-accent: #4f46e5;
+      --sw-font-display: Inter, "Segoe UI", system-ui, -apple-system, sans-serif;
+      --sw-font-body: Inter, "Segoe UI", system-ui, -apple-system, sans-serif;
+    }
+    /* Engine layers are position:fixed; once the visitor scrolls past the hero's
+       track, fade + hide them so the original scrollytelling below takes over.
+       .sw-track (the in-flow scroll spacer) must stay — it holds the layout. */
+    #plWorld > :not(.sw-track) {
+      transition: opacity .35s ease, visibility .35s;
+    }
+    #plWorld.sw-done > :not(.sw-track) {
+      opacity: 0 !important;
+      visibility: hidden;
+      pointer-events: none;
+    }
+    /* The page's own progress rail only measures the scrollytelling section —
+       keep it hidden while the hero (with its own sw-scrollbar) is active. */
+    .progress-rail { opacity: 0; transition: opacity .35s ease; }
+    .progress-rail.rail-visible { opacity: 1; }
+
     .scroll-container {
       height: 700vh;
       position: relative;
@@ -524,6 +549,7 @@
   </style>
 </head>
 <body data-forest-page="power">
+  <div id="plWorld" aria-label="Power Law Odyssey fly-through hero"></div>
   <a class="back-link" href="/">Forest HUB</a>
   <div class="progress-rail" aria-hidden="true"><div class="progress-fill"></div></div>
 
@@ -772,7 +798,9 @@ document.documentElement.style.setProperty("--scroll-p", progress);</code></pre>
 
     function updateScrollProgress() {
       const trackHeight = Math.max(1, track.scrollHeight - window.innerHeight);
-      const progress = Math.max(0, Math.min(1, window.scrollY / trackHeight));
+      // Progress is measured from the track's own top — the scroll-world hero
+      // above it adds page height that must not count toward the scrollytelling.
+      const progress = Math.max(0, Math.min(1, (window.scrollY - track.offsetTop) / trackHeight));
       root.style.setProperty("--scroll-p", progress.toFixed(4));
       updateActiveLayer(progress);
       ticking = false;
@@ -880,6 +908,88 @@ document.documentElement.style.setProperty("--scroll-p", progress);</code></pre>
       if (!reduceMotion) requestAnimationFrame(drawStars);
     }
     requestAnimationFrame(drawStars);
+  </script>
+  <script src="/web/assets/scroll-world-engine.js?v=1"></script>
+  <script>
+    // Scroll-world hero: scroll scrubs a pre-rendered camera flight through five
+    // power-law scenes (fal.ai generated; seams frame-locked by sequential chaining).
+    // Copy is reused verbatim from the scrollytelling sections below — no new content.
+    (function () {
+      const world = document.getElementById("plWorld");
+      const rail = document.querySelector(".progress-rail");
+      let mounted = false;
+      try {
+        mountScrollWorld(world, {
+          nav: false,
+          atmosphere: false,
+          diveScroll: 1.3,
+          connScroll: 0.85,
+          sections: [
+            {
+              id: "cosmos", label: "Disruption", accent: "#38bdf8",
+              still: "assets/cosmos.webp", clip: "assets/vid/cosmos.mp4",
+              scroll: 1.5,
+              eyebrow: "Disruption",
+              title: "Are you playing the game of life wrong?",
+              body: "Most people optimize as if life rewards additive consistency and safe averages. This odyssey asks whether opportunity obeys another law."
+            },
+            {
+              id: "tail", label: "Bifurcation Matrix", accent: "#fbbf24",
+              still: "assets/tail.webp", clip: "assets/vid/tail.mp4",
+              eyebrow: "Bifurcation Matrix",
+              title: "Reality splits into two operating systems.",
+              body: "Normal distributions describe bounded physical systems. Power laws describe scale-free systems where rare outliers define total outcome."
+            },
+            {
+              id: "city", label: "Multiplication Avalanche", accent: "#8b5cf6",
+              still: "assets/city.webp", clip: "assets/vid/city.mp4",
+              eyebrow: "Multiplication Avalanche",
+              title: "Addition cancels. Multiplication compounds.",
+              body: "Random factors that add together tend toward normal curves. Random factors that multiply create lognormal, power-law, preferential-attachment worlds."
+            },
+            {
+              id: "sandbox", label: "Venture Bet Sandbox", accent: "#34d399",
+              still: "assets/sandbox.webp", clip: "assets/vid/sandbox.mp4",
+              linger: 0.25,
+              eyebrow: "Venture Bet Sandbox",
+              title: "Most attempts flatline. One outlier can pay for all of them."
+            },
+            {
+              id: "godview", label: "Epiphany", accent: "#4f46e5",
+              still: "assets/godview.webp", clip: "assets/vid/godview.mp4",
+              scroll: 1.7, linger: 0.35,
+              eyebrow: "Epiphany",
+              title: "Do not be average on a safe curve.",
+              body: "In volatile systems with capped downside and exponential upside, repeated intelligent chances are not reckless. Persistence becomes raw mathematics."
+            }
+          ],
+          connectors: [
+            "assets/vid/conn1.mp4",
+            "assets/vid/conn2.mp4",
+            "assets/vid/conn3.mp4",
+            "assets/vid/conn4.mp4"
+          ]
+        });
+        mounted = world.childElementCount > 0;
+      } catch (e) {
+        console.warn("scroll-world hero failed to mount:", e);
+      }
+      if (!mounted) {
+        world.classList.add("sw-done");
+        rail.classList.add("rail-visible");
+        return;
+      }
+      const swTrack = world.querySelector(".sw-track");
+      function plHeroGate() {
+        const end = swTrack.offsetHeight - window.innerHeight;
+        const done = window.scrollY > end - 4;
+        world.classList.toggle("sw-done", done);
+        rail.classList.toggle("rail-visible", done);
+      }
+      window.addEventListener("scroll", plHeroGate, { passive: true });
+      window.addEventListener("resize", plHeroGate);
+      plHeroGate();
+    })();
   </script>
   <script src="/web/shared/forest-motion.js?v=20260713"></script>
 </body>
