@@ -1,5 +1,6 @@
 :root {
   --assembly: 0;
+  --assembly-e: 0;
   --home-bg: #040705;
   --home-ink: #f4f7f2;
   --home-soft: #b7c2b8;
@@ -258,13 +259,13 @@ a, button { -webkit-tap-highlight-color: transparent; }
 
 .portal-board {
   padding: clamp(16px, 2vw, 26px);
-  transform: translateX(calc((1 - var(--assembly)) * -112%)) rotateY(calc((1 - var(--assembly)) * 13deg));
+  transform: translateX(calc((1 - var(--assembly-e)) * -112%)) rotateY(calc((1 - var(--assembly-e)) * 13deg));
   transform-origin: right center;
 }
 
 .preview-stage {
   min-height: 690px;
-  transform: translateX(calc((1 - var(--assembly)) * 112%)) rotateY(calc((1 - var(--assembly)) * -13deg));
+  transform: translateX(calc((1 - var(--assembly-e)) * 112%)) rotateY(calc((1 - var(--assembly-e)) * -13deg));
   transform-origin: left center;
 }
 
@@ -335,6 +336,9 @@ a, button { -webkit-tap-highlight-color: transparent; }
 
 .portal {
   --accent: #79f2a8;
+  /* Woven entrance: each card materializes inside the arriving board on its
+     own serpentine slot (--cd set inline by row/column). */
+  --k: clamp(0, calc((var(--assembly-e, 1) * 1.4 - var(--cd, 0) - .35) / .55), 1);
   position: relative;
   min-width: 0;
   height: clamp(105px, 13vh, 128px);
@@ -351,7 +355,36 @@ a, button { -webkit-tap-highlight-color: transparent; }
   text-align: left;
   cursor: pointer;
   isolation: isolate;
+  opacity: var(--k);
+  translate: 0 calc((1 - var(--k)) * 24px);
   transition: border-color .25s ease, background .25s ease, box-shadow .25s ease;
+}
+
+/* Pointer-depth: the card tilts toward the cursor, the sigil floats above the
+   plane, the copy sinks a step behind it, and the hover light enters from the
+   cursor's side of the card. */
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .portal {
+    transform: perspective(760px) rotateX(calc(var(--py, 0) * -6deg)) rotateY(calc(var(--px, 0) * 8deg));
+    transition: border-color .25s ease, background .25s ease, box-shadow .25s ease, transform .18s ease-out;
+  }
+  .portal-icon {
+    translate: calc(var(--px, 0) * 7px) calc(var(--py, 0) * 7px);
+    transition: translate .22s ease-out, border-color .25s ease, background .25s ease, box-shadow .25s ease;
+  }
+  .portal-copy {
+    translate: calc(var(--px, 0) * -4px) calc(var(--py, 0) * -3px);
+    transition: translate .26s ease-out;
+  }
+  .portal:hover {
+    background: linear-gradient(calc(118deg + var(--px, 0) * 44deg), color-mix(in srgb, var(--accent) 11%, transparent), rgba(255,255,255,.02) 62%);
+  }
+  .portal:hover .portal-icon,
+  .portal:focus-visible .portal-icon {
+    border-color: color-mix(in srgb, var(--accent) 55%, transparent);
+    background: color-mix(in srgb, var(--accent) 14%, transparent);
+    box-shadow: 0 8px 22px -8px var(--accent);
+  }
 }
 
 .portal::before {
@@ -591,11 +624,27 @@ a, button { -webkit-tap-highlight-color: transparent; }
 }
 
 .factory-progress span {
+  position: relative;
   display: block;
   width: 100%;
   height: calc(var(--assembly) * 100%);
+  overflow: hidden;
   background: var(--home-accent);
   box-shadow: 0 0 12px var(--home-accent);
+}
+
+.factory-progress span::after {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  height: 42%;
+  background: linear-gradient(180deg, transparent, rgba(255,255,255,.9), transparent);
+  animation: rail-shimmer 2.4s ease-in-out infinite;
+}
+
+@keyframes rail-shimmer {
+  from { transform: translateY(-120%); }
+  to { transform: translateY(340%); }
 }
 
 .home-footer {
@@ -637,7 +686,7 @@ a, button { -webkit-tap-highlight-color: transparent; }
     transform: none;
   }
   .preview-stage { min-height: 580px; order: -1; }
-  .portal { height: 112px; }
+  .portal { height: 112px; opacity: 1; translate: none; }
   .factory-progress { display: none; }
 }
 
@@ -655,11 +704,12 @@ a, button { -webkit-tap-highlight-color: transparent; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  :root { --assembly: 1; }
+  :root { --assembly: 1; --assembly-e: 1; }
   *, *::before, *::after {
     animation-duration: .001ms !important;
     animation-iteration-count: 1 !important;
     scroll-behavior: auto !important;
   }
   .portal-board, .preview-stage { opacity: 1; transform: none; }
+  .portal { opacity: 1; translate: none; }
 }
