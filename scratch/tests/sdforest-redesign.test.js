@@ -86,6 +86,28 @@ test('shared motion runtime honors pointer, click, visibility, and reduced motio
     assert.match(motion, new RegExp(token));
   }
   assert.match(motion, /devicePixelRatio/);
+  assert.match(motion, /value = \(value \+ 0x6D2B79F5\) \| 0/);
+  assert.doesNotMatch(motion, /nearest\.sort/);
+});
+
+test('shared layouts preserve fixed controls and stack safely on tablets', () => {
+  const shell = read('web/shared/forest-shell.css');
+  const homeStyles = read('web/shared/forest-home.css');
+  const home = read('index.html');
+
+  assert.match(shell, /:where\(body\[data-forest-page\]/);
+  assert.match(homeStyles, /@media \(max-width: 900px\)/);
+  assert.match(home, /matchMedia\('\(max-width: 900px\)'\)/);
+});
+
+test('live research requests have bounded waits and guaranteed timer cleanup', () => {
+  const hypertrophy = read('web/hypertrophyos/index.html');
+  const health = read('web/womens-health-os/index.html');
+
+  assert.match(hypertrophy, /AbortController/);
+  assert.match(hypertrophy, /signal:controller\.signal/);
+  assert.match(hypertrophy, /finally\{clearTimeout\(timeoutId\)/);
+  assert.match(health, /\.finally\(function \(\) \{ clearTimeout\(t\); \}\)/);
 });
 
 test('Replicator Void uses its working native canvas instead of the broken bundle', () => {

@@ -34,7 +34,7 @@ body[data-forest-page] {
   -webkit-font-smoothing: antialiased;
 }
 
-body[data-forest-page] > :not(.forest-scene):not(.forest-scrim):not(.forest-topbar):not(script):not(style) {
+:where(body[data-forest-page] > :not(.forest-scene):not(.forest-scrim):not(script):not(style)) {
   position: relative;
   z-index: 2;
 }

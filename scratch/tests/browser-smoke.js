@@ -63,6 +63,14 @@ async function main() {
       }) : [];
       assert.ok(overflow <= 3, `${route} overflows horizontally by ${overflow}px (${overflowSources.join(', ')})`);
       assert.deepEqual(pageErrors, [], `${route} page errors: ${pageErrors.join(' | ')}`);
+      if (route.includes('power-law-odyssey')) {
+        assert.equal(await page.locator('.back-link').evaluate((element) => getComputedStyle(element).position), 'fixed');
+        assert.equal(await page.locator('.progress-rail').evaluate((element) => getComputedStyle(element).position), 'fixed');
+      }
+      if (route.includes('womens-health-os')) {
+        assert.equal(await page.locator('.wh-chat-fab').evaluate((element) => getComputedStyle(element).position), 'fixed');
+        assert.equal(await page.locator('.wh-chat-panel').evaluate((element) => getComputedStyle(element).position), 'fixed');
+      }
     } catch (error) {
       failures.push(error.message);
     } finally {
@@ -119,6 +127,25 @@ async function main() {
   const mobileOverflow = await mobileHome.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
   assert.ok(mobileOverflow <= 3, `mobile home overflows by ${mobileOverflow}px`);
   await mobileHome.screenshot({ path: `${OUTPUT}/home-mobile.png`, fullPage: false });
+
+  await mobileHome.setViewportSize({ width: 834, height: 1112 });
+  await mobileHome.reload({ waitUntil: 'domcontentloaded' });
+  const tabletLayout = await mobileHome.evaluate(() => {
+    const viewport = document.documentElement.clientWidth;
+    const board = document.querySelector('.portal-board').getBoundingClientRect();
+    const preview = document.querySelector('.preview-stage').getBoundingClientRect();
+    return {
+      overflow: document.documentElement.scrollWidth - viewport,
+      boardFits: board.left >= 0 && board.right <= viewport,
+      previewFits: preview.left >= 0 && preview.right <= viewport,
+      columns: getComputedStyle(document.querySelector('.factory-frame')).gridTemplateColumns,
+    };
+  });
+  assert.ok(tabletLayout.overflow <= 3, `tablet home overflows by ${tabletLayout.overflow}px`);
+  assert.ok(tabletLayout.boardFits && tabletLayout.previewFits, `tablet panels clip (${tabletLayout.columns})`);
+  await mobileHome.locator('[data-assembly]').scrollIntoViewIfNeeded();
+  await mobileHome.waitForTimeout(120);
+  await mobileHome.screenshot({ path: `${OUTPUT}/home-tablet.png`, fullPage: false });
   await mobile.close();
   await context.close();
   await browser.close();

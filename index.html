@@ -262,7 +262,7 @@
 
       function updateAssembly() {
         scheduled = false;
-        const compact = matchMedia('(max-width: 820px)').matches;
+        const compact = matchMedia('(max-width: 900px)').matches;
         if (compact || matchMedia('(prefers-reduced-motion: reduce)').matches) {
           root.style.setProperty('--assembly', '1');
           return;

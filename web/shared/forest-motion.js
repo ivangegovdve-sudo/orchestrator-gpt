@@ -66,6 +66,7 @@
 
     const mode = canvas.dataset.mode || document.body.dataset.forestPage || 'portal';
     const rgb = palette[mode] || palette.portal;
+    const rgbText = rgb.join(',');
     const nodeCount = reduceMotion.matches ? 22 : Math.min(74, Math.max(38, Math.round(innerWidth / 19)));
     const seed = [...mode].reduce((sum, char) => sum + char.charCodeAt(0), 37 + canvasIndex);
     const random = mulberry32(seed);
@@ -79,15 +80,21 @@
       size: .5 + random() * 1.7,
       lane: index % 5,
     }));
+    const points = nodes.map((node, index) => ({ node, index, x: 0, y: 0 }));
 
     let width = 0;
     let height = 0;
     let lastFrame = 0;
     let intersectionVisible = true;
+    let animationFrame = 0;
 
     const observer = 'IntersectionObserver' in window
       ? new IntersectionObserver((entries) => {
           intersectionVisible = entries.some((entry) => entry.isIntersecting);
+          if (intersectionVisible) {
+            lastFrame = 0;
+            scheduleDraw();
+          }
         }, { rootMargin: '120px' })
       : null;
     observer?.observe(canvas);
@@ -102,11 +109,18 @@
       context.setTransform(dpr, 0, 0, dpr, 0, 0);
     }
 
+    function scheduleDraw() {
+      if (!animationFrame) animationFrame = requestAnimationFrame(draw);
+    }
+
     function draw(timestamp) {
-      requestAnimationFrame(draw);
+      animationFrame = 0;
       if (!documentVisible || !intersectionVisible) return;
       if (reduceMotion.matches && lastFrame) return;
-      if (timestamp - lastFrame < 32) return;
+      if (timestamp - lastFrame < 32) {
+        scheduleDraw();
+        return;
+      }
       lastFrame = timestamp;
 
       if (canvas.clientWidth !== width || canvas.clientHeight !== height) resize();
@@ -120,7 +134,9 @@
       context.clearRect(0, 0, width, height);
       context.globalCompositeOperation = 'lighter';
 
-      const points = nodes.map((node, index) => {
+      for (let index = 0; index < nodes.length; index += 1) {
+        const node = nodes[index];
+        const point = points[index];
         const idleX = Math.sin(time * node.speed + node.baseX) * (10 + node.lane * 2);
         const idleY = Math.cos(time * node.speed * .82 + node.baseY) * (8 + node.lane * 2);
         let x = node.x * width + idleX;
@@ -134,67 +150,101 @@
           x += (dx / distance) * pull;
           y += (dy / distance) * pull;
         }
-        return { ...node, x, y, index };
-      });
+        point.x = x;
+        point.y = y;
+      }
 
       for (let a = 0; a < points.length; a += 1) {
         const first = points[a];
-        const nearest = [];
+        let near1 = null;
+        let distance1 = Infinity;
+        let near2 = null;
+        let distance2 = Infinity;
         for (let b = a + 1; b < points.length; b += 1) {
           const second = points[b];
           const distance = Math.hypot(first.x - second.x, first.y - second.y);
-          if (distance < 155) nearest.push({ second, distance });
+          if (distance >= 155) continue;
+          if (distance < distance1) {
+            near2 = near1;
+            distance2 = distance1;
+            near1 = second;
+            distance1 = distance;
+          } else if (distance < distance2) {
+            near2 = second;
+            distance2 = distance;
+          }
         }
-        nearest.sort((left, right) => left.distance - right.distance).slice(0, 2).forEach(({ second, distance }) => {
+        for (let neighbor = 0; neighbor < 2; neighbor += 1) {
+          const second = neighbor === 0 ? near1 : near2;
+          const distance = neighbor === 0 ? distance1 : distance2;
+          if (!second) continue;
           const alpha = (1 - distance / 155) * .2;
           context.beginPath();
           context.moveTo(first.x, first.y);
           const bend = mode === 'time' || mode === 'poetry' ? 18 : 7;
           context.quadraticCurveTo(
-            (first.x + second.x) / 2 + Math.sin(time + first.phase) * bend,
-            (first.y + second.y) / 2 + Math.cos(time + second.phase) * bend,
+            (first.x + second.x) / 2 + Math.sin(time + first.node.phase) * bend,
+            (first.y + second.y) / 2 + Math.cos(time + second.node.phase) * bend,
             second.x,
             second.y,
           );
-          context.strokeStyle = `rgba(${rgb.join(',')},${alpha})`;
+          context.strokeStyle = `rgba(${rgbText},${alpha})`;
           context.lineWidth = .65;
           context.stroke();
-        });
+        }
       }
 
-      points.forEach((point) => {
+      for (let index = 0; index < points.length; index += 1) {
+        const point = points[index];
         const vivid = pointerSeen
           ? Math.max(0, 1 - Math.hypot(point.x - mouse.x * width, point.y - mouse.y * height) / 250)
           : 0;
         context.beginPath();
-        context.arc(point.x, point.y, point.size + vivid * 1.8, 0, Math.PI * 2);
-        context.fillStyle = `rgba(${rgb.join(',')},${.22 + vivid * .5})`;
+        context.arc(point.x, point.y, point.node.size + vivid * 1.8, 0, Math.PI * 2);
+        context.fillStyle = `rgba(${rgbText},${.22 + vivid * .5})`;
         context.fill();
-      });
+      }
 
       if (uniforms.uClick.energy > .02) {
         const radius = (1 - uniforms.uClick.energy) * 190 + 12;
         context.beginPath();
         context.arc(uniforms.uClick.x * width, uniforms.uClick.y * height, radius, 0, Math.PI * 2);
-        context.strokeStyle = `rgba(${rgb.join(',')},${uniforms.uClick.energy * .42})`;
+        context.strokeStyle = `rgba(${rgbText},${uniforms.uClick.energy * .42})`;
         context.lineWidth = 1.2;
         context.stroke();
       }
 
       context.globalCompositeOperation = 'source-over';
+      if (!reduceMotion.matches) scheduleDraw();
     }
 
     resize();
-    requestAnimationFrame(draw);
-    window.addEventListener('resize', resize, { passive: true });
+    scheduleDraw();
+    window.addEventListener('resize', () => {
+      resize();
+      lastFrame = 0;
+      scheduleDraw();
+    }, { passive: true });
+    document.addEventListener('visibilitychange', () => {
+      if (documentVisible) {
+        lastFrame = 0;
+        scheduleDraw();
+      }
+    });
+    reduceMotion.addEventListener?.('change', () => {
+      lastFrame = 0;
+      scheduleDraw();
+    });
   });
 
   function mulberry32(seed) {
+    let value = seed | 0;
     return function seededRandom() {
-      let value = seed += 0x6D2B79F5;
-      value = Math.imul(value ^ value >>> 15, value | 1);
-      value ^= value + Math.imul(value ^ value >>> 7, value | 61);
-      return ((value ^ value >>> 14) >>> 0) / 4294967296;
+      value = (value + 0x6D2B79F5) | 0;
+      let result = value;
+      result = Math.imul(result ^ result >>> 15, result | 1);
+      result ^= result + Math.imul(result ^ result >>> 7, result | 61);
+      return ((result ^ result >>> 14) >>> 0) / 4294967296;
     };
   }
 })();

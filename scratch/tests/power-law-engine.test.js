@@ -1,7 +1,14 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const path = require('node:path');
 
 const { createPowerLawEngine } = require('../../web/power-law-odyssey/power-law-engine.js');
+
+test('the generator keeps its state in 32-bit space', () => {
+  const source = fs.readFileSync(path.resolve(__dirname, '../../web/power-law-odyssey/power-law-engine.js'), 'utf8');
+  assert.match(source, /value = \(value \+ 0x6D2B79F5\) \| 0/);
+});
 
 test('the same seed produces the same bet sequence', () => {
   const first = createPowerLawEngine('forest-42');

@@ -212,7 +212,8 @@
       var ctrl = new AbortController();
       var t = setTimeout(function () { ctrl.abort(); }, 3500);
       return fetch(API.replace(/\/$/, "") + path, { signal: ctrl.signal })
-        .then(function (r) { clearTimeout(t); if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); });
+        .then(function (r) { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); })
+        .finally(function () { clearTimeout(t); });
     }
 
     function setStatus(online) {
