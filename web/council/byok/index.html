@@ -331,6 +331,7 @@
       .flow-card.expanded .flow-desc, .flow-card.expanded .flow-models { display: block; }
     }
   </style>
+  <link rel="stylesheet" href="/web/assets/forest-motion.css?v=1" />
 </head>
 <body>
   <div class="page">
@@ -350,13 +351,13 @@
       </div>
     </div>
 
-    <header>
+    <header data-fm-reveal="rise">
       <h1>&#9878;&#65039; Open Round Table</h1>
       <p class="tagline">Free-model council powered by Ivan&rsquo;s OpenRouter account &mdash; no key needed. Proposer &rarr; Critic &rarr; Chairman across 1&ndash;5 rounds, streamed live. Toggle to use your own key.</p>
     </header>
 
     <!-- ── Council flow tree ───────────────────────────────────────────────── -->
-    <div class="card flow-card collapsed" id="flow-card">
+    <div class="card flow-card collapsed" id="flow-card" data-fm-reveal="rise" data-fm-delay="0">
       <div class="section-head">
         <span class="section-label">&#127793; How a question flows through the council</span>
         <button type="button" class="mini-btn flow-toggle" id="flow-toggle" onclick="toggleFlow()">Show tree</button>
@@ -365,7 +366,7 @@
     </div>
 
     <!-- ── Question ────────────────────────────────────────────────────────── -->
-    <div class="card">
+    <div class="card" data-fm-reveal="rise" data-fm-delay="60">
       <span class="section-label">&#10067; Your question</span>
       <textarea id="question" placeholder="Ask the council anything &#8212; a decision, a concept, a plan&#8230;" rows="3"></textarea>
       <button type="button" class="suggest-toggle" id="suggest-toggle" onclick="toggleSuggest()">
@@ -375,7 +376,7 @@
     </div>
 
     <!-- ── Council seats ───────────────────────────────────────────────────── -->
-    <div class="card">
+    <div class="card" data-fm-reveal="rise" data-fm-delay="120">
       <div class="section-head">
         <span class="section-label">&#129504; Council seats <span class="free-badge">all :free</span></span>
         <div class="presets-row" id="presets-row"></div>
@@ -385,7 +386,7 @@
     </div>
 
     <!-- ── Rounds + mode ───────────────────────────────────────────────────── -->
-    <div class="card">
+    <div class="card" data-fm-reveal="rise" data-fm-delay="180">
       <span class="section-label">&#128260; Debate rounds</span>
       <p class="section-sub">Each round: the Proposer answers (or revises), the Critic reacts. The Chairman then synthesizes everything into a final verdict.</p>
       <div class="rounds-row" id="rounds-row"></div>
@@ -413,7 +414,7 @@
       </div>
     </div>
 
-    <p class="footer-tag">
+    <p class="footer-tag" data-fm-reveal="fade">
       Powered by Ivan&rsquo;s OpenRouter key via <code>chloe.blumenkraft.cloud/council/relay</code> &middot;
       only <code>:free</code> models &middot; toggle BYOK to use your own key &middot; $0
     </p>
@@ -971,5 +972,6 @@
     renderRounds();
     renderFlow();
   </script>
+  <script src="/web/assets/forest-motion.js?v=1" data-theme="council" data-preset="ribbons" data-portal-open data-cursor data-iris></script>
 </body>
 </html>

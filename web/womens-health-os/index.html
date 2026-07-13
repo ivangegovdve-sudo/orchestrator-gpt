@@ -142,15 +142,16 @@
     .footer-tag code { background: rgba(255,255,255,0.06); padding: 1px 6px; border-radius: 5px; }
     .disclaimer { text-align: center; font-size: 11.5px; color: var(--dim); max-width: 60ch; margin: 0 auto; line-height: 1.6; }
   </style>
+  <link rel="stylesheet" href="/web/assets/forest-motion.css?v=1" />
 </head>
 <body>
   <div class="page">
-    <div class="topbar">
+    <div class="topbar" data-fm-reveal="fade">
       <a href="/" class="back-link">&#8592; Forest HUB</a>
       <span class="status-dot" id="status"><span class="dot"></span><span id="status-text">Connecting&hellip;</span></span>
     </div>
 
-    <header>
+    <header data-fm-reveal="rise">
       <h1>&#127800; Women&#39;s Health<span class="accent"> OS</span></h1>
       <p class="tagline">
         A research intelligence base distilled from peer-reviewed papers on women&#39;s health &mdash;
@@ -161,13 +162,13 @@
     </header>
 
     <div class="stat-row" id="stat-row" style="display:none;">
-      <div class="stat"><div class="num" id="stat-papers">–</div><div class="lbl">Papers</div></div>
-      <div class="stat"><div class="num" id="stat-facts">–</div><div class="lbl">Facts</div></div>
-      <div class="stat"><div class="num" id="stat-rules">–</div><div class="lbl">Rules</div></div>
-      <div class="stat"><div class="num" id="stat-claims">–</div><div class="lbl">Claims</div></div>
+      <div class="stat" data-fm-reveal="rise" data-fm-delay="0"><div class="num" id="stat-papers">–</div><div class="lbl">Papers</div></div>
+      <div class="stat" data-fm-reveal="rise" data-fm-delay="60"><div class="num" id="stat-facts">–</div><div class="lbl">Facts</div></div>
+      <div class="stat" data-fm-reveal="rise" data-fm-delay="120"><div class="num" id="stat-rules">–</div><div class="lbl">Rules</div></div>
+      <div class="stat" data-fm-reveal="rise" data-fm-delay="180"><div class="num" id="stat-claims">–</div><div class="lbl">Claims</div></div>
     </div>
 
-    <div class="tabs" id="tabs">
+    <div class="tabs" id="tabs" data-fm-reveal="rise" data-fm-delay="60">
       <button class="tab active" data-tab="facts">Facts</button>
       <button class="tab" data-tab="rules">Rules</button>
       <button class="tab" data-tab="claims">Claims</button>
@@ -182,8 +183,8 @@
 
     <div id="view"></div>
 
-    <p class="disclaimer">Educational research summaries only &mdash; not medical advice. Always consult a qualified clinician for personal health decisions.</p>
-    <p class="footer-tag">
+    <p class="disclaimer" data-fm-reveal="fade">Educational research summaries only &mdash; not medical advice. Always consult a qualified clinician for personal health decisions.</p>
+    <p class="footer-tag" data-fm-reveal="fade" data-fm-delay="60">
       served from a local <code>Women&#39;s Health OS</code> FastAPI (port 8091) &middot;
       retrieval-augmented, Iris-curated &middot; part of <a href="/" style="color:var(--text-muted);">Forest HUB</a>
     </p>
@@ -539,5 +540,6 @@
       });
     })();
   </script>
+  <script src="/web/assets/forest-motion.js?v=1" data-theme="womens-health" data-preset="cycle" data-portal-open data-cursor data-iris></script>
 </body>
 </html>

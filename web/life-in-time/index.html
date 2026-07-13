@@ -242,15 +242,16 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,san
   .pivot-wrap{padding:24px 14px}
 }
 </style>
+<link rel="stylesheet" href="/web/assets/forest-motion.css?v=1" />
 </head>
 <body>
 
 <a href="/" class="back-link">← Forest HUB</a>
 
 <div class="header">
-  <h1>Life in Time</h1>
-  <p class="sub">See what remains. Then see what's still possible.</p>
-  <div class="year-prog-wrap">
+  <h1 data-fm-reveal="rise">Life in Time</h1>
+  <p class="sub" data-fm-reveal="rise" data-fm-delay="60">See what remains. Then see what's still possible.</p>
+  <div class="year-prog-wrap" data-fm-reveal="fade" data-fm-delay="120">
     <div class="year-prog-labels">
       <span id="yearProgLabel">2026 is 0% gone</span>
       <span id="yearProgDays"></span>
@@ -273,7 +274,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,san
 </script>
 
 <div class="form-wrap">
-  <div class="form-card">
+  <div class="form-card" data-fm-reveal="rise">
     <h2>⏳ Your Time</h2>
     <div class="field">
       <label>Your birth year *</label>
@@ -309,7 +310,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,san
   </div>
 
   <!-- Kid summers (only shown if child year given) -->
-  <div id="kidBlock" class="kid-block" style="display:none">
+  <div id="kidBlock" class="kid-block" style="display:none" data-fm-reveal="rise">
     <div class="kid-count" id="kidCount">—</div>
     <div class="kid-subtitle" id="kidSubtitle"></div>
     <p class="kid-note" id="kidNote"></p>
@@ -318,7 +319,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,san
   </div>
 
   <!-- Life in summers grid -->
-  <div class="life-grid-section">
+  <div class="life-grid-section" data-fm-reveal="rise">
     <span class="section-label">Your whole life — each square = one year</span>
     <div id="lifeGrid"></div>
     <div class="grid-legend" id="gridLegend"></div>
@@ -335,7 +336,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,san
   </div>
 
   <!-- Pivot -->
-  <div class="pivot-wrap">
+  <div class="pivot-wrap" data-fm-reveal="rise">
     <button class="btn-pivot" onclick="showPositive()">But you're nowhere near done ✨</button>
     <p class="pivot-hint">History says your best work may still be ahead</p>
   </div>
@@ -351,7 +352,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,san
     <span class="section-hd" id="achieversHd" style="color:var(--gold)"></span>
     <div class="achievers-grid" id="achieversGrid"></div>
 
-    <div class="peaks-section">
+    <div class="peaks-section" data-fm-reveal="rise">
       <span class="section-hd" style="color:var(--purple)">When human abilities actually peak — your age marked ↓</span>
       <div class="peaks-chart-outer">
         <div class="peaks-chart" id="peaksChart"></div>
@@ -359,19 +360,19 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,san
       <p class="peaks-note">Data sources: Seattle Longitudinal Study (Schaie), Hartshorne &amp; Germine (MIT/Harvard 2015), Virginia Cognitive Aging Project. Ranges reflect research peaks, not sharp cliffs — most abilities decline slowly if at all after peak.</p>
     </div>
 
-    <div class="timeline-section">
+    <div class="timeline-section" data-fm-reveal="rise">
       <span class="section-hd" style="color:var(--green)">Remaining years — a timeline</span>
       <div id="timelineContent"></div>
     </div>
 
-    <div class="share-row">
+    <div class="share-row" data-fm-reveal="fade">
       <button class="btn-share" id="shareBtn" onclick="shareLink()">🔗 Share this with someone who needs it</button>
     </div>
 
   </div><!-- /positive -->
 </div><!-- /results -->
 
-<p class="page-note">Life expectancy estimates use statistical averages and do not account for individual health. This is a perspective tool, not a medical prediction. Skill-peak ranges are approximate and based on population averages — individual variation is wide.</p>
+<p class="page-note" data-fm-reveal="fade">Life expectancy estimates use statistical averages and do not account for individual health. This is a perspective tool, not a medical prediction. Skill-peak ranges are approximate and based on population averages — individual variation is wide.</p>
 
 <script>
 var LIFE_EXP_DEFAULT = 83;
@@ -651,5 +652,6 @@ function shareLink() {
   if (p.get('by')) calculate();
 })();
 </script>
+<script src="/web/assets/forest-motion.js?v=1" data-theme="life-in-time" data-preset="rings" data-portal-open data-cursor data-iris></script>
 </body>
 </html>

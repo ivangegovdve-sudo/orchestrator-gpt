@@ -15,13 +15,14 @@
     content="Build a printable 13-page calendar with holiday lookup, custom image URLs, and Forest HUB integration."
   />
   <link rel="stylesheet" href="./styles.css" />
+  <link rel="stylesheet" href="/web/assets/forest-motion.css?v=1" />
   <script type="module" src="./app.js"></script>
 </head>
 <body>
   <div class="app-shell">
-    <header class="topbar no-print">
+    <header class="topbar no-print" data-fm-reveal="rise">
       <a class="back-link" href="/index.html">Back to Forest HUB</a>
-      <div class="topbar-copy">
+      <div class="topbar-copy" data-fm-reveal="rise" data-fm-delay="60">
         <p class="eyebrow">Static Tool</p>
         <h1>Calendar Generator</h1>
         <p class="subtitle">
@@ -32,7 +33,7 @@
 
     <main class="app-layout">
       <section class="controls-panel no-print" aria-label="Calendar settings">
-        <div class="panel-header">
+        <div class="panel-header" data-fm-reveal="rise">
           <div>
             <p class="panel-kicker">Setup</p>
             <h2>Calendar Settings</h2>
@@ -99,7 +100,7 @@
       </section>
 
       <section class="preview-panel" aria-label="Printable calendar preview">
-        <div class="preview-header no-print">
+        <div class="preview-header no-print" data-fm-reveal="rise" data-fm-delay="120">
           <div>
             <p class="panel-kicker">Preview</p>
             <h2>Printable Pages</h2>
@@ -125,5 +126,6 @@
       </label>
     </div>
   </template>
+  <script src="/web/assets/forest-motion.js?v=1" data-theme="calendar" data-preset="grid" data-portal-open data-cursor data-iris></script>
 </body>
 </html>

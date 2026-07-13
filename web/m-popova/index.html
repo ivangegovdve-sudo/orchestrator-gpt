@@ -13,6 +13,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;1,400&family=Inter:wght@300;400&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/web/assets/forest-motion.css?v=1" />
 
   <style>
     :root {
@@ -201,8 +202,8 @@
   <div class="page">
 
     <header class="hero">
-      <p class="hero-eyebrow">Maria Popova · Poetry Space</p>
-      <h1 class="hero-title">On being here,<br>on darkness,<br>and on love.</h1>
+      <p class="hero-eyebrow" data-fm-reveal="rise">Maria Popova · Poetry Space</p>
+      <h1 class="hero-title" data-fm-reveal="rise" data-fm-delay="80">On being here,<br>on darkness,<br>and on love.</h1>
       <div class="hero-rule"></div>
       <span class="scroll-hint" aria-hidden="true">
         <svg width="12" height="14" viewBox="0 0 12 14" fill="none" aria-hidden="true">
@@ -215,7 +216,7 @@
     <div class="poems">
 
       <article class="poem-section">
-        <div class="poem-meta">
+        <div class="poem-meta" data-fm-reveal="rise">
           <time class="poem-date">30 Mar 2019</time>
           <h2 class="poem-title">On Being Here</h2>
           <p class="artwork-desc">Field of dark red tulips, a single yellow tulip standing alone among them</p>
@@ -227,7 +228,7 @@
       </article>
 
       <article class="poem-section">
-        <div class="poem-meta">
+        <div class="poem-meta" data-fm-reveal="rise">
           <time class="poem-date">21 Mar 2019</time>
           <h2 class="poem-title">On Darkness</h2>
           <p class="artwork-desc">Charcoal drawing — a figure hunched over, arms folded above head, dark and stark</p>
@@ -239,7 +240,7 @@
       </article>
 
       <article class="poem-section">
-        <div class="poem-meta">
+        <div class="poem-meta" data-fm-reveal="rise">
           <time class="poem-date">8 Mar 2019</time>
           <h2 class="poem-title">On Solitude</h2>
           <p class="artwork-desc">Dark seascape at dusk — rocks silhouetted against a deep amber horizon, vast dark sky</p>
@@ -251,7 +252,7 @@
       </article>
 
       <article class="poem-section">
-        <div class="poem-meta">
+        <div class="poem-meta" data-fm-reveal="rise">
           <time class="poem-date">2 Apr 2019</time>
           <h2 class="poem-title">A Conversation with My Heart</h2>
           <p class="artwork-desc">Banksy-style illustration — dark silhouette of a girl reaching toward a red heart-shaped balloon floating away, stormy sky</p>
@@ -266,7 +267,7 @@
       </article>
 
       <article class="poem-section">
-        <div class="poem-meta">
+        <div class="poem-meta" data-fm-reveal="rise">
           <time class="poem-date">14 Feb 2021</time>
           <h2 class="poem-title">On Love and Loss</h2>
           <p class="artwork-desc">White luminous swirling figure — abstract, like smoke or silk ribbons — against a black starfield</p>
@@ -279,7 +280,7 @@
 
     </div><!-- /poems -->
 
-    <footer class="site-footer">
+    <footer class="site-footer" data-fm-reveal="fade">
       <span>Maria Popova · Facebook, 2019–2021</span>
       <a href="/">Forest HUB · sdforest.site</a>
     </footer>
@@ -332,6 +333,7 @@
       document.querySelectorAll('[data-emerge]').forEach(function (p) { io.observe(p); });
     })();
   </script>
+  <script src="/web/assets/forest-motion.js?v=1" data-theme="m-popova" data-preset="floral" data-portal-open data-cursor data-iris></script>
 
 </body>
 </html>

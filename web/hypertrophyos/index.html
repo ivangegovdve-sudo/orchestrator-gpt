@@ -172,11 +172,12 @@
     .typing span:nth-child(3) { animation-delay: .4s; }
     @keyframes blink { 0%,80%,100%{opacity:.2} 40%{opacity:1} }
   </style>
+  <link rel="stylesheet" href="/web/assets/forest-motion.css?v=1" />
 </head>
 <body>
 
   <!-- ── Toolbar ── -->
-  <nav class="toolbar" aria-label="Site navigation">
+  <nav class="toolbar" aria-label="Site navigation" data-fm-reveal="fade">
     <a href="/" class="toolbar-back">← Forest HUB</a>
     <span class="toolbar-title">Hyper Trophy OS</span>
     <a class="toolbar-open"
@@ -334,6 +335,8 @@
       ask(q);
     });
   </script>
+
+  <script src="/web/assets/forest-motion.js?v=1" data-theme="hypertrophy" data-preset="fibers" data-portal-open data-cursor data-iris></script>
 
 </body>
 </html>

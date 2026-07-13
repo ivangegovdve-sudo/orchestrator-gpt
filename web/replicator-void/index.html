@@ -200,6 +200,7 @@
         .trait-grid { grid-template-columns: 1fr; }
       }
     </style>
+    <link rel="stylesheet" href="/web/assets/forest-motion.css?v=1" />
     <script type="module" crossorigin src="./assets/index-fWcu6nyk.js"></script>
   </head>
   <body>
@@ -207,10 +208,10 @@
       <div id="pixi-stage" aria-label="Replicator Void simulation stage"></div>
 
       <section class="hud" aria-label="Game HUD">
-        <div id="hud-stats" class="panel"></div>
-        <div id="hud-traits" class="panel"></div>
-        <div id="hud-status" class="panel">Starting void</div>
-        <div class="actions">
+        <div id="hud-stats" class="panel" data-fm-reveal="rise"></div>
+        <div id="hud-traits" class="panel" data-fm-reveal="rise" data-fm-delay="60"></div>
+        <div id="hud-status" class="panel" data-fm-reveal="rise" data-fm-delay="120">Starting void</div>
+        <div class="actions" data-fm-reveal="rise" data-fm-delay="180">
           <a class="control-link" href="/" title="Return to Forest HUB">Forest</a>
           <button id="btn-pause" title="Pause or resume simulation">Pause</button>
           <button id="btn-bloom" title="Spend 2 tokens to accelerate replication">Bloom (B)</button>
@@ -229,5 +230,6 @@
       <div id="toast" class="panel" role="status"></div>
       <div id="error-slot" class="panel" role="alert"></div>
     </main>
+    <script src="/web/assets/forest-motion.js?v=1" data-theme="replicator-void" data-preset="organism" data-cursor data-iris></script>
   </body>
 </html>

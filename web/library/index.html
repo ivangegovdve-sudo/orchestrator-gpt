@@ -146,14 +146,15 @@ footer { text-align: center; color: var(--dim); font-size: .76rem; margin-top: 3
   .search-dock { top: 8px; }
 }
 </style>
+<link rel="stylesheet" href="/web/assets/forest-motion.css?v=1" />
 </head>
 <body>
 <div class="wrap">
-  <div class="nav"><a href="/">&#8592; Forest HUB</a></div>
+  <div class="nav" data-fm-reveal="fade"><a href="/">&#8592; Forest HUB</a></div>
   <header class="hero">
-    <div class="logo">Forest · Reference</div>
-    <h1>&#128218; The Library</h1>
-    <p class="subtitle">The AI &amp; tech glossary and the platform reference, side by side. One search filters both.</p>
+    <div class="logo" data-fm-reveal="rise">Forest · Reference</div>
+    <h1 data-fm-reveal="rise" data-fm-delay="60">&#128218; The Library</h1>
+    <p class="subtitle" data-fm-reveal="rise" data-fm-delay="120">The AI &amp; tech glossary and the platform reference, side by side. One search filters both.</p>
   </header>
 
   <!-- Floating search bubble: filters BOTH columns simultaneously -->
@@ -168,7 +169,7 @@ footer { text-align: center; color: var(--dim); font-size: .76rem; margin-top: 3
 
   <div class="split">
     <!-- LEFT: Glossary -->
-    <section class="panel" id="panel-glossary">
+    <section class="panel" id="panel-glossary" data-fm-reveal="rise">
       <div class="panel-head">
         <div class="panel-title">
           <h2>&#128214; <span class="accent-g">Glossary</span></h2>
@@ -181,7 +182,7 @@ footer { text-align: center; color: var(--dim); font-size: .76rem; margin-top: 3
     </section>
 
     <!-- RIGHT: Platforms -->
-    <section class="panel" id="panel-platform">
+    <section class="panel" id="panel-platform" data-fm-reveal="rise" data-fm-delay="120">
       <div class="panel-head">
         <div class="panel-title">
           <h2>&#127963;&#65039; <span class="accent-p">Platforms &amp; Tools</span></h2>
@@ -194,7 +195,7 @@ footer { text-align: center; color: var(--dim); font-size: .76rem; margin-top: 3
     </section>
   </div>
 
-  <footer>
+  <footer data-fm-reveal="fade">
     Forest Library &middot; glossary &amp; platform reference merged &middot;
     <a href="/web/ai-init/">full glossary explorer</a> &middot;
     <a href="/web/library/rag.html">RAG hub</a>
@@ -365,5 +366,6 @@ footer { text-align: center; color: var(--dim); font-size: .76rem; margin-top: 3
   renderAll();
 })();
 </script>
+<script src="/web/assets/forest-motion.js?v=1" data-theme="library" data-preset="lattice" data-portal-open data-cursor data-iris></script>
 </body>
 </html>

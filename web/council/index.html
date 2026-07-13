@@ -71,18 +71,19 @@
     .footer-tag { text-align: center; font-size: 11.5px; color: #52525b; }
     .footer-tag code { background: rgba(255,255,255,0.06); padding: 1px 6px; border-radius: 5px; }
   </style>
+  <link rel="stylesheet" href="/web/assets/forest-motion.css?v=1" />
 </head>
 <body>
   <div class="page">
     <div><a href="/" class="back-link">&#8592; Forest HUB</a></div>
 
-    <header>
+    <header data-fm-reveal="rise">
       <h1>&#127794; SD Forest Councils</h1>
       <p class="tagline">Four separated deliberation panels &mdash; from tiny local models thinking out loud on Oracle silicon to Ivan&#39;s access-gated personal round table.</p>
     </header>
 
     <div class="grid">
-      <a class="panel tinylm" href="/web/tinylm/">
+      <a class="panel tinylm" href="/web/tinylm/" data-fm-reveal="rise" data-fm-delay="0">
         <span class="pill">Public &middot; $0</span>
         <span class="ico">&#127793;</span>
         <span class="name">TinyLM Consciousness Experiment</span>
@@ -90,7 +91,7 @@
         <span class="cta">Convene the tiny council &#8599;</span>
       </a>
 
-      <a class="panel chloe" href="chloe-inner/">
+      <a class="panel chloe" href="chloe-inner/" data-fm-reveal="rise" data-fm-delay="60">
         <span class="pill">Public &middot; observe-only</span>
         <span class="ico">&#128065;</span>
         <span class="name">Chlo&eacute;&rsquo;s Inner Voice</span>
@@ -98,7 +99,7 @@
         <span class="cta">Watch the inner council &#8599;</span>
       </a>
 
-      <a class="panel byok" href="byok/">
+      <a class="panel byok" href="byok/" data-fm-reveal="rise" data-fm-delay="120">
         <span class="pill">Public &middot; $0</span>
         <span class="ico">&#9878;&#65039;</span>
         <span class="name">Open Round Table</span>
@@ -106,7 +107,7 @@
         <span class="cta">Start a deliberation &#8599;</span>
       </a>
 
-      <a class="panel roundtable" href="roundtable/">
+      <a class="panel roundtable" href="roundtable/" data-fm-reveal="rise" data-fm-delay="180">
         <span class="pill">&#128274; Private</span>
         <span class="ico">&#127919;</span>
         <span class="name">Personal Round Table</span>
@@ -115,12 +116,13 @@
       </a>
     </div>
 
-    <p class="footer-tag">
+    <p class="footer-tag" data-fm-reveal="fade">
       <strong>Public</strong>: TinyLM, Chloe&rsquo;s inner voice, and the Open Round Table are open to anyone &mdash;
       none touch private fleet memory &middot;
       <strong>&#128274; Private</strong>: the Personal Round Table reads fleet state and private memory &mdash;
       access-gated with a 4-digit code.
     </p>
   </div>
+  <script src="/web/assets/forest-motion.js?v=1" data-theme="council" data-preset="ribbons" data-portal-open data-cursor data-iris></script>
 </body>
 </html>

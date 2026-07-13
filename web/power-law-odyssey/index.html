@@ -518,6 +518,7 @@
       .starfield, .vignette { display: none; }
     }
   </style>
+  <link rel="stylesheet" href="/web/assets/forest-motion.css?v=1" />
 </head>
 <body>
   <a class="back-link" href="/">Forest HUB</a>
@@ -641,43 +642,43 @@
   </div>
 
   <section class="blueprint" aria-label="Full technical blueprint">
-    <p class="eyebrow">Blueprint Appendix</p>
-    <h2>Technical blueprint and narrative architecture</h2>
-    <p>This page converts the PDF brief into a standalone HTML experience and keeps the full information visible: core thesis, six narrative milestones, scroll-to-Z-space architecture, formulas, component responsibilities, and production implementation baseline.</p>
+    <p class="eyebrow" data-fm-reveal="rise">Blueprint Appendix</p>
+    <h2 data-fm-reveal="rise" data-fm-delay="60">Technical blueprint and narrative architecture</h2>
+    <p data-fm-reveal="rise" data-fm-delay="120">This page converts the PDF brief into a standalone HTML experience and keeps the full information visible: core thesis, six narrative milestones, scroll-to-Z-space architecture, formulas, component responsibilities, and production implementation baseline.</p>
 
     <div class="blueprint-grid">
-      <article class="blueprint-card wide">
+      <article class="blueprint-card wide" data-fm-reveal="rise">
         <h3>1. Narrative Core: Philosophical Vision & End Goal</h3>
         <p>The experience translates the scientific and mathematical insight popularized by Veritasium's "You've (Likely) Been Playing The Game of Life Wrong." The visitor begins with the common subconscious model that life behaves like an additive normal distribution: consistency, low deviation, and aiming for the statistical mean. The page then moves them into a power-law model where averages can become irrelevant because extreme outliers dominate total outcome.</p>
         <p><strong style="color:#fff">Critical thesis:</strong> Move the user's mental frame from additive consistency to multiplicative persistence. In volatile systems with capped downside and open exponential upside, aiming for the safe mean is mathematically suboptimal; life should be approached through repeated, intelligent chances.</p>
       </article>
 
-      <article class="blueprint-card">
+      <article class="blueprint-card" data-fm-reveal="rise">
         <h3>Step 1: Disruption</h3>
         <p>A dark, minimalist, vacuum-like opening asks: "Are you playing the game of life wrong?" It interrupts standard landing-page rhythm and asks the user to scroll for the answer.</p>
       </article>
-      <article class="blueprint-card">
+      <article class="blueprint-card" data-fm-reveal="rise" data-fm-delay="60">
         <h3>Step 2: Bifurcation Matrix</h3>
         <p>A normal curve sits beside a skewed long-tail curve. It isolates two frameworks: bounded physical systems like height, and scale-free systems like wealth, attention, creative output, or venture returns.</p>
       </article>
-      <article class="blueprint-card">
+      <article class="blueprint-card" data-fm-reveal="rise">
         <h3>Step 3: Multiplication Avalanche</h3>
         <p>Additive random factors cancel toward normality. Multiplicative factors compound into asymmetric lognormal or power-law outcomes, shown as self-similar branches, preferential attachment, and compounding effects.</p>
       </article>
-      <article class="blueprint-card">
+      <article class="blueprint-card" data-fm-reveal="rise" data-fm-delay="60">
         <h3>Step 4: Visualizing Asymmetric Risk</h3>
         <p>A physical risk model shows downside hitting a floor at zero while upside extends vertically. This reframes failure: a missed email or failed small project is bounded; a successful hit can scale across orders of magnitude.</p>
       </article>
-      <article class="blueprint-card">
+      <article class="blueprint-card" data-fm-reveal="rise">
         <h3>Step 5: Venture Bet Sandbox</h3>
         <p>An interactive simulation lets the user place repeated bets. Most attempts flatline, mirroring a 94% base failure rate in startups or creative output, but one outlier can recover cumulative losses.</p>
       </article>
-      <article class="blueprint-card">
+      <article class="blueprint-card" data-fm-reveal="rise" data-fm-delay="60">
         <h3>Step 6: Epiphany</h3>
         <p>Abstract data collapses into personal strategy: do not strive to be average on a safe curve. Make repeated intelligent bets, optimize for persistence over standard consistency, and leverage structural volatility.</p>
       </article>
 
-      <article class="blueprint-card wide">
+      <article class="blueprint-card wide" data-fm-reveal="rise">
         <h3>3. Scroll-to-Z-Space Rig</h3>
         <p>Instead of moving panels upward on the Y-axis, the interface maps native scroll progress to a Z-axis camera timeline. HTML layers sit at different virtual depths, and the camera appears to push through them. Native scroll is decoupled from viewport rendering, lowering layout recalculation risk and keeping transforms on the compositor.</p>
         <table class="component-table">
@@ -691,13 +692,13 @@
         </table>
       </article>
 
-      <article class="blueprint-card">
+      <article class="blueprint-card" data-fm-reveal="rise">
         <h3>Z-Space Translation Map</h3>
         <p>Let normalized scroll progress be <code>p</code>, where <code>0.0 <= p <= 1.0</code>. Layer depth is computed as:</p>
         <pre><code>Tz = Oz + (p * v)</code></pre>
         <p><code>Oz</code> is the layer depth offset and <code>v</code> is velocity through camera space. Opacity is localized around each layer's active scroll band.</p>
       </article>
-      <article class="blueprint-card">
+      <article class="blueprint-card" data-fm-reveal="rise" data-fm-delay="60">
         <h3>Production Implementation Notes</h3>
         <ul>
           <li>Use a standalone HTML route with no framework dependency.</li>
@@ -708,7 +709,7 @@
         </ul>
       </article>
 
-      <article class="blueprint-card wide">
+      <article class="blueprint-card wide" data-fm-reveal="fade">
         <h3>4. Baseline Implementation Pattern</h3>
         <pre><code>&lt;div class="scroll-container" id="scrollTrack"&gt;
   &lt;div class="viewport-sticky"&gt;
@@ -863,5 +864,6 @@ document.documentElement.style.setProperty("--scroll-p", progress);</code></pre>
     }
     requestAnimationFrame(drawStars);
   </script>
+  <script src="/web/assets/forest-motion.js?v=1" data-theme="power-law" data-preset="powerlaw" data-cursor data-iris></script>
 </body>
 </html>

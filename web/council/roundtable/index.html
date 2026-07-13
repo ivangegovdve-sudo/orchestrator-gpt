@@ -329,6 +329,7 @@
     body.locked .page { filter: blur(7px); pointer-events: none; user-select: none; }
     body:not(.locked) .lockgate { display: none; }
   </style>
+  <link rel="stylesheet" href="/web/assets/forest-motion.css?v=1" />
 </head>
 <body class="locked">
   <div id="lockgate" class="lockgate" role="dialog" aria-label="Private council — access required">
@@ -345,12 +346,12 @@
   <div class="page">
     <a href="../" class="back-link">&#8592; Councils</a>
 
-    <header>
+    <header data-fm-reveal="rise">
       <h1>&#127919; Personal Round Table</h1>
       <p class="tagline">Ivan&#39;s private council &mdash; free-model panel with web grounding and fleet delegation to Chlo&eacute;. Access-gated.</p>
     </header>
 
-    <div class="input-card">
+    <div class="input-card" data-fm-reveal="rise" data-fm-delay="60">
       <textarea id="question" placeholder="Ask the council anything &#8212; a decision, a concept, a plan&#8230;" rows="3"></textarea>
 
       <div class="input-footer">
@@ -407,7 +408,7 @@
       <div class="gate-hint">Shared with you by Ivan &mdash; keeps the free council from being over-used. <span class="free-badge">free</span> &middot; $0</div>
     </div>
 
-    <div class="roster-card">
+    <div class="roster-card" data-fm-reveal="rise" data-fm-delay="120">
       <div class="roster-title">
         <span>The round table &mdash; distinct vendor families, all <code>:free</code></span>
         <span class="free-badge">$0</span>
@@ -426,27 +427,27 @@
         <span class="role-badge judge">Judge</span>
       </div>
       <div class="roster-grid">
-        <div class="roster-seat proposer">
+        <div class="roster-seat proposer" data-fm-reveal="rise" data-fm-delay="0">
           <span class="rs-role">Proposer</span>
           <span class="rs-model">Gemma-4 / Llama-3.3</span>
         </div>
-        <div class="roster-seat critic">
+        <div class="roster-seat critic" data-fm-reveal="rise" data-fm-delay="60">
           <span class="rs-role">Critic 1</span>
           <span class="rs-model">Nemotron Super / Qwen3</span>
         </div>
-        <div class="roster-seat proposer">
+        <div class="roster-seat proposer" data-fm-reveal="rise" data-fm-delay="120">
           <span class="rs-role">Revision</span>
           <span class="rs-model">Gemma-4</span>
         </div>
-        <div class="roster-seat critic">
+        <div class="roster-seat critic" data-fm-reveal="rise" data-fm-delay="180">
           <span class="rs-role">Critic 2</span>
           <span class="rs-model">Nex AGI / Qwen3</span>
         </div>
-        <div class="roster-seat synth">
+        <div class="roster-seat synth" data-fm-reveal="rise" data-fm-delay="240">
           <span class="rs-role">Synthesizer</span>
           <span class="rs-model">Gemma MoE</span>
         </div>
-        <div class="roster-seat judge">
+        <div class="roster-seat judge" data-fm-reveal="rise" data-fm-delay="300">
           <span class="rs-role">Judge</span>
           <span class="rs-model">gpt-oss-20b</span>
         </div>
@@ -467,7 +468,7 @@
       </div>
     </div>
 
-    <p class="footer-tag">Free tier &middot; OpenAI &middot; NVIDIA Nemotron &middot; Google Gemma-4 &middot; Nex AGI &middot; Qwen3 &mdash; via OpenRouter &mdash; $0</p>
+    <p class="footer-tag" data-fm-reveal="fade">Free tier &middot; OpenAI &middot; NVIDIA Nemotron &middot; Google Gemma-4 &middot; Nex AGI &middot; Qwen3 &mdash; via OpenRouter &mdash; $0</p>
   </div>
 
   <script>
@@ -993,5 +994,6 @@
       codeI.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); tryUnlock(); } });
     })();
   </script>
+  <script src="/web/assets/forest-motion.js?v=1" data-theme="council" data-preset="ribbons" data-portal-open data-cursor data-iris></script>
 </body>
 </html>

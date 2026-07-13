@@ -13,6 +13,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/web/assets/forest-motion.css?v=1" />
 
   <style>
     :root {
@@ -152,12 +153,12 @@
     <a class="back-link" href="/">← Forest HUB</a>
 
     <header class="hero">
-      <p class="eyebrow">Forest HUB · Kids Corner</p>
-      <h1>Kids<span class="spark">.</span>Corner</h1>
-      <p class="hero-sub">The playground of the forest — quick-fire math games, a hand-picked family movie shelf, and an interactive periodic table, all in one place.</p>
+      <p class="eyebrow" data-fm-reveal="rise">Forest HUB · Kids Corner</p>
+      <h1 data-fm-reveal="rise" data-fm-delay="60">Kids<span class="spark">.</span>Corner</h1>
+      <p class="hero-sub" data-fm-reveal="rise" data-fm-delay="120">The playground of the forest — quick-fire math games, a hand-picked family movie shelf, and an interactive periodic table, all in one place.</p>
     </header>
 
-    <div class="kids-grid">
+    <div class="kids-grid" data-fm-reveal="rise" data-fm-delay="180">
       <a class="kid-card math" href="/web/math-mania/">
         <div class="kid-icon">➗</div>
         <div class="kid-name">Math Mania</div>
@@ -192,7 +193,8 @@
       </a>
     </div>
 
-    <p class="note">All three are part of <a href="/">Forest HUB</a> — hand-built, ad-free, and kid-safe.</p>
+    <p class="note" data-fm-reveal="fade">All three are part of <a href="/">Forest HUB</a> — hand-built, ad-free, and kid-safe.</p>
   </main>
+  <script src="/web/assets/forest-motion.js?v=1" data-theme="kids" data-preset="blocks" data-portal-open data-cursor data-iris></script>
 </body>
 </html>

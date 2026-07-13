@@ -79,6 +79,7 @@
     body.locked .page { filter: blur(7px); pointer-events: none; user-select: none; }
     body:not(.locked) .lockgate { display: none; }
   </style>
+  <link rel="stylesheet" href="/web/assets/forest-motion.css?v=1" />
 </head>
 <body class="locked">
   <div id="lockgate" class="lockgate" role="dialog" aria-label="Private council — access required">
@@ -103,7 +104,7 @@
       </div>
     </div>
 
-    <header>
+    <header data-fm-reveal="rise">
       <h1>&#128172; Chlo&eacute; &mdash; Fleet Voice</h1>
       <p class="tagline">Straight line to the orchestrator of Ivan&#39;s agent fleet. Answers come live from her soul-server brain on Oracle &mdash; SOUL.md loaded, fleet behind her.</p>
       <p class="status-line" id="status-line"><span class="status-dot" id="status-dot"></span><span id="status-text">checking her pulse&hellip;</span></p>
@@ -118,7 +119,7 @@
       <button id="send" onclick="sendMsg()">Send</button>
     </div>
 
-    <p class="footer-tag">browser &rarr; <code>chloe.blumenkraft.cloud</code> &rarr; soul-server :8654 (Groq llama-3.3-70b) &middot; access-gated (ask Ivan for the code)</p>
+    <p class="footer-tag" data-fm-reveal="fade">browser &rarr; <code>chloe.blumenkraft.cloud</code> &rarr; soul-server :8654 (Groq llama-3.3-70b) &middot; access-gated (ask Ivan for the code)</p>
   </div>
 
   <script>
@@ -219,5 +220,6 @@
       codeI.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); tryUnlock(); } });
     })();
   </script>
+  <script src="/web/assets/forest-motion.js?v=1" data-theme="council" data-preset="ribbons" data-portal-open data-cursor data-iris></script>
 </body>
 </html>

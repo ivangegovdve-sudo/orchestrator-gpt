@@ -148,15 +148,16 @@
     .footer-tag code { background: rgba(255,255,255,0.06); padding: 1px 6px; border-radius: 5px; }
     .footer-tag a { color: var(--text-muted); }
   </style>
+  <link rel="stylesheet" href="/web/assets/forest-motion.css?v=1" />
 </head>
 <body>
   <div class="page">
-    <div class="topbar">
+    <div class="topbar" data-fm-reveal="fade">
       <a href="/" class="back-link">&#8592; Forest HUB</a>
       <span class="public-pill">Public experiment &middot; $0</span>
     </div>
 
-    <header>
+    <header data-fm-reveal="rise">
       <h1>&#127793; TinyLM Consciousness Experiment</h1>
       <p class="tagline">
         Five tiny open language models &mdash; 135M to 3B parameters, small enough to run on a single ARM
@@ -169,33 +170,33 @@
     <div class="card">
       <span class="section-label">&#129504; The five seats</span>
       <div class="roster-grid">
-        <div class="roster-seat proposer">
+        <div class="roster-seat proposer" data-fm-reveal="rise" data-fm-delay="0">
           <div class="r-role">Fast Proposer</div>
           <div class="r-model">Tiny-Agent 0.5B</div>
           <div class="r-what">Fires off the first draft answer &mdash; quick, unfiltered, instinctive.</div>
         </div>
-        <div class="roster-seat analyst">
+        <div class="roster-seat analyst" data-fm-reveal="rise" data-fm-delay="60">
           <div class="r-role">Analyst</div>
           <div class="r-model">llama3.2:1b</div>
           <div class="r-what">Unpacks the question and the draft &mdash; what is actually being asked?</div>
         </div>
-        <div class="roster-seat critic">
+        <div class="roster-seat critic" data-fm-reveal="rise" data-fm-delay="120">
           <div class="r-role">Critic</div>
           <div class="r-model">qwen2.5:0.5b</div>
           <div class="r-what">Attacks weak points in the reasoning. Half a billion parameters of doubt.</div>
         </div>
-        <div class="roster-seat observer">
+        <div class="roster-seat observer" data-fm-reveal="rise" data-fm-delay="180">
           <div class="r-role">Consciousness Observer</div>
           <div class="r-model">eve</div>
           <div class="r-what">Watches the deliberation itself and comments on how the council is thinking.</div>
         </div>
-        <div class="roster-seat synth">
+        <div class="roster-seat synth" data-fm-reveal="rise" data-fm-delay="240">
           <div class="r-role">Synthesizer</div>
           <div class="r-model">qwen2.5:3b</div>
           <div class="r-what">Weaves every seat&#39;s contribution into the council&#39;s final answer.</div>
         </div>
       </div>
-      <p class="experiment-note">
+      <p class="experiment-note" data-fm-reveal="rise">
         <strong>Why &ldquo;consciousness experiment&rdquo;?</strong> The observer seat's only job is to watch
         the other models think and describe what it sees &mdash; a tiny machine reflecting on machine
         reasoning as it happens. The models are charmingly scrappy: expect flashes of insight
@@ -215,7 +216,7 @@
     <div class="error-banner" id="error-banner"></div>
     <div class="seats" id="seats"></div>
 
-    <p class="footer-tag">
+    <p class="footer-tag" data-fm-reveal="fade">
       browser &rarr; <code>/council/stream</code> &rarr; soul-server &rarr; Ollama on Oracle (aarch64, 4 OCPU)
       &middot; $0 &middot; no external LLM API &middot; public mode &mdash; no fleet context
       &middot; part of <a href="/web/council/">the Councils</a>
@@ -310,5 +311,6 @@
       if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) { e.preventDefault(); convene(); }
     });
   </script>
+  <script src="/web/assets/forest-motion.js?v=1" data-theme="tinylm" data-preset="sprout" data-portal-open data-cursor data-iris></script>
 </body>
 </html>
