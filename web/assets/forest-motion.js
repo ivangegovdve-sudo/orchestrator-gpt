@@ -28,6 +28,8 @@
   var TAU = Math.PI * 2;
   var reduced = win.matchMedia('(prefers-reduced-motion: reduce)').matches;
   var coarse = win.matchMedia('(pointer: coarse)').matches;
+  /* ?fmstill — QA hook: every canvas system renders one frame and halts */
+  var still = /[?&]fmstill\b/.test(win.location.search);
 
   /* ── tiny math kit ── */
   function lerp(a, b, t) { return a + (b - a) * t; }
@@ -171,7 +173,9 @@
       els.forEach(function (el) { el.classList.add('fm-in'); });
       return;
     }
+    var fired = false;
     var io = new IntersectionObserver(function (entries) {
+      fired = true;
       entries.forEach(function (en) {
         if (!en.isIntersecting) return;
         var el = en.target;
@@ -182,6 +186,13 @@
       });
     }, { threshold: 0.12, rootMargin: '0px 0px -8% 0px' });
     els.forEach(function (el) { io.observe(el); });
+    /* safety net: some embedders starve IO callbacks — content must
+       never stay hidden behind a reveal that cannot fire */
+    setTimeout(function () {
+      if (fired) return;
+      io.disconnect();
+      els.forEach(function (el) { el.classList.add('fm-in'); });
+    }, 1600);
   }
 
   /* ══════════════════════════════════════════════════════════════
@@ -698,11 +709,11 @@
     var colors = opts.colors || null;
     (function frame(now) {
       if (!running) return;
-      raf = requestAnimationFrame(frame);
+      if (!still) raf = requestAnimationFrame(frame);
       if (!visible || doc.hidden) return;
       var d = size();
       ctx.clearRect(0, 0, d.w, d.h);
-      presets[name](ctx, d.w, d.h, (now - t0) / 1000, colors || themeColors(), false);
+      presets[name](ctx, d.w, d.h, still ? 2.4 : (now - t0) / 1000, colors || themeColors(), false);
     })(t0);
     return function stop() {
       running = false;
@@ -739,6 +750,7 @@
     pointer: pointer,           /* live pointer state for page particle systems */
     reduced: reduced,
     coarse: coarse,
+    still: still,               /* ?fmstill QA mode — render one frame, halt */
     ambient: ambient,
     mountReveals: mountReveals,
     mountAmbients: mountAmbients,
