@@ -980,6 +980,14 @@ document.documentElement.style.setProperty("--scroll-p", progress);</code></pre>
         return;
       }
       const swTrack = world.querySelector(".sw-track");
+      // The engine lays out once at mount; if the viewport reported 0 height at
+      // that moment (Chrome prerender, hidden/backgrounded tab), the track stays
+      // 0px and the hero never gets scroll room. Nudge a relayout until real.
+      (function ensureLayout() {
+        if (swTrack.offsetHeight > 0) return;
+        if (window.innerHeight > 0) window.dispatchEvent(new Event("resize"));
+        setTimeout(ensureLayout, 250);
+      })();
       function plHeroGate() {
         const end = swTrack.offsetHeight - window.innerHeight;
         const done = window.scrollY > end - 4;
