@@ -406,6 +406,35 @@
       box-shadow: 0 0 34px var(--gold);
     }
 
+    /* Distribution particles: each dot is a sample scattering onto the curve.
+       The normal chart clusters to its center; the power chart piles at the
+       head and sends rare outliers streaking into the tail. */
+    .scatter-dot { fill: currentColor; transform-box: fill-box; transform-origin: center; }
+    @media (prefers-reduced-motion: no-preference) {
+      .scatter-dot { animation: dot-scatter .9s cubic-bezier(.22,1,.36,1) calc(var(--sd, 0) * 1s) backwards; }
+      .scatter-dot.outlier {
+        animation:
+          dot-scatter 1.15s cubic-bezier(.22,1,.36,1) calc(var(--sd, 0) * 1s) backwards,
+          outlier-glow 3s ease-in-out calc(var(--sd, 0) * 1s + 1.2s) infinite;
+      }
+      .tail-zone { animation: tail-breathe 4.5s ease-in-out infinite; }
+      .trajectory { animation: bet-shoot .5s cubic-bezier(.22,1,.36,1) backwards; }
+      .trajectory.hit { animation: bet-shoot .7s cubic-bezier(.22,1,.36,1) backwards, hit-flash 1.4s ease .1s; }
+      #layer1 .layer-inner > * { animation: pl-rise .85s cubic-bezier(.16,1,.3,1) backwards; }
+      #layer1 .layer-inner > :nth-child(2) { animation-delay: .1s; }
+      #layer1 .layer-inner > :nth-child(3) { animation-delay: .2s; }
+      #layer1 .layer-inner > :nth-child(4) { animation-delay: .34s; }
+    }
+    @keyframes dot-scatter {
+      from { opacity: 0; transform: translate(var(--dx, 0px), -46px) scale(0); }
+      60% { opacity: 1; }
+    }
+    @keyframes outlier-glow { 50% { filter: drop-shadow(0 0 6px currentColor); opacity: .7; } }
+    @keyframes tail-breathe { 50% { opacity: .55; } }
+    @keyframes bet-shoot { from { scale: 0 1; opacity: 0; } }
+    @keyframes hit-flash { from { filter: brightness(2.3); } }
+    @keyframes pl-rise { from { opacity: 0; transform: translateY(24px); } }
+
     .final-list {
       width: min(860px, 100%);
       display: grid;
@@ -880,6 +909,76 @@ document.documentElement.style.setProperty("--scroll-p", progress);</code></pre>
       if (!reduceMotion) requestAnimationFrame(drawStars);
     }
     requestAnimationFrame(drawStars);
+  </script>
+  <script>
+    // Seeded distribution scatter: samples land along the real SVG curves the
+    // first time the bifurcation layer takes focus. Same seed, same scatter.
+    (() => {
+      const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+      const charts = document.querySelectorAll("#layer2 .chart-panel svg");
+      if (charts.length < 2 || !window.PowerLawEngine) return;
+      const rand = (() => {
+        let value = PowerLawEngine.hashSeed("scatter-" + (new URLSearchParams(location.search).get("seed") || "forest-2026")) | 0;
+        return () => {
+          value = (value + 0x6D2B79F5) | 0;
+          let result = value;
+          result = Math.imul(result ^ result >>> 15, result | 1);
+          result ^= result + Math.imul(result ^ result >>> 7, result | 61);
+          return ((result ^ result >>> 14) >>> 0) / 4294967296;
+        };
+      })();
+
+      function seedChart(svg, kind) {
+        const curve = svg.querySelector(kind === "normal" ? ".normal-curve" : ".power-curve");
+        const group = svg.querySelector("g");
+        if (!curve || !group || !curve.getTotalLength) return;
+        const length = curve.getTotalLength();
+        const count = 26;
+        for (let i = 0; i < count; i += 1) {
+          let t;
+          let outlier = false;
+          if (kind === "normal") {
+            t = Math.min(1, Math.max(0, .5 + (rand() + rand() + rand() - 1.5) / 2.6));
+          } else {
+            outlier = i >= count - 3;
+            t = outlier ? .86 + rand() * .13 : Math.pow(rand(), 2.4) * .8;
+          }
+          const point = curve.getPointAtLength(t * length);
+          const dot = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+          dot.setAttribute("class", "scatter-dot" + (outlier ? " outlier" : ""));
+          dot.setAttribute("cx", point.x.toFixed(1));
+          dot.setAttribute("cy", point.y.toFixed(1));
+          dot.setAttribute("r", outlier ? "4" : (1.6 + rand() * 1.5).toFixed(1));
+          dot.style.setProperty("--sd", (.05 + i * .045).toFixed(2));
+          dot.style.setProperty("--dx", ((rand() - .5) * 34).toFixed(1) + "px");
+          dot.style.opacity = outlier ? ".95" : ".7";
+          group.appendChild(dot);
+        }
+      }
+
+      let seeded = false;
+      function seedAll() {
+        if (seeded) return;
+        seeded = true;
+        seedChart(charts[0], "normal");
+        seedChart(charts[1], "power");
+      }
+      const layer2 = document.getElementById("layer2");
+      if (reduce || !("MutationObserver" in window) || !layer2) {
+        seedAll();
+        return;
+      }
+      if (layer2.classList.contains("is-active")) {
+        seedAll();
+        return;
+      }
+      const observer = new MutationObserver(() => {
+        if (!layer2.classList.contains("is-active")) return;
+        seedAll();
+        observer.disconnect();
+      });
+      observer.observe(layer2, { attributes: true, attributeFilter: ["class"] });
+    })();
   </script>
   <script src="/web/shared/forest-motion.js?v=20260714"></script>
 </body>
