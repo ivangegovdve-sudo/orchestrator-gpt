@@ -1,0 +1,46 @@
+{
+  "name": "power-law-odyssey",
+  "workdir": "D:/output/scroll-world/power-law-odyssey",
+  "assets_dir": "web/power-law-odyssey/assets",
+  "budget_usd": 5.0,
+  "rates": { "image": 0.003, "clip": 0.145 },
+  "image_model": "fal-ai/flux/schnell",
+  "video_model": "fal-ai/kling-video/v2.1/standard/image-to-video",
+  "image_size": "landscape_16_9",
+  "clip_duration": "5",
+  "style": "Isometric miniature diorama floating in a vast dark cosmos, deep navy-black space background, glowing indigo, cyan and gold neon accents, volumetric light, ultra-detailed 3D render, tilt-shift miniature depth of field, cinematic. No text, no letters, no numbers, no logos.",
+  "negative": "blur, distort, low quality, text, letters, numbers, watermark, logo, people, faces",
+  "scenes": [
+    {
+      "id": "cosmos",
+      "still": "Vast dark cosmos, countless data points massing at the left edge, a long glowing tail stretching right toward infinity, power law distribution, isometric diorama.",
+      "motion": "Single continuous cinematic camera move, no cuts. The camera glides slowly forward over a vast dark cosmos where countless glowing data points mass together at the left edge and a long luminous golden tail stretches right toward infinity, a power law distribution rendered as an isometric cosmic diorama. The camera drifts gently along the glowing tail. Smooth graceful slow motion. The move ends settling into a slow, steady forward drift. No text."
+    },
+    {
+      "id": "tail",
+      "still": "Deep in the heavy tail of a cosmic distribution: sparse outlier galaxies far from the dense crowd, each one enormous and glowing gold, isometric cosmic diorama.",
+      "motion": "Single continuous cinematic camera move, no cuts. The camera dives gently down into the heavy tail of the distribution, weaving slowly between sparse enormous outlier galaxies, each one vast and glowing gold, far away from the distant dense crowd of ordinary points, isometric cosmic diorama. Smooth graceful slow motion. The move ends settling into a slow, steady forward drift. No text."
+    },
+    {
+      "id": "city",
+      "still": "Interior of a single outlier: a glowing city of data, log-log axes glowing on the ground, luminous curves rising upward, isometric neon diorama.",
+      "motion": "Single continuous cinematic camera move, no cuts. The camera glides forward through the interior of a single enormous outlier: an isometric neon city built of glowing data, log-log axes shining on the ground grid, luminous curves rising upward between the data towers. The camera flows low along the glowing axes through the heart of the data city. Smooth graceful slow motion. The move ends settling into a slow, steady forward drift. No text."
+    },
+    {
+      "id": "sandbox",
+      "still": "The venture sandbox: an isometric laboratory with a glowing simulation table, particle animations, tail curves and probability dials, isometric neon lab diorama.",
+      "motion": "Single continuous cinematic camera move, no cuts. The camera descends toward an isometric neon laboratory and glides slowly across a glowing simulation table where luminous particles animate along tail curves and probability dials pulse with indigo and gold light. Smooth graceful slow motion. The move ends settling into a slow, steady forward drift. No text."
+    },
+    {
+      "id": "godview",
+      "still": "The whole cosmic distribution seen from above, god-view, the 80/20 boundary glowing as a bright line between the vital few and the many, isometric diorama.",
+      "motion": "Single continuous cinematic camera move, no cuts. The camera rises higher and higher into a soaring god-view revealing the entire glowing cosmic distribution from above, the dense crowd on one side and the enormous outliers on the other, a bright glowing boundary line dividing the vital few from the many. The camera drifts slowly upward as the whole miniature world is revealed. Smooth graceful slow motion. The move ends settling into a slow, steady upward drift. No text."
+    }
+  ],
+  "connectors": [
+    "Single continuous cinematic camera move, no cuts. The camera rises up and glides across the dark cosmos, leaving the dense glowing crowd of data points behind, flying out along the luminous tail toward sparse enormous outlier galaxies glowing gold in the far distance, beginning to descend toward them. Seamless flowing aerial transition, smooth graceful slow motion. Ends settling into a slow, steady forward drift. No text.",
+    "Single continuous cinematic camera move, no cuts. The camera glides toward the largest outlier galaxy, approaching its glowing golden surface, which gently opens to reveal a neon data city inside, the camera beginning to descend into the interior. Seamless flowing transition, smooth graceful slow motion. Ends settling into a slow, steady forward drift. No text.",
+    "Single continuous cinematic camera move, no cuts. The camera rises up out of the neon data city, above the glowing towers, and glides across the darkness toward a distant isometric laboratory with a glowing simulation table, beginning to descend toward it. Seamless flowing aerial transition, smooth graceful slow motion. Ends settling into a slow, steady forward drift. No text.",
+    "Single continuous cinematic camera move, no cuts. The camera pulls up and away from the glowing laboratory table, rising high into the dark cosmos, the entire miniature world shrinking below as the camera keeps ascending. Seamless flowing aerial transition, smooth graceful slow motion. Ends settling into a slow, steady upward drift. No text."
+  ]
+}
