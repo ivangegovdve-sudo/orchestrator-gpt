@@ -39,19 +39,10 @@
 ## Replicator Void
 
 **Route:** `/web/replicator-void/`
-**Files:** `web/replicator-void/index.html`, `web/replicator-void/assets/*`
-**What it is:** Browser-playable ecosystem roguelite simulation. Replicators drift, replicate, mutate, and decay in a PixiJS playfield. Player spends evolution tokens during 45-second cycle gates, uses resource bloom and void pulse interventions, and can play with keyboard or on-screen controls.
-**State:** Live static subpage copied from the private `ivangegovdve-sudo/replicator-void` repo build output. Not embedded on the Forest HUB homepage; launched by a card and includes a Forest return control.
-**Next:** Re-copy a fresh `npm run build` output from the game repo when gameplay changes.
-
----
-
-## Voice2Voice Buddy
-
-**Route:** Hub card only (external link)
-**What it is:** Hub card linking to the Voice2Voice Buddy project (separate repo: `ivangegovdve-sudo/voice2voice-buddy`). Not hosted within this repo.
-**State:** Card exists in hub. External link. Voice2Voice Buddy itself is at Phase 3.5 (multi-provider voice assistant — see its own repo for status).
-**Next:** Confirm the hub card links to the correct URL and the link text is accurate.
+**Files:** `web/replicator-void/index.html`
+**What it is:** Native-canvas artificial-life experiment. Replicators seek food, mutate, divide, and die; pointer input bends their field and clicks add nutrients.
+**State:** Publicly surfaced as an **Experimental** project with a working dependency-free runtime and accessible controls.
+**Next:** Extend the selection and mutation model only after preserving the current lightweight fallback.
 
 ---
 

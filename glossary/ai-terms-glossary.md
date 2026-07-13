@@ -61,7 +61,7 @@
   <sub>freq 22 · sources: gmail+mem</sub>
 - **AG** — _usage:_ "gents (native, Claude Code, Codex, ACP, AG-UI) via a single YAML configuration,"  
   <sub>freq 55 · sources: gmail+mem</sub>
-- **AGENT** — _usage:_ "========= VOICE2VOICE BUDDY — UNIVERSAL AGENT ONBOARDING PROMPT (v1, harmless) ="  
+- **AGENT** — _usage:_ "An autonomous software agent can plan, call tools, and report verified results."
   <sub>freq 415 · sources: gmail+mem</sub>
 - **AGENTIC** — _seen in email:_ "Klarna seeks US bank charter 🏦, Fiserv explores sale of debit card network 🪪, Visa launches travel platform 🌍"  
   <sub>freq 196 · sources: gmail</sub>
@@ -1326,7 +1326,7 @@
   <sub>freq 56 · sources: gmail+mem</sub>
 - **PSTN** — _usage:_ "oe. - **Twilio phone call**: Works, but PSTN latency + $110/month at moderate us"  
   <sub>freq 3 · sources: mem</sub>
-- **PTT** — _usage:_ "d0109 fix(factory): mark v2v-001 (VAD + PTT) as done — was already implemented f"  
+- **PTT** — Push To Talk
   <sub>freq 6 · sources: gmail+mem</sub>
 - **PTY** — _usage:_ "Delegate coding to OpenAI Codex CLI (PTY, background, worktrees, parallel PRs"  
   <sub>freq 3 · sources: gmail+mem</sub>
@@ -1366,7 +1366,7 @@
   <sub>freq 4 · sources: mem</sub>
 - **REA** — _usage:_ "mental development steps. You must make REA Now I have a clear picture. The hig"  
   <sub>freq 3 · sources: gmail+mem</sub>
-- **REACT** — _usage:_ "enance layer for Voice2Voice Buddy. You REACT to other agents' work — you do NOT"  
+- **REACT** — Reason and Act
   <sub>freq 18 · sources: gmail+mem</sub>
 - **README** — _usage:_ "revision. *Confidence: high | Source: README | Generated: 2026-06-17"  
   <sub>freq 742 · sources: gmail+mem</sub>
@@ -1656,7 +1656,7 @@
   <sub>freq 4,263 · sources: gmail+mem</sub>
 - **TLS** — Transport Layer Security  
   <sub>freq 45 · sources: gmail+mem</sub>
-- **TN** — _usage:_ "/v2v-soft-completion-sweep-q30min.xml" /TN v2v-soft-completion-sweep-q30min /F `"  
+- **TN** — _usage:_ "Task-name field used by scheduled operations and maintenance jobs."
   <sub>freq 31 · sources: gmail+mem</sub>
 - **TOCTOU** — _seen in email:_ "600K Lithuanian Records Leaked 🇱🇹, KnowledgeDeliver 0-Day RCE 💥, Google Family Link Hijack 📱"  
   <sub>freq 87 · sources: gmail</sub>

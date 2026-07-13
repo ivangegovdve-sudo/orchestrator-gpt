@@ -1,126 +1,94 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SD Forest Councils — Four Ways to Deliberate</title>
-  <meta name="description" content="Four AI councils: the public TinyLM Consciousness Experiment on Oracle hardware, Chloe's inner-voice observer, the Open Round Table (Ivan's OR key), and the private Personal Round Table.">
-  <meta property="og:title" content="SD Forest Councils">
-  <meta property="og:description" content="Four council panels — the TinyLM Consciousness Experiment, Chloe's inner-voice observer, the Open Round Table, and the private Personal Round Table.">
-  <meta property="og:type" content="website">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Two public AI deliberation experiments: TinyLM Local Oracle and OpenRouter Free, with no private memory or delegation.">
+  <meta name="theme-color" content="#050806">
+  <title>Councils — SDForest</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/web/shared/forest-shell.css?v=20260713">
   <style>
-    :root {
-      --bg: #09090b;
-      --card-bg: rgba(24, 24, 27, 0.6);
-      --card-border: rgba(255, 255, 255, 0.08);
-      --text: #f8fafc;
-      --muted: #a1a1aa;
-      --accent: #4f46e5;
-      --purple: #8b5cf6;
-      --green: #22c55e;
-      --rose: #f43f5e;
-      --amber: #f59e0b;
-      --radius: 8px;
+    :root { --forest-accent:#ac90ff; --forest-accent-rgb:172,144,255; }
+    .council-hero { min-height: 72svh; display:grid; align-content:center; }
+    .council-hero .forest-title { max-width: 9ch; }
+    .mode-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:18px; margin-top:clamp(50px,8vw,90px); }
+    .mode-card {
+      --mode:#79f2a8;
+      position:relative; min-height:520px; display:flex; flex-direction:column; overflow:hidden;
+      padding:clamp(24px,4vw,42px); color:var(--forest-ink); text-decoration:none;
+      border:1px solid color-mix(in srgb,var(--mode) 23%,transparent); border-radius:28px;
+      background:linear-gradient(145deg,color-mix(in srgb,var(--mode) 8%,transparent),rgba(6,11,8,.9) 54%);
+      box-shadow:0 42px 100px rgba(0,0,0,.32); isolation:isolate;
+      transition:border-color .3s ease,box-shadow .3s ease;
     }
-    * { box-sizing: border-box; }
-    body {
-      margin: 0; min-height: 100vh;
-      background-color: var(--bg);
-      background-image:
-        radial-gradient(circle at 20% 40%, rgba(79, 70, 229, 0.1), transparent 45%),
-        radial-gradient(circle at 80% 20%, rgba(139, 92, 246, 0.1), transparent 45%);
-      color: var(--text);
-      font-family: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
-      padding: 28px 20px 60px;
-    }
-    .page { max-width: 900px; margin: 0 auto; display: flex; flex-direction: column; gap: 26px; }
-    .back-link { display: inline-flex; align-items: center; gap: 6px; color: var(--muted); text-decoration: none; font-size: 13px; transition: color 0.2s; }
-    .back-link:hover { color: var(--text); }
-    h1 { margin: 0 0 6px; font-size: 32px; letter-spacing: -0.5px; }
-    .tagline { margin: 0; color: var(--muted); font-size: 15px; line-height: 1.5; }
-    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
-    @media (max-width: 640px) { .grid { grid-template-columns: 1fr; } }
-    .panel {
-      display: flex; flex-direction: column; gap: 10px;
-      background: var(--card-bg); border: 1px solid var(--card-border);
-      border-radius: 16px; padding: 22px; text-decoration: none; color: var(--text);
-      transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
-      position: relative; overflow: hidden;
-    }
-    .panel:hover { transform: translateY(-3px); border-color: rgba(255,255,255,0.18); box-shadow: 0 12px 34px rgba(0,0,0,0.45); }
-    .panel .ico { font-size: 30px; line-height: 1; }
-    .panel .name { font-size: 18px; font-weight: 700; letter-spacing: -0.2px; }
-    .panel .desc { font-size: 13px; color: var(--muted); line-height: 1.55; flex: 1; }
-    .panel .cta { font-size: 12.5px; font-weight: 600; }
-    .pill {
-      position: absolute; top: 14px; right: 14px; font-size: 10px; font-weight: 700;
-      letter-spacing: 0.06em; text-transform: uppercase; padding: 4px 9px; border-radius: 999px;
-    }
-    .panel.tinylm     { border-top: 2px solid var(--green); }
-    .panel.tinylm .pill { background: rgba(34,197,94,0.14); color: var(--green); }
-    .panel.tinylm .cta  { color: var(--green); }
-    .panel.byok       { border-top: 2px solid var(--accent); }
-    .panel.byok .pill { background: rgba(79,70,229,0.16); color: var(--accent); }
-    .panel.byok .cta  { color: var(--accent); }
-    .panel.roundtable { border-top: 2px solid var(--purple); }
-    .panel.roundtable .pill { background: rgba(139,92,246,0.16); color: #c4b5fd; }
-    .panel.roundtable .cta  { color: #c4b5fd; }
-    .panel.chloe      { border-top: 2px solid var(--rose); }
-    .panel.chloe .pill { background: rgba(244,63,94,0.14); color: #fda4af; }
-    .panel.chloe .cta  { color: #fda4af; }
-    .footer-tag { text-align: center; font-size: 11.5px; color: #52525b; }
-    .footer-tag code { background: rgba(255,255,255,0.06); padding: 1px 6px; border-radius: 5px; }
+    .mode-card:hover { border-color:color-mix(in srgb,var(--mode) 58%,transparent); box-shadow:0 42px 100px rgba(0,0,0,.38),0 0 60px color-mix(in srgb,var(--mode) 8%,transparent); }
+    .mode-card::before,.mode-card::after { content:""; position:absolute; z-index:-1; border:1px solid color-mix(in srgb,var(--mode) 20%,transparent); border-radius:50%; animation:dialogue-orbit 18s linear infinite; }
+    .mode-card::before { width:360px; height:360px; right:-130px; top:-140px; }
+    .mode-card::after { width:220px; height:220px; right:-34px; top:-70px; animation-direction:reverse; animation-duration:11s; }
+    @keyframes dialogue-orbit { to { transform:rotate(360deg); } }
+    .mode-top { display:flex; justify-content:space-between; align-items:center; gap:14px; }
+    .mode-number { color:var(--mode); font:700 10px/1 var(--forest-body); letter-spacing:.2em; text-transform:uppercase; }
+    .mode-badge { min-height:28px; display:inline-flex; align-items:center; padding:0 10px; border:1px solid color-mix(in srgb,var(--mode) 30%,transparent); border-radius:999px; color:var(--mode); background:color-mix(in srgb,var(--mode) 7%,transparent); font:700 9px/1 var(--forest-body); letter-spacing:.1em; text-transform:uppercase; }
+    .dialogue-visual { position:relative; flex:1; min-height:170px; display:grid; place-items:center; color:var(--mode); }
+    .dialogue-node { position:absolute; width:12px; height:12px; border:2px solid currentColor; border-radius:50%; box-shadow:0 0 18px currentColor; animation:node-breathe 3.2s ease-in-out infinite; }
+    .dialogue-node:nth-child(1){transform:translate(-72px,-34px)} .dialogue-node:nth-child(2){transform:translate(73px,-26px);animation-delay:-1s}.dialogue-node:nth-child(3){transform:translate(0,64px);animation-delay:-2s}
+    .dialogue-ribbon { width:180px; height:100px; overflow:visible; }
+    .dialogue-ribbon path { fill:none; stroke:currentColor; stroke-width:1; stroke-dasharray:5 7; animation:ribbon-run 7s linear infinite; }
+    @keyframes ribbon-run { to { stroke-dashoffset:-120; } }
+    @keyframes node-breathe { 50% { opacity:.35; box-shadow:0 0 4px currentColor; } }
+    .mode-card h2 { max-width:8ch; margin:0; font:700 clamp(36px,5vw,62px)/.88 var(--forest-display); letter-spacing:-.06em; }
+    .mode-card p { max-width:48ch; margin:20px 0 0; color:var(--forest-soft); font-size:14px; line-height:1.65; }
+    .limit-row { display:flex; flex-wrap:wrap; gap:7px; margin-top:20px; }
+    .limit { min-height:27px; display:inline-flex; align-items:center; padding:0 9px; border:1px solid rgba(213,239,215,.1); border-radius:999px; color:var(--forest-muted); font-size:9px; letter-spacing:.08em; text-transform:uppercase; }
+    .mode-cta { display:flex; align-items:center; justify-content:space-between; gap:15px; margin-top:26px; padding-top:20px; border-top:1px solid rgba(213,239,215,.09); color:var(--mode); font:700 11px/1 var(--forest-body); letter-spacing:.12em; text-transform:uppercase; }
+    .mode-cta::after { content:"↗"; font-size:20px; transition:transform .2s ease; }.mode-card:hover .mode-cta::after{transform:translate(3px,-3px)}
+    .truth-note { max-width:760px; margin:42px auto 0; color:var(--forest-muted); font-size:12px; line-height:1.7; text-align:center; }
+    @media(max-width:760px){.council-hero{min-height:62svh}.mode-grid{grid-template-columns:1fr}.mode-card{min-height:480px}}
   </style>
 </head>
-<body>
-  <div class="page">
-    <div><a href="/" class="back-link">&#8592; Forest HUB</a></div>
+<body data-forest-page="council">
+  <canvas class="forest-scene" data-forest-scene data-mode="council" aria-hidden="true"></canvas>
+  <div class="forest-scrim" aria-hidden="true"></div>
+  <nav class="forest-topbar" aria-label="Council navigation"><a class="forest-back" href="/">SDForest</a></nav>
 
-    <header>
-      <h1>&#127794; SD Forest Councils</h1>
-      <p class="tagline">Four separated deliberation panels &mdash; from tiny local models thinking out loud on Oracle silicon to Ivan&#39;s access-gated personal round table.</p>
+  <main class="forest-page">
+    <header class="council-hero">
+      <p class="forest-kicker">Two public experiments · two different tempos</p>
+      <h1 class="forest-title">Councils</h1>
+      <p class="forest-lede">A machine conversation can be slow and local, or broad and cloud-routed. Choose the conditions before you choose the question.</p>
     </header>
 
-    <div class="grid">
-      <a class="panel tinylm" href="/web/tinylm/">
-        <span class="pill">Public &middot; $0</span>
-        <span class="ico">&#127793;</span>
-        <span class="name">TinyLM Consciousness Experiment</span>
-        <span class="desc">Small open models (0.1B&ndash;3B) running on the fleet&#39;s own Oracle ARM server deliberate in sequence &mdash; proposer, analyst, critic, consciousness observer, synthesizer &mdash; streamed token by token. No fleet memory injected.</span>
-        <span class="cta">Convene the tiny council &#8599;</span>
+    <section class="mode-grid" aria-label="Public council modes">
+      <a class="mode-card" id="tinylm" style="--mode:#79f2a8" href="/web/council/tinylm/index.html" data-council-mode="tinylm">
+        <div class="mode-top"><span class="mode-number">Mode 01 · Local</span><span class="mode-badge">Public · $0</span></div>
+        <div class="dialogue-visual" aria-hidden="true">
+          <span class="dialogue-node"></span><span class="dialogue-node"></span><span class="dialogue-node"></span>
+          <svg class="dialogue-ribbon" viewBox="0 0 180 100"><path d="M18 24C66 9 70 87 91 84S122 5 163 29M17 25C52 55 73 47 90 84m73-55c-26 20-34 45-72 55"/></svg>
+        </div>
+        <h2>TinyLM Local Oracle</h2>
+        <p>Five tiny open models deliberate in sequence on Oracle ARM hardware and stream their tokens as they think. It is intentionally slow, small, and transparent—not a polished frontier-model answer.</p>
+        <div class="limit-row"><span class="limit">No fleet memory</span><span class="limit">No hidden context</span><span class="limit">5–15 minutes</span></div>
+        <span class="mode-cta">Convene locally</span>
       </a>
 
-      <a class="panel chloe" href="chloe-inner/">
-        <span class="pill">Public &middot; observe-only</span>
-        <span class="ico">&#128065;</span>
-        <span class="name">Chlo&eacute;&rsquo;s Inner Voice</span>
-        <span class="desc">Watch the inner council deliberate autonomously &mdash; tiny local models on Oracle ARM read the fleet&rsquo;s Kanban board every few minutes and synthesize a verdict. No input needed: just start and observe.</span>
-        <span class="cta">Watch the inner council &#8599;</span>
+      <a class="mode-card" style="--mode:#73e9ff" href="/web/council/byok/index.html" data-council-mode="openrouter">
+        <div class="mode-top"><span class="mode-number">Mode 02 · Routed</span><span class="mode-badge">Public · free models</span></div>
+        <div class="dialogue-visual" aria-hidden="true">
+          <span class="dialogue-node"></span><span class="dialogue-node"></span><span class="dialogue-node"></span>
+          <svg class="dialogue-ribbon" viewBox="0 0 180 100"><path d="M18 24C66 9 70 87 91 84S122 5 163 29M17 25C52 55 73 47 90 84m73-55c-26 20-34 45-72 55"/></svg>
+        </div>
+        <h2>OpenRouter Free</h2>
+        <p>A proposer, critic, and chairman use free-tier OpenRouter models across one to five rounds. The public relay works without setup, with an optional bring-your-own-key mode in the browser.</p>
+        <div class="limit-row"><span class="limit">No memory</span><span class="limit">No delegation</span><span class="limit">Free-tier queues vary</span></div>
+        <span class="mode-cta">Start deliberation</span>
       </a>
+    </section>
 
-      <a class="panel byok" href="byok/">
-        <span class="pill">Public &middot; $0</span>
-        <span class="ico">&#9878;&#65039;</span>
-        <span class="name">Open Round Table</span>
-        <span class="desc">A heterogeneous panel of free OpenRouter models &mdash; Proposer &rarr; Critic &rarr; Chairman across 1&ndash;5 rounds. Powered by Ivan&rsquo;s OR key via soul-server relay by default &mdash; no key needed. Toggle to use your own key.</span>
-        <span class="cta">Start a deliberation &#8599;</span>
-      </a>
-
-      <a class="panel roundtable" href="roundtable/">
-        <span class="pill">&#128274; Private</span>
-        <span class="ico">&#127919;</span>
-        <span class="name">Personal Round Table</span>
-        <span class="desc">Ivan&#39;s private council: free-model panel with live web grounding and fleet delegation &mdash; a sub-question can be handed to Chlo&eacute; mid-deliberation and her grounded answer folded into the synthesis. 4-digit code required.</span>
-        <span class="cta">Enter the round table &#8599;</span>
-      </a>
-    </div>
-
-    <p class="footer-tag">
-      <strong>Public</strong>: TinyLM, Chloe&rsquo;s inner voice, and the Open Round Table are open to anyone &mdash;
-      none touch private fleet memory &middot;
-      <strong>&#128274; Private</strong>: the Personal Round Table reads fleet state and private memory &mdash;
-      access-gated with a 4-digit code.
-    </p>
-  </div>
+    <p class="truth-note">Both modes are public and deliberately isolated from private fleet context. Their outputs can be useful, surprising, or wrong; they are experiments in deliberation, not authorities.</p>
+  </main>
+  <script src="/web/shared/forest-motion.js?v=20260713"></script>
 </body>
 </html>

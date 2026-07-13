@@ -1,233 +1,107 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Replicator Void</title>
-    <style>
-      :root {
-        color-scheme: dark;
-        --bg: #020308;
-        --panel: rgba(7, 11, 18, 0.82);
-        --panel-strong: rgba(10, 16, 25, 0.96);
-        --line: rgba(135, 244, 255, 0.24);
-        --text: #d8f8ff;
-        --muted: #7d9aa2;
-        --accent: #58f2ff;
-        --danger: #ff4f78;
-        --good: #73ff9b;
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="description" content="Replicator Void — an experimental interactive ecosystem of feeding, mutating, dividing organisms.">
+  <meta name="theme-color" content="#020608">
+  <title>Replicator Void — Experimental</title>
+  <style>
+    :root { color-scheme:dark; --cyan:#51ebff; --green:#79f2a8; --ink:#eafcff; --muted:#7f9da3; --panel:rgba(3,11,13,.78); --line:rgba(81,235,255,.2); }
+    *{box-sizing:border-box} html,body{width:100%;height:100%;margin:0;overflow:hidden;background:#020608;color:var(--ink);font-family:Inter,"Segoe UI",system-ui,sans-serif}
+    #world{position:fixed;inset:0;width:100%;height:100%;display:block;cursor:crosshair;background:radial-gradient(circle at 50% 45%,#07161a,#020608 65%)}
+    .void-scrim{position:fixed;inset:0;pointer-events:none;background:radial-gradient(circle at 50% 50%,transparent 35%,rgba(2,6,8,.54) 110%)}
+    .topbar{position:fixed;z-index:5;top:max(14px,env(safe-area-inset-top));left:14px;right:14px;display:flex;justify-content:space-between;gap:12px;pointer-events:none}
+    .back,.badge{min-height:42px;display:inline-flex;align-items:center;padding:0 14px;border:1px solid var(--line);border-radius:999px;background:var(--panel);backdrop-filter:blur(14px);font-size:10px;font-weight:750;letter-spacing:.12em;text-transform:uppercase}
+    .back{color:var(--ink);text-decoration:none;pointer-events:auto}.back:hover{border-color:var(--cyan)}.badge{color:var(--cyan)}
+    .intro{position:fixed;z-index:4;top:78px;left:clamp(16px,4vw,54px);max-width:500px;pointer-events:none}
+    .intro p{margin:0 0 8px;color:var(--cyan);font-size:9px;font-weight:750;letter-spacing:.2em;text-transform:uppercase}.intro h1{margin:0;font-size:clamp(38px,6vw,82px);line-height:.82;letter-spacing:-.07em}.intro .lede{max-width:38ch;margin:17px 0 0;color:var(--muted);font-size:12px;line-height:1.6;letter-spacing:0;text-transform:none}
+    .hud{position:fixed;z-index:6;left:14px;right:14px;bottom:max(14px,env(safe-area-inset-bottom));display:grid;grid-template-columns:minmax(260px,430px) 1fr auto;align-items:end;gap:12px;pointer-events:none}
+    .panel{border:1px solid var(--line);border-radius:18px;background:var(--panel);box-shadow:0 24px 70px rgba(0,0,0,.35);backdrop-filter:blur(18px);pointer-events:auto}
+    .stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1px;padding:8px}.stat{padding:10px;border-radius:11px;background:rgba(255,255,255,.025)}.stat span{display:block;color:var(--muted);font-size:8px;letter-spacing:.1em;text-transform:uppercase}.stat strong{display:block;margin-top:6px;color:var(--cyan);font:650 17px/1 ui-monospace,monospace}
+    .status{justify-self:center;padding:13px 16px;color:var(--green);font-size:10px;letter-spacing:.1em;text-transform:uppercase}
+    .controls{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:7px;padding:8px}button{min-height:42px;padding:0 13px;border:1px solid rgba(81,235,255,.22);border-radius:11px;background:rgba(8,25,29,.9);color:var(--ink);font:700 9px/1 inherit;letter-spacing:.09em;text-transform:uppercase;cursor:pointer}button:hover{border-color:var(--cyan);background:rgba(81,235,255,.1)}button:focus-visible,.back:focus-visible{outline:3px solid var(--cyan);outline-offset:3px}
+    .hint{position:fixed;z-index:4;right:18px;top:82px;max-width:210px;color:rgba(127,157,163,.8);font-size:10px;line-height:1.6;text-align:right;pointer-events:none}.hint strong{color:var(--cyan)}
+    @media(max-width:780px){.intro{top:72px;max-width:330px}.intro .lede{display:none}.hint{top:auto;bottom:176px}.hud{grid-template-columns:1fr;gap:7px}.status{display:none}.controls{justify-content:stretch}.controls button{flex:1}.stats{grid-template-columns:repeat(4,1fr)}.stat{padding:8px 6px}.stat strong{font-size:14px}.badge{display:none}}
+    @media(prefers-reduced-motion:reduce){#world{opacity:.7}}
+  </style>
+</head>
+<body>
+  <canvas id="world" aria-label="Interactive replicator ecosystem"></canvas>
+  <div class="void-scrim" aria-hidden="true"></div>
+  <nav class="topbar" aria-label="Simulation navigation"><a class="back" href="/">↙ SDForest</a><span class="badge">Experimental · native simulation</span></nav>
+  <header class="intro"><p>Artificial life study 01</p><h1>Replicator<br>Void</h1><p class="lede">Organisms seek light, consume it, mutate, divide, and disappear. Your pointer bends their field; a click leaves food behind.</p></header>
+  <p class="hint"><strong>Move</strong> to attract · <strong>click</strong> to feed · newborn color and speed drift across generations.</p>
+  <section class="hud" aria-label="Simulation controls and statistics">
+    <div class="panel stats" aria-live="polite"><div class="stat"><span>Population</span><strong id="population">0</strong></div><div class="stat"><span>Generation</span><strong id="generation">0</strong></div><div class="stat"><span>Food</span><strong id="food-count">0</strong></div><div class="stat"><span>Age</span><strong id="age">0s</strong></div></div>
+    <div class="panel status" id="status" role="status">Void awake</div>
+    <div class="panel controls"><button id="pause" type="button">Pause</button><button id="bloom" type="button">Bloom</button><button id="pulse" type="button">Cull pulse</button><button id="restart" type="button">Restart</button></div>
+  </section>
+  <script>
+    (() => {
+      const canvas = document.getElementById('world');
+      const ctx = canvas.getContext('2d', { alpha:false });
+      const reduced = matchMedia('(prefers-reduced-motion: reduce)');
+      const ui = { population:document.getElementById('population'), generation:document.getElementById('generation'), food:document.getElementById('food-count'), age:document.getElementById('age'), status:document.getElementById('status'), pause:document.getElementById('pause') };
+      const pointer = { x:0, y:0, active:false };
+      let width=0,height=0,dpr=1,last=performance.now(),started=last,paused=false,frame=0;
+      let organisms=[],food=[];
+      let seed=0x5df07e57;
+      const random=()=>{ seed|=0; seed=seed+0x6D2B79F5|0; let t=seed; t=Math.imul(t^t>>>15,t|1); t^=t+Math.imul(t^t>>>7,t|61); return ((t^t>>>14)>>>0)/4294967296; };
+      const clamp=(v,a,b)=>Math.min(b,Math.max(a,v));
+
+      function resize(){ dpr=Math.min(devicePixelRatio||1,1.5); width=innerWidth;height=innerHeight;canvas.width=Math.round(width*dpr);canvas.height=Math.round(height*dpr);ctx.setTransform(dpr,0,0,dpr,0,0); }
+      function addFood(x=random()*width,y=random()*height,count=1){ for(let i=0;i<count;i++) food.push({x:x+(random()-.5)*60,y:y+(random()-.5)*60,pulse:random()*Math.PI*2,value:10+random()*10}); }
+      function makeOrganism(x,y,parent){
+        const angle=random()*Math.PI*2;
+        return { x,y,vx:Math.cos(angle),vy:Math.sin(angle),energy:parent?parent.energy*.42:46+random()*30,size:parent?clamp(parent.size+(random()-.5)*.7,2.4,7):3+random()*3,hue:parent?(parent.hue+(random()-.5)*24+360)%360:165+random()*80,speed:parent?clamp(parent.speed+(random()-.5)*.08,.34,1.2):.45+random()*.5,age:0,generation:parent?parent.generation+1:1,phase:random()*Math.PI*2 };
       }
+      function reset(){ seed=0x5df07e57; organisms=[];food=[];started=performance.now();for(let i=0;i<18;i++)organisms.push(makeOrganism(width*(.25+random()*.5),height*(.25+random()*.5)));addFood(width/2,height/2,90);paused=false;ui.pause.textContent='Pause';ui.status.textContent='Void awake'; }
 
-      * { box-sizing: border-box; }
-      html, body, #game-root { width: 100%; height: 100%; margin: 0; overflow: hidden; }
-      body {
-        background: var(--bg);
-        color: var(--text);
-        font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      }
-
-      #game-root { position: relative; }
-      #pixi-stage { position: absolute; inset: 0; background: radial-gradient(circle at center, #07101a 0%, #020308 64%); }
-      #pixi-stage canvas { display: block; width: 100%; height: 100%; }
-
-      .hud {
-        position: absolute;
-        inset: 14px;
-        pointer-events: none;
-        display: grid;
-        grid-template-columns: minmax(260px, 420px) 1fr minmax(190px, 280px);
-        grid-template-rows: auto 1fr auto;
-        gap: 10px;
-      }
-
-      .panel {
-        pointer-events: auto;
-        background: var(--panel);
-        border: 1px solid var(--line);
-        border-radius: 8px;
-        box-shadow: 0 18px 40px rgba(0, 0, 0, 0.28);
-        backdrop-filter: blur(8px);
-      }
-
-      #hud-stats {
-        grid-column: 1 / 2;
-        display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 6px 12px;
-        padding: 10px;
-        font-size: 12px;
-        line-height: 1.1;
-        letter-spacing: 0;
-      }
-
-      #hud-stats span, #hud-traits span {
-        color: var(--muted);
-        white-space: nowrap;
-      }
-
-      #hud-traits {
-        grid-column: 3 / 4;
-        justify-self: end;
-        display: grid;
-        gap: 5px;
-        padding: 10px 12px;
-        font-size: 12px;
-      }
-
-      .actions {
-        grid-column: 1 / 2;
-        grid-row: 3 / 4;
-        display: flex;
-        flex-wrap: wrap;
-        gap: 8px;
-        align-self: end;
-      }
-
-      button {
-        min-height: 34px;
-        border: 1px solid rgba(88, 242, 255, 0.34);
-        border-radius: 7px;
-        color: var(--text);
-        background: rgba(16, 30, 42, 0.92);
-        padding: 0 12px;
-        font: inherit;
-        font-size: 12px;
-        cursor: pointer;
-      }
-
-      button:hover { border-color: var(--accent); background: rgba(18, 46, 62, 0.98); }
-
-      .control-link {
-        min-height: 34px;
-        display: inline-flex;
-        align-items: center;
-        border: 1px solid rgba(88, 242, 255, 0.34);
-        border-radius: 7px;
-        color: var(--text);
-        background: rgba(16, 30, 42, 0.92);
-        padding: 0 12px;
-        font-size: 12px;
-        text-decoration: none;
-      }
-
-      .control-link:hover { border-color: var(--accent); background: rgba(18, 46, 62, 0.98); }
-
-      #hud-status {
-        grid-column: 2 / 3;
-        grid-row: 3 / 4;
-        justify-self: center;
-        align-self: end;
-        padding: 8px 12px;
-        color: var(--good);
-        font-size: 12px;
-      }
-
-      .modal {
-        position: absolute;
-        inset: 0;
-        display: none;
-        align-items: center;
-        justify-content: center;
-        background: rgba(0, 0, 0, 0.3);
-      }
-
-      .modal.open { display: flex; }
-      .modal-card {
-        width: min(560px, calc(100vw - 28px));
-        background: var(--panel-strong);
-        border: 1px solid var(--line);
-        border-radius: 8px;
-        padding: 18px;
-        box-shadow: 0 28px 80px rgba(0, 0, 0, 0.5);
-      }
-
-      .modal-card h1 {
-        margin: 0 0 14px;
-        font-size: 18px;
-        font-weight: 650;
-        letter-spacing: 0;
-      }
-
-      .modal-card p {
-        margin: 0 0 14px;
-        color: var(--muted);
-        font-size: 14px;
-        line-height: 1.5;
-      }
-
-      .trait-grid {
-        display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 10px;
-      }
-
-      .trait-upgrade {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        min-height: 46px;
-      }
-
-      .trait-upgrade b { color: var(--accent); font-weight: 600; }
-      .modal-actions { display: flex; justify-content: flex-end; margin-top: 14px; }
-
-      #toast, #error-slot {
-        position: absolute;
-        right: 14px;
-        bottom: 14px;
-        max-width: min(420px, calc(100vw - 28px));
-        display: none;
-        padding: 10px 12px;
-        font-size: 12px;
-      }
-
-      #toast.visible, #error-slot.visible { display: block; }
-      #error-slot { color: var(--danger); }
-
-      @media (max-width: 760px) {
-        .hud {
-          inset: 8px;
-          grid-template-columns: 1fr;
-          grid-template-rows: auto auto 1fr auto auto;
+      function update(dt){
+        if(food.length<75&&random()<dt*.035)addFood(random()*width,random()*height,2);
+        const children=[];
+        for(const organism of organisms){
+          organism.age+=dt;organism.energy-=dt*(.8+organism.size*.08);
+          let target=null,best=Infinity;
+          for(const particle of food){const dx=particle.x-organism.x,dy=particle.y-organism.y,d=dx*dx+dy*dy;if(d<best){best=d;target=particle;}}
+          if(target){const dx=target.x-organism.x,dy=target.y-organism.y,d=Math.sqrt(best)||1;organism.vx+=dx/d*.018;organism.vy+=dy/d*.018;}
+          if(pointer.active){const dx=pointer.x-organism.x,dy=pointer.y-organism.y,d=Math.hypot(dx,dy)||1;if(d<280){const pull=(1-d/280)*.016;organism.vx+=dx/d*pull;organism.vy+=dy/d*pull;}}
+          organism.vx+=Math.cos(organism.phase+organism.age*.7)*.003;organism.vy+=Math.sin(organism.phase+organism.age*.63)*.003;
+          const speed=Math.hypot(organism.vx,organism.vy)||1,max=organism.speed;if(speed>max){organism.vx=organism.vx/speed*max;organism.vy=organism.vy/speed*max;}
+          organism.x+=organism.vx*dt*34;organism.y+=organism.vy*dt*34;
+          if(organism.x<0)organism.x+=width;if(organism.x>width)organism.x-=width;if(organism.y<0)organism.y+=height;if(organism.y>height)organism.y-=height;
+          for(let i=food.length-1;i>=0;i--){const p=food[i];if(Math.hypot(p.x-organism.x,p.y-organism.y)<organism.size+4){organism.energy+=p.value;food.splice(i,1);break;}}
+          if(organism.energy>88&&organisms.length+children.length<150){organism.energy*=.52;children.push(makeOrganism(organism.x+(random()-.5)*12,organism.y+(random()-.5)*12,organism));}
         }
-        #hud-stats, #hud-traits, #hud-status, .actions {
-          grid-column: 1 / 2;
-          justify-self: stretch;
-        }
-        #hud-traits { grid-row: 2 / 3; grid-template-columns: repeat(2, 1fr); }
-        #hud-status { grid-row: 4 / 5; }
-        .actions { grid-row: 5 / 6; }
-        .trait-grid { grid-template-columns: 1fr; }
+        organisms=organisms.filter(o=>o.energy>0&&o.age<155);organisms.push(...children);
+        if(!organisms.length){for(let i=0;i<7;i++)organisms.push(makeOrganism(width/2+(random()-.5)*80,height/2+(random()-.5)*80));ui.status.textContent='Spontaneous reseed';}
       }
-    </style>
-    <script type="module" crossorigin src="./assets/index-fWcu6nyk.js"></script>
-  </head>
-  <body>
-    <main id="game-root">
-      <div id="pixi-stage" aria-label="Replicator Void simulation stage"></div>
 
-      <section class="hud" aria-label="Game HUD">
-        <div id="hud-stats" class="panel"></div>
-        <div id="hud-traits" class="panel"></div>
-        <div id="hud-status" class="panel">Starting void</div>
-        <div class="actions">
-          <a class="control-link" href="/" title="Return to Forest HUB">Forest</a>
-          <button id="btn-pause" title="Pause or resume simulation">Pause</button>
-          <button id="btn-bloom" title="Spend 2 tokens to accelerate replication">Bloom (B)</button>
-          <button id="btn-pulse" title="Spend 2 tokens to pressure weak strains">Pulse (V)</button>
-          <button id="btn-restart" title="Restart simulation">Restart (R)</button>
-        </div>
-      </section>
+      function draw(time){
+        ctx.fillStyle='rgba(2,6,8,.22)';ctx.fillRect(0,0,width,height);ctx.globalCompositeOperation='lighter';
+        for(const p of food){p.pulse+=.045;const r=1.1+Math.sin(p.pulse)*.45;ctx.beginPath();ctx.arc(p.x,p.y,r,0,Math.PI*2);ctx.fillStyle='rgba(121,242,168,.48)';ctx.fill();}
+        for(const o of organisms){
+          const tail=10+o.speed*8;ctx.beginPath();ctx.moveTo(o.x-o.vx*tail,o.y-o.vy*tail);ctx.lineTo(o.x,o.y);ctx.strokeStyle=`hsla(${o.hue},90%,66%,.24)`;ctx.lineWidth=o.size*.55;ctx.stroke();
+          const glow=ctx.createRadialGradient(o.x,o.y,0,o.x,o.y,o.size*3.6);glow.addColorStop(0,`hsla(${o.hue},95%,75%,.9)`);glow.addColorStop(.25,`hsla(${o.hue},90%,60%,.5)`);glow.addColorStop(1,`hsla(${o.hue},90%,45%,0)`);ctx.fillStyle=glow;ctx.beginPath();ctx.arc(o.x,o.y,o.size*3.6,0,Math.PI*2);ctx.fill();
+          ctx.fillStyle=`hsl(${o.hue} 94% 72%)`;ctx.beginPath();ctx.arc(o.x,o.y,o.size,0,Math.PI*2);ctx.fill();
+        }
+        ctx.globalCompositeOperation='source-over';
+        if(pointer.active){ctx.beginPath();ctx.arc(pointer.x,pointer.y,18+Math.sin(time*.004)*4,0,Math.PI*2);ctx.strokeStyle='rgba(81,235,255,.24)';ctx.stroke();}
+      }
 
-      <section id="upgrade-modal" class="modal" aria-modal="true">
-        <div class="modal-card">
-          <h1 id="modal-title">Evolution Gate</h1>
-          <div id="modal-body"></div>
-        </div>
-      </section>
+      function updateUi(now){if(frame%12)return;ui.population.textContent=organisms.length;ui.generation.textContent=Math.max(0,...organisms.map(o=>o.generation));ui.food.textContent=food.length;ui.age.textContent=`${Math.floor((now-started)/1000)}s`;}
+      function loop(now){requestAnimationFrame(loop);const dt=Math.min(.04,(now-last)/1000);last=now;if(document.hidden||paused)return;if(!reduced.matches||frame%3===0)update(dt);draw(now);updateUi(now);frame++;}
 
-      <div id="toast" class="panel" role="status"></div>
-      <div id="error-slot" class="panel" role="alert"></div>
-    </main>
-  </body>
+      canvas.addEventListener('pointermove',e=>{pointer.x=e.clientX;pointer.y=e.clientY;pointer.active=true},{passive:true});
+      canvas.addEventListener('pointerleave',()=>pointer.active=false);
+      canvas.addEventListener('pointerdown',e=>{addFood(e.clientX,e.clientY,16);ui.status.textContent='Nutrient bloom';});
+      document.getElementById('pause').addEventListener('click',()=>{paused=!paused;ui.pause.textContent=paused?'Resume':'Pause';ui.status.textContent=paused?'Time suspended':'Void awake';});
+      document.getElementById('bloom').addEventListener('click',()=>{addFood(width/2,height/2,55);ui.status.textContent='Bloom released';});
+      document.getElementById('pulse').addEventListener('click',()=>{organisms.sort((a,b)=>b.energy-a.energy);organisms=organisms.slice(0,Math.max(4,Math.ceil(organisms.length*.62)));ui.status.textContent='Selection pulse';});
+      document.getElementById('restart').addEventListener('click',reset);
+      addEventListener('resize',resize,{passive:true});resize();reset();ctx.fillStyle='#020608';ctx.fillRect(0,0,width,height);requestAnimationFrame(loop);
+    })();
+  </script>
+</body>
 </html>

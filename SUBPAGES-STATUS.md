@@ -148,14 +148,13 @@ Ran a continuous improvement pass across all active subpages. Below is the per-p
 |------|-------|
 | A1111 Debug | Local-only, requires AUTOMATIC1111 |
 | Runware Icon Gen | Not linked from hub — Ivan's decision |
-| Voice2Voice Buddy | External, separate Vercel deploy |
 
 ---
 
 ## Site-wide Changes
 
-- Hub footer with counts
-- Hub meta description
+- Dark interactive landing and scroll-assembled portal dashboard
+- Truthful project status labels and route map
 - Back-to-hub links: all active subpages have them
 - `/` keyboard shortcut: LLM Platforms + AI Glossary
 - Calendar Generator card added to hub grid (was missing)

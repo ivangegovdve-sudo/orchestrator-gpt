@@ -1,845 +1,344 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="Forest HUB — interactive projects, tools, and experiments. Life in Time calculator, AI glossary & platforms library, periodic table, Kids Corner, LLM Councils, TinyLM consciousness experiment, Women's Health OS, Manifesto for a Newborn, and more." />
-  <meta property="og:title" content="Forest HUB" />
-  <meta property="og:description" content="Projects, tools, and experiments — built in the forest. 14 projects · 165 AI platforms · 527 glossary terms." />
-  <meta property="og:type" content="website" />
-  <meta name="theme-color" content="#07070b" />
-  <title>Forest HUB</title>
-
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
-
-  <style>
-    /* ─────────────────────────────────────────────
-       Forest HUB — design tokens
-       Cosmic dark surface, per-project accent system.
-       Redesign: impeccable + taste-skill craft pass.
-    ───────────────────────────────────────────── */
-    :root {
-      --bg:        #07070b;
-      --surface:   rgba(17,17,23,0.72);
-      --surface-2: rgba(22,22,30,0.55);
-      --text:      #f4f5f7;
-      --text-soft: #c4c8d2;
-      --muted:     #8a90a0;
-      --faint:     #565d6e;
-      --hairline:  rgba(255,255,255,0.08);
-      --hairline-strong: rgba(255,255,255,0.16);
-
-      --accent:    #4f46e5;
-      --accent-2:  #b69bff;
-      --accent-3:  #5eead4;
-
-      --display: "Space Grotesk", "Segoe UI", system-ui, sans-serif;
-      --body:    "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
-
-      --gut: clamp(16px, 4vw, 26px);
-      --maxw: 1140px;
-
-      --ease-out: cubic-bezier(.16, 1, .3, 1);
-      --ease-spring: cubic-bezier(.34, 1.56, .64, 1);
-    }
-
-    *, *::before, *::after { box-sizing: border-box; }
-    html { -webkit-text-size-adjust: 100%; }
-
-    body {
-      margin: 0;
-      min-height: 100vh;
-      background-color: var(--bg);
-      background-image:
-        radial-gradient(900px circle at 12% 8%, rgba(79,70,229,.07), transparent 55%),
-        radial-gradient(820px circle at 88% 14%, rgba(182,155,255,.07), transparent 55%),
-        radial-gradient(900px circle at 50% 100%, rgba(94,234,212,.05), transparent 55%);
-      color: var(--text);
-      font-family: var(--body);
-      -webkit-font-smoothing: antialiased;
-      text-rendering: optimizeLegibility;
-      padding: clamp(28px, 5vw, 56px) var(--gut) 96px;
-      overflow-x: hidden;
-    }
-
-    /* ── Global plexus background layer (behind everything) ── */
-    #bg-plexus {
-      position: fixed;
-      inset: 0;
-      width: 100%;
-      height: 100%;
-      z-index: 0;
-      opacity: .55;
-      pointer-events: none;
-    }
-    /* readability scrim */
-    body::after {
-      content: '';
-      position: fixed;
-      inset: 0;
-      z-index: 0;
-      pointer-events: none;
-      background: radial-gradient(120% 90% at 50% 30%, transparent 40%, rgba(7,7,11,.55) 100%);
-    }
-
-    .page {
-      position: relative;
-      z-index: 1;
-      max-width: var(--maxw);
-      margin: 0 auto;
-      display: flex;
-      flex-direction: column;
-      gap: clamp(40px, 7vw, 64px);
-      animation: pageIn .8s var(--ease-out) both;
-    }
-    @keyframes pageIn {
-      from { opacity: 0; transform: translateY(10px); }
-      to   { opacity: 1; transform: none; }
-    }
-
-    /* ── Hero ── */
-    .hero {
-      position: relative;
-      text-align: center;
-      padding: clamp(48px, 9vw, 96px) 0 clamp(36px, 6vw, 60px);
-    }
-    .orbit-ring {
-      position: absolute;
-      top: 46%; left: 50%;
-      border-radius: 50%;
-      border: 1px solid rgba(255,255,255,.045);
-      animation: spin linear infinite;
-      pointer-events: none;
-    }
-    .orbit-ring.r1 { width: 240px; height: 240px; margin: -120px 0 0 -120px; animation-duration: 34s; }
-    .orbit-ring.r2 { width: 420px; height: 420px; margin: -210px 0 0 -210px; animation-duration: 52s; animation-direction: reverse; }
-    .orbit-ring.r3 { width: 640px; height: 640px; margin: -320px 0 0 -320px; animation-duration: 78s; border-color: rgba(255,255,255,.03); }
-    @keyframes spin { to { transform: rotate(360deg); } }
-
-    .eyebrow {
-      position: relative;
-      display: inline-flex; align-items: center; gap: 9px;
-      font-size: 11px; letter-spacing: .22em; text-transform: uppercase;
-      color: var(--muted); font-weight: 600;
-      margin: 0 0 22px;
-    }
-    .eyebrow::before {
-      content: '';
-      width: 6px; height: 6px; border-radius: 50%;
-      background: var(--accent-3);
-      box-shadow: 0 0 10px var(--accent-3);
-      animation: livePulse 2.4s ease-in-out infinite;
-    }
-    @keyframes livePulse { 0%,100% { opacity: .5; } 50% { opacity: 1; } }
-
-    h1.wordmark {
-      position: relative; margin: 0;
-      font-family: var(--display); font-weight: 700;
-      font-size: clamp(44px, 11vw, 104px);
-      line-height: .94; letter-spacing: -0.04em;
-      color: var(--text);
-    }
-    h1.wordmark .leaf { color: var(--accent-3); }
-
-    .hero-sub {
-      position: relative;
-      margin: 22px auto 0; max-width: 30ch;
-      color: var(--text-soft);
-      font-size: clamp(15px, 2.4vw, 19px); line-height: 1.55; font-weight: 400;
-    }
-
-    .hero-stats {
-      position: relative;
-      margin: 30px auto 0;
-      display: inline-flex; flex-wrap: wrap; align-items: center; justify-content: center;
-      padding: 10px 6px;
-      border: 1px solid var(--hairline); border-radius: 99px;
-      background: var(--surface-2);
-      backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
-    }
-    .hero-stats .stat { display: inline-flex; flex-direction: column; align-items: center; padding: 2px 20px; }
-    .hero-stats .stat + .stat { border-left: 1px solid var(--hairline); }
-    .hero-stats .num {
-      font-family: var(--display); font-weight: 600; font-size: 18px;
-      letter-spacing: -.02em; color: var(--text);
-    }
-    .hero-stats .lbl { font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); margin-top: 2px; }
-
-    /* ── Section heading ── */
-    .section-head { display: flex; align-items: baseline; gap: 14px; margin-bottom: -14px; }
-    .section-head h2 {
-      margin: 0; font-family: var(--display); font-size: 13px; font-weight: 600;
-      letter-spacing: .18em; text-transform: uppercase; color: var(--text-soft);
-    }
-    .section-head .rule { flex: 1; height: 1px; background: linear-gradient(90deg, var(--hairline), transparent); }
-    .section-head .count { font-size: 12px; color: var(--faint); font-variant-numeric: tabular-nums; }
-
-    /* ── Hub grid ── */
-    .hub-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(252px, 1fr));
-      gap: 18px;
-    }
-
-    /* ── Card ── */
-    .hub-card {
-      position: relative;
-      display: flex; flex-direction: column; align-items: center; text-align: center;
-      text-decoration: none; color: var(--text);
-      border-radius: 22px;
-      border: 1px solid var(--hairline);
-      background: var(--surface);
-      backdrop-filter: blur(16px) saturate(115%);
-      -webkit-backdrop-filter: blur(16px) saturate(115%);
-      padding: 40px 24px 30px;
-      overflow: hidden; cursor: pointer;
-      transform: perspective(900px) rotateX(0) rotateY(0) scale(1);
-      transition: transform .16s var(--ease-out), box-shadow .35s ease, border-color .35s ease;
-      will-change: transform;
-      opacity: 0;
-      animation: cardIn .6s var(--ease-out) both;
-      box-shadow: inset 0 1px 0 rgba(255,255,255,.05), 0 18px 40px -22px rgba(0,0,0,.9);
-    }
-    .hub-card:nth-child(1){animation-delay:.05s}
-    .hub-card:nth-child(2){animation-delay:.10s}
-    .hub-card:nth-child(3){animation-delay:.15s}
-    .hub-card:nth-child(4){animation-delay:.20s}
-    .hub-card:nth-child(5){animation-delay:.25s}
-    .hub-card:nth-child(6){animation-delay:.30s}
-    .hub-card:nth-child(7){animation-delay:.35s}
-    .hub-card:nth-child(8){animation-delay:.40s}
-    .hub-card:nth-child(9){animation-delay:.45s}
-    .hub-card:nth-child(10){animation-delay:.50s}
-    .hub-card:nth-child(11){animation-delay:.55s}
-    .hub-card:nth-child(12){animation-delay:.60s}
-    .hub-card:nth-child(13){animation-delay:.65s}
-    .hub-card:nth-child(14){animation-delay:.70s}
-    @keyframes cardIn {
-      from { opacity: 0; transform: perspective(900px) translateY(20px) scale(.96); }
-      to   { opacity: 1; transform: perspective(900px) translateY(0) scale(1); }
-    }
-
-    .hub-card::before {
-      content: '';
-      position: absolute; inset: 0; border-radius: inherit;
-      background: radial-gradient(420px circle at var(--mx,50%) var(--my,50%), rgba(255,255,255,.06), transparent 50%);
-      opacity: 0; transition: opacity .3s; pointer-events: none; z-index: 0;
-    }
-    .hub-card:hover::before { opacity: 1; }
-
-    .hub-card::after {
-      content: '';
-      position: absolute; top: -26px; left: 50%;
-      width: 120px; height: 120px; transform: translateX(-50%);
-      border-radius: 50%;
-      background: radial-gradient(circle, var(--c, rgba(79,70,229,.5)) 0%, transparent 70%);
-      opacity: .18;
-      transition: width .6s var(--ease-out), height .6s var(--ease-out), opacity .6s ease, top .6s ease;
-      pointer-events: none; z-index: 0;
-    }
-    .hub-card:hover::after, .hub-card.open::after { width: 360px; height: 360px; top: -64px; opacity: .13; }
-
-    .hub-card:hover {
-      border-color: var(--hairline-strong);
-      box-shadow:
-        inset 0 1px 0 rgba(255,255,255,.08),
-        0 26px 60px -16px rgba(0,0,0,.85),
-        0 0 52px var(--c, rgba(79,70,229,.16));
-    }
-
-    .hub-icon-ring {
-      position: relative; z-index: 2;
-      width: 86px; height: 86px;
-      display: flex; align-items: center; justify-content: center;
-      border-radius: 50%;
-      background: rgba(255,255,255,.035);
-      border: 1px solid var(--hairline);
-      margin-bottom: 20px;
-      transition: box-shadow .4s ease, background .4s ease, border-color .4s ease,
-                  transform .45s var(--ease-spring);
-    }
-    .hub-card:hover .hub-icon-ring {
-      box-shadow: 0 0 34px var(--c, rgba(79,70,229,.4));
-      background: rgba(255,255,255,.06);
-      border-color: var(--hairline-strong);
-      transform: scale(1.08) translateY(-3px);
-    }
-
-    .hub-icon {
-      font-size: 42px; line-height: 1; display: block;
-      filter: drop-shadow(0 3px 10px rgba(0,0,0,.55));
-      animation: floatIcon 6s ease-in-out infinite;
-      animation-delay: var(--icon-delay, 0s);
-    }
-    .hub-card:hover .hub-icon { animation-play-state: paused; }
-    @keyframes floatIcon {
-      0%,100% { transform: translateY(0) rotate(0); }
-      33%     { transform: translateY(-5px) rotate(-2deg); }
-      66%     { transform: translateY(-2px) rotate(2deg); }
-    }
-
-    .hub-name {
-      font-family: var(--display);
-      font-size: 17px; font-weight: 600; letter-spacing: -.01em;
-      position: relative; z-index: 2; margin-bottom: 8px;
-      transition: color .2s;
-    }
-    .hub-card:hover .hub-name { color: #fff; }
-
-    .hub-pill {
-      font-size: 10px; padding: 3px 11px; border-radius: 99px;
-      background: rgba(255,255,255,.05); border: 1px solid var(--hairline);
-      color: var(--muted); text-transform: uppercase; letter-spacing: .08em; font-weight: 600;
-      position: relative; z-index: 2; margin-bottom: 18px;
-      transition: background .25s, border-color .25s, color .25s;
-    }
-    .hub-card:hover .hub-pill {
-      background: var(--cp, rgba(79,70,229,.12));
-      border-color: var(--c, rgba(79,70,229,.4));
-      color: var(--ct, var(--accent));
-    }
-
-    .hub-desc-box {
-      position: relative; z-index: 2; overflow: hidden;
-      max-height: 0; opacity: 0; width: 100%;
-      transition: max-height .5s var(--ease-out), opacity .3s ease .05s;
-    }
-    .hub-card:hover .hub-desc-box, .hub-card.open .hub-desc-box { max-height: 200px; opacity: 1; }
-
-    .hub-desc { font-size: 13px; line-height: 1.66; color: var(--text-soft); margin: 0 0 16px; }
-
-    .hub-cta {
-      display: inline-flex; align-items: center; gap: 5px;
-      font-size: 12px; font-weight: 700; letter-spacing: .04em;
-      color: var(--ct, var(--accent));
-      padding: 8px 18px; border-radius: 99px;
-      background: var(--cp, rgba(79,70,229,.1));
-      border: 1px solid var(--c, rgba(79,70,229,.3));
-      transition: transform .2s; pointer-events: none;
-    }
-    .hub-card:hover .hub-cta { transform: translateY(-1px); }
-
-    .hub-card:focus-visible { outline: 2px solid var(--ct, var(--accent)); outline-offset: 4px; }
-
-    /* ── About ── */
-    .about-body {
-      margin-top: 26px; max-width: 62ch;
-      color: var(--text-soft); font-size: 14.5px; line-height: 1.75;
-    }
-    .about-body p { margin: 0 0 14px; }
-    .about-body a { color: var(--accent); text-decoration: none; }
-    .about-body a:hover { text-decoration: underline; }
-    .about-body code {
-      font-size: 13px; padding: 1px 6px; border-radius: 6px;
-      background: rgba(255,255,255,.06); border: 1px solid var(--hairline);
-    }
-
-    /* ── API status indicator ── */
-    .api-status {
-      display: inline-flex; align-items: center; gap: 7px;
-      margin-top: 6px; font-size: 11px; letter-spacing: .04em;
-    }
-    .api-status .dot {
-      width: 7px; height: 7px; border-radius: 50%;
-      background: var(--faint);
-      transition: background .4s, box-shadow .4s;
-    }
-    .api-status[data-state="checking"] .dot { animation: livePulse 1.2s ease-in-out infinite; }
-    .api-status[data-state="online"] .dot { background: #34d399; box-shadow: 0 0 8px rgba(52,211,153,.7); }
-    .api-status[data-state="offline"] .dot { background: #f87171; box-shadow: 0 0 8px rgba(248,113,113,.5); }
-
-    /* ── Footer ── */
-    footer.site {
-      text-align: center; padding-top: 28px;
-      border-top: 1px solid var(--hairline);
-      color: var(--faint); font-size: 12px; line-height: 1.7;
-    }
-    footer.site a { color: var(--muted); text-decoration: none; transition: color .2s; }
-    footer.site a:hover { color: var(--accent); }
-    footer.site .meta { opacity: .65; }
-
-    /* ── Reduced motion ── */
-    @media (prefers-reduced-motion: reduce) {
-      *, *::before, *::after { animation: none !important; transition: none !important; }
-      .hub-card { opacity: 1; transform: none; }
-      .hub-desc-box { max-height: 200px; opacity: 1; }
-      #bg-plexus { opacity: .35; }
-    }
-
-    /* ── Touch ── */
-    @media (pointer: coarse) {
-      .hub-desc-box { max-height: 76px; opacity: .8; }
-      .hub-cta { display: none; }
-    }
-
-    /* ── Mobile ── */
-    @media (max-width: 640px) {
-      .hub-grid { grid-template-columns: 1fr 1fr; gap: 12px; }
-      .hub-card { padding: 28px 14px 22px; border-radius: 18px; }
-      .hub-icon-ring { width: 66px; height: 66px; margin-bottom: 14px; }
-      .hub-icon { font-size: 32px; }
-      .hub-name { font-size: 14px; }
-      .hub-pill { margin-bottom: 12px; }
-      .hero-stats .stat { padding: 2px 13px; }
-      .orbit-ring.r3 { display: none; }
-    }
-    @media (max-width: 380px) { .hub-grid { grid-template-columns: 1fr; } }
-  </style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="SDForest — an interactive portal into Ivan Gegov's tools, experiments, writing, research, animation, and visual effects work.">
+  <meta name="theme-color" content="#040705">
+  <meta property="og:title" content="SDForest">
+  <meta property="og:description" content="A living, interactive forest of projects.">
+  <meta property="og:type" content="website">
+  <title>SDForest — projects in motion</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/web/shared/forest-home.css?v=20260713">
+  <style>@media (prefers-reduced-motion: reduce) { .landing { min-height: 100svh; } }</style>
 </head>
 <body>
-  <!-- Global interactive plexus field — behind the entire hub -->
-  <canvas id="bg-plexus" aria-hidden="true"></canvas>
+  <canvas class="home-scene" data-forest-scene data-mode="portal" aria-hidden="true"></canvas>
+  <div class="home-scrim" aria-hidden="true"></div>
 
-  <div class="page">
+  <nav class="home-nav" aria-label="SDForest">
+    <span class="home-brand">SDForest</span>
+    <span class="home-nav-status">Interactive project atlas</span>
+  </nav>
 
-    <!-- ── Hero ── -->
-    <header class="hero">
-      <div class="orbit-ring r1"></div>
-      <div class="orbit-ring r2"></div>
-      <div class="orbit-ring r3"></div>
+  <svg width="0" height="0" aria-hidden="true" focusable="false" style="position:absolute">
+    <defs>
+      <symbol id="icon-time" viewBox="0 0 48 48">
+        <circle class="icon-ring" cx="24" cy="24" r="19" stroke-dasharray="4 5"/>
+        <path class="icon-line" d="M24 8v16l10 6M14 15c-3 3-5 7-5 12m30-1c0 5-2 9-6 12"/>
+        <circle class="icon-fill" cx="24" cy="24" r="2.4"/>
+      </symbol>
+      <symbol id="icon-vfx" viewBox="0 0 48 48">
+        <path class="icon-ring" d="M7 13h34v22H7z" stroke-dasharray="5 4"/>
+        <path class="icon-line" d="M11 18h8l5 12 5-12h8M17 9v8m14-8v8M17 35v5m14-5v5"/>
+        <circle class="icon-fill" cx="24" cy="24" r="2"/>
+      </symbol>
+      <symbol id="icon-kids" viewBox="0 0 48 48">
+        <path class="icon-ring" d="M8 38h32M11 38V18l13-8 13 8v20" stroke-dasharray="6 4"/>
+        <path class="icon-line" d="M17 25h14v13H17zM13 17l11 7 11-7"/>
+        <circle class="icon-fill" cx="24" cy="31" r="2.4"/>
+      </symbol>
+      <symbol id="icon-health" viewBox="0 0 48 48">
+        <circle class="icon-ring" cx="24" cy="24" r="18" stroke-dasharray="3 5"/>
+        <path class="icon-line" d="M13 25h7l3-9 4 17 3-8h6M24 7v5m0 24v5"/>
+        <circle class="icon-fill" cx="24" cy="24" r="2"/>
+      </symbol>
+      <symbol id="icon-council" viewBox="0 0 48 48">
+        <path class="icon-ring" d="M24 5l17 10v18L24 43 7 33V15z" stroke-dasharray="5 4"/>
+        <path class="icon-line" d="M14 19h12v9H14l-4 4V19zm12 4h8v8l4 4V23"/>
+        <circle class="icon-fill" cx="19" cy="23.5" r="1.6"/>
+      </symbol>
+      <symbol id="icon-library" viewBox="0 0 48 48">
+        <path class="icon-ring" d="M8 9h32v30H8z" stroke-dasharray="4 5"/>
+        <path class="icon-line" d="M12 13h9v22h-9zm12 4h5v18h-5zm8-6h5v24h-5M13 18h7m5 5h3m5-5h3"/>
+        <circle class="icon-fill" cx="16.5" cy="31" r="1.5"/>
+      </symbol>
+      <symbol id="icon-calendar" viewBox="0 0 48 48">
+        <path class="icon-ring" d="M8 12h32v28H8z" stroke-dasharray="6 4"/>
+        <path class="icon-line" d="M8 20h32M16 7v10m16-10v10M15 26h4m5 0h4m5 0h2m-20 7h4m5 0h4"/>
+        <circle class="icon-fill" cx="34" cy="33" r="2"/>
+      </symbol>
+      <symbol id="icon-muscle" viewBox="0 0 48 48">
+        <circle class="icon-ring" cx="24" cy="24" r="19" stroke-dasharray="4 6"/>
+        <path class="icon-line" d="M10 30c4-8 8-4 11-13l5 4c5-1 10 3 12 8-5 7-19 10-28 1zM20 17l3-7 6 3-3 8"/>
+        <circle class="icon-fill" cx="31" cy="29" r="2"/>
+      </symbol>
+      <symbol id="icon-manifesto" viewBox="0 0 48 48">
+        <path class="icon-ring" d="M11 7h26v34H11z" stroke-dasharray="5 4"/>
+        <path class="icon-line" d="M16 16h16M16 22h13M16 28h15M16 34h8M31 8c4 7 1 13-5 17"/>
+        <circle class="icon-fill" cx="31" cy="12" r="2"/>
+      </symbol>
+      <symbol id="icon-poetry" viewBox="0 0 48 48">
+        <circle class="icon-ring" cx="24" cy="24" r="18" stroke-dasharray="2 6"/>
+        <path class="icon-line" d="M13 36c8-2 15-7 20-18m-18 7c5 1 10-1 13-5m-4 10c4 0 8-3 10-7M31 13c2 0 4 2 4 4"/>
+        <circle class="icon-fill" cx="14" cy="36" r="2"/>
+      </symbol>
+      <symbol id="icon-power" viewBox="0 0 48 48">
+        <path class="icon-ring" d="M7 39h34M10 39V9" stroke-dasharray="5 4"/>
+        <path class="icon-line" d="M12 36c8 0 10-1 15-4 7-5 6-15 12-22M30 12h9v9"/>
+        <circle class="icon-fill" cx="27" cy="32" r="2.4"/>
+      </symbol>
+      <symbol id="icon-news" viewBox="0 0 48 48">
+        <path class="icon-ring" d="M7 10h34v28H7z" stroke-dasharray="4 5"/>
+        <path class="icon-line" d="M13 18h13v9H13zM30 18h6m-6 5h6M13 31h23M10 14h28"/>
+        <circle class="icon-fill" cx="34" cy="23" r="1.7"/>
+      </symbol>
+      <symbol id="icon-void" viewBox="0 0 48 48">
+        <circle class="icon-ring" cx="24" cy="24" r="19" stroke-dasharray="7 4"/>
+        <path class="icon-line" d="M24 12c8 2 12 7 10 14-2 8-9 12-17 8-7-4-8-13-2-18 4-4 11-3 14 1 3 5-1 11-7 10-5-1-6-7-2-10"/>
+        <circle class="icon-fill" cx="24" cy="24" r="2.3"/>
+      </symbol>
+      <symbol id="icon-multiply" viewBox="0 0 48 48">
+        <circle class="icon-ring" cx="24" cy="24" r="18" stroke-dasharray="5 5"/>
+        <path class="icon-line" d="M15 15l18 18m0-18L15 33M24 7v5m0 24v5M7 24h5m24 0h5"/>
+        <circle class="icon-fill" cx="24" cy="24" r="2.5"/>
+      </symbol>
+      <symbol id="icon-math" viewBox="0 0 48 48">
+        <path class="icon-ring" d="M24 5l18 10-4 22H10L6 15z" stroke-dasharray="4 5"/>
+        <path class="icon-line" d="M13 32c3-11 8-17 11-17s8 6 11 17M16 25h16M24 15V8"/>
+        <circle class="icon-fill" cx="24" cy="15" r="2"/>
+      </symbol>
+    </defs>
+  </svg>
 
-      <p class="eyebrow">Forest HUB · sdforest.site</p>
-      <h1 class="wordmark">Forest<span class="leaf">.</span>HUB</h1>
-      <p class="hero-sub">Projects, tools, and experiments — built in the forest.</p>
-
-      <div class="hero-stats" aria-label="Site statistics">
-        <span class="stat"><span class="num">14</span><span class="lbl">Projects</span></span>
-        <span class="stat"><span class="num">165</span><span class="lbl">Platforms</span></span>
-        <span class="stat"><span class="num">527</span><span class="lbl">Terms</span></span>
-        <span class="stat"><span class="num">74</span><span class="lbl">Films</span></span>
+  <main>
+    <section class="landing" aria-labelledby="forest-title">
+      <div class="landing-core">
+        <div class="forest-sigil" aria-hidden="true">
+          <svg viewBox="0 0 100 100">
+            <circle class="sigil-ring" cx="50" cy="50" r="43" stroke-dasharray="2 8"/>
+            <path class="sigil-branch" d="M50 21v57M50 40L32 28m18 23l22-15M50 61L27 52m23 18l19-7M50 77L38 89m12-11l12 11"/>
+            <circle class="sigil-seed" cx="50" cy="50" r="3"/>
+          </svg>
+        </div>
+        <p class="landing-kicker">A living index by Ivan Gegov</p>
+        <h1 id="forest-title">Forest<span>projects in motion</span></h1>
+        <p class="landing-copy">A growing ecosystem of visual work, research, playful tools, and strange little machines. Move through it—the forest notices.</p>
       </div>
-    </header>
-
-    <!-- ── Projects ── -->
-    <section>
-      <div class="section-head">
-        <h2>All Projects</h2>
-        <span class="rule"></span>
-        <span class="count">14</span>
-      </div>
-
-      <div class="hub-grid" id="hub-grid" style="margin-top:34px">
-
-        <a href="/web/life-in-time/" class="hub-card"
-           style="--c:rgba(251,191,36,.42);--cp:rgba(251,191,36,.1);--ct:#fbbf24;--icon-delay:.00s">
-          <div class="hub-icon-ring"><span class="hub-icon">⏳</span></div>
-          <div class="hub-name">Life in Time</div>
-          <div class="hub-pill">Personal</div>
-          <div class="hub-desc-box">
-            <p class="hub-desc">Time remaining in summers, heartbeats, Christmases — year-progress bar, late-achiever pivot, and shareable link.</p>
-            <span class="hub-cta">Explore ↗</span>
-          </div>
-        </a>
-
-        <a href="https://vfxportfolio.lovable.app" target="_blank" rel="noopener noreferrer" class="hub-card"
-           style="--c:rgba(236,72,153,.42);--cp:rgba(236,72,153,.1);--ct:#ec4899;--icon-delay:.15s">
-          <div class="hub-icon-ring"><span class="hub-icon">🎨</span></div>
-          <div class="hub-name">VFX Portfolio</div>
-          <div class="hub-pill">External</div>
-          <div class="hub-desc-box">
-            <p class="hub-desc">Animation Lead &amp; VFX reel — slot games, animated series, and commercials.</p>
-            <span class="hub-cta">View Portfolio ↗</span>
-          </div>
-        </a>
-
-
-        <a href="/web/kids/" class="hub-card"
-           style="--c:rgba(52,211,153,.42);--cp:rgba(52,211,153,.1);--ct:#34d399;--icon-delay:.38s">
-          <div class="hub-icon-ring"><span class="hub-icon">🧸</span></div>
-          <div class="hub-name">Kids Corner</div>
-          <div class="hub-pill">Kids</div>
-          <div class="hub-desc-box">
-            <p class="hub-desc">The forest playground — Math Mania arithmetic games, the curated Kids Movie Library, and the Mendeleev BG periodic table, together in one hub.</p>
-            <span class="hub-cta">Enter Kids Corner ↗</span>
-          </div>
-        </a>
-
-        <a href="https://dist-omega-lyart-23.vercel.app/" target="_blank" rel="noopener noreferrer" class="hub-card"
-           style="--c:rgba(56,199,255,.42);--cp:rgba(56,199,255,.1);--ct:#38bdf8;--icon-delay:.45s">
-          <div class="hub-icon-ring"><span class="hub-icon">🎙️</span></div>
-          <div class="hub-name">Voice2Voice Buddy</div>
-          <div class="hub-pill">External</div>
-          <div class="hub-desc-box">
-            <p class="hub-desc">Voice-production control room — recording sessions, editing, deliverables, and producer notes.</p>
-            <span class="hub-cta">Open App ↗</span>
-          </div>
-        </a>
-
-        <a href="/web/womens-health-os/" class="hub-card"
-           style="--c:rgba(244,114,182,.42);--cp:rgba(244,114,182,.1);--ct:#f472b6;--icon-delay:.60s">
-          <div class="hub-icon-ring"><span class="hub-icon">🌸</span></div>
-          <div class="hub-name">Women's Health OS</div>
-          <div class="hub-pill">Research</div>
-          <div class="hub-desc-box">
-            <p class="hub-desc">Evidence-graded facts, rules, and verifiable claims for women's health — distilled from peer-reviewed papers by Iris, the research agent.</p>
-            <span class="hub-cta">Open App ↗</span>
-          </div>
-        </a>
-
-        <a href="/web/council/" class="hub-card"
-           style="--c:rgba(139,92,246,.42);--cp:rgba(139,92,246,.1);--ct:#a78bfa;--icon-delay:.75s">
-          <div class="hub-icon-ring"><span class="hub-icon">🤖</span></div>
-          <div class="hub-name">Councils</div>
-          <div class="hub-pill">4 Panels</div>
-          <div class="hub-desc-box">
-            <p class="hub-desc">Four ways to deliberate — two public, two private: the TinyLM experiment, a BYOK free-model council, Ivan's gated Round Table, and Chloé, the fleet's live voice.</p>
-            <span class="hub-cta">Enter the Councils ↗</span>
-          </div>
-        </a>
-
-        <a href="/web/tinylm/" class="hub-card"
-           style="--c:rgba(34,197,94,.42);--cp:rgba(34,197,94,.1);--ct:#22c55e;--icon-delay:.82s">
-          <div class="hub-icon-ring"><span class="hub-icon">🌱</span></div>
-          <div class="hub-name">TinyLM Experiment</div>
-          <div class="hub-pill">Consciousness</div>
-          <div class="hub-desc-box">
-            <p class="hub-desc">Five tiny open models (0.1B–3B) deliberate live on our own ARM silicon — proposer, analyst, critic, a consciousness observer, and a synthesizer. Send a question, watch them think.</p>
-            <span class="hub-cta">Convene the tiny council ↗</span>
-          </div>
-        </a>
-
-        <a href="/web/library/" class="hub-card"
-           style="--c:rgba(99,102,241,.42);--cp:rgba(99,102,241,.1);--ct:#818cf8;--icon-delay:.90s">
-          <div class="hub-icon-ring"><span class="hub-icon">📚</span></div>
-          <div class="hub-name">Library &amp; Platforms</div>
-          <div class="hub-pill">Reference</div>
-          <div class="hub-desc-box">
-            <p class="hub-desc">The AI glossary and the platforms map, side by side — 527+ terms next to 165+ tools, one search filters both, filter by tag.</p>
-            <span class="hub-cta">Open Library ↗</span>
-          </div>
-        </a>
-
-        <a href="/web/calendar/" class="hub-card"
-           style="--c:rgba(234,179,8,.42);--cp:rgba(234,179,8,.1);--ct:#facc15;--icon-delay:1.20s">
-          <div class="hub-icon-ring"><span class="hub-icon">📅</span></div>
-          <div class="hub-name">Calendar Generator</div>
-          <div class="hub-pill">Print Tool</div>
-          <div class="hub-desc-box">
-            <p class="hub-desc">Build a printable 13-page calendar with holiday lookup, custom image URLs, and Forest HUB integration.</p>
-            <span class="hub-cta">Build Calendar ↗</span>
-          </div>
-        </a>
-
-        <a href="/web/hypertrophyos/" class="hub-card"
-           style="--c:rgba(190,242,100,.42);--cp:rgba(190,242,100,.1);--ct:#bef264;--icon-delay:1.28s">
-          <div class="hub-icon-ring"><span class="hub-icon">💪</span></div>
-          <div class="hub-name">Hyper Trophy OS</div>
-          <div class="hub-pill">Training</div>
-          <div class="hub-desc-box">
-            <p class="hub-desc">Exercise intelligence dashboard for science-backed rules, calculators, sources, and ingestion pipeline tracking.</p>
-            <span class="hub-cta">Open App ↗</span>
-          </div>
-        </a>
-
-        <a href="/web/manifesto-newborn/" class="hub-card"
-           style="--c:rgba(214,190,122,.40);--cp:rgba(214,190,122,.09);--ct:#d6b87a;--icon-delay:1.35s">
-          <div class="hub-icon-ring"><span class="hub-icon">🕊️</span></div>
-          <div class="hub-name">Manifesto for a Newborn</div>
-          <div class="hub-pill">Letter</div>
-          <div class="hub-desc-box">
-            <p class="hub-desc">A quiet letter to the newly arrived. On belonging, feeling, surviving the world's forgetting, and staying whole.</p>
-            <span class="hub-cta">Read ↗</span>
-          </div>
-        </a>
-
-        <a href="/web/m-popova/" class="hub-card"
-           style="--c:rgba(200,138,40,.42);--cp:rgba(200,138,40,.1);--ct:#c88a28;--icon-delay:1.43s">
-          <div class="hub-icon-ring"><span class="hub-icon">🌷</span></div>
-          <div class="hub-name">M.Popova — Poetry Space</div>
-          <div class="hub-pill">Poetry</div>
-          <div class="hub-desc-box">
-            <p class="hub-desc">Five prose-poems on being here, on darkness, love and loss. Words that emerge from the dark as you read.</p>
-            <span class="hub-cta">Read ↗</span>
-          </div>
-        </a>
-
-        <a href="/web/power-law-odyssey/" class="hub-card"
-           style="--c:rgba(251,191,36,.42);--cp:rgba(251,191,36,.1);--ct:#fbbf24;--icon-delay:1.50s">
-          <div class="hub-icon-ring"><span class="hub-icon">📈</span></div>
-          <div class="hub-name">Power Law Odyssey</div>
-          <div class="hub-pill">Scrollytelling</div>
-          <div class="hub-desc-box">
-            <p class="hub-desc">3D scroll narrative about normal curves, power laws, asymmetric upside, and repeated intelligent bets.</p>
-            <span class="hub-cta">Enter Odyssey ↗</span>
-          </div>
-        </a>
-
-      </div>
+      <button class="scroll-invite" type="button" data-scroll-to-projects>Assemble the portal</button>
     </section>
 
-    <!-- ── About ── -->
-    <section class="about" aria-label="About Forest HUB">
-      <div class="section-head">
-        <h2>About</h2>
-        <span class="rule"></span>
-      </div>
-      <div class="about-body">
-        <p>
-          Forest HUB is a family workshop on the open web — a single place where our
-          tools, games, and experiments live. Reference apps like the AI Glossary and
-          Platforms Map sit next to kids' games, printable calendars, poetry, and
-          scroll-driven stories. Everything here is hand-built: plain HTML, CSS, and
-          JavaScript on the front, a small FastAPI backend behind it.
-        </p>
-        <p>
-          New projects land as self-contained pages under <code>/web/</code>, so each
-          card above is a complete little world of its own. Source lives on
-          <a href="https://github.com/ivangegovdve-sudo/orchestrator-gpt" rel="noopener noreferrer" target="_blank">GitHub</a>.
-        </p>
+    <section class="assembly" data-assembly aria-label="Project portal assembly">
+      <div class="factory">
+        <div class="factory-frame">
+          <section class="portal-board" aria-labelledby="projects-title">
+            <header class="board-header">
+              <div>
+                <span class="board-kicker">Portal lattice · 15 nodes</span>
+                <h2 id="projects-title">Choose a path</h2>
+              </div>
+              <span class="board-readout">Signal alive</span>
+            </header>
+
+            <div class="project-grid" data-project-grid>
+              <button class="portal" type="button" style="--accent:#7ee2ff" data-project="time" data-href="/web/life-in-time/index.html" data-status="Live" data-description="Translate a birth date into weeks, seasons, heartbeats, lunar cycles, and the quiet geometry of a life." aria-pressed="false">
+                <span class="portal-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><use href="#icon-time"/></svg></span>
+                <span class="portal-copy"><span class="portal-name">Life in Time</span><span class="portal-meta">Time calculator</span></span>
+              </button>
+
+              <button class="portal" type="button" style="--accent:#a282ff" data-project="vfx" data-href="/web/vfx-portfolio/index.html" data-status="Portfolio" data-description="Ivan Gegov’s real animation, compositing, VFX, game work, showreel, credits, experience, and tools—preserved from the original portfolio." aria-pressed="false">
+                <span class="portal-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><use href="#icon-vfx"/></svg></span>
+                <span class="portal-copy"><span class="portal-name">VFX Portfolio</span><span class="portal-meta">Animation · VFX</span></span>
+              </button>
+
+              <button class="portal" type="button" style="--accent:#ffd15a" data-project="kids" data-href="/web/kids/index.html" data-status="Live" data-description="A warmer corner for family movies, small adventures, playful interfaces, and things built to be explored together." aria-pressed="false">
+                <span class="portal-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><use href="#icon-kids"/></svg></span>
+                <span class="portal-copy"><span class="portal-name">Kids Corner</span><span class="portal-meta">Family space</span></span>
+              </button>
+
+              <button class="portal" type="button" style="--accent:#ff7fb0" data-project="health" data-href="/web/womens-health-os/index.html" data-status="Research" data-description="An evidence-graded research intelligence base for cycles, hormones, fertility, PCOS, menopause, and women’s health." aria-pressed="false">
+                <span class="portal-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><use href="#icon-health"/></svg></span>
+                <span class="portal-copy"><span class="portal-name">Women’s Health OS</span><span class="portal-meta">Evidence base</span></span>
+              </button>
+
+              <button class="portal" type="button" style="--accent:#ac90ff" data-project="council" data-href="/web/council/index.html" data-status="2 public modes" data-description="Choose between a slow local TinyLM oracle and a free OpenRouter deliberation—two public experiments with honest limits." aria-pressed="false">
+                <span class="portal-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><use href="#icon-council"/></svg></span>
+                <span class="portal-copy"><span class="portal-name">Councils</span><span class="portal-meta">Machine dialogue</span></span>
+              </button>
+
+              <button class="portal" type="button" style="--accent:#60ecc1" data-project="library" data-href="/web/library/index.html" data-status="Live data" data-description="Search the Forest’s AI glossary and platform reference side by side, with real structured entries and filters." aria-pressed="false">
+                <span class="portal-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><use href="#icon-library"/></svg></span>
+                <span class="portal-copy"><span class="portal-name">Library &amp; Platforms</span><span class="portal-meta">Glossary · tools</span></span>
+              </button>
+
+              <button class="portal" type="button" style="--accent:#6cafff" data-project="calendar" data-href="/web/calendar/index.html" data-status="Tool" data-description="Generate clean, printable calendars locally in the browser and carry a year’s rhythm into a tangible artifact." aria-pressed="false">
+                <span class="portal-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><use href="#icon-calendar"/></svg></span>
+                <span class="portal-copy"><span class="portal-name">Calendar Generator</span><span class="portal-meta">Make a calendar</span></span>
+              </button>
+
+              <button class="portal" type="button" style="--accent:#ff745c" data-project="muscle" data-href="/web/hypertrophyos/index.html" data-status="Research tool" data-description="Training intelligence, practical calculators, evidence rules, and a transparent research path for strength and hypertrophy." aria-pressed="false">
+                <span class="portal-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><use href="#icon-muscle"/></svg></span>
+                <span class="portal-copy"><span class="portal-name">Hyper Trophy OS</span><span class="portal-meta">Training research</span></span>
+              </button>
+
+              <button class="portal" type="button" style="--accent:#eedcb8" data-project="manifesto" data-href="/web/manifesto-newborn/index.html" data-status="10 languages" data-description="A compact manifesto addressed to a newborn: curious, tender, multilingual, and built to be read rather than skimmed." aria-pressed="false">
+                <span class="portal-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><use href="#icon-manifesto"/></svg></span>
+                <span class="portal-copy"><span class="portal-name">Manifesto for a Newborn</span><span class="portal-meta">Reading room</span></span>
+              </button>
+
+              <button class="portal" type="button" style="--accent:#e084ff" data-project="poetry" data-href="/web/m-popova/index.html" data-status="Poetry" data-description="A dedicated, quietly animated space for M. Popova’s poems—language unfolding like a night flower." aria-pressed="false">
+                <span class="portal-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><use href="#icon-poetry"/></svg></span>
+                <span class="portal-copy"><span class="portal-name">M.Popova Poetry</span><span class="portal-meta">Poetry archive</span></span>
+              </button>
+
+              <button class="portal" type="button" style="--accent:#ffc258" data-project="power" data-href="/web/power-law-odyssey/index.html" data-status="Simulation" data-description="A seeded, reproducible walk through heavy tails: many ordinary misses, rare enormous hits, and the intuition they produce." aria-pressed="false">
+                <span class="portal-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><use href="#icon-power"/></svg></span>
+                <span class="portal-copy"><span class="portal-name">Power Law Odyssey</span><span class="portal-meta">Heavy-tail sandbox</span></span>
+              </button>
+
+              <button class="portal" type="button" style="--accent:#70eade" data-project="news" data-href="/web/morning-news/index.html" data-status="Live" data-description="Morning News is one project among the others: a voice-led briefing space for starting the day with signal, not noise." aria-pressed="false">
+                <span class="portal-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><use href="#icon-news"/></svg></span>
+                <span class="portal-copy"><span class="portal-name">Morning News</span><span class="portal-meta">Daily briefing</span></span>
+              </button>
+
+              <button class="portal" type="button" style="--accent:#51ebff" data-project="void" data-href="/web/replicator-void/index.html" data-status="Experimental" data-description="A living population of tiny replicators mutates, feeds, divides, and dies under your cursor in a deliberately strange simulation." aria-pressed="false">
+                <span class="portal-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><use href="#icon-void"/></svg></span>
+                <span class="portal-copy"><span class="portal-name">Replicator Void</span><span class="portal-meta experimental">Experimental</span></span>
+              </button>
+
+              <button class="portal" type="button" style="--accent:#efbc68" data-project="multiply" data-status="In development" data-description="Multiply Magic Studio is a visual multiplication project currently being developed. It is shown honestly here without a private or unfinished link." aria-pressed="false" aria-disabled="true">
+                <span class="portal-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><use href="#icon-multiply"/></svg></span>
+                <span class="portal-copy"><span class="portal-name">Multiply Magic Studio</span><span class="portal-meta development">In development</span></span>
+              </button>
+
+              <button class="portal" type="button" style="--accent:#9bd26f" data-project="math" data-status="In development" data-description="Math Forest is a reserved growing space for mathematical play. The public experience is not ready yet, so this node remains a preview only." aria-pressed="false" aria-disabled="true">
+                <span class="portal-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><use href="#icon-math"/></svg></span>
+                <span class="portal-copy"><span class="portal-name">Math Forest</span><span class="portal-meta development">In development</span></span>
+              </button>
+            </div>
+          </section>
+
+          <aside class="preview-stage" data-preview-stage aria-live="polite" aria-label="Selected project preview">
+            <div class="preview-head">
+              <span class="preview-index">Selected node · <span data-preview-number>01</span></span>
+              <span class="preview-status" data-preview-status>Live</span>
+            </div>
+            <div class="preview-visual" aria-hidden="true">
+              <span class="preview-glyph" data-preview-glyph></span>
+            </div>
+            <div class="preview-copy">
+              <h3 class="preview-title" data-preview-title>Life in Time</h3>
+              <p class="preview-description" data-preview-description></p>
+              <div class="preview-actions">
+                <a class="preview-open" data-preview-open href="/web/life-in-time/index.html">Enter project</a>
+                <span class="preview-hint" data-preview-hint>Hover or focus a node to wake it.</span>
+              </div>
+            </div>
+          </aside>
+        </div>
+        <div class="factory-progress" aria-hidden="true"><span></span></div>
       </div>
     </section>
+  </main>
 
-    <footer class="site">
-      <p>Forest HUB · Built by Ivan · Deployed on <a href="https://sdforest.site">sdforest.site</a></p>
-      <p class="meta">14 projects · 166 AI platforms · 527 glossary terms · 74 curated movies</p>
-      <p class="api-status" id="api-status" data-state="checking">
-        <span class="dot" aria-hidden="true"></span>
-        <span id="api-status-label">Forest HUB API — checking…</span>
-      </p>
-    </footer>
-  </div>
+  <footer class="home-footer">
+    <p>SDForest is an evolving collection. Experimental and in-development work is labeled plainly; every live path should lead somewhere real.</p>
+  </footer>
 
+  <script src="/web/shared/forest-motion.js?v=20260713"></script>
   <script>
-    /* ─────────────────────────────────────────────
-       Global interactive plexus field
-       Depth-layered constellation network with mouse
-       parallax + attraction. Site-wide, behind all
-       content, scaled to viewport + DPR.
-    ───────────────────────────────────────────── */
-    const noMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    const isTouch  = window.matchMedia('(pointer: coarse)').matches;
+    (() => {
+      const root = document.documentElement;
+      const assembly = document.querySelector('[data-assembly]');
+      const cards = [...document.querySelectorAll('[data-project-grid] .portal')];
+      const stage = document.querySelector('[data-preview-stage]');
+      const preview = {
+        number: stage.querySelector('[data-preview-number]'),
+        status: stage.querySelector('[data-preview-status]'),
+        glyph: stage.querySelector('[data-preview-glyph]'),
+        title: stage.querySelector('[data-preview-title]'),
+        description: stage.querySelector('[data-preview-description]'),
+        open: stage.querySelector('[data-preview-open]'),
+        hint: stage.querySelector('[data-preview-hint]'),
+      };
+      let selected = null;
+      let armed = null;
+      let scheduled = false;
 
-    (function plexus() {
-      const canvas = document.getElementById('bg-plexus');
-      if (!canvas) return;
-      const ctx = canvas.getContext('2d');
-      let W, H, DPR;
+      const clamp = (value, minimum, maximum) => Math.min(maximum, Math.max(minimum, value));
 
-      let parts = [];
-      function build() {
-        const area = window.innerWidth * window.innerHeight;
-        const count = Math.max(36, Math.min(130, Math.round(area / 16000)));
-        parts = Array.from({ length: count }, () => ({
-          x: Math.random(), y: Math.random(),
-          vx: (Math.random() - 0.5) * 0.5,
-          vy: (Math.random() - 0.5) * 0.5,
-          z: Math.random() * 0.7 + 0.3,
-          hue: Math.random() > 0.5 ? 199 : 264,
-        }));
+      function updateAssembly() {
+        scheduled = false;
+        const compact = matchMedia('(max-width: 900px)').matches;
+        if (compact || matchMedia('(prefers-reduced-motion: reduce)').matches) {
+          root.style.setProperty('--assembly', '1');
+          return;
+        }
+        const bounds = assembly.getBoundingClientRect();
+        const travel = Math.max(1, bounds.height - innerHeight);
+        root.style.setProperty('--assembly', clamp(-bounds.top / travel, 0, 1).toFixed(4));
       }
 
-      function resize() {
-        DPR = Math.min(window.devicePixelRatio || 1, 2);
-        W = window.innerWidth; H = window.innerHeight;
-        canvas.width  = W * DPR; canvas.height = H * DPR;
-        canvas.style.width = W + 'px'; canvas.style.height = H + 'px';
-        ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
-        build();
+      function selectCard(card, options = {}) {
+        if (!card) return;
+        selected = card.dataset.project;
+        if (!options.keepArmed) armed = null;
+        cards.forEach((item) => item.setAttribute('aria-pressed', String(item === card)));
+
+        const style = getComputedStyle(card);
+        const accent = style.getPropertyValue('--accent').trim() || '#79f2a8';
+        const title = card.querySelector('.portal-name').textContent.trim();
+        const svg = card.querySelector('.portal-icon svg').cloneNode(true);
+        preview.number.textContent = String(cards.indexOf(card) + 1).padStart(2, '0');
+        preview.status.textContent = card.dataset.status;
+        preview.glyph.replaceChildren(svg);
+        preview.title.textContent = title;
+        preview.description.textContent = card.dataset.description;
+        stage.style.setProperty('--preview-accent', accent);
+
+        if (card.dataset.href) {
+          preview.open.hidden = false;
+          preview.open.href = card.dataset.href;
+          preview.open.target = card.dataset.external === 'true' ? '_blank' : '_self';
+          preview.open.rel = card.dataset.external === 'true' ? 'noopener' : '';
+          preview.open.textContent = card.dataset.external === 'true' ? 'Open project' : 'Enter project';
+          preview.hint.textContent = 'Click the node once to select, again to enter.';
+        } else {
+          preview.open.hidden = true;
+          preview.hint.textContent = 'This project is visible, but not presented as finished.';
+        }
       }
-      resize();
-      window.addEventListener('resize', resize);
 
-      const mouse = { x: W / 2, y: H / 2, sx: W / 2, sy: H / 2, active: false };
-      if (!isTouch) {
-        window.addEventListener('mousemove', e => { mouse.x = e.clientX; mouse.y = e.clientY; mouse.active = true; });
-        window.addEventListener('mouseout', () => { mouse.active = false; });
-      }
-
-      const LINK = 132, PULL = 124;
-
-      if (noMotion) { drawStatic(); return; }
-
-      function frame() {
-        requestAnimationFrame(frame);
-        ctx.clearRect(0, 0, W, H);
-
-        mouse.sx += (mouse.x - mouse.sx) * 0.06;
-        mouse.sy += (mouse.y - mouse.sy) * 0.06;
-        const offX = (mouse.sx - W / 2) / W;
-        const offY = (mouse.sy - H / 2) / H;
-
-        const px = new Array(parts.length);
-        const py = new Array(parts.length);
-        for (let i = 0; i < parts.length; i++) {
-          const p = parts[i];
-          p.x += p.vx / W; p.y += p.vy / H;
-          if (p.x < 0) p.x += 1; else if (p.x > 1) p.x -= 1;
-          if (p.y < 0) p.y += 1; else if (p.y > 1) p.y -= 1;
-
-          let X = p.x * W + offX * 60 * p.z;
-          let Y = p.y * H + offY * 40 * p.z;
-
-          if (mouse.active) {
-            const dx = mouse.sx - X, dy = mouse.sy - Y;
-            const d = Math.hypot(dx, dy);
-            if (d < PULL && d > 0.1) {
-              const f = (PULL - d) / PULL * 0.6;
-              X += dx / d * f; Y += dy / d * f;
-            }
+      cards.forEach((card) => {
+        card.addEventListener('pointerenter', () => selectCard(card));
+        card.addEventListener('focus', () => selectCard(card));
+        card.addEventListener('click', () => {
+          selectCard(card, { keepArmed: true });
+          if (!card.dataset.href) return;
+          if (armed === card.dataset.project) {
+            if (card.dataset.external === 'true') window.open(card.dataset.href, '_blank', 'noopener');
+            else location.assign(card.dataset.href);
+            return;
           }
-          px[i] = X; py[i] = Y;
-        }
-
-        for (let i = 0; i < parts.length; i++) {
-          for (let j = i + 1; j < parts.length; j++) {
-            const dx = px[i] - px[j], dy = py[i] - py[j];
-            const d = Math.hypot(dx, dy);
-            if (d < LINK) {
-              const a = (1 - d / LINK) * 0.32;
-              ctx.strokeStyle = `rgba(150,170,205,${a})`;
-              ctx.lineWidth = 0.6;
-              ctx.beginPath();
-              ctx.moveTo(px[i], py[i]); ctx.lineTo(px[j], py[j]);
-              ctx.stroke();
-            }
-          }
-        }
-
-        for (let i = 0; i < parts.length; i++) {
-          const p = parts[i];
-          const r = p.z * 1.7 + 0.5;
-          const X = px[i], Y = py[i];
-          const g = ctx.createRadialGradient(X, Y, 0, X, Y, r * 3.5);
-          g.addColorStop(0, `hsla(${p.hue},90%,72%,${0.5 * p.z})`);
-          g.addColorStop(1, `hsla(${p.hue},90%,72%,0)`);
-          ctx.fillStyle = g;
-          ctx.beginPath(); ctx.arc(X, Y, r * 3.5, 0, Math.PI * 2); ctx.fill();
-          ctx.fillStyle = `hsla(${p.hue},100%,92%,${0.7 * p.z})`;
-          ctx.beginPath(); ctx.arc(X, Y, r, 0, Math.PI * 2); ctx.fill();
-        }
-      }
-      frame();
-
-      function drawStatic() {
-        ctx.clearRect(0, 0, W, H);
-        const pts = parts.map(p => ({ x: p.x * W, y: p.y * H, hue: p.hue, z: p.z }));
-        for (let i = 0; i < pts.length; i++) {
-          for (let j = i + 1; j < pts.length; j++) {
-            const d = Math.hypot(pts[i].x - pts[j].x, pts[i].y - pts[j].y);
-            if (d < LINK) {
-              ctx.strokeStyle = `rgba(150,170,205,${(1 - d / LINK) * 0.25})`;
-              ctx.lineWidth = 0.6;
-              ctx.beginPath(); ctx.moveTo(pts[i].x, pts[i].y); ctx.lineTo(pts[j].x, pts[j].y); ctx.stroke();
-            }
-          }
-        }
-        pts.forEach(p => {
-          ctx.fillStyle = `hsla(${p.hue},100%,90%,${0.6 * p.z})`;
-          ctx.beginPath(); ctx.arc(p.x, p.y, p.z * 1.6 + 0.5, 0, Math.PI * 2); ctx.fill();
-        });
-      }
-    })();
-
-    /* ── Card 3D tilt + mouse sheen (desktop) ── */
-    if (!noMotion && !isTouch) {
-      const MAX_TILT = 10;
-      document.querySelectorAll('.hub-card').forEach(card => {
-        card.addEventListener('mousemove', e => {
-          const r = card.getBoundingClientRect();
-          const cx = r.width / 2, cy = r.height / 2;
-          const dx = (e.clientX - r.left - cx) / cx;
-          const dy = (e.clientY - r.top  - cy) / cy;
-          card.style.transform =
-            `perspective(900px) rotateX(${-dy * MAX_TILT}deg) rotateY(${dx * MAX_TILT}deg) scale(1.025)`;
-          card.style.setProperty('--mx', `${e.clientX - r.left}px`);
-          card.style.setProperty('--my', `${e.clientY - r.top}px`);
-        });
-        card.addEventListener('mouseleave', () => {
-          card.style.transform = 'perspective(900px) rotateX(0) rotateY(0) scale(1)';
+          armed = card.dataset.project;
+          preview.hint.textContent = 'Selected. Click again, or use the Enter project button.';
         });
       });
-    }
 
-    /* ── Fleet brain status (footer indicator) ──
-       Probes Chloé's soul-server on Oracle via its public HTTPS front
-       (chloe.blumenkraft.cloud → nginx → 127.0.0.1:8654). soul-server
-       sends CORS headers for sdforest.site, so a plain fetch works. */
-    (function apiStatus() {
-      const el = document.getElementById('api-status');
-      const label = document.getElementById('api-status-label');
-      if (!el || !label) return;
-      const endpoint = 'https://chloe.blumenkraft.cloud/health';
-      const ctrl = new AbortController();
-      const timer = setTimeout(() => ctrl.abort(), 6000);
-      fetch(endpoint, { cache: 'no-store', signal: ctrl.signal })
-        .then(() => {
-          el.dataset.state = 'online';
-          label.textContent = 'Fleet brain (Oracle) — online';
-        })
-        .catch(() => {
-          el.dataset.state = 'offline';
-          label.textContent = 'Fleet brain — unreachable';
-        })
-        .finally(() => clearTimeout(timer));
-    })();
+      window.addEventListener('pointermove', (event) => {
+        const card = event.target.closest?.('.portal');
+        if (!card) return;
+        const bounds = card.getBoundingClientRect();
+        card.style.setProperty('--mx', `${event.clientX - bounds.left}px`);
+        card.style.setProperty('--my', `${event.clientY - bounds.top}px`);
+      }, { passive: true });
 
-    /* ── Mobile tap-to-reveal (first tap reveals, second navigates) ── */
-    if (isTouch) {
-      document.querySelectorAll('.hub-card').forEach(card => {
-        card.addEventListener('click', e => {
-          if (!card.classList.contains('open')) {
-            e.preventDefault();
-            document.querySelectorAll('.hub-card.open').forEach(c => c.classList.remove('open'));
-            card.classList.add('open');
-          }
-        });
-      });
-      document.addEventListener('click', e => {
-        if (!e.target.closest('.hub-card')) {
-          document.querySelectorAll('.hub-card.open').forEach(c => c.classList.remove('open'));
-        }
-      });
-    }
-  </script>
+      window.addEventListener('scroll', () => {
+        if (scheduled) return;
+        scheduled = true;
+        requestAnimationFrame(updateAssembly);
+      }, { passive: true });
+      window.addEventListener('resize', updateAssembly, { passive: true });
 
-  <!-- ── Chloé live avatar widget (Oracle: /avatar/ + wss /avatar-ws) ──
-       Collapsed dot by default; click loads the live avatar in an iframe.
-       The iframe page connects to its own host's nginx WS bridge itself. -->
-  <style>
-    #chloe-widget { position: fixed; right: 18px; bottom: 18px; z-index: 9000; font-family: inherit; }
-    #chloe-widget .cw-toggle {
-      display: flex; align-items: center; gap: 8px; cursor: pointer; user-select: none;
-      background: rgba(24,24,27,0.85); border: 1px solid rgba(244,63,94,0.35);
-      border-radius: 999px; padding: 9px 15px; color: #fda4af; font-size: 13px; font-weight: 600;
-      backdrop-filter: blur(8px); box-shadow: 0 8px 26px rgba(0,0,0,0.5);
-      transition: transform .15s, border-color .2s;
-    }
-    #chloe-widget .cw-toggle:hover { transform: translateY(-2px); border-color: rgba(244,63,94,0.7); }
-    #chloe-widget .cw-dot { width: 8px; height: 8px; border-radius: 50%; background: #f43f5e; animation: cwpulse 2.2s infinite; }
-    @keyframes cwpulse { 0%,100% { box-shadow: 0 0 0 0 rgba(244,63,94,0.5);} 55% { box-shadow: 0 0 0 7px rgba(244,63,94,0);} }
-    #chloe-widget .cw-frame {
-      display: none; width: 300px; height: 340px; margin-bottom: 10px;
-      border: 1px solid rgba(244,63,94,0.3); border-radius: 18px; overflow: hidden;
-      background: #0b0b0d; box-shadow: 0 16px 44px rgba(0,0,0,0.6);
-    }
-    #chloe-widget.open .cw-frame { display: block; }
-    #chloe-widget .cw-frame iframe { width: 100%; height: 100%; border: 0; }
-    @media (max-width: 640px) { #chloe-widget .cw-frame { width: min(300px, calc(100vw - 44px)); } }
-  </style>
-  <div id="chloe-widget">
-    <div class="cw-frame"></div>
-    <div class="cw-toggle" id="cw-toggle" role="button" aria-label="Toggle Chloé's live avatar">
-      <span class="cw-dot"></span><span>Chlo&eacute; &mdash; live</span>
-    </div>
-  </div>
-  <script>
-    (function () {
-      const w = document.getElementById('chloe-widget');
-      const frame = w.querySelector('.cw-frame');
-      let loaded = false;
-      document.getElementById('cw-toggle').addEventListener('click', () => {
-        w.classList.toggle('open');
-        if (w.classList.contains('open') && !loaded) {
-          loaded = true;
-          const ifr = document.createElement('iframe');
-          ifr.src = 'https://chloe.blumenkraft.cloud/avatar/';
-          ifr.title = "Chloé's live avatar";
-          ifr.loading = 'lazy';
-          frame.appendChild(ifr);
-        }
+      document.querySelector('[data-scroll-to-projects]').addEventListener('click', () => {
+        assembly.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
       });
+
+      selectCard(cards[0]);
+      updateAssembly();
     })();
   </script>
 </body>
