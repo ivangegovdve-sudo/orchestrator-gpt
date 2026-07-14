@@ -3,11 +3,15 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Open Round Table — Free-Model Council · SD Forest</title>
+  <title>Open Roundtable — Free-Model Console · SDForest</title>
   <meta name="description" content="A heterogeneous council of free OpenRouter models deliberates live: Proposer → Critic → Chairman across 1–5 rounds. Powered by Ivan's OR key by default — no setup needed. Toggle to BYOK.">
-  <meta property="og:title" content="Open Round Table — SD Forest">
-  <meta property="og:description" content="Free-model council streamed live: Proposer → Critic → Chairman. Ivan's OpenRouter key powers it by default — no setup. Toggle BYOK to use your own key. $0.">
+  <meta property="og:title" content="Open Roundtable — SDForest">
+  <meta property="og:description" content="Free-model console streamed live: Proposer → Critic → Chairman. Ivan's OpenRouter key powers it by default — no setup. Toggle BYOK to use your own key. $0.">
   <meta property="og:type" content="website">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/web/shared/forest-shell.css?v=20260715">
   <style>
     :root {
       --bg: #09090b;
@@ -24,24 +28,20 @@
 
     * { box-sizing: border-box; }
 
+    /* forest-shell owns the page background; this layer only spaces the console
+       clear of the fixed topbar. */
     body {
       margin: 0;
       min-height: 100vh;
-      background-color: var(--bg);
-      background-image:
-        radial-gradient(circle at 20% 40%, rgba(79, 70, 229, 0.1), transparent 45%),
-        radial-gradient(circle at 80% 20%, rgba(139, 92, 246, 0.1), transparent 45%);
       color: var(--text);
       font-family: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
-      padding: 28px 20px 60px;
+      padding: 88px 20px 60px;
     }
 
     .page { max-width: 860px; margin: 0 auto; display: flex; flex-direction: column; gap: 24px; }
 
     /* ── Top bar ─────────────────────────────────────────────── */
-    .topbar { display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; flex-wrap: wrap; }
-    .back-link { display: inline-flex; align-items: center; gap: 6px; color: var(--muted); text-decoration: none; font-size: 13px; transition: color 0.2s; padding-top: 6px; }
-    .back-link:hover { color: var(--text); }
+    .topbar { display: flex; align-items: flex-start; justify-content: flex-end; gap: 14px; flex-wrap: wrap; }
 
     /* BYOK toggle chip */
     .byok-chip { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
@@ -78,9 +78,10 @@
     header { text-align: center; }
     h1 {
       margin: 0 0 8px;
-      font-size: 36px;
-      font-weight: 800;
-      letter-spacing: -0.02em;
+      font-family: "Space Grotesk", "Avenir Next", "Segoe UI", sans-serif;
+      font-size: clamp(34px, 5vw, 46px);
+      font-weight: 700;
+      letter-spacing: -0.04em;
       background: linear-gradient(135deg, var(--accent) 0%, var(--purple) 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
@@ -331,13 +332,15 @@
       .flow-card.expanded .flow-desc, .flow-card.expanded .flow-models { display: block; }
     }
   </style>
-  <link rel="stylesheet" href="/web/shared/council-motion.css?v=20260714">
+  <link rel="stylesheet" href="/web/shared/council-motion.css?v=20260715">
 </head>
-<body data-council="open">
+<body data-forest-page="council" data-council="open">
+  <canvas class="forest-scene" data-forest-scene data-mode="open" aria-hidden="true"></canvas>
+  <div class="forest-scrim" aria-hidden="true"></div>
+  <nav class="forest-topbar" aria-label="Council navigation"><a class="forest-back" href="/web/council/index.html">Councils</a></nav>
   <div class="page">
-    <!-- ── Top bar: back link + BYOK toggle ─────────────────────────────────── -->
+    <!-- ── Top bar: BYOK toggle ─────────────────────────────────── -->
     <div class="topbar">
-      <a href="../" class="back-link">&#8592; Councils</a>
       <div class="byok-chip" id="byok-chip">
         <label class="byok-toggle-row" for="byok-check" style="cursor:pointer;">
           <span class="byok-label">Use your own OR key</span>
@@ -352,8 +355,8 @@
     </div>
 
     <header>
-      <h1>&#9878;&#65039; Open Round Table</h1>
-      <p class="tagline">Free-model council powered by Ivan&rsquo;s OpenRouter account &mdash; no key needed. Proposer &rarr; Critic &rarr; Chairman across 1&ndash;5 rounds, streamed live. Toggle to use your own key.</p>
+      <h1>Open Roundtable</h1>
+      <p class="tagline">Free-model console powered by Ivan&rsquo;s OpenRouter account &mdash; no key needed. Proposer &rarr; Critic &rarr; Chairman across 1&ndash;5 rounds, streamed live. Toggle to use your own key.</p>
     </header>
 
     <!-- ── Council flow tree ───────────────────────────────────────────────── -->
@@ -972,6 +975,7 @@
     renderRounds();
     renderFlow();
   </script>
-  <script src="/web/shared/council-motion.js?v=20260714"></script>
+  <script src="/web/shared/forest-motion.js?v=20260715"></script>
+  <script src="/web/shared/council-motion.js?v=20260715"></script>
 </body>
 </html>

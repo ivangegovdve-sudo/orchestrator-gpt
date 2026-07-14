@@ -1,6 +1,7 @@
-/* Council motion layer — shared by the four council chat surfaces.
-   Per-council identity is keyed off body[data-council]; everything here is
-   presentation only and degrades to static under prefers-reduced-motion. */
+/* Council motion layer — shared by the two council surfaces (Open Roundtable,
+   TinyLM). Per-council identity is keyed off body[data-council]; everything
+   here is presentation only and degrades to static under
+   prefers-reduced-motion. */
 
 body[data-council] {
   --cm-accent: #8b5cf6;
@@ -14,16 +15,10 @@ body[data-council="open"] {
   --cm-rgb: 94, 234, 212;
 }
 
-body[data-council="chloe"] {
-  --cm-accent: #f43f5e;
-  --cm-accent-2: #fb7185;
-  --cm-rgb: 244, 63, 94;
-}
-
-body[data-council="inner"] {
-  --cm-accent: #a5b4fc;
-  --cm-accent-2: #818cf8;
-  --cm-rgb: 165, 180, 252;
+body[data-council="tinylm"] {
+  --cm-accent: #79f2a8;
+  --cm-accent-2: #a5b4fc;
+  --cm-rgb: 121, 242, 168;
 }
 
 .cm-field {
