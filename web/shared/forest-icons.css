@@ -1,0 +1,287 @@
+/* SDForest landing — per-icon character motion.
+   Loaded after forest-home.css. Every rule here is gated on [data-icon],
+   which forest-icons.js stamps once it has expanded the shared <use>
+   references into real per-portal nodes. Without JS the original shared
+   keyframes in forest-home.css keep running untouched. */
+
+/* The engine replaces the shared idle/hover wiggle with per-icon motion
+   (idle below, hover spring + sparks in forest-icons.js). */
+.portal-icon svg[data-icon] { animation: none; }
+.portal:hover .portal-icon svg[data-icon],
+.portal:focus-visible .portal-icon svg[data-icon],
+.portal[aria-pressed="true"] .portal-icon svg[data-icon] { animation: none; }
+
+/* Inner parts rotate/scale around the icon's visual center; fills and
+   sparks around their own tiny bounding box so pulses stay in place. */
+svg[data-icon] .icon-inner,
+svg[data-icon] .icon-ring,
+svg[data-icon] .icon-line {
+  transform-box: view-box;
+  transform-origin: 50% 50%;
+}
+svg[data-icon] .icon-fill,
+svg[data-icon] .icon-spark {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.icon-spark { fill: currentColor; pointer-events: none; }
+.icon-ripple {
+  fill: none;
+  stroke: currentColor;
+  pointer-events: none;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.portal:hover svg[data-icon] .icon-ring,
+.portal:focus-visible svg[data-icon] .icon-ring { opacity: .85; }
+
+/* Entrance hold: grid icons stay unlit until the draw-in plays. Scoped to
+   .project-grid so the preview-stage clone is never caught by it. */
+.project-grid .pre-draw .icon-inner > * { animation: none !important; }
+.project-grid .pre-draw .icon-line { stroke-dasharray: 1 1; stroke-dashoffset: 1; }
+.project-grid .pre-draw .icon-ring { opacity: 0; }
+.project-grid .pre-draw .icon-fill { transform: scale(0); }
+
+@media (prefers-reduced-motion: no-preference) {
+  /* Shared ring behaviour: every dashed frame crawls like quiet machinery.
+     --march must stay a whole multiple of that ring's dash period (dash+gap)
+     or the loop visibly snaps when it wraps. Negative --cd delays de-phase
+     the grid so the lattice never pulses in sync. */
+  svg[data-icon] .icon-ring {
+    animation: fi-ring-march var(--march-t, 9s) linear infinite;
+    animation-delay: calc(var(--cd, 0) * -11s);
+  }
+
+  /* --- Life in Time: the dial creeps, the hands swing like a pendulum --- */
+  svg[data-icon="time"] { --march: -36px; --march-t: 12s; }
+  svg[data-icon="time"] .icon-line { animation: fi-pendulum 5.6s ease-in-out infinite; animation-delay: calc(var(--cd, 0) * -5.6s); }
+  svg[data-icon="time"] .icon-fill { animation: fi-pulse 2.8s ease-in-out infinite; }
+
+  /* --- VFX Portfolio: projector flicker on the screen ------------------- */
+  svg[data-icon="vfx"] { --march: -36px; --march-t: 7s; }
+  svg[data-icon="vfx"] .icon-line { animation: fi-flicker 6.4s linear infinite; animation-delay: calc(var(--cd, 0) * -6.4s); }
+  svg[data-icon="vfx"] .icon-fill { animation: fi-blink 3.2s ease-in-out infinite; }
+
+  /* --- Kids Corner: the house bobs, the window light twinkles ----------- */
+  svg[data-icon="kids"] { --march: -40px; --march-t: 11s; }
+  svg[data-icon="kids"] .icon-inner { animation: fi-bob 5.2s ease-in-out infinite; animation-delay: calc(var(--cd, 0) * -5.2s); }
+  svg[data-icon="kids"] .icon-fill { animation: fi-twinkle 3.4s ease-in-out infinite; }
+
+  /* --- Women's Health OS: EKG double-thump, monitor breathes ------------ */
+  svg[data-icon="health"] { --march: -32px; --march-t: 10s; }
+  svg[data-icon="health"] .icon-line { animation: fi-thump 1.9s ease-in-out infinite; animation-delay: calc(var(--cd, 0) * -1.9s); }
+  svg[data-icon="health"] .icon-fill { animation: fi-heartbeat 1.9s ease-in-out infinite; animation-delay: calc(var(--cd, 0) * -1.9s); }
+
+  /* --- Councils: bubbles lean toward each other, a dot "types" ---------- */
+  svg[data-icon="council"] { --march: -36px; --march-t: 8s; }
+  svg[data-icon="council"] .icon-line { animation: fi-confer 8s ease-in-out infinite; animation-delay: calc(var(--cd, 0) * -8s); }
+  svg[data-icon="council"] .icon-fill { animation: fi-typing 1.6s ease-in-out infinite; }
+
+  /* --- Library: a reader scans the shelf ------------------------------- */
+  svg[data-icon="library"] { --march: -36px; --march-t: 12s; }
+  svg[data-icon="library"] .icon-fill { animation: fi-scan 7.5s ease-in-out infinite; }
+  svg[data-icon="library"] .icon-line { animation: fi-lean 7.5s ease-in-out infinite; }
+
+  /* --- Calendar: the marker hops between dates -------------------------- */
+  svg[data-icon="calendar"] { --march: -40px; --march-t: 10s; }
+  svg[data-icon="calendar"] .icon-fill { animation: fi-date-hop 6.4s ease-in-out infinite; }
+
+  /* --- Hyper Trophy OS: reps — squeeze, hold, release -------------------- */
+  svg[data-icon="muscle"] { --march: -40px; --march-t: 9s; }
+  svg[data-icon="muscle"] .icon-inner { animation: fi-pump 2.6s ease-in-out infinite; animation-delay: calc(var(--cd, 0) * -2.6s); }
+  svg[data-icon="muscle"] .icon-fill { animation: fi-pump-core 2.6s ease-in-out infinite; animation-delay: calc(var(--cd, 0) * -2.6s); }
+
+  /* --- Manifesto: ink breathes, a comet rides the quill stroke ----------- */
+  svg[data-icon="manifesto"] { --march: -36px; --march-t: 10s; }
+  svg[data-icon="manifesto"] .icon-line { animation: fi-inkflow 4.6s ease-in-out infinite; }
+  svg[data-icon="manifesto"] .icon-fill { animation: fi-comet 4.6s ease-in-out infinite; }
+
+  /* --- M.Popova Poetry: stems sway in wind, a firefly wanders ------------ */
+  svg[data-icon="poetry"] { --march: -32px; --march-t: 14s; }
+  svg[data-icon="poetry"] .icon-line {
+    transform-box: fill-box;
+    transform-origin: 15% 85%;
+    animation: fi-sway 6s ease-in-out infinite;
+    animation-delay: calc(var(--cd, 0) * -6s);
+  }
+  svg[data-icon="poetry"] .icon-fill { animation: fi-firefly 7s ease-in-out infinite; }
+
+  /* --- Power Law Odyssey: a sample rides the heavy-tail curve ------------ */
+  svg[data-icon="power"] { --march: -36px; --march-t: 7.5s; }
+  svg[data-icon="power"] .icon-fill { animation: fi-pulse 2.6s ease-in-out infinite; }
+
+  /* --- Morning News: live dot broadcasts, ticker hums --------------------- */
+  svg[data-icon="news"] { --march: -36px; --march-t: 4.2s; }
+  svg[data-icon="news"] .icon-fill { animation: fi-live 2.2s ease-in-out infinite; }
+  svg[data-icon="news"] .icon-line { animation: fi-ticker 3.6s ease-in-out infinite; }
+
+  /* --- Replicator Void: the spiral turns, the shell counter-turns -------- */
+  svg[data-icon="void"] { --march: 33px; --march-t: 9s; }
+  svg[data-icon="void"] .icon-line { animation: fi-spin 13s linear infinite; }
+  svg[data-icon="void"] .icon-fill { animation: fi-pulse 2s ease-in-out infinite; }
+
+  /* --- Multiply Magic: × turns into + and keeps going --------------------- */
+  svg[data-icon="multiply"] { --march: -40px; --march-t: 9s; }
+  svg[data-icon="multiply"] .icon-line { animation: fi-quarter 12s ease-in-out infinite; animation-delay: calc(var(--cd, 0) * -12s); }
+  svg[data-icon="multiply"] .icon-fill { animation: fi-pulse 3s ease-in-out infinite; }
+
+  /* --- Math Forest: the mountain breathes, the summit star twinkles ------ */
+  svg[data-icon="math"] { --march: -36px; --march-t: 11s; }
+  svg[data-icon="math"] .icon-inner { animation: fi-breathe 6.5s ease-in-out infinite; animation-delay: calc(var(--cd, 0) * -6.5s); }
+  svg[data-icon="math"] .icon-fill { animation: fi-twinkle 3s ease-in-out infinite; }
+
+  /* Desktop-only, capability-gated: the power-law sample actually travels
+     the curve (native motion path; falls back to the pulse above). */
+  @media (min-width: 901px) and (pointer: fine) {
+    @supports (offset-path: path('M0 0h1')) {
+      svg[data-icon="power"] .icon-fill {
+        cx: 0;
+        cy: 0;
+        offset-path: path('M12 36c8 0 10-1 15-4 7-5 6-15 12-22');
+        offset-rotate: 0deg;
+        animation: fi-ride 5.2s ease-in-out infinite;
+      }
+    }
+  }
+
+  /* Lighter idles on small screens / touch devices: slow the spinners,
+     drop the fastest loop, keep the gentle ones. */
+  @media (max-width: 900px), (pointer: coarse) {
+    svg[data-icon="void"] .icon-line { animation-duration: 22s; }
+    svg[data-icon="news"] { --march-t: 8s; }
+    svg[data-icon="multiply"] .icon-line { animation: none; }
+  }
+
+  @keyframes fi-ring-march { to { stroke-dashoffset: var(--march, -36px); } }
+  @keyframes fi-pendulum {
+    0%, 100% { transform: rotate(-2.2deg); }
+    50% { transform: rotate(2.2deg); }
+  }
+  @keyframes fi-pulse {
+    0%, 100% { transform: scale(1); opacity: .7; }
+    50% { transform: scale(1.45); opacity: 1; }
+  }
+  @keyframes fi-flicker {
+    0%, 5%, 9%, 13%, 15%, 54%, 58%, 100% { opacity: 1; }
+    7% { opacity: .55; }
+    14% { opacity: .82; }
+    56% { opacity: .5; }
+  }
+  @keyframes fi-blink {
+    0%, 100% { transform: scale(.9); opacity: .5; }
+    50% { transform: scale(1.2); opacity: 1; }
+  }
+  @keyframes fi-bob {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    50% { transform: translateY(-1.6px) rotate(1.2deg); }
+  }
+  @keyframes fi-twinkle {
+    0%, 100% { transform: scale(.85); opacity: .45; }
+    40% { transform: scale(1.2); opacity: 1; }
+    60% { transform: scale(1); opacity: .8; }
+  }
+  @keyframes fi-thump {
+    0%, 58%, 100% { transform: scaleY(1); }
+    66% { transform: scaleY(1.09); }
+    73% { transform: scaleY(.98); }
+    80% { transform: scaleY(1.05); }
+    88% { transform: scaleY(1); }
+  }
+  @keyframes fi-heartbeat {
+    0%, 58%, 100% { transform: scale(1); }
+    64% { transform: scale(1.4); }
+    70% { transform: scale(1.05); }
+    76% { transform: scale(1.3); }
+    84% { transform: scale(1); }
+  }
+  @keyframes fi-confer {
+    0%, 20%, 75%, 100% { transform: rotate(-1.5deg); }
+    35%, 60% { transform: rotate(1.5deg); }
+  }
+  @keyframes fi-typing {
+    0%, 20% { opacity: .25; }
+    25%, 45% { opacity: 1; }
+    50%, 70% { opacity: .25; }
+    75%, 95% { opacity: 1; }
+  }
+  @keyframes fi-scan {
+    0%, 100% { transform: translateX(0); }
+    45%, 55% { transform: translateX(13px); }
+  }
+  @keyframes fi-lean {
+    0%, 100% { transform: skewX(0deg); }
+    45%, 55% { transform: skewX(-1.4deg); }
+  }
+  @keyframes fi-date-hop {
+    0%, 20%, 100% { transform: translate(0, 0); }
+    25%, 45% { transform: translate(-10px, -7px); }
+    50%, 70% { transform: translate(-19px, -7px); }
+    75%, 95% { transform: translate(-19px, 0); }
+  }
+  @keyframes fi-pump {
+    0%, 100% { transform: scale(1); }
+    30% { transform: scale(1.06); }
+    45% { transform: scale(.99); }
+    60% { transform: scale(1.03); }
+  }
+  @keyframes fi-pump-core {
+    0%, 100% { transform: scale(1); opacity: .8; }
+    30% { transform: scale(1.4); opacity: 1; }
+    50% { transform: scale(1.05); opacity: .9; }
+  }
+  @keyframes fi-inkflow {
+    0%, 100% { opacity: .68; }
+    50% { opacity: 1; }
+  }
+  @keyframes fi-comet {
+    0% { transform: translate(0, 0); opacity: 0; }
+    12% { opacity: 1; }
+    55% { transform: translate(-3px, 6px); opacity: .9; }
+    78% { transform: translate(-5px, 10px); opacity: 0; }
+    100% { transform: translate(0, 0); opacity: 0; }
+  }
+  @keyframes fi-sway {
+    0%, 100% { transform: rotate(-2.2deg); }
+    50% { transform: rotate(2.4deg); }
+  }
+  @keyframes fi-firefly {
+    0%, 100% { transform: translate(0, 0); opacity: .5; }
+    25% { transform: translate(2.5px, -3px); opacity: 1; }
+    50% { transform: translate(-1.5px, -5px); opacity: .55; }
+    75% { transform: translate(-3px, -1px); opacity: .9; }
+  }
+  @keyframes fi-ride {
+    0% { offset-distance: 0%; opacity: 0; }
+    10% { opacity: 1; }
+    86% { opacity: 1; }
+    100% { offset-distance: 100%; opacity: 0; }
+  }
+  @keyframes fi-live {
+    0%, 100% { opacity: .35; transform: scale(.9); }
+    14% { opacity: 1; transform: scale(1.15); }
+    45% { opacity: 1; transform: scale(1); }
+    62% { opacity: .35; transform: scale(.9); }
+  }
+  @keyframes fi-ticker {
+    0%, 100% { transform: translateX(0); }
+    50% { transform: translateX(-1.2px); }
+  }
+  @keyframes fi-spin { to { transform: rotate(360deg); } }
+  @keyframes fi-quarter {
+    0%, 16% { transform: rotate(0deg); }
+    22% { transform: rotate(97deg); }
+    25%, 41% { transform: rotate(90deg); }
+    47% { transform: rotate(187deg); }
+    50%, 66% { transform: rotate(180deg); }
+    72% { transform: rotate(277deg); }
+    75%, 91% { transform: rotate(270deg); }
+    97% { transform: rotate(367deg); }
+    100% { transform: rotate(360deg); }
+  }
+  @keyframes fi-breathe {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.035); }
+  }
+}
