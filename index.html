@@ -13,7 +13,6 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/web/shared/forest-home.css?v=20260714">
-  <link rel="stylesheet" href="/web/shared/forest-icons.css?v=20260714">
   <style>@media (prefers-reduced-motion: reduce) { .landing { min-height: 100svh; } }</style>
 </head>
 <body>
@@ -240,7 +239,7 @@
   </footer>
 
   <script src="/web/shared/forest-motion.js?v=20260714"></script>
-  <script src="/web/shared/forest-icons.js?v=20260714"></script>
+  <script type="module" src="/web/shared/forest-three.js?v=20260714"></script>
   <script>
     (() => {
       const root = document.documentElement;
@@ -262,36 +261,25 @@
 
       const clamp = (value, minimum, maximum) => Math.min(maximum, Math.max(minimum, value));
 
-      // Assembly momentum: scroll sets a target, a short-lived rAF loop chases
-      // it, and the chased value is pushed through a gentle back-out ease so
-      // the panels overshoot their seat by a few percent before settling.
-      let assemblyTarget = 0;
-      let assemblyCurrent = 0;
-      let assemblyFrame = 0;
-      const overshoot = (t) => 1 + 2 * ((t - 1) ** 3) + ((t - 1) ** 2);
-
-      function settleAssembly() {
-        assemblyFrame = 0;
-        assemblyCurrent += (assemblyTarget - assemblyCurrent) * .14;
-        if (Math.abs(assemblyTarget - assemblyCurrent) < .0005) assemblyCurrent = assemblyTarget;
-        root.style.setProperty('--assembly', assemblyCurrent.toFixed(4));
-        root.style.setProperty('--assembly-e', overshoot(assemblyCurrent).toFixed(4));
-        if (assemblyCurrent !== assemblyTarget) assemblyFrame = requestAnimationFrame(settleAssembly);
-      }
-
+      // Position-only assembly fallback. The real driver is
+      // forest-three.js (velocity-aware spring + WebGL fill); it stamps
+      // data-three-driver on <html> when it boots and this handler goes
+      // dormant. If modules or the module fetch fail, this keeps the
+      // panels reachable instead of stuck off-screen at --assembly: 0.
       function updateAssembly() {
         scheduled = false;
+        if (root.dataset.threeDriver) return;
         const compact = matchMedia('(max-width: 900px)').matches;
         if (compact || matchMedia('(prefers-reduced-motion: reduce)').matches) {
-          assemblyTarget = assemblyCurrent = 1;
           root.style.setProperty('--assembly', '1');
           root.style.setProperty('--assembly-e', '1');
           return;
         }
         const bounds = assembly.getBoundingClientRect();
         const travel = Math.max(1, bounds.height - innerHeight);
-        assemblyTarget = clamp(-bounds.top / travel, 0, 1);
-        if (!assemblyFrame) assemblyFrame = requestAnimationFrame(settleAssembly);
+        const progress = clamp(-bounds.top / travel, 0, 1).toFixed(4);
+        root.style.setProperty('--assembly', progress);
+        root.style.setProperty('--assembly-e', progress);
       }
 
       // Serpentine stagger: rows arrive top to bottom, alternating direction,
