@@ -89,6 +89,9 @@ const PARTICLE_FRAG = /* glsl */`
     float falloff = 1.0 - smoothstep(0.1, 0.5, length(c));
     float twinkle = 0.55 + 0.45 * sin(uTime * (1.2 + vSeed * 2.4) + vSeed * 40.0);
     gl_FragColor = vec4(vColor * falloff * twinkle * uMaster, 1.0);
+    // Match the built-in materials' output encoding, or the same palette
+    // renders gamma-darker here than on the LineBasicMaterial filaments.
+    #include <colorspace_fragment>
   }
 `;
 

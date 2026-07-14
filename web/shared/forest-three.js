@@ -44,9 +44,10 @@ import { initTiles, updateTiles, tilesAnimating, tilesDebug } from './forest-thr
   const coarseMedia = matchMedia('(pointer: coarse)');
   const reduced = () => motionOverride === 'reduce' || (motionOverride !== 'full' && reduceMedia.matches);
 
-  // Tell the inline fallback in index.html that a real driver owns the
-  // assembly variables from now on.
-  root.dataset.threeDriver = '1';
+  // NOTE: data-three-driver (which silences the inline fallback in
+  // index.html) is only stamped at the END of a successful boot() — a
+  // mid-boot exception must leave the fallback in charge, or the portal
+  // grid would be stranded off-screen at --assembly: 0.
 
   /* ------------------------------------------------------------------ *
    * Scroll physics — runs even without WebGL.
@@ -93,9 +94,14 @@ import { initTiles, updateTiles, tilesAnimating, tilesDebug } from './forest-thr
     return 1 + u * u * ((strength + 1) * u + strength);
   }
 
-  function updateScrollPhysics(dt) {
+  function updateScrollPhysics(dt, rawDt) {
     const y = scrollY;
-    const instant = dt > 0 ? (y - scroll.lastY) / dt : 0;
+    // Velocity divides the scroll delta by the REAL elapsed time — the
+    // delta accumulates across a slow frame (compositor scrolling keeps
+    // going during main-thread jank), so dividing by the clamped dt would
+    // inflate velocity/impact exactly on the machines already struggling.
+    const elapsed = Math.max(rawDt, 0.001);
+    const instant = (y - scroll.lastY) / elapsed;
     scroll.lastY = y;
     scroll.velocity += (instant - scroll.velocity) * clamp(dt * 9, 0, 1);
     scroll.vNorm = clamp(Math.abs(scroll.velocity) / 2600, 0, 1);
@@ -186,10 +192,33 @@ import { initTiles, updateTiles, tilesAnimating, tilesDebug } from './forest-thr
     camera.aspect = innerWidth / innerHeight;
     camera.position.set(0, 0, (innerHeight / 2) / Math.tan(THREE.MathUtils.degToRad(35 / 2)));
     camera.lookAt(0, 0, 0);
+    // Effects live between z -60 and +30 around the calibration plane; a
+    // fixed far would silently clip everything at extreme zoom levels
+    // (25% zoom puts innerHeight past 3700px and the camera past z 6000).
+    camera.far = camera.position.z + 900;
     camera.updateProjectionMatrix();
     // Point sprites need DPR x camera distance to size in CSS pixels.
     shared.pointScale = renderer.getPixelRatio() * camera.position.z;
-    respawnBurst();
+  }
+
+  // Resize is debounced: interactive drag-resize and mobile URL-bar
+  // show/hide fire streams of events, and each naive resizeRenderer call
+  // reallocates the antialiased drawing buffer (a visible hitch).
+  // Fireflies only re-roll on width/orientation changes — a height-only
+  // URL-bar twitch must not teleport them in plain view.
+  let resizeTimer = 0;
+  let lastViewportW = innerWidth;
+  let lastViewportH = innerHeight;
+  function onViewportResize() {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(() => {
+      if (innerWidth === lastViewportW && innerHeight === lastViewportH) return;
+      const widthChanged = innerWidth !== lastViewportW;
+      lastViewportW = innerWidth;
+      lastViewportH = innerHeight;
+      resizeRenderer();
+      if (widthChanged) respawnBurst();
+    }, 180);
   }
 
   window.addEventListener('pointermove', (event) => {
@@ -210,11 +239,12 @@ import { initTiles, updateTiles, tilesAnimating, tilesDebug } from './forest-thr
   function frame(now) {
     frameHandle = 0;
     const time = now / 1000;
-    const dt = clamp(lastTime ? time - lastTime : 1 / 60, 0.001, 1 / 20);
+    const rawDt = lastTime ? time - lastTime : 1 / 60;
+    const dt = clamp(rawDt, 0.001, 1 / 20);
     lastTime = time;
     stats.fps = lerp(stats.fps, 1 / dt, 0.05);
 
-    updateScrollPhysics(dt);
+    updateScrollPhysics(dt, rawDt);
 
     let rendered = false;
     if (renderer) {
@@ -276,24 +306,35 @@ import { initTiles, updateTiles, tilesAnimating, tilesDebug } from './forest-thr
   window.addEventListener('resize', wake, { passive: true });
 
   function boot() {
-    if (reduced()) {
-      // Present the assembled state statically. Set explicitly rather
-      // than relying on the CSS media query: the ?motion=reduce debug
-      // override reduces without the OS-level query matching.
-      setAssembledVars();
-      return;
-    }
-    if (!renderer) {
-      if (initRenderer()) {
-        initRoots(shared, coarseMedia.matches);
-        initBurst(shared);
-        initPanels(shared);
-        initTiles(shared, () => coarseMedia.matches);
-        window.addEventListener('resize', resizeRenderer, { passive: true });
+    try {
+      if (reduced()) {
+        // Present the assembled state statically. Set explicitly rather
+        // than relying on the CSS media query: the ?motion=reduce debug
+        // override reduces without the OS-level query matching.
+        root.dataset.threeDriver = '1';
+        setAssembledVars();
+        return;
       }
+      if (!renderer) {
+        if (initRenderer()) {
+          initRoots(shared, coarseMedia.matches);
+          initBurst(shared);
+          initPanels(shared);
+          initTiles(shared, () => coarseMedia.matches);
+          window.addEventListener('resize', onViewportResize, { passive: true });
+        }
+      }
+      if (canvas) canvas.style.display = '';
+      start();
+      // Scroll physics runs with or without WebGL, so the module owns the
+      // assembly vars from here on either way.
+      root.dataset.threeDriver = '1';
+    } catch (error) {
+      // Hand the page back to the inline fallback and get out of the way.
+      delete root.dataset.threeDriver;
+      stop();
+      if (canvas) canvas.style.display = 'none';
     }
-    if (canvas) canvas.style.display = '';
-    start();
   }
 
   function shutdown() {

@@ -711,5 +711,11 @@ export function updateTiles(shared, time, dt) {
   return visible;
 }
 
-export const tilesAnimating = () => state.tiles.some((tile) => tile.target > 0 || tile.alpha > 0.012);
+// "Animating" means mid-fade or shown AND on screen. A tapped/focused tile
+// whose rect has scrolled away must not pin the frame loop awake — on touch
+// nothing ever clears target (no pointerleave, iOS never blurs buttons), so
+// counting bare target > 0 would defeat the sleep logic for the whole
+// session. The scroll wake() re-runs updateTiles when it returns to view.
+export const tilesAnimating = () => state.tiles.some((tile) =>
+  Math.abs(tile.target - tile.alpha) > 0.012 || (tile.target > 0 && tile.group.visible));
 export const tilesDebug = state.tiles;

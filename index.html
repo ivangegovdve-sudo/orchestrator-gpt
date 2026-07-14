@@ -322,8 +322,13 @@
       }
 
       cards.forEach((card) => {
-        card.addEventListener('pointerenter', () => selectCard(card));
-        card.addEventListener('focus', () => selectCard(card));
+        // Mouse-only hover select: on touch, pointerenter fires before every
+        // tap's click and would disarm the two-tap navigation each time,
+        // making it impossible to ever enter a project.
+        card.addEventListener('pointerenter', (event) => {
+          if (event.pointerType === 'mouse') selectCard(card);
+        });
+        card.addEventListener('focus', () => selectCard(card, { keepArmed: true }));
         card.addEventListener('click', () => {
           selectCard(card, { keepArmed: true });
           if (!card.dataset.href) return;

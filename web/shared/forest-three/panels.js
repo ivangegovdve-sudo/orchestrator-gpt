@@ -102,6 +102,9 @@ const FILL_FRAG = /* glsl */`
     float master = clamp((1.0 - uProgress) * 1.25 + uVel * 0.4 + uImpact * 0.35, 0.0, 1.0);
     master *= smoothstep(0.0, 0.04, uProgress);
     gl_FragColor = vec4(col * master, 1.0);
+    // Match the built-in materials' output encoding, or the same palette
+    // renders gamma-darker here than on the LineBasicMaterial strands.
+    #include <colorspace_fragment>
   }
 `;
 
