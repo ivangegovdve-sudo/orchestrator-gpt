@@ -691,9 +691,36 @@ a, button { -webkit-tap-highlight-color: transparent; }
   .preview-stage { min-height: 580px; order: -1; }
   .portal { height: 112px; opacity: 1; translate: none; }
   .factory-progress { display: none; }
+  /* Bug fix: on touch viewports the entire card is a scroll target — restrict
+     the interactive area to the icon only so scrolling over a card does not
+     accidentally fire navigation. Events from the icon still bubble to the
+     card's click handler, preserving all selection/navigation logic. */
+  .portal { pointer-events: none; cursor: default; }
+  .portal .portal-icon { pointer-events: auto; cursor: pointer; }
 }
 
 @media (max-width: 560px) {
+  /* Bug fix: on narrow phones the centered landing-core can overflow its grid
+     cell downward and collide with the absolute scroll-invite at bottom:24px
+     ("Growing ecosystem / forest notices" overlaps "Assemble the portal").
+     Switch to flex-column so the invite follows the core in normal flow and
+     the landing grows past 100svh when content demands it. */
+  .landing {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: clamp(20px, 3vh, 36px);
+    padding-bottom: max(36px, 5vh);
+  }
+  .landing-core { width: 100%; text-align: center; }
+  .scroll-invite {
+    position: static;
+    left: unset;
+    bottom: unset;
+    transform: none;
+    flex-shrink: 0;
+  }
   .landing h1 { font-size: clamp(60px, 22vw, 100px); }
   .landing-copy { font-size: 16px; }
   .preview-stage { min-height: 530px; padding: 24px; }
