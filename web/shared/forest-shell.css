@@ -193,6 +193,26 @@ body[data-forest-page] select:focus-visible {
   outline-offset: 4px;
 }
 
+/* Scroll reveals: hiding engages only after forest-reveal.js marks the body,
+   so content stays visible if the script never runs. */
+@media (prefers-reduced-motion: no-preference) {
+  body[data-reveal-ready] [data-reveal] {
+    opacity: 0;
+    transform: translateY(26px);
+    transition:
+      opacity .7s cubic-bezier(.16, 1, .3, 1),
+      transform .7s cubic-bezier(.16, 1, .3, 1);
+    transition-delay: calc(var(--ri, 0) * 90ms);
+  }
+  body[data-reveal-ready] [data-reveal="left"] { transform: translateX(-32px); }
+  body[data-reveal-ready] [data-reveal="right"] { transform: translateX(32px); }
+  body[data-reveal-ready] [data-reveal="scale"] { transform: translateY(14px) scale(.96); }
+  body[data-reveal-ready] [data-reveal].is-revealed {
+    opacity: 1;
+    transform: none;
+  }
+}
+
 @media (max-width: 640px) {
   .forest-topbar { top: 10px; left: 10px; right: 10px; }
   .forest-back, .forest-top-action { padding-inline: 13px; }

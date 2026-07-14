@@ -12,7 +12,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/web/shared/forest-home.css?v=20260713">
+  <link rel="stylesheet" href="/web/shared/forest-home.css?v=20260714">
   <style>@media (prefers-reduced-motion: reduce) { .landing { min-height: 100svh; } }</style>
 </head>
 <body>
@@ -238,7 +238,7 @@
     <p>SDForest is an evolving collection. Experimental and in-development work is labeled plainly; every live path should lead somewhere real.</p>
   </footer>
 
-  <script src="/web/shared/forest-motion.js?v=20260713"></script>
+  <script src="/web/shared/forest-motion.js?v=20260714"></script>
   <script>
     (() => {
       const root = document.documentElement;
@@ -260,17 +260,46 @@
 
       const clamp = (value, minimum, maximum) => Math.min(maximum, Math.max(minimum, value));
 
+      // Assembly momentum: scroll sets a target, a short-lived rAF loop chases
+      // it, and the chased value is pushed through a gentle back-out ease so
+      // the panels overshoot their seat by a few percent before settling.
+      let assemblyTarget = 0;
+      let assemblyCurrent = 0;
+      let assemblyFrame = 0;
+      const overshoot = (t) => 1 + 2 * ((t - 1) ** 3) + ((t - 1) ** 2);
+
+      function settleAssembly() {
+        assemblyFrame = 0;
+        assemblyCurrent += (assemblyTarget - assemblyCurrent) * .14;
+        if (Math.abs(assemblyTarget - assemblyCurrent) < .0005) assemblyCurrent = assemblyTarget;
+        root.style.setProperty('--assembly', assemblyCurrent.toFixed(4));
+        root.style.setProperty('--assembly-e', overshoot(assemblyCurrent).toFixed(4));
+        if (assemblyCurrent !== assemblyTarget) assemblyFrame = requestAnimationFrame(settleAssembly);
+      }
+
       function updateAssembly() {
         scheduled = false;
         const compact = matchMedia('(max-width: 900px)').matches;
         if (compact || matchMedia('(prefers-reduced-motion: reduce)').matches) {
+          assemblyTarget = assemblyCurrent = 1;
           root.style.setProperty('--assembly', '1');
+          root.style.setProperty('--assembly-e', '1');
           return;
         }
         const bounds = assembly.getBoundingClientRect();
         const travel = Math.max(1, bounds.height - innerHeight);
-        root.style.setProperty('--assembly', clamp(-bounds.top / travel, 0, 1).toFixed(4));
+        assemblyTarget = clamp(-bounds.top / travel, 0, 1);
+        if (!assemblyFrame) assemblyFrame = requestAnimationFrame(settleAssembly);
       }
+
+      // Serpentine stagger: rows arrive top to bottom, alternating direction,
+      // so the lattice reads as being woven rather than switched on.
+      cards.forEach((card, index) => {
+        const row = Math.floor(index / 3);
+        const column = index % 3;
+        const order = row % 2 ? 2 - column : column;
+        card.style.setProperty('--cd', (row * .09 + order * .05).toFixed(3));
+      });
 
       function selectCard(card, options = {}) {
         if (!card) return;
@@ -324,6 +353,15 @@
         const bounds = card.getBoundingClientRect();
         card.style.setProperty('--mx', `${event.clientX - bounds.left}px`);
         card.style.setProperty('--my', `${event.clientY - bounds.top}px`);
+        card.style.setProperty('--px', ((event.clientX - bounds.left) / bounds.width - .5).toFixed(3));
+        card.style.setProperty('--py', ((event.clientY - bounds.top) / bounds.height - .5).toFixed(3));
+      }, { passive: true });
+
+      window.addEventListener('pointerout', (event) => {
+        const card = event.target.closest?.('.portal');
+        if (!card || card.contains(event.relatedTarget)) return;
+        card.style.setProperty('--px', '0');
+        card.style.setProperty('--py', '0');
       }, { passive: true });
 
       window.addEventListener('scroll', () => {

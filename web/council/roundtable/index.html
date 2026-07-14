@@ -329,8 +329,9 @@
     body.locked .page { filter: blur(7px); pointer-events: none; user-select: none; }
     body:not(.locked) .lockgate { display: none; }
   </style>
+  <link rel="stylesheet" href="/web/shared/council-motion.css?v=20260714">
 </head>
-<body class="locked">
+<body class="locked" data-council="roundtable">
   <div id="lockgate" class="lockgate" role="dialog" aria-label="Private council — access required">
     <div class="lockgate-card">
       <div class="lockgate-ico">&#128274;</div>
@@ -993,5 +994,6 @@
       codeI.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); tryUnlock(); } });
     })();
   </script>
+  <script src="/web/shared/council-motion.js?v=20260714"></script>
 </body>
 </html>

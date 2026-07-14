@@ -67,7 +67,12 @@
     const mode = canvas.dataset.mode || document.body.dataset.forestPage || 'portal';
     const rgb = palette[mode] || palette.portal;
     const rgbText = rgb.join(',');
-    const nodeCount = reduceMotion.matches ? 22 : Math.min(74, Math.max(38, Math.round(innerWidth / 19)));
+    const nodeCount = reduceMotion.matches
+      ? 22
+      : mode === 'portal'
+        ? Math.min(92, Math.max(46, Math.round(innerWidth / 15)))
+        : Math.min(74, Math.max(38, Math.round(innerWidth / 19)));
+    const linkRange = mode === 'portal' ? 175 : 155;
     const seed = [...mode].reduce((sum, char) => sum + char.charCodeAt(0), 37 + canvasIndex);
     const random = mulberry32(seed);
     const nodes = Array.from({ length: nodeCount }, (_, index) => ({
@@ -81,6 +86,30 @@
       lane: index % 5,
     }));
     const points = nodes.map((node, index) => ({ node, index, x: 0, y: 0 }));
+
+    // Spore drift: stateless risers, position derived from time so they cost
+    // nothing to update and pause cleanly with the frame loop.
+    const spores = Array.from({ length: Math.round(nodeCount * .6) }, () => ({
+      x: random(),
+      y: random(),
+      rise: .012 + random() * .026,
+      sway: random() * Math.PI * 2,
+      size: .4 + random() * 1.2,
+      twinkle: .5 + random() * 1.6,
+    }));
+
+    // Root filaments grow from the lower edge on the portal landing only:
+    // fine swaying strokes that read as the forest floor under the lattice.
+    const roots = mode === 'portal'
+      ? Array.from({ length: 16 }, () => ({
+          x: random(),
+          span: (random() - .5) * .12,
+          height: .12 + random() * .17,
+          sway: 5 + random() * 10,
+          phase: random() * Math.PI * 2,
+          speed: .22 + random() * .38,
+        }))
+      : [];
 
     let width = 0;
     let height = 0;
@@ -146,12 +175,32 @@
           const dx = mouse.x * width - x;
           const dy = mouse.y * height - y;
           const distance = Math.hypot(dx, dy) || 1;
-          const pull = Math.max(0, 1 - distance / 320) * 34;
+          const pull = Math.max(0, 1 - distance / 370) * 46;
           x += (dx / distance) * pull;
           y += (dy / distance) * pull;
         }
         point.x = x;
         point.y = y;
+      }
+
+      for (const root of roots) {
+        const baseX = root.x * width;
+        const reach = root.height * height;
+        const swayX = reduceMotion.matches ? 0 : Math.sin(time * root.speed + root.phase) * root.sway;
+        const nearPointer = pointerSeen
+          ? Math.max(0, 1 - Math.abs(mouse.x * width - baseX) / 260) * .1
+          : 0;
+        context.beginPath();
+        context.moveTo(baseX, height + 2);
+        context.quadraticCurveTo(
+          baseX + swayX * .55,
+          height - reach * .55,
+          baseX + swayX + root.span * width,
+          height - reach,
+        );
+        context.strokeStyle = `rgba(${rgbText},${.09 + nearPointer})`;
+        context.lineWidth = .55;
+        context.stroke();
       }
 
       for (let a = 0; a < points.length; a += 1) {
@@ -163,7 +212,7 @@
         for (let b = a + 1; b < points.length; b += 1) {
           const second = points[b];
           const distance = Math.hypot(first.x - second.x, first.y - second.y);
-          if (distance >= 155) continue;
+          if (distance >= linkRange) continue;
           if (distance < distance1) {
             near2 = near1;
             distance2 = distance1;
@@ -178,7 +227,7 @@
           const second = neighbor === 0 ? near1 : near2;
           const distance = neighbor === 0 ? distance1 : distance2;
           if (!second) continue;
-          const alpha = (1 - distance / 155) * .2;
+          const alpha = (1 - distance / linkRange) * .2;
           context.beginPath();
           context.moveTo(first.x, first.y);
           const bend = mode === 'time' || mode === 'poetry' ? 18 : 7;
@@ -197,11 +246,22 @@
       for (let index = 0; index < points.length; index += 1) {
         const point = points[index];
         const vivid = pointerSeen
-          ? Math.max(0, 1 - Math.hypot(point.x - mouse.x * width, point.y - mouse.y * height) / 250)
+          ? Math.max(0, 1 - Math.hypot(point.x - mouse.x * width, point.y - mouse.y * height) / 300)
           : 0;
         context.beginPath();
-        context.arc(point.x, point.y, point.node.size + vivid * 1.8, 0, Math.PI * 2);
-        context.fillStyle = `rgba(${rgbText},${.22 + vivid * .5})`;
+        context.arc(point.x, point.y, point.node.size + vivid * 2.1, 0, Math.PI * 2);
+        context.fillStyle = `rgba(${rgbText},${.22 + vivid * .55})`;
+        context.fill();
+      }
+
+      for (const spore of spores) {
+        const wrapY = (((spore.y - time * spore.rise) % 1) + 1) % 1;
+        const sporeX = (spore.x + Math.sin(time * .45 + spore.sway) * .012 + (mouse.x - .5) * .015 * spore.size) * width;
+        const sporeY = wrapY * height;
+        const glimmer = .5 + Math.sin(time * spore.twinkle + spore.sway) * .5;
+        context.beginPath();
+        context.arc(sporeX, sporeY, spore.size, 0, Math.PI * 2);
+        context.fillStyle = `rgba(${rgbText},${.06 + glimmer * .16})`;
         context.fill();
       }
 
