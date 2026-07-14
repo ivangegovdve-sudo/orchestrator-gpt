@@ -1,330 +1,596 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Open Round Table — Free-Model Council · SD Forest</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="A heterogeneous council of free OpenRouter models deliberates live: Proposer → Critic → Chairman across 1–5 rounds. Powered by Ivan's OR key by default — no setup needed. Toggle to BYOK.">
-  <meta property="og:title" content="Open Round Table — SD Forest">
+  <meta name="theme-color" content="#050806">
+  <title>Round Table — SDForest</title>
+  <meta property="og:title" content="Round Table — SDForest">
   <meta property="og:description" content="Free-model council streamed live: Proposer → Critic → Chairman. Ivan's OpenRouter key powers it by default — no setup. Toggle BYOK to use your own key. $0.">
   <meta property="og:type" content="website">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/web/shared/forest-shell.css?v=20260713">
   <style>
     :root {
-      --bg: #09090b;
-      --card-bg: rgba(24, 24, 27, 0.6);
-      --card-border: rgba(255, 255, 255, 0.08);
-      --text: #f8fafc;
-      --muted: #a1a1aa;
-      --accent: #4f46e5;
-      --purple: #8b5cf6;
-      --green: #22c55e;
-      --rose: #f43f5e;
-      --amber: #f59e0b;
+      --forest-accent: #73e9ff;
+      --forest-accent-rgb: 115, 233, 255;
+      /* Semantic role colors, harmonized to the forest feel.
+         --amber and --purple are also referenced by inline styles the
+         streaming script emits (dividers, notices) — keep them defined. */
+      --amber: #f5c76b;
+      --rose: #ff8ba0;
+      --purple: #b9a2ff;
+      --verdict-green: #79f2a8;
+      --mono: ui-monospace, "Cascadia Mono", "SFMono-Regular", Menlo, Consolas, monospace;
     }
 
-    * { box-sizing: border-box; }
-
-    body {
-      margin: 0;
-      min-height: 100vh;
-      background-color: var(--bg);
-      background-image:
-        radial-gradient(circle at 20% 40%, rgba(79, 70, 229, 0.1), transparent 45%),
-        radial-gradient(circle at 80% 20%, rgba(139, 92, 246, 0.1), transparent 45%);
-      color: var(--text);
-      font-family: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
-      padding: 28px 20px 60px;
+    main.forest-page {
+      width: min(920px, calc(100% - 32px));
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
     }
 
-    .page { max-width: 860px; margin: 0 auto; display: flex; flex-direction: column; gap: 24px; }
+    code { font-family: var(--mono); font-size: .95em; color: color-mix(in srgb, var(--forest-accent) 55%, var(--forest-soft)); }
 
-    /* ── Top bar ─────────────────────────────────────────────── */
-    .topbar { display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; flex-wrap: wrap; }
-    .back-link { display: inline-flex; align-items: center; gap: 6px; color: var(--muted); text-decoration: none; font-size: 13px; transition: color 0.2s; padding-top: 6px; }
-    .back-link:hover { color: var(--text); }
+    /* ── Hero ──────────────────────────────────────────────── */
+    .byok-hero {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 28px;
+      flex-wrap: wrap;
+      margin-bottom: clamp(18px, 4vw, 44px);
+    }
+    .byok-hero-main { flex: 1 1 460px; min-width: 0; }
+    .byok-hero .forest-title { font-size: clamp(46px, 8.5vw, 92px); }
+    .byok-hero .forest-lede { font-size: clamp(15px, 2vw, 18px); max-width: 560px; }
 
-    /* BYOK toggle chip */
-    .byok-chip { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
-    .byok-toggle-row { display: flex; align-items: center; gap: 8px; cursor: pointer; user-select: none; }
-    .byok-label { font-size: 11.5px; color: var(--muted); }
+    /* ── BYOK chip (functional — ids wired to the script) ──── */
+    .byok-chip {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 9px;
+      padding: 16px 18px;
+      border: 1px solid var(--forest-line);
+      border-radius: 18px;
+      background:
+        linear-gradient(135deg, rgba(255, 255, 255, .03), transparent 50%),
+        var(--forest-panel);
+      backdrop-filter: blur(18px);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, .04);
+    }
+    .byok-toggle-row { display: flex; align-items: center; gap: 10px; cursor: pointer; user-select: none; }
+    .byok-label {
+      color: var(--forest-muted);
+      font: 700 10px/1 var(--forest-body);
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      transition: color .2s ease;
+    }
     .byok-switch {
-      width: 36px; height: 20px; border-radius: 999px;
-      background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.18);
-      position: relative; transition: background 0.2s;
+      position: relative;
       flex-shrink: 0;
+      width: 38px;
+      height: 22px;
+      border: 1px solid var(--forest-line);
+      border-radius: 999px;
+      background: color-mix(in srgb, var(--forest-ink) 8%, transparent);
+      transition: border-color .2s ease, box-shadow .2s ease;
+    }
+    .byok-switch::before {
+      /* Invisible hit-area extension: brings the 38x22 switch up to ~44px touch target. */
+      content: "";
+      position: absolute;
+      inset: -12px;
     }
     .byok-switch::after {
-      content: ''; position: absolute; top: 2px; left: 2px;
-      width: 14px; height: 14px; border-radius: 50%;
-      background: #94a3b8; transition: left 0.2s, background 0.2s;
+      content: "";
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: var(--forest-muted);
+      transition: transform .2s ease, box-shadow .2s ease;
     }
-    .byok-chip.on .byok-switch { background: rgba(79,70,229,0.45); border-color: rgba(79,70,229,0.6); }
-    .byok-chip.on .byok-switch::after { left: 18px; background: var(--accent); }
-    .byok-chip.on .byok-label { color: var(--text); }
-    .byok-key-row { display: flex; align-items: center; gap: 7px; display: none; }
+    .byok-chip.on .byok-switch {
+      border-color: rgba(var(--forest-accent-rgb), .55);
+      background: rgba(var(--forest-accent-rgb), .14);
+    }
+    .byok-chip.on .byok-switch::after {
+      transform: translateX(16px);
+      background: var(--forest-accent);
+      box-shadow: 0 0 10px rgba(var(--forest-accent-rgb), .65);
+    }
+    .byok-chip.on .byok-label { color: var(--forest-ink); }
+    .byok-key-row { display: none; align-items: center; gap: 7px; width: 100%; }
     .byok-chip.on .byok-key-row { display: flex; }
     #or-key {
-      width: 190px; background: rgba(0,0,0,0.35); border: 1px solid rgba(255,255,255,0.12);
-      border-radius: 8px; color: var(--text); font-family: monospace; font-size: 11.5px;
-      padding: 7px 10px; outline: none; transition: width 0.25s, border-color 0.2s;
+      width: 240px;
+      max-width: 100%;
+      margin-left: auto;
+      padding: 9px 12px;
+      border: 1px solid var(--forest-line);
+      border-radius: 10px;
+      background: rgba(4, 10, 8, .6);
+      color: var(--forest-ink);
+      font-family: var(--mono);
+      font-size: 11.5px;
+      transition: border-color .2s ease;
     }
-    #or-key:focus { width: 300px; border-color: rgba(139,92,246,0.55); }
+    #or-key:focus { border-color: rgba(var(--forest-accent-rgb), .55); }
     #or-key.bad { border-color: var(--rose); }
-    #or-key.ok { border-color: rgba(34,197,94,0.4); }
-    .key-note { font-size: 10px; color: #64748b; }
-    .key-note a { color: #a5b4fc; text-decoration: none; }
+    #or-key.ok { border-color: rgba(var(--forest-accent-rgb), .45); }
+    .key-note { font-size: 10px; color: var(--forest-muted); }
+    .key-note a { color: var(--forest-accent); text-decoration: none; }
     .key-note a:hover { text-decoration: underline; }
 
-    header { text-align: center; }
-    h1 {
-      margin: 0 0 8px;
-      font-size: 36px;
-      font-weight: 800;
-      letter-spacing: -0.02em;
-      background: linear-gradient(135deg, var(--accent) 0%, var(--purple) 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
+    /* ── Panels & micro-labels ─────────────────────────────── */
+    .byok-card {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      padding: clamp(20px, 3vw, 28px);
     }
-    .tagline { margin: 0; color: var(--muted); font-size: 15px; line-height: 1.5; }
-
-    /* ── Section shell ─────────────────────────────────────── */
-    .card {
-      background: var(--card-bg); border: 1px solid var(--card-border);
-      border-radius: 16px; padding: 22px; backdrop-filter: blur(12px);
-      display: flex; flex-direction: column; gap: 14px;
+    .section-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      color: var(--forest-muted);
+      font: 700 10px/1.4 var(--forest-body);
+      letter-spacing: .18em;
+      text-transform: uppercase;
     }
-    .section-label { font-size: 11px; color: #64748b; text-transform: uppercase; letter-spacing: 0.06em; font-weight: 700; }
+    .section-label-gap { margin-top: 8px; }
     .section-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
-    .section-sub { font-size: 12px; color: var(--muted); line-height: 1.5; margin: -6px 0 2px; }
+    .section-sub { margin: -6px 0 2px; color: var(--forest-muted); font-size: 12.5px; line-height: 1.6; }
     .free-badge {
-      background: rgba(34,197,94,0.12); border: 1px solid rgba(34,197,94,0.25);
-      color: var(--green); padding: 2px 7px; border-radius: 4px;
-      font-size: 10px; font-weight: 600; text-transform: uppercase;
+      display: inline-flex;
+      align-items: center;
+      min-height: 20px;
+      padding: 0 8px;
+      border: 1px solid rgba(var(--forest-accent-rgb), .3);
+      border-radius: 999px;
+      color: var(--forest-accent);
+      background: rgba(var(--forest-accent-rgb), .08);
+      font: 700 10px/1 var(--forest-body);
+      letter-spacing: .1em;
+      text-transform: uppercase;
     }
 
     /* ── Council flow tree ─────────────────────────────────── */
-    .flow-card { padding: 20px 18px; }
     .flow-tree { display: flex; flex-direction: column; }
     .flow-stage {
-      display: grid; grid-template-columns: 40px 1fr; gap: 12px; align-items: start;
-      position: relative; padding: 8px 0;
+      position: relative;
+      display: grid;
+      grid-template-columns: 40px 1fr;
+      gap: 14px;
+      align-items: start;
+      padding: 9px 0;
     }
     .flow-stage:not(:last-child)::before {
-      content: ""; position: absolute; left: 19px; top: 40px; bottom: -8px;
-      width: 2px; background: linear-gradient(180deg, rgba(255,255,255,0.14), rgba(255,255,255,0.05));
+      content: "";
+      position: absolute;
+      left: 19px;
+      top: 44px;
+      bottom: -9px;
+      width: 2px;
+      background: linear-gradient(180deg, var(--forest-line), transparent);
     }
     .flow-node {
-      width: 40px; height: 40px; border-radius: 11px; display: flex; align-items: center;
-      justify-content: center; font-size: 18px; flex-shrink: 0; position: relative; z-index: 1;
-      border: 1px solid transparent;
+      position: relative;
+      z-index: 1;
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      border: 1px solid var(--forest-line);
+      border-radius: 12px;
+      background: color-mix(in srgb, var(--forest-ink) 4%, transparent);
+      color: var(--forest-muted);
+      font: 700 12px/1 var(--forest-display);
+      letter-spacing: .04em;
     }
-    .flow-node.q        { background: rgba(255,255,255,0.06); border-color: rgba(255,255,255,0.15); }
-    .flow-node.proposer { background: rgba(79,70,229,0.14); border-color: rgba(79,70,229,0.3); }
-    .flow-node.critic   { background: rgba(244,63,94,0.14);  border-color: rgba(244,63,94,0.3); }
-    .flow-node.chairman { background: rgba(245,158,11,0.14); border-color: rgba(245,158,11,0.3); }
-    .flow-node.verdict  { background: rgba(34,197,94,0.14);  border-color: rgba(34,197,94,0.3); }
+    .flow-node.proposer { color: var(--forest-accent);  background: color-mix(in srgb, var(--forest-accent) 12%, transparent); border-color: color-mix(in srgb, var(--forest-accent) 32%, transparent); }
+    .flow-node.critic   { color: var(--rose);           background: color-mix(in srgb, var(--rose) 12%, transparent);          border-color: color-mix(in srgb, var(--rose) 32%, transparent); }
+    .flow-node.chairman { color: var(--amber);          background: color-mix(in srgb, var(--amber) 12%, transparent);         border-color: color-mix(in srgb, var(--amber) 32%, transparent); }
+    .flow-node.verdict  { color: var(--verdict-green);  background: color-mix(in srgb, var(--verdict-green) 12%, transparent); border-color: color-mix(in srgb, var(--verdict-green) 32%, transparent); }
     .flow-body { padding-top: 2px; min-width: 0; }
-    .flow-name { font-size: 13.5px; font-weight: 700; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .flow-name {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      font: 600 14px/1.4 var(--forest-display);
+      letter-spacing: -.01em;
+    }
     .flow-role {
-      font-size: 9px; letter-spacing: 0.05em; text-transform: uppercase; font-weight: 700;
-      padding: 2px 7px; border-radius: 20px;
+      padding: 3px 8px;
+      border: 1px solid transparent;
+      border-radius: 999px;
+      font: 700 10px/1 var(--forest-body);
+      letter-spacing: .1em;
+      text-transform: uppercase;
     }
-    .flow-role.proposer { background: rgba(79,70,229,0.12); color: var(--accent); }
-    .flow-role.critic   { background: rgba(244,63,94,0.12);  color: var(--rose); }
-    .flow-role.chairman { background: rgba(245,158,11,0.12); color: var(--amber); }
-    .flow-desc { font-size: 11.5px; color: var(--muted); margin-top: 3px; line-height: 1.5; }
-    .flow-models { font-size: 10px; color: #a5b4fc; font-family: monospace; margin-top: 4px; word-break: break-all; }
-    .flow-loop-tag { font-size: 10px; color: var(--purple); font-weight: 600; }
+    .flow-role.proposer { color: var(--forest-accent); background: rgba(var(--forest-accent-rgb), .09); border-color: rgba(var(--forest-accent-rgb), .28); }
+    .flow-role.critic   { color: var(--rose);  background: color-mix(in srgb, var(--rose) 10%, transparent);  border-color: color-mix(in srgb, var(--rose) 28%, transparent); }
+    .flow-role.chairman { color: var(--amber); background: color-mix(in srgb, var(--amber) 10%, transparent); border-color: color-mix(in srgb, var(--amber) 28%, transparent); }
+    .flow-desc { margin-top: 3px; color: var(--forest-muted); font-size: 12px; line-height: 1.55; }
+    .flow-models { margin-top: 4px; color: color-mix(in srgb, var(--forest-accent) 60%, var(--forest-muted)); font-family: var(--mono); font-size: 10px; word-break: break-all; }
+    .flow-loop-tag { color: var(--purple); font-size: 10px; font-weight: 600; }
     .flow-toggle { display: none; }
+
     .mini-btn {
-      background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1);
-      border-radius: 7px; color: var(--muted); cursor: pointer; font-size: 11px;
-      padding: 5px 11px; font-family: inherit; font-weight: 600; transition: all 0.18s;
+      min-height: 36px;
+      padding: 8px 13px;
+      border: 1px solid var(--forest-line);
+      border-radius: 999px;
+      background: color-mix(in srgb, var(--forest-ink) 4%, transparent);
+      color: var(--forest-muted);
+      cursor: pointer;
+      font: 700 10px/1 var(--forest-body);
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      transition: color .18s ease, border-color .18s ease, box-shadow .18s ease;
     }
-    .mini-btn:hover { background: rgba(255,255,255,0.09); color: var(--text); }
-    .mini-btn.selected { background: linear-gradient(135deg, rgba(79,70,229,0.25), rgba(139,92,246,0.25)); border-color: rgba(139,92,246,0.5); color: var(--text); }
+    .mini-btn:hover { color: var(--forest-ink); border-color: rgba(var(--forest-accent-rgb), .4); }
+    .mini-btn.selected {
+      color: var(--forest-accent);
+      background: rgba(var(--forest-accent-rgb), .1);
+      border-color: rgba(var(--forest-accent-rgb), .5);
+      box-shadow: 0 0 18px rgba(var(--forest-accent-rgb), .12);
+    }
 
     textarea {
-      width: 100%; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1);
-      border-radius: 10px; color: var(--text); font-family: inherit; font-size: 15px;
-      line-height: 1.6; padding: 14px 16px; resize: vertical; min-height: 90px;
-      transition: border-color 0.2s; outline: none;
+      width: 100%;
+      min-height: 90px;
+      padding: 14px 16px;
+      border: 1px solid var(--forest-line);
+      border-radius: 14px;
+      background: rgba(4, 10, 8, .55);
+      color: var(--forest-ink);
+      font-family: var(--forest-body);
+      font-size: 15px;
+      line-height: 1.6;
+      resize: vertical;
+      transition: border-color .2s ease;
     }
-    textarea:focus { border-color: rgba(79,70,229,0.5); }
-    textarea::placeholder { color: #475569; }
+    textarea:focus { border-color: rgba(var(--forest-accent-rgb), .5); }
+    textarea::placeholder { color: color-mix(in srgb, var(--forest-muted) 65%, transparent); }
 
     /* ── Seat configuration ────────────────────────────────── */
     .presets-row { display: flex; gap: 8px; flex-wrap: wrap; }
-    .seats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+    .seats-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
     .seat-card {
-      border: 1px solid rgba(255,255,255,0.07); border-radius: 12px; padding: 14px;
-      background: rgba(255,255,255,0.02); display: flex; flex-direction: column; gap: 9px;
+      display: flex;
+      flex-direction: column;
+      gap: 9px;
+      padding: 15px;
+      border: 1px solid var(--forest-line);
+      border-radius: 16px;
+      background: color-mix(in srgb, var(--forest-ink) 2.5%, transparent);
     }
     .seat-head { display: flex; align-items: center; gap: 9px; }
-    .seat-icon { width: 30px; height: 30px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 15px; flex-shrink: 0; }
-    .seat-icon.proposer { background: rgba(79,70,229,0.15); }
-    .seat-icon.critic   { background: rgba(244,63,94,0.15); }
-    .seat-icon.chairman { background: rgba(245,158,11,0.15); }
-    .seat-name { font-size: 13px; font-weight: 700; }
-    .seat-hint { font-size: 10.5px; color: #64748b; line-height: 1.4; }
-    .seat-select {
-      width: 100%; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.12);
-      border-radius: 8px; color: var(--text); font-family: inherit; font-size: 12.5px;
-      padding: 8px 10px; outline: none; cursor: pointer; transition: border-color 0.2s;
+    .seat-icon, .stage-icon {
+      width: 30px;
+      height: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      border: 1px solid transparent;
+      border-radius: 9px;
+      font: 700 11px/1 var(--forest-display);
+      letter-spacing: .04em;
     }
-    .seat-select:focus { border-color: rgba(79,70,229,0.5); }
-    .seat-select optgroup { background: #18181b; color: #94a3b8; font-style: normal; }
-    .seat-select option { background: #101014; color: var(--text); }
-    .seat-slug { font-family: monospace; font-size: 9.5px; color: #a5b4fc; word-break: break-all; }
-    .seat-fallback { font-size: 9.5px; color: #64748b; line-height: 1.5; word-break: break-all; }
-    .seat-fallback b { color: #94a3b8; font-weight: 600; }
+    .seat-icon.proposer, .stage-icon.proposer { color: var(--forest-accent); background: color-mix(in srgb, var(--forest-accent) 12%, transparent); border-color: color-mix(in srgb, var(--forest-accent) 26%, transparent); }
+    .seat-icon.critic,   .stage-icon.critic   { color: var(--rose);          background: color-mix(in srgb, var(--rose) 12%, transparent);          border-color: color-mix(in srgb, var(--rose) 26%, transparent); }
+    .seat-icon.chairman, .stage-icon.chairman { color: var(--amber);         background: color-mix(in srgb, var(--amber) 12%, transparent);         border-color: color-mix(in srgb, var(--amber) 26%, transparent); }
+    .seat-name { font: 600 13.5px/1.3 var(--forest-display); letter-spacing: -.01em; }
+    .seat-hint { color: var(--forest-muted); font-size: 11px; line-height: 1.5; }
+    .seat-select {
+      width: 100%;
+      padding: 9px 10px;
+      border: 1px solid var(--forest-line);
+      border-radius: 10px;
+      background: rgba(4, 10, 8, .6);
+      color: var(--forest-ink);
+      cursor: pointer;
+      font-family: var(--forest-body);
+      font-size: 12.5px;
+      transition: border-color .2s ease;
+    }
+    .seat-select:focus { border-color: rgba(var(--forest-accent-rgb), .5); }
+    .seat-select optgroup { background: #0a120d; color: var(--forest-muted); font-style: normal; }
+    .seat-select option { background: #081009; color: var(--forest-ink); }
+    .seat-slug { color: color-mix(in srgb, var(--forest-accent) 60%, var(--forest-muted)); font-family: var(--mono); font-size: 10px; word-break: break-all; }
+    .seat-fallback { color: var(--forest-muted); font-size: 10px; line-height: 1.5; word-break: break-all; }
+    .seat-fallback b { color: var(--forest-soft); font-weight: 600; }
 
     /* ── Round selector ────────────────────────────────────── */
     .rounds-row { display: flex; gap: 8px; flex-wrap: wrap; }
     .round-pill {
-      flex: 1; min-width: 54px; text-align: center; background: rgba(255,255,255,0.04);
-      border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; color: var(--muted);
-      cursor: pointer; padding: 10px 6px; font-family: inherit; font-weight: 700; font-size: 15px;
-      transition: all 0.18s;
+      flex: 1;
+      min-width: 54px;
+      padding: 10px 6px;
+      border: 1px solid var(--forest-line);
+      border-radius: 14px;
+      background: color-mix(in srgb, var(--forest-ink) 4%, transparent);
+      color: var(--forest-muted);
+      cursor: pointer;
+      text-align: center;
+      font: 600 15px/1.2 var(--forest-display);
+      transition: color .18s ease, border-color .18s ease, box-shadow .18s ease, transform .18s ease;
     }
-    .round-pill small { display: block; font-size: 9px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: #64748b; margin-top: 2px; }
-    .round-pill:hover { background: rgba(255,255,255,0.08); color: var(--text); }
-    .round-pill.selected { background: linear-gradient(135deg, rgba(79,70,229,0.25), rgba(139,92,246,0.25)); border-color: rgba(139,92,246,0.5); color: var(--text); }
-    .round-est { font-size: 11.5px; color: var(--muted); }
+    .round-pill small {
+      display: block;
+      margin-top: 4px;
+      color: var(--forest-muted);
+      font: 700 10px/1 var(--forest-body);
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+    .round-pill:hover { color: var(--forest-ink); border-color: rgba(var(--forest-accent-rgb), .35); transform: translateY(-1px); }
+    .round-pill.selected {
+      color: var(--forest-accent);
+      background: rgba(var(--forest-accent-rgb), .1);
+      border-color: rgba(var(--forest-accent-rgb), .55);
+      box-shadow: 0 0 22px rgba(var(--forest-accent-rgb), .14);
+    }
+    .round-pill.selected small { color: color-mix(in srgb, var(--forest-accent) 70%, var(--forest-muted)); }
+    .round-est { color: var(--forest-muted); font-size: 11.5px; }
     .round-est b { color: var(--amber); font-weight: 700; }
 
     /* ── Mode selector ─────────────────────────────────────── */
     .mode-row { display: flex; flex-wrap: wrap; gap: 8px; }
     .mode-pill {
-      background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1);
-      border-radius: 999px; color: var(--muted); cursor: pointer; font-size: 12px;
-      padding: 7px 14px; font-family: inherit; transition: all 0.18s; font-weight: 600;
-      display: inline-flex; align-items: center; gap: 6px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      min-height: 36px;
+      padding: 9px 14px;
+      border: 1px solid var(--forest-line);
+      border-radius: 999px;
+      background: color-mix(in srgb, var(--forest-ink) 4%, transparent);
+      color: var(--forest-muted);
+      cursor: pointer;
+      font: 600 12px/1 var(--forest-body);
+      transition: color .18s ease, border-color .18s ease, box-shadow .18s ease;
     }
-    .mode-pill:hover { background: rgba(255,255,255,0.08); color: var(--text); }
-    .mode-pill.selected { background: linear-gradient(135deg, rgba(79,70,229,0.25), rgba(139,92,246,0.25)); border-color: rgba(139,92,246,0.5); color: var(--text); }
-    .mode-desc { font-size: 11.5px; color: #64748b; line-height: 1.5; min-height: 16px; }
+    .mode-pill:hover { color: var(--forest-ink); border-color: rgba(var(--forest-accent-rgb), .4); }
+    .mode-pill.selected {
+      color: var(--forest-accent);
+      background: rgba(var(--forest-accent-rgb), .1);
+      border-color: rgba(var(--forest-accent-rgb), .5);
+      box-shadow: 0 0 18px rgba(var(--forest-accent-rgb), .12);
+    }
+    .mode-desc { min-height: 16px; color: var(--forest-muted); font-size: 11.5px; line-height: 1.6; }
 
-    .input-footer { display: flex; align-items: center; justify-content: flex-end; gap: 12px; }
+    .input-footer { display: flex; align-items: center; justify-content: flex-end; gap: 12px; padding-top: 4px; }
     .submit-btn {
-      background: linear-gradient(135deg, var(--accent), var(--purple));
-      border: none; border-radius: 10px; color: #fff; cursor: pointer;
-      font-family: inherit; font-size: 14px; font-weight: 600; padding: 11px 26px;
-      transition: opacity 0.2s, transform 0.15s; white-space: nowrap;
+      min-height: 46px;
+      padding: 0 26px;
+      border: 0;
+      border-radius: 999px;
+      background: var(--forest-accent);
+      color: #04120a;
+      cursor: pointer;
+      font: 700 12px/1 var(--forest-body);
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      white-space: nowrap;
+      transition: transform .18s ease, box-shadow .18s ease, color .18s ease;
     }
-    .submit-btn:hover:not(:disabled) { opacity: 0.9; transform: translateY(-1px); }
-    .submit-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
-    .submit-btn.running { background: linear-gradient(135deg, var(--rose), #b91c1c); }
+    .submit-btn:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 10px 32px rgba(var(--forest-accent-rgb), .28); }
+    .submit-btn:disabled { opacity: .5; cursor: not-allowed; transform: none; }
+    .submit-btn.running { background: var(--rose); color: #1a060b; }
 
     .suggest-toggle {
-      align-self: flex-start; background: rgba(255,255,255,0.04);
-      border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: var(--muted);
-      cursor: pointer; font-size: 12px; padding: 6px 12px; font-family: inherit;
-      transition: all 0.2s; display: inline-flex; align-items: center; gap: 7px;
+      align-self: flex-start;
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      min-height: 36px;
+      padding: 8px 14px;
+      border: 1px solid var(--forest-line);
+      border-radius: 999px;
+      background: color-mix(in srgb, var(--forest-ink) 4%, transparent);
+      color: var(--forest-muted);
+      cursor: pointer;
+      font: 600 12px/1 var(--forest-body);
+      transition: color .2s ease, border-color .2s ease;
     }
-    .suggest-toggle:hover { background: rgba(255,255,255,0.08); color: var(--text); }
-    .suggest-toggle .chev { transition: transform 0.25s; font-size: 10px; }
+    .suggest-toggle:hover { color: var(--forest-ink); border-color: rgba(var(--forest-accent-rgb), .35); }
+    .suggest-toggle .chev { font-size: 10px; transition: transform .25s ease; }
     .suggest-toggle.open .chev { transform: rotate(180deg); }
     .suggest-panel { display: none; flex-wrap: wrap; gap: 8px; padding-top: 4px; }
     .suggest-panel.open { display: flex; }
     .example-q {
-      background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);
-      border-radius: 8px; color: var(--muted); cursor: pointer; font-size: 12px;
-      padding: 6px 12px; font-family: inherit; transition: all 0.2s; text-align: left;
+      min-height: 36px;
+      padding: 7px 13px;
+      border: 1px solid var(--forest-line);
+      border-radius: 999px;
+      background: color-mix(in srgb, var(--forest-ink) 4%, transparent);
+      color: var(--forest-soft);
+      cursor: pointer;
+      text-align: left;
+      font: 500 12px/1.4 var(--forest-body);
+      transition: color .2s ease, border-color .2s ease;
     }
-    .example-q:hover { background: rgba(255,255,255,0.08); color: var(--text); border-color: rgba(255,255,255,0.15); }
+    .example-q:hover { color: var(--forest-ink); border-color: rgba(var(--forest-accent-rgb), .4); }
 
     .error-banner {
-      background: rgba(244,63,94,0.1); border: 1px solid rgba(244,63,94,0.3);
-      border-radius: 10px; padding: 14px 18px; color: var(--rose); font-size: 13px; display: none;
+      display: none;
+      padding: 14px 18px;
+      border: 1px solid color-mix(in srgb, var(--rose) 35%, transparent);
+      border-radius: 16px;
+      background: color-mix(in srgb, var(--rose) 8%, transparent);
+      color: var(--rose);
+      font-size: 13px;
+      line-height: 1.5;
     }
     .error-banner.visible { display: block; }
 
-    /* ── Deliberation stages ───────────────────────────────── */
+    /* ── Deliberation stages (streaming) ───────────────────── */
     .stages { display: flex; flex-direction: column; gap: 12px; }
     .round-header { display: flex; align-items: center; gap: 10px; margin-top: 4px; }
-    .round-label { font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #475569; white-space: nowrap; }
-    .round-line  { flex: 1; height: 1px; background: rgba(255,255,255,0.06); }
+    .round-label {
+      color: var(--forest-muted);
+      font: 700 10px/1.4 var(--forest-body);
+      letter-spacing: .16em;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+    .round-line { flex: 1; height: 1px; background: var(--forest-line); }
 
     .stage-card {
-      background: var(--card-bg); border: 1px solid var(--card-border);
-      border-radius: 14px; overflow: hidden; transition: border-color 0.3s;
+      overflow: hidden;
+      border: 1px solid var(--forest-line);
+      border-radius: 18px;
+      background:
+        linear-gradient(135deg, rgba(255, 255, 255, .03), transparent 45%),
+        var(--forest-panel);
+      backdrop-filter: blur(16px);
+      transition: border-color .3s ease, box-shadow .3s ease;
     }
-    .stage-card.active { border-color: rgba(79,70,229,0.4); }
-    .stage-card.done   { border-color: rgba(255,255,255,0.12); }
-    .stage-card.failed { border-color: rgba(244,63,94,0.4); }
-    .stage-card.chairman-card { background: rgba(20, 16, 4, 0.7); }
-    .stage-card.chairman-card.active { border-color: rgba(245,158,11,0.5); }
-    .stage-card.chairman-card.done   { border-color: rgba(245,158,11,0.3); }
+    .stage-card.active { border-color: rgba(var(--forest-accent-rgb), .45); box-shadow: 0 0 30px rgba(var(--forest-accent-rgb), .08); }
+    .stage-card.done   { border-color: color-mix(in srgb, var(--forest-ink) 14%, transparent); }
+    .stage-card.failed { border-color: color-mix(in srgb, var(--rose) 40%, transparent); }
+    .stage-card.chairman-card {
+      background:
+        linear-gradient(135deg, color-mix(in srgb, var(--amber) 6%, transparent), transparent 50%),
+        var(--forest-panel);
+    }
+    .stage-card.chairman-card.active { border-color: color-mix(in srgb, var(--amber) 50%, transparent); }
+    .stage-card.chairman-card.done   { border-color: color-mix(in srgb, var(--amber) 30%, transparent); }
     .stage-header { display: flex; align-items: center; gap: 12px; padding: 15px 20px; cursor: pointer; user-select: none; }
-    .stage-icon { width: 30px; height: 30px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 15px; flex-shrink: 0; }
-    .stage-icon.proposer { background: rgba(79,70,229,0.15); }
-    .stage-icon.critic   { background: rgba(244,63,94,0.15); }
-    .stage-icon.chairman { background: rgba(245,158,11,0.15); }
     .stage-meta { flex: 1; min-width: 0; }
-    .stage-name { font-size: 13px; font-weight: 700; display: flex; align-items: center; gap: 7px; flex-wrap: wrap; }
-    .stage-desc { font-size: 11px; color: var(--muted); margin-top: 2px; }
-    .role-badge { padding: 3px 10px; border-radius: 20px; font-weight: 600; font-size: 9px; letter-spacing: 0.04em; text-transform: uppercase; }
-    .role-badge.proposer { background: rgba(79,70,229,0.12); border: 1px solid rgba(79,70,229,0.3); color: var(--accent); }
-    .role-badge.critic   { background: rgba(244,63,94,0.12);  border: 1px solid rgba(244,63,94,0.3);  color: var(--rose); }
-    .role-badge.chairman { background: rgba(245,158,11,0.12); border: 1px solid rgba(245,158,11,0.3); color: var(--amber); }
+    .stage-name {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      flex-wrap: wrap;
+      font: 600 13.5px/1.35 var(--forest-display);
+      letter-spacing: -.01em;
+    }
+    .stage-desc { margin-top: 2px; color: var(--forest-muted); font-size: 11px; }
+    .role-badge {
+      padding: 3px 9px;
+      border: 1px solid transparent;
+      border-radius: 999px;
+      font: 700 10px/1 var(--forest-body);
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+    .role-badge.proposer { color: var(--forest-accent); background: rgba(var(--forest-accent-rgb), .08); border-color: rgba(var(--forest-accent-rgb), .3); }
+    .role-badge.critic   { color: var(--rose);  background: color-mix(in srgb, var(--rose) 9%, transparent);  border-color: color-mix(in srgb, var(--rose) 30%, transparent); }
+    .role-badge.chairman { color: var(--amber); background: color-mix(in srgb, var(--amber) 9%, transparent); border-color: color-mix(in srgb, var(--amber) 30%, transparent); }
     .model-tag-badge {
-      font-size: 9px; font-family: monospace; color: #a5b4fc;
-      background: rgba(79,70,229,0.08); border: 1px solid rgba(79,70,229,0.2);
-      border-radius: 4px; padding: 1px 5px; white-space: nowrap; display: none;
+      display: none;
+      padding: 2px 6px;
+      border: 1px solid rgba(var(--forest-accent-rgb), .22);
+      border-radius: 6px;
+      background: rgba(var(--forest-accent-rgb), .07);
+      color: color-mix(in srgb, var(--forest-accent) 70%, var(--forest-soft));
+      font-family: var(--mono);
+      font-size: 10px;
+      white-space: nowrap;
     }
     .stage-card .model-tag-badge.show { display: inline-block; }
-    .stage-status { font-size: 11px; color: var(--muted); display: flex; align-items: center; gap: 5px; flex-shrink: 0; }
-    .stage-status.thinking { color: var(--accent); }
-    .stage-status.done     { color: var(--green); }
+    .stage-status { display: flex; align-items: center; gap: 5px; flex-shrink: 0; color: var(--forest-muted); font-size: 11px; }
+    .stage-status.thinking { color: var(--amber); }
+    .stage-status.done     { color: var(--forest-accent); }
     .stage-status.failed   { color: var(--rose); }
     .chairman-card .stage-status.done { color: var(--amber); }
-    .spinner { width: 11px; height: 11px; border: 2px solid currentColor; border-top-color: transparent; border-radius: 50%; animation: spin 0.8s linear infinite; display: inline-block; }
-    @keyframes spin { to { transform: rotate(360deg); } }
-    .chevron { color: var(--muted); font-size: 11px; transition: transform 0.3s; flex-shrink: 0; }
-    .stage-card.open .chevron { transform: rotate(180deg); }
-    .stage-body { max-height: 0; overflow: hidden; transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
-    .stage-card.open .stage-body { max-height: 4000px; }
-    .stage-content {
-      padding: 14px 20px 18px; border-top: 1px solid rgba(255,255,255,0.05);
-      font-size: 13.5px; line-height: 1.75; color: #cbd5e1; white-space: pre-wrap; word-break: break-word;
+    .spinner {
+      display: inline-block;
+      width: 11px;
+      height: 11px;
+      border: 2px solid currentColor;
+      border-top-color: transparent;
+      border-radius: 50%;
+      animation: spin .8s linear infinite;
     }
-    .chairman-card .stage-content { color: #fef3c7; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .chevron { flex-shrink: 0; color: var(--forest-muted); font-size: 11px; transition: transform .3s ease; }
+    .stage-card.open .chevron { transform: rotate(180deg); }
+    .stage-body { display: none; }
+    .stage-card.open .stage-body { display: block; }
+    .stage-content {
+      padding: 14px 20px 18px;
+      border-top: 1px solid var(--forest-line);
+      color: var(--forest-soft);
+      font-size: 13.5px;
+      line-height: 1.75;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+    .chairman-card .stage-content { color: color-mix(in srgb, var(--amber) 26%, var(--forest-ink)); }
     .stage-content.streaming::after {
-      content: "▌"; color: var(--accent); animation: caret 1s steps(1) infinite; margin-left: 1px;
+      content: "▌";
+      margin-left: 1px;
+      color: var(--forest-accent);
+      animation: caret 1s steps(1) infinite;
     }
     @keyframes caret { 50% { opacity: 0; } }
-    .placeholder-text { color: #3f4f62; font-style: italic; font-size: 13px; }
+    .placeholder-text { color: var(--forest-muted); opacity: .8; font-style: italic; font-size: 13px; }
     .copy-btn {
-      float: right; clear: right; margin: 10px 20px 0 0;
-      background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
-      border-radius: 6px; color: var(--muted); cursor: pointer; font-size: 11px;
-      font-weight: 600; padding: 3px 9px; font-family: inherit; transition: all 0.18s;
-      opacity: 0; pointer-events: none;
+      float: right;
+      clear: right;
+      margin: 10px 20px 0 0;
+      min-height: 28px;
+      padding: 7px 12px;
+      border: 1px solid var(--forest-line);
+      border-radius: 999px;
+      background: color-mix(in srgb, var(--forest-ink) 5%, transparent);
+      color: var(--forest-muted);
+      cursor: pointer;
+      font: 700 10px/1 var(--forest-body);
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .2s ease, color .2s ease, border-color .2s ease;
     }
     .stage-card.done .copy-btn { opacity: 1; pointer-events: auto; }
-    .copy-btn:hover { background: rgba(255,255,255,0.1); color: var(--text); }
-    .copy-btn.copied { color: var(--green); border-color: rgba(34,197,94,0.3); }
+    .copy-btn:hover { color: var(--forest-ink); border-color: rgba(var(--forest-accent-rgb), .35); }
+    .copy-btn.copied { color: var(--forest-accent); border-color: rgba(var(--forest-accent-rgb), .4); }
 
+    /* ── Follow-up ─────────────────────────────────────────── */
     .followup-card {
-      background: rgba(79,70,229,0.05); border: 1px solid rgba(79,70,229,0.2);
-      border-radius: 14px; padding: 18px 20px; display: none; flex-direction: column; gap: 12px;
+      display: none;
+      flex-direction: column;
+      gap: 12px;
+      padding: 20px 22px;
+      border: 1px solid rgba(var(--forest-accent-rgb), .25);
+      border-radius: 20px;
+      background:
+        linear-gradient(135deg, rgba(var(--forest-accent-rgb), .06), transparent 55%),
+        var(--forest-panel);
+      backdrop-filter: blur(16px);
     }
     .followup-card.visible { display: flex; }
-    .followup-title { font-size: 13px; font-weight: 700; color: #a5b4fc; display: flex; align-items: center; gap: 8px; }
-    .followup-sub { font-size: 11.5px; color: var(--muted); margin-top: -6px; }
-    .footer-tag { font-size: 10px; color: #475569; text-align: center; padding-top: 4px; line-height: 1.7; }
+    .followup-title { color: var(--forest-ink); font: 600 15px/1.3 var(--forest-display); letter-spacing: -.01em; }
+    .followup-sub { margin-top: -6px; color: var(--forest-muted); font-size: 11.5px; }
+
+    .footer-tag { margin: 6px 0 0; color: var(--forest-muted); font-size: 11px; line-height: 1.8; text-align: center; }
 
     /* ── Responsive ────────────────────────────────────────── */
-    @media (max-width: 640px) {
-      body { padding: 20px 14px 50px; }
-      h1 { font-size: 26px; }
-      .topbar { flex-direction: column-reverse; align-items: stretch; }
-      .key-chip { align-items: stretch; }
-      #or-key, #or-key:focus { width: 100%; }
-      .key-note { text-align: right; }
+    @media (max-width: 760px) {
+      .byok-hero { flex-direction: column; align-items: stretch; }
+      .byok-chip { align-items: stretch; }
+      .byok-chip .byok-toggle-row { justify-content: space-between; }
+      #or-key { width: 100%; }
       .seats-grid { grid-template-columns: 1fr; }
-      /* Flow tree collapses to a tap-to-expand accordion on mobile */
+      /* Flow tree collapses to a tap-to-expand accordion on small screens */
       .flow-toggle { display: inline-flex; }
       .flow-card.collapsed .flow-tree { display: none; }
       .flow-card .flow-desc, .flow-card .flow-models { display: none; }
@@ -332,82 +598,88 @@
     }
   </style>
 </head>
-<body>
-  <div class="page">
-    <!-- ── Top bar: back link + BYOK toggle ─────────────────────────────────── -->
-    <div class="topbar">
-      <a href="../" class="back-link">&#8592; Councils</a>
+<body data-forest-page="byok">
+  <canvas class="forest-scene" data-forest-scene data-mode="byok" aria-hidden="true"></canvas>
+  <div class="forest-scrim" aria-hidden="true"></div>
+  <nav class="forest-topbar" aria-label="Round table navigation">
+    <a class="forest-back" href="/web/council/index.html">Councils</a>
+    <span class="forest-status">Mode 02 &middot; Routed</span>
+  </nav>
+
+  <main class="forest-page">
+    <!-- ── Hero + BYOK toggle chip ─────────────────────────────────────────── -->
+    <header class="byok-hero">
+      <div class="byok-hero-main">
+        <p class="forest-kicker">OpenRouter free models &middot; Routed &middot; Public</p>
+        <h1 class="forest-title">Round Table</h1>
+        <p class="forest-lede">Free-model council powered by Ivan&rsquo;s OpenRouter account &mdash; no key needed. Proposer &rarr; Critic &rarr; Chairman across 1&ndash;5 rounds, streamed live. Toggle to use your own key.</p>
+      </div>
       <div class="byok-chip" id="byok-chip">
-        <label class="byok-toggle-row" for="byok-check" style="cursor:pointer;">
-          <span class="byok-label">Use your own OR key</span>
-          <div class="byok-switch" id="byok-switch"></div>
-        </label>
+        <span class="byok-toggle-row">
+          <span class="byok-label" id="byok-label-text">Use your own OR key</span>
+          <div class="byok-switch" id="byok-switch" role="switch" tabindex="0" aria-checked="false" aria-labelledby="byok-label-text"></div>
+        </span>
         <div class="byok-key-row">
           <input id="or-key" type="password" placeholder="sk-or-&hellip;"
                  autocomplete="off" spellcheck="false" aria-label="Your OpenRouter API key" />
         </div>
         <span class="key-note" id="byok-note">Powered by Ivan&rsquo;s key &middot; <a href="https://openrouter.ai/settings/keys" target="_blank" rel="noopener noreferrer">get your own &#8599;</a></span>
       </div>
-    </div>
-
-    <header>
-      <h1>&#9878;&#65039; Open Round Table</h1>
-      <p class="tagline">Free-model council powered by Ivan&rsquo;s OpenRouter account &mdash; no key needed. Proposer &rarr; Critic &rarr; Chairman across 1&ndash;5 rounds, streamed live. Toggle to use your own key.</p>
     </header>
 
     <!-- ── Council flow tree ───────────────────────────────────────────────── -->
-    <div class="card flow-card collapsed" id="flow-card">
+    <section class="forest-panel byok-card flow-card collapsed" id="flow-card">
       <div class="section-head">
-        <span class="section-label">&#127793; How a question flows through the council</span>
+        <span class="section-label">How a question flows through the council</span>
         <button type="button" class="mini-btn flow-toggle" id="flow-toggle" onclick="toggleFlow()">Show tree</button>
       </div>
       <div class="flow-tree" id="flow-tree"></div>
-    </div>
+    </section>
 
     <!-- ── Question ────────────────────────────────────────────────────────── -->
-    <div class="card">
-      <span class="section-label">&#10067; Your question</span>
-      <textarea id="question" placeholder="Ask the council anything &#8212; a decision, a concept, a plan&#8230;" rows="3"></textarea>
+    <section class="forest-panel byok-card">
+      <span class="section-label">Your question</span>
+      <textarea id="question" aria-label="Your question" placeholder="Ask the council anything &#8212; a decision, a concept, a plan&#8230;" rows="3"></textarea>
       <button type="button" class="suggest-toggle" id="suggest-toggle" onclick="toggleSuggest()">
-        <span>&#128161; Show suggestions</span><span class="chev">&#9660;</span>
+        <span>Show suggestions</span><span class="chev">&#9660;</span>
       </button>
       <div class="suggest-panel" id="suggest-panel"></div>
-    </div>
+    </section>
 
     <!-- ── Council seats ───────────────────────────────────────────────────── -->
-    <div class="card">
+    <section class="forest-panel byok-card">
       <div class="section-head">
-        <span class="section-label">&#129504; Council seats <span class="free-badge">all :free</span></span>
+        <span class="section-label">Council seats <span class="free-badge">all :free</span></span>
         <div class="presets-row" id="presets-row"></div>
       </div>
       <p class="section-sub">Pick which free OpenRouter model fills each seat. Every id keeps its <code>:free</code> suffix &mdash; that's intentional strategy, and the engine hard-blocks anything else. If a model is rate-limited the seat falls back down its chain automatically.</p>
       <div class="seats-grid" id="seats-grid"></div>
-    </div>
+    </section>
 
     <!-- ── Rounds + mode ───────────────────────────────────────────────────── -->
-    <div class="card">
-      <span class="section-label">&#128260; Debate rounds</span>
+    <section class="forest-panel byok-card">
+      <span class="section-label">Debate rounds</span>
       <p class="section-sub">Each round: the Proposer answers (or revises), the Critic reacts. The Chairman then synthesizes everything into a final verdict.</p>
       <div class="rounds-row" id="rounds-row"></div>
       <div class="round-est" id="round-est"></div>
 
-      <span class="section-label" style="margin-top:6px;">&#127917; Council mode</span>
+      <span class="section-label section-label-gap">Council mode</span>
       <div class="mode-row" id="mode-row"></div>
       <div class="mode-desc" id="mode-desc"></div>
 
       <div class="input-footer">
         <button class="submit-btn" id="submit-btn" onclick="runCouncilClick()">Convene Council</button>
       </div>
-    </div>
+    </section>
 
-    <div class="error-banner" id="error-banner"></div>
+    <div class="error-banner" id="error-banner" role="alert"></div>
 
     <div class="stages" id="stages" style="display:none;"></div>
 
     <div class="followup-card" id="followup-card">
-      <div class="followup-title">&#128172; Continue the deliberation</div>
+      <div class="followup-title">Continue the deliberation</div>
       <div class="followup-sub">Add a follow-up &mdash; it feeds a new pass seeded with the council's last synthesis.</div>
-      <textarea id="followup-input" placeholder="Push back, add a constraint, or ask a follow-up&#8230;" rows="2"></textarea>
+      <textarea id="followup-input" aria-label="Follow-up question" placeholder="Push back, add a constraint, or ask a follow-up&#8230;" rows="2"></textarea>
       <div style="display:flex; justify-content:flex-end;">
         <button class="submit-btn" id="followup-btn" onclick="runFollowupClick()">Continue &rarr;</button>
       </div>
@@ -417,9 +689,9 @@
       Powered by Ivan&rsquo;s OpenRouter key via <code>chloe.blumenkraft.cloud/council/relay</code> &middot;
       only <code>:free</code> models &middot; toggle BYOK to use your own key &middot; $0
     </p>
-  </div>
+  </main>
 
-  <script src="council.js"></script>
+  <script src="/web/council/byok/council.js"></script>
   <script>
     // ─────────────────────────────────────────────────────────────────────────
     // MODEL CATALOG — every slug is an OpenRouter :free variant, grouped by
@@ -446,16 +718,16 @@
     var TIER_LABELS = { fast: "Fast — small & snappy", balanced: "Balanced — the sweet spot", deep: "Deep — heavyweight reasoners" };
 
     var SEAT_META = {
-      proposer: { icon: "&#128161;", name: "Proposer", hint: "Answers first, revises each round. A fast model keeps rounds moving." },
-      critic:   { icon: "&#128269;", name: "Critic", hint: "Reacts to each proposal. A balanced model gives sharp, quick critique." },
-      chairman: { icon: "&#9878;&#65039;", name: "Chairman", hint: "Synthesizes everything into the final verdict. Worth a deep model." }
+      proposer: { icon: "P", name: "Proposer", hint: "Answers first, revises each round. A fast model keeps rounds moving." },
+      critic:   { icon: "C", name: "Critic", hint: "Reacts to each proposal. A balanced model gives sharp, quick critique." },
+      chairman: { icon: "Ch", name: "Chairman", hint: "Synthesizes everything into the final verdict. Worth a deep model." }
     };
 
     // Presets — Proposer fast, Critic balanced, Chairman deep (customizable).
     var PRESETS = {
-      recommended: { label: "&#9878;&#65039; Recommended", proposer: "google/gemma-4-31b-it:free", critic: "qwen/qwen3-next-80b-a3b-instruct:free", chairman: "meta-llama/llama-3.3-70b-instruct:free" },
-      fastest:     { label: "&#9889; Fastest",             proposer: "microsoft/phi-3-mini-128k-instruct:free", critic: "openai/gpt-oss-20b:free", chairman: "google/gemini-2.5-flash:free" },
-      deepest:     { label: "&#129504; Deepest",           proposer: "meta-llama/llama-3.3-70b-instruct:free", critic: "nvidia/nemotron-3-super-120b-a12b:free", chairman: "deepseek/deepseek-r1:free" }
+      recommended: { label: "Recommended", proposer: "google/gemma-4-31b-it:free", critic: "qwen/qwen3-next-80b-a3b-instruct:free", chairman: "meta-llama/llama-3.3-70b-instruct:free" },
+      fastest:     { label: "Fastest",     proposer: "microsoft/phi-3-mini-128k-instruct:free", critic: "openai/gpt-oss-20b:free", chairman: "google/gemini-2.5-flash:free" },
+      deepest:     { label: "Deepest",     proposer: "meta-llama/llama-3.3-70b-instruct:free", critic: "nvidia/nemotron-3-super-120b-a12b:free", chairman: "deepseek/deepseek-r1:free" }
     };
 
     // Per-seat fallback chains (verified reliable models first). A seat's
@@ -542,11 +814,11 @@
     function renderFlow() {
       var tree = document.getElementById("flow-tree");
       var stages = [
-        { cls: "q", icon: "&#10067;", name: "Your question", role: null, desc: "Framed once, carried through every seat (follow-ups seed the next pass)." },
-        { cls: "proposer", icon: "&#128161;", name: "Proposer", role: "proposer", desc: "Forms the answer, then revises it each round after the critique.", loop: true, seat: "proposer" },
-        { cls: "critic", icon: "&#128269;", name: "Critic", role: "critic", desc: "A different model family stress-tests each proposal per the chosen mode.", loop: true, seat: "critic" },
-        { cls: "chairman", icon: "&#9878;&#65039;", name: "Chairman", role: "chairman", desc: "Reads the full deliberation and synthesizes the definitive answer.", seat: "chairman" },
-        { cls: "verdict", icon: "&#9989;", name: "Synthesis & verdict", role: null, desc: "Final answer + VERDICT / CONFIDENCE / NEXT STEP." }
+        { cls: "q", icon: "?", name: "Your question", role: null, desc: "Framed once, carried through every seat (follow-ups seed the next pass)." },
+        { cls: "proposer", icon: "P", name: "Proposer", role: "proposer", desc: "Forms the answer, then revises it each round after the critique.", loop: true, seat: "proposer" },
+        { cls: "critic", icon: "C", name: "Critic", role: "critic", desc: "A different model family stress-tests each proposal per the chosen mode.", loop: true, seat: "critic" },
+        { cls: "chairman", icon: "Ch", name: "Chairman", role: "chairman", desc: "Reads the full deliberation and synthesizes the definitive answer.", seat: "chairman" },
+        { cls: "verdict", icon: "&#10003;", name: "Synthesis & verdict", role: null, desc: "Final answer + VERDICT / CONFIDENCE / NEXT STEP." }
       ];
       tree.innerHTML = stages.map(function (f) {
         var models = f.seat ? buildSeatRoster(f.seat).slice(0, 2).map(Council.shortName).join(" · ") : "";
@@ -601,11 +873,11 @@
 
     // ── Modes (labels/desc here; treatments live in council.js MODES) ────────
     var MODE_UI = [
-      { id: "default",        label: "⚖️ Balanced",       desc: "The clean default — each member fairly weighs and builds on the prior response." },
-      { id: "adversarial",    label: "⚔️ Adversarial",    desc: "Members push back hard — attack assumptions, steelman the opposition, concede little." },
-      { id: "chaos",          label: "🎲 Chaos",          desc: "Lateral, divergent, randomized — surprising connections over the obvious." },
-      { id: "dreamer",        label: "🌌 Dreamer",        desc: "Expansive and imaginative — each member amplifies the vision and dreams bigger." },
-      { id: "problem-solver", label: "🧩 Problem-Solver", desc: "Frames the input as a PROBLEM and returns multiple APPROACHES with trade-offs." }
+      { id: "default",        label: "Balanced",       desc: "The clean default — each member fairly weighs and builds on the prior response." },
+      { id: "adversarial",    label: "Adversarial",    desc: "Members push back hard — attack assumptions, steelman the opposition, concede little." },
+      { id: "chaos",          label: "Chaos",          desc: "Lateral, divergent, randomized — surprising connections over the obvious." },
+      { id: "dreamer",        label: "Dreamer",        desc: "Expansive and imaginative — each member amplifies the vision and dreams bigger." },
+      { id: "problem-solver", label: "Problem-Solver", desc: "Frames the input as a PROBLEM and returns multiple APPROACHES with trade-offs." }
     ];
     var selectedMode = "default";
     function buildModes() {
@@ -655,7 +927,7 @@
       var p = document.getElementById("suggest-panel");
       var open = p.classList.toggle("open");
       t.classList.toggle("open", open);
-      t.querySelector("span").innerHTML = open ? "&#128161; Hide suggestions" : "&#128161; Show suggestions";
+      t.querySelector("span").textContent = open ? "Hide suggestions" : "Show suggestions";
     }
     function fillQ(btn) {
       document.getElementById("question").value = btn.textContent.trim();
@@ -698,8 +970,9 @@
 
     function showError(msg) {
       var el = document.getElementById("error-banner");
-      el.textContent = msg;
+      // Reveal the alert region before writing text so screen readers announce it.
       el.className = "error-banner visible";
+      el.textContent = msg;
     }
     function clearError() { document.getElementById("error-banner").className = "error-banner"; }
 
@@ -719,6 +992,12 @@
     function toggleStage(cardId) {
       var card = document.getElementById("stage-" + cardId);
       if (card) card.classList.toggle("open");
+      syncExpanded(card);
+    }
+    function syncExpanded(card) {
+      if (!card) return;
+      var header = card.querySelector(".stage-header");
+      if (header) header.setAttribute("aria-expanded", card.classList.contains("open") ? "true" : "false");
     }
     function setStatus(cardId, type, html) {
       var el = document.getElementById("status-" + cardId);
@@ -733,6 +1012,7 @@
     function openCard(cardId) {
       var card = document.getElementById("stage-" + cardId);
       if (card) card.classList.add("open", "active");
+      syncExpanded(card);
     }
     function doneCard(cardId, cls) {
       var card = document.getElementById("stage-" + cardId);
@@ -754,14 +1034,14 @@
       if (!document.getElementById(divId)) {
         var hdr = document.createElement("div");
         hdr.id = divId; hdr.className = "round-header";
-        hdr.innerHTML = '<div class="round-label" style="color:' + (color || "#475569") + '">' + label + '</div><div class="round-line"></div>';
+        hdr.innerHTML = '<div class="round-label" style="color:' + (color || "var(--forest-muted)") + '">' + label + '</div><div class="round-line"></div>';
         document.getElementById("stages").appendChild(hdr);
       }
     }
     function addNotice(text) {
       var n = document.createElement("div");
       n.className = "round-header";
-      n.innerHTML = '<div class="round-label" style="color:var(--amber);text-transform:none;letter-spacing:0;font-weight:600;">&#9888; ' +
+      n.innerHTML = '<div class="round-label" style="color:var(--amber);text-transform:none;letter-spacing:0;font-weight:600;">' +
         String(text || "").replace(/</g, "&lt;") + "</div>";
       document.getElementById("stages").appendChild(n);
     }
@@ -772,7 +1052,7 @@
       card.className = "stage-card" + (extraClass ? " " + extraClass : "");
       var roleCap = roleClass.charAt(0).toUpperCase() + roleClass.slice(1);
       card.innerHTML =
-        '<div class="stage-header" onclick="toggleStage(\'' + cardId + '\')">' +
+        '<div class="stage-header" role="button" tabindex="0" aria-expanded="false" onclick="toggleStage(\'' + cardId + '\')">' +
           '<div class="stage-icon ' + roleClass + '">' + icon + '</div>' +
           '<div class="stage-meta">' +
             '<div class="stage-name">' + name +
@@ -794,7 +1074,7 @@
     function cardFor(seat, round) {
       if (seat === "proposer") {
         return {
-          id: "p" + passNum + "-proposer-r" + round, role: "proposer", icon: "&#128161;",
+          id: "p" + passNum + "-proposer-r" + round, role: "proposer", icon: "P",
           name: round === 1 ? "Proposer &#8212; Initial" : "Proposer &#8212; Revision " + round,
           desc: round === 1 ? "Forms the initial response &mdash; direct and substantive"
                             : "Revises after the Critic&#39;s reaction",
@@ -803,7 +1083,7 @@
       }
       if (seat === "critic") {
         return {
-          id: "p" + passNum + "-critic-r" + round, role: "critic", icon: "&#128269;",
+          id: "p" + passNum + "-critic-r" + round, role: "critic", icon: "C",
           name: "Critic &#8212; Round " + round,
           desc: "A different model family reacts per the chosen mode",
           headerRound: round, extra: ""
@@ -811,7 +1091,7 @@
       }
       if (seat === "chairman") {
         return {
-          id: "p" + passNum + "-chairman", role: "chairman", icon: "&#9878;&#65039;",
+          id: "p" + passNum + "-chairman", role: "chairman", icon: "Ch",
           name: "Chairman &#8212; Final Synthesis",
           desc: "Weaves the whole deliberation into the verdict",
           divider: ["chairman", "Synthesis &amp; Verdict", "var(--amber)"], extra: "chairman-card"
@@ -856,7 +1136,7 @@
           contentEl.classList.remove("streaming");
           contentEl.innerHTML = '<span class="placeholder-text">All free models for this seat were rate-limited or timed out. The council continued with the remaining seats.</span>';
         }
-        setStatus(c.id, "failed", "&#9888; Skipped");
+        setStatus(c.id, "failed", "Skipped");
         doneCard(c.id, "failed");
       }
     }
@@ -882,7 +1162,7 @@
       followCard.classList.remove("visible");
       if (isFollowup) {
         passNum++;
-        ensureDivider("followup", "&#128172; Follow-up " + passNum, "var(--purple)");
+        ensureDivider("followup", "Follow-up " + passNum, "var(--purple)");
       } else {
         passNum = 0;
         stagesEl.innerHTML = "";
@@ -971,5 +1251,31 @@
     renderRounds();
     renderFlow();
   </script>
+  <script>
+    // A11y wiring for the BYOK switch and streamed stage headers — kept
+    // separate from the council script above.
+    (function () {
+      var sw = document.getElementById("byok-switch");
+      var chip = document.getElementById("byok-chip");
+      var labelText = document.getElementById("byok-label-text");
+      // The council script's own click listener toggles the chip class first
+      // (registered earlier), so reading it here reflects the new state.
+      sw.addEventListener("click", function () {
+        sw.setAttribute("aria-checked", chip.classList.contains("on") ? "true" : "false");
+      });
+      sw.addEventListener("keydown", function (e) {
+        if (e.key === "Enter" || e.key === " ") { e.preventDefault(); sw.click(); }
+      });
+      labelText.addEventListener("click", function () { sw.click(); });
+      // Stage headers are created during streaming; delegate their key handling.
+      document.addEventListener("keydown", function (e) {
+        if ((e.key === "Enter" || e.key === " ") && e.target.classList && e.target.classList.contains("stage-header")) {
+          e.preventDefault();
+          e.target.click();
+        }
+      });
+    })();
+  </script>
+  <script src="/web/shared/forest-motion.js?v=20260714"></script>
 </body>
 </html>

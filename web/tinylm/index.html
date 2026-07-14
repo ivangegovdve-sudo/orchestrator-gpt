@@ -1,226 +1,298 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Watch five tiny open language models (135M–3B parameters) deliberate on your question in real time — proposer, analyst, critic, consciousness observer, and synthesizer, all running on our own ARM server. No cloud APIs.">
+  <meta name="theme-color" content="#050806">
+  <meta property="og:title" content="TinyLM Consciousness Experiment">
+  <meta property="og:description" content="Five tiny open models deliberate live on Oracle ARM silicon — streamed to your browser token by token. A public experiment in machine self-observation.">
+  <meta property="og:type" content="website">
   <title>TinyLM Consciousness Experiment — SDForest</title>
-  <meta name="description" content="Watch five tiny open language models (135M–3B parameters) deliberate on your question in real time — proposer, analyst, critic, consciousness observer, and synthesizer, all running on our own ARM server. No cloud APIs." />
-  <meta property="og:title" content="TinyLM Consciousness Experiment" />
-  <meta property="og:description" content="Five tiny open models deliberate live on Oracle ARM silicon — streamed to your browser token by token. A public experiment in machine self-observation." />
-  <meta property="og:type" content="website" />
-  <meta name="theme-color" content="#07070b" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/web/shared/forest-shell.css?v=20260713">
   <style>
     :root {
-      --bg: #07070b;
-      --surface: #0f0f15;
-      --border: rgba(255,255,255,0.08);
-      --text-primary: #f3f4f6;
-      --text-muted: #9ca3af;
-      --accent: #4f46e5;
-      --accent-green: #22c55e;
-      --radius: 8px;
-      --font: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
-
-      --cyan: #0ea5e9;
-      --amber: #f59e0b;
-      --rose: #f43f5e;
-      --purple: #8b5cf6;
-    }
-    * { box-sizing: border-box; }
-    body {
-      margin: 0; min-height: 100vh;
-      background-color: var(--bg);
-      background-image:
-        radial-gradient(circle at 20% 30%, rgba(34,197,94,0.07), transparent 45%),
-        radial-gradient(circle at 80% 12%, rgba(139,92,246,0.07), transparent 45%);
-      color: var(--text-primary);
-      font-family: var(--font);
-      -webkit-font-smoothing: antialiased;
-      padding: 28px 20px 60px;
-    }
-    .page { max-width: 880px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
-
-    .topbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
-    .back-link { color: var(--text-muted); text-decoration: none; font-size: 13px; }
-    .back-link:hover { color: var(--text-primary); }
-    .public-pill {
-      font-size: 11px; font-weight: 700; letter-spacing: .07em; text-transform: uppercase;
-      color: var(--accent-green);
-      background: rgba(34,197,94,.09); border: 1px solid rgba(34,197,94,.3);
-      border-radius: 999px; padding: 4px 12px;
+      --forest-accent:#79f2a8; --forest-accent-rgb:121,242,168;
+      --state-thinking:#f5c76b; --state-failed:#ff8ba0;
+      --seat-proposer:#73e9ff; --seat-analyst:#79f2a8; --seat-critic:#f5c76b;
+      --seat-observer:#ac90ff; --seat-synth:#ff8ba0;
+      --mono: ui-monospace, "Cascadia Mono", "SF Mono", Menlo, monospace;
     }
 
-    h1 { margin: 0 0 6px; font-size: clamp(26px, 5vw, 34px); letter-spacing: -0.5px; }
-    .tagline { margin: 0; color: var(--text-muted); font-size: 15px; line-height: 1.55; max-width: 62ch; }
-
-    .card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: calc(var(--radius) * 2);
-      padding: 18px;
-    }
-    .section-label {
-      display: block; font-size: 11px; font-weight: 700; letter-spacing: 0.08em;
-      text-transform: uppercase; color: var(--text-muted); margin-bottom: 10px;
+    /* ── Hero ── */
+    .tiny-hero { min-height:62svh; display:grid; align-content:center; }
+    .hero-chips { display:flex; flex-wrap:wrap; gap:7px; margin-top:26px; }
+    .chip {
+      min-height:27px; display:inline-flex; align-items:center; padding:0 10px;
+      border:1px solid rgba(213,239,215,.1); border-radius:999px;
+      color:var(--forest-muted); font-size:9px; letter-spacing:.08em; text-transform:uppercase;
     }
 
-    /* ── The experiment explainer ── */
-    .roster-grid {
-      display: grid; gap: 10px;
-      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-    }
+    /* ── Roster: the five seats ── */
+    .roster-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:14px; }
     .roster-seat {
-      --c: var(--accent);
-      border: 1px solid var(--border);
-      border-left: 3px solid var(--c);
-      border-radius: var(--radius);
-      padding: 12px 14px;
-      background: rgba(0,0,0,0.25);
+      --seat:var(--forest-accent);
+      border:1px solid color-mix(in srgb, var(--seat) 20%, transparent);
+      border-radius:20px;
+      background:
+        linear-gradient(150deg, color-mix(in srgb, var(--seat) 7%, transparent), rgba(6,11,8,.82) 58%);
+      backdrop-filter: blur(14px);
+      padding:20px 20px 22px;
+      transition: transform .25s ease, border-color .25s ease, box-shadow .25s ease;
     }
-    .roster-seat .r-role { font-size: 13px; font-weight: 700; color: var(--c); margin-bottom: 3px; }
-    .roster-seat .r-model { font-size: 11px; font-family: ui-monospace, monospace; color: var(--text-muted); margin-bottom: 6px; }
-    .roster-seat .r-what { font-size: 12px; color: var(--text-muted); line-height: 1.5; }
-    .roster-seat.proposer  { --c: var(--cyan); }
-    .roster-seat.analyst   { --c: var(--accent-green); }
-    .roster-seat.critic    { --c: var(--amber); }
-    .roster-seat.observer  { --c: var(--purple); }
-    .roster-seat.synth     { --c: var(--rose); }
-
+    .roster-seat:hover {
+      transform: translateY(-2px);
+      border-color: color-mix(in srgb, var(--seat) 48%, transparent);
+      box-shadow: 0 18px 44px rgba(0,0,0,.3), 0 0 34px color-mix(in srgb, var(--seat) 7%, transparent);
+    }
+    .roster-seat .r-order {
+      display:flex; align-items:center; gap:8px; margin:0 0 12px;
+      color:var(--seat); font:700 9px/1 var(--forest-body); letter-spacing:.18em; text-transform:uppercase;
+    }
+    .roster-seat .r-order::before {
+      content:""; width:7px; height:7px; border-radius:50%;
+      background: currentColor; box-shadow: 0 0 12px currentColor;
+    }
+    .roster-seat .r-role { margin:0; color:var(--forest-ink); font:600 19px/1.15 var(--forest-display); letter-spacing:-.02em; }
+    .roster-seat .r-model { margin:7px 0 0; color:color-mix(in srgb, var(--seat) 78%, var(--forest-soft)); font:500 11px/1.4 var(--mono); }
+    .roster-seat .r-what { margin:10px 0 0; color:var(--forest-soft); font-size:12.5px; line-height:1.6; }
     .experiment-note {
-      margin-top: 14px; font-size: 13px; color: var(--text-muted); line-height: 1.65;
+      max-width:72ch; margin:26px 0 0;
+      color:var(--forest-muted); font-size:13px; line-height:1.7;
     }
-    .experiment-note strong { color: var(--text-primary); font-weight: 600; }
+    .experiment-note strong { color:var(--forest-soft); font-weight:600; }
 
-    /* ── Ask box ── */
+    /* ── Ask + feed layout ── */
+    .council-zone { display:grid; grid-template-columns:minmax(0,1fr) 330px; gap:20px; align-items:start; }
+    .zone-main { min-width:0; display:flex; flex-direction:column; gap:16px; }
+    .zone-aside { min-width:0; position:sticky; top:88px; }
+
+    .panel { padding:clamp(20px,3vw,30px); }
+    .panel-label {
+      display:block; margin:0 0 16px;
+      color:var(--forest-muted); font:700 10px/1 var(--forest-body); letter-spacing:.18em; text-transform:uppercase;
+    }
+
+    /* Ask box */
     textarea {
-      width: 100%; resize: vertical;
-      background: rgba(0,0,0,0.35);
-      border: 1px solid rgba(255,255,255,0.12);
-      border-radius: var(--radius);
-      color: var(--text-primary); font-family: inherit; font-size: 14px;
-      padding: 12px 14px; outline: none; min-height: 68px;
+      width:100%; resize:vertical; min-height:88px;
+      border:1px solid var(--forest-line); border-radius:16px;
+      background: color-mix(in srgb, #000 32%, transparent);
+      color:var(--forest-ink); font:400 14.5px/1.6 var(--forest-body);
+      padding:14px 16px;
+      transition: border-color .2s ease;
     }
-    textarea:focus { border-color: rgba(34,197,94,0.5); }
-    .go-row { display: flex; justify-content: space-between; margin-top: 12px; align-items: center; gap: 12px; flex-wrap: wrap; }
-    .note { font-size: 11.5px; color: #64748b; max-width: 52ch; }
+    textarea::placeholder { color:var(--forest-muted); }
+    textarea:focus { border-color: rgba(var(--forest-accent-rgb), .55); }
+    .go-row { display:flex; justify-content:space-between; align-items:center; gap:16px; flex-wrap:wrap; margin-top:14px; }
+    .go-note { max-width:46ch; color:var(--forest-muted); font-size:11.5px; line-height:1.6; }
     .go-btn {
-      background: linear-gradient(135deg, var(--accent-green), var(--cyan));
-      border: none; border-radius: var(--radius);
-      color: #04120a; font-weight: 800; font-size: 14px; padding: 11px 26px; cursor: pointer;
-      transition: transform 0.15s, opacity 0.2s;
+      min-height:46px; padding:0 26px; border:0; border-radius:999px; cursor:pointer;
+      background: var(--forest-accent); color:#04120a;
+      font:700 12px/1 var(--forest-body); letter-spacing:.1em; text-transform:uppercase;
+      transition: transform .2s ease, box-shadow .2s ease, opacity .2s ease;
     }
-    .go-btn:hover { transform: translateY(-1px); }
-    .go-btn:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
+    .go-btn:hover { transform: translateY(-1px); box-shadow: 0 10px 34px rgba(var(--forest-accent-rgb), .32); }
+    .go-btn:disabled { opacity:.45; cursor:not-allowed; transform:none; box-shadow:none; }
 
+    /* Error banner */
     .error-banner {
-      display: none;
-      background: rgba(244,63,94,0.08); border: 1px solid rgba(244,63,94,0.3);
-      color: #fda4af; font-size: 13px; border-radius: var(--radius); padding: 12px 16px;
-      line-height: 1.55;
+      display:none;
+      border:1px solid color-mix(in srgb, var(--state-failed) 34%, transparent);
+      border-radius:16px;
+      background: color-mix(in srgb, var(--state-failed) 8%, transparent);
+      color: color-mix(in srgb, var(--state-failed) 80%, var(--forest-ink));
+      font-size:13px; line-height:1.55; padding:14px 18px;
     }
 
-    /* ── Live seats ── */
-    .seats { display: none; flex-direction: column; gap: 14px; }
+    /* ── Live seats stream ── */
+    .seats { display:none; flex-direction:column; gap:14px; }
     .seat {
-      background: var(--surface); border: 1px solid var(--border);
-      border-radius: calc(var(--radius) * 1.75); padding: 16px 18px;
+      border:1px solid var(--forest-line); border-radius:22px;
+      background:
+        linear-gradient(135deg, rgba(255,255,255,.03), transparent 45%),
+        var(--forest-panel);
+      backdrop-filter: blur(18px);
+      padding:18px 22px;
+      transition: border-color .3s ease, box-shadow .3s ease, opacity .3s ease;
     }
-    .seat-head { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; margin-bottom: 8px; }
-    .seat-role { font-size: 14px; font-weight: 700; }
-    .seat-model { font-size: 11px; color: var(--text-muted); font-family: ui-monospace, monospace; }
-    .seat-status { margin-left: auto; font-size: 11px; font-weight: 600; letter-spacing: 0.04em; }
-    .seat.waiting  { opacity: 0.55; }
-    .seat.waiting  .seat-status { color: #64748b; }
-    .seat.thinking .seat-status { color: var(--amber); }
-    .seat.thinking { border-color: rgba(245,158,11,0.35); }
-    .seat.done     .seat-status { color: var(--accent-green); }
-    .seat.failed   .seat-status { color: var(--rose); }
-    .seat-text { font-size: 13.5px; line-height: 1.6; color: #e4e4e7; white-space: pre-wrap; word-wrap: break-word; min-height: 1.2em; }
-    .seat-text:empty::before { content: "\2026"; color: #3f3f46; }
-    .seat.synthesis { border-top: 2px solid var(--accent-green); }
+    .seat-head { display:flex; align-items:baseline; gap:10px; flex-wrap:wrap; margin-bottom:10px; }
+    .seat-role { color:var(--forest-ink); font:600 15px/1.2 var(--forest-display); letter-spacing:-.01em; }
+    .seat-model { color:var(--forest-muted); font:500 11px/1.4 var(--mono); }
+    .seat-status { margin-left:auto; font:700 10px/1 var(--forest-body); letter-spacing:.12em; text-transform:uppercase; }
+    .seat.waiting  { opacity:.5; }
+    .seat.waiting  .seat-status { color:var(--forest-muted); }
+    .seat.thinking { border-color: color-mix(in srgb, var(--state-thinking) 38%, transparent); }
+    .seat.thinking .seat-status { color:var(--state-thinking); }
+    .seat.done     .seat-status { color:var(--forest-accent); }
+    .seat.failed   { border-color: color-mix(in srgb, var(--state-failed) 30%, transparent); }
+    .seat.failed   .seat-status { color:var(--state-failed); }
+    .seat.synthesis {
+      border-color: color-mix(in srgb, var(--forest-accent) 32%, transparent);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.04), 0 0 44px rgba(var(--forest-accent-rgb), .06);
+    }
+    .seat.synthesis.thinking { border-color: color-mix(in srgb, var(--state-thinking) 38%, transparent); }
+    .seat-text {
+      min-height:1.2em; color:var(--forest-soft);
+      font-size:13.5px; line-height:1.65;
+      white-space:pre-wrap; word-wrap:break-word;
+    }
+    .seat-text:empty::before { content:"\2026"; color: color-mix(in srgb, var(--forest-muted) 55%, transparent); }
     .cursor {
-      display: inline-block; width: 7px; height: 15px; background: var(--accent-green);
-      vertical-align: -2px; margin-left: 2px; animation: blink 0.9s steps(1) infinite;
+      display:inline-block; width:7px; height:15px; margin-left:2px; vertical-align:-2px;
+      background:var(--forest-accent); box-shadow:0 0 10px rgba(var(--forest-accent-rgb), .5);
+      animation: blink .9s steps(1) infinite;
     }
-    @keyframes blink { 50% { opacity: 0; } }
+    @keyframes blink { 50% { opacity:0; } }
 
-    .footer-tag { text-align: center; font-size: 11px; color: #52525b; line-height: 1.7; }
-    .footer-tag code { background: rgba(255,255,255,0.06); padding: 1px 6px; border-radius: 5px; }
-    .footer-tag a { color: var(--text-muted); }
+    /* ── Inner voice feed (ambient side rail) ── */
+    .feed-note { margin:-6px 0 16px; color:var(--forest-muted); font-size:11.5px; line-height:1.65; }
+    .feed-list { display:flex; flex-direction:column; gap:10px; max-height:480px; overflow-y:auto; padding-right:2px; }
+    .feed-item {
+      display:flex; gap:11px; align-items:flex-start;
+      border:1px solid rgba(213,239,215,.08); border-radius:16px;
+      background: color-mix(in srgb, #000 24%, transparent);
+      padding:12px 14px;
+    }
+    .feed-emoji { flex:none; font-size:17px; line-height:1.35; }
+    .feed-emoji:empty { display:none; }
+    .feed-body { min-width:0; }
+    .feed-snippet { color:var(--forest-soft); font-size:12.5px; line-height:1.6; word-wrap:break-word; }
+    .feed-meta { margin-top:6px; color:var(--forest-muted); font-size:10px; letter-spacing:.03em; line-height:1.5; }
+    .feed-meta .cat { color: color-mix(in srgb, var(--forest-accent) 62%, var(--forest-muted)); font-weight:600; }
+    .feed-empty { color:var(--forest-muted); font-size:12px; line-height:1.6; padding:4px 2px; }
+
+    /* ── Footer provenance ── */
+    .footer-tag {
+      margin:clamp(60px,8vw,100px) auto 0; max-width:760px;
+      color:var(--forest-muted); font-size:11px; line-height:1.8; text-align:center;
+    }
+    .footer-tag code {
+      background: rgba(var(--forest-accent-rgb), .07);
+      border:1px solid rgba(var(--forest-accent-rgb), .14);
+      border-radius:6px; padding:1px 6px;
+      color: color-mix(in srgb, var(--forest-accent) 70%, var(--forest-soft));
+      font-family:var(--mono); font-size:10.5px;
+    }
+    .footer-tag a { color:var(--forest-soft); text-decoration-color: rgba(var(--forest-accent-rgb), .4); }
+    .footer-tag a:hover { color:var(--forest-accent); }
+
+    @media (max-width: 980px) {
+      .council-zone { grid-template-columns:1fr; }
+      .zone-aside { position:static; }
+      .feed-list { max-height:380px; }
+    }
+    @media (max-width: 760px) {
+      .tiny-hero { min-height:56svh; }
+      .go-row { flex-direction:column; align-items:stretch; }
+      .go-btn { width:100%; }
+      .seat { padding:16px 18px; }
+    }
   </style>
 </head>
-<body>
-  <div class="page">
-    <div class="topbar">
-      <a href="/" class="back-link">&#8592; SDForest</a>
-      <span class="public-pill">Public experiment &middot; $0</span>
-    </div>
+<body data-forest-page="tinylm">
+  <canvas class="forest-scene" data-forest-scene data-mode="tinylm" aria-hidden="true"></canvas>
+  <div class="forest-scrim" aria-hidden="true"></div>
+  <nav class="forest-topbar" aria-label="TinyLM navigation">
+    <a class="forest-back" href="/web/council/index.html">Councils</a>
+    <span class="forest-status">Public · $0</span>
+  </nav>
 
-    <header>
-      <h1>&#127793; TinyLM Consciousness Experiment</h1>
-      <p class="tagline">
-        Five tiny open language models &mdash; 135M to 3B parameters, small enough to run on a single ARM
-        server &mdash; deliberate on your question in sequence, each seat playing a different cognitive role.
+  <main class="forest-page">
+    <header class="tiny-hero">
+      <p class="forest-kicker">Consciousness experiment · Local · Public $0</p>
+      <h1 class="forest-title">TinyLM</h1>
+      <p class="forest-lede">
+        Five tiny open language models — 135M to 3B parameters, small enough to run on a single ARM
+        server — deliberate on your question in sequence, each seat playing a different cognitive role.
         Every token is generated on our own silicon and streamed here live. No cloud LLM APIs, no fleet
         memory, no hidden context: what you see is the entire conversation.
       </p>
+      <div class="hero-chips" aria-hidden="true">
+        <span class="chip">135M–3B params</span>
+        <span class="chip">No hidden context</span>
+        <span class="chip">5–15 minutes</span>
+      </div>
     </header>
 
-    <div class="card">
-      <span class="section-label">&#129504; The five seats</span>
+    <section class="forest-section" aria-labelledby="roster-label">
+      <p class="forest-section-label" id="roster-label">The five seats</p>
       <div class="roster-grid">
-        <div class="roster-seat proposer">
-          <div class="r-role">Fast Proposer</div>
-          <div class="r-model">Tiny-Agent 0.5B</div>
-          <div class="r-what">Fires off the first draft answer &mdash; quick, unfiltered, instinctive.</div>
+        <div class="roster-seat" style="--seat:var(--seat-proposer)">
+          <p class="r-order">Seat 01</p>
+          <h2 class="r-role">Fast Proposer</h2>
+          <p class="r-model">Tiny-Agent 0.5B</p>
+          <p class="r-what">Fires off the first draft answer — quick, unfiltered, instinctive.</p>
         </div>
-        <div class="roster-seat analyst">
-          <div class="r-role">Analyst</div>
-          <div class="r-model">llama3.2:1b</div>
-          <div class="r-what">Unpacks the question and the draft &mdash; what is actually being asked?</div>
+        <div class="roster-seat" style="--seat:var(--seat-analyst)">
+          <p class="r-order">Seat 02</p>
+          <h2 class="r-role">Analyst</h2>
+          <p class="r-model">llama3.2:1b</p>
+          <p class="r-what">Unpacks the question and the draft — what is actually being asked?</p>
         </div>
-        <div class="roster-seat critic">
-          <div class="r-role">Critic</div>
-          <div class="r-model">qwen2.5:0.5b</div>
-          <div class="r-what">Attacks weak points in the reasoning. Half a billion parameters of doubt.</div>
+        <div class="roster-seat" style="--seat:var(--seat-critic)">
+          <p class="r-order">Seat 03</p>
+          <h2 class="r-role">Critic</h2>
+          <p class="r-model">qwen2.5:0.5b</p>
+          <p class="r-what">Attacks weak points in the reasoning. Half a billion parameters of doubt.</p>
         </div>
-        <div class="roster-seat observer">
-          <div class="r-role">Consciousness Observer</div>
-          <div class="r-model">eve</div>
-          <div class="r-what">Watches the deliberation itself and comments on how the council is thinking.</div>
+        <div class="roster-seat" style="--seat:var(--seat-observer)">
+          <p class="r-order">Seat 04</p>
+          <h2 class="r-role">Consciousness Observer</h2>
+          <p class="r-model">eve</p>
+          <p class="r-what">Watches the deliberation itself and comments on how the council is thinking.</p>
         </div>
-        <div class="roster-seat synth">
-          <div class="r-role">Synthesizer</div>
-          <div class="r-model">qwen2.5:3b</div>
-          <div class="r-what">Weaves every seat&#39;s contribution into the council&#39;s final answer.</div>
+        <div class="roster-seat" style="--seat:var(--seat-synth)">
+          <p class="r-order">Seat 05</p>
+          <h2 class="r-role">Synthesizer</h2>
+          <p class="r-model">qwen2.5:3b</p>
+          <p class="r-what">Weaves every seat's contribution into the council's final answer.</p>
         </div>
       </div>
       <p class="experiment-note">
-        <strong>Why &ldquo;consciousness experiment&rdquo;?</strong> The observer seat's only job is to watch
-        the other models think and describe what it sees &mdash; a tiny machine reflecting on machine
+        <strong>Why "consciousness experiment"?</strong> The observer seat's only job is to watch
+        the other models think and describe what it sees — a tiny machine reflecting on machine
         reasoning as it happens. The models are charmingly scrappy: expect flashes of insight
         wrapped in small-model quirks, not polished GPT answers. That contrast is the experiment.
       </p>
-    </div>
+    </section>
 
-    <div class="card">
-      <span class="section-label">&#10067; Your question</span>
-      <textarea id="question" placeholder="Ask the tiny council anything &mdash; a real question works better than a test prompt&hellip;" rows="3"></textarea>
-      <div class="go-row">
-        <span class="note">The models share 4 ARM cores &mdash; a full deliberation takes 5&ndash;15 minutes. Leave the tab open and watch it unfold.</span>
-        <button class="go-btn" id="go" onclick="convene()">Convene the council</button>
+    <section class="forest-section" aria-labelledby="convene-label">
+      <p class="forest-section-label" id="convene-label">Convene the council</p>
+      <div class="council-zone">
+        <div class="zone-main">
+          <div class="forest-panel panel">
+            <label class="panel-label" for="question">Your question</label>
+            <textarea id="question" placeholder="Ask the tiny council anything — a real question works better than a test prompt…" rows="3"></textarea>
+            <div class="go-row">
+              <span class="go-note">The models share 4 ARM cores — a full deliberation takes 5–15 minutes. Leave the tab open and watch it unfold.</span>
+              <button class="go-btn" id="go" onclick="convene()">Convene the council</button>
+            </div>
+          </div>
+
+          <div class="error-banner" id="error-banner" role="status"></div>
+          <div class="seats" id="seats" role="region" aria-label="Live council deliberation"></div>
+        </div>
+
+        <aside class="zone-aside">
+          <section class="forest-panel panel" aria-labelledby="feed-label">
+            <p class="panel-label" id="feed-label">Inner voice feed</p>
+            <p class="feed-note">Curated public moments from the fleet's thinking daemons on the same server — an ambient side-channel, refreshed every minute. Not part of your deliberation.</p>
+            <div class="feed-list" id="feed-list" tabindex="0" aria-label="Inner voice feed entries"><div class="feed-empty">Listening for thoughts…</div></div>
+          </section>
+        </aside>
       </div>
-    </div>
-
-    <div class="error-banner" id="error-banner"></div>
-    <div class="seats" id="seats"></div>
+    </section>
 
     <p class="footer-tag">
-      browser &rarr; <code>/council/stream</code> &rarr; soul-server &rarr; Ollama on Oracle (aarch64, 4 OCPU)
-      &middot; $0 &middot; no external LLM API &middot; public mode &mdash; no fleet context
-      &middot; part of <a href="/web/council/">the Councils</a>
+      browser → <code>/council/stream</code> → soul-server → Ollama on Oracle (aarch64, 4 OCPU)
+      · $0 · no external LLM API · public mode — no fleet context
+      · part of <a href="/web/council/">the Councils</a>
     </p>
-  </div>
+  </main>
 
   <script>
     var BASE = "https://chloe.blumenkraft.cloud";
@@ -231,8 +303,9 @@
     var seatDom = {};   // seat key -> {root,text,status}
 
     function fail(msg) {
-      errEl.textContent = msg;
+      // Reveal the status region before writing text so screen readers announce it.
       errEl.style.display = "block";
+      errEl.textContent = msg;
       goBtn.disabled = false;
       if (es) { es.close(); es = null; }
     }
@@ -309,6 +382,51 @@
     document.getElementById("question").addEventListener("keydown", function (e) {
       if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) { e.preventDefault(); convene(); }
     });
+
+    // ── Inner voice feed: poll the curator feed every 60s (public entries only) ──
+    (function () {
+      var listEl = document.getElementById("feed-list");
+      function render(entries) {
+        if (!entries || !entries.length) {
+          listEl.innerHTML = '<div class="feed-empty">The daemons are quiet right now &mdash; check back soon.</div>';
+          return;
+        }
+        listEl.innerHTML = "";
+        for (var i = entries.length - 1; i >= 0; i--) {  // newest first
+          var e = entries[i];
+          var item = document.createElement("div");
+          item.className = "feed-item";
+          var emoji = document.createElement("div");
+          emoji.className = "feed-emoji";
+          emoji.textContent = e.emoji || "";
+          var body = document.createElement("div");
+          body.className = "feed-body";
+          var snip = document.createElement("div");
+          snip.className = "feed-snippet";
+          snip.textContent = e.snippet || "";
+          var meta = document.createElement("div");
+          meta.className = "feed-meta";
+          var when = "";
+          try { when = new Date(e.timestamp).toLocaleString(); } catch (_) {}
+          meta.innerHTML = '<span class="cat"></span> &middot; <span class="src"></span> &middot; <span class="when"></span>';
+          meta.querySelector(".cat").textContent = e.category || "";
+          meta.querySelector(".src").textContent = e.source || "";
+          meta.querySelector(".when").textContent = when;
+          body.appendChild(snip); body.appendChild(meta);
+          item.appendChild(emoji); item.appendChild(body);
+          listEl.appendChild(item);
+        }
+      }
+      function poll() {
+        fetch(BASE + "/tinylm-feed?public=1")
+          .then(function (r) { return r.json(); })
+          .then(function (d) { render(d.entries || []); })
+          .catch(function () { /* keep last render on transient errors */ });
+      }
+      poll();
+      setInterval(poll, 60000);
+    })();
   </script>
+  <script src="/web/shared/forest-motion.js?v=20260714"></script>
 </body>
 </html>

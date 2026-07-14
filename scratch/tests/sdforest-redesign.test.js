@@ -57,8 +57,9 @@ test('TinyLM is a real public, ungated chat page and its routes do not loop', ()
   assert.match(tiny, /EventSource/);
   assert.match(tiny, /\/council\/stream\?q=/);
   assert.match(tiny, /public=1/);
+  assert.match(tiny, /tinylm-feed\?public=1/);
   assert.doesNotMatch(tiny, /http-equiv="refresh"/i);
-  assert.doesNotMatch(tiny, /code-input/);
+  assert.doesNotMatch(tiny, /code-input|lockgate|sdf-code/);
 
   const legacyStub = read('web/council/tinylm/index.html');
   assert.match(legacyStub, /url=\/web\/tinylm\//);
@@ -66,6 +67,34 @@ test('TinyLM is a real public, ungated chat page and its routes do not loop', ()
   const council = read('web/council/index.html');
   assert.match(council, /href="\/web\/tinylm\/"/);
   assert.doesNotMatch(council, /href="\/web\/council\/tinylm/);
+});
+
+test('both public council chat pages wear the forest shell without losing function', () => {
+  const tiny = read('web/tinylm/index.html');
+  const byok = read('web/council/byok/index.html');
+
+  for (const page of [tiny, byok]) {
+    assert.match(page, /forest-shell\.css/);
+    assert.match(page, /forest-motion\.js/);
+    assert.match(page, /data-forest-scene/);
+    assert.match(page, /class="forest-back"/);
+    // No remnants of the pre-redesign zinc/indigo palette.
+    assert.doesNotMatch(page, /#09090b|#0f0f15|#18181b|#4f46e5|#475569/i);
+  }
+
+  assert.match(tiny, /data-forest-page="tinylm"/);
+  assert.match(byok, /data-forest-page="byok"/);
+
+  // BYOK keeps its full council functionality, gate-free.
+  assert.match(byok, /openrouter_api_key/);
+  assert.match(byok, /Council\.runCouncil/);
+  assert.match(byok, /role="switch"/);
+  assert.doesNotMatch(byok, /code-input|lockgate/);
+
+  // The shared canvas palette knows both council chat pages.
+  const motion = read('web/shared/forest-motion.js');
+  assert.match(motion, /tinylm: \[121, 242, 168\]/);
+  assert.match(motion, /byok: \[115, 233, 255\]/);
 });
 
 test('VFX portfolio preserves real prior work and contains no generated imagery', () => {
