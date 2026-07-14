@@ -52,10 +52,20 @@ test('public council exposes exactly two truthful modes', () => {
   assert.doesNotMatch(council, /Chlo[eé].*inner|Personal Round Table|private council/is);
 });
 
-test('TinyLM standalone route redirects into Councils', () => {
+test('TinyLM is a real public, ungated chat page and its routes do not loop', () => {
   const tiny = read('web/tinylm/index.html');
-  assert.match(tiny, /web\/council\/index\.html#tinylm/);
-  assert.match(tiny, /http-equiv="refresh"/i);
+  assert.match(tiny, /EventSource/);
+  assert.match(tiny, /\/council\/stream\?q=/);
+  assert.match(tiny, /public=1/);
+  assert.doesNotMatch(tiny, /http-equiv="refresh"/i);
+  assert.doesNotMatch(tiny, /code-input/);
+
+  const legacyStub = read('web/council/tinylm/index.html');
+  assert.match(legacyStub, /url=\/web\/tinylm\//);
+
+  const council = read('web/council/index.html');
+  assert.match(council, /href="\/web\/tinylm\/"/);
+  assert.doesNotMatch(council, /href="\/web\/council\/tinylm/);
 });
 
 test('VFX portfolio preserves real prior work and contains no generated imagery', () => {
