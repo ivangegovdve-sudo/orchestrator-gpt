@@ -49,6 +49,22 @@ import * as THREE from '../vendor/three/three.module.min.js';
   const clamp = (value, low, high) => Math.min(high, Math.max(low, value));
   const lerp = (a, b, t) => a + (b - a) * t;
 
+  // Additive-over-DOM blending: identical RGB math to THREE.AdditiveBlending
+  // (src.rgb * src.a added onto the buffer) but the alpha channel is never
+  // written. The canvas stays fully transparent (premultiplied alpha 0 +
+  // positive RGB = pure added light), so a dark fragment can never composite
+  // as an opaque black rectangle over the DOM behind it.
+  function makeAdditive(material) {
+    material.blending = THREE.CustomBlending;
+    material.blendEquation = THREE.AddEquation;
+    material.blendSrc = THREE.SrcAlphaFactor;
+    material.blendDst = THREE.OneFactor;
+    material.blendEquationAlpha = THREE.AddEquation;
+    material.blendSrcAlpha = THREE.ZeroFactor;
+    material.blendDstAlpha = THREE.OneFactor;
+    return material;
+  }
+
   /* ------------------------------------------------------------------ *
    * 1. Scroll physics — runs even without WebGL.
    *    velocity  px/s, smoothed; vNorm 0..1
@@ -64,7 +80,25 @@ import * as THREE from '../vendor/three/three.module.min.js';
     target: 0,
     current: 0,
     eased: 0,
+    writtenA: NaN,
+    writtenE: NaN,
   };
+
+  // True once the spring has converged and all velocity energy has decayed —
+  // at that point the physics produces no new values and the loop may sleep.
+  const physicsSettled = () => scroll.current === scroll.target
+    && scroll.vNorm < 0.005 && scroll.impact < 0.005;
+
+  // Pin the assembled state explicitly. The CSS reduced-motion rules only
+  // follow the OS media query, so paths that bypass WebGL for another
+  // reason (?motion=reduce debug override, compact layouts) must not leave
+  // the vars at 0 or the panels would be stranded off-screen.
+  function setAssembledVars() {
+    if (scroll.writtenA === 1 && scroll.writtenE === 1) return;
+    scroll.writtenA = scroll.writtenE = 1;
+    root.style.setProperty('--assembly', '1');
+    root.style.setProperty('--assembly-e', '1');
+  }
 
   // Back-out ease whose overshoot strength grows with impact: a gentle
   // scroll seats the panels softly, a hard fling slams them past the seat.
@@ -86,8 +120,7 @@ import * as THREE from '../vendor/three/three.module.min.js';
 
     if (compactMedia.matches || reduced()) {
       scroll.target = scroll.current = scroll.eased = 1;
-      root.style.removeProperty('--assembly');
-      root.style.removeProperty('--assembly-e');
+      setAssembledVars();
       return;
     }
 
@@ -102,8 +135,14 @@ import * as THREE from '../vendor/three/three.module.min.js';
     if (Math.abs(scroll.target - scroll.current) < 0.0004) scroll.current = scroll.target;
     scroll.eased = backOut(scroll.current, 1.15 + scroll.impact * 2.4);
 
-    root.style.setProperty('--assembly', scroll.current.toFixed(4));
-    root.style.setProperty('--assembly-e', scroll.eased.toFixed(4));
+    // Only touch the CSS vars when they actually moved — writing them every
+    // frame forces a style recalc even when the page is at rest.
+    if (Math.abs(scroll.current - scroll.writtenA) > 0.0004 || Math.abs(scroll.eased - scroll.writtenE) > 0.0004) {
+      scroll.writtenA = scroll.current;
+      scroll.writtenE = scroll.eased;
+      root.style.setProperty('--assembly', scroll.current.toFixed(4));
+      root.style.setProperty('--assembly-e', scroll.eased.toFixed(4));
+    }
   }
 
   /* ------------------------------------------------------------------ *
@@ -153,6 +192,12 @@ import * as THREE from '../vendor/three/three.module.min.js';
     camera.position.set(0, 0, (innerHeight / 2) / Math.tan(THREE.MathUtils.degToRad(35 / 2)));
     camera.lookAt(0, 0, 0);
     camera.updateProjectionMatrix();
+    // Spawn coordinates are viewport-relative; after a resize or an
+    // orientation change, resting shapes could sit outside the reachable
+    // area forever. Re-roll everything that isn't mid-choreography.
+    for (const shape of hero.shapes) {
+      if (shape.state !== 'act') shape.local = heroSpawnPosition();
+    }
   }
 
   const worldX = (px) => px - innerWidth / 2;
@@ -181,7 +226,9 @@ import * as THREE from '../vendor/three/three.module.min.js';
 
     float gridGlow(vec2 p, float width) {
       vec2 cell = abs(fract(p) - 0.5);
-      return smoothstep(width, 0.0, min(cell.x, cell.y));
+      // Not smoothstep(width, 0.0, ...): reversed edges are undefined
+      // behavior in GLSL and vary across drivers.
+      return 1.0 - smoothstep(0.0, width, min(cell.x, cell.y));
     }
 
     void main() {
@@ -231,10 +278,10 @@ import * as THREE from '../vendor/three/three.module.min.js';
           uAccent: { value: new THREE.Color('#79f2a8') },
         },
         transparent: true,
-        blending: THREE.AdditiveBlending,
         depthTest: false,
         depthWrite: false,
       });
+      makeAdditive(material);
       const mesh = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), material);
       mesh.visible = false;
       mesh.renderOrder = 2;
@@ -661,14 +708,13 @@ import * as THREE from '../vendor/three/three.module.min.js';
       const built = build();
       const group = new THREE.Group();
       group.visible = false;
-      const makeMaterial = (opacity) => new THREE.LineBasicMaterial({
+      const makeMaterial = () => makeAdditive(new THREE.LineBasicMaterial({
         color: new THREE.Color(accent),
         transparent: true,
         opacity: 0,
-        blending: THREE.AdditiveBlending,
         depthTest: false,
         depthWrite: false,
-      });
+      }));
       const mainLines = new THREE.LineSegments(built.static, makeMaterial());
       mainLines.userData.baseOpacity = 0.85;
       group.add(mainLines);
@@ -694,8 +740,8 @@ import * as THREE from '../vendor/three/three.module.min.js';
       };
       tiles.push(tile);
 
-      const show = () => { tiles.forEach((t) => { t.target = t === tile ? 1 : 0; }); };
-      const hide = () => { tile.target = 0; };
+      const show = () => { tiles.forEach((t) => { t.target = t === tile ? 1 : 0; }); wake(); };
+      const hide = () => { tile.target = 0; wake(); };
       portal.addEventListener('pointerenter', () => { if (!coarseMedia.matches) show(); });
       portal.addEventListener('pointerleave', () => { if (!coarseMedia.matches) hide(); });
       portal.addEventListener('focus', show);
@@ -764,13 +810,12 @@ import * as THREE from '../vendor/three/three.module.min.js';
   }
 
   function initHero() {
-    const faceMaterial = new THREE.MeshBasicMaterial({
+    const faceMaterial = makeAdditive(new THREE.MeshBasicMaterial({
       transparent: true,
       opacity: 1,
-      blending: THREE.AdditiveBlending,
       depthWrite: false,
       side: THREE.DoubleSide,
-    });
+    }));
     const perType = Math.ceil(HERO_COUNT / HERO_TYPES.length);
     let edgeVertexTotal = 0;
     HERO_TYPES.forEach((type, typeIndex) => {
@@ -814,12 +859,11 @@ import * as THREE from '../vendor/three/three.module.min.js';
     const edgeGeometry = new THREE.BufferGeometry();
     edgeGeometry.setAttribute('position', new THREE.BufferAttribute(hero.edgePositions, 3).setUsage(THREE.DynamicDrawUsage));
     edgeGeometry.setAttribute('color', new THREE.BufferAttribute(hero.edgeColors, 3).setUsage(THREE.DynamicDrawUsage));
-    hero.edges = new THREE.LineSegments(edgeGeometry, new THREE.LineBasicMaterial({
+    hero.edges = new THREE.LineSegments(edgeGeometry, makeAdditive(new THREE.LineBasicMaterial({
       vertexColors: true,
       transparent: true,
-      blending: THREE.AdditiveBlending,
       depthWrite: false,
-    }));
+    })));
     hero.edges.frustumCulled = false;
     hero.edges.renderOrder = 1;
     scene.add(hero.edges);
@@ -969,6 +1013,7 @@ import * as THREE from '../vendor/three/three.module.min.js';
   let running = false;
   let frameHandle = 0;
   let lastTime = 0;
+  let canvasDirty = false;
   const stats = { fps: 60 };
 
   function frame(now) {
@@ -980,18 +1025,31 @@ import * as THREE from '../vendor/three/three.module.min.js';
 
     updateScrollPhysics(dt);
 
+    let rendered = false;
+    let tilesAnimating = false;
     if (renderer) {
       const panelsVisible = updatePanels(time);
       const tilesVisible = updateTiles(time, dt);
       const heroVisible = updateHero(time, dt);
-      if (panelsVisible || tilesVisible || heroVisible) {
+      tilesAnimating = tiles.some((tile) => tile.target > 0 || tile.alpha > 0.012);
+      rendered = panelsVisible || tilesVisible || heroVisible;
+      if (rendered) {
         renderer.render(scene, camera);
-      } else {
+        canvasDirty = true;
+      } else if (canvasDirty) {
+        // Clear exactly once when the last effect fades — not every frame.
         renderer.clear();
+        canvasDirty = false;
       }
     }
 
-    if (running && !document.hidden) schedule();
+    // Sleep when nothing animates: no spring motion left, nothing drawn,
+    // no tile mid-fade. Wake events (scroll/pointer/resize/hover) restart
+    // the loop. Ambient effects (hero drift) keep `rendered` true while
+    // they are on screen, so this only sleeps genuinely static frames.
+    const needLoop = !physicsSettled() || rendered || tilesAnimating;
+    if (running && !document.hidden && needLoop) schedule();
+    else lastTime = 0;
   }
 
   function schedule() {
@@ -1006,18 +1064,33 @@ import * as THREE from '../vendor/three/three.module.min.js';
     schedule();
   }
 
+  // Restart a sleeping loop. Drops the first scroll delta (dt across the
+  // sleep is unknowable, so deriving velocity from it would spike).
+  function wake() {
+    if (!running || document.hidden || frameHandle) return;
+    lastTime = 0;
+    scroll.lastY = scrollY;
+    schedule();
+  }
+
   function stop() {
     running = false;
     if (frameHandle) cancelAnimationFrame(frameHandle);
     frameHandle = 0;
+    lastTime = 0;
   }
+
+  window.addEventListener('scroll', wake, { passive: true });
+  window.addEventListener('pointermove', wake, { passive: true });
+  window.addEventListener('pointerdown', wake, { passive: true });
+  window.addEventListener('resize', wake, { passive: true });
 
   function boot() {
     if (reduced()) {
-      // CSS's reduced-motion rules present the assembled state; make sure
-      // no stale inline vars (e.g. from the inline fallback) override them.
-      root.style.removeProperty('--assembly');
-      root.style.removeProperty('--assembly-e');
+      // Present the assembled state statically. Set explicitly rather than
+      // relying on the CSS media query: the ?motion=reduce debug override
+      // reduces without the OS-level query matching.
+      setAssembledVars();
       return;
     }
     if (!renderer) {
@@ -1035,8 +1108,7 @@ import * as THREE from '../vendor/three/three.module.min.js';
   function shutdown() {
     stop();
     if (canvas) canvas.style.display = 'none';
-    root.style.removeProperty('--assembly');
-    root.style.removeProperty('--assembly-e');
+    setAssembledVars();
   }
 
   document.addEventListener('visibilitychange', () => {
@@ -1059,6 +1131,7 @@ import * as THREE from '../vendor/three/three.module.min.js';
     tiles,
     hero,
     get webgl() { return Boolean(renderer); },
+    get sleeping() { return running && !frameHandle; },
     tick(now) { stop(); frame(now); },
     resume() { if (!reduced()) start(); },
   };
