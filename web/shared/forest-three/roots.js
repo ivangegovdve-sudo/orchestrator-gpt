@@ -1,0 +1,321 @@
+/* SDForest Three.js layer — the living root burst.
+   An organic mycelium of light radiating from the forest sigil: recursive
+   root filaments (amber at the heart, green at the growing tips) with a
+   field of spore particles drifting along them. The whole system awakens
+   on load (roots grow outward), bends toward the pointer (uMouse), and
+   carries light pulses outward on click (uClick).
+
+   Authored in unit space (reach = 1) and scaled to pixels every frame, so
+   viewport resizes cost nothing and the skeleton is deterministic. */
+
+import * as THREE from '../../vendor/three/three.module.min.js';
+import { clamp, lerp, easeOutCubic, makeAdditive, mulberry32, PALETTE } from './util.js';
+
+const CORE = new THREE.Color(PALETTE.amber);
+const TIP = new THREE.Color(PALETTE.green);
+const GROW_SECONDS = 2.6;
+
+const state = {
+  group: null,
+  lines: null,
+  points: null,
+  segments: [],        // sorted by distance from origin (growth order)
+  maxDist: 1,
+  particles: [],
+  pulses: [],          // { start } — light waves travelling outward
+  bootTime: -1,
+  landing: null,
+  sigil: null,
+  particleUniforms: null,
+  scratch: new THREE.Vector3(),
+};
+
+function buildSkeleton(random, coarse) {
+  const segments = [];
+  const depthMax = coarse ? 4 : 5;
+  const primaries = coarse ? 8 : 10;
+
+  function grow(x, y, z, angle, tilt, length, depth, dist) {
+    const nx = x + Math.cos(angle) * length;
+    const ny = y + Math.sin(angle) * length;
+    const nz = z + tilt * length * 0.35;
+    segments.push({
+      a: [x, y, z], b: [nx, ny, nz], depth,
+      distA: dist, distB: dist + length,
+      phase: random() * Math.PI * 2,
+      swayDir: [Math.sin(angle + Math.PI / 2), Math.cos(angle + Math.PI / 2)],
+    });
+    if (depth >= depthMax) return;
+    const children = depth === 0 ? 2 : (random() < 0.78 ? 2 : 1);
+    for (let k = 0; k < children; k += 1) {
+      const spread = (k === 0 ? 1 : -1) * (0.28 + random() * 0.38);
+      grow(nx, ny, nz, angle + spread + (random() - 0.5) * 0.2, (random() - 0.5) * 0.7,
+        length * (0.6 + random() * 0.12), depth + 1, dist + length);
+    }
+  }
+
+  for (let i = 0; i < primaries; i += 1) {
+    const angle = (i / primaries) * Math.PI * 2 + (random() - 0.5) * 0.5;
+    grow(0, 0, (random() - 0.5) * 0.1, angle, (random() - 0.5) * 0.6, 0.28 + random() * 0.09, 0, 0);
+  }
+  // Growth order: outward from the seed, so drawRange = the forest waking.
+  segments.sort((s, t) => s.distA - t.distA);
+  return segments;
+}
+
+const PARTICLE_VERT = /* glsl */`
+  attribute float aSize;
+  attribute float aSeed;
+  attribute vec3 aColor;
+  uniform float uPointScale; // devicePixelRatio * camera distance
+  varying float vSeed;
+  varying vec3 vColor;
+  void main() {
+    vSeed = aSeed;
+    vColor = aColor;
+    vec4 mv = modelViewMatrix * vec4(position, 1.0);
+    gl_PointSize = aSize * (uPointScale / -mv.z);
+    gl_Position = projectionMatrix * mv;
+  }
+`;
+
+const PARTICLE_FRAG = /* glsl */`
+  precision highp float;
+  uniform float uTime, uMaster;
+  varying float vSeed;
+  varying vec3 vColor;
+  void main() {
+    vec2 c = gl_PointCoord - 0.5;
+    float falloff = 1.0 - smoothstep(0.1, 0.5, length(c));
+    float twinkle = 0.55 + 0.45 * sin(uTime * (1.2 + vSeed * 2.4) + vSeed * 40.0);
+    gl_FragColor = vec4(vColor * falloff * twinkle * uMaster, 1.0);
+  }
+`;
+
+export function initRoots(shared, coarse) {
+  state.landing = document.querySelector('.landing');
+  state.sigil = document.querySelector('.forest-sigil');
+  if (!state.landing) return;
+
+  const random = mulberry32(20260714);
+  state.segments = buildSkeleton(random, coarse);
+  state.maxDist = state.segments.reduce((m, s) => Math.max(m, s.distB), 1);
+
+  const group = new THREE.Group();
+  group.renderOrder = 0;
+  state.group = group;
+
+  // --- root filaments: one LineSegments, positions + colors rewritten
+  // each frame (sway, pointer bend, pulse light). ~600 vertices — cheap.
+  const vertCount = state.segments.length * 2;
+  const linePositions = new Float32Array(vertCount * 3);
+  const lineColors = new Float32Array(vertCount * 3);
+  const lineGeo = new THREE.BufferGeometry();
+  lineGeo.setAttribute('position', new THREE.BufferAttribute(linePositions, 3).setUsage(THREE.DynamicDrawUsage));
+  lineGeo.setAttribute('color', new THREE.BufferAttribute(lineColors, 3).setUsage(THREE.DynamicDrawUsage));
+  state.lines = new THREE.LineSegments(lineGeo, makeAdditive(new THREE.LineBasicMaterial({
+    vertexColors: true,
+    transparent: true,
+    depthTest: false,
+    depthWrite: false,
+  })));
+  state.lines.frustumCulled = false;
+  group.add(state.lines);
+
+  // --- spore particles drifting outward along the filaments. A quarter
+  // are "embers": bigger, warmer, packed near the seed so the core reads
+  // as the hot heart of the burst.
+  const particleCount = coarse ? 320 : 680;
+  const pPositions = new Float32Array(particleCount * 3);
+  const pSizes = new Float32Array(particleCount);
+  const pSeeds = new Float32Array(particleCount);
+  const pColors = new Float32Array(particleCount * 3);
+  const tint = new THREE.Color();
+  for (let i = 0; i < particleCount; i += 1) {
+    const ember = i % 4 === 0;
+    const pick = ember ? (random() ** 2.2) : (random() ** 0.55);
+    const segIndex = Math.min(state.segments.length - 1, Math.floor(pick * state.segments.length));
+    state.particles.push({
+      segIndex,
+      u: random(),
+      speed: 0.05 + random() * 0.12,
+      orbit: random() * Math.PI * 2,
+      orbitR: ember ? 0.008 + random() * 0.03 : 0.012 + random() * 0.05,
+    });
+    pSizes[i] = ember ? 3.2 + random() * 4.2 : 2.2 + random() * 3.2;
+    pSeeds[i] = random();
+    tint.copy(CORE).lerp(TIP, ember ? random() * 0.25 : random());
+    pColors[i * 3] = tint.r; pColors[i * 3 + 1] = tint.g; pColors[i * 3 + 2] = tint.b;
+  }
+  const pGeo = new THREE.BufferGeometry();
+  pGeo.setAttribute('position', new THREE.BufferAttribute(pPositions, 3).setUsage(THREE.DynamicDrawUsage));
+  pGeo.setAttribute('aSize', new THREE.BufferAttribute(pSizes, 1));
+  pGeo.setAttribute('aSeed', new THREE.BufferAttribute(pSeeds, 1));
+  pGeo.setAttribute('aColor', new THREE.BufferAttribute(pColors, 3));
+  state.particleUniforms = { uTime: { value: 0 }, uMaster: { value: 0 }, uPointScale: { value: 1300 } };
+  state.points = new THREE.Points(pGeo, makeAdditive(new THREE.ShaderMaterial({
+    vertexShader: PARTICLE_VERT,
+    fragmentShader: PARTICLE_FRAG,
+    uniforms: state.particleUniforms,
+    transparent: true,
+    depthTest: false,
+    depthWrite: false,
+  })));
+  state.points.frustumCulled = false;
+  group.add(state.points);
+
+  // Hot core: a radial glow sprite at the seed fakes bloom — the burst
+  // needs a bright golden heart, not just hairline filaments.
+  const glowCanvas = document.createElement('canvas');
+  glowCanvas.width = glowCanvas.height = 128;
+  const glowCtx = glowCanvas.getContext('2d');
+  const gradient = glowCtx.createRadialGradient(64, 64, 0, 64, 64, 64);
+  gradient.addColorStop(0, 'rgba(255, 214, 120, 0.85)');
+  gradient.addColorStop(0.25, 'rgba(255, 196, 96, 0.32)');
+  gradient.addColorStop(0.6, 'rgba(150, 220, 140, 0.08)');
+  gradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
+  glowCtx.fillStyle = gradient;
+  glowCtx.fillRect(0, 0, 128, 128);
+  state.glow = new THREE.Sprite(makeAdditive(new THREE.SpriteMaterial({
+    map: new THREE.CanvasTexture(glowCanvas),
+    transparent: true,
+    depthTest: false,
+    depthWrite: false,
+  })));
+  state.glow.scale.set(0.62, 0.62, 1);
+  group.add(state.glow);
+
+  shared.scene.add(group);
+
+  // uClick: a pulse of light races outward along the roots.
+  window.addEventListener('pointerdown', (event) => {
+    if (!state.group || !state.group.visible) return;
+    const rect = state.landing.getBoundingClientRect();
+    if (event.clientY > rect.bottom) return;
+    if (state.pulses.length < 4) state.pulses.push({ start: -1 });
+  }, { passive: true });
+}
+
+export function updateRoots(shared, time, dt) {
+  if (!state.group) return false;
+  const rect = state.landing.getBoundingClientRect();
+  if (rect.bottom < -60) {
+    state.group.visible = false;
+    return false;
+  }
+  state.group.visible = true;
+  if (state.bootTime < 0) state.bootTime = time;
+
+  // Origin: the sigil is the seed the forest sprouts from.
+  const sigilRect = state.sigil ? state.sigil.getBoundingClientRect() : rect;
+  const originX = sigilRect.left + sigilRect.width / 2;
+  const originY = sigilRect.top + sigilRect.height / 2;
+  const reach = Math.min(innerWidth, innerHeight) * 0.46;
+  state.group.position.set(originX - innerWidth / 2, innerHeight / 2 - originY, -60);
+  state.group.scale.setScalar(reach);
+
+  const grow = easeOutCubic(clamp((time - state.bootTime) / GROW_SECONDS, 0, 1));
+
+  // Pointer in unit space (uMouse bends roots, attracts particles).
+  const pointer = shared.pointer;
+  const px = pointer.seen ? (pointer.x - originX) / reach : 1e6;
+  const py = pointer.seen ? -(pointer.y - originY) / reach : 1e6;
+
+  // Advance pulses (uClick) — a wave of brightness by distance-from-seed.
+  for (const pulse of state.pulses) {
+    if (pulse.start < 0) pulse.start = time;
+    pulse.r = (time - pulse.start) * 1.5;
+  }
+  state.pulses = state.pulses.filter((pulse) => pulse.r === undefined || pulse.r < 1.5);
+
+  // --- filaments: sway + bend + light -------------------------------
+  const positions = state.lines.geometry.attributes.position.array;
+  const colors = state.lines.geometry.attributes.color.array;
+  const segments = state.segments;
+  let drawVerts = 0;
+  const growDist = grow * state.maxDist;
+  for (let i = 0; i < segments.length; i += 1) {
+    const seg = segments[i];
+    if (seg.distA <= growDist) drawVerts += 2;
+    const sway = Math.sin(time * (0.5 + seg.depth * 0.22) + seg.phase);
+    const amp = 0.004 + seg.depth * 0.007;
+    for (let end = 0; end < 2; end += 1) {
+      const p = end ? seg.b : seg.a;
+      const swayK = end ? 1 : 0.55; // tips travel further than anchors
+      let x = p[0] + seg.swayDir[0] * sway * amp * swayK;
+      let y = p[1] + seg.swayDir[1] * sway * amp * swayK;
+      const dxp = px - x, dyp = py - y;
+      const dp = Math.hypot(dxp, dyp);
+      if (dp < 0.5) {
+        const pull = ((1 - dp / 0.5) ** 2) * 0.1 * (0.4 + seg.depth * 0.2);
+        x += dxp * pull;
+        y += dyp * pull;
+      }
+      const o = (i * 2 + end) * 3;
+      positions[o] = x;
+      positions[o + 1] = y;
+      positions[o + 2] = p[2];
+
+      const dist = end ? seg.distB : seg.distA;
+      const tipMix = clamp(dist / state.maxDist, 0, 1);
+      let bright = 0.3 + (1 - tipMix) * 0.55 + Math.sin(time * 1.7 + seg.phase) * 0.06;
+      // Growth front glows as it passes.
+      const frontD = Math.abs(dist - growDist);
+      if (grow < 1 && frontD < 0.12) bright += (1 - frontD / 0.12) * 0.9;
+      for (const pulse of state.pulses) {
+        const d = Math.abs(dist - pulse.r);
+        if (d < 0.1) bright += (1 - d / 0.1) * 0.8 * (1 - pulse.r / 1.5);
+      }
+      // Pointer proximity lights the filament it bends.
+      if (dp < 0.5) bright += ((1 - dp / 0.5) ** 2) * 0.5;
+      const r = lerp(CORE.r, TIP.r, tipMix) * bright;
+      const g = lerp(CORE.g, TIP.g, tipMix) * bright;
+      const b = lerp(CORE.b, TIP.b, tipMix) * bright;
+      colors[o] = r; colors[o + 1] = g; colors[o + 2] = b;
+    }
+  }
+  state.lines.geometry.setDrawRange(0, drawVerts);
+  state.lines.geometry.attributes.position.needsUpdate = true;
+  state.lines.geometry.attributes.color.needsUpdate = true;
+
+  // --- particles: drift outward along their segment, orbit it loosely,
+  // and fly toward the pointer when it comes close.
+  const pArray = state.points.geometry.attributes.position.array;
+  for (let i = 0; i < state.particles.length; i += 1) {
+    const particle = state.particles[i];
+    const seg = segments[particle.segIndex];
+    particle.u = (particle.u + dt * particle.speed) % 1;
+    const u = particle.u;
+    let x = lerp(seg.a[0], seg.b[0], u);
+    let y = lerp(seg.a[1], seg.b[1], u);
+    const z = lerp(seg.a[2], seg.b[2], u);
+    const orbit = time * 0.7 + particle.orbit;
+    x += Math.sin(orbit) * particle.orbitR;
+    y += Math.cos(orbit * 0.83) * particle.orbitR;
+    const dxp = px - x, dyp = py - y;
+    const dp = Math.hypot(dxp, dyp);
+    if (dp < 0.4) {
+      const pull = ((1 - dp / 0.4) ** 2) * 0.28;
+      x += dxp * pull;
+      y += dyp * pull;
+    }
+    const o = i * 3;
+    pArray[o] = x; pArray[o + 1] = y; pArray[o + 2] = z;
+  }
+  state.points.geometry.attributes.position.needsUpdate = true;
+  state.particleUniforms.uTime.value = time;
+  state.particleUniforms.uMaster.value = grow * 0.9;
+  state.particleUniforms.uPointScale.value = shared.pointScale || 1300;
+
+  // The heart breathes; pulses and the growth intro flare it.
+  let glowBoost = 0;
+  for (const pulse of state.pulses) glowBoost = Math.max(glowBoost, (1 - pulse.r / 1.5) * 0.5);
+  state.glow.material.opacity = grow * (0.55 + Math.sin(time * 1.1) * 0.1 + glowBoost);
+
+  return true;
+}
+
+// Anything mid-flight (growth intro, pulses) keeps the loop awake.
+export const rootsAnimating = () => Boolean(state.group && state.group.visible);
+
+export const rootsDebug = state;
