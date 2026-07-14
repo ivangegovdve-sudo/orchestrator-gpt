@@ -2,7 +2,7 @@
 
 **Status:** Draft for user review on 2026-07-15.
 
-**Data-contract dependency:** `openrouter-github-dashboard` commit `60dca78` and `docs/superpowers/specs/2026-07-15-open-overview-archive-v2-design.md` are the reviewed source of truth for archive, ranking, completeness and API semantics. SD Forest consumes schema major `2` only.
+**Data-contract dependency:** `openrouter-github-dashboard` commit `8daa26d` and `docs/superpowers/specs/2026-07-15-open-overview-archive-v2-design.md` are the reviewed source of truth for archive, ranking, completeness and API semantics. SD Forest consumes schema major `2` only.
 
 ## Product outcome
 
@@ -111,7 +111,7 @@ The category selector exposes all eight primary categories:
 7. Agent frameworks.
 8. General AI orchestration.
 
-Each category defaults to Adoption, using the published versioned formula `0.75 * percentile_cont(log1p(stars)) + 0.25 * percentile_cont(log1p(forks))` within the eligible category population. Rows show `rankMethod`, `ruleVersion`, eligible population and raw stars/forks. Momentum choices remain disabled until their full 7/30/90-day windows exist; incomplete coverage is never zero. Maintenance uses the upstream recency rule. Maturity, Interoperability, Openness and Confidence remain facets until a versioned upstream formula exists. Historical/reference-role projects never compete silently with active executable products. Secondary categories and project-family aggregation appear in detail, not as duplicate cross-ecosystem winners.
+Each category defaults to Adoption, using the published versioned formula `0.75 * percent_rank(log1p(stars)) + 0.25 * percent_rank(log1p(forks))` within the eligible category population, equivalent to SQL `percent_rank()` over each log-scaled metric. Rows show `rankMethod`, `ruleVersion`, eligible population and raw stars/forks. Momentum choices remain disabled until their full 7/30/90-day windows exist; incomplete coverage is never zero. Maintenance uses the upstream recency rule. Maturity, Interoperability, Openness and Confidence remain facets until a versioned upstream formula exists. Historical/reference-role projects never compete silently with active executable products. Secondary categories and project-family aggregation appear in detail, not as duplicate cross-ecosystem winners.
 
 ## Region-to-dataset contract
 
