@@ -260,7 +260,7 @@
           </span>
           <div class="mind-meta">
             <span class="stage-name">EVE</span>
-            <div class="mind-slug">mradermacher/eve-qwen2.5-3b-consciousness-soul · Q4_K_M</div>
+            <div class="mind-slug">hf.co/mradermacher/eve-qwen2.5-3b-consciousness-soul · Q4_K_M</div>
           </div>
           <span class="stage-status" id="status-eve">waiting</span>
         </div>
@@ -275,7 +275,7 @@
           </span>
           <div class="mind-meta">
             <span class="stage-name">Tiny-Agent</span>
-            <div class="mind-slug">driaforall/Tiny-Agent-a-0.5B</div>
+            <div class="mind-slug">hf.co/driaforall/Tiny-Agent-a-0.5B</div>
           </div>
           <span class="stage-status" id="status-tiny">waiting</span>
         </div>
@@ -311,13 +311,13 @@
 
       const MINDS = {
         eve: {
-          model: 'mradermacher/eve-qwen2.5-3b-consciousness-soul-GGUF:Q4_K_M',
-          numPredict: 400,
+          model: 'hf.co/mradermacher/eve-qwen2.5-3b-consciousness-soul-GGUF:Q4_K_M',
+          numPredict: 300,
           prompt: (p) => `Consider this proposition:\n\n"${p}"\n\nThink it through from your own perspective, from the inside. What is true in it, what does it miss, and what does holding it feel like? Answer in a few short paragraphs.`,
         },
         tiny: {
-          model: 'driaforall/Tiny-Agent-a-0.5B',
-          numPredict: 300,
+          model: 'hf.co/driaforall/Tiny-Agent-a-0.5B:latest',
+          numPredict: 250,
           prompt: (p) => `Consider this proposition:\n\n"${p}"\n\nAnalyze it precisely: the core claim, the strongest argument for it, the strongest argument against it, and your verdict. Be concise.`,
         },
       };
@@ -489,7 +489,7 @@
       }
 
       async function runSynthesis(proposition) {
-        const clip = (text) => (text.length > 1400 ? text.slice(0, 1400) + '…' : text);
+        const clip = (text) => (text.length > 900 ? text.slice(0, 900) + '…' : text);
         const prompt =
           `Two small language models considered the proposition: "${proposition}".\n\n` +
           `Mind A said:\n${clip(outputs.eve)}\n\n` +
