@@ -8,6 +8,7 @@ const { spawnSync } = require("node:child_process");
 const ROOT = path.resolve(__dirname, "../..");
 const ROUTE = path.join(ROOT, "web", "open-overview");
 const read = (...parts) => fs.readFileSync(path.join(ROUTE, ...parts), "utf8");
+const readFixture = (name) => JSON.parse(fs.readFileSync(path.join(__dirname, "fixtures", name), "utf8"));
 const importRoute = (file) => import(pathToFileURL(path.join(ROUTE, file)).href + `?t=${Date.now()}-${Math.random()}`);
 
 test("three canonical routes are isolated and immutable-home remains clean", () => {
@@ -32,16 +33,108 @@ test("strict public contracts preserve exact values and reject unknown keys", as
   assert.throws(() => schema.validateManifest({ schemaVersion: "2.0", publishedAt: null, routes: [], sources: [], provenance: [], window: { start: null, end: null, timezone: "unknown", inclusive: null, basis: "unknown" }, invented: true }, "2"), /schema|field/i);
 });
 
+test("finalized Plan 03 GitHub and Plan 05 matrix fixtures validate exactly", async () => {
+  const schema = await importRoute("open-overview-schema.js");
+  const github = schema.validateGitHubRanking(readFixture("plan03-github-ranking.json"), "2");
+  const matrix = schema.validateAppModelMatrix(readFixture("plan05-app-model-matrix.json"), "2");
+  assert.equal(github.metricEvidence[0].repositoryId, github.data[0].repositoryId);
+  assert.equal(github.coverage.stale, false);
+  assert.equal(matrix.apps[0].appName, "Example App");
+  assert.equal(matrix.models[0].modelName, "Example Model");
+  const lexicalInteger = readFixture("plan03-github-ranking.json");
+  lexicalInteger.metricEvidence[0].starDelta = "-0002";
+  assert.equal(schema.validateGitHubRanking(lexicalInteger, "2").metricEvidence[0].starDelta, "-0002");
+});
+
+test("matrix validation rejects incoherent axes, cells, and coverage", async () => {
+  const { validateAppModelMatrix } = await importRoute("open-overview-schema.js");
+  const fixture = readFixture("plan05-app-model-matrix.json");
+  const duplicateAxis = { ...fixture, appIds: ["1001", "1001"], apps: [...fixture.apps, fixture.apps[0]], coverage: { ...fixture.coverage, possibleCells: 2 }, cells: [...fixture.cells, fixture.cells[0]] };
+  assert.throws(() => validateAppModelMatrix(duplicateAxis, "2"), /duplicate|unique/i);
+  const outOfAxis = { ...fixture, cells: [{ ...fixture.cells[0], modelId: "outside/model" }] };
+  assert.throws(() => validateAppModelMatrix(outOfAxis, "2"), /axis|modelId/i);
+  const wrongCoverage = { ...fixture, coverage: { ...fixture.coverage, observedCells: 0, possibleCells: 9 } };
+  assert.throws(() => validateAppModelMatrix(wrongCoverage, "2"), /coverage|possibleCells|observedCells/i);
+  const missingCell = { ...fixture, cells: [] };
+  assert.throws(() => validateAppModelMatrix(missingCell, "2"), /cell|grid|coverage/i);
+  const emptyEvidenceLabel = { ...fixture, apps: [{ ...fixture.apps[0], appName: "" }] };
+  assert.throws(() => validateAppModelMatrix(emptyEvidenceLabel, "2"), /appName|empty|length/i);
+});
+
+test("public validation bounds untrusted text and collection cardinality", async () => {
+  const schema = await importRoute("open-overview-schema.js");
+  const github = readFixture("plan03-github-ranking.json");
+  github.data[0].fullName = "x".repeat(4097);
+  assert.throws(() => schema.validateGitHubRanking(github, "2"), /length|bounded|4096/i);
+  const tooManyApps = collection("apps", Array.from({ length: 201 }, (_, index) => ({ appId: String(index + 1), appName: `App ${index}`, rank: index + 1, totalTokens: "0", totalRequests: "0" })), "apps_ranked");
+  assert.throws(() => schema.validateOpenRouterCollection(tooManyApps, "apps", "2"), /200|many|bounded/i);
+
+  const bundle = JSON.parse(read("fallback-data.json"));
+  const models = Object.values(bundle.responses).find((response) => response?.data?.[0]?.architecture);
+  const nestedArchitecture = structuredClone(models);
+  nestedArchitecture.data[0].architecture = { modalities: Array.from({ length: 257 }, () => "text") };
+  assert.throws(() => schema.validateOpenRouterCollection(nestedArchitecture, "models", "2"), /architecture|array|bounded|public json/i);
+
+  const history = structuredClone(Object.values(bundle.responses).find((response) => response?.status === "available" && response?.data?.modelUsage));
+  history.data.modelUsage[0].rows = Array.from({ length: 201 }, () => structuredClone(history.data.modelUsage[0].rows[0]));
+  assert.throws(() => schema.validateHistory(history, "2"), /history|rows|bounded|200/i);
+
+  const manifest = structuredClone(bundle.manifest);
+  manifest.routes = Array.from({ length: 201 }, (_, index) => `/api/public/v2/example-${index}`);
+  assert.throws(() => schema.validateManifest(manifest, "2"), /manifest|routes|bounded|200/i);
+});
+
 test("matrix cell model distinguishes observed zero from unknown", async () => {
   const charts = await importRoute("open-overview-charts.js");
   assert.deepEqual(charts.matrixCellModel({ state: "observed", totalTokens: "0", rankWithinPeriod: 1, evidenceUrl: "https://openrouter.ai/" }), { state: "observed", label: "0", exact: "0", rank: 1, reason: null, evidenceUrl: "https://openrouter.ai/" });
   assert.deepEqual(charts.matrixCellModel({ state: "unknown", reason: "not_observed" }), { state: "unknown", label: "?", exact: null, rank: null, reason: "not_observed", evidenceUrl: null });
 });
 
+test("matrix labels are owned by the matrix evidence contract", async () => {
+  const charts = await importRoute("open-overview-charts.js");
+  const names = charts.matrixAxisNameMaps(
+    { apps: [{ appId: "1", appName: "Evidence App" }], models: [{ modelId: "m", modelName: "Evidence Model" }] },
+    [{ appId: "1", appName: "Unrelated ranking label" }],
+    [{ id: "m", name: "Unrelated catalog label" }]
+  );
+  assert.equal(names.appNames.get("1"), "Evidence App");
+  assert.equal(names.modelNames.get("m"), "Evidence Model");
+});
+
+test("matrix roving navigation stays inside the reviewed grid", async () => {
+  const charts = await importRoute("open-overview-charts.js");
+  assert.equal(charts.matrixNavigationTarget(0, 2, 3, "ArrowLeft"), 0);
+  assert.equal(charts.matrixNavigationTarget(2, 2, 3, "ArrowRight"), 2);
+  assert.equal(charts.matrixNavigationTarget(1, 2, 3, "ArrowDown"), 4);
+  assert.equal(charts.matrixNavigationTarget(4, 2, 3, "ArrowUp"), 1);
+  assert.equal(charts.matrixNavigationTarget(4, 2, 3, "Home"), 3);
+  assert.equal(charts.matrixNavigationTarget(4, 2, 3, "End"), 5);
+  assert.equal(charts.matrixNavigationTarget(4, 2, 3, "Escape"), null);
+});
+
 test("URL state is bounded to reviewed routes", async () => {
   const app = await importRoute("open-overview.js");
   assert.deepEqual(app.parseOpenRouterState("https://site.test/?view=bogus&app=secret"), { view: "usage", appId: null, freeMode: "popularity" });
   assert.deepEqual(app.parseGithubState("https://site.test/?category=bogus&metric=bogus&window=365"), { category: "ai-harnesses", metric: "adoption", windowDays: 7 });
+});
+
+test("source aggregation exposes required and optional failures plus typed unavailability", async () => {
+  const app = await importRoute("open-overview.js");
+  const optionalOnly = {
+    mode: "live",
+    snapshotStale: false,
+    manifest: { sources: [] },
+    responses: { matrix: { status: "unavailable", reason: "collection_disabled", lastSuccessAt: null, appIds: [], modelIds: [], cells: [] } },
+    errors: { providers: Object.assign(new Error("Provider failed"), { code: "unavailable" }) }
+  };
+  const rows = app.buildSourceRows(optionalOnly);
+  assert.deepEqual(rows.map((row) => [row.datasetKey, row.completeness, row.required]), [
+    ["matrix", "unavailable", false],
+    ["providers", "unavailable", false]
+  ]);
+  assert.equal(app.summarizeSourceRows(rows).completeness, "partial");
+  const requiredFailure = { ...optionalOnly, responses: {}, errors: { models: Object.assign(new Error("Models failed"), { code: "unavailable" }) } };
+  assert.equal(app.summarizeSourceRows(app.buildSourceRows(requiredFailure)).completeness, "unavailable");
 });
 
 test("Three.js is route-local, dynamic, deterministic and bounded", async () => {
@@ -105,21 +198,22 @@ test("built artifact includes every direct route and core stays within budget", 
   assert.doesNotMatch(read("open-overview-charts.js"), /\.innerHTML\s*=/);
 });
 
-test("explicit missing-v2 policy uses the complete snapshot for an undeployed manifest, but not schema drift", async () => {
+test("missing-v2 fixture policy is local-only while schema drift always fails closed", async () => {
   const { createOpenOverviewClient, OVERVIEW_REQUESTS } = await importRoute("open-overview-api.js");
   const bundle = JSON.parse(read("fallback-data.json"));
   let fallbackReads = 0;
-  const client = createOpenOverviewClient({
+  const fetchImpl = async (url) => {
+    if (String(url).includes("fallback-data.json")) { fallbackReads += 1; return new Response(JSON.stringify(bundle), { status: 200 }); }
+    return new Response("<html>not deployed</html>", { status: 404, headers: { "Content-Type": "text/html" } });
+  };
+  const production = createOpenOverviewClient({
     apiBase: "https://api.example.test", schemaMajor: "2", timeoutMs: 8000,
-    fallbackUrl: "/web/open-overview/fallback-data.json", fallbackOnMissingV2: true,
-    fetchImpl: async (url) => {
-      if (String(url).includes("fallback-data.json")) { fallbackReads += 1; return new Response(JSON.stringify(bundle), { status: 200 }); }
-      return new Response("<html>not deployed</html>", { status: 404, headers: { "Content-Type": "text/html" } });
-    }
+    fallbackUrl: "/web/open-overview/fallback-data.json", fallbackOnMissingV2: true, runtimeOrigin: "https://www.sdforest.site", fetchImpl
   });
-  assert.equal((await client.loadView(OVERVIEW_REQUESTS)).mode, "snapshot");
-  assert.equal(fallbackReads, 1);
+  await assert.rejects(() => production.loadView(OVERVIEW_REQUESTS), (error) => error.code === "unavailable");
+  const local = createOpenOverviewClient({ apiBase: "https://api.example.test", schemaMajor: "2", timeoutMs: 8000, fallbackUrl: "/web/open-overview/fallback-data.json", fallbackOnMissingV2: true, runtimeOrigin: "http://127.0.0.1:4174", fetchImpl });
+  const localView = await local.loadView(OVERVIEW_REQUESTS); assert.equal(localView.mode, "snapshot"); assert.equal(localView.bundleKind, "fixture"); assert.equal(localView.fallbackLabel, "Fixture · stale · non-production"); assert.equal(fallbackReads, 2);
 
-  const drift = createOpenOverviewClient({ apiBase: "https://api.example.test", schemaMajor: "2", timeoutMs: 8000, fallbackUrl: "/fallback.json", fallbackOnMissingV2: true, fetchImpl: async () => new Response(JSON.stringify({ ...bundle.manifest, schemaVersion: "3.0" }), { status: 200 }) });
+  const drift = createOpenOverviewClient({ apiBase: "https://api.example.test", schemaMajor: "2", timeoutMs: 8000, fallbackUrl: "/fallback.json", fallbackOnMissingV2: true, runtimeOrigin: "http://127.0.0.1:4174", fetchImpl: async () => new Response(JSON.stringify({ ...bundle.manifest, schemaVersion: "3.0" }), { status: 200 }) });
   await assert.rejects(() => drift.loadView([]), (error) => error.code === "schema_major_mismatch");
 });

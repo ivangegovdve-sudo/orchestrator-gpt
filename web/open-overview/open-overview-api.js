@@ -94,18 +94,93 @@ const validateFor = (spec, raw, major) => spec.kind === "manifest"
               ? validateHistory(raw, major)
               : validateOpenRouterCollection(raw, spec.kind, major);
 
+const MAX_PRODUCTION_FALLBACK_AGE_MS = 48 * 3_600_000;
+const FIXTURE_FALLBACK_LABEL = "Fixture · stale · non-production";
+const LIVE_FALLBACK_LABEL = "Live-derived snapshot · require-live validated";
+const FALLBACK_FIELDS = Object.freeze([
+  "bundleKind", "checksum", "datasetFreshness", "generatedAt", "generationMethod", "label", "manifest", "mode",
+  "oldestFetchedAt", "productionEligible", "responses", "schemaVersion", "sourceApiBase"
+]);
+
+const isoTime = (value, message) => {
+  const timestamp = Date.parse(value);
+  if (!Number.isFinite(timestamp)) throw new ContractError("invalid_fallback", message);
+  return timestamp;
+};
+
+export function fallbackDatasetFreshness(response, path = "response") {
+  if (!Array.isArray(response?.provenance) || !response.provenance.length) throw new ContractError("invalid_fallback", `${path} has no freshness provenance`);
+  const timestamps = response.provenance.map((item) => isoTime(item?.fetchedAt, `${path} has invalid fetchedAt provenance`));
+  return Object.freeze({
+    oldestFetchedAt: new Date(Math.min(...timestamps)).toISOString(),
+    newestFetchedAt: new Date(Math.max(...timestamps)).toISOString(),
+    evidenceCount: timestamps.length
+  });
+}
+
+export function fallbackFreshnessMap(responses) {
+  if (!responses || typeof responses !== "object" || Array.isArray(responses)) throw new ContractError("invalid_fallback", "Fallback responses are invalid");
+  return Object.freeze(Object.fromEntries(Object.entries(responses).map(([path, response]) => [path, fallbackDatasetFreshness(response, path)])));
+}
+
+const sameFreshness = (actual, expected) => actual
+  && Object.keys(actual).length === 3
+  && actual.oldestFetchedAt === expected.oldestFetchedAt
+  && actual.newestFetchedAt === expected.newestFetchedAt
+  && actual.evidenceCount === expected.evidenceCount;
+
+const hasFixtureMarker = (manifest, responses) => {
+  const marker = /fixture|test|seed|deterministic-preview/i;
+  if (manifest.sources.some((source) => marker.test(source.transformVersion || "") || marker.test(source.citationUrl || ""))) return true;
+  return Object.values(responses).some((response) => Array.isArray(response?.provenance) && response.provenance.some((item) => marker.test(item.transformVersion || "") || marker.test(item.citation || "")));
+};
+
+const normalizedOrigin = (value, label) => {
+  if (value === null || value === undefined || value === "") return null;
+  let url;
+  try { url = new URL(value); } catch { throw new TypeError(`${label} must be an HTTP(S) origin`); }
+  if (!/^https?:$/.test(url.protocol) || url.username || url.password || url.pathname !== "/" || url.search || url.hash) throw new TypeError(`${label} must be an HTTP(S) origin`);
+  return url;
+};
+
+const localPreviewOrigin = (url) => url && (url.hostname === "localhost" || url.hostname === "127.0.0.1" || url.hostname === "[::1]");
+
+export function assertFallbackPolicy(bundle, runtimeOrigin, fixturePreviewOrigins = []) {
+  if (!Array.isArray(fixturePreviewOrigins) || fixturePreviewOrigins.length > 20) throw new TypeError("fixturePreviewOrigins must be a bounded array");
+  const runtime = normalizedOrigin(runtimeOrigin, "runtimeOrigin");
+  const previews = new Set(fixturePreviewOrigins.map((value) => {
+    const url = normalizedOrigin(value, "fixturePreviewOrigins entry");
+    if (!url || url.protocol !== "https:") throw new TypeError("fixturePreviewOrigins entries must be HTTPS origins");
+    return url.origin;
+  }));
+  const fixtureAllowed = localPreviewOrigin(runtime) || (runtime && previews.has(runtime.origin));
+  if (bundle.bundleKind === "fixture") {
+    if (!fixtureAllowed) throw new ContractError("unavailable", "Fixture fallback is unavailable on production origins");
+    return bundle;
+  }
+  if (bundle.snapshotStale) throw new ContractError("unavailable", "Live fallback evidence is older than 48 hours");
+  if (!bundle.productionEligible) throw new ContractError("unavailable", "Fallback is not require-live validated for production");
+  return bundle;
+}
+
 export async function verifyFallbackBundle(bundle, requests, schemaMajor, now = new Date()) {
-  const expected = "checksum,generatedAt,manifest,mode,oldestFetchedAt,responses,schemaVersion,sourceApiBase";
-  if (!bundle || Object.keys(bundle).sort().join(",") !== expected || bundle.schemaVersion !== "2" || bundle.mode !== "snapshot") throw new ContractError("invalid_fallback", "Fallback metadata is invalid");
+  if (!bundle || Object.keys(bundle).sort().join(",") !== [...FALLBACK_FIELDS].sort().join(",") || bundle.schemaVersion !== "2" || bundle.mode !== "snapshot") throw new ContractError("invalid_fallback", "Fallback metadata is invalid");
+  const fixture = bundle.bundleKind === "fixture" && bundle.generationMethod === "fixture" && bundle.productionEligible === false && bundle.label === FIXTURE_FALLBACK_LABEL;
+  const live = bundle.bundleKind === "live" && bundle.generationMethod === "require-live" && bundle.productionEligible === true && bundle.label === LIVE_FALLBACK_LABEL;
+  if (!fixture && !live) throw new ContractError("invalid_fallback", "Fallback generation metadata is invalid");
   const { checksum, ...unsigned } = bundle;
   if (!/^[a-f0-9]{64}$/.test(checksum || "") || await sha256Hex(unsigned) !== checksum) throw new ContractError("invalid_fallback", "Fallback checksum does not match");
   const source = safePublicUrl(bundle.sourceApiBase);
   if (!source || source.protocol !== "https:" || source.pathname !== "/" || source.search || source.hash) throw new ContractError("invalid_fallback", "Fallback source is not public HTTPS");
-  if (!Number.isFinite(Date.parse(bundle.generatedAt))) throw new ContractError("invalid_fallback", "Fallback generatedAt is invalid");
+  isoTime(bundle.generatedAt, "Fallback generatedAt is invalid");
   const manifest = validateManifest(bundle.manifest, schemaMajor);
   const responses = {};
   const errors = {};
   if (!bundle.responses || typeof bundle.responses !== "object" || Array.isArray(bundle.responses)) throw new ContractError("invalid_fallback", "Fallback responses are invalid");
+  const derivedFreshness = fallbackFreshnessMap(bundle.responses);
+  if (!bundle.datasetFreshness || typeof bundle.datasetFreshness !== "object" || Array.isArray(bundle.datasetFreshness) || Object.keys(bundle.datasetFreshness).sort().join(",") !== Object.keys(derivedFreshness).sort().join(",")) throw new ContractError("invalid_fallback", "Fallback dataset freshness inventory is invalid");
+  for (const [path, expected] of Object.entries(derivedFreshness)) if (!sameFreshness(bundle.datasetFreshness[path], expected)) throw new ContractError("invalid_fallback", `Fallback freshness evidence does not match ${path}`);
+  if (live && hasFixtureMarker(manifest, bundle.responses)) throw new ContractError("invalid_fallback", "Live fallback contains fixture/test provenance");
   for (const spec of requests) {
     const path = canonicalPath(spec.path);
     if (!Object.hasOwn(bundle.responses, path)) {
@@ -116,12 +191,16 @@ export async function verifyFallbackBundle(bundle, requests, schemaMajor, now = 
     if (spec.sourceId) assertPublishedRun(manifest, spec.sourceId, response);
     responses[spec.key] = response;
   }
-  const oldest = Date.parse(bundle.oldestFetchedAt);
-  if (!Number.isFinite(oldest)) throw new ContractError("invalid_fallback", "Fallback oldestFetchedAt is invalid");
-  return Object.freeze({ ...bundle, manifest, responses: Object.freeze(responses), errors: Object.freeze(errors), snapshotStale: now.getTime() - oldest > 48 * 3_600_000 });
+  const oldest = isoTime(bundle.oldestFetchedAt, "Fallback oldestFetchedAt is invalid");
+  const derivedOldest = Math.min(...Object.values(derivedFreshness).map((item) => Date.parse(item.oldestFetchedAt)));
+  if (oldest !== derivedOldest) throw new ContractError("invalid_fallback", "Fallback oldestFetchedAt does not match dataset evidence");
+  const age = now.getTime() - oldest;
+  if (!Number.isFinite(now.getTime()) || (live && age < 0)) throw new ContractError("invalid_fallback", "Fallback evidence time is in the future");
+  const snapshotStale = fixture || age >= MAX_PRODUCTION_FALLBACK_AGE_MS;
+  return Object.freeze({ ...bundle, manifest, responses: Object.freeze(responses), errors: Object.freeze(errors), snapshotStale, productionEligible: live && !snapshotStale });
 }
 
-export function createOpenOverviewClient({ apiBase, schemaMajor, timeoutMs, fallbackUrl = null, fallbackOnMissingV2 = false, conditionalRequests = false, fetchImpl = globalThis.fetch }) {
+export function createOpenOverviewClient({ apiBase, schemaMajor, timeoutMs, fallbackUrl = null, fallbackOnMissingV2 = false, fixturePreviewOrigins = [], runtimeOrigin = globalThis.location?.origin ?? null, conditionalRequests = false, fetchImpl = globalThis.fetch }) {
   const base = safePublicUrl(apiBase);
   if (!base || base.protocol !== "https:" || base.pathname !== "/" || base.search || base.hash) throw new TypeError("apiBase must be a public credential-free HTTPS origin");
   if (!Number.isInteger(timeoutMs) || timeoutMs < 100 || timeoutMs > 30_000) throw new TypeError("timeoutMs is outside the supported range");
@@ -174,7 +253,8 @@ export function createOpenOverviewClient({ apiBase, schemaMajor, timeoutMs, fall
     const response = await fetchImpl(fallbackUrl, { method: "GET", credentials: "omit", cache: "no-store", headers: { Accept: "application/json" } });
     if (!response.ok) throw new ContractError("unavailable", "Fallback snapshot is unavailable");
     const bundle = await verifyFallbackBundle(await response.json(), requests, schemaMajor);
-    return Object.freeze({ mode: "snapshot", manifest: bundle.manifest, responses: bundle.responses, errors: bundle.errors, snapshotStale: bundle.snapshotStale, oldestFetchedAt: bundle.oldestFetchedAt });
+    assertFallbackPolicy(bundle, runtimeOrigin, fixturePreviewOrigins);
+    return Object.freeze({ mode: "snapshot", bundleKind: bundle.bundleKind, fallbackLabel: bundle.label, productionEligible: bundle.productionEligible, manifest: bundle.manifest, responses: bundle.responses, errors: bundle.errors, snapshotStale: bundle.snapshotStale, oldestFetchedAt: bundle.oldestFetchedAt, datasetFreshness: bundle.datasetFreshness });
   }
 
   const fallbackEligible = (error) => error?.code === "timeout" || error?.code === "network_unavailable" || (error?.code === "http_error" && error?.details?.availability === true) || (fallbackOnMissingV2 && error?.code === "invalid_http_error" && error?.details?.status === 404);

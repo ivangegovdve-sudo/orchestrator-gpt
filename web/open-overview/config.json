@@ -4,6 +4,7 @@
   "timeoutMs": 8000,
   "fallbackUrl": "/web/open-overview/fallback-data.json",
   "fallbackOnMissingV2": true,
+  "fixturePreviewOrigins": [],
   "conditionalRequests": false,
   "threeEnabled": true
 }

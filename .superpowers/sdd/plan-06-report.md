@@ -30,6 +30,7 @@ No production deployment or alias change was performed.
 | `9c87d1f` | Explicit missing-v2 preview policy for the currently undeployed public-v2 manifest |
 | `cab91f3` | Initial consolidated Plan 06 verification record and portable browser-launch selection |
 | `df8b563` | Browser runner safely reuses the isolated route-specific preview listener |
+| post-review remediation | Exact finalized contracts, production-safe fixture policy, truthful source status, bounded matrix validation, accessibility, context-loss recovery, and expanded acceptance coverage |
 
 ## TDD record
 
@@ -40,7 +41,9 @@ No production deployment or alias change was performed.
 - Missing-v2 RED: the explicit policy test failed with `invalid_http_error` for the configured manifest's HTML 404.
 - Missing-v2 GREEN: the HTML 404 now selects the complete snapshot only when `fallbackOnMissingV2` is explicitly enabled; schema-major drift still fails closed.
 - Browser acceptance first full run: 7/8. The sole application-correct failure used an over-broad selector that counted 10 primary GitHub rows plus 70 exact-history rows. The corrected direct-child selector passed alone and then in the full suite.
-- Final GREEN under Node `v22.23.1`: 10/10 Node tests and 8/8 Playwright tests.
+- Initial GREEN under Node `v22.23.1`: 10/10 Node tests and 8/8 Playwright tests.
+- Post-review RED/GREEN covered finalized Plan 03/05 response compatibility, matrix coherence and bounds, required/optional source aggregation, local-only fixture policy, roving keyboard navigation, Escape/close/focus restoration, exact accessible values, Save-Data behavior, WebGL context-loss recovery, and deferred optional datasets.
+- Post-review final GREEN: 24/24 Node tests and 12/12 Playwright scenarios.
 
 ## Immutable-home proof
 
@@ -54,14 +57,14 @@ No production deployment or alias change was performed.
 
 - Runtime: Node `v22.23.1` via the cached npm-packaged Node 22 binary because the machine-wide Node is v26.
 - Clean static build: passed.
-- Open Overview Node suite: 10 passed, 0 failed.
+- Open Overview Node and fixture-policy suites: 24 passed, 0 failed.
 - Inherited SD Forest guard: passed; underlying suite remains exactly 11 tests / 9 pass / 2 approved inherited failures:
   - `public council exposes exactly two truthful modes`
   - `TinyLM standalone route redirects into Councils`
-- Playwright Chromium-engine suite: 8 passed, 0 failed.
-- Browser coverage: desktop, 390x844 portrait, 844x390 landscape, direct routes, exact query state, typed matrix/provider failure, schema-major fail-closed, reduced motion, and normal-motion lazy Three.js.
+- Playwright Chromium-engine suite: 12 passed, 0 failed in 53.9 seconds.
+- Browser coverage: 1440x900 desktop, 390x844 portrait, 844x390 landscape, direct routes, exact query state, truthful required/optional failure status, malformed-matrix rejection, keyboard/focus behavior, typed matrix/provider failure, schema-major fail-closed, reduced motion, Save-Data, normal-motion lazy Three.js, and WebGL context-loss recovery.
 - No-mock preview smoke: overview `10 models / 10 apps / 100 matrix controls`; OpenRouter Free `10 rows`; GitHub MCP Adoption `10 rows`; 0 page errors.
-- Core route size excluding Three.js and its vendor: `23,840` gzip bytes (budget: less than 102,400).
+- Core route size excluding Three.js and its vendor: `29,878` gzip bytes (budget: less than 102,400).
 - Secret/private-field scan: clean.
 - `git diff --check`: passed.
 - npm audits: root 0 findings; test dependency tree 0 findings.
@@ -77,10 +80,12 @@ Review captures:
 
 ## Snapshot and live-refresh state
 
-- Mode: `snapshot`, visibly labeled in the source rail and page notice.
+- Mode: local/allow-listed preview fixture only, visibly labeled `Fixture · stale · non-production` in the source rail and page notice.
 - Generated/oldest evidence time: `2026-07-15T10:00:00.000Z`.
-- SHA-256 checksum: `b9f9703496d74b3cc487ed4cfdeddebd1fffde1f866ec47f0900e4bd18c5ca73`.
-- Size: 377,225 bytes.
+- SHA-256 checksum: `8c14fbf9c579f25d411c5eeea61c575d1f26048bcd123a18bb24e82f0a2c523e`.
+- Size: 559,841 bytes.
+- Production eligibility: `false`; a production origin fails unavailable rather than presenting this fixture.
+- Freshness coverage: all 84 bundled responses have per-dataset freshness metadata, including optional datasets.
 - Coverage: 10 models, 10 apps, 100 app-model cells, 10 per-app model rows for each top app, providers, free Pareto dimensions, seven history buckets, and 10 repositories for each of eight GitHub categories plus metric/window variants.
 - `scripts/sync-open-overview-fallback.mjs` is the production-candidate refresh path. It accepts only strict public-v2 data, rejects fixture/test/seed transforms, validates publication runs and age, and replaces the file atomically.
 
@@ -93,7 +98,7 @@ Review captures:
 
 ## Deviations and remaining promotion gate
 
-The configured public-v2 manifest currently returns an HTML HTTP 404. Therefore a live-derived production candidate could not truthfully be generated. The committed complete snapshot is deterministic and explicitly labeled; it is suitable for local/preview continuity, not for claiming live production freshness. Production promotion remains gated on the dashboard's strict v2 deployment followed by:
+The configured public-v2 manifest currently returns an HTML HTTP 404. Therefore a live-derived production candidate could not truthfully be generated. The committed complete fixture is deterministic, explicitly non-production, and accepted only on localhost or an exact configured HTTPS preview origin. Production fails unavailable until a live-derived candidate exists. Production promotion remains gated on the dashboard's strict v2 deployment followed by:
 
 1. running `scripts/sync-open-overview-fallback.mjs --require-live` against the approved HTTPS API;
 2. rerunning the full acceptance suite against that artifact; and
