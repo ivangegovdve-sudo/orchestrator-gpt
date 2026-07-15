@@ -16,16 +16,19 @@ export function renderRankTable({ document, title, rows, columns, sourceLabel, a
   const region = el(document, "section", `oo-data-region ${className}`.trim());
   region.append(el(document, "h2", "oo-region-title", title), el(document, "p", "oo-region-meta", `${sourceLabel} · as of ${asOf || "unknown"}`));
   const scroll = el(document, "div", "oo-table-scroll");
+  scroll.tabIndex = 0; scroll.setAttribute("role", "region"); scroll.setAttribute("aria-label", `${title} table; scroll horizontally for all columns`);
   const table = el(document, "table", "oo-table");
   table.appendChild(el(document, "caption", "sr-only", title));
   const thead = el(document, "thead"); const headRow = el(document, "tr");
   for (const column of columns) { const header = el(document, "th", "", column.label); header.scope = "col"; headRow.appendChild(header); }
   thead.appendChild(headRow); table.appendChild(thead);
   const tbody = el(document, "tbody");
+  const identityLabels = new Set(["model", "concrete model", "app", "project", "repository", "task", "item", "provider"]);
+  const rowHeaderIndex = columns.findIndex((column) => column.rowHeader === true || identityLabels.has(String(column.label).toLowerCase()));
   for (const row of rows) {
     const tr = el(document, "tr");
     columns.forEach((column, index) => {
-      const cell = el(document, index === 0 ? "th" : "td"); if (index === 0) cell.scope = "row";
+      const cell = el(document, index === rowHeaderIndex ? "th" : "td"); if (index === rowHeaderIndex) cell.scope = "row";
       const value = column.value ? column.value(row) : null; const href = column.href ? safePublicUrl(column.href(row)) : null;
       if (column.render) cell.appendChild(column.render(row));
       else if (href) { const link = el(document, "a", "", value); link.href = href.href; link.target = "_blank"; link.rel = "noopener noreferrer"; cell.appendChild(link); }
@@ -69,7 +72,7 @@ export function renderAppModelMatrix({ document, response, apps = [], models = [
   const { appNames, modelNames } = matrixAxisNameMaps(response, apps, models); const cells = new Map(response.cells.map((cell) => [`${cell.appId}\0${cell.modelId}`, cell]));
   const region = el(document, "section", "oo-data-region oo-matrix-region");
   region.append(el(document, "h2", "oo-region-title", "Observed app/model relationships"), el(document, "p", "oo-region-meta", `${response.resolvedPeriod.start} · daily tokens · ${response.coverage.observedCells}/${response.coverage.possibleCells} observed`));
-  const scroll = el(document, "div", "oo-matrix-scroll"); const table = el(document, "table", "oo-matrix"); table.appendChild(el(document, "caption", "sr-only", "Top app by model observed token matrix"));
+  const scroll = el(document, "div", "oo-matrix-scroll"); scroll.tabIndex = 0; scroll.setAttribute("role", "region"); scroll.setAttribute("aria-label", "Top app by model matrix; scroll horizontally for all models"); const table = el(document, "table", "oo-matrix"); table.appendChild(el(document, "caption", "sr-only", "Top app by model observed token matrix"));
   const thead = el(document, "thead"); const head = el(document, "tr"); const corner = el(document, "th", "", "App / model"); corner.scope = "col"; head.appendChild(corner);
   for (const modelId of response.modelIds) { const th = el(document, "th", "", modelNames.get(modelId) || modelId); th.scope = "col"; th.title = modelId; head.appendChild(th); }
   thead.appendChild(head); table.appendChild(thead); const tbody = el(document, "tbody"); const controls = [];
@@ -103,8 +106,16 @@ export function renderSparkline({ document, values, label }) {
 
 export function renderSourceStates({ document, datasets }) {
   const list = el(document, "ul", "oo-source-list");
-  for (const dataset of datasets) { const item = el(document, "li", "oo-source-row"); item.dataset.mode = dataset.mode; item.dataset.freshness = dataset.freshness; item.dataset.completeness = dataset.completeness; item.append(el(document, "strong", "", dataset.sourceId), el(document, "span", "", `${dataset.mode} · ${dataset.freshness} · ${dataset.completeness}`), el(document, "time", "", dataset.asOf || "as-of unknown")); list.appendChild(item); }
+  for (const dataset of datasets) { const item = el(document, "li", "oo-source-row"); item.dataset.mode = dataset.mode; item.dataset.freshness = dataset.freshness; item.dataset.completeness = dataset.completeness; const time = el(document, "time", "", dataset.asOf || "as-of unknown"); if (validIsoTime(dataset.asOf)) time.setAttribute("datetime", dataset.asOf); item.append(el(document, "strong", "", dataset.sourceId), el(document, "span", "", `${dataset.mode} · ${dataset.freshness} · ${dataset.completeness}`), time); list.appendChild(item); }
   return list;
 }
+
+export const validIsoTime = (value) => {
+  if (typeof value !== "string") return false;
+  if (/^\d{4}-\d{2}-\d{2}$/.test(value)) { const parsed = new Date(`${value}T00:00:00.000Z`); return Number.isFinite(parsed.getTime()) && parsed.toISOString().slice(0, 10) === value; }
+  if (!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})$/.test(value)) return false;
+  const calendar = value.slice(0, 10); const midnight = new Date(`${calendar}T00:00:00.000Z`);
+  return Number.isFinite(midnight.getTime()) && midnight.toISOString().slice(0, 10) === calendar && Number.isFinite(Date.parse(value));
+};
 
 export function renderUnavailable({ document, title, reason }) { const region = el(document, "section", "oo-data-region oo-unavailable"); region.setAttribute("role", "status"); region.append(el(document, "h2", "oo-region-title", title), el(document, "p", "", reason)); return region; }

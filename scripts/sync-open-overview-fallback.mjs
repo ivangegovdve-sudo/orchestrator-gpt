@@ -19,6 +19,12 @@ const fetchJson = async (base, relative, fetchImpl, timeoutMs) => {
   } finally { clearTimeout(timer); }
 };
 const validateFor = (spec, raw) => spec.kind === "github" ? validateGitHubRanking(raw, "2") : spec.kind === "githubEnrichment" ? validateGitHubEnrichment(raw, "2") : spec.kind === "matrix" ? validateAppModelMatrix(raw, "2") : spec.kind === "appModels" ? validateAppModels(raw, "2") : spec.kind === "providers" ? validateProviders(raw, "2") : spec.kind === "freeFrontiers" ? validateFreeFrontiers(raw, "2") : spec.kind === "history" ? validateHistory(raw, "2") : validateOpenRouterCollection(raw, spec.kind, "2");
+const MAX_FALLBACK_BYTES = 4 * 1024 * 1024;
+export function assertFallbackBundleSize(bundle) {
+  const bytes = new TextEncoder().encode(`${JSON.stringify(bundle, null, 2)}\n`).length;
+  if (bytes > MAX_FALLBACK_BYTES) throw new ContractError("response_too_large", "Final fallback aggregate exceeds the 4 MiB limit");
+  return bytes;
+}
 
 export async function buildFallback({ apiBase, outPath, maxAgeHours, requireLive, now = new Date(), fetchImpl = globalThis.fetch, requests = FALLBACK_REQUESTS, timeoutMs = 8000 }) {
   const origin = safePublicUrl(apiBase);
@@ -58,7 +64,7 @@ export async function buildFallback({ apiBase, outPath, maxAgeHours, requireLive
   const ageHours = (now.getTime() - oldestFetchedAtMs) / 3_600_000;
   if (ageHours < 0 || ageHours >= maxAgeHours) throw new Error(`The oldest successful response is older than ${maxAgeHours} hours`);
   const unsigned = { schemaVersion: "2", mode: "snapshot", bundleKind: "live", generationMethod: "require-live", productionEligible: true, label: "Live-derived snapshot · require-live validated", sourceApiBase: origin.origin, generatedAt: now.toISOString(), oldestFetchedAt: new Date(oldestFetchedAtMs).toISOString(), datasetFreshness, manifest, responses };
-  const bundle = { ...unsigned, checksum: await sha256Hex(unsigned) }; const directory = path.dirname(outPath); const temporary = path.join(directory, `.${path.basename(outPath)}.tmp-${process.pid}`); await mkdir(directory, { recursive: true }); await writeFile(temporary, `${JSON.stringify(bundle, null, 2)}\n`, "utf8");
+  const bundle = { ...unsigned, checksum: await sha256Hex(unsigned) }; assertFallbackBundleSize(bundle); const directory = path.dirname(outPath); const temporary = path.join(directory, `.${path.basename(outPath)}.tmp-${process.pid}`); await mkdir(directory, { recursive: true }); await writeFile(temporary, `${JSON.stringify(bundle, null, 2)}\n`, "utf8");
   try { await rename(temporary, outPath); } finally { await rm(temporary, { force: true }); }
   return bundle;
 }

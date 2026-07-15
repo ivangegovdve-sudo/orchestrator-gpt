@@ -169,3 +169,11 @@ test("fallback generation aborts a fetch that exceeds the bounded timeout", asyn
     /timed out/i
   );
 });
+
+test("fallback generation rejects a final aggregate over four MiB before writing", async () => {
+  const { assertFallbackBundleSize } = await importFresh(SCRIPT_PATH);
+  assert.throws(
+    () => assertFallbackBundleSize({ payload: "x".repeat(4 * 1024 * 1024) }),
+    /4 MiB|too large/i
+  );
+});

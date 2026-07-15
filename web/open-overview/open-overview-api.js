@@ -293,6 +293,8 @@ export function createOpenOverviewClient({ apiBase, schemaMajor, timeoutMs, fall
   if (!base || base.protocol !== "https:" || base.pathname !== "/" || base.search || base.hash) throw new TypeError("apiBase must be a public credential-free HTTPS origin");
   if (!Number.isInteger(timeoutMs) || timeoutMs < 100 || timeoutMs > 30_000) throw new TypeError("timeoutMs is outside the supported range");
   const cache = new Map();
+  let fallbackRawPromise = null;
+  const fallbackViewCache = new Map();
 
   async function fetchJson(spec, { conditional = true } = {}) {
     const key = canonicalPath(spec.path);
@@ -338,11 +340,24 @@ export function createOpenOverviewClient({ apiBase, schemaMajor, timeoutMs, fall
 
   async function loadFallbackView(requests) {
     if (!fallbackUrl) throw new ContractError("unavailable", "No fallback URL is configured");
-    const response = await fetchImpl(fallbackUrl, { method: "GET", credentials: "omit", cache: "no-store", redirect: "error", headers: { Accept: "application/json" } });
-    if (!response.ok) throw new ContractError("unavailable", "Fallback snapshot is unavailable");
-    const bundle = await verifyFallbackBundle(await readFallbackResponse(response), requests, schemaMajor);
-    assertFallbackPolicy(bundle, runtimeOrigin, fixturePreviewOrigins);
-    return Object.freeze({ mode: "snapshot", bundleKind: bundle.bundleKind, fallbackLabel: bundle.label, productionEligible: bundle.productionEligible, manifest: bundle.manifest, responses: bundle.responses, errors: bundle.errors, snapshotStale: bundle.snapshotStale, oldestFetchedAt: bundle.oldestFetchedAt, datasetFreshness: bundle.datasetFreshness });
+    const cacheKey = requests.map((spec) => `${spec.key}:${canonicalPath(spec.path)}:${spec.kind}:${spec.sourceId || ""}:${Boolean(spec.optional)}`).join("|");
+    if (!fallbackRawPromise) fallbackRawPromise = (async () => {
+      const controller = new AbortController(); const timer = setTimeout(() => controller.abort(new DOMException("timed out", "TimeoutError")), timeoutMs);
+      try {
+        const response = await fetchImpl(fallbackUrl, { method: "GET", credentials: "omit", cache: "no-store", redirect: "error", signal: controller.signal, headers: { Accept: "application/json" } });
+        if (!response.ok) throw new ContractError("unavailable", "Fallback snapshot is unavailable");
+        return readFallbackResponse(response);
+      } catch (error) {
+        if (controller.signal.aborted || error?.name === "AbortError" || error?.name === "TimeoutError") throw new ContractError("timeout", "Fallback snapshot request timed out");
+        throw error;
+      } finally { clearTimeout(timer); }
+    })().catch((error) => { fallbackRawPromise = null; throw error; });
+    if (!fallbackViewCache.has(cacheKey)) fallbackViewCache.set(cacheKey, (async () => {
+      const bundle = await verifyFallbackBundle(await fallbackRawPromise, requests, schemaMajor);
+      assertFallbackPolicy(bundle, runtimeOrigin, fixturePreviewOrigins);
+      return Object.freeze({ mode: "snapshot", bundleKind: bundle.bundleKind, fallbackLabel: bundle.label, productionEligible: bundle.productionEligible, manifest: bundle.manifest, responses: bundle.responses, errors: bundle.errors, snapshotStale: bundle.snapshotStale, oldestFetchedAt: bundle.oldestFetchedAt, datasetFreshness: bundle.datasetFreshness });
+    })().catch((error) => { fallbackViewCache.delete(cacheKey); throw error; }));
+    return fallbackViewCache.get(cacheKey);
   }
 
   const fallbackEligible = (error) => error?.code === "timeout" || error?.code === "network_unavailable" || (error?.code === "http_error" && error?.details?.availability === true) || (fallbackOnMissingV2 && error?.code === "invalid_http_error" && error?.details?.status === 404);
@@ -356,5 +371,5 @@ export function createOpenOverviewClient({ apiBase, schemaMajor, timeoutMs, fall
     return Object.freeze({ mode: "live", manifest, responses: Object.freeze(responses), errors: Object.freeze(errors), snapshotStale: false });
   }
 
-  return Object.freeze({ load, loadManifest: () => fetchJson({ key: "manifest", path: ENDPOINTS.manifest, kind: "manifest" }), loadView, clear: () => cache.clear() });
+  return Object.freeze({ load, loadManifest: () => fetchJson({ key: "manifest", path: ENDPOINTS.manifest, kind: "manifest" }), loadView, clear: () => { cache.clear(); fallbackRawPromise = null; fallbackViewCache.clear(); } });
 }

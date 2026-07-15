@@ -31,7 +31,7 @@ const watchErrors = (page) => {
 
 test("combined route renders a complete ten-deep archived snapshot", async ({ page }, testInfo) => {
   const failures = watchErrors(page); await routeApi(page, { offline: true }); await page.goto("/web/open-overview/index.html");
-  await expect(page.locator("#oo-model-rail tbody tr")).toHaveCount(10); await expect(page.locator("#oo-app-rail tbody tr")).toHaveCount(10); await expect(page.locator("#oo-matrix-field .oo-matrix tbody tr")).toHaveCount(10); await expect(page.locator("#oo-matrix-field .oo-matrix-control")).toHaveCount(100); await expect(page.locator("#oo-history-grid .oo-history-panel")).toHaveCount(3); await expect(page.locator("#oo-history-grid .oo-sparkline")).toHaveCount(30); await expect(page.locator("#oo-github-grid .oo-data-region")).toHaveCount(8); await expect(page.locator("#oo-source-status")).toContainText("snapshot"); await expect(page.locator(".oo-snapshot-notice")).toContainText("Fixture · stale · non-production"); await expect(page.locator(".oo-snapshot-notice")).toContainText("never mixed");
+  await expect(page.locator("#oo-model-rail tbody tr")).toHaveCount(10); await expect(page.locator("#oo-app-rail tbody tr")).toHaveCount(10); await expect(page.locator("#oo-matrix-field .oo-matrix tbody tr")).toHaveCount(10); await expect(page.locator("#oo-matrix-field .oo-matrix-control")).toHaveCount(100); await expect(page.locator("#oo-history-grid .oo-history-panel")).toHaveCount(3); await expect(page.locator("#oo-history-grid .oo-sparkline")).toHaveCount(0); await expect(page.locator("#oo-github-grid .oo-data-region")).toHaveCount(8); await expect(page.locator("#oo-source-status")).toContainText("snapshot"); await expect(page.locator(".oo-snapshot-notice")).toContainText("Fixture · stale · non-production"); await expect(page.locator(".oo-snapshot-notice")).toContainText("never mixed");
   await page.screenshot({ path: testInfo.outputPath("desktop-combined-snapshot.png"), fullPage: false }); expect(failures).toEqual([]);
 });
 
@@ -95,6 +95,47 @@ test("combined route defers optional history and enrichment until the lower evid
   await page.setViewportSize({ width: 1440, height: 360 }); const requested = []; page.on("request", (request) => { if (request.url().includes("/api/public/v2/")) requested.push(request.url()); }); await routeApi(page); await page.goto("/web/open-overview/index.html"); await expect(page.locator("#oo-model-rail tbody tr")).toHaveCount(10);
   expect(requested.some((url) => url.includes("/history?"))).toBe(false); expect(requested.some((url) => url.includes("/providers?"))).toBe(false); expect(requested.some((url) => url.includes("/free-frontiers?"))).toBe(false);
   await page.locator("#oo-history-grid").scrollIntoViewIfNeeded(); await expect.poll(() => requested.some((url) => url.includes("/history?"))).toBe(true); await expect.poll(() => requested.some((url) => url.includes("/providers?"))).toBe(true); await expect(page.locator("#oo-history-grid .oo-history-panel")).toHaveCount(3);
+});
+
+test("missing IntersectionObserver eagerly loads semantic evidence and omits Three.js", async ({ page }) => {
+  await page.addInitScript(() => { delete window.IntersectionObserver; });
+  const requested = []; const vendor = [];
+  page.on("request", (request) => { if (request.url().includes("/api/public/v2/")) requested.push(request.url()); if (request.url().includes("three.module.min.js")) vendor.push(request.url()); });
+  await routeApi(page); await page.goto("/web/open-overview/index.html");
+  await expect.poll(() => requested.some((url) => url.includes("/history?"))).toBe(true);
+  await expect(page.locator("#oo-history-grid .oo-history-panel")).toHaveCount(3);
+  await expect(page.locator("#oo-network-region")).toContainText("Relationship map omitted");
+  expect(vendor).toEqual([]);
+});
+
+test("320px and 200 percent zoom remain page-contained with accessible data scrollers", async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 640 }); await routeApi(page, { offline: true }); await page.goto("/web/open-overview/index.html");
+  const session = await page.context().newCDPSession(page); await session.send("Emulation.setPageScaleFactor", { pageScaleFactor: 2 });
+  const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+  expect(overflow).toBeLessThanOrEqual(3);
+  const sourceLabelBounds = await page.locator("#oo-source-status").evaluate((button) => {
+    const text = button.firstChild;
+    const range = document.createRange();
+    range.setStart(text, 0);
+    range.setEnd(text, Math.min(7, text.length));
+    const label = range.getBoundingClientRect();
+    const control = button.getBoundingClientRect();
+    return { labelLeft: label.left, controlLeft: control.left };
+  });
+  expect(sourceLabelBounds.labelLeft).toBeGreaterThanOrEqual(sourceLabelBounds.controlLeft);
+  const scrollers = page.locator(".oo-table-scroll, .oo-matrix-scroll");
+  await expect(scrollers.first()).toHaveAttribute("tabindex", "0");
+  await expect(scrollers.first()).toHaveAttribute("aria-label", /table|matrix/i);
+  const firstRow = page.locator("#oo-model-rail tbody tr").first();
+  await expect(firstRow.locator("th[scope=row]")).toContainText("Claude Sonnet 4");
+  await expect(firstRow.locator("td").first()).toContainText("1");
+});
+
+test("history falls back to bounded exact tables until eight consecutive complete days", async ({ page }) => {
+  await routeApi(page, { offline: true }); await page.goto("/web/open-overview/index.html");
+  await expect(page.locator("#oo-history-grid .oo-sparkline")).toHaveCount(0);
+  await expect(page.locator("#oo-history-grid")).toContainText("eight consecutive complete daily buckets");
+  for (const panel of await page.locator("#oo-history-grid .oo-history-panel").all()) await expect(panel.locator("tbody tr")).toHaveCount(70);
 });
 
 test("reduced motion supplies a static relationship fallback without loading Three.js", async ({ page }) => {

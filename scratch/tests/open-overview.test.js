@@ -33,6 +33,35 @@ test("strict public contracts preserve exact values and reject unknown keys", as
   assert.throws(() => schema.validateManifest({ schemaVersion: "2.0", publishedAt: null, routes: [], sources: [], provenance: [], window: { start: null, end: null, timezone: "unknown", inclusive: null, basis: "unknown" }, invented: true }, "2"), /schema|field/i);
 });
 
+test("schema-v2 parity separates manifest and provenance tiers and validates exact public fields", async () => {
+  const schema = await importRoute("open-overview-schema.js");
+  const manifest = manifestFixture();
+  manifest.sources[0].sourceTier = "supported";
+  assert.throws(() => schema.validateManifest(manifest, "2"), /manifest.*tier|source tier/i);
+
+  const supportedProvenance = collection("models", [], "models_current");
+  supportedProvenance.provenance[0].sourceTier = "supported";
+  assert.equal(schema.validateOpenRouterCollection(supportedProvenance, "models", "2").provenance[0].sourceTier, "supported");
+
+  const invalidCalendar = collection("models", [{
+    id: "example/model", canonicalSlug: "example/model", name: "Model", description: "x".repeat(16_384), contentTrust: "untrusted-source",
+    createdUnix: "1", contextLength: null, architecture: {}, pricing: {}, supportedParameters: [], expirationDate: "2026-02-29",
+    lifecycleState: "scheduled_deprecation", freeKind: "paid_or_unknown", weeklyRank: 1, rankMethod: "response_order"
+  }]);
+  assert.throws(() => schema.validateOpenRouterCollection(invalidCalendar, "models", "2"), /ISO date|expirationDate/i);
+  invalidCalendar.data[0].expirationDate = null;
+  assert.doesNotThrow(() => schema.validateOpenRouterCollection(invalidCalendar, "models", "2"));
+  invalidCalendar.data[0].description += "x";
+  assert.throws(() => schema.validateOpenRouterCollection(invalidCalendar, "models", "2"), /16384|bounded length/i);
+
+  invalidCalendar.data[0].description = null;
+  invalidCalendar.data[0].architecture = { nested: { access_code: "private" } };
+  assert.throws(() => schema.validateOpenRouterCollection(invalidCalendar, "models", "2"), /forbidden public field|access_code/i);
+  const invalidTime = collection("models", []);
+  invalidTime.provenance[0].fetchedAt = "2026-07-15 00:00:00Z";
+  assert.throws(() => schema.validateOpenRouterCollection(invalidTime, "models", "2"), /ISO datetime|fetchedAt/i);
+});
+
 test("current GitHub and app-model matrix fixtures validate exactly", async () => {
   const schema = await importRoute("open-overview-schema.js");
   const github = schema.validateGitHubRanking(readFixture("plan03-github-ranking.json"), "2");
@@ -129,6 +158,10 @@ test("matrix cell model distinguishes observed zero from unknown", async () => {
   const charts = await importRoute("open-overview-charts.js");
   assert.deepEqual(charts.matrixCellModel({ state: "observed", totalTokens: "0", rankWithinPeriod: 1, evidenceUrl: "https://openrouter.ai/" }), { state: "observed", label: "0", exact: "0", rank: 1, reason: null, evidenceUrl: "https://openrouter.ai/" });
   assert.deepEqual(charts.matrixCellModel({ state: "unknown", reason: "not_observed" }), { state: "unknown", label: "?", exact: null, rank: null, reason: "not_observed", evidenceUrl: null });
+  assert.equal(charts.validIsoTime("2026-02-29"), false);
+  assert.equal(charts.validIsoTime("2026-02-29T00:00:00Z"), false);
+  assert.equal(charts.validIsoTime("not-a-date"), false);
+  assert.equal(charts.validIsoTime("2026-07-15T12:00:00Z"), true);
 });
 
 test("matrix labels are owned by the matrix evidence contract", async () => {
@@ -176,6 +209,35 @@ test("source aggregation exposes required and optional failures plus typed unava
   assert.equal(app.summarizeSourceRows(rows).completeness, "partial");
   const requiredFailure = { ...optionalOnly, responses: {}, errors: { models: Object.assign(new Error("Models failed"), { code: "unavailable" }) } };
   assert.equal(app.summarizeSourceRows(app.buildSourceRows(requiredFailure)).completeness, "unavailable");
+});
+
+test("successful provenance absent from the manifest cannot report live current complete", async () => {
+  const app = await importRoute("open-overview.js");
+  const response = collection("models", [], "unmanifested_source");
+  const view = { mode: "live", snapshotStale: false, manifest: manifestFixture(), responses: { providers: response }, errors: {} };
+  const row = app.buildSourceRows(view).find((item) => item.datasetKey === "providers");
+  assert.ok(row);
+  assert.equal(row.completeness, "unavailable");
+  assert.equal(row.freshness, "stale");
+  assert.equal(row.reason, "provenance_not_in_manifest");
+  assert.notDeepEqual(app.summarizeSourceRows(app.buildSourceRows(view)), { freshness: "current", completeness: "complete" });
+});
+
+test("history presentation requires eight consecutive complete days and bounds exact rows", async () => {
+  const app = await importRoute("open-overview.js");
+  const bucket = (date, complete = true, count = 12) => ({ date, complete, rows: Array.from({ length: count }, (_, index) => ({ id: `id-${index}`, label: `Item ${index}`, scope: null, rank: index + 1, value: String(index), remainder: null, stars: null, forks: null })) });
+  const seven = Array.from({ length: 7 }, (_, index) => bucket(`2026-07-${String(index + 1).padStart(2, "0")}`));
+  const short = app.historySeriesModel(seven);
+  assert.equal(short.sparklineEligible, false);
+  assert.equal(short.reason, "requires_8_consecutive_complete_days");
+  assert.equal(short.exactRows.length, 70);
+  const eight = [...seven, bucket("2026-07-08")];
+  assert.equal(app.historySeriesModel(eight).sparklineEligible, true);
+  const gap = [...seven.slice(0, 6), bucket("2026-07-08"), bucket("2026-07-09")];
+  assert.equal(app.historySeriesModel(gap).sparklineEligible, false);
+  const bounded = app.historySeriesModel(Array.from({ length: 120 }, (_, index) => bucket(new Date(Date.UTC(2026, 0, index + 1)).toISOString().slice(0, 10))));
+  assert.equal(bounded.buckets.length, 90);
+  assert.equal(bounded.exactRows.length, 900);
 });
 
 test("Three.js is route-local, dynamic, deterministic and bounded", async () => {
@@ -238,6 +300,24 @@ test("fallback HTTP reads are redirect-safe, no-store, bounded to 4 MiB and vali
   assert.equal(fallbackCall.options.redirect, "error");
   assert.equal(fallbackCall.options.cache, "no-store");
   assert.equal(fallbackCall.options.credentials, "omit");
+});
+
+test("config reads are timeout-bounded and a verified fallback is cached per client", async () => {
+  const app = await importRoute("open-overview.js");
+  await assert.rejects(
+    () => app.readConfig((_url, options) => new Promise((_resolve, reject) => options.signal.addEventListener("abort", () => reject(options.signal.reason), { once: true })), 100),
+    /timed out/i
+  );
+  const { createOpenOverviewClient, OVERVIEW_REQUESTS } = await importRoute("open-overview-api.js");
+  const bundle = JSON.parse(read("fallback-data.json"));
+  let fallbackReads = 0;
+  const client = createOpenOverviewClient({ apiBase: "https://api.example.test", schemaMajor: "2", timeoutMs: 8000, fallbackUrl: "/fallback-data.json", fallbackOnMissingV2: true, runtimeOrigin: "http://127.0.0.1:4174", fetchImpl: async (url) => {
+    if (String(url).endsWith("/fallback-data.json")) { fallbackReads += 1; return new Response(JSON.stringify(bundle), { status: 200 }); }
+    return new Response("missing", { status: 404, headers: { "Content-Type": "text/html" } });
+  } });
+  assert.equal((await client.loadView(OVERVIEW_REQUESTS)).mode, "snapshot");
+  assert.equal((await client.loadView(OVERVIEW_REQUESTS)).mode, "snapshot");
+  assert.equal(fallbackReads, 1);
 });
 
 test("committed fallback is checksum-valid, complete, ten-deep and unambiguously snapshot mode", async () => {

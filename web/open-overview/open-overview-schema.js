@@ -1,6 +1,7 @@
 const POPULATION = new Set(["full", "requested_slice", "top_n_plus_other", "partial_or_unknown"]);
 const WINDOW_BASIS = new Set(["source_meta", "query", "derived", "observed", "unknown"]);
 const SOURCE_TIERS = new Set(["stable", "supported", "best_effort"]);
+const FORBIDDEN_PUBLIC_KEYS = new Set(["sen" + "der", "sub" + "ject", "snip" + "pet", "body", "thread" + "id", "thread" + "ids", "labels", "extractedfacts", "rawpayload", "embedding", "embeddings", "access" + "code", "credentials", "authorization", "apikey", "accesstoken", "secret", "password", "cookie"]);
 const RANK_METHODS = new Set(["source_published", "response_order", "locally_calculated"]);
 const LIFECYCLE = new Set(["expiration_unknown", "no_announced_expiration", "scheduled_deprecation", "past_expiration_still_listed", "absent_from_catalog", "removed_or_unavailable"]);
 const GITHUB_METRICS = new Set(["adoption", "momentum", "maintenance"]);
@@ -41,11 +42,23 @@ const strictRecord = (value, keys, name) => {
 };
 const string = (value, name, maximum = MAX_TEXT_LENGTH) => { if (typeof value !== "string") fail("invalid_contract", `${name} must be a string`); if (value.length > maximum) fail("invalid_contract", `${name} exceeds the bounded length ${maximum}`); return value; };
 const nonEmptyString = (value, name, maximum = MAX_TEXT_LENGTH) => { string(value, name, maximum); if (value.length === 0) fail("invalid_contract", `${name} must not be empty`); return value; };
-const nullableString = (value, name) => value === null ? null : string(value, name);
+const nullableString = (value, name, maximum = MAX_TEXT_LENGTH) => value === null ? null : string(value, name, maximum);
 const boolean = (value, name) => { if (typeof value !== "boolean") fail("invalid_contract", `${name} must be a boolean`); return value; };
 const uuid = (value, name) => { if (typeof value !== "string" || !UUID.test(value)) fail("invalid_contract", `${name} must be a UUID`); return value; };
-const date = (value, name) => { if (typeof value !== "string" || !ISO_DATE.test(value) || !Number.isFinite(Date.parse(`${value}T00:00:00Z`))) fail("invalid_contract", `${name} must be an ISO date`); return value; };
-const dateTime = (value, name) => { if (typeof value !== "string" || !Number.isFinite(Date.parse(value))) fail("invalid_contract", `${name} must be an ISO datetime`); return value; };
+const date = (value, name) => {
+  if (typeof value !== "string" || !ISO_DATE.test(value)) fail("invalid_contract", `${name} must be an ISO date`);
+  const parsed = new Date(`${value}T00:00:00.000Z`);
+  if (!Number.isFinite(parsed.getTime()) || parsed.toISOString().slice(0, 10) !== value) fail("invalid_contract", `${name} must be a real ISO calendar date`);
+  return value;
+};
+const dateTime = (value, name) => {
+  const match = typeof value === "string" && value.match(/^(\d{4}-\d{2}-\d{2})T(\d{2}):(\d{2}):(\d{2})(?:\.\d+)?(Z|[+-](\d{2}):(\d{2}))$/);
+  if (!match) fail("invalid_contract", `${name} must be an ISO datetime with an offset`);
+  date(match[1], `${name} date`);
+  const [, , hour, minute, second, , offsetHour, offsetMinute] = match;
+  if (Number(hour) > 23 || Number(minute) > 59 || Number(second) > 59 || (offsetHour !== undefined && (Number(offsetHour) > 23 || Number(offsetMinute) > 59)) || !Number.isFinite(Date.parse(value))) fail("invalid_contract", `${name} must be a real ISO datetime with an offset`);
+  return value;
+};
 const integerString = (value, name) => { if (typeof value !== "string" || !INTEGER.test(value)) fail("invalid_contract", `${name} must be a canonical unsigned integer string`); return value; };
 const repositoryId = (value, name) => { if (typeof value !== "string" || !POSITIVE_INTEGER.test(value) || BigInt(value) > 9223372036854775807n) fail("invalid_contract", `${name} must be a canonical positive repositoryId`); return value; };
 const signedIntegerString = (value, name) => { if (typeof value !== "string" || !SIGNED_INTEGER.test(value)) fail("invalid_contract", `${name} must be a canonical signed integer string`); return value; };
@@ -64,7 +77,12 @@ const validateBoundedPublicJson = (value, name, depth = 0, ancestors = new WeakS
   } else {
     const entries = Object.entries(value);
     if (entries.length > MAX_NESTED_ITEMS) fail("invalid_contract", `${name} object exceeds the bounded size ${MAX_NESTED_ITEMS}`);
-    for (const [key, child] of entries) { string(key, `${name} key`, 256); validateBoundedPublicJson(child, `${name}.${key}`, depth + 1, ancestors); }
+    for (const [key, child] of entries) {
+      string(key, `${name} key`, 256);
+      const normalized = key.replace(/[^A-Za-z0-9]/g, "").toLowerCase();
+      if (FORBIDDEN_PUBLIC_KEYS.has(normalized)) fail("invalid_contract", `${name}.${key} is a forbidden public field`);
+      validateBoundedPublicJson(child, `${name}.${key}`, depth + 1, ancestors);
+    }
   }
   ancestors.delete(value);
 };
@@ -116,7 +134,7 @@ const validateRank = (raw) => {
 const MODEL_KEYS = ["id", "canonicalSlug", "name", "description", "contentTrust", "createdUnix", "contextLength", "architecture", "pricing", "supportedParameters", "expirationDate", "lifecycleState", "freeKind", "weeklyRank", "rankMethod"];
 const validateModel = (raw, name) => {
   const row = strictRecord(raw, MODEL_KEYS, name);
-  string(row.id, `${name}.id`); string(row.canonicalSlug, `${name}.canonicalSlug`); string(row.name, `${name}.name`); nullableString(row.description, `${name}.description`);
+  string(row.id, `${name}.id`); string(row.canonicalSlug, `${name}.canonicalSlug`); string(row.name, `${name}.name`); nullableString(row.description, `${name}.description`, 16_384);
   if (row.contentTrust !== "untrusted-source") fail("invalid_contract", `${name}.contentTrust is invalid`);
   integerString(row.createdUnix, `${name}.createdUnix`); if (row.contextLength !== null) integerString(row.contextLength, `${name}.contextLength`);
   if (!isRecord(row.architecture) || Object.keys(row.architecture).length > MAX_OBJECT_KEYS || !isRecord(row.pricing) || Object.keys(row.pricing).length > MAX_OBJECT_KEYS || !Array.isArray(row.supportedParameters) || row.supportedParameters.length > 128 || row.supportedParameters.some((item) => typeof item !== "string" || item.length > 256)) fail("invalid_contract", `${name} capability fields are not bounded`);
@@ -294,14 +312,14 @@ export function validateHistory(raw, expectedMajor = "2") {
     return Object.freeze({ ...row, data: Object.freeze({ modelUsage: map("modelUsage"), appRanks: map("appRanks"), githubRanks: map("githubRanks") }), window: validateWindow(row.window), completeness: validateCompleteness(row.completeness), provenance: validateProvenance(row.provenance) });
   }
   const row = strictRecord(raw, ["schemaVersion", "status", "reason", "lastSuccessAt"], "history unavailable"); schema(row.schemaVersion, expectedMajor);
-  if (row.status !== "unavailable" || row.reason !== "insufficient_history" || (row.lastSuccessAt !== null && !Number.isFinite(Date.parse(row.lastSuccessAt)))) fail("invalid_contract", "history unavailable state is invalid"); return Object.freeze({ ...row });
+  if (row.status !== "unavailable" || row.reason !== "insufficient_history") fail("invalid_contract", "history unavailable state is invalid"); if (row.lastSuccessAt !== null) dateTime(row.lastSuccessAt, "history.lastSuccessAt"); return Object.freeze({ ...row });
 }
 
 const SOURCE_KEYS = ["sourceId", "sourceTier", "cadenceSeconds", "staleAfterSeconds", "publishedRunId", "publishedAt", "nextScheduledAt", "stale", "transformVersion", "citationUrl", "lastAttemptRunId", "lastAttemptStatus", "lastAttemptStartedAt", "lastAttemptFinishedAt", "lastAttemptErrorCode", "lastAttemptAcquisitionComplete", "lastAttemptPopulationCompleteness"];
 export function validateManifest(raw, expectedMajor = "2") {
   const row = strictRecord(raw, ["schemaVersion", "publishedAt", "routes", "sources", "provenance", "window"], "manifest"); schema(row.schemaVersion, expectedMajor);
   if (!Array.isArray(row.routes) || row.routes.length > MAX_COLLECTION_ROWS || !Array.isArray(row.sources) || row.sources.length > MAX_COLLECTION_ROWS) fail("invalid_manifest", `manifest routes/sources must be bounded to ${MAX_COLLECTION_ROWS}`);
-  const sources = row.sources.map((item, index) => { const source = strictRecord(item, SOURCE_KEYS, `manifest.sources[${index}]`); string(source.sourceId, "sourceId"); if (!SOURCE_TIERS.has(source.sourceTier) || typeof source.stale !== "boolean") fail("invalid_manifest", "manifest source state is invalid"); if (!Number.isInteger(source.cadenceSeconds) || source.cadenceSeconds < 1 || !Number.isInteger(source.staleAfterSeconds) || source.staleAfterSeconds < 1) fail("invalid_manifest", "manifest source cadence is invalid"); if (source.publishedRunId !== null) uuid(source.publishedRunId, "publishedRunId"); if (source.publishedAt !== null) dateTime(source.publishedAt, "publishedAt"); if (source.nextScheduledAt !== null) dateTime(source.nextScheduledAt, "nextScheduledAt"); string(source.transformVersion, "transformVersion"); if (source.lastAttemptRunId !== null) uuid(source.lastAttemptRunId, "lastAttemptRunId"); if (source.lastAttemptStatus !== null && !["running", "published", "failed"].includes(source.lastAttemptStatus)) fail("invalid_manifest", "lastAttemptStatus is invalid"); if (source.lastAttemptStartedAt !== null) dateTime(source.lastAttemptStartedAt, "lastAttemptStartedAt"); if (source.lastAttemptFinishedAt !== null) dateTime(source.lastAttemptFinishedAt, "lastAttemptFinishedAt"); if (source.lastAttemptErrorCode !== null) string(source.lastAttemptErrorCode, "lastAttemptErrorCode"); if (source.lastAttemptAcquisitionComplete !== null) boolean(source.lastAttemptAcquisitionComplete, "lastAttemptAcquisitionComplete"); if (source.lastAttemptPopulationCompleteness !== null && !POPULATION.has(source.lastAttemptPopulationCompleteness)) fail("invalid_manifest", "lastAttemptPopulationCompleteness is invalid"); if (source.citationUrl !== null && !safePublicUrl(source.citationUrl)) fail("invalid_manifest", "citationUrl is not public"); return Object.freeze({ ...source }); });
+  const sources = row.sources.map((item, index) => { const source = strictRecord(item, SOURCE_KEYS, `manifest.sources[${index}]`); string(source.sourceId, "sourceId"); if (source.sourceTier !== "stable" || typeof source.stale !== "boolean") fail("invalid_manifest", "manifest source tier must be stable and source state must be valid"); if (!Number.isInteger(source.cadenceSeconds) || source.cadenceSeconds < 1 || !Number.isInteger(source.staleAfterSeconds) || source.staleAfterSeconds < 1) fail("invalid_manifest", "manifest source cadence is invalid"); if (source.publishedRunId !== null) uuid(source.publishedRunId, "publishedRunId"); if (source.publishedAt !== null) dateTime(source.publishedAt, "publishedAt"); if (source.nextScheduledAt !== null) dateTime(source.nextScheduledAt, "nextScheduledAt"); string(source.transformVersion, "transformVersion"); if (source.lastAttemptRunId !== null) uuid(source.lastAttemptRunId, "lastAttemptRunId"); if (source.lastAttemptStatus !== null && !["running", "published", "failed"].includes(source.lastAttemptStatus)) fail("invalid_manifest", "lastAttemptStatus is invalid"); if (source.lastAttemptStartedAt !== null) dateTime(source.lastAttemptStartedAt, "lastAttemptStartedAt"); if (source.lastAttemptFinishedAt !== null) dateTime(source.lastAttemptFinishedAt, "lastAttemptFinishedAt"); if (source.lastAttemptErrorCode !== null) string(source.lastAttemptErrorCode, "lastAttemptErrorCode"); if (source.lastAttemptAcquisitionComplete !== null) boolean(source.lastAttemptAcquisitionComplete, "lastAttemptAcquisitionComplete"); if (source.lastAttemptPopulationCompleteness !== null && !POPULATION.has(source.lastAttemptPopulationCompleteness)) fail("invalid_manifest", "lastAttemptPopulationCompleteness is invalid"); if (source.citationUrl !== null && !safePublicUrl(source.citationUrl)) fail("invalid_manifest", "citationUrl is not public"); return Object.freeze({ ...source }); });
   if (new Set(sources.map((item) => item.sourceId)).size !== sources.length) fail("invalid_manifest", "manifest source IDs must be unique");
   if (row.publishedAt !== null) dateTime(row.publishedAt, "manifest.publishedAt"); if (row.routes.some((route, index) => { try { string(route, `manifest.routes[${index}]`); return !route.startsWith("/api/public/v2/"); } catch { return true; } })) fail("invalid_manifest", "manifest route is invalid");
   const result = { schemaVersion: row.schemaVersion, publishedAt: row.publishedAt, routes: Object.freeze(row.routes.slice()), sources: Object.freeze(sources), provenance: validateProvenance(row.provenance), window: validateWindow(row.window) };

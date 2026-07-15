@@ -933,7 +933,7 @@
       },
       {
         "sourceId": "history",
-        "sourceTier": "supported",
+        "sourceTier": "stable",
         "cadenceSeconds": 86400,
         "staleAfterSeconds": 172800,
         "publishedRunId": "55555555-5555-4555-8555-555555555555",
@@ -27038,5 +27038,5 @@
       ]
     }
   },
-  "checksum": "156c31e5729536917b1c5bfb621e2035a311c39fc952e6244d73247bde6da5db"
+  "checksum": "afab04c9c491b3fb304d1184cedfa5965c937ef5d416749aa1c94e7f22bd4f87"
 }
