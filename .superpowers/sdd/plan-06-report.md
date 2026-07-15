@@ -28,6 +28,8 @@ No production deployment or alias change was performed.
 | `55ebe22` | Atomic live-refresh script plus checksum-verified complete ten-deep snapshot fallback |
 | `c2ab8be` | Static, browser, responsive, Three.js, schema-failure, unavailable-state, and inherited-baseline acceptance coverage |
 | `9c87d1f` | Explicit missing-v2 preview policy for the currently undeployed public-v2 manifest |
+| `cab91f3` | Initial consolidated Plan 06 verification record and portable browser-launch selection |
+| `df8b563` | Browser runner safely reuses the isolated route-specific preview listener |
 
 ## TDD record
 
