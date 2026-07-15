@@ -104,3 +104,22 @@ test("built artifact includes every direct route and core stays within budget", 
   assert.ok(zlib.gzipSync(Buffer.concat(core), { level: 9 }).length < 100 * 1024);
   assert.doesNotMatch(read("open-overview-charts.js"), /\.innerHTML\s*=/);
 });
+
+test("explicit missing-v2 policy uses the complete snapshot for an undeployed manifest, but not schema drift", async () => {
+  const { createOpenOverviewClient, OVERVIEW_REQUESTS } = await importRoute("open-overview-api.js");
+  const bundle = JSON.parse(read("fallback-data.json"));
+  let fallbackReads = 0;
+  const client = createOpenOverviewClient({
+    apiBase: "https://api.example.test", schemaMajor: "2", timeoutMs: 8000,
+    fallbackUrl: "/web/open-overview/fallback-data.json", fallbackOnMissingV2: true,
+    fetchImpl: async (url) => {
+      if (String(url).includes("fallback-data.json")) { fallbackReads += 1; return new Response(JSON.stringify(bundle), { status: 200 }); }
+      return new Response("<html>not deployed</html>", { status: 404, headers: { "Content-Type": "text/html" } });
+    }
+  });
+  assert.equal((await client.loadView(OVERVIEW_REQUESTS)).mode, "snapshot");
+  assert.equal(fallbackReads, 1);
+
+  const drift = createOpenOverviewClient({ apiBase: "https://api.example.test", schemaMajor: "2", timeoutMs: 8000, fallbackUrl: "/fallback.json", fallbackOnMissingV2: true, fetchImpl: async () => new Response(JSON.stringify({ ...bundle.manifest, schemaVersion: "3.0" }), { status: 200 }) });
+  await assert.rejects(() => drift.loadView([]), (error) => error.code === "schema_major_mismatch");
+});

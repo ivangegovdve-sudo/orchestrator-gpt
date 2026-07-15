@@ -121,7 +121,7 @@ export async function verifyFallbackBundle(bundle, requests, schemaMajor, now = 
   return Object.freeze({ ...bundle, manifest, responses: Object.freeze(responses), errors: Object.freeze(errors), snapshotStale: now.getTime() - oldest > 48 * 3_600_000 });
 }
 
-export function createOpenOverviewClient({ apiBase, schemaMajor, timeoutMs, fallbackUrl = null, conditionalRequests = false, fetchImpl = globalThis.fetch }) {
+export function createOpenOverviewClient({ apiBase, schemaMajor, timeoutMs, fallbackUrl = null, fallbackOnMissingV2 = false, conditionalRequests = false, fetchImpl = globalThis.fetch }) {
   const base = safePublicUrl(apiBase);
   if (!base || base.protocol !== "https:" || base.pathname !== "/" || base.search || base.hash) throw new TypeError("apiBase must be a public credential-free HTTPS origin");
   if (!Number.isInteger(timeoutMs) || timeoutMs < 100 || timeoutMs > 30_000) throw new TypeError("timeoutMs is outside the supported range");
@@ -143,7 +143,7 @@ export function createOpenOverviewClient({ apiBase, schemaMajor, timeoutMs, fall
       if (!response.ok) {
         let publicError;
         try { publicError = validatePublicError(await response.json(), schemaMajor); }
-        catch { throw new ContractError("invalid_http_error", `Public API returned HTTP ${response.status} without a valid public error`); }
+        catch { throw new ContractError("invalid_http_error", `Public API returned HTTP ${response.status} without a valid public error`, { status: response.status }); }
         throw new ContractError("http_error", publicError.error.message, { status: response.status, availability: response.status >= 500, apiCode: publicError.error.code, retryable: publicError.error.retryable });
       }
       let raw;
@@ -177,7 +177,7 @@ export function createOpenOverviewClient({ apiBase, schemaMajor, timeoutMs, fall
     return Object.freeze({ mode: "snapshot", manifest: bundle.manifest, responses: bundle.responses, errors: bundle.errors, snapshotStale: bundle.snapshotStale, oldestFetchedAt: bundle.oldestFetchedAt });
   }
 
-  const fallbackEligible = (error) => error?.code === "timeout" || error?.code === "network_unavailable" || (error?.code === "http_error" && error?.details?.availability === true);
+  const fallbackEligible = (error) => error?.code === "timeout" || error?.code === "network_unavailable" || (error?.code === "http_error" && error?.details?.availability === true) || (fallbackOnMissingV2 && error?.code === "invalid_http_error" && error?.details?.status === 404);
   async function loadView(requests) {
     let manifest;
     try { manifest = await fetchJson({ key: "manifest", path: ENDPOINTS.manifest, kind: "manifest" }); }
