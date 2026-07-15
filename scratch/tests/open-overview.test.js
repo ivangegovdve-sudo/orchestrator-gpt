@@ -95,3 +95,12 @@ test("committed fallback is checksum-valid, complete, ten-deep and unambiguously
   for (const [slug] of GITHUB_CATEGORIES) assert.equal(verified.responses[`github:${slug}`].data.length, 10);
   for (const app of verified.responses.apps.data) assert.ok(bundle.responses[Object.keys(bundle.responses).find((key) => key === ENDPOINTS.appModels(app.appId).replace("?limit=100", "?limit=100"))]);
 });
+
+test("built artifact includes every direct route and core stays within budget", () => {
+  const zlib = require("node:zlib");
+  const output = path.join(ROOT, "vercel-public", "web", "open-overview");
+  for (const relative of ["index.html", "openrouter/index.html", "github/index.html", "open-overview.css", "open-overview.js", "open-overview-api.js", "open-overview-schema.js", "open-overview-charts.js", "open-overview-three.js", "fallback-data.json", "config.json"]) assert.equal(fs.existsSync(path.join(output, ...relative.split("/"))), true, relative);
+  const core = ["open-overview.js", "open-overview-api.js", "open-overview-schema.js", "open-overview-charts.js", "open-overview.css"].map((file) => fs.readFileSync(path.join(ROUTE, file)));
+  assert.ok(zlib.gzipSync(Buffer.concat(core), { level: 9 }).length < 100 * 1024);
+  assert.doesNotMatch(read("open-overview-charts.js"), /\.innerHTML\s*=/);
+});
