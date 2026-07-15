@@ -1,5 +1,10 @@
 const path = require("node:path");
+const fs = require("node:fs");
 const { defineConfig, devices } = require("playwright/test");
+
+const installedChrome = "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe";
+const chromiumExecutable = process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE ||
+  (fs.existsSync(installedChrome) ? installedChrome : undefined);
 
 module.exports = defineConfig({
   testDir: __dirname,
@@ -14,9 +19,7 @@ module.exports = defineConfig({
     name: "chromium",
     use: {
       ...devices["Desktop Chrome"],
-      launchOptions: {
-        executablePath: process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE || "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe"
-      }
+      launchOptions: chromiumExecutable ? { executablePath: chromiumExecutable } : {}
     }
   }],
   outputDir: path.join(__dirname, ".open-overview-results")
