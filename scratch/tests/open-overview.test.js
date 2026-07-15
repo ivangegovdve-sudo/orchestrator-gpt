@@ -90,13 +90,17 @@ test("current per-app and GitHub enrichment contracts validate exact evidence", 
   assert.equal(schema.validateAppModels(appModels, "2").data[0].sourcePermaslug, "example/model:free");
   const enrichment = {
     schemaVersion: "2.0", repositoryId: "9007199254740993",
+    requestRange: { from: "2025-07-15", to: "2026-07-14" },
     releaseCadence: { latestStableReleaseAt: "2026-07-12T12:00:00.000Z", stableReleaseCount90d: "4", medianStableReleaseIntervalDays365d: "21.5", coverageStart: "2025-07-15", coverageEnd: "2026-07-14", coverageComplete: true },
     starBuckets: Array.from({ length: 7 }, (_, index) => ({ start: `2026-07-${String(index + 8).padStart(2, "0")}`, end: `2026-07-${String(index + 8).padStart(2, "0")}`, count: String(index), populationCompleteness: "partial_or_unknown" })),
     provenance: [{ id: "40000000-0000-4000-8000-000000000001:releases", sourceUrl: "https://api.github.com/repositories/9007199254740993/releases", fetchedAt: "2026-07-15T02:00:00.000Z" }]
   };
   assert.equal(schema.validateGitHubEnrichment(enrichment, "2").starBuckets.length, 7);
+  assert.equal(schema.validateGitHubEnrichment({ ...enrichment, starBuckets: [{ ...enrichment.starBuckets[0], start: "2026-07-08", end: "2026-07-09" }] }, "2").starBuckets[0].end, "2026-07-09");
   assert.throws(() => schema.validateGitHubEnrichment({ ...enrichment, repositoryId: "09007199254740993" }, "2"), /canonical|repositoryId/i);
   assert.throws(() => schema.validateGitHubEnrichment({ ...enrichment, starBuckets: [{ ...enrichment.starBuckets[0], count: "00" }] }, "2"), /canonical|count|integer/i);
+  assert.throws(() => schema.validateGitHubEnrichment({ ...enrichment, starBuckets: [{ ...enrichment.starBuckets[0], start: "2026-07-10", end: "2026-07-09" }] }, "2"), /bucket|range|start|end/i);
+  assert.throws(() => schema.validateGitHubEnrichment({ ...enrichment, starBuckets: [{ ...enrichment.starBuckets[0], start: "2025-07-14", end: "2025-07-14" }] }, "2"), /bucket|range/i);
 });
 
 test("API inventories both free frontiers and bounds dynamic app/repository enrichment", async () => {

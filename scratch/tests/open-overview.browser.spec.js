@@ -36,7 +36,7 @@ test("combined route renders a complete ten-deep archived snapshot", async ({ pa
 });
 
 test("typed matrix and enrichment unavailability preserve stable rankings", async ({ page }, testInfo) => {
-  await routeApi(page, { matrixUnavailable: true }); await page.goto("/web/open-overview/index.html"); await expect(page.locator("#oo-model-rail tbody tr")).toHaveCount(10); await expect(page.locator("#oo-app-rail tbody tr")).toHaveCount(10); await expect(page.locator("#oo-matrix-field")).toContainText("collection_disabled"); await expect(page.locator("#oo-source-status")).toContainText("live"); await page.screenshot({ path: testInfo.outputPath("desktop-matrix-unavailable.png"), fullPage: false });
+  await routeApi(page, { matrixUnavailable: true }); await page.goto("/web/open-overview/index.html"); await expect(page.locator("#oo-model-rail tbody tr")).toHaveCount(10); await expect(page.locator("#oo-app-rail tbody tr")).toHaveCount(10); await expect(page.locator("#oo-matrix-field")).toContainText("collection_disabled"); await expect(page.locator("#oo-source-status")).toContainText("fixture"); await expect(page.locator("#oo-source-status")).not.toContainText("live"); await page.screenshot({ path: testInfo.outputPath("desktop-matrix-unavailable.png"), fullPage: false });
   await page.unrouteAll(); await routeApi(page, { gatedUnavailable: true }); await page.goto("/web/open-overview/openrouter/index.html?view=providers"); await expect(page.locator("#oo-openrouter-content")).toContainText("Provider enrichment is unavailable"); await expect(page.locator("#oo-openrouter-content")).toContainText("SOURCE_UNAVAILABLE");
 });
 
@@ -58,7 +58,7 @@ test("GitHub exposes eight categories and transparent adoption metadata", async 
   await page.setViewportSize({ width: 390, height: 844 }); await page.reload(); const summary = page.locator(".oo-category-sheet > summary"); await expect(summary).toBeVisible(); await expect(page.locator(".oo-category-list")).toBeHidden(); await summary.click(); await expect(page.locator(".oo-category-list a").first()).toBeVisible();
 });
 
-test("GitHub fetches and renders exact enrichment only for the maintenance top ten", async ({ page }) => {
+test("GitHub fetches and renders published enrichment only for the maintenance top ten", async ({ page }) => {
   const requested = [];
   page.on("request", (request) => { if (request.url().includes("/github/repositories/") && request.url().includes("/enrichment")) requested.push(request.url()); });
   await routeApi(page);
@@ -71,9 +71,18 @@ test("GitHub fetches and renders exact enrichment only for the maintenance top t
   await expect(maintenanceTableHead).toContainText("Median cadence");
   const disclosure = page.locator("#oo-github-content .oo-github-enrichment-disclosure").first();
   await expect(disclosure).toBeVisible();
+  await expect(disclosure.locator(".oo-coverage-badge")).toHaveText("Partial coverage");
+  await expect(disclosure.locator("summary")).toHaveAttribute("aria-label", /partial-coverage/i);
+  await expect(disclosure.locator("summary")).not.toHaveAttribute("aria-label", /exact/i);
   await disclosure.locator("summary").click();
   await expect(disclosure.locator("li")).toHaveCount(7);
-  await expect(disclosure).toContainText(/2026-07-\d{2}: \d+/);
+  await expect(disclosure).toContainText(/2026-07-\d{2}: \d+ \(partial coverage\)/);
+  await page.getByRole("button", { name: /Sources/ }).click();
+  const enrichmentSources = page.locator("#oo-source-panel [data-source-kind=github-enrichment]");
+  await expect(enrichmentSources).toHaveCount(20);
+  await expect(enrichmentSources.first().locator("a[href^='https://api.github.com/']")).toHaveCount(1);
+  await expect(enrichmentSources.first()).toContainText(/publication .*:(releases|stargazers)/i);
+  await expect(enrichmentSources.first().locator("time")).toHaveAttribute("datetime", "2026-07-15T10:00:00.000Z");
 });
 
 test("portrait and landscape keep all three combined panels reachable", async ({ page }, testInfo) => {

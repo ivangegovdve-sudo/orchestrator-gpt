@@ -368,12 +368,14 @@ const validateReleaseCadence = (raw, name) => {
 };
 
 export function validateGitHubEnrichment(raw, expectedMajor = "2") {
-  const row = strictRecord(raw, ["schemaVersion", "repositoryId", "releaseCadence", "starBuckets", "provenance"], "github enrichment"); schema(row.schemaVersion, expectedMajor); repositoryId(row.repositoryId, "github enrichment.repositoryId");
+  const row = strictRecord(raw, ["schemaVersion", "repositoryId", "requestRange", "releaseCadence", "starBuckets", "provenance"], "github enrichment"); schema(row.schemaVersion, expectedMajor); repositoryId(row.repositoryId, "github enrichment.repositoryId");
+  const requestRange = strictRecord(row.requestRange, ["from", "to"], "github enrichment.requestRange"); date(requestRange.from, "github enrichment.requestRange.from"); date(requestRange.to, "github enrichment.requestRange.to"); if (requestRange.from > requestRange.to) fail("invalid_contract", "github enrichment.requestRange is reversed");
   if (!Array.isArray(row.starBuckets) || row.starBuckets.length > 366) fail("invalid_contract", "GitHub starBuckets must contain at most 366 rows");
   const starBuckets = row.starBuckets.map((item, index) => { const value = strictRecord(item, ["start", "end", "count", "populationCompleteness"], `github enrichment.starBuckets[${index}]`); date(value.start, "starBucket.start"); date(value.end, "starBucket.end"); integerString(value.count, "starBucket.count"); if (!["full", "partial_or_unknown"].includes(value.populationCompleteness)) fail("invalid_contract", "starBucket.populationCompleteness is invalid"); return Object.freeze({ ...value }); });
+  for (const [index, bucket] of starBuckets.entries()) { if (bucket.start > bucket.end) fail("invalid_contract", `github enrichment.starBuckets[${index}] start is after end`); if (bucket.start < requestRange.from || bucket.end > requestRange.to) fail("invalid_contract", `github enrichment.starBuckets[${index}] is outside requestRange`); }
   if (!Array.isArray(row.provenance) || row.provenance.length > 32) fail("invalid_contract", "GitHub enrichment provenance is not bounded");
   const provenance = row.provenance.map((item, index) => { const value = strictRecord(item, ["id", "sourceUrl", "fetchedAt"], `github enrichment.provenance[${index}]`); nonEmptyString(value.id, "enrichment.provenance.id"); if (!safePublicUrl(value.sourceUrl)) fail("invalid_contract", "GitHub enrichment sourceUrl is not public"); dateTime(value.fetchedAt, "enrichment.provenance.fetchedAt"); return Object.freeze({ ...value }); });
-  return Object.freeze({ ...row, releaseCadence: validateReleaseCadence(row.releaseCadence, "github enrichment.releaseCadence"), starBuckets: Object.freeze(starBuckets), provenance: Object.freeze(provenance) });
+  return Object.freeze({ ...row, requestRange: Object.freeze({ ...requestRange }), releaseCadence: validateReleaseCadence(row.releaseCadence, "github enrichment.releaseCadence"), starBuckets: Object.freeze(starBuckets), provenance: Object.freeze(provenance) });
 }
 
 export function compactIntegerString(raw) {

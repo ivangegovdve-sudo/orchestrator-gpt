@@ -21600,6 +21600,10 @@
     "/github/repositories/9000000000000000/enrichment?from=2025-07-16&to=2026-07-15": {
       "schemaVersion": "2.0",
       "repositoryId": "9000000000000000",
+      "requestRange": {
+        "from": "2025-07-16",
+        "to": "2026-07-15"
+      },
       "releaseCadence": {
         "latestStableReleaseAt": "2026-07-12T12:00:00.000Z",
         "stableReleaseCount90d": "2",
@@ -21668,6 +21672,10 @@
     "/github/repositories/9000000000000001/enrichment?from=2025-07-16&to=2026-07-15": {
       "schemaVersion": "2.0",
       "repositoryId": "9000000000000001",
+      "requestRange": {
+        "from": "2025-07-16",
+        "to": "2026-07-15"
+      },
       "releaseCadence": {
         "latestStableReleaseAt": "2026-07-12T12:00:00.000Z",
         "stableReleaseCount90d": "3",
@@ -21736,6 +21744,10 @@
     "/github/repositories/9000000000000002/enrichment?from=2025-07-16&to=2026-07-15": {
       "schemaVersion": "2.0",
       "repositoryId": "9000000000000002",
+      "requestRange": {
+        "from": "2025-07-16",
+        "to": "2026-07-15"
+      },
       "releaseCadence": {
         "latestStableReleaseAt": "2026-07-12T12:00:00.000Z",
         "stableReleaseCount90d": "4",
@@ -21804,6 +21816,10 @@
     "/github/repositories/9000000000000003/enrichment?from=2025-07-16&to=2026-07-15": {
       "schemaVersion": "2.0",
       "repositoryId": "9000000000000003",
+      "requestRange": {
+        "from": "2025-07-16",
+        "to": "2026-07-15"
+      },
       "releaseCadence": {
         "latestStableReleaseAt": "2026-07-12T12:00:00.000Z",
         "stableReleaseCount90d": "5",
@@ -21872,6 +21888,10 @@
     "/github/repositories/9000000000000004/enrichment?from=2025-07-16&to=2026-07-15": {
       "schemaVersion": "2.0",
       "repositoryId": "9000000000000004",
+      "requestRange": {
+        "from": "2025-07-16",
+        "to": "2026-07-15"
+      },
       "releaseCadence": {
         "latestStableReleaseAt": "2026-07-12T12:00:00.000Z",
         "stableReleaseCount90d": "1",
@@ -21940,6 +21960,10 @@
     "/github/repositories/9000000000000005/enrichment?from=2025-07-16&to=2026-07-15": {
       "schemaVersion": "2.0",
       "repositoryId": "9000000000000005",
+      "requestRange": {
+        "from": "2025-07-16",
+        "to": "2026-07-15"
+      },
       "releaseCadence": {
         "latestStableReleaseAt": "2026-07-12T12:00:00.000Z",
         "stableReleaseCount90d": "2",
@@ -22008,6 +22032,10 @@
     "/github/repositories/9000000000000006/enrichment?from=2025-07-16&to=2026-07-15": {
       "schemaVersion": "2.0",
       "repositoryId": "9000000000000006",
+      "requestRange": {
+        "from": "2025-07-16",
+        "to": "2026-07-15"
+      },
       "releaseCadence": {
         "latestStableReleaseAt": "2026-07-12T12:00:00.000Z",
         "stableReleaseCount90d": "3",
@@ -22076,6 +22104,10 @@
     "/github/repositories/9000000000000007/enrichment?from=2025-07-16&to=2026-07-15": {
       "schemaVersion": "2.0",
       "repositoryId": "9000000000000007",
+      "requestRange": {
+        "from": "2025-07-16",
+        "to": "2026-07-15"
+      },
       "releaseCadence": {
         "latestStableReleaseAt": "2026-07-12T12:00:00.000Z",
         "stableReleaseCount90d": "4",
@@ -22144,6 +22176,10 @@
     "/github/repositories/9000000000000008/enrichment?from=2025-07-16&to=2026-07-15": {
       "schemaVersion": "2.0",
       "repositoryId": "9000000000000008",
+      "requestRange": {
+        "from": "2025-07-16",
+        "to": "2026-07-15"
+      },
       "releaseCadence": {
         "latestStableReleaseAt": "2026-07-12T12:00:00.000Z",
         "stableReleaseCount90d": "5",
@@ -22212,6 +22248,10 @@
     "/github/repositories/9000000000000009/enrichment?from=2025-07-16&to=2026-07-15": {
       "schemaVersion": "2.0",
       "repositoryId": "9000000000000009",
+      "requestRange": {
+        "from": "2025-07-16",
+        "to": "2026-07-15"
+      },
       "releaseCadence": {
         "latestStableReleaseAt": "2026-07-12T12:00:00.000Z",
         "stableReleaseCount90d": "1",
@@ -22280,6 +22320,10 @@
     "/github/repositories/9000000000000100/enrichment?from=2025-07-16&to=2026-07-15": {
       "schemaVersion": "2.0",
       "repositoryId": "9000000000000100",
+      "requestRange": {
+        "from": "2025-07-16",
+        "to": "2026-07-15"
+      },
       "releaseCadence": {
         "latestStableReleaseAt": "2026-07-12T12:00:00.000Z",
         "stableReleaseCount90d": "2",
@@ -22348,6 +22392,10 @@
     "/github/repositories/9000000000000101/enrichment?from=2025-07-16&to=2026-07-15": {
       "schemaVersion": "2.0",
       "repositoryId": "9000000000000101",
+      "requestRange": {
+        "from": "2025-07-16",
+        "to": "2026-07-15"
+      },
       "releaseCadence": {
         "latestStableReleaseAt": "2026-07-12T12:00:00.000Z",
         "stableReleaseCount90d": "3",
@@ -22416,6 +22464,10 @@
     "/github/repositories/9000000000000102/enrichment?from=2025-07-16&to=2026-07-15": {
       "schemaVersion": "2.0",
       "repositoryId": "9000000000000102",
+      "requestRange": {
+        "from": "2025-07-16",
+        "to": "2026-07-15"
+      },
       "releaseCadence": {
         "latestStableReleaseAt": "2026-07-12T12:00:00.000Z",
         "stableReleaseCount90d": "4",
@@ -22484,6 +22536,10 @@
     "/github/repositories/9000000000000103/enrichment?from=2025-07-16&to=2026-07-15": {
       "schemaVersion": "2.0",
       "repositoryId": "9000000000000103",
+      "requestRange": {
+        "from": "2025-07-16",
+        "to": "2026-07-15"
+      },
       "releaseCadence": {
         "latestStableReleaseAt": "2026-07-12T12:00:00.000Z",
         "stableReleaseCount90d": "5",
@@ -22552,6 +22608,10 @@
     "/github/repositories/9000000000000104/enrichment?from=2025-07-16&to=2026-07-15": {
       "schemaVersion": "2.0",
       "repositoryId": "9000000000000104",
+      "requestRange": {
+        "from": "2025-07-16",
+        "to": "2026-07-15"
+      },
       "releaseCadence": {
         "latestStableReleaseAt": "2026-07-12T12:00:00.000Z",
         "stableReleaseCount90d": "1",
@@ -22620,6 +22680,10 @@
     "/github/repositories/9000000000000105/enrichment?from=2025-07-16&to=2026-07-15": {
       "schemaVersion": "2.0",
       "repositoryId": "9000000000000105",
+      "requestRange": {
+        "from": "2025-07-16",
+        "to": "2026-07-15"
+      },
       "releaseCadence": {
         "latestStableReleaseAt": "2026-07-12T12:00:00.000Z",
         "stableReleaseCount90d": "2",
@@ -22688,6 +22752,10 @@
     "/github/repositories/9000000000000106/enrichment?from=2025-07-16&to=2026-07-15": {
       "schemaVersion": "2.0",
       "repositoryId": "9000000000000106",
+      "requestRange": {
+        "from": "2025-07-16",
+        "to": "2026-07-15"
+      },
       "releaseCadence": {
         "latestStableReleaseAt": "2026-07-12T12:00:00.000Z",
         "stableReleaseCount90d": "3",
@@ -22756,6 +22824,10 @@
     "/github/repositories/9000000000000107/enrichment?from=2025-07-16&to=2026-07-15": {
       "schemaVersion": "2.0",
       "repositoryId": "9000000000000107",
+      "requestRange": {
+        "from": "2025-07-16",
+        "to": "2026-07-15"
+      },
       "releaseCadence": {
         "latestStableReleaseAt": "2026-07-12T12:00:00.000Z",
         "stableReleaseCount90d": "4",
@@ -22824,6 +22896,10 @@
     "/github/repositories/9000000000000108/enrichment?from=2025-07-16&to=2026-07-15": {
       "schemaVersion": "2.0",
       "repositoryId": "9000000000000108",
+      "requestRange": {
+        "from": "2025-07-16",
+        "to": "2026-07-15"
+      },
       "releaseCadence": {
         "latestStableReleaseAt": "2026-07-12T12:00:00.000Z",
         "stableReleaseCount90d": "5",
@@ -22892,6 +22968,10 @@
     "/github/repositories/9000000000000109/enrichment?from=2025-07-16&to=2026-07-15": {
       "schemaVersion": "2.0",
       "repositoryId": "9000000000000109",
+      "requestRange": {
+        "from": "2025-07-16",
+        "to": "2026-07-15"
+      },
       "releaseCadence": {
         "latestStableReleaseAt": "2026-07-12T12:00:00.000Z",
         "stableReleaseCount90d": "1",
@@ -22960,6 +23040,10 @@
     "/github/repositories/9000000000000200/enrichment?from=2025-07-16&to=2026-07-15": {
       "schemaVersion": "2.0",
       "repositoryId": "9000000000000200",
+      "requestRange": {
+        "from": "2025-07-16",
+        "to": "2026-07-15"
+      },
       "releaseCadence": {
         "latestStableReleaseAt": "2026-07-12T12:00:00.000Z",
         "stableReleaseCount90d": "2",
@@ -23028,6 +23112,10 @@
     "/github/repositories/9000000000000201/enrichment?from=2025-07-16&to=2026-07-15": {
       "schemaVersion": "2.0",
       "repositoryId": "9000000000000201",
+      "requestRange": {
+        "from": "2025-07-16",
+        "to": "2026-07-15"
+      },
       "releaseCadence": {
         "latestStableReleaseAt": "2026-07-12T12:00:00.000Z",
         "stableReleaseCount90d": "3",
@@ -23096,6 +23184,10 @@
     "/github/repositories/9000000000000202/enrichment?from=2025-07-16&to=2026-07-15": {
       "schemaVersion": "2.0",
       "repositoryId": "9000000000000202",
+      "requestRange": {
+        "from": "2025-07-16",
+        "to": "2026-07-15"
+      },
       "releaseCadence": {
         "latestStableReleaseAt": "2026-07-12T12:00:00.000Z",
         "stableReleaseCount90d": "4",
@@ -23164,6 +23256,10 @@
     "/github/repositories/9000000000000203/enrichment?from=2025-07-16&to=2026-07-15": {
       "schemaVersion": "2.0",
       "repositoryId": "9000000000000203",
+      "requestRange": {
+        "from": "2025-07-16",
+        "to": "2026-07-15"
+      },
       "releaseCadence": {
         "latestStableReleaseAt": "2026-07-12T12:00:00.000Z",
         "stableReleaseCount90d": "5",
@@ -23232,6 +23328,10 @@
     "/github/repositories/9000000000000204/enrichment?from=2025-07-16&to=2026-07-15": {
       "schemaVersion": "2.0",
       "repositoryId": "9000000000000204",
+      "requestRange": {
+        "from": "2025-07-16",
+        "to": "2026-07-15"
+      },
       "releaseCadence": {
         "latestStableReleaseAt": "2026-07-12T12:00:00.000Z",
         "stableReleaseCount90d": "1",
@@ -23300,6 +23400,10 @@
     "/github/repositories/9000000000000205/enrichment?from=2025-07-16&to=2026-07-15": {
       "schemaVersion": "2.0",
       "repositoryId": "9000000000000205",
+      "requestRange": {
+        "from": "2025-07-16",
+        "to": "2026-07-15"
+      },
       "releaseCadence": {
         "latestStableReleaseAt": "2026-07-12T12:00:00.000Z",
         "stableReleaseCount90d": "2",
@@ -23368,6 +23472,10 @@
     "/github/repositories/9000000000000206/enrichment?from=2025-07-16&to=2026-07-15": {
       "schemaVersion": "2.0",
       "repositoryId": "9000000000000206",
+      "requestRange": {
+        "from": "2025-07-16",
+        "to": "2026-07-15"
+      },
       "releaseCadence": {
         "latestStableReleaseAt": "2026-07-12T12:00:00.000Z",
         "stableReleaseCount90d": "3",
@@ -23436,6 +23544,10 @@
     "/github/repositories/9000000000000207/enrichment?from=2025-07-16&to=2026-07-15": {
       "schemaVersion": "2.0",
       "repositoryId": "9000000000000207",
+      "requestRange": {
+        "from": "2025-07-16",
+        "to": "2026-07-15"
+      },
       "releaseCadence": {
         "latestStableReleaseAt": "2026-07-12T12:00:00.000Z",
         "stableReleaseCount90d": "4",
@@ -23504,6 +23616,10 @@
     "/github/repositories/9000000000000208/enrichment?from=2025-07-16&to=2026-07-15": {
       "schemaVersion": "2.0",
       "repositoryId": "9000000000000208",
+      "requestRange": {
+        "from": "2025-07-16",
+        "to": "2026-07-15"
+      },
       "releaseCadence": {
         "latestStableReleaseAt": "2026-07-12T12:00:00.000Z",
         "stableReleaseCount90d": "5",
@@ -23572,6 +23688,10 @@
     "/github/repositories/9000000000000209/enrichment?from=2025-07-16&to=2026-07-15": {
       "schemaVersion": "2.0",
       "repositoryId": "9000000000000209",
+      "requestRange": {
+        "from": "2025-07-16",
+        "to": "2026-07-15"
+      },
       "releaseCadence": {
         "latestStableReleaseAt": "2026-07-12T12:00:00.000Z",
         "stableReleaseCount90d": "1",
@@ -23640,6 +23760,10 @@
     "/github/repositories/9000000000000300/enrichment?from=2025-07-16&to=2026-07-15": {
       "schemaVersion": "2.0",
       "repositoryId": "9000000000000300",
+      "requestRange": {
+        "from": "2025-07-16",
+        "to": "2026-07-15"
+      },
       "releaseCadence": {
         "latestStableReleaseAt": "2026-07-12T12:00:00.000Z",
         "stableReleaseCount90d": "2",
@@ -23708,6 +23832,10 @@
     "/github/repositories/9000000000000301/enrichment?from=2025-07-16&to=2026-07-15": {
       "schemaVersion": "2.0",
       "repositoryId": "9000000000000301",
+      "requestRange": {
+        "from": "2025-07-16",
+        "to": "2026-07-15"
+      },
       "releaseCadence": {
         "latestStableReleaseAt": "2026-07-12T12:00:00.000Z",
         "stableReleaseCount90d": "3",
@@ -23776,6 +23904,10 @@
     "/github/repositories/9000000000000302/enrichment?from=2025-07-16&to=2026-07-15": {
       "schemaVersion": "2.0",
       "repositoryId": "9000000000000302",
+      "requestRange": {
+        "from": "2025-07-16",
+        "to": "2026-07-15"
+      },
       "releaseCadence": {
         "latestStableReleaseAt": "2026-07-12T12:00:00.000Z",
         "stableReleaseCount90d": "4",
@@ -23844,6 +23976,10 @@
     "/github/repositories/9000000000000303/enrichment?from=2025-07-16&to=2026-07-15": {
       "schemaVersion": "2.0",
       "repositoryId": "9000000000000303",
+      "requestRange": {
+        "from": "2025-07-16",
+        "to": "2026-07-15"
+      },
       "releaseCadence": {
         "latestStableReleaseAt": "2026-07-12T12:00:00.000Z",
         "stableReleaseCount90d": "5",
@@ -23912,6 +24048,10 @@
     "/github/repositories/9000000000000304/enrichment?from=2025-07-16&to=2026-07-15": {
       "schemaVersion": "2.0",
       "repositoryId": "9000000000000304",
+      "requestRange": {
+        "from": "2025-07-16",
+        "to": "2026-07-15"
+      },
       "releaseCadence": {
         "latestStableReleaseAt": "2026-07-12T12:00:00.000Z",
         "stableReleaseCount90d": "1",
@@ -23980,6 +24120,10 @@
     "/github/repositories/9000000000000305/enrichment?from=2025-07-16&to=2026-07-15": {
       "schemaVersion": "2.0",
       "repositoryId": "9000000000000305",
+      "requestRange": {
+        "from": "2025-07-16",
+        "to": "2026-07-15"
+      },
       "releaseCadence": {
         "latestStableReleaseAt": "2026-07-12T12:00:00.000Z",
         "stableReleaseCount90d": "2",
@@ -24048,6 +24192,10 @@
     "/github/repositories/9000000000000306/enrichment?from=2025-07-16&to=2026-07-15": {
       "schemaVersion": "2.0",
       "repositoryId": "9000000000000306",
+      "requestRange": {
+        "from": "2025-07-16",
+        "to": "2026-07-15"
+      },
       "releaseCadence": {
         "latestStableReleaseAt": "2026-07-12T12:00:00.000Z",
         "stableReleaseCount90d": "3",
@@ -24116,6 +24264,10 @@
     "/github/repositories/9000000000000307/enrichment?from=2025-07-16&to=2026-07-15": {
       "schemaVersion": "2.0",
       "repositoryId": "9000000000000307",
+      "requestRange": {
+        "from": "2025-07-16",
+        "to": "2026-07-15"
+      },
       "releaseCadence": {
         "latestStableReleaseAt": "2026-07-12T12:00:00.000Z",
         "stableReleaseCount90d": "4",
@@ -24184,6 +24336,10 @@
     "/github/repositories/9000000000000308/enrichment?from=2025-07-16&to=2026-07-15": {
       "schemaVersion": "2.0",
       "repositoryId": "9000000000000308",
+      "requestRange": {
+        "from": "2025-07-16",
+        "to": "2026-07-15"
+      },
       "releaseCadence": {
         "latestStableReleaseAt": "2026-07-12T12:00:00.000Z",
         "stableReleaseCount90d": "5",
@@ -24252,6 +24408,10 @@
     "/github/repositories/9000000000000309/enrichment?from=2025-07-16&to=2026-07-15": {
       "schemaVersion": "2.0",
       "repositoryId": "9000000000000309",
+      "requestRange": {
+        "from": "2025-07-16",
+        "to": "2026-07-15"
+      },
       "releaseCadence": {
         "latestStableReleaseAt": "2026-07-12T12:00:00.000Z",
         "stableReleaseCount90d": "1",
@@ -24320,6 +24480,10 @@
     "/github/repositories/9000000000000400/enrichment?from=2025-07-16&to=2026-07-15": {
       "schemaVersion": "2.0",
       "repositoryId": "9000000000000400",
+      "requestRange": {
+        "from": "2025-07-16",
+        "to": "2026-07-15"
+      },
       "releaseCadence": {
         "latestStableReleaseAt": "2026-07-12T12:00:00.000Z",
         "stableReleaseCount90d": "2",
@@ -24388,6 +24552,10 @@
     "/github/repositories/9000000000000401/enrichment?from=2025-07-16&to=2026-07-15": {
       "schemaVersion": "2.0",
       "repositoryId": "9000000000000401",
+      "requestRange": {
+        "from": "2025-07-16",
+        "to": "2026-07-15"
+      },
       "releaseCadence": {
         "latestStableReleaseAt": "2026-07-12T12:00:00.000Z",
         "stableReleaseCount90d": "3",
@@ -24456,6 +24624,10 @@
     "/github/repositories/9000000000000402/enrichment?from=2025-07-16&to=2026-07-15": {
       "schemaVersion": "2.0",
       "repositoryId": "9000000000000402",
+      "requestRange": {
+        "from": "2025-07-16",
+        "to": "2026-07-15"
+      },
       "releaseCadence": {
         "latestStableReleaseAt": "2026-07-12T12:00:00.000Z",
         "stableReleaseCount90d": "4",
@@ -24524,6 +24696,10 @@
     "/github/repositories/9000000000000403/enrichment?from=2025-07-16&to=2026-07-15": {
       "schemaVersion": "2.0",
       "repositoryId": "9000000000000403",
+      "requestRange": {
+        "from": "2025-07-16",
+        "to": "2026-07-15"
+      },
       "releaseCadence": {
         "latestStableReleaseAt": "2026-07-12T12:00:00.000Z",
         "stableReleaseCount90d": "5",
@@ -24592,6 +24768,10 @@
     "/github/repositories/9000000000000404/enrichment?from=2025-07-16&to=2026-07-15": {
       "schemaVersion": "2.0",
       "repositoryId": "9000000000000404",
+      "requestRange": {
+        "from": "2025-07-16",
+        "to": "2026-07-15"
+      },
       "releaseCadence": {
         "latestStableReleaseAt": "2026-07-12T12:00:00.000Z",
         "stableReleaseCount90d": "1",
@@ -24660,6 +24840,10 @@
     "/github/repositories/9000000000000405/enrichment?from=2025-07-16&to=2026-07-15": {
       "schemaVersion": "2.0",
       "repositoryId": "9000000000000405",
+      "requestRange": {
+        "from": "2025-07-16",
+        "to": "2026-07-15"
+      },
       "releaseCadence": {
         "latestStableReleaseAt": "2026-07-12T12:00:00.000Z",
         "stableReleaseCount90d": "2",
@@ -24728,6 +24912,10 @@
     "/github/repositories/9000000000000406/enrichment?from=2025-07-16&to=2026-07-15": {
       "schemaVersion": "2.0",
       "repositoryId": "9000000000000406",
+      "requestRange": {
+        "from": "2025-07-16",
+        "to": "2026-07-15"
+      },
       "releaseCadence": {
         "latestStableReleaseAt": "2026-07-12T12:00:00.000Z",
         "stableReleaseCount90d": "3",
@@ -24796,6 +24984,10 @@
     "/github/repositories/9000000000000407/enrichment?from=2025-07-16&to=2026-07-15": {
       "schemaVersion": "2.0",
       "repositoryId": "9000000000000407",
+      "requestRange": {
+        "from": "2025-07-16",
+        "to": "2026-07-15"
+      },
       "releaseCadence": {
         "latestStableReleaseAt": "2026-07-12T12:00:00.000Z",
         "stableReleaseCount90d": "4",
@@ -24864,6 +25056,10 @@
     "/github/repositories/9000000000000408/enrichment?from=2025-07-16&to=2026-07-15": {
       "schemaVersion": "2.0",
       "repositoryId": "9000000000000408",
+      "requestRange": {
+        "from": "2025-07-16",
+        "to": "2026-07-15"
+      },
       "releaseCadence": {
         "latestStableReleaseAt": "2026-07-12T12:00:00.000Z",
         "stableReleaseCount90d": "5",
@@ -24932,6 +25128,10 @@
     "/github/repositories/9000000000000409/enrichment?from=2025-07-16&to=2026-07-15": {
       "schemaVersion": "2.0",
       "repositoryId": "9000000000000409",
+      "requestRange": {
+        "from": "2025-07-16",
+        "to": "2026-07-15"
+      },
       "releaseCadence": {
         "latestStableReleaseAt": "2026-07-12T12:00:00.000Z",
         "stableReleaseCount90d": "1",
@@ -25000,6 +25200,10 @@
     "/github/repositories/9000000000000500/enrichment?from=2025-07-16&to=2026-07-15": {
       "schemaVersion": "2.0",
       "repositoryId": "9000000000000500",
+      "requestRange": {
+        "from": "2025-07-16",
+        "to": "2026-07-15"
+      },
       "releaseCadence": {
         "latestStableReleaseAt": "2026-07-12T12:00:00.000Z",
         "stableReleaseCount90d": "2",
@@ -25068,6 +25272,10 @@
     "/github/repositories/9000000000000501/enrichment?from=2025-07-16&to=2026-07-15": {
       "schemaVersion": "2.0",
       "repositoryId": "9000000000000501",
+      "requestRange": {
+        "from": "2025-07-16",
+        "to": "2026-07-15"
+      },
       "releaseCadence": {
         "latestStableReleaseAt": "2026-07-12T12:00:00.000Z",
         "stableReleaseCount90d": "3",
@@ -25136,6 +25344,10 @@
     "/github/repositories/9000000000000502/enrichment?from=2025-07-16&to=2026-07-15": {
       "schemaVersion": "2.0",
       "repositoryId": "9000000000000502",
+      "requestRange": {
+        "from": "2025-07-16",
+        "to": "2026-07-15"
+      },
       "releaseCadence": {
         "latestStableReleaseAt": "2026-07-12T12:00:00.000Z",
         "stableReleaseCount90d": "4",
@@ -25204,6 +25416,10 @@
     "/github/repositories/9000000000000503/enrichment?from=2025-07-16&to=2026-07-15": {
       "schemaVersion": "2.0",
       "repositoryId": "9000000000000503",
+      "requestRange": {
+        "from": "2025-07-16",
+        "to": "2026-07-15"
+      },
       "releaseCadence": {
         "latestStableReleaseAt": "2026-07-12T12:00:00.000Z",
         "stableReleaseCount90d": "5",
@@ -25272,6 +25488,10 @@
     "/github/repositories/9000000000000504/enrichment?from=2025-07-16&to=2026-07-15": {
       "schemaVersion": "2.0",
       "repositoryId": "9000000000000504",
+      "requestRange": {
+        "from": "2025-07-16",
+        "to": "2026-07-15"
+      },
       "releaseCadence": {
         "latestStableReleaseAt": "2026-07-12T12:00:00.000Z",
         "stableReleaseCount90d": "1",
@@ -25340,6 +25560,10 @@
     "/github/repositories/9000000000000505/enrichment?from=2025-07-16&to=2026-07-15": {
       "schemaVersion": "2.0",
       "repositoryId": "9000000000000505",
+      "requestRange": {
+        "from": "2025-07-16",
+        "to": "2026-07-15"
+      },
       "releaseCadence": {
         "latestStableReleaseAt": "2026-07-12T12:00:00.000Z",
         "stableReleaseCount90d": "2",
@@ -25408,6 +25632,10 @@
     "/github/repositories/9000000000000506/enrichment?from=2025-07-16&to=2026-07-15": {
       "schemaVersion": "2.0",
       "repositoryId": "9000000000000506",
+      "requestRange": {
+        "from": "2025-07-16",
+        "to": "2026-07-15"
+      },
       "releaseCadence": {
         "latestStableReleaseAt": "2026-07-12T12:00:00.000Z",
         "stableReleaseCount90d": "3",
@@ -25476,6 +25704,10 @@
     "/github/repositories/9000000000000507/enrichment?from=2025-07-16&to=2026-07-15": {
       "schemaVersion": "2.0",
       "repositoryId": "9000000000000507",
+      "requestRange": {
+        "from": "2025-07-16",
+        "to": "2026-07-15"
+      },
       "releaseCadence": {
         "latestStableReleaseAt": "2026-07-12T12:00:00.000Z",
         "stableReleaseCount90d": "4",
@@ -25544,6 +25776,10 @@
     "/github/repositories/9000000000000508/enrichment?from=2025-07-16&to=2026-07-15": {
       "schemaVersion": "2.0",
       "repositoryId": "9000000000000508",
+      "requestRange": {
+        "from": "2025-07-16",
+        "to": "2026-07-15"
+      },
       "releaseCadence": {
         "latestStableReleaseAt": "2026-07-12T12:00:00.000Z",
         "stableReleaseCount90d": "5",
@@ -25612,6 +25848,10 @@
     "/github/repositories/9000000000000509/enrichment?from=2025-07-16&to=2026-07-15": {
       "schemaVersion": "2.0",
       "repositoryId": "9000000000000509",
+      "requestRange": {
+        "from": "2025-07-16",
+        "to": "2026-07-15"
+      },
       "releaseCadence": {
         "latestStableReleaseAt": "2026-07-12T12:00:00.000Z",
         "stableReleaseCount90d": "1",
@@ -25680,6 +25920,10 @@
     "/github/repositories/9000000000000600/enrichment?from=2025-07-16&to=2026-07-15": {
       "schemaVersion": "2.0",
       "repositoryId": "9000000000000600",
+      "requestRange": {
+        "from": "2025-07-16",
+        "to": "2026-07-15"
+      },
       "releaseCadence": {
         "latestStableReleaseAt": "2026-07-12T12:00:00.000Z",
         "stableReleaseCount90d": "2",
@@ -25748,6 +25992,10 @@
     "/github/repositories/9000000000000601/enrichment?from=2025-07-16&to=2026-07-15": {
       "schemaVersion": "2.0",
       "repositoryId": "9000000000000601",
+      "requestRange": {
+        "from": "2025-07-16",
+        "to": "2026-07-15"
+      },
       "releaseCadence": {
         "latestStableReleaseAt": "2026-07-12T12:00:00.000Z",
         "stableReleaseCount90d": "3",
@@ -25816,6 +26064,10 @@
     "/github/repositories/9000000000000602/enrichment?from=2025-07-16&to=2026-07-15": {
       "schemaVersion": "2.0",
       "repositoryId": "9000000000000602",
+      "requestRange": {
+        "from": "2025-07-16",
+        "to": "2026-07-15"
+      },
       "releaseCadence": {
         "latestStableReleaseAt": "2026-07-12T12:00:00.000Z",
         "stableReleaseCount90d": "4",
@@ -25884,6 +26136,10 @@
     "/github/repositories/9000000000000603/enrichment?from=2025-07-16&to=2026-07-15": {
       "schemaVersion": "2.0",
       "repositoryId": "9000000000000603",
+      "requestRange": {
+        "from": "2025-07-16",
+        "to": "2026-07-15"
+      },
       "releaseCadence": {
         "latestStableReleaseAt": "2026-07-12T12:00:00.000Z",
         "stableReleaseCount90d": "5",
@@ -25952,6 +26208,10 @@
     "/github/repositories/9000000000000604/enrichment?from=2025-07-16&to=2026-07-15": {
       "schemaVersion": "2.0",
       "repositoryId": "9000000000000604",
+      "requestRange": {
+        "from": "2025-07-16",
+        "to": "2026-07-15"
+      },
       "releaseCadence": {
         "latestStableReleaseAt": "2026-07-12T12:00:00.000Z",
         "stableReleaseCount90d": "1",
@@ -26020,6 +26280,10 @@
     "/github/repositories/9000000000000605/enrichment?from=2025-07-16&to=2026-07-15": {
       "schemaVersion": "2.0",
       "repositoryId": "9000000000000605",
+      "requestRange": {
+        "from": "2025-07-16",
+        "to": "2026-07-15"
+      },
       "releaseCadence": {
         "latestStableReleaseAt": "2026-07-12T12:00:00.000Z",
         "stableReleaseCount90d": "2",
@@ -26088,6 +26352,10 @@
     "/github/repositories/9000000000000606/enrichment?from=2025-07-16&to=2026-07-15": {
       "schemaVersion": "2.0",
       "repositoryId": "9000000000000606",
+      "requestRange": {
+        "from": "2025-07-16",
+        "to": "2026-07-15"
+      },
       "releaseCadence": {
         "latestStableReleaseAt": "2026-07-12T12:00:00.000Z",
         "stableReleaseCount90d": "3",
@@ -26156,6 +26424,10 @@
     "/github/repositories/9000000000000607/enrichment?from=2025-07-16&to=2026-07-15": {
       "schemaVersion": "2.0",
       "repositoryId": "9000000000000607",
+      "requestRange": {
+        "from": "2025-07-16",
+        "to": "2026-07-15"
+      },
       "releaseCadence": {
         "latestStableReleaseAt": "2026-07-12T12:00:00.000Z",
         "stableReleaseCount90d": "4",
@@ -26224,6 +26496,10 @@
     "/github/repositories/9000000000000608/enrichment?from=2025-07-16&to=2026-07-15": {
       "schemaVersion": "2.0",
       "repositoryId": "9000000000000608",
+      "requestRange": {
+        "from": "2025-07-16",
+        "to": "2026-07-15"
+      },
       "releaseCadence": {
         "latestStableReleaseAt": "2026-07-12T12:00:00.000Z",
         "stableReleaseCount90d": "5",
@@ -26292,6 +26568,10 @@
     "/github/repositories/9000000000000609/enrichment?from=2025-07-16&to=2026-07-15": {
       "schemaVersion": "2.0",
       "repositoryId": "9000000000000609",
+      "requestRange": {
+        "from": "2025-07-16",
+        "to": "2026-07-15"
+      },
       "releaseCadence": {
         "latestStableReleaseAt": "2026-07-12T12:00:00.000Z",
         "stableReleaseCount90d": "1",
@@ -26360,6 +26640,10 @@
     "/github/repositories/9000000000000700/enrichment?from=2025-07-16&to=2026-07-15": {
       "schemaVersion": "2.0",
       "repositoryId": "9000000000000700",
+      "requestRange": {
+        "from": "2025-07-16",
+        "to": "2026-07-15"
+      },
       "releaseCadence": {
         "latestStableReleaseAt": "2026-07-12T12:00:00.000Z",
         "stableReleaseCount90d": "2",
@@ -26428,6 +26712,10 @@
     "/github/repositories/9000000000000701/enrichment?from=2025-07-16&to=2026-07-15": {
       "schemaVersion": "2.0",
       "repositoryId": "9000000000000701",
+      "requestRange": {
+        "from": "2025-07-16",
+        "to": "2026-07-15"
+      },
       "releaseCadence": {
         "latestStableReleaseAt": "2026-07-12T12:00:00.000Z",
         "stableReleaseCount90d": "3",
@@ -26496,6 +26784,10 @@
     "/github/repositories/9000000000000702/enrichment?from=2025-07-16&to=2026-07-15": {
       "schemaVersion": "2.0",
       "repositoryId": "9000000000000702",
+      "requestRange": {
+        "from": "2025-07-16",
+        "to": "2026-07-15"
+      },
       "releaseCadence": {
         "latestStableReleaseAt": "2026-07-12T12:00:00.000Z",
         "stableReleaseCount90d": "4",
@@ -26564,6 +26856,10 @@
     "/github/repositories/9000000000000703/enrichment?from=2025-07-16&to=2026-07-15": {
       "schemaVersion": "2.0",
       "repositoryId": "9000000000000703",
+      "requestRange": {
+        "from": "2025-07-16",
+        "to": "2026-07-15"
+      },
       "releaseCadence": {
         "latestStableReleaseAt": "2026-07-12T12:00:00.000Z",
         "stableReleaseCount90d": "5",
@@ -26632,6 +26928,10 @@
     "/github/repositories/9000000000000704/enrichment?from=2025-07-16&to=2026-07-15": {
       "schemaVersion": "2.0",
       "repositoryId": "9000000000000704",
+      "requestRange": {
+        "from": "2025-07-16",
+        "to": "2026-07-15"
+      },
       "releaseCadence": {
         "latestStableReleaseAt": "2026-07-12T12:00:00.000Z",
         "stableReleaseCount90d": "1",
@@ -26700,6 +27000,10 @@
     "/github/repositories/9000000000000705/enrichment?from=2025-07-16&to=2026-07-15": {
       "schemaVersion": "2.0",
       "repositoryId": "9000000000000705",
+      "requestRange": {
+        "from": "2025-07-16",
+        "to": "2026-07-15"
+      },
       "releaseCadence": {
         "latestStableReleaseAt": "2026-07-12T12:00:00.000Z",
         "stableReleaseCount90d": "2",
@@ -26768,6 +27072,10 @@
     "/github/repositories/9000000000000706/enrichment?from=2025-07-16&to=2026-07-15": {
       "schemaVersion": "2.0",
       "repositoryId": "9000000000000706",
+      "requestRange": {
+        "from": "2025-07-16",
+        "to": "2026-07-15"
+      },
       "releaseCadence": {
         "latestStableReleaseAt": "2026-07-12T12:00:00.000Z",
         "stableReleaseCount90d": "3",
@@ -26836,6 +27144,10 @@
     "/github/repositories/9000000000000707/enrichment?from=2025-07-16&to=2026-07-15": {
       "schemaVersion": "2.0",
       "repositoryId": "9000000000000707",
+      "requestRange": {
+        "from": "2025-07-16",
+        "to": "2026-07-15"
+      },
       "releaseCadence": {
         "latestStableReleaseAt": "2026-07-12T12:00:00.000Z",
         "stableReleaseCount90d": "4",
@@ -26904,6 +27216,10 @@
     "/github/repositories/9000000000000708/enrichment?from=2025-07-16&to=2026-07-15": {
       "schemaVersion": "2.0",
       "repositoryId": "9000000000000708",
+      "requestRange": {
+        "from": "2025-07-16",
+        "to": "2026-07-15"
+      },
       "releaseCadence": {
         "latestStableReleaseAt": "2026-07-12T12:00:00.000Z",
         "stableReleaseCount90d": "5",
@@ -26972,6 +27288,10 @@
     "/github/repositories/9000000000000709/enrichment?from=2025-07-16&to=2026-07-15": {
       "schemaVersion": "2.0",
       "repositoryId": "9000000000000709",
+      "requestRange": {
+        "from": "2025-07-16",
+        "to": "2026-07-15"
+      },
       "releaseCadence": {
         "latestStableReleaseAt": "2026-07-12T12:00:00.000Z",
         "stableReleaseCount90d": "1",
@@ -27038,5 +27358,5 @@
       ]
     }
   },
-  "checksum": "afab04c9c491b3fb304d1184cedfa5965c937ef5d416749aa1c94e7f22bd4f87"
+  "checksum": "1abdd8aceded7cabc10a076412d5450ce84a42a1966b5c0e04ed7fbc642978f5"
 }

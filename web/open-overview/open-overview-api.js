@@ -135,7 +135,49 @@ const validateFor = (spec, raw, major) => spec.kind === "manifest"
             ? validateFreeFrontiers(raw, major)
             : spec.kind === "history"
               ? validateHistory(raw, major)
-              : validateOpenRouterCollection(raw, spec.kind, major);
+            : validateOpenRouterCollection(raw, spec.kind, major);
+
+const identityMismatch = (message, details = null) => { throw new ContractError("identity_mismatch", message, details); };
+const requestUrl = (spec) => new URL(canonicalPath(spec.path), "https://open-overview.invalid");
+export function assertResponseIdentity(spec, response) {
+  const url = requestUrl(spec);
+  if (spec.kind === "github") {
+    const expected = {
+      category: url.searchParams.get("category"), metric: url.searchParams.get("metric"),
+      entityLevel: url.searchParams.get("entity_level"), windowDays: url.searchParams.has("window") ? Number(url.searchParams.get("window")) : null,
+      limit: Number(url.searchParams.get("limit"))
+    };
+    const actual = response.ranking;
+    for (const [key, value] of [["category", expected.category], ["metric", expected.metric], ["entityLevel", expected.entityLevel], ["windowDays", expected.windowDays]]) if (actual?.[key] !== value) identityMismatch(`GitHub ${key} does not match the requested slice`, { expected: value, actual: actual?.[key] ?? null });
+    if (response.page?.limit !== expected.limit) identityMismatch("GitHub page limit does not match the requested slice", { expected: expected.limit, actual: response.page?.limit ?? null });
+  } else if (spec.kind === "appModels") {
+    const match = url.pathname.match(/^\/apps\/([^/]+)\/models$/); const expected = match ? decodeURIComponent(match[1]) : null;
+    if (!expected || response.appId !== expected) identityMismatch("Per-app response app ID does not match the request", { expected, actual: response.appId ?? null });
+  } else if (spec.kind === "githubEnrichment") {
+    const match = url.pathname.match(/^\/github\/repositories\/([^/]+)\/enrichment$/); const expectedRepository = match ? decodeURIComponent(match[1]) : null;
+    const from = url.searchParams.get("from"); const to = url.searchParams.get("to");
+    if (!expectedRepository || response.repositoryId !== expectedRepository) identityMismatch("GitHub enrichment repository ID does not match the request", { expected: expectedRepository, actual: response.repositoryId ?? null });
+    if (response.requestRange?.from !== from || response.requestRange?.to !== to) identityMismatch("GitHub enrichment request range does not match the requested range", { expected: { from, to }, actual: response.requestRange ?? null });
+    const buckets = response.starBuckets || [];
+    if (buckets.some((bucket) => bucket.start > bucket.end || bucket.start < from || bucket.end > to)) identityMismatch("GitHub enrichment star bucket falls outside the requested inclusive range", { from, to });
+  } else if (spec.kind === "matrix") {
+    const appLimit = Number(url.searchParams.get("appLimit")); const modelLimit = Number(url.searchParams.get("modelLimit"));
+    if (!Number.isInteger(appLimit) || !Number.isInteger(modelLimit) || response.appIds.length > appLimit || response.modelIds.length > modelLimit) identityMismatch("App-model matrix axes exceed the requested limits", { appLimit, modelLimit, appAxes: response.appIds.length, modelAxes: response.modelIds.length });
+    if (url.searchParams.get("window") !== "latest-complete") identityMismatch("App-model matrix window does not match the supported slice");
+  }
+  return response;
+}
+
+export function manifestPublicationIdentity(manifest) {
+  const sources = manifest.sources.map((source) => [source.sourceId, source.publishedRunId, source.publishedAt, source.transformVersion]).sort(([left], [right]) => left.localeCompare(right));
+  return JSON.stringify([manifest.schemaVersion, manifest.publishedAt, sources]);
+}
+const oldestEvidenceAt = (manifest, responses) => {
+  const provenanceTimes = Object.values(responses).flatMap((response) => Array.isArray(response?.provenance) ? response.provenance.map((item) => item?.fetchedAt) : []).filter((value) => typeof value === "string" && Number.isFinite(Date.parse(value)));
+  const sourceTimes = manifest.sources.map((source) => source.publishedAt).filter((value) => typeof value === "string" && Number.isFinite(Date.parse(value)));
+  const candidates = provenanceTimes.length ? provenanceTimes : sourceTimes;
+  return candidates.length ? new Date(Math.min(...candidates.map((value) => Date.parse(value)))).toISOString() : manifest.publishedAt;
+};
 
 const MAX_PRODUCTION_FALLBACK_AGE_MS = 48 * 3_600_000;
 const MAX_PUBLIC_RESPONSE_BYTES = 4 * 1024 * 1024;
@@ -192,8 +234,7 @@ const normalizedOrigin = (value, label) => {
 };
 
 const localPreviewOrigin = (url) => url && (url.hostname === "localhost" || url.hostname === "127.0.0.1" || url.hostname === "[::1]");
-
-export function assertFallbackPolicy(bundle, runtimeOrigin, fixturePreviewOrigins = []) {
+const fixturePreviewAllowed = (runtimeOrigin, fixturePreviewOrigins) => {
   if (!Array.isArray(fixturePreviewOrigins) || fixturePreviewOrigins.length > 20) throw new TypeError("fixturePreviewOrigins must be a bounded array");
   const runtime = normalizedOrigin(runtimeOrigin, "runtimeOrigin");
   const previews = new Set(fixturePreviewOrigins.map((value) => {
@@ -201,9 +242,12 @@ export function assertFallbackPolicy(bundle, runtimeOrigin, fixturePreviewOrigin
     if (!url || url.protocol !== "https:") throw new TypeError("fixturePreviewOrigins entries must be HTTPS origins");
     return url.origin;
   }));
-  const fixtureAllowed = localPreviewOrigin(runtime) || (runtime && previews.has(runtime.origin));
+  return localPreviewOrigin(runtime) || (runtime && previews.has(runtime.origin));
+};
+
+export function assertFallbackPolicy(bundle, runtimeOrigin, fixturePreviewOrigins = []) {
   if (bundle.bundleKind === "fixture") {
-    if (!fixtureAllowed) throw new ContractError("unavailable", "Fixture fallback is unavailable on production origins");
+    if (!fixturePreviewAllowed(runtimeOrigin, fixturePreviewOrigins)) throw new ContractError("unavailable", "Fixture fallback is unavailable on production origins");
     return bundle;
   }
   if (bundle.snapshotStale) throw new ContractError("unavailable", "Live fallback evidence is older than 48 hours");
@@ -275,7 +319,7 @@ export async function verifyFallbackBundle(bundle, requests, schemaMajor, now = 
       if (spec.optional) { errors[spec.key] = new ContractError("unavailable", "Optional fallback response is unavailable", { path }); continue; }
       throw new ContractError("invalid_fallback", `Fallback is missing ${path}`);
     }
-    const response = validateFor(spec, bundle.responses[path], schemaMajor);
+    const response = validateFor(spec, bundle.responses[path], schemaMajor); assertResponseIdentity(spec, response);
     if (spec.sourceId) assertPublishedRun(manifest, spec.sourceId, response);
     responses[spec.key] = response;
   }
@@ -285,7 +329,7 @@ export async function verifyFallbackBundle(bundle, requests, schemaMajor, now = 
   const age = now.getTime() - oldest;
   if (!Number.isFinite(now.getTime()) || (live && age < 0)) throw new ContractError("invalid_fallback", "Fallback evidence time is in the future");
   const snapshotStale = fixture || age >= MAX_PRODUCTION_FALLBACK_AGE_MS;
-  return Object.freeze({ ...bundle, manifest, responses: Object.freeze(responses), errors: Object.freeze(errors), snapshotStale, productionEligible: live && !snapshotStale });
+  return Object.freeze({ ...bundle, manifest, publicationIdentity: manifestPublicationIdentity(manifest), responses: Object.freeze(responses), errors: Object.freeze(errors), snapshotStale, productionEligible: live && !snapshotStale });
 }
 
 export function createOpenOverviewClient({ apiBase, schemaMajor, timeoutMs, fallbackUrl = null, fallbackOnMissingV2 = false, fixturePreviewOrigins = [], runtimeOrigin = globalThis.location?.origin ?? null, conditionalRequests = false, fetchImpl = globalThis.fetch }) {
@@ -317,7 +361,7 @@ export function createOpenOverviewClient({ apiBase, schemaMajor, timeoutMs, fall
       }
       let raw;
       raw = await readPublicJsonResponse(response);
-      const body = validateFor(spec, raw, schemaMajor);
+      const body = validateFor(spec, raw, schemaMajor); assertResponseIdentity(spec, body);
       const etag = response.headers.get("ETag"); if (etag) cache.set(key, { etag, body });
       return body;
     } catch (error) {
@@ -355,20 +399,29 @@ export function createOpenOverviewClient({ apiBase, schemaMajor, timeoutMs, fall
     if (!fallbackViewCache.has(cacheKey)) fallbackViewCache.set(cacheKey, (async () => {
       const bundle = await verifyFallbackBundle(await fallbackRawPromise, requests, schemaMajor);
       assertFallbackPolicy(bundle, runtimeOrigin, fixturePreviewOrigins);
-      return Object.freeze({ mode: "snapshot", bundleKind: bundle.bundleKind, fallbackLabel: bundle.label, productionEligible: bundle.productionEligible, manifest: bundle.manifest, responses: bundle.responses, errors: bundle.errors, snapshotStale: bundle.snapshotStale, oldestFetchedAt: bundle.oldestFetchedAt, datasetFreshness: bundle.datasetFreshness });
+      return Object.freeze({ mode: "snapshot", bundleKind: bundle.bundleKind, fallbackLabel: bundle.label, productionEligible: bundle.productionEligible, manifest: bundle.manifest, publicationIdentity: bundle.publicationIdentity, responses: bundle.responses, errors: bundle.errors, snapshotStale: bundle.snapshotStale, oldestFetchedAt: bundle.oldestFetchedAt, datasetFreshness: bundle.datasetFreshness });
     })().catch((error) => { fallbackViewCache.delete(cacheKey); throw error; }));
     return fallbackViewCache.get(cacheKey);
   }
 
   const fallbackEligible = (error) => error?.code === "timeout" || error?.code === "network_unavailable" || (error?.code === "http_error" && error?.details?.availability === true) || (fallbackOnMissingV2 && error?.code === "invalid_http_error" && error?.details?.status === 404);
-  async function loadView(requests) {
-    let manifest;
-    try { manifest = await fetchJson({ key: "manifest", path: ENDPOINTS.manifest, kind: "manifest" }); }
+  async function loadView(requests, options = {}) {
+    let manifest = options.manifest ?? null;
+    if (!manifest) try { manifest = await fetchJson({ key: "manifest", path: ENDPOINTS.manifest, kind: "manifest" }); }
     catch (error) { if (!fallbackEligible(error)) throw error; return loadFallbackView(requests); }
+    const publicationIdentity = manifestPublicationIdentity(manifest);
     const settled = await mapBounded(requests, 6, async (spec) => { try { return { status: "fulfilled", value: await load(spec, manifest) }; } catch (reason) { return { status: "rejected", reason }; } });
     const responses = {}; const errors = {};
     settled.forEach((result, index) => { const spec = requests[index]; if (result.status === "fulfilled") responses[spec.key] = result.value; else errors[spec.key] = result.reason; });
-    return Object.freeze({ mode: "live", manifest, responses: Object.freeze(responses), errors: Object.freeze(errors), snapshotStale: false });
+    if (requests.some((spec) => !spec.sourceId)) {
+      const confirmedManifest = await fetchJson({ key: "manifest", path: ENDPOINTS.manifest, kind: "manifest" }, { conditional: false });
+      if (manifestPublicationIdentity(confirmedManifest) !== publicationIdentity) throw new ContractError("mixed_snapshot", "Manifest publication changed while loading unbound evidence");
+    }
+    if (hasFixtureMarker(manifest, responses)) {
+      if (!fixturePreviewAllowed(runtimeOrigin, fixturePreviewOrigins)) throw new ContractError("unavailable", "Fixture or deterministic preview v2 evidence is unavailable on production origins");
+      return Object.freeze({ mode: "fixture", bundleKind: "fixture", fallbackLabel: FIXTURE_FALLBACK_LABEL, productionEligible: false, manifest, publicationIdentity, responses: Object.freeze(responses), errors: Object.freeze(errors), snapshotStale: true, oldestFetchedAt: oldestEvidenceAt(manifest, responses) });
+    }
+    return Object.freeze({ mode: "live", productionEligible: true, manifest, publicationIdentity, responses: Object.freeze(responses), errors: Object.freeze(errors), snapshotStale: false });
   }
 
   return Object.freeze({ load, loadManifest: () => fetchJson({ key: "manifest", path: ENDPOINTS.manifest, kind: "manifest" }), loadView, clear: () => { cache.clear(); fallbackRawPromise = null; fallbackViewCache.clear(); } });

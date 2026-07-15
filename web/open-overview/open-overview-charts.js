@@ -106,7 +106,14 @@ export function renderSparkline({ document, values, label }) {
 
 export function renderSourceStates({ document, datasets }) {
   const list = el(document, "ul", "oo-source-list");
-  for (const dataset of datasets) { const item = el(document, "li", "oo-source-row"); item.dataset.mode = dataset.mode; item.dataset.freshness = dataset.freshness; item.dataset.completeness = dataset.completeness; const time = el(document, "time", "", dataset.asOf || "as-of unknown"); if (validIsoTime(dataset.asOf)) time.setAttribute("datetime", dataset.asOf); item.append(el(document, "strong", "", dataset.sourceId), el(document, "span", "", `${dataset.mode} · ${dataset.freshness} · ${dataset.completeness}`), time); list.appendChild(item); }
+  for (const dataset of datasets) {
+    const item = el(document, "li", "oo-source-row"); item.dataset.mode = dataset.mode; item.dataset.freshness = dataset.freshness; item.dataset.completeness = dataset.completeness; if (dataset.sourceKind) item.dataset.sourceKind = dataset.sourceKind;
+    const identity = el(document, "strong"); const sourceUrl = safePublicUrl(dataset.sourceUrl); if (sourceUrl) { const link = el(document, "a", "", dataset.sourceId); link.href = sourceUrl.href; link.target = "_blank"; link.rel = "noopener noreferrer"; identity.appendChild(link); } else identity.textContent = dataset.sourceId;
+    const time = el(document, "time", "", dataset.asOf || "as-of unknown"); if (validIsoTime(dataset.asOf)) time.setAttribute("datetime", dataset.asOf);
+    item.append(identity, el(document, "span", "", `${dataset.mode} · ${dataset.freshness} · ${dataset.completeness}`), time);
+    if (dataset.publicationIdentity) { const publication = el(document, "span", "oo-source-publication", `publication ${dataset.publicationIdentity}`); publication.title = dataset.publicationIdentity; item.appendChild(publication); }
+    list.appendChild(item);
+  }
   return list;
 }
 

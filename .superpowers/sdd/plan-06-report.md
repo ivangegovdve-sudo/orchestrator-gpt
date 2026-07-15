@@ -1,6 +1,6 @@
 # Plan 06 — SD Forest Open Overview implementation report
 
-Date: 2026-07-15 (Europe/Sofia)
+Date: 2026-07-16 (Europe/Sofia)
 
 Worktree: `D:\projects\.worktrees\orchestrator-gpt-open-overview`
 
@@ -16,7 +16,7 @@ All eleven Plan 06 tasks were implemented in one continuous pass. SD Forest now 
 - `/web/open-overview/openrouter/index.html` — nine-section OpenRouter dashboard.
 - `/web/open-overview/github/index.html` — eight-category GitHub dashboard.
 
-The implementation includes exact schema-v2 validation, exact-string numeric handling, a bounded public client, run-coherence checks, checksum verification, a complete ten-deep snapshot, desktop/portrait/landscape compositions, semantic tables and evidence-gated SVG history, typed unavailable states, and a separately lazy-loaded Three.js relationship canopy built only from observed app-model and returned repository-category edges. Review remediation additionally enforces stable-only manifest tiers, strict real ISO dates/times, recursive forbidden-key rejection, 16,384-character model descriptions, truthful unmanifested provenance status, eight-consecutive-day chart eligibility, bounded exact-history rendering, timeout-bounded config/fallback reads, per-client verified-fallback caching, a four-MiB generated bundle ceiling, and 320px/200% reflow accessibility.
+The implementation includes exact schema-v2 validation, exact-string numeric handling, a bounded public client, run-coherence checks, checksum verification, a complete ten-deep snapshot, desktop/portrait/landscape compositions, semantic tables and evidence-gated SVG history, typed unavailable states, and a separately lazy-loaded Three.js relationship canopy built only from observed app-model and returned repository-category edges. Review remediation additionally enforces stable-only manifest tiers, strict real ISO dates/times, recursive forbidden-key rejection, 16,384-character model descriptions, truthful unmanifested provenance status, eight-consecutive-day chart eligibility, bounded exact-history rendering, timeout-bounded config/fallback reads, per-client verified-fallback caching, a four-MiB generated bundle ceiling, and 320px/200% reflow accessibility. The final truth-and-identity pass labels deterministic direct-v2 evidence as fixture on approved preview origins and rejects it on canonical production, binds every response to its requested identity and slice, pins deferred loads to one manifest publication, and exposes GitHub enrichment provenance without describing partial star buckets as exact.
 
 No production deployment or alias change was performed.
 
@@ -30,7 +30,8 @@ No production deployment or alias change was performed.
 | `9c87d1f` | Explicit missing-v2 preview policy for the currently undeployed public-v2 manifest |
 | `cab91f3` | Initial consolidated Plan 06 verification record and portable browser-launch selection |
 | `df8b563` | Browser runner safely reuses the isolated route-specific preview listener |
-| review-fix commit (current) | Exact validator parity, provenance truth, evidence-gated history, fallback bounds/cache, no-observer semantics, 320px reflow, table semantics, and refreshed proof |
+| `40ba8a1` | Exact validator parity, provenance truth, evidence-gated history, fallback bounds/cache, no-observer semantics, 320px reflow, table semantics, and refreshed proof |
+| truth-and-identity fix (this commit) | Direct fixture truth, request/response identity binding, publication-coherent deferred loads, and partial GitHub enrichment disclosure |
 
 ## TDD record
 
@@ -46,6 +47,8 @@ No production deployment or alias change was performed.
 - Review-fix RED: 28/33 focused Node tests passed; five failures proved the missing manifest-tier parity, unmanifested provenance row, eight-day history model, timeout/cache path, and aggregate-size guard.
 - Review-fix GREEN: 33/33 focused Node tests and 16/16 Playwright scenarios.
 - Final visual RED/GREEN: the 320px capture exposed a centered source label clipped from its leading edge; the new text-geometry assertion reproduced `labelLeft 134.3125 < controlLeft 164`, then passed after the mobile source control was changed to left-aligned ellipsis.
+- Truth-and-identity RED: 0/4 focused tests passed, proving the direct API mislabeled deterministic evidence as live, request identities were not asserted, publication-incompatible views could merge, and GitHub partial buckets lacked source disclosure.
+- Truth-and-identity GREEN: 4/4 focused tests passed. The inherited Open Overview suite remained 33/33 and the browser suite remained 16/16.
 
 ## Immutable-home proof
 
@@ -60,13 +63,14 @@ No production deployment or alias change was performed.
 - Runtime used for the current proof: Node `v26.3.0`, npm `11.16.0`.
 - Clean static build: passed.
 - Open Overview Node and fixture-policy suites: 33 passed, 0 failed.
+- Truth-and-identity contract suite: 4 passed, 0 failed.
 - Inherited SD Forest guard: passed; underlying suite remains exactly 11 tests / 9 pass / 2 approved inherited failures:
   - `public council exposes exactly two truthful modes`
   - `TinyLM standalone route redirects into Councils`
-- Playwright Chromium-engine suite: 16 passed, 0 failed in 21.1 seconds.
+- Playwright Chromium-engine suite: 16 passed, 0 failed in 21.3 seconds.
 - Browser coverage: 1440x900 desktop, 390x844 portrait, 844x390 landscape, 320px at 200% page scale, unclipped mobile source-label geometry, direct routes, exact query state, truthful required/optional and unmanifested-provenance status, malformed-matrix rejection, keyboard/focus behavior, semantic row identity, labeled focusable scroll regions, bounded exact-history fallback, missing-IntersectionObserver eager semantic loading, typed matrix/provider failure, schema-major fail-closed, reduced motion, Save-Data, normal-motion lazy Three.js, and WebGL context-loss recovery.
 - No-mock preview smoke: overview `10 models / 10 apps / 100 matrix controls`; OpenRouter Free `10 rows`; GitHub MCP Adoption `10 rows`; 0 page errors.
-- Core route size excluding Three.js and its vendor: `34,994` gzip bytes (budget: less than 102,400).
+- Core route size excluding Three.js and its vendor: `37,132` gzip bytes (budget: less than 102,400).
 - Secret/private-field scan: clean.
 - `git diff --check`: passed.
 - npm audits: root 0 findings; test dependency tree 0 findings.
@@ -84,10 +88,10 @@ Review captures:
 
 - Mode: local/allow-listed preview fixture only, visibly labeled `Fixture · stale · non-production` in the source rail and page notice.
 - Generated/oldest evidence time: `2026-07-15T10:00:00.000Z`.
-- SHA-256 checksum: `afab04c9c491b3fb304d1184cedfa5965c937ef5d416749aa1c94e7f22bd4f87`.
-- Size: 887,358 bytes (generation rejects any final UTF-8 bundle above 4 MiB before writing).
+- SHA-256 checksum: `1abdd8aceded7cabc10a076412d5450ce84a42a1966b5c0e04ed7fbc642978f5`.
+- Size: 867,520 bytes (generation rejects any final UTF-8 bundle above 4 MiB before writing).
 - Production eligibility: `false`; a production origin fails unavailable rather than presenting this fixture.
-- Freshness coverage: all 165 bundled responses have per-dataset freshness metadata, including optional datasets.
+- Freshness coverage: all 165 bundled responses have per-dataset freshness metadata, including optional datasets; all 80 GitHub enrichment responses carry the exact requested date range.
 - Coverage: 10 models, 10 apps, 100 app-model cells, 10 per-app model rows for each top app, providers, free Pareto dimensions, seven history buckets rendered as bounded exact tables until an eighth consecutive complete day exists, and 10 repositories for each of eight GitHub categories plus metric/window variants and maintenance enrichment.
 - `scripts/sync-open-overview-fallback.mjs` is the production-candidate refresh path. It accepts only strict public-v2 data, rejects fixture/test/seed transforms, validates publication runs and age, enforces the final aggregate byte ceiling, and replaces the file atomically.
 
