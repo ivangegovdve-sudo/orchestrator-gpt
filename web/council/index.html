@@ -14,7 +14,7 @@
     :root { --forest-accent:#ac90ff; --forest-accent-rgb:172,144,255; }
     .council-hero { min-height: 72svh; display:grid; align-content:center; }
     .council-hero .forest-title { max-width: 9ch; }
-    .mode-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:18px; margin-top:clamp(50px,8vw,90px); }
+    .mode-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:18px; margin-top:clamp(50px,8vw,90px); }
     .mode-card {
       --mode:#79f2a8;
       position:relative; min-height:520px; display:flex; flex-direction:column; overflow:hidden;
@@ -72,6 +72,7 @@
     .mode-cta { display:flex; align-items:center; justify-content:space-between; gap:15px; margin-top:26px; padding-top:20px; border-top:1px solid rgba(213,239,215,.09); color:var(--mode); font:700 11px/1 var(--forest-body); letter-spacing:.12em; text-transform:uppercase; }
     .mode-cta::after { content:"↗"; font-size:20px; transition:transform .2s ease; }.mode-card:hover .mode-cta::after{transform:translate(3px,-3px)}
     .truth-note { max-width:760px; margin:42px auto 0; color:var(--forest-muted); font-size:12px; line-height:1.7; text-align:center; }
+    @media(max-width:960px){.mode-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
     @media(max-width:760px){.council-hero{min-height:62svh}.mode-grid{grid-template-columns:1fr}.mode-card{min-height:480px}}
   </style>
 </head>
@@ -130,6 +131,34 @@
         <p>A proposer, critic, and chairman use free-tier OpenRouter models across one to five rounds. The public relay works without setup, with an optional bring-your-own-key mode in the browser.</p>
         <div class="limit-row"><span class="limit">No memory</span><span class="limit">No delegation</span><span class="limit">Free-tier queues vary</span></div>
         <span class="mode-cta">Start deliberation</span>
+      </a>
+      <a class="mode-card" style="--mode:#60a5fa" href="/web/council/console/" data-council-mode="console">
+        <div class="mode-top"><span class="mode-number">Mode 03 · Parallel</span><span class="mode-badge">Public · free models</span></div>
+        <div class="dialogue-visual" aria-hidden="true">
+          <svg class="council-graph" viewBox="0 0 220 140" style="--tempo:1.4s;--gn:6">
+            <path class="g-wire" d="M110 24L36 104"/><path class="g-wire" d="M110 24L184 104"/>
+            <path class="g-wire" d="M110 24L72 108"/><path class="g-wire" d="M110 24L148 108"/>
+            <path class="g-wire" d="M110 24L92 112"/><path class="g-wire" d="M110 24L128 112"/>
+            <path class="g-edge" style="--gi:0" pathLength="100" d="M110 24L36 104"/>
+            <path class="g-edge" style="--gi:1" pathLength="100" d="M110 24L184 104"/>
+            <path class="g-edge" style="--gi:2" pathLength="100" d="M110 24L72 108"/>
+            <path class="g-edge" style="--gi:3" pathLength="100" d="M110 24L148 108"/>
+            <path class="g-edge" style="--gi:4" pathLength="100" d="M110 24L92 112"/>
+            <path class="g-edge" style="--gi:5" pathLength="100" d="M110 24L128 112"/>
+            <circle class="g-halo" cx="110" cy="24" r="12"/>
+            <circle class="g-node" style="--gi:0" cx="36" cy="104" r="4.5"/>
+            <circle class="g-node" style="--gi:1" cx="184" cy="104" r="4.5"/>
+            <circle class="g-node" style="--gi:2" cx="72" cy="108" r="4.5"/>
+            <circle class="g-node" style="--gi:3" cx="148" cy="108" r="4.5"/>
+            <circle class="g-node" style="--gi:4" cx="92" cy="112" r="4.5"/>
+            <circle class="g-node" style="--gi:5" cx="128" cy="112" r="4.5"/>
+            <circle class="g-node" style="--gi:0" cx="110" cy="24" r="6"/>
+          </svg>
+        </div>
+        <h2>Console</h2>
+        <p>Pick any combination of 18+ free, Groq, and paid models. Send one message and watch every selected model respond in parallel — with per-model color accents, streaming carets, and a live constellation that pulses while they think.</p>
+        <div class="limit-row"><span class="limit">No server relay</span><span class="limit">Direct API · browser</span><span class="limit">Chat &amp; council modes</span></div>
+        <span class="mode-cta">Open console</span>
       </a>
     </section>
 

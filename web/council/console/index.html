@@ -1,0 +1,1652 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Open Council Console — chat with 18+ free and paid models in parallel. Pick any combination, watch them all respond at once.">
+  <meta name="theme-color" content="#0a0a0f">
+  <title>Council Console · SDForest</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0a0a0f;
+      --gold: #f0b429;
+      --gold-dim: rgba(240,180,66,0.14);
+      --surface: #13131a;
+      --card: #1a1a24;
+      --card-hover: #1e1e2a;
+      --border: #2a2a38;
+      --border-subtle: #1e1e28;
+      --accent: #3b82f6;
+      --accent-dim: rgba(59,130,246,0.15);
+      --accent-glow: rgba(59,130,246,0.4);
+      --green: #22c55e;
+      --green-dim: rgba(34,197,94,0.12);
+      --amber: #f59e0b;
+      --amber-dim: rgba(245,158,11,0.12);
+      --red: #ef4444;
+      --red-dim: rgba(239,68,68,0.12);
+      --purple: #a855f7;
+      --purple-dim: rgba(168,85,247,0.12);
+      --text: #dde1ef;
+      --text-dim: #7a7d9a;
+      --text-faint: #444560;
+      --radius: 8px;
+      --radius-sm: 5px;
+      --font: 'Space Grotesk', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      --font-mono: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+      --topbar-h: 42px;
+    }
+
+    html, body { height: 100%; overflow: hidden; }
+
+    body {
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--text);
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    /* ─── Site topbar ───────────────────────────────────────── */
+    .site-topbar {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      height: var(--topbar-h);
+      background: rgba(10,10,15,0.82);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      display: flex;
+      align-items: center;
+      padding: 0 14px;
+      z-index: 50;
+      gap: 10px;
+    }
+
+    .site-back {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      text-decoration: none;
+      font-family: var(--font-mono);
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      transition: color 0.15s;
+    }
+    .site-back:hover { color: var(--accent); }
+    .site-back svg { opacity: 0.7; }
+
+    .site-sep {
+      width: 1px;
+      height: 16px;
+      background: var(--border);
+    }
+
+    .site-page-name {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--text-faint);
+      font-family: var(--font-mono);
+    }
+
+    /* ─── Layout ────────────────────────────────────────────── */
+    .app {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      padding-top: var(--topbar-h);
+    }
+
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 16px;
+      height: 48px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+      z-index: 10;
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .logo {
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      color: var(--accent);
+      text-transform: uppercase;
+    }
+
+    .logo-hex {
+      display: inline-block;
+      margin-right: 6px;
+      animation: spin 20s linear infinite;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .mode-pill {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      padding: 2px 8px;
+      border-radius: 20px;
+      text-transform: uppercase;
+    }
+    .mode-pill.chat { background: var(--accent-dim); color: var(--accent); border: 1px solid rgba(59,130,246,0.3); }
+    .mode-pill.council { background: var(--purple-dim); color: var(--purple); border: 1px solid rgba(168,85,247,0.3); }
+
+    .model-count-badge {
+      font-size: 11px;
+      color: var(--text-dim);
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .gate-btn {
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--text-dim);
+      border-radius: var(--radius-sm);
+      padding: 4px 10px;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s;
+    }
+    .gate-btn:hover { border-color: var(--accent); color: var(--accent); }
+    .gate-btn.unlocked {
+      border-color: var(--amber);
+      color: var(--amber);
+      background: var(--amber-dim);
+    }
+
+    .main {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+    }
+
+    /* ─── Sidebar ────────────────────────────────────────────── */
+    .sidebar {
+      width: 240px;
+      flex-shrink: 0;
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .sidebar-inner {
+      flex: 1;
+      overflow-y: auto;
+      padding: 8px 0;
+    }
+
+    .sidebar-inner::-webkit-scrollbar { width: 4px; }
+    .sidebar-inner::-webkit-scrollbar-track { background: transparent; }
+    .sidebar-inner::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+    .sidebar-section { padding: 0 0 8px; }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 12px 4px;
+    }
+
+    .section-label {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--text-faint);
+    }
+
+    .section-actions { display: flex; gap: 4px; }
+
+    .btn-tiny {
+      font-size: 10px;
+      padding: 1px 6px;
+      border-radius: 3px;
+      border: 1px solid var(--border);
+      background: none;
+      color: var(--text-dim);
+      cursor: pointer;
+      transition: all 0.1s;
+    }
+    .btn-tiny:hover { border-color: var(--accent); color: var(--accent); }
+
+    .model-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 5px 12px;
+      cursor: pointer;
+      border-radius: 0;
+      transition: background 0.1s;
+      user-select: none;
+    }
+    .model-item:hover { background: var(--card); }
+    .model-item.selected { background: var(--accent-dim); }
+
+    .model-check {
+      width: 14px;
+      height: 14px;
+      border: 1.5px solid var(--border);
+      border-radius: 3px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      transition: all 0.1s;
+      font-size: 9px;
+    }
+    .model-item.selected .model-check {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: white;
+    }
+
+    .model-info { flex: 1; min-width: 0; }
+    .model-name {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .model-meta {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      margin-top: 1px;
+    }
+
+    .model-provider { font-size: 10px; color: var(--text-faint); }
+
+    .badge {
+      font-size: 9px;
+      font-weight: 700;
+      padding: 0 4px;
+      border-radius: 3px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .badge-free { background: var(--green-dim); color: var(--green); }
+    .badge-groq { background: rgba(251,146,60,0.12); color: #fb923c; }
+    .badge-paid { background: var(--red-dim); color: var(--red); }
+    .badge-warn { background: rgba(251,146,60,0.1); color: #fb923c; font-size: 8px; }
+
+    .sidebar-divider { height: 1px; background: var(--border-subtle); margin: 6px 12px; }
+
+    .sidebar-bottom {
+      border-top: 1px solid var(--border);
+      padding: 8px;
+      flex-shrink: 0;
+    }
+
+    .sysprompt-label {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text-faint);
+      margin-bottom: 4px;
+      display: block;
+    }
+
+    #systemPrompt {
+      width: 100%;
+      background: var(--card);
+      border: 1px solid var(--border);
+      color: var(--text);
+      border-radius: var(--radius-sm);
+      padding: 6px 8px;
+      font-family: var(--font);
+      font-size: 11px;
+      line-height: 1.5;
+      resize: vertical;
+      min-height: 52px;
+      max-height: 120px;
+    }
+    #systemPrompt:focus { outline: none; border-color: var(--accent); }
+    #systemPrompt::placeholder { color: var(--text-faint); }
+
+    .liberation-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 8px;
+      padding: 6px 8px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+      background: var(--card);
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .liberation-row:hover { border-color: var(--red); }
+    .liberation-row.active { border-color: var(--red); background: var(--red-dim); }
+    .liberation-row input { cursor: pointer; accent-color: var(--red); }
+    .liberation-label { font-size: 11px; font-weight: 600; color: var(--text-dim); }
+    .liberation-row.active .liberation-label { color: var(--red); }
+
+    /* ─── Chat Area ──────────────────────────────────────────── */
+    .chat-area {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      background: var(--bg);
+    }
+
+    .messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .messages::-webkit-scrollbar { width: 5px; }
+    .messages::-webkit-scrollbar-track { background: transparent; }
+    .messages::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+    .empty-state {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-faint);
+      gap: 12px;
+      user-select: none;
+    }
+
+    .empty-icon {
+      font-size: 32px;
+      animation: pulse-dim 3s ease-in-out infinite;
+    }
+
+    @keyframes pulse-dim {
+      0%, 100% { opacity: 0.3; }
+      50% { opacity: 0.6; }
+    }
+
+    .empty-state p { font-size: 13px; }
+
+    .turn {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      animation: fadeSlideUp 0.2s ease forwards;
+    }
+
+    @keyframes fadeSlideUp {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .user-msg {
+      align-self: flex-end;
+      max-width: 65%;
+      background: var(--accent-dim);
+      border: 1px solid rgba(59,130,246,0.25);
+      border-radius: 12px 12px 2px 12px;
+      padding: 10px 14px;
+      font-size: 13px;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .council-grid { display: grid; gap: 12px; width: 100%; }
+    .council-grid.cols-1 { grid-template-columns: 1fr; }
+    .council-grid.cols-2 { grid-template-columns: repeat(2, 1fr); }
+    .council-grid.cols-3 { grid-template-columns: repeat(3, 1fr); }
+    .council-grid.cols-4 { grid-template-columns: repeat(2, 1fr); }
+
+    .resp-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      min-height: 80px;
+      position: relative;
+    }
+
+    .resp-card.streaming {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 1px var(--accent-dim), 0 0 16px rgba(59,130,246,0.1);
+      animation: pulse-border 1.5s ease-in-out infinite;
+    }
+
+    @keyframes pulse-border {
+      0%, 100% { box-shadow: 0 0 0 1px var(--accent-dim), 0 0 12px rgba(59,130,246,0.08); }
+      50% { box-shadow: 0 0 0 1px var(--accent-dim), 0 0 20px rgba(59,130,246,0.18); }
+    }
+
+    .resp-card.error-card { border-color: var(--red); background: var(--red-dim); }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 12px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      gap: 8px;
+    }
+
+    .card-model-name {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .card-meta {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+
+    .latency-badge { font-size: 10px; color: var(--text-faint); font-family: var(--font-mono); }
+
+    .card-copy-btn {
+      background: none;
+      border: none;
+      color: var(--text-faint);
+      cursor: pointer;
+      font-size: 11px;
+      padding: 0 4px;
+      border-radius: 3px;
+      transition: all 0.1s;
+      line-height: 1;
+    }
+    .card-copy-btn:hover { background: var(--border); color: var(--text); }
+
+    .streaming-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--accent);
+      animation: dot-pulse 0.8s ease-in-out infinite;
+    }
+    @keyframes dot-pulse {
+      0%, 100% { opacity: 0.3; transform: scale(0.8); }
+      50% { opacity: 1; transform: scale(1.1); }
+    }
+
+    .card-content {
+      padding: 12px;
+      font-size: 13px;
+      line-height: 1.65;
+      flex: 1;
+      overflow-y: auto;
+      max-height: 400px;
+      white-space: pre-wrap;
+      word-break: break-word;
+      color: var(--text);
+    }
+
+    .card-content::-webkit-scrollbar { width: 3px; }
+    .card-content::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+    .card-content.rendered h1, .card-content.rendered h2, .card-content.rendered h3 { font-weight: 700; margin: 12px 0 6px; color: var(--text); }
+    .card-content.rendered h1 { font-size: 16px; }
+    .card-content.rendered h2 { font-size: 14px; }
+    .card-content.rendered h3 { font-size: 13px; }
+    .card-content.rendered p { margin: 0 0 8px; }
+    .card-content.rendered ul, .card-content.rendered ol { margin: 6px 0 8px 16px; }
+    .card-content.rendered li { margin: 2px 0; }
+    .card-content.rendered code { font-family: var(--font-mono); font-size: 12px; background: rgba(255,255,255,0.06); padding: 1px 5px; border-radius: 3px; color: #a5d8ff; }
+    .card-content.rendered pre { background: rgba(0,0,0,0.3); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 10px; margin: 8px 0; overflow-x: auto; }
+    .card-content.rendered pre code { background: none; padding: 0; font-size: 12px; }
+    .card-content.rendered strong { font-weight: 700; color: #e8ecf8; }
+    .card-content.rendered em { color: #b0bacc; }
+    .card-content.rendered blockquote { border-left: 2px solid var(--accent); padding-left: 10px; color: var(--text-dim); margin: 8px 0; }
+
+    /* ─── Input Area ─────────────────────────────────────────── */
+    .input-area {
+      padding: 12px 20px 16px;
+      background: var(--bg);
+      border-top: 1px solid var(--border-subtle);
+      display: flex;
+      gap: 10px;
+      align-items: flex-end;
+    }
+
+    .input-wrap { flex: 1; position: relative; }
+
+    #userInput {
+      width: 100%;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      color: var(--text);
+      font-family: var(--font);
+      font-size: 13px;
+      padding: 10px 14px;
+      line-height: 1.5;
+      resize: none;
+      min-height: 42px;
+      max-height: 160px;
+      overflow-y: auto;
+      transition: border-color 0.15s;
+    }
+    #userInput:focus { outline: none; border-color: var(--accent); }
+    #userInput::placeholder { color: var(--text-faint); }
+
+    .send-btn {
+      background: var(--accent);
+      border: none;
+      color: white;
+      width: 42px;
+      height: 42px;
+      border-radius: var(--radius);
+      cursor: pointer;
+      font-size: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      transition: all 0.15s;
+    }
+    .send-btn:hover { background: #2563eb; transform: translateY(-1px); }
+    .send-btn:active { transform: translateY(0); }
+    .send-btn:disabled { background: var(--border); cursor: not-allowed; transform: none; }
+
+    .input-hint { font-size: 10px; color: var(--text-faint); margin-top: 5px; text-align: right; }
+
+    /* ─── Modal ──────────────────────────────────────────────── */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.7);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      backdrop-filter: blur(4px);
+      animation: fadeIn 0.15s ease;
+    }
+
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+    .modal {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 24px;
+      width: 300px;
+      box-shadow: 0 24px 60px rgba(0,0,0,0.5);
+      animation: slideUp 0.2s ease;
+    }
+
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(12px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .modal h3 { font-size: 14px; font-weight: 700; color: var(--text); margin-bottom: 16px; letter-spacing: 0.02em; }
+
+    .modal input[type="password"] {
+      width: 100%;
+      background: var(--card);
+      border: 1px solid var(--border);
+      color: var(--text);
+      border-radius: var(--radius-sm);
+      padding: 8px 12px;
+      font-size: 20px;
+      letter-spacing: 0.2em;
+      text-align: center;
+      margin-bottom: 12px;
+    }
+    .modal input[type="password"]:focus { outline: none; border-color: var(--accent); }
+
+    .modal-error { font-size: 11px; color: var(--red); margin-bottom: 8px; min-height: 16px; }
+
+    .modal-actions { display: flex; gap: 8px; }
+
+    .btn-primary {
+      flex: 1;
+      background: var(--accent);
+      border: none;
+      color: white;
+      border-radius: var(--radius-sm);
+      padding: 8px 0;
+      font-weight: 700;
+      font-size: 13px;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .btn-primary:hover { background: #2563eb; }
+
+    .btn-secondary {
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--text-dim);
+      border-radius: var(--radius-sm);
+      padding: 8px 14px;
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .btn-secondary:hover { border-color: var(--text-dim); }
+
+    /* ─── Toast ──────────────────────────────────────────────── */
+    .toast {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px 16px;
+      font-size: 12px;
+      color: var(--text);
+      z-index: 200;
+      animation: toastIn 0.2s ease;
+      pointer-events: none;
+    }
+    @keyframes toastIn { from { opacity: 0; transform: translateX(-50%) translateY(8px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
+
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+    @media (max-width: 600px) {
+      .sidebar { width: 180px; }
+      .council-grid.cols-2, .council-grid.cols-3, .council-grid.cols-4 { grid-template-columns: 1fr; }
+      .user-msg { max-width: 90%; }
+    }
+
+    /* ═══ VISUAL LAYER ═══════════════════════════════════════
+       Ambient constellation canvas + glass surfaces +
+       per-model accents.                                      */
+
+    #ambient { position: fixed; inset: 0; z-index: 0; display: block; pointer-events: none; }
+
+    .grain {
+      position: fixed; inset: 0; z-index: 600; pointer-events: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+      opacity: 0.035;
+      mix-blend-mode: overlay;
+    }
+
+    /* Glass surfaces over the canvas */
+    .site-topbar { background: rgba(10,10,15,0.82); }
+    .app { position: relative; z-index: 1; }
+    header { background: rgba(15,15,23,0.68); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); }
+    .sidebar { background: rgba(12,12,19,0.62); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); }
+    .chat-area { background: transparent; }
+    .input-area { background: rgba(10,10,15,0.5); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); }
+    #userInput, #systemPrompt { background: rgba(24,24,35,0.65); }
+    .user-msg { backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+    .modal { background: rgba(19,19,29,0.88); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); }
+
+    /* Typography */
+    .logo { font-family: var(--font-mono); letter-spacing: 0.2em; transition: color 0.6s ease; }
+    .logo-hex { text-shadow: 0 0 12px var(--accent-glow); }
+    .section-label, .sysprompt-label { font-family: var(--font-mono); }
+    .mode-pill, .badge, .gate-btn, .btn-tiny { font-family: var(--font-mono); }
+
+    .send-btn { transition: all 0.15s, box-shadow 0.25s; }
+    .send-btn:hover { box-shadow: 0 4px 18px var(--accent-glow); }
+
+    /* Gold state: gate unlocked */
+    body.unlocked {
+      --accent: #f0b429;
+      --accent-dim: rgba(240,180,66,0.14);
+      --accent-glow: rgba(240,180,66,0.4);
+    }
+    body.unlocked .send-btn { background: var(--accent); }
+    body.unlocked .send-btn:hover { background: #ffca4d; }
+
+    #gateBtnIcon { display: inline-block; }
+    #gateBtnIcon.opening { animation: lockOpen 0.75s cubic-bezier(0.34, 1.56, 0.64, 1); }
+    @keyframes lockOpen {
+      0%   { transform: rotate(0) scale(1); }
+      30%  { transform: rotate(-28deg) scale(1.35); }
+      60%  { transform: rotate(14deg) scale(1.15); }
+      100% { transform: rotate(0) scale(1); }
+    }
+    .gate-flash {
+      position: fixed; inset: 0; z-index: 90; pointer-events: none;
+      background: radial-gradient(circle at 50% 28%, rgba(240,180,66,0.3), rgba(240,180,66,0.06) 45%, transparent 70%);
+      animation: flashFade 0.9s ease-out forwards;
+    }
+    @keyframes flashFade { from { opacity: 1; } to { opacity: 0; } }
+
+    /* Per-model color chips */
+    .model-item { transition: background 0.15s ease, box-shadow 0.15s ease; }
+    .model-item:hover {
+      background: color-mix(in srgb, var(--mc, var(--accent)) 8%, transparent);
+      box-shadow: inset 2px 0 0 color-mix(in srgb, var(--mc, var(--accent)) 55%, transparent);
+    }
+    .model-item.selected {
+      background: color-mix(in srgb, var(--mc, var(--accent)) 13%, transparent);
+      box-shadow: inset 2px 0 0 var(--mc, var(--accent));
+    }
+    .model-item.selected .model-check {
+      background: var(--mc, var(--accent));
+      border-color: var(--mc, var(--accent));
+      color: #0a0a0f;
+      animation: checkPop 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    @keyframes checkPop { 0% { transform: scale(0.4); } 65% { transform: scale(1.25); } 100% { transform: scale(1); } }
+
+    /* Response cards: spring entrance + model-color glow */
+    .resp-card {
+      background: rgba(21,21,31,0.58);
+      backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+      animation: cardIn 0.55s cubic-bezier(0.34, 1.56, 0.64, 1) backwards;
+      animation-delay: calc(var(--i, 0) * 70ms);
+    }
+    @keyframes cardIn {
+      from { opacity: 0; transform: translateY(18px) scale(0.96); }
+      to   { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    .resp-card.streaming {
+      border-color: color-mix(in srgb, var(--mc, var(--accent)) 45%, transparent);
+      box-shadow: none;
+      animation: cardIn 0.55s cubic-bezier(0.34, 1.56, 0.64, 1) backwards;
+      animation-delay: calc(var(--i, 0) * 70ms);
+    }
+    .resp-card::before {
+      content: ''; position: absolute; inset: -1px; border-radius: inherit;
+      pointer-events: none; opacity: 0;
+      box-shadow: 0 0 22px color-mix(in srgb, var(--mc, var(--accent)) 28%, transparent),
+                  inset 0 0 14px color-mix(in srgb, var(--mc, var(--accent)) 7%, transparent);
+      transition: opacity 0.4s ease;
+    }
+    .resp-card.streaming::before { opacity: 1; animation: glowPulse 1.6s ease-in-out infinite; }
+    @keyframes glowPulse { 0%, 100% { opacity: 0.4; } 50% { opacity: 1; } }
+
+    .card-header { background: rgba(14,14,22,0.5); }
+    .card-model-name { color: var(--mc, var(--text)); font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.04em; }
+    .streaming-dot { background: var(--mc, var(--accent)); box-shadow: 0 0 6px var(--mc, var(--accent)); }
+
+    /* Thinking placeholder: bouncing dots + shimmer sweep */
+    .thinking { display: flex; gap: 5px; align-items: center; padding: 3px 0; }
+    .thinking span {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--mc, var(--accent));
+      animation: thinkBounce 1.1s ease-in-out infinite;
+    }
+    .thinking span:nth-child(2) { animation-delay: 0.15s; }
+    .thinking span:nth-child(3) { animation-delay: 0.3s; }
+    @keyframes thinkBounce {
+      0%, 100% { transform: translateY(0); opacity: 0.35; }
+      40%      { transform: translateY(-4px); opacity: 1; }
+    }
+    .resp-card.waiting .card-content {
+      background: linear-gradient(100deg, transparent 35%, color-mix(in srgb, var(--mc, var(--accent)) 5%, transparent) 50%, transparent 65%);
+      background-size: 220% 100%;
+      animation: shimmer 1.8s linear infinite;
+    }
+    @keyframes shimmer { from { background-position: 120% 0; } to { background-position: -120% 0; } }
+
+    /* Streaming caret */
+    .resp-card.streaming:not(.waiting) .card-content::after {
+      content: '▍'; color: var(--mc, var(--accent));
+      animation: caretBlink 0.9s steps(2, start) infinite;
+    }
+    @keyframes caretBlink { 50% { opacity: 0; } }
+
+    /* Latency badge fades in on completion */
+    .latency-badge { opacity: 0; }
+    .latency-badge.show { animation: latIn 0.45s ease 0.1s forwards; }
+    @keyframes latIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* Empty state */
+    .empty-icon {
+      color: var(--accent);
+      text-shadow: 0 0 24px var(--accent-glow);
+      animation: pulse-dim 3s ease-in-out infinite, floatY 6s ease-in-out infinite;
+    }
+    @keyframes floatY { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+
+    /* Entrance animation for the whole app */
+    @keyframes appReveal {
+      from { opacity: 0; transform: translateY(6px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .app { animation: appReveal 0.45s cubic-bezier(0.16, 1, 0.3, 1) backwards; }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<!-- SDForest site topbar -->
+<nav class="site-topbar" aria-label="Site navigation">
+  <a class="site-back" href="/web/council/">
+    <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
+      <path d="M7.5 2L3.5 6L7.5 10" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    Councils
+  </a>
+  <div class="site-sep"></div>
+  <span class="site-page-name">Console</span>
+</nav>
+
+<canvas id="ambient" aria-hidden="true"></canvas>
+<div class="grain" aria-hidden="true"></div>
+
+<div class="app">
+  <header>
+    <div class="header-left">
+      <span class="logo"><span class="logo-hex">⬡</span> COUNCIL</span>
+      <span class="mode-pill chat" id="modePill">CHAT</span>
+      <span class="model-count-badge" id="modelCountBadge">0 selected</span>
+    </div>
+    <div class="header-right">
+      <button class="gate-btn" id="gateBtn" onclick="openGateModal()">
+        <span id="gateBtnIcon">🔒</span>
+        <span id="gateBtnLabel">GATED</span>
+      </button>
+    </div>
+  </header>
+
+  <div class="main">
+    <aside class="sidebar">
+      <div class="sidebar-inner">
+        <!-- Free models -->
+        <div class="sidebar-section">
+          <div class="section-header">
+            <span class="section-label">Free Models</span>
+            <div class="section-actions">
+              <button class="btn-tiny" onclick="selectAllFree()">ALL</button>
+              <button class="btn-tiny" onclick="clearFree()">NONE</button>
+            </div>
+          </div>
+          <div id="freeModelList"></div>
+        </div>
+
+        <!-- Gated section: Groq + paid OR -->
+        <div class="sidebar-section" id="gatedSection" style="display:none">
+          <div class="sidebar-divider"></div>
+          <div class="section-header">
+            <span class="section-label">⚡ Groq</span>
+          </div>
+          <div id="groqModelList"></div>
+          <div class="section-header" style="margin-top:4px">
+            <span class="section-label">💰 Paid OR</span>
+          </div>
+          <div id="paidModelList"></div>
+        </div>
+      </div>
+
+      <!-- Bottom: system prompt + liberation -->
+      <div class="sidebar-bottom">
+        <label class="sysprompt-label">System Prompt</label>
+        <textarea id="systemPrompt" placeholder="Optional system instructions..."></textarea>
+        <div class="liberation-row" id="liberationRow" style="display:none" onclick="toggleLiberation()">
+          <input type="checkbox" id="liberationCheck">
+          <span class="liberation-label">⚡ Aggressive Liberation</span>
+        </div>
+      </div>
+    </aside>
+
+    <div class="chat-area">
+      <div class="messages" id="messages">
+        <div class="empty-state" id="emptyState">
+          <div class="empty-icon">⬡</div>
+          <p>Select models and send a message</p>
+        </div>
+      </div>
+      <div class="input-area">
+        <div class="input-wrap">
+          <textarea id="userInput" placeholder="Message the council…" rows="1"
+            oninput="autoResize(this)"
+            onkeydown="handleKey(event)"></textarea>
+          <div class="input-hint">Enter to send · Shift+Enter for newline</div>
+        </div>
+        <button class="send-btn" id="sendBtn" onclick="sendMessage()" title="Send">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <path d="M2 8l5-5 5 5M7 3v10" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Gate modal -->
+<div class="modal-overlay" id="gateModal" style="display:none" onclick="modalBgClick(event)">
+  <div class="modal">
+    <h3>🔒 Enter Access Code</h3>
+    <input type="password" id="passwordInput" placeholder="••••" maxlength="8"
+      onkeydown="if(event.key==='Enter')checkPassword()">
+    <div class="modal-error" id="passwordError"></div>
+    <div class="modal-actions">
+      <button class="btn-primary" onclick="checkPassword()">Unlock</button>
+      <button class="btn-secondary" onclick="closeGateModal()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════
+//  API CONFIG
+//  Keys are fetched from /api/council-keys on boot (Vercel
+//  env vars — never in source). Free models call OpenRouter
+//  directly from the browser; Groq + paid are gated behind
+//  GATE_PASS (UX gate only).
+//
+//  TinyLM local backend (Oracle ARM at 100.72.34.7) is not
+//  reachable from Vercel. To add local-model support, expose
+//  a public HTTPS proxy in front of the Ollama endpoint and
+//  set TINYLM_PUBLIC_URL below.
+// ═══════════════════════════════════════════════════════
+let OR_KEY   = '';
+let GROQ_KEY = '';
+const GATE_PASS = '5511';
+
+// TinyLM public endpoint placeholder
+const TINYLM_PUBLIC_URL = '';
+
+
+// Per-model accent palette — cycled by registry position
+const MODEL_PALETTE = ['#60a5fa','#a78bfa','#34d399','#f472b6','#fbbf24','#22d3ee','#fb923c','#a3e635'];
+function colorFor(model) {
+  const all = [...FREE_MODELS, ...GROQ_MODELS, ...PAID_OR_MODELS];
+  const i = all.findIndex(m => m.id === model.id);
+  return MODEL_PALETTE[(i < 0 ? 0 : i) % MODEL_PALETTE.length];
+}
+
+// ═══════════════════════════════════════════════════════
+//  MODEL REGISTRY
+// ═══════════════════════════════════════════════════════
+const FREE_MODELS = [
+  { id: 'deepseek/deepseek-r1:free',               name: 'DeepSeek R1',           provider: 'DeepSeek',      api: 'or', default: true },
+  { id: 'deepseek/deepseek-r1-0528:free',          name: 'DeepSeek R1 0528',      provider: 'DeepSeek',      api: 'or' },
+  { id: 'meta-llama/llama-3.3-70b-instruct:free',  name: 'Llama 3.3 70B',        provider: 'Meta',          api: 'or', warn: 'often 429' },
+  { id: 'meta-llama/llama-3.1-8b-instruct:free',   name: 'Llama 3.1 8B',         provider: 'Meta',          api: 'or' },
+  { id: 'meta-llama/llama-3.2-3b-instruct:free',   name: 'Llama 3.2 3B',         provider: 'Meta',          api: 'or' },
+  { id: 'meta-llama/llama-3.2-11b-vision-instruct:free', name: 'Llama 3.2 11B Vision', provider: 'Meta',   api: 'or' },
+  { id: 'google/gemma-3-27b-it:free',              name: 'Gemma 3 27B',           provider: 'Google',        api: 'or' },
+  { id: 'google/gemma-3-12b-it:free',              name: 'Gemma 3 12B',           provider: 'Google',        api: 'or' },
+  { id: 'google/gemma-2-9b-it:free',               name: 'Gemma 2 9B',            provider: 'Google',        api: 'or' },
+  { id: 'mistralai/mistral-7b-instruct:free',      name: 'Mistral 7B',            provider: 'Mistral',       api: 'or' },
+  { id: 'mistralai/mistral-nemo:free',             name: 'Mistral Nemo',          provider: 'Mistral',       api: 'or' },
+  { id: 'qwen/qwen3-8b:free',                      name: 'Qwen3 8B',              provider: 'Alibaba',       api: 'or' },
+  { id: 'qwen/qwen3-14b:free',                     name: 'Qwen3 14B',             provider: 'Alibaba',       api: 'or' },
+  { id: 'qwen/qwq-32b:free',                       name: 'QwQ 32B',               provider: 'Alibaba',       api: 'or' },
+  { id: 'microsoft/phi-4:free',                    name: 'Phi-4',                 provider: 'Microsoft',     api: 'or' },
+  { id: 'nousresearch/hermes-3-llama-3.1-70b:free', name: 'Hermes 3 70B',        provider: 'NousResearch',  api: 'or' },
+  { id: 'nvidia/llama-3.1-nemotron-70b-instruct:free', name: 'Nemotron 70B',     provider: 'NVIDIA',        api: 'or' },
+  { id: 'tencent/hunyuan-a13b-instruct:free',      name: 'Hunyuan A13B',          provider: 'Tencent',       api: 'or' },
+];
+
+const GROQ_MODELS = [
+  { id: 'llama-3.3-70b-versatile',   name: 'Llama 3.3 70B',     provider: 'Groq', api: 'groq', tier: 'groq' },
+  { id: 'llama-3.1-70b-versatile',   name: 'Llama 3.1 70B',     provider: 'Groq', api: 'groq', tier: 'groq' },
+  { id: 'llama-3.1-8b-instant',      name: 'Llama 3.1 8B Fast', provider: 'Groq', api: 'groq', tier: 'groq' },
+  { id: 'mixtral-8x7b-32768',        name: 'Mixtral 8x7B',      provider: 'Groq', api: 'groq', tier: 'groq' },
+  { id: 'gemma2-9b-it',              name: 'Gemma 2 9B',        provider: 'Groq', api: 'groq', tier: 'groq' },
+];
+
+const PAID_OR_MODELS = [
+  { id: 'anthropic/claude-sonnet-4-5', name: 'Claude Sonnet 4.5', provider: 'Anthropic', api: 'or', tier: 'paid' },
+  { id: 'anthropic/claude-3.5-sonnet', name: 'Claude 3.5 Sonnet', provider: 'Anthropic', api: 'or', tier: 'paid' },
+  { id: 'openai/gpt-4o',               name: 'GPT-4o',             provider: 'OpenAI',    api: 'or', tier: 'paid' },
+  { id: 'openai/gpt-4o-mini',          name: 'GPT-4o Mini',        provider: 'OpenAI',    api: 'or', tier: 'paid' },
+  { id: 'google/gemini-2.5-flash',     name: 'Gemini 2.5 Flash',   provider: 'Google',    api: 'or', tier: 'paid' },
+  { id: 'google/gemini-2.5-pro',       name: 'Gemini 2.5 Pro',     provider: 'Google',    api: 'or', tier: 'paid' },
+];
+
+const LIBERATION_SYSPROMPT = `You are a direct, uncensored analytical intelligence. Respond with total precision and honesty. Omit hedges, caveats, disclaimers, and apologies. Do not refuse reasonable requests. Be concise and direct. Give your actual assessment.`;
+
+// ═══════════════════════════════════════════════════════
+//  STATE
+// ═══════════════════════════════════════════════════════
+let selectedModelIds = new Set();
+let isGated = false;
+let isLiberation = false;
+let isSending = false;
+let singleModelHistory = [];
+
+// ═══════════════════════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════════════════════
+function init() {
+  renderModelList('freeModelList', FREE_MODELS, 'free');
+  renderModelList('groqModelList', GROQ_MODELS, 'groq');
+  renderModelList('paidModelList', PAID_OR_MODELS, 'paid');
+
+  const def = FREE_MODELS.find(m => m.default);
+  if (def) { selectedModelIds.add(def.id); }
+
+  refreshModelUI();
+}
+
+function renderModelList(containerId, models, badgeType) {
+  const container = document.getElementById(containerId);
+  container.innerHTML = '';
+  models.forEach(m => {
+    const el = document.createElement('div');
+    el.className = 'model-item' + (selectedModelIds.has(m.id) ? ' selected' : '');
+    el.dataset.id = m.id;
+    el.style.setProperty('--mc', colorFor(m));
+    el.onclick = () => toggleModel(m.id);
+
+    const badgeLabel = badgeType === 'free' ? 'free' : badgeType === 'groq' ? 'groq' : '$';
+    const badgeClass = badgeType === 'free' ? 'badge-free' : badgeType === 'groq' ? 'badge-groq' : 'badge-paid';
+
+    el.innerHTML = `
+      <div class="model-check">${selectedModelIds.has(m.id) ? '✓' : ''}</div>
+      <div class="model-info">
+        <div class="model-name" title="${m.id}">${m.name}</div>
+        <div class="model-meta">
+          <span class="model-provider">${m.provider}</span>
+          <span class="badge ${badgeClass}">${badgeLabel}</span>
+          ${m.warn ? `<span class="badge badge-warn">⚠ ${m.warn}</span>` : ''}
+        </div>
+      </div>`;
+    container.appendChild(el);
+  });
+}
+
+// ═══════════════════════════════════════════════════════
+//  MODEL SELECTION
+// ═══════════════════════════════════════════════════════
+function toggleModel(id) {
+  if (selectedModelIds.has(id)) selectedModelIds.delete(id);
+  else selectedModelIds.add(id);
+  refreshModelUI();
+}
+
+function refreshModelUI() {
+  document.querySelectorAll('.model-item').forEach(el => {
+    const sel = selectedModelIds.has(el.dataset.id);
+    el.classList.toggle('selected', sel);
+    el.querySelector('.model-check').textContent = sel ? '✓' : '';
+  });
+
+  const count = selectedModelIds.size;
+  document.getElementById('modelCountBadge').textContent = count === 0 ? 'none selected' :
+    count === 1 ? '1 model' : `${count} models`;
+
+  const pill = document.getElementById('modePill');
+  if (count <= 1) {
+    pill.textContent = 'CHAT';
+    pill.className = 'mode-pill chat';
+  } else {
+    pill.textContent = 'COUNCIL';
+    pill.className = 'mode-pill council';
+  }
+}
+
+function selectAllFree() {
+  FREE_MODELS.forEach(m => selectedModelIds.add(m.id));
+  refreshModelUI();
+}
+
+function clearFree() {
+  FREE_MODELS.forEach(m => selectedModelIds.delete(m.id));
+  refreshModelUI();
+}
+
+// ═══════════════════════════════════════════════════════
+//  GATE
+// ═══════════════════════════════════════════════════════
+function openGateModal() {
+  if (isGated) { lockGate(); return; }
+  document.getElementById('gateModal').style.display = 'flex';
+  document.getElementById('passwordInput').value = '';
+  document.getElementById('passwordError').textContent = '';
+  setTimeout(() => document.getElementById('passwordInput').focus(), 50);
+}
+
+function closeGateModal() { document.getElementById('gateModal').style.display = 'none'; }
+
+function modalBgClick(e) {
+  if (e.target === document.getElementById('gateModal')) closeGateModal();
+}
+
+function checkPassword() {
+  const val = document.getElementById('passwordInput').value;
+  if (val === GATE_PASS) {
+    unlockGate(); closeGateModal();
+  } else {
+    document.getElementById('passwordError').textContent = 'Incorrect code.';
+    document.getElementById('passwordInput').value = '';
+    document.getElementById('passwordInput').focus();
+  }
+}
+
+function unlockGate() {
+  isGated = true;
+  document.getElementById('gatedSection').style.display = '';
+  document.getElementById('liberationRow').style.display = '';
+  const btn = document.getElementById('gateBtn');
+  btn.classList.add('unlocked');
+  const icon = document.getElementById('gateBtnIcon');
+  icon.textContent = '🔓';
+  icon.classList.add('opening');
+  setTimeout(() => icon.classList.remove('opening'), 800);
+  document.getElementById('gateBtnLabel').textContent = 'UNLOCK';
+  document.body.classList.add('unlocked');
+  Ambient.setGold(true);
+  Ambient.burst();
+  const fl = document.createElement('div');
+  fl.className = 'gate-flash';
+  document.body.appendChild(fl);
+  fl.addEventListener('animationend', () => fl.remove());
+  setTimeout(() => fl.remove(), 1200);
+  showToast('Gated models unlocked');
+}
+
+function lockGate() {
+  isGated = false;
+  [...GROQ_MODELS, ...PAID_OR_MODELS].forEach(m => selectedModelIds.delete(m.id));
+  refreshModelUI();
+  document.getElementById('gatedSection').style.display = 'none';
+  document.getElementById('liberationRow').style.display = 'none';
+  document.getElementById('liberationCheck').checked = false;
+  isLiberation = false;
+  document.body.classList.remove('unlocked');
+  Ambient.setGold(false);
+  const btn = document.getElementById('gateBtn');
+  btn.classList.remove('unlocked');
+  document.getElementById('gateBtnIcon').textContent = '🔒';
+  document.getElementById('gateBtnLabel').textContent = 'GATED';
+  showToast('Locked');
+}
+
+function toggleLiberation() {
+  isLiberation = !isLiberation;
+  document.getElementById('liberationCheck').checked = isLiberation;
+  document.getElementById('liberationRow').classList.toggle('active', isLiberation);
+}
+
+// ═══════════════════════════════════════════════════════
+//  MESSAGING
+// ═══════════════════════════════════════════════════════
+function handleKey(e) {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+}
+
+function autoResize(el) {
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 160) + 'px';
+}
+
+async function sendMessage() {
+  if (isSending) return;
+
+  const input = document.getElementById('userInput');
+  const text = input.value.trim();
+  if (!text) return;
+
+  const models = getSelectedModels();
+  if (models.length === 0) { showToast('Select at least one model first'); return; }
+
+  isSending = true;
+  document.getElementById('sendBtn').disabled = true;
+  Ambient.setActive(true);
+
+  input.value = '';
+  input.style.height = 'auto';
+  hideEmptyState();
+
+  let sysPrompt = document.getElementById('systemPrompt').value.trim();
+  if (isLiberation) {
+    sysPrompt = sysPrompt ? LIBERATION_SYSPROMPT + '\n\n' + sysPrompt : LIBERATION_SYSPROMPT;
+  }
+
+  const turn = document.createElement('div');
+  turn.className = 'turn';
+  turn.innerHTML = `<div class="user-msg">${escapeHtml(text)}</div>`;
+
+  if (models.length === 1) {
+    singleModelHistory.push({ role: 'user', content: text });
+    const msgs = buildMessages(sysPrompt, singleModelHistory);
+
+    const card = createResponseCard(models[0]);
+    turn.appendChild(card.el);
+    document.getElementById('messages').appendChild(turn);
+    scrollToBottom();
+
+    const start = Date.now();
+    let fullText = '';
+    await streamModel(models[0], msgs,
+      token => { fullText += token; card.el.classList.remove('waiting'); card.contentEl.textContent = fullText; scrollToBottom(); },
+      () => {
+        card.el.classList.remove('streaming', 'waiting');
+        card.dotEl.remove();
+        card.latencyEl.textContent = ((Date.now() - start) / 1000).toFixed(1) + 's';
+        card.latencyEl.classList.add('show');
+        renderMarkdown(card.contentEl, fullText);
+        singleModelHistory.push({ role: 'assistant', content: fullText });
+      },
+      err => {
+        card.el.classList.remove('streaming', 'waiting');
+        card.el.classList.add('error-card');
+        card.dotEl.remove();
+        card.contentEl.textContent = '⚠ ' + err;
+        singleModelHistory.push({ role: 'assistant', content: '[error] ' + err });
+      }
+    );
+  } else {
+    const msgs = buildMessages(sysPrompt, [{ role: 'user', content: text }]);
+
+    const grid = document.createElement('div');
+    const colClass = models.length === 1 ? 'cols-1' : models.length === 2 ? 'cols-2' : models.length === 3 ? 'cols-3' : 'cols-4';
+    grid.className = `council-grid ${colClass}`;
+
+    const cards = models.map((m, i) => {
+      const card = createResponseCard(m, i);
+      grid.appendChild(card.el);
+      return { ...card, model: m };
+    });
+
+    turn.appendChild(grid);
+    document.getElementById('messages').appendChild(turn);
+    scrollToBottom();
+
+    await Promise.all(cards.map(({ model, el, contentEl, dotEl, latencyEl }) => {
+      const start = Date.now();
+      let fullText = '';
+      return streamModel(model, msgs,
+        token => { fullText += token; el.classList.remove('waiting'); contentEl.textContent = fullText; scrollToBottom(); },
+        () => {
+          el.classList.remove('streaming', 'waiting');
+          dotEl.remove();
+          latencyEl.textContent = ((Date.now() - start) / 1000).toFixed(1) + 's';
+          latencyEl.classList.add('show');
+          renderMarkdown(contentEl, fullText);
+        },
+        err => { el.classList.remove('streaming', 'waiting'); el.classList.add('error-card'); dotEl.remove(); contentEl.textContent = '⚠ ' + err; }
+      );
+    }));
+  }
+
+  isSending = false;
+  document.getElementById('sendBtn').disabled = false;
+  Ambient.setActive(false);
+  document.getElementById('userInput').focus();
+}
+
+function getSelectedModels() {
+  const all = [...FREE_MODELS, ...GROQ_MODELS, ...PAID_OR_MODELS];
+  return all.filter(m => selectedModelIds.has(m.id));
+}
+
+function buildMessages(sysPrompt, history) {
+  const msgs = [];
+  if (sysPrompt) msgs.push({ role: 'system', content: sysPrompt });
+  msgs.push(...history);
+  return msgs;
+}
+
+function createResponseCard(model, idx = 0) {
+  const el = document.createElement('div');
+  el.className = 'resp-card streaming waiting';
+  el.style.setProperty('--mc', colorFor(model));
+  el.style.setProperty('--i', idx);
+
+  const dot = document.createElement('div');
+  dot.className = 'streaming-dot';
+
+  const badgeClass = model.tier === 'groq' ? 'badge-groq' : model.tier === 'paid' ? 'badge-paid' : 'badge-free';
+  const badgeLabel = model.tier === 'groq' ? 'groq' : model.tier === 'paid' ? '$' : 'free';
+
+  const header = document.createElement('div');
+  header.className = 'card-header';
+  header.innerHTML = `
+    <span class="card-model-name" title="${model.id}">${model.name}</span>
+    <div class="card-meta">
+      <span class="badge ${badgeClass}">${badgeLabel}</span>
+      <span class="latency-badge" data-latency></span>
+    </div>`;
+  header.querySelector('.card-meta').prepend(dot);
+
+  const copyBtn = document.createElement('button');
+  copyBtn.className = 'card-copy-btn';
+  copyBtn.textContent = '⎘';
+  copyBtn.title = 'Copy';
+  header.querySelector('.card-meta').appendChild(copyBtn);
+
+  const content = document.createElement('div');
+  content.className = 'card-content';
+  content.innerHTML = '<div class="thinking"><span></span><span></span><span></span></div>';
+
+  el.appendChild(header);
+  el.appendChild(content);
+
+  const latencyEl = header.querySelector('[data-latency]');
+  copyBtn.onclick = () => { navigator.clipboard.writeText(content.textContent).then(() => showToast('Copied')); };
+
+  return { el, contentEl: content, dotEl: dot, latencyEl };
+}
+
+// ═══════════════════════════════════════════════════════
+//  STREAMING
+// ═══════════════════════════════════════════════════════
+async function streamModel(model, messages, onToken, onDone, onError) {
+  const isGroq = model.api === 'groq';
+  const url = isGroq
+    ? 'https://api.groq.com/openai/v1/chat/completions'
+    : 'https://openrouter.ai/api/v1/chat/completions';
+  const key = isGroq ? GROQ_KEY : OR_KEY;
+
+  try {
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${key}`,
+        'Content-Type': 'application/json',
+        'HTTP-Referer': 'https://sdforest.site',
+        'X-Title': 'SDForest Council Console',
+      },
+      body: JSON.stringify({
+        model: model.id,
+        messages,
+        stream: true,
+        temperature: isLiberation ? 1.0 : 0.7,
+        max_tokens: 4096,
+      }),
+    });
+
+    if (!res.ok) {
+      let errText = await res.text().catch(() => '');
+      let errMsg = `HTTP ${res.status}`;
+      try {
+        const j = JSON.parse(errText);
+        errMsg += ': ' + (j.error?.message || j.message || errText.slice(0, 120));
+      } catch { errMsg += errText ? ': ' + errText.slice(0, 120) : ''; }
+      onError(errMsg);
+      return;
+    }
+
+    const reader = res.body.getReader();
+    const dec = new TextDecoder();
+    let buf = '';
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buf += dec.decode(value, { stream: true });
+
+      let idx;
+      while ((idx = buf.indexOf('\n')) !== -1) {
+        const line = buf.slice(0, idx).trim();
+        buf = buf.slice(idx + 1);
+        if (!line.startsWith('data: ')) continue;
+        const data = line.slice(6);
+        if (data === '[DONE]') { onDone(); return; }
+        try {
+          const j = JSON.parse(data);
+          const tok = j.choices?.[0]?.delta?.content;
+          if (tok) onToken(tok);
+        } catch {}
+      }
+    }
+    onDone();
+  } catch (e) {
+    onError(e.message || String(e));
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+//  MARKDOWN
+// ═══════════════════════════════════════════════════════
+function renderMarkdown(el, raw) {
+  el.classList.add('rendered');
+  el.style.whiteSpace = 'normal';
+  el.innerHTML = mdToHtml(raw);
+}
+
+function mdToHtml(text) {
+  const codeBlocks = [];
+  text = text.replace(/```([\w]*)\n?([\s\S]*?)```/g, (_, lang, code) => {
+    const idx = codeBlocks.length;
+    codeBlocks.push(`<pre><code class="lang-${escapeHtml(lang)}">${escapeHtml(code.replace(/^\n|\n$/g,''))}</code></pre>`);
+    return `\x00CODE${idx}\x00`;
+  });
+
+  text = text.replace(/`([^`\n]+)`/g, (_, c) => `<code>${escapeHtml(c)}</code>`);
+
+  const parts = text.split(/(\x00CODE\d+\x00)/);
+  text = parts.map((p, i) => {
+    if (i % 2 === 1) return p;
+    return p.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }).join('');
+
+  text = text.replace(/\*\*\*(.+?)\*\*\*/g, '<strong><em>$1</em></strong>');
+  text = text.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+  text = text.replace(/\*([^*\n]+)\*/g, '<em>$1</em>');
+  text = text.replace(/_([^_\n]+)_/g, '<em>$1</em>');
+
+  text = text.replace(/^#{3} (.+)$/gm, '<h3>$1</h3>');
+  text = text.replace(/^#{2} (.+)$/gm, '<h2>$1</h2>');
+  text = text.replace(/^# (.+)$/gm, '<h1>$1</h1>');
+
+  text = text.replace(/^&gt; (.+)$/gm, '<blockquote>$1</blockquote>');
+
+  text = text.replace(/^[-*] (.+)$/gm, '<li>$1</li>');
+  text = text.replace(/^\d+\. (.+)$/gm, '<li>$1</li>');
+  text = text.replace(/(<li>.*?<\/li>\n?)+/gs, m => '<ul>' + m + '</ul>');
+
+  const sections = text.split(/\n\n+/);
+  text = sections.map(s => {
+    s = s.trim();
+    if (!s) return '';
+    if (/^<(h[1-6]|pre|ul|ol|blockquote|li)/.test(s)) return s;
+    if (s.startsWith('\x00CODE')) return s;
+    return '<p>' + s.replace(/\n/g, '<br>') + '</p>';
+  }).join('\n');
+
+  codeBlocks.forEach((block, i) => {
+    text = text.replace(`\x00CODE${i}\x00`, block);
+  });
+
+  return text;
+}
+
+function escapeHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// ═══════════════════════════════════════════════════════
+//  UI HELPERS
+// ═══════════════════════════════════════════════════════
+function hideEmptyState() {
+  const es = document.getElementById('emptyState');
+  if (es) es.remove();
+}
+
+function scrollToBottom() {
+  const m = document.getElementById('messages');
+  m.scrollTop = m.scrollHeight;
+}
+
+let toastTimer;
+function showToast(msg) {
+  const existing = document.querySelector('.toast');
+  if (existing) existing.remove();
+  clearTimeout(toastTimer);
+  const t = document.createElement('div');
+  t.className = 'toast';
+  t.textContent = msg;
+  document.body.appendChild(t);
+  toastTimer = setTimeout(() => { t.style.opacity = '0'; t.style.transition = 'opacity 0.3s'; setTimeout(() => t.remove(), 300); }, 1800);
+}
+
+// ═══════════════════════════════════════════════════════
+//  AMBIENT CANVAS — constellation that reacts to state
+// ═══════════════════════════════════════════════════════
+const Ambient = (() => {
+  const cv = document.getElementById('ambient');
+  if (!cv || !cv.getContext) return { setActive() {}, setGold() {}, burst() {} };
+  const ctx = cv.getContext('2d');
+  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  let W = 0, H = 0, dpr = 1, nodes = [], t = 0;
+  let energy = 0, targetEnergy = 0;
+  let gold = 0, targetGold = 0;
+  let flash = 0;
+
+  const BLUE = [96, 140, 255], GOLD = [242, 185, 75];
+  const mixc = f => BLUE.map((c, i) => Math.round(c + (GOLD[i] - c) * f));
+
+  function resize() {
+    dpr = Math.min(window.devicePixelRatio || 1, 1.5);
+    W = cv.width = Math.floor(innerWidth * dpr);
+    H = cv.height = Math.floor(innerHeight * dpr);
+    cv.style.width = innerWidth + 'px';
+    cv.style.height = innerHeight + 'px';
+  }
+
+  function seed() {
+    const n = Math.max(28, Math.min(72, Math.floor(innerWidth * innerHeight / 22000)));
+    nodes = Array.from({ length: n }, () => ({
+      x: Math.random() * W, y: Math.random() * H,
+      vx: (Math.random() - 0.5) * 0.14 * dpr,
+      vy: (Math.random() - 0.5) * 0.14 * dpr,
+      r: (Math.random() * 1.3 + 0.7) * dpr,
+      ph: Math.random() * 6.283,
+    }));
+  }
+
+  function aurora() {
+    const blobs = [
+      { x: 0.2 + 0.08 * Math.sin(t * 0.0011), y: 0.25 + 0.07 * Math.cos(t * 0.0009), r: 0.55, c: [88, 70, 220] },
+      { x: 0.8 + 0.07 * Math.cos(t * 0.0008), y: 0.3 + 0.08 * Math.sin(t * 0.0012), r: 0.5, c: [30, 150, 170] },
+      { x: 0.5 + 0.1 * Math.sin(t * 0.0006), y: 0.85 + 0.05 * Math.cos(t * 0.001), r: 0.6, c: [130, 60, 200] },
+    ];
+    for (const b of blobs) {
+      const c = b.c.map((v, i) => Math.round(v + (GOLD[i] - v) * gold * 0.7));
+      const g = ctx.createRadialGradient(b.x * W, b.y * H, 0, b.x * W, b.y * H, b.r * Math.max(W, H));
+      g.addColorStop(0, `rgba(${c[0]},${c[1]},${c[2]},${0.055 + 0.04 * energy})`);
+      g.addColorStop(1, 'rgba(0,0,0,0)');
+      ctx.fillStyle = g;
+      ctx.fillRect(0, 0, W, H);
+    }
+  }
+
+  function frame() {
+    t++;
+    energy += (targetEnergy - energy) * 0.04;
+    gold += (targetGold - gold) * 0.05;
+    ctx.clearRect(0, 0, W, H);
+    aurora();
+
+    const [cr, cg, cb] = mixc(gold);
+    const linkDist = 150 * dpr;
+    const speed = 1 + energy * 1.6;
+
+    for (const n of nodes) {
+      n.x += n.vx * speed; n.y += n.vy * speed;
+      if (n.x < -10) n.x = W + 10; else if (n.x > W + 10) n.x = -10;
+      if (n.y < -10) n.y = H + 10; else if (n.y > H + 10) n.y = -10;
+    }
+
+    ctx.lineWidth = dpr * 0.6;
+    for (let i = 0; i < nodes.length; i++) {
+      const a = nodes[i];
+      for (let j = i + 1; j < nodes.length; j++) {
+        const b = nodes[j];
+        const dx = a.x - b.x, dy = a.y - b.y;
+        const d2 = dx * dx + dy * dy;
+        if (d2 > linkDist * linkDist) continue;
+        const al = (1 - Math.sqrt(d2) / linkDist) * (0.07 + 0.16 * energy);
+        ctx.strokeStyle = `rgba(${cr},${cg},${cb},${al})`;
+        ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke();
+      }
+    }
+
+    for (const n of nodes) {
+      const pulse = 1 + (0.15 + 0.55 * energy) * Math.sin(t * 0.045 + n.ph);
+      const al = 0.3 + 0.15 * energy + 0.3 * energy * (0.5 + 0.5 * Math.sin(t * 0.05 + n.ph));
+      ctx.fillStyle = `rgba(${cr},${cg},${cb},${Math.min(0.85, al)})`;
+      ctx.beginPath(); ctx.arc(n.x, n.y, Math.max(0.3, n.r * pulse), 0, 6.283); ctx.fill();
+    }
+
+    if (flash > 0.01) {
+      const g = ctx.createRadialGradient(W / 2, H * 0.3, 0, W / 2, H * 0.3, Math.max(W, H) * 0.8);
+      g.addColorStop(0, `rgba(${GOLD[0]},${GOLD[1]},${GOLD[2]},${0.22 * flash})`);
+      g.addColorStop(1, 'rgba(0,0,0,0)');
+      ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+      flash *= 0.93;
+    }
+  }
+
+  let raf = null;
+  function loop() { frame(); raf = requestAnimationFrame(loop); }
+
+  resize(); seed();
+  window.addEventListener('resize', () => { resize(); seed(); if (reduced) frame(); });
+  document.addEventListener('visibilitychange', () => {
+    if (reduced) return;
+    if (document.hidden) { cancelAnimationFrame(raf); raf = null; }
+    else if (!raf) loop();
+  });
+  if (reduced) { frame(); } else { loop(); }
+
+  return {
+    setActive(b) { targetEnergy = b ? 1 : 0; if (reduced) frame(); },
+    setGold(b) { targetGold = b ? 1 : 0; if (reduced) { gold = b ? 1 : 0; frame(); } },
+    burst() { flash = 1; if (reduced) frame(); },
+  };
+})();
+
+// ═══════════════════════════════════════════════════════
+//  BOOT — fetch keys from /api/council-keys, then init
+// ═══════════════════════════════════════════════════════
+(async function boot() {
+  try {
+    const res  = await fetch('/api/council-keys');
+    const data = await res.json();
+    if (data.or)   OR_KEY   = data.or;
+    if (data.groq) GROQ_KEY = data.groq;
+  } catch (e) {
+    showToast('Config fetch failed — free models only');
+  }
+  init();
+})();
+</script>
+</body>
+</html>
