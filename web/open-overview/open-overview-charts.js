@@ -26,8 +26,9 @@ export function renderRankTable({ document, title, rows, columns, sourceLabel, a
     const tr = el(document, "tr");
     columns.forEach((column, index) => {
       const cell = el(document, index === 0 ? "th" : "td"); if (index === 0) cell.scope = "row";
-      const value = column.value(row); const href = column.href ? safePublicUrl(column.href(row)) : null;
-      if (href) { const link = el(document, "a", "", value); link.href = href.href; link.target = "_blank"; link.rel = "noopener noreferrer"; cell.appendChild(link); }
+      const value = column.value ? column.value(row) : null; const href = column.href ? safePublicUrl(column.href(row)) : null;
+      if (column.render) cell.appendChild(column.render(row));
+      else if (href) { const link = el(document, "a", "", value); link.href = href.href; link.target = "_blank"; link.rel = "noopener noreferrer"; cell.appendChild(link); }
       else cell.textContent = value === null || value === undefined ? "—" : String(value);
       if (column.exact) appendExactValue(document, cell, column.exact(row)); tr.appendChild(cell);
     });

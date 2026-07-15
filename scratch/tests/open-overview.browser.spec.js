@@ -8,32 +8,12 @@ const canonical = (input) => {
   const sorted = new URLSearchParams(Array.from(url.searchParams.entries()).sort(([a,av],[b,bv]) => a === b ? av.localeCompare(bv) : a.localeCompare(b)));
   return url.pathname + (sorted.size ? `?${sorted}` : "");
 };
-const withFinalizedContracts = (body) => {
-  if (!body || typeof body !== "object") return body;
-  if (body.status === "available" && Array.isArray(body.appIds) && Array.isArray(body.modelIds) && Array.isArray(body.cells)) {
-    const apps = bundle.responses[canonical("/apps?limit=10&period=30d&sort=popular")].data;
-    const models = bundle.responses[canonical("/models?limit=10&rank_source=top-weekly")].data;
-    return { ...body, apps: body.appIds.map((appId) => ({ appId, appName: apps.find((row) => row.appId === appId)?.appName || appId })), models: body.modelIds.map((modelId) => ({ modelId, modelName: models.find((row) => row.id === modelId)?.name || modelId })) };
-  }
-  if (body.ranking) {
-    const fetchedAt = body.provenance?.[0]?.fetchedAt || "2026-07-15T10:00:00.000Z";
-    return {
-      ...body,
-      coverage: { ...body.coverage, stale: false, lastSuccessAt: fetchedAt, staleAfterSeconds: 172800 },
-      ranking: { definition: "Reviewed public ranking", unit: "score", direction: "higher_is_better", coverageExcluded: 0, baselineDate: null, ...body.ranking },
-      metricEvidence: body.data.map((row) => ({ repositoryId: row.repositoryId, baselineStars: null, starDelta: null, forkDelta: null, relativeGrowth: null, defaultBranchCommittedAt: null, latestStableReleaseAt: null, stableReleaseCount90d: null })),
-      provenance: body.provenance.map((row) => ({ ...row, payloadSha256: "a".repeat(64) }))
-    };
-  }
-  return body;
-};
-
 async function routeApi(page, options = {}) {
   await page.route("https://openrouter-github-dashboard.vercel.app/api/public/v2/**", async (route) => {
     if (options.offline) { await route.abort("failed"); return; }
     const url = new URL(route.request().url()); const relative = url.pathname.replace("/api/public/v2", "") + url.search;
-    let body = relative.startsWith("/manifest") ? bundle.manifest : withFinalizedContracts(bundle.responses[canonical(relative)]);
-    if (relative.startsWith("/app-model-matrix") && options.matrixUnavailable) body = { schemaVersion: "2.0", status: "unavailable", reason: "collection_disabled", lastSuccessAt: null, appIds: bundle.responses[canonical("/apps?limit=10&period=30d&sort=popular")].data.map((row) => row.appId), modelIds: bundle.responses[canonical("/models?limit=10&rank_source=top-weekly")].data.map((row) => row.id), cells: [] };
+    let body = relative.startsWith("/manifest") ? bundle.manifest : bundle.responses[canonical(relative)];
+    if (relative.startsWith("/app-model-matrix") && options.matrixUnavailable) body = { schemaVersion: "2.0", status: "unavailable", reason: "collection_disabled", lastSuccessAt: null, stale: false, staleAfterSeconds: 172800, completeness: { acquisitionComplete: false, populationCompleteness: "partial_or_unknown", missingFields: ["collection_disabled"] }, provenance: [], appIds: bundle.responses[canonical("/apps?limit=10&period=30d&sort=popular")].data.map((row) => row.appId), modelIds: bundle.responses[canonical("/models?limit=10&rank_source=top-weekly")].data.map((row) => row.id), cells: [] };
     if (relative.startsWith("/app-model-matrix") && options.malformedMatrix) body = { ...body, cells: [...body.cells.slice(0, -1), body.cells[0]] };
     if (relative.startsWith("/models?") && options.requiredUnavailable) { await route.fulfill({ status: 503, contentType: "application/json", body: JSON.stringify({ schemaVersion: "2.0", error: { code: "SOURCE_UNAVAILABLE", message: "Models unavailable", correlationId: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa", retryable: true } }) }); return; }
     if ((relative.startsWith("/providers") || relative.startsWith("/free-frontiers")) && options.gatedUnavailable) { await route.fulfill({ status: 503, contentType: "application/json", body: JSON.stringify({ schemaVersion: "2.0", error: { code: "SOURCE_UNAVAILABLE", message: "Source data is unavailable", correlationId: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa", retryable: true } }) }); return; }
@@ -76,6 +56,24 @@ test("OpenRouter exposes nine compact sections plus app, provider and Pareto evi
 test("GitHub exposes eight categories and transparent adoption metadata", async ({ page }, testInfo) => {
   await routeApi(page, { offline: true }); await page.goto("/web/open-overview/github/index.html?category=mcp&metric=adoption"); await expect(page.locator(".oo-category-list a")).toHaveCount(8); await expect(page.locator(".oo-ranking-nav > *")).toHaveCount(3); await expect(page.locator("#oo-github-content > .oo-data-region:first-child tbody tr")).toHaveCount(10); await expect(page.locator("#oo-github-content")).toContainText("percent_rank"); await expect(page.locator("#oo-github-content")).toContainText("raw stars and forks"); await expect(page.locator("#oo-github-content")).toContainText("github-adoption-v1"); await expect(page.locator("#oo-github-content")).toContainText("Eligible population: 10"); await page.screenshot({ path: testInfo.outputPath("github-mcp-adoption.png"), fullPage: false });
   await page.setViewportSize({ width: 390, height: 844 }); await page.reload(); const summary = page.locator(".oo-category-sheet > summary"); await expect(summary).toBeVisible(); await expect(page.locator(".oo-category-list")).toBeHidden(); await summary.click(); await expect(page.locator(".oo-category-list a").first()).toBeVisible();
+});
+
+test("GitHub fetches and renders exact enrichment only for the maintenance top ten", async ({ page }) => {
+  const requested = [];
+  page.on("request", (request) => { if (request.url().includes("/github/repositories/") && request.url().includes("/enrichment")) requested.push(request.url()); });
+  await routeApi(page);
+  await page.goto("/web/open-overview/github/index.html?category=mcp&metric=adoption");
+  expect(requested).toEqual([]);
+  await page.goto("/web/open-overview/github/index.html?category=mcp&metric=maintenance");
+  await expect.poll(() => requested.length).toBe(10);
+  const maintenanceTableHead = page.getByRole("table", { name: "Maintenance · MCP" }).locator("thead");
+  await expect(maintenanceTableHead).toContainText("Stable releases 90d");
+  await expect(maintenanceTableHead).toContainText("Median cadence");
+  const disclosure = page.locator("#oo-github-content .oo-github-enrichment-disclosure").first();
+  await expect(disclosure).toBeVisible();
+  await disclosure.locator("summary").click();
+  await expect(disclosure.locator("li")).toHaveCount(7);
+  await expect(disclosure).toContainText(/2026-07-\d{2}: \d+/);
 });
 
 test("portrait and landscape keep all three combined panels reachable", async ({ page }, testInfo) => {

@@ -6,6 +6,7 @@ import {
   validateAppModelMatrix,
   validateAppModels,
   validateFreeFrontiers,
+  validateGitHubEnrichment,
   validateGitHubRanking,
   validateHistory,
   validateManifest,
@@ -36,16 +37,24 @@ export const ENDPOINTS = Object.freeze({
   benchmarks: "/benchmarks?limit=50",
   appModelMatrix: "/app-model-matrix?appLimit=10&modelLimit=10&window=latest-complete",
   appModels(appId) {
-    if (!/^\d+$/.test(String(appId))) throw new TypeError("appId must be a decimal string");
+    if (!/^(?:0|[1-9]\d*)$/.test(String(appId))) throw new TypeError("appId must be a canonical decimal string");
     return `/apps/${encodeURIComponent(String(appId))}/models?limit=100`;
   },
   providers: "/providers?limit=100",
-  freeFrontier: "/free-frontiers?x=benchmarkQuality&y=medianThroughput&limit=200",
+  freeFrontierQualityThroughput: "/free-frontiers?x=benchmarkQuality&y=medianThroughput&limit=200",
+  freeFrontierContextPopularity: "/free-frontiers?x=contextLength&y=weeklyPopularityRank&limit=200",
   history: "/history?window=90d&limit=10",
   githubRanking(category, metric = "adoption", windowDays = null, limit = 10) {
     const query = new URLSearchParams({ category, entity_level: "project-family", limit: String(limit), metric });
     if (windowDays !== null) query.set("window", String(windowDays));
     return `/github/rankings?${query}`;
+  },
+  githubEnrichment(id, from, to) {
+    const value = String(id);
+    if (!/^[1-9]\d*$/.test(value) || BigInt(value) > 9223372036854775807n) throw new TypeError("repositoryId must be a canonical positive decimal string");
+    const parseDate = (date, name) => { if (!/^\d{4}-\d{2}-\d{2}$/.test(String(date)) || !Number.isFinite(Date.parse(`${date}T00:00:00Z`))) throw new TypeError(`${name} must be an ISO date`); return String(date); };
+    const start = parseDate(from, "from"); const end = parseDate(to, "to"); if (start > end) throw new TypeError("from must not be after to");
+    return `/github/repositories/${encodeURIComponent(value)}/enrichment?from=${encodeURIComponent(start)}&to=${encodeURIComponent(end)}`;
   }
 });
 
@@ -59,10 +68,42 @@ export const OVERVIEW_REQUESTS = Object.freeze([
   request("tasks", ENDPOINTS.tasks, "tasks", "task_classifications"),
   request("benchmarks", ENDPOINTS.benchmarks, "benchmarks", "benchmarks_current"),
   request("providers", ENDPOINTS.providers, "providers", null, true),
-  request("freeFrontier", ENDPOINTS.freeFrontier, "freeFrontiers", null, true),
+  request("freeFrontierQuality", ENDPOINTS.freeFrontierQualityThroughput, "freeFrontiers", null, true),
+  request("freeFrontierContext", ENDPOINTS.freeFrontierContextPopularity, "freeFrontiers", null, true),
   request("history", ENDPOINTS.history, "history", null, true),
   ...GITHUB_CATEGORIES.map(([slug]) => request(`github:${slug}`, ENDPOINTS.githubRanking(slug), "github", null, true))
 ]);
+
+export function topAppModelRequests(appsResponse) {
+  const seen = new Set(); const requests = [];
+  for (const app of Array.isArray(appsResponse?.data) ? appsResponse.data.slice(0, 10) : []) {
+    const appId = String(app.appId); if (seen.has(appId)) continue; seen.add(appId);
+    requests.push(request(`appModels:${appId}`, ENDPOINTS.appModels(appId), "appModels", null, true));
+  }
+  return Object.freeze(requests);
+}
+
+const historyStart = (end) => new Date(Date.parse(`${end}T00:00:00Z`) - 364 * 86_400_000).toISOString().slice(0, 10);
+export function topGitHubEnrichmentRequests(rankings) {
+  const seen = new Set(); const requests = [];
+  for (const ranking of Array.isArray(rankings) ? rankings : [rankings]) {
+    if (ranking?.ranking?.metric !== "maintenance") continue;
+    const to = ranking.coverage?.resolvedAsOf; if (typeof to !== "string") continue;
+    const rows = Array.isArray(ranking.data) ? [...ranking.data].sort((left, right) => left.rank - right.rank).slice(0, 10) : [];
+    for (const row of rows) {
+      const repositoryId = String(row.repositoryId); if (seen.has(repositoryId) || requests.length >= 80) continue; seen.add(repositoryId);
+      requests.push(request(`githubEnrichment:${repositoryId}`, ENDPOINTS.githubEnrichment(repositoryId, historyStart(to), to), "githubEnrichment", null, true));
+    }
+  }
+  return Object.freeze(requests);
+}
+
+export async function mapBounded(values, concurrency, mapper) {
+  if (!Array.isArray(values) || !Number.isInteger(concurrency) || concurrency < 1 || concurrency > 8 || typeof mapper !== "function") throw new TypeError("mapBounded requires an array, mapper, and concurrency between 1 and 8");
+  const output = new Array(values.length); let cursor = 0;
+  await Promise.all(Array.from({ length: Math.min(concurrency, values.length) }, async () => { while (cursor < values.length) { const index = cursor++; output[index] = await mapper(values[index], index); } }));
+  return output;
+}
 
 export const FALLBACK_REQUESTS = Object.freeze([
   ...OVERVIEW_REQUESTS,
@@ -86,6 +127,8 @@ const validateFor = (spec, raw, major) => spec.kind === "manifest"
       ? validateAppModelMatrix(raw, major)
       : spec.kind === "appModels"
         ? validateAppModels(raw, major)
+        : spec.kind === "githubEnrichment"
+          ? validateGitHubEnrichment(raw, major)
         : spec.kind === "providers"
           ? validateProviders(raw, major)
           : spec.kind === "freeFrontiers"
@@ -95,6 +138,7 @@ const validateFor = (spec, raw, major) => spec.kind === "manifest"
               : validateOpenRouterCollection(raw, spec.kind, major);
 
 const MAX_PRODUCTION_FALLBACK_AGE_MS = 48 * 3_600_000;
+const MAX_PUBLIC_RESPONSE_BYTES = 4 * 1024 * 1024;
 const FIXTURE_FALLBACK_LABEL = "Fixture · stale · non-production";
 const LIVE_FALLBACK_LABEL = "Live-derived snapshot · require-live validated";
 const FALLBACK_FIELDS = Object.freeze([
@@ -129,11 +173,15 @@ const sameFreshness = (actual, expected) => actual
   && actual.newestFetchedAt === expected.newestFetchedAt
   && actual.evidenceCount === expected.evidenceCount;
 
-const hasFixtureMarker = (manifest, responses) => {
-  const marker = /fixture|test|seed|deterministic-preview/i;
-  if (manifest.sources.some((source) => marker.test(source.transformVersion || "") || marker.test(source.citationUrl || ""))) return true;
-  return Object.values(responses).some((response) => Array.isArray(response?.provenance) && response.provenance.some((item) => marker.test(item.transformVersion || "") || marker.test(item.citation || "")));
+export const isSyntheticEvidenceRecord = (record) => {
+  if (!record || typeof record !== "object") return false;
+  const reviewedGitHubSeed = record.sourceId === "github.seed-registry.v1" && record.transformVersion === "github-seed-materialization-v1";
+  if (reviewedGitHubSeed) return false;
+  const marker = /fixture|(?:^|[^a-z])test(?:[^a-z]|$)|seed|deterministic[-_ ]?preview/i;
+  return [record.sourceId, record.transformVersion, record.citation, record.citationUrl, record.id, record.sourceUrl].some((value) => typeof value === "string" && marker.test(value));
 };
+const hasFixtureMarker = (manifest, responses) => manifest.sources.some(isSyntheticEvidenceRecord)
+  || Object.values(responses).some((response) => Array.isArray(response?.provenance) && response.provenance.some(isSyntheticEvidenceRecord));
 
 const normalizedOrigin = (value, label) => {
   if (value === null || value === undefined || value === "") return null;
@@ -161,6 +209,46 @@ export function assertFallbackPolicy(bundle, runtimeOrigin, fixturePreviewOrigin
   if (bundle.snapshotStale) throw new ContractError("unavailable", "Live fallback evidence is older than 48 hours");
   if (!bundle.productionEligible) throw new ContractError("unavailable", "Fallback is not require-live validated for production");
   return bundle;
+}
+
+export async function readPublicJsonResponse(response, label = "Public API") {
+  const contentLength = response.headers?.get?.("Content-Length");
+  if (contentLength !== null && contentLength !== undefined) {
+    if (!/^(?:0|[1-9]\d*)$/.test(contentLength)) throw new ContractError("invalid_http_response", `${label} returned an invalid Content-Length`);
+    if (BigInt(contentLength) > BigInt(MAX_PUBLIC_RESPONSE_BYTES)) throw new ContractError("response_too_large", `${label} exceeds the 4 MiB response limit`);
+  }
+  let text = ""; let bytes = 0;
+  if (response.body?.getReader) {
+    const reader = response.body.getReader(); const decoder = new TextDecoder();
+    try {
+      while (true) {
+        const { done, value } = await reader.read(); if (done) break;
+        bytes += value.byteLength; if (bytes > MAX_PUBLIC_RESPONSE_BYTES) { await reader.cancel(); throw new ContractError("response_too_large", `${label} exceeds the 4 MiB response limit`); }
+        text += decoder.decode(value, { stream: true });
+      }
+      text += decoder.decode();
+    } finally { reader.releaseLock?.(); }
+  } else {
+    text = await response.text(); bytes = new TextEncoder().encode(text).length;
+    if (bytes > MAX_PUBLIC_RESPONSE_BYTES) throw new ContractError("response_too_large", `${label} exceeds the 4 MiB response limit`);
+  }
+  try { return JSON.parse(text); } catch { throw new ContractError("invalid_json", `${label} returned invalid JSON`); }
+}
+
+export async function readFallbackResponse(response, now = new Date()) {
+  if (response.redirected) throw new ContractError("invalid_fallback", "Fallback redirects are not allowed");
+  const lastModifiedHeader = response.headers?.get?.("Last-Modified"); let lastModified = null;
+  if (lastModifiedHeader !== null && lastModifiedHeader !== undefined) {
+    lastModified = Date.parse(lastModifiedHeader);
+    if (!Number.isFinite(lastModified)) throw new ContractError("invalid_fallback", "Fallback Last-Modified is invalid");
+    if (!Number.isFinite(now.getTime()) || lastModified > now.getTime() + 5 * 60_000) throw new ContractError("invalid_fallback", "Fallback Last-Modified is in the future");
+  }
+  const raw = await readPublicJsonResponse(response, "Fallback snapshot");
+  if (lastModified !== null && typeof raw?.generatedAt === "string") {
+    const generatedAt = Date.parse(raw.generatedAt);
+    if (!Number.isFinite(generatedAt) || lastModified + 1_000 < generatedAt) throw new ContractError("invalid_fallback", "Fallback Last-Modified predates its generatedAt evidence");
+  }
+  return raw;
 }
 
 export async function verifyFallbackBundle(bundle, requests, schemaMajor, now = new Date()) {
@@ -214,19 +302,19 @@ export function createOpenOverviewClient({ apiBase, schemaMajor, timeoutMs, fall
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(new DOMException("timed out", "TimeoutError")), timeoutMs);
     try {
-      const response = await fetchImpl(new URL(`/api/public/v2${key}`, base).href, { method: "GET", headers, credentials: "omit", signal: controller.signal, cache: "no-store" });
+      const response = await fetchImpl(new URL(`/api/public/v2${key}`, base).href, { method: "GET", headers, credentials: "omit", signal: controller.signal, cache: "no-store", redirect: "error" });
       if (response.status === 304) {
         if (!cached) return fetchJson(spec, { conditional: false });
         return cached.body;
       }
       if (!response.ok) {
         let publicError;
-        try { publicError = validatePublicError(await response.json(), schemaMajor); }
-        catch { throw new ContractError("invalid_http_error", `Public API returned HTTP ${response.status} without a valid public error`, { status: response.status }); }
+        try { publicError = validatePublicError(await readPublicJsonResponse(response), schemaMajor); }
+        catch (error) { if (error?.code === "response_too_large") throw error; throw new ContractError("invalid_http_error", `Public API returned HTTP ${response.status} without a valid public error`, { status: response.status }); }
         throw new ContractError("http_error", publicError.error.message, { status: response.status, availability: response.status >= 500, apiCode: publicError.error.code, retryable: publicError.error.retryable });
       }
       let raw;
-      try { raw = await response.json(); } catch { throw new ContractError("invalid_json", "Public API returned invalid JSON"); }
+      raw = await readPublicJsonResponse(response);
       const body = validateFor(spec, raw, schemaMajor);
       const etag = response.headers.get("ETag"); if (etag) cache.set(key, { etag, body });
       return body;
@@ -250,9 +338,9 @@ export function createOpenOverviewClient({ apiBase, schemaMajor, timeoutMs, fall
 
   async function loadFallbackView(requests) {
     if (!fallbackUrl) throw new ContractError("unavailable", "No fallback URL is configured");
-    const response = await fetchImpl(fallbackUrl, { method: "GET", credentials: "omit", cache: "no-store", headers: { Accept: "application/json" } });
+    const response = await fetchImpl(fallbackUrl, { method: "GET", credentials: "omit", cache: "no-store", redirect: "error", headers: { Accept: "application/json" } });
     if (!response.ok) throw new ContractError("unavailable", "Fallback snapshot is unavailable");
-    const bundle = await verifyFallbackBundle(await response.json(), requests, schemaMajor);
+    const bundle = await verifyFallbackBundle(await readFallbackResponse(response), requests, schemaMajor);
     assertFallbackPolicy(bundle, runtimeOrigin, fixturePreviewOrigins);
     return Object.freeze({ mode: "snapshot", bundleKind: bundle.bundleKind, fallbackLabel: bundle.label, productionEligible: bundle.productionEligible, manifest: bundle.manifest, responses: bundle.responses, errors: bundle.errors, snapshotStale: bundle.snapshotStale, oldestFetchedAt: bundle.oldestFetchedAt, datasetFreshness: bundle.datasetFreshness });
   }
@@ -262,7 +350,7 @@ export function createOpenOverviewClient({ apiBase, schemaMajor, timeoutMs, fall
     let manifest;
     try { manifest = await fetchJson({ key: "manifest", path: ENDPOINTS.manifest, kind: "manifest" }); }
     catch (error) { if (!fallbackEligible(error)) throw error; return loadFallbackView(requests); }
-    const settled = await Promise.allSettled(requests.map((spec) => load(spec, manifest)));
+    const settled = await mapBounded(requests, 6, async (spec) => { try { return { status: "fulfilled", value: await load(spec, manifest) }; } catch (reason) { return { status: "rejected", reason }; } });
     const responses = {}; const errors = {};
     settled.forEach((result, index) => { const spec = requests[index]; if (result.status === "fulfilled") responses[spec.key] = result.value; else errors[spec.key] = result.reason; });
     return Object.freeze({ mode: "live", manifest, responses: Object.freeze(responses), errors: Object.freeze(errors), snapshotStale: false });

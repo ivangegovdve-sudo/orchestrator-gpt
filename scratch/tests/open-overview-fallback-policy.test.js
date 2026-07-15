@@ -37,10 +37,12 @@ function liveFixtures(bundle, requiredFetchedAt, optionalFetchedAt, transformVer
   };
 }
 
-async function buildLiveBundle({ now = new Date("2026-07-15T12:00:00.000Z"), requiredFetchedAt = "2026-07-15T11:00:00.000Z", optionalFetchedAt = "2026-07-15T10:00:00.000Z", transformVersion = "public-v2", timeoutMs = 8000 } = {}) {
+async function buildLiveBundle({ now = new Date("2026-07-15T12:00:00.000Z"), requiredFetchedAt = "2026-07-15T11:00:00.000Z", optionalFetchedAt = "2026-07-15T10:00:00.000Z", transformVersion = "public-v2", timeoutMs = 8000, optionalStale = false, includeGitHubSeed = false } = {}) {
   const api = await importFresh(path.join(ROUTE, "open-overview-api.js"));
   const { buildFallback } = await importFresh(SCRIPT_PATH);
   const source = liveFixtures(readFixture(), requiredFetchedAt, optionalFetchedAt, transformVersion);
+  source.apps.stale = optionalStale;
+  if (includeGitHubSeed) source.manifest.sources.push({ ...source.manifest.sources[0], sourceId: "github.seed-registry.v1", publishedRunId: "70000000-0000-4000-8000-000000000001", lastAttemptRunId: "70000000-0000-4000-8000-000000000001", transformVersion: "github-seed-materialization-v1", citationUrl: "https://github.com/example/registry" });
   const requests = [
     { key: "requiredModels", path: api.ENDPOINTS.modelsTopWeekly, kind: "models", sourceId: "models_current" },
     { key: "optionalAppsEvidence", path: api.ENDPOINTS.appsPopular, kind: "apps", sourceId: "apps_ranked", optional: true }
@@ -126,12 +128,19 @@ test("require-live generation rejects an old optional dataset instead of labelin
 
 test("require-live generation records typed optional unavailability without inventing freshness", async (t) => {
   const api = await importFresh(path.join(ROUTE, "open-overview-api.js")); const { buildFallback } = await importFresh(SCRIPT_PATH); const source = liveFixtures(readFixture(), "2026-07-15T11:00:00.000Z", "2026-07-15T10:00:00.000Z", "public-v2");
-  const unavailable = { schemaVersion: "2.0", status: "unavailable", reason: "collection_disabled", lastSuccessAt: null, appIds: [], modelIds: [], cells: [] };
+  const unavailable = { schemaVersion: "2.0", status: "unavailable", reason: "collection_disabled", lastSuccessAt: null, stale: false, staleAfterSeconds: 172800, completeness: { acquisitionComplete: false, populationCompleteness: "partial_or_unknown", missingFields: ["collection_disabled"] }, provenance: [], appIds: [], modelIds: [], cells: [] };
   const requests = [{ key: "models", path: api.ENDPOINTS.modelsTopWeekly, kind: "models", sourceId: "models_current" }, { key: "matrix", path: api.ENDPOINTS.appModelMatrix, kind: "matrix", optional: true }];
   const directory = fs.mkdtempSync(path.join(os.tmpdir(), "oo-fallback-unavailable-")); t.after(() => fs.rmSync(directory, { recursive: true, force: true }));
   const fetchImpl = async (input) => { const url = new URL(input); const relative = `${url.pathname.replace(/^\/api\/public\/v2/, "")}${url.search}`; const body = relative === api.ENDPOINTS.manifest ? source.manifest : relative === api.ENDPOINTS.modelsTopWeekly ? source.models : relative === api.ENDPOINTS.appModelMatrix ? unavailable : null; return new Response(JSON.stringify(body), { status: body ? 200 : 404, headers: { "Content-Type": "application/json" } }); };
   const bundle = await buildFallback({ apiBase: "https://api.example.test", outPath: path.join(directory, "fallback.json"), maxAgeHours: 48, requireLive: true, now: new Date("2026-07-15T12:00:00.000Z"), fetchImpl, requests });
   assert.deepEqual(Object.keys(bundle.responses), [api.canonicalPath(api.ENDPOINTS.modelsTopWeekly)]); assert.equal(Object.hasOwn(bundle.datasetFreshness, api.canonicalPath(api.ENDPOINTS.appModelMatrix)), false);
+});
+
+test("require-live generation omits stale optional evidence and accepts the reviewed GitHub seed publication", async (t) => {
+  const { api, bundle, directory } = await buildLiveBundle({ optionalStale: true, includeGitHubSeed: true });
+  t.after(() => fs.rmSync(directory, { recursive: true, force: true }));
+  assert.deepEqual(Object.keys(bundle.responses), [api.canonicalPath(api.ENDPOINTS.modelsTopWeekly)]);
+  assert.deepEqual(Object.keys(bundle.datasetFreshness), [api.canonicalPath(api.ENDPOINTS.modelsTopWeekly)]);
 });
 
 test("require-live generation rejects deterministic preview provenance", async () => {

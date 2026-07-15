@@ -5,6 +5,7 @@
     "resolvedAsOf": "2026-07-15",
     "acquisitionComplete": true,
     "populationCompleteness": "full",
+    "missingFields": [],
     "stale": false,
     "lastSuccessAt": "2026-07-15T08:00:00.000Z",
     "staleAfterSeconds": 172800
@@ -26,12 +27,16 @@
   },
   "data": [
     {
+      "entityId": "mcp:example-project",
+      "familyId": "example-project",
       "repositoryId": "9007199254740993",
+      "memberRepositoryIds": ["9007199254740993"],
       "fullName": "example/project",
       "stars": "9007199254740993",
       "forks": "0",
       "rank": 1,
-      "score": "1.000000"
+      "score": "1.000000",
+      "maintenanceEvidence": null
     }
   ],
   "metricEvidence": [

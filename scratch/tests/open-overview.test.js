@@ -33,7 +33,7 @@ test("strict public contracts preserve exact values and reject unknown keys", as
   assert.throws(() => schema.validateManifest({ schemaVersion: "2.0", publishedAt: null, routes: [], sources: [], provenance: [], window: { start: null, end: null, timezone: "unknown", inclusive: null, basis: "unknown" }, invented: true }, "2"), /schema|field/i);
 });
 
-test("finalized Plan 03 GitHub and Plan 05 matrix fixtures validate exactly", async () => {
+test("current GitHub and app-model matrix fixtures validate exactly", async () => {
   const schema = await importRoute("open-overview-schema.js");
   const github = schema.validateGitHubRanking(readFixture("plan03-github-ranking.json"), "2");
   const matrix = schema.validateAppModelMatrix(readFixture("plan05-app-model-matrix.json"), "2");
@@ -43,7 +43,48 @@ test("finalized Plan 03 GitHub and Plan 05 matrix fixtures validate exactly", as
   assert.equal(matrix.models[0].modelName, "Example Model");
   const lexicalInteger = readFixture("plan03-github-ranking.json");
   lexicalInteger.metricEvidence[0].starDelta = "-0002";
-  assert.equal(schema.validateGitHubRanking(lexicalInteger, "2").metricEvidence[0].starDelta, "-0002");
+  assert.throws(() => schema.validateGitHubRanking(lexicalInteger, "2"), /canonical|integer|starDelta/i);
+});
+
+test("current per-app and GitHub enrichment contracts validate exact evidence", async () => {
+  const schema = await importRoute("open-overview-schema.js");
+  const period = { start: "2026-07-14", end: "2026-07-14", unit: "day", inclusive: true };
+  const provenance = [{ sourceId: "openrouter.app-models.1001", sourceTier: "best_effort", runId: "60000000-0000-4000-8000-000000001001", fetchedAt: "2026-07-15T02:00:00.000Z", sourceAsOf: "2026-07-14T23:59:59.000Z", transformVersion: "openrouter-app-model-daily-v1", citation: "https://openrouter.ai/apps/1001" }];
+  const appModels = {
+    schemaVersion: "2.0", status: "available", watermark: provenance[0].runId,
+    lastSuccessAt: "2026-07-15T02:00:00.000Z", stale: false, staleAfterSeconds: 172800,
+    completeness: { acquisitionComplete: true, populationCompleteness: "partial_or_unknown", missingFields: [] },
+    appId: "1001", appName: "Example App", resolvedPeriod: period,
+    data: [{ modelId: "example/model", sourcePermaslug: "example/model:free", resolvedModelId: "example/model", matchMethod: "source_model_id", rank: 1, rankMethod: "locally_calculated", totalTokens: "90071992547409931234", metricSemantics: "observed_daily_total_tokens", evidenceUrl: "https://openrouter.ai/apps/1001", period }],
+    cursor: null, coverage: { observedModels: 1, mappedModels: 1, unmappedModels: 0, populationCompleteness: "partial_or_unknown" }, provenance
+  };
+  assert.equal(schema.validateAppModels(appModels, "2").data[0].sourcePermaslug, "example/model:free");
+  const enrichment = {
+    schemaVersion: "2.0", repositoryId: "9007199254740993",
+    releaseCadence: { latestStableReleaseAt: "2026-07-12T12:00:00.000Z", stableReleaseCount90d: "4", medianStableReleaseIntervalDays365d: "21.5", coverageStart: "2025-07-15", coverageEnd: "2026-07-14", coverageComplete: true },
+    starBuckets: Array.from({ length: 7 }, (_, index) => ({ start: `2026-07-${String(index + 8).padStart(2, "0")}`, end: `2026-07-${String(index + 8).padStart(2, "0")}`, count: String(index), populationCompleteness: "partial_or_unknown" })),
+    provenance: [{ id: "40000000-0000-4000-8000-000000000001:releases", sourceUrl: "https://api.github.com/repositories/9007199254740993/releases", fetchedAt: "2026-07-15T02:00:00.000Z" }]
+  };
+  assert.equal(schema.validateGitHubEnrichment(enrichment, "2").starBuckets.length, 7);
+  assert.throws(() => schema.validateGitHubEnrichment({ ...enrichment, repositoryId: "09007199254740993" }, "2"), /canonical|repositoryId/i);
+  assert.throws(() => schema.validateGitHubEnrichment({ ...enrichment, starBuckets: [{ ...enrichment.starBuckets[0], count: "00" }] }, "2"), /canonical|count|integer/i);
+});
+
+test("API inventories both free frontiers and bounds dynamic app/repository enrichment", async () => {
+  const api = await importRoute("open-overview-api.js");
+  assert.match(api.ENDPOINTS.freeFrontierQualityThroughput, /x=benchmarkQuality.*y=medianThroughput/);
+  assert.match(api.ENDPOINTS.freeFrontierContextPopularity, /x=contextLength.*y=weeklyPopularityRank/);
+  const apps = { data: Array.from({ length: 12 }, (_, index) => ({ appId: String(index + 1), appName: `App ${index + 1}` })) };
+  assert.deepEqual(api.topAppModelRequests(apps).map((request) => request.path), Array.from({ length: 10 }, (_, index) => api.ENDPOINTS.appModels(String(index + 1))));
+  const rankings = Array.from({ length: 9 }, (_, categoryIndex) => ({ ranking: { metric: "maintenance" }, coverage: { resolvedAsOf: "2026-07-14" }, data: Array.from({ length: 11 }, (_, rowIndex) => ({ repositoryId: String(categoryIndex * 10 + rowIndex + 1) })) }));
+  const enrichment = api.topGitHubEnrichmentRequests(rankings);
+  assert.equal(enrichment.length, 80);
+  assert.match(enrichment[0].path, /from=2025-07-15/);
+  assert.match(enrichment[0].path, /to=2026-07-14/);
+  assert.throws(() => api.ENDPOINTS.githubEnrichment("01", "2025-07-15", "2026-07-14"), /repositoryId|canonical/i);
+  let active = 0; let maximum = 0;
+  await api.mapBounded(Array.from({ length: 20 }, (_, index) => index), 6, async (value) => { active += 1; maximum = Math.max(maximum, active); await new Promise((resolve) => setTimeout(resolve, 1)); active -= 1; return value; });
+  assert.equal(maximum, 6);
 });
 
 test("matrix validation rejects incoherent axes, cells, and coverage", async () => {
@@ -174,6 +215,29 @@ test("API client owns conditional bodies and rejects mixed publication runs", as
   const manifest = validateManifest(manifestFixture(), "2");
   const first = await client.load(spec, manifest); const second = await client.load(spec, manifest);
   assert.equal(second, first); assert.equal(calls[0].has("If-None-Match"), false); assert.equal(calls[1].get("If-None-Match"), '"models-1"');
+});
+
+test("fallback HTTP reads are redirect-safe, no-store, bounded to 4 MiB and validate Last-Modified", async () => {
+  const api = await importRoute("open-overview-api.js");
+  await assert.rejects(
+    () => api.readFallbackResponse(new Response("{}", { headers: { "Last-Modified": "not-a-date" } }), new Date("2026-07-15T12:00:00Z")),
+    (error) => error.code === "invalid_fallback" && /Last-Modified/i.test(error.message)
+  );
+  await assert.rejects(
+    () => api.readFallbackResponse(new Response("{}", { headers: { "Content-Length": String(4 * 1024 * 1024 + 1), "Last-Modified": "Wed, 15 Jul 2026 11:00:00 GMT" } }), new Date("2026-07-15T12:00:00Z")),
+    (error) => error.code === "response_too_large"
+  );
+  const calls = [];
+  const client = api.createOpenOverviewClient({ apiBase: "https://api.example.test", schemaMajor: "2", timeoutMs: 8000, fallbackUrl: "/fallback-data.json", fallbackOnMissingV2: true, runtimeOrigin: "http://127.0.0.1:4174", fetchImpl: async (url, options) => {
+    calls.push({ url: String(url), options });
+    if (String(url).includes("/api/public/v2/manifest")) return new Response("<html>missing</html>", { status: 404, headers: { "Content-Type": "text/html" } });
+    return new Response("{}", { status: 200, headers: { "Content-Length": String(4 * 1024 * 1024 + 1), "Last-Modified": "Wed, 15 Jul 2026 11:00:00 GMT" } });
+  } });
+  await assert.rejects(() => client.loadView([]), (error) => error.code === "response_too_large");
+  const fallbackCall = calls.find((call) => call.url.endsWith("/fallback-data.json"));
+  assert.equal(fallbackCall.options.redirect, "error");
+  assert.equal(fallbackCall.options.cache, "no-store");
+  assert.equal(fallbackCall.options.credentials, "omit");
 });
 
 test("committed fallback is checksum-valid, complete, ten-deep and unambiguously snapshot mode", async () => {

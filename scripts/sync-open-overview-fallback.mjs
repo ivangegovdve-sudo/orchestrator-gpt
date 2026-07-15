@@ -1,24 +1,24 @@
 import { mkdir, rename, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
-import { ENDPOINTS, FALLBACK_REQUESTS, canonicalPath, fallbackFreshnessMap } from "../web/open-overview/open-overview-api.js";
-import { ContractError, assertPublishedRun, safePublicUrl, sha256Hex, validateAppModelMatrix, validateAppModels, validateFreeFrontiers, validateGitHubRanking, validateHistory, validateManifest, validateOpenRouterCollection, validateProviders, validatePublicError } from "../web/open-overview/open-overview-schema.js";
+import { ENDPOINTS, FALLBACK_REQUESTS, canonicalPath, fallbackFreshnessMap, isSyntheticEvidenceRecord, mapBounded, readPublicJsonResponse, topAppModelRequests, topGitHubEnrichmentRequests } from "../web/open-overview/open-overview-api.js";
+import { ContractError, assertPublishedRun, safePublicUrl, sha256Hex, validateAppModelMatrix, validateAppModels, validateFreeFrontiers, validateGitHubEnrichment, validateGitHubRanking, validateHistory, validateManifest, validateOpenRouterCollection, validateProviders, validatePublicError } from "../web/open-overview/open-overview-schema.js";
 
 const fetchJson = async (base, relative, fetchImpl, timeoutMs) => {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(new DOMException("timed out", "TimeoutError")), timeoutMs);
   try {
-    const response = await fetchImpl(new URL(`/api/public/v2${canonicalPath(relative)}`, base), { headers: { Accept: "application/json" }, credentials: "omit", signal: controller.signal });
-    if (!response.ok) { const publicError = validatePublicError(await response.json(), "2"); throw new ContractError("http_error", publicError.error.message, { status: response.status, availability: response.status >= 500, apiCode: publicError.error.code }); }
-    return response.json();
+    const response = await fetchImpl(new URL(`/api/public/v2${canonicalPath(relative)}`, base), { method: "GET", headers: { Accept: "application/json" }, credentials: "omit", signal: controller.signal, redirect: "error", cache: "no-store" });
+    if (response.redirected) throw new ContractError("invalid_http_response", "Fallback source redirects are not allowed");
+    if (!response.ok) { const publicError = validatePublicError(await readPublicJsonResponse(response, "Fallback source"), "2"); throw new ContractError("http_error", publicError.error.message, { status: response.status, availability: response.status === 404 || response.status >= 500, apiCode: publicError.error.code }); }
+    return readPublicJsonResponse(response, "Fallback source");
   } catch (error) {
     if (controller.signal.aborted || error?.name === "AbortError" || error?.name === "TimeoutError") throw new ContractError("timeout", "Fallback source request timed out", { availability: true });
     if (error instanceof TypeError) throw new ContractError("network_unavailable", "Fallback source network request failed", { availability: true });
     throw error;
   } finally { clearTimeout(timer); }
 };
-const validateFor = (spec, raw) => spec.kind === "github" ? validateGitHubRanking(raw, "2") : spec.kind === "matrix" ? validateAppModelMatrix(raw, "2") : spec.kind === "appModels" ? validateAppModels(raw, "2") : spec.kind === "providers" ? validateProviders(raw, "2") : spec.kind === "freeFrontiers" ? validateFreeFrontiers(raw, "2") : spec.kind === "history" ? validateHistory(raw, "2") : validateOpenRouterCollection(raw, spec.kind, "2");
-const syntheticMarker = /fixture|test|seed|deterministic-preview/i;
+const validateFor = (spec, raw) => spec.kind === "github" ? validateGitHubRanking(raw, "2") : spec.kind === "githubEnrichment" ? validateGitHubEnrichment(raw, "2") : spec.kind === "matrix" ? validateAppModelMatrix(raw, "2") : spec.kind === "appModels" ? validateAppModels(raw, "2") : spec.kind === "providers" ? validateProviders(raw, "2") : spec.kind === "freeFrontiers" ? validateFreeFrontiers(raw, "2") : spec.kind === "history" ? validateHistory(raw, "2") : validateOpenRouterCollection(raw, spec.kind, "2");
 
 export async function buildFallback({ apiBase, outPath, maxAgeHours, requireLive, now = new Date(), fetchImpl = globalThis.fetch, requests = FALLBACK_REQUESTS, timeoutMs = 8000 }) {
   const origin = safePublicUrl(apiBase);
@@ -27,18 +27,32 @@ export async function buildFallback({ apiBase, outPath, maxAgeHours, requireLive
   if (!Number.isFinite(maxAgeHours) || maxAgeHours <= 0 || maxAgeHours > 48) throw new Error("Fallback max age must be greater than zero and no more than 48 hours");
   if (!Number.isInteger(timeoutMs) || timeoutMs < 100 || timeoutMs > 30_000) throw new Error("Fallback fetch timeout is outside the supported range");
   const manifest = validateManifest(await fetchJson(origin, ENDPOINTS.manifest, fetchImpl, timeoutMs), "2");
-  if (manifest.sources.some((source) => syntheticMarker.test(source.transformVersion || "") || syntheticMarker.test(source.citationUrl || ""))) throw new Error("Fallback generation rejects fixture, test, seed, or deterministic preview transforms");
-  const responses = {}; const queue = requests.slice();
-  for (let index = 0; index < queue.length; index += 1) {
-    const spec = queue[index]; let raw;
+  if (manifest.sources.some(isSyntheticEvidenceRecord)) throw new Error("Fallback generation rejects fixture, test, seed, or deterministic preview transforms");
+  const responses = {}; const accepted = [];
+  const fetchSpec = async (spec) => {
+    let raw;
     try { raw = await fetchJson(origin, spec.path, fetchImpl, timeoutMs); }
-    catch (error) { if (spec.optional && error?.details?.availability === true) continue; throw error; }
+    catch (error) { if (spec.optional && error?.details?.availability === true) return null; throw error; }
     const response = validateFor(spec, raw); if (spec.sourceId) assertPublishedRun(manifest, spec.sourceId, response);
-    if (spec.optional && response?.status === "unavailable") continue;
-    if (Array.isArray(response.provenance) && response.provenance.some((item) => syntheticMarker.test(item.transformVersion || "") || syntheticMarker.test(item.citation || ""))) throw new Error(`${spec.key} contains fixture/test/deterministic preview provenance`);
-    responses[canonicalPath(spec.path)] = response;
-    if (spec.key === "apps") for (const app of response.data.slice(0, 10)) queue.push({ key: `appModels:${app.appId}`, path: ENDPOINTS.appModels(app.appId), kind: "appModels", sourceId: null, optional: true });
-  }
+    const stale = response?.stale === true || response?.coverage?.stale === true;
+    if (response?.status === "unavailable" || stale) {
+      if (spec.optional) return null;
+      throw new ContractError("unavailable", `${spec.key} is unavailable or stale`, { availability: true });
+    }
+    if (Array.isArray(response.provenance) && response.provenance.some(isSyntheticEvidenceRecord)) throw new Error(`${spec.key} contains fixture, test, seed, or deterministic preview provenance`);
+    return { spec, response };
+  };
+  const collect = async (specs) => {
+    const unique = []; const seen = new Set(Object.keys(responses));
+    for (const spec of specs) { const path = canonicalPath(spec.path); if (!seen.has(path)) { seen.add(path); unique.push(spec); } }
+    const results = await mapBounded(unique, 6, fetchSpec);
+    for (const result of results) if (result) { responses[canonicalPath(result.spec.path)] = result.response; accepted.push(result); }
+  };
+  await collect(requests.slice());
+  const apps = accepted.find((result) => result.spec.key === "apps")?.response;
+  await collect(topAppModelRequests(apps));
+  const maintenanceRankings = accepted.filter((result) => result.spec.kind === "github" && result.response?.ranking?.metric === "maintenance").map((result) => result.response);
+  await collect(topGitHubEnrichmentRequests(maintenanceRankings));
   const datasetFreshness = fallbackFreshnessMap(responses);
   const oldestFetchedAtMs = Math.min(...Object.values(datasetFreshness).map((item) => Date.parse(item.oldestFetchedAt)));
   const ageHours = (now.getTime() - oldestFetchedAtMs) / 3_600_000;
