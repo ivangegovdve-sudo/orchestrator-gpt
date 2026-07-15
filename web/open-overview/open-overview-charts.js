@@ -1,0 +1,85 @@
+import { compactIntegerString, safePublicUrl } from "./open-overview-schema.js";
+
+const el = (document, tag, className = "", text = null) => {
+  const value = document.createElement(tag);
+  if (className) value.className = className;
+  if (text !== null && text !== undefined) value.textContent = String(text);
+  return value;
+};
+
+export function renderRankTable({ document, title, rows, columns, sourceLabel, asOf, className = "" }) {
+  const region = el(document, "section", `oo-data-region ${className}`.trim());
+  region.append(el(document, "h2", "oo-region-title", title), el(document, "p", "oo-region-meta", `${sourceLabel} · as of ${asOf || "unknown"}`));
+  const scroll = el(document, "div", "oo-table-scroll");
+  const table = el(document, "table", "oo-table");
+  table.appendChild(el(document, "caption", "sr-only", title));
+  const thead = el(document, "thead"); const headRow = el(document, "tr");
+  for (const column of columns) { const header = el(document, "th", "", column.label); header.scope = "col"; headRow.appendChild(header); }
+  thead.appendChild(headRow); table.appendChild(thead);
+  const tbody = el(document, "tbody");
+  for (const row of rows) {
+    const tr = el(document, "tr");
+    columns.forEach((column, index) => {
+      const cell = el(document, index === 0 ? "th" : "td"); if (index === 0) cell.scope = "row";
+      const value = column.value(row); const href = column.href ? safePublicUrl(column.href(row)) : null;
+      if (href) { const link = el(document, "a", "", value); link.href = href.href; link.target = "_blank"; link.rel = "noopener noreferrer"; cell.appendChild(link); }
+      else cell.textContent = value === null || value === undefined ? "—" : String(value);
+      if (column.exact) cell.title = String(column.exact(row)); tr.appendChild(cell);
+    });
+    tbody.appendChild(tr);
+  }
+  table.appendChild(tbody); scroll.appendChild(table); region.appendChild(scroll);
+  if (!rows.length) region.appendChild(el(document, "p", "oo-region-meta", "No published rows for this slice."));
+  return region;
+}
+
+export function barWidthBasisPoints(value, maximum) { const max = BigInt(maximum); return max === 0n ? 0n : BigInt(value) * 10000n / max; }
+export function matrixCellModel(cell) {
+  if (cell.state === "observed") return Object.freeze({ state: "observed", label: compactIntegerString(cell.totalTokens), exact: cell.totalTokens, rank: cell.rankWithinPeriod, reason: null, evidenceUrl: cell.evidenceUrl });
+  return Object.freeze({ state: "unknown", label: "?", exact: null, rank: null, reason: cell.reason, evidenceUrl: null });
+}
+
+export function renderAppModelMatrix({ document, response, apps, models, onInspect = () => {} }) {
+  if (!response || response.status === "unavailable") return renderUnavailable({ document, title: "Observed app/model relationships", reason: response ? `Enrichment unavailable: ${response.reason}${response.lastSuccessAt ? ` · last success ${response.lastSuccessAt}` : ""}` : "Relationship request failed; stable rankings remain available." });
+  const appNames = new Map(apps.map((row) => [row.appId, row.appName])); const modelNames = new Map(models.map((row) => [row.id, row.name])); const cells = new Map(response.cells.map((cell) => [`${cell.appId}\0${cell.modelId}`, cell]));
+  const region = el(document, "section", "oo-data-region oo-matrix-region");
+  region.append(el(document, "h2", "oo-region-title", "Observed app/model relationships"), el(document, "p", "oo-region-meta", `${response.resolvedPeriod.start} · daily tokens · ${response.coverage.observedCells}/${response.coverage.possibleCells} observed`));
+  const scroll = el(document, "div", "oo-matrix-scroll"); const table = el(document, "table", "oo-matrix"); table.appendChild(el(document, "caption", "sr-only", "Top app by model observed token matrix"));
+  const thead = el(document, "thead"); const head = el(document, "tr"); const corner = el(document, "th", "", "App / model"); corner.scope = "col"; head.appendChild(corner);
+  for (const modelId of response.modelIds) { const th = el(document, "th", "", modelNames.get(modelId) || modelId); th.scope = "col"; th.title = modelId; head.appendChild(th); }
+  thead.appendChild(head); table.appendChild(thead); const tbody = el(document, "tbody");
+  for (const appId of response.appIds) {
+    const tr = el(document, "tr"); const th = el(document, "th", "", appNames.get(appId) || appId); th.scope = "row"; th.title = appId; tr.appendChild(th);
+    for (const modelId of response.modelIds) {
+      const cell = cells.get(`${appId}\0${modelId}`); const td = el(document, "td", `oo-matrix-cell ${!cell ? "is-missing" : cell.state === "unknown" ? "is-unknown" : cell.totalTokens === "0" ? "is-zero" : "is-observed"}`);
+      if (!cell) { td.textContent = "—"; td.title = "Cell not returned by the API"; }
+      else { const model = matrixCellModel(cell); const control = el(document, "button", "oo-matrix-control", model.label); control.type = "button"; control.setAttribute("aria-label", `${appNames.get(appId) || appId} and ${modelNames.get(modelId) || modelId}: ${model.state === "observed" ? `${model.exact} observed tokens` : `unknown, ${model.reason}`}`); control.addEventListener("click", () => onInspect({ appId, modelId, cell, model })); td.appendChild(control); }
+      tr.appendChild(td);
+    }
+    tbody.appendChild(tr);
+  }
+  table.appendChild(tbody); scroll.appendChild(table); region.appendChild(scroll); return region;
+}
+
+export function renderHorizontalBars({ document, title, rows, label, value }) {
+  const region = el(document, "section", "oo-data-region oo-bars"); region.appendChild(el(document, "h2", "oo-region-title", title)); const list = el(document, "ol", "oo-bar-list");
+  const maximum = rows.reduce((largest, row) => BigInt(value(row)) > largest ? BigInt(value(row)) : largest, 0n);
+  for (const row of rows) { const item = el(document, "li", "oo-bar-row"); const exact = String(value(row)); const track = el(document, "span", "oo-bar-track"); const fill = el(document, "span", "oo-bar-fill"); const bp = barWidthBasisPoints(exact, maximum); fill.style.width = `${bp / 100n}.${String(bp % 100n).padStart(2, "0")}%`; track.appendChild(fill); item.append(el(document, "span", "oo-bar-label", label(row)), track, el(document, "span", "oo-bar-value", compactIntegerString(exact))); list.appendChild(item); }
+  region.appendChild(list); return region;
+}
+
+export function renderSparkline({ document, values, label }) {
+  const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg"); svg.setAttribute("class", "oo-sparkline"); svg.setAttribute("viewBox", "0 0 100 24"); svg.setAttribute("role", "img"); svg.setAttribute("aria-label", label);
+  const parsed = values.map((raw) => { const match = String(raw).match(/^(-?)(\d+)(?:\.(\d+))?$/); if (!match) throw new TypeError("Sparkline values must be exact decimal strings"); return { negative: match[1] === "-", whole: match[2], fraction: match[3] || "" }; });
+  const scale = parsed.reduce((largest, value) => Math.max(largest, value.fraction.length), 0); const numeric = parsed.map((value) => { const magnitude = BigInt(value.whole + value.fraction.padEnd(scale, "0")); return value.negative ? -magnitude : magnitude; }); const minimum = numeric.reduce((a, b) => b < a ? b : a, numeric[0]); const maximum = numeric.reduce((a, b) => b > a ? b : a, numeric[0]); const span = maximum - minimum;
+  const points = numeric.map((value, index) => { const x = numeric.length === 1 ? 50 : index * 100 / (numeric.length - 1); const ybp = span === 0n ? 1000n : (value - minimum) * 2000n / span; return `${x.toFixed(2)},${(22 - Number(ybp) / 100).toFixed(2)}`; }).join(" ");
+  const line = document.createElementNS("http://www.w3.org/2000/svg", "polyline"); line.setAttribute("points", points); svg.appendChild(line); return svg;
+}
+
+export function renderSourceStates({ document, datasets }) {
+  const list = el(document, "ul", "oo-source-list");
+  for (const dataset of datasets) { const item = el(document, "li", "oo-source-row"); item.dataset.mode = dataset.mode; item.dataset.freshness = dataset.freshness; item.dataset.completeness = dataset.completeness; item.append(el(document, "strong", "", dataset.sourceId), el(document, "span", "", `${dataset.mode} · ${dataset.freshness} · ${dataset.completeness}`), el(document, "time", "", dataset.asOf || "as-of unknown")); list.appendChild(item); }
+  return list;
+}
+
+export function renderUnavailable({ document, title, reason }) { const region = el(document, "section", "oo-data-region oo-unavailable"); region.setAttribute("role", "status"); region.append(el(document, "h2", "oo-region-title", title), el(document, "p", "", reason)); return region; }

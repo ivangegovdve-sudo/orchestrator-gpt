@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Source-backed model, app, and GitHub ecosystem intelligence inside SD Forest.">
+  <meta name="theme-color" content="#050806">
+  <title>Open Overview — SD Forest</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Space+Grotesk:wght@500;600;700&amp;display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/web/shared/forest-shell.css?v=20260714">
+  <link rel="stylesheet" href="/web/open-overview/open-overview.css">
+</head>
+<body data-forest-page="open-overview" data-open-overview-route="overview">
+  <nav class="oo-topbar" aria-label="Open Overview navigation">
+    <a class="forest-back" href="/">SD Forest</a>
+    <div class="oo-destinations">
+      <a aria-current="page" href="/web/open-overview/index.html">Overview</a>
+      <a href="/web/open-overview/openrouter/index.html">OpenRouter</a>
+      <a href="/web/open-overview/github/index.html">GitHub</a>
+    </div>
+    <button id="oo-source-status" class="oo-source-toggle" type="button" aria-expanded="false" aria-controls="oo-source-panel">Sources · loading</button>
+  </nav>
+  <main class="oo-page" id="oo-main">
+    <header class="oo-header">
+      <div><p class="forest-kicker">Published evidence · bounded public API</p><h1>Open Overview</h1></div>
+      <p>Models, public apps, app-to-model usage and verified GitHub ecosystems in one compact, time-aware field.</p>
+    </header>
+    <section id="oo-source-panel" class="oo-source-panel" aria-label="Source status" hidden></section>
+    <section id="oo-view-root" class="oo-view-root" aria-live="polite" aria-busy="true"><p class="oo-loading">Loading validated public data…</p></section>
+    <aside id="oo-inspector" class="oo-inspector" tabindex="-1" hidden aria-label="Selected item details"></aside>
+    <section id="oo-network-region" class="oo-network-region" aria-label="Observed relationship map"></section>
+    <noscript><p class="oo-unavailable">JavaScript is required for the data views. The three destinations above remain direct links.</p></noscript>
+  </main>
+  <script type="module" src="/web/open-overview/open-overview.js"></script>
+</body>
+</html>
