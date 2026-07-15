@@ -28,8 +28,31 @@ test("direct deterministic v2 evidence is fixture locally and fails closed on pr
 
 test("valid response contracts remain bound to every requested identity and slice", async () => {
   const api = await importRoute("open-overview-api.js");
+  const app = await importRoute("open-overview.js");
   const bundle = fixture();
   const responseAt = (pathValue) => bundle.responses[api.canonicalPath(pathValue)];
+
+  const apps = responseAt(api.ENDPOINTS.appsPopular);
+  assert.deepEqual(apps.requestSlice, {
+    period: "30d",
+    sort: "popular",
+    category: null,
+    subcategory: null,
+    limit: 10
+  });
+  assert.equal(app.appRankingSourceLabel(apps), "OpenRouter 30-day · popular");
+  const matchingApps = { key: "apps", path: api.ENDPOINTS.appsPopular, kind: "apps", sourceId: "apps_ranked" };
+  assert.doesNotThrow(() => api.assertResponseIdentity(matchingApps, apps));
+  for (const [field, value] of [["period", "7d"], ["sort", "trending"], ["category", "coding"], ["limit", 25]]) {
+    assert.throws(
+      () => api.assertResponseIdentity(matchingApps, { ...apps, requestSlice: { ...apps.requestSlice, [field]: value } }),
+      (error) => error.code === "identity_mismatch" && /app|slice|period|sort|category|limit/i.test(error.message)
+    );
+  }
+  assert.throws(
+    () => api.assertResponseIdentity(matchingApps, { ...apps, window: { ...apps.window, start: "2026-07-09", end: "2026-07-15" } }),
+    (error) => error.code === "identity_mismatch" && /30|period|window|coverage/i.test(error.message)
+  );
 
   const githubPath = api.ENDPOINTS.githubRanking("mcp", "momentum", 30);
   assert.throws(

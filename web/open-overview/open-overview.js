@@ -32,6 +32,13 @@ const hasDom = typeof document !== "undefined";
 const exact = (value) => value === null || value === undefined ? "—" : String(value);
 const population = (acquisitionComplete, completeness) => acquisitionComplete === false || completeness === "partial_or_unknown" ? "partial" : "complete";
 
+export function appRankingSourceLabel(response) {
+  const period = response?.requestSlice?.period;
+  const sort = response?.requestSlice?.sort;
+  const days = typeof period === "string" && /^(?:[1-9]\d*)d$/.test(period) ? Number(period.slice(0, -1)) : null;
+  return days && typeof sort === "string" ? `OpenRouter ${days}-day · ${sort}` : "OpenRouter published app slice";
+}
+
 function context() {
   if (!hasDom) throw new Error("Rendering requires a document");
   return { document, root: document.getElementById("oo-view-root"), sourceToggle: document.getElementById("oo-source-status"), sourcePanel: document.getElementById("oo-source-panel"), inspector: document.getElementById("oo-inspector") };
@@ -151,7 +158,7 @@ export function renderOverview(view, config) {
   const models = envelopeRows(view, "models"); const apps = envelopeRows(view, "apps");
   const modelRail = leaderboard(document, "oo-model-rail", "Weekly model leaders", models, "OpenRouter weekly", view.responses.models?.provenance?.[0]?.sourceAsOf ?? view.responses.models?.window?.end, "model"); modelRail.dataset.mobilePanel = "models";
   const matrix = renderAppModelMatrix({ document, response: view.responses.matrix, apps, models, onInspect: showMatrixEvidence, onDismiss: dismissMatrixEvidence }); matrix.id = "oo-matrix-field"; matrix.dataset.mobilePanel = "matrix";
-  const appRail = leaderboard(document, "oo-app-rail", "Popular app leaders", apps, "OpenRouter 30-day", view.responses.apps?.provenance?.[0]?.sourceAsOf ?? view.responses.apps?.window?.end, "app"); appRail.dataset.mobilePanel = "apps";
+  const appRail = leaderboard(document, "oo-app-rail", "Popular app leaders", apps, appRankingSourceLabel(view.responses.apps), view.responses.apps?.provenance?.[0]?.sourceAsOf ?? view.responses.apps?.window?.end, "app"); appRail.dataset.mobilePanel = "apps";
   field.append(modelRail, matrix, appRail); field.dataset.mobileSegment = "models"; root.appendChild(field);
   const analysis = section(document, "oo-analysis-strip", "oo-analysis-strip");
   for (const [title, key, note] of [["Free", "free", "Popularity default"], ["Deprecations", "deprecations", "Lifecycle evidence"], ["Tasks", "tasks", "7-day sample"], ["Benchmarks", "benchmarks", "Source-separated"], ["Providers", "providers", "Published endpoints"], ["Pareto Q×T", "freeFrontierQuality", "Quality × throughput"], ["Pareto C×P", "freeFrontierContext", "Context × popularity"]]) { const rows = envelopeRows(view,key); const article = document.createElement("article"); article.className = "oo-micro-panel"; article.dataset.overviewDataset = key; const h = document.createElement("h2"); h.textContent = title; const count = document.createElement("strong"); count.textContent = String(rows.length); const p = document.createElement("p"); p.textContent = view.errors[key] ? "Gated unavailable" : !Object.hasOwn(view.responses,key) && OVERVIEW_DEFERRED_KEYS.has(key) ? "Loads near this rail" : note; article.append(h,count,p); analysis.appendChild(article); }

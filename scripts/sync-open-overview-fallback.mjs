@@ -1,7 +1,7 @@
 import { mkdir, rename, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
-import { ENDPOINTS, FALLBACK_REQUESTS, canonicalPath, fallbackFreshnessMap, isSyntheticEvidenceRecord, mapBounded, readPublicJsonResponse, topAppModelRequests, topGitHubEnrichmentRequests } from "../web/open-overview/open-overview-api.js";
+import { ENDPOINTS, FALLBACK_REQUESTS, assertResponseIdentity, canonicalPath, fallbackFreshnessMap, isSyntheticEvidenceRecord, mapBounded, readPublicJsonResponse, topAppModelRequests, topGitHubEnrichmentRequests } from "../web/open-overview/open-overview-api.js";
 import { ContractError, assertPublishedRun, safePublicUrl, sha256Hex, validateAppModelMatrix, validateAppModels, validateFreeFrontiers, validateGitHubEnrichment, validateGitHubRanking, validateHistory, validateManifest, validateOpenRouterCollection, validateProviders, validatePublicError } from "../web/open-overview/open-overview-schema.js";
 
 const fetchJson = async (base, relative, fetchImpl, timeoutMs) => {
@@ -39,7 +39,7 @@ export async function buildFallback({ apiBase, outPath, maxAgeHours, requireLive
     let raw;
     try { raw = await fetchJson(origin, spec.path, fetchImpl, timeoutMs); }
     catch (error) { if (spec.optional && error?.details?.availability === true) return null; throw error; }
-    const response = validateFor(spec, raw); if (spec.sourceId) assertPublishedRun(manifest, spec.sourceId, response);
+    const response = validateFor(spec, raw); assertResponseIdentity(spec, response); if (spec.sourceId) assertPublishedRun(manifest, spec.sourceId, response);
     const stale = response?.stale === true || response?.coverage?.stale === true;
     if (response?.status === "unavailable" || stale) {
       if (spec.optional) return null;

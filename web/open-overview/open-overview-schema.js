@@ -6,6 +6,8 @@ const RANK_METHODS = new Set(["source_published", "response_order", "locally_cal
 const LIFECYCLE = new Set(["expiration_unknown", "no_announced_expiration", "scheduled_deprecation", "past_expiration_still_listed", "absent_from_catalog", "removed_or_unavailable"]);
 const GITHUB_METRICS = new Set(["adoption", "momentum", "maintenance"]);
 const GITHUB_CATEGORIES = new Set(["ai-harnesses", "inference", "ai-skills", "mcp", "connectors", "a2a", "agent-frameworks", "ai-orchestration"]);
+const OPENROUTER_APP_CATEGORIES = new Set(["coding", "creative", "productivity", "entertainment"]);
+const OPENROUTER_APP_SUBCATEGORIES = new Set(["cli-agent", "ide-extension", "cloud-agent", "programming-app", "native-app-builder", "creative-writing", "video-gen", "image-gen", "audio-gen", "roleplay", "game", "writing-assistant", "general-chat", "personal-agent", "legal"]);
 const INTEGER = /^(?:0|[1-9]\d*)$/;
 const POSITIVE_INTEGER = /^[1-9]\d*$/;
 const SIGNED_INTEGER = /^(?:0|[1-9]\d*|-[1-9]\d*)$/;
@@ -213,14 +215,26 @@ const validators = {
   }
 };
 
+const validateAppRequestSlice = (raw) => {
+  const row = strictRecord(raw, ["period", "sort", "category", "subcategory", "limit"], "apps.requestSlice");
+  if (row.period !== "30d" || !["popular", "trending"].includes(row.sort)) fail("invalid_contract", "apps.requestSlice period or sort is invalid");
+  if (row.category !== null && !OPENROUTER_APP_CATEGORIES.has(row.category)) fail("invalid_contract", "apps.requestSlice category is invalid");
+  if (row.subcategory !== null && !OPENROUTER_APP_SUBCATEGORIES.has(row.subcategory)) fail("invalid_contract", "apps.requestSlice subcategory is invalid");
+  if (row.category !== null && row.subcategory !== null) fail("invalid_contract", "apps.requestSlice cannot combine category and subcategory");
+  if (!Number.isInteger(row.limit) || row.limit < 1 || row.limit > 100) fail("invalid_contract", "apps.requestSlice limit is invalid");
+  return Object.freeze({ ...row });
+};
+
 export function validateOpenRouterCollection(raw, kind, expectedMajor = "2") {
   const free = kind === "free";
-  const keys = ["schemaVersion", "data", "cursor", "window", "completeness", "stale", "rank", "provenance", ...(free ? ["router", "concreteFreeCount"] : [])];
+  const apps = kind === "apps";
+  const keys = ["schemaVersion", "data", "cursor", "window", "completeness", "stale", "rank", "provenance", ...(free ? ["router", "concreteFreeCount"] : []), ...(apps ? ["requestSlice"] : [])];
   const row = strictRecord(raw, keys, `${kind} response`); schema(row.schemaVersion, expectedMajor);
   if (!validators[kind] || !Array.isArray(row.data) || row.data.length > MAX_COLLECTION_ROWS || (row.cursor !== null && typeof row.cursor !== "string") || typeof row.stale !== "boolean") fail("invalid_contract", `${kind} response data must contain at most ${MAX_COLLECTION_ROWS} rows`);
   if (row.cursor !== null) string(row.cursor, `${kind}.cursor`);
   const result = { schemaVersion: row.schemaVersion, data: Object.freeze(row.data.map((item, index) => validators[kind](item, `${kind}.data[${index}]`))), cursor: row.cursor, window: validateWindow(row.window), completeness: validateCompleteness(row.completeness), stale: row.stale, rank: validateRank(row.rank), provenance: validateProvenance(row.provenance) };
   if (free) { result.router = row.router === null ? null : validateModel(row.router, "free.router"); result.concreteFreeCount = integerString(row.concreteFreeCount, "free.concreteFreeCount"); }
+  if (apps) result.requestSlice = validateAppRequestSlice(row.requestSlice);
   return Object.freeze(result);
 }
 

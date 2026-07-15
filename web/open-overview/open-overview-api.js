@@ -139,9 +139,26 @@ const validateFor = (spec, raw, major) => spec.kind === "manifest"
 
 const identityMismatch = (message, details = null) => { throw new ContractError("identity_mismatch", message, details); };
 const requestUrl = (spec) => new URL(canonicalPath(spec.path), "https://open-overview.invalid");
+const inclusiveUtcDays = (window) => {
+  if (window?.timezone !== "UTC" || window?.inclusive !== true || typeof window.start !== "string" || typeof window.end !== "string") return null;
+  const start = Date.parse(`${window.start}T00:00:00Z`); const end = Date.parse(`${window.end}T00:00:00Z`);
+  if (!Number.isFinite(start) || !Number.isFinite(end) || start > end) return null;
+  return ((end - start) / 86_400_000) + 1;
+};
 export function assertResponseIdentity(spec, response) {
   const url = requestUrl(spec);
-  if (spec.kind === "github") {
+  if (spec.kind === "apps") {
+    const expected = {
+      period: url.searchParams.get("period"), sort: url.searchParams.get("sort"),
+      category: url.searchParams.get("category"), subcategory: url.searchParams.get("subcategory"),
+      limit: Number(url.searchParams.get("limit"))
+    };
+    const actual = response.requestSlice;
+    for (const [key, value] of Object.entries(expected)) if (actual?.[key] !== value) identityMismatch(`OpenRouter app ${key} does not match the requested slice`, { expected: value, actual: actual?.[key] ?? null });
+    if (!Array.isArray(response.data) || response.data.length > expected.limit) identityMismatch("OpenRouter app rows exceed the requested limit", { expected: expected.limit, actual: response.data?.length ?? null });
+    const expectedDays = expected.period === "30d" ? 30 : null; const actualDays = inclusiveUtcDays(response.window);
+    if (expectedDays === null || actualDays !== expectedDays) identityMismatch("OpenRouter app evidence window does not match the requested 30-day period", { expectedDays, actualDays });
+  } else if (spec.kind === "github") {
     const expected = {
       category: url.searchParams.get("category"), metric: url.searchParams.get("metric"),
       entityLevel: url.searchParams.get("entity_level"), windowDays: url.searchParams.has("window") ? Number(url.searchParams.get("window")) : null,

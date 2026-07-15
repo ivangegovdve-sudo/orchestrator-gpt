@@ -37,11 +37,12 @@ function liveFixtures(bundle, requiredFetchedAt, optionalFetchedAt, transformVer
   };
 }
 
-async function buildLiveBundle({ now = new Date("2026-07-15T12:00:00.000Z"), requiredFetchedAt = "2026-07-15T11:00:00.000Z", optionalFetchedAt = "2026-07-15T10:00:00.000Z", transformVersion = "public-v2", timeoutMs = 8000, optionalStale = false, includeGitHubSeed = false } = {}) {
+async function buildLiveBundle({ now = new Date("2026-07-15T12:00:00.000Z"), requiredFetchedAt = "2026-07-15T11:00:00.000Z", optionalFetchedAt = "2026-07-15T10:00:00.000Z", transformVersion = "public-v2", timeoutMs = 8000, optionalStale = false, includeGitHubSeed = false, appSliceOverride = null } = {}) {
   const api = await importFresh(path.join(ROUTE, "open-overview-api.js"));
   const { buildFallback } = await importFresh(SCRIPT_PATH);
   const source = liveFixtures(readFixture(), requiredFetchedAt, optionalFetchedAt, transformVersion);
   source.apps.stale = optionalStale;
+  if (appSliceOverride) source.apps.requestSlice = { ...source.apps.requestSlice, ...appSliceOverride };
   if (includeGitHubSeed) source.manifest.sources.push({ ...source.manifest.sources[0], sourceId: "github.seed-registry.v1", publishedRunId: "70000000-0000-4000-8000-000000000001", lastAttemptRunId: "70000000-0000-4000-8000-000000000001", transformVersion: "github-seed-materialization-v1", citationUrl: "https://github.com/example/registry" });
   const requests = [
     { key: "requiredModels", path: api.ENDPOINTS.modelsTopWeekly, kind: "models", sourceId: "models_current" },
@@ -167,6 +168,13 @@ test("fallback generation aborts a fetch that exceeds the bounded timeout", asyn
   await assert.rejects(
     () => buildFallback({ apiBase: "https://api.example.test", outPath: path.join(directory, "fallback.json"), maxAgeHours: 48, requireLive: true, fetchImpl, requests: [], timeoutMs: 100 }),
     /timed out/i
+  );
+});
+
+test("require-live generation rejects an app response from a different valid slice", async () => {
+  await assert.rejects(
+    () => buildLiveBundle({ appSliceOverride: { category: "coding" } }),
+    (error) => error.code === "identity_mismatch" && /app.*category|requested slice/i.test(error.message)
   );
 });
 

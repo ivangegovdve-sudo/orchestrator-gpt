@@ -16,7 +16,7 @@ All eleven Plan 06 tasks were implemented in one continuous pass. SD Forest now 
 - `/web/open-overview/openrouter/index.html` — nine-section OpenRouter dashboard.
 - `/web/open-overview/github/index.html` — eight-category GitHub dashboard.
 
-The implementation includes exact schema-v2 validation, exact-string numeric handling, a bounded public client, run-coherence checks, checksum verification, a complete ten-deep snapshot, desktop/portrait/landscape compositions, semantic tables and evidence-gated SVG history, typed unavailable states, and a separately lazy-loaded Three.js relationship canopy built only from observed app-model and returned repository-category edges. Review remediation additionally enforces stable-only manifest tiers, strict real ISO dates/times, recursive forbidden-key rejection, 16,384-character model descriptions, truthful unmanifested provenance status, eight-consecutive-day chart eligibility, bounded exact-history rendering, timeout-bounded config/fallback reads, per-client verified-fallback caching, a four-MiB generated bundle ceiling, and 320px/200% reflow accessibility. The final truth-and-identity pass labels deterministic direct-v2 evidence as fixture on approved preview origins and rejects it on canonical production, binds every response to its requested identity and slice, pins deferred loads to one manifest publication, and exposes GitHub enrichment provenance without describing partial star buckets as exact.
+The implementation includes exact schema-v2 validation, exact-string numeric handling, a bounded public client, run-coherence checks, checksum verification, a complete ten-deep snapshot, desktop/portrait/landscape compositions, semantic tables and evidence-gated SVG history, typed unavailable states, and a separately lazy-loaded Three.js relationship canopy built only from observed app-model and returned repository-category edges. Review remediation additionally enforces stable-only manifest tiers, strict real ISO dates/times, recursive forbidden-key rejection, 16,384-character model descriptions, truthful unmanifested provenance status, eight-consecutive-day chart eligibility, bounded exact-history rendering, timeout-bounded config/fallback reads, per-client verified-fallback caching, a four-MiB generated bundle ceiling, and 320px/200% reflow accessibility. The final truth-and-identity passes label deterministic direct-v2 evidence as fixture on approved preview origins and reject it on canonical production, bind every response to its requested identity and slice, pin deferred loads to one manifest publication, expose GitHub enrichment provenance without describing partial star buckets as exact, and require the app leaderboard to prove its exact period, sort, category, subcategory, limit, and inclusive 30-day UTC evidence window.
 
 No production deployment or alias change was performed.
 
@@ -31,7 +31,8 @@ No production deployment or alias change was performed.
 | `cab91f3` | Initial consolidated Plan 06 verification record and portable browser-launch selection |
 | `df8b563` | Browser runner safely reuses the isolated route-specific preview listener |
 | `40ba8a1` | Exact validator parity, provenance truth, evidence-gated history, fallback bounds/cache, no-observer semantics, 320px reflow, table semantics, and refreshed proof |
-| truth-and-identity fix (this commit) | Direct fixture truth, request/response identity binding, publication-coherent deferred loads, and partial GitHub enrichment disclosure |
+| `906428e` | Direct fixture truth, request/response identity binding, publication-coherent deferred loads, and partial GitHub enrichment disclosure |
+| app-slice identity fix (this commit) | Exact OpenRouter app request-slice binding, 30-day evidence validation, and live-refresh rejection of mismatched slices |
 
 ## TDD record
 
@@ -49,6 +50,8 @@ No production deployment or alias change was performed.
 - Final visual RED/GREEN: the 320px capture exposed a centered source label clipped from its leading edge; the new text-geometry assertion reproduced `labelLeft 134.3125 < controlLeft 164`, then passed after the mobile source control was changed to left-aligned ellipsis.
 - Truth-and-identity RED: 0/4 focused tests passed, proving the direct API mislabeled deterministic evidence as live, request identities were not asserted, publication-incompatible views could merge, and GitHub partial buckets lacked source disclosure.
 - Truth-and-identity GREEN: 4/4 focused tests passed. The inherited Open Overview suite remained 33/33 and the browser suite remained 16/16.
+- App-slice RED: the focused identity suite reproduced a `period=30d` request accepting a seven-day response and unsupported `OpenRouter 30-day` label; after the contract landed, the first aggregate run exposed one stale test helper at 37/38 rather than weakening the new invariant.
+- App-slice GREEN: 38/38 aggregate Node tests passed. The visible label is now derived from the validated response (`OpenRouter 30-day · popular`), and require-live generation rejects a different otherwise valid app slice.
 
 ## Immutable-home proof
 
@@ -62,15 +65,16 @@ No production deployment or alias change was performed.
 
 - Runtime used for the current proof: Node `v26.3.0`, npm `11.16.0`.
 - Clean static build: passed.
-- Open Overview Node and fixture-policy suites: 33 passed, 0 failed.
+- Open Overview Node and fixture-policy suites: 34 passed, 0 failed.
 - Truth-and-identity contract suite: 4 passed, 0 failed.
+- Upstream dashboard/API suite after the matching contract change: 579 passed, 2 skipped; lint, TypeScript, Drizzle schema check, and production build passed.
 - Inherited SD Forest guard: passed; underlying suite remains exactly 11 tests / 9 pass / 2 approved inherited failures:
   - `public council exposes exactly two truthful modes`
   - `TinyLM standalone route redirects into Councils`
 - Playwright Chromium-engine suite: 16 passed, 0 failed in 21.3 seconds.
 - Browser coverage: 1440x900 desktop, 390x844 portrait, 844x390 landscape, 320px at 200% page scale, unclipped mobile source-label geometry, direct routes, exact query state, truthful required/optional and unmanifested-provenance status, malformed-matrix rejection, keyboard/focus behavior, semantic row identity, labeled focusable scroll regions, bounded exact-history fallback, missing-IntersectionObserver eager semantic loading, typed matrix/provider failure, schema-major fail-closed, reduced motion, Save-Data, normal-motion lazy Three.js, and WebGL context-loss recovery.
-- No-mock preview smoke: overview `10 models / 10 apps / 100 matrix controls`; OpenRouter Free `10 rows`; GitHub MCP Adoption `10 rows`; 0 page errors.
-- Core route size excluding Three.js and its vendor: `37,132` gzip bytes (budget: less than 102,400).
+- No-mock preview smoke: overview `10 models / 10 apps / 100 matrix controls / 8 GitHub tables`; app source `OpenRouter 30-day · popular`; OpenRouter Free `10 rows`; GitHub MCP Adoption `10 rows`; 0 page errors.
+- Core route size excluding Three.js and its vendor: `37,922` gzip bytes (budget: less than 102,400).
 - Secret/private-field scan: clean.
 - `git diff --check`: passed.
 - npm audits: root 0 findings; test dependency tree 0 findings.
@@ -88,8 +92,8 @@ Review captures:
 
 - Mode: local/allow-listed preview fixture only, visibly labeled `Fixture · stale · non-production` in the source rail and page notice.
 - Generated/oldest evidence time: `2026-07-15T10:00:00.000Z`.
-- SHA-256 checksum: `1abdd8aceded7cabc10a076412d5450ce84a42a1966b5c0e04ed7fbc642978f5`.
-- Size: 867,520 bytes (generation rejects any final UTF-8 bundle above 4 MiB before writing).
+- SHA-256 checksum: `e6bb5bbbeac0f8667f651c56203aa325f28f3b13fbcce38d6049c88547960d5b`.
+- Size: 867,680 bytes (generation rejects any final UTF-8 bundle above 4 MiB before writing).
 - Production eligibility: `false`; a production origin fails unavailable rather than presenting this fixture.
 - Freshness coverage: all 165 bundled responses have per-dataset freshness metadata, including optional datasets; all 80 GitHub enrichment responses carry the exact requested date range.
 - Coverage: 10 models, 10 apps, 100 app-model cells, 10 per-app model rows for each top app, providers, free Pareto dimensions, seven history buckets rendered as bounded exact tables until an eighth consecutive complete day exists, and 10 repositories for each of eight GitHub categories plus metric/window variants and maintenance enrichment.

@@ -1297,7 +1297,7 @@
       ],
       "cursor": null,
       "window": {
-        "start": "2026-07-09",
+        "start": "2026-06-16",
         "end": "2026-07-15",
         "timezone": "UTC",
         "inclusive": true,
@@ -1329,7 +1329,14 @@
           "transformVersion": "deterministic-preview-snapshot-v1",
           "citation": "Archived public-source snapshot; refreshes from public v2 when available"
         }
-      ]
+      ],
+      "requestSlice": {
+        "period": "30d",
+        "sort": "popular",
+        "category": null,
+        "subcategory": null,
+        "limit": 10
+      }
     },
     "/free-models?limit=50": {
       "schemaVersion": "2.0",
@@ -27358,5 +27365,5 @@
       ]
     }
   },
-  "checksum": "1abdd8aceded7cabc10a076412d5450ce84a42a1966b5c0e04ed7fbc642978f5"
+  "checksum": "e6bb5bbbeac0f8667f651c56203aa325f28f3b13fbcce38d6049c88547960d5b"
 }
