@@ -11,7 +11,8 @@
                 arriving panels (poolside.ai-style impact reactivity).
      tiles.js   Sixteen per-portal wireframes, each with its own named
                 motion identity (heartbeat rings, weaving ribbons, a
-                writing feather, a growing math forest...).
+                cross-source evidence matrix, a writing feather, a growing
+                math forest...).
      burst.js   Sparse ambient geometry — fireflies in the forest dark
                 with a proximity-triggered spin/flatten choreography.
 
