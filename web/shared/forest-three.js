@@ -9,7 +9,7 @@
                 --assembly/--assembly-e plus organic dendritic fill and
                 root strands growing from the forest floor into the
                 arriving panels (poolside.ai-style impact reactivity).
-     tiles.js   Fifteen per-portal wireframes, each with its own named
+     tiles.js   Sixteen per-portal wireframes, each with its own named
                 motion identity (heartbeat rings, weaving ribbons, a
                 writing feather, a growing math forest...).
      burst.js   Sparse ambient geometry — fireflies in the forest dark
@@ -27,7 +27,7 @@ import { clamp, lerp } from './forest-three/util.js';
 import { initRoots, updateRoots, rootsDebug } from './forest-three/roots.js';
 import { initBurst, updateBurst, respawnBurst, burstDebug } from './forest-three/burst.js';
 import { initPanels, updatePanels, panelsDebug } from './forest-three/panels.js';
-import { initTiles, updateTiles, tilesAnimating, tilesDebug } from './forest-three/tiles.js';
+import { initTiles, updateTiles, tilesAnimating, tilesDebug } from './forest-three/tiles.js?v=20260717';
 
 (() => {
   'use strict';

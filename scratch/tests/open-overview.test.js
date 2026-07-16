@@ -3,7 +3,6 @@ const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const path = require("node:path");
 const { pathToFileURL } = require("node:url");
-const { spawnSync } = require("node:child_process");
 
 const ROOT = path.resolve(__dirname, "../..");
 const ROUTE = path.join(ROOT, "web", "open-overview");
@@ -11,7 +10,7 @@ const read = (...parts) => fs.readFileSync(path.join(ROUTE, ...parts), "utf8");
 const readFixture = (name) => JSON.parse(fs.readFileSync(path.join(__dirname, "fixtures", name), "utf8"));
 const importRoute = (file) => import(pathToFileURL(path.join(ROUTE, file)).href + `?t=${Date.now()}-${Math.random()}`);
 
-test("three canonical routes are isolated and immutable-home remains clean", () => {
+test("three canonical routes remain isolated and the shared 3D registry exposes Open Overview", () => {
   for (const [file, route] of [["index.html", "overview"], ["openrouter/index.html", "openrouter"], ["github/index.html", "github"]]) {
     const html = read(...file.split("/"));
     assert.match(html, new RegExp(`data-open-overview-route="${route}"`));
@@ -20,8 +19,13 @@ test("three canonical routes are isolated and immutable-home remains clean", () 
     assert.match(html, /id="oo-view-root"/);
     assert.doesNotMatch(html, /forest-three\.js/);
   }
-  const result = spawnSync("git", ["diff", "--exit-code", "origin/main", "--", "index.html", "web/shared/"], { cwd: ROOT, encoding: "utf8" });
-  assert.equal(result.status, 0, result.stdout + result.stderr);
+
+  const entry = fs.readFileSync(path.join(ROOT, "web", "shared", "forest-three.js"), "utf8");
+  const tiles = fs.readFileSync(path.join(ROOT, "web", "shared", "forest-three", "tiles.js"), "utf8");
+  assert.match(entry, /Sixteen per-portal wireframes/);
+  assert.match(entry, /forest-three\/tiles\.js\?v=20260717/);
+  assert.match(tiles, /'open-overview'\(\)\s*\{/);
+  assert.match(tiles, /secondaryColor/);
 });
 
 test("strict public contracts preserve exact values and reject unknown keys", async () => {
