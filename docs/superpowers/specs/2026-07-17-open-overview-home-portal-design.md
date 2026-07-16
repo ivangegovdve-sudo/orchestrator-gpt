@@ -7,9 +7,11 @@
 Open Overview is deployed at `/web/open-overview/`, but the SD Forest homepage
 does not expose it. The homepage currently presents fifteen projects through a
 three-column portal lattice. Each standard `.portal` node is discovered by the
-existing homepage scripts and automatically receives the serpentine reveal,
-preview-stage selection, hover spring, spark and ripple effects, keyboard focus
-behavior, and reduced-motion fallback.
+inline homepage controller for serpentine reveal and preview-stage selection.
+Its named hologram is registered separately in the existing shared Three.js
+tile engine. That registry currently contains the fifteen existing project
+keys, so `open-overview` must be added explicitly to receive a matching 3D
+identity.
 
 ## Goals
 
@@ -55,22 +57,30 @@ deterministic snapshot.
 Add one inline SVG symbol to the homepage definition block. Its geometry is a
 small matrix/network: bounded outer structure, linked nodes, and a central
 evidence point. It uses the same `icon-ring`, `icon-line`, and `icon-fill`
-classes as every existing symbol. A narrowly scoped secondary-fill rule may use
-the portal's violet custom property; no standalone keyframes or JavaScript are
-added.
+classes as every existing symbol. A narrowly scoped secondary-fill treatment
+uses the portal's violet custom property.
 
-Because the card uses the standard `.portal` structure and a `<use>` reference,
-the existing engines provide all motion:
+Extend the existing `web/shared/forest-three/tiles.js` registry with an
+`open-overview` builder. The tile is a cross-source evidence matrix: OpenRouter
+and GitHub node columns, animated links between them, and a pulsing central
+evidence marker. The builder uses the portal's cyan-teal primary accent and
+violet secondary accent. This is an extension of the active shared Three.js
+runtime, not a new engine, dependency, script, or standalone animation loop.
+
+Because the card uses the standard `.portal` structure and a registered tile
+builder, the existing engines provide all motion:
 
 - serpentine scroll reveal and card assembly;
-- icon stroke draw-in;
-- spring, sparks, and ripple on pointer/focus/click;
+- the existing SVG icon idle/alive treatment;
+- a named Three.js matrix hologram on pointer, keyboard focus, and touch
+  selection;
 - preview glyph cloning and accent propagation;
 - static, fully visible presentation under reduced motion;
 - lightweight behavior for coarse pointers and compact viewports.
 
 The inline homepage controller already derives card count and preview indices
-from the DOM, so it requires no Open Overview-specific branch.
+from the DOM, so it requires no Open Overview-specific branch. Only the shared
+Three.js tile registry receives the new named builder.
 
 ## Accessibility and Navigation
 
@@ -89,6 +99,8 @@ Update static and browser tests to assert:
 - exactly one portal has `data-project="open-overview"`;
 - its title, metadata, truthful status, description, SVG symbol, and internal
   destination are correct;
+- the shared Three.js registry creates an `open-overview` tile using both
+  approved accent colors;
 - focus/selection updates the preview and exposes the working destination;
 - existing shared homepage animation assets remain in place;
 - desktop, mobile, coarse-pointer, and reduced-motion homepage behavior still
