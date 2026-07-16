@@ -1,7 +1,7 @@
 import { mkdir, rename, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
-import { ENDPOINTS, FALLBACK_REQUESTS, assertResponseIdentity, canonicalPath, fallbackFreshnessMap, isSyntheticEvidenceRecord, mapBounded, readPublicJsonResponse, topAppModelRequests, topGitHubEnrichmentRequests } from "../web/open-overview/open-overview-api.js";
+import { ENDPOINTS, FALLBACK_REQUESTS, assertResponseIdentity, canonicalPath, collectFreeModelPages, fallbackFreshnessMap, isSyntheticEvidenceRecord, mapBounded, readPublicJsonResponse, topAppModelRequests, topGitHubEnrichmentRequests } from "../web/open-overview/open-overview-api.js";
 import { ContractError, assertPublishedRun, safePublicUrl, sha256Hex, validateAppModelMatrix, validateAppModels, validateFreeFrontiers, validateGitHubEnrichment, validateGitHubRanking, validateHistory, validateManifest, validateOpenRouterCollection, validateProviders, validatePublicError } from "../web/open-overview/open-overview-schema.js";
 
 const fetchJson = async (base, relative, fetchImpl, timeoutMs) => {
@@ -35,7 +35,7 @@ export async function buildFallback({ apiBase, outPath, maxAgeHours, requireLive
   const manifest = validateManifest(await fetchJson(origin, ENDPOINTS.manifest, fetchImpl, timeoutMs), "2");
   if (manifest.sources.some(isSyntheticEvidenceRecord)) throw new Error("Fallback generation rejects fixture, test, seed, or deterministic preview transforms");
   const responses = {}; const accepted = [];
-  const fetchSpec = async (spec) => {
+  const fetchOne = async (spec) => {
     let raw;
     try { raw = await fetchJson(origin, spec.path, fetchImpl, timeoutMs); }
     catch (error) { if (spec.optional && error?.details?.availability === true) return null; throw error; }
@@ -48,11 +48,20 @@ export async function buildFallback({ apiBase, outPath, maxAgeHours, requireLive
     if (Array.isArray(response.provenance) && response.provenance.some(isSyntheticEvidenceRecord)) throw new Error(`${spec.key} contains fixture, test, seed, or deterministic preview provenance`);
     return { spec, response };
   };
+  const fetchSpec = async (spec) => {
+    if (spec.kind !== "free") { const result = await fetchOne(spec); return result ? [result] : []; }
+    const collected = await collectFreeModelPages(spec, async (pageSpec) => {
+      const result = await fetchOne(pageSpec);
+      if (!result) throw new ContractError("unavailable", "A free-model cursor page is unavailable or stale", { availability: true });
+      return result.response;
+    });
+    return collected.pages.map(({ spec: pageSpec, response }) => ({ spec: pageSpec, response }));
+  };
   const collect = async (specs) => {
     const unique = []; const seen = new Set(Object.keys(responses));
     for (const spec of specs) { const path = canonicalPath(spec.path); if (!seen.has(path)) { seen.add(path); unique.push(spec); } }
     const results = await mapBounded(unique, 6, fetchSpec);
-    for (const result of results) if (result) { responses[canonicalPath(result.spec.path)] = result.response; accepted.push(result); }
+    for (const group of results) for (const result of group) { responses[canonicalPath(result.spec.path)] = result.response; accepted.push(result); }
   };
   await collect(requests.slice());
   const apps = accepted.find((result) => result.spec.key === "apps")?.response;

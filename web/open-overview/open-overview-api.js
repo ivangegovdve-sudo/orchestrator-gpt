@@ -31,7 +31,7 @@ export const ENDPOINTS = Object.freeze({
   sourceStatus: "/source-status",
   modelsTopWeekly: "/models?limit=10&rank_source=top-weekly",
   appsPopular: "/apps?limit=10&period=30d&sort=popular",
-  freeModels: "/free-models?limit=50",
+  freeModels: "/free-models?limit=200",
   deprecations: "/deprecations?limit=50",
   tasks: "/tasks?limit=50&window=7d",
   benchmarks: "/benchmarks?limit=50",
@@ -185,6 +185,57 @@ export function assertResponseIdentity(spec, response) {
   return response;
 }
 
+export const MAX_FREE_MODEL_PAGES = 10;
+export const MAX_FREE_MODEL_ROWS = 2_000;
+
+export function freeModelPagePath(initialPath, cursor) {
+  if (typeof cursor !== "string" || cursor.length === 0) throw new ContractError("pagination_cursor", "Free-model pagination returned an empty cursor");
+  const url = new URL(canonicalPath(initialPath), "https://open-overview.invalid");
+  url.searchParams.set("cursor", cursor);
+  return canonicalPath(`${url.pathname}?${url.searchParams}`);
+}
+
+const freePageIdentity = (page) => JSON.stringify({
+  schemaVersion: page.schemaVersion,
+  window: page.window,
+  completeness: page.completeness,
+  stale: page.stale,
+  rank: page.rank,
+  provenance: page.provenance,
+  router: page.router,
+  concreteFreeCount: page.concreteFreeCount
+});
+
+export async function collectFreeModelPages(initialSpec, loadPage) {
+  if (initialSpec?.kind !== "free" || typeof loadPage !== "function") throw new TypeError("collectFreeModelPages requires a free-model request and loader");
+  const pages = [];
+  const rows = [];
+  const rowIds = new Set();
+  const cursors = new Set();
+  let spec = initialSpec;
+  let identity = null;
+  while (true) {
+    if (pages.length >= MAX_FREE_MODEL_PAGES) throw new ContractError("pagination_limit", `Free-model inventory exceeds ${MAX_FREE_MODEL_PAGES} pages`);
+    const response = await loadPage(spec);
+    const pageIdentity = freePageIdentity(response);
+    if (identity === null) identity = pageIdentity;
+    else if (pageIdentity !== identity) throw new ContractError("mixed_snapshot", "Free-model page identity or provenance changed during pagination");
+    for (const row of response.data) {
+      if (rowIds.has(row.id)) throw new ContractError("pagination_duplicate", `Free-model pagination repeated model ${row.id}`);
+      rowIds.add(row.id); rows.push(row);
+      if (rows.length > MAX_FREE_MODEL_ROWS) throw new ContractError("pagination_limit", `Free-model inventory exceeds ${MAX_FREE_MODEL_ROWS} rows`);
+    }
+    pages.push(Object.freeze({ spec, response }));
+    if (response.cursor === null) break;
+    if (cursors.has(response.cursor)) throw new ContractError("pagination_loop", "Free-model pagination repeated an opaque cursor");
+    cursors.add(response.cursor);
+    spec = Object.freeze({ ...initialSpec, path: freeModelPagePath(initialSpec.path, response.cursor) });
+  }
+  if (BigInt(pages[0].response.concreteFreeCount) !== BigInt(rows.length)) throw new ContractError("pagination_incomplete", "Free-model pagination did not resolve the published concrete model count", { expected: pages[0].response.concreteFreeCount, actual: String(rows.length) });
+  const response = Object.freeze({ ...pages[0].response, data: Object.freeze(rows), cursor: null });
+  return Object.freeze({ pages: Object.freeze(pages), response });
+}
+
 export function manifestPublicationIdentity(manifest) {
   const sources = manifest.sources.map((source) => [source.sourceId, source.publishedRunId, source.publishedAt, source.transformVersion]).sort(([left], [right]) => left.localeCompare(right));
   return JSON.stringify([manifest.schemaVersion, manifest.publishedAt, sources]);
@@ -336,9 +387,14 @@ export async function verifyFallbackBundle(bundle, requests, schemaMajor, now = 
       if (spec.optional) { errors[spec.key] = new ContractError("unavailable", "Optional fallback response is unavailable", { path }); continue; }
       throw new ContractError("invalid_fallback", `Fallback is missing ${path}`);
     }
-    const response = validateFor(spec, bundle.responses[path], schemaMajor); assertResponseIdentity(spec, response);
-    if (spec.sourceId) assertPublishedRun(manifest, spec.sourceId, response);
-    responses[spec.key] = response;
+    const readPage = async (pageSpec) => {
+      const pagePath = canonicalPath(pageSpec.path);
+      if (!Object.hasOwn(bundle.responses, pagePath)) throw new ContractError("invalid_fallback", `Fallback is missing cursor page ${pagePath}`);
+      const response = validateFor(pageSpec, bundle.responses[pagePath], schemaMajor); assertResponseIdentity(pageSpec, response);
+      if (pageSpec.sourceId) assertPublishedRun(manifest, pageSpec.sourceId, response);
+      return response;
+    };
+    responses[spec.key] = spec.kind === "free" ? (await collectFreeModelPages(spec, readPage)).response : await readPage(spec);
   }
   const oldest = isoTime(bundle.oldestFetchedAt, "Fallback oldestFetchedAt is invalid");
   const derivedOldest = Math.min(...Object.values(derivedFreshness).map((item) => Date.parse(item.oldestFetchedAt)));
@@ -427,7 +483,7 @@ export function createOpenOverviewClient({ apiBase, schemaMajor, timeoutMs, fall
     if (!manifest) try { manifest = await fetchJson({ key: "manifest", path: ENDPOINTS.manifest, kind: "manifest" }); }
     catch (error) { if (!fallbackEligible(error)) throw error; return loadFallbackView(requests); }
     const publicationIdentity = manifestPublicationIdentity(manifest);
-    const settled = await mapBounded(requests, 6, async (spec) => { try { return { status: "fulfilled", value: await load(spec, manifest) }; } catch (reason) { return { status: "rejected", reason }; } });
+    const settled = await mapBounded(requests, 6, async (spec) => { try { return { status: "fulfilled", value: spec.kind === "free" ? (await collectFreeModelPages(spec, (pageSpec) => load(pageSpec, manifest))).response : await load(spec, manifest) }; } catch (reason) { return { status: "rejected", reason }; } });
     const responses = {}; const errors = {};
     settled.forEach((result, index) => { const spec = requests[index]; if (result.status === "fulfilled") responses[spec.key] = result.value; else errors[spec.key] = result.reason; });
     if (requests.some((spec) => !spec.sourceId)) {

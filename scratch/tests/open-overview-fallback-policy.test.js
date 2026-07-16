@@ -66,6 +66,31 @@ async function buildLiveBundle({ now = new Date("2026-07-15T12:00:00.000Z"), req
   return { api, bundle, requests, directory };
 }
 
+async function buildLiveFreeBundle({ mixedProvenance = false } = {}) {
+  const api = await importFresh(path.join(ROUTE, "open-overview-api.js"));
+  const { buildFallback } = await importFresh(SCRIPT_PATH);
+  const fixture = readFixture();
+  const source = liveFixtures(fixture, "2026-07-15T11:00:00.000Z", "2026-07-15T10:00:00.000Z", "public-v2");
+  const freeFixture = structuredClone(Object.entries(fixture.responses).find(([key]) => key.startsWith("/free-models?"))[1]);
+  const page = (data, cursor) => ({
+    ...structuredClone(freeFixture), data, cursor, concreteFreeCount: "2",
+    rank: { ...freeFixture.rank, eligiblePopulation: "2" },
+    provenance: structuredClone(source.models.provenance)
+  });
+  const pages = [page([freeFixture.data[0]], "opaque+/= cursor"), page([freeFixture.data[1]], null)];
+  if (mixedProvenance) pages[1].provenance[0].fetchedAt = "2026-07-15T11:00:01.000Z";
+  const requests = [{ key: "free", path: api.ENDPOINTS.freeModels, kind: "free", sourceId: "models_current" }];
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), "oo-free-pagination-"));
+  const outPath = path.join(directory, "fallback.json");
+  const fetchImpl = async (input) => {
+    const url = new URL(input);
+    const body = url.pathname.endsWith("/manifest") ? source.manifest : url.pathname.endsWith("/free-models") ? (url.searchParams.has("cursor") ? pages[1] : pages[0]) : null;
+    return body ? new Response(JSON.stringify(body), { status: 200, headers: { "Content-Type": "application/json" } }) : new Response(JSON.stringify({ error: { code: "unavailable", message: "Unavailable", retryable: true } }), { status: 503, headers: { "Content-Type": "application/json" } });
+  };
+  const bundle = await buildFallback({ apiBase: "https://api.example.test", outPath, maxAgeHours: 48, requireLive: true, now: new Date("2026-07-15T12:00:00.000Z"), fetchImpl, requests });
+  return { api, bundle, requests, directory };
+}
+
 test("committed deterministic fallback is explicit fixture, stale, and non-production metadata", async () => {
   const api = await importFresh(path.join(ROUTE, "open-overview-api.js"));
   const bundle = readFixture();
@@ -168,6 +193,25 @@ test("fallback generation aborts a fetch that exceeds the bounded timeout", asyn
   await assert.rejects(
     () => buildFallback({ apiBase: "https://api.example.test", outPath: path.join(directory, "fallback.json"), maxAgeHours: 48, requireLive: true, fetchImpl, requests: [], timeoutMs: 100 }),
     /timed out/i
+  );
+});
+
+test("require-live generation stores every free-model cursor page and verification returns one complete inventory", async (t) => {
+  const { api, bundle, requests, directory } = await buildLiveFreeBundle();
+  t.after(() => fs.rmSync(directory, { recursive: true, force: true }));
+  const freePaths = Object.keys(bundle.responses).filter((key) => key.startsWith("/free-models?"));
+  assert.equal(freePaths.length, 2);
+  assert.ok(freePaths.some((key) => new URL(key, "https://example.test").searchParams.get("cursor") === "opaque+/= cursor"));
+  const verified = await api.verifyFallbackBundle(bundle, requests, "2", new Date("2026-07-15T12:00:00.000Z"));
+  assert.deepEqual(verified.responses.free.data.map((row) => row.id), bundle.responses[api.canonicalPath(api.ENDPOINTS.freeModels)].data.concat(bundle.responses[freePaths.find((key) => key !== api.canonicalPath(api.ENDPOINTS.freeModels))].data).map((row) => row.id));
+  assert.equal(verified.responses.free.data.length, 2);
+  assert.equal(verified.responses.free.cursor, null);
+});
+
+test("require-live free-model generation fails closed when page provenance changes", async () => {
+  await assert.rejects(
+    () => buildLiveFreeBundle({ mixedProvenance: true }),
+    (error) => error.code === "mixed_snapshot" && /page|provenance|identity/i.test(error.message)
   );
 });
 

@@ -19,7 +19,7 @@
       "newestFetchedAt": "2026-07-15T10:00:00.000Z",
       "evidenceCount": 1
     },
-    "/free-models?limit=50": {
+    "/free-models?limit=200": {
       "oldestFetchedAt": "2026-07-15T10:00:00.000Z",
       "newestFetchedAt": "2026-07-15T10:00:00.000Z",
       "evidenceCount": 1
@@ -1338,7 +1338,7 @@
         "limit": 10
       }
     },
-    "/free-models?limit=50": {
+    "/free-models?limit=200": {
       "schemaVersion": "2.0",
       "data": [
         {
@@ -27365,5 +27365,5 @@
       ]
     }
   },
-  "checksum": "e6bb5bbbeac0f8667f651c56203aa325f28f3b13fbcce38d6049c88547960d5b"
+  "checksum": "2c3a7548d7561a943ab951190b06340aa003383a523cb219d8dd505e04d3412b"
 }

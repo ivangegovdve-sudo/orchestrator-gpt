@@ -1,6 +1,6 @@
-import { ENDPOINTS, GITHUB_CATEGORIES, OVERVIEW_REQUESTS, createOpenOverviewClient, manifestPublicationIdentity, topGitHubEnrichmentRequests } from "./open-overview-api.js";
+import { ENDPOINTS, GITHUB_CATEGORIES, OVERVIEW_REQUESTS, createOpenOverviewClient, manifestPublicationIdentity, topAppModelRequests, topGitHubEnrichmentRequests } from "./open-overview-api.js";
 import { compactIntegerString } from "./open-overview-schema.js";
-import { renderAppModelMatrix, renderRankTable, renderSourceStates, renderSparkline, renderUnavailable } from "./open-overview-charts.js";
+import { renderAppModelMatrix, renderHistoryVisualization, renderRankTable, renderSourceStates, renderUnavailable } from "./open-overview-charts.js";
 
 export const OPENROUTER_VIEWS = Object.freeze({
   usage: { label: "Usage", requests: [{ key: "models", path: ENDPOINTS.modelsTopWeekly, kind: "models", sourceId: "models_current" }, { key: "history", path: ENDPOINTS.history, kind: "history", optional: true }] },
@@ -37,6 +37,74 @@ export function appRankingSourceLabel(response) {
   const sort = response?.requestSlice?.sort;
   const days = typeof period === "string" && /^(?:[1-9]\d*)d$/.test(period) ? Number(period.slice(0, -1)) : null;
   return days && typeof sort === "string" ? `OpenRouter ${days}-day · ${sort}` : "OpenRouter published app slice";
+}
+
+export function appModelPresentation(response) {
+  if (!response || response.status !== "available") {
+    return Object.freeze({
+      models: Object.freeze([]),
+      coverageLabel: response?.reason ? `Unavailable · ${response.reason}` : "No published app-model ranking",
+    });
+  }
+  const models = (Array.isArray(response.data) ? response.data : [])
+    .slice()
+    .sort((left, right) => left.rank - right.rank || String(left.modelId).localeCompare(String(right.modelId)))
+    .slice(0, 3)
+    .map((row) => Object.freeze({
+      id: row.resolvedModelId || row.modelId || row.sourcePermaslug,
+      rank: row.rank,
+      totalTokens: row.totalTokens,
+      matchMethod: row.matchMethod,
+    }));
+  const coverage = response.coverage || {};
+  const population = String(coverage.populationCompleteness || "partial_or_unknown").replaceAll("_", " ");
+  return Object.freeze({
+    models: Object.freeze(models),
+    coverageLabel: `${coverage.mappedModels ?? "—"} mapped · ${coverage.unmappedModels ?? "—"} unmapped · ${population}`,
+  });
+}
+
+export function taskModelPresentation(task) {
+  const models = (Array.isArray(task?.models) ? task.models : [])
+    .slice()
+    .sort((left, right) => left.sourcePosition - right.sourcePosition || String(left.id).localeCompare(String(right.id)))
+    .map((row) => Object.freeze({
+      id: row.id,
+      sourcePosition: row.sourcePosition,
+      usageShare: row.usageShare,
+      tokenShare: row.tokenShare,
+    }));
+  return Object.freeze({ models: Object.freeze(models), complete: task?.topModelsComplete === true });
+}
+
+export function lifecycleTimelineModel(rows) {
+  return Object.freeze((Array.isArray(rows) ? rows : [])
+    .filter((row) => row && typeof row.modelId === "string" && typeof row.state === "string")
+    .map((row) => Object.freeze({
+      modelId: row.modelId,
+      state: row.state,
+      firstObservedAt: row.firstObservedAt ?? null,
+      lastObservedAt: row.lastObservedAt ?? null,
+      expirationDate: row.expirationDate ?? null,
+    }))
+    .sort((left, right) =>
+      String(left.expirationDate ?? "9999-12-31").localeCompare(String(right.expirationDate ?? "9999-12-31")) ||
+      left.modelId.localeCompare(right.modelId)));
+}
+
+export function benchmarkSourceRegions(rows) {
+  const grouped = new Map();
+  for (const row of Array.isArray(rows) ? rows : []) {
+    if (!row || typeof row.source !== "string") continue;
+    if (!grouped.has(row.source)) grouped.set(row.source, []);
+    grouped.get(row.source).push(row);
+  }
+  return Object.freeze([...grouped.entries()]
+    .sort(([left], [right]) => left.localeCompare(right))
+    .map(([source, sourceRows]) => Object.freeze({
+      source,
+      rows: Object.freeze(sourceRows.map((row, index) => Object.freeze({ ...row, sourceRank: index + 1 }))),
+    })));
 }
 
 function context() {
@@ -134,19 +202,142 @@ export function historySeriesModel(series) {
   return Object.freeze({ buckets: Object.freeze(buckets), chartBuckets: Object.freeze(chartBuckets), exactRows: Object.freeze(exactRows), sparklineEligible, reason: sparklineEligible ? null : "requires_8_consecutive_complete_days" });
 }
 
-export function renderHistoryPanel(view, seriesKey, title) {
+export function renderHistoryPanel(view, seriesKey, title, visualization = seriesKey === "modelUsage" ? "stacked-area" : seriesKey === "githubRanks" ? "small-multiples" : "bump") {
   const { document } = context(); const history = view.responses.history;
   if (!history || history.status === "unavailable") return renderUnavailable({ document, title, reason: history?.reason || "History request failed" });
   const model = historySeriesModel(history.data[seriesKey]); const buckets = model.buckets;
   if (!buckets.length) return renderUnavailable({ document, title, reason: "insufficient_history" });
   const region = section(document, "", "oo-data-region oo-history-panel"); const heading = document.createElement("h2"); heading.className = "oo-region-title"; heading.textContent = title; region.appendChild(heading);
-  if (model.sparklineEligible) for (const target of model.chartBuckets.at(-1).rows) { const values = model.chartBuckets.map((bucket) => bucket.rows.find((row) => row.id === target.id)).filter(Boolean).map((row) => row.value ?? String(row.rank)); if (values.length !== model.chartBuckets.length) continue; const line = document.createElement("div"); line.className = "oo-history-line"; const label = document.createElement("span"); label.textContent = target.label; line.append(label, renderSparkline({ document, values, label: `${target.label} exact series: ${values.join(", ")}` })); region.appendChild(line); }
-  else { const explanation = document.createElement("p"); explanation.className = "oo-region-meta oo-history-explanation"; explanation.textContent = "Trend charts require eight consecutive complete daily buckets; showing bounded exact values only."; region.appendChild(explanation); }
+  const chart = model.sparklineEligible ? renderHistoryVisualization({ document, type: visualization, buckets: model.chartBuckets, title }) : null;
+  if (chart) region.appendChild(chart);
+  else { const explanation = document.createElement("p"); explanation.className = "oo-region-meta oo-history-explanation"; explanation.textContent = model.sparklineEligible ? "The published series cannot form compatible chart geometry; showing bounded exact values only." : "Trend charts require eight consecutive complete daily buckets; showing bounded exact values only."; region.appendChild(explanation); }
   const details = document.createElement("details"); const summary = document.createElement("summary"); summary.textContent = "Exact history values"; details.append(summary, renderRankTable({ document, title: `${title} exact values`, rows: model.exactRows, sourceLabel: "Approved-run history", asOf: buckets.at(-1).date, columns: [{ label: "Date", value: (row) => row.date }, { label: "Item", value: (row) => row.label }, { label: "Scope", value: (row) => exact(row.scope) }, { label: "Rank", value: (row) => exact(row.rank) }, { label: "Value", value: (row) => exact(row.value) }, { label: "Remainder", value: (row) => exact(row.remainder) }, { label: "Stars", value: (row) => exact(row.stars) }, { label: "Forks", value: (row) => exact(row.forks) }] })); region.appendChild(details); return region;
 }
 
 function leaderboard(document, id, title, rows, source, asOf, kind) {
-  const table = renderRankTable({ document, title, rows, sourceLabel: source, asOf, columns: kind === "model" ? [{ label: "Rank", value: (row) => row.weeklyRank }, { label: "Model", value: (row) => row.name }, { label: "Context", value: (row) => exact(row.contextLength) }, { label: "Lifecycle", value: (row) => row.lifecycleState }] : [{ label: "Rank", value: (row) => row.rank }, { label: "App", value: (row) => row.appName }, { label: "Tokens", value: (row) => compactIntegerString(row.totalTokens), exact: (row) => row.totalTokens }, { label: "Requests", value: (row) => compactIntegerString(row.totalRequests), exact: (row) => row.totalRequests }] }); table.id = id; return table;
+  const table = renderRankTable({ document, title, rows, sourceLabel: source, asOf, emphasizeTopThree: true, columns: kind === "model" ? [{ label: "Rank", value: (row) => row.weeklyRank }, { label: "Model", value: (row) => row.name }, { label: "Context", value: (row) => exact(row.contextLength) }, { label: "Lifecycle", value: (row) => row.lifecycleState }] : [{ label: "Rank", value: (row) => row.rank }, { label: "App", value: (row) => row.appName }, { label: "Tokens", value: (row) => compactIntegerString(row.totalTokens), exact: (row) => row.totalTokens }, { label: "Requests", value: (row) => compactIntegerString(row.totalRequests), exact: (row) => row.totalRequests }] }); table.id = id; return table;
+}
+
+const titleCaseSource = (source) => String(source).split("-").map((part) => part ? part[0].toUpperCase() + part.slice(1) : part).join(" ");
+
+function modelChipList(document, models, className) {
+  const list = document.createElement("span");
+  list.className = className;
+  if (!models.length) {
+    const missing = document.createElement("span");
+    missing.className = "oo-evidence-unavailable";
+    missing.textContent = "No published ranking";
+    list.appendChild(missing);
+    return list;
+  }
+  for (const model of models) {
+    const chip = document.createElement("span");
+    chip.className = "oo-model-chip";
+    chip.textContent = `${model.rank ?? model.sourcePosition}. ${model.id}`;
+    const exactTokens = model.totalTokens ? ` · ${model.totalTokens} tokens` : "";
+    chip.title = `${model.id}${exactTokens}`;
+    list.appendChild(chip);
+  }
+  return list;
+}
+
+function appLeaderboard(document, id, title, rows, source, asOf, view) {
+  const evidence = new Map(rows.map((row) => [row.appId, appModelPresentation(view.responses[`appModels:${row.appId}`])]));
+  const table = renderRankTable({
+    document,
+    title,
+    rows,
+    sourceLabel: source,
+    asOf,
+    emphasizeTopThree: true,
+    columns: [
+      { label: "Rank", value: (row) => row.rank },
+      { label: "App", value: (row) => row.appName },
+      { label: "Returned models", render: (row) => modelChipList(document, evidence.get(row.appId).models, "oo-app-row-evidence") },
+      { label: "Coverage", render: (row) => { const value = document.createElement("span"); value.className = "oo-app-coverage"; value.textContent = evidence.get(row.appId).coverageLabel; return value; } },
+      { label: "Tokens", value: (row) => compactIntegerString(row.totalTokens), exact: (row) => row.totalTokens },
+      { label: "Requests", value: (row) => compactIntegerString(row.totalRequests), exact: (row) => row.totalRequests },
+    ],
+  });
+  table.id = id;
+  return table;
+}
+
+function taskColumns(document) {
+  return [
+    { label: "Task", value: (row) => row.displayName },
+    { label: "Category", value: (row) => row.macroCategory },
+    { label: "Usage share", value: (row) => row.usageShare },
+    { label: "Token share", value: (row) => row.tokenShare },
+    { label: "Published top models", render: (row) => {
+      const evidence = taskModelPresentation(row);
+      const wrapper = document.createElement("span");
+      wrapper.appendChild(modelChipList(document, evidence.models.slice(0, 3), "oo-task-models"));
+      const coverage = document.createElement("span");
+      coverage.className = "oo-task-coverage";
+      coverage.textContent = evidence.complete ? "Complete published list" : "Partial published list";
+      wrapper.appendChild(coverage);
+      return wrapper;
+    } },
+  ];
+}
+
+function renderLifecycleTimeline(document, rows) {
+  const events = lifecycleTimelineModel(rows);
+  const region = document.createElement("section");
+  region.className = "oo-lifecycle-timeline";
+  region.setAttribute("aria-label", "Observed model lifecycle timeline");
+  if (!events.length) {
+    region.setAttribute("role", "status");
+    region.textContent = "No observed model lifecycle events.";
+    return region;
+  }
+  const list = document.createElement("ol");
+  for (const event of events) {
+    const item = document.createElement("li");
+    const identity = document.createElement("strong");
+    identity.textContent = `${event.modelId} · ${event.state}`;
+    item.appendChild(identity);
+    for (const [label, value] of [["First observed", event.firstObservedAt], ["Last observed", event.lastObservedAt], ["Expiration", event.expirationDate]]) {
+      const field = document.createElement("span");
+      field.textContent = `${label}: `;
+      if (value) {
+        const time = document.createElement("time");
+        time.dateTime = value;
+        time.textContent = value;
+        field.appendChild(time);
+      } else field.append("—");
+      item.appendChild(field);
+    }
+    list.appendChild(item);
+  }
+  region.appendChild(list);
+  return region;
+}
+
+function renderBenchmarkRegions(document, rows, response) {
+  const fragment = document.createDocumentFragment();
+  for (const region of benchmarkSourceRegions(rows)) {
+    const wrapper = document.createElement("section");
+    wrapper.className = "oo-benchmark-source";
+    const title = `${titleCaseSource(region.source)} ranking`;
+    wrapper.appendChild(renderRankTable({
+      document,
+      title,
+      rows: region.rows,
+      sourceLabel: region.source,
+      asOf: response?.provenance?.[0]?.sourceAsOf ?? response?.window?.end,
+      emphasizeTopThree: true,
+      columns: [
+        { label: "Source rank", value: (row) => row.sourceRank },
+        { label: "Model", value: (row) => row.displayName },
+        { label: "Score", value: (row) => row.source === "artificial-analysis" ? exact(row.intelligenceIndex) : exact(row.elo) },
+        { label: "Match", value: (row) => row.matchStatus },
+      ],
+    }));
+    fragment.appendChild(wrapper);
+  }
+  return fragment;
 }
 
 export function renderOverview(view, config) {
@@ -158,14 +349,14 @@ export function renderOverview(view, config) {
   const models = envelopeRows(view, "models"); const apps = envelopeRows(view, "apps");
   const modelRail = leaderboard(document, "oo-model-rail", "Weekly model leaders", models, "OpenRouter weekly", view.responses.models?.provenance?.[0]?.sourceAsOf ?? view.responses.models?.window?.end, "model"); modelRail.dataset.mobilePanel = "models";
   const matrix = renderAppModelMatrix({ document, response: view.responses.matrix, apps, models, onInspect: showMatrixEvidence, onDismiss: dismissMatrixEvidence }); matrix.id = "oo-matrix-field"; matrix.dataset.mobilePanel = "matrix";
-  const appRail = leaderboard(document, "oo-app-rail", "Popular app leaders", apps, appRankingSourceLabel(view.responses.apps), view.responses.apps?.provenance?.[0]?.sourceAsOf ?? view.responses.apps?.window?.end, "app"); appRail.dataset.mobilePanel = "apps";
+  const appRail = appLeaderboard(document, "oo-app-rail", "Popular app leaders", apps, appRankingSourceLabel(view.responses.apps), view.responses.apps?.provenance?.[0]?.sourceAsOf ?? view.responses.apps?.window?.end, view); appRail.dataset.mobilePanel = "apps";
   field.append(modelRail, matrix, appRail); field.dataset.mobileSegment = "models"; root.appendChild(field);
   const analysis = section(document, "oo-analysis-strip", "oo-analysis-strip");
   for (const [title, key, note] of [["Free", "free", "Popularity default"], ["Deprecations", "deprecations", "Lifecycle evidence"], ["Tasks", "tasks", "7-day sample"], ["Benchmarks", "benchmarks", "Source-separated"], ["Providers", "providers", "Published endpoints"], ["Pareto Q×T", "freeFrontierQuality", "Quality × throughput"], ["Pareto C×P", "freeFrontierContext", "Context × popularity"]]) { const rows = envelopeRows(view,key); const article = document.createElement("article"); article.className = "oo-micro-panel"; article.dataset.overviewDataset = key; const h = document.createElement("h2"); h.textContent = title; const count = document.createElement("strong"); count.textContent = String(rows.length); const p = document.createElement("p"); p.textContent = view.errors[key] ? "Gated unavailable" : !Object.hasOwn(view.responses,key) && OVERVIEW_DEFERRED_KEYS.has(key) ? "Loads near this rail" : note; article.append(h,count,p); analysis.appendChild(article); }
   root.appendChild(analysis);
-  const history = section(document, "oo-history-grid", "oo-history-grid"); history.append(renderHistoryPanel(view,"modelUsage","Model usage over time"),renderHistoryPanel(view,"appRanks","App rank over time"),renderHistoryPanel(view,"githubRanks","GitHub rank over time")); root.appendChild(history);
+  const history = section(document, "oo-history-grid", "oo-history-grid"); history.append(renderHistoryPanel(view,"modelUsage","Model usage over time","stacked-area"),renderHistoryPanel(view,"modelUsage","Model rank movement","bump"),renderHistoryPanel(view,"githubRanks","GitHub category history","small-multiples")); root.appendChild(history);
   const github = section(document, "oo-github-grid", "oo-github-grid");
-  for (const [slug,label] of GITHUB_CATEGORIES) { const response = view.responses[`github:${slug}`]; github.appendChild(response ? renderRankTable({ document, title: label, rows: response.data.slice(0,10), sourceLabel: "GitHub adoption · percent_rank", asOf: response.coverage.resolvedAsOf, columns: [{ label:"Rank",value:(row)=>row.rank },{ label:"Project",value:(row)=>row.fullName,href:(row)=>`https://github.com/${row.fullName}` },{ label:"Stars",value:(row)=>compactIntegerString(row.stars),exact:(row)=>row.stars },{ label:"Forks",value:(row)=>compactIntegerString(row.forks),exact:(row)=>row.forks }] }) : renderUnavailable({ document, title: label, reason: "Ranking unavailable" })); }
+  for (const [slug,label] of GITHUB_CATEGORIES) { const response = view.responses[`github:${slug}`]; github.appendChild(response ? renderRankTable({ document, title: label, rows: response.data.slice(0,10), sourceLabel: "GitHub adoption · percent_rank", asOf: response.coverage.resolvedAsOf, emphasizeTopThree: true, columns: [{ label:"Rank",value:(row)=>row.rank },{ label:"Project",value:(row)=>row.fullName,href:(row)=>`https://github.com/${row.fullName}` },{ label:"Stars",value:(row)=>compactIntegerString(row.stars),exact:(row)=>row.stars },{ label:"Forks",value:(row)=>compactIntegerString(row.forks),exact:(row)=>row.forks }] }) : renderUnavailable({ document, title: label, reason: "Ranking unavailable" })); }
   root.appendChild(github); root.setAttribute("aria-busy", "false"); installThreeEnhancement(view, config);
 }
 
@@ -179,12 +370,20 @@ export const mergeCompatibleViews = (primary, deferred) => {
 function hydrateOverviewDeferred(view) {
   renderSourceRail(view); const { document } = context();
   for (const [key, note] of [["providers", "Published endpoints"], ["freeFrontierQuality", "Quality × throughput"], ["freeFrontierContext", "Context × popularity"]]) { const article = document.querySelector(`[data-overview-dataset="${key}"]`); if (!article) continue; article.querySelector("strong").textContent = String(envelopeRows(view,key).length); article.querySelector("p").textContent = view.errors[key] ? "Gated unavailable" : note; }
-  const history = document.getElementById("oo-history-grid"); if (history) history.replaceChildren(renderHistoryPanel(view,"modelUsage","Model usage over time"),renderHistoryPanel(view,"appRanks","App rank over time"),renderHistoryPanel(view,"githubRanks","GitHub rank over time"));
+  const history = document.getElementById("oo-history-grid"); if (history) history.replaceChildren(renderHistoryPanel(view,"modelUsage","Model usage over time","stacked-area"),renderHistoryPanel(view,"modelUsage","Model rank movement","bump"),renderHistoryPanel(view,"githubRanks","GitHub category history","small-multiples"));
+  const currentAppRail = document.getElementById("oo-app-rail");
+  if (currentAppRail) {
+    const apps = envelopeRows(view, "apps");
+    const nextAppRail = appLeaderboard(document, "oo-app-rail", "Popular app leaders", apps, appRankingSourceLabel(view.responses.apps), view.responses.apps?.provenance?.[0]?.sourceAsOf ?? view.responses.apps?.window?.end, view);
+    nextAppRail.dataset.mobilePanel = "apps";
+    currentAppRail.replaceWith(nextAppRail);
+  }
 }
 
 function installOverviewDeferredLoad(client, initialView) {
   const { document } = context(); const target = document.getElementById("oo-history-grid"); if (!target || !OVERVIEW_DEFERRED_REQUESTS.length) return;
-  const load = async () => { target.dataset.deferredState = "loading"; try { const deferred = await client.loadView(OVERVIEW_DEFERRED_REQUESTS, initialView.mode === "snapshot" ? {} : { manifest: initialView.manifest }); hydrateOverviewDeferred(mergeCompatibleViews(initialView, deferred)); target.dataset.deferredState = "ready"; } catch (error) { const failed = Object.fromEntries(OVERVIEW_DEFERRED_REQUESTS.map((spec) => [spec.key, error])); hydrateOverviewDeferred(Object.freeze({ ...initialView, errors: Object.freeze({ ...initialView.errors, ...failed }) })); target.dataset.deferredState = "failed"; } };
+  const requests = Object.freeze([...OVERVIEW_DEFERRED_REQUESTS, ...topAppModelRequests(initialView.responses.apps)]);
+  const load = async () => { target.dataset.deferredState = "loading"; try { const deferred = await client.loadView(requests, initialView.mode === "snapshot" ? {} : { manifest: initialView.manifest }); hydrateOverviewDeferred(mergeCompatibleViews(initialView, deferred)); target.dataset.deferredState = "ready"; } catch (error) { const failed = Object.fromEntries(requests.map((spec) => [spec.key, error])); hydrateOverviewDeferred(Object.freeze({ ...initialView, errors: Object.freeze({ ...initialView.errors, ...failed }) })); target.dataset.deferredState = "failed"; } };
   if (typeof IntersectionObserver !== "function") { load(); return; }
   const observer = new IntersectionObserver(([entry]) => { if (!entry.isIntersecting) return; observer.disconnect(); load(); }, { rootMargin: "100px" }); observer.observe(target);
 }
@@ -196,7 +395,7 @@ const openRouterColumns = {
   usage: [{ label:"Rank",value:(row)=>row.weeklyRank },{ label:"Model",value:(row)=>row.name },{ label:"Context",value:(row)=>exact(row.contextLength) },{ label:"Lifecycle",value:(row)=>row.lifecycleState }],
   apps: [{ label:"Rank",value:(row)=>row.rank },{ label:"App",value:(row)=>row.appName },{ label:"Tokens",value:(row)=>compactIntegerString(row.totalTokens),exact:(row)=>row.totalTokens },{ label:"Requests",value:(row)=>compactIntegerString(row.totalRequests),exact:(row)=>row.totalRequests }],
   free: [{ label:"Rank",value:(row)=>row.weeklyRank },{ label:"Concrete model",value:(row)=>row.id },{ label:"Context",value:(row)=>exact(row.contextLength) },{ label:"Lifecycle",value:(row)=>row.lifecycleState }],
-  deprecations: [{ label:"Model",value:(row)=>row.modelId },{ label:"State",value:(row)=>row.state },{ label:"May be removed after",value:(row)=>exact(row.expirationDate) }],
+  deprecations: [{ label:"Model",value:(row)=>row.modelId },{ label:"State",value:(row)=>row.state },{ label:"First observed",value:(row)=>exact(row.firstObservedAt) },{ label:"Last observed",value:(row)=>exact(row.lastObservedAt) },{ label:"May be removed after",value:(row)=>exact(row.expirationDate) }],
   tasks: [{ label:"Task",value:(row)=>row.displayName },{ label:"Category",value:(row)=>row.macroCategory },{ label:"Usage share",value:(row)=>row.usageShare },{ label:"Token share",value:(row)=>row.tokenShare }],
   benchmarks: [{ label:"Model",value:(row)=>row.displayName },{ label:"Source",value:(row)=>row.source },{ label:"Score",value:(row)=>row.source === "artificial-analysis" ? exact(row.intelligenceIndex) : exact(row.elo) },{ label:"Match",value:(row)=>row.matchStatus }]
 };
@@ -207,7 +406,19 @@ export function renderOpenRouter(view, state) {
   else if (state.view === "app-to-model") { const apps = envelopeRows(view,"apps"); const models = envelopeRows(view,"models"); const picker = document.createElement("nav"); picker.className = "oo-app-picker"; picker.setAttribute("aria-label","Top apps"); for (const app of apps.slice(0,10)) { const link = document.createElement("a"); link.href = `/web/open-overview/openrouter/index.html?view=app-to-model&app=${encodeURIComponent(app.appId)}`; link.textContent = `${app.rank}. ${app.appName}`; if (app.appId === state.appId) link.setAttribute("aria-current","page"); picker.appendChild(link); } content.append(picker,renderAppModelMatrix({ document,response:view.responses.matrix,apps,models,onInspect:showMatrixEvidence })); if (state.appId) { const response=view.responses.appModels; content.appendChild(response?.status === "available" ? renderRankTable({ document,title:`${response.appName} model ranking`,rows:response.data,sourceLabel:"Observed daily tokens",asOf:response.resolvedPeriod.end,columns:[{label:"Rank",value:(row)=>row.rank},{label:"Model",value:(row)=>row.modelId},{label:"Tokens",value:(row)=>compactIntegerString(row.totalTokens),exact:(row)=>row.totalTokens}] }) : renderUnavailable({document,title:"Per-app model ranking",reason:response?`Enrichment unavailable: ${response.reason}`:"Per-app request failed"})); } }
   else if (state.view === "providers") { const rows=envelopeRows(view,"providers"); content.appendChild(rows.length ? renderRankTable({ document,title:"Providers",rows,sourceLabel:"Published endpoints",asOf:view.responses.providers?.provenance?.[0]?.fetchedAt,columns:[{label:"Model",value:(row)=>row.modelId},{label:"Provider",value:(row)=>row.provider},{label:"Quant",value:(row)=>exact(row.quantization)},{label:"Context",value:(row)=>exact(row.contextLength)},{label:"Prompt",value:(row)=>exact(row.promptPrice)},{label:"Completion",value:(row)=>exact(row.completionPrice)},{label:"Uptime",value:(row)=>exact(row.uptime)},{label:"Latency",value:(row)=>exact(row.latency)},{label:"Throughput",value:(row)=>exact(row.throughput)},{label:"Status",value:(row)=>exact(row.status)}] }) : renderUnavailable({document,title:"Providers",reason:`Provider enrichment is unavailable (${view.errors.providers?.details?.apiCode || "unavailable"}); no values are inferred.`})); }
   else if (state.view === "free" && state.freeMode === "pareto") { content.appendChild(freeModeNav(document,state)); let rendered=0; for(const key of ["freeFrontierQuality","freeFrontierContext"]){const response=view.responses[key];const frontier=envelopeRows(view,key)[0];if(!frontier)continue;rendered+=1;content.appendChild(renderRankTable({document,title:`Free Pareto · ${frontier.dimensions.x} × ${frontier.dimensions.y}`,rows:frontier.members,sourceLabel:`${frontier.ruleVersion} · ${frontier.dimensions.x} ${frontier.dimensions.xDirection} × ${frontier.dimensions.y} ${frontier.dimensions.yDirection}`,asOf:response?.window?.end,columns:[{label:"Model",value:(row)=>row.modelId},{label:frontier.dimensions.x,value:(row)=>row.x},{label:frontier.dimensions.y,value:(row)=>row.y}]}));}if(!rendered)content.appendChild(renderUnavailable({document,title:"Free Pareto frontiers",reason:"Frontier enrichment is unavailable. Popularity remains available; no composite efficiency score is substituted."})); }
-  else { const rows=envelopeRows(view,key); content.appendChild(renderRankTable({document,title:OPENROUTER_VIEWS[state.view].label,rows,sourceLabel:"OpenRouter public v2",asOf:view.responses[key]?.provenance?.[0]?.sourceAsOf ?? view.responses[key]?.window?.end,columns:openRouterColumns[state.view]})); if(state.view==="usage")content.appendChild(renderHistoryPanel(view,"modelUsage","Model usage over time")); if(state.view==="apps")content.appendChild(renderHistoryPanel(view,"appRanks","App rank over time")); if(state.view==="free"){content.prepend(freeModeNav(document,state));const note=document.createElement("p");note.className="oo-router-note";note.textContent="openrouter/free is a router and is never counted as a concrete :free model.";content.appendChild(note);} }
+  else {
+    const rows=envelopeRows(view,key);
+    const sourceLabel="OpenRouter public v2";
+    const asOf=view.responses[key]?.provenance?.[0]?.sourceAsOf ?? view.responses[key]?.window?.end;
+    if (state.view === "apps") content.appendChild(appLeaderboard(document,"oo-openrouter-apps","Apps",rows,appRankingSourceLabel(view.responses.apps),asOf,view));
+    else if (state.view === "tasks") content.appendChild(renderRankTable({document,title:"Tasks",rows,sourceLabel,asOf,columns:taskColumns(document)}));
+    else if (state.view === "benchmarks") content.appendChild(rows.length ? renderBenchmarkRegions(document,rows,view.responses.benchmarks) : renderUnavailable({document,title:"Benchmarks",reason:"No source benchmark rankings are published."}));
+    else content.appendChild(renderRankTable({document,title:OPENROUTER_VIEWS[state.view].label,rows,sourceLabel,asOf,emphasizeTopThree:state.view==="usage"||state.view==="free",columns:openRouterColumns[state.view]}));
+    if(state.view==="usage")content.appendChild(renderHistoryPanel(view,"modelUsage","Model usage over time"));
+    if(state.view==="apps")content.appendChild(renderHistoryPanel(view,"appRanks","App rank over time"));
+    if(state.view==="deprecations")content.appendChild(renderLifecycleTimeline(document,rows));
+    if(state.view==="free"){content.prepend(freeModeNav(document,state));const note=document.createElement("p");note.className="oo-router-note";note.textContent="openrouter/free is a router and is never counted as a concrete :free model.";content.appendChild(note);}
+  }
   root.appendChild(content); root.setAttribute("aria-busy","false");
 }
 
@@ -229,7 +440,7 @@ export function renderGithub(view,state){
   const enrichmentByRepository=new Map(Object.values(view.responses).filter((response)=>response?.releaseCadence&&Array.isArray(response.starBuckets)).map((response)=>[response.repositoryId,response]));
   const columns=[{label:"Rank",value:(row)=>row.rank},{label:"Project",value:(row)=>row.fullName,href:(row)=>`https://github.com/${row.fullName}`},{label:"Stars",value:(row)=>compactIntegerString(row.stars),exact:(row)=>row.stars},{label:"Forks",value:(row)=>compactIntegerString(row.forks),exact:(row)=>row.forks},{label:definition,value:(row)=>exact(row.score)}];
   if(state.metric==="maintenance")columns.push({label:"Stable releases 90d",value:(row)=>enrichmentByRepository.get(row.repositoryId)?.releaseCadence.stableReleaseCount90d??row.maintenanceEvidence?.stableReleaseCount90d??null},{label:"Median cadence",value:(row)=>{const value=enrichmentByRepository.get(row.repositoryId)?.releaseCadence.medianStableReleaseIntervalDays365d??row.maintenanceEvidence?.medianStableReleaseIntervalDays365d;return value===null||value===undefined?null:`${value} days`}},{label:"7-day stars",render:(row)=>renderStarBucketDisclosure(document,row.fullName,enrichmentByRepository.get(row.repositoryId)?.starBuckets)});
-  content.appendChild(renderRankTable({document,title:`${definition} · ${GITHUB_CATEGORIES.find(([slug])=>slug===state.category)[1]}`,rows,sourceLabel:"GitHub project-family ranking",asOf:envelope?.coverage.resolvedAsOf,columns,className:state.metric==="maintenance"?"oo-github-maintenance":""}));
+  content.appendChild(renderRankTable({document,title:`${definition} · ${GITHUB_CATEGORIES.find(([slug])=>slug===state.category)[1]}`,rows,sourceLabel:"GitHub project-family ranking",asOf:envelope?.coverage.resolvedAsOf,emphasizeTopThree:true,columns,className:state.metric==="maintenance"?"oo-github-maintenance":""}));
   const meta=document.createElement("p");meta.className="oo-ranking-meta";meta.textContent=envelope?.ranking?`${envelope.ranking.rankMethod} · ${envelope.ranking.ruleVersion} · Taxonomy: ${envelope.ranking.taxonomyVersion} · Eligible population: ${envelope.ranking.eligiblePopulation}`:"Ranking metadata unavailable";const method=document.createElement("p");method.className="oo-ranking-method";method.textContent=state.metric==="adoption"?"Adoption = 0.75 × percent_rank(log1p(stars)) + 0.25 × percent_rank(log1p(forks)); raw stars and forks remain visible.":state.metric==="momentum"?"Momentum requires a fully covered 7, 30, or 90-day window; incomplete windows are ineligible.":"Maintenance is a recency ranking using default-branch commit and stable-release evidence, not a health score. Expand each seven-bucket sparkline for published bucket counts; partial coverage is labeled and never described as exact.";content.append(meta,method,renderHistoryPanel(view,"githubRanks","GitHub rank over time"));root.appendChild(content);root.setAttribute("aria-busy","false");
 }
 
@@ -240,5 +451,61 @@ async function mountThreeNow(host,graph){const module=await import("./open-overv
 export function installThreeEnhancement(view,config){const{document}=context();const host=document.getElementById("oo-network-region");const graph=buildRelationshipGraph(view);host.replaceChildren();if(!config.threeEnabled||!graph.nodes.length||reducedMotion()||!supportsWebGL()||typeof IntersectionObserver!=="function"){const note=document.createElement("p");note.className="oo-network-note";note.textContent="Relationship map omitted; the semantic matrix and ranking tables remain authoritative.";host.appendChild(note);return}const load=async()=>{if(host.dataset.threeState==="loading"||host.dataset.threeState==="ready")return;host.dataset.threeState="loading";try{const controller=await mountThreeNow(host,graph);host.dataset.threeState="ready";const active=new IntersectionObserver(([entry])=>controller.setActive(entry.isIntersecting));active.observe(host);window.addEventListener("pagehide",()=>{active.disconnect();controller.destroy()},{once:true})}catch{const note=document.createElement("p");note.className="oo-network-note";note.textContent="WebGL map unavailable; the semantic matrix and ranking tables remain authoritative.";host.replaceChildren(note);host.dataset.threeState="failed"}};if(navigator.connection?.saveData){const button=document.createElement("button");button.type="button";button.className="oo-load-map";button.textContent="Load ecosystem map";button.addEventListener("click",()=>{button.remove();load()},{once:true});host.appendChild(button);return}const observer=new IntersectionObserver(([entry])=>{if(!entry.isIntersecting)return;observer.disconnect();load()},{rootMargin:"100px"});observer.observe(host)}
 
 export async function readConfig(fetchImpl,timeoutMs=8000){const controller=new AbortController();const timer=setTimeout(()=>controller.abort(new DOMException("timed out","TimeoutError")),timeoutMs);try{const response=await fetchImpl("/web/open-overview/config.json",{credentials:"omit",cache:"no-store",redirect:"error",signal:controller.signal});if(!response.ok)throw new Error("Open Overview config is unavailable");return response.json()}catch(error){if(controller.signal.aborted||error?.name==="AbortError"||error?.name==="TimeoutError")throw new Error("Open Overview config request timed out");throw error}finally{clearTimeout(timer)}}
-export async function bootOpenOverview({fetchImpl=globalThis.fetch.bind(globalThis)}={}){const{document,root,sourceToggle,sourcePanel}=context();sourceToggle.addEventListener("click",()=>{const expanded=sourceToggle.getAttribute("aria-expanded")==="true";sourceToggle.setAttribute("aria-expanded",String(!expanded));sourcePanel.hidden=expanded});try{const config=await readConfig(fetchImpl);const client=createOpenOverviewClient({...config,fetchImpl});const route=document.body.dataset.openOverviewRoute;if(route==="overview"){const view=await client.loadView(OVERVIEW_INITIAL_REQUESTS);renderOverview(view,config);installOverviewDeferredLoad(client,view)}else if(route==="openrouter"){const state=parseOpenRouterState(location.href);const requests=OPENROUTER_VIEWS[state.view].requests.slice();if(state.view==="app-to-model"&&state.appId)requests.push({key:"appModels",path:ENDPOINTS.appModels(state.appId),kind:"appModels",optional:true});renderOpenRouter(await client.loadView(requests),state)}else if(route==="github"){const state=parseGithubState(location.href);const request={key:"ranking",path:ENDPOINTS.githubRanking(state.category,state.metric,state.metric==="momentum"?state.windowDays:null),kind:"github"};const availability=[7,30,90].map(days=>({key:`momentum:${days}`,path:ENDPOINTS.githubRanking(state.category,"momentum",days,1),kind:"github",optional:true}));let view=await client.loadView([request,...availability,{key:"history",path:ENDPOINTS.history,kind:"history",optional:true}]);if(state.metric==="maintenance"&&view.responses.ranking){const enrichmentRequests=topGitHubEnrichmentRequests(view.responses.ranking);if(enrichmentRequests.length){try{view=mergeCompatibleViews(view,await client.loadView(enrichmentRequests,view.mode==="snapshot"?{}:{manifest:view.manifest}))}catch(error){const errors=Object.fromEntries(enrichmentRequests.map((spec)=>[spec.key,error]));view=Object.freeze({...view,errors:Object.freeze({...view.errors,...errors})})}}}renderGithub(view,state)}}catch(error){root.replaceChildren(renderUnavailable({document,title:"Open Overview unavailable",reason:error.message}));root.setAttribute("aria-busy","false");sourceToggle.textContent="Sources · unavailable"}}
+export async function bootOpenOverview({ fetchImpl = globalThis.fetch.bind(globalThis) } = {}) {
+  const { document, root, sourceToggle, sourcePanel } = context();
+  sourceToggle.addEventListener("click", () => {
+    const expanded = sourceToggle.getAttribute("aria-expanded") === "true";
+    sourceToggle.setAttribute("aria-expanded", String(!expanded));
+    sourcePanel.hidden = expanded;
+  });
+  try {
+    const config = await readConfig(fetchImpl);
+    const client = createOpenOverviewClient({ ...config, fetchImpl });
+    const route = document.body.dataset.openOverviewRoute;
+    if (route === "overview") {
+      const view = await client.loadView(OVERVIEW_INITIAL_REQUESTS);
+      renderOverview(view, config);
+      installOverviewDeferredLoad(client, view);
+    } else if (route === "openrouter") {
+      const state = parseOpenRouterState(location.href);
+      const requests = OPENROUTER_VIEWS[state.view].requests.slice();
+      if (state.view === "app-to-model" && state.appId) requests.push({ key: "appModels", path: ENDPOINTS.appModels(state.appId), kind: "appModels", optional: true });
+      let view = await client.loadView(requests);
+      if (state.view === "apps" && view.responses.apps) {
+        const appRequests = topAppModelRequests(view.responses.apps);
+        if (appRequests.length) {
+          try {
+            const evidence = await client.loadView(appRequests, view.mode === "snapshot" ? {} : { manifest: view.manifest });
+            view = mergeCompatibleViews(view, evidence);
+          } catch (error) {
+            const errors = Object.fromEntries(appRequests.map((spec) => [spec.key, error]));
+            view = Object.freeze({ ...view, errors: Object.freeze({ ...view.errors, ...errors }) });
+          }
+        }
+      }
+      renderOpenRouter(view, state);
+    } else if (route === "github") {
+      const state = parseGithubState(location.href);
+      const request = { key: "ranking", path: ENDPOINTS.githubRanking(state.category, state.metric, state.metric === "momentum" ? state.windowDays : null), kind: "github" };
+      const availability = [7, 30, 90].map((days) => ({ key: `momentum:${days}`, path: ENDPOINTS.githubRanking(state.category, "momentum", days, 1), kind: "github", optional: true }));
+      let view = await client.loadView([request, ...availability, { key: "history", path: ENDPOINTS.history, kind: "history", optional: true }]);
+      if (state.metric === "maintenance" && view.responses.ranking) {
+        const enrichmentRequests = topGitHubEnrichmentRequests(view.responses.ranking);
+        if (enrichmentRequests.length) {
+          try {
+            view = mergeCompatibleViews(view, await client.loadView(enrichmentRequests, view.mode === "snapshot" ? {} : { manifest: view.manifest }));
+          } catch (error) {
+            const errors = Object.fromEntries(enrichmentRequests.map((spec) => [spec.key, error]));
+            view = Object.freeze({ ...view, errors: Object.freeze({ ...view.errors, ...errors }) });
+          }
+        }
+      }
+      renderGithub(view, state);
+    }
+  } catch (error) {
+    root.replaceChildren(renderUnavailable({ document, title: "Open Overview unavailable", reason: error.message }));
+    root.setAttribute("aria-busy", "false");
+    sourceToggle.textContent = "Sources · unavailable";
+  }
+}
 if(hasDom)bootOpenOverview();

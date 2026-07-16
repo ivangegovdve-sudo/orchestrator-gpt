@@ -13,6 +13,14 @@ async function routeApi(page, options = {}) {
     if (options.offline) { await route.abort("failed"); return; }
     const url = new URL(route.request().url()); const relative = url.pathname.replace("/api/public/v2", "") + url.search;
     let body = relative.startsWith("/manifest") ? bundle.manifest : bundle.responses[canonical(relative)];
+    if (relative.startsWith("/history?") && options.eligibleHistory && body?.status === "available") {
+      body = structuredClone(body); body.window.end = "2026-07-16";
+      for (const series of Object.values(body.data)) { const latest = structuredClone(series.at(-1)); latest.date = "2026-07-16"; series.push(latest); }
+    }
+    if (relative.startsWith("/deprecations?") && options.lifecycleEvidence && body) {
+      body = structuredClone(body);
+      body.data = [{ modelId: "example/model", state: "scheduled_deprecation", expirationDate: "2026-08-01", firstObservedAt: "2026-07-01T00:00:00.000Z", lastObservedAt: "2026-07-15T00:00:00.000Z", evidenceRunId: "11111111-1111-4111-8111-111111111111" }];
+    }
     if (relative.startsWith("/app-model-matrix") && options.matrixUnavailable) body = { schemaVersion: "2.0", status: "unavailable", reason: "collection_disabled", lastSuccessAt: null, stale: false, staleAfterSeconds: 172800, completeness: { acquisitionComplete: false, populationCompleteness: "partial_or_unknown", missingFields: ["collection_disabled"] }, provenance: [], appIds: bundle.responses[canonical("/apps?limit=10&period=30d&sort=popular")].data.map((row) => row.appId), modelIds: bundle.responses[canonical("/models?limit=10&rank_source=top-weekly")].data.map((row) => row.id), cells: [] };
     if (relative.startsWith("/app-model-matrix") && options.malformedMatrix) body = { ...body, cells: [...body.cells.slice(0, -1), body.cells[0]] };
     if (relative.startsWith("/models?") && options.requiredUnavailable) { await route.fulfill({ status: 503, contentType: "application/json", body: JSON.stringify({ schemaVersion: "2.0", error: { code: "SOURCE_UNAVAILABLE", message: "Models unavailable", correlationId: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa", retryable: true } }) }); return; }
@@ -83,6 +91,39 @@ test("GitHub fetches and renders published enrichment only for the maintenance t
   await expect(enrichmentSources.first().locator("a[href^='https://api.github.com/']")).toHaveCount(1);
   await expect(enrichmentSources.first()).toContainText(/publication .*:(releases|stargazers)/i);
   await expect(enrichmentSources.first().locator("time")).toHaveAttribute("datetime", "2026-07-15T10:00:00.000Z");
+});
+
+test("eligible history renders stacked usage, model bump, and GitHub small-multiple geometry", async ({ page }) => {
+  await routeApi(page, { eligibleHistory: true });
+  await page.goto("/web/open-overview/index.html");
+  await page.locator("#oo-history-grid").scrollIntoViewIfNeeded();
+  await expect(page.locator("#oo-history-grid .oo-stacked-area path[data-series-id]")).toHaveCount(11);
+  await expect(page.locator("#oo-history-grid .oo-bump-chart path[data-series-id]")).toHaveCount(10);
+  await expect(page.locator("#oo-history-grid .oo-small-multiples .oo-small-multiple")).toHaveCount(1);
+  const paths = await page.locator("#oo-history-grid svg path").evaluateAll((nodes) => nodes.map((node) => node.getAttribute("d")));
+  expect(paths.length).toBeGreaterThan(20);
+  expect(paths.every((value) => value && !/NaN|Infinity/.test(value))).toBe(true);
+});
+
+test("Release-1 evidence rows expose top-three, app coverage, task models, lifecycle dates, and source-separated benchmarks", async ({ page }) => {
+  await routeApi(page, { lifecycleEvidence: true });
+  await page.goto("/web/open-overview/openrouter/index.html?view=usage");
+  await expect(page.locator("#oo-openrouter-content tbody tr[data-rank-tier=top-three]")).toHaveCount(3);
+  await page.goto("/web/open-overview/openrouter/index.html?view=apps");
+  await expect(page.locator("#oo-openrouter-content .oo-app-row-evidence")).toHaveCount(10);
+  await expect(page.locator("#oo-openrouter-content .oo-app-row-evidence .oo-model-chip")).toHaveCount(30);
+  await expect(page.locator("#oo-openrouter-content .oo-app-coverage")).toHaveCount(10);
+  await page.goto("/web/open-overview/openrouter/index.html?view=tasks");
+  await expect(page.locator("#oo-openrouter-content .oo-task-models")).toHaveCount(10);
+  await expect(page.locator("#oo-openrouter-content .oo-task-models .oo-model-chip")).toHaveCount(30);
+  await page.goto("/web/open-overview/openrouter/index.html?view=deprecations");
+  await expect(page.locator("#oo-openrouter-content thead")).toContainText("First observed");
+  await expect(page.locator("#oo-openrouter-content thead")).toContainText("Last observed");
+  await expect(page.locator("#oo-openrouter-content .oo-lifecycle-timeline time")).toHaveCount(3);
+  await page.goto("/web/open-overview/openrouter/index.html?view=benchmarks");
+  await expect(page.locator("#oo-openrouter-content .oo-benchmark-source")).toHaveCount(2);
+  await expect(page.getByRole("table", { name: "Artificial Analysis ranking" })).toBeVisible();
+  await expect(page.getByRole("table", { name: "Design Arena ranking" })).toBeVisible();
 });
 
 test("portrait and landscape keep all three combined panels reachable", async ({ page }, testInfo) => {

@@ -244,6 +244,94 @@ test("history presentation requires eight consecutive complete days and bounds e
   assert.equal(bounded.exactRows.length, 900);
 });
 
+test("eligible history produces positive stacked-area, bump, and category small-multiple geometry", async () => {
+  const charts = await importRoute("open-overview-charts.js");
+  const buckets = Array.from({ length: 8 }, (_, day) => ({
+    date: `2026-07-${String(day + 1).padStart(2, "0")}`,
+    complete: true,
+    rows: Array.from({ length: 10 }, (_, index) => ({
+      id: `model-${index + 1}`, label: `Model ${index + 1}`, scope: null, rank: index + 1,
+      value: String(1_000 - index * 40 + day * 10), remainder: index === 0 ? String(120 + day) : null,
+      stars: null, forks: null
+    }))
+  }));
+  const area = charts.stackedAreaGeometry(buckets);
+  assert.equal(area.series.length, 11);
+  assert.equal(area.series.at(-1).label, "Other");
+  assert.ok(area.series.every((series) => /^M/.test(series.path) && /Z$/.test(series.path) && !/NaN|Infinity/.test(series.path)));
+  const bump = charts.bumpChartGeometry(buckets);
+  assert.equal(bump.series.length, 10);
+  assert.ok(bump.series.every((series) => /^M/.test(series.path) && !/NaN|Infinity/.test(series.path)));
+  const scoped = buckets.map((bucket, bucketIndex) => ({ ...bucket, rows: bucket.rows.slice(0, 6).map((row, index) => ({ ...row, scope: index < 3 ? "mcp" : "inference", stars: String(1_000 + index * 100 + bucketIndex * 10), forks: String(100 + index * 10 + bucketIndex) })) }));
+  const multiples = charts.githubSmallMultiplesGeometry(scoped);
+  assert.deepEqual(multiples.multiples.map((item) => item.scope), ["inference", "mcp"]);
+  assert.ok(multiples.multiples.every((item) => item.series.length === 3 && item.series.every((series) => /^M/.test(series.path) && !/NaN|Infinity/.test(series.path))));
+});
+
+test("stacked history keeps exactly ten current models and folds rank turnover into Other", async () => {
+  const charts = await importRoute("open-overview-charts.js");
+  const makeRows = (day) => Array.from({ length: 10 }, (_, index) => ({
+    id: day === 0 && index === 9 ? "former-model" : `model-${index + 1}`,
+    label: day === 0 && index === 9 ? "Former model" : `Model ${index + 1}`,
+    scope: null,
+    rank: index + 1,
+    value: day === 0 && index === 9 ? "300" : String(1_000 - index * 40),
+    remainder: null,
+    stars: null,
+    forks: null,
+  }));
+  const buckets = Array.from({ length: 8 }, (_, day) => ({
+    date: `2026-07-${String(day + 1).padStart(2, "0")}`,
+    complete: true,
+    rows: [...makeRows(day), { id: "other", label: "Other", scope: null, rank: null, value: day === 0 ? "60" : "50", remainder: null, stars: null, forks: null }],
+  }));
+  const geometry = charts.stackedAreaGeometry(buckets);
+  assert.equal(geometry.series.length, 11);
+  assert.deepEqual(geometry.series.slice(0, 10).map((series) => series.id), Array.from({ length: 10 }, (_, index) => `model-${index + 1}`));
+  assert.equal(geometry.series.at(-1).id, "other");
+  assert.equal(geometry.series.at(-1).values[0], "360");
+  assert.equal(geometry.series.at(-1).values.at(-1), "50");
+});
+
+test("GitHub history geometry publishes stars, forks, and exact full-window deltas", async () => {
+  const charts = await importRoute("open-overview-charts.js");
+  const buckets = Array.from({ length: 8 }, (_, index) => ({
+    date: `2026-07-${String(index + 1).padStart(2, "0")}`,
+    complete: true,
+    rows: [{ id: "repo-1", label: "example/repo", scope: "mcp", rank: 1, value: "1", remainder: null, stars: String(100 + index * 5), forks: String(20 + index * 2) }],
+  }));
+  const geometry = charts.githubSmallMultiplesGeometry(buckets);
+  assert.equal(geometry.multiples[0].series[0].starDelta, "35");
+  assert.equal(geometry.multiples[0].series[0].forkDelta, "14");
+  assert.match(geometry.multiples[0].series[0].starsPath, /^M/);
+  assert.match(geometry.multiples[0].series[0].forksPath, /^M/);
+  const missing = structuredClone(buckets); missing[3].rows[0].forks = null;
+  assert.equal(charts.githubSmallMultiplesGeometry(missing), null);
+});
+
+test("Release-1 presentation models preserve source-published evidence without cross-source scoring", async () => {
+  const app = await importRoute("open-overview.js");
+  const bundle = JSON.parse(read("fallback-data.json"));
+  const appModels = Object.values(bundle.responses).find((response) => response?.status === "available" && response?.appId === "1001");
+  const appEvidence = app.appModelPresentation(appModels);
+  assert.equal(appEvidence.models.length, 3);
+  assert.equal(appEvidence.models[0].rank, 1);
+  assert.match(appEvidence.coverageLabel, /mapped.*unmapped.*partial|mapped.*unmapped.*full/i);
+
+  const tasks = bundle.responses["/tasks?limit=50&window=7d"].data;
+  const taskEvidence = app.taskModelPresentation(tasks[0]);
+  assert.deepEqual(taskEvidence.models.map((model) => model.sourcePosition), [1, 2, 3]);
+  assert.equal(taskEvidence.complete, false);
+
+  const deprecation = { modelId: "example/model", state: "scheduled_deprecation", expirationDate: "2026-08-01", firstObservedAt: "2026-07-01T00:00:00.000Z", lastObservedAt: "2026-07-15T00:00:00.000Z", evidenceRunId: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa" };
+  assert.deepEqual(app.lifecycleTimelineModel([deprecation])[0], { modelId: "example/model", state: "scheduled_deprecation", firstObservedAt: "2026-07-01T00:00:00.000Z", lastObservedAt: "2026-07-15T00:00:00.000Z", expirationDate: "2026-08-01" });
+
+  const benchmarkRows = bundle.responses["/benchmarks?limit=50"].data;
+  const benchmarkRegions = app.benchmarkSourceRegions(benchmarkRows);
+  assert.deepEqual(benchmarkRegions.map((region) => region.source), ["artificial-analysis", "design-arena"]);
+  assert.ok(benchmarkRegions.every((region) => region.rows.every((row, index) => row.sourceRank === index + 1 && row.source === region.source)));
+});
+
 test("Three.js is route-local, dynamic, deterministic and bounded", async () => {
   const main = read("open-overview.js");
   const threeSource = read("open-overview-three.js");
@@ -270,6 +358,116 @@ const manifestFixture = () => ({
   provenance: [], window: { start: null, end: null, timezone: "unknown", inclusive: null, basis: "unknown" }
 });
 const collection = (kind, data, sourceId = "models_current") => ({ schemaVersion: "2.0", data, cursor: null, window: kind === "apps" ? { start: "2026-06-16", end: "2026-07-15", timezone: "UTC", inclusive: true, basis: "source_meta" } : { start: "2026-07-15", end: "2026-07-15", timezone: "UTC", inclusive: true, basis: "source_meta" }, completeness: { acquisitionComplete: true, populationCompleteness: "full", missingFields: [] }, stale: false, rank: kind === "models" ? { metric: "weekly_popularity", unit: "response_order", direction: "asc", rankMethod: "response_order", baseline: null, eligiblePopulation: "10", ruleVersion: "models-v1", taxonomyVersion: null } : null, provenance: provenance(sourceId), ...(kind === "apps" ? { requestSlice: { period: "30d", sort: "popular", category: null, subcategory: null, limit: 100 } } : {}) });
+
+const freeFixtureEnvelope = () => {
+  const bundle = JSON.parse(read("fallback-data.json"));
+  const entry = Object.entries(bundle.responses).find(([key]) => key.startsWith("/free-models?"));
+  assert.ok(entry, "free-model fixture response");
+  return structuredClone(entry[1]);
+};
+
+const freePage = (base, data, cursor, total = data.length) => ({
+  ...structuredClone(base),
+  data,
+  cursor,
+  concreteFreeCount: String(total),
+  rank: base.rank ? { ...base.rank, eligiblePopulation: String(total) } : null
+});
+
+test("free-model inventory requests the maximum public page size", async () => {
+  const { ENDPOINTS } = await importRoute("open-overview-api.js");
+  assert.equal(ENDPOINTS.freeModels, "/free-models?limit=200");
+});
+
+test("free-model inventory follows opaque cursors and merges pages in returned order", async () => {
+  const api = await importRoute("open-overview-api.js");
+  const bundle = JSON.parse(read("fallback-data.json"));
+  const base = freeFixtureEnvelope();
+  const cursor = "opaque+/= token";
+  const pages = [freePage(base, [base.data[0]], cursor, 2), freePage(base, [base.data[1]], null, 2)];
+  const calls = [];
+  const fetchImpl = async (input) => {
+    const url = new URL(input); calls.push(url.href);
+    if (url.pathname.endsWith("/manifest")) return new Response(JSON.stringify(bundle.manifest), { status: 200 });
+    const page = url.searchParams.has("cursor") ? pages[1] : pages[0];
+    return new Response(JSON.stringify(page), { status: 200 });
+  };
+  const client = api.createOpenOverviewClient({ apiBase: "https://api.example.test", schemaMajor: "2", timeoutMs: 8000, runtimeOrigin: "http://127.0.0.1:4174", fetchImpl });
+  const spec = { key: "free", path: "/free-models?limit=200", kind: "free", sourceId: "models_current" };
+  const view = await client.loadView([spec]);
+  assert.deepEqual(view.responses.free.data.map((row) => row.id), [base.data[0].id, base.data[1].id]);
+  assert.equal(view.responses.free.cursor, null);
+  assert.equal(calls.filter((url) => url.includes("/free-models?")).length, 2);
+  assert.ok(calls.some((url) => url.includes("cursor=opaque%2B%2F%3D+token")));
+});
+
+test("free-model pagination rejects a repeated opaque cursor", async () => {
+  const api = await importRoute("open-overview-api.js");
+  const bundle = JSON.parse(read("fallback-data.json"));
+  const base = freeFixtureEnvelope();
+  const pages = [freePage(base, [base.data[0]], "repeat", 2), freePage(base, [base.data[1]], "repeat", 2)];
+  const client = api.createOpenOverviewClient({ apiBase: "https://api.example.test", schemaMajor: "2", timeoutMs: 8000, runtimeOrigin: "http://127.0.0.1:4174", fetchImpl: async (input) => {
+    const url = new URL(input);
+    return new Response(JSON.stringify(url.pathname.endsWith("/manifest") ? bundle.manifest : url.searchParams.has("cursor") ? pages[1] : pages[0]), { status: 200 });
+  } });
+  const view = await client.loadView([{ key: "free", path: "/free-models?limit=200", kind: "free", sourceId: "models_current" }]);
+  assert.equal(view.responses.free, undefined);
+  assert.equal(view.errors.free.code, "pagination_loop");
+});
+
+test("free-model pagination rejects mixed page provenance", async () => {
+  const api = await importRoute("open-overview-api.js");
+  const bundle = JSON.parse(read("fallback-data.json"));
+  const base = freeFixtureEnvelope();
+  const first = freePage(base, [base.data[0]], "next", 2);
+  const second = freePage(base, [base.data[1]], null, 2);
+  second.provenance = second.provenance.map((item) => ({ ...item, fetchedAt: "2026-07-15T10:00:01.000Z" }));
+  const client = api.createOpenOverviewClient({ apiBase: "https://api.example.test", schemaMajor: "2", timeoutMs: 8000, runtimeOrigin: "http://127.0.0.1:4174", fetchImpl: async (input) => {
+    const url = new URL(input);
+    const body = url.pathname.endsWith("/manifest") ? bundle.manifest : url.searchParams.has("cursor") ? second : first;
+    return new Response(JSON.stringify(body), { status: 200 });
+  } });
+  const view = await client.loadView([{ key: "free", path: "/free-models?limit=200", kind: "free", sourceId: "models_current" }]);
+  assert.equal(view.responses.free, undefined);
+  assert.equal(view.errors.free.code, "mixed_snapshot");
+  assert.match(view.errors.free.message, /page|provenance|identity/i);
+});
+
+test("free-model pagination rejects duplicate rows across pages", async () => {
+  const api = await importRoute("open-overview-api.js");
+  const bundle = JSON.parse(read("fallback-data.json"));
+  const base = freeFixtureEnvelope();
+  const pages = [freePage(base, [base.data[0]], "next", 2), freePage(base, [base.data[0]], null, 2)];
+  const client = api.createOpenOverviewClient({ apiBase: "https://api.example.test", schemaMajor: "2", timeoutMs: 8000, runtimeOrigin: "http://127.0.0.1:4174", fetchImpl: async (input) => {
+    const url = new URL(input);
+    const body = url.pathname.endsWith("/manifest") ? bundle.manifest : url.searchParams.has("cursor") ? pages[1] : pages[0];
+    return new Response(JSON.stringify(body), { status: 200 });
+  } });
+  const view = await client.loadView([{ key: "free", path: "/free-models?limit=200", kind: "free", sourceId: "models_current" }]);
+  assert.equal(view.responses.free, undefined);
+  assert.equal(view.errors.free.code, "pagination_duplicate");
+});
+
+test("free-model pagination is bounded to ten pages and two thousand rows", async () => {
+  const api = await importRoute("open-overview-api.js");
+  const bundle = JSON.parse(read("fallback-data.json"));
+  const base = freeFixtureEnvelope();
+  let freeCalls = 0;
+  const client = api.createOpenOverviewClient({ apiBase: "https://api.example.test", schemaMajor: "2", timeoutMs: 8000, runtimeOrigin: "http://127.0.0.1:4174", fetchImpl: async (input) => {
+    const url = new URL(input);
+    if (url.pathname.endsWith("/manifest")) return new Response(JSON.stringify(bundle.manifest), { status: 200 });
+    const pageIndex = freeCalls++;
+    const rows = Array.from({ length: 200 }, (_, rowIndex) => {
+      const ordinal = pageIndex * 200 + rowIndex + 1;
+      return { ...structuredClone(base.data[0]), id: `fixture/free-${ordinal}`, canonicalSlug: `fixture/free-${ordinal}`, name: `Free ${ordinal}`, weeklyRank: ordinal };
+    });
+    return new Response(JSON.stringify(freePage(base, rows, `cursor-${pageIndex + 1}`, 2001)), { status: 200 });
+  } });
+  const view = await client.loadView([{ key: "free", path: "/free-models?limit=200", kind: "free", sourceId: "models_current" }]);
+  assert.equal(view.responses.free, undefined);
+  assert.equal(view.errors.free.code, "pagination_limit");
+  assert.equal(freeCalls, 10);
+});
 
 test("API client owns conditional bodies and rejects mixed publication runs", async () => {
   const { createOpenOverviewClient } = await importRoute("open-overview-api.js");
