@@ -17,9 +17,13 @@ test('home is a truthful portal with the requested project lineup', () => {
     'Replicator Void',
     'Multiply Magic Studio',
     'Math Forest',
+    'Open Overview',
   ]) {
     assert.match(home, new RegExp(title.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
   }
+
+  assert.equal((home.match(/data-project="/g) || []).length, 16);
+  assert.match(home, /Portal lattice · 16 nodes/);
 
   assert.doesNotMatch(home, /Voice2Voice Buddy/i);
   assert.doesNotMatch(home, /TinyLM Experiment/i);
@@ -121,13 +125,13 @@ test('every live internal portal resolves to an animated page with a Forest retu
   const home = read('index.html');
   const routes = [...home.matchAll(/data-href="(\/web\/[^"]+)"/g)].map((match) => match[1]);
 
-  assert.equal(routes.length, 13);
+  assert.equal(routes.length, 14);
   for (const route of routes) {
     const relativePath = route.replace(/^\//, '');
     assert.ok(fs.existsSync(path.join(ROOT, relativePath)), `${route} does not exist`);
     const page = read(relativePath);
     assert.match(page, /href="\/"|href="\/index\.html"/, `${route} has no Forest return path`);
-    assert.match(page, /forest-motion\.js|id="world"|id="starfield"/, `${route} has no motion runtime`);
+    assert.match(page, /forest-motion\.js|open-overview\.js|id="world"|id="starfield"/, `${route} has no motion runtime`);
   }
 });
 

@@ -56,6 +56,11 @@
         <path class="icon-line" d="M12 13h9v22h-9zm12 4h5v18h-5zm8-6h5v24h-5M13 18h7m5 5h3m5-5h3"/>
         <circle class="icon-fill" cx="16.5" cy="31" r="1.5"/>
       </symbol>
+      <symbol id="icon-open-overview" viewBox="0 0 48 48">
+        <rect class="icon-ring" x="7" y="7" width="34" height="34" rx="7" stroke-dasharray="4 5"/>
+        <path class="icon-line" d="M15 15h6v6h-6zM27 15h6v6h-6zM15 27h6v6h-6zM27 27h6v6h-6zM18 21v6m12-6v6M21 18h6m-6 12h6"/>
+        <circle class="icon-fill" cx="24" cy="24" r="2.5" style="fill:var(--accent-secondary, #a9b2ff)"/>
+      </symbol>
       <symbol id="icon-calendar" viewBox="0 0 48 48">
         <path class="icon-ring" d="M8 12h32v28H8z" stroke-dasharray="6 4"/>
         <path class="icon-line" d="M8 20h32M16 7v10m16-10v10M15 26h4m5 0h4m5 0h2m-20 7h4m5 0h4"/>
@@ -127,7 +132,7 @@
           <section class="portal-board" aria-labelledby="projects-title">
             <header class="board-header">
               <div>
-                <span class="board-kicker">Portal lattice · 15 nodes</span>
+                <span class="board-kicker">Portal lattice · 16 nodes</span>
                 <h2 id="projects-title">Choose a path</h2>
               </div>
               <span class="board-readout">Signal alive</span>
@@ -162,6 +167,11 @@
               <button class="portal" type="button" style="--accent:#60ecc1" data-project="library" data-href="/web/library/index.html" data-status="Live data" data-description="Search the Forest’s AI glossary and platform reference side by side, with real structured entries and filters." aria-pressed="false">
                 <span class="portal-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><use href="#icon-library"/></svg></span>
                 <span class="portal-copy"><span class="portal-name">Library &amp; Platforms</span><span class="portal-meta">Glossary · tools</span></span>
+              </button>
+
+              <button class="portal" type="button" style="--accent:#73e9ff;--accent-secondary:#a9b2ff" data-project="open-overview" data-href="/web/open-overview/index.html" data-status="Public snapshot" data-description="Compare OpenRouter models and apps with GitHub AI ecosystems through ten-deep rankings, observed relationships, lifecycle signals, and clearly labeled source evidence." aria-pressed="false">
+                <span class="portal-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><use href="#icon-open-overview"/></svg></span>
+                <span class="portal-copy"><span class="portal-name">Open Overview</span><span class="portal-meta">AI ecosystem radar</span></span>
               </button>
 
               <button class="portal" type="button" style="--accent:#6cafff" data-project="calendar" data-href="/web/calendar/index.html" data-status="Tool" data-description="Generate clean, printable calendars locally in the browser and carry a year’s rhythm into a tangible artifact." aria-pressed="false">
@@ -239,7 +249,7 @@
   </footer>
 
   <script src="/web/shared/forest-motion.js?v=20260714"></script>
-  <script type="module" src="/web/shared/forest-three.js?v=20260714b"></script>
+  <script type="module" src="/web/shared/forest-three.js?v=20260717"></script>
   <script>
     (() => {
       const root = document.documentElement;

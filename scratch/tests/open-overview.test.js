@@ -28,6 +28,32 @@ test("three canonical routes remain isolated and the shared 3D registry exposes 
   assert.match(tiles, /secondaryColor/);
 });
 
+test("SD Forest homepage exposes one truthful animated Open Overview portal", () => {
+  const home = fs.readFileSync(path.join(ROOT, "index.html"), "utf8");
+  const portals = home.match(/<button class="portal"/g) || [];
+  const matches = home.match(/<button class="portal"[^>]*data-project="open-overview"[\s\S]*?<\/button>/g) || [];
+  assert.equal(portals.length, 16);
+  assert.match(home, /Portal lattice · 16 nodes/);
+  assert.equal(matches.length, 1);
+
+  const portal = matches[0];
+  assert.match(portal, /style="--accent:#73e9ff;--accent-secondary:#a9b2ff"/);
+  assert.match(portal, /data-href="\/web\/open-overview\/index\.html"/);
+  assert.match(portal, /data-status="Public snapshot"/);
+  assert.match(portal, /Compare OpenRouter models and apps with GitHub AI ecosystems through ten-deep rankings, observed relationships, lifecycle signals, and clearly labeled source evidence\./);
+  assert.match(portal, /<use href="#icon-open-overview"\/>/);
+  assert.match(portal, /<span class="portal-name">Open Overview<\/span>/);
+  assert.match(portal, /<span class="portal-meta">AI ecosystem radar<\/span>/);
+  assert.match(home, /<symbol id="icon-open-overview"[\s\S]*?--accent-secondary, #a9b2ff[\s\S]*?<\/symbol>/);
+  assert.match(home, /src="\/web\/shared\/forest-three\.js\?v=20260717"/);
+  assert.doesNotMatch(home, /forest-icons\.js/);
+
+  const routeReadme = fs.readFileSync(path.join(ROOT, "web", "open-overview", "README.md"), "utf8");
+  const rootReadme = fs.readFileSync(path.join(ROOT, "README.md"), "utf8");
+  assert.doesNotMatch(routeReadme, /never changes the SD Forest homepage/);
+  assert.match(rootReadme, /web\/open-overview\//);
+});
+
 test("strict public contracts preserve exact values and reject unknown keys", async () => {
   const schema = await importRoute("open-overview-schema.js");
   assert.equal(schema.compactIntegerString("90071992547409931234"), "90.0Q");
