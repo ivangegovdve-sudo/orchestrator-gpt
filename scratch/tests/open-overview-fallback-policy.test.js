@@ -104,9 +104,10 @@ test("committed deterministic fallback is explicit fixture, stale, and non-produ
   assert.equal(verified.productionEligible, false);
 });
 
-test("fixture fallback is denied on production but allowed on localhost and an explicit preview origin", async () => {
+test("fixture fallback is denied by default but explicitly labeled on the canonical SD Forest origin", async () => {
   const api = await importFresh(path.join(ROUTE, "open-overview-api.js"));
   const bundle = readFixture();
+  const config = JSON.parse(fs.readFileSync(path.join(ROUTE, "config.json"), "utf8"));
   const makeClient = (runtimeOrigin, fixturePreviewOrigins = []) => api.createOpenOverviewClient({
     apiBase: "https://api.example.test",
     schemaMajor: "2",
@@ -121,6 +122,12 @@ test("fixture fallback is denied on production but allowed on localhost and an e
   });
   const requests = fallbackPolicyRequests(api);
   await assert.rejects(() => makeClient("https://www.sdforest.site").loadView(requests), (error) => error.code === "unavailable" && /fixture.*production/i.test(error.message));
+  assert.deepEqual(config.fixturePreviewOrigins, ["https://www.sdforest.site"]);
+  const productionView = await makeClient("https://www.sdforest.site", config.fixturePreviewOrigins).loadView(requests);
+  assert.equal(productionView.mode, "snapshot");
+  assert.equal(productionView.bundleKind, "fixture");
+  assert.equal(productionView.fallbackLabel, "Fixture · stale · non-production");
+  assert.equal(productionView.productionEligible, false);
   assert.equal((await makeClient("http://localhost:4174").loadView(requests)).mode, "snapshot");
   assert.equal((await makeClient("https://branch-preview.example", ["https://branch-preview.example"]).loadView(requests)).mode, "snapshot");
   await assert.rejects(() => makeClient("https://unlisted-preview.example", ["https://branch-preview.example"]).loadView(requests), (error) => error.code === "unavailable");
