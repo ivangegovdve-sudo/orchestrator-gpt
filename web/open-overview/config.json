@@ -1,0 +1,10 @@
+{
+  "schemaMajor": "2",
+  "apiBase": "https://openrouter-github-dashboard.vercel.app",
+  "timeoutMs": 8000,
+  "fallbackUrl": "/web/open-overview/fallback-data.json",
+  "fallbackOnMissingV2": true,
+  "fixturePreviewOrigins": [],
+  "conditionalRequests": false,
+  "threeEnabled": true
+}

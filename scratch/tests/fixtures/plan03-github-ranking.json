@@ -1,0 +1,66 @@
+{
+  "schemaVersion": "2.0",
+  "watermark": "github-ranking-run-1",
+  "coverage": {
+    "resolvedAsOf": "2026-07-15",
+    "acquisitionComplete": true,
+    "populationCompleteness": "full",
+    "missingFields": [],
+    "stale": false,
+    "lastSuccessAt": "2026-07-15T08:00:00.000Z",
+    "staleAfterSeconds": 172800
+  },
+  "ranking": {
+    "metric": "adoption",
+    "rankMethod": "locally_calculated",
+    "definition": "Weighted percentile rank of stars and forks",
+    "unit": "score",
+    "direction": "higher_is_better",
+    "ruleVersion": "github-adoption-v1",
+    "taxonomyVersion": "github-taxonomy-v1",
+    "category": "mcp",
+    "entityLevel": "project-family",
+    "eligiblePopulation": 1,
+    "coverageExcluded": 0,
+    "windowDays": null,
+    "baselineDate": null
+  },
+  "data": [
+    {
+      "entityId": "mcp:example-project",
+      "familyId": "example-project",
+      "repositoryId": "9007199254740993",
+      "memberRepositoryIds": ["9007199254740993"],
+      "fullName": "example/project",
+      "stars": "9007199254740993",
+      "forks": "0",
+      "rank": 1,
+      "score": "1.000000",
+      "maintenanceEvidence": null
+    }
+  ],
+  "metricEvidence": [
+    {
+      "repositoryId": "9007199254740993",
+      "baselineStars": null,
+      "starDelta": null,
+      "forkDelta": null,
+      "relativeGrowth": null,
+      "defaultBranchCommittedAt": null,
+      "latestStableReleaseAt": null,
+      "stableReleaseCount90d": null
+    }
+  ],
+  "page": {
+    "limit": 10,
+    "nextCursor": null
+  },
+  "provenance": [
+    {
+      "id": "github:mcp",
+      "sourceUrl": "https://api.github.com/repositories/9007199254740993",
+      "fetchedAt": "2026-07-15T08:00:00.000Z",
+      "payloadSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    }
+  ]
+}

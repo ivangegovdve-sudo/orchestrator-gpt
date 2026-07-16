@@ -1,0 +1,59 @@
+{
+  "schemaVersion": "2.0",
+  "status": "available",
+  "watermark": "matrix-run-1",
+  "lastSuccessAt": "2026-07-15T08:00:00.000Z",
+  "stale": false,
+  "staleAfterSeconds": 172800,
+  "completeness": {
+    "acquisitionComplete": true,
+    "populationCompleteness": "partial_or_unknown",
+    "missingFields": []
+  },
+  "resolvedPeriod": {
+    "start": "2026-07-14",
+    "end": "2026-07-14",
+    "unit": "day",
+    "inclusive": true
+  },
+  "apps": [
+    {
+      "appId": "1001",
+      "appName": "Example App"
+    }
+  ],
+  "models": [
+    {
+      "modelId": "example/model",
+      "modelName": "Example Model"
+    }
+  ],
+  "appIds": ["1001"],
+  "modelIds": ["example/model"],
+  "cells": [
+    {
+      "state": "observed",
+      "appId": "1001",
+      "modelId": "example/model",
+      "totalTokens": "0",
+      "rankWithinPeriod": 1,
+      "period": {
+        "start": "2026-07-14",
+        "end": "2026-07-14",
+        "unit": "day",
+        "inclusive": true
+      },
+      "metricSemantics": "observed_daily_total_tokens",
+      "evidenceUrl": "https://openrouter.ai/apps/1001"
+    }
+  ],
+  "missingAliases": [],
+  "unmappedModels": [],
+  "coverage": {
+    "observedCells": 1,
+    "possibleCells": 1,
+    "unmappedObservations": 0,
+    "populationCompleteness": "partial_or_unknown"
+  },
+  "provenance": []
+}
