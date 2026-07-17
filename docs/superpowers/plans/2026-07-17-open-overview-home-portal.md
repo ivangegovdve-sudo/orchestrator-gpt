@@ -358,6 +358,10 @@ Run:
 node --test --test-name-pattern="SD Forest homepage exposes one truthful animated Open Overview portal" scratch/tests/open-overview.test.js
 node scratch/tests/assert-sdforest-baseline.mjs
 npm run build
+$browserExecutable='C:\Program Files\Google\Chrome\Application\chrome.exe'
+if (-not (Test-Path -LiteralPath $browserExecutable -PathType Leaf)) { throw "Required browser executable not found: $browserExecutable" }
+$env:SDFOREST_CHROMIUM_PATH=$browserExecutable
+Remove-Item Env:SDFOREST_BASE_URL -ErrorAction SilentlyContinue
 $env:SDFOREST_STATIC_ROOT=(Resolve-Path 'vercel-public').Path
 $env:SDFOREST_QA_OUTPUT='C:\tmp\sdforest-home-portal-red'
 node scratch/tests/browser-smoke.js
@@ -431,6 +435,10 @@ node --test --test-name-pattern="SD Forest homepage exposes one truthful animate
 node --test scratch/tests/open-overview.test.js
 node scratch/tests/assert-sdforest-baseline.mjs
 npm run build
+$browserExecutable='C:\Program Files\Google\Chrome\Application\chrome.exe'
+if (-not (Test-Path -LiteralPath $browserExecutable -PathType Leaf)) { throw "Required browser executable not found: $browserExecutable" }
+$env:SDFOREST_CHROMIUM_PATH=$browserExecutable
+Remove-Item Env:SDFOREST_BASE_URL -ErrorAction SilentlyContinue
 $env:SDFOREST_STATIC_ROOT=(Resolve-Path 'vercel-public').Path
 $env:SDFOREST_QA_OUTPUT='C:\tmp\sdforest-home-portal-green'
 node scratch/tests/browser-smoke.js
