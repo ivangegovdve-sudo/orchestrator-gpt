@@ -101,6 +101,11 @@
         <path class="icon-line" d="M13 32c3-11 8-17 11-17s8 6 11 17M16 25h16M24 15V8"/>
         <circle class="icon-fill" cx="24" cy="15" r="2"/>
       </symbol>
+      <symbol id="icon-open" viewBox="0 0 48 48">
+        <circle class="icon-ring" cx="24" cy="24" r="19" stroke-dasharray="4 5"/>
+        <path class="icon-line" d="M24 24L37 15M24 24a14 14 0 0 0-14-14M24 24a9 9 0 0 0-9-9M24 6v5m0 26v5M6 24h5m26 0h5"/>
+        <circle class="icon-fill" cx="33" cy="17" r="2.2"/>
+      </symbol>
     </defs>
   </svg>
 
@@ -127,7 +132,7 @@
           <section class="portal-board" aria-labelledby="projects-title">
             <header class="board-header">
               <div>
-                <span class="board-kicker">Portal lattice · 15 nodes</span>
+                <span class="board-kicker">Portal lattice · 16 nodes</span>
                 <h2 id="projects-title">Choose a path</h2>
               </div>
               <span class="board-readout">Signal alive</span>
@@ -162,6 +167,11 @@
               <button class="portal" type="button" style="--accent:#60ecc1" data-project="library" data-href="/web/library/index.html" data-status="Live data" data-description="Search the Forest’s AI glossary and platform reference side by side, with real structured entries and filters." aria-pressed="false">
                 <span class="portal-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><use href="#icon-library"/></svg></span>
                 <span class="portal-copy"><span class="portal-name">Library &amp; Platforms</span><span class="portal-meta">Glossary · tools</span></span>
+              </button>
+
+              <button class="portal" type="button" style="--accent:#ff8c42" data-project="open" data-href="/web/open-overview/index.html" data-status="Source-backed" data-description="Model, app, and GitHub ecosystem intelligence—published evidence read through a bounded public API, with honest limits and no invented numbers." aria-pressed="false">
+                <span class="portal-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><use href="#icon-open"/></svg></span>
+                <span class="portal-copy"><span class="portal-name">Open Overview</span><span class="portal-meta">Ecosystem intelligence</span></span>
               </button>
 
               <button class="portal" type="button" style="--accent:#6cafff" data-project="calendar" data-href="/web/calendar/index.html" data-status="Tool" data-description="Generate clean, printable calendars locally in the browser and carry a year’s rhythm into a tangible artifact." aria-pressed="false">
