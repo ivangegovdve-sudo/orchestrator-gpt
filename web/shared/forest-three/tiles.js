@@ -8,6 +8,7 @@
      health    Cycle ring rotates with evidence particles
      council   Dialogue ribbons weave between nodes
      library   Knowledge lattice expands and indexes
+     open-overview Cross-source evidence matrix connects two ecosystems
      calendar  Day grid sweeps in with events
      muscle    Muscle fibers contract and glow
      manifesto Ink feather writes and unfolds
@@ -262,6 +263,71 @@ const BUILDERS = {
       {
         geometry: spine.geometry(),
         update(object, time) { object.material.opacity *= 0.7 + 0.3 * Math.sin(time * 3.1) ** 2; },
+      },
+    ];
+  },
+
+  // Open Overview — OpenRouter and GitHub node columns exchange evidence
+  // through a central matrix; cyan-to-violet links pulse across sources.
+  'open-overview'() {
+    const matrix = lineBuilder();
+    matrix.polyline([[-0.95, -0.76, 0], [0.95, -0.76, 0], [0.95, 0.76, 0], [-0.95, 0.76, 0]], true);
+    [-0.32, 0.32].forEach((x) => matrix.line(x, -0.76, 0, x, 0.76, 0));
+    [-0.25, 0.25].forEach((y) => matrix.line(-0.95, y, 0, 0.95, y, 0));
+
+    const network = lineBuilder();
+    const left = [[-0.68, 0.46, 0.08], [-0.68, 0, 0.08], [-0.68, -0.46, 0.08]];
+    const right = [[0.68, 0.46, 0.08], [0.68, 0, 0.08], [0.68, -0.46, 0.08]];
+    [...left, ...right].forEach(([x, y, z]) => network.circle(0.075, 10, x, y, z));
+    [[0, 1], [0, 2], [1, 0], [1, 2], [2, 0], [2, 1]]
+      .forEach(([from, to]) => network.line(...left[from], ...right[to]));
+    const networkGeometry = network.geometry();
+    networkGeometry.setAttribute('color', new THREE.BufferAttribute(
+      new Float32Array(networkGeometry.attributes.position.count * 3),
+      3,
+    ).setUsage(THREE.DynamicDrawUsage));
+
+    const evidence = lineBuilder();
+    evidence.circle(0.2, 28, 0, 0, 0.2);
+    evidence.polyline([[0, 0.29, 0.2], [0.29, 0, 0.2], [0, -0.29, 0.2], [-0.29, 0, 0.2]], true);
+
+    return [
+      {
+        geometry: matrix.geometry(),
+        baseOpacity: 0.62,
+        update(object, time, tile) {
+          lineRange(object.geometry, tile.alpha * 1.3);
+          object.rotation.z = Math.sin(time * 0.5) * 0.035;
+        },
+      },
+      {
+        geometry: networkGeometry,
+        vertexColors: true,
+        baseOpacity: 0.9,
+        update(object, time, tile) {
+          const colors = object.geometry.attributes.color.array;
+          const segmentCount = object.geometry.attributes.position.count / 2;
+          for (let segment = 0; segment < segmentCount; segment += 1) {
+            const pulse = 0.28 + 0.72 * (0.5 + 0.5 * Math.sin(time * 2.2 + segment * 0.55)) ** 3;
+            for (let vertex = 0; vertex < 2; vertex += 1) {
+              const color = vertex === 0 ? tile.accentColor : tile.secondaryColor;
+              const offset = (segment * 2 + vertex) * 3;
+              colors[offset] = color.r * pulse;
+              colors[offset + 1] = color.g * pulse;
+              colors[offset + 2] = color.b * pulse;
+            }
+          }
+          object.geometry.attributes.color.needsUpdate = true;
+        },
+      },
+      {
+        geometry: evidence.geometry(),
+        update(object, time) {
+          const pulse = 1 + Math.sin(time * 1.8) * 0.08;
+          object.scale.setScalar(pulse);
+          object.rotation.z = time * 0.28;
+          object.material.opacity *= 0.7 + 0.3 * Math.sin(time * 2.4) ** 2;
+        },
       },
     ];
   },
@@ -631,7 +697,10 @@ export function initTiles(shared, coarse) {
   portals.forEach((portal) => {
     const build = BUILDERS[portal.dataset.project];
     if (!build) return;
-    const accent = new THREE.Color(portal.style.getPropertyValue('--accent').trim() || '#79f2a8');
+    const primary = portal.style.getPropertyValue('--accent').trim() || '#79f2a8';
+    const secondary = portal.style.getPropertyValue('--accent-secondary').trim() || primary;
+    const accent = new THREE.Color(primary);
+    const secondaryAccent = new THREE.Color(secondary);
     const group = new THREE.Group();
     group.visible = false;
     group.renderOrder = 3;
@@ -654,6 +723,7 @@ export function initTiles(shared, coarse) {
       group,
       parts,
       accentColor: accent,
+      secondaryColor: secondaryAccent,
       alpha: 0,
       target: 0,
       pulseScale: 1,

@@ -1,10 +1,12 @@
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
+const path = require('node:path');
 const { chromium } = require('playwright');
 
 const STATIC_ROOT = process.env.SDFOREST_STATIC_ROOT;
 const BASE = process.env.SDFOREST_BASE_URL || (STATIC_ROOT ? 'http://sdforest.local' : 'http://127.0.0.1:4173');
 const OUTPUT = process.env.SDFOREST_QA_OUTPUT || '/tmp/sdforest-qa';
+const launchedBrowsers = [];
 
 const routes = [
   '/',
@@ -17,6 +19,7 @@ const routes = [
   '/web/kids/index.html',
   '/web/womens-health-os/index.html',
   '/web/library/index.html',
+  '/web/open-overview/index.html',
   '/web/calendar/index.html',
   '/web/manifesto-newborn/index.html',
   '/web/m-popova/index.html',
@@ -28,17 +31,20 @@ async function main() {
   const launchOptions = { headless: true };
   if (process.env.SDFOREST_CHROMIUM_PATH) {
     launchOptions.executablePath = process.env.SDFOREST_CHROMIUM_PATH;
-    launchOptions.args = [
-      '--ash-no-nudges', '--disable-domain-reliability', '--disable-print-preview',
-      '--no-default-browser-check', '--no-pings', '--single-process', '--font-render-hinting=none',
-      '--disable-features=AudioServiceOutOfProcess,IsolateOrigins,site-per-process',
-      '--enable-features=SharedArrayBuffer', '--ignore-gpu-blocklist', '--in-process-gpu',
-      '--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader',
-      '--allow-running-insecure-content', '--disable-setuid-sandbox', '--disable-site-isolation-trials',
-      '--disable-web-security', '--no-sandbox', '--no-zygote', '--disable-dev-shm-usage',
-    ];
+    if (process.platform !== 'win32') {
+      launchOptions.args = [
+        '--ash-no-nudges', '--disable-domain-reliability', '--disable-print-preview',
+        '--no-default-browser-check', '--no-pings', '--single-process', '--font-render-hinting=none',
+        '--disable-features=AudioServiceOutOfProcess,IsolateOrigins,site-per-process',
+        '--enable-features=SharedArrayBuffer', '--ignore-gpu-blocklist', '--in-process-gpu',
+        '--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader',
+        '--allow-running-insecure-content', '--disable-setuid-sandbox', '--disable-site-isolation-trials',
+        '--disable-web-security', '--no-sandbox', '--no-zygote', '--disable-dev-shm-usage',
+      ];
+    }
   }
   const browser = await chromium.launch(launchOptions);
+  launchedBrowsers.push(browser);
   const context = await browser.newContext({ viewport: { width: 1440, height: 900 }, deviceScaleFactor: 1 });
   await installRoutes(context);
 
@@ -80,7 +86,7 @@ async function main() {
 
   const home = await context.newPage();
   await home.goto(BASE, { waitUntil: 'domcontentloaded' });
-  assert.equal(await home.locator('.portal').count(), 15);
+  assert.equal(await home.locator('.portal').count(), 16);
   await home.screenshot({ path: `${OUTPUT}/home-landing.png`, fullPage: false });
   await home.evaluate(() => {
     const assembly = document.querySelector('[data-assembly]');
@@ -90,6 +96,40 @@ async function main() {
   await home.locator('[data-project="vfx"]').hover();
   await home.waitForTimeout(180);
   assert.equal(await home.locator('[data-preview-title]').textContent(), 'VFX Portfolio');
+  const overviewPortal = home.locator('[data-project="open-overview"]');
+  await overviewPortal.focus();
+  await home.waitForFunction(() => window.__forestThree?.tiles?.some((tile) => tile.element.dataset.project === 'open-overview'));
+  await home.waitForFunction(() => {
+    const tile = window.__forestThree?.tiles?.find((item) => item.element.dataset.project === 'open-overview');
+    return tile?.target === 1 && tile.alpha > 0;
+  });
+  const overviewTileDebug = await home.evaluate(() => {
+    const tile = window.__forestThree?.tiles?.find((item) => item.element.dataset.project === 'open-overview');
+    return {
+      primaryAccent: tile ? `#${tile.accentColor.getHexString()}` : null,
+      secondaryAccent: tile ? `#${tile.secondaryColor.getHexString()}` : null,
+      parts: tile?.parts.map(({ object }) => ({
+        colorVertexCount: object.geometry?.attributes?.color?.count ?? 0,
+        vertexColors: object.material?.vertexColors === true,
+      })) ?? [],
+    };
+  });
+  assert.equal(overviewTileDebug.primaryAccent, '#73e9ff');
+  assert.equal(overviewTileDebug.secondaryAccent, '#a9b2ff');
+  assert.ok(
+    overviewTileDebug.parts.some((part) => part.colorVertexCount > 0 && part.vertexColors),
+    `Open Overview tile lacks populated vertex-color geometry: ${JSON.stringify(overviewTileDebug)}`,
+  );
+  assert.equal(await overviewPortal.getAttribute('aria-pressed'), 'true');
+  assert.equal(await home.locator('[data-preview-number]').textContent(), '07');
+  assert.equal(await home.locator('[data-preview-title]').textContent(), 'Open Overview');
+  assert.equal(await home.locator('[data-preview-status]').textContent(), 'Public snapshot');
+  assert.equal(
+    await home.locator('[data-preview-description]').textContent(),
+    'Compare OpenRouter models and apps with GitHub AI ecosystems through ten-deep rankings, observed relationships, lifecycle signals, and clearly labeled source evidence.',
+  );
+  assert.equal(await home.locator('[data-preview-open]').getAttribute('href'), '/web/open-overview/index.html');
+  assert.equal(await home.locator('[data-preview-open]').getAttribute('target'), '_self');
   await home.screenshot({ path: `${OUTPUT}/home-dashboard.png`, fullPage: false });
   await home.close();
 
@@ -119,11 +159,15 @@ async function main() {
   assert.equal(await hyper.locator('#one-rm').textContent(), '112.5');
   await hyper.close();
 
-  const mobile = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 1 });
+  const mobile = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 1, hasTouch: true, isMobile: true });
   await installRoutes(mobile);
   const mobileHome = await mobile.newPage();
   await mobileHome.goto(BASE, { waitUntil: 'domcontentloaded' });
-  assert.equal(await mobileHome.locator('.portal').count(), 15);
+  assert.equal(await mobileHome.locator('.portal').count(), 16);
+  assert.equal(await mobileHome.evaluate(() => matchMedia('(pointer: coarse)').matches), true);
+  await mobileHome.locator('[data-project="open-overview"] .portal-icon').click();
+  assert.equal(await mobileHome.locator('[data-preview-title]').textContent(), 'Open Overview');
+  assert.equal(await mobileHome.locator('[data-preview-status]').textContent(), 'Public snapshot');
   const mobileOverflow = await mobileHome.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
   assert.ok(mobileOverflow <= 3, `mobile home overflows by ${mobileOverflow}px`);
   await mobileHome.screenshot({ path: `${OUTPUT}/home-mobile.png`, fullPage: false });
@@ -153,11 +197,17 @@ async function main() {
   // The serverless Chromium build runs in single-process mode in this sandbox;
   // use a fresh process for the reduced-motion profile instead of a third context.
   const calmBrowser = await chromium.launch(launchOptions);
+  launchedBrowsers.push(calmBrowser);
   const calm = await calmBrowser.newContext({ viewport: { width: 1280, height: 800 }, reducedMotion: 'reduce' });
   await installRoutes(calm);
   const calmHome = await calm.newPage();
   await calmHome.goto(BASE, { waitUntil: 'domcontentloaded' });
   assert.equal(await calmHome.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue('--assembly').trim()), '1');
+  const calmOverview = calmHome.locator('[data-project="open-overview"]');
+  assert.equal(await calmOverview.isVisible(), true);
+  await calmOverview.focus();
+  assert.equal(await calmHome.locator('[data-preview-title]').textContent(), 'Open Overview');
+  assert.equal(await calmHome.evaluate(() => window.__forestThree?.webgl ?? false), false);
   await calmHome.screenshot({ path: `${OUTPUT}/home-reduced-motion.png`, fullPage: false });
   await calm.close();
   await calmBrowser.close();
@@ -179,18 +229,21 @@ async function installRoutes(context) {
     const url = new URL(route.request().url());
     let relativePath = decodeURIComponent(url.pathname).replace(/^\/+/, '');
     if (!relativePath || relativePath.endsWith('/')) relativePath += 'index.html';
-    const absolutePath = require('node:path').resolve(STATIC_ROOT, relativePath);
-    const rootPath = require('node:path').resolve(STATIC_ROOT);
-    if (!absolutePath.startsWith(`${rootPath}/`) || !fs.existsSync(absolutePath)) {
+    const absolutePath = path.resolve(STATIC_ROOT, relativePath);
+    const rootPath = path.resolve(STATIC_ROOT);
+    const relativeToRoot = path.relative(rootPath, absolutePath);
+    const escapesRoot = relativeToRoot === '..' || relativeToRoot.startsWith(`..${path.sep}`) || path.isAbsolute(relativeToRoot);
+    if (escapesRoot || !fs.existsSync(absolutePath)) {
       await route.fulfill({ status: 404, body: 'Not found' });
       return;
     }
-    const extension = require('node:path').extname(absolutePath).toLowerCase();
+    const extension = path.extname(absolutePath).toLowerCase();
     await route.fulfill({ status: 200, contentType: mime[extension] || 'application/octet-stream', body: fs.readFileSync(absolutePath) });
   });
 }
 
-main().catch((error) => {
+main().catch(async (error) => {
   console.error(error.stack || error);
+  await Promise.allSettled(launchedBrowsers.filter((browser) => browser.isConnected()).map((browser) => browser.close()));
   process.exitCode = 1;
 });
