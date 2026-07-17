@@ -453,11 +453,11 @@ Run:
 ```powershell
 if ((Get-FileHash index.html).Hash -ne (Get-FileHash vercel-public\index.html).Hash) { throw 'Built homepage differs from source.' }
 if (-not (Test-Path vercel-public\web\open-overview\index.html)) { throw 'Built Open Overview route is missing.' }
-$home = Get-Content vercel-public\index.html -Raw
-if (([regex]::Matches($home, '<button class="portal"')).Count -ne 16) { throw 'Built portal count is not 16.' }
-if (([regex]::Matches($home, 'data-project="open-overview"')).Count -ne 1) { throw 'Built Open Overview portal is not unique.' }
-if ($home -notmatch 'Portal lattice · 16 nodes') { throw 'Built board label is stale.' }
-if ($home -notmatch 'data-href="/web/open-overview/index.html"') { throw 'Built destination is missing.' }
+$builtHome = Get-Content vercel-public\index.html -Raw
+if (([regex]::Matches($builtHome, '<button class="portal"')).Count -ne 16) { throw 'Built portal count is not 16.' }
+if (([regex]::Matches($builtHome, 'data-project="open-overview"')).Count -ne 1) { throw 'Built Open Overview portal is not unique.' }
+if ($builtHome -notmatch 'Portal lattice · 16 nodes') { throw 'Built board label is stale.' }
+if ($builtHome -notmatch 'data-href="/web/open-overview/index.html"') { throw 'Built destination is missing.' }
 Write-Output 'Built homepage integration contract passed.'
 ```
 
@@ -506,6 +506,11 @@ git diff --check origin/main...HEAD
 npm run build
 node --test scratch/tests/open-overview.test.js scratch/tests/open-overview-fallback-policy.test.js scratch/tests/open-overview-truth-identity.test.js
 node scratch/tests/assert-sdforest-baseline.mjs
+$browserExecutable='C:\Program Files\Google\Chrome\Application\chrome.exe'
+if (-not (Test-Path -LiteralPath $browserExecutable -PathType Leaf)) { throw "Required browser executable not found: $browserExecutable" }
+$env:SDFOREST_CHROMIUM_PATH=$browserExecutable
+$env:PLAYWRIGHT_CHROMIUM_EXECUTABLE=$browserExecutable
+Remove-Item Env:SDFOREST_BASE_URL -ErrorAction SilentlyContinue
 $env:SDFOREST_STATIC_ROOT=(Resolve-Path 'vercel-public').Path
 $env:SDFOREST_QA_OUTPUT='C:\tmp\sdforest-home-portal-final'
 node scratch/tests/browser-smoke.js
@@ -610,6 +615,10 @@ Expected: `origin/main` shows the squash commit and the command prints `Producti
 Run:
 
 ```powershell
+$browserExecutable='C:\Program Files\Google\Chrome\Application\chrome.exe'
+if (-not (Test-Path -LiteralPath $browserExecutable -PathType Leaf)) { throw "Required browser executable not found: $browserExecutable" }
+$env:SDFOREST_CHROMIUM_PATH=$browserExecutable
+$env:PLAYWRIGHT_CHROMIUM_EXECUTABLE=$browserExecutable
 Remove-Item Env:SDFOREST_STATIC_ROOT -ErrorAction SilentlyContinue
 $env:SDFOREST_BASE_URL='https://www.sdforest.site'
 $env:SDFOREST_QA_OUTPUT='C:\tmp\sdforest-home-portal-production'

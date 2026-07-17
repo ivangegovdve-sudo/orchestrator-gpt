@@ -103,6 +103,23 @@ async function main() {
     const tile = window.__forestThree?.tiles?.find((item) => item.element.dataset.project === 'open-overview');
     return tile?.target === 1 && tile.alpha > 0;
   });
+  const overviewTileDebug = await home.evaluate(() => {
+    const tile = window.__forestThree?.tiles?.find((item) => item.element.dataset.project === 'open-overview');
+    return {
+      primaryAccent: tile ? `#${tile.accentColor.getHexString()}` : null,
+      secondaryAccent: tile ? `#${tile.secondaryColor.getHexString()}` : null,
+      parts: tile?.parts.map(({ object }) => ({
+        colorVertexCount: object.geometry?.attributes?.color?.count ?? 0,
+        vertexColors: object.material?.vertexColors === true,
+      })) ?? [],
+    };
+  });
+  assert.equal(overviewTileDebug.primaryAccent, '#73e9ff');
+  assert.equal(overviewTileDebug.secondaryAccent, '#a9b2ff');
+  assert.ok(
+    overviewTileDebug.parts.some((part) => part.colorVertexCount > 0 && part.vertexColors),
+    `Open Overview tile lacks populated vertex-color geometry: ${JSON.stringify(overviewTileDebug)}`,
+  );
   assert.equal(await overviewPortal.getAttribute('aria-pressed'), 'true');
   assert.equal(await home.locator('[data-preview-number]').textContent(), '07');
   assert.equal(await home.locator('[data-preview-title]').textContent(), 'Open Overview');
