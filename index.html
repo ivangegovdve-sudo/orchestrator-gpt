@@ -106,6 +106,12 @@
         <path class="icon-line" d="M13 32c3-11 8-17 11-17s8 6 11 17M16 25h16M24 15V8"/>
         <circle class="icon-fill" cx="24" cy="15" r="2"/>
       </symbol>
+      <symbol id="icon-lock" viewBox="0 0 48 48">
+        <rect class="icon-ring" x="10" y="22" width="28" height="20" rx="4" stroke-dasharray="4 5"/>
+        <path class="icon-line" d="M16 22v-6a8 8 0 0 1 16 0v6"/>
+        <circle class="icon-fill" cx="24" cy="32" r="2.5"/>
+        <path class="icon-line" d="M24 34.5v3.5"/>
+      </symbol>
     </defs>
   </svg>
 
@@ -217,6 +223,11 @@
               <button class="portal" type="button" style="--accent:#9bd26f" data-project="math" data-status="In development" data-description="Math Forest is a reserved growing space for mathematical play. The public experience is not ready yet, so this node remains a preview only." aria-pressed="false" aria-disabled="true">
                 <span class="portal-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><use href="#icon-math"/></svg></span>
                 <span class="portal-copy"><span class="portal-name">Math Forest</span><span class="portal-meta development">In development</span></span>
+              </button>
+
+              <button class="portal" type="button" style="--accent:#a78bfa" data-project="upload" data-href="/web/upload/" data-status="Private" data-description="Private upload surface for the fleet knowledge base. Add PDFs, text, URLs, and documents to Chloé's memory. Access-code gated." aria-pressed="false">
+                <span class="portal-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><use href="#icon-lock"/></svg></span>
+                <span class="portal-copy"><span class="portal-name">Fleet Upload</span><span class="portal-meta">🔒 Private</span></span>
               </button>
             </div>
           </section>

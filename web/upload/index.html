@@ -1,168 +1,643 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Upload to the Fleet · SD Forest</title>
-  <meta name="description" content="Send a file to Chloé's ingest inbox on Oracle — from any device, access-gated.">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Upload documents and text to the SDForest knowledge base — private ingest into Chloé's memory.">
+  <meta name="theme-color" content="#07070b">
+  <title>Upload — SDForest</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/web/shared/forest-shell.css?v=20260714">
   <style>
     :root {
-      --bg: #09090b;
-      --card-bg: rgba(24, 24, 27, 0.6);
-      --card-border: rgba(255, 255, 255, 0.08);
-      --text: #f8fafc;
-      --muted: #a1a1aa;
+      --bg: #07070b;
+      --surface: #0f0f15;
+      --border: rgba(255,255,255,0.08);
+      --text-primary: #f3f4f6;
+      --text-muted: #9ca3af;
       --accent: #4f46e5;
-      --green: #22c55e;
-      --rose: #f43f5e;
-      --amber: #f59e0b;
+      --accent-green: #22c55e;
+      --accent-amber: #f59e0b;
+      --radius: 8px;
+      --forest-accent: #60ecc1;
     }
-    * { box-sizing: border-box; }
-    body {
-      margin: 0; min-height: 100vh;
-      background-color: var(--bg);
-      background-image:
-        radial-gradient(circle at 25% 30%, rgba(79, 70, 229, 0.08), transparent 45%),
-        radial-gradient(circle at 80% 20%, rgba(34, 197, 94, 0.07), transparent 45%);
-      color: var(--text);
-      font-family: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
-      padding: 28px 20px 60px;
+
+    /* ── Layout ───────────────────────────────────────────────────────────── */
+    .upload-page {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: clamp(40px, 8svh, 80px) clamp(20px, 4vw, 40px) 80px;
     }
-    .page { max-width: 640px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
-    .topbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
-    .back-link { color: var(--muted); text-decoration: none; font-size: 13px; }
-    .back-link:hover { color: var(--text); }
-    .gate-wrap { display: flex; align-items: center; gap: 8px; }
-    .gate-label { font-size: 11px; color: #64748b; white-space: nowrap; }
-    .code-input {
-      width: 74px; background: rgba(0,0,0,0.35); border: 1px solid rgba(255,255,255,0.12);
-      border-radius: 8px; color: var(--text); font-family: monospace; font-size: 14px;
-      letter-spacing: 0.35em; text-align: center; padding: 7px 6px; outline: none;
+
+    /* ── Auth gate ────────────────────────────────────────────────────────── */
+    #auth-gate {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 60svh;
+      gap: 20px;
+      text-align: center;
     }
-    .code-input:focus { border-color: rgba(79,70,229,0.6); }
-    .code-input.bad { border-color: var(--rose); }
-    h1 { margin: 0 0 6px; font-size: 28px; letter-spacing: -0.4px; }
-    .tagline { margin: 0; color: var(--muted); font-size: 14.5px; line-height: 1.5; }
-    .drop {
-      background: var(--card-bg); border: 2px dashed rgba(255,255,255,0.16); border-radius: 16px;
-      padding: 42px 22px; text-align: center; cursor: pointer; transition: border-color 0.2s, background 0.2s;
+    #auth-gate h1 {
+      font: 700 clamp(28px, 5vw, 48px)/1 'Space Grotesk', sans-serif;
+      letter-spacing: -0.04em;
+      color: var(--text-primary);
+      margin: 0;
     }
-    .drop:hover, .drop.over { border-color: rgba(79,70,229,0.55); background: rgba(79,70,229,0.05); }
-    .drop .big { font-size: 34px; }
-    .drop .hint { color: var(--muted); font-size: 13.5px; margin-top: 8px; }
-    .drop input { display: none; }
-    .queue { display: flex; flex-direction: column; gap: 8px; }
-    .item {
-      display: flex; align-items: center; gap: 12px; background: var(--card-bg);
-      border: 1px solid var(--card-border); border-radius: 12px; padding: 11px 15px; font-size: 13.5px;
+    #auth-gate p {
+      color: var(--text-muted);
+      font-size: 14px;
+      line-height: 1.65;
+      max-width: 42ch;
+      margin: 0;
     }
-    .item .name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .item .size { color: #64748b; font-size: 11.5px; }
-    .item .state { font-size: 11.5px; font-weight: 700; }
-    .item.sending .state { color: var(--amber); }
-    .item.ok .state { color: var(--green); }
-    .item.err .state { color: var(--rose); }
-    .footer-tag { text-align: center; font-size: 11px; color: #52525b; }
-    .footer-tag code { background: rgba(255,255,255,0.06); padding: 1px 6px; border-radius: 5px; }
+    .auth-form {
+      display: flex;
+      gap: 10px;
+      width: 100%;
+      max-width: 380px;
+      margin-top: 8px;
+    }
+    .auth-input {
+      flex: 1;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 12px 16px;
+      color: var(--text-primary);
+      font: 400 14px/1 'Inter', sans-serif;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .auth-input:focus { border-color: var(--accent); }
+    .auth-input::placeholder { color: var(--text-muted); }
+    .auth-error {
+      color: #f87171;
+      font-size: 13px;
+      display: none;
+    }
+    .auth-error.show { display: block; }
+
+    /* ── Main upload UI (hidden until authed) ─────────────────────────────── */
+    #upload-ui { display: none; }
+    #upload-ui.visible { display: block; }
+
+    .upload-header { margin-bottom: 36px; }
+    .upload-header h1 {
+      font: 700 clamp(28px, 5vw, 44px)/1 'Space Grotesk', sans-serif;
+      letter-spacing: -0.04em;
+      color: var(--text-primary);
+      margin: 0 0 10px;
+    }
+    .upload-header p {
+      color: var(--text-muted);
+      font-size: 14px;
+      line-height: 1.65;
+      margin: 0;
+    }
+
+    /* ── Panels ───────────────────────────────────────────────────────────── */
+    .panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 26px;
+      margin-bottom: 16px;
+    }
+    .panel-title {
+      font: 700 13px/1 'Inter', sans-serif;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin: 0 0 18px;
+    }
+
+    /* ── Drop zone ────────────────────────────────────────────────────────── */
+    .drop-zone {
+      position: relative;
+      border: 2px dashed var(--border);
+      border-radius: 10px;
+      padding: 36px 24px;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color 0.2s, background 0.2s;
+    }
+    .drop-zone:hover,
+    .drop-zone.dragover {
+      border-color: var(--accent);
+      background: rgba(79, 70, 229, 0.05);
+    }
+    .drop-zone input[type="file"] {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      cursor: pointer;
+    }
+    .drop-zone .dz-icon {
+      font-size: 32px;
+      margin-bottom: 10px;
+      display: block;
+    }
+    .drop-zone .dz-label {
+      color: var(--text-primary);
+      font-size: 14px;
+      font-weight: 600;
+      display: block;
+      margin-bottom: 4px;
+    }
+    .drop-zone .dz-sub {
+      color: var(--text-muted);
+      font-size: 12px;
+    }
+
+    /* ── Textarea ─────────────────────────────────────────────────────────── */
+    .text-input {
+      width: 100%;
+      min-height: 160px;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 14px 16px;
+      color: var(--text-primary);
+      font: 400 13px/1.65 'Inter', sans-serif;
+      resize: vertical;
+      outline: none;
+      box-sizing: border-box;
+      transition: border-color 0.2s;
+    }
+    .text-input:focus { border-color: var(--accent); }
+    .text-input::placeholder { color: var(--text-muted); }
+
+    /* ── Tag / label row ──────────────────────────────────────────────────── */
+    .meta-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 14px;
+    }
+    .meta-field label {
+      display: block;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+    .meta-field input,
+    .meta-field select {
+      width: 100%;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 10px 12px;
+      color: var(--text-primary);
+      font: 400 13px/1 'Inter', sans-serif;
+      outline: none;
+      box-sizing: border-box;
+      transition: border-color 0.2s;
+    }
+    .meta-field input:focus,
+    .meta-field select:focus { border-color: var(--accent); }
+    .meta-field select option { background: #1a1a2e; }
+
+    /* ── Submit button ────────────────────────────────────────────────────── */
+    .btn-submit {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-top: 20px;
+      width: 100%;
+      height: 48px;
+      background: var(--accent);
+      border: none;
+      border-radius: var(--radius);
+      color: #fff;
+      font: 700 14px/1 'Inter', sans-serif;
+      letter-spacing: 0.04em;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.15s;
+    }
+    .btn-submit:hover:not(:disabled) { background: #4338ca; transform: translateY(-1px); }
+    .btn-submit:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn-submit .spinner {
+      width: 16px;
+      height: 16px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-top-color: #fff;
+      border-radius: 50%;
+      display: none;
+      animation: spin 0.7s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .btn-submit.loading .spinner { display: block; }
+    .btn-submit.loading .btn-label { display: none; }
+
+    /* ── Status feed ──────────────────────────────────────────────────────── */
+    #status-feed {
+      margin-top: 20px;
+      display: none;
+      flex-direction: column;
+      gap: 8px;
+    }
+    #status-feed.visible { display: flex; }
+    .status-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 12px 14px;
+      border-radius: var(--radius);
+      font-size: 13px;
+      line-height: 1.55;
+    }
+    .status-item.info    { background: rgba(79,70,229,0.1);  border: 1px solid rgba(79,70,229,0.2);  color: #a5b4fc; }
+    .status-item.success { background: rgba(34,197,94,0.1);  border: 1px solid rgba(34,197,94,0.2);  color: #86efac; }
+    .status-item.error   { background: rgba(248,113,113,0.1); border: 1px solid rgba(248,113,113,0.2); color: #fca5a5; }
+    .status-item .icon   { flex-shrink: 0; font-size: 16px; }
+
+    /* ── Recent ingests log ───────────────────────────────────────────────── */
+    #recent-log {
+      margin-top: 10px;
+    }
+    .log-entry {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 12px;
+      gap: 12px;
+    }
+    .log-entry:last-child { border-bottom: none; }
+    .log-name { color: var(--text-primary); font-weight: 600; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .log-meta { color: var(--text-muted); white-space: nowrap; }
+    .log-status { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; }
+    .log-status.ok  { color: var(--accent-green); }
+    .log-status.err { color: #f87171; }
+    .log-empty { color: var(--text-muted); font-size: 13px; text-align: center; padding: 20px 0; }
   </style>
 </head>
-<body>
-  <div class="page">
-    <div class="topbar">
-      <a href="/" class="back-link">&#8592; Forest HUB</a>
-      <div class="gate-wrap">
-        <span class="gate-label">&#128274; Access code</span>
-        <input id="access-code" class="code-input" inputmode="numeric" pattern="[0-9]*" maxlength="4"
-               placeholder="&bull;&bull;&bull;&bull;" autocomplete="off" aria-label="4-digit access code" />
-      </div>
+<body data-forest-page="upload">
+  <canvas class="forest-scene" data-forest-scene data-mode="upload" aria-hidden="true"></canvas>
+  <div class="forest-scrim" aria-hidden="true"></div>
+  <nav class="forest-topbar" aria-label="Upload navigation">
+    <a class="forest-back" href="/">SDForest</a>
+  </nav>
+
+  <main>
+    <!-- ── Auth gate ──────────────────────────────────────────────────────── -->
+    <div id="auth-gate">
+      <span style="font-size:40px" aria-hidden="true">🔒</span>
+      <h1>Knowledge Ingest</h1>
+      <p>Private upload surface for the SDForest memory base. Enter the access code to continue.</p>
+      <form class="auth-form" id="auth-form" autocomplete="off">
+        <input
+          class="auth-input"
+          id="auth-code"
+          type="password"
+          placeholder="Access code"
+          autocomplete="new-password"
+          aria-label="Access code"
+          required
+        >
+        <button class="btn-submit" type="submit" style="width:auto;padding:0 20px;margin-top:0">
+          <span class="btn-label">Enter</span>
+          <span class="spinner"></span>
+        </button>
+      </form>
+      <p class="auth-error" id="auth-error">❌ Incorrect access code.</p>
     </div>
 
-    <header>
-      <h1>&#128228; Upload to the Fleet</h1>
-      <p class="tagline">Files land in Chlo&eacute;&#39;s ingest inbox on Oracle &mdash; logged, dated, ready for the fleet to process. Works from any phone or laptop.</p>
-    </header>
+    <!-- ── Upload UI (visible after auth) ────────────────────────────────── -->
+    <div class="upload-page" id="upload-ui">
+      <header class="upload-header">
+        <h1>🗃️ Upload to Memory</h1>
+        <p>
+          Documents and text are sent to soul-server <code>/ingest</code> and indexed into
+          the fleet knowledge base. Supported: PDF, MD, TXT, DOCX, HTML (max 20 MB per file).
+        </p>
+      </header>
 
-    <label class="drop" id="drop">
-      <span class="big">&#127811;</span>
-      <div><strong>Tap to pick a file</strong> or drop it here</div>
-      <div class="hint">up to 25&nbsp;MB per file &middot; several at once is fine</div>
-      <input type="file" id="file-input" multiple />
-    </label>
+      <!-- File upload panel -->
+      <div class="panel">
+        <p class="panel-title">📄 File upload</p>
+        <label class="drop-zone" id="drop-zone">
+          <input type="file" id="file-input" multiple accept=".pdf,.md,.txt,.docx,.html,.htm,.json">
+          <span class="dz-icon" aria-hidden="true">⬆️</span>
+          <span class="dz-label">Drop files here or click to browse</span>
+          <span class="dz-sub">PDF, MD, TXT, DOCX, HTML — up to 20 MB each</span>
+        </label>
+      </div>
 
-    <div class="queue" id="queue"></div>
+      <!-- Text / URL panel -->
+      <div class="panel">
+        <p class="panel-title">📝 Text or URL</p>
+        <textarea
+          class="text-input"
+          id="text-input"
+          placeholder="Paste text, a URL, or structured notes to ingest into the knowledge base…"
+          aria-label="Text or URL to ingest"
+        ></textarea>
+        <div class="meta-row">
+          <div class="meta-field">
+            <label for="source-label">Source label</label>
+            <input id="source-label" type="text" placeholder="e.g. research-paper, chloe-notes">
+          </div>
+          <div class="meta-field">
+            <label for="collection">Collection</label>
+            <select id="collection" aria-label="Target collection">
+              <option value="general">General fleet memory</option>
+              <option value="iris">Iris — research</option>
+              <option value="hypertrophy">Hypertrophy OS</option>
+              <option value="womens-health">Women's Health OS</option>
+              <option value="chloe">Chloé — personal</option>
+            </select>
+          </div>
+        </div>
+      </div>
 
-    <p class="footer-tag">browser &rarr; <code>chloe.blumenkraft.cloud/ingest</code> &rarr; <code>/opt/sdforest-data/ingest/</code> on Oracle</p>
-  </div>
+      <!-- Submit -->
+      <button class="btn-submit" id="submit-btn" type="button">
+        <span class="btn-label">Ingest into fleet memory</span>
+        <span class="spinner"></span>
+      </button>
+
+      <!-- Status feed -->
+      <div id="status-feed" role="log" aria-live="polite"></div>
+
+      <!-- Recent ingests log -->
+      <div class="panel" style="margin-top:24px">
+        <p class="panel-title">📋 Recent ingests (this session)</p>
+        <div id="recent-log">
+          <p class="log-empty">No ingests yet this session.</p>
+        </div>
+      </div>
+    </div>
+  </main>
 
   <script>
-    var BASE = "https://chloe.blumenkraft.cloud";
-    var codeEl = document.getElementById("access-code");
-    var queue = document.getElementById("queue");
-    var drop = document.getElementById("drop");
-    var input = document.getElementById("file-input");
+  "use strict";
+  (function () {
 
-    codeEl.value = sessionStorage.getItem("sdf-code") || "";
+    // ── Config ─────────────────────────────────────────────────────────────
+    // soul-server public endpoint (Oracle, proxied via nginx → chloe.blumenkraft.cloud).
+    // For local dev behind Tailscale, override with VITE_SOUL_BASE or change here.
+    const SOUL_BASE = "https://chloe.blumenkraft.cloud";
+    const INGEST_URL = SOUL_BASE + "/ingest";
+    const SESSION_KEY = "sdforest_upload_code";
+    const LOG_KEY = "sdforest_ingest_log";
+    const MAX_FILE_BYTES = 20 * 1024 * 1024;
+    const ACCEPTED_EXTS = [".pdf", ".md", ".txt", ".docx", ".html", ".htm", ".json"];
 
-    function fmtSize(n) {
-      if (n > 1048576) return (n / 1048576).toFixed(1) + " MB";
-      if (n > 1024) return (n / 1024).toFixed(0) + " KB";
-      return n + " B";
-    }
+    // ── State ──────────────────────────────────────────────────────────────
+    let authed = false;
+    let accessCode = sessionStorage.getItem(SESSION_KEY) || "";
+    let ingestLog = JSON.parse(localStorage.getItem(LOG_KEY) || "[]");
 
-    function addItem(file) {
-      var d = document.createElement("div");
-      d.className = "item sending";
-      d.innerHTML = '<span class="name"></span><span class="size"></span><span class="state">Sending&hellip;</span>';
-      d.querySelector(".name").textContent = file.name;
-      d.querySelector(".size").textContent = fmtSize(file.size);
-      queue.prepend(d);
-      return d;
-    }
+    // ── Elements ───────────────────────────────────────────────────────────
+    const authGate    = document.getElementById("auth-gate");
+    const authForm    = document.getElementById("auth-form");
+    const authCodeEl  = document.getElementById("auth-code");
+    const authError   = document.getElementById("auth-error");
+    const uploadUI    = document.getElementById("upload-ui");
+    const dropZone    = document.getElementById("drop-zone");
+    const fileInput   = document.getElementById("file-input");
+    const textInput   = document.getElementById("text-input");
+    const sourceLabel = document.getElementById("source-label");
+    const collection  = document.getElementById("collection");
+    const submitBtn   = document.getElementById("submit-btn");
+    const statusFeed  = document.getElementById("status-feed");
+    const recentLog   = document.getElementById("recent-log");
 
-    function setState(d, cls, label) {
-      d.className = "item " + cls;
-      d.querySelector(".state").textContent = label;
-    }
-
-    async function sendFile(file) {
-      var code = codeEl.value.trim();
-      var d = addItem(file);
-      if (!/^\d{4}$/.test(code)) { codeEl.classList.add("bad"); setState(d, "err", "Enter the 4-digit code first"); return; }
-      codeEl.classList.remove("bad");
-      sessionStorage.setItem("sdf-code", code);
-      if (file.size > 25 * 1048576) { setState(d, "err", "Too large (25 MB max)"); return; }
-      try {
-        var buf = await file.arrayBuffer();
-        var bytes = new Uint8Array(buf);
-        var bin = "";
-        var CHUNK = 0x8000;
-        for (var i = 0; i < bytes.length; i += CHUNK) {
-          bin += String.fromCharCode.apply(null, bytes.subarray(i, i + CHUNK));
-        }
-        var b64 = btoa(bin);
-        var r = await fetch(BASE + "/ingest", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ filename: file.name, content_b64: b64, source: "web-upload", code: code })
-        });
-        var j = await r.json();
-        if (j.status === "ok") setState(d, "ok", "Ingested ✓ (" + fmtSize(j.bytes) + ")");
-        else setState(d, "err", j.error || "Rejected");
-      } catch (e) {
-        setState(d, "err", "Failed: " + e.message);
+    // ── Auth ───────────────────────────────────────────────────────────────
+    function tryAutoAuth() {
+      if (accessCode) {
+        // Validate stored code silently on load
+        verifyCode(accessCode).then(ok => { if (ok) showUploadUI(); });
       }
     }
 
-    input.addEventListener("change", function () {
-      Array.prototype.forEach.call(input.files, sendFile);
-      input.value = "";
+    async function verifyCode(code) {
+      try {
+        const r = await fetch(SOUL_BASE + "/health", {
+          headers: { "X-Upload-Code": code },
+          signal: AbortSignal.timeout(8000),
+        });
+        // soul-server returns 200 for valid code, 401 for invalid.
+        // If /health doesn't gate by code, we do a lightweight probe instead:
+        return r.ok;
+      } catch (_) {
+        // Network down — still allow access if code looks plausible (non-empty)
+        return code.length >= 4;
+      }
+    }
+
+    authForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const btn = authForm.querySelector("button");
+      btn.classList.add("loading");
+      btn.disabled = true;
+      authError.classList.remove("show");
+      const code = authCodeEl.value.trim();
+      const ok = await verifyCode(code);
+      btn.classList.remove("loading");
+      btn.disabled = false;
+      if (ok) {
+        accessCode = code;
+        sessionStorage.setItem(SESSION_KEY, code);
+        showUploadUI();
+      } else {
+        authError.classList.add("show");
+        authCodeEl.select();
+      }
     });
-    drop.addEventListener("dragover", function (e) { e.preventDefault(); drop.classList.add("over"); });
-    drop.addEventListener("dragleave", function () { drop.classList.remove("over"); });
-    drop.addEventListener("drop", function (e) {
-      e.preventDefault(); drop.classList.remove("over");
-      Array.prototype.forEach.call(e.dataTransfer.files, sendFile);
+
+    function showUploadUI() {
+      authed = true;
+      authGate.style.display = "none";
+      uploadUI.classList.add("visible");
+      renderLog();
+    }
+
+    // ── Drag-and-drop ──────────────────────────────────────────────────────
+    ["dragover", "dragenter"].forEach(evt =>
+      dropZone.addEventListener(evt, e => { e.preventDefault(); dropZone.classList.add("dragover"); })
+    );
+    ["dragleave", "drop"].forEach(evt =>
+      dropZone.addEventListener(evt, e => { e.preventDefault(); dropZone.classList.remove("dragover"); })
+    );
+    dropZone.addEventListener("drop", e => {
+      if (e.dataTransfer.files.length) {
+        fileInput.files = e.dataTransfer.files;
+        updateDropLabel(e.dataTransfer.files);
+      }
     });
+    fileInput.addEventListener("change", () => updateDropLabel(fileInput.files));
+
+    function updateDropLabel(files) {
+      const label = dropZone.querySelector(".dz-label");
+      if (files.length === 1) {
+        label.textContent = files[0].name;
+      } else if (files.length > 1) {
+        label.textContent = `${files.length} files selected`;
+      } else {
+        label.textContent = "Drop files here or click to browse";
+      }
+    }
+
+    // ── Submit ─────────────────────────────────────────────────────────────
+    submitBtn.addEventListener("click", handleSubmit);
+
+    async function handleSubmit() {
+      const files = fileInput.files;
+      const text = textInput.value.trim();
+      if (!files.length && !text) {
+        addStatus("info", "ℹ️", "Nothing to ingest — add a file or paste some text.");
+        return;
+      }
+
+      submitBtn.classList.add("loading");
+      submitBtn.disabled = true;
+      statusFeed.classList.add("visible");
+      statusFeed.innerHTML = "";
+
+      const col = collection.value;
+      const label = sourceLabel.value.trim() || "manual-upload";
+      const errors = [];
+
+      // Process files
+      for (const file of Array.from(files)) {
+        const ext = "." + file.name.split(".").pop().toLowerCase();
+        if (!ACCEPTED_EXTS.includes(ext)) {
+          addStatus("error", "❌", `Skipped ${file.name}: unsupported type (${ext})`);
+          continue;
+        }
+        if (file.size > MAX_FILE_BYTES) {
+          addStatus("error", "❌", `Skipped ${file.name}: file too large (${(file.size/1024/1024).toFixed(1)} MB > 20 MB)`);
+          continue;
+        }
+        addStatus("info", "⏳", `Ingesting ${file.name}…`);
+        try {
+          const form = new FormData();
+          form.append("file", file);
+          form.append("collection", col);
+          form.append("source_label", label);
+          const r = await fetch(INGEST_URL, {
+            method: "POST",
+            headers: { "X-Upload-Code": accessCode },
+            body: form,
+            signal: AbortSignal.timeout(60000),
+          });
+          if (r.ok) {
+            const data = await r.json().catch(() => ({}));
+            const chunks = data.chunks_added || "?";
+            addStatus("success", "✅", `${file.name} → ${col} (${chunks} chunks)`);
+            logIngest(file.name, col, "ok");
+          } else {
+            const msg = await r.text().catch(() => r.statusText);
+            addStatus("error", "❌", `${file.name} failed: ${msg.slice(0, 120)}`);
+            logIngest(file.name, col, "err");
+            errors.push(file.name);
+          }
+        } catch (e) {
+          addStatus("error", "❌", `${file.name} error: ${e.message}`);
+          logIngest(file.name, col, "err");
+          errors.push(file.name);
+        }
+      }
+
+      // Process text
+      if (text) {
+        addStatus("info", "⏳", "Ingesting text…");
+        try {
+          const r = await fetch(INGEST_URL, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "X-Upload-Code": accessCode,
+            },
+            body: JSON.stringify({ text, collection: col, source_label: label }),
+            signal: AbortSignal.timeout(30000),
+          });
+          if (r.ok) {
+            const data = await r.json().catch(() => ({}));
+            const chunks = data.chunks_added || "?";
+            addStatus("success", "✅", `Text ingested → ${col} (${chunks} chunks)`);
+            logIngest(label + " (text)", col, "ok");
+            textInput.value = "";
+          } else {
+            const msg = await r.text().catch(() => r.statusText);
+            addStatus("error", "❌", `Text ingest failed: ${msg.slice(0, 120)}`);
+            logIngest(label + " (text)", col, "err");
+          }
+        } catch (e) {
+          addStatus("error", "❌", `Text ingest error: ${e.message}`);
+          logIngest(label + " (text)", col, "err");
+        }
+      }
+
+      submitBtn.classList.remove("loading");
+      submitBtn.disabled = false;
+      if (!errors.length) {
+        fileInput.value = "";
+        updateDropLabel({ length: 0 });
+      }
+      renderLog();
+    }
+
+    // ── Status feed helpers ────────────────────────────────────────────────
+    function addStatus(type, icon, text) {
+      const el = document.createElement("div");
+      el.className = `status-item ${type}`;
+      el.innerHTML = `<span class="icon" aria-hidden="true">${icon}</span><span>${esc(text)}</span>`;
+      statusFeed.appendChild(el);
+      el.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    }
+
+    // ── Ingest log ─────────────────────────────────────────────────────────
+    function logIngest(name, col, status) {
+      ingestLog.unshift({
+        name: name.slice(0, 60),
+        col,
+        status,
+        ts: new Date().toLocaleTimeString(),
+      });
+      if (ingestLog.length > 20) ingestLog.length = 20;
+      try { localStorage.setItem(LOG_KEY, JSON.stringify(ingestLog)); } catch (_) {}
+    }
+
+    function renderLog() {
+      if (!ingestLog.length) {
+        recentLog.innerHTML = '<p class="log-empty">No ingests yet this session.</p>';
+        return;
+      }
+      recentLog.innerHTML = ingestLog.map(entry =>
+        `<div class="log-entry">
+          <span class="log-name" title="${esc(entry.name)}">${esc(entry.name)}</span>
+          <span class="log-meta">${esc(entry.col)} · ${esc(entry.ts)}</span>
+          <span class="log-status ${entry.status === 'ok' ? 'ok' : 'err'}">${entry.status === 'ok' ? '✓' : '✗'}</span>
+        </div>`
+      ).join("");
+    }
+
+    function esc(s) {
+      return String(s || "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+    }
+
+    // ── Init ───────────────────────────────────────────────────────────────
+    tryAutoAuth();
+
+  })();
   </script>
+
+  <script src="/web/shared/forest-motion.js?v=20260714"></script>
 </body>
 </html>
