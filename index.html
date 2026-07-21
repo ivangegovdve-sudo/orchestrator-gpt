@@ -113,6 +113,12 @@
         <path class="icon-line" d="M24 34.5v3.5"/>
       </symbol>
 
+      <symbol id="icon-gallery" viewBox="0 0 48 48">
+        <circle class="icon-ring" cx="24" cy="24" r="18" stroke-dasharray="4 5"/>
+        <path class="icon-line" d="M24 6l9 15.6M42 24H24M33 39.6L24 24M15 39.6L24 24M6 24h18M15 8.4L24 24"/>
+        <circle class="icon-fill" cx="24" cy="24" r="2.5"/>
+      </symbol>
+
       <symbol id="icon-c2c" viewBox="0 0 48 48">
         <circle class="icon-ring" cx="15" cy="24" r="10" stroke-dasharray="4 5"/>
         <circle class="icon-ring" cx="33" cy="24" r="10" stroke-dasharray="4 5"/>
@@ -152,16 +158,16 @@
           <section class="portal-board" aria-labelledby="projects-title">
             <header class="board-header">
               <div>
-                <span class="board-kicker">Portal lattice · 16 nodes</span>
+                <span class="board-kicker">Portal lattice · 15 nodes</span>
                 <h2 id="projects-title">Choose a path</h2>
               </div>
               <span class="board-readout">Signal alive</span>
             </header>
 
             <div class="project-grid" data-project-grid>
-              <button class="portal" type="button" style="--accent:#7ee2ff" data-project="time" data-href="/web/life-in-time/index.html" data-status="In development" data-description="Translate a birth date into weeks, seasons, heartbeats, lunar cycles, and the quiet geometry of a life." aria-pressed="false">
-                <span class="portal-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><use href="#icon-time"/></svg></span>
-                <span class="portal-copy"><span class="portal-name">Life in Time</span><span class="portal-meta">Time calculator</span></span>
+              <button class="portal" type="button" style="--accent:#c084fc" data-project="gallery" data-href="/web/design-gallery/index.html" data-status="In development" data-description="A scroll-scrubbed camera flight through curated design experiments — each scene AI-generated and approval-gated before it ships." aria-pressed="false">
+                <span class="portal-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><use href="#icon-gallery"/></svg></span>
+                <span class="portal-copy"><span class="portal-name">Web Design Gallery</span><span class="portal-meta">Scroll-world flight</span></span>
               </button>
 
               <button class="portal" type="button" style="--accent:#a282ff" data-project="vfx" data-href="/web/vfx-portfolio/index.html" data-status="Portfolio" data-description="Ivan Gegov’s real animation, compositing, VFX, game work, showreel, credits, experience, and tools—preserved from the original portfolio." aria-pressed="false">
@@ -194,11 +200,6 @@
                 <span class="portal-copy"><span class="portal-name">Open Overview</span><span class="portal-meta">AI ecosystem radar</span></span>
               </button>
 
-              <button class="portal" type="button" style="--accent:#6cafff" data-project="calendar" data-href="/web/calendar/index.html" data-status="In development" data-description="Generate clean, printable calendars locally in the browser and carry a year’s rhythm into a tangible artifact." aria-pressed="false">
-                <span class="portal-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><use href="#icon-calendar"/></svg></span>
-                <span class="portal-copy"><span class="portal-name">Calendar Generator</span><span class="portal-meta">Make a calendar</span></span>
-              </button>
-
               <button class="portal" type="button" style="--accent:#ff745c" data-project="muscle" data-href="/web/hypertrophyos/index.html" data-status="In development" data-description="Training intelligence, practical calculators, evidence rules, and a transparent research path for strength and hypertrophy." aria-pressed="false">
                 <span class="portal-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><use href="#icon-muscle"/></svg></span>
                 <span class="portal-copy"><span class="portal-name">Hyper Trophy OS</span><span class="portal-meta">Training research</span></span>
@@ -209,19 +210,9 @@
                 <span class="portal-copy"><span class="portal-name">Manifesto for a Newborn</span><span class="portal-meta">Reading room</span></span>
               </button>
 
-              <button class="portal" type="button" style="--accent:#e084ff" data-project="poetry" data-href="/web/m-popova/index.html" data-status="In development" data-description="A dedicated, quietly animated space for M. Popova’s poems—language unfolding like a night flower." aria-pressed="false">
-                <span class="portal-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><use href="#icon-poetry"/></svg></span>
-                <span class="portal-copy"><span class="portal-name">M.Popova Poetry</span><span class="portal-meta">Poetry archive</span></span>
-              </button>
-
               <button class="portal" type="button" style="--accent:#ffc258" data-project="power" data-href="/web/power-law-odyssey/index.html" data-status="In development" data-description="A seeded, reproducible walk through heavy tails: many ordinary misses, rare enormous hits, and the intuition they produce." aria-pressed="false">
                 <span class="portal-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><use href="#icon-power"/></svg></span>
                 <span class="portal-copy"><span class="portal-name">Power Law Odyssey</span><span class="portal-meta">Heavy-tail sandbox</span></span>
-              </button>
-
-              <button class="portal" type="button" style="--accent:#70eade" data-project="news" data-href="/web/morning-news/index.html" data-status="In development" data-description="Morning News is one project among the others: a voice-led briefing space for starting the day with signal, not noise." aria-pressed="false">
-                <span class="portal-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><use href="#icon-news"/></svg></span>
-                <span class="portal-copy"><span class="portal-name">Morning News</span><span class="portal-meta">Daily briefing</span></span>
               </button>
 
               <button class="portal" type="button" style="--accent:#51ebff" data-project="void" data-href="/web/replicator-void/index.html" data-status="In development" data-description="A living population of tiny replicators mutates, feeds, divides, and dies under your cursor in a deliberately strange simulation." aria-pressed="false">
@@ -247,11 +238,6 @@
               <button class="portal" type="button" style="--accent:#9bd26f" data-project="math" data-status="In development" data-description="Math Forest is a reserved growing space for mathematical play. The public experience is not ready yet, so this node remains a preview only." aria-pressed="false" aria-disabled="true">
                 <span class="portal-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><use href="#icon-math"/></svg></span>
                 <span class="portal-copy"><span class="portal-name">Math Forest</span><span class="portal-meta development">In development</span></span>
-              </button>
-
-              <button class="portal" type="button" style="--accent:#a78bfa" data-project="upload" data-href="/web/upload/" data-status="In development" data-description="Private upload surface for the fleet knowledge base. Add PDFs, text, URLs, and documents to Chloé's memory. Access-code gated." aria-pressed="false">
-                <span class="portal-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><use href="#icon-lock"/></svg></span>
-                <span class="portal-copy"><span class="portal-name">Fleet Upload</span><span class="portal-meta">🔒 Private</span></span>
               </button>
             </div>
           </section>
