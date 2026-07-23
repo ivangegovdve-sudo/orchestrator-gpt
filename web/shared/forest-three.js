@@ -1,10 +1,10 @@
 /* SDForest landing — Three.js animation layer (entry).
    One shared WebGLRenderer on a single fixed transparent canvas drives
-   five effects, each in its own module under ./forest-three/:
+   four effects, each in its own module under ./forest-three/:
+   (roots.js — the old sigil root burst — is retired: its straight
+   filaments read as a second, geometric tree above the title, and the
+   forest has exactly one tree, the crown.)
 
-     roots.js   The living root burst — an organic mycelium of light
-                radiating from the forest sigil; grows on load, bends
-                toward the pointer (uMouse), pulses on click (uClick).
      crown.js   The tree crown: trunk, sixteen project branches with
                 progressively random limbs down to the smallest twigs,
                 and a canopy of beveled diamond leaves that bloom from
@@ -29,7 +29,6 @@
 
 import * as THREE from '../vendor/three/three.module.min.js';
 import { clamp, lerp } from './forest-three/util.js';
-import { initRoots, updateRoots, rootsDebug } from './forest-three/roots.js';
 import { initBurst, updateBurst, respawnBurst, burstDebug } from './forest-three/burst.js';
 import { initSlams, updateSlams, slamsAnimating, slamsDebug } from './forest-three/slams.js';
 import { initCrown, updateCrown, crownDebug } from './forest-three/crown.js';
@@ -194,11 +193,10 @@ import { initTiles, updateTiles, tilesAnimating, tilesDebug } from './forest-thr
 
     let rendered = false;
     if (renderer) {
-      const rootsVisible = updateRoots(shared, time, dt);
       const burstVisible = updateBurst(shared, time, dt);
       const crownVisible = updateCrown(shared, time);
       const tilesVisible = updateTiles(shared, time, dt);
-      rendered = rootsVisible || burstVisible || crownVisible || tilesVisible || slamsDrawn;
+      rendered = burstVisible || crownVisible || tilesVisible || slamsDrawn;
       if (rendered) {
         renderer.render(shared.scene, camera);
         canvasDirty = true;
@@ -261,7 +259,6 @@ import { initTiles, updateTiles, tilesAnimating, tilesDebug } from './forest-thr
       const webgl = initRenderer();
       initSlams(shared); // CSS choreography works even without WebGL
       if (webgl) {
-        initRoots(shared, coarseMedia.matches);
         initBurst(shared);
         initCrown(shared);
         initTiles(shared, () => coarseMedia.matches);
@@ -298,7 +295,6 @@ import { initTiles, updateTiles, tilesAnimating, tilesDebug } from './forest-thr
     get crown() { return crownDebug; },
     get tiles() { return tilesDebug; },
     hero: burstDebug,
-    roots: rootsDebug,
     get webgl() { return Boolean(renderer); },
     get sleeping() { return running && !frameHandle; },
     tick(now) { stop(); frame(now); },

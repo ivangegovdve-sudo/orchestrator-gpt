@@ -587,6 +587,43 @@ function placeLabels(tips, W, H) {
     state.labels.push(label);
     state.labelLit.push(false);
   });
+
+  // Final containment pass: a label's BOX must stay inside the stage,
+  // not just its center — on a 375px phone half a label otherwise
+  // hangs past the page edge and widens the document.
+  for (const label of state.labels) {
+    const half = label.offsetWidth / 2 + 6;
+    const centerPx = (parseFloat(label.style.left) / 100) * W;
+    const clamped = clamp(centerPx, half, W - half);
+    if (Math.abs(clamped - centerPx) > 0.5) {
+      label.style.left = `${(clamped / W) * 100}%`;
+    }
+  }
+
+  // Containment can shove edge labels into each other on narrow
+  // screens; settle any survivors with vertical-only pushes, which
+  // cannot reintroduce the horizontal overflow.
+  for (let pass = 0; pass < 30; pass += 1) {
+    let moved = false;
+    for (let a = 0; a < state.labels.length; a += 1) {
+      for (let b = a + 1; b < state.labels.length; b += 1) {
+        const A = state.labels[a];
+        const B = state.labels[b];
+        const ax = (parseFloat(A.style.left) / 100) * W;
+        const bx = (parseFloat(B.style.left) / 100) * W;
+        if (Math.abs(bx - ax) >= (A.offsetWidth + B.offsetWidth) / 2 + 8) continue;
+        const ay = (parseFloat(A.style.top) / 100) * H;
+        const by = (parseFloat(B.style.top) / 100) * H;
+        if (Math.abs(by - ay) >= 30) continue;
+        moved = true;
+        const push = (30 - Math.abs(by - ay)) / 2 + 1;
+        const dir = by >= ay ? 1 : -1;
+        A.style.top = `${clamp(((ay - dir * push) / H) * 100, 4, 96)}%`;
+        B.style.top = `${clamp(((by + dir * push) / H) * 100, 4, 96)}%`;
+      }
+    }
+    if (!moved) break;
+  }
 }
 
 function rebuild(shared) {
