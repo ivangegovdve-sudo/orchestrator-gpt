@@ -366,6 +366,25 @@ function growTree(W, H, branchCount, compact) {
     tips.push(tip);
   }
 
+  // Right-side canopy fill: the sixteen-branch fan reads thin in the
+  // +x quadrant, so grow extra limbs at 30°–80° from vertical. They
+  // borrow the lit state of the nearest primary branch and add no
+  // tips — labels and slam wiring stay one-per-project.
+  const fillCount = 5;
+  for (let e = 0; e < fillCount; e += 1) {
+    const fan = lerp(0.52, 1.40, e / (fillCount - 1)) + (random() - 0.5) * 0.12;
+    const attachY = lerp(trunkTop, trunkTop - H * 0.13, Math.min(fan / 1.32, 1)) + (random() - 0.5) * H * 0.03;
+    const attachX = px * (1 - fan / 2);
+    const length = H * 0.21 * (0.72 + random() * 0.45) * (1 - fan * 0.12);
+    const width = 6 + random() * 6.5;
+    const litAs = clamp(
+      Math.round(((fan / 1.32) * 0.5 + 0.5) * (branchCount - 1)),
+      0, branchCount - 1,
+    );
+    const tip = { ox: attachX, oy: attachY, x: attachX, y: attachY, d2: 0 };
+    grow(attachX, attachY, fan, length, width, 0, litAs, tip);
+  }
+
   return { segments, tips };
 }
 
@@ -384,16 +403,21 @@ function scatterLeaves(W, H, branchCount, compact) {
     const x = bx * W * 0.94;
     const y = -H * 0.18 + random() * H * 0.62;
     const dist = Math.hypot(x, y - centerY);
+    // Angle from vertical of this leaf's radial off the trunk — the
+    // same convention the branch fan uses (0 = straight up, +x right).
+    const branchAngle = Math.atan2(x, y + H * 0.05);
     meta.push({
       x,
       y,
       born: -1,
       waveDelay: (dist / maxR) * 2.4 + random() * 0.5,
       seed: random(),
-      tilt: (random() - 0.5) * 0.24,
+      // Point the stem axis (long diagonal, baked 15° CCW off +x)
+      // along the branch radial, so leaves grow away from the trunk.
+      tilt: Math.PI / 2 - branchAngle - (15 * Math.PI) / 180 + (random() - 0.5) * 0.24,
       scale: 7 + random() * 7.5,
       branch: clamp(
-        Math.round(((Math.atan2(x, y + H * 0.05) / 1.35) * 0.5 + 0.5) * (branchCount - 1)),
+        Math.round(((branchAngle / 1.35) * 0.5 + 0.5) * (branchCount - 1)),
         0, branchCount - 1,
       ),
     });

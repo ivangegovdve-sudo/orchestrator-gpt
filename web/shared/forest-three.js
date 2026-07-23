@@ -1,6 +1,6 @@
 /* SDForest landing — Three.js animation layer (entry).
    One shared WebGLRenderer on a single fixed transparent canvas drives
-   five effects, each in its own module under ./forest-three/:
+   four effects, each in its own module under ./forest-three/:
 
      roots.js   The living mycelium behind the hero title: organic
                 filaments (amber at the heart, green at the tips) with
@@ -21,8 +21,6 @@
                 stays in stylesheets.
      tiles.js   Per-portal wireframes in the atlas grid, each with its
                 own named motion identity.
-     burst.js   Sparse ambient geometry — fireflies in the forest dark
-                with a proximity-triggered spin/flatten choreography.
 
    The camera is calibrated so 1 world unit = 1 CSS pixel at z=0, which
    lets every effect be positioned straight from getBoundingClientRect().
@@ -32,7 +30,6 @@
 
 import * as THREE from '../vendor/three/three.module.min.js';
 import { clamp, lerp } from './forest-three/util.js';
-import { initBurst, updateBurst, respawnBurst, burstDebug } from './forest-three/burst.js';
 import { initSlams, updateSlams, slamsAnimating, slamsDebug } from './forest-three/slams.js';
 import { initCrown, updateCrown, crownDebug } from './forest-three/crown.js';
 import { initTiles, updateTiles, tilesAnimating, tilesDebug } from './forest-three/tiles.js?v=20260723';
@@ -164,7 +161,6 @@ import { initRoots, updateRoots, rootsDebug } from './forest-three/roots.js';
     camera.updateProjectionMatrix();
     // Point sprites need DPR x camera distance to size in CSS pixels.
     shared.pointScale = renderer.getPixelRatio() * camera.position.z;
-    respawnBurst();
   }
 
   window.addEventListener('pointermove', (event) => {
@@ -197,11 +193,10 @@ import { initRoots, updateRoots, rootsDebug } from './forest-three/roots.js';
 
     let rendered = false;
     if (renderer) {
-      const burstVisible = updateBurst(shared, time, dt);
       const rootsVisible = updateRoots(shared, time, dt);
       const crownVisible = updateCrown(shared, time);
       const tilesVisible = updateTiles(shared, time, dt);
-      rendered = burstVisible || rootsVisible || crownVisible || tilesVisible || slamsDrawn;
+      rendered = rootsVisible || crownVisible || tilesVisible || slamsDrawn;
       if (rendered) {
         renderer.render(shared.scene, camera);
         canvasDirty = true;
@@ -264,7 +259,6 @@ import { initRoots, updateRoots, rootsDebug } from './forest-three/roots.js';
       const webgl = initRenderer();
       initSlams(shared); // CSS choreography works even without WebGL
       if (webgl) {
-        initBurst(shared);
         initRoots(shared, coarseMedia.matches);
         initCrown(shared);
         initTiles(shared, () => coarseMedia.matches);
@@ -301,7 +295,6 @@ import { initRoots, updateRoots, rootsDebug } from './forest-three/roots.js';
     get roots() { return rootsDebug; },
     get crown() { return crownDebug; },
     get tiles() { return tilesDebug; },
-    hero: burstDebug,
     get webgl() { return Boolean(renderer); },
     get sleeping() { return running && !frameHandle; },
     tick(now) { stop(); frame(now); },
