@@ -3,7 +3,7 @@
 
   const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
   const palette = {
-    portal: [121, 242, 168],
+    portal: [186, 216, 152],
     time: [126, 226, 255],
     kids: [255, 207, 90],
     health: [255, 127, 176],

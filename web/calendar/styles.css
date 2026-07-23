@@ -12,20 +12,20 @@
   --page-margin: calc(var(--page-bleed-area) + 10mm);
   --img-height: calc((var(--page-height) - 50mm) * 0.4);
   --day-height: calc((var(--page-height) - 183mm) / 6);
-  --bg: #071319;
-  --bg-glow: rgba(38, 114, 143, 0.28);
-  --panel: rgba(9, 24, 31, 0.84);
-  --panel-border: rgba(173, 216, 230, 0.18);
-  --text: #eff7fb;
-  --muted: #9cb6c2;
-  --accent: #7ee0d7;
-  --accent-strong: #d9a441;
+  --bg: #070a08;
+  --bg-glow: rgba(232, 184, 107, 0.16);
+  --panel: rgba(13, 18, 14, 0.84);
+  --panel-border: rgba(226, 235, 209, 0.16);
+  --text: #f2efe4;
+  --muted: #a9b3a1;
+  --accent: #8fe6ae;
+  --accent-strong: #e8b86b;
   --surface: #ffffff;
   --ink: #111827;
   --ink-muted: #4b5563;
   --holiday: #2f7dc0;
   color-scheme: dark;
-  font-family: "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  font-family: var(--forest-body, Alegreya, Georgia, serif);
 }
 
 * {
@@ -42,7 +42,7 @@ body {
   color: var(--text);
   background:
     radial-gradient(circle at top left, var(--bg-glow), transparent 38%),
-    linear-gradient(180deg, #061016 0%, #08161d 45%, #050d12 100%);
+    linear-gradient(180deg, #060a07 0%, #0b100c 45%, #050805 100%);
 }
 
 .app-shell {
@@ -62,15 +62,16 @@ body {
 .back-link {
   color: var(--accent);
   text-decoration: none;
+  font-family: var(--forest-sans, "Alegreya Sans", sans-serif);
   font-weight: 700;
   padding: 10px 14px;
   border-radius: 999px;
-  border: 1px solid rgba(126, 224, 215, 0.25);
-  background: rgba(10, 28, 36, 0.7);
+  border: 1px solid rgba(143, 230, 174, 0.28);
+  background: rgba(10, 15, 11, 0.7);
 }
 
 .back-link:hover {
-  background: rgba(14, 41, 51, 0.92);
+  background: rgba(13, 20, 14, 0.92);
 }
 
 .topbar-copy {
@@ -84,6 +85,7 @@ body {
 .panel-kicker {
   margin: 0;
   color: var(--accent-strong);
+  font-family: var(--forest-sans, "Alegreya Sans", sans-serif);
   font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.16em;
@@ -97,17 +99,27 @@ h3 {
   letter-spacing: -0.02em;
 }
 
+/* UI headings take the display serif; the printable pages keep their own type. */
+.topbar-copy h1,
+.panel-header h2,
+.image-inputs-header h3,
+.preview-header h2 {
+  font-family: var(--forest-display, "Cormorant Garamond", Georgia, serif);
+  font-weight: 650;
+  letter-spacing: 0;
+}
+
 h1 {
-  font-size: clamp(2.2rem, 4vw, 3.8rem);
+  font-size: clamp(2.4rem, 4.4vw, 4.2rem);
   line-height: 1;
 }
 
 h2 {
-  font-size: 1.35rem;
+  font-size: 1.55rem;
 }
 
 h3 {
-  font-size: 1rem;
+  font-size: 1.15rem;
 }
 
 .subtitle,
@@ -223,10 +235,11 @@ button {
   border: 1px solid transparent;
   border-radius: 999px;
   padding: 11px 16px;
+  font-family: var(--forest-sans, "Alegreya Sans", sans-serif);
   font-weight: 700;
   cursor: pointer;
-  background: linear-gradient(135deg, #69d3c7, #d9a441);
-  color: #102028;
+  background: linear-gradient(135deg, #8fe6ae, #e8b86b);
+  color: #101408;
 }
 
 button.secondary {
@@ -314,6 +327,7 @@ button:hover {
   color: var(--ink);
   border-radius: 6px;
   overflow: hidden;
+  font-family: var(--forest-sans, "Segoe UI", system-ui, sans-serif);
 }
 
 .page-border {

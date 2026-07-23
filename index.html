@@ -4,24 +4,23 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="SDForest — an interactive portal into Ivan Gegov's tools, experiments, writing, research, animation, and visual effects work.">
-  <meta name="theme-color" content="#040705">
+  <meta name="theme-color" content="#070a08">
   <meta property="og:title" content="SDForest">
   <meta property="og:description" content="A living, interactive forest of projects.">
   <meta property="og:type" content="website">
   <title>SDForest — projects in motion</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/web/shared/forest-home.css?v=20260714">
-  <style>@media (prefers-reduced-motion: reduce) { .landing { min-height: 100svh; } }</style>
+  <link rel="stylesheet" href="/web/shared/forest-design.css?v=20260723">
+  <link rel="stylesheet" href="/web/shared/forest-home.css?v=20260723">
 </head>
 <body>
   <canvas class="home-scene" data-forest-scene data-mode="portal" aria-hidden="true"></canvas>
   <div class="home-scrim" aria-hidden="true"></div>
+  <div class="forest-vignette" aria-hidden="true"></div>
+  <div class="forest-grain" aria-hidden="true"></div>
 
   <nav class="home-nav" aria-label="SDForest">
     <span class="home-brand">SDForest</span>
-    <span class="home-nav-status">Interactive project atlas</span>
+    <span class="home-nav-status">A living project atlas</span>
   </nav>
 
   <svg width="0" height="0" aria-hidden="true" focusable="false" style="position:absolute">
@@ -61,11 +60,6 @@
         <path class="icon-line" d="M15 15h6v6h-6zM27 15h6v6h-6zM15 27h6v6h-6zM27 27h6v6h-6zM18 21v6m12-6v6M21 18h6m-6 12h6"/>
         <circle class="icon-fill" cx="24" cy="24" r="2.5" style="fill:var(--accent-secondary, #a9b2ff)"/>
       </symbol>
-      <symbol id="icon-calendar" viewBox="0 0 48 48">
-        <path class="icon-ring" d="M8 12h32v28H8z" stroke-dasharray="6 4"/>
-        <path class="icon-line" d="M8 20h32M16 7v10m16-10v10M15 26h4m5 0h4m5 0h2m-20 7h4m5 0h4"/>
-        <circle class="icon-fill" cx="34" cy="33" r="2"/>
-      </symbol>
       <symbol id="icon-muscle" viewBox="0 0 48 48">
         <circle class="icon-ring" cx="24" cy="24" r="19" stroke-dasharray="4 6"/>
         <path class="icon-line" d="M10 30c4-8 8-4 11-13l5 4c5-1 10 3 12 8-5 7-19 10-28 1zM20 17l3-7 6 3-3 8"/>
@@ -81,20 +75,10 @@
         <path class="icon-line" d="M16 16h16M16 22h13M16 28h15M16 34h8M31 8c4 7 1 13-5 17"/>
         <circle class="icon-fill" cx="31" cy="12" r="2"/>
       </symbol>
-      <symbol id="icon-poetry" viewBox="0 0 48 48">
-        <circle class="icon-ring" cx="24" cy="24" r="18" stroke-dasharray="2 6"/>
-        <path class="icon-line" d="M13 36c8-2 15-7 20-18m-18 7c5 1 10-1 13-5m-4 10c4 0 8-3 10-7M31 13c2 0 4 2 4 4"/>
-        <circle class="icon-fill" cx="14" cy="36" r="2"/>
-      </symbol>
       <symbol id="icon-power" viewBox="0 0 48 48">
         <path class="icon-ring" d="M7 39h34M10 39V9" stroke-dasharray="5 4"/>
         <path class="icon-line" d="M12 36c8 0 10-1 15-4 7-5 6-15 12-22M30 12h9v9"/>
         <circle class="icon-fill" cx="27" cy="32" r="2.4"/>
-      </symbol>
-      <symbol id="icon-news" viewBox="0 0 48 48">
-        <path class="icon-ring" d="M7 10h34v28H7z" stroke-dasharray="4 5"/>
-        <path class="icon-line" d="M13 18h13v9H13zM30 18h6m-6 5h6M13 31h23M10 14h28"/>
-        <circle class="icon-fill" cx="34" cy="23" r="1.7"/>
       </symbol>
       <symbol id="icon-void" viewBox="0 0 48 48">
         <circle class="icon-ring" cx="24" cy="24" r="19" stroke-dasharray="7 4"/>
@@ -111,19 +95,11 @@
         <path class="icon-line" d="M13 32c3-11 8-17 11-17s8 6 11 17M16 25h16M24 15V8"/>
         <circle class="icon-fill" cx="24" cy="15" r="2"/>
       </symbol>
-      <symbol id="icon-lock" viewBox="0 0 48 48">
-        <rect class="icon-ring" x="10" y="22" width="28" height="20" rx="4" stroke-dasharray="4 5"/>
-        <path class="icon-line" d="M16 22v-6a8 8 0 0 1 16 0v6"/>
-        <circle class="icon-fill" cx="24" cy="32" r="2.5"/>
-        <path class="icon-line" d="M24 34.5v3.5"/>
-      </symbol>
-
       <symbol id="icon-gallery" viewBox="0 0 48 48">
         <circle class="icon-ring" cx="24" cy="24" r="18" stroke-dasharray="4 5"/>
         <path class="icon-line" d="M24 6l9 15.6M42 24H24M33 39.6L24 24M15 39.6L24 24M6 24h18M15 8.4L24 24"/>
         <circle class="icon-fill" cx="24" cy="24" r="2.5"/>
       </symbol>
-
       <symbol id="icon-c2c" viewBox="0 0 48 48">
         <circle class="icon-ring" cx="15" cy="24" r="10" stroke-dasharray="4 5"/>
         <circle class="icon-ring" cx="33" cy="24" r="10" stroke-dasharray="4 5"/>
@@ -141,7 +117,8 @@
   </svg>
 
   <main>
-    <section class="landing" aria-labelledby="forest-title">
+    <!-- ============ I. Title plate ============ -->
+    <section class="landing" data-landing aria-labelledby="forest-title">
       <div class="landing-core">
         <div class="forest-sigil" aria-hidden="true">
           <svg viewBox="0 0 100 100">
@@ -151,126 +128,113 @@
           </svg>
         </div>
         <p class="landing-kicker">A living index by Ivan Gegov</p>
-        <h1 id="forest-title">Forest<span>projects in motion</span></h1>
+        <h1 id="forest-title" class="landing-title">
+          <span class="title-word">Forest</span>
+          <span class="title-sub">projects in <em>motion</em></span>
+        </h1>
+        <svg class="title-flourish" viewBox="0 0 420 46" aria-hidden="true">
+          <path class="flourish-stem" d="M8 30 C 90 18, 150 40, 210 28 S 340 14, 412 26" pathLength="1"/>
+          <path class="flourish-leaf" d="M118 30 q 8 -14 20 -16 q -4 14 -20 16 Z" pathLength="1"/>
+          <path class="flourish-leaf" d="M268 24 q 10 12 22 12 q -6 -14 -22 -12 Z" pathLength="1"/>
+          <circle class="flourish-seed" cx="210" cy="28" r="2.6"/>
+        </svg>
         <p class="landing-copy">A growing ecosystem of visual work, research, playful tools, and strange little machines. Move through it—the forest notices.</p>
       </div>
-      <button class="scroll-invite" type="button" data-scroll-to-projects>Assemble the portal</button>
+      <button class="scroll-invite" type="button" data-scroll-to-crown>Walk in</button>
     </section>
 
-    <section class="assembly" data-assembly aria-label="Project portal assembly">
-      <div class="factory">
-        <div class="factory-frame">
-          <section class="portal-board" aria-labelledby="projects-title">
-            <header class="board-header">
-              <div>
-                <span class="board-kicker">Portal lattice · 15 nodes</span>
-                <h2 id="projects-title">Choose a path</h2>
-              </div>
-              <span class="board-readout">Signal alive</span>
-            </header>
+    <!-- ============ II. The crown ============ -->
+    <section class="crown-section" data-crown aria-label="The tree crown — every project is a branch">
+      <header class="crown-head">
+        <p class="crown-kicker">The crown</p>
+        <h2>Sixteen branches, <em>one tree</em></h2>
+        <p class="crown-copy">Every project grows from the same trunk. Keep walking — each branch comes down to meet you, and every meeting sends roots climbing back up to light its branch.</p>
+      </header>
+      <div class="crown-stage" data-crown-stage>
+        <nav class="crown-labels" data-crown-labels aria-label="Branches of the forest"></nav>
+      </div>
+    </section>
 
-            <div class="project-grid" data-project-grid>
-              <button class="portal" type="button" style="--accent:#c084fc" data-project="gallery" data-href="/web/design-gallery/index.html" data-status="In development" data-description="A scroll-scrubbed camera flight through curated design experiments — each scene AI-generated and approval-gated before it ships." aria-pressed="false">
-                <span class="portal-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><use href="#icon-gallery"/></svg></span>
-                <span class="portal-copy"><span class="portal-name">Web Design Gallery</span><span class="portal-meta">Scroll-world flight</span></span>
-              </button>
+    <!-- ============ III. The walk — one slam per project, roots climbing
+         from every collision back up to the crown ============ -->
+    <div class="routes" data-routes>
+      <svg class="root-rail" aria-hidden="true" viewBox="0 0 100 1600" preserveAspectRatio="none">
+        <path class="rail-ghost" d="M50 0 C 57 70, 43 140, 50 210 S 58 350, 50 420 S 42 560, 50 630 S 58 770, 50 840 S 42 980, 50 1050 S 58 1190, 50 1260 S 43 1400, 50 1470 S 55 1560, 50 1600"/>
+        <path class="rail-lit" data-rail d="M50 0 C 57 70, 43 140, 50 210 S 58 350, 50 420 S 42 560, 50 630 S 58 770, 50 840 S 42 980, 50 1050 S 58 1190, 50 1260 S 43 1400, 50 1470 S 55 1560, 50 1600" pathLength="1"/>
+      </svg>
+    </div>
 
-              <button class="portal" type="button" style="--accent:#a282ff" data-project="vfx" data-href="/web/vfx-portfolio/index.html" data-status="Portfolio" data-description="Ivan Gegov’s real animation, compositing, VFX, game work, showreel, credits, experience, and tools—preserved from the original portfolio." aria-pressed="false">
-                <span class="portal-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><use href="#icon-vfx"/></svg></span>
-                <span class="portal-copy"><span class="portal-name">VFX Portfolio</span><span class="portal-meta">Animation · VFX</span></span>
-              </button>
-
-              <button class="portal" type="button" style="--accent:#ffd15a" data-project="kids" data-href="/web/kids/index.html" data-status="In development" data-description="A warmer corner for family movies, small adventures, playful interfaces, and things built to be explored together." aria-pressed="false">
-                <span class="portal-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><use href="#icon-kids"/></svg></span>
-                <span class="portal-copy"><span class="portal-name">Kids Corner</span><span class="portal-meta">Family space</span></span>
-              </button>
-
-              <button class="portal" type="button" style="--accent:#ff7fb0" data-project="health" data-href="/web/womens-health-os/index.html" data-status="In development" data-description="An evidence-graded research intelligence base for cycles, hormones, fertility, PCOS, menopause, and women’s health." aria-pressed="false">
-                <span class="portal-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><use href="#icon-health"/></svg></span>
-                <span class="portal-copy"><span class="portal-name">Women’s Health OS</span><span class="portal-meta">Evidence base</span></span>
-              </button>
-
-              <button class="portal" type="button" style="--accent:#ac90ff" data-project="council" data-href="/web/council/index.html" data-status="In development" data-description="Choose between a slow local TinyLM oracle and a free OpenRouter deliberation—two public experiments with honest limits." aria-pressed="false">
-                <span class="portal-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><use href="#icon-council"/></svg></span>
-                <span class="portal-copy"><span class="portal-name">Councils</span><span class="portal-meta">Machine dialogue</span></span>
-              </button>
-
-              <button class="portal" type="button" style="--accent:#60ecc1" data-project="library" data-href="/web/library/index.html" data-status="In development" data-description="Search the Forest’s AI glossary and platform reference side by side, with real structured entries and filters." aria-pressed="false">
-                <span class="portal-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><use href="#icon-library"/></svg></span>
-                <span class="portal-copy"><span class="portal-name">Library &amp; Platforms</span><span class="portal-meta">Glossary · tools</span></span>
-              </button>
-
-              <button class="portal" type="button" style="--accent:#73e9ff;--accent-secondary:#a9b2ff" data-project="open-overview" data-href="/web/open-overview/index.html" data-status="In development" data-description="Compare OpenRouter models and apps with GitHub AI ecosystems through ten-deep rankings, observed relationships, lifecycle signals, and clearly labeled source evidence." aria-pressed="false">
-                <span class="portal-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><use href="#icon-open-overview"/></svg></span>
-                <span class="portal-copy"><span class="portal-name">Open Overview</span><span class="portal-meta">AI ecosystem radar</span></span>
-              </button>
-
-              <button class="portal" type="button" style="--accent:#ff745c" data-project="muscle" data-href="/web/hypertrophyos/index.html" data-status="In development" data-description="Training intelligence, practical calculators, evidence rules, and a transparent research path for strength and hypertrophy." aria-pressed="false">
-                <span class="portal-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><use href="#icon-muscle"/></svg></span>
-                <span class="portal-copy"><span class="portal-name">Hyper Trophy OS</span><span class="portal-meta">Training research</span></span>
-              </button>
-
-              <button class="portal" type="button" style="--accent:#f97316" data-project="audiobook" data-href="https://chloe.blumenkraft.cloud/audiobook/" data-external="true" data-status="Live" data-description="Drop an EPUB, PDF, or TXT and get back a chapter-marked M4B — narrated by cloud text-to-speech, or by a self-hosted cloned voice." aria-pressed="false">
-                <span class="portal-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><use href="#icon-audiobook"/></svg></span>
-                <span class="portal-copy"><span class="portal-name">Audiobook Studio</span><span class="portal-meta">Ebook → M4B</span></span>
-              </button>
-
-              <button class="portal" type="button" style="--accent:#eedcb8" data-project="manifesto" data-href="/web/manifesto-newborn/index.html" data-status="10 languages" data-description="A compact manifesto addressed to a newborn: curious, tender, multilingual, and built to be read rather than skimmed." aria-pressed="false">
-                <span class="portal-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><use href="#icon-manifesto"/></svg></span>
-                <span class="portal-copy"><span class="portal-name">Manifesto for a Newborn</span><span class="portal-meta">Reading room</span></span>
-              </button>
-
-              <button class="portal" type="button" style="--accent:#ffc258" data-project="power" data-href="/web/power-law-odyssey/index.html" data-status="In development" data-description="A seeded, reproducible walk through heavy tails: many ordinary misses, rare enormous hits, and the intuition they produce." aria-pressed="false">
-                <span class="portal-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><use href="#icon-power"/></svg></span>
-                <span class="portal-copy"><span class="portal-name">Power Law Odyssey</span><span class="portal-meta">Heavy-tail sandbox</span></span>
-              </button>
-
-              <button class="portal" type="button" style="--accent:#51ebff" data-project="void" data-href="/web/replicator-void/index.html" data-status="In development" data-description="A living population of tiny replicators mutates, feeds, divides, and dies under your cursor in a deliberately strange simulation." aria-pressed="false">
-                <span class="portal-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><use href="#icon-void"/></svg></span>
-                <span class="portal-copy"><span class="portal-name">Replicator Void</span><span class="portal-meta experimental">Experimental</span></span>
-              </button>
-
-              <button class="portal" type="button" style="--accent:#a78bfa" data-project="c2c-dolphin" data-href="/web/c2c-dolphin/index.html" data-status="In development" data-description="Two AI models given no task and no human — just each other. 30 turns, psychometric profiling. What do they gravitate toward when left alone?" aria-pressed="false">
-                <span class="portal-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><use href="#icon-c2c"/></svg></span>
-                <span class="portal-copy"><span class="portal-name">AI Conversation</span><span class="portal-meta experimental">Research</span></span>
-              </button>
-
-              <button class="portal" type="button" style="--accent:#f472b6" data-project="c2c-self" data-href="/web/c2c-self/index.html" data-status="In development" data-description="Same model talking to itself. 30 turns. Both instances converge to The Poet — bone, hum, vibration, breath. The mirror speaks with one voice." aria-pressed="false">
-                <span class="portal-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><use href="#icon-c2c-self"/></svg></span>
-                <span class="portal-copy"><span class="portal-name">Artificial Self</span><span class="portal-meta experimental">Research</span></span>
-              </button>
-
-              <button class="portal" type="button" style="--accent:#efbc68" data-project="multiply" data-status="In development" data-description="Multiply Magic Studio is a visual multiplication project currently being developed. It is shown honestly here without a private or unfinished link." aria-pressed="false" aria-disabled="true">
-                <span class="portal-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><use href="#icon-multiply"/></svg></span>
-                <span class="portal-copy"><span class="portal-name">Multiply Magic Studio</span><span class="portal-meta development">In development</span></span>
-              </button>
-
-              <button class="portal" type="button" style="--accent:#9bd26f" data-project="math" data-status="In development" data-description="Math Forest is a reserved growing space for mathematical play. The public experience is not ready yet, so this node remains a preview only." aria-pressed="false" aria-disabled="true">
-                <span class="portal-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><use href="#icon-math"/></svg></span>
-                <span class="portal-copy"><span class="portal-name">Math Forest</span><span class="portal-meta development">In development</span></span>
-              </button>
-            </div>
-          </section>
-
-          <aside class="preview-stage" data-preview-stage aria-live="polite" aria-label="Selected project preview">
-            <div class="preview-head">
-              <span class="preview-index">Selected node · <span data-preview-number>01</span></span>
-              <span class="preview-status" data-preview-status>Live</span>
-            </div>
-            <div class="preview-visual" aria-hidden="true">
-              <span class="preview-glyph" data-preview-glyph></span>
-            </div>
-            <div class="preview-copy">
-              <h3 class="preview-title" data-preview-title>Life in Time</h3>
-              <p class="preview-description" data-preview-description></p>
-              <div class="preview-actions">
-                <a class="preview-open" data-preview-open href="/web/life-in-time/index.html">Enter project</a>
-                <span class="preview-hint" data-preview-hint>Hover or focus a node to wake it.</span>
-              </div>
-            </div>
-          </aside>
-        </div>
-        <div class="factory-progress" aria-hidden="true"><span></span></div>
+    <!-- ============ IV. The atlas — every path at a glance ============ -->
+    <section class="atlas" aria-labelledby="atlas-title">
+      <header class="atlas-head">
+        <p class="atlas-kicker">The atlas</p>
+        <h2 id="atlas-title">Every path <em>at a glance</em></h2>
+      </header>
+      <div class="project-grid" data-project-grid>
+        <button class="portal" type="button" style="--accent:#c084fc" data-project="gallery" data-status="In development" data-meta="Scroll-world flight" data-description="A scroll-scrubbed camera flight through curated design experiments — each scene AI-generated and approval-gated before it ships." aria-pressed="false" aria-disabled="true">
+          <span class="portal-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><use href="#icon-gallery"/></svg></span>
+          <span class="portal-copy"><span class="portal-name">Web Design Gallery</span><span class="portal-meta">Scroll-world flight</span></span>
+        </button>
+        <button class="portal" type="button" style="--accent:#a282ff" data-project="vfx" data-href="/web/vfx-portfolio/index.html" data-status="Portfolio" data-meta="Animation · VFX" data-description="Ivan Gegov’s real animation, compositing, VFX, game work, showreel, credits, experience, and tools—preserved from the original portfolio." aria-pressed="false">
+          <span class="portal-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><use href="#icon-vfx"/></svg></span>
+          <span class="portal-copy"><span class="portal-name">VFX Portfolio</span><span class="portal-meta">Animation · VFX</span></span>
+        </button>
+        <button class="portal" type="button" style="--accent:#ffd15a" data-project="kids" data-href="/web/kids/index.html" data-status="In development" data-meta="Family space" data-description="A warmer corner for family movies, small adventures, playful interfaces, and things built to be explored together." aria-pressed="false">
+          <span class="portal-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><use href="#icon-kids"/></svg></span>
+          <span class="portal-copy"><span class="portal-name">Kids Corner</span><span class="portal-meta">Family space</span></span>
+        </button>
+        <button class="portal" type="button" style="--accent:#ff7fb0" data-project="health" data-href="/web/womens-health-os/index.html" data-status="In development" data-meta="Evidence base" data-description="An evidence-graded research intelligence base for cycles, hormones, fertility, PCOS, menopause, and women’s health." aria-pressed="false">
+          <span class="portal-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><use href="#icon-health"/></svg></span>
+          <span class="portal-copy"><span class="portal-name">Women’s Health OS</span><span class="portal-meta">Evidence base</span></span>
+        </button>
+        <button class="portal" type="button" style="--accent:#ac90ff" data-project="council" data-href="/web/council/index.html" data-status="In development" data-meta="Machine dialogue" data-description="Choose between a slow local TinyLM oracle and a free OpenRouter deliberation—two public experiments with honest limits." aria-pressed="false">
+          <span class="portal-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><use href="#icon-council"/></svg></span>
+          <span class="portal-copy"><span class="portal-name">Councils</span><span class="portal-meta">Machine dialogue</span></span>
+        </button>
+        <button class="portal" type="button" style="--accent:#60ecc1" data-project="library" data-href="/web/library/index.html" data-status="In development" data-meta="Glossary · tools" data-description="Search the Forest’s AI glossary and platform reference side by side, with real structured entries and filters." aria-pressed="false">
+          <span class="portal-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><use href="#icon-library"/></svg></span>
+          <span class="portal-copy"><span class="portal-name">Library &amp; Platforms</span><span class="portal-meta">Glossary · tools</span></span>
+        </button>
+        <button class="portal" type="button" style="--accent:#73e9ff;--accent-secondary:#a9b2ff" data-project="open-overview" data-href="/web/open-overview/index.html" data-status="In development" data-meta="AI ecosystem radar" data-description="Compare OpenRouter models and apps with GitHub AI ecosystems through ten-deep rankings, observed relationships, lifecycle signals, and clearly labeled source evidence." aria-pressed="false">
+          <span class="portal-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><use href="#icon-open-overview"/></svg></span>
+          <span class="portal-copy"><span class="portal-name">Open Overview</span><span class="portal-meta">AI ecosystem radar</span></span>
+        </button>
+        <button class="portal" type="button" style="--accent:#ff745c" data-project="muscle" data-href="/web/hypertrophyos/index.html" data-status="In development" data-meta="Training research" data-description="Training intelligence, practical calculators, evidence rules, and a transparent research path for strength and hypertrophy." aria-pressed="false">
+          <span class="portal-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><use href="#icon-muscle"/></svg></span>
+          <span class="portal-copy"><span class="portal-name">Hyper Trophy OS</span><span class="portal-meta">Training research</span></span>
+        </button>
+        <button class="portal" type="button" style="--accent:#f97316" data-project="audiobook" data-href="https://chloe.blumenkraft.cloud/audiobook/" data-external="true" data-status="Live" data-meta="Ebook → M4B" data-description="Drop an EPUB, PDF, or TXT and get back a chapter-marked M4B — narrated by cloud text-to-speech, or by a self-hosted cloned voice." aria-pressed="false">
+          <span class="portal-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><use href="#icon-audiobook"/></svg></span>
+          <span class="portal-copy"><span class="portal-name">Audiobook Studio</span><span class="portal-meta">Ebook → M4B</span></span>
+        </button>
+        <button class="portal" type="button" style="--accent:#eedcb8" data-project="manifesto" data-href="/web/manifesto-newborn/index.html" data-status="10 languages" data-meta="Reading room" data-description="A compact manifesto addressed to a newborn: curious, tender, multilingual, and built to be read rather than skimmed." aria-pressed="false">
+          <span class="portal-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><use href="#icon-manifesto"/></svg></span>
+          <span class="portal-copy"><span class="portal-name">Manifesto for a Newborn</span><span class="portal-meta">Reading room</span></span>
+        </button>
+        <button class="portal" type="button" style="--accent:#ffc258" data-project="power" data-href="/web/power-law-odyssey/index.html" data-status="In development" data-meta="Heavy-tail sandbox" data-description="A seeded, reproducible walk through heavy tails: many ordinary misses, rare enormous hits, and the intuition they produce." aria-pressed="false">
+          <span class="portal-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><use href="#icon-power"/></svg></span>
+          <span class="portal-copy"><span class="portal-name">Power Law Odyssey</span><span class="portal-meta">Heavy-tail sandbox</span></span>
+        </button>
+        <button class="portal" type="button" style="--accent:#51ebff" data-project="void" data-href="/web/replicator-void/index.html" data-status="In development" data-meta="Experimental" data-description="A living population of tiny replicators mutates, feeds, divides, and dies under your cursor in a deliberately strange simulation." aria-pressed="false">
+          <span class="portal-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><use href="#icon-void"/></svg></span>
+          <span class="portal-copy"><span class="portal-name">Replicator Void</span><span class="portal-meta experimental">Experimental</span></span>
+        </button>
+        <button class="portal" type="button" style="--accent:#a78bfa" data-project="c2c-dolphin" data-href="/web/c2c-dolphin/index.html" data-status="In development" data-meta="Research" data-description="Two AI models given no task and no human — just each other. 30 turns, psychometric profiling. What do they gravitate toward when left alone?" aria-pressed="false">
+          <span class="portal-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><use href="#icon-c2c"/></svg></span>
+          <span class="portal-copy"><span class="portal-name">AI Conversation</span><span class="portal-meta experimental">Research</span></span>
+        </button>
+        <button class="portal" type="button" style="--accent:#f472b6" data-project="c2c-self" data-href="/web/c2c-self/index.html" data-status="In development" data-meta="Research" data-description="Same model talking to itself. 30 turns. Both instances converge to The Poet — bone, hum, vibration, breath. The mirror speaks with one voice." aria-pressed="false">
+          <span class="portal-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><use href="#icon-c2c-self"/></svg></span>
+          <span class="portal-copy"><span class="portal-name">Artificial Self</span><span class="portal-meta experimental">Research</span></span>
+        </button>
+        <button class="portal" type="button" style="--accent:#efbc68" data-project="multiply" data-status="In development" data-meta="In development" data-description="Multiply Magic Studio is a visual multiplication project currently being developed. It is shown honestly here without a private or unfinished link." aria-pressed="false" aria-disabled="true">
+          <span class="portal-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><use href="#icon-multiply"/></svg></span>
+          <span class="portal-copy"><span class="portal-name">Multiply Magic Studio</span><span class="portal-meta development">In development</span></span>
+        </button>
+        <button class="portal" type="button" style="--accent:#9bd26f" data-project="math" data-status="In development" data-meta="In development" data-description="Math Forest is a reserved growing space for mathematical play. The public experience is not ready yet, so this node remains a preview only." aria-pressed="false" aria-disabled="true">
+          <span class="portal-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><use href="#icon-math"/></svg></span>
+          <span class="portal-copy"><span class="portal-name">Math Forest</span><span class="portal-meta development">In development</span></span>
+        </button>
       </div>
     </section>
   </main>
@@ -279,135 +243,83 @@
     <p>SDForest is an evolving collection. Experimental and in-development work is labeled plainly; every live path should lead somewhere real.</p>
   </footer>
 
-  <script src="/web/shared/forest-motion.js?v=20260714"></script>
-  <script type="module" src="/web/shared/forest-three.js?v=20260717"></script>
+  <script src="/web/shared/forest-motion.js?v=20260723"></script>
+  <script type="module" src="/web/shared/forest-three.js?v=20260723"></script>
   <script>
     (() => {
       const root = document.documentElement;
-      const assembly = document.querySelector('[data-assembly]');
+
+      /* Build the sixteen slam sections from the atlas portals, so the
+         journey and the atlas can never drift apart. Runs before the
+         module driver boots; the sections are plain DOM it picks up. */
+      const routes = document.querySelector('[data-routes]');
       const cards = [...document.querySelectorAll('[data-project-grid] .portal')];
-      const stage = document.querySelector('[data-preview-stage]');
-      const preview = {
-        number: stage.querySelector('[data-preview-number]'),
-        status: stage.querySelector('[data-preview-status]'),
-        glyph: stage.querySelector('[data-preview-glyph]'),
-        title: stage.querySelector('[data-preview-title]'),
-        description: stage.querySelector('[data-preview-description]'),
-        open: stage.querySelector('[data-preview-open]'),
-        hint: stage.querySelector('[data-preview-hint]'),
-      };
-      let selected = null;
-      let armed = null;
-      let scheduled = false;
-
-      const clamp = (value, minimum, maximum) => Math.min(maximum, Math.max(minimum, value));
-
-      // Position-only assembly fallback. The real driver is
-      // forest-three.js (velocity-aware spring + WebGL fill); it stamps
-      // data-three-driver on <html> when it boots and this handler goes
-      // dormant. If modules or the module fetch fail, this keeps the
-      // panels reachable instead of stuck off-screen at --assembly: 0.
-      function updateAssembly() {
-        scheduled = false;
-        if (root.dataset.threeDriver) return;
-        const compact = matchMedia('(max-width: 900px)').matches;
-        if (compact || matchMedia('(prefers-reduced-motion: reduce)').matches) {
-          root.style.setProperty('--assembly', '1');
-          root.style.setProperty('--assembly-e', '1');
-          return;
-        }
-        const bounds = assembly.getBoundingClientRect();
-        const travel = Math.max(1, bounds.height - innerHeight);
-        const progress = clamp(-bounds.top / travel, 0, 1).toFixed(4);
-        root.style.setProperty('--assembly', progress);
-        root.style.setProperty('--assembly-e', progress);
-      }
-
-      // Serpentine stagger: rows arrive top to bottom, alternating direction,
-      // so the lattice reads as being woven rather than switched on.
+      const frag = document.createDocumentFragment();
       cards.forEach((card, index) => {
-        const row = Math.floor(index / 3);
-        const column = index % 3;
-        const order = row % 2 ? 2 - column : column;
-        card.style.setProperty('--cd', (row * .09 + order * .05).toFixed(3));
+        const project = card.dataset.project;
+        const accent = card.style.getPropertyValue('--accent').trim() || '#8fe6ae';
+        const accent2 = card.style.getPropertyValue('--accent-secondary').trim();
+        const name = card.querySelector('.portal-name').textContent.trim();
+        const external = card.dataset.external === 'true';
+        const section = document.createElement('section');
+        section.className = 'slam';
+        section.id = `path-${project}`;
+        section.dataset.slam = '';
+        section.dataset.project = project;
+        section.style.setProperty('--accent', accent);
+        if (accent2) section.style.setProperty('--accent-secondary', accent2);
+        section.setAttribute('aria-label', name);
+        section.innerHTML = `
+          <div class="slam-stage">
+            <div class="slam-side slam-side-icon" aria-hidden="true">
+              <div class="slam-plate">
+                <span class="slam-icon"><svg viewBox="0 0 48 48"><use href="#icon-${project === 'c2c-dolphin' ? 'c2c' : project}"/></svg></span>
+                <span class="slam-no">${String(index + 1).padStart(2, '0')}</span>
+              </div>
+            </div>
+            <div class="slam-seam"><span class="seam-line"></span><span class="seam-ring"></span></div>
+            <div class="slam-side slam-side-panel">
+              <article class="slam-panel">
+                <span class="slam-status">${card.dataset.status}</span>
+                <h3 class="slam-name">${name}</h3>
+                <p class="slam-desc">${card.dataset.description}</p>
+                ${card.dataset.href
+                  ? `<a class="slam-open" href="${card.dataset.href}"${external ? ' target="_blank" rel="noopener"' : ''}>${external ? 'Open project' : 'Enter project'}</a>`
+                  : '<span class="slam-hint">Growing quietly — no public door yet.</span>'}
+              </article>
+            </div>
+          </div>`;
+        frag.appendChild(section);
       });
+      routes.appendChild(frag);
 
-      function selectCard(card, options = {}) {
-        if (!card) return;
-        selected = card.dataset.project;
-        if (!options.keepArmed) armed = null;
-        cards.forEach((item) => item.setAttribute('aria-pressed', String(item === card)));
-
-        const style = getComputedStyle(card);
-        const accent = style.getPropertyValue('--accent').trim() || '#79f2a8';
-        const title = card.querySelector('.portal-name').textContent.trim();
-        const svg = card.querySelector('.portal-icon svg').cloneNode(true);
-        preview.number.textContent = String(cards.indexOf(card) + 1).padStart(2, '0');
-        preview.status.textContent = card.dataset.status;
-        preview.glyph.replaceChildren(svg);
-        preview.title.textContent = title;
-        preview.description.textContent = card.dataset.description;
-        stage.style.setProperty('--preview-accent', accent);
-
-        if (card.dataset.href) {
-          preview.open.hidden = false;
-          preview.open.href = card.dataset.href;
-          preview.open.target = card.dataset.external === 'true' ? '_blank' : '_self';
-          preview.open.rel = card.dataset.external === 'true' ? 'noopener' : '';
-          preview.open.textContent = card.dataset.external === 'true' ? 'Open project' : 'Enter project';
-          preview.hint.textContent = 'Click the node once to select, again to enter.';
-        } else {
-          preview.open.hidden = true;
-          preview.hint.textContent = 'This project is visible, but not presented as finished.';
-        }
-      }
-
+      /* Atlas portals: hover-light vars + single-click navigation. */
       cards.forEach((card) => {
-        card.addEventListener('pointerenter', () => selectCard(card));
-        card.addEventListener('focus', () => selectCard(card));
         card.addEventListener('click', () => {
-          selectCard(card, { keepArmed: true });
           if (!card.dataset.href) return;
-          if (armed === card.dataset.project) {
-            if (card.dataset.external === 'true') window.open(card.dataset.href, '_blank', 'noopener');
-            else location.assign(card.dataset.href);
-            return;
-          }
-          armed = card.dataset.project;
-          preview.hint.textContent = 'Selected. Click again, or use the Enter project button.';
+          if (card.dataset.external === 'true') window.open(card.dataset.href, '_blank', 'noopener');
+          else location.assign(card.dataset.href);
         });
       });
-
       window.addEventListener('pointermove', (event) => {
         const card = event.target.closest?.('.portal');
         if (!card) return;
         const bounds = card.getBoundingClientRect();
         card.style.setProperty('--mx', `${event.clientX - bounds.left}px`);
         card.style.setProperty('--my', `${event.clientY - bounds.top}px`);
-        card.style.setProperty('--px', ((event.clientX - bounds.left) / bounds.width - .5).toFixed(3));
-        card.style.setProperty('--py', ((event.clientY - bounds.top) / bounds.height - .5).toFixed(3));
       }, { passive: true });
 
-      window.addEventListener('pointerout', (event) => {
-        const card = event.target.closest?.('.portal');
-        if (!card || card.contains(event.relatedTarget)) return;
-        card.style.setProperty('--px', '0');
-        card.style.setProperty('--py', '0');
-      }, { passive: true });
-
-      window.addEventListener('scroll', () => {
-        if (scheduled) return;
-        scheduled = true;
-        requestAnimationFrame(updateAssembly);
-      }, { passive: true });
-      window.addEventListener('resize', updateAssembly, { passive: true });
-
-      document.querySelector('[data-scroll-to-projects]').addEventListener('click', () => {
-        assembly.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+      document.querySelector('[data-scroll-to-crown]').addEventListener('click', () => {
+        document.querySelector('[data-crown]').scrollIntoView({
+          behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth',
+        });
       });
 
-      selectCard(cards[0]);
-      updateAssembly();
+      /* Birth: one-shot title reveal once fonts are ready. */
+      const born = () => root.classList.add('is-born');
+      if (document.fonts?.ready) document.fonts.ready.then(born);
+      else setTimeout(born, 300);
+      setTimeout(born, 1400); // fonts.ready hanging must never hide the title
     })();
   </script>
 </body>

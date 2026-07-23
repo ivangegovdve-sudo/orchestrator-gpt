@@ -1,19 +1,20 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" class="forest-skin forest-palette">
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>AI & Tech Glossary</title>
+<link rel="stylesheet" href="/web/shared/forest-design.css?v=20260723"/>
 <style>
 :root {
-  --bg: #060b16;
-  --bg-soft: #0d1526;
-  --panel: rgba(9, 16, 31, 0.92);
-  --border: rgba(147, 168, 208, 0.26);
-  --text: #eaf0ff;
-  --muted: #96a7cb;
-  --accent: #52d5c7;
-  --accent-2: #7ba8ff;
+  --bg: #070a08;
+  --bg-soft: #0d120e;
+  --panel: rgba(13, 18, 14, 0.92);
+  --border: rgba(188, 198, 180, 0.26);
+  --text: #f2efe4;
+  --muted: #a9b3a1;
+  --accent: #8fe6ae;
+  --accent-2: #e8b86b;
   --shadow: 0 20px 44px rgba(0, 0, 0, 0.35);
   --radius-lg: 18px;
   --radius-md: 12px;
@@ -26,10 +27,10 @@ body {
   min-height: 100vh;
   color: var(--text);
   background:
-    radial-gradient(circle at 8% 10%, rgba(82, 213, 199, 0.15), transparent 36%),
-    radial-gradient(circle at 88% 0%, rgba(123, 168, 255, 0.14), transparent 36%),
+    radial-gradient(circle at 8% 10%, rgba(143, 230, 174, 0.12), transparent 36%),
+    radial-gradient(circle at 88% 0%, rgba(232, 184, 107, 0.1), transparent 36%),
     var(--bg);
-  font-family: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+  font-family: var(--forest-body, Alegreya, Georgia, serif);
 }
 
 main {
@@ -59,7 +60,9 @@ main {
 
 .hero h1 {
   margin: 0;
-  font-size: clamp(1.55rem, 3.2vw, 2.1rem);
+  font-family: var(--forest-display, "Cormorant Garamond", Georgia, serif);
+  font-weight: 650;
+  font-size: clamp(1.75rem, 3.6vw, 2.4rem);
   letter-spacing: 0.01em;
 }
 
@@ -74,7 +77,7 @@ main {
 .library-card {
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
-  background: linear-gradient(152deg, rgba(10, 18, 34, 0.98), rgba(6, 10, 19, 0.97));
+  background: linear-gradient(152deg, rgba(13, 18, 14, 0.98), rgba(5, 8, 6, 0.97));
   box-shadow: var(--shadow);
   padding: 14px;
 }
@@ -84,16 +87,16 @@ main {
   grid-template-columns: auto 1fr auto;
   align-items: center;
   gap: 10px;
-  border: 1px solid rgba(147, 168, 208, 0.38);
+  border: 1px solid rgba(188, 198, 180, 0.38);
   border-radius: 14px;
-  background: rgba(5, 10, 20, 0.85);
+  background: rgba(5, 8, 6, 0.85);
   padding: 8px;
 }
 
 .icon-button,
 .search-button {
-  border: 1px solid rgba(147, 168, 208, 0.38);
-  background: rgba(10, 17, 30, 0.95);
+  border: 1px solid rgba(188, 198, 180, 0.38);
+  background: rgba(10, 15, 11, 0.95);
   color: var(--text);
   border-radius: 11px;
   width: 42px;
@@ -106,7 +109,7 @@ main {
 
 .icon-button:hover,
 .search-button:hover {
-  border-color: rgba(82, 213, 199, 0.62);
+  border-color: rgba(143, 230, 174, 0.62);
 }
 
 .books-icon {
@@ -139,7 +142,7 @@ main {
 }
 
 .search-input::placeholder {
-  color: #7686aa;
+  color: #7d8877;
 }
 
 .search-hint {
@@ -156,7 +159,7 @@ main {
   margin-top: 10px;
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
-  background: rgba(8, 14, 26, 0.95);
+  background: rgba(9, 13, 10, 0.95);
   overflow: hidden;
   max-height: 420px;
   overflow-y: auto;
@@ -169,7 +172,7 @@ main {
   color: inherit;
   text-align: left;
   padding: 10px 12px;
-  border-top: 1px solid rgba(147, 168, 208, 0.14);
+  border-top: 1px solid rgba(188, 198, 180, 0.14);
   cursor: pointer;
 }
 
@@ -179,7 +182,7 @@ main {
 
 .result-item:hover,
 .result-item.active {
-  background: rgba(123, 168, 255, 0.15);
+  background: rgba(232, 184, 107, 0.15);
 }
 
 .result-top {
@@ -197,7 +200,7 @@ main {
 
 .result-expansion {
   font-size: 0.92rem;
-  color: #dfe6fb;
+  color: #e6e2d3;
 }
 
 .result-desc {
@@ -223,7 +226,9 @@ main {
 
 .library-title {
   margin: 0;
-  font-size: 1rem;
+  font-family: var(--forest-display, "Cormorant Garamond", Georgia, serif);
+  font-weight: 650;
+  font-size: 1.15rem;
 }
 
 .library-subtle {
@@ -239,9 +244,9 @@ main {
 }
 
 .accordion {
-  border: 1px solid rgba(147, 168, 208, 0.2);
+  border: 1px solid rgba(188, 198, 180, 0.2);
   border-radius: 11px;
-  background: rgba(10, 18, 34, 0.82);
+  background: rgba(13, 18, 14, 0.82);
   overflow: hidden;
 }
 
@@ -261,7 +266,7 @@ main {
 }
 
 .accordion-trigger:hover {
-  background: rgba(123, 168, 255, 0.1);
+  background: rgba(232, 184, 107, 0.1);
 }
 
 .accordion-name {
@@ -305,7 +310,7 @@ main {
 
 .subcategory .accordion-name {
   font-size: 0.84rem;
-  color: #d9e3ff;
+  color: #d6dcc6;
 }
 
 .entry-list {
@@ -316,9 +321,9 @@ main {
 
 .entry-item {
   width: 100%;
-  border: 1px solid rgba(147, 168, 208, 0.2);
+  border: 1px solid rgba(188, 198, 180, 0.2);
   border-radius: 9px;
-  background: rgba(6, 12, 22, 0.88);
+  background: rgba(7, 11, 8, 0.88);
   color: inherit;
   text-align: left;
   cursor: pointer;
@@ -326,8 +331,8 @@ main {
 }
 
 .entry-item:hover {
-  border-color: rgba(82, 213, 199, 0.62);
-  background: rgba(8, 15, 27, 0.96);
+  border-color: rgba(143, 230, 174, 0.62);
+  background: rgba(10, 15, 11, 0.96);
 }
 
 .entry-row {
@@ -343,7 +348,7 @@ main {
 }
 
 .entry-item .expansion {
-  color: #e1e8fb;
+  color: #e2dfd0;
   font-size: 0.82rem;
 }
 
@@ -358,9 +363,9 @@ main {
   position: fixed;
   right: 14px;
   bottom: 14px;
-  border: 1px solid rgba(82, 213, 199, 0.5);
-  background: rgba(6, 12, 24, 0.96);
-  color: #e8fffb;
+  border: 1px solid rgba(143, 230, 174, 0.5);
+  background: rgba(7, 11, 8, 0.96);
+  color: #f2efe4;
   border-radius: 11px;
   padding: 8px 12px;
   font-size: 0.82rem;
@@ -373,6 +378,11 @@ main {
 .toast.visible {
   opacity: 1;
   transform: translateY(0);
+}
+
+.result-abbr, .entry-item .abbr, .accordion-name, .accordion-count,
+.search-hint, .library-subtle, .toast, .search-input {
+  font-family: var(--forest-sans, "Alegreya Sans", sans-serif);
 }
 
 /* Accessibility focus styles */
@@ -393,7 +403,7 @@ input:focus-visible,
 <body>
 <main>
   <div class="app-shell">
-    <a href="/" style="display:inline-flex;align-items:center;gap:5px;color:#52d5c7;text-decoration:none;font-size:13px;opacity:.65;transition:opacity .2s;margin-bottom:16px" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='.65'">← Forest HUB</a>
+    <a href="/" style="display:inline-flex;align-items:center;gap:5px;color:#8fe6ae;text-decoration:none;font-size:13px;opacity:.65;transition:opacity .2s;margin-bottom:16px" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='.65'">← Forest HUB</a>
     <section id="home-view" class="view active" aria-label="Home Search">
       <header class="hero">
         <h1>AI & Tech Glossary</h1>

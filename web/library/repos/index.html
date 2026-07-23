@@ -1,23 +1,24 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="forest-skin forest-palette">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Repos — Library</title>
+<link rel="stylesheet" href="/web/shared/forest-design.css?v=20260723">
 <style>
-:root{--bg:#09090b;--card-bg:rgba(24,24,27,.6);--card-border:rgba(255,255,255,.08);--text:#f8fafc;--muted:#a1a1aa;--accent:#4f46e5;--purple:#8b5cf6;--radius:10px}
+:root{--bg:#070a08;--card-bg:rgba(20,26,20,.6);--card-border:rgba(226,235,209,.09);--text:#f2efe4;--muted:#a9b3a1;--accent:#e8b86b;--purple:#8fe6ae;--radius:10px}
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:"Inter","Segoe UI",system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding:36px 20px 80px}
+body{font-family:var(--forest-body, Alegreya, Georgia, serif);background:var(--bg);color:var(--text);min-height:100vh;padding:36px 20px 80px}
 a{color:var(--accent);text-decoration:none}
 .wrap{max-width:780px;margin:0 auto}
 .nav{font-size:.82rem;color:var(--muted);margin-bottom:24px}
-h1{font-size:1.7rem;font-weight:700;margin-bottom:4px}
+h1{font-family:var(--forest-display, "Cormorant Garamond", Georgia, serif);font-size:1.9rem;font-weight:650;margin-bottom:4px}
 .sub{font-size:.88rem;color:var(--muted);margin-bottom:28px}
-.personal-badge{display:inline-block;font-size:.72rem;background:rgba(139,92,246,.1);color:var(--purple);border-radius:5px;padding:2px 8px;margin-left:8px;vertical-align:middle}
+.personal-badge{display:inline-block;font-family:var(--forest-sans, "Alegreya Sans", sans-serif);font-size:.72rem;background:rgba(143,230,174,.12);color:var(--purple);border-radius:5px;padding:2px 8px;margin-left:8px;vertical-align:middle}
 .search-row{display:flex;gap:10px;margin-bottom:28px}
 .search-row input{flex:1;background:rgba(255,255,255,.05);border:1px solid var(--card-border);border-radius:9px;color:var(--text);padding:11px 16px;font-size:.95rem;outline:none;transition:border-color .2s}
 .search-row input:focus{border-color:var(--purple)}
-.search-row button{background:var(--purple);color:#fff;border:none;border-radius:9px;padding:11px 22px;font-size:.9rem;font-weight:600;cursor:pointer;transition:opacity .2s}
+.search-row button{background:var(--purple);color:#0d120e;border:none;border-radius:9px;padding:11px 22px;font-family:var(--forest-sans, "Alegreya Sans", sans-serif);font-size:.9rem;font-weight:600;cursor:pointer;transition:opacity .2s}
 .search-row button:hover{opacity:.85}
 #results{display:flex;flex-direction:column;gap:12px}
 .card{background:var(--card-bg);border:1px solid var(--card-border);border-radius:var(--radius);padding:16px 18px;backdrop-filter:blur(8px)}
@@ -26,21 +27,21 @@ h1{font-size:1.7rem;font-weight:700;margin-bottom:4px}
 .card-score{font-size:.8rem;font-weight:600}
 .card-snippet{font-size:.85rem;color:var(--muted);line-height:1.55}
 .card-footer{display:flex;gap:12px;align-items:center;margin-top:10px;font-size:.78rem;color:var(--muted)}
-.card-source{background:rgba(139,92,246,.1);color:var(--purple);border-radius:4px;padding:2px 7px}
+.card-source{background:rgba(143,230,174,.12);color:var(--purple);border-radius:4px;padding:2px 7px}
 .card-link{color:var(--accent)}
 .empty{text-align:center;color:var(--muted);padding:60px 20px;font-size:.9rem}
 .count{font-size:.82rem;color:var(--muted);margin-bottom:14px}
 /* Gate overlay */
 .gate{position:fixed;inset:0;background:rgba(0,0,0,.8);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;z-index:50}
-.gate-box{background:#18181b;border:1px solid rgba(139,92,246,.3);border-radius:16px;padding:30px;width:100%;max-width:360px;text-align:center}
+.gate-box{background:#0d120e;border:1px solid rgba(143,230,174,.3);border-radius:16px;padding:30px;width:100%;max-width:360px;text-align:center}
 .gate-icon{font-size:2.4rem;margin-bottom:12px}
 .gate-box h2{font-size:1.1rem;margin-bottom:8px}
 .gate-box p{font-size:.84rem;color:var(--muted);margin-bottom:20px}
-.gate-box input{width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(139,92,246,.3);border-radius:8px;color:var(--text);padding:11px 14px;font-size:.9rem;outline:none;margin-bottom:12px;text-align:center}
+.gate-box input{width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(143,230,174,.3);border-radius:8px;color:var(--text);padding:11px 14px;font-size:.9rem;outline:none;margin-bottom:12px;text-align:center}
 .gate-box input:focus{border-color:var(--purple)}
-.gate-btn{width:100%;background:var(--purple);color:#fff;border:none;border-radius:8px;padding:11px;font-size:.9rem;font-weight:600;cursor:pointer;transition:opacity .2s}
+.gate-btn{width:100%;background:var(--purple);color:#0d120e;border:none;border-radius:8px;padding:11px;font-family:var(--forest-sans, "Alegreya Sans", sans-serif);font-size:.9rem;font-weight:600;cursor:pointer;transition:opacity .2s}
 .gate-btn:hover{opacity:.85}
-.gate-err{font-size:.8rem;color:#f87171;margin-top:-6px;margin-bottom:10px;display:none}
+.gate-err{font-size:.8rem;color:#d98a7f;margin-top:-6px;margin-bottom:10px;display:none}
 </style>
 </head>
 <body>
@@ -107,7 +108,7 @@ async function doSearch() {
       return `<div class="card">
         <div class="card-header">
           <span class="card-title">${escHtml(r.title)}</span>
-          <span class="card-score" style="color:#8b5cf6">${(r.score*100).toFixed(0)}%</span>
+          <span class="card-score" style="color:var(--purple)">${(r.score*100).toFixed(0)}%</span>
         </div>
         <p class="card-snippet">${escHtml(r.snippet)}</p>
         <div class="card-footer">

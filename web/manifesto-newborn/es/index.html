@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" class="forest-skin forest-palette">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,18 +8,16 @@
 <meta property="og:title" content="Manifiesto para un recién nacido">
 <meta property="og:description" content="Acabas de irrumpir en la fiesta que llamamos vida. No sabes qué es el hambre, qué se siente el miedo, ni siquiera lo que hace un cuerpo. Todavía no hay guion, solo llantos y manos ">
 <meta property="og:type" content="website">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;1,400;1,500&family=Inter:wght@300;400&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/web/shared/forest-shell.css?v=20260714"><style>
+<link rel="stylesheet" href="/web/shared/forest-design.css?v=20260723">
+<link rel="stylesheet" href="/web/shared/forest-shell.css?v=20260723"><style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
-  --bg: #0a0a0d;
-  --text: #d4cfc6;
-  --text-dim: #8a8278;
-  --accent: rgba(214,190,155,.18);
-  --warm: #d6b87a;
+  --bg: var(--forest-bg, #070a08);
+  --text: var(--forest-ink, #f2efe4);
+  --text-dim: #a9b3a1;
+  --accent: rgba(232,184,107,.18);
+  --warm: var(--forest-amber, #e8b86b);
 }
 
 html { scroll-behavior: smooth; }
@@ -27,7 +25,7 @@ html { scroll-behavior: smooth; }
 body[data-forest-page] {
   background: var(--bg);
   color: var(--text);
-  font-family: 'Lora', Georgia, 'Times New Roman', serif;
+  font-family: var(--forest-body, Alegreya, Georgia, serif);
   font-size: clamp(17px, 2.2vw, 20px);
   line-height: 1.82;
   min-height: 100vh;
@@ -58,7 +56,7 @@ body[data-forest-page] {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  font-family: 'Inter', system-ui, sans-serif;
+  font-family: var(--forest-sans, "Alegreya Sans", sans-serif);
   font-size: 13px;
   color: var(--text-dim);
   text-decoration: none;
@@ -81,7 +79,7 @@ body[data-forest-page] {
   flex-wrap: wrap;
   justify-content: flex-end;
   gap: 9px;
-  font-family: 'Inter', system-ui, sans-serif;
+  font-family: var(--forest-sans, "Alegreya Sans", sans-serif);
   font-size: 13px;
   letter-spacing: .06em;
 }
@@ -100,9 +98,9 @@ header {
 }
 
 .eyebrow {
-  font-family: 'Inter', system-ui, sans-serif;
+  font-family: var(--forest-sans, "Alegreya Sans", sans-serif);
   font-size: 11px;
-  font-weight: 300;
+  font-weight: 400;
   letter-spacing: .2em;
   text-transform: uppercase;
   color: var(--text-dim);
@@ -110,12 +108,12 @@ header {
 }
 
 h1 {
-  font-family: 'Lora', Georgia, serif;
-  font-size: clamp(1.9em, 5vw, 2.7em);
-  font-weight: 400;
+  font-family: var(--forest-display, "Cormorant Garamond", Georgia, serif);
+  font-size: clamp(2.1em, 5.5vw, 3em);
+  font-weight: 500;
   line-height: 1.18;
-  letter-spacing: -.01em;
-  color: #e8e1d4;
+  letter-spacing: 0;
+  color: var(--forest-ink, #f2efe4);
 }
 
 h1 em {
@@ -126,7 +124,7 @@ h1 em {
 .rule {
   width: 40px;
   height: 1px;
-  background: rgba(214,184,122,.3);
+  background: rgba(232,184,107,.35);
   margin: 28px 0 0;
 }
 
@@ -146,17 +144,17 @@ h1 em {
 /* First paragraph: slightly larger drop-cap treatment */
 .body-text p:first-child {
   font-size: 1.04em;
-  color: #ddd8cf;
+  color: var(--forest-ink, #f2efe4);
 }
 
 .body-text p:first-child::first-letter {
   float: left;
-  font-size: 3.4em;
+  font-size: 3.7em;
   line-height: .82;
   margin: .06em .1em 0 0;
   font-weight: 500;
   color: var(--warm);
-  font-family: 'Lora', Georgia, serif;
+  font-family: var(--forest-display, "Cormorant Garamond", Georgia, serif);
 }
 
 /* Closing — special weight */
@@ -169,7 +167,7 @@ h1 em {
 .closing p {
   font-style: italic;
   font-size: 1.12em;
-  color: #e4ddd3;
+  color: var(--forest-ink, #f2efe4);
   margin-bottom: 0 !important;
 }
 
@@ -178,7 +176,7 @@ h1 em {
   font-size: 1.45em;
   font-style: normal;
   font-weight: 500;
-  color: #ede6da;
+  color: var(--forest-ink, #f2efe4);
   letter-spacing: .01em;
 }
 
@@ -189,11 +187,11 @@ h1 em {
   padding-top: clamp(26px, 4vw, 38px);
   border-top: 1px solid rgba(255,255,255,.06);
   text-align: center;
-  font-family: 'Inter', system-ui, sans-serif;
+  font-family: var(--forest-sans, "Alegreya Sans", sans-serif);
 }
 .epigraph .quote {
   font-size: clamp(15px, 2.1vw, 18px);
-  font-weight: 300;
+  font-weight: 400;
   font-style: italic;
   letter-spacing: .02em;
   color: var(--warm);
@@ -212,7 +210,7 @@ footer {
   margin-top: clamp(56px, 8vw, 96px);
   padding-top: 24px;
   border-top: 1px solid rgba(255,255,255,.05);
-  font-family: 'Inter', system-ui, sans-serif;
+  font-family: var(--forest-sans, "Alegreya Sans", sans-serif);
   font-size: 12px;
   color: var(--text-dim);
   letter-spacing: .04em;
@@ -331,7 +329,7 @@ footer {
         var dist = Math.sqrt(dx*dx + dy*dy);
         if (dist < LINK_DIST) {
           var alpha = (1 - dist / LINK_DIST) * .45;
-          ctx.strokeStyle = 'rgba(200,185,155,' + alpha + ')';
+          ctx.strokeStyle = 'rgba(169,179,161,' + alpha + ')';
           ctx.lineWidth = .6;
           ctx.beginPath();
           ctx.moveTo(nodes[i].x, nodes[i].y);
@@ -341,7 +339,7 @@ footer {
       }
     }
     for (var i = 0; i < nodes.length; i++) {
-      ctx.fillStyle = 'rgba(214,184,122,.55)';
+      ctx.fillStyle = 'rgba(232,184,107,.55)';
       ctx.beginPath();
       ctx.arc(nodes[i].x, nodes[i].y, nodes[i].r, 0, Math.PI * 2);
       ctx.fill();

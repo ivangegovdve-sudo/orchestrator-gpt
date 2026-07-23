@@ -1,9 +1,10 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="forest-skin">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Math Mania</title>
+  <link rel="stylesheet" href="/web/shared/forest-design.css?v=20260723">
   <style>
     :root {
       --bg: #0b1020;
@@ -27,7 +28,7 @@
         linear-gradient(135deg, rgba(56, 189, 248, 0.12), transparent 34%),
         linear-gradient(315deg, rgba(245, 158, 11, 0.10), transparent 30%),
         var(--bg);
-      font-family: "Segoe UI", system-ui, sans-serif;
+      font-family: var(--forest-body, Alegreya, Georgia, serif);
     }
 
     main {
@@ -49,7 +50,9 @@
 
     h1 {
       margin: 0;
-      font-size: clamp(36px, 6vw, 68px);
+      font-family: var(--forest-display, "Cormorant Garamond", Georgia, serif);
+      font-weight: 700;
+      font-size: clamp(40px, 6.6vw, 75px);
       line-height: 0.95;
       letter-spacing: 0;
     }
@@ -104,6 +107,7 @@
       align-items: center;
       gap: 8px;
       color: var(--ok);
+      font-family: var(--forest-sans, "Alegreya Sans", sans-serif);
       font-size: 13px;
       text-transform: uppercase;
       letter-spacing: 0.08em;
@@ -143,6 +147,7 @@
       color: var(--text);
       border-radius: 8px;
       padding: 10px 14px;
+      font-family: var(--forest-sans, "Alegreya Sans", sans-serif);
       font-weight: 700;
     }
 

@@ -1,22 +1,35 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" class="forest-skin forest-palette">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="TinyLM: a public consciousness experiment. One proposition goes to two tiny local models on Oracle ARM hardware, and their thoughts stream side by side.">
   <meta name="theme-color" content="#050806">
   <title>TinyLM — A Consciousness Experiment · SDForest</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/web/shared/forest-design.css?v=20260723">
   <link rel="stylesheet" href="/web/shared/forest-shell.css?v=20260715">
   <link rel="stylesheet" href="/web/shared/council-motion.css?v=20260715">
   <style>
     :root {
-      --eve: #a78bfa;
-      --eve-rgb: 167, 139, 250;
-      --tiny: #79f2a8;
-      --tiny-rgb: 121, 242, 168;
+      --eve: #e8b86b;
+      --eve-rgb: 232, 184, 107;
+      --tiny: #8fe6ae;
+      --tiny-rgb: 143, 230, 174;
+      --forest-accent: #8fe6ae;
+      --forest-accent-rgb: 143, 230, 174;
+      /* Re-assert the dusk voice — forest-shell.css loads later and would
+         otherwise pull these tokens back to Space Grotesk / Inter. */
+      --forest-display: "Cormorant Garamond", "Iowan Old Style", Georgia, serif;
+      --forest-body: Alegreya, "Iowan Old Style", Georgia, serif;
+      --forest-sans: "Alegreya Sans", "Gill Sans", "Segoe UI", system-ui, sans-serif;
+      --forest-ink: #f2efe4;
+      --forest-soft: #bcc6b4;
+      --forest-muted: #7d8877;
+    }
+
+    /* Small-caps shell chrome speaks the UI sans. */
+    .forest-kicker, .forest-back, .forest-top-action {
+      font-family: var(--forest-sans, "Alegreya Sans", sans-serif);
     }
 
     /* ── Hero: the lab door ─────────────────────────────────────────────── */
@@ -93,7 +106,7 @@
       border-radius: 999px;
       background: var(--forest-accent);
       color: #06130b;
-      font: 700 13px/1 var(--forest-body);
+      font: 700 13px/1 var(--forest-sans, "Alegreya Sans", sans-serif);
       letter-spacing: .06em;
       text-transform: uppercase;
       cursor: pointer;
@@ -127,9 +140,9 @@
     .stage-icon { width: 36px; height: 36px; display: grid; place-items: center; border-radius: 11px; background: color-mix(in srgb, var(--mind) 12%, transparent); color: var(--mind); flex-shrink: 0; }
     .stage-icon svg { width: 20px; height: 20px; }
     .mind-meta { flex: 1; min-width: 0; }
-    .stage-name { display: inline-block; font: 700 17px/1.2 var(--forest-display); letter-spacing: -.02em; color: var(--forest-ink); }
+    .stage-name { display: inline-block; font: 700 19px/1.2 var(--forest-display); letter-spacing: 0; color: var(--forest-ink); }
     .mind-slug { margin-top: 3px; color: var(--forest-muted); font: 500 9.5px/1.4 ui-monospace, "Cascadia Mono", monospace; word-break: break-all; }
-    .stage-status { display: inline-flex; align-items: center; gap: 4px; min-height: 26px; padding: 0 11px; border-radius: 999px; border: 1px solid var(--forest-line); color: var(--forest-muted); font: 600 10px/1 var(--forest-body); letter-spacing: .08em; text-transform: uppercase; white-space: nowrap; }
+    .stage-status { display: inline-flex; align-items: center; gap: 4px; min-height: 26px; padding: 0 11px; border-radius: 999px; border: 1px solid var(--forest-line); color: var(--forest-muted); font: 600 10px/1 var(--forest-sans, "Alegreya Sans", sans-serif); letter-spacing: .08em; text-transform: uppercase; white-space: nowrap; }
     .stage-status.thinking { color: var(--mind); border-color: color-mix(in srgb, var(--mind) 35%, transparent); }
     .stage-status.done { color: var(--mind); border-color: color-mix(in srgb, var(--mind) 30%, transparent); background: color-mix(in srgb, var(--mind) 7%, transparent); }
     .stage-status.failed-chip { color: #f47272; border-color: rgba(244, 114, 114, .4); }
@@ -178,7 +191,7 @@
     }
     .synthesis.visible { display: flex; }
     .synth-head { display: flex; align-items: center; gap: 12px; padding: 16px 20px 12px; border-bottom: 1px solid rgba(213, 239, 215, .07); }
-    .synth-title { font: 700 15px/1.2 var(--forest-display); letter-spacing: -.01em; }
+    .synth-title { font: 700 17px/1.2 var(--forest-display); letter-spacing: 0; }
     .synth-sub { color: var(--forest-muted); font-size: 11px; }
     .synth-status { margin-left: auto; }
 

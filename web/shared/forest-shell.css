@@ -1,16 +1,21 @@
+/* Dusk-forest tokens — kept in lockstep with forest-design.css. This
+   file loads AFTER forest-design.css on most subpages, so any name
+   both files declare must carry the SAME values here or the shell
+   silently reverts the site to the old fonts/palette. */
 :root {
   color-scheme: dark;
-  --forest-bg: #050806;
-  --forest-ink: #f3f7f0;
-  --forest-soft: #c1cbc0;
-  --forest-muted: #869486;
-  --forest-line: rgba(213, 239, 215, 0.14);
-  --forest-panel: rgba(8, 15, 12, 0.78);
-  --forest-accent: #79f2a8;
-  --forest-accent-rgb: 121, 242, 168;
+  --forest-bg: #070a08;
+  --forest-ink: #f2efe4;
+  --forest-soft: #bcc6b4;
+  --forest-muted: #7d8877;
+  --forest-line: rgba(226, 235, 209, 0.13);
+  --forest-panel: rgba(9, 14, 10, 0.8);
+  --forest-accent: #8fe6ae;
+  --forest-accent-rgb: 143, 230, 174;
   --forest-radius: 24px;
-  --forest-display: "Space Grotesk", "Avenir Next", "Segoe UI", sans-serif;
-  --forest-body: Inter, "Segoe UI", system-ui, sans-serif;
+  --forest-display: "Cormorant Garamond", "Iowan Old Style", Georgia, serif;
+  --forest-body: Alegreya, "Iowan Old Style", Georgia, serif;
+  --forest-sans: "Alegreya Sans", "Gill Sans", "Segoe UI", system-ui, sans-serif;
 }
 
 *, *::before, *::after { box-sizing: border-box; }
@@ -26,8 +31,8 @@ body[data-forest-page] {
   margin: 0;
   min-height: 100vh;
   background:
-    radial-gradient(circle at 14% -8%, rgba(var(--forest-accent-rgb), .12), transparent 30rem),
-    radial-gradient(circle at 90% 24%, rgba(89, 94, 222, .1), transparent 34rem),
+    radial-gradient(circle at 14% -8%, rgba(var(--forest-accent-rgb), .1), transparent 30rem),
+    radial-gradient(circle at 90% 24%, rgba(232, 184, 107, .07), transparent 34rem),
     var(--forest-bg);
   color: var(--forest-ink);
   font-family: var(--forest-body);
@@ -84,8 +89,8 @@ body[data-forest-page] {
   background: rgba(5, 10, 7, .76);
   backdrop-filter: blur(18px);
   color: var(--forest-ink);
-  font: 650 12px/1 var(--forest-body);
-  letter-spacing: .08em;
+  font: 500 12px/1 var(--forest-sans, var(--forest-body));
+  letter-spacing: .14em;
   text-decoration: none;
   text-transform: uppercase;
   pointer-events: auto;
@@ -119,8 +124,8 @@ body[data-forest-page] {
   gap: 10px;
   margin: 0 0 18px;
   color: var(--forest-accent);
-  font: 700 11px/1 var(--forest-body);
-  letter-spacing: .2em;
+  font: 500 11px/1 var(--forest-sans, var(--forest-body));
+  letter-spacing: .28em;
   text-transform: uppercase;
 }
 
@@ -133,10 +138,10 @@ body[data-forest-page] {
 }
 
 .forest-title {
-  max-width: 12ch;
+  max-width: 14ch;
   margin: 0;
-  font: 700 clamp(48px, 10vw, 116px)/.88 var(--forest-display);
-  letter-spacing: -.065em;
+  font: 600 clamp(52px, 10vw, 122px)/.96 var(--forest-display);
+  letter-spacing: .005em;
   text-wrap: balance;
 }
 
@@ -165,8 +170,8 @@ body[data-forest-page] {
 .forest-section-label {
   margin: 0 0 24px;
   color: var(--forest-muted);
-  font: 700 11px/1 var(--forest-body);
-  letter-spacing: .18em;
+  font: 500 11px/1 var(--forest-sans, var(--forest-body));
+  letter-spacing: .22em;
   text-transform: uppercase;
 }
 
@@ -179,8 +184,8 @@ body[data-forest-page] {
   border-radius: 999px;
   color: var(--forest-accent);
   background: rgba(var(--forest-accent-rgb), .08);
-  font: 700 10px/1 var(--forest-body);
-  letter-spacing: .1em;
+  font: 500 10px/1 var(--forest-sans, var(--forest-body));
+  letter-spacing: .16em;
   text-transform: uppercase;
 }
 

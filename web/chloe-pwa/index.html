@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="forest-skin forest-palette">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#8b5cf6">
+<meta name="theme-color" content="#070a08">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -11,16 +11,17 @@
 <title>Chloé</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon.svg">
+<link rel="stylesheet" href="/web/shared/forest-design.css?v=20260723">
 <!-- CHLOÉ PWA — fullscreen avatar conversation with text-first input,
      optional microphone/Whisper input, REST chat and speech synthesis,
      an audio-reactive dot orb, local device settings, and a service worker. -->
 <style>
 :root {
-  --bg:      #09090b;
-  --purple:  #8b5cf6;
+  --bg:      #070a08;
+  --purple:  #e8b86b;
   --cyan:    #0ea5e9;
-  --text:    #f8fafc;
-  --muted:   #a1a1aa;
+  --text:    #f2efe4;
+  --muted:   #a9b3a1;
 }
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html, body {
@@ -28,7 +29,7 @@ html, body {
   overflow: hidden;
   background: var(--bg);
   color: var(--text);
-  font-family: "Inter", system-ui, -apple-system, sans-serif;
+  font-family: var(--forest-body, Alegreya, Georgia, serif);
   -webkit-font-smoothing: antialiased;
   user-select: none; -webkit-user-select: none;
 }
@@ -55,9 +56,10 @@ body {
   flex-shrink: 0;
 }
 .wordmark {
+  font-family: var(--forest-sans, "Alegreya Sans", sans-serif);
   font-size: .75rem; font-weight: 600;
   letter-spacing: .18em; text-transform: uppercase;
-  color: rgba(139,92,246,.5);
+  color: rgba(232,184,107,.55);
   text-decoration: none;
 }
 .topbar-actions {
@@ -88,7 +90,7 @@ body {
   cursor: pointer; padding: 5px 8px;
   opacity: .55; transition: opacity .2s, border-color .2s;
 }
-#btn-cfg:hover, #btn-cfg:active { opacity: 1; border-color: rgba(139,92,246,.35); }
+#btn-cfg:hover, #btn-cfg:active { opacity: 1; border-color: rgba(232,184,107,.35); }
 
 /* ── Orb section ── */
 #orb-section {
@@ -135,9 +137,10 @@ body {
 /* ── Status text ── */
 #status {
   margin-top: 14px;
+  font-family: var(--forest-sans, "Alegreya Sans", sans-serif);
   font-size: .77rem; font-weight: 500;
   letter-spacing: .14em; text-transform: uppercase;
-  color: rgba(139,92,246,.5);
+  color: rgba(232,184,107,.55);
   text-align: center;
   min-height: 1.1em;
   padding: 0 20px;
@@ -147,18 +150,20 @@ body {
 }
 #status.s-listening    { color: rgba(14,165,233,.7); }
 #status.s-user_speaking{ color: rgba(14,165,233,.95); }
-#status.s-thinking     { color: rgba(139,92,246,.9); }
-#status.s-speaking     { color: rgba(167,139,250,.9); }
-#status.s-error        { color: rgba(248,113,113,.85); font-size:.7rem; letter-spacing:.03em; text-transform:none; }
+#status.s-thinking     { color: rgba(232,184,107,.9); }
+#status.s-speaking     { color: rgba(240,213,163,.9); }
+#status.s-error        { color: rgba(217,138,127,.9); font-size:.7rem; letter-spacing:.03em; text-transform:none; }
 #tap-hint {
   margin-top: 6px;
+  font-family: var(--forest-sans, "Alegreya Sans", sans-serif);
   font-size: .68rem; color: rgba(255,255,255,.17);
   text-align: center; letter-spacing: .05em;
   transition: opacity .35s;
 }
 #latency-hint {
   margin-top: 3px;
-  font-size: .6rem; color: rgba(139,92,246,.4);
+  font-family: var(--forest-sans, "Alegreya Sans", sans-serif);
+  font-size: .6rem; color: rgba(232,184,107,.45);
   text-align: center; letter-spacing: .04em;
   min-height: 1em;
   opacity: 0; transition: opacity .5s;
@@ -185,13 +190,13 @@ body {
 }
 @keyframes msg-in { from { opacity:0; transform:translateY(5px); } }
 .msg.user {
-  background: rgba(139,92,246,.11); color: #d4bbff;
-  border: 1px solid rgba(139,92,246,.17);
+  background: rgba(232,184,107,.11); color: #eed9b4;
+  border: 1px solid rgba(232,184,107,.18);
   align-self: flex-end; border-bottom-right-radius: 5px;
 }
 .msg.assistant {
-  background: rgba(14,165,233,.08); color: #bae6fd;
-  border: 1px solid rgba(14,165,233,.12);
+  background: rgba(143,230,174,.08); color: #d5eedd;
+  border: 1px solid rgba(143,230,174,.14);
   align-self: flex-start; border-bottom-left-radius: 5px;
 }
 .msg.interim {
@@ -210,7 +215,7 @@ body {
 #text-msg {
   flex: 1;
   background: rgba(255,255,255,.05);
-  border: 1px solid rgba(139,92,246,.2);
+  border: 1px solid rgba(232,184,107,.22);
   border-radius: 14px; color: var(--text);
   padding: 10px 14px; font-size: .88rem;
   font-family: inherit; resize: none;
@@ -225,7 +230,7 @@ body {
 #text-send {
   flex-shrink: 0;
   background: var(--purple); border: none;
-  color: #fff; border-radius: 14px;
+  color: #241505; border-radius: 14px;
   width: 44px; height: 44px;
   font-size: 1.2rem; line-height: 1;
   cursor: pointer;
@@ -246,8 +251,8 @@ body {
 }
 #cfg-modal.open { display: flex; }
 .cfg-sheet {
-  background: #111113;
-  border: 1px solid rgba(139,92,246,.2);
+  background: #10150f;
+  border: 1px solid rgba(232,184,107,.22);
   border-radius: 24px 24px 0 0;
   padding: 18px 20px 28px;
   width: 100%; max-width: 480px;
@@ -258,11 +263,11 @@ body {
 .cfg-drag { width: 36px; height: 4px; background: rgba(255,255,255,.13); border-radius: 2px; margin: 0 auto 16px; }
 .cfg-sheet h2 { font-size: .95rem; font-weight: 700; margin-bottom: 16px; }
 .cfg-f { margin-bottom: 12px; }
-.cfg-f label { display: block; font-size: .7rem; color: var(--muted); margin-bottom: 4px; letter-spacing: .05em; text-transform: uppercase; }
+.cfg-f label { display: block; font-family: var(--forest-sans, "Alegreya Sans", sans-serif); font-size: .7rem; color: var(--muted); margin-bottom: 4px; letter-spacing: .05em; text-transform: uppercase; }
 .cfg-f input, .cfg-f textarea {
   width: 100%;
   background: rgba(255,255,255,.04);
-  border: 1px solid rgba(139,92,246,.18);
+  border: 1px solid rgba(232,184,107,.2);
   border-radius: 9px; color: var(--text);
   padding: 9px 12px; font-size: .82rem;
   font-family: "SF Mono","Fira Code",monospace;
@@ -272,10 +277,10 @@ body {
 .cfg-f textarea { resize: none; height: 66px; font-family: inherit; font-size: .8rem; }
 .cfg-hint { font-size: .68rem; color: rgba(255,255,255,.25); margin-top: 4px; line-height: 1.5; }
 .cfg-actions { display: flex; gap: 10px; margin-top: 16px; }
-.btn-save { flex:1; background: var(--purple); color:#fff; border:none; border-radius:9px; padding:11px; font-size:.88rem; font-weight:600; cursor:pointer; transition: opacity .15s; }
+.btn-save { flex:1; background: var(--purple); color:#241505; border:none; border-radius:9px; padding:11px; font-family:var(--forest-sans,"Alegreya Sans",sans-serif); font-size:.88rem; font-weight:600; cursor:pointer; transition: opacity .15s; }
 .btn-save:active { opacity:.8; }
-.btn-cancel { background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.1); color:var(--muted); border-radius:9px; padding:11px 16px; font-size:.88rem; cursor:pointer; }
-.cfg-msg { margin-top:10px; font-size:.72rem; color:rgba(139,92,246,.75); text-align:center; min-height:1em; }
+.btn-cancel { background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.1); color:var(--muted); border-radius:9px; padding:11px 16px; font-family:var(--forest-sans,"Alegreya Sans",sans-serif); font-size:.88rem; cursor:pointer; }
+.cfg-msg { margin-top:10px; font-size:.72rem; color:rgba(232,184,107,.75); text-align:center; min-height:1em; }
 </style>
 </head>
 <body>

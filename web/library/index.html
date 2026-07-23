@@ -1,35 +1,36 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="forest-skin">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Library — sdforest</title>
 <meta name="description" content="The Forest Library — a searchable AI & tech glossary side-by-side with a reference of 160+ AI platforms and tools. One floating search filters both at once; filter by tag.">
-<link rel="stylesheet" href="/web/shared/forest-shell.css?v=20260714">
+<link rel="stylesheet" href="/web/shared/forest-design.css?v=20260723">
+<link rel="stylesheet" href="/web/shared/forest-shell.css?v=20260723">
 <style>
 :root {
-  --bg: #09090b;
-  --panel: rgba(24,24,27,.55);
+  --bg: #070a08;
+  --panel: rgba(20, 26, 20, .55);
   --card-bg: rgba(255,255,255,.03);
-  --card-border: rgba(255,255,255,.08);
-  --text: #f8fafc;
-  --muted: #a1a1aa;
-  --dim: #64748b;
-  --accent: #4f46e5;
-  --accent-glow: rgba(79,70,229,.35);
-  --purple: #8b5cf6;
-  --green: #22c55e;
-  --amber: #f59e0b;
+  --card-border: rgba(226,235,209,.09);
+  --text: #f2efe4;
+  --muted: #a9b3a1;
+  --dim: #7d8877;
+  --accent: #e8b86b;
+  --accent-glow: rgba(232,184,107,.3);
+  --purple: #8fe6ae;
+  --green: #8fe6ae;
+  --amber: #e8b86b;
   --radius: 12px;
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
 html, body { height: 100%; }
 body {
-  font-family: "Inter","Segoe UI",system-ui,sans-serif;
+  font-family: var(--forest-body, Alegreya, Georgia, serif);
   background-color: var(--bg);
   background-image:
-    radial-gradient(circle at 15% 10%, rgba(79,70,229,.08), transparent 40%),
-    radial-gradient(circle at 85% 8%, rgba(139,92,246,.08), transparent 40%);
+    radial-gradient(circle at 15% 10%, rgba(232,184,107,.06), transparent 40%),
+    radial-gradient(circle at 85% 8%, rgba(143,230,174,.06), transparent 40%);
   color: var(--text);
   min-height: 100vh;
 }
@@ -42,9 +43,10 @@ code { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: .85em;
 /* ── Header ─────────────────────────────────────────── */
 .nav { font-size: .82rem; color: var(--muted); margin-bottom: 18px; }
 header.hero { text-align: center; margin-bottom: 22px; }
-.logo { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--dim); margin-bottom: 10px; }
+.logo { font-family: var(--forest-sans, "Alegreya Sans", sans-serif); font-size: 12px; letter-spacing: .22em; text-transform: uppercase; color: var(--dim); margin-bottom: 10px; }
 h1 {
-  font-size: 2.3rem; font-weight: 800; letter-spacing: -.02em;
+  font-family: var(--forest-display, "Cormorant Garamond", Georgia, serif);
+  font-size: 2.7rem; font-weight: 650; letter-spacing: .01em;
   background: linear-gradient(135deg, var(--accent), var(--purple));
   -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
 }

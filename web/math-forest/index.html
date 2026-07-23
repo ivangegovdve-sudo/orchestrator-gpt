@@ -1,9 +1,10 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="forest-skin">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Math Forest</title>
+  <link rel="stylesheet" href="/web/shared/forest-design.css?v=20260723">
   <style>
     :root {
       --bg: #07130f;
@@ -26,7 +27,7 @@
         linear-gradient(180deg, rgba(53, 208, 127, 0.14), transparent 38%),
         radial-gradient(circle at 80% 18%, rgba(244, 201, 93, 0.14), transparent 28%),
         var(--bg);
-      font-family: "Segoe UI", system-ui, sans-serif;
+      font-family: var(--forest-body, Alegreya, Georgia, serif);
     }
 
     main {
@@ -48,7 +49,9 @@
 
     h1 {
       margin: 0;
-      font-size: clamp(36px, 6vw, 72px);
+      font-family: var(--forest-display, "Cormorant Garamond", Georgia, serif);
+      font-weight: 700;
+      font-size: clamp(40px, 6.6vw, 79px);
       line-height: 0.95;
       letter-spacing: 0;
     }
@@ -106,6 +109,7 @@
 
     .status {
       color: var(--leaf);
+      font-family: var(--forest-sans, "Alegreya Sans", sans-serif);
       font-size: 13px;
       text-transform: uppercase;
       letter-spacing: 0.08em;

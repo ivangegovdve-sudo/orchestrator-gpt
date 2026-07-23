@@ -4,14 +4,15 @@
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>AI_INIT Embedded Search</title>
+<link rel="stylesheet" href="/web/shared/forest-design.css?v=20260723"/>
 <style>
 :root {
-  --bg: #060b16;
-  --panel: rgba(9, 16, 31, 0.94);
-  --border: rgba(147, 168, 208, 0.28);
-  --text: #eaf0ff;
-  --muted: #96a7cb;
-  --accent: #52d5c7;
+  --bg: #070a08;
+  --panel: rgba(13, 18, 14, 0.94);
+  --border: rgba(188, 198, 180, 0.28);
+  --text: #f2efe4;
+  --muted: #a9b3a1;
+  --accent: #8fe6ae;
 }
 
 * { box-sizing: border-box; }
@@ -21,10 +22,10 @@ body {
   min-height: 100vh;
   color: var(--text);
   background:
-    radial-gradient(circle at 8% 10%, rgba(82, 213, 199, 0.15), transparent 36%),
-    radial-gradient(circle at 88% 0%, rgba(123, 168, 255, 0.14), transparent 36%),
+    radial-gradient(circle at 8% 10%, rgba(143, 230, 174, 0.12), transparent 36%),
+    radial-gradient(circle at 88% 0%, rgba(232, 184, 107, 0.1), transparent 36%),
     var(--bg);
-  font-family: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+  font-family: var(--forest-body, Alegreya, Georgia, serif);
 }
 
 main {
@@ -48,9 +49,9 @@ main {
 
 input {
   width: 100%;
-  border: 1px solid rgba(147, 168, 208, 0.38);
+  border: 1px solid rgba(188, 198, 180, 0.38);
   border-radius: 12px;
-  background: rgba(5, 10, 20, 0.85);
+  background: rgba(5, 8, 6, 0.85);
   color: var(--text);
   outline: 0;
   padding: 12px;
@@ -58,16 +59,16 @@ input {
 }
 
 button {
-  border: 1px solid rgba(147, 168, 208, 0.38);
+  border: 1px solid rgba(188, 198, 180, 0.38);
   border-radius: 12px;
-  background: rgba(10, 17, 30, 0.95);
+  background: rgba(10, 15, 11, 0.95);
   color: var(--text);
   cursor: pointer;
   padding: 0 14px;
 }
 
 button:hover {
-  border-color: rgba(82, 213, 199, 0.62);
+  border-color: rgba(143, 230, 174, 0.62);
 }
 
 .results {
@@ -80,7 +81,7 @@ button:hover {
 .result {
   width: 100%;
   border: 0;
-  border-top: 1px solid rgba(147, 168, 208, 0.18);
+  border-top: 1px solid rgba(188, 198, 180, 0.18);
   background: transparent;
   color: inherit;
   text-align: left;
@@ -90,7 +91,7 @@ button:hover {
 
 .result:first-child { border-top: 0; }
 
-.result:hover { background: rgba(123, 168, 255, 0.12); }
+.result:hover { background: rgba(232, 184, 107, 0.12); }
 
 .result b { color: var(--accent); }
 
@@ -105,6 +106,10 @@ button:hover {
   margin-top: 8px;
   color: var(--muted);
   font-size: 0.83rem;
+}
+
+input, button, #status, .result b {
+  font-family: var(--forest-sans, "Alegreya Sans", sans-serif);
 }
 </style>
 </head>
