@@ -69,12 +69,13 @@ function slamCurve(p, amp) {
    screen y — negative y climbs). A handful of primary roots fan
    upward, each wandering more as it rises and shedding thinner
    side-roots; every strand is pulled gently back toward vertical, the
-   way roots follow gravity in reverse. Returns segments sorted by
-   growth distance so the burst can be drawn front-first. */
-function buildRootSkeleton(rng, impact) {
-  const reach = 520 + rng() * 240 + impact * 240;
+   way roots follow gravity in reverse. Intensity (the slam's scroll
+   energy) buys more strands and a longer climb. Returns segments
+   sorted by growth distance so the burst can be drawn front-first. */
+function buildRootSkeleton(rng, intensity) {
+  const reach = 340 + rng() * 160 + intensity * 420;
   const segs = [];
-  const primaries = 4 + (rng() < 0.5 ? 1 : 0);
+  const primaries = 3 + Math.round(intensity * 2);
   for (let p = 0; p < primaries; p += 1) {
     const fan = primaries === 1 ? 0 : p / (primaries - 1) - 0.5;
     let angle = -Math.PI / 2 + fan * 0.9 + (rng() - 0.5) * 0.22;
@@ -212,7 +213,7 @@ export function initSlams(shared) {
   }
 }
 
-function fireRoots(sectionEl, accent, time, impact) {
+function fireRoots(sectionEl, accent, time, intensity) {
   let slot = state.bursts[0];
   for (const burst of state.bursts) {
     if (burst.born < 0) { slot = burst; break; }
@@ -220,12 +221,12 @@ function fireRoots(sectionEl, accent, time, impact) {
   }
   slot.seed = (slot.seed * 16807 + 137) % 2147483647;
   const rng = mulberry32(slot.seed);
-  const { segs, maxDist } = buildRootSkeleton(rng, impact);
+  const { segs, maxDist } = buildRootSkeleton(rng, intensity);
   slot.skeleton = segs;
   slot.maxDist = maxDist;
   slot.born = time;
   slot.el = sectionEl;
-  slot.strength = 0.8 + impact * 0.5;
+  slot.strength = 0.35 + intensity * 0.9;
   slot.lines.visible = true;
 
   // Colors are fixed at spawn: amber at the wound, the project's
@@ -246,13 +247,15 @@ function fireRoots(sectionEl, accent, time, impact) {
   slot.lines.geometry.attributes.color.needsUpdate = true;
 }
 
-function fireDust(x, y, accent, time, impact) {
-  for (let i = 0; i < DUST_PER_BURST; i += 1) {
+function fireDust(x, y, accent, time, intensity) {
+  // A gentle seat sheds a few motes; a hard slam throws a cloud.
+  const count = Math.round(5 + intensity * (DUST_PER_BURST - 5));
+  for (let i = 0; i < count; i += 1) {
     const meta = state.dustMeta[state.dustCursor];
     state.dustCursor = (state.dustCursor + 1) % state.dustMeta.length;
     meta.born = time;
     const angle = Math.random() * Math.PI * 2;
-    const speed = (60 + Math.random() * 240) * (0.7 + impact * 0.8);
+    const speed = (50 + Math.random() * 220) * (0.5 + intensity * 1);
     meta.x = x;
     meta.y = y;
     meta.vx = Math.cos(angle) * speed;
@@ -339,7 +342,17 @@ function updateDust(time, dt) {
 export function updateSlams(shared, time, dt) {
   if (!state.sections.length) return false;
   const scroll = shared.scroll;
-  const amp = 0.055 * (1 + scroll.impact * 1.6);
+
+  // Scroll energy → slam intensity. vNorm is |velocity| smoothed over a
+  // ~110ms window (see updateScrollPhysics), impact its accumulated
+  // charge. A slow scroll bottoms out at a soft 0.12 — panels simply
+  // lock into place — while a fling reads 1.0 and burns. The scroll
+  // itself is never touched: only visual amplitude changes.
+  const energy = clamp(scroll.vNorm * 0.85 + scroll.impact * 0.5, 0.12, 1);
+
+  // Overshoot depth follows the same energy: gentle seat when slow,
+  // a real slam past the seam when thrown.
+  const amp = 0.018 + scroll.impact * 0.1;
   let moving = false;
   let litUnits = 0;
 
@@ -364,14 +377,19 @@ export function updateSlams(shared, time, dt) {
     const past = section.cur >= HIT_AT;
     if (past && !section.fired) {
       section.fired = true;
-      section.hit = 1;
+      // Flash brightness and ring amplitude carry the scroll's energy.
+      section.hit = 0.22 + energy * 0.78;
       section.hitRing = 0;
+      section.el.style.setProperty('--hit-amp', energy.toFixed(3));
       // Collision point: the seam center of this section, in client px.
       const seamX = rect.left + rect.width / 2;
       const seamY = clamp(rect.top + rect.height / 2, 60, viewH - 60);
-      if (!shared.compact() && state.bursts.length) {
-        fireRoots(section.el, section.accent, time, scroll.impact);
-        fireDust(seamX, seamY, section.accent, time, scroll.impact);
+      if (state.bursts.length) {
+        // Mobile momentum-scrolls fast, so the effect reads clearly
+        // there too — compact only trims the energy a touch.
+        const e = shared.compact() ? energy * 0.85 : energy;
+        fireRoots(section.el, section.accent, time, e);
+        fireDust(seamX, seamY, section.accent, time, e);
       }
       shared.wake?.();
     } else if (section.fired && atTitle) {

@@ -544,7 +544,9 @@ html.is-born .title-flourish .flourish-seed {
   border: 1.4px solid var(--accent);
   border-radius: 50%;
   translate: -50% -50%;
-  scale: calc(.6 + var(--hit-ring, 0) * 9);
+  /* Ring reach follows the slam's scroll energy (--hit-amp): a slow
+     seat barely ripples, a fling rings wide. */
+  scale: calc(.6 + var(--hit-ring, 0) * (2.5 + var(--hit-amp, 1) * 7.5));
   opacity: calc(var(--hit, 0) * (1 - var(--hit-ring, 0)));
 }
 

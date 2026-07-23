@@ -2,18 +2,29 @@
    A side-view tree drawn in light: trunk rising from the forest floor,
    sixteen primary branches (one per project), recursive limbs whose
    angles and thicknesses get progressively more random as they get
-   smaller, down to the smallest twigs — and a canopy of beveled
-   diamond leaves that live a slow cycle:
+   smaller, down to the smallest twigs. Branches know which project
+   they belong to: when a slam fires below (shared.slamState.lit) the
+   branch wakes into the project's accent color.
 
-     flat 2D outline facing the screen
-       → extrudes toward the viewer into a beveled 3D diamond
-       → turns a full 360°
-       → settles flat into the page again.
+   THE LEAVES are a reveal system, not a loop. A canopy of rhomboid
+   leaves — squashed squares tilted ~15° — lies scattered invisibly
+   across the whole crown area. Each leaf, once triggered, plays its
+   life exactly once and then stays:
 
-   Branches and leaves both know which project they belong to: when a
-   slam fires below (shared.slamState.lit), that branch and its leaves
-   wake into the project's accent color; scrolling back lets them fall
-   asleep again.
+     invisible
+       → its outline strokes itself in            (~200ms)
+       → it extrudes out of the page into a
+         beveled 3D solid                          (~300ms)
+       → one full turn around its axis            (~600ms)
+       → the top edge folds back into the page
+         first, the rest following, until it
+         lies flat again                           (~300ms)
+       → a flat, filled rhomboid, permanent.
+
+   Triggers: a staggered wave from the canopy's center outward when
+   the crown first scrolls into view, and the pointer — sweeping the
+   crown wakes the nearest sleeping leaves early and leaves a warm
+   trace over the settled ones.
 
    Everything is authored in local pixels around the crown-stage rect's
    center and re-anchored to it every frame, so the crown scrolls with
@@ -23,6 +34,14 @@ import * as THREE from '../../vendor/three/three.module.min.js';
 import { clamp, lerp, makeAdditive, mulberry32, worldX, worldY, PALETTE } from './util.js';
 
 const MAX_BRANCHES = 16;
+
+/* Leaf life-cycle timing (seconds) — shared by both shaders. */
+const LEAF_TIMING = /* glsl */`
+  const float T_DRAW = 0.2;
+  const float T_EXTRUDE = 0.3;
+  const float T_SPIN = 0.6;
+  const float T_FOLD = 0.3;
+`;
 
 const BRANCH_VERT = /* glsl */`
   attribute float aBranch;
@@ -60,61 +79,120 @@ const BRANCH_FRAG = /* glsl */`
   void main() { gl_FragColor = vec4(vColor, 1.0); }
 `;
 
-const LEAF_VERT = /* glsl */`
+/* Shared vertex-shader body for the leaf life cycle: computes the
+   transformed vertex and the phase values from (uTime - aBorn).
+   position.y spans [-0.62, 0.62] in leaf space; h = 0 at the bottom
+   edge, 1 at the top — the fold consumes high h first. */
+const LEAF_PHASES = /* glsl */`
+  float t = aBorn < 0.0 ? -1.0 : uTime - aBorn;
+  float draw = clamp(t / T_DRAW, 0.0, 1.0);
+  float ext = smoothstep(0.0, 1.0, clamp((t - T_DRAW) / T_EXTRUDE, 0.0, 1.0));
+  float spinT = clamp((t - T_DRAW - T_EXTRUDE) / T_SPIN, 0.0, 1.0);
+  float spin = spinT * spinT * (3.0 - 2.0 * spinT) * 6.2831853;
+  float fold = clamp((t - T_DRAW - T_EXTRUDE - T_SPIN) / T_FOLD, 0.0, 1.0);
+
+  vec3 p = position * aScale;
+  // The fold sweeps down the leaf: the top flattens back into the
+  // page first, the bottom follows.
+  float h = clamp((position.y + 0.62) / 1.24, 0.0, 1.0);
+  float flatten = clamp((fold * 1.5 - (1.0 - h)) / 0.5, 0.0, 1.0);
+  float depth = ext * (1.0 - flatten);
+  p.z *= depth;
+  // A soft pop as it extrudes.
+  p *= 0.9 + ext * 0.1 + sin(ext * 3.14159265) * 0.08;
+  // One full turn.
+  float cs = cos(spin), sn = sin(spin);
+  p = vec3(p.x * cs + p.z * sn, p.y, -p.x * sn + p.z * cs);
+  // Small per-leaf tilt on top of the baked ~15 degrees.
+  float ct = cos(aTilt), st = sin(aTilt);
+  p = vec3(p.x * ct - p.y * st, p.x * st + p.y * ct, p.z);
+
+  vec3 world = aOffset + p;
+  // Leaves stir only while they are 3D — settled leaves lie still.
+  world.x += sin(uTime * 0.8 + aSeed * 41.0) * depth * 2.2;
+  world.y += cos(uTime * 0.6 + aSeed * 27.0) * depth * 1.4;
+`;
+
+const LEAF_FILL_VERT = /* glsl */`
   attribute vec3 aOffset;
   attribute float aScale;
-  attribute float aPhase;
-  attribute float aBranch;
   attribute float aTilt;
+  attribute float aBranch;
+  attribute float aSeed;
+  attribute float aBorn;
   uniform float uTime;
+  uniform vec3 uPointer; // xy: canopy-local px, z: pointer presence 0/1
   uniform float uLit[${MAX_BRANCHES}];
   uniform vec3 uAccent[${MAX_BRANCHES}];
   varying vec3 vColor;
+  ${LEAF_TIMING}
 
   void main() {
-    // The leaf life cycle: mostly flat, periodically blooming into 3D
-    // for a full turn, then settling back into the page.
-    float u = fract(uTime / 9.0 + aPhase);
-    float window = 0.34;
-    float anim = u < window ? u / window : 0.0;
-    float depth = sin(anim * 3.14159265) ;          // extrusion 0 -> 1 -> 0
-    float spin = anim * 6.2831853;                  // one full turn
+    ${LEAF_PHASES}
 
-    // Local leaf space: diamond authored in xy, apexes on z.
-    vec3 p = position * aScale;
-    p.z *= max(depth, 0.04);
-
-    // Rotate around the leaf's local Y (the 360 turn), then tilt.
-    float cs = cos(spin), sn = sin(spin);
-    p = vec3(p.x * cs + p.z * sn, p.y, -p.x * sn + p.z * cs);
-    float ct = cos(aTilt), st = sin(aTilt);
-    p = vec3(p.x * ct - p.y * st, p.x * st + p.y * ct, p.z);
-
-    // Normal through the same rotations, for the bevel glint.
     vec3 n = normal;
-    n.z *= sign(max(depth, 0.04));
-    n = normalize(vec3(n.x * cs + n.z * sn, n.y, -n.x * sn + n.z * cs));
+    n = vec3(n.x * cs + n.z * sn, n.y, -n.x * sn + n.z * cs);
     n = vec3(n.x * ct - n.y * st, n.x * st + n.y * ct, n.z);
-    float glint = 0.45 + 0.55 * abs(dot(n, normalize(vec3(0.25, 0.4, 0.88))));
-
-    // Gentle canopy sway.
-    vec3 world = aOffset + p;
-    world.x += sin(uTime * 0.6 + aPhase * 40.0) * (2.0 + aScale * 0.35);
-    world.y += cos(uTime * 0.5 + aPhase * 31.0) * 1.6;
+    float glint = 0.5 + 0.5 * abs(dot(normalize(n), normalize(vec3(0.25, 0.4, 0.85))));
 
     int index = int(aBranch + 0.5);
+    vec3 accent = uAccent[index];
     float lit = uLit[index];
-    vec3 sleeping = vec3(0.16, 0.24, 0.17);
-    vec3 awake = uAccent[index] * 0.85 + vec3(0.12, 0.09, 0.03);
-    // A blooming leaf burns brighter while it is 3D — it "comes toward" you.
-    float presence = 0.30 + depth * 0.85 + lit * 0.35;
-    vColor = mix(sleeping, awake, lit) * glint * presence;
+    vec3 base = mix(vec3(0.24, 0.36, 0.25), accent * 0.7 + vec3(0.1, 0.08, 0.03), lit * 0.8 + 0.14);
+    base *= 0.78 + fract(aSeed * 7.13) * 0.5;
+
+    // The pointer leaves warmth on the canopy it sweeps over.
+    float pd = distance(world.xy, uPointer.xy);
+    float warm = uPointer.z * exp(-pd / 120.0) * 0.55;
+
+    // Brighter while 3D — the leaf literally comes toward the viewer.
+    float presence = ext * (0.55 + depth * 0.65 + warm);
+    vColor = base * glint * presence + vec3(0.33, 0.26, 0.11) * warm * ext;
 
     gl_Position = projectionMatrix * modelViewMatrix * vec4(world, 1.0);
   }
 `;
 
-const LEAF_FRAG = /* glsl */`
+const LEAF_FILL_FRAG = /* glsl */`
+  precision highp float;
+  varying vec3 vColor;
+  void main() { gl_FragColor = vec4(vColor, 1.0); }
+`;
+
+const LEAF_RIM_VERT = /* glsl */`
+  attribute vec3 aOffset;
+  attribute float aScale;
+  attribute float aTilt;
+  attribute float aBranch;
+  attribute float aSeed;
+  attribute float aBorn;
+  attribute float aU; // perimeter parameter 0..1 — the stroke draws along it
+  uniform float uTime;
+  uniform vec3 uPointer;
+  uniform float uLit[${MAX_BRANCHES}];
+  uniform vec3 uAccent[${MAX_BRANCHES}];
+  varying vec3 vColor;
+  ${LEAF_TIMING}
+
+  void main() {
+    ${LEAF_PHASES}
+
+    // The outline traces itself in, then settles to a faint rim once
+    // the fill has taken over.
+    float traced = smoothstep(aU - 0.08, aU, draw);
+    float pd = distance(world.xy, uPointer.xy);
+    float warm = uPointer.z * exp(-pd / 120.0) * 0.4;
+    float strength = mix(traced * 0.9, 0.16 + warm, ext);
+
+    int index = int(aBranch + 0.5);
+    vec3 tone = mix(vec3(0.55, 0.72, 0.55), uAccent[index], uLit[index] * 0.6 + 0.1);
+    vColor = tone * strength * (t < 0.0 ? 0.0 : 1.0);
+
+    gl_Position = projectionMatrix * modelViewMatrix * vec4(world, 1.0);
+  }
+`;
+
+const LEAF_RIM_FRAG = /* glsl */`
   precision highp float;
   varying vec3 vColor;
   void main() { gl_FragColor = vec4(vColor, 1.0); }
@@ -125,26 +203,42 @@ const state = {
   labelsHost: null,
   group: null,
   branchMesh: null,
-  leafMesh: null,
+  leafFill: null,
+  leafRim: null,
   uniforms: null,
+  leafUniforms: null,
   labels: [],
   labelLit: [],
   builtFor: '',
   rebuildTimer: 0,
   sections: [],
+  // Leaf reveal bookkeeping (CPU side)
+  leafMeta: [],          // { x, y, waveDelay, born }
+  bornAttrs: [],         // the two instanced aBorn attributes (fill+rim)
+  waveStart: -1,
+  leavesLive: false,
+  pointerClient: { x: -1e5, y: -1e5, seen: false },
+  lastRect: null,
 };
 
-/* Beveled diamond: 4 rim vertices in the leaf plane, front and back
-   apexes on z — eight triangles, faceted normals for the glint. */
-function leafGeometry() {
-  const rim = [[0, 1.35, 0], [0.85, 0, 0], [0, -1.35, 0], [-0.85, 0, 0]];
-  const front = [0, 0, 0.5];
-  const back = [0, 0, -0.5];
+/* The rhomboid: a squashed square (diagonals 2.0 × 1.24) with the
+   site's ~15° tilt baked in, plus front/back apexes for the bevel. */
+const RIM_POINTS = (() => {
+  const raw = [[1, 0], [0, 0.62], [-1, 0], [0, -0.62]];
+  const a = (15 * Math.PI) / 180;
+  const cs = Math.cos(a);
+  const sn = Math.sin(a);
+  return raw.map(([x, y]) => [x * cs - y * sn, x * sn + y * cs]);
+})();
+
+function leafFillGeometry() {
+  const front = [0, 0, 0.42];
+  const back = [0, 0, -0.42];
   const positions = [];
   const normals = [];
   for (let i = 0; i < 4; i += 1) {
-    const a = rim[i];
-    const b = rim[(i + 1) % 4];
+    const a = [...RIM_POINTS[i], 0];
+    const b = [...RIM_POINTS[(i + 1) % 4], 0];
     for (const apex of [front, back]) {
       const first = apex === front ? a : b;
       const second = apex === front ? b : a;
@@ -166,13 +260,25 @@ function leafGeometry() {
   return geometry;
 }
 
-/* Grow the whole tree. Returns tapered-quad segments, leaf spots and
-   one label anchor (tip) per primary branch. Local space: origin at
-   stage center, +y up, pixels. */
+function leafRimGeometry() {
+  const positions = [];
+  const us = [];
+  for (let i = 0; i < 4; i += 1) {
+    const a = RIM_POINTS[i];
+    const b = RIM_POINTS[(i + 1) % 4];
+    positions.push(a[0], a[1], 0, b[0], b[1], 0);
+    us.push(i / 4, (i + 1) / 4);
+  }
+  const geometry = new THREE.BufferGeometry();
+  geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+  geometry.setAttribute('aU', new THREE.Float32BufferAttribute(us, 1));
+  return geometry;
+}
+
+/* Grow the tree wood. Local space: origin at stage center, +y up, px. */
 function growTree(W, H, branchCount, compact) {
   const random = mulberry32(20260723);
   const segments = [];
-  const leaves = [];
   const tips = [];
   const maxDepth = compact ? 3 : 4;
 
@@ -181,9 +287,6 @@ function growTree(W, H, branchCount, compact) {
   }
 
   function grow(x, y, angle, length, width, depth, branch, tip) {
-    // Each limb is drawn as three slightly-bending steps, and the bend
-    // budget grows as the wood gets smaller: big boughs hold their
-    // line, twigs wander.
     const steps = 3;
     let cx = x;
     let cy = y;
@@ -204,20 +307,14 @@ function growTree(W, H, branchCount, compact) {
     if (d2 > tip.d2) { tip.d2 = d2; tip.x = cx; tip.y = cy; }
 
     if (depth >= maxDepth) {
-      // The smallest twigs — one or two hairs with a leaf at the end.
       const twigs = 1 + (random() < 0.5 ? 1 : 0);
       for (let t = 0; t < twigs; t += 1) {
         const ta = a + (random() - 0.5) * 1.3;
         const tl = 6 + random() * 13;
-        const tx = cx + Math.sin(ta) * tl;
-        const ty = cy + Math.cos(ta) * tl;
-        segment(cx, cy, tx, ty, 1.1, 0.5, branch, (depth + 2) ** 1.6, shade * 0.9);
-        leaves.push({ x: tx, y: ty, branch, r: random() });
+        segment(cx, cy, cx + Math.sin(ta) * tl, cy + Math.cos(ta) * tl, 1.1, 0.5, branch, (depth + 2) ** 1.6, shade * 0.9);
       }
       return;
     }
-
-    if (depth >= 1 && random() < 0.55) leaves.push({ x: cx, y: cy, branch, r: random() });
 
     const children = depth === 0
       ? 2 + (random() < 0.4 ? 1 : 0)
@@ -227,7 +324,7 @@ function growTree(W, H, branchCount, compact) {
       const spread = side * (0.26 + depth * 0.15) * (0.7 + random() * (0.6 + depth * 0.35));
       grow(
         cx, cy,
-        a + spread - a * 0.06, // slight phototropic pull back toward up
+        a + spread - a * 0.06,
         length * (0.58 + random() * 0.17),
         Math.max(0.8, width * (0.5 + random() * 0.14)),
         depth + 1, branch, tip,
@@ -235,7 +332,7 @@ function growTree(W, H, branchCount, compact) {
     }
   }
 
-  // Trunk — a waver of thick light from the floor into the crown.
+  // Trunk.
   const trunkBase = -H * 0.47;
   const trunkTop = -H * 0.05;
   const trunkSteps = 6;
@@ -250,15 +347,13 @@ function growTree(W, H, branchCount, compact) {
     segment(px, y0, tx, y1, w0, w1, -1, 0.25, 1);
     px = tx;
   }
-  // Root flares at the base.
   for (let r = 0; r < 5; r += 1) {
     const ra = (r / 4 - 0.5) * 2.4 + (random() - 0.5) * 0.3;
     const rl = 30 + random() * 46;
     segment(0, trunkBase, Math.sin(ra) * rl, trunkBase - Math.abs(Math.cos(ra)) * rl * 0.5 - 6, 9 + random() * 6, 1, -1, 0.2, 0.8);
   }
 
-  // Primary branches — one per project, fanned across the side view,
-  // stubs deliberately uneven in both thickness and angle.
+  // Primary branches — stubs deliberately uneven in thickness and angle.
   for (let i = 0; i < branchCount; i += 1) {
     const t = branchCount === 1 ? 0.5 : i / (branchCount - 1);
     const fan = lerp(-1.32, 1.32, t) + (random() - 0.5) * 0.14;
@@ -271,17 +366,46 @@ function growTree(W, H, branchCount, compact) {
     tips.push(tip);
   }
 
-  // Cap the canopy so instancing stays light.
-  const cap = compact ? 220 : 420;
-  while (leaves.length > cap) leaves.splice(Math.floor(random() * leaves.length), 1);
+  return { segments, tips };
+}
 
-  return { segments, leaves, tips };
+/* Scatter the sleeping canopy across the whole crown area — full page
+   width, the canopy band of the stage — densest near the center.
+   waveDelay orders the load reveal from the center outward. */
+function scatterLeaves(W, H, branchCount, compact) {
+  const random = mulberry32(4207);
+  const count = compact ? 70 : 130;
+  const centerY = H * 0.14;
+  const maxR = Math.hypot(W * 0.5, H * 0.32);
+  const meta = [];
+  for (let i = 0; i < count; i += 1) {
+    // Mild center bias: average of two uniforms pulls toward 0.
+    const bx = (random() + random() - 1) * 0.5;
+    const x = bx * W * 0.94;
+    const y = -H * 0.18 + random() * H * 0.62;
+    const dist = Math.hypot(x, y - centerY);
+    meta.push({
+      x,
+      y,
+      born: -1,
+      waveDelay: (dist / maxR) * 2.4 + random() * 0.5,
+      seed: random(),
+      tilt: (random() - 0.5) * 0.24,
+      scale: 7 + random() * 7.5,
+      branch: clamp(
+        Math.round(((Math.atan2(x, y + H * 0.05) / 1.35) * 0.5 + 0.5) * (branchCount - 1)),
+        0, branchCount - 1,
+      ),
+    });
+  }
+  return meta;
 }
 
 function buildMeshes(shared, W, H) {
   const compact = shared.compact();
   const count = shared.slamState?.count || MAX_BRANCHES;
-  const { segments, leaves, tips } = growTree(W, H, Math.min(count, MAX_BRANCHES), compact);
+  const branchCount = Math.min(count, MAX_BRANCHES);
+  const { segments, tips } = growTree(W, H, branchCount, compact);
 
   // Branch wood: two triangles per tapered segment.
   const positions = new Float32Array(segments.length * 6 * 3);
@@ -311,31 +435,6 @@ function buildMeshes(shared, W, H) {
   branchGeometry.setAttribute('aFlex', new THREE.Float32BufferAttribute(flexAttr, 1));
   branchGeometry.setAttribute('aShade', new THREE.Float32BufferAttribute(shadeAttr, 1));
 
-  // Canopy: instanced beveled diamonds.
-  const leafBase = leafGeometry();
-  const leafGeo = new THREE.InstancedBufferGeometry();
-  leafGeo.index = leafBase.index;
-  leafGeo.setAttribute('position', leafBase.getAttribute('position'));
-  leafGeo.setAttribute('normal', leafBase.getAttribute('normal'));
-  const offsets = new Float32Array(leaves.length * 3);
-  const scales = new Float32Array(leaves.length);
-  const phases = new Float32Array(leaves.length);
-  const branches = new Float32Array(leaves.length);
-  const tilts = new Float32Array(leaves.length);
-  leaves.forEach((leaf, i) => {
-    offsets.set([leaf.x, leaf.y, 1], i * 3);
-    scales[i] = 4.2 + leaf.r * 6.5;
-    phases[i] = (leaf.r * 977.13) % 1;
-    branches[i] = leaf.branch;
-    tilts[i] = (leaf.r - 0.5) * 1.4;
-  });
-  leafGeo.setAttribute('aOffset', new THREE.InstancedBufferAttribute(offsets, 3));
-  leafGeo.setAttribute('aScale', new THREE.InstancedBufferAttribute(scales, 1));
-  leafGeo.setAttribute('aPhase', new THREE.InstancedBufferAttribute(phases, 1));
-  leafGeo.setAttribute('aBranch', new THREE.InstancedBufferAttribute(branches, 1));
-  leafGeo.setAttribute('aTilt', new THREE.InstancedBufferAttribute(tilts, 1));
-  leafGeo.instanceCount = leaves.length;
-
   const litUniform = new Array(MAX_BRANCHES).fill(0);
   const accentUniform = [];
   for (let i = 0; i < MAX_BRANCHES; i += 1) {
@@ -347,6 +446,13 @@ function buildMeshes(shared, W, H) {
     uAccent: { value: accentUniform },
     uTrunkLit: { value: 0 },
   };
+  // Leaves share lit/accent but add the pointer.
+  state.leafUniforms = {
+    uTime: state.uniforms.uTime,
+    uLit: state.uniforms.uLit,
+    uAccent: state.uniforms.uAccent,
+    uPointer: { value: new THREE.Vector3(-1e5, -1e5, 0) },
+  };
 
   const branchMesh = new THREE.Mesh(branchGeometry, makeAdditive(new THREE.ShaderMaterial({
     vertexShader: BRANCH_VERT,
@@ -357,20 +463,63 @@ function buildMeshes(shared, W, H) {
     depthWrite: false,
     side: THREE.DoubleSide,
   })));
-  const leafMesh = new THREE.Mesh(leafGeo, makeAdditive(new THREE.ShaderMaterial({
-    vertexShader: LEAF_VERT,
-    fragmentShader: LEAF_FRAG,
-    uniforms: state.uniforms,
-    transparent: true,
-    depthTest: false,
-    depthWrite: false,
-    side: THREE.DoubleSide,
-  })));
   branchMesh.frustumCulled = false;
-  leafMesh.frustumCulled = false;
   branchMesh.renderOrder = 1;
-  leafMesh.renderOrder = 1;
-  return { branchMesh, leafMesh, tips };
+
+  // The sleeping canopy.
+  state.leafMeta = scatterLeaves(W, H, branchCount, compact);
+  const n = state.leafMeta.length;
+  const offsets = new Float32Array(n * 3);
+  const scales = new Float32Array(n);
+  const tilts = new Float32Array(n);
+  const branches = new Float32Array(n);
+  const seeds = new Float32Array(n);
+  const borns = new Float32Array(n).fill(-1);
+  state.leafMeta.forEach((leaf, i) => {
+    offsets.set([leaf.x, leaf.y, 2], i * 3);
+    scales[i] = leaf.scale;
+    tilts[i] = leaf.tilt;
+    branches[i] = leaf.branch;
+    seeds[i] = leaf.seed;
+  });
+
+  state.bornAttrs = [];
+  const makeLeafMesh = (base, vert, frag, isLines) => {
+    const geo = new THREE.InstancedBufferGeometry();
+    geo.setAttribute('position', base.getAttribute('position'));
+    if (base.getAttribute('normal')) geo.setAttribute('normal', base.getAttribute('normal'));
+    if (base.getAttribute('aU')) geo.setAttribute('aU', base.getAttribute('aU'));
+    geo.setAttribute('aOffset', new THREE.InstancedBufferAttribute(offsets.slice(), 3));
+    geo.setAttribute('aScale', new THREE.InstancedBufferAttribute(scales.slice(), 1));
+    geo.setAttribute('aTilt', new THREE.InstancedBufferAttribute(tilts.slice(), 1));
+    geo.setAttribute('aBranch', new THREE.InstancedBufferAttribute(branches.slice(), 1));
+    geo.setAttribute('aSeed', new THREE.InstancedBufferAttribute(seeds.slice(), 1));
+    const bornAttr = new THREE.InstancedBufferAttribute(borns.slice(), 1);
+    bornAttr.setUsage(THREE.DynamicDrawUsage);
+    geo.setAttribute('aBorn', bornAttr);
+    state.bornAttrs.push(bornAttr);
+    geo.instanceCount = n;
+    const material = makeAdditive(new THREE.ShaderMaterial({
+      vertexShader: vert,
+      fragmentShader: frag,
+      uniforms: state.leafUniforms,
+      transparent: true,
+      depthTest: false,
+      depthWrite: false,
+      side: THREE.DoubleSide,
+    }));
+    const mesh = isLines
+      ? new THREE.LineSegments(geo, material)
+      : new THREE.Mesh(geo, material);
+    mesh.frustumCulled = false;
+    mesh.renderOrder = 2;
+    return mesh;
+  };
+
+  const leafFill = makeLeafMesh(leafFillGeometry(), LEAF_FILL_VERT, LEAF_FILL_FRAG, false);
+  const leafRim = makeLeafMesh(leafRimGeometry(), LEAF_RIM_VERT, LEAF_RIM_FRAG, true);
+
+  return { branchMesh, leafFill, leafRim, tips };
 }
 
 function placeLabels(tips, W, H) {
@@ -378,18 +527,12 @@ function placeLabels(tips, W, H) {
   state.labels = [];
   state.labelLit = [];
 
-  // Anchor each label a little beyond its branch tip, then relax
-  // collisions: canopy tips cluster near the top, and overlapping
-  // names are worse than slightly displaced ones.
   const spots = tips.map((tip) => {
     const ox = tip.x - tip.ox;
     const oy = tip.y - tip.oy;
     const len = Math.hypot(ox, oy) || 1;
     return { x: tip.x + (ox / len) * 24, y: tip.y + (oy / len) * 24 };
   });
-  // Labels are ~210px wide and ~30px tall including breathing room;
-  // resolve overlaps on those extents, clamping inside the loop so the
-  // stage edges cannot re-introduce a collision the last pass fixed.
   const LW = 215;
   const LH = 32;
   const clampSpot = (spot) => {
@@ -453,17 +596,29 @@ function rebuild(shared) {
   state.builtFor = key;
 
   if (state.branchMesh) {
-    state.group.remove(state.branchMesh, state.leafMesh);
-    state.branchMesh.geometry.dispose();
-    state.branchMesh.material.dispose();
-    state.leafMesh.geometry.dispose();
-    state.leafMesh.material.dispose();
+    state.group.remove(state.branchMesh, state.leafFill, state.leafRim);
+    for (const mesh of [state.branchMesh, state.leafFill, state.leafRim]) {
+      mesh.geometry.dispose();
+      mesh.material.dispose();
+    }
   }
-  const { branchMesh, leafMesh, tips } = buildMeshes(shared, rect.width, rect.height);
+  const { branchMesh, leafFill, leafRim, tips } = buildMeshes(shared, rect.width, rect.height);
   state.branchMesh = branchMesh;
-  state.leafMesh = leafMesh;
-  state.group.add(branchMesh, leafMesh);
+  state.leafFill = leafFill;
+  state.leafRim = leafRim;
+  state.group.add(branchMesh, leafFill, leafRim);
   placeLabels(tips, rect.width, rect.height);
+  state.waveStart = -1; // the reveal wave replays for the new canopy
+}
+
+function triggerLeaf(index, time) {
+  const leaf = state.leafMeta[index];
+  if (!leaf || leaf.born >= 0) return;
+  leaf.born = time;
+  for (const attr of state.bornAttrs) {
+    attr.array[index] = time;
+    attr.needsUpdate = true;
+  }
 }
 
 export function initCrown(shared) {
@@ -477,6 +632,11 @@ export function initCrown(shared) {
   window.addEventListener('resize', () => {
     clearTimeout(state.rebuildTimer);
     state.rebuildTimer = setTimeout(() => { rebuild(shared); shared.wake?.(); }, 160);
+  }, { passive: true });
+  window.addEventListener('pointermove', (event) => {
+    state.pointerClient.x = event.clientX;
+    state.pointerClient.y = event.clientY;
+    state.pointerClient.seen = true;
   }, { passive: true });
 }
 
@@ -509,6 +669,40 @@ export function updateCrown(shared, time) {
   state.group.visible = true;
   state.group.position.set(worldX(rect.left + rect.width / 2), worldY(rect.top + rect.height / 2), 1);
   state.uniforms.uTime.value = time;
+  state.lastRect = rect;
+
+  // Pointer in canopy-local coordinates, for early wakes and warmth.
+  const px = state.pointerClient.x - (rect.left + rect.width / 2);
+  const py = (rect.top + rect.height / 2) - state.pointerClient.y;
+  const pointerInside = state.pointerClient.seen
+    && state.pointerClient.x >= rect.left && state.pointerClient.x <= rect.right
+    && state.pointerClient.y >= rect.top && state.pointerClient.y <= rect.bottom;
+  state.leafUniforms.uPointer.value.set(px, py, pointerInside ? 1 : 0);
+
+  // The reveal wave arms the first time the crown is seen, then rolls
+  // from the canopy center outward.
+  if (state.waveStart < 0) state.waveStart = time + 0.35;
+  let leavesLive = false;
+  const waveT = time - state.waveStart;
+  for (let i = 0; i < state.leafMeta.length; i += 1) {
+    const leaf = state.leafMeta[i];
+    if (leaf.born < 0) {
+      if (waveT >= leaf.waveDelay) {
+        triggerLeaf(i, time);
+        leavesLive = true;
+      } else if (pointerInside) {
+        // The pointer wakes sleeping leaves before the wave arrives.
+        const d = Math.hypot(leaf.x - px, leaf.y - py);
+        if (d < 95) {
+          triggerLeaf(i, time);
+          leavesLive = true;
+        }
+      }
+    } else if (time - leaf.born < 1.5) {
+      leavesLive = true; // mid-animation
+    }
+  }
+  state.leavesLive = leavesLive;
   return true;
 }
 
