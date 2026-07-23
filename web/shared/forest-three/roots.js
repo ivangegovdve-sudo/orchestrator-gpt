@@ -13,7 +13,7 @@ import { clamp, lerp, easeOutCubic, makeAdditive, mulberry32, PALETTE } from './
 
 const CORE = new THREE.Color(PALETTE.amber);
 const TIP = new THREE.Color(PALETTE.green);
-const GROW_SECONDS = 2.6;
+const GROW_SECONDS = 3.8;
 
 const state = {
   group: null,
@@ -142,7 +142,7 @@ export function initRoots(shared, coarse) {
       orbit: random() * Math.PI * 2,
       orbitR: ember ? 0.008 + random() * 0.03 : 0.012 + random() * 0.05,
     });
-    pSizes[i] = ember ? 3.2 + random() * 4.2 : 2.2 + random() * 3.2;
+    pSizes[i] = ember ? 2.4 + random() * 3.2 : 1.6 + random() * 2.4;
     pSeeds[i] = random();
     tint.copy(CORE).lerp(TIP, ember ? random() * 0.25 : random());
     pColors[i * 3] = tint.r; pColors[i * 3 + 1] = tint.g; pColors[i * 3 + 2] = tint.b;
@@ -182,7 +182,7 @@ export function initRoots(shared, coarse) {
     depthTest: false,
     depthWrite: false,
   })));
-  state.glow.scale.set(0.62, 0.62, 1);
+  state.glow.scale.set(0.46, 0.46, 1);
   group.add(state.glow);
 
   shared.scene.add(group);
@@ -258,16 +258,17 @@ export function updateRoots(shared, time, dt) {
 
       const dist = end ? seg.distB : seg.distA;
       const tipMix = clamp(dist / state.maxDist, 0, 1);
-      let bright = 0.3 + (1 - tipMix) * 0.55 + Math.sin(time * 1.7 + seg.phase) * 0.06;
-      // Growth front glows as it passes.
+      // Base: candlelight at the root, barely-there at the tips.
+      let bright = 0.14 + (1 - tipMix) * 0.22 + Math.sin(time * 1.7 + seg.phase) * 0.05;
+      // Growth front glows as it passes (keep the birth moment legible).
       const frontD = Math.abs(dist - growDist);
-      if (grow < 1 && frontD < 0.12) bright += (1 - frontD / 0.12) * 0.9;
+      if (grow < 1 && frontD < 0.12) bright += (1 - frontD / 0.12) * 0.65;
       for (const pulse of state.pulses) {
         const d = Math.abs(dist - pulse.r);
-        if (d < 0.1) bright += (1 - d / 0.1) * 0.8 * (1 - pulse.r / 1.5);
+        if (d < 0.1) bright += (1 - d / 0.1) * 0.75 * (1 - pulse.r / 1.5);
       }
       // Pointer proximity lights the filament it bends.
-      if (dp < 0.5) bright += ((1 - dp / 0.5) ** 2) * 0.5;
+      if (dp < 0.5) bright += ((1 - dp / 0.5) ** 2) * 0.42;
       const r = lerp(CORE.r, TIP.r, tipMix) * bright;
       const g = lerp(CORE.g, TIP.g, tipMix) * bright;
       const b = lerp(CORE.b, TIP.b, tipMix) * bright;
@@ -304,13 +305,13 @@ export function updateRoots(shared, time, dt) {
   }
   state.points.geometry.attributes.position.needsUpdate = true;
   state.particleUniforms.uTime.value = time;
-  state.particleUniforms.uMaster.value = grow * 0.9;
+  state.particleUniforms.uMaster.value = grow * 0.55;
   state.particleUniforms.uPointScale.value = shared.pointScale || 1300;
 
   // The heart breathes; pulses and the growth intro flare it.
   let glowBoost = 0;
   for (const pulse of state.pulses) glowBoost = Math.max(glowBoost, (1 - pulse.r / 1.5) * 0.5);
-  state.glow.material.opacity = grow * (0.55 + Math.sin(time * 1.1) * 0.1 + glowBoost);
+  state.glow.material.opacity = grow * (0.28 + Math.sin(time * 1.1) * 0.07 + glowBoost * 0.65);
 
   return true;
 }

@@ -227,7 +227,10 @@ a, button { -webkit-tap-highlight-color: transparent; }
 .landing-copy,
 .scroll-invite { opacity: 1; }
 
-html.is-born .forest-sigil { animation: born-rise .9s cubic-bezier(.2, .8, .25, 1) backwards, sigil-breathe 7s ease-in-out .9s infinite; }
+/* roots.js reads the sigil's bounding rect as its seed position — keep in
+   the DOM but invisible. The organic mycelium renders behind the title. */
+.forest-sigil { animation: none !important; opacity: 0 !important; pointer-events: none; }
+html.is-born .forest-sigil { animation: none !important; opacity: 0 !important; }
 html.is-born .landing-kicker { animation: born-rise .8s cubic-bezier(.2, .8, .25, 1) .12s backwards; }
 html.is-born .title-word { animation: born-bloom 1.15s cubic-bezier(.16, .84, .3, 1) .2s backwards; }
 html.is-born .title-sub { animation: born-rise .9s cubic-bezier(.2, .8, .25, 1) .5s backwards; }

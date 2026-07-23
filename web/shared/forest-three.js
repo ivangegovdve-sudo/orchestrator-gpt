@@ -1,10 +1,13 @@
 /* SDForest landing — Three.js animation layer (entry).
    One shared WebGLRenderer on a single fixed transparent canvas drives
-   four effects, each in its own module under ./forest-three/:
-   (roots.js — the old sigil root burst — is retired: its straight
-   filaments read as a second, geometric tree above the title, and the
-   forest has exactly one tree, the crown.)
+   five effects, each in its own module under ./forest-three/:
 
+     roots.js   The living mycelium behind the hero title: organic
+                filaments (amber at the heart, green at the tips) with
+                drifting spore particles. Grows outward on load, bends
+                toward the pointer, pulses light on click. The forest-
+                sigil SVG is its hidden anchor — kept in the DOM for
+                getBoundingClientRect() but rendered invisible.
      crown.js   The tree crown: trunk, sixteen project branches with
                 progressively random limbs down to the smallest twigs,
                 and a canopy of beveled diamond leaves that bloom from
@@ -33,6 +36,7 @@ import { initBurst, updateBurst, respawnBurst, burstDebug } from './forest-three
 import { initSlams, updateSlams, slamsAnimating, slamsDebug } from './forest-three/slams.js';
 import { initCrown, updateCrown, crownDebug } from './forest-three/crown.js';
 import { initTiles, updateTiles, tilesAnimating, tilesDebug } from './forest-three/tiles.js?v=20260723';
+import { initRoots, updateRoots, rootsDebug } from './forest-three/roots.js';
 
 (() => {
   'use strict';
@@ -194,9 +198,10 @@ import { initTiles, updateTiles, tilesAnimating, tilesDebug } from './forest-thr
     let rendered = false;
     if (renderer) {
       const burstVisible = updateBurst(shared, time, dt);
+      const rootsVisible = updateRoots(shared, time, dt);
       const crownVisible = updateCrown(shared, time);
       const tilesVisible = updateTiles(shared, time, dt);
-      rendered = burstVisible || crownVisible || tilesVisible || slamsDrawn;
+      rendered = burstVisible || rootsVisible || crownVisible || tilesVisible || slamsDrawn;
       if (rendered) {
         renderer.render(shared.scene, camera);
         canvasDirty = true;
@@ -260,6 +265,7 @@ import { initTiles, updateTiles, tilesAnimating, tilesDebug } from './forest-thr
       initSlams(shared); // CSS choreography works even without WebGL
       if (webgl) {
         initBurst(shared);
+        initRoots(shared, coarseMedia.matches);
         initCrown(shared);
         initTiles(shared, () => coarseMedia.matches);
         window.addEventListener('resize', resizeRenderer, { passive: true });
@@ -292,6 +298,7 @@ import { initTiles, updateTiles, tilesAnimating, tilesDebug } from './forest-thr
     stats,
     scroll,
     get slams() { return slamsDebug; },
+    get roots() { return rootsDebug; },
     get crown() { return crownDebug; },
     get tiles() { return tilesDebug; },
     hero: burstDebug,
