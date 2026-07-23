@@ -36,27 +36,50 @@ function buildSkeleton(random, coarse) {
   const primaries = coarse ? 8 : 10;
 
   function grow(x, y, z, angle, tilt, length, depth, dist) {
-    const nx = x + Math.cos(angle) * length;
-    const ny = y + Math.sin(angle) * length;
-    const nz = z + tilt * length * 0.35;
-    segments.push({
-      a: [x, y, z], b: [nx, ny, nz], depth,
-      distA: dist, distB: dist + length,
-      phase: random() * Math.PI * 2,
-      swayDir: [Math.sin(angle + Math.PI / 2), Math.cos(angle + Math.PI / 2)],
-    });
+    // Each filament is a chain of short wandering sub-segments — a
+    // curving hypha, not a straight geometric spoke. (Straight spokes
+    // read as a second tree behind the title; Ivan retired that once.)
+    const steps = 3;
+    const step = length / steps;
+    let cx = x;
+    let cy = y;
+    let cz = z;
+    let a = angle;
+    let d = dist;
+    for (let s = 0; s < steps; s += 1) {
+      a += (random() - 0.5) * (0.34 + depth * 0.1);
+      const nx = cx + Math.cos(a) * step;
+      const ny = cy + Math.sin(a) * step;
+      const nz = cz + tilt * step * 0.35;
+      segments.push({
+        a: [cx, cy, cz], b: [nx, ny, nz], depth,
+        distA: d, distB: d + step,
+        phase: random() * Math.PI * 2,
+        swayDir: [Math.sin(a + Math.PI / 2), Math.cos(a + Math.PI / 2)],
+      });
+      cx = nx;
+      cy = ny;
+      cz = nz;
+      d += step;
+    }
     if (depth >= depthMax) return;
     const children = depth === 0 ? 2 : (random() < 0.78 ? 2 : 1);
     for (let k = 0; k < children; k += 1) {
       const spread = (k === 0 ? 1 : -1) * (0.28 + random() * 0.38);
-      grow(nx, ny, nz, angle + spread + (random() - 0.5) * 0.2, (random() - 0.5) * 0.7,
-        length * (0.6 + random() * 0.12), depth + 1, dist + length);
+      grow(cx, cy, cz, a + spread + (random() - 0.5) * 0.2, (random() - 0.5) * 0.7,
+        length * (0.6 + random() * 0.12), depth + 1, d);
     }
   }
 
   for (let i = 0; i < primaries; i += 1) {
-    const angle = (i / primaries) * Math.PI * 2 + (random() - 0.5) * 0.5;
-    grow(0, 0, (random() - 0.5) * 0.1, angle, (random() - 0.5) * 0.6, 0.28 + random() * 0.09, 0, 0);
+    // Even fan for coverage, but heavily jittered — a clean radial
+    // spacing reads as a flower of spokes.
+    const angle = (i / primaries) * Math.PI * 2 + (random() - 0.5) * 1.15;
+    // Primaries begin at scattered offsets around the seed, never at a
+    // single convergence point — one shared origin reads as a starburst.
+    const r0 = 0.05 + random() * 0.13;
+    grow(Math.cos(angle) * r0, Math.sin(angle) * r0, (random() - 0.5) * 0.1,
+      angle, (random() - 0.5) * 0.6, 0.28 + random() * 0.09, 0, 0);
   }
   // Growth order: outward from the seed, so drawRange = the forest waking.
   segments.sort((s, t) => s.distA - t.distA);
@@ -182,7 +205,7 @@ export function initRoots(shared, coarse) {
     depthTest: false,
     depthWrite: false,
   })));
-  state.glow.scale.set(0.46, 0.46, 1);
+  state.glow.scale.set(0.34, 0.34, 1);
   group.add(state.glow);
 
   shared.scene.add(group);
@@ -258,8 +281,9 @@ export function updateRoots(shared, time, dt) {
 
       const dist = end ? seg.distB : seg.distA;
       const tipMix = clamp(dist / state.maxDist, 0, 1);
-      // Base: candlelight at the root, barely-there at the tips.
-      let bright = 0.14 + (1 - tipMix) * 0.22 + Math.sin(time * 1.7 + seg.phase) * 0.05;
+      // Base: candlelight at the root, barely-there at the tips —
+      // kept low so the mycelium reads half-seen, never a second tree.
+      let bright = 0.065 + (1 - tipMix) * 0.1 + Math.sin(time * 1.7 + seg.phase) * 0.03;
       // Growth front glows as it passes (keep the birth moment legible).
       const frontD = Math.abs(dist - growDist);
       if (grow < 1 && frontD < 0.12) bright += (1 - frontD / 0.12) * 0.65;
@@ -305,13 +329,13 @@ export function updateRoots(shared, time, dt) {
   }
   state.points.geometry.attributes.position.needsUpdate = true;
   state.particleUniforms.uTime.value = time;
-  state.particleUniforms.uMaster.value = grow * 0.55;
+  state.particleUniforms.uMaster.value = grow * 0.38;
   state.particleUniforms.uPointScale.value = shared.pointScale || 1300;
 
   // The heart breathes; pulses and the growth intro flare it.
   let glowBoost = 0;
   for (const pulse of state.pulses) glowBoost = Math.max(glowBoost, (1 - pulse.r / 1.5) * 0.5);
-  state.glow.material.opacity = grow * (0.28 + Math.sin(time * 1.1) * 0.07 + glowBoost * 0.65);
+  state.glow.material.opacity = grow * (0.12 + Math.sin(time * 1.1) * 0.03 + glowBoost * 0.55);
 
   return true;
 }

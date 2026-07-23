@@ -92,20 +92,22 @@ const LEAF_PHASES = /* glsl */`
   float fold = clamp((t - T_DRAW - T_EXTRUDE - T_SPIN) / T_FOLD, 0.0, 1.0);
 
   vec3 p = position * aScale;
-  // The fold sweeps down the leaf: the top flattens back into the
-  // page first, the bottom follows.
-  float h = clamp((position.y + 0.62) / 1.24, 0.0, 1.0);
+  // In-plane tilt FIRST (orients the rhomboid along its branch radial)
+  // so the spin below happens around the viewer's vertical axis, not
+  // around a tumbling leaf-local one.
+  float ct = cos(aTilt), st = sin(aTilt);
+  p = vec3(p.x * ct - p.y * st, p.x * st + p.y * ct, p.z);
+  // The fold sweeps down the VISUAL leaf: the top edge flattens back
+  // into the page first, the bottom follows.
+  float h = clamp(p.y / (aScale * 2.0) + 0.5, 0.0, 1.0);
   float flatten = clamp((fold * 1.5 - (1.0 - h)) / 0.5, 0.0, 1.0);
   float depth = ext * (1.0 - flatten);
   p.z *= depth;
   // A soft pop as it extrudes.
   p *= 0.9 + ext * 0.1 + sin(ext * 3.14159265) * 0.08;
-  // One full turn.
+  // One full turn around the vertical (view Y) axis.
   float cs = cos(spin), sn = sin(spin);
   p = vec3(p.x * cs + p.z * sn, p.y, -p.x * sn + p.z * cs);
-  // Small per-leaf tilt on top of the baked ~15 degrees.
-  float ct = cos(aTilt), st = sin(aTilt);
-  p = vec3(p.x * ct - p.y * st, p.x * st + p.y * ct, p.z);
 
   vec3 world = aOffset + p;
   // Leaves stir only while they are 3D — settled leaves lie still.
@@ -131,8 +133,8 @@ const LEAF_FILL_VERT = /* glsl */`
     ${LEAF_PHASES}
 
     vec3 n = normal;
-    n = vec3(n.x * cs + n.z * sn, n.y, -n.x * sn + n.z * cs);
     n = vec3(n.x * ct - n.y * st, n.x * st + n.y * ct, n.z);
+    n = vec3(n.x * cs + n.z * sn, n.y, -n.x * sn + n.z * cs);
     float glint = 0.5 + 0.5 * abs(dot(normalize(n), normalize(vec3(0.25, 0.4, 0.85))));
 
     int index = int(aBranch + 0.5);
