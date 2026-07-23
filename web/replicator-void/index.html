@@ -1,26 +1,27 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" class="forest-skin">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="description" content="Replicator Void — an experimental interactive ecosystem of feeding, mutating, dividing organisms.">
   <meta name="theme-color" content="#020608">
   <title>Replicator Void — Experimental</title>
+  <link rel="stylesheet" href="/web/shared/forest-design.css?v=20260723">
   <style>
     :root { color-scheme:dark; --cyan:#51ebff; --green:#79f2a8; --ink:#eafcff; --muted:#7f9da3; --panel:rgba(3,11,13,.78); --line:rgba(81,235,255,.2); }
-    *{box-sizing:border-box} html,body{width:100%;height:100%;margin:0;overflow:hidden;background:#020608;color:var(--ink);font-family:Inter,"Segoe UI",system-ui,sans-serif}
+    *{box-sizing:border-box} html,body{width:100%;height:100%;margin:0;overflow:hidden;background:#020608;color:var(--ink);font-family:var(--forest-body,Alegreya,Georgia,serif)}
     #world{position:fixed;inset:0;width:100%;height:100%;display:block;cursor:crosshair;background:radial-gradient(circle at 50% 45%,#07161a,#020608 65%)}
     .void-scrim{position:fixed;inset:0;pointer-events:none;background:radial-gradient(circle at 50% 50%,transparent 35%,rgba(2,6,8,.54) 110%)}
     .topbar{position:fixed;z-index:5;top:max(14px,env(safe-area-inset-top));left:14px;right:14px;display:flex;justify-content:space-between;gap:12px;pointer-events:none}
-    .back,.badge{min-height:42px;display:inline-flex;align-items:center;padding:0 14px;border:1px solid var(--line);border-radius:999px;background:var(--panel);backdrop-filter:blur(14px);font-size:10px;font-weight:750;letter-spacing:.12em;text-transform:uppercase}
+    .back,.badge{min-height:42px;display:inline-flex;align-items:center;padding:0 14px;border:1px solid var(--line);border-radius:999px;background:var(--panel);backdrop-filter:blur(14px);font-family:var(--forest-sans,"Alegreya Sans",sans-serif);font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase}
     .back{color:var(--ink);text-decoration:none;pointer-events:auto}.back:hover{border-color:var(--cyan)}.badge{color:var(--cyan)}
     .intro{position:fixed;z-index:4;top:78px;left:clamp(16px,4vw,54px);max-width:500px;pointer-events:none}
-    .intro p{margin:0 0 8px;color:var(--cyan);font-size:9px;font-weight:750;letter-spacing:.2em;text-transform:uppercase}.intro h1{margin:0;font-size:clamp(38px,6vw,82px);line-height:.82;letter-spacing:-.07em}.intro .lede{max-width:38ch;margin:17px 0 0;color:var(--muted);font-size:12px;line-height:1.6;letter-spacing:0;text-transform:none}
+    .intro p{margin:0 0 8px;color:var(--cyan);font-family:var(--forest-sans,"Alegreya Sans",sans-serif);font-size:9px;font-weight:700;letter-spacing:.2em;text-transform:uppercase}.intro h1{margin:0;font-family:var(--forest-display,"Cormorant Garamond",Georgia,serif);font-weight:700;font-size:clamp(42px,6.6vw,92px);line-height:.88;letter-spacing:0}.intro .lede{max-width:38ch;margin:17px 0 0;color:var(--muted);font-family:var(--forest-body,Alegreya,Georgia,serif);font-size:12px;font-weight:400;line-height:1.6;letter-spacing:0;text-transform:none}
     .hud{position:fixed;z-index:6;left:14px;right:14px;bottom:max(14px,env(safe-area-inset-bottom));display:grid;grid-template-columns:minmax(260px,430px) 1fr auto;align-items:end;gap:12px;pointer-events:none}
     .panel{border:1px solid var(--line);border-radius:18px;background:var(--panel);box-shadow:0 24px 70px rgba(0,0,0,.35);backdrop-filter:blur(18px);pointer-events:auto}
-    .stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1px;padding:8px}.stat{padding:10px;border-radius:11px;background:rgba(255,255,255,.025)}.stat span{display:block;color:var(--muted);font-size:8px;letter-spacing:.1em;text-transform:uppercase}.stat strong{display:block;margin-top:6px;color:var(--cyan);font:650 17px/1 ui-monospace,monospace}
-    .status{justify-self:center;padding:13px 16px;color:var(--green);font-size:10px;letter-spacing:.1em;text-transform:uppercase}
-    .controls{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:7px;padding:8px}button{min-height:42px;padding:0 13px;border:1px solid rgba(81,235,255,.22);border-radius:11px;background:rgba(8,25,29,.9);color:var(--ink);font:700 9px/1 inherit;letter-spacing:.09em;text-transform:uppercase;cursor:pointer}button:hover{border-color:var(--cyan);background:rgba(81,235,255,.1)}button:focus-visible,.back:focus-visible{outline:3px solid var(--cyan);outline-offset:3px}
+    .stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1px;padding:8px}.stat{padding:10px;border-radius:11px;background:rgba(255,255,255,.025)}.stat span{display:block;color:var(--muted);font-family:var(--forest-sans,"Alegreya Sans",sans-serif);font-size:8px;letter-spacing:.1em;text-transform:uppercase}.stat strong{display:block;margin-top:6px;color:var(--cyan);font:650 17px/1 ui-monospace,monospace}
+    .status{justify-self:center;padding:13px 16px;color:var(--green);font-family:var(--forest-sans,"Alegreya Sans",sans-serif);font-size:10px;letter-spacing:.1em;text-transform:uppercase}
+    .controls{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:7px;padding:8px}button{min-height:42px;padding:0 13px;border:1px solid rgba(81,235,255,.22);border-radius:11px;background:rgba(8,25,29,.9);color:var(--ink);font:700 9px/1 var(--forest-sans,"Alegreya Sans",sans-serif);letter-spacing:.09em;text-transform:uppercase;cursor:pointer}button:hover{border-color:var(--cyan);background:rgba(81,235,255,.1)}button:focus-visible,.back:focus-visible{outline:3px solid var(--cyan);outline-offset:3px}
     .hint{position:fixed;z-index:4;right:18px;top:82px;max-width:210px;color:rgba(127,157,163,.8);font-size:10px;line-height:1.6;text-align:right;pointer-events:none}.hint strong{color:var(--cyan)}
     @media(max-width:780px){.intro{top:72px;max-width:330px}.intro .lede{display:none}.hint{top:auto;bottom:176px}.hud{grid-template-columns:1fr;gap:7px}.status{display:none}.controls{justify-content:stretch}.controls button{flex:1}.stats{grid-template-columns:repeat(4,1fr)}.stat{padding:8px 6px}.stat strong{font-size:14px}.badge{display:none}}
     @media(prefers-reduced-motion:reduce){#world{opacity:.7}}

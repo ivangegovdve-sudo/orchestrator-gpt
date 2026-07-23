@@ -20,7 +20,7 @@ body {
   background:
     linear-gradient(180deg, #edf7f2 0, transparent 420px),
     var(--bg);
-  font-family: "Segoe UI", system-ui, sans-serif;
+  font-family: var(--forest-body, Alegreya, Georgia, serif);
 }
 
 .page {
@@ -40,8 +40,9 @@ body {
 .eyebrow {
   margin: 0 0 8px;
   color: var(--accent);
+  font-family: var(--forest-sans, "Alegreya Sans", sans-serif);
   font-size: 12px;
-  font-weight: 800;
+  font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
@@ -54,13 +55,17 @@ p {
 
 h1 {
   margin-bottom: 10px;
-  font-size: clamp(34px, 5vw, 58px);
+  font-family: var(--forest-display, "Cormorant Garamond", Georgia, serif);
+  font-weight: 700;
+  font-size: clamp(37px, 5.5vw, 64px);
   line-height: 1;
   letter-spacing: 0;
 }
 
 h2 {
-  font-size: 18px;
+  font-family: var(--forest-display, "Cormorant Garamond", Georgia, serif);
+  font-weight: 700;
+  font-size: 20px;
 }
 
 .intro {
@@ -133,6 +138,7 @@ input,
 select,
 button {
   font: inherit;
+  font-family: var(--forest-sans, "Alegreya Sans", sans-serif);
 }
 
 input,

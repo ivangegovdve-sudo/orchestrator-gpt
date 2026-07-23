@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="bg">
+<html lang="bg" class="forest-skin">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,11 +8,12 @@
 <meta property="og:title" content="Interactive Periodic Table — Chemistry Recipes">
 <meta property="og:description" content="Click any element to see its top compounds, from table salt to Teflon, from barium meals to lithium batteries.">
 <meta property="og:type" content="website">
+<link rel="stylesheet" href="/web/shared/forest-design.css?v=20260723">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-body{background:#040c14;color:#a0e8ff;font-family:'Segoe UI',Tahoma,sans-serif;min-height:100vh;overflow-x:auto}
-h1{text-align:center;padding:16px 10px 2px;font-size:1.7em;color:#00d4ff;text-shadow:0 0 20px #00d4ff,0 0 40px #0088aa;letter-spacing:3px}
-.subtitle{text-align:center;color:#4a9ebb;margin-bottom:12px;font-size:.85em;letter-spacing:1px}
+body{background:#040c14;color:#a0e8ff;font-family:var(--forest-body, Alegreya, Georgia, serif);min-height:100vh;overflow-x:auto}
+h1{text-align:center;padding:16px 10px 2px;font-family:var(--forest-display, "Cormorant Garamond", Georgia, serif);font-weight:700;font-size:1.87em;color:#00d4ff;text-shadow:0 0 20px #00d4ff,0 0 40px #0088aa;letter-spacing:3px}
+.subtitle{text-align:center;color:#4a9ebb;margin-bottom:12px;font-family:var(--forest-sans, "Alegreya Sans", sans-serif);font-size:.85em;letter-spacing:1px}
 
 /* ── Search & Language Header ────────────── */
 .control-header {
@@ -66,7 +67,7 @@ h1{text-align:center;padding:16px 10px 2px;font-size:1.7em;color:#00d4ff;text-sh
 
 /* ── Compound bar ────────────────────────── */
 .compound-bar{display:flex;flex-wrap:wrap;gap:5px;justify-content:center;padding:6px 20px 10px;border-bottom:1px solid rgba(0,212,255,.1)}
-.compound-bar label{font-size:.68em;opacity:.5;width:100%;text-align:center;letter-spacing:2px;text-transform:uppercase;margin-bottom:4px}
+.compound-bar label{font-family:var(--forest-sans, "Alegreya Sans", sans-serif);font-size:.68em;opacity:.5;width:100%;text-align:center;letter-spacing:2px;text-transform:uppercase;margin-bottom:4px}
 .cbtn{background:rgba(0,212,255,.06);border:1px solid rgba(0,212,255,.2);color:#80d4f0;padding:4px 10px;font-size:.75em;cursor:pointer;transition:all .2s;white-space:nowrap;border-radius:4px}
 .cbtn:hover{background:rgba(0,212,255,.15);border-color:#00d4ff;color:#00d4ff}
 .cbtn.active{background:rgba(0,212,255,.22);border-color:#00d4ff;color:#00d4ff;box-shadow:0 0 8px rgba(0,212,255,.3)}
@@ -76,7 +77,7 @@ h1{text-align:center;padding:16px 10px 2px;font-size:1.7em;color:#00d4ff;text-sh
 /* ── Table ───────────────────────────────── */
 .pt-wrap{display:flex;justify-content:center;overflow-x:auto;padding:0 10px}
 .pt-grid{display:grid;grid-template-columns:repeat(18,50px);grid-template-rows:repeat(10,50px);gap:2px;padding:10px}
-.el{width:50px;height:50px;border:1px solid currentColor;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;background:rgba(0,0,0,.4);overflow:hidden;transition:opacity .3s,filter .3s,box-shadow 0.3s}
+.el{width:50px;height:50px;border:1px solid currentColor;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;background:rgba(0,0,0,.4);overflow:hidden;transition:opacity .3s,filter .3s,box-shadow 0.3s;font-family:'Segoe UI',Tahoma,sans-serif}
 .el:hover{z-index:20}
 .el .n{font-size:7px;opacity:.55;line-height:1;align-self:flex-start;padding:2px 0 0 3px;cursor:pointer;transition:opacity .2s,color .2s;position:relative;z-index:2}
 .el .n:hover{opacity:1;color:#fff;text-decoration:underline dotted}
@@ -127,7 +128,7 @@ h1{text-align:center;padding:16px 10px 2px;font-size:1.7em;color:#00d4ff;text-sh
 
 /* ── Element popup ──────────────────────── */
 .mhead{padding:18px 40px 14px 18px;border-bottom:1px solid rgba(0,212,255,.2);display:flex;gap:14px;align-items:center;position:sticky;top:0;background:#060e18;z-index:2}
-.msym{width:70px;height:70px;border:2px solid currentColor;display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0;position:relative;overflow:hidden}
+.msym{width:70px;height:70px;border:2px solid currentColor;display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0;position:relative;overflow:hidden;font-family:'Segoe UI',Tahoma,sans-serif}
 .msym::before{content:'';position:absolute;inset:-50%;background:conic-gradient(transparent 0deg,currentColor 1deg,transparent 3deg,transparent 180deg,currentColor 181deg,transparent 183deg);animation:spin 5s linear infinite;opacity:.12}
 @keyframes spin{to{transform:rotate(360deg)}}
 .msym .mn{font-size:10px;opacity:.5;cursor:pointer;border-bottom:1px dotted currentColor;transition:opacity .2s}
@@ -143,14 +144,14 @@ h1{text-align:center;padding:16px 10px 2px;font-size:1.7em;color:#00d4ff;text-sh
 .mbody{display:flex;gap:0}
 .stat-panel{width:160px;flex-shrink:0;border-right:1px solid rgba(0,212,255,.12);padding:14px 12px;background:rgba(0,212,255,.02)}
 .stat-item{margin-bottom:10px}
-.stat-lbl{font-size:.65em;letter-spacing:1.5px;text-transform:uppercase;opacity:.45;margin-bottom:2px;cursor:pointer;display:flex;align-items:center;gap:3px}
+.stat-lbl{font-family:var(--forest-sans, "Alegreya Sans", sans-serif);font-size:.65em;letter-spacing:1.5px;text-transform:uppercase;opacity:.45;margin-bottom:2px;cursor:pointer;display:flex;align-items:center;gap:3px}
 .stat-lbl:hover{opacity:.75}
 .stat-lbl .hint{font-size:.9em;opacity:.5}
 .stat-val{font-size:.95em;font-weight:600;color:#e0f4ff}
 .content-panel{flex:1;padding:14px 18px;overflow:hidden}
 
 .sec{margin-bottom:16px}
-.stitle{font-size:.73em;letter-spacing:2px;text-transform:uppercase;opacity:.45;margin-bottom:7px;padding-bottom:4px;border-bottom:1px solid rgba(255,255,255,.07)}
+.stitle{font-family:var(--forest-sans, "Alegreya Sans", sans-serif);font-size:.73em;letter-spacing:2px;text-transform:uppercase;opacity:.45;margin-bottom:7px;padding-bottom:4px;border-bottom:1px solid rgba(255,255,255,.07)}
 .stext{font-size:.87em;line-height:1.8;color:#b8e4f4}
 .apps{display:flex;flex-wrap:wrap;gap:5px}
 .atag{background:rgba(0,212,255,.06);border:1px solid rgba(0,212,255,.2);padding:3px 9px;font-size:.78em;color:#88ccee;border-radius:3px}
@@ -165,7 +166,7 @@ h1{text-align:center;padding:16px 10px 2px;font-size:1.7em;color:#00d4ff;text-sh
 
 /* ── DYK section ────────────────────────── */
 .dyk{background:rgba(160,100,255,.05);border:1px solid rgba(160,100,255,.25);padding:12px;margin-bottom:16px;border-radius:6px}
-.dyk-ttl{color:#bf7fff;font-size:.72em;letter-spacing:2px;text-transform:uppercase;margin-bottom:8px}
+.dyk-ttl{color:#bf7fff;font-family:var(--forest-sans, "Alegreya Sans", sans-serif);font-size:.72em;letter-spacing:2px;text-transform:uppercase;margin-bottom:8px}
 .dyk-text{font-size:.84em;line-height:1.75;color:#ccb8f8}
 
 /* ── Links ──────────────────────────────── */

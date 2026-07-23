@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="forest-skin">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -10,11 +10,8 @@
   <meta property="og:type" content="website" />
   <meta name="theme-color" content="#0a0908" />
 
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;1,400&family=Inter:wght@300;400&display=swap" rel="stylesheet" />
-
-  <link rel="stylesheet" href="/web/shared/forest-shell.css?v=20260714">
+  <link rel="stylesheet" href="/web/shared/forest-design.css?v=20260723">
+  <link rel="stylesheet" href="/web/shared/forest-shell.css?v=20260723">
   <style>
     :root {
       --bg:     #0a0908;
@@ -31,7 +28,7 @@
     body {
       background: var(--bg);
       color: var(--text);
-      font-family: 'Lora', Georgia, 'Times New Roman', serif;
+      font-family: var(--forest-body, Alegreya, Georgia, serif);
       font-size: clamp(17px, 2vw, 19px);
       line-height: 1.82;
       -webkit-font-smoothing: antialiased;
@@ -47,7 +44,7 @@
       background: linear-gradient(to bottom, rgba(10,9,8,.92) 60%, transparent);
     }
     .back-link {
-      font-family: 'Inter', system-ui, sans-serif;
+      font-family: var(--forest-sans, "Alegreya Sans", sans-serif);
       font-size: 12px;
       letter-spacing: .06em;
       text-transform: uppercase;
@@ -70,7 +67,7 @@
       padding-top: 16px;
     }
     .hero-eyebrow {
-      font-family: 'Inter', system-ui, sans-serif;
+      font-family: var(--forest-sans, "Alegreya Sans", sans-serif);
       font-size: 11px;
       font-weight: 300;
       letter-spacing: .2em;
@@ -79,10 +76,11 @@
       margin-bottom: 20px;
     }
     .hero-title {
-      font-size: clamp(1.6em, 5vw, 2.4em);
-      font-weight: 400;
+      font-family: var(--forest-display, "Cormorant Garamond", Georgia, serif);
+      font-size: clamp(1.76em, 5.5vw, 2.64em);
+      font-weight: 500;
       line-height: 1.22;
-      letter-spacing: -.01em;
+      letter-spacing: 0;
     }
     .hero-rule {
       width: 36px;
@@ -95,7 +93,7 @@
       display: inline-flex;
       align-items: center;
       gap: 8px;
-      font-family: 'Inter', system-ui, sans-serif;
+      font-family: var(--forest-sans, "Alegreya Sans", sans-serif);
       font-size: 11px;
       letter-spacing: .12em;
       text-transform: uppercase;
@@ -120,7 +118,7 @@
     }
     .poem-date {
       display: block;
-      font-family: 'Inter', system-ui, sans-serif;
+      font-family: var(--forest-sans, "Alegreya Sans", sans-serif);
       font-size: 11px;
       font-weight: 300;
       font-variant: small-caps;
@@ -129,14 +127,15 @@
       margin-bottom: 8px;
     }
     .poem-title {
-      font-size: clamp(1.05em, 2.2vw, 1.25em);
-      font-weight: 500;
+      font-family: var(--forest-display, "Cormorant Garamond", Georgia, serif);
+      font-size: clamp(1.16em, 2.42vw, 1.38em);
+      font-weight: 600;
       color: #c0b8a8;
       margin-bottom: 10px;
-      letter-spacing: -.01em;
+      letter-spacing: 0;
     }
     .artwork-desc {
-      font-family: 'Inter', system-ui, sans-serif;
+      font-family: var(--forest-sans, "Alegreya Sans", sans-serif);
       font-size: 12px;
       font-style: italic;
       color: var(--muted);
@@ -175,7 +174,7 @@
       margin-top: clamp(72px, 11vw, 104px);
       padding-top: 22px;
       border-top: 1px solid rgba(255,255,255,.05);
-      font-family: 'Inter', system-ui, sans-serif;
+      font-family: var(--forest-sans, "Alegreya Sans", sans-serif);
       font-size: 12px;
       color: var(--muted);
       letter-spacing: .04em;

@@ -1,27 +1,39 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" class="forest-skin forest-palette">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="Upload documents and text to the SDForest knowledge base — private ingest into Chloé's memory.">
-  <meta name="theme-color" content="#07070b">
+  <meta name="theme-color" content="#070a08">
   <title>Upload — SDForest</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/web/shared/forest-shell.css?v=20260714">
+  <link rel="stylesheet" href="/web/shared/forest-design.css?v=20260723">
+  <link rel="stylesheet" href="/web/shared/forest-shell.css?v=20260723">
   <style>
     :root {
-      --bg: #07070b;
-      --surface: #0f0f15;
-      --border: rgba(255,255,255,0.08);
-      --text-primary: #f3f4f6;
-      --text-muted: #9ca3af;
-      --accent: #4f46e5;
-      --accent-green: #22c55e;
-      --accent-amber: #f59e0b;
+      --bg: #070a08;
+      --surface: #0d120e;
+      --border: rgba(226,235,209,0.1);
+      --text-primary: #f2efe4;
+      --text-muted: #a9b3a1;
+      --accent: #e8b86b;
+      --accent-green: #8fe6ae;
+      --accent-amber: #e8b86b;
       --radius: 8px;
-      --forest-accent: #60ecc1;
+      --forest-accent: #8fe6ae;
+      --forest-accent-rgb: 143, 230, 174;
+      /* Re-assert the dusk voice — forest-shell.css loads later and would
+         otherwise pull these tokens back to Space Grotesk / Inter. */
+      --forest-display: "Cormorant Garamond", "Iowan Old Style", Georgia, serif;
+      --forest-body: Alegreya, "Iowan Old Style", Georgia, serif;
+      --forest-sans: "Alegreya Sans", "Gill Sans", "Segoe UI", system-ui, sans-serif;
+      --forest-ink: #f2efe4;
+      --forest-soft: #bcc6b4;
+      --forest-muted: #7d8877;
+    }
+
+    /* Small-caps shell chrome speaks the UI sans. */
+    .forest-kicker, .forest-back, .forest-top-action {
+      font-family: var(--forest-sans, "Alegreya Sans", sans-serif);
     }
 
     /* ── Layout ───────────────────────────────────────────────────────────── */
@@ -42,8 +54,8 @@
       text-align: center;
     }
     #auth-gate h1 {
-      font: 700 clamp(28px, 5vw, 48px)/1 'Space Grotesk', sans-serif;
-      letter-spacing: -0.04em;
+      font: 600 clamp(32px, 5.5vw, 54px)/1 var(--forest-display, "Cormorant Garamond", Georgia, serif);
+      letter-spacing: 0;
       color: var(--text-primary);
       margin: 0;
     }
@@ -68,7 +80,7 @@
       border-radius: var(--radius);
       padding: 12px 16px;
       color: var(--text-primary);
-      font: 400 14px/1 'Inter', sans-serif;
+      font: 400 14px/1 var(--forest-sans, "Alegreya Sans", sans-serif);
       outline: none;
       transition: border-color 0.2s;
     }
@@ -87,8 +99,8 @@
 
     .upload-header { margin-bottom: 36px; }
     .upload-header h1 {
-      font: 700 clamp(28px, 5vw, 44px)/1 'Space Grotesk', sans-serif;
-      letter-spacing: -0.04em;
+      font: 600 clamp(32px, 5.5vw, 50px)/1 var(--forest-display, "Cormorant Garamond", Georgia, serif);
+      letter-spacing: 0;
       color: var(--text-primary);
       margin: 0 0 10px;
     }
@@ -108,7 +120,7 @@
       margin-bottom: 16px;
     }
     .panel-title {
-      font: 700 13px/1 'Inter', sans-serif;
+      font: 700 13px/1 var(--forest-sans, "Alegreya Sans", sans-serif);
       letter-spacing: 0.08em;
       text-transform: uppercase;
       color: var(--text-muted);
@@ -128,7 +140,7 @@
     .drop-zone:hover,
     .drop-zone.dragover {
       border-color: var(--accent);
-      background: rgba(79, 70, 229, 0.05);
+      background: rgba(232, 184, 107, 0.05);
     }
     .drop-zone input[type="file"] {
       position: absolute;
@@ -162,7 +174,7 @@
       border-radius: var(--radius);
       padding: 14px 16px;
       color: var(--text-primary);
-      font: 400 13px/1.65 'Inter', sans-serif;
+      font: 400 13px/1.65 var(--forest-sans, "Alegreya Sans", sans-serif);
       resize: vertical;
       outline: none;
       box-sizing: border-box;
@@ -180,6 +192,7 @@
     }
     .meta-field label {
       display: block;
+      font-family: var(--forest-sans, "Alegreya Sans", sans-serif);
       font-size: 11px;
       font-weight: 600;
       letter-spacing: 0.06em;
@@ -195,14 +208,14 @@
       border-radius: var(--radius);
       padding: 10px 12px;
       color: var(--text-primary);
-      font: 400 13px/1 'Inter', sans-serif;
+      font: 400 13px/1 var(--forest-sans, "Alegreya Sans", sans-serif);
       outline: none;
       box-sizing: border-box;
       transition: border-color 0.2s;
     }
     .meta-field input:focus,
     .meta-field select:focus { border-color: var(--accent); }
-    .meta-field select option { background: #1a1a2e; }
+    .meta-field select option { background: #131a14; }
 
     /* ── Submit button ────────────────────────────────────────────────────── */
     .btn-submit {
@@ -216,19 +229,19 @@
       background: var(--accent);
       border: none;
       border-radius: var(--radius);
-      color: #fff;
-      font: 700 14px/1 'Inter', sans-serif;
+      color: #06130b;
+      font: 700 14px/1 var(--forest-sans, "Alegreya Sans", sans-serif);
       letter-spacing: 0.04em;
       cursor: pointer;
       transition: background 0.2s, transform 0.15s;
     }
-    .btn-submit:hover:not(:disabled) { background: #4338ca; transform: translateY(-1px); }
+    .btn-submit:hover:not(:disabled) { background: #d4a458; transform: translateY(-1px); }
     .btn-submit:disabled { opacity: 0.5; cursor: not-allowed; }
     .btn-submit .spinner {
       width: 16px;
       height: 16px;
-      border: 2px solid rgba(255,255,255,0.3);
-      border-top-color: #fff;
+      border: 2px solid rgba(7,10,8,0.3);
+      border-top-color: #070a08;
       border-radius: 50%;
       display: none;
       animation: spin 0.7s linear infinite;
@@ -254,7 +267,7 @@
       font-size: 13px;
       line-height: 1.55;
     }
-    .status-item.info    { background: rgba(79,70,229,0.1);  border: 1px solid rgba(79,70,229,0.2);  color: #a5b4fc; }
+    .status-item.info    { background: rgba(232,184,107,0.1);  border: 1px solid rgba(232,184,107,0.2);  color: #e8d5ab; }
     .status-item.success { background: rgba(34,197,94,0.1);  border: 1px solid rgba(34,197,94,0.2);  color: #86efac; }
     .status-item.error   { background: rgba(248,113,113,0.1); border: 1px solid rgba(248,113,113,0.2); color: #fca5a5; }
     .status-item .icon   { flex-shrink: 0; font-size: 16px; }
@@ -275,7 +288,7 @@
     .log-entry:last-child { border-bottom: none; }
     .log-name { color: var(--text-primary); font-weight: 600; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .log-meta { color: var(--text-muted); white-space: nowrap; }
-    .log-status { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; }
+    .log-status { font-family: var(--forest-sans, "Alegreya Sans", sans-serif); font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; }
     .log-status.ok  { color: var(--accent-green); }
     .log-status.err { color: #f87171; }
     .log-empty { color: var(--text-muted); font-size: 13px; text-align: center; padding: 20px 0; }

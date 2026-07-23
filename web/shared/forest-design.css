@@ -503,11 +503,13 @@
 
 /* ------------------------------------------------------------------ *
  * Opt-in page skin. A subpage adds class="forest-skin" on <html> and
- * gets: the grain (film noise via inline SVG turbulence), a soft
- * vignette pulling the edges into dusk, and the serif voice on its
- * existing token names where it uses the shared set.
+ * gets the grain (film noise via inline SVG turbulence) plus a soft
+ * vignette pulling the edges into dusk. Adding "forest-palette" as
+ * well remaps the shared token names onto the dusk-forest palette —
+ * pages with their own color identity (kids apps, periodic table)
+ * take the skin without the palette.
  * ------------------------------------------------------------------ */
-html.forest-skin {
+html.forest-skin.forest-palette {
   --bg: var(--forest-bg);
   --surface: var(--forest-surface);
   --border: rgba(226, 235, 209, .1);

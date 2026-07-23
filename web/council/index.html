@@ -1,26 +1,38 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" class="forest-skin forest-palette">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="Four public deliberation experiments: local TinyLM, inner fleet council, free OpenRouter round table, and BYOK arena.">
-  <meta name="theme-color" content="#07070b">
+  <meta name="theme-color" content="#070a08">
   <title>Councils — SDForest</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/web/shared/forest-shell.css?v=20260714">
+  <link rel="stylesheet" href="/web/shared/forest-design.css?v=20260723">
+  <link rel="stylesheet" href="/web/shared/forest-shell.css?v=20260723">
   <style>
     :root {
-      --bg: #07070b;
-      --surface: #0f0f15;
-      --border: rgba(255,255,255,0.08);
-      --text-primary: #f3f4f6;
-      --text-muted: #9ca3af;
-      --accent: #4f46e5;
-      --accent-green: #22c55e;
+      --bg: #070a08;
+      --surface: #0d120e;
+      --border: rgba(226,235,209,0.1);
+      --text-primary: #f2efe4;
+      --text-muted: #a9b3a1;
+      --accent: #e8b86b;
+      --accent-green: #8fe6ae;
       --radius: 8px;
-      --forest-accent: #ac90ff;
+      --forest-accent: #e8b86b;
+      --forest-accent-rgb: 232, 184, 107;
+      /* Re-assert the dusk voice — forest-shell.css loads later and would
+         otherwise pull these tokens back to Space Grotesk / Inter. */
+      --forest-display: "Cormorant Garamond", "Iowan Old Style", Georgia, serif;
+      --forest-body: Alegreya, "Iowan Old Style", Georgia, serif;
+      --forest-sans: "Alegreya Sans", "Gill Sans", "Segoe UI", system-ui, sans-serif;
+      --forest-ink: #f2efe4;
+      --forest-soft: #bcc6b4;
+      --forest-muted: #7d8877;
+    }
+
+    /* Small-caps shell chrome speaks the UI sans. */
+    .forest-kicker, .forest-back, .forest-top-action {
+      font-family: var(--forest-sans, "Alegreya Sans", sans-serif);
     }
 
     /* ── Hero ─────────────────────────────────────────────────────────────── */
@@ -51,7 +63,7 @@
       background: linear-gradient(
         145deg,
         color-mix(in srgb, var(--mode) 7%, transparent),
-        rgba(7, 7, 11, 0.92) 56%
+        rgba(7, 10, 8, 0.92) 56%
       );
       box-shadow: 0 32px 80px rgba(0, 0, 0, 0.28);
       isolation: isolate;
@@ -87,7 +99,7 @@
     }
     .mode-number {
       color: var(--mode);
-      font: 700 10px/1 var(--forest-body, 'Inter', sans-serif);
+      font: 700 10px/1 var(--forest-sans, "Alegreya Sans", sans-serif);
       letter-spacing: 0.18em;
       text-transform: uppercase;
     }
@@ -100,7 +112,7 @@
       border-radius: 999px;
       color: var(--mode);
       background: color-mix(in srgb, var(--mode) 6%, transparent);
-      font: 700 9px/1 var(--forest-body, 'Inter', sans-serif);
+      font: 700 9px/1 var(--forest-sans, "Alegreya Sans", sans-serif);
       letter-spacing: 0.1em;
       text-transform: uppercase;
     }
@@ -149,8 +161,8 @@
     .mode-card h2 {
       max-width: 9ch;
       margin: 0;
-      font: 700 clamp(32px, 4.5vw, 54px)/0.9 var(--forest-display, 'Space Grotesk', sans-serif);
-      letter-spacing: -0.06em;
+      font: 600 clamp(36px, 5vw, 60px)/0.95 var(--forest-display, "Cormorant Garamond", Georgia, serif);
+      letter-spacing: 0;
     }
     .mode-card p {
       max-width: 44ch;
@@ -170,9 +182,10 @@
       display: inline-flex;
       align-items: center;
       padding: 0 9px;
-      border: 1px solid rgba(255,255,255,0.08);
+      border: 1px solid rgba(226,235,209,0.1);
       border-radius: 999px;
       color: var(--text-muted);
+      font-family: var(--forest-sans, "Alegreya Sans", sans-serif);
       font-size: 9px;
       letter-spacing: 0.08em;
       text-transform: uppercase;
@@ -184,9 +197,9 @@
       gap: 12px;
       margin-top: 24px;
       padding-top: 18px;
-      border-top: 1px solid rgba(255,255,255,0.07);
+      border-top: 1px solid rgba(226,235,209,0.09);
       color: var(--mode);
-      font: 700 11px/1 var(--forest-body, 'Inter', sans-serif);
+      font: 700 11px/1 var(--forest-sans, "Alegreya Sans", sans-serif);
       letter-spacing: 0.12em;
       text-transform: uppercase;
     }
@@ -215,10 +228,10 @@
     /* Divider label between rows */
     .row-label {
       grid-column: 1 / -1;
-      font: 700 9px/1 'Inter', sans-serif;
+      font: 700 9px/1 var(--forest-sans, "Alegreya Sans", sans-serif);
       letter-spacing: 0.18em;
       text-transform: uppercase;
-      color: rgba(255,255,255,0.3);
+      color: rgba(226,235,209,0.35);
       padding: 6px 0 0;
     }
 
@@ -261,7 +274,7 @@
     <section class="mode-grid" aria-label="Council modes">
 
       <!-- ── Mode 01: TinyLM ─────────────────────────────────────────────── -->
-      <a class="mode-card" style="--mode:#79f2a8" href="/web/tinylm/" data-council-mode="tinylm">
+      <a class="mode-card" style="--mode:#8fe6ae" href="/web/tinylm/" data-council-mode="tinylm">
         <div class="mode-top">
           <span class="mode-number">Mode 01 · Local</span>
           <span class="mode-badge">Public · $0 · slow</span>
@@ -306,7 +319,7 @@
       </a>
 
       <!-- ── Mode 02: Inner Council ──────────────────────────────────────── -->
-      <a class="mode-card" style="--mode:#a78bfa" href="/web/council/inner/" data-council-mode="inner">
+      <a class="mode-card" style="--mode:#d98a7f" href="/web/council/inner/" data-council-mode="inner">
         <div class="mode-top">
           <span class="mode-number">Mode 02 · Fleet</span>
           <span class="mode-badge">Fleet-grounded · private</span>
@@ -347,7 +360,7 @@
       </a>
 
       <!-- ── Mode 03: Open Round Table ──────────────────────────────────── -->
-      <a class="mode-card" style="--mode:#73e9ff" href="/web/council/byok/" data-council-mode="openrouter">
+      <a class="mode-card" style="--mode:#bcc6b4" href="/web/council/byok/" data-council-mode="openrouter">
         <div class="mode-top">
           <span class="mode-number">Mode 03 · Routed</span>
           <span class="mode-badge">Public · free models</span>
@@ -384,7 +397,7 @@
       </a>
 
       <!-- ── Mode 04: BYOK Arena ─────────────────────────────────────────── -->
-      <a class="mode-card" style="--mode:#fbbf24" href="/web/council/byok/?mode=private" data-council-mode="byok-private">
+      <a class="mode-card" style="--mode:#e8b86b" href="/web/council/byok/?mode=private" data-council-mode="byok-private">
         <div class="mode-top">
           <span class="mode-number">Mode 04 · Private</span>
           <span class="mode-badge">BYOK · any model</span>
