@@ -390,7 +390,9 @@ html.is-born .title-flourish .flourish-seed {
 .crown-label.is-lit { color: var(--home-ink); opacity: .95; }
 
 /* ================================================================== *
- * III. The routes — the walk of slams
+ * III. The walk of slams. The taproot (.root-rail) runs down its
+ * spine; each collision grows WebGL roots from the seam up to the
+ * crown, and the taproot lights as far as the walk has reached.
  * ================================================================== */
 .routes {
   position: relative;
@@ -398,7 +400,7 @@ html.is-born .title-flourish .flourish-seed {
   padding: clamp(30px, 6vh, 80px) 0;
 }
 
-.route-rail {
+.root-rail {
   position: absolute;
   z-index: -1;
   inset: 0;
@@ -407,19 +409,19 @@ html.is-born .title-flourish .flourish-seed {
   overflow: visible;
 }
 
-.route-rail path {
+.root-rail path {
   fill: none;
   stroke-linecap: round;
   vector-effect: non-scaling-stroke;
 }
 
-.route-rail .rail-ghost {
+.root-rail .rail-ghost {
   stroke: rgba(226, 235, 209, .07);
   stroke-width: 1.2;
   stroke-dasharray: 3 7;
 }
 
-.route-rail .rail-lit {
+.root-rail .rail-lit {
   stroke: var(--home-moss);
   stroke-width: 1.6;
   stroke-dasharray: 1;

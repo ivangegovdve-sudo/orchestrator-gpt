@@ -7,30 +7,34 @@
    At the moment of collision this module:
      · flashes the seam (CSS vars --hit / --hit-ring on the section),
      · throws a burst of dust from the impact point (WebGL points),
-     · fires a route pulse — a filament of light that shoots upward
-       from the collision toward the crown and off the top of the
-       screen (WebGL line), and
-     · advances the lit fraction of the page-space route rail
+     · grows ROOTS — organic, branching root strands that climb upward
+       from the collision point toward the crown above, wandering and
+       splitting as they rise, amber at the wound and the project's
+       accent at the growing tips (WebGL lines, anchored to the
+       section so they ride with the page), and
+     · advances the lit fraction of the page-space taproot
        (--rail-lit on [data-routes]) and the per-branch lit levels the
        crown module reads (shared.slamState).
 
    DOM motion itself stays in CSS: this module only writes variables. */
 
 import * as THREE from '../../vendor/three/three.module.min.js';
-import { clamp, lerp, makeAdditive, mulberry32, worldX, worldY, PALETTE } from './util.js';
+import { clamp, lerp, easeOutCubic, makeAdditive, mulberry32, worldX, worldY, PALETTE } from './util.js';
 
 const HIT_AT = 0.62;          // scrub progress where the collision fires
-const PULSE_LIFE = 1.5;       // seconds a route pulse lives
-const PULSE_POINTS = 26;
-const MAX_PULSES = 5;
-const DUST_PER_BURST = 22;
+const ROOT_LIFE = 2.0;        // seconds a root burst lives
 const MAX_BURSTS = 5;
+const MAX_ROOT_SEGS = 170;    // per burst, capped at build time
+const DUST_PER_BURST = 22;
+const MAX_DUST_BURSTS = 5;
+
+const CORE = new THREE.Color(PALETTE.amber);
 
 const state = {
   root: null,
   routes: null,
   sections: [],
-  pulses: [],
+  bursts: [],
   dust: null,
   dustMeta: [],
   dustCursor: 0,
@@ -59,6 +63,61 @@ function slamCurve(p, amp) {
     return -amp * ((1 - t) ** 2) * Math.cos(t * 6.5);
   }
   return 0;
+}
+
+/* Grow one root system in section-local pixels (origin at the seam,
+   screen y — negative y climbs). A handful of primary roots fan
+   upward, each wandering more as it rises and shedding thinner
+   side-roots; every strand is pulled gently back toward vertical, the
+   way roots follow gravity in reverse. Returns segments sorted by
+   growth distance so the burst can be drawn front-first. */
+function buildRootSkeleton(rng, impact) {
+  const reach = 520 + rng() * 240 + impact * 240;
+  const segs = [];
+  const primaries = 4 + (rng() < 0.5 ? 1 : 0);
+  for (let p = 0; p < primaries; p += 1) {
+    const fan = primaries === 1 ? 0 : p / (primaries - 1) - 0.5;
+    let angle = -Math.PI / 2 + fan * 0.9 + (rng() - 0.5) * 0.22;
+    let x = fan * 30 + (rng() - 0.5) * 14;
+    let y = 6 - rng() * 8;
+    let dist = rng() * 22; // staggered awakening
+    const steps = 13 + Math.floor(rng() * 6);
+    const stepLen = (reach / steps) * (0.85 + rng() * 0.3);
+    for (let s = 0; s < steps; s += 1) {
+      // Wander plus a pull back toward up — organic, never straight.
+      angle += (rng() - 0.5) * 0.36 + (-Math.PI / 2 - angle) * 0.1;
+      const len = stepLen * (0.75 + rng() * 0.5);
+      const nx = x + Math.cos(angle) * len;
+      const ny = y + Math.sin(angle) * len;
+      segs.push({ ax: x, ay: y, bx: nx, by: ny, distA: dist, depth: 0 });
+      // Side-roots: thinner, dimmer, more restless.
+      if (s > 2 && s < steps - 2 && rng() < 0.36 && segs.length < MAX_ROOT_SEGS - 12) {
+        let ca = angle + (rng() < 0.5 ? -1 : 1) * (0.5 + rng() * 0.6);
+        let cx = nx;
+        let cy = ny;
+        let cd = dist + len;
+        const csteps = 4 + Math.floor(rng() * 5);
+        for (let c = 0; c < csteps; c += 1) {
+          ca += (rng() - 0.5) * 0.62 + (-Math.PI / 2 - ca) * 0.06;
+          const cl = stepLen * (0.45 + rng() * 0.35);
+          const cnx = cx + Math.cos(ca) * cl;
+          const cny = cy + Math.sin(ca) * cl;
+          segs.push({ ax: cx, ay: cy, bx: cnx, by: cny, distA: cd, depth: 1 });
+          cx = cnx;
+          cy = cny;
+          cd += cl;
+        }
+      }
+      x = nx;
+      y = ny;
+      dist += len;
+      if (segs.length >= MAX_ROOT_SEGS) break;
+    }
+    if (segs.length >= MAX_ROOT_SEGS) break;
+  }
+  segs.sort((a, b) => a.distA - b.distA);
+  const maxDist = segs.length ? Math.max(...segs.map((seg) => seg.distA)) + 30 : 1;
+  return { segs, maxDist };
 }
 
 export function initSlams(shared) {
@@ -92,33 +151,39 @@ export function initSlams(shared) {
   // Without WebGL the CSS choreography above is the whole show.
   if (!shared.scene) return;
 
-  // Route pulses — reusable pool of upward-shooting filaments.
-  const random = mulberry32(90210);
-  for (let i = 0; i < MAX_PULSES; i += 1) {
-    const positions = new Float32Array((PULSE_POINTS - 1) * 2 * 3);
-    const colors = new Float32Array((PULSE_POINTS - 1) * 2 * 3);
+  // Root bursts — reusable pool of upward-growing root systems.
+  for (let i = 0; i < MAX_BURSTS; i += 1) {
+    const positions = new Float32Array(MAX_ROOT_SEGS * 2 * 3);
+    const colors = new Float32Array(MAX_ROOT_SEGS * 2 * 3);
     const geometry = new THREE.BufferGeometry();
     geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3).setUsage(THREE.DynamicDrawUsage));
     geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3).setUsage(THREE.DynamicDrawUsage));
-    const line = new THREE.LineSegments(geometry, makeAdditive(new THREE.LineBasicMaterial({
+    geometry.setDrawRange(0, 0);
+    const material = makeAdditive(new THREE.LineBasicMaterial({
       vertexColors: true,
       transparent: true,
       depthTest: false,
       depthWrite: false,
-    })));
-    line.visible = false;
-    line.frustumCulled = false;
-    line.renderOrder = 3;
-    shared.scene.add(line);
-    state.pulses.push({
-      line, born: -1, x: 0, y: 0,
-      bend: 0, drift: 0,
-      color: new THREE.Color(PALETTE.green),
+    }));
+    const lines = new THREE.LineSegments(geometry, material);
+    lines.visible = false;
+    lines.frustumCulled = false;
+    lines.renderOrder = 3;
+    shared.scene.add(lines);
+    state.bursts.push({
+      lines,
+      material,
+      born: -1,
+      el: null,        // section the roots grew from — they ride with it
+      skeleton: null,
+      maxDist: 1,
+      strength: 1,
+      seed: 511 + i * 977,
     });
   }
 
   // Impact dust — one shared Points cloud, recycled burst by burst.
-  const total = MAX_BURSTS * DUST_PER_BURST;
+  const total = MAX_DUST_BURSTS * DUST_PER_BURST;
   const dustPositions = new Float32Array(total * 3);
   const dustColors = new Float32Array(total * 3);
   const dustGeometry = new THREE.BufferGeometry();
@@ -136,6 +201,7 @@ export function initSlams(shared) {
   state.dust.frustumCulled = false;
   state.dust.renderOrder = 3;
   shared.scene.add(state.dust);
+  const random = mulberry32(90210);
   for (let i = 0; i < total; i += 1) {
     state.dustMeta.push({
       born: -1, x: 0, y: 0,
@@ -146,20 +212,38 @@ export function initSlams(shared) {
   }
 }
 
-function firePulse(x, y, accent, time, impact) {
-  let slot = state.pulses[0];
-  for (const pulse of state.pulses) {
-    if (pulse.born < 0) { slot = pulse; break; }
-    if (pulse.born < slot.born) slot = pulse;
+function fireRoots(sectionEl, accent, time, impact) {
+  let slot = state.bursts[0];
+  for (const burst of state.bursts) {
+    if (burst.born < 0) { slot = burst; break; }
+    if (burst.born < slot.born) slot = burst;
   }
+  slot.seed = (slot.seed * 16807 + 137) % 2147483647;
+  const rng = mulberry32(slot.seed);
+  const { segs, maxDist } = buildRootSkeleton(rng, impact);
+  slot.skeleton = segs;
+  slot.maxDist = maxDist;
   slot.born = time;
-  slot.x = x;
-  slot.y = y;
-  slot.bend = (Math.random() - 0.5) * 140;
-  slot.drift = (Math.random() - 0.5) * 60;
-  slot.color.copy(accent);
-  slot.strength = 0.75 + impact * 0.6;
-  slot.line.visible = true;
+  slot.el = sectionEl;
+  slot.strength = 0.8 + impact * 0.5;
+  slot.lines.visible = true;
+
+  // Colors are fixed at spawn: amber at the wound, the project's
+  // accent at the growing tips, side-roots a shade dimmer.
+  const colors = slot.lines.geometry.attributes.color.array;
+  const tip = new THREE.Color();
+  segs.forEach((seg, i) => {
+    const t = clamp(seg.distA / maxDist, 0, 1);
+    tip.copy(CORE).lerp(accent, clamp(t * 1.5, 0, 1));
+    const dim = (seg.depth ? 0.55 : 1) * (1 - t * 0.25);
+    colors[i * 6] = tip.r * dim;
+    colors[i * 6 + 1] = tip.g * dim;
+    colors[i * 6 + 2] = tip.b * dim;
+    colors[i * 6 + 3] = tip.r * dim;
+    colors[i * 6 + 4] = tip.g * dim;
+    colors[i * 6 + 5] = tip.b * dim;
+  });
+  slot.lines.geometry.attributes.color.needsUpdate = true;
 }
 
 function fireDust(x, y, accent, time, impact) {
@@ -173,51 +257,46 @@ function fireDust(x, y, accent, time, impact) {
     meta.y = y;
     meta.vx = Math.cos(angle) * speed;
     meta.vy = Math.sin(angle) * speed * 0.6 - 40; // biased upward
-    meta.color.copy(accent).lerp(new THREE.Color(PALETTE.amber), Math.random() * 0.5);
+    meta.color.copy(accent).lerp(CORE, Math.random() * 0.5);
   }
   state.dust.visible = true;
 }
 
-function updatePulses(time) {
+function updateRootBursts(time) {
   let any = false;
-  for (const pulse of state.pulses) {
-    if (pulse.born < 0) continue;
-    const age = (time - pulse.born) / PULSE_LIFE;
-    if (age >= 1) {
-      pulse.born = -1;
-      pulse.line.visible = false;
+  for (const burst of state.bursts) {
+    if (burst.born < 0) continue;
+    const age = (time - burst.born) / ROOT_LIFE;
+    if (age >= 1 || !burst.el) {
+      burst.born = -1;
+      burst.lines.visible = false;
+      burst.lines.geometry.setDrawRange(0, 0);
       continue;
     }
     any = true;
-    const head = 1 - ((1 - age) ** 3); // easeOutCubic: fast launch
-    const tail = clamp(age * 1.6 - 0.28, 0, 1);
-    const positions = pulse.line.geometry.attributes.position.array;
-    const colors = pulse.line.geometry.attributes.color.array;
-    const reach = pulse.y + 160; // travels to 160px above the viewport top
-    let cursor = 0;
-    let prevX = 0;
-    let prevY = 0;
-    for (let i = 0; i < PULSE_POINTS; i += 1) {
-      const u = tail + (head - tail) * (i / (PULSE_POINTS - 1));
-      const inv = 1 - u;
-      // Quadratic bend from the collision point up and off-screen.
-      const px = pulse.x + pulse.bend * 2 * inv * u + pulse.drift * u * u;
-      const py = pulse.y - reach * (u * u * 0.35 + u * 0.65);
-      if (i > 0) {
-        const glow = pulse.strength * (0.12 + (i / PULSE_POINTS) * 0.9) * (1 - age * 0.55);
-        positions[cursor] = worldX(prevX); colors[cursor] = pulse.color.r * glow;
-        positions[cursor + 1] = worldY(prevY); colors[cursor + 1] = pulse.color.g * glow;
-        positions[cursor + 2] = 3; colors[cursor + 2] = pulse.color.b * glow;
-        positions[cursor + 3] = worldX(px); colors[cursor + 3] = pulse.color.r * glow;
-        positions[cursor + 4] = worldY(py); colors[cursor + 4] = pulse.color.g * glow;
-        positions[cursor + 5] = 3; colors[cursor + 5] = pulse.color.b * glow;
-        cursor += 6;
-      }
-      prevX = px;
-      prevY = py;
+
+    // Roots stay attached to the seam they grew from, riding the page.
+    const rect = burst.el.getBoundingClientRect();
+    const baseX = rect.left + rect.width / 2;
+    const baseY = rect.top + rect.height / 2;
+
+    const front = burst.maxDist * easeOutCubic(Math.min(1, age / 0.72));
+    const positions = burst.lines.geometry.attributes.position.array;
+    let drawn = 0;
+    for (let i = 0; i < burst.skeleton.length; i += 1) {
+      const seg = burst.skeleton[i];
+      if (seg.distA > front) break; // sorted: everything past is unborn
+      positions[i * 6] = worldX(baseX + seg.ax);
+      positions[i * 6 + 1] = worldY(baseY + seg.ay);
+      positions[i * 6 + 2] = 3;
+      positions[i * 6 + 3] = worldX(baseX + seg.bx);
+      positions[i * 6 + 4] = worldY(baseY + seg.by);
+      positions[i * 6 + 5] = 3;
+      drawn += 1;
     }
-    pulse.line.geometry.attributes.position.needsUpdate = true;
-    pulse.line.geometry.attributes.color.needsUpdate = true;
+    burst.lines.geometry.setDrawRange(0, drawn * 2);
+    burst.lines.geometry.attributes.position.needsUpdate = true;
+    burst.material.opacity = burst.strength * (age < 0.68 ? 1 : 1 - (age - 0.68) / 0.32);
   }
   return any;
 }
@@ -264,7 +343,7 @@ export function updateSlams(shared, time, dt) {
   let moving = false;
   let litUnits = 0;
 
-  // Routes and crown branches are trail memory: once a slam has fired,
+  // Roots and crown branches are trail memory: once a slam has fired,
   // its light survives scrolling back up to look at the crown. The
   // whole trail resets only when the walk truly rewinds to the title.
   const atTitle = scroll.writtenTitle >= 0 && scroll.writtenTitle < 0.35;
@@ -290,8 +369,8 @@ export function updateSlams(shared, time, dt) {
       // Collision point: the seam center of this section, in client px.
       const seamX = rect.left + rect.width / 2;
       const seamY = clamp(rect.top + rect.height / 2, 60, viewH - 60);
-      if (!shared.compact() && state.pulses.length) {
-        firePulse(seamX, seamY, section.accent, time, scroll.impact);
+      if (!shared.compact() && state.bursts.length) {
+        fireRoots(section.el, section.accent, time, scroll.impact);
         fireDust(seamX, seamY, section.accent, time, scroll.impact);
       }
       shared.wake?.();
@@ -337,10 +416,10 @@ export function updateSlams(shared, time, dt) {
     state.routes.style.setProperty('--rail-lit', lit.toFixed(4));
   }
 
-  const pulsesAlive = state.pulses.length ? updatePulses(time) : false;
+  const rootsAlive = state.bursts.length ? updateRootBursts(time) : false;
   const dustAlive = state.dust ? updateDust(time, dt) : false;
-  state.moving = moving || pulsesAlive || dustAlive;
-  return pulsesAlive || dustAlive;
+  state.moving = moving || rootsAlive || dustAlive;
+  return rootsAlive || dustAlive;
 }
 
 export const slamsAnimating = () => state.moving;

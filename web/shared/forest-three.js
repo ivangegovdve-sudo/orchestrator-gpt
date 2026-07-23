@@ -11,10 +11,11 @@
                 flat 2D into rotating 3D and settle back into the page.
                 Branches light up as their slams fire below.
      slams.js   The walk: one scroll-scrubbed slam per project section
-                (icon plate meets detail panel at the seam), with the
-                collision firing a route pulse up toward the crown,
-                impact dust, and the lit route rail. Writes CSS vars;
-                DOM motion itself stays in stylesheets.
+                (icon plate meets detail panel at the seam). Each
+                collision grows branching roots upward from the impact
+                point toward the crown, throws impact dust, and lights
+                the taproot rail. Writes CSS vars; DOM motion itself
+                stays in stylesheets.
      tiles.js   Per-portal wireframes in the atlas grid, each with its
                 own named motion identity.
      burst.js   Sparse ambient geometry — fireflies in the forest dark
