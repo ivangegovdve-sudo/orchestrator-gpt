@@ -11,7 +11,9 @@
        from the collision point toward the crown above, wandering and
        splitting as they rise, amber at the wound and the project's
        accent at the growing tips (WebGL lines, anchored to the
-       section so they ride with the page), and
+       section so they ride with the page). Grown roots PERSIST — one
+       system per section, accumulating as the walk continues, cleared
+       only by the great rewind back to the title — and
      · advances the lit fraction of the page-space taproot
        (--rail-lit on [data-routes]) and the per-branch lit levels the
        crown module reads (shared.slamState).
@@ -22,9 +24,8 @@ import * as THREE from '../../vendor/three/three.module.min.js';
 import { clamp, lerp, easeOutCubic, makeAdditive, mulberry32, worldX, worldY, PALETTE } from './util.js';
 
 const HIT_AT = 0.62;          // scrub progress where the collision fires
-const ROOT_LIFE = 2.0;        // seconds a root burst lives
-const MAX_BURSTS = 5;
-const MAX_ROOT_SEGS = 170;    // per burst, capped at build time
+const ROOT_GROW = 1.45;       // seconds a root system takes to reach full height
+const MAX_ROOT_SEGS = 170;    // per root system, capped at build time
 const DUST_PER_BURST = 22;
 const MAX_DUST_BURSTS = 5;
 
@@ -152,8 +153,9 @@ export function initSlams(shared) {
   // Without WebGL the CSS choreography above is the whole show.
   if (!shared.scene) return;
 
-  // Root bursts — reusable pool of upward-growing root systems.
-  for (let i = 0; i < MAX_BURSTS; i += 1) {
+  // Root systems — one persistent slot per section: once a slam grows
+  // its roots they stay, so the pool must never recycle a living one.
+  for (let i = 0; i < state.sections.length; i += 1) {
     const positions = new Float32Array(MAX_ROOT_SEGS * 2 * 3);
     const colors = new Float32Array(MAX_ROOT_SEGS * 2 * 3);
     const geometry = new THREE.BufferGeometry();
@@ -213,12 +215,9 @@ export function initSlams(shared) {
   }
 }
 
-function fireRoots(sectionEl, accent, time, intensity) {
-  let slot = state.bursts[0];
-  for (const burst of state.bursts) {
-    if (burst.born < 0) { slot = burst; break; }
-    if (burst.born < slot.born) slot = burst;
-  }
+function fireRoots(index, sectionEl, accent, time, intensity) {
+  const slot = state.bursts[index];
+  if (!slot) return;
   slot.seed = (slot.seed * 16807 + 137) % 2147483647;
   const rng = mulberry32(slot.seed);
   const { segs, maxDist } = buildRootSkeleton(rng, intensity);
@@ -227,6 +226,7 @@ function fireRoots(sectionEl, accent, time, intensity) {
   slot.born = time;
   slot.el = sectionEl;
   slot.strength = 0.35 + intensity * 0.9;
+  slot.material.opacity = slot.strength; // fixed for life — roots never fade
   slot.lines.visible = true;
 
   // Colors are fixed at spawn: amber at the wound, the project's
@@ -267,23 +267,32 @@ function fireDust(x, y, accent, time, intensity) {
 
 function updateRootBursts(time) {
   let any = false;
+  const viewH = document.documentElement.clientHeight || innerHeight;
   for (const burst of state.bursts) {
     if (burst.born < 0) continue;
-    const age = (time - burst.born) / ROOT_LIFE;
-    if (age >= 1 || !burst.el) {
+    if (!burst.el) {
       burst.born = -1;
       burst.lines.visible = false;
       burst.lines.geometry.setDrawRange(0, 0);
       continue;
     }
-    any = true;
 
     // Roots stay attached to the seam they grew from, riding the page.
     const rect = burst.el.getBoundingClientRect();
     const baseX = rect.left + rect.width / 2;
     const baseY = rect.top + rect.height / 2;
 
-    const front = burst.maxDist * easeOutCubic(Math.min(1, age / 0.72));
+    // The system spans from the seam up to maxDist above it. A grown
+    // system lives forever, so skip the redraw (and the render frames
+    // it would force) once none of that span is on screen.
+    if (baseY + 20 < -60 || baseY - burst.maxDist > viewH + 60) {
+      burst.lines.visible = false;
+      continue;
+    }
+    burst.lines.visible = true;
+    any = true;
+
+    const front = burst.maxDist * easeOutCubic(Math.min(1, (time - burst.born) / ROOT_GROW));
     const positions = burst.lines.geometry.attributes.position.array;
     let drawn = 0;
     for (let i = 0; i < burst.skeleton.length; i += 1) {
@@ -299,7 +308,6 @@ function updateRootBursts(time) {
     }
     burst.lines.geometry.setDrawRange(0, drawn * 2);
     burst.lines.geometry.attributes.position.needsUpdate = true;
-    burst.material.opacity = burst.strength * (age < 0.68 ? 1 : 1 - (age - 0.68) / 0.32);
   }
   return any;
 }
@@ -388,12 +396,18 @@ export function updateSlams(shared, time, dt) {
         // Mobile momentum-scrolls fast, so the effect reads clearly
         // there too — compact only trims the energy a touch.
         const e = shared.compact() ? energy * 0.85 : energy;
-        fireRoots(section.el, section.accent, time, e);
+        fireRoots(index, section.el, section.accent, time, e);
         fireDust(seamX, seamY, section.accent, time, e);
       }
       shared.wake?.();
     } else if (section.fired && atTitle) {
       section.fired = false; // the great rewind — back to the beginning
+      const burst = state.bursts[index];
+      if (burst && burst.born >= 0) {
+        burst.born = -1; // the persistent roots rewind with the trail
+        burst.lines.visible = false;
+        burst.lines.geometry.setDrawRange(0, 0);
+      }
     }
 
     if (section.hit > 0) {

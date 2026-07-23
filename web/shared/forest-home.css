@@ -399,7 +399,9 @@ html.is-born .title-flourish .flourish-seed {
  * ================================================================== */
 .routes {
   position: relative;
-  z-index: 2;
+  /* Above the fixed WebGL canvas (inline z-index 5): the slam roots and
+     dust draw BEHIND the panels, emerging only in the gaps between. */
+  z-index: 6;
   padding: clamp(30px, 6vh, 80px) 0;
 }
 

@@ -30,8 +30,8 @@
 
 import * as THREE from '../vendor/three/three.module.min.js';
 import { clamp, lerp } from './forest-three/util.js';
-import { initSlams, updateSlams, slamsAnimating, slamsDebug } from './forest-three/slams.js';
-import { initCrown, updateCrown, crownDebug } from './forest-three/crown.js';
+import { initSlams, updateSlams, slamsAnimating, slamsDebug } from './forest-three/slams.js?v=20260724c';
+import { initCrown, updateCrown, crownDebug } from './forest-three/crown.js?v=20260724c';
 import { initTiles, updateTiles, tilesAnimating, tilesDebug } from './forest-three/tiles.js?v=20260723';
 import { initRoots, updateRoots, rootsDebug } from './forest-three/roots.js';
 
