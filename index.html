@@ -13,7 +13,9 @@
   <link rel="stylesheet" href="/web/shared/forest-home.css?v=20260724c">
 </head>
 <body>
-  <canvas class="home-scene" data-forest-scene data-mode="portal" aria-hidden="true"></canvas>
+  <!-- The forest-motion.js constellation canvas is gone from the landing
+       (Ivan 2026-07-24): the crown and the mycelium are the only living
+       geometry here. Subpages still load forest-motion.js themselves. -->
   <div class="home-scrim" aria-hidden="true"></div>
   <div class="forest-vignette" aria-hidden="true"></div>
   <div class="forest-grain" aria-hidden="true"></div>
@@ -254,8 +256,7 @@
     <p>SDForest is an evolving collection. Experimental and in-development work is labeled plainly; every live path should lead somewhere real.</p>
   </footer>
 
-  <script src="/web/shared/forest-motion.js?v=20260723"></script>
-  <script type="module" src="/web/shared/forest-three.js?v=20260724d"></script>
+  <script type="module" src="/web/shared/forest-three.js?v=20260724e"></script>
   <script>
     (() => {
       const root = document.documentElement;

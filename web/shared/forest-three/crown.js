@@ -6,10 +6,11 @@
    they belong to: when a slam fires below (shared.slamState.lit) the
    branch wakes into the project's accent color.
 
-   THE LEAVES are a reveal system, not a loop. A canopy of rhomboid
-   leaves — squashed squares tilted ~15° — lies scattered invisibly
-   across the whole crown area. Each leaf, once triggered, plays its
-   life exactly once and then stays:
+   THE LEAVES are a reveal system, not a loop. A canopy of kite-bladed
+   leaves — each with its own seeded silhouette, seated stem-inward
+   along its branch radial — lies scattered invisibly across the whole
+   crown area. Each leaf, once triggered, plays its life exactly once
+   and then stays:
 
      invisible
        → its outline strokes itself in            (~200ms)
@@ -19,7 +20,7 @@
        → the top edge folds back into the page
          first, the rest following, until it
          lies flat again                           (~300ms)
-       → a flat, filled rhomboid, permanent.
+       → a flat, filled leaf, permanent.
 
    Triggers: a staggered wave from the canopy's center outward when
    the crown first scrolls into view, and the pointer — sweeping the
@@ -81,20 +82,41 @@ const BRANCH_FRAG = /* glsl */`
 
 /* Shared vertex-shader body for the leaf life cycle: computes the
    transformed vertex and the phase values from (uTime - aBorn).
-   position.y spans [-0.62, 0.62] in leaf space; h = 0 at the bottom
-   edge, 1 at the top — the fold consumes high h first. */
+   h is the vertex's normalized height on the tilted (visual) blade,
+   0 at the bottom, 1 at the top — the fold consumes high h first. */
 const LEAF_PHASES = /* glsl */`
-  float t = aBorn < 0.0 ? -1.0 : uTime - aBorn;
+  // Per-leaf character, all derived from one seed.
+  float s1 = fract(aSeed * 7.31);
+  float s2 = fract(aSeed * 13.77);
+  float s3 = fract(aSeed * 23.17);
+  float s4 = fract(aSeed * 41.93);
+
+  // Each leaf lives its cycle at its own pace (±20%) — a canopy in
+  // lockstep reads mechanical.
+  float t = aBorn < 0.0 ? -1.0 : (uTime - aBorn) / (0.85 + s3 * 0.4);
   float draw = clamp(t / T_DRAW, 0.0, 1.0);
   float ext = smoothstep(0.0, 1.0, clamp((t - T_DRAW) / T_EXTRUDE, 0.0, 1.0));
   float spinT = clamp((t - T_DRAW - T_EXTRUDE) / T_SPIN, 0.0, 1.0);
-  float spin = spinT * spinT * (3.0 - 2.0 * spinT) * 6.2831853;
   float fold = clamp((t - T_DRAW - T_EXTRUDE - T_SPIN) / T_FOLD, 0.0, 1.0);
+  fold = fold * fold * (3.0 - 2.0 * fold);
 
-  vec3 p = position * aScale;
-  // In-plane tilt FIRST (orients the rhomboid along its branch radial)
-  // so the spin below happens around the viewer's vertical axis, not
-  // around a tumbling leaf-local one.
+  // One full turn — direction per leaf, with a mid-turn flutter that
+  // dies out at both ends so the turn still lands exactly on 2π.
+  float spin = spinT * spinT * (3.0 - 2.0 * spinT) * 6.2831853;
+  spin += sin(spinT * 11.0 + aSeed * 31.0) * 1.2 * spinT * (1.0 - spinT);
+  spin *= s2 < 0.5 ? -1.0 : 1.0;
+
+  // Seeded silhouette warp: asymmetric blade halves, length jitter and
+  // a slight shear — every leaf its own shape.
+  vec3 p = position;
+  p.y *= mix(0.78, 1.22, p.y > 0.0 ? s1 : s2);
+  p.x *= mix(0.88, 1.12, p.x > 0.0 ? s3 : s4);
+  p.y += p.x * (s1 - s2) * 0.22;
+  p *= aScale;
+
+  // In-plane tilt FIRST (stem toward the trunk, blade along its branch
+  // radial) so the spin above happens around the viewer's vertical
+  // axis, not around a tumbling leaf-local one.
   float ct = cos(aTilt), st = sin(aTilt);
   p = vec3(p.x * ct - p.y * st, p.x * st + p.y * ct, p.z);
   // The fold sweeps down the VISUAL leaf: the top edge flattens back
@@ -105,14 +127,16 @@ const LEAF_PHASES = /* glsl */`
   p.z *= depth;
   // A soft pop as it extrudes.
   p *= 0.9 + ext * 0.1 + sin(ext * 3.14159265) * 0.08;
-  // One full turn around the vertical (view Y) axis.
   float cs = cos(spin), sn = sin(spin);
   p = vec3(p.x * cs + p.z * sn, p.y, -p.x * sn + p.z * cs);
 
   vec3 world = aOffset + p;
-  // Leaves stir only while they are 3D — settled leaves lie still.
-  world.x += sin(uTime * 0.8 + aSeed * 41.0) * depth * 2.2;
-  world.y += cos(uTime * 0.6 + aSeed * 27.0) * depth * 1.4;
+  // While it is 3D the leaf rides the air: lifted a little, drifting,
+  // sinking back onto the page as the fold takes hold. Settled leaves
+  // lie still.
+  world.y += ext * (1.0 - fold) * (1.5 + s4 * 3.0);
+  world.x += sin(uTime * 1.1 + aSeed * 41.0) * depth * 3.0;
+  world.y += cos(uTime * 0.8 + aSeed * 27.0) * depth * 1.8;
 `;
 
 const LEAF_FILL_VERT = /* glsl */`
@@ -223,15 +247,12 @@ const state = {
   lastRect: null,
 };
 
-/* The rhomboid: a squashed square (diagonals 2.0 × 1.24) with the
-   site's ~15° tilt baked in, plus front/back apexes for the bevel. */
-const RIM_POINTS = (() => {
-  const raw = [[1, 0], [0, 0.62], [-1, 0], [0, -0.62]];
-  const a = (15 * Math.PI) / 180;
-  const cs = Math.cos(a);
-  const sn = Math.sin(a);
-  return raw.map(([x, y]) => [x * cs - y * sn, x * sn + y * cs]);
-})();
+/* The leaf blade: a kite in local space — stem end at -x, tip at +x,
+   side points pulled back toward the stem so the widest part of the
+   blade sits near the base, the way a real leaf does. Silhouette
+   variation (asymmetric halves, length jitter, shear) is seeded per
+   instance in the vertex shader so no two leaves are stamped copies. */
+const RIM_POINTS = [[1, 0], [-0.1, 0.55], [-0.85, 0], [-0.1, -0.55]];
 
 function leafFillGeometry() {
   const front = [0, 0, 0.42];
@@ -414,9 +435,10 @@ function scatterLeaves(W, H, branchCount, compact) {
       born: -1,
       waveDelay: (dist / maxR) * 2.4 + random() * 0.5,
       seed: random(),
-      // Point the stem axis (long diagonal, baked 15° CCW off +x)
-      // along the branch radial, so leaves grow away from the trunk.
-      tilt: Math.PI / 2 - branchAngle - (15 * Math.PI) / 180 + (random() - 0.5) * 0.24,
+      // Local +x (stem→tip) maps onto the branch radial: tip outward,
+      // stem toward the trunk, like leaves seated on a twig — plus a
+      // slight random tilt so the canopy never looks combed.
+      tilt: Math.PI / 2 - branchAngle + (random() - 0.5) * 0.4,
       scale: 7 + random() * 7.5,
       branch: clamp(
         Math.round(((branchAngle / 1.35) * 0.5 + 0.5) * (branchCount - 1)),
@@ -761,8 +783,8 @@ export function updateCrown(shared, time) {
           leavesLive = true;
         }
       }
-    } else if (time - leaf.born < 1.5) {
-      leavesLive = true; // mid-animation
+    } else if (time - leaf.born < 2.0) {
+      leavesLive = true; // mid-animation (slowest per-leaf pace ≈ 1.75s)
     }
   }
   state.leavesLive = leavesLive;

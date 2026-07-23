@@ -1,6 +1,6 @@
 /* SDForest landing — Three.js animation layer (entry).
    One shared WebGLRenderer on a single fixed transparent canvas drives
-   four effects, each in its own module under ./forest-three/:
+   three effects, each in its own module under ./forest-three/:
 
      roots.js   The living mycelium behind the hero title: organic
                 filaments (amber at the heart, green at the tips) with
@@ -19,8 +19,8 @@
                 point toward the crown, throws impact dust, and lights
                 the taproot rail. Writes CSS vars; DOM motion itself
                 stays in stylesheets.
-     tiles.js   Per-portal wireframes in the atlas grid, each with its
-                own named motion identity.
+   (tiles.js — per-portal atlas wireframes — and burst.js are retired
+   from the boot but kept on disk.)
 
    The camera is calibrated so 1 world unit = 1 CSS pixel at z=0, which
    lets every effect be positioned straight from getBoundingClientRect().
@@ -31,9 +31,11 @@
 import * as THREE from '../vendor/three/three.module.min.js';
 import { clamp, lerp } from './forest-three/util.js';
 import { initSlams, updateSlams, slamsAnimating, slamsDebug } from './forest-three/slams.js?v=20260724c';
-import { initCrown, updateCrown, crownDebug } from './forest-three/crown.js?v=20260724d';
-import { initTiles, updateTiles, tilesAnimating, tilesDebug } from './forest-three/tiles.js?v=20260723';
+import { initCrown, updateCrown, crownDebug } from './forest-three/crown.js?v=20260724e';
 import { initRoots, updateRoots, rootsDebug } from './forest-three/roots.js?v=20260724d';
+// tiles.js (atlas wireframes) is retired from the boot sequence
+// (Ivan 2026-07-24): the crown and the mycelium are the only ambient
+// geometry on the landing. File kept on disk, like burst.js.
 
 (() => {
   'use strict';
@@ -195,8 +197,7 @@ import { initRoots, updateRoots, rootsDebug } from './forest-three/roots.js?v=20
     if (renderer) {
       const rootsVisible = updateRoots(shared, time, dt);
       const crownVisible = updateCrown(shared, time);
-      const tilesVisible = updateTiles(shared, time, dt);
-      rendered = rootsVisible || crownVisible || tilesVisible || slamsDrawn;
+      rendered = rootsVisible || crownVisible || slamsDrawn;
       if (rendered) {
         renderer.render(shared.scene, camera);
         canvasDirty = true;
@@ -208,8 +209,8 @@ import { initRoots, updateRoots, rootsDebug } from './forest-three/roots.js?v=20
     }
 
     // Sleep when nothing animates: no scroll energy, no slam mid-flight,
-    // nothing drawn, no tile mid-fade. Wake events restart the loop.
-    const needLoop = !physicsSettled() || rendered || tilesAnimating() || slamsAnimating();
+    // nothing drawn. Wake events restart the loop.
+    const needLoop = !physicsSettled() || rendered || slamsAnimating();
     if (running && !document.hidden && needLoop) schedule();
     else lastTime = 0;
   }
@@ -261,7 +262,6 @@ import { initRoots, updateRoots, rootsDebug } from './forest-three/roots.js?v=20
       if (webgl) {
         initRoots(shared, coarseMedia.matches);
         initCrown(shared);
-        initTiles(shared, () => coarseMedia.matches);
         window.addEventListener('resize', resizeRenderer, { passive: true });
       }
     }
@@ -294,7 +294,6 @@ import { initRoots, updateRoots, rootsDebug } from './forest-three/roots.js?v=20
     get slams() { return slamsDebug; },
     get roots() { return rootsDebug; },
     get crown() { return crownDebug; },
-    get tiles() { return tilesDebug; },
     get webgl() { return Boolean(renderer); },
     get sleeping() { return running && !frameHandle; },
     tick(now) { stop(); frame(now); },
