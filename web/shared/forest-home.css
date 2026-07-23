@@ -420,7 +420,6 @@ html.is-born .title-flourish .flourish-seed {
 }
 
 .route-rail .rail-lit {
-  stroke: url(#rail-gradient), var(--home-moss);
   stroke: var(--home-moss);
   stroke-width: 1.6;
   stroke-dasharray: 1;

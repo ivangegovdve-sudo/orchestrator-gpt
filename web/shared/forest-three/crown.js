@@ -387,19 +387,37 @@ function placeLabels(tips, W, H) {
     const len = Math.hypot(ox, oy) || 1;
     return { x: tip.x + (ox / len) * 24, y: tip.y + (oy / len) * 24 };
   });
-  for (let pass = 0; pass < 40; pass += 1) {
+  // Labels are ~210px wide and ~30px tall including breathing room;
+  // resolve overlaps on those extents, clamping inside the loop so the
+  // stage edges cannot re-introduce a collision the last pass fixed.
+  const LW = 215;
+  const LH = 32;
+  const clampSpot = (spot) => {
+    spot.x = clamp(spot.x, -W * 0.46, W * 0.46);
+    spot.y = clamp(spot.y, -H * 0.44, H * 0.42);
+  };
+  spots.forEach(clampSpot);
+  for (let pass = 0; pass < 80; pass += 1) {
     let moved = false;
     for (let a = 0; a < spots.length; a += 1) {
       for (let b = a + 1; b < spots.length; b += 1) {
         const dx = spots[b].x - spots[a].x;
         const dy = spots[b].y - spots[a].y;
-        if (Math.abs(dx) < 170 && Math.abs(dy) < 24) {
-          const push = (24 - Math.abs(dy)) / 2 + 1;
+        if (Math.abs(dx) >= LW || Math.abs(dy) >= LH) continue;
+        moved = true;
+        if (Math.abs(dx) > LW * 0.55) {
+          const push = (LW - Math.abs(dx)) / 2 + 1;
+          const dir = dx >= 0 ? 1 : -1;
+          spots[a].x -= dir * push;
+          spots[b].x += dir * push;
+        } else {
+          const push = (LH - Math.abs(dy)) / 2 + 1;
           const dir = dy >= 0 ? 1 : -1;
           spots[a].y -= dir * push;
           spots[b].y += dir * push;
-          moved = true;
         }
+        clampSpot(spots[a]);
+        clampSpot(spots[b]);
       }
     }
     if (!moved) break;
