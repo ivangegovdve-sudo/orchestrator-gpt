@@ -215,20 +215,20 @@
       <div class="stat"><div class="num" id="stat-claims">–</div><div class="lbl">Claims</div></div>
     </div>
 
-    <div class="tabs" id="tabs">
-      <button class="tab active" data-tab="facts">Facts</button>
-      <button class="tab" data-tab="rules">Rules</button>
-      <button class="tab" data-tab="claims">Claims</button>
-      <button class="tab" data-tab="papers">Papers</button>
-      <button class="tab" data-tab="cycle">Cycle phases</button>
+    <div class="tabs" id="tabs" role="tablist" aria-label="Evidence views">
+      <button class="tab active" data-tab="facts" id="tab-facts" role="tab" aria-controls="view" aria-selected="true" tabindex="0">Facts</button>
+      <button class="tab" data-tab="rules" id="tab-rules" role="tab" aria-controls="view" aria-selected="false" tabindex="-1">Rules</button>
+      <button class="tab" data-tab="claims" id="tab-claims" role="tab" aria-controls="view" aria-selected="false" tabindex="-1">Claims</button>
+      <button class="tab" data-tab="papers" id="tab-papers" role="tab" aria-controls="view" aria-selected="false" tabindex="-1">Papers</button>
+      <button class="tab" data-tab="cycle" id="tab-cycle" role="tab" aria-controls="view" aria-selected="false" tabindex="-1">Cycle phases</button>
     </div>
 
     <div class="controls" id="controls">
-      <input class="search" id="search" type="search" placeholder="Search&hellip;" />
-      <select class="topic" id="topic"><option value="">All topics</option></select>
+      <input class="search" id="search" name="search" type="search" aria-label="Search evidence" placeholder="Search&hellip;" />
+      <select class="topic" id="topic" name="topic" aria-label="Filter by research topic"><option value="">All topics</option></select>
     </div>
 
-    <div id="view"><div class="empty">Connecting to the evidence index&hellip;</div></div>
+    <div id="view" role="tabpanel" aria-labelledby="tab-facts" tabindex="0"><div class="empty">Connecting to the evidence index&hellip;</div></div>
 
     <p class="disclaimer">Educational research summaries only &mdash; not medical advice. Always consult a qualified clinician for personal health decisions.</p>
     <p class="footer-tag">
@@ -274,7 +274,7 @@
         "The live evidence index is unavailable right now. The research space remains visible instead of rendering blank; reconnect below when the public service is reachable." +
         '<div class="offline-atlas" aria-label="Research areas"><div class="offline-topic">Menstrual cycle</div><div class="offline-topic">Hormones</div><div class="offline-topic">Fertility</div><div class="offline-topic">PCOS</div><div class="offline-topic">Perimenopause</div><div class="offline-topic">Thyroid</div></div>' +
         '<div class="api-form">' +
-        '<input id="api-input" value="' + esc(API) + '" spellcheck="false" />' +
+        '<input id="api-input" aria-label="Women’s Health API base URL" value="' + esc(API) + '" spellcheck="false" />' +
         '<button onclick="saveApi()">Connect</button>' +
         "</div></div>";
     }
@@ -373,13 +373,31 @@
     }
     function fail() { viewEl.innerHTML = '<div class="empty">Couldn&#39;t load this view from the API.</div>'; }
 
-    document.querySelectorAll(".tab").forEach(function (t) {
-      t.addEventListener("click", function () {
-        document.querySelectorAll(".tab").forEach(function (x) { x.classList.remove("active"); });
-        t.classList.add("active");
-        state.tab = t.getAttribute("data-tab");
-        searchEl.value = "";
-        load();
+    var tabEls = Array.prototype.slice.call(document.querySelectorAll(".tab"));
+    function activateTab(t, moveFocus) {
+      tabEls.forEach(function (x) {
+        var selected = x === t;
+        x.classList.toggle("active", selected);
+        x.setAttribute("aria-selected", String(selected));
+        x.tabIndex = selected ? 0 : -1;
+      });
+      state.tab = t.getAttribute("data-tab");
+      viewEl.setAttribute("aria-labelledby", t.id);
+      searchEl.value = "";
+      if (moveFocus) t.focus();
+      load();
+    }
+    tabEls.forEach(function (t, index) {
+      t.addEventListener("click", function () { activateTab(t, false); });
+      t.addEventListener("keydown", function (event) {
+        var nextIndex = null;
+        if (event.key === "ArrowRight" || event.key === "ArrowDown") nextIndex = (index + 1) % tabEls.length;
+        if (event.key === "ArrowLeft" || event.key === "ArrowUp") nextIndex = (index - 1 + tabEls.length) % tabEls.length;
+        if (event.key === "Home") nextIndex = 0;
+        if (event.key === "End") nextIndex = tabEls.length - 1;
+        if (nextIndex == null) return;
+        event.preventDefault();
+        activateTab(tabEls[nextIndex], true);
       });
     });
     var searchTimer;
@@ -481,16 +499,16 @@
     @keyframes whblink { 0%,80%,100%{opacity:.2} 40%{opacity:1} }
   </style>
 
-  <button class="wh-chat-fab" id="whChatFab" aria-label="Open research chat">
+  <button class="wh-chat-fab" id="whChatFab" aria-label="Open research chat" aria-controls="whChatPanel" aria-expanded="false">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
     Ask research
   </button>
 
-  <section class="wh-chat-panel" id="whChatPanel" aria-label="Research chat">
+  <section class="wh-chat-panel" id="whChatPanel" role="dialog" aria-modal="true" aria-labelledby="whChatTitle" aria-hidden="true" tabindex="-1">
     <header class="wh-chat-head">
       <span class="d"></span>
-      <div><h2>Research Chat</h2><p>Local corpus + live PubMed</p></div>
-      <button class="wh-chat-close" id="whChatClose" aria-label="Close">&times;</button>
+      <div><h2 id="whChatTitle">Research Chat</h2><p>Local corpus + live PubMed</p></div>
+      <button class="wh-chat-close" id="whChatClose" aria-label="Close research chat">&times;</button>
     </header>
     <div class="wh-chat-log" id="whChatLog">
       <div class="wh-empty" id="whChatEmpty">
@@ -505,7 +523,7 @@
       </div>
     </div>
     <form class="wh-chat-form" id="whChatForm">
-      <input id="whChatInput" type="text" autocomplete="off" placeholder="Ask about women&#39;s-health science…" />
+      <input id="whChatInput" name="question" type="text" autocomplete="off" aria-label="Research question" placeholder="Ask about women&#39;s-health science…" />
       <button type="submit" id="whChatSend">Ask</button>
     </form>
   </section>
@@ -519,12 +537,54 @@
       var form = document.getElementById("whChatForm");
       var input = document.getElementById("whChatInput");
       var sendBtn = document.getElementById("whChatSend");
+      var lastFocused = null;
 
       function esc(s) { return String(s == null ? "" : s).replace(/[&<>"]/g, function (c) { return ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;" })[c]; }); }
       function el(tag, cls, html) { var e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; return e; }
 
-      fab.addEventListener("click", function () { panel.classList.add("open"); fab.style.display = "none"; input.focus(); });
-      document.getElementById("whChatClose").addEventListener("click", function () { panel.classList.remove("open"); fab.style.display = ""; });
+      function openChat() {
+        lastFocused = document.activeElement;
+        panel.classList.add("open");
+        panel.setAttribute("aria-hidden", "false");
+        fab.setAttribute("aria-expanded", "true");
+        fab.style.display = "none";
+        input.focus();
+      }
+
+      function closeChat() {
+        panel.classList.remove("open");
+        panel.setAttribute("aria-hidden", "true");
+        fab.setAttribute("aria-expanded", "false");
+        fab.style.display = "";
+        if (lastFocused && lastFocused !== document.body) lastFocused.focus();
+        else fab.focus();
+        lastFocused = null;
+      }
+
+      fab.addEventListener("click", openChat);
+      document.getElementById("whChatClose").addEventListener("click", closeChat);
+      document.addEventListener("keydown", function (e) {
+        if (!panel.classList.contains("open")) return;
+        if (e.key === "Escape") {
+          e.preventDefault();
+          closeChat();
+          return;
+        }
+        if (e.key !== "Tab") return;
+        var focusable = Array.prototype.slice.call(panel.querySelectorAll(
+          'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+        )).filter(function (element) { return element.getClientRects().length > 0; });
+        if (!focusable.length) return;
+        var first = focusable[0];
+        var last = focusable[focusable.length - 1];
+        if (e.shiftKey && document.activeElement === first) {
+          e.preventDefault();
+          last.focus();
+        } else if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault();
+          first.focus();
+        }
+      });
       Array.prototype.forEach.call(document.querySelectorAll(".wh-suggest button"), function (b) {
         b.addEventListener("click", function () { input.value = b.getAttribute("data-q"); form.requestSubmit(); });
       });
@@ -577,7 +637,11 @@
           .then(function (r) { return r.json(); })
           .then(function (data) { typing.replaceWith(renderBot(data)); })
           .catch(function () { typing.replaceWith(renderBot({ answer: "Couldn't reach the research API. Please try again.", sources: [] })); })
-          .then(function () { sendBtn.disabled = false; logEl.scrollTop = logEl.scrollHeight; input.focus(); });
+          .then(function () {
+            sendBtn.disabled = false;
+            logEl.scrollTop = logEl.scrollHeight;
+            if (panel.classList.contains("open")) input.focus();
+          });
       }
 
       form.addEventListener("submit", function (e) {

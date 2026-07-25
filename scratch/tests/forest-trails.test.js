@@ -9,6 +9,7 @@ const repoRoot = path.resolve(__dirname, '..', '..');
 const expectedPaths = [
   '/',
   '/web/morning-news/',
+  '/web/upload/',
   '/web/library/',
   '/web/open-overview/',
   '/web/council/',

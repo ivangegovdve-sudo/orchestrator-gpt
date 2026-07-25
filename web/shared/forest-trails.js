@@ -13,6 +13,13 @@ export const FOREST_ROUTES = Object.freeze([
     connectionIds: ['forest-hub', 'library', 'calendar'],
   },
   {
+    id: 'knowledge-ingest',
+    label: 'Knowledge Ingest',
+    path: '/web/upload/',
+    trailId: 'signals',
+    connectionIds: ['library', 'ai-research', 'council'],
+  },
+  {
     id: 'library',
     label: 'Library & Platforms',
     path: '/web/library/',
