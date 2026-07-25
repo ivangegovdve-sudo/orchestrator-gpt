@@ -1,24 +1,26 @@
 <!doctype html>
-<html lang="en" class="forest-skin forest-palette">
+<html lang="en" class="forest-skin">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="Upload documents and text to the SDForest knowledge base — private ingest into Chloé's memory.">
-  <meta name="theme-color" content="#070a08">
+  <meta name="theme-color" content="#07070b">
   <title>Upload — SDForest</title>
   <link rel="stylesheet" href="/web/shared/forest-design.css?v=20260723">
   <link rel="stylesheet" href="/web/shared/forest-shell.css?v=20260723">
   <style>
     :root {
-      --bg: #070a08;
-      --surface: #0d120e;
-      --border: rgba(226,235,209,0.1);
-      --text-primary: #f2efe4;
-      --text-muted: #a9b3a1;
-      --accent: #e8b86b;
-      --accent-green: #8fe6ae;
-      --accent-amber: #e8b86b;
+      --bg: #07070b;
+      --surface: #0f0f15;
+      --border: rgba(255,255,255,.08);
+      --text-primary: #f3f4f6;
+      --text-muted: #9ca3af;
+      --accent: #4f46e5;
+      --accent-green: #22c55e;
       --radius: 8px;
+      --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+
+      --accent-amber: #e8b86b;
       --forest-accent: #8fe6ae;
       --forest-accent-rgb: 143, 230, 174;
       /* Re-assert the dusk voice — forest-shell.css loads later and would
@@ -82,7 +84,8 @@
       color: var(--text-primary);
       font: 400 14px/1 var(--forest-sans, "Alegreya Sans", sans-serif);
       outline: none;
-      transition: border-color 0.2s;
+      transition:
+        border-color var(--duration-scroll-state) var(--ease-standard);
     }
     .auth-input:focus { border-color: var(--accent); }
     .auth-input::placeholder { color: var(--text-muted); }
@@ -135,7 +138,9 @@
       padding: 36px 24px;
       text-align: center;
       cursor: pointer;
-      transition: border-color 0.2s, background 0.2s;
+      transition:
+        border-color var(--duration-scroll-state) var(--ease-standard),
+        background var(--duration-scroll-state) var(--ease-standard);
     }
     .drop-zone:hover,
     .drop-zone.dragover {
@@ -178,7 +183,8 @@
       resize: vertical;
       outline: none;
       box-sizing: border-box;
-      transition: border-color 0.2s;
+      transition:
+        border-color var(--duration-scroll-state) var(--ease-standard);
     }
     .text-input:focus { border-color: var(--accent); }
     .text-input::placeholder { color: var(--text-muted); }
@@ -211,7 +217,8 @@
       font: 400 13px/1 var(--forest-sans, "Alegreya Sans", sans-serif);
       outline: none;
       box-sizing: border-box;
-      transition: border-color 0.2s;
+      transition:
+        border-color var(--duration-scroll-state) var(--ease-standard);
     }
     .meta-field input:focus,
     .meta-field select:focus { border-color: var(--accent); }
@@ -233,7 +240,9 @@
       font: 700 14px/1 var(--forest-sans, "Alegreya Sans", sans-serif);
       letter-spacing: 0.04em;
       cursor: pointer;
-      transition: background 0.2s, transform 0.15s;
+      transition:
+        background var(--duration-scroll-state) var(--ease-standard),
+        transform var(--duration-fast) var(--ease-out);
     }
     .btn-submit:hover:not(:disabled) { background: #d4a458; transform: translateY(-1px); }
     .btn-submit:disabled { opacity: 0.5; cursor: not-allowed; }
@@ -244,7 +253,9 @@
       border-top-color: #070a08;
       border-radius: 50%;
       display: none;
-      animation: spin 0.7s linear infinite;
+      animation:
+        spin calc(var(--duration-slow) + var(--delay-stagger-sm))
+        var(--ease-linear) infinite;
     }
     @keyframes spin { to { transform: rotate(360deg); } }
     .btn-submit.loading .spinner { display: block; }
@@ -651,6 +662,6 @@
   })();
   </script>
 
-  <script src="/web/shared/forest-motion.js?v=20260714"></script>
+  <script src="/web/shared/forest-motion.js?v=20260725"></script>
 </body>
 </html>

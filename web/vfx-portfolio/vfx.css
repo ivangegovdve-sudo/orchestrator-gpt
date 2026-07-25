@@ -1,4 +1,14 @@
 :root {
+  --bg: #07070b;
+  --surface: #0f0f15;
+  --border: rgba(255,255,255,.08);
+  --text-primary: #f3f4f6;
+  --text-muted: #9ca3af;
+  --accent: #4f46e5;
+  --accent-green: #22c55e;
+  --radius: 8px;
+  --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+
   --forest-display: "Cormorant Garamond", "Iowan Old Style", Georgia, serif;
   --forest-body: Alegreya, "Iowan Old Style", Georgia, serif;
   --forest-sans: "Alegreya Sans", "Gill Sans", "Segoe UI", system-ui, sans-serif;
@@ -12,6 +22,12 @@
   --vfx-violet: #e8b86b;
   --vfx-cyan: #8fe6ae;
   --vfx-warm: #f7d39a;
+  --vfx-duration-orbit: calc(var(--forest-trails-duration-flow) + var(--forest-trails-duration-flow));
+  --vfx-duration-orbit-reverse: calc(
+    var(--forest-trails-duration-flow) + var(--forest-trails-duration-flow) +
+    var(--forest-trails-duration-flow) + var(--duration-loop) + var(--duration-loop)
+  );
+  --vfx-delay-none: calc(var(--duration-fast) - var(--duration-fast));
 }
 
 .vfx-page { overflow: clip; }
@@ -82,7 +98,9 @@
   letter-spacing: .12em;
   text-decoration: none;
   text-transform: uppercase;
-  transition: background .2s ease, border-color .2s ease;
+  transition:
+    background var(--duration-scroll-state) var(--ease-standard),
+    border-color var(--duration-scroll-state) var(--ease-standard);
 }
 
 .vfx-button:hover { border-color: var(--vfx-violet); background: rgba(232,184,107,.18); }
@@ -107,10 +125,15 @@
   border: 1px solid rgba(143,230,174,.18);
   border-radius: 50%;
   pointer-events: none;
-  animation: vfx-orbit 14s linear infinite;
+  animation: vfx-orbit var(--vfx-duration-orbit) var(--ease-linear) infinite;
 }
 .vfx-portrait-wrap::before { inset: -32px; border-style: dashed; }
-.vfx-portrait-wrap::after { inset: -62px; border-color: rgba(232,184,107,.08); animation-direction: reverse; animation-duration: 23s; }
+.vfx-portrait-wrap::after {
+  inset: -62px;
+  border-color: rgba(232,184,107,.08);
+  animation-direction: reverse;
+  animation-duration: var(--vfx-duration-orbit-reverse);
+}
 
 @keyframes vfx-orbit { to { transform: rotate(360deg); } }
 
@@ -229,7 +252,9 @@
   border: 1px solid var(--forest-line);
   border-radius: 22px;
   background: rgba(7,12,9,.82);
-  transition: border-color .25s ease, box-shadow .25s ease;
+  transition:
+    border-color var(--duration-scroll-settle) var(--ease-standard),
+    box-shadow var(--duration-scroll-settle) var(--ease-standard);
 }
 .work-card:hover { border-color: rgba(232,184,107,.42); box-shadow: 0 28px 64px rgba(0,0,0,.28); }
 .work-card .video-ratio { border-radius: 0; }
@@ -318,7 +343,13 @@
 .contact-panel p { max-width: 540px; margin: 26px 0 0; color: var(--forest-soft); font-size: 17px; line-height: 1.6; }
 .contact-links { position: relative; z-index: 2; display: flex; flex-wrap: wrap; gap: 12px; margin-top: 32px; }
 
-.reveal { opacity: 0; transform: translateY(24px); transition: opacity .7s ease, transform .7s cubic-bezier(.16,1,.3,1); }
+.reveal {
+  opacity: 0;
+  transform: translateY(24px);
+  transition:
+    opacity var(--duration-slow) var(--ease-standard),
+    transform var(--duration-slow) var(--ease-out);
+}
 .reveal.is-visible { opacity: 1; transform: none; }
 
 /* ── Motion layer ─────────────────────────────────────────────── */
@@ -326,13 +357,39 @@
 /* Hero entrance: the reel warms up — copy rises, the portrait grades in
    from ungraded footage to its final look. */
 @media (prefers-reduced-motion: no-preference) {
-  .vfx-hero-copy .forest-kicker { animation: vfx-rise .7s cubic-bezier(.16,1,.3,1) backwards; }
-  .vfx-hero h1 { animation: vfx-rise .9s cubic-bezier(.16,1,.3,1) .08s backwards; }
-  .vfx-role { animation: vfx-rise .8s cubic-bezier(.16,1,.3,1) .16s backwards; }
-  .vfx-subtitle { animation: vfx-rise .8s cubic-bezier(.16,1,.3,1) .22s backwards; }
-  .vfx-hero-actions { animation: vfx-rise .8s cubic-bezier(.16,1,.3,1) .3s backwards; }
-  .vfx-portrait-wrap { animation: vfx-develop 1.1s cubic-bezier(.16,1,.3,1) .12s backwards; }
-  .vfx-portrait { animation: vfx-grade 1.7s ease .2s backwards; }
+  .vfx-hero-copy .forest-kicker {
+    animation: vfx-rise var(--duration-slow) var(--ease-out) backwards;
+  }
+  .vfx-hero h1 {
+    animation:
+      vfx-rise var(--duration-hero) var(--ease-out)
+      var(--delay-stagger-xs) backwards;
+  }
+  .vfx-role {
+    animation:
+      vfx-rise var(--duration-crown-enter) var(--ease-out)
+      var(--delay-stagger-md) backwards;
+  }
+  .vfx-subtitle {
+    animation:
+      vfx-rise var(--duration-crown-enter) var(--ease-out)
+      calc(var(--delay-stagger-md) + var(--stagger-list) + var(--stagger-list)) backwards;
+  }
+  .vfx-hero-actions {
+    animation:
+      vfx-rise var(--duration-crown-enter) var(--ease-out)
+      var(--duration-normal) backwards;
+  }
+  .vfx-portrait-wrap {
+    animation:
+      vfx-develop var(--duration-highlight) var(--ease-out)
+      var(--delay-hero-kicker) backwards;
+  }
+  .vfx-portrait {
+    animation:
+      vfx-grade calc(var(--duration-highlight) + var(--duration-slow))
+      var(--ease-standard) var(--stagger-dot) backwards;
+  }
 }
 @keyframes vfx-rise { from { opacity: 0; transform: translateY(26px); } }
 @keyframes vfx-develop { from { opacity: 0; transform: scale(.955); } }
@@ -344,9 +401,16 @@
 /* Work cards: hover reads as picking the frame up — the card tips back,
    footage swells a step ahead of the copy, a glare crosses the frame. */
 .work-grid { perspective: 1100px; }
-.work-card { transition: border-color .25s ease, box-shadow .25s ease, transform .4s cubic-bezier(.22,1,.36,1); }
+.work-card {
+  transition:
+    border-color var(--duration-scroll-settle) var(--ease-standard),
+    box-shadow var(--duration-scroll-settle) var(--ease-standard),
+    transform var(--duration-spring) var(--ease-out);
+}
 .work-card:hover { transform: translateY(-5px) rotateX(1.5deg); }
-.work-card .video-ratio { transition: transform .5s cubic-bezier(.22,1,.36,1); }
+.work-card .video-ratio {
+  transition: transform var(--duration-recovery) var(--ease-out);
+}
 .work-card:hover .video-ratio { transform: scale(1.03); }
 .work-card .video-ratio::after {
   content: "";
@@ -355,10 +419,12 @@
   pointer-events: none;
   background: linear-gradient(115deg, transparent 32%, rgba(255,255,255,.1) 47%, transparent 62%);
   transform: translateX(-135%);
-  transition: transform .85s ease;
+  transition: transform var(--duration-hero) var(--ease-standard);
 }
 .work-card:hover .video-ratio::after { transform: translateX(135%); }
-.work-card-copy { transition: transform .5s cubic-bezier(.22,1,.36,1); }
+.work-card-copy {
+  transition: transform var(--duration-recovery) var(--ease-out);
+}
 .work-card:hover .work-card-copy { transform: translateY(-2px); }
 
 /* Section children arrive on their own beats inside a revealed section. */
@@ -367,9 +433,16 @@
   opacity: 0;
   translate: 0 22px;
   transition-property: opacity, translate, border-color, box-shadow, transform;
-  transition-duration: .65s, .65s, .25s, .25s, .4s;
-  transition-timing-function: ease, cubic-bezier(.16,1,.3,1), ease, ease, cubic-bezier(.22,1,.36,1);
-  transition-delay: var(--sd, 0s), var(--sd, 0s), 0s, 0s, 0s;
+  transition-duration:
+    var(--duration-slow), var(--duration-slow),
+    var(--duration-scroll-settle), var(--duration-scroll-settle),
+    var(--duration-spring);
+  transition-timing-function:
+    var(--ease-standard), var(--ease-out), var(--ease-standard),
+    var(--ease-standard), var(--ease-out);
+  transition-delay:
+    var(--sd, var(--vfx-delay-none)), var(--sd, var(--vfx-delay-none)),
+    var(--vfx-delay-none), var(--vfx-delay-none), var(--vfx-delay-none);
 }
 .reveal.is-visible .work-card, .reveal.is-visible .experience-card,
 .reveal.is-visible .skill-card, .reveal.is-visible .education-card,
@@ -377,26 +450,63 @@
   opacity: 1;
   translate: none;
 }
-.work-card:nth-child(2), .skill-card:nth-child(2), .education-card:nth-child(2), .language:nth-child(2) { --sd: .09s; }
-.work-card:nth-child(3), .skill-card:nth-child(3), .language:nth-child(3) { --sd: .18s; }
-.work-card:nth-child(4), .skill-card:nth-child(4), .language:nth-child(4) { --sd: .27s; }
-.work-card:nth-child(5), .skill-card:nth-child(5) { --sd: .36s; }
-.work-card:nth-child(6), .skill-card:nth-child(6) { --sd: .45s; }
-.experience-card:nth-child(2) { --sd: .08s; } .experience-card:nth-child(3) { --sd: .16s; }
-.experience-card:nth-child(4) { --sd: .24s; } .experience-card:nth-child(5) { --sd: .32s; }
-.experience-card:nth-child(6) { --sd: .4s; } .experience-card:nth-child(7) { --sd: .48s; }
-.experience-card:nth-child(n+8) { --sd: .56s; }
+.work-card:nth-child(2), .skill-card:nth-child(2), .education-card:nth-child(2), .language:nth-child(2) {
+  --sd: var(--delay-stagger-xs);
+}
+.work-card:nth-child(3), .skill-card:nth-child(3), .language:nth-child(3) {
+  --sd: var(--duration-scroll-state);
+}
+.work-card:nth-child(4), .skill-card:nth-child(4), .language:nth-child(4) {
+  --sd: var(--duration-scroll-settle);
+}
+.work-card:nth-child(5), .skill-card:nth-child(5) {
+  --sd: var(--duration-spring);
+}
+.work-card:nth-child(6), .skill-card:nth-child(6) {
+  --sd: var(--duration-recovery);
+}
+.experience-card:nth-child(2) { --sd: var(--delay-stagger-xs); }
+.experience-card:nth-child(3) { --sd: var(--delay-stagger-md); }
+.experience-card:nth-child(4) { --sd: var(--delay-stagger-lg); }
+.experience-card:nth-child(5) {
+  --sd: calc(var(--delay-stagger-md) + var(--delay-stagger-md));
+}
+.experience-card:nth-child(6) { --sd: var(--duration-spring); }
+.experience-card:nth-child(7) {
+  --sd: calc(var(--delay-stagger-lg) + var(--delay-stagger-lg));
+}
+.experience-card:nth-child(n+8) { --sd: var(--duration-slow); }
 
 /* The career line draws itself downward; each waypoint pops as its card lands. */
-.reveal .timeline::before { transform: scaleY(0); transform-origin: top; transition: transform 1.5s cubic-bezier(.16,1,.3,1) .1s; }
+.reveal .timeline::before {
+  transform: scaleY(0);
+  transform-origin: top;
+  transition:
+    transform calc(var(--duration-hero) + var(--duration-slow))
+    var(--ease-out) var(--delay-stagger-sm);
+}
 .reveal.is-visible .timeline::before { transform: scaleY(1); }
-.reveal .experience-card::before { opacity: 0; scale: .3; transition: opacity .4s ease calc(var(--sd, 0s) + .3s), scale .45s cubic-bezier(.3,1.4,.5,1) calc(var(--sd, 0s) + .3s); }
+.reveal .experience-card::before {
+  opacity: 0;
+  scale: .3;
+  transition:
+    opacity var(--duration-spring) var(--ease-standard)
+    calc(var(--sd, var(--vfx-delay-none)) + var(--duration-normal)),
+    scale var(--duration-recovery) var(--spring)
+    calc(var(--sd, var(--vfx-delay-none)) + var(--duration-normal));
+}
 .reveal.is-visible .experience-card::before { opacity: 1; scale: 1; }
 
 /* Game collection: links ripple in when the drawer opens. */
-details[open] .game-link { animation: game-pop .45s cubic-bezier(.3,1.4,.5,1) backwards; }
-details[open] .game-link:nth-child(3n+2) { animation-delay: .07s; }
-details[open] .game-link:nth-child(3n) { animation-delay: .14s; }
+details[open] .game-link {
+  animation: game-pop var(--duration-recovery) var(--spring) backwards;
+}
+details[open] .game-link:nth-child(3n+2) {
+  animation-delay: var(--delay-stagger-xs);
+}
+details[open] .game-link:nth-child(3n) {
+  animation-delay: var(--duration-fast);
+}
 @keyframes game-pop { from { opacity: 0; transform: translateY(10px) scale(.95); } }
 
 @media (max-width: 850px) {
