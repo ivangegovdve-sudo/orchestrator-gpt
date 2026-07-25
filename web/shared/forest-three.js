@@ -30,8 +30,8 @@
 
 import * as THREE from '../vendor/three/three.module.min.js';
 import { clamp, lerp } from './forest-three/util.js';
-import { initSlams, updateSlams, slamsAnimating, slamsDebug } from './forest-three/slams.js?v=20260724c';
-import { initCrown, updateCrown, crownDebug } from './forest-three/crown.js?v=20260724e';
+import { initSlams, updateSlams, slamsAnimating, slamsDebug } from './forest-three/slams.js?v=20260725c';
+import { initCrown, updateCrown, crownDebug } from './forest-three/crown.js?v=20260725c';
 import { initRoots, updateRoots, rootsDebug } from './forest-three/roots.js?v=20260724d';
 // tiles.js (atlas wireframes) is retired from the boot sequence
 // (Ivan 2026-07-24): the crown and the mycelium are the only ambient

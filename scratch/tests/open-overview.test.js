@@ -15,15 +15,15 @@ test("three canonical routes remain isolated and landing motion uses the crown, 
     const html = read(...file.split("/"));
     assert.match(html, new RegExp(`data-open-overview-route="${route}"`));
     assert.match(html, /href="\/web\/open-overview\/open-overview\.css"/);
-    assert.match(html, /src="\/web\/open-overview\/open-overview\.js"/);
+    assert.match(html, /src="\/web\/open-overview\/open-overview\.js\?v=20260725c"/);
     assert.match(html, /id="oo-view-root"/);
     assert.doesNotMatch(html, /forest-three\.js/);
   }
 
   const entry = fs.readFileSync(path.join(ROOT, "web", "shared", "forest-three.js"), "utf8");
   assert.match(entry, /tiles\.js — per-portal atlas wireframes — and burst\.js are retired/);
-  assert.match(entry, /forest-three\/slams\.js\?v=20260724c/);
-  assert.match(entry, /forest-three\/crown\.js\?v=20260724e/);
+  assert.match(entry, /forest-three\/slams\.js\?v=20260725c/);
+  assert.match(entry, /forest-three\/crown\.js\?v=20260725c/);
   assert.match(entry, /forest-three\/roots\.js\?v=20260724d/);
   assert.doesNotMatch(entry, /^import .*forest-three\/tiles\.js/m);
 });
@@ -46,7 +46,7 @@ test("SD Forest homepage exposes one truthful animated Open Overview portal", ()
   assert.match(portal, /<span class="portal-name">Open Overview<\/span>/);
   assert.match(portal, /<span class="portal-meta">AI ecosystem radar<\/span>/);
   assert.match(home, /<symbol id="icon-open-overview"[\s\S]*?--accent-secondary, #a9b2ff[\s\S]*?<\/symbol>/);
-  assert.match(home, /src="\/web\/shared\/forest-three\.js\?v=20260724e"/);
+  assert.match(home, /src="\/web\/shared\/forest-three\.js\?v=20260725c"/);
   assert.doesNotMatch(home, /forest-icons\.js/);
 
   const routeReadme = fs.readFileSync(path.join(ROOT, "web", "open-overview", "README.md"), "utf8");
@@ -367,7 +367,7 @@ test("Three.js is route-local, dynamic, deterministic and bounded", async () => 
   const main = read("open-overview.js");
   const threeSource = read("open-overview-three.js");
   assert.doesNotMatch(main, /from\s+["']\.\/open-overview-three\.js["']/);
-  assert.match(main, /import\(["']\.\/open-overview-three\.js["']\)/);
+  assert.match(main, /import\(["']\.\/open-overview-three\.js\?v=20260725c["']\)/);
   assert.match(threeSource, /\/web\/vendor\/three\/three\.module\.min\.js/);
   const three = await importRoute("open-overview-three.js");
   assert.deepEqual(three.deterministicLayout("repository:1", 2, 10, "repository"), three.deterministicLayout("repository:1", 2, 10, "repository"));
