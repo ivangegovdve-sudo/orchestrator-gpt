@@ -482,6 +482,15 @@
  * Deep warm green-black ground, dawn-amber jewel light, moss life.
  * ------------------------------------------------------------------ */
 :root {
+  --bg: #07070b;
+  --surface: #0f0f15;
+  --border: rgba(255, 255, 255, .08);
+  --text-primary: #f3f4f6;
+  --text-muted: #9ca3af;
+  --accent: #4f46e5;
+  --accent-green: #22c55e;
+  --radius: 8px;
+
   --forest-display: "Cormorant Garamond", "Iowan Old Style", Georgia, serif;
   --forest-body: Alegreya, "Iowan Old Style", Georgia, serif;
   --forest-sans: "Alegreya Sans", "Gill Sans", "Segoe UI", system-ui, sans-serif;

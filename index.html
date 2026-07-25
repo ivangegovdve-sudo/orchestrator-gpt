@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="SDForest — an interactive portal into Ivan Gegov's tools, experiments, writing, research, animation, and visual effects work.">
-  <meta name="theme-color" content="#070a08">
+  <meta name="theme-color" content="#07070b">
   <meta property="og:title" content="SDForest">
   <meta property="og:description" content="A living, interactive forest of projects.">
   <meta property="og:type" content="website">
@@ -129,24 +129,18 @@
     <!-- ============ I. Title plate ============ -->
     <section class="landing" data-landing aria-labelledby="forest-title">
       <div class="landing-core">
-        <div class="forest-sigil" aria-hidden="true">
-          <svg viewBox="0 0 100 100">
-            <circle class="sigil-ring" cx="50" cy="50" r="43" stroke-dasharray="2 8"/>
-            <path class="sigil-branch" d="M50 21v57M50 40L32 28m18 23l22-15M50 61L27 52m23 18l19-7M50 77L38 89m12-11l12 11"/>
-            <circle class="sigil-seed" cx="50" cy="50" r="3"/>
+        <div class="title-crown forest-sigil" data-title-crown aria-hidden="true">
+          <svg viewBox="0 0 640 260" focusable="false">
+            <path class="title-crown-trunk" d="M320 248C318 210 326 178 320 142M320 190C294 172 278 154 266 128M321 176C350 158 366 141 378 116"/>
+            <path class="title-crown-canopy" d="M111 148C73 129 79 83 119 72C121 31 173 17 204 45C225 6 281 6 306 38C340 3 397 15 409 54C448 32 497 58 493 96C537 99 550 146 516 169C531 207 490 235 455 219C432 249 386 248 363 219C337 246 293 245 269 216C235 240 188 221 184 184C151 196 115 181 111 148Z"/>
+            <path class="title-crown-branch" d="M320 143C286 119 260 91 242 63M320 142C353 119 382 91 397 59M286 116C250 111 222 101 199 83M355 116C392 108 421 94 444 75"/>
           </svg>
         </div>
         <p class="landing-kicker">A living index by Ivan Gegov</p>
         <h1 id="forest-title" class="landing-title">
-          <span class="title-word">Forest</span>
+          <span class="title-word">Forest HUB</span>
           <span class="title-sub">projects in <em>motion</em></span>
         </h1>
-        <svg class="title-flourish" viewBox="0 0 420 46" aria-hidden="true">
-          <path class="flourish-stem" d="M8 30 C 90 18, 150 40, 210 28 S 340 14, 412 26" pathLength="1"/>
-          <path class="flourish-leaf" d="M118 30 q 8 -14 20 -16 q -4 14 -20 16 Z" pathLength="1"/>
-          <path class="flourish-leaf" d="M268 24 q 10 12 22 12 q -6 -14 -22 -12 Z" pathLength="1"/>
-          <circle class="flourish-seed" cx="210" cy="28" r="2.6"/>
-        </svg>
         <p class="landing-copy">A growing ecosystem of visual work, research, playful tools, and strange little machines. Move through it—the forest notices.</p>
       </div>
       <button class="scroll-invite" type="button" data-scroll-to-crown>Walk in</button>
@@ -156,7 +150,7 @@
     <section class="crown-section" data-crown aria-label="The tree crown — every project is a branch">
       <header class="crown-head">
         <p class="crown-kicker">The crown</p>
-        <h2>Sixteen branches, <em>one tree</em></h2>
+        <h2>Eighteen branches, <em>one tree</em></h2>
         <p class="crown-copy">Every project grows from the same trunk. Keep walking — each branch comes down to meet you, and every meeting sends roots climbing back up to light its branch.</p>
       </header>
       <div class="crown-stage" data-crown-stage>
@@ -188,9 +182,13 @@
           <span class="portal-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><use href="#icon-vfx"/></svg></span>
           <span class="portal-copy"><span class="portal-name">VFX Portfolio</span><span class="portal-meta">Animation · VFX</span></span>
         </button>
-        <button class="portal" type="button" style="--accent:#ffd15a" data-project="kids" data-href="/web/kids/index.html" data-status="In development" data-meta="Family space" data-description="A warmer corner for family movies, small adventures, playful interfaces, and things built to be explored together." aria-pressed="false">
+        <button class="portal" type="button" style="--accent:#ffd15a" data-project="kids" data-href="/web/kids/" data-status="Live" data-meta="Math · movies" data-description="One playful hub for quick-fire Math Mania and the curated Kids Movie Library, with both original apps kept at their own routes." aria-pressed="false">
           <span class="portal-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><use href="#icon-kids"/></svg></span>
-          <span class="portal-copy"><span class="portal-name">Kids Corner</span><span class="portal-meta">Family space</span></span>
+          <span class="portal-copy"><span class="portal-name">Kids Corner</span><span class="portal-meta">Math · movies</span></span>
+        </button>
+        <button class="portal" type="button" style="--accent:#4f46e5" data-project="morning-news" data-href="/web/morning-news/" data-status="Live" data-meta="Daily briefing" data-description="A focused voice-led morning briefing: follow the signal, hear the day clearly, and open the live Lovable experience when you want the full broadcast." aria-pressed="false">
+          <span class="portal-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><use href="#icon-time"/></svg></span>
+          <span class="portal-copy"><span class="portal-name">Morning News</span><span class="portal-meta">Daily briefing</span></span>
         </button>
         <button class="portal" type="button" style="--accent:#ff7fb0" data-project="health" data-href="/web/womens-health-os/index.html" data-status="In development" data-meta="Evidence base" data-description="An evidence-graded research intelligence base for cycles, hormones, fertility, PCOS, menopause, and women’s health." aria-pressed="false">
           <span class="portal-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><use href="#icon-health"/></svg></span>
@@ -200,7 +198,7 @@
           <span class="portal-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><use href="#icon-council"/></svg></span>
           <span class="portal-copy"><span class="portal-name">Councils</span><span class="portal-meta">Machine dialogue</span></span>
         </button>
-        <button class="portal" type="button" style="--accent:#60ecc1" data-project="library" data-href="/web/library/index.html" data-status="In development" data-meta="Glossary · tools" data-description="Search the Forest’s AI glossary and platform reference side by side, with real structured entries and filters." aria-pressed="false">
+        <button class="portal" type="button" style="--accent:#60ecc1" data-project="library" data-href="/web/library/" data-status="Live" data-meta="Glossary · tools" data-description="Search the Forest’s AI glossary and platform reference side by side, with real structured entries and filters." aria-pressed="false">
           <span class="portal-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><use href="#icon-library"/></svg></span>
           <span class="portal-copy"><span class="portal-name">Library &amp; Platforms</span><span class="portal-meta">Glossary · tools</span></span>
         </button>
@@ -261,7 +259,7 @@
     (() => {
       const root = document.documentElement;
 
-      /* Build the sixteen slam sections from the atlas portals, so the
+      /* Build the slam sections from the atlas portals, so the
          journey and the atlas can never drift apart. Runs before the
          module driver boots; the sections are plain DOM it picks up. */
       const routes = document.querySelector('[data-routes]');
