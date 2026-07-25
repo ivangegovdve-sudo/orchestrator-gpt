@@ -502,6 +502,14 @@
   --duration-recovery: 500ms;
   --stagger-card: 80ms;
   --stagger-list: 30ms;
+  --forest-trails-duration-arrive: var(--duration-recovery);
+  --forest-trails-duration-flow: 7s;
+  --forest-trails-duration-glow: 3800ms;
+  --forest-trails-duration-drawer: var(--duration-spring);
+  --forest-trails-edge-stagger: 900ms;
+  --forest-trails-node-stagger: var(--duration-slow);
+  --forest-trails-ease-flow: linear;
+  --forest-trails-ease-glow: ease-in-out;
 
   --forest-display: "Cormorant Garamond", "Iowan Old Style", Georgia, serif;
   --forest-body: Alegreya, "Iowan Old Style", Georgia, serif;

@@ -5,10 +5,10 @@
   position: fixed;
   z-index: 80;
   right: auto;
-  bottom: max(12px, env(safe-area-inset-bottom));
+  bottom: calc(max(12px, env(safe-area-inset-bottom)) + var(--forest-trails-lift, 0px));
   left: 50%;
   display: grid;
-  grid-template-columns: 86px auto minmax(0, 1fr) auto;
+  grid-template-columns: 86px auto minmax(0, 1fr) auto auto;
   align-items: center;
   gap: 8px;
   width: min(920px, calc(100vw - 24px));
@@ -25,7 +25,20 @@
   font-family: var(--forest-sans, "Segoe UI", system-ui, sans-serif);
   transform: translate3d(-50%, 0, 0);
   backdrop-filter: blur(20px) saturate(125%);
-  animation: forest-trails-arrive 500ms var(--ease-out, cubic-bezier(.16, 1, .3, 1)) both;
+  animation: forest-trails-arrive var(--forest-trails-duration-arrive) var(--ease-out) both;
+  transition:
+    width var(--duration-normal) var(--ease-out),
+    min-height var(--duration-normal) var(--ease-out);
+}
+
+.forest-trails__clearance {
+  width: 100%;
+  height: calc(88px + env(safe-area-inset-bottom));
+  pointer-events: none;
+}
+
+.forest-trails__clearance[data-collapsed="true"] {
+  height: calc(72px + env(safe-area-inset-bottom));
 }
 
 .forest-trails__network {
@@ -43,15 +56,17 @@
   stroke-dasharray: 3 9;
   opacity: .42;
   vector-effect: non-scaling-stroke;
-  animation: forest-trails-flow 7s linear infinite;
-  animation-delay: calc(var(--forest-edge-index, 0) * -900ms);
+  animation: forest-trails-flow var(--forest-trails-duration-flow) var(--forest-trails-ease-flow) infinite;
+  animation-delay:
+    calc(var(--forest-edge-index, 0) * var(--forest-trails-edge-stagger) * -1);
 }
 
 .forest-trails__node {
   fill: var(--forest-trails-accent);
   opacity: .62;
-  animation: forest-trails-glow 3.8s ease-in-out infinite;
-  animation-delay: calc(var(--forest-node-index, 0) * -600ms);
+  animation: forest-trails-glow var(--forest-trails-duration-glow) var(--forest-trails-ease-glow) infinite;
+  animation-delay:
+    calc(var(--forest-node-index, 0) * var(--forest-trails-node-stagger) * -1);
 }
 
 .forest-trails__node--current {
@@ -105,6 +120,7 @@
 
 .forest-trails__next a,
 .forest-trails__map-button,
+.forest-trails__collapse,
 .forest-trails__close,
 .forest-trails__route {
   min-height: 44px;
@@ -114,9 +130,9 @@
   font: 600 12px/1.2 var(--forest-sans, "Segoe UI", system-ui, sans-serif);
   text-decoration: none;
   transition:
-    color 150ms var(--ease-out, ease),
-    border-color 150ms var(--ease-out, ease),
-    background-color 150ms var(--ease-out, ease);
+    color var(--duration-fast) var(--ease-out),
+    border-color var(--duration-fast) var(--ease-out),
+    background-color var(--duration-fast) var(--ease-out);
 }
 
 .forest-trails__next a {
@@ -127,6 +143,7 @@
 }
 
 .forest-trails__map-button,
+.forest-trails__collapse,
 .forest-trails__close {
   display: inline-flex;
   align-items: center;
@@ -139,11 +156,36 @@
 
 .forest-trails__next a:hover,
 .forest-trails__map-button:hover,
+.forest-trails__collapse:hover,
 .forest-trails__close:hover,
 .forest-trails__route:hover {
   border-color: color-mix(in srgb, var(--forest-trails-accent) 55%, transparent);
   background: color-mix(in srgb, var(--forest-trails-accent) 11%, transparent);
   color: #fff;
+}
+
+.forest-trails__collapse {
+  width: 44px;
+  padding: 0;
+  color: #fff;
+  font-size: 20px;
+}
+
+.forest-trails[data-collapsed="true"] {
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  width: min(430px, calc(100vw - 24px));
+  min-height: 54px;
+}
+
+.forest-trails[data-collapsed="true"] .forest-trails__network,
+.forest-trails[data-collapsed="true"] .forest-trails__next {
+  display: none;
+}
+
+.forest-trails[data-collapsed="true"] .forest-trails__current {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .forest-trails :where(a, button):focus-visible {
@@ -169,12 +211,31 @@
 }
 
 .forest-trails__drawer[open] {
-  animation: forest-trails-drawer-in 400ms var(--spring, cubic-bezier(.34, 1.56, .64, 1)) both;
+  animation: forest-trails-drawer-in var(--forest-trails-duration-drawer) var(--spring) both;
 }
 
 .forest-trails__drawer::backdrop {
   background: rgba(3, 3, 7, .7);
   backdrop-filter: blur(7px);
+}
+
+.forest-trails__fallback-backdrop {
+  position: fixed;
+  z-index: 89;
+  inset: 0;
+  border: 0;
+  background: rgba(3, 3, 7, .7);
+  backdrop-filter: blur(7px);
+}
+
+.forest-trails__fallback-backdrop[hidden] {
+  display: none;
+}
+
+.forest-trails__drawer[data-forest-dialog-mode="fallback"][open] {
+  position: fixed;
+  z-index: 90;
+  inset: 0;
 }
 
 .forest-trails__drawer-header {
@@ -311,8 +372,8 @@
 
 @media (max-width: 680px) {
   .forest-trails {
-    bottom: max(8px, env(safe-area-inset-bottom));
-    grid-template-columns: 54px minmax(0, 1fr) auto;
+    bottom: calc(max(8px, env(safe-area-inset-bottom)) + var(--forest-trails-lift, 0px));
+    grid-template-columns: 54px minmax(0, 1fr) auto auto;
     gap: 4px;
     width: calc(100vw - 16px);
     min-height: 104px;
@@ -347,6 +408,20 @@
     padding-inline: 12px;
   }
 
+  .forest-trails[data-collapsed="true"] {
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    width: min(360px, calc(100vw - 16px));
+    min-height: 54px;
+  }
+
+  .forest-trails__clearance {
+    height: calc(124px + env(safe-area-inset-bottom));
+  }
+
+  .forest-trails__clearance[data-collapsed="true"] {
+    height: calc(70px + env(safe-area-inset-bottom));
+  }
+
   .forest-trails__drawer {
     width: calc(100vw - 12px);
     max-height: calc(100dvh - 12px);
@@ -370,6 +445,7 @@
 @media (pointer: coarse) {
   .forest-trails__next a,
   .forest-trails__map-button,
+  .forest-trails__collapse,
   .forest-trails__close,
   .forest-trails__route {
     min-height: 46px;
@@ -386,6 +462,7 @@
 
   .forest-trails__next a,
   .forest-trails__map-button,
+  .forest-trails__collapse,
   .forest-trails__close,
   .forest-trails__route {
     transition: none;

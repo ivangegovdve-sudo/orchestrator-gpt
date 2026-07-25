@@ -254,6 +254,7 @@ export function mountForestTrails({
   navigation.id = 'forest-trails';
   navigation.className = 'forest-trails';
   navigation.setAttribute('aria-label', 'Forest Trails');
+  let requestCollisionCheck = () => {};
 
   navigation.append(createTrailNetwork(targetDocument, context.next.length));
 
@@ -264,6 +265,7 @@ export function mountForestTrails({
   navigation.append(current);
 
   const nextList = targetDocument.createElement('ul');
+  nextList.id = 'forest-trails-next';
   nextList.className = 'forest-trails__next';
   nextList.dataset.forestTrailsNext = '';
   for (const nextRoute of context.next) {
@@ -286,9 +288,31 @@ export function mountForestTrails({
   mapButton.textContent = 'Route map';
   navigation.append(mapButton);
 
+  const collapseButton = targetDocument.createElement('button');
+  collapseButton.className = 'forest-trails__collapse';
+  collapseButton.type = 'button';
+  collapseButton.setAttribute('aria-controls', nextList.id);
+  navigation.append(collapseButton);
+
+  const clearance = targetDocument.createElement('div');
+  clearance.className = 'forest-trails__clearance';
+  clearance.setAttribute('aria-hidden', 'true');
+  const preservesImmersiveScrollExtent = (
+    context.current.id === 'power-law'
+    || context.current.id === 'replicator-void'
+  );
+  clearance.hidden = preservesImmersiveScrollExtent;
+
+  const fallbackBackdrop = targetDocument.createElement('div');
+  fallbackBackdrop.className = 'forest-trails__fallback-backdrop';
+  fallbackBackdrop.hidden = true;
+  fallbackBackdrop.setAttribute('aria-hidden', 'true');
+
   const mapDialog = targetDocument.createElement('dialog');
   mapDialog.id = 'forest-trails-map';
   mapDialog.className = 'forest-trails__drawer';
+  mapDialog.setAttribute('role', 'dialog');
+  mapDialog.setAttribute('aria-modal', 'true');
 
   const mapHeader = targetDocument.createElement('header');
   mapHeader.className = 'forest-trails__drawer-header';
@@ -339,39 +363,150 @@ export function mountForestTrails({
   }
 
   mapDialog.append(mapBody);
-  navigation.append(mapDialog);
+
+  const compactQuery = targetDocument.defaultView?.matchMedia?.('(max-width: 680px)');
+  let userSelectedCollapseState = false;
+  const setCollapsed = (collapsed) => {
+    navigation.dataset.collapsed = String(collapsed);
+    clearance.dataset.collapsed = String(collapsed);
+    nextList.hidden = collapsed;
+    collapseButton.setAttribute('aria-expanded', String(!collapsed));
+    collapseButton.setAttribute(
+      'aria-label',
+      collapsed ? 'Expand Forest Trails' : 'Minimize Forest Trails',
+    );
+    collapseButton.textContent = collapsed ? '+' : '−';
+    requestCollisionCheck();
+  };
+  setCollapsed(Boolean(compactQuery?.matches || preservesImmersiveScrollExtent));
+
+  collapseButton.addEventListener('click', () => {
+    userSelectedCollapseState = true;
+    setCollapsed(navigation.dataset.collapsed !== 'true');
+  });
+  compactQuery?.addEventListener?.('change', (event) => {
+    if (!userSelectedCollapseState) {
+      setCollapsed(event.matches || preservesImmersiveScrollExtent);
+    }
+  });
+
+  const canUseNativeDialog = (
+    typeof mapDialog.showModal === 'function'
+    && typeof mapDialog.close === 'function'
+  );
+  mapDialog.dataset.forestDialogMode = canUseNativeDialog ? 'native' : 'fallback';
+  let inertRecords = [];
+  let restoreFocusTo = mapButton;
+
+  const focusableElements = () => [...mapDialog.querySelectorAll(
+    'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), '
+      + 'textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
+  )].filter((element) => (
+    !element.hidden
+    && element.getAttribute('aria-hidden') !== 'true'
+    && element.getClientRects().length > 0
+  ));
+
+  const setFallbackInert = (isInert) => {
+    if (canUseNativeDialog) return;
+    if (isInert) {
+      inertRecords = [...targetDocument.body.children]
+        .filter((element) => element !== mapDialog && element !== fallbackBackdrop)
+        .map((element) => ({ element, inert: Boolean(element.inert) }));
+      for (const record of inertRecords) record.element.inert = true;
+      return;
+    }
+    for (const record of inertRecords) record.element.inert = record.inert;
+    inertRecords = [];
+  };
+
+  const onFallbackKeydown = (event) => {
+    if (!mapDialog.hasAttribute('open')) return;
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      event.stopPropagation();
+      closeMap();
+      return;
+    }
+    if (event.key !== 'Tab') return;
+
+    const focusable = focusableElements();
+    if (!focusable.length) {
+      event.preventDefault();
+      mapDialog.focus({ preventScroll: true });
+      return;
+    }
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    if (event.shiftKey && targetDocument.activeElement === first) {
+      event.preventDefault();
+      last.focus({ preventScroll: true });
+    } else if (!event.shiftKey && targetDocument.activeElement === last) {
+      event.preventDefault();
+      first.focus({ preventScroll: true });
+    }
+  };
+
+  const onFallbackFocus = (event) => {
+    if (
+      mapDialog.hasAttribute('open')
+      && !mapDialog.contains(event.target)
+    ) {
+      event.stopPropagation();
+      (focusableElements()[0] || mapDialog).focus({ preventScroll: true });
+    }
+  };
 
   const setClosedState = () => {
     mapButton.setAttribute('aria-expanded', 'false');
-    mapButton.focus({ preventScroll: true });
+    fallbackBackdrop.hidden = true;
+    setFallbackInert(false);
+    targetDocument.removeEventListener('keydown', onFallbackKeydown, true);
+    targetDocument.removeEventListener('focusin', onFallbackFocus, true);
+    if (restoreFocusTo?.isConnected) restoreFocusTo.focus({ preventScroll: true });
   };
 
-  mapButton.addEventListener('click', () => {
-    mapButton.setAttribute('aria-expanded', 'true');
-    if (typeof mapDialog.showModal === 'function') {
-      mapDialog.showModal();
-    } else {
-      mapDialog.setAttribute('open', '');
-    }
-    closeButton.focus({ preventScroll: true });
-  });
-
-  closeButton.addEventListener('click', () => {
-    if (typeof mapDialog.close === 'function') {
+  function closeMap() {
+    if (!mapDialog.hasAttribute('open')) return;
+    if (canUseNativeDialog) {
       mapDialog.close();
+      setClosedState();
     } else {
       mapDialog.removeAttribute('open');
       setClosedState();
     }
+  }
+
+  mapButton.addEventListener('click', () => {
+    restoreFocusTo = targetDocument.activeElement || mapButton;
+    mapButton.setAttribute('aria-expanded', 'true');
+    if (canUseNativeDialog) {
+      mapDialog.showModal();
+    } else {
+      fallbackBackdrop.hidden = false;
+      setFallbackInert(true);
+      mapDialog.setAttribute('open', '');
+      targetDocument.addEventListener('keydown', onFallbackKeydown, true);
+      targetDocument.addEventListener('focusin', onFallbackFocus, true);
+    }
+    closeButton.focus({ preventScroll: true });
   });
+
+  closeButton.addEventListener('click', closeMap);
+  fallbackBackdrop.addEventListener('click', closeMap);
   mapDialog.addEventListener('cancel', (event) => {
     event.preventDefault();
-    mapDialog.close();
-    setClosedState();
+    closeMap();
   });
   mapDialog.addEventListener('close', setClosedState);
 
-  targetDocument.body.append(navigation);
+  targetDocument.body.append(clearance, navigation, fallbackBackdrop, mapDialog);
+  requestCollisionCheck = installCollisionAvoidance({
+    targetDocument,
+    navigation,
+    excludedElements: [clearance, fallbackBackdrop, mapDialog],
+  });
+  requestCollisionCheck();
   return navigation;
 }
 
@@ -433,6 +568,132 @@ function createRouteElement(targetDocument, route, currentRoute) {
     element.href = route.path;
   }
   return element;
+}
+
+function installCollisionAvoidance({
+  targetDocument,
+  navigation,
+  excludedElements,
+}) {
+  const targetWindow = targetDocument.defaultView;
+  if (!targetWindow) return () => {};
+
+  let queued = false;
+  const excluded = new Set([navigation, ...excludedElements]);
+  let collisionCandidates = [];
+
+  const measure = () => {
+    queued = false;
+    if (!navigation.isConnected) return;
+
+    const currentLift = Number.parseFloat(
+      navigation.style.getPropertyValue('--forest-trails-lift'),
+    ) || 0;
+    const railRect = navigation.getBoundingClientRect();
+    const baseRect = {
+      top: railRect.top + currentLift,
+      right: railRect.right,
+      bottom: railRect.bottom + currentLift,
+      left: railRect.left,
+    };
+    const viewportHeight = targetWindow.innerHeight;
+    const baseBottomGap = Math.max(0, viewportHeight - baseRect.bottom);
+    let requiredLift = 0;
+
+    for (const element of collisionCandidates) {
+      if (!element.isConnected) continue;
+      const rect = element.getBoundingClientRect();
+      if (
+        rect.width < 1
+        || rect.height < 1
+        || rect.bottom <= baseRect.top
+        || rect.top >= viewportHeight
+        || rect.right <= baseRect.left
+        || rect.left >= baseRect.right
+      ) continue;
+
+      const coversViewport = (
+        rect.top <= 0
+        && rect.bottom >= viewportHeight
+        && rect.left <= 0
+        && rect.right >= targetWindow.innerWidth
+      );
+      if (coversViewport) continue;
+
+      requiredLift = Math.max(
+        requiredLift,
+        baseRect.bottom - rect.top + 8,
+        viewportHeight - rect.top + 8 - baseBottomGap,
+      );
+    }
+
+    const lift = Math.max(0, Math.ceil(requiredLift));
+    const nextValue = `${lift}px`;
+    if (navigation.style.getPropertyValue('--forest-trails-lift') !== nextValue) {
+      navigation.style.setProperty('--forest-trails-lift', nextValue);
+    }
+    navigation.dataset.collisionCleared = String(lift > 0);
+  };
+
+  const schedule = () => {
+    if (queued) return;
+    queued = true;
+    targetWindow.requestAnimationFrame(measure);
+  };
+
+  const refreshCandidates = () => {
+    collisionCandidates = [...targetDocument.body.querySelectorAll('*')].filter((element) => {
+      if (
+        excluded.has(element)
+        || element.closest('#forest-trails, #forest-trails-map')
+        || element.closest('.forest-trails__fallback-backdrop')
+      ) return false;
+
+      const style = targetWindow.getComputedStyle(element);
+      if (style.position !== 'fixed' && style.position !== 'sticky') return false;
+      return (
+        style.pointerEvents !== 'none'
+        || element.matches('a, button, input, select, textarea, [tabindex]')
+        || Boolean(element.querySelector('a, button, input, select, textarea, [tabindex]'))
+      );
+    });
+    schedule();
+  };
+
+  let refreshQueued = false;
+  const scheduleRefresh = () => {
+    if (refreshQueued) return;
+    refreshQueued = true;
+    targetWindow.requestAnimationFrame(() => {
+      refreshQueued = false;
+      refreshCandidates();
+    });
+  };
+
+  targetWindow.addEventListener('resize', scheduleRefresh, { passive: true });
+  targetWindow.addEventListener('scroll', schedule, { passive: true });
+  targetWindow.visualViewport?.addEventListener('resize', scheduleRefresh, { passive: true });
+
+  if ('MutationObserver' in targetWindow) {
+    const mutationObserver = new targetWindow.MutationObserver(scheduleRefresh);
+    mutationObserver.observe(targetDocument.body, {
+      subtree: true,
+      childList: true,
+      attributes: true,
+      attributeFilter: ['class', 'hidden', 'open', 'style'],
+    });
+  }
+
+  if ('ResizeObserver' in targetWindow) {
+    const resizeObserver = new targetWindow.ResizeObserver(schedule);
+    resizeObserver.observe(targetDocument.body);
+    resizeObserver.observe(navigation);
+  }
+
+  refreshCandidates();
+  targetWindow.addEventListener('load', scheduleRefresh, { once: true });
+  targetWindow.setTimeout(scheduleRefresh, 250);
+  return schedule;
 }
 
 function autoMountForestTrails() {
