@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" class="forest-skin forest-palette">
+<html lang="en" class="forest-skin">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -8,22 +8,22 @@
   <meta property="og:title" content="Women's Health OS — Forest HUB" />
   <meta property="og:description" content="Evidence-graded facts, rules, and claims for women's health, distilled from peer-reviewed research." />
   <meta property="og:type" content="website" />
-  <meta name="theme-color" content="#070a08" />
+  <meta name="theme-color" content="#07070b" />
   <link rel="stylesheet" href="/web/shared/forest-shell.css?v=20260723">
   <link rel="stylesheet" href="/web/shared/forest-design.css?v=20260723">
   <style>
     :root {
-      --bg: #070a08;
-      --surface: #0d120e;
+      --bg: #07070b;
+      --surface: #0f0f15;
       --surface-2: #131a14;
-      --border: rgba(226,235,209,0.1);
-      --text-primary: #f2efe4;
-      --text-muted: #a9b3a1;
+      --border: rgba(255,255,255,.08);
+      --text-primary: #f3f4f6;
+      --text-muted: #9ca3af;
       --dim: #7d8877;
-      --accent: #e8b86b;
-      --accent-green: #8fe6ae;
+      --accent: #4f46e5;
+      --accent-green: #22c55e;
       --radius: 8px;
-      --font: var(--forest-body, Alegreya, Georgia, serif);
+      --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       --sans: var(--forest-sans, "Alegreya Sans", sans-serif);
 
       --rose: #d98a7f;
@@ -72,7 +72,7 @@
     .tab {
       background: none; border: none; border-bottom: 2px solid transparent;
       color: var(--text-muted); cursor: pointer; font-family: var(--sans); font-size: 13.5px; font-weight: 600;
-      padding: 9px 14px; transition: color .18s, border-color .18s;
+      padding: 9px 14px; transition: color var(--duration-scroll-state), border-color var(--duration-scroll-state);
     }
     .tab:hover { color: var(--text-primary); }
     .tab.active { color: var(--text-primary); border-bottom-color: var(--rose); }
@@ -151,27 +151,27 @@
     /* ── Motion: bloom entrance, drawn cycle arcs, graded list arrivals ── */
     @property --ph-sweep { syntax: '<percentage>'; inherits: false; initial-value: 0%; }
     @media (prefers-reduced-motion: no-preference) {
-      .page > .topbar { animation: wh-rise .6s cubic-bezier(.16,1,.3,1) backwards; }
-      .page > header { animation: wh-bloom .85s cubic-bezier(.16,1,.3,1) .06s backwards; }
-      .page > .stat-row { animation: wh-rise .7s cubic-bezier(.16,1,.3,1) .16s backwards; }
-      .page > .tabs { animation: wh-rise .7s cubic-bezier(.16,1,.3,1) .24s backwards; }
-      .page > .controls, .page > #view { animation: wh-rise .7s cubic-bezier(.16,1,.3,1) .32s backwards; }
+      .page > .topbar { animation: wh-rise var(--duration-slow) var(--ease-out) backwards; }
+      .page > header { animation: wh-bloom calc(var(--duration-loop) * .85) var(--ease-out) calc(var(--delay-stagger-sm) * .6) backwards; }
+      .page > .stat-row { animation: wh-rise calc(var(--duration-loop) * .7) var(--ease-out) var(--delay-stagger-md) backwards; }
+      .page > .tabs { animation: wh-rise calc(var(--duration-loop) * .7) var(--ease-out) var(--delay-stagger-lg) backwards; }
+      .page > .controls, .page > #view { animation: wh-rise calc(var(--duration-loop) * .7) var(--ease-out) calc(var(--delay-stagger-md) * 2) backwards; }
 
       /* Evidence items arrive graded, like results being weighed in. */
-      .list .item { animation: wh-item-in .55s cubic-bezier(.16,1,.3,1) backwards; }
-      .list .item:nth-child(2) { animation-delay: .05s; } .list .item:nth-child(3) { animation-delay: .1s; }
-      .list .item:nth-child(4) { animation-delay: .15s; } .list .item:nth-child(5) { animation-delay: .2s; }
-      .list .item:nth-child(6) { animation-delay: .25s; } .list .item:nth-child(n+7) { animation-delay: .3s; }
+      .list .item { animation: wh-item-in calc(var(--duration-loop) * .55) var(--ease-out) backwards; }
+      .list .item:nth-child(2) { animation-delay: calc(var(--delay-stagger-sm) * .5); } .list .item:nth-child(3) { animation-delay: var(--delay-stagger-sm); }
+      .list .item:nth-child(4) { animation-delay: var(--duration-fast); } .list .item:nth-child(5) { animation-delay: var(--stagger-dot); }
+      .list .item:nth-child(6) { animation-delay: calc(var(--duration-recovery) * .5); } .list .item:nth-child(n+7) { animation-delay: var(--duration-normal); }
 
       /* Cycle phases bloom in order, each drawing its own arc closed. */
-      .phase { animation: wh-phase-in .7s cubic-bezier(.16,1,.3,1) backwards; }
-      .phase:nth-child(2) { --pi: 1; animation-delay: .12s; } .phase:nth-child(3) { --pi: 2; animation-delay: .24s; }
-      .phase:nth-child(4) { --pi: 3; animation-delay: .36s; } .phase:nth-child(n+5) { --pi: 4; animation-delay: .48s; }
-      .phase::after { animation: wh-arc 1.2s cubic-bezier(.16,1,.3,1) calc(var(--pi, 0) * .12s + .3s) backwards; }
+      .phase { animation: wh-phase-in calc(var(--duration-loop) * .7) var(--ease-out) backwards; }
+      .phase:nth-child(2) { --pi: 1; animation-delay: var(--delay-hero-kicker); } .phase:nth-child(3) { --pi: 2; animation-delay: var(--delay-stagger-lg); }
+      .phase:nth-child(4) { --pi: 3; animation-delay: calc(var(--delay-hero-kicker) * 3); } .phase:nth-child(n+5) { --pi: 4; animation-delay: calc(var(--delay-stagger-lg) * 2); }
+      .phase::after { animation: wh-arc var(--duration-dot-pulse) var(--ease-out) calc(var(--pi, 0) * var(--delay-hero-kicker) + var(--duration-normal)) backwards; }
 
-      .wh-chat-panel.open { animation: wh-panel-in .4s cubic-bezier(.16,1,.3,1); }
-      .wh-msg.user { animation: wh-msg-right .4s cubic-bezier(.16,1,.3,1) backwards; }
-      .wh-msg.bot { animation: wh-msg-left .4s cubic-bezier(.16,1,.3,1) backwards; }
+      .wh-chat-panel.open { animation: wh-panel-in var(--duration-spring) var(--ease-out); }
+      .wh-msg.user { animation: wh-msg-right var(--duration-spring) var(--ease-out) backwards; }
+      .wh-msg.bot { animation: wh-msg-left var(--duration-spring) var(--ease-out) backwards; }
     }
     .phase { position: relative; }
     .phase::after {
@@ -426,7 +426,7 @@
       background: var(--accent); color: #241505; font-family: var(--sans);
       font-size: 14px; font-weight: 700; letter-spacing: .01em;
       box-shadow: 0 8px 28px rgba(232,184,107,.4);
-      transition: transform .18s, box-shadow .18s;
+      transition: transform var(--duration-scroll-state), box-shadow var(--duration-scroll-state);
     }
     .wh-chat-fab:hover { transform: translateY(-2px); box-shadow: 0 12px 34px rgba(232,184,107,.55); }
     .wh-chat-fab svg { width: 18px; height: 18px; }
@@ -475,9 +475,9 @@
     .wh-chat-form button { background: var(--accent); border: 0; border-radius: 9px; cursor: pointer; color: #241505; font-weight: 700; padding: 0 15px; font-size: 13.5px; font-family: var(--sans); }
     .wh-chat-form button:disabled { opacity: .5; cursor: default; }
     .wh-typing { display: inline-flex; gap: 4px; padding: 4px 2px; }
-    .wh-typing span { width: 6px; height: 6px; border-radius: 50%; background: var(--text-muted); animation: whblink 1.2s infinite both; }
-    .wh-typing span:nth-child(2) { animation-delay: .2s; }
-    .wh-typing span:nth-child(3) { animation-delay: .4s; }
+    .wh-typing span { width: 6px; height: 6px; border-radius: 50%; background: var(--text-muted); animation: whblink var(--duration-dot-pulse) infinite both; }
+    .wh-typing span:nth-child(2) { animation-delay: var(--stagger-dot); }
+    .wh-typing span:nth-child(3) { animation-delay: calc(var(--stagger-dot) * 2); }
     @keyframes whblink { 0%,80%,100%{opacity:.2} 40%{opacity:1} }
   </style>
 
@@ -589,7 +589,7 @@
       });
     })();
   </script>
-  <script src="/web/shared/forest-motion.js?v=20260714"></script>
+  <script src="/web/shared/forest-motion.js?v=20260725"></script>
   <script src="/web/shared/forest-reveal.js?v=20260714"></script>
 </body>
 </html>
