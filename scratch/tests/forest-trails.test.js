@@ -310,6 +310,77 @@ test('opens a keyboard-safe full map grouped into all six trails', { timeout: 6_
   await page.close();
 });
 
+test('native route map stays visible without resetting deep Power Law scroll', async () => {
+  const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
+  await page.goto(`${baseUrl}/web/power-law-odyssey/`, {
+    waitUntil: 'domcontentloaded',
+  });
+
+  const navigation = page.getByRole('navigation', { name: 'Forest Trails' });
+  await navigation.waitFor({ timeout: 4_000 });
+  const before = await page.evaluate(() => {
+    document.documentElement.style.scrollBehavior = 'auto';
+    const track = document.querySelector('.scroll-container');
+    const scrollDistance = track.offsetHeight - window.innerHeight;
+    window.scrollTo(0, track.offsetTop + (scrollDistance * 0.82));
+    return {
+      targetY: track.offsetTop + (scrollDistance * 0.82),
+    };
+  });
+  await page.waitForFunction(() => (
+    Math.abs(
+      Number.parseFloat(
+        getComputedStyle(document.documentElement).getPropertyValue('--scroll-p'),
+      ) - 0.82,
+    ) < 0.01
+  ));
+
+  const scrollState = await page.evaluate(() => ({
+    scrollY: window.scrollY,
+    scrollProgress: Number.parseFloat(
+      getComputedStyle(document.documentElement).getPropertyValue('--scroll-p'),
+    ),
+  }));
+  assert.ok(Math.abs(scrollState.scrollY - before.targetY) < 2);
+
+  const mapButton = navigation.getByRole('button', { name: 'Open full route map' });
+  await mapButton.click();
+  await page.waitForFunction(() => {
+    const drawer = document.querySelector('#forest-trails-map');
+    const rect = drawer.getBoundingClientRect();
+    return (
+      getComputedStyle(drawer).position === 'fixed'
+      && rect.top >= 0
+      && rect.bottom <= window.innerHeight
+    );
+  });
+  const openState = await page.locator('#forest-trails-map').evaluate((drawer) => {
+    const rect = drawer.getBoundingClientRect();
+    return {
+      position: getComputedStyle(drawer).position,
+      visible: (
+        rect.width > 0
+        && rect.height > 0
+        && rect.top >= 0
+        && rect.bottom <= window.innerHeight
+      ),
+      scrollY: window.scrollY,
+      scrollProgress: Number.parseFloat(
+        getComputedStyle(document.documentElement).getPropertyValue('--scroll-p'),
+      ),
+    };
+  });
+
+  assert.equal(openState.position, 'fixed');
+  assert.equal(openState.visible, true);
+  assert.ok(Math.abs(openState.scrollY - scrollState.scrollY) < 2);
+  assert.ok(Math.abs(openState.scrollProgress - scrollState.scrollProgress) < 0.002);
+
+  await page.keyboard.press('Escape');
+  assert.ok(Math.abs(await page.evaluate(() => window.scrollY) - scrollState.scrollY) < 2);
+  await page.close();
+});
+
 test('renders a fixed touch-safe route network and disables its motion when requested', async () => {
   const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
   await page.emulateMedia({ reducedMotion: 'reduce' });
@@ -363,10 +434,34 @@ test('forced dialog fallback traps focus, closes on Escape, and restores its tri
       value: undefined,
     });
   });
-  await page.goto(`${baseUrl}/web/kids/`, { waitUntil: 'domcontentloaded' });
+  await page.goto(`${baseUrl}/web/power-law-odyssey/`, {
+    waitUntil: 'domcontentloaded',
+  });
 
   const navigation = page.getByRole('navigation', { name: 'Forest Trails' });
   await navigation.waitFor({ timeout: 4_000 });
+  const scrollState = await page.evaluate(() => {
+    document.documentElement.style.scrollBehavior = 'auto';
+    const track = document.querySelector('.scroll-container');
+    const scrollDistance = track.offsetHeight - window.innerHeight;
+    window.scrollTo(0, track.offsetTop + (scrollDistance * 0.82));
+    return {
+      scrollY: window.scrollY,
+      scrollProgress: Number.parseFloat(
+        getComputedStyle(document.documentElement).getPropertyValue('--scroll-p'),
+      ),
+    };
+  });
+  await page.waitForFunction(() => (
+    Math.abs(
+      Number.parseFloat(
+        getComputedStyle(document.documentElement).getPropertyValue('--scroll-p'),
+      ) - 0.82,
+    ) < 0.01
+  ));
+  scrollState.scrollProgress = await page.evaluate(() => Number.parseFloat(
+    getComputedStyle(document.documentElement).getPropertyValue('--scroll-p'),
+  ));
   const mapButton = navigation.getByRole('button', { name: 'Open full route map' });
   await mapButton.click();
 
@@ -376,6 +471,21 @@ test('forced dialog fallback traps focus, closes on Escape, and restores its tri
   assert.equal(await drawer.getAttribute('aria-modal'), 'true');
   assert.equal(await drawer.getAttribute('open'), '');
   assert.equal(await page.locator('.forest-trails__fallback-backdrop').isVisible(), true);
+  const drawerState = await drawer.evaluate((element) => {
+    const rect = element.getBoundingClientRect();
+    return {
+      position: getComputedStyle(element).position,
+      visible: rect.top >= 0 && rect.bottom <= window.innerHeight,
+      scrollY: window.scrollY,
+      scrollProgress: Number.parseFloat(
+        getComputedStyle(document.documentElement).getPropertyValue('--scroll-p'),
+      ),
+    };
+  });
+  assert.equal(drawerState.position, 'fixed');
+  assert.equal(drawerState.visible, true);
+  assert.ok(Math.abs(drawerState.scrollY - scrollState.scrollY) < 2);
+  assert.ok(Math.abs(drawerState.scrollProgress - scrollState.scrollProgress) < 0.002);
 
   await page.keyboard.press('Shift+Tab');
   assert.equal(
@@ -397,6 +507,7 @@ test('forced dialog fallback traps focus, closes on Escape, and restores its tri
     await page.evaluate(() => document.activeElement?.getAttribute('aria-label')),
     'Open full route map',
   );
+  assert.ok(Math.abs(await page.evaluate(() => window.scrollY) - scrollState.scrollY) < 2);
 
   await context.close();
 });
@@ -449,6 +560,165 @@ test('mobile rail starts compact and clears actual fixed simulation controls', a
     await navigation.getByRole('button', { name: 'Open full route map' }).isVisible(),
     true,
   );
+
+  await page.close();
+});
+
+test('short mobile rail compacts between the safe top and a tall fixed panel', async () => {
+  const page = await browser.newPage({
+    viewport: { width: 390, height: 600 },
+    hasTouch: true,
+  });
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.goto(`${baseUrl}/web/womens-health-os/`, {
+    waitUntil: 'domcontentloaded',
+  });
+
+  const navigation = page.getByRole('navigation', { name: 'Forest Trails' });
+  await navigation.waitFor({ timeout: 4_000 });
+  await page.waitForFunction(() => (
+    Boolean(document.querySelector('link[data-forest-trails-styles]')?.sheet)
+  ));
+  await page.locator('#whChatFab').click();
+  await page.waitForFunction(() => (
+    Number.parseFloat(
+      document.querySelector('#forest-trails')
+        ?.style.getPropertyValue('--forest-trails-lift'),
+    ) > 0
+  ));
+  await page.waitForFunction(() => {
+    const navigation = document.querySelector('#forest-trails');
+    const panel = document.querySelector('#whChatPanel');
+    const navigationRect = navigation.getBoundingClientRect();
+    const panelRect = panel.getBoundingClientRect();
+    return (
+      navigation.dataset.collisionConstrained === 'true'
+      && navigationRect.top >= 5
+      && navigationRect.bottom <= panelRect.top - 5
+    );
+  }, null, { timeout: 4_000 });
+
+  const measurements = await page.evaluate(() => {
+    const bounds = (element) => {
+      const rect = element.getBoundingClientRect();
+      return {
+        top: rect.top,
+        right: rect.right,
+        bottom: rect.bottom,
+        left: rect.left,
+        height: rect.height,
+      };
+    };
+    const navigation = document.querySelector('#forest-trails');
+    return {
+      navigation: bounds(navigation),
+      panel: bounds(document.querySelector('#whChatPanel')),
+      mapButton: bounds(navigation.querySelector('.forest-trails__map-button')),
+      collapseButton: bounds(navigation.querySelector('.forest-trails__collapse')),
+      collapseDisabled: navigation.querySelector('.forest-trails__collapse').disabled,
+      collapsed: navigation.dataset.collapsed,
+      constrained: navigation.dataset.collisionConstrained,
+    };
+  });
+
+  assert.ok(
+    measurements.navigation.top >= 5,
+    `rail top ${measurements.navigation.top} must respect the 5px safe inset`,
+  );
+  assert.ok(
+    measurements.navigation.bottom <= measurements.panel.top - 5,
+    `rail bottom ${measurements.navigation.bottom} must clear panel at ${measurements.panel.top}`,
+  );
+  assert.ok(measurements.mapButton.height >= 44);
+  assert.ok(measurements.collapseButton.height >= 44);
+  assert.equal(measurements.collapseDisabled, true);
+  assert.equal(measurements.collapsed, 'true');
+  assert.equal(measurements.constrained, 'true');
+
+  await page.setViewportSize({ width: 1400, height: 600 });
+  await page.waitForFunction(() => !matchMedia('(max-width: 680px)').matches);
+  const rotationSamples = await page.evaluate(async () => {
+    const samples = [];
+    for (let index = 0; index < 20; index += 1) {
+      await new Promise((resolve) => setTimeout(resolve, 35));
+      const navigation = document.querySelector('#forest-trails');
+      samples.push({
+        collapsed: navigation.dataset.collapsed,
+        constrained: navigation.dataset.collisionConstrained,
+        locked: navigation.dataset.collisionLocked,
+      });
+    }
+    return samples;
+  });
+  assert.equal(
+    rotationSamples.every((sample) => (
+      sample.collapsed === 'true'
+      && sample.constrained === 'true'
+      && sample.locked === 'true'
+    )),
+    true,
+  );
+  const rotatedState = await navigation.evaluate((element) => ({
+    collapsed: element.dataset.collapsed,
+    constrained: element.dataset.collisionConstrained,
+    collapseDisabled: element.querySelector('.forest-trails__collapse').disabled,
+  }));
+  assert.equal(rotatedState.constrained, 'true');
+  assert.equal(rotatedState.collapsed, 'true');
+  assert.equal(rotatedState.collapseDisabled, true);
+
+  await page.locator('#whChatClose').click();
+  await page.waitForFunction(() => {
+    const navigation = document.querySelector('#forest-trails');
+    return (
+      navigation.dataset.collisionConstrained === undefined
+      && !navigation.querySelector('.forest-trails__collapse').disabled
+    );
+  });
+  assert.equal(await navigation.getAttribute('data-collapsed'), 'false');
+  assert.equal(await navigation.locator('[data-forest-trails-next]').getAttribute('hidden'), null);
+
+  await page.close();
+});
+
+test('collision recovery restores an explicit expanded preference', async () => {
+  const page = await browser.newPage({
+    viewport: { width: 390, height: 600 },
+    hasTouch: true,
+  });
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.goto(`${baseUrl}/web/womens-health-os/`, {
+    waitUntil: 'domcontentloaded',
+  });
+
+  const navigation = page.getByRole('navigation', { name: 'Forest Trails' });
+  await navigation.waitFor({ timeout: 4_000 });
+  await page.waitForFunction(() => (
+    Boolean(document.querySelector('link[data-forest-trails-styles]')?.sheet)
+  ));
+
+  await navigation.getByRole('button', { name: 'Expand Forest Trails' }).click();
+  assert.equal(await navigation.getAttribute('data-collapsed'), 'false');
+  await page.locator('#whChatFab').click();
+  await page.waitForFunction(() => {
+    const navigation = document.querySelector('#forest-trails');
+    return (
+      navigation.dataset.collisionConstrained === 'true'
+      && navigation.dataset.collapsed === 'true'
+      && navigation.querySelector('.forest-trails__collapse').disabled
+    );
+  }, null, { timeout: 4_000 });
+
+  await page.locator('#whChatClose').click();
+  await page.waitForFunction(() => {
+    const navigation = document.querySelector('#forest-trails');
+    return (
+      navigation.dataset.collisionConstrained === undefined
+      && !navigation.querySelector('.forest-trails__collapse').disabled
+    );
+  });
+  assert.equal(await navigation.getAttribute('data-collapsed'), 'false');
+  assert.equal(await navigation.locator('[data-forest-trails-next]').getAttribute('hidden'), null);
 
   await page.close();
 });

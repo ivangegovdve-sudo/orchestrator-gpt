@@ -366,6 +366,9 @@ export function mountForestTrails({
 
   const compactQuery = targetDocument.defaultView?.matchMedia?.('(max-width: 680px)');
   let userSelectedCollapseState = false;
+  let desiredCollapsedState = Boolean(
+    compactQuery?.matches || preservesImmersiveScrollExtent,
+  );
   const setCollapsed = (collapsed) => {
     navigation.dataset.collapsed = String(collapsed);
     clearance.dataset.collapsed = String(collapsed);
@@ -378,16 +381,25 @@ export function mountForestTrails({
     collapseButton.textContent = collapsed ? '+' : '−';
     requestCollisionCheck();
   };
-  setCollapsed(Boolean(compactQuery?.matches || preservesImmersiveScrollExtent));
+  const applyDesiredCollapsedState = () => {
+    const collisionLocked = (
+      navigation.dataset.collisionLocked === 'true'
+      || navigation.dataset.collisionConstrained === 'true'
+    );
+    setCollapsed(collisionLocked || desiredCollapsedState);
+  };
+  applyDesiredCollapsedState();
 
   collapseButton.addEventListener('click', () => {
     userSelectedCollapseState = true;
-    setCollapsed(navigation.dataset.collapsed !== 'true');
+    desiredCollapsedState = !desiredCollapsedState;
+    applyDesiredCollapsedState();
   });
   compactQuery?.addEventListener?.('change', (event) => {
     if (!userSelectedCollapseState) {
-      setCollapsed(event.matches || preservesImmersiveScrollExtent);
+      desiredCollapsedState = event.matches || preservesImmersiveScrollExtent;
     }
+    applyDesiredCollapsedState();
   });
 
   const canUseNativeDialog = (
@@ -505,6 +517,10 @@ export function mountForestTrails({
     targetDocument,
     navigation,
     excludedElements: [clearance, fallbackBackdrop, mapDialog],
+    compactNavigation: () => setCollapsed(true),
+    restoreNavigation: applyDesiredCollapsedState,
+    getDesiredCollapsedState: () => desiredCollapsedState,
+    collapseButton,
   });
   requestCollisionCheck();
   return navigation;
@@ -574,13 +590,21 @@ function installCollisionAvoidance({
   targetDocument,
   navigation,
   excludedElements,
+  compactNavigation,
+  restoreNavigation,
+  getDesiredCollapsedState,
+  collapseButton,
 }) {
   const targetWindow = targetDocument.defaultView;
   if (!targetWindow) return () => {};
 
+  const collisionGap = 8;
+  const constrainedGap = 5;
+  const safeTopInset = 5;
   let queued = false;
   const excluded = new Set([navigation, ...excludedElements]);
   let collisionCandidates = [];
+  let regularCompactHeight = null;
 
   const measure = () => {
     queued = false;
@@ -597,42 +621,131 @@ function installCollisionAvoidance({
       left: railRect.left,
     };
     const viewportHeight = targetWindow.innerHeight;
-    const baseBottomGap = Math.max(0, viewportHeight - baseRect.bottom);
-    let requiredLift = 0;
+    const calculateRequiredLift = (gap, testedRect = baseRect) => {
+      let requiredLift = 0;
+      for (const element of collisionCandidates) {
+        if (!element.isConnected) continue;
+        const rect = element.getBoundingClientRect();
+        if (
+          rect.width < 1
+          || rect.height < 1
+          || rect.bottom <= testedRect.top
+          || rect.top >= viewportHeight
+          || rect.right <= testedRect.left
+          || rect.left >= testedRect.right
+        ) continue;
 
-    for (const element of collisionCandidates) {
-      if (!element.isConnected) continue;
-      const rect = element.getBoundingClientRect();
-      if (
-        rect.width < 1
-        || rect.height < 1
-        || rect.bottom <= baseRect.top
-        || rect.top >= viewportHeight
-        || rect.right <= baseRect.left
-        || rect.left >= baseRect.right
-      ) continue;
+        const coversViewport = (
+          rect.top <= 0
+          && rect.bottom >= viewportHeight
+          && rect.left <= 0
+          && rect.right >= targetWindow.innerWidth
+        );
+        if (coversViewport) continue;
 
-      const coversViewport = (
-        rect.top <= 0
-        && rect.bottom >= viewportHeight
-        && rect.left <= 0
-        && rect.right >= targetWindow.innerWidth
+        requiredLift = Math.max(
+          requiredLift,
+          testedRect.bottom - rect.top + gap,
+        );
+      }
+      return Math.max(0, Math.ceil(requiredLift));
+    };
+
+    const normalRequiredLift = calculateRequiredLift(collisionGap);
+    const isConstrained = navigation.dataset.collisionConstrained === 'true';
+    const isLocked = navigation.dataset.collisionLocked === 'true';
+    const maximumVisibleLift = Math.max(
+      0,
+      Math.floor(baseRect.top - safeTopInset),
+    );
+
+    if (isLocked && !isConstrained) {
+      regularCompactHeight = railRect.height;
+      navigation.dataset.collisionConstrained = 'true';
+      navigation.style.setProperty(
+        '--forest-trails-lift',
+        `${Math.min(normalRequiredLift, maximumVisibleLift)}px`,
       );
-      if (coversViewport) continue;
-
-      requiredLift = Math.max(
-        requiredLift,
-        baseRect.bottom - rect.top + 8,
-        viewportHeight - rect.top + 8 - baseBottomGap,
-      );
+      navigation.dataset.collisionCleared = String(maximumVisibleLift > 0);
+      schedule();
+      return;
     }
 
-    const lift = Math.max(0, Math.ceil(requiredLift));
+    if (!isLocked && !isConstrained && normalRequiredLift > maximumVisibleLift) {
+      navigation.dataset.collisionLocked = 'true';
+      collapseButton.disabled = true;
+      collapseButton.setAttribute(
+        'aria-label',
+        'Forest Trails stays compact while page controls are open',
+      );
+      compactNavigation();
+      navigation.style.setProperty(
+        '--forest-trails-lift',
+        `${maximumVisibleLift}px`,
+      );
+      navigation.dataset.collisionCleared = String(maximumVisibleLift > 0);
+      schedule();
+      return;
+    }
+
+    if (isConstrained && regularCompactHeight !== null) {
+      const desiredCollapsed = getDesiredCollapsedState();
+      const compactViewport = targetWindow.matchMedia('(max-width: 680px)').matches;
+      const restoredWidth = desiredCollapsed
+        ? Math.min(
+          compactViewport ? 360 : 430,
+          targetWindow.innerWidth - (compactViewport ? 16 : 24),
+        )
+        : (
+          compactViewport
+            ? targetWindow.innerWidth - 16
+            : Math.min(920, targetWindow.innerWidth - 24)
+        );
+      const restoredHeight = (
+        !desiredCollapsed && compactViewport
+          ? (regularCompactHeight * 2) - 12
+          : regularCompactHeight
+      );
+      const restoredRect = {
+        top: baseRect.bottom - restoredHeight,
+        right: (targetWindow.innerWidth + restoredWidth) / 2,
+        bottom: baseRect.bottom,
+        left: (targetWindow.innerWidth - restoredWidth) / 2,
+      };
+      const restoredRequiredLift = calculateRequiredLift(
+        collisionGap,
+        restoredRect,
+      );
+      const maximumNormalLift = Math.max(
+        0,
+        Math.floor(restoredRect.top - safeTopInset),
+      );
+      if (restoredRequiredLift <= maximumNormalLift) {
+        navigation.style.setProperty(
+          '--forest-trails-lift',
+          `${restoredRequiredLift}px`,
+        );
+        delete navigation.dataset.collisionConstrained;
+        delete navigation.dataset.collisionLocked;
+        collapseButton.disabled = false;
+        restoreNavigation();
+        navigation.dataset.collisionCleared = String(restoredRequiredLift > 0);
+        regularCompactHeight = null;
+        schedule();
+        return;
+      }
+    }
+
+    const requiredLift = isConstrained
+      ? calculateRequiredLift(constrainedGap)
+      : normalRequiredLift;
+    const lift = Math.min(requiredLift, maximumVisibleLift);
     const nextValue = `${lift}px`;
     if (navigation.style.getPropertyValue('--forest-trails-lift') !== nextValue) {
       navigation.style.setProperty('--forest-trails-lift', nextValue);
     }
     navigation.dataset.collisionCleared = String(lift > 0);
+    navigation.dataset.collisionBlocked = String(requiredLift > maximumVisibleLift);
   };
 
   const schedule = () => {
