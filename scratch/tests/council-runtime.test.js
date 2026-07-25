@@ -108,3 +108,59 @@ test('a TinyLLM mind failure aborts and settles its sibling before returning', a
   await new Promise((resolve) => setTimeout(resolve, 60));
   assert.equal(lateWrites, 0, 'a failed prior run must not keep writing after a new run could start');
 });
+
+test('the TinyLLM deliberation runs the required five-role roster and gives qwen every prior view', async () => {
+  const runtime = loadRuntime();
+  assert.equal(
+    typeof runtime.runTinyDeliberation,
+    'function',
+    'Council runtime must export the TinyLLM five-role deliberation',
+  );
+
+  const controller = new AbortController();
+  const calls = [];
+  const outputs = {
+    proposer: 'proposal from Tiny-Agent',
+    analyst: 'analysis from llama',
+    critic: 'critique from small qwen',
+    observer: 'observation from EVE',
+    synthesizer: 'synthesis from qwen',
+  };
+
+  const result = await runtime.runTinyDeliberation({
+    proposition: 'Small models make their seams visible.',
+    controller,
+    async runSeat(seat, prompt, signal) {
+      assert.equal(signal, controller.signal);
+      calls.push({ role: seat.role, model: seat.model, prompt });
+      return outputs[seat.key];
+    },
+  });
+
+  assert.deepEqual(
+    calls.map(({ role, model }) => ({ role, model })),
+    [
+      { role: 'proposer', model: 'hf.co/driaforall/Tiny-Agent-a-0.5B:latest' },
+      { role: 'analyst', model: 'llama3.2:1b' },
+      { role: 'critic', model: 'qwen2.5:0.5b' },
+      {
+        role: 'consciousness observer',
+        model: 'hf.co/mradermacher/eve-qwen2.5-3b-consciousness-soul-GGUF:Q4_K_M',
+      },
+      { role: 'synthesizer', model: 'qwen2.5:3b' },
+    ],
+  );
+  assert.deepEqual(result, {
+    proposer: outputs.proposer,
+    analyst: outputs.analyst,
+    critic: outputs.critic,
+    observer: outputs.observer,
+    synthesizer: outputs.synthesizer,
+  });
+
+  const synthesisPrompt = calls.at(-1).prompt;
+  assert.match(synthesisPrompt, /proposal from Tiny-Agent/);
+  assert.match(synthesisPrompt, /analysis from llama/);
+  assert.match(synthesisPrompt, /critique from small qwen/);
+  assert.match(synthesisPrompt, /observation from EVE/);
+});

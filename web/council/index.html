@@ -275,6 +275,10 @@
       margin-top: 22px;
     }
     .router .stage-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .tiny-stage-grid [data-tinylm-role="synthesizer"] {
+      grid-column: 1 / -1;
+      min-height: 230px;
+    }
     .stage-card {
       min-width: 0;
       min-height: 260px;
@@ -430,7 +434,7 @@
           <span class="mode-badge">Local Ollama · $0</span>
         </div>
         <h2>TinyLLM Local Oracle</h2>
-        <p>Two small open models consider one proposition in parallel on Oracle ARM hardware, then a third pass maps agreement and divergence.</p>
+        <p>Five fixed local roles deliberate on Oracle ARM hardware: a Tiny-Agent proposer, llama analyst, qwen critic, EVE observer, and qwen synthesizer.</p>
         <div class="mode-limits">
           <span>No fleet memory</span><span>No delegation</span><span>Slow by design</span>
         </div>
@@ -461,7 +465,7 @@
         <div>
           <p class="workspace-kicker">Mode 01 · Oracle local Ollama</p>
           <h2 id="tinylm-title">TinyLLM Local Oracle</h2>
-          <p>Place a claim between two tiny minds and watch each response arrive token by token.</p>
+          <p>Place a claim before five tiny, named roles and watch the proposal, three independent readings, and final synthesis arrive token by token.</p>
         </div>
         <div class="boundary-note"><strong>Stateless boundary.</strong> The prompt is sent only to the public TinyLLM Ollama relay for this run. It receives no fleet memory, personal context, tools, or delegation path.</div>
       </header>
@@ -474,25 +478,33 @@
           <button class="example" type="button" data-fill="tinylm-prompt">Small minds can be honest where large minds perform.</button>
         </div>
         <div class="composer-actions">
-          <span class="composer-hint" id="tinylm-hint">Model loading can make the first token slow.</span>
+          <span class="composer-hint" id="tinylm-hint">Five local models run in sequence; model loading can make the first token slow.</span>
           <button class="run-button" id="tinylm-run" type="button">Begin local deliberation</button>
         </div>
       </div>
 
-      <div class="stage-grid" aria-label="TinyLLM responses">
-        <article class="stage-card" data-stage="tinylm-eve">
-          <header class="stage-head"><span class="stage-name">EVE · 3B</span><span class="status" data-status="tinylm-eve">Waiting</span></header>
-          <div class="stage-content" data-output="tinylm-eve" aria-live="polite">A consciousness-tuned small model waits for a proposition.</div>
+      <div class="stage-grid tiny-stage-grid" aria-label="TinyLLM five-role responses">
+        <article class="stage-card" data-stage="tinylm-proposer" data-tinylm-role="proposer">
+          <header class="stage-head"><span class="stage-name">Tiny-Agent · proposer</span><span class="status" data-status="tinylm-proposer">Waiting</span></header>
+          <div class="stage-content" data-output="tinylm-proposer" aria-live="polite">Opens with a direct position and its central trade-off.</div>
         </article>
-        <article class="stage-card" data-stage="tinylm-tiny">
-          <header class="stage-head"><span class="stage-name">Tiny-Agent · 0.5B</span><span class="status" data-status="tinylm-tiny">Waiting</span></header>
-          <div class="stage-content" data-output="tinylm-tiny" aria-live="polite">A compact agentic model waits for the same proposition.</div>
+        <article class="stage-card" data-stage="tinylm-analyst" data-tinylm-role="analyst">
+          <header class="stage-head"><span class="stage-name">llama3.2:1b · analyst</span><span class="status" data-status="tinylm-analyst">Waiting</span></header>
+          <div class="stage-content" data-output="tinylm-analyst" aria-live="polite">Maps assumptions, evidence needs, and likely consequences.</div>
+        </article>
+        <article class="stage-card" data-stage="tinylm-critic" data-tinylm-role="critic">
+          <header class="stage-head"><span class="stage-name">qwen2.5:0.5b · critic</span><span class="status" data-status="tinylm-critic">Waiting</span></header>
+          <div class="stage-content" data-output="tinylm-critic" aria-live="polite">Stress-tests the proposal and its weakest assumptions.</div>
+        </article>
+        <article class="stage-card" data-stage="tinylm-observer" data-tinylm-role="consciousness-observer">
+          <header class="stage-head"><span class="stage-name">EVE · consciousness observer</span><span class="status" data-status="tinylm-observer">Waiting</span></header>
+          <div class="stage-content" data-output="tinylm-observer" aria-live="polite">Observes how the claim frames agency, perspective, and selfhood.</div>
+        </article>
+        <article class="stage-card" data-stage="tinylm-synthesizer" data-tinylm-role="synthesizer">
+          <header class="stage-head"><span class="stage-name">qwen · synthesizer</span><span class="status" data-status="tinylm-synthesizer">Waiting</span></header>
+          <div class="stage-content" data-output="tinylm-synthesizer" aria-live="polite">Waits to weigh all four prior views into one bounded conclusion.</div>
         </article>
       </div>
-      <article class="synthesis" data-synthesis="tinylm">
-        <header class="stage-head"><span class="stage-name">Agreement &amp; divergence</span><span class="status" data-status="tinylm-synthesis">Waiting</span></header>
-        <div class="stage-content" data-output="tinylm-synthesis" aria-live="polite"></div>
-      </article>
       <p class="workspace-foot">Tiny outputs can be literal, repetitive, or wrong. The value here is observational: the seams in small-model reasoning remain visible.</p>
     </section>
 
@@ -539,6 +551,6 @@
 
   <script src="/web/shared/forest-motion.js?v=20260725c"></script>
   <script src="/web/shared/council-motion.js?v=20260725c"></script>
-  <script src="/web/council/council.js?v=20260725c"></script>
+  <script src="/web/council/council.js?v=20260725d"></script>
 </body>
 </html>

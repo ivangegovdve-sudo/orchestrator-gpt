@@ -34,6 +34,25 @@ test('the built Council exposes exactly two stateless interactive modes', () => 
   assert.match(council, /id="openrouter-free"/);
 });
 
+test('the built TinyLLM workspace visibly exposes exactly the five public council roles', () => {
+  const council = readBuilt('web/council/index.html');
+  const roles = [...council.matchAll(/<article\b[^>]*\bdata-tinylm-role="([^"]+)"/g)]
+    .map((match) => match[1]);
+
+  assert.deepEqual(roles, [
+    'proposer',
+    'analyst',
+    'critic',
+    'consciousness-observer',
+    'synthesizer',
+  ]);
+  assert.match(council, /Tiny-Agent[^<]*proposer/i);
+  assert.match(council, /llama3\.2:1b[^<]*analyst/i);
+  assert.match(council, /qwen2\.5:0\.5b[^<]*critic/i);
+  assert.match(council, /EVE[^<]*consciousness observer/i);
+  assert.match(council, /qwen[^<]*synthesizer/i);
+});
+
 test('the public Council contains no private, key, or access-gate surface', () => {
   const publicCouncil = [
     readBuilt('web/council/index.html'),

@@ -72,6 +72,7 @@ for (const route of [
   '/web/calendar/',
   '/web/manifesto-newborn/',
   '/web/manifesto-newborn/bg/',
+  '/web/manifesto-newborn/mk/',
   '/web/manifesto-newborn/zh/',
   '/web/m-popova/',
 ]) {
