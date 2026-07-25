@@ -27,6 +27,9 @@
 
   <svg width="0" height="0" aria-hidden="true" focusable="false" style="position:absolute">
     <defs>
+      <symbol id="leaf" viewBox="0 0 24 28">
+        <path d="M11.4 27.5l.9-7.2-5.1 2.1 1.4-5.2-6.1-1.8 4.8-3.2-3.2-5.4 6.2 1.8L12.7.5l3.1 7.3 5.7-2.4-2.1 6.2 4.1 3.1-5.5 2.1 1.3 5.5-5.1-2.2-.9 7.4z"/>
+      </symbol>
       <symbol id="icon-time" viewBox="0 0 48 48">
         <circle class="icon-ring" cx="24" cy="24" r="19" stroke-dasharray="4 5"/>
         <path class="icon-line" d="M24 8v16l10 6M14 15c-3 3-5 7-5 12m30-1c0 5-2 9-6 12"/>
@@ -130,11 +133,31 @@
     <section class="landing" data-landing aria-labelledby="forest-title">
       <div class="landing-core">
         <div class="title-crown forest-sigil" data-title-crown aria-hidden="true">
-          <svg viewBox="0 0 640 260" focusable="false">
-            <path class="title-crown-trunk" d="M320 248C318 210 326 178 320 142M320 190C294 172 278 154 266 128M321 176C350 158 366 141 378 116"/>
-            <path class="title-crown-canopy" d="M111 148C73 129 79 83 119 72C121 31 173 17 204 45C225 6 281 6 306 38C340 3 397 15 409 54C448 32 497 58 493 96C537 99 550 146 516 169C531 207 490 235 455 219C432 249 386 248 363 219C337 246 293 245 269 216C235 240 188 221 184 184C151 196 115 181 111 148Z"/>
-            <path class="title-crown-branch" d="M320 143C286 119 260 91 242 63M320 142C353 119 382 91 397 59M286 116C250 111 222 101 199 83M355 116C392 108 421 94 444 75"/>
-          </svg>
+          <div class="crown-wrap">
+            <svg class="crown" viewBox="0 0 640 260" focusable="false">
+              <path class="title-crown-trunk" d="M320 248C318 210 326 178 320 142M320 190C294 172 278 154 266 128M321 176C350 158 366 141 378 116"/>
+              <path class="title-crown-canopy" d="M111 148C73 129 79 83 119 72C121 31 173 17 204 45C225 6 281 6 306 38C340 3 397 15 409 54C448 32 497 58 493 96C537 99 550 146 516 169C531 207 490 235 455 219C432 249 386 248 363 219C337 246 293 245 269 216C235 240 188 221 184 184C151 196 115 181 111 148Z"/>
+              <g class="leaf-cluster" data-cluster="1" style="fill:#2d5a27">
+                <use href="#leaf" x="122" y="86" width="28" height="33"/><use href="#leaf" x="149" y="68" width="25" height="30"/><use href="#leaf" x="173" y="92" width="23" height="27"/>
+              </g>
+              <g class="leaf-cluster" data-cluster="2" style="fill:#4a7c59">
+                <use href="#leaf" x="209" y="46" width="30" height="35"/><use href="#leaf" x="238" y="64" width="24" height="29"/><use href="#leaf" x="264" y="38" width="27" height="32"/>
+              </g>
+              <g class="leaf-cluster" data-cluster="3" style="fill:#6aaa7e">
+                <use href="#leaf" x="304" y="37" width="29" height="34"/><use href="#leaf" x="336" y="52" width="24" height="29"/><use href="#leaf" x="364" y="34" width="27" height="32"/>
+              </g>
+              <g class="leaf-cluster" data-cluster="4" style="fill:#2d5a27">
+                <use href="#leaf" x="399" y="65" width="27" height="32"/><use href="#leaf" x="428" y="47" width="30" height="35"/><use href="#leaf" x="454" y="83" width="23" height="28"/>
+              </g>
+              <g class="leaf-cluster" data-cluster="5" style="fill:#4a7c59">
+                <use href="#leaf" x="179" y="128" width="24" height="29"/><use href="#leaf" x="211" y="110" width="28" height="33"/><use href="#leaf" x="244" y="137" width="22" height="26"/>
+              </g>
+              <g class="leaf-cluster" data-cluster="6" style="fill:#6aaa7e">
+                <use href="#leaf" x="371" y="123" width="24" height="29"/><use href="#leaf" x="404" y="105" width="28" height="33"/><use href="#leaf" x="438" y="132" width="22" height="26"/>
+              </g>
+              <path class="title-crown-branch" d="M320 143C286 119 260 91 242 63M320 142C353 119 382 91 397 59M286 116C250 111 222 101 199 83M355 116C392 108 421 94 444 75"/>
+            </svg>
+          </div>
         </div>
         <p class="landing-kicker">A living index by Ivan Gegov</p>
         <h1 id="forest-title" class="landing-title">
@@ -150,7 +173,7 @@
     <section class="crown-section" data-crown aria-label="The tree crown — every project is a branch">
       <header class="crown-head">
         <p class="crown-kicker">The crown</p>
-        <h2>Eighteen branches, <em>one tree</em></h2>
+        <h2>Nineteen branches, <em>one tree</em></h2>
         <p class="crown-copy">Every project grows from the same trunk. Keep walking — each branch comes down to meet you, and every meeting sends roots climbing back up to light its branch.</p>
       </header>
       <div class="crown-stage" data-crown-stage>
@@ -178,6 +201,10 @@
           <span class="portal-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><use href="#icon-gallery"/></svg></span>
           <span class="portal-copy"><span class="portal-name">Web Design Gallery</span><span class="portal-meta">Scroll-world flight</span></span>
         </button>
+        <button class="portal" type="button" style="--accent:#8b8cff" data-project="time" data-href="/web/life-in-time/" data-status="Live" data-meta="Time perspective" data-description="Turn a birth year and life expectancy into remaining summers, heartbeats, Christmases, and a shareable late-achiever perspective." aria-pressed="false">
+          <span class="portal-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><use href="#icon-time"/></svg></span>
+          <span class="portal-copy"><span class="portal-name">Life in Time</span><span class="portal-meta">Time perspective</span></span>
+        </button>
         <button class="portal" type="button" style="--accent:#a282ff" data-project="vfx" data-href="/web/vfx-portfolio/index.html" data-status="Portfolio" data-meta="Animation · VFX" data-description="Ivan Gegov’s real animation, compositing, VFX, game work, showreel, credits, experience, and tools—preserved from the original portfolio." aria-pressed="false">
           <span class="portal-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><use href="#icon-vfx"/></svg></span>
           <span class="portal-copy"><span class="portal-name">VFX Portfolio</span><span class="portal-meta">Animation · VFX</span></span>
@@ -190,11 +217,11 @@
           <span class="portal-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><use href="#icon-time"/></svg></span>
           <span class="portal-copy"><span class="portal-name">Morning News</span><span class="portal-meta">Daily briefing</span></span>
         </button>
-        <button class="portal" type="button" style="--accent:#ff7fb0" data-project="health" data-href="/web/womens-health-os/index.html" data-status="In development" data-meta="Evidence base" data-description="An evidence-graded research intelligence base for cycles, hormones, fertility, PCOS, menopause, and women’s health." aria-pressed="false">
+        <button class="portal" type="button" style="--accent:#ff7fb0" data-project="health" data-href="/web/womens-health-os/index.html" data-status="Live research" data-meta="Evidence base" data-description="An evidence-graded research intelligence base for cycles, hormones, fertility, PCOS, menopause, and women’s health." aria-pressed="false">
           <span class="portal-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><use href="#icon-health"/></svg></span>
           <span class="portal-copy"><span class="portal-name">Women’s Health OS</span><span class="portal-meta">Evidence base</span></span>
         </button>
-        <button class="portal" type="button" style="--accent:#ac90ff" data-project="council" data-href="/web/council/index.html" data-status="In development" data-meta="Machine dialogue" data-description="Choose between TinyLLM Local Oracle and OpenRouter Free—two stateless public experiments with honest limits." aria-pressed="false">
+        <button class="portal" type="button" style="--accent:#ac90ff" data-project="council" data-href="/web/council/index.html" data-status="Public" data-meta="Machine dialogue" data-description="Choose between TinyLLM Local Oracle and OpenRouter Free—two stateless public experiments with honest limits." aria-pressed="false">
           <span class="portal-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><use href="#icon-council"/></svg></span>
           <span class="portal-copy"><span class="portal-name">Councils</span><span class="portal-meta">Machine dialogue</span></span>
         </button>
@@ -202,11 +229,11 @@
           <span class="portal-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><use href="#icon-library"/></svg></span>
           <span class="portal-copy"><span class="portal-name">Library &amp; Platforms</span><span class="portal-meta">Glossary · tools</span></span>
         </button>
-        <button class="portal" type="button" style="--accent:#73e9ff;--accent-secondary:#a9b2ff" data-project="open-overview" data-href="/web/open-overview/index.html" data-status="In development" data-meta="AI ecosystem radar" data-description="Compare OpenRouter models and apps with GitHub AI ecosystems through ten-deep rankings, observed relationships, lifecycle signals, and clearly labeled source evidence." aria-pressed="false">
+        <button class="portal" type="button" style="--accent:#73e9ff;--accent-secondary:#a9b2ff" data-project="open-overview" data-href="/web/open-overview/index.html" data-status="Public snapshot" data-meta="AI ecosystem radar" data-description="Compare OpenRouter models and apps with GitHub AI ecosystems through ten-deep rankings, observed relationships, lifecycle signals, and clearly labeled source evidence." aria-pressed="false">
           <span class="portal-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><use href="#icon-open-overview"/></svg></span>
           <span class="portal-copy"><span class="portal-name">Open Overview</span><span class="portal-meta">AI ecosystem radar</span></span>
         </button>
-        <button class="portal" type="button" style="--accent:#ff745c" data-project="muscle" data-href="/web/hypertrophyos/index.html" data-status="In development" data-meta="Training research" data-description="Training intelligence, practical calculators, evidence rules, and a transparent research path for strength and hypertrophy." aria-pressed="false">
+        <button class="portal" type="button" style="--accent:#ff745c" data-project="muscle" data-href="/web/hypertrophyos/index.html" data-status="Live research" data-meta="Training research" data-description="Training intelligence, practical calculators, evidence rules, and a transparent research path for strength and hypertrophy." aria-pressed="false">
           <span class="portal-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><use href="#icon-muscle"/></svg></span>
           <span class="portal-copy"><span class="portal-name">Hyper Trophy OS</span><span class="portal-meta">Training research</span></span>
         </button>
@@ -218,19 +245,19 @@
           <span class="portal-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><use href="#icon-manifesto"/></svg></span>
           <span class="portal-copy"><span class="portal-name">Manifesto for a Newborn</span><span class="portal-meta">Reading room</span></span>
         </button>
-        <button class="portal" type="button" style="--accent:#ffc258" data-project="power" data-href="/web/power-law-odyssey/index.html" data-status="In development" data-meta="Heavy-tail sandbox" data-description="A seeded, reproducible walk through heavy tails: many ordinary misses, rare enormous hits, and the intuition they produce." aria-pressed="false">
+        <button class="portal" type="button" style="--accent:#ffc258" data-project="power" data-href="/web/power-law-odyssey/index.html" data-status="Interactive" data-meta="Heavy-tail sandbox" data-description="A seeded, reproducible walk through heavy tails: many ordinary misses, rare enormous hits, and the intuition they produce." aria-pressed="false">
           <span class="portal-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><use href="#icon-power"/></svg></span>
           <span class="portal-copy"><span class="portal-name">Power Law Odyssey</span><span class="portal-meta">Heavy-tail sandbox</span></span>
         </button>
-        <button class="portal" type="button" style="--accent:#51ebff" data-project="void" data-href="/web/replicator-void/index.html" data-status="In development" data-meta="Experimental" data-description="A living population of tiny replicators mutates, feeds, divides, and dies under your cursor in a deliberately strange simulation." aria-pressed="false">
+        <button class="portal" type="button" style="--accent:#51ebff" data-project="void" data-href="/web/replicator-void/index.html" data-status="Experimental" data-meta="Artificial life" data-description="A living population of tiny replicators mutates, feeds, divides, and dies under your cursor in a deliberately strange simulation." aria-pressed="false">
           <span class="portal-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><use href="#icon-void"/></svg></span>
           <span class="portal-copy"><span class="portal-name">Replicator Void</span><span class="portal-meta experimental">Experimental</span></span>
         </button>
-        <button class="portal" type="button" style="--accent:#a78bfa" data-project="c2c-dolphin" data-href="/web/ai-research/index.html" data-status="In development" data-meta="Research" data-description="Two AI models given no task and no human — just each other. 30 turns, psychometric profiling. What do they gravitate toward when left alone?" aria-pressed="false">
+        <button class="portal" type="button" style="--accent:#a78bfa" data-project="c2c-dolphin" data-href="/web/ai-research/index.html" data-status="Published research" data-meta="AI conversation" data-description="Two AI models given no task and no human — just each other. 30 turns, psychometric profiling. What do they gravitate toward when left alone?" aria-pressed="false">
           <span class="portal-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><use href="#icon-c2c"/></svg></span>
           <span class="portal-copy"><span class="portal-name">AI Conversation</span><span class="portal-meta experimental">Research</span></span>
         </button>
-        <button class="portal" type="button" style="--accent:#f472b6" data-project="c2c-self" data-href="/web/ai-research/index.html" data-status="In development" data-meta="Research" data-description="Same model talking to itself. 30 turns. Both instances converge to The Poet — bone, hum, vibration, breath. The mirror speaks with one voice." aria-pressed="false">
+        <button class="portal" type="button" style="--accent:#f472b6" data-project="c2c-self" data-href="/web/ai-research/index.html" data-status="Published research" data-meta="Artificial self" data-description="Same model talking to itself. 30 turns. Both instances converge to The Poet — bone, hum, vibration, breath. The mirror speaks with one voice." aria-pressed="false">
           <span class="portal-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><use href="#icon-c2c-self"/></svg></span>
           <span class="portal-copy"><span class="portal-name">Artificial Self</span><span class="portal-meta experimental">Research</span></span>
         </button>
@@ -325,6 +352,62 @@
           behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth',
         });
       });
+
+      /* One-shot leaf fall: the title crown sheds 6–10 lightweight SVG
+         instances as its hero clears the viewport. The source silhouette
+         stays in one inline symbol; every temporary leaf removes itself. */
+      const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
+      const hero = document.querySelector('[data-landing]');
+      const titleCrown = document.querySelector('[data-title-crown]');
+      const leafColors = ['#2d5a27', '#4a7c59', '#6aaa7e'];
+
+      const dropLeaves = () => {
+        if (reducedMotion.matches || !titleCrown) return;
+        const bounds = titleCrown.getBoundingClientRect();
+        const count = Math.floor(6 + Math.random() * 5);
+        const fragment = document.createDocumentFragment();
+
+        for (let index = 0; index < count; index += 1) {
+          const leaf = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+          const use = document.createElementNS('http://www.w3.org/2000/svg', 'use');
+          const size = 17 + Math.random() * 12;
+          const sourceY = bounds.top + Math.random() * Math.max(1, bounds.height * .56);
+          leaf.classList.add('falling-leaf');
+          leaf.setAttribute('viewBox', '0 0 24 28');
+          leaf.setAttribute('aria-hidden', 'true');
+          leaf.style.left = `${bounds.left + Math.random() * Math.max(1, bounds.width)}px`;
+          leaf.style.top = `${Math.max(-30, Math.min(innerHeight * .16, sourceY))}px`;
+          leaf.style.fill = leafColors[index % leafColors.length];
+          leaf.style.setProperty('--leaf-size', `${size.toFixed(1)}px`);
+          leaf.style.setProperty('--drift', `${(-30 + Math.random() * 60).toFixed(1)}px`);
+          leaf.style.setProperty(
+            '--leaf-duration-factor',
+            (.74 + Math.random() * .74).toFixed(3),
+          );
+          leaf.style.setProperty(
+            '--leaf-delay-factor',
+            (Math.random() * .933).toFixed(3),
+          );
+          use.setAttribute('href', '#leaf');
+          leaf.append(use);
+          leaf.addEventListener('animationend', () => {
+            leaf.style.willChange = '';
+            leaf.remove();
+          }, { once: true });
+          fragment.append(leaf);
+        }
+
+        document.body.append(fragment);
+      };
+
+      if (!reducedMotion.matches && hero && 'IntersectionObserver' in window) {
+        const leafObserver = new IntersectionObserver(([entry]) => {
+          if (entry.isIntersecting || entry.boundingClientRect.bottom > 0) return;
+          dropLeaves();
+          leafObserver.disconnect();
+        }, { threshold: 0 });
+        leafObserver.observe(hero);
+      }
 
       /* Birth: one-shot title reveal once fonts are ready. */
       const born = () => root.classList.add('is-born');

@@ -2,6 +2,7 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
+const { pathToFileURL } = require('node:url');
 
 const ROOT = path.resolve(__dirname, '../..');
 const read = (relativePath) => fs.readFileSync(path.join(ROOT, relativePath), 'utf8');
@@ -22,8 +23,9 @@ test('home is a truthful portal with the requested project lineup', () => {
     assert.match(home, new RegExp(title.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
   }
 
-  assert.equal((home.match(/data-project="/g) || []).length, 16);
-  assert.match(home, /Portal lattice · 16 nodes/);
+  assert.equal((home.match(/data-project="/g) || []).length, 19);
+  assert.match(home, /The atlas/);
+  assert.match(home, /Every path <em>at a glance<\/em>/);
 
   assert.doesNotMatch(home, /Voice2Voice Buddy/i);
   assert.doesNotMatch(home, /TinyLM Experiment/i);
@@ -33,13 +35,14 @@ test('home is a truthful portal with the requested project lineup', () => {
   assert.match(home, /web\/vfx-portfolio\/index\.html/);
 });
 
-test('home implements an accessible scroll assembly and interactive previews', () => {
+test('home implements an accessible scroll-linked route walk and interactive atlas', () => {
   const home = read('index.html');
 
-  assert.match(home, /data-assembly/);
+  assert.match(home, /data-routes/);
   assert.match(home, /data-project-grid/);
-  assert.match(home, /data-preview-stage/);
-  assert.match(home, /aria-live="polite"/);
+  assert.match(home, /section\.dataset\.slam/);
+  assert.match(home, /class="portal" type="button"/);
+  assert.match(home, /aria-pressed="false"/);
   assert.match(home, /prefers-reduced-motion/);
   assert.match(home, /pointermove/);
 });
@@ -83,25 +86,31 @@ test('VFX portfolio preserves real prior work and contains no generated imagery'
   assert.doesNotMatch(vfx, /generated_images|oaidalle|DALL.?E|AI-generated/i);
 });
 
-test('shared motion runtime honors pointer, click, visibility, and reduced motion', () => {
+test('shared motion runtime honors interaction and imports the deterministic theme registry', async () => {
   const motion = read('web/shared/forest-motion.js');
 
-  for (const token of ['uMouse', 'uClick', 'visibilitychange', 'prefers-reduced-motion']) {
+  for (const token of ['uMouse', 'uClick', 'uScroll', 'visibilitychange', 'prefers-reduced-motion']) {
     assert.match(motion, new RegExp(token));
   }
   assert.match(motion, /devicePixelRatio/);
-  assert.match(motion, /value = \(value \+ 0x6D2B79F5\) \| 0/);
-  assert.doesNotMatch(motion, /nearest\.sort/);
+  assert.match(motion, /forest-themes\.mjs/);
+
+  const themesPath = pathToFileURL(path.join(ROOT, 'web/shared/forest-themes.mjs')).href;
+  const themes = await import(`${themesPath}?authority=${Date.now()}`);
+  const first = themes.createThemePoints('library', 24, 20260725);
+  const second = themes.createThemePoints('library', 24, 20260725);
+  assert.deepEqual(first, second);
+  assert.equal(first.positions.length, 72);
 });
 
 test('shared layouts preserve fixed controls and stack safely on tablets', () => {
   const shell = read('web/shared/forest-shell.css');
   const homeStyles = read('web/shared/forest-home.css');
-  const home = read('index.html');
+  const homeRuntime = read('web/shared/forest-three.js');
 
   assert.match(shell, /:where\(body\[data-forest-page\]/);
   assert.match(homeStyles, /@media \(max-width: 900px\)/);
-  assert.match(home, /matchMedia\('\(max-width: 900px\)'\)/);
+  assert.match(homeRuntime, /matchMedia\('\(max-width: 900px\)'\)/);
 });
 
 test('live research requests have bounded waits and guaranteed timer cleanup', () => {
@@ -125,12 +134,18 @@ test('every live internal portal resolves to an animated page with a Forest retu
   const home = read('index.html');
   const routes = [...home.matchAll(/data-href="(\/web\/[^"]+)"/g)].map((match) => match[1]);
 
-  assert.equal(routes.length, 14);
-  for (const route of routes) {
-    const relativePath = route.replace(/^\//, '');
+  assert.equal(routes.length, 16);
+  assert.equal(new Set(routes).size, 15);
+  for (const route of new Set(routes)) {
+    let relativePath = route.replace(/^\//, '');
+    if (relativePath.endsWith('/')) relativePath += 'index.html';
     assert.ok(fs.existsSync(path.join(ROOT, relativePath)), `${route} does not exist`);
     const page = read(relativePath);
-    assert.match(page, /href="\/"|href="\/index\.html"/, `${route} has no Forest return path`);
+    assert.match(
+      page,
+      /href="\/"|href="\/index\.html"|forest-(?:motion|trails)\.js/,
+      `${route} has no Forest return path`,
+    );
     assert.match(page, /forest-motion\.js|open-overview\.js|id="world"|id="starfield"/, `${route} has no motion runtime`);
   }
 });
