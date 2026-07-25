@@ -54,7 +54,9 @@
     return error;
   }
 
-  function createStreamScope(outerSignal) {
+  function createStreamScope(outerSignal, options = {}) {
+    const firstTokenTimeout = options.firstTokenTimeout ?? FIRST_TOKEN_TIMEOUT;
+    const hardCap = options.hardCap ?? STREAM_HARD_CAP;
     const controller = new AbortController();
     let firstTokenSeen = false;
     let firstTokenExpired = false;
@@ -64,11 +66,11 @@
     const firstTimer = setTimeout(() => {
       firstTokenExpired = true;
       controller.abort();
-    }, FIRST_TOKEN_TIMEOUT);
+    }, firstTokenTimeout);
     const hardTimer = setTimeout(() => {
       hardCapExpired = true;
       controller.abort();
-    }, STREAM_HARD_CAP);
+    }, hardCap);
 
     return {
       signal: controller.signal,
@@ -80,7 +82,9 @@
       classify(error, partialText = '') {
         if (outerSignal.aborted) return abortError();
         if (firstTokenExpired && !firstTokenSeen) return new Error('No first token arrived before the free-run timeout.');
-        if (hardCapExpired && partialText) return null;
+        if (hardCapExpired) {
+          return partialText ? null : new Error('The model stream exceeded its hard time limit.');
+        }
         return error;
       },
       close() {
@@ -136,17 +140,22 @@
     const scope = createStreamScope(outerSignal);
     let fullText = '';
     try {
-      const response = await fetch(`${TINY_RELAY}/api/generate`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          model,
-          prompt,
-          stream: true,
-          options: { num_predict: maxTokens, temperature: 0.8 },
-        }),
-        signal: scope.signal,
-      });
+      let response;
+      try {
+        response = await fetch(`${TINY_RELAY}/api/generate`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            model,
+            prompt,
+            stream: true,
+            options: { num_predict: maxTokens, temperature: 0.8 },
+          }),
+          signal: scope.signal,
+        });
+      } catch (error) {
+        throw scope.classify(error);
+      }
       if (!response.ok || !response.body) throw new Error(`Local relay returned HTTP ${response.status}.`);
 
       const reader = response.body.getReader();
@@ -199,27 +208,33 @@
     }
   }
 
-  async function streamFreeModel(model, messages, maxTokens, outerSignal, onToken) {
+  async function streamFreeModel(model, messages, maxTokens, outerSignal, onToken, transport = {}) {
     if (!model.endsWith(':free')) throw new Error('The public council blocked a non-free model.');
-    const scope = createStreamScope(outerSignal);
+    const scope = createStreamScope(outerSignal, transport);
+    const fetchImpl = transport.fetchImpl || fetch;
     let fullText = '';
     try {
-      const response = await fetch(OPEN_RELAY, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'HTTP-Referer': location.origin,
-          'X-Title': 'SDForest OpenRouter Free Council',
-        },
-        body: JSON.stringify({
-          model,
-          messages,
-          stream: true,
-          max_tokens: maxTokens,
-          temperature: 0.55,
-        }),
-        signal: scope.signal,
-      });
+      let response;
+      try {
+        response = await fetchImpl(OPEN_RELAY, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'HTTP-Referer': typeof location === 'undefined' ? 'https://sdforest.site' : location.origin,
+            'X-Title': 'SDForest OpenRouter Free Council',
+          },
+          body: JSON.stringify({
+            model,
+            messages,
+            stream: true,
+            max_tokens: maxTokens,
+            temperature: 0.55,
+          }),
+          signal: scope.signal,
+        });
+      } catch (error) {
+        throw scope.classify(error);
+      }
       if (!response.ok || !response.body) throw new Error(`Free relay returned HTTP ${response.status}.`);
 
       const reader = response.body.getReader();
@@ -264,31 +279,83 @@
     }
   }
 
-  async function runFreeSeat(key, roster, messages, maxTokens, outerSignal, hint) {
+  async function runFreeRoster(options) {
+    const {
+      roster,
+      messages,
+      maxTokens,
+      outerSignal,
+      fetchImpl,
+      firstTokenTimeout,
+      hardCap,
+      onAttempt = () => {},
+      onToken = () => {},
+      onAttemptFailure = () => {},
+    } = options;
     let lastError = null;
     for (let index = 0; index < roster.length; index += 1) {
       if (outerSignal.aborted) throw abortError();
       const model = roster[index];
-      const stream = beginStage(key, `Model ${index + 1}/${roster.length}`);
-      hint.textContent = `Trying ${model.split('/').pop()} — free-tier queues can vary.`;
+      onAttempt(model, index, roster.length);
       try {
         const text = await streamFreeModel(
           model,
           messages,
           maxTokens,
           outerSignal,
-          (token) => appendToken(stream, token),
+          (token) => onToken(token, model, index),
+          { fetchImpl, firstTokenTimeout, hardCap },
         );
         if (!text) throw new Error('The free model returned no text.');
-        finishStage(key, text, model.split('/').pop());
         return { model, text };
       } catch (error) {
-        if (error.name === 'AbortError') throw error;
+        if (outerSignal.aborted) throw abortError();
         lastError = error;
+        onAttemptFailure(error, model, index);
       }
+    }
+    return null;
+  }
+
+  async function runFreeSeat(key, roster, messages, maxTokens, outerSignal, hint) {
+    let stream = null;
+    let lastError = null;
+    const result = await runFreeRoster({
+      roster,
+      messages,
+      maxTokens,
+      outerSignal,
+      onAttempt(model, index, count) {
+        stream = beginStage(key, `Model ${index + 1}/${count}`);
+        hint.textContent = `Trying ${model.split('/').pop()} — free-tier queues can vary.`;
+      },
+      onToken(token) {
+        appendToken(stream, token);
+      },
+      onAttemptFailure(error) {
+        lastError = error;
+      },
+    });
+    if (result) {
+      finishStage(key, result.text, result.model.split('/').pop());
+      return result;
     }
     failStage(key, `Every fixed free-model fallback was unavailable. ${lastError?.message || ''}`.trim());
     return null;
+  }
+
+  async function runTinyPair(controller, jobs) {
+    let primaryFailure = null;
+    const guardedJobs = jobs.map((job) => Promise.resolve()
+      .then(() => job(controller.signal))
+      .catch((error) => {
+        if (!primaryFailure) primaryFailure = error;
+        if (!controller.signal.aborted) controller.abort();
+        throw error;
+      }));
+    const results = await Promise.allSettled(guardedJobs);
+    if (primaryFailure) throw primaryFailure;
+    return results.map((result) => result.value);
   }
 
   let tinyController = null;
@@ -338,9 +405,9 @@
     };
 
     try {
-      const [eveText, tinyText] = await Promise.all([
-        runMind('eve', 'tinylm-eve'),
-        runMind('tiny', 'tinylm-tiny'),
+      const [eveText, tinyText] = await runTinyPair(tinyController, [
+        () => runMind('eve', 'tinylm-eve'),
+        () => runMind('tiny', 'tinylm-tiny'),
       ]);
       if (signal.aborted) throw abortError();
 
@@ -445,6 +512,11 @@
       runButton.classList.remove('running');
     }
   }
+
+  if (typeof module === 'object' && module.exports) {
+    module.exports = { runFreeRoster, runTinyPair };
+  }
+  if (typeof document === 'undefined') return;
 
   for (const button of document.querySelectorAll('[data-fill]')) {
     button.addEventListener('click', () => {
