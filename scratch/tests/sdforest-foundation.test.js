@@ -36,3 +36,14 @@ test('Forest HUB built styles publish the canonical design tokens', () => {
   assert.match(styles, /--surface:\s*#0f0f15\b/);
   assert.match(styles, /--accent:\s*#4f46e5\b/);
 });
+
+test('Kids Corner links exactly the two approved existing sub-apps', () => {
+  const kids = built('web/kids/index.html');
+  const hrefs = [...kids.matchAll(/class="kid-card[^"]*" href="([^"]+)"/g)]
+    .map((match) => match[1])
+    .sort();
+
+  assert.deepEqual(hrefs, ['/web/kids-movie-library/', '/web/math-mania/']);
+  assert.match(kids, /Math Mania/);
+  assert.match(kids, /Kids Movie Library/);
+});
