@@ -60,6 +60,7 @@ before(async () => {
       '.css': 'text/css; charset=utf-8',
       '.html': 'text/html; charset=utf-8',
       '.js': 'text/javascript; charset=utf-8',
+      '.mjs': 'text/javascript; charset=utf-8',
       '.svg': 'image/svg+xml',
     }[path.extname(filePath)] || 'application/octet-stream';
 
@@ -102,6 +103,33 @@ test('publishes the exact canonical public route manifest', async () => {
   for (const route of routes) {
     const response = await page.request.get(`${baseUrl}${route.path}`);
     assert.equal(response.status(), 200, `${route.label} must resolve at ${route.path}`);
+  }
+
+  await page.close();
+});
+
+test('every canonical public page mounts Forest Trails through production scripts', {
+  timeout: 45_000,
+}, async () => {
+  const page = await browser.newPage();
+
+  for (const routePath of expectedPaths) {
+    const response = await page.goto(`${baseUrl}${routePath}`, {
+      waitUntil: 'domcontentloaded',
+    });
+    assert.equal(response.status(), 200, `${routePath} must load`);
+
+    const navigation = page.getByRole('navigation', { name: 'Forest Trails' });
+    await navigation.waitFor({
+      state: 'attached',
+      timeout: 4_000,
+    });
+    assert.equal(await navigation.count(), 1, `${routePath} must mount one route rail`);
+    assert.equal(
+      await navigation.locator('[aria-current="page"]').count(),
+      1,
+      `${routePath} must identify its current route`,
+    );
   }
 
   await page.close();
@@ -187,18 +215,12 @@ test('keeps every public destination in a safe, bounded route graph', async () =
   await page.close();
 });
 
-test('self-mounts one accessible current-page rail with three next links', async () => {
+test('real canonical pages load one accessible rail without a test-only import', async () => {
   const page = await browser.newPage();
   await page.goto(`${baseUrl}/web/life-in-time/`, { waitUntil: 'domcontentloaded' });
-  const moduleUrl = `${baseUrl}/web/shared/forest-trails.js`;
-
-  await page.evaluate(async (url) => {
-    await import(`${url}?mount-test-a`);
-    await import(`${url}?mount-test-b`);
-  }, moduleUrl);
 
   const navigation = page.getByRole('navigation', { name: 'Forest Trails' });
-  await navigation.waitFor({ timeout: 2_000 });
+  await navigation.waitFor({ timeout: 4_000 });
   assert.equal(await navigation.count(), 1);
   assert.equal(
     await navigation.locator('.forest-trails__current').textContent(),
@@ -223,17 +245,24 @@ test('self-mounts one accessible current-page rail with three next links', async
   assert.equal(await mapButton.getAttribute('aria-controls'), 'forest-trails-map');
   assert.equal(await page.locator('#forest-trails-map').count(), 1);
 
+  await page.goto(`${baseUrl}/`, { waitUntil: 'domcontentloaded' });
+  const homeNavigation = page.getByRole('navigation', { name: 'Forest Trails' });
+  await homeNavigation.waitFor({ timeout: 4_000 });
+  assert.equal(await homeNavigation.count(), 1);
+  assert.equal(
+    await homeNavigation.locator('.forest-trails__current').textContent(),
+    'Forest HUB',
+  );
+
   await page.close();
 });
 
 test('opens a keyboard-safe full map grouped into all six trails', { timeout: 6_000 }, async () => {
   const page = await browser.newPage();
   await page.goto(`${baseUrl}/web/kids/`, { waitUntil: 'domcontentloaded' });
-  await page.evaluate(async (moduleUrl) => {
-    await import(moduleUrl);
-  }, `${baseUrl}/web/shared/forest-trails.js?drawer-test`);
 
   const navigation = page.getByRole('navigation', { name: 'Forest Trails' });
+  await navigation.waitFor({ timeout: 4_000 });
   const mapButton = navigation.getByRole('button', { name: 'Open full route map' });
   await mapButton.click({ timeout: 2_000 });
 
@@ -285,12 +314,9 @@ test('renders a fixed touch-safe route network and disables its motion when requ
   const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.goto(`${baseUrl}/web/m-popova/`, { waitUntil: 'domcontentloaded' });
-  await page.evaluate(async (moduleUrl) => {
-    await import(moduleUrl);
-  }, `${baseUrl}/web/shared/forest-trails.js?motion-test`);
 
   const navigation = page.getByRole('navigation', { name: 'Forest Trails' });
-  await navigation.waitFor({ timeout: 2_000 });
+  await navigation.waitFor({ timeout: 4_000 });
   await page.waitForFunction(() => {
     const link = document.querySelector('link[data-forest-trails-styles]');
     return Boolean(link?.sheet);
@@ -322,6 +348,147 @@ test('renders a fixed touch-safe route network and disables its motion when requ
   assert.equal(measurements.pathAnimation, 'none');
 
   await page.close();
+});
+
+test('forced dialog fallback traps focus, closes on Escape, and restores its trigger', async () => {
+  const context = await browser.newContext();
+  const page = await context.newPage();
+  await page.addInitScript(() => {
+    Object.defineProperty(HTMLDialogElement.prototype, 'showModal', {
+      configurable: true,
+      value: undefined,
+    });
+    Object.defineProperty(HTMLDialogElement.prototype, 'close', {
+      configurable: true,
+      value: undefined,
+    });
+  });
+  await page.goto(`${baseUrl}/web/kids/`, { waitUntil: 'domcontentloaded' });
+
+  const navigation = page.getByRole('navigation', { name: 'Forest Trails' });
+  await navigation.waitFor({ timeout: 4_000 });
+  const mapButton = navigation.getByRole('button', { name: 'Open full route map' });
+  await mapButton.click();
+
+  const drawer = page.locator('#forest-trails-map');
+  assert.equal(await drawer.getAttribute('data-forest-dialog-mode'), 'fallback');
+  assert.equal(await drawer.getAttribute('role'), 'dialog');
+  assert.equal(await drawer.getAttribute('aria-modal'), 'true');
+  assert.equal(await drawer.getAttribute('open'), '');
+  assert.equal(await page.locator('.forest-trails__fallback-backdrop').isVisible(), true);
+
+  await page.keyboard.press('Shift+Tab');
+  assert.equal(
+    await page.evaluate(() => document.querySelector('#forest-trails-map')
+      .contains(document.activeElement)),
+    true,
+  );
+  await page.keyboard.press('Tab');
+  assert.equal(
+    await page.evaluate(() => document.querySelector('#forest-trails-map')
+      .contains(document.activeElement)),
+    true,
+  );
+
+  await page.keyboard.press('Escape');
+  assert.equal(await drawer.getAttribute('open'), null);
+  assert.equal(await mapButton.getAttribute('aria-expanded'), 'false');
+  assert.equal(
+    await page.evaluate(() => document.activeElement?.getAttribute('aria-label')),
+    'Open full route map',
+  );
+
+  await context.close();
+});
+
+test('mobile rail starts compact and clears actual fixed simulation controls', async () => {
+  const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
+  await page.goto(`${baseUrl}/web/replicator-void/`, { waitUntil: 'domcontentloaded' });
+
+  const navigation = page.getByRole('navigation', { name: 'Forest Trails' });
+  await navigation.waitFor({ timeout: 4_000 });
+  await page.waitForFunction(() => (
+    Number.parseFloat(
+      document.querySelector('#forest-trails')?.style.getPropertyValue('--forest-trails-lift'),
+    ) > 0
+  ), null, { timeout: 4_000 });
+
+  assert.equal(await navigation.getAttribute('data-collapsed'), 'true');
+  assert.equal(await page.locator('.forest-trails__clearance').getAttribute('hidden'), '');
+  assert.equal(await navigation.locator('[data-forest-trails-next]').getAttribute('hidden'), '');
+  assert.equal(
+    await navigation.locator('.forest-trails__current').textContent(),
+    'Replicator Void',
+  );
+
+  const separation = await page.evaluate(() => {
+    const rail = document.querySelector('#forest-trails').getBoundingClientRect();
+    const controls = document.querySelector('.hud').getBoundingClientRect();
+    return {
+      railBottom: rail.bottom,
+      controlsTop: controls.top,
+      mapHeight: document.querySelector('.forest-trails__map-button')
+        .getBoundingClientRect().height,
+    };
+  });
+  assert.ok(
+    separation.railBottom <= separation.controlsTop - 6,
+    `rail bottom ${separation.railBottom} must clear controls at ${separation.controlsTop}`,
+  );
+  assert.ok(separation.mapHeight >= 44);
+
+  const toggle = navigation.getByRole('button', { name: 'Expand Forest Trails' });
+  await toggle.click();
+  assert.equal(await navigation.getAttribute('data-collapsed'), 'false');
+  assert.equal(await navigation.locator('[data-forest-trails-next]').getAttribute('hidden'), null);
+
+  await navigation.getByRole('button', { name: 'Minimize Forest Trails' }).click();
+  assert.equal(await navigation.getAttribute('data-collapsed'), 'true');
+  assert.equal(await navigation.locator('.forest-trails__current').isVisible(), true);
+  assert.equal(
+    await navigation.getByRole('button', { name: 'Open full route map' }).isVisible(),
+    true,
+  );
+
+  await page.close();
+});
+
+test('Forest Trails animation CSS consumes shared tokens with no raw timing literals', () => {
+  const trailsCss = fs.readFileSync(
+    path.join(repoRoot, 'web', 'shared', 'forest-trails.css'),
+    'utf8',
+  );
+  const designCss = fs.readFileSync(
+    path.join(repoRoot, 'web', 'shared', 'forest-design.css'),
+    'utf8',
+  );
+
+  assert.equal(
+    /\b\d*\.?\d+(?:ms|s)\b/i.test(trailsCss),
+    false,
+    'Forest Trails CSS must not declare raw animation or transition timings',
+  );
+  assert.equal(
+    /cubic-bezier\(|\bease(?:-in|-out|-in-out)?\b|\blinear\b/i.test(
+      trailsCss.replace(/var\([^)]*\)/g, ''),
+    ),
+    false,
+    'Forest Trails CSS must not declare raw easing curves',
+  );
+
+  for (const token of [
+    '--forest-trails-duration-arrive',
+    '--forest-trails-duration-flow',
+    '--forest-trails-duration-glow',
+    '--forest-trails-duration-drawer',
+    '--forest-trails-edge-stagger',
+    '--forest-trails-node-stagger',
+    '--forest-trails-ease-flow',
+    '--forest-trails-ease-glow',
+  ]) {
+    assert.match(designCss, new RegExp(`${token}\\s*:`), `${token} must be shared`);
+    assert.match(trailsCss, new RegExp(`var\\(${token}\\)`), `${token} must be consumed`);
+  }
 });
 
 test('maps public child views to their trail while leaving retired council paths unlisted', async () => {

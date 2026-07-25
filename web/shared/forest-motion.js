@@ -1,13 +1,27 @@
 (() => {
   'use strict';
 
-  if (window.__forestAmbient?.version === '3.0.0') return;
+  const forestTrailsReady = import('/web/shared/forest-trails.js?v=20260725')
+    .then((trailModule) => {
+      document.documentElement.dataset.forestTrailsState = 'ready';
+      return trailModule;
+    })
+    .catch(() => {
+      document.documentElement.dataset.forestTrailsState = 'error';
+      return null;
+    });
+
+  if (window.__forestAmbient?.version === '3.0.0') {
+    window.__forestAmbient.trailsReady ||= forestTrailsReady;
+    return;
+  }
 
   const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
   const ambient = {
     version: '3.0.0',
     engine: 'loading',
     instances: [],
+    trailsReady: forestTrailsReady,
     ready: null,
     snapshot() {
       return this.instances.map((instance) => instance.snapshot());
