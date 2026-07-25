@@ -11,7 +11,21 @@
 <link rel="stylesheet" href="/web/shared/forest-design.css?v=20260723">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-body{background:#040c14;color:#a0e8ff;font-family:var(--forest-body, Alegreya, Georgia, serif);min-height:100vh;overflow-x:auto}
+:root{
+  --bg:#07070b;
+  --surface:#0f0f15;
+  --border:rgba(255,255,255,.08);
+  --text-primary:#f3f4f6;
+  --text-muted:#9ca3af;
+  --accent:#4f46e5;
+  --accent-green:#22c55e;
+  --radius:8px;
+  --font:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  --chem-accent:#00d4ff;
+  --chem-text:#a0e8ff;
+}
+body{background:var(--bg);color:var(--chem-text);font-family:var(--forest-body, Alegreya, Georgia, serif);min-height:100vh;overflow-x:hidden}
+body.modal-open{overflow:hidden}
 h1{text-align:center;padding:16px 10px 2px;font-family:var(--forest-display, "Cormorant Garamond", Georgia, serif);font-weight:700;font-size:1.87em;color:#00d4ff;text-shadow:0 0 20px #00d4ff,0 0 40px #0088aa;letter-spacing:3px}
 .subtitle{text-align:center;color:#4a9ebb;margin-bottom:12px;font-family:var(--forest-sans, "Alegreya Sans", sans-serif);font-size:.85em;letter-spacing:1px}
 
@@ -66,9 +80,10 @@ h1{text-align:center;padding:16px 10px 2px;font-family:var(--forest-display, "Co
 }
 
 /* ── Compound bar ────────────────────────── */
-.compound-bar{display:flex;flex-wrap:wrap;gap:5px;justify-content:center;padding:6px 20px 10px;border-bottom:1px solid rgba(0,212,255,.1)}
+.compound-bar{display:grid;gap:6px;padding:6px 20px 10px;border-bottom:1px solid rgba(0,212,255,.1)}
 .compound-bar label{font-family:var(--forest-sans, "Alegreya Sans", sans-serif);font-size:.68em;opacity:.5;width:100%;text-align:center;letter-spacing:2px;text-transform:uppercase;margin-bottom:4px}
-.cbtn{background:rgba(0,212,255,.06);border:1px solid rgba(0,212,255,.2);color:#80d4f0;padding:4px 10px;font-size:.75em;cursor:pointer;transition:all .2s;white-space:nowrap;border-radius:4px}
+.compound-actions{display:flex;flex-wrap:wrap;gap:5px;justify-content:center;min-width:0}
+.cbtn{background:rgba(0,212,255,.06);border:1px solid rgba(0,212,255,.2);color:#80d4f0;padding:4px 10px;font-size:.75em;cursor:pointer;transition:color var(--duration-fast) var(--ease-out),background-color var(--duration-fast) var(--ease-out),border-color var(--duration-fast) var(--ease-out);white-space:nowrap;border-radius:4px}
 .cbtn:hover{background:rgba(0,212,255,.15);border-color:#00d4ff;color:#00d4ff}
 .cbtn.active{background:rgba(0,212,255,.22);border-color:#00d4ff;color:#00d4ff;box-shadow:0 0 8px rgba(0,212,255,.3)}
 .cbtn.reset{border-color:rgba(255,100,100,.3);color:#ff8888}
@@ -118,16 +133,16 @@ h1{text-align:center;padding:16px 10px 2px;font-family:var(--forest-display, "Co
 .leg span{opacity:.75}
 
 /* ── Modals ─────────────────────────────── */
-.overlay{display:none;position:fixed;inset:0;background:rgba(2,10,18,.88);z-index:1000;align-items:center;justify-content:center;backdrop-filter:blur(5px)}
+.overlay{display:none;position:fixed;inset:0;padding:max(8px,env(safe-area-inset-top)) max(8px,env(safe-area-inset-right)) max(8px,env(safe-area-inset-bottom)) max(8px,env(safe-area-inset-left));background:rgba(2,10,18,.88);z-index:1000;align-items:center;justify-content:center;backdrop-filter:blur(5px)}
 .overlay.on{display:flex}
-.modal{background:#060e18;border:1px solid #00d4ff;box-shadow:0 0 50px rgba(0,212,255,.22);max-width:720px;width:95vw;max-height:92vh;overflow-y:auto;position:relative}
+.modal{background:var(--surface);border:1px solid var(--chem-accent);border-radius:16px;box-shadow:0 0 50px rgba(0,212,255,.22);max-width:720px;width:min(100%,720px);max-height:calc(100dvh - max(16px,env(safe-area-inset-top) + env(safe-area-inset-bottom)));overflow:auto;overscroll-behavior:contain;position:relative}
 .modal::-webkit-scrollbar{width:5px}
 .modal::-webkit-scrollbar-thumb{background:#00d4ff33}
-.xbtn{position:absolute;top:12px;right:12px;background:none;border:1px solid #00d4ff44;color:#00d4ff;width:26px;height:26px;cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;transition:all .2s;z-index:3}
+.xbtn{position:absolute;top:10px;right:10px;background:var(--surface);border:1px solid #00d4ff66;border-radius:10px;color:#00d4ff;width:44px;height:44px;cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;transition:color var(--duration-fast) var(--ease-out),background-color var(--duration-fast) var(--ease-out);z-index:3}
 .xbtn:hover{background:#00d4ff;color:#000}
 
 /* ── Element popup ──────────────────────── */
-.mhead{padding:18px 40px 14px 18px;border-bottom:1px solid rgba(0,212,255,.2);display:flex;gap:14px;align-items:center;position:sticky;top:0;background:#060e18;z-index:2}
+.mhead{padding:18px 64px 14px 18px;border-bottom:1px solid rgba(0,212,255,.2);display:flex;gap:14px;align-items:center;position:sticky;top:0;background:var(--surface);z-index:2}
 .msym{width:70px;height:70px;border:2px solid currentColor;display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0;position:relative;overflow:hidden;font-family:'Segoe UI',Tahoma,sans-serif}
 .msym::before{content:'';position:absolute;inset:-50%;background:conic-gradient(transparent 0deg,currentColor 1deg,transparent 3deg,transparent 180deg,currentColor 181deg,transparent 183deg);animation:spin 5s linear infinite;opacity:.12}
 @keyframes spin{to{transform:rotate(360deg)}}
@@ -205,8 +220,23 @@ h1{text-align:center;padding:16px 10px 2px;font-family:var(--forest-display, "Co
 }
 
 @media(max-width:600px){
+  .control-header{justify-content:flex-start}
+  #searchInput{width:100%;min-height:44px}
+  #langBtn{min-width:52px;min-height:44px}
+  .compound-bar{padding-inline:10px}
+  .compound-bar label{text-align:left}
+  .compound-actions{flex-wrap:nowrap;justify-content:flex-start;overflow-x:auto;overscroll-behavior-inline:contain;scroll-snap-type:x proximity;padding:2px 0 8px;scrollbar-width:thin}
+  .cbtn{min-height:44px;padding-inline:13px;scroll-snap-align:start}
+  .pt-wrap{justify-content:flex-start;padding-inline:0;scrollbar-gutter:stable}
+  .pt-grid{padding-inline:10px}
+  .overlay{align-items:flex-start}
+  .modal{border-radius:14px}
+  .mhead{min-height:94px;padding:12px 58px 12px 12px}
+  .msym{width:64px;height:64px}
+  .content-panel{padding:14px 12px;overflow-wrap:anywhere}
   .mbody{flex-direction:column}
   .stat-panel{width:100%;border-right:none;border-bottom:1px solid rgba(0,212,255,.12);display:grid;grid-template-columns:1fr 1fr}
+  .recipes-grid{grid-template-columns:minmax(0,1fr)}
 }
 </style>
 </head>
@@ -232,9 +262,9 @@ h1{text-align:center;padding:16px 10px 2px;font-family:var(--forest-display, "Co
 <div class="pt-wrap"><div class="pt-grid" id="ptGrid"></div></div>
 
 <!-- Main element overlay -->
-<div class="overlay" id="overlay">
+<div class="overlay" id="overlay" role="dialog" aria-modal="true" aria-labelledby="elementDialogTitle" aria-hidden="true">
   <div class="modal" id="modal">
-    <button class="xbtn" onclick="closeModal()">✕</button>
+    <button class="xbtn" type="button" aria-label="Затвори подробностите / Close element details" onclick="closeModal()">✕</button>
     <div class="mhead" id="mhead"></div>
     <div class="mbody" id="mbody"></div>
   </div>
@@ -660,8 +690,10 @@ function activateCompound(key) {
   document.querySelectorAll('.cbtn').forEach(b => {
     if (b.getAttribute('onclick') === `activateCompound('${key}')`) {
       b.classList.add('active');
+      b.setAttribute('aria-pressed', 'true');
     } else {
       b.classList.remove('active');
+      b.setAttribute('aria-pressed', 'false');
     }
   });
 
@@ -681,7 +713,10 @@ function activateCompound(key) {
 
 function clearCompound() {
   activeCompound = null;
-  document.querySelectorAll('.cbtn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.cbtn').forEach(b => {
+    b.classList.remove('active');
+    if (!b.classList.contains('reset')) b.setAttribute('aria-pressed', 'false');
+  });
   document.getElementById('ptGrid').classList.remove('compound-on');
   document.querySelectorAll('.el').forEach(el => el.classList.remove('lit'));
 }
@@ -1529,13 +1564,13 @@ function renderCompounds() {
   const bar = document.getElementById('compoundBar');
   const t = TRANSLATIONS[currentLang];
   
-  let html = `<label>🔬 ${t.compoundsLabel}</label>`;
+  let html = `<label id="compoundActionsLabel">🔬 ${t.compoundsLabel}</label><div class="compound-actions" role="group" aria-labelledby="compoundActionsLabel">`;
   Object.keys(COMPOUNDS).forEach(key => {
     const c = COMPOUNDS[key][currentLang];
     const activeClass = activeCompound === key ? 'active' : '';
-    html += `<button class="cbtn ${activeClass}" onclick="activateCompound('${key}')" title="${c.desc}">${c.emoji} ${c.name}</button>`;
+    html += `<button type="button" class="cbtn ${activeClass}" aria-pressed="${activeCompound === key}" onclick="activateCompound('${key}')" title="${c.desc}">${c.emoji} ${c.name}</button>`;
   });
-  html += `<button class="cbtn reset" onclick="clearAllFilters()">${t.clearBtn}</button>`;
+  html += `<button type="button" class="cbtn reset" onclick="clearAllFilters()">${t.clearBtn}</button></div>`;
   bar.innerHTML = html;
 }
 
@@ -1602,8 +1637,10 @@ function toggleLanguage() {
 
 // ── Open element modal ────────────────────────────────────────────────────
 let currentOpenElementNum = null;
+let modalReturnFocus = null;
 
 function openModal(num){
+  modalReturnFocus = document.activeElement;
   currentOpenElementNum = num;
   const ge=GRID.find(x=>x[0]===num);
   if(!ge)return;
@@ -1628,7 +1665,7 @@ function openModal(num){
       <span class="mm" title="${t.atomicMassLabel}" onclick="openAtomicMass('${mass}','${sym}','${bg}','${col}')">${mass}</span>
     </div>
     <div class="minfo">
-      <h2 style="color:${col}">${d.name}</h2>
+      <h2 id="elementDialogTitle" style="color:${col}">${d.name}</h2>
       <div class="latin">${lat}</div>
       <span class="badge" style="color:${col};border-color:${col}">${localizedCat}</span>
     </div>`;
@@ -1710,12 +1747,24 @@ function openModal(num){
   }
 
   document.getElementById('mbody').innerHTML=statHtml+`<div class="content-panel">${content}</div>`;
-  document.getElementById('overlay').classList.add('on');
+  const overlay = document.getElementById('overlay');
+  overlay.classList.add('on');
+  overlay.setAttribute('aria-hidden','false');
+  document.body.classList.add('modal-open');
+  requestAnimationFrame(()=>overlay.querySelector('.xbtn')?.focus());
 }
 
 function closeModal(){
+  const overlay = document.getElementById('overlay');
+  if(!overlay.classList.contains('on'))return;
   currentOpenElementNum = null;
-  document.getElementById('overlay').classList.remove('on');
+  overlay.classList.remove('on');
+  overlay.setAttribute('aria-hidden','true');
+  document.body.classList.remove('modal-open');
+  if(modalReturnFocus&&document.contains(modalReturnFocus)){
+    modalReturnFocus.focus({preventScroll:true});
+  }
+  modalReturnFocus = null;
 }
 
 // ── Init App ──────────────────────────────────────────────────────────────
@@ -1724,7 +1773,31 @@ renderLegend();
 renderCompounds();
 
 document.getElementById('overlay').addEventListener('click',e=>{if(e.target===e.currentTarget)closeModal();});
-document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeModal();closeMini();}});
+document.addEventListener('keydown',e=>{
+  const overlay=document.getElementById('overlay');
+  if(e.key==='Escape'){
+    if(overlay.classList.contains('on')){
+      e.preventDefault();
+      closeModal();
+      return;
+    }
+    closeMini();
+  }
+  if(e.key==='Tab'&&overlay.classList.contains('on')){
+    const focusable=[...overlay.querySelectorAll('button,[href],input,select,textarea,[tabindex]:not([tabindex="-1"])')]
+      .filter(node=>!node.disabled&&node.getClientRects().length);
+    if(!focusable.length)return;
+    const first=focusable[0];
+    const last=focusable[focusable.length-1];
+    if(e.shiftKey&&document.activeElement===first){
+      e.preventDefault();
+      last.focus();
+    }else if(!e.shiftKey&&document.activeElement===last){
+      e.preventDefault();
+      first.focus();
+    }
+  }
+});
 </script>
 <script src="/web/shared/forest-motion.js?v=20260725"></script>
 </body>
