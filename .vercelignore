@@ -8,7 +8,7 @@ backend
 skills
 TASKS
 docs
-memory
+/memory/
 .codex
 .jules
 *.pyc

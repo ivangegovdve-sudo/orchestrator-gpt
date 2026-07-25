@@ -68,3 +68,29 @@ test('Library is canonical and llm-db has deployment and static redirect coverag
     permanent: true,
   }]);
 });
+
+test('Vercel upload keeps the public Library Memory route', () => {
+  const route = 'web/library/memory/index.html';
+  const ignored = spawnSync('git', [
+    'ls-files',
+    '--cached',
+    '--ignored',
+    '--exclude-from=.vercelignore',
+    '--',
+    route,
+  ], {
+    cwd: ROOT,
+    encoding: 'utf8',
+  });
+
+  assert.equal(ignored.status, 0, ignored.stderr);
+  assert.equal(
+    ignored.stdout.trim(),
+    '',
+    `${route} is excluded from the Vercel source upload`,
+  );
+  assert.ok(
+    fs.existsSync(path.join(ROOT, 'vercel-public', route)),
+    `${route} is missing from the built artifact`,
+  );
+});
