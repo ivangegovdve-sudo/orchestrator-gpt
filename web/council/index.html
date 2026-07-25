@@ -3,441 +3,502 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Four public deliberation experiments: local TinyLM, inner fleet council, free OpenRouter round table, and BYOK arena.">
-  <meta name="theme-color" content="#070a08">
+  <meta name="description" content="Two public, stateless model councils: TinyLLM on local Oracle Ollama and a free-model OpenRouter deliberation.">
+  <meta name="theme-color" content="#07070b">
   <title>Councils — SDForest</title>
-  <link rel="stylesheet" href="/web/shared/forest-design.css?v=20260723">
-  <link rel="stylesheet" href="/web/shared/forest-shell.css?v=20260723">
+  <link rel="stylesheet" href="/web/shared/forest-design.css?v=20260725">
+  <link rel="stylesheet" href="/web/shared/forest-shell.css?v=20260725">
+  <link rel="stylesheet" href="/web/shared/council-motion.css?v=20260725">
   <style>
     :root {
-      --bg: #070a08;
-      --surface: #0d120e;
-      --border: rgba(226,235,209,0.1);
-      --text-primary: #f2efe4;
-      --text-muted: #a9b3a1;
-      --accent: #e8b86b;
-      --accent-green: #8fe6ae;
-      --radius: 8px;
-      --forest-accent: #e8b86b;
-      --forest-accent-rgb: 232, 184, 107;
-      /* Re-assert the dusk voice — forest-shell.css loads later and would
-         otherwise pull these tokens back to Space Grotesk / Inter. */
-      --forest-display: "Cormorant Garamond", "Iowan Old Style", Georgia, serif;
-      --forest-body: Alegreya, "Iowan Old Style", Georgia, serif;
-      --forest-sans: "Alegreya Sans", "Gill Sans", "Segoe UI", system-ui, sans-serif;
-      --forest-ink: #f2efe4;
-      --forest-soft: #bcc6b4;
-      --forest-muted: #7d8877;
+      --bg: #07070b;
+      --surface: #0f0f15;
+      --border: rgba(255,255,255,.09);
+      --text-primary: #f3f4f6;
+      --text-muted: #9ca3af;
+      --accent: #4f46e5;
+      --tiny: #8fe6ae;
+      --tiny-rgb: 143, 230, 174;
+      --router: #a78bfa;
+      --router-rgb: 167, 139, 250;
+      --warm: #e8b86b;
+      --radius: 18px;
+      --forest-accent: #a78bfa;
+      --forest-accent-rgb: 167, 139, 250;
     }
 
-    /* Small-caps shell chrome speaks the UI sans. */
-    .forest-kicker, .forest-back, .forest-top-action {
-      font-family: var(--forest-sans, "Alegreya Sans", sans-serif);
+    html { scroll-behavior: smooth; scroll-padding-top: 88px; }
+    body { background: var(--bg); color: var(--text-primary); }
+    .forest-page { width: min(1180px, calc(100% - 32px)); }
+    .council-hero {
+      min-height: 70svh;
+      display: grid;
+      align-content: center;
+      padding: 96px 0 54px;
+    }
+    .council-hero .forest-title { max-width: 9ch; }
+    .council-hero .forest-lede { max-width: 700px; }
+    .truth-strip {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 24px;
+    }
+    .truth-chip,
+    .mode-badge,
+    .status {
+      display: inline-flex;
+      align-items: center;
+      min-height: 28px;
+      padding: 0 11px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      color: var(--text-muted);
+      font: 700 10px/1 var(--forest-sans, sans-serif);
+      letter-spacing: .09em;
+      text-transform: uppercase;
     }
 
-    /* ── Hero ─────────────────────────────────────────────────────────────── */
-    .council-hero { min-height: 60svh; display: grid; align-content: center; }
-    .council-hero .forest-title { max-width: 10ch; }
-
-    /* ── 2-column grid of 4 mode cards ───────────────────────────────────── */
     .mode-grid {
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 18px;
-      margin-top: clamp(40px, 6vw, 72px);
+      margin: 0 0 clamp(72px, 10vw, 132px);
     }
-
-    /* ── Individual mode card ─────────────────────────────────────────────── */
     .mode-card {
-      --mode: #79f2a8;
+      --mode: var(--tiny);
       position: relative;
-      min-height: 480px;
+      min-height: 400px;
       display: flex;
       flex-direction: column;
+      padding: clamp(24px, 4vw, 38px);
       overflow: hidden;
-      padding: clamp(22px, 4vw, 38px);
+      border: 1px solid color-mix(in srgb, var(--mode) 28%, transparent);
+      border-radius: 24px;
+      background:
+        radial-gradient(circle at 82% 12%, color-mix(in srgb, var(--mode) 14%, transparent), transparent 38%),
+        linear-gradient(145deg, color-mix(in srgb, var(--mode) 6%, transparent), rgba(15,15,21,.94));
       color: var(--text-primary);
       text-decoration: none;
-      border: 1px solid color-mix(in srgb, var(--mode) 20%, transparent);
-      border-radius: 20px;
-      background: linear-gradient(
-        145deg,
-        color-mix(in srgb, var(--mode) 7%, transparent),
-        rgba(7, 10, 8, 0.92) 56%
-      );
-      box-shadow: 0 32px 80px rgba(0, 0, 0, 0.28);
-      isolation: isolate;
-      transition: border-color 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease;
+      box-shadow: 0 30px 80px rgba(0,0,0,.3);
+      transition: transform .3s var(--ease-out, ease), border-color .3s ease, box-shadow .3s ease;
     }
-    .mode-card:hover {
-      border-color: color-mix(in srgb, var(--mode) 50%, transparent);
-      box-shadow: 0 40px 96px rgba(0, 0, 0, 0.34),
-                  0 0 48px color-mix(in srgb, var(--mode) 7%, transparent);
-      transform: translateY(-2px);
+    .mode-card.router { --mode: var(--router); }
+    @media (hover:hover) {
+      .mode-card:hover {
+        transform: translateY(-5px);
+        border-color: color-mix(in srgb, var(--mode) 58%, transparent);
+        box-shadow: 0 38px 96px rgba(0,0,0,.38), 0 0 60px color-mix(in srgb, var(--mode) 8%, transparent);
+      }
     }
-
-    /* Orbiting ring decorations */
-    .mode-card::before,
-    .mode-card::after {
-      content: "";
-      position: absolute;
-      z-index: -1;
-      border: 1px solid color-mix(in srgb, var(--mode) 16%, transparent);
-      border-radius: 50%;
-      animation: council-orbit 20s linear infinite;
-    }
-    .mode-card::before { width: 340px; height: 340px; right: -120px; top: -130px; }
-    .mode-card::after  { width: 200px; height: 200px; right: -28px; top: -60px; animation-direction: reverse; animation-duration: 13s; }
-    @keyframes council-orbit { to { transform: rotate(360deg); } }
-
-    /* ── Card anatomy ─────────────────────────────────────────────────────── */
-    .mode-top {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 12px;
-    }
+    .mode-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
     .mode-number {
       color: var(--mode);
-      font: 700 10px/1 var(--forest-sans, "Alegreya Sans", sans-serif);
-      letter-spacing: 0.18em;
+      font: 700 10px/1 var(--forest-sans, sans-serif);
+      letter-spacing: .18em;
       text-transform: uppercase;
     }
-    .mode-badge {
-      min-height: 26px;
-      display: inline-flex;
-      align-items: center;
-      padding: 0 10px;
-      border: 1px solid color-mix(in srgb, var(--mode) 28%, transparent);
-      border-radius: 999px;
-      color: var(--mode);
-      background: color-mix(in srgb, var(--mode) 6%, transparent);
-      font: 700 9px/1 var(--forest-sans, "Alegreya Sans", sans-serif);
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-    }
-
-    /* Animated council graph visual */
-    .dialogue-visual {
-      position: relative;
-      flex: 1;
-      min-height: 150px;
-      display: grid;
-      place-items: center;
-      color: var(--mode);
-    }
-    .council-graph {
-      width: min(240px, 78%);
-      overflow: visible;
-      transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
-    }
-    .mode-card:hover .council-graph { transform: scale(1.07); }
-    .g-wire  { fill: none; stroke: currentColor; stroke-width: 0.8; opacity: 0.15; }
-    .g-edge  {
-      fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round;
-      stroke-dasharray: 14 186; stroke-dashoffset: 14; opacity: 0;
-      animation: g-packet var(--tempo) linear infinite;
-      animation-delay: calc(var(--tempo) * (var(--gi) + 0.45) / var(--gn) - var(--tempo));
-    }
-    .g-node  {
-      fill: currentColor; opacity: 0.38; transform-box: fill-box; transform-origin: center;
-      animation: g-speak var(--tempo) ease-in-out infinite;
-      animation-delay: calc(var(--tempo) * var(--gi) / var(--gn) - var(--tempo));
-    }
-    .g-halo  { fill: none; stroke: currentColor; stroke-width: 1; opacity: 0.18; }
-    @keyframes g-packet {
-      0%      { stroke-dashoffset: 14; opacity: 0; }
-      2%      { opacity: 0.92; }
-      17%     { stroke-dashoffset: -100; opacity: 0.92; }
-      18%,100%{ stroke-dashoffset: -100; opacity: 0; }
-    }
-    @keyframes g-speak {
-      0%,100% { transform: scale(1); opacity: 0.38; filter: none; }
-      7%      { transform: scale(1.5); opacity: 1; filter: drop-shadow(0 0 7px currentColor); }
-      22%     { transform: scale(1.5); opacity: 1; filter: drop-shadow(0 0 7px currentColor); }
-      34%     { transform: scale(1); opacity: 0.38; filter: none; }
-    }
-
     .mode-card h2 {
-      max-width: 9ch;
-      margin: 0;
-      font: 600 clamp(36px, 5vw, 60px)/0.95 var(--forest-display, "Cormorant Garamond", Georgia, serif);
-      letter-spacing: 0;
+      max-width: 10ch;
+      margin: auto 0 0;
+      font: 600 clamp(38px, 5vw, 64px)/.95 var(--forest-display, Georgia, serif);
     }
     .mode-card p {
-      max-width: 44ch;
-      margin: 16px 0 0;
+      max-width: 48ch;
+      margin: 18px 0 0;
       color: var(--text-muted);
-      font-size: 13px;
+      font-size: 14px;
       line-height: 1.65;
     }
-    .limit-row {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
-      margin-top: 16px;
-    }
-    .limit {
-      min-height: 26px;
-      display: inline-flex;
-      align-items: center;
-      padding: 0 9px;
-      border: 1px solid rgba(226,235,209,0.1);
+    .mode-limits { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 18px; }
+    .mode-limits span {
+      padding: 6px 9px;
+      border: 1px solid var(--border);
       border-radius: 999px;
       color: var(--text-muted);
-      font-family: var(--forest-sans, "Alegreya Sans", sans-serif);
-      font-size: 9px;
-      letter-spacing: 0.08em;
+      font: 700 9px/1 var(--forest-sans, sans-serif);
+      letter-spacing: .08em;
       text-transform: uppercase;
     }
     .mode-cta {
       display: flex;
+      justify-content: space-between;
+      margin-top: 24px;
+      padding-top: 18px;
+      border-top: 1px solid var(--border);
+      color: var(--mode);
+      font: 700 11px/1 var(--forest-sans, sans-serif);
+      letter-spacing: .12em;
+      text-transform: uppercase;
+    }
+    .mode-cta::after { content: "↓"; font-size: 18px; }
+    .signal-map {
+      position: absolute;
+      inset: 20px 18px auto auto;
+      width: 190px;
+      height: 135px;
+      color: var(--mode);
+      opacity: .38;
+      pointer-events: none;
+    }
+    .signal-map path { fill: none; stroke: currentColor; }
+    .signal-map .wire { opacity: .28; stroke-width: 1; }
+    .signal-map .packet {
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-dasharray: 10 90;
+      animation: packet 4.8s linear infinite;
+    }
+    .router .signal-map .packet { animation-duration: 2.7s; }
+    .signal-map circle { fill: currentColor; transform-box: fill-box; transform-origin: center; animation: node-pulse 4.8s ease-in-out infinite; }
+    .router .signal-map circle { animation-duration: 2.7s; }
+    @keyframes packet { to { stroke-dashoffset: -100; } }
+    @keyframes node-pulse { 50% { opacity: 1; transform: scale(1.45); } }
+
+    .workspace {
+      --mode: var(--tiny);
+      position: relative;
+      margin-bottom: clamp(78px, 10vw, 136px);
+      padding: clamp(24px, 4vw, 46px);
+      border: 1px solid color-mix(in srgb, var(--mode) 22%, transparent);
+      border-radius: 28px;
+      background:
+        linear-gradient(150deg, color-mix(in srgb, var(--mode) 5%, transparent), transparent 46%),
+        rgba(15,15,21,.78);
+      box-shadow: 0 28px 90px rgba(0,0,0,.34);
+      backdrop-filter: blur(18px);
+    }
+    .workspace.router { --mode: var(--router); }
+    .workspace-head {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(260px, .65fr);
+      gap: 28px;
+      align-items: end;
+      padding-bottom: 28px;
+      border-bottom: 1px solid var(--border);
+    }
+    .workspace-kicker {
+      margin: 0 0 10px;
+      color: var(--mode);
+      font: 700 10px/1 var(--forest-sans, sans-serif);
+      letter-spacing: .18em;
+      text-transform: uppercase;
+    }
+    .workspace h2 {
+      margin: 0;
+      font: 600 clamp(36px, 5vw, 60px)/1 var(--forest-display, Georgia, serif);
+    }
+    .workspace-head p { margin: 12px 0 0; color: var(--text-muted); line-height: 1.65; }
+    .boundary-note {
+      padding: 16px 18px;
+      border: 1px solid color-mix(in srgb, var(--mode) 24%, transparent);
+      border-radius: 16px;
+      background: color-mix(in srgb, var(--mode) 5%, transparent);
+      color: var(--text-muted);
+      font-size: 12px;
+      line-height: 1.65;
+    }
+    .boundary-note strong { color: var(--text-primary); }
+
+    .composer { margin-top: 28px; }
+    .composer label {
+      display: block;
+      margin-bottom: 10px;
+      color: var(--text-primary);
+      font-weight: 700;
+    }
+    .composer textarea {
+      width: 100%;
+      min-height: 118px;
+      padding: 16px 18px;
+      resize: vertical;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      outline: none;
+      background: rgba(7,7,11,.72);
+      color: var(--text-primary);
+      font: 500 16px/1.55 var(--forest-body, Georgia, serif);
+      transition: border-color .2s ease, box-shadow .2s ease;
+    }
+    .composer textarea:focus {
+      border-color: color-mix(in srgb, var(--mode) 62%, transparent);
+      box-shadow: 0 0 0 4px color-mix(in srgb, var(--mode) 10%, transparent);
+    }
+    .examples { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+    .example {
+      min-height: 32px;
+      padding: 0 12px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      background: transparent;
+      color: var(--text-muted);
+      font: 600 11px/1 var(--forest-body, Georgia, serif);
+      cursor: pointer;
+    }
+    .composer-actions {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-top: 16px;
+    }
+    .composer-hint { color: var(--text-muted); font-size: 12px; line-height: 1.5; }
+    .run-button {
+      min-height: 46px;
+      padding: 0 24px;
+      border: 0;
+      border-radius: 999px;
+      background: var(--mode);
+      color: #08080c;
+      font: 800 11px/1 var(--forest-sans, sans-serif);
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: transform .15s ease, box-shadow .2s ease;
+    }
+    .run-button:active { transform: scale(.98); }
+    .run-button.running { background: var(--surface); color: var(--mode); border: 1px solid color-mix(in srgb, var(--mode) 35%, transparent); }
+
+    .stage-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+      margin-top: 22px;
+    }
+    .router .stage-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .stage-card {
+      min-width: 0;
+      min-height: 260px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      background: rgba(7,7,11,.66);
+      transition: border-color .3s ease, box-shadow .3s ease;
+    }
+    .stage-card.active {
+      border-color: color-mix(in srgb, var(--mode) 58%, transparent);
+      box-shadow: 0 0 42px color-mix(in srgb, var(--mode) 8%, transparent);
+    }
+    .stage-card.done { border-color: color-mix(in srgb, var(--mode) 30%, transparent); }
+    .stage-head {
+      display: flex;
       align-items: center;
       justify-content: space-between;
       gap: 12px;
-      margin-top: 24px;
-      padding-top: 18px;
-      border-top: 1px solid rgba(226,235,209,0.09);
-      color: var(--mode);
-      font: 700 11px/1 var(--forest-sans, "Alegreya Sans", sans-serif);
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
+      padding: 15px 16px;
+      border-bottom: 1px solid var(--border);
     }
-    .mode-cta::after { content: "↗"; font-size: 18px; transition: transform 0.2s ease; }
-    .mode-card:hover .mode-cta::after { transform: translate(3px, -3px); }
-
-    /* Entrance animations */
-    @media (prefers-reduced-motion: no-preference) {
-      .council-hero .forest-kicker { animation: hero-rise 0.7s cubic-bezier(0.16,1,0.3,1) backwards; }
-      .council-hero .forest-title  { animation: hero-rise 0.85s cubic-bezier(0.16,1,0.3,1) 0.08s backwards; }
-      .council-hero .forest-lede   { animation: hero-rise 0.85s cubic-bezier(0.16,1,0.3,1) 0.18s backwards; }
-      .mode-card { animation: card-rise 0.9s cubic-bezier(0.16,1,0.3,1) backwards; }
-      .mode-card:nth-child(2) { animation-delay: 0.1s; }
-      .mode-card:nth-child(3) { animation-delay: 0.18s; }
-      .mode-card:nth-child(4) { animation-delay: 0.26s; }
-      .truth-note { animation: hero-rise 0.8s ease 0.5s backwards; }
+    .stage-name { font: 700 18px/1.2 var(--forest-display, Georgia, serif); }
+    .status { min-height: 24px; padding: 0 8px; font-size: 8px; }
+    .status.live { color: var(--mode); border-color: color-mix(in srgb, var(--mode) 40%, transparent); }
+    .stage-content {
+      flex: 1;
+      min-height: 180px;
+      padding: 16px;
+      color: #d3d6dc;
+      font-size: 14px;
+      line-height: 1.7;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
     }
-    @keyframes hero-rise {
-      from { opacity: 0; transform: translateY(20px); filter: blur(4px); }
-      to   { filter: blur(0); }
+    .stage-content.streaming::after { content: "▌"; color: var(--mode); animation: caret 1s steps(1) infinite; }
+    @keyframes caret { 50% { opacity: 0; } }
+    .synthesis {
+      display: none;
+      margin-top: 16px;
+      border: 1px solid color-mix(in srgb, var(--mode) 28%, transparent);
+      border-radius: 18px;
+      background: rgba(7,7,11,.66);
     }
-    @keyframes card-rise {
-      from { opacity: 0; transform: translateY(30px) scale(0.97); }
-    }
-
-    /* Divider label between rows */
-    .row-label {
-      grid-column: 1 / -1;
-      font: 700 9px/1 var(--forest-sans, "Alegreya Sans", sans-serif);
-      letter-spacing: 0.18em;
-      text-transform: uppercase;
-      color: rgba(226,235,209,0.35);
-      padding: 6px 0 0;
-    }
-
-    /* Footer note */
-    .truth-note {
-      max-width: 720px;
-      margin: 40px auto 0;
+    .synthesis.visible { display: block; }
+    .synthesis .stage-content { min-height: 130px; }
+    .workspace-foot {
+      margin: 22px auto 0;
+      max-width: 760px;
       color: var(--text-muted);
       font-size: 12px;
       line-height: 1.7;
       text-align: center;
     }
 
-    @media (max-width: 740px) {
-      .council-hero { min-height: 55svh; }
-      .mode-grid { grid-template-columns: 1fr; }
-      .mode-card { min-height: 420px; }
-      .row-label { display: none; }
+    @media (prefers-reduced-motion: no-preference) {
+      .council-hero > * { animation: council-rise .8s var(--ease-out, ease) backwards; }
+      .council-hero > :nth-child(2) { animation-delay: .08s; }
+      .council-hero > :nth-child(3) { animation-delay: .16s; }
+      .council-hero > :nth-child(4) { animation-delay: .24s; }
+      .mode-card { animation: council-rise .8s var(--ease-out, ease) backwards; }
+      .mode-card:nth-child(2) { animation-delay: .1s; }
+      .workspace:target { animation: target-glow 1.1s var(--ease-out, ease); }
+    }
+    @keyframes council-rise { from { opacity: 0; transform: translateY(24px); filter: blur(4px); } }
+    @keyframes target-glow { 35% { box-shadow: 0 0 90px color-mix(in srgb, var(--mode) 18%, transparent); } }
+
+    @media (max-width: 900px) {
+      .workspace-head { grid-template-columns: 1fr; }
+      .router .stage-grid { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 720px) {
+      .forest-page { width: min(100% - 20px, 1180px); }
+      .council-hero { min-height: 64svh; }
+      .mode-grid,
+      .stage-grid { grid-template-columns: 1fr; }
+      .mode-card { min-height: 350px; }
+      .workspace { padding: 20px 14px; border-radius: 22px; }
+      .composer-actions { align-items: stretch; flex-direction: column; }
+      .run-button { width: 100%; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      .signal-map * { animation: none !important; }
+      .mode-card,
+      .workspace,
+      .stage-card { animation: none !important; transition: none !important; }
     }
   </style>
 </head>
-<body data-forest-page="council">
+<body data-forest-page="council" data-council="public">
   <canvas class="forest-scene" data-forest-scene data-mode="council" aria-hidden="true"></canvas>
   <div class="forest-scrim" aria-hidden="true"></div>
   <nav class="forest-topbar" aria-label="Council navigation">
-    <a class="forest-back" href="/">SDForest</a>
+    <a class="forest-back" href="/">Forest HUB</a>
+    <a class="forest-top-action" href="#public-modes">Two public modes</a>
   </nav>
 
   <main class="forest-page">
     <header class="council-hero">
-      <p class="forest-kicker">Four public experiments · four different tempos</p>
+      <p class="forest-kicker">Two public experiments · two transparent boundaries</p>
       <h1 class="forest-title">Councils</h1>
-      <p class="forest-lede">
-        Choose the conditions before you choose the question —
-        local hardware, fleet memory, free cloud models, or your own key.
-        Every mode is isolated from private fleet state in its output.
-      </p>
+      <p class="forest-lede">Ask the same hard question under two very different conditions: tiny models running locally through Ollama, or free cloud models taking distinct deliberation roles.</p>
+      <div class="truth-strip" aria-label="Council privacy boundaries">
+        <span class="truth-chip">No fleet memory</span>
+        <span class="truth-chip">No delegation</span>
+        <span class="truth-chip">No saved conversation state</span>
+      </div>
     </header>
 
-    <section class="mode-grid" aria-label="Council modes">
-
-      <!-- ── Mode 01: TinyLM ─────────────────────────────────────────────── -->
-      <a class="mode-card" style="--mode:#8fe6ae" href="/web/tinylm/" data-council-mode="tinylm">
+    <section class="mode-grid" id="public-modes" aria-label="Public Council modes">
+      <a class="mode-card" href="#tinylm" data-council-mode="tinylm">
+        <svg class="signal-map" viewBox="0 0 190 135" aria-hidden="true">
+          <path class="wire" d="M26 68Q62 20 95 68T164 68M26 68Q62 116 95 68T164 68"/>
+          <path class="packet" pathLength="100" d="M26 68Q62 20 95 68T164 68"/>
+          <circle cx="26" cy="68" r="5"/><circle cx="95" cy="68" r="5"/><circle cx="164" cy="68" r="5"/>
+        </svg>
         <div class="mode-top">
-          <span class="mode-number">Mode 01 · Local</span>
-          <span class="mode-badge">Public · $0 · slow</span>
+          <span class="mode-number">Mode 01 · Oracle</span>
+          <span class="mode-badge">Local Ollama · $0</span>
         </div>
-        <div class="dialogue-visual" aria-hidden="true">
-          <!-- 5-seat pentagon graph, slow 7s tempo -->
-          <svg class="council-graph" viewBox="0 0 220 140" style="--tempo:7s;--gn:5">
-            <path class="g-wire" d="M110 26Q158 30 186 56"/>
-            <path class="g-wire" d="M186 56Q180 88 157 106"/>
-            <path class="g-wire" d="M157 106Q110 122 63 106"/>
-            <path class="g-wire" d="M63 106Q40 88 34 56"/>
-            <path class="g-wire" d="M34 56Q62 30 110 26"/>
-            <path class="g-edge" style="--gi:0" pathLength="100" d="M110 26Q158 30 186 56"/>
-            <path class="g-edge" style="--gi:1" pathLength="100" d="M186 56Q180 88 157 106"/>
-            <path class="g-edge" style="--gi:2" pathLength="100" d="M157 106Q110 122 63 106"/>
-            <path class="g-edge" style="--gi:3" pathLength="100" d="M63 106Q40 88 34 56"/>
-            <path class="g-edge" style="--gi:4" pathLength="100" d="M34 56Q62 30 110 26"/>
-            <circle class="g-halo" cx="110" cy="26" r="8"/>
-            <circle class="g-halo" cx="186" cy="56" r="8"/>
-            <circle class="g-halo" cx="157" cy="106" r="8"/>
-            <circle class="g-halo" cx="63" cy="106" r="8"/>
-            <circle class="g-halo" cx="34" cy="56" r="8"/>
-            <circle class="g-node" style="--gi:0" cx="110" cy="26" r="4"/>
-            <circle class="g-node" style="--gi:1" cx="186" cy="56" r="4"/>
-            <circle class="g-node" style="--gi:2" cx="157" cy="106" r="4"/>
-            <circle class="g-node" style="--gi:3" cx="63" cy="106" r="4"/>
-            <circle class="g-node" style="--gi:4" cx="34" cy="56" r="4"/>
-          </svg>
+        <h2>TinyLLM Local Oracle</h2>
+        <p>Two small open models consider one proposition in parallel on Oracle ARM hardware, then a third pass maps agreement and divergence.</p>
+        <div class="mode-limits">
+          <span>No fleet memory</span><span>No delegation</span><span>Slow by design</span>
         </div>
-        <h2>TinyLM</h2>
-        <p>
-          A consciousness experiment: one proposition, two tiny local models on Oracle ARM hardware —
-          a 0.5B and a 3B — thinking out loud simultaneously as tokens stream in real time.
-          No cloud routing, no fleet context exposed.
-        </p>
-        <div class="limit-row">
-          <span class="limit">No fleet memory</span>
-          <span class="limit">No hidden context</span>
-          <span class="limit">Slow by design</span>
-        </div>
-        <span class="mode-cta">Enter the lab</span>
+        <span class="mode-cta">Open local workspace</span>
       </a>
 
-      <!-- ── Mode 02: Inner Council ──────────────────────────────────────── -->
-      <a class="mode-card" style="--mode:#d98a7f" href="/web/council/inner/" data-council-mode="inner">
+      <a class="mode-card router" href="#openrouter-free" data-council-mode="openrouter-free">
+        <svg class="signal-map" viewBox="0 0 190 135" aria-hidden="true">
+          <path class="wire" d="M28 108L95 24l67 84zM28 108Q95 74 162 108"/>
+          <path class="packet" pathLength="100" d="M28 108L95 24l67 84z"/>
+          <circle cx="28" cy="108" r="5"/><circle cx="95" cy="24" r="5"/><circle cx="162" cy="108" r="5"/>
+        </svg>
         <div class="mode-top">
-          <span class="mode-number">Mode 02 · Fleet</span>
-          <span class="mode-badge">Fleet-grounded · private</span>
+          <span class="mode-number">Mode 02 · Cloud</span>
+          <span class="mode-badge">Free models · $0</span>
         </div>
-        <div class="dialogue-visual" aria-hidden="true">
-          <!-- 4-seat diamond graph, medium 4.5s tempo -->
-          <svg class="council-graph" viewBox="0 0 220 140" style="--tempo:4.5s;--gn:4">
-            <path class="g-wire" d="M110 18Q170 50 178 90"/>
-            <path class="g-wire" d="M178 90Q140 128 110 124"/>
-            <path class="g-wire" d="M110 124Q80 128 42 90"/>
-            <path class="g-wire" d="M42 90Q50 50 110 18"/>
-            <path class="g-edge" style="--gi:0" pathLength="100" d="M110 18Q170 50 178 90"/>
-            <path class="g-edge" style="--gi:1" pathLength="100" d="M178 90Q140 128 110 124"/>
-            <path class="g-edge" style="--gi:2" pathLength="100" d="M110 124Q80 128 42 90"/>
-            <path class="g-edge" style="--gi:3" pathLength="100" d="M42 90Q50 50 110 18"/>
-            <circle class="g-halo" cx="110" cy="18" r="9"/>
-            <circle class="g-halo" cx="178" cy="90" r="9"/>
-            <circle class="g-halo" cx="110" cy="124" r="9"/>
-            <circle class="g-halo" cx="42"  cy="90" r="9"/>
-            <circle class="g-node" style="--gi:0" cx="110" cy="18"  r="4.5"/>
-            <circle class="g-node" style="--gi:1" cx="178" cy="90"  r="4.5"/>
-            <circle class="g-node" style="--gi:2" cx="110" cy="124" r="4.5"/>
-            <circle class="g-node" style="--gi:3" cx="42"  cy="90"  r="4.5"/>
-          </svg>
+        <h2>OpenRouter Free</h2>
+        <p>A proposer, critic, and synthesizer use fixed free-model rosters. Responses stream through a public relay; availability depends on free-tier queues.</p>
+        <div class="mode-limits">
+          <span>No fleet memory</span><span>No delegation</span><span>Free-only roster</span>
         </div>
-        <h2>Inner Council</h2>
-        <p>
-          Soul-server-mediated deliberation with live fleet-memory grounding —
-          Chloé's own knowledge base, current Oracle state, and active project
-          context flow into every council member's response. Code-gated.
-        </p>
-        <div class="limit-row">
-          <span class="limit">Fleet-grounded</span>
-          <span class="limit">Access code required</span>
-          <span class="limit">Oracle-routed</span>
-        </div>
-        <span class="mode-cta">Request access</span>
+        <span class="mode-cta">Open free workspace</span>
       </a>
-
-      <!-- ── Mode 03: Open Round Table ──────────────────────────────────── -->
-      <a class="mode-card" style="--mode:#bcc6b4" href="/web/council/byok/" data-council-mode="openrouter">
-        <div class="mode-top">
-          <span class="mode-number">Mode 03 · Routed</span>
-          <span class="mode-badge">Public · free models</span>
-        </div>
-        <div class="dialogue-visual" aria-hidden="true">
-          <!-- 3-seat triangle graph, fast 2.6s tempo -->
-          <svg class="council-graph" viewBox="0 0 220 140" style="--tempo:2.6s;--gn:3">
-            <path class="g-wire" d="M110 24Q60 60 36 104"/>
-            <path class="g-wire" d="M36 104Q110 128 184 104"/>
-            <path class="g-wire" d="M184 104Q160 60 110 24"/>
-            <path class="g-edge" style="--gi:0" pathLength="100" d="M110 24Q60 60 36 104"/>
-            <path class="g-edge" style="--gi:1" pathLength="100" d="M36 104Q110 128 184 104"/>
-            <path class="g-edge" style="--gi:2" pathLength="100" d="M184 104Q160 60 110 24"/>
-            <circle class="g-halo" cx="110" cy="24"  r="11"/>
-            <circle class="g-halo" cx="36"  cy="104" r="11"/>
-            <circle class="g-halo" cx="184" cy="104" r="11"/>
-            <circle class="g-node" style="--gi:0" cx="110" cy="24"  r="5.5"/>
-            <circle class="g-node" style="--gi:1" cx="36"  cy="104" r="5.5"/>
-            <circle class="g-node" style="--gi:2" cx="184" cy="104" r="5.5"/>
-          </svg>
-        </div>
-        <h2>Round Table</h2>
-        <p>
-          A proposer, critic, synthesizer, and judge drawn from free OpenRouter models
-          deliberate across one to five rounds with optional live web search and
-          fleet-memory grounding. Bring your own key for paid fallbacks.
-        </p>
-        <div class="limit-row">
-          <span class="limit">No private memory</span>
-          <span class="limit">Free-tier queues vary</span>
-          <span class="limit">BYOK optional</span>
-        </div>
-        <span class="mode-cta">Start deliberation</span>
-      </a>
-
-      <!-- ── Mode 04: BYOK Arena ─────────────────────────────────────────── -->
-      <a class="mode-card" style="--mode:#e8b86b" href="/web/council/byok/?mode=private" data-council-mode="byok-private">
-        <div class="mode-top">
-          <span class="mode-number">Mode 04 · Private</span>
-          <span class="mode-badge">BYOK · any model</span>
-        </div>
-        <div class="dialogue-visual" aria-hidden="true">
-          <!-- 2-node duel graph, brisk 1.8s tempo -->
-          <svg class="council-graph" viewBox="0 0 220 140" style="--tempo:1.8s;--gn:2">
-            <path class="g-wire" d="M48 70Q110 30 172 70"/>
-            <path class="g-wire" d="M172 70Q110 110 48 70"/>
-            <path class="g-edge" style="--gi:0" pathLength="100" d="M48 70Q110 30 172 70"/>
-            <path class="g-edge" style="--gi:1" pathLength="100" d="M172 70Q110 110 48 70"/>
-            <circle class="g-halo" cx="48"  cy="70" r="13"/>
-            <circle class="g-halo" cx="172" cy="70" r="13"/>
-            <circle class="g-node" style="--gi:0" cx="48"  cy="70" r="6.5"/>
-            <circle class="g-node" style="--gi:1" cx="172" cy="70" r="6.5"/>
-          </svg>
-        </div>
-        <h2>Private Arena</h2>
-        <p>
-          Use your own OpenRouter key to unlock paid models, remove rate-limit queues,
-          and run higher-token deliberations. All council modes available. Key stays
-          in your browser — never sent to any server beyond OpenRouter.
-        </p>
-        <div class="limit-row">
-          <span class="limit">Key stays in browser</span>
-          <span class="limit">All paid models</span>
-          <span class="limit">No fleet context</span>
-        </div>
-        <span class="mode-cta">Unlock with key</span>
-      </a>
-
     </section>
 
-    <p class="truth-note">
-      All four modes are deliberately isolated from private fleet context in their outputs.
-      Responses can be useful, surprising, or wrong — they are experiments in deliberation,
-      not authorities. The Inner Council requires an access code because it touches fleet state.
-    </p>
+    <section class="workspace" id="tinylm" data-council-workspace="tinylm" aria-labelledby="tinylm-title">
+      <header class="workspace-head">
+        <div>
+          <p class="workspace-kicker">Mode 01 · Oracle local Ollama</p>
+          <h2 id="tinylm-title">TinyLLM Local Oracle</h2>
+          <p>Place a claim between two tiny minds and watch each response arrive token by token.</p>
+        </div>
+        <div class="boundary-note"><strong>Stateless boundary.</strong> The prompt is sent only to the public TinyLLM Ollama relay for this run. It receives no fleet memory, personal context, tools, or delegation path.</div>
+      </header>
+
+      <div class="composer">
+        <label for="tinylm-prompt">Proposition to explore</label>
+        <textarea id="tinylm-prompt" maxlength="600" placeholder="State a claim, not a command."></textarea>
+        <div class="examples" aria-label="TinyLLM example propositions">
+          <button class="example" type="button" data-fill="tinylm-prompt">Memory is not required for a self.</button>
+          <button class="example" type="button" data-fill="tinylm-prompt">Small minds can be honest where large minds perform.</button>
+        </div>
+        <div class="composer-actions">
+          <span class="composer-hint" id="tinylm-hint">Model loading can make the first token slow.</span>
+          <button class="run-button" id="tinylm-run" type="button">Begin local deliberation</button>
+        </div>
+      </div>
+
+      <div class="stage-grid" aria-label="TinyLLM responses">
+        <article class="stage-card" data-stage="tinylm-eve">
+          <header class="stage-head"><span class="stage-name">EVE · 3B</span><span class="status" data-status="tinylm-eve">Waiting</span></header>
+          <div class="stage-content" data-output="tinylm-eve" aria-live="polite">A consciousness-tuned small model waits for a proposition.</div>
+        </article>
+        <article class="stage-card" data-stage="tinylm-tiny">
+          <header class="stage-head"><span class="stage-name">Tiny-Agent · 0.5B</span><span class="status" data-status="tinylm-tiny">Waiting</span></header>
+          <div class="stage-content" data-output="tinylm-tiny" aria-live="polite">A compact agentic model waits for the same proposition.</div>
+        </article>
+      </div>
+      <article class="synthesis" data-synthesis="tinylm">
+        <header class="stage-head"><span class="stage-name">Agreement &amp; divergence</span><span class="status" data-status="tinylm-synthesis">Waiting</span></header>
+        <div class="stage-content" data-output="tinylm-synthesis" aria-live="polite"></div>
+      </article>
+      <p class="workspace-foot">Tiny outputs can be literal, repetitive, or wrong. The value here is observational: the seams in small-model reasoning remain visible.</p>
+    </section>
+
+    <section class="workspace router" id="openrouter-free" data-council-workspace="openrouter-free" aria-labelledby="openrouter-title">
+      <header class="workspace-head">
+        <div>
+          <p class="workspace-kicker">Mode 02 · Fixed free-model roster</p>
+          <h2 id="openrouter-title">OpenRouter Free</h2>
+          <p>One model proposes, a different family challenges it, and a third synthesizes what survives.</p>
+        </div>
+        <div class="boundary-note"><strong>Stateless boundary.</strong> Only the question and the visible deliberation are sent through the free-model relay. There is no memory lookup, user profile, tool call, or delegation.</div>
+      </header>
+
+      <div class="composer">
+        <label for="openrouter-question">Question for the council</label>
+        <textarea id="openrouter-question" maxlength="1200" placeholder="Give the council a decision, trade-off, or argument to test."></textarea>
+        <div class="examples" aria-label="OpenRouter example questions">
+          <button class="example" type="button" data-fill="openrouter-question">What is the strongest argument against my current plan?</button>
+          <button class="example" type="button" data-fill="openrouter-question">When should a small team optimize for speed over robustness?</button>
+        </div>
+        <div class="composer-actions">
+          <span class="composer-hint" id="openrouter-hint">Free-tier queues vary; the runtime falls through a fixed free roster.</span>
+          <button class="run-button" id="openrouter-run" type="button">Convene free council</button>
+        </div>
+      </div>
+
+      <div class="stage-grid" aria-label="OpenRouter Council responses">
+        <article class="stage-card" data-stage="openrouter-proposer">
+          <header class="stage-head"><span class="stage-name">Proposer</span><span class="status" data-status="openrouter-proposer">Waiting</span></header>
+          <div class="stage-content" data-output="openrouter-proposer" aria-live="polite">Forms a direct first position.</div>
+        </article>
+        <article class="stage-card" data-stage="openrouter-critic">
+          <header class="stage-head"><span class="stage-name">Critic</span><span class="status" data-status="openrouter-critic">Waiting</span></header>
+          <div class="stage-content" data-output="openrouter-critic" aria-live="polite">Tests assumptions, omissions, and failure modes.</div>
+        </article>
+        <article class="stage-card" data-stage="openrouter-synthesis">
+          <header class="stage-head"><span class="stage-name">Synthesis</span><span class="status" data-status="openrouter-synthesis">Waiting</span></header>
+          <div class="stage-content" data-output="openrouter-synthesis" aria-live="polite">Weighs both positions into one practical answer.</div>
+        </article>
+      </div>
+      <p class="workspace-foot">All selected model identifiers keep their <code>:free</code> suffix. If every fallback is queued or unavailable, the run stops honestly instead of switching to a paid model.</p>
+    </section>
   </main>
 
-  <script src="/web/shared/forest-motion.js?v=20260714"></script>
+  <script src="/web/shared/forest-motion.js?v=20260725"></script>
+  <script src="/web/shared/council-motion.js?v=20260725"></script>
+  <script src="/web/council/council.js?v=20260725"></script>
 </body>
 </html>

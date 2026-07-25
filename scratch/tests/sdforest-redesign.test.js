@@ -49,7 +49,7 @@ test('public council exposes exactly two truthful modes', () => {
   const modes = council.match(/data-council-mode=/g) || [];
 
   assert.equal(modes.length, 2);
-  assert.match(council, /TinyLM Local Oracle/);
+  assert.match(council, /TinyLLM Local Oracle/);
   assert.match(council, /OpenRouter Free/);
   assert.match(council, /no (?:fleet )?memory/i);
   assert.match(council, /no delegation/i);
