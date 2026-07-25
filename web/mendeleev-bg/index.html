@@ -100,9 +100,10 @@ h1{text-align:center;padding:16px 10px 2px;font-family:var(--forest-display, "Co
 .pt-grid{display:grid;grid-template-columns:repeat(18,50px);grid-template-rows:repeat(10,50px);gap:2px;padding:10px}
 .el{width:50px;height:50px;border:1px solid currentColor;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;background:rgba(0,0,0,.4);overflow:hidden;transition:opacity var(--duration-normal) var(--ease-out),filter var(--duration-normal) var(--ease-out),box-shadow var(--duration-normal) var(--ease-out);font-family:'Segoe UI',Tahoma,sans-serif}
 .el:hover{z-index:20}
-.el .n{font-size:7px;opacity:.55;line-height:1;align-self:flex-start;padding:2px 0 0 3px;cursor:pointer;transition:opacity var(--duration-fast) var(--ease-out),color var(--duration-fast) var(--ease-out);position:relative;z-index:2}
+.el .n{appearance:none;background:transparent;border:0;color:inherit;font-family:inherit;font-size:7px;opacity:.55;line-height:1;align-self:flex-start;margin:0;padding:2px 0 0 3px;cursor:pointer;transition:opacity var(--duration-fast) var(--ease-out),color var(--duration-fast) var(--ease-out);position:relative;z-index:2}
 .el .n:hover{opacity:1;color:#fff;text-decoration:underline dotted}
-.el .sym-wrap{display:flex;flex-direction:column;align-items:center;flex:1;justify-content:center;cursor:pointer}
+.el .sym-wrap{appearance:none;background:transparent;border:0;color:inherit;display:flex;flex-direction:column;align-items:center;flex:1;font-family:inherit;justify-content:center;margin:0;padding:0;width:100%;cursor:pointer}
+.el .n:focus-visible,.el .sym-wrap:focus-visible{outline:2px solid #fff;outline-offset:-2px}
 .el .s{font-size:15px;font-weight:700;line-height:1.1}
 .el .bg{font-size:5.5px;opacity:.8;text-align:center;max-width:46px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;padding:0 2px}
 .el::after{content:'';position:absolute;inset:0;background:currentColor;opacity:0;transition:opacity var(--duration-fast) var(--ease-out);pointer-events:none}
@@ -273,7 +274,7 @@ h1{text-align:center;padding:16px 10px 2px;font-family:var(--forest-display, "Co
 <div class="subtitle">Кликни на символа за елемент · Кликни на числото за обяснение · За деца от 8 до 10 години</div>
 
 <div class="control-header" style="margin-bottom: 8px;">
-  <input type="text" id="searchInput" placeholder="🔍 Търси елемент (напр. Водород, Li, 1)..." oninput="handleSearch()" />
+  <input type="text" id="searchInput" aria-label="Търси елемент / Search element" placeholder="🔍 Търси елемент (напр. Водород, Li, 1)..." oninput="handleSearch()" />
 </div>
 
 <!-- Compound bar -->
@@ -1525,6 +1526,7 @@ function handleSearch() {
 function buildGrid(){
   const g=document.getElementById('ptGrid');
   g.innerHTML = '';
+  const t=TRANSLATIONS[currentLang];
   const cells={};
   GRID.forEach(([n,sym,bg,lat,mass,cat,row,col])=>{cells[`${row}_${col}`]={n,sym,bg,lat,mass,cat};});
   
@@ -1548,7 +1550,7 @@ function buildGrid(){
           div.innerHTML=`<span style="font-size:6.5px;text-align:center;padding:2px">${d.sym}<br><span style="font-size:5px;opacity:.55">${name}</span></span>`;
           div.style.cursor='default';
         } else {
-          div.innerHTML=`<span class="n" title="Атомен номер ${d.n} / Atomic number ${d.n}">${d.n}</span><div class="sym-wrap"><span class="s">${d.sym}</span><span class="bg">${name}</span></div>`;
+          div.innerHTML=`<button type="button" class="n" title="${t.atomicNumLabel} ${d.n}" aria-label="${t.atomicNumLabel} ${d.n}: ${name}">${d.n}</button><button type="button" class="sym-wrap" aria-label="${name} (${d.sym})"><span class="s">${d.sym}</span><span class="bg">${name}</span></button>`;
           
           div.querySelector('.n').addEventListener('click',e=>{
             e.stopPropagation();
@@ -1604,6 +1606,7 @@ function toggleLanguage() {
   const t = TRANSLATIONS[currentLang];
   document.querySelector('.subtitle').innerText = t.subtitle;
   document.getElementById('searchInput').placeholder = t.searchPlaceholder;
+  document.getElementById('searchInput').setAttribute('aria-label', t.searchPlaceholder.replace(/^🔍\s*/, ''));
   document.getElementById('langBtn').innerText = currentLang === 'bg' ? 'EN' : 'BG';
   
   // Dynamically update main page headers & page title
