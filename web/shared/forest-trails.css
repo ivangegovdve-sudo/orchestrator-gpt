@@ -1,0 +1,405 @@
+.forest-trails {
+  --forest-trails-accent: var(--accent, #4f46e5);
+  --forest-trails-bg: var(--bg, #07070b);
+  --forest-trails-surface: var(--surface, #0f0f15);
+  position: fixed;
+  z-index: 80;
+  right: auto;
+  bottom: max(12px, env(safe-area-inset-bottom));
+  left: 50%;
+  display: grid;
+  grid-template-columns: 86px auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  width: min(920px, calc(100vw - 24px));
+  min-height: 60px;
+  padding: 7px;
+  border: 1px solid rgba(255, 255, 255, .12);
+  border-radius: 20px;
+  background: rgba(15, 15, 21, .9);
+  background: color-mix(in srgb, var(--forest-trails-surface) 90%, transparent);
+  box-shadow:
+    0 22px 60px rgba(0, 0, 0, .42),
+    inset 0 1px 0 rgba(255, 255, 255, .06);
+  color: #f7f7fb;
+  font-family: var(--forest-sans, "Segoe UI", system-ui, sans-serif);
+  transform: translate3d(-50%, 0, 0);
+  backdrop-filter: blur(20px) saturate(125%);
+  animation: forest-trails-arrive 500ms var(--ease-out, cubic-bezier(.16, 1, .3, 1)) both;
+}
+
+.forest-trails__network {
+  display: block;
+  width: 78px;
+  height: 34px;
+  overflow: visible;
+}
+
+.forest-trails__edge {
+  fill: none;
+  stroke: var(--forest-trails-accent);
+  stroke-width: 1;
+  stroke-linecap: round;
+  stroke-dasharray: 3 9;
+  opacity: .42;
+  vector-effect: non-scaling-stroke;
+  animation: forest-trails-flow 7s linear infinite;
+  animation-delay: calc(var(--forest-edge-index, 0) * -900ms);
+}
+
+.forest-trails__node {
+  fill: var(--forest-trails-accent);
+  opacity: .62;
+  animation: forest-trails-glow 3.8s ease-in-out infinite;
+  animation-delay: calc(var(--forest-node-index, 0) * -600ms);
+}
+
+.forest-trails__node--current {
+  opacity: 1;
+  filter: drop-shadow(0 0 5px var(--forest-trails-accent));
+}
+
+.forest-trails__current {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 10px;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.forest-trails__current::before {
+  width: 6px;
+  height: 6px;
+  margin-right: 8px;
+  border-radius: 50%;
+  background: var(--forest-trails-accent);
+  box-shadow: 0 0 10px var(--forest-trails-accent);
+  content: "";
+}
+
+.forest-trails__next,
+.forest-trails__route-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.forest-trails__next {
+  display: flex;
+  min-width: 0;
+  gap: 4px;
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+  scrollbar-width: none;
+}
+
+.forest-trails__next::-webkit-scrollbar {
+  display: none;
+}
+
+.forest-trails__next a,
+.forest-trails__map-button,
+.forest-trails__close,
+.forest-trails__route {
+  min-height: 44px;
+  border: 1px solid transparent;
+  border-radius: 13px;
+  color: rgba(247, 247, 251, .72);
+  font: 600 12px/1.2 var(--forest-sans, "Segoe UI", system-ui, sans-serif);
+  text-decoration: none;
+  transition:
+    color 150ms var(--ease-out, ease),
+    border-color 150ms var(--ease-out, ease),
+    background-color 150ms var(--ease-out, ease);
+}
+
+.forest-trails__next a {
+  display: inline-flex;
+  align-items: center;
+  padding: 0 12px;
+  white-space: nowrap;
+}
+
+.forest-trails__map-button,
+.forest-trails__close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 14px;
+  border-color: rgba(255, 255, 255, .12);
+  background: rgba(255, 255, 255, .045);
+  cursor: pointer;
+}
+
+.forest-trails__next a:hover,
+.forest-trails__map-button:hover,
+.forest-trails__close:hover,
+.forest-trails__route:hover {
+  border-color: color-mix(in srgb, var(--forest-trails-accent) 55%, transparent);
+  background: color-mix(in srgb, var(--forest-trails-accent) 11%, transparent);
+  color: #fff;
+}
+
+.forest-trails :where(a, button):focus-visible {
+  outline: 3px solid var(--forest-trails-accent);
+  outline-offset: 2px;
+}
+
+.forest-trails__drawer {
+  width: min(760px, calc(100vw - 24px));
+  max-width: none;
+  max-height: min(86dvh, 760px);
+  margin: auto;
+  padding: 0;
+  overflow: hidden auto;
+  border: 1px solid rgba(255, 255, 255, .14);
+  border-radius: 24px;
+  background:
+    radial-gradient(circle at 85% 0, rgba(79, 70, 229, .18), transparent 28rem),
+    var(--forest-trails-surface);
+  box-shadow: 0 34px 110px rgba(0, 0, 0, .72);
+  color: #f7f7fb;
+  overscroll-behavior: contain;
+}
+
+.forest-trails__drawer[open] {
+  animation: forest-trails-drawer-in 400ms var(--spring, cubic-bezier(.34, 1.56, .64, 1)) both;
+}
+
+.forest-trails__drawer::backdrop {
+  background: rgba(3, 3, 7, .7);
+  backdrop-filter: blur(7px);
+}
+
+.forest-trails__drawer-header {
+  position: sticky;
+  z-index: 2;
+  top: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 4px 18px;
+  align-items: center;
+  padding: 22px 22px 18px;
+  border-bottom: 1px solid rgba(255, 255, 255, .1);
+  background: rgba(15, 15, 21, .93);
+  backdrop-filter: blur(18px);
+}
+
+.forest-trails__drawer-header h2 {
+  margin: 0;
+  color: #fff;
+  font: 700 clamp(24px, 5vw, 38px)/1 var(--forest-display, Georgia, serif);
+}
+
+.forest-trails__drawer-header p {
+  grid-column: 1;
+  margin: 6px 0 0;
+  color: rgba(247, 247, 251, .62);
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.forest-trails__close {
+  grid-row: 1 / span 2;
+  grid-column: 2;
+  align-self: center;
+}
+
+.forest-trails__map {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  padding: 18px;
+}
+
+.forest-trails__home {
+  grid-column: 1 / -1;
+  justify-content: center;
+  border-color: rgba(79, 70, 229, .45);
+  background: rgba(79, 70, 229, .1);
+  color: #fff;
+}
+
+.forest-trails__trail {
+  min-width: 0;
+  padding: 16px;
+  border: 1px solid rgba(255, 255, 255, .09);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, .025);
+}
+
+.forest-trails__trail h3 {
+  margin: 0;
+  color: var(--forest-trail-accent);
+  font-size: 13px;
+  line-height: 1.2;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+
+.forest-trails__trail-description {
+  min-height: 2.8em;
+  margin: 8px 0 12px;
+  color: rgba(247, 247, 251, .56);
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.forest-trails__route-list {
+  display: grid;
+  gap: 3px;
+}
+
+.forest-trails__route {
+  display: flex;
+  align-items: center;
+  padding: 0 11px;
+}
+
+.forest-trails__route::before {
+  width: 5px;
+  height: 5px;
+  margin-right: 9px;
+  border-radius: 50%;
+  background: var(--forest-trail-accent, var(--forest-trails-accent));
+  content: "";
+  opacity: .8;
+}
+
+.forest-trails__route[aria-current="page"] {
+  border-color: color-mix(in srgb, var(--forest-trail-accent) 48%, transparent);
+  background: color-mix(in srgb, var(--forest-trail-accent) 10%, transparent);
+  color: #fff;
+}
+
+@keyframes forest-trails-arrive {
+  from {
+    opacity: 0;
+    transform: translate3d(-50%, 14px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
+@keyframes forest-trails-flow {
+  to { stroke-dashoffset: -48; }
+}
+
+@keyframes forest-trails-glow {
+  0%, 100% { opacity: .38; }
+  50% { opacity: .9; }
+}
+
+@keyframes forest-trails-drawer-in {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 22px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@media (max-width: 680px) {
+  .forest-trails {
+    bottom: max(8px, env(safe-area-inset-bottom));
+    grid-template-columns: 54px minmax(0, 1fr) auto;
+    gap: 4px;
+    width: calc(100vw - 16px);
+    min-height: 104px;
+    border-radius: 18px;
+  }
+
+  .forest-trails__network {
+    width: 48px;
+  }
+
+  .forest-trails__current {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .forest-trails__next {
+    grid-row: 2;
+    grid-column: 1 / -1;
+  }
+
+  .forest-trails__next li {
+    flex: 1 0 auto;
+  }
+
+  .forest-trails__next a {
+    justify-content: center;
+    width: 100%;
+  }
+
+  .forest-trails__map-button {
+    padding-inline: 12px;
+  }
+
+  .forest-trails__drawer {
+    width: calc(100vw - 12px);
+    max-height: calc(100dvh - 12px);
+    border-radius: 20px;
+  }
+
+  .forest-trails__drawer-header {
+    padding: 18px 16px 14px;
+  }
+
+  .forest-trails__map {
+    grid-template-columns: minmax(0, 1fr);
+    padding: 10px;
+  }
+
+  .forest-trails__trail-description {
+    min-height: 0;
+  }
+}
+
+@media (pointer: coarse) {
+  .forest-trails__next a,
+  .forest-trails__map-button,
+  .forest-trails__close,
+  .forest-trails__route {
+    min-height: 46px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .forest-trails,
+  .forest-trails__edge,
+  .forest-trails__node,
+  .forest-trails__drawer[open] {
+    animation: none;
+  }
+
+  .forest-trails__next a,
+  .forest-trails__map-button,
+  .forest-trails__close,
+  .forest-trails__route {
+    transition: none;
+  }
+}
+
+@media (forced-colors: active) {
+  .forest-trails,
+  .forest-trails__drawer,
+  .forest-trails__trail {
+    border: 1px solid CanvasText;
+  }
+
+  .forest-trails__edge {
+    stroke: LinkText;
+  }
+}
