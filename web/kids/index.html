@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="Kids Corner — Forest HUB's playground: Math Mania arithmetic games, the Kids Movie Library, and the Mendeleev BG periodic table, in one place." />
+  <meta name="description" content="Kids Corner — Forest HUB's playground for Math Mania arithmetic games and the Kids Movie Library." />
   <meta property="og:title" content="Kids Corner — Forest HUB" />
   <meta property="og:description" content="Games and movies for the small foresters: Math Mania + Kids Movie Library." />
   <meta property="og:type" content="website" />
@@ -27,7 +27,6 @@
 
       --math: #34d399;
       --movies: #f97316;
-      --science: #818cf8;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -37,8 +36,7 @@
       background-color: var(--bg);
       background-image:
         radial-gradient(760px circle at 15% 5%, rgba(52,211,153,.08), transparent 55%),
-        radial-gradient(760px circle at 85% 12%, rgba(249,115,22,.08), transparent 55%),
-        radial-gradient(640px circle at 50% 80%, rgba(129,140,248,.06), transparent 55%);
+        radial-gradient(760px circle at 85% 12%, rgba(249,115,22,.08), transparent 55%);
       color: var(--text-primary);
       font-family: var(--font);
       -webkit-font-smoothing: antialiased;
@@ -108,7 +106,6 @@
     }
     .kid-card.math    { --c: var(--math); }
     .kid-card.movies  { --c: var(--movies); }
-    .kid-card.science { --c: var(--science); }
 
     .kid-icon {
       width: 58px; height: 58px;
@@ -154,7 +151,7 @@
     <header class="hero">
       <p class="eyebrow">Forest HUB · Kids Corner</p>
       <h1>Kids<span class="spark">.</span>Corner</h1>
-      <p class="hero-sub">The playground of the forest — quick-fire math games, a hand-picked family movie shelf, and an interactive periodic table, all in one place.</p>
+      <p class="hero-sub">The playground of the forest — quick-fire math games and a hand-picked family movie shelf, together in one place.</p>
     </header>
 
     <div class="kids-grid">
@@ -179,20 +176,9 @@
         </div>
         <span class="kid-cta">Browse the shelf ↗</span>
       </a>
-
-      <a class="kid-card science" href="/web/mendeleev-bg/">
-        <div class="kid-icon">⚗️</div>
-        <div class="kid-name">Periodic Table BG</div>
-        <p class="kid-desc">Discover all 118 elements in Bulgarian — tap any element for a deep-dive panel, and see how atoms combine into real-world compounds.</p>
-        <div class="kid-meta">
-          <span class="kid-pill">Science</span>
-          <span class="kid-pill">118 Elements</span>
-        </div>
-        <span class="kid-cta">Explore the table ↗</span>
-      </a>
     </div>
 
-    <p class="note">All three are part of <a href="/">Forest HUB</a> — hand-built, ad-free, and kid-safe.</p>
+    <p class="note">Both are part of <a href="/">Forest HUB</a> — hand-built, ad-free, and kid-safe.</p>
   </main>
   <script src="/web/shared/forest-motion.js?v=20260714"></script>
 </body>
