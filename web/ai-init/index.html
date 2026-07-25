@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" class="forest-skin forest-palette">
+<html lang="en" class="forest-skin">
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
@@ -7,17 +7,24 @@
 <link rel="stylesheet" href="/web/shared/forest-design.css?v=20260723"/>
 <style>
 :root {
-  --bg: #070a08;
+  --bg: #07070b;
+  --surface: #0f0f15;
   --bg-soft: #0d120e;
   --panel: rgba(13, 18, 14, 0.92);
-  --border: rgba(188, 198, 180, 0.26);
+  --border: rgba(255, 255, 255, 0.08);
+  --text-primary: #f3f4f6;
+  --text-muted: #9ca3af;
   --text: #f2efe4;
   --muted: #a9b3a1;
-  --accent: #8fe6ae;
+  --accent: #4f46e5;
+  --accent-green: #22c55e;
+  --glossary-accent: #8fe6ae;
   --accent-2: #e8b86b;
   --shadow: 0 20px 44px rgba(0, 0, 0, 0.35);
   --radius-lg: 18px;
   --radius-md: 12px;
+  --radius: 8px;
+  --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 }
 
 * { box-sizing: border-box; }
@@ -120,7 +127,7 @@ main {
 }
 
 .icon-button:hover .books-icon {
-  animation: bookHoverLoop 1s ease-in-out infinite;
+  animation: bookHoverLoop var(--duration-crown-enter) ease-in-out infinite;
 }
 
 @keyframes bookHoverLoop {
@@ -194,7 +201,7 @@ main {
 
 .result-abbr {
   font-weight: 700;
-  color: var(--accent);
+  color: var(--glossary-accent);
   font-size: 0.98rem;
 }
 
@@ -282,7 +289,7 @@ main {
 .accordion-chevron {
   margin-left: 8px;
   color: var(--muted);
-  transition: transform 0.24s ease;
+  transition: transform var(--duration-fast) var(--ease-out);
 }
 
 .accordion.open > .accordion-trigger .accordion-chevron {
@@ -292,7 +299,7 @@ main {
 .accordion-panel {
   display: grid;
   grid-template-rows: 0fr;
-  transition: grid-template-rows 0.3s ease;
+  transition: grid-template-rows var(--duration-normal) var(--ease-out);
 }
 
 .accordion.open > .accordion-panel {
@@ -342,7 +349,7 @@ main {
 }
 
 .entry-item .abbr {
-  color: var(--accent);
+  color: var(--glossary-accent);
   font-weight: 700;
   font-size: 0.88rem;
 }
@@ -372,7 +379,9 @@ main {
   opacity: 0;
   transform: translateY(12px);
   pointer-events: none;
-  transition: opacity 0.2s ease, transform 0.2s ease;
+  transition:
+    opacity var(--duration-fast) var(--ease-out),
+    transform var(--duration-fast) var(--ease-out);
 }
 
 .toast.visible {
@@ -385,11 +394,28 @@ main {
   font-family: var(--forest-sans, "Alegreya Sans", sans-serif);
 }
 
+.hub-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-bottom: 16px;
+  color: var(--glossary-accent);
+  text-decoration: none;
+  font-size: 13px;
+  opacity: .65;
+  transition: opacity var(--duration-fast) var(--ease-out);
+}
+
+.hub-link:hover,
+.hub-link:focus-visible {
+  opacity: 1;
+}
+
 /* Accessibility focus styles */
 button:focus-visible,
 input:focus-visible,
 .search-input:focus-visible {
-  outline: 2px solid var(--accent);
+  outline: 2px solid var(--glossary-accent);
   outline-offset: 2px;
 }
 
@@ -403,7 +429,7 @@ input:focus-visible,
 <body data-forest-page="library">
 <main>
   <div class="app-shell">
-    <a href="/" style="display:inline-flex;align-items:center;gap:5px;color:#8fe6ae;text-decoration:none;font-size:13px;opacity:.65;transition:opacity .2s;margin-bottom:16px" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='.65'">← Forest HUB</a>
+    <a class="hub-link" href="/">← Forest HUB</a>
     <section id="home-view" class="view active" aria-label="Home Search">
       <header class="hero">
         <h1>AI & Tech Glossary</h1>
