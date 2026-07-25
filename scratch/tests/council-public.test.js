@@ -72,13 +72,19 @@ test('legacy Council URLs redirect harmlessly to the two integrated anchors', ()
 test('Council streaming writes text safely and uses only fixed public relays', () => {
   assert.ok(fs.existsSync(path.join(ROOT, 'web/council/council.js')), 'missing public Council runtime');
   const runtime = read('web/council/council.js');
+  const council = read('web/council/index.html');
 
   assert.match(runtime, /createTextNode|textContent/);
+  assert.match(runtime, /deliberation-loader/);
+  assert.match(runtime, /loader\?\.remove\(\)[\s\S]*appendData\(token\)/);
   assert.doesNotMatch(runtime, /\.innerHTML\s*=/);
   assert.doesNotMatch(runtime, /sessionStorage|localStorage|Authorization|X-BYOK-Key|apiKey/i);
   assert.match(runtime, /https:\/\/chloe\.blumenkraft\.cloud\/tinylm-api/);
   assert.match(runtime, /https:\/\/chloe\.blumenkraft\.cloud\/council\/relay/);
   assert.match(runtime, /:free/);
+  assert.match(council, /\.deliberation-loader\s+\.dot/);
+  assert.match(council, /var\(--duration-dot-pulse\)/);
+  assert.match(council, /var\(--stagger-dot\)/);
 });
 
 test('AI Research describes and routes directly to the two public Councils', () => {

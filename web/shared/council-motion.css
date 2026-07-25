@@ -49,24 +49,24 @@ body[data-council] .stage-content.streaming::after { color: var(--cm-accent); }
 @media (prefers-reduced-motion: no-preference) {
   /* Page settles in as one choreography: chrome first, panels follow. */
   body[data-council] .page > * {
-    animation: cm-rise .65s cubic-bezier(.16, 1, .3, 1) backwards;
+    animation: cm-rise var(--duration-slow) var(--ease-out) backwards;
   }
-  body[data-council] .page > :nth-child(2) { animation-delay: .06s; }
-  body[data-council] .page > :nth-child(3) { animation-delay: .12s; }
-  body[data-council] .page > :nth-child(4) { animation-delay: .18s; }
-  body[data-council] .page > :nth-child(5) { animation-delay: .24s; }
-  body[data-council] .page > :nth-child(6) { animation-delay: .3s; }
-  body[data-council] .page > :nth-child(n+7) { animation-delay: .36s; }
+  body[data-council] .page > :nth-child(2) { animation-delay: calc(var(--stagger-list) * 2); }
+  body[data-council] .page > :nth-child(3) { animation-delay: calc(var(--stagger-list) * 4); }
+  body[data-council] .page > :nth-child(4) { animation-delay: calc(var(--stagger-list) * 6); }
+  body[data-council] .page > :nth-child(5) { animation-delay: calc(var(--stagger-list) * 8); }
+  body[data-council] .page > :nth-child(6) { animation-delay: calc(var(--stagger-list) * 10); }
+  body[data-council] .page > :nth-child(n+7) { animation-delay: calc(var(--stagger-list) * 12); }
 
   /* Deliberation artifacts arrive, they do not pop. Cards are appended one at
      a time by the stream, so each insertion carries its own entrance. */
   body[data-council] .stages .stage-card,
   body[data-council] .stages .round-header,
   body[data-council] .followup-card.visible {
-    animation: cm-arrive .6s cubic-bezier(.16, 1, .3, 1) backwards;
+    animation: cm-arrive var(--duration-slow) var(--ease-out) backwards;
   }
 
-  body[data-council] .chat .msg { animation: cm-msg-left .42s cubic-bezier(.16, 1, .3, 1) backwards; }
+  body[data-council] .chat .msg { animation: cm-msg-left var(--duration-spring) var(--ease-out) backwards; }
   body[data-council] .chat .msg.user { animation-name: cm-msg-right; }
   body[data-council] .chat .msg.meta { animation-name: cm-rise; }
 
@@ -74,18 +74,20 @@ body[data-council] .stage-content.streaming::after { color: var(--cm-accent); }
      underlined by a slow accent sweep so the current voice is unmissable.
      Arrival stays in the list so a card born active still slides in. */
   body[data-council] .stage-card.active {
-    animation: cm-arrive .6s cubic-bezier(.16, 1, .3, 1) backwards, cm-speaking 2.4s ease-in-out infinite;
+    animation:
+      cm-arrive var(--duration-slow) var(--ease-out) backwards,
+      cm-speaking var(--duration-loop-fast) ease-in-out infinite;
   }
   body[data-council] .stage-card.active .stage-icon {
-    animation: cm-sigil 1.7s ease-in-out infinite;
+    animation: cm-sigil var(--duration-scroll-invite) ease-in-out infinite;
   }
   body[data-council] .stage-card.active .stage-name {
     background-image: linear-gradient(90deg, transparent 0 44%, color-mix(in srgb, var(--cm-accent) 24%, transparent) 50%, transparent 56% 100%);
     background-size: 240% 100%;
-    animation: cm-name-sweep 2.8s linear infinite;
+    animation: cm-name-sweep var(--duration-loop-fast) linear infinite;
   }
 
-  body[data-council] .typing { animation: cm-ponder 1.9s ease-in-out infinite; }
+  body[data-council] .typing { animation: cm-ponder var(--duration-scroll-invite) ease-in-out infinite; }
 }
 
 @keyframes cm-rise {
@@ -134,7 +136,7 @@ body[data-council] .spinner {
   border-radius: 50%;
   background: currentColor;
   box-shadow: -9px 0 0 0 currentColor, 9px 0 0 0 currentColor;
-  animation: cm-deliberate 1.15s ease-in-out infinite;
+  animation: cm-deliberate var(--duration-dot-pulse) ease-in-out infinite;
 }
 
 @keyframes cm-deliberate {
@@ -158,9 +160,9 @@ body[data-council] .spinner {
   body[data-council] *,
   body[data-council] *::before,
   body[data-council] *::after {
-    animation-duration: .001ms !important;
+    animation-duration: var(--duration-reduced) !important;
     animation-iteration-count: 1 !important;
-    transition-duration: .001ms !important;
+    transition-duration: var(--duration-reduced) !important;
   }
   body[data-council] .spinner {
     animation: none;

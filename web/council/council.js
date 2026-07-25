@@ -95,21 +95,35 @@
     };
   }
 
+  function createDeliberationLoader() {
+    const loader = document.createElement('span');
+    loader.className = 'deliberation-loader';
+    loader.setAttribute('aria-hidden', 'true');
+    for (let index = 0; index < 3; index += 1) {
+      const dot = document.createElement('span');
+      dot.className = 'dot';
+      loader.append(dot);
+    }
+    return loader;
+  }
+
   function beginStage(key, label = 'Connecting') {
     const view = stageView(key);
     const textNode = document.createTextNode('');
-    view.output.replaceChildren(textNode);
+    const loader = createDeliberationLoader();
+    view.output.replaceChildren(textNode, loader);
     view.output.classList.remove('streaming');
     view.card.classList.remove('done');
     view.card.classList.add('active');
     view.status.textContent = label;
     view.status.classList.add('live');
-    return { view, textNode, text: '' };
+    return { view, textNode, loader, text: '' };
   }
 
   function appendToken(stream, token) {
     if (!token) return;
     if (!stream.text) {
+      stream.loader?.remove();
       stream.view.output.classList.add('streaming');
       stream.view.status.textContent = 'Streaming';
     }
