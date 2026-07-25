@@ -2,7 +2,7 @@
 // Vercel serverless proxy — forwards all /api/library/* to KVM2 library API
 // Avoids browser mixed-content block (HTTPS page → HTTP backend)
 
-const KVM2_BASE = "http://187.127.86.176:8765";
+const KVM2_BASE = process.env.LIBRARY_API_URL || "http://187.127.86.176:8765";
 
 module.exports = async function handler(req, res) {
   const pathSegments = req.query.path || [];
