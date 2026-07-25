@@ -43,6 +43,20 @@ const libraryChildPaths = [
   '/web/library/memory/',
 ];
 
+const routedChildViews = [
+  ['/web/open-overview/openrouter/', 'Open Overview'],
+  ['/web/open-overview/github/', 'Open Overview'],
+  ['/web/manifesto-newborn/bg/', 'Manifesto for a Newborn'],
+  ['/web/manifesto-newborn/de/', 'Manifesto for a Newborn'],
+  ['/web/manifesto-newborn/es/', 'Manifesto for a Newborn'],
+  ['/web/manifesto-newborn/fr/', 'Manifesto for a Newborn'],
+  ['/web/manifesto-newborn/it/', 'Manifesto for a Newborn'],
+  ['/web/manifesto-newborn/mk/', 'Manifesto for a Newborn'],
+  ['/web/manifesto-newborn/pt/', 'Manifesto for a Newborn'],
+  ['/web/manifesto-newborn/ru/', 'Manifesto for a Newborn'],
+  ['/web/manifesto-newborn/zh/', 'Manifesto for a Newborn'],
+];
+
 let baseUrl;
 let browser;
 let server;
@@ -178,6 +192,33 @@ test('Library child views inherit one Library trail with a persistent HUB return
       await navigation.getByRole('link', { name: 'Back to Forest HUB' }).count(),
       1,
       `${childPath} must keep the HUB reachable`,
+    );
+  }
+
+  await page.close();
+});
+
+test('translated and route-specific child views remain connected to their parent trail', {
+  timeout: 20_000,
+}, async () => {
+  const page = await browser.newPage();
+
+  for (const [childPath, parentLabel] of routedChildViews) {
+    const response = await page.goto(`${baseUrl}${childPath}`, {
+      waitUntil: 'domcontentloaded',
+    });
+    assert.equal(response.status(), 200, `${childPath} must load`);
+
+    const navigation = page.getByRole('navigation', { name: 'Forest Trails' });
+    await navigation.waitFor({ state: 'attached', timeout: 4_000 });
+    assert.equal(
+      await navigation.locator('.forest-trails__current').textContent(),
+      parentLabel,
+      `${childPath} must inherit ${parentLabel}`,
+    );
+    assert.equal(
+      await navigation.getByRole('link', { name: 'Back to Forest HUB' }).count(),
+      1,
     );
   }
 
