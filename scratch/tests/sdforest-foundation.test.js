@@ -47,3 +47,20 @@ test('Kids Corner links exactly the two approved existing sub-apps', () => {
   assert.match(kids, /Math Mania/);
   assert.match(kids, /Kids Movie Library/);
 });
+
+test('Library is canonical and llm-db has deployment and static redirect coverage', () => {
+  const library = built('web/library/index.html');
+  const moved = built('web/llm-db/index.html');
+  const vercel = JSON.parse(fs.readFileSync(path.join(ROOT, 'vercel.json'), 'utf8'));
+
+  assert.match(library, /--bg:\s*#07070b\b/);
+  assert.match(library, /--surface:\s*#0f0f15\b/);
+  assert.match(library, /--accent:\s*#4f46e5\b/);
+  assert.match(moved, /url=\/web\/library\//);
+  assert.match(moved, /location\.replace\(["']\/web\/library\/["']\)/);
+  assert.deepEqual(vercel.redirects, [{
+    source: '/web/llm-db/:path*',
+    destination: '/web/library/',
+    permanent: true,
+  }]);
+});

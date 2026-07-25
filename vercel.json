@@ -1,5 +1,12 @@
 {
   "buildCommand": "npm run vercel-build",
   "outputDirectory": "vercel-public",
-  "framework": null
+  "framework": null,
+  "redirects": [
+    {
+      "source": "/web/llm-db/:path*",
+      "destination": "/web/library/",
+      "permanent": true
+    }
+  ]
 }
