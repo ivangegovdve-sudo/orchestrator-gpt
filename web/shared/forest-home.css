@@ -144,7 +144,24 @@ a, button { -webkit-tap-highlight-color: transparent; }
   filter: drop-shadow(0 0 54px rgba(79, 70, 229, .26));
 }
 
-.title-crown svg { display: block; width: 100%; height: auto; overflow: visible; }
+.crown-wrap {
+  width: 100%;
+  transform: translateY(0);
+}
+
+.title-crown svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.title-crown .crown {
+  animation:
+    crown-breathe var(--duration-crown-breathe) var(--ease-in-out) infinite;
+  transform-origin: 50% 90%;
+}
+
 .title-crown-trunk,
 .title-crown-branch {
   fill: none;
@@ -159,6 +176,53 @@ a, button { -webkit-tap-highlight-color: transparent; }
   stroke-width: 2;
 }
 .title-crown-branch { opacity: .72; stroke-width: 2; }
+
+.leaf-cluster {
+  animation: cluster-sway var(--sway-dur) var(--ease-in-out) infinite;
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+}
+
+.leaf-cluster[data-cluster="1"] {
+  --sway-dur: calc(var(--duration-loop-slow) * .708333);
+  animation-delay: calc(var(--duration-loop-slow) * -.125);
+}
+.leaf-cluster[data-cluster="2"] {
+  --sway-dur: calc(var(--duration-loop-slow) * .979167);
+  animation-delay: calc(var(--duration-loop-slow) * -.375);
+}
+.leaf-cluster[data-cluster="3"] {
+  --sway-dur: calc(var(--duration-loop-slow) * 1.166667);
+  animation-delay: calc(var(--duration-loop-slow) * -.5625);
+}
+.leaf-cluster[data-cluster="4"] {
+  --sway-dur: calc(var(--duration-loop-slow) * .854167);
+  animation-delay: calc(var(--duration-loop-slow) * -.229167);
+}
+.leaf-cluster[data-cluster="5"] {
+  --sway-dur: calc(var(--duration-loop-slow) * 1.083333);
+  animation-delay: calc(var(--duration-loop-slow) * -.666667);
+}
+.leaf-cluster[data-cluster="6"] {
+  --sway-dur: calc(var(--duration-loop-slow) * .791667);
+  animation-delay: calc(var(--duration-loop-slow) * -.4375);
+}
+
+.falling-leaf {
+  position: fixed;
+  z-index: 7;
+  width: var(--leaf-size);
+  height: auto;
+  overflow: visible;
+  pointer-events: none;
+  animation:
+    leaf-fall
+    calc(var(--duration-loop-fast) * var(--leaf-duration-factor))
+    var(--ease-out)
+    calc(var(--duration-normal) * var(--leaf-delay-factor))
+    both;
+  will-change: transform, opacity;
+}
 
 .landing-kicker {
   margin: 0 0 10px;
@@ -213,12 +277,32 @@ a, button { -webkit-tap-highlight-color: transparent; }
 .scroll-invite { opacity: 1; }
 
 /* roots.js reads the crown's bounding rect as its seed position. */
-html.is-born .title-crown { animation: born-crown 1.25s cubic-bezier(.16, .84, .3, 1) .08s backwards; }
-html.is-born .landing-kicker { animation: born-rise .8s cubic-bezier(.2, .8, .25, 1) .12s backwards; }
-html.is-born .title-word { animation: born-bloom 1.15s cubic-bezier(.16, .84, .3, 1) .2s backwards; }
-html.is-born .title-sub { animation: born-rise .9s cubic-bezier(.2, .8, .25, 1) .5s backwards; }
-html.is-born .landing-copy { animation: born-rise .9s ease-out .72s backwards; }
-html.is-born .scroll-invite { animation: born-rise .9s ease-out .95s backwards; }
+html.is-born .crown-wrap { animation: crown-enter var(--duration-crown-enter) var(--ease-out) both; }
+html.is-born .landing-kicker {
+  animation:
+    born-rise var(--duration-crown-enter) var(--ease-out)
+    var(--delay-hero-kicker) backwards;
+}
+html.is-born .title-word {
+  animation:
+    born-bloom var(--duration-feature) var(--ease-out)
+    var(--delay-hero-title) backwards;
+}
+html.is-born .title-sub {
+  animation:
+    born-rise var(--duration-hero) var(--ease-out)
+    var(--delay-hero-subtitle) backwards;
+}
+html.is-born .landing-copy {
+  animation:
+    born-rise var(--duration-hero) var(--ease-out)
+    var(--delay-hero-copy) backwards;
+}
+html.is-born .scroll-invite {
+  animation:
+    born-rise var(--duration-hero) var(--ease-out)
+    var(--delay-hero-invite) backwards;
+}
 
 @keyframes born-rise {
   from { opacity: 0; transform: translateY(26px); }
@@ -228,8 +312,30 @@ html.is-born .scroll-invite { animation: born-rise .9s ease-out .95s backwards; 
   from { opacity: 0; transform: translateY(34px) scale(.965); filter: blur(10px) drop-shadow(0 6px 40px rgba(79, 70, 229, 0)); }
 }
 
-@keyframes born-crown {
-  from { opacity: 0; transform: translate(-50%, -50%) scale(.9); }
+@keyframes crown-enter {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes crown-breathe {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.02); }
+}
+
+@keyframes cluster-sway {
+  0%, 100% { transform: rotateZ(-3deg); }
+  50% { transform: rotateZ(3deg); }
+}
+
+@keyframes leaf-fall {
+  from {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) rotate(0deg);
+  }
+  to {
+    opacity: 0;
+    transform: translate3d(var(--drift), 60vh, 0) rotate(360deg);
+  }
 }
 
 .scroll-invite {
@@ -254,7 +360,7 @@ html.is-born .scroll-invite { animation: born-rise .9s ease-out .95s backwards; 
   width: 1px;
   height: 40px;
   background: linear-gradient(var(--home-amber), transparent);
-  animation: scroll-line 1.8s ease-in-out infinite;
+  animation: scroll-line var(--duration-scroll-invite) var(--ease-in-out) infinite;
   transform-origin: top;
 }
 
@@ -332,7 +438,9 @@ html.is-born .scroll-invite { animation: born-rise .9s ease-out .95s backwards; 
   text-transform: uppercase;
   white-space: nowrap;
   opacity: .74;
-  transition: opacity .25s ease, color .25s ease;
+  transition:
+    opacity var(--duration-normal) var(--ease-standard),
+    color var(--duration-normal) var(--ease-standard);
 }
 
 .crown-label::before {
@@ -399,7 +507,7 @@ html.is-born .scroll-invite { animation: born-rise .9s ease-out .95s backwards; 
   stroke-dasharray: 1;
   stroke-dashoffset: calc(1 - var(--rail-lit, 1));
   filter: drop-shadow(0 0 6px rgba(143, 230, 174, .55));
-  transition: stroke-dashoffset .18s linear;
+  transition: stroke-dashoffset var(--duration-scroll-state) var(--ease-linear);
 }
 
 .slam {
@@ -581,7 +689,9 @@ html.is-born .scroll-invite { animation: born-rise .9s ease-out .95s backwards; 
   letter-spacing: .22em;
   text-decoration: none;
   text-transform: uppercase;
-  transition: background .25s ease, box-shadow .25s ease;
+  transition:
+    background var(--duration-normal) var(--ease-standard),
+    box-shadow var(--duration-normal) var(--ease-standard);
 }
 
 .slam-open::after { content: "↗"; color: var(--accent); font-size: 15px; translate: 0 -1px; }
@@ -641,7 +751,10 @@ html.is-born .scroll-invite { animation: born-rise .9s ease-out .95s backwards; 
   text-align: left;
   cursor: pointer;
   isolation: isolate;
-  transition: border-color .25s ease, background .25s ease, box-shadow .25s ease;
+  transition:
+    border-color var(--duration-normal) var(--ease-standard),
+    background var(--duration-normal) var(--ease-standard),
+    box-shadow var(--duration-normal) var(--ease-standard);
 }
 
 .portal::before {
@@ -656,7 +769,7 @@ html.is-born .scroll-invite { animation: born-rise .9s ease-out .95s backwards; 
   background: radial-gradient(circle, color-mix(in srgb, var(--accent) 25%, transparent), transparent 68%);
   opacity: 0;
   transform: translate(-50%, -50%);
-  transition: opacity .25s ease;
+  transition: opacity var(--duration-normal) var(--ease-standard);
 }
 
 .portal:hover,
@@ -698,7 +811,7 @@ html.is-born .scroll-invite { animation: born-rise .9s ease-out .95s backwards; 
 
 .portal:hover .portal-icon svg,
 .portal:focus-visible .portal-icon svg {
-  animation: portal-icon-alive 1.15s ease-in-out infinite;
+  animation: portal-icon-alive var(--duration-feature) var(--ease-in-out) infinite;
   filter: drop-shadow(0 0 6px currentColor);
 }
 
@@ -793,12 +906,16 @@ html.is-born .scroll-invite { animation: born-rise .9s ease-out .95s backwards; 
 @media (prefers-reduced-motion: reduce) {
   :root { --title-p: 0; --rail-lit: 1; }
   *, *::before, *::after {
-    animation-duration: .001ms !important;
+    animation-duration: var(--duration-reduced) !important;
     animation-iteration-count: 1 !important;
     scroll-behavior: auto !important;
-    transition-duration: .001ms !important;
+    transition-duration: var(--duration-reduced) !important;
   }
   .landing-core { opacity: 1; transform: none; }
+  .title-crown .crown,
+  .leaf-cluster,
+  .crown-wrap { animation: none !important; }
+  .falling-leaf { display: none; }
   .slam-side-icon, .slam-side-panel { transform: none; opacity: 1; }
   .seam-ring { opacity: 0; }
 }

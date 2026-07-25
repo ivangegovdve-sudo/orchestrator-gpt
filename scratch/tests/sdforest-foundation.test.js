@@ -19,7 +19,11 @@ test('Forest HUB built artifact exposes the required foundation portals and titl
   const home = built('index.html');
 
   assert.match(home, />Forest HUB</);
-  assert.equal((home.match(/data-title-crown/g) || []).length, 1);
+  assert.equal(
+    (home.match(/<[^>]+data-title-crown\b/g) || []).length,
+    1,
+    'the built title must contain exactly one crown element',
+  );
   assert.equal((home.match(/data-project="kids"/g) || []).length, 1);
   assert.equal((home.match(/data-project="library"/g) || []).length, 1);
   assert.equal((home.match(/data-project="morning-news"/g) || []).length, 1);
