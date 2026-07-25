@@ -1,24 +1,24 @@
 <!DOCTYPE html>
-<html lang="en" class="forest-skin forest-palette">
+<html lang="en" class="forest-skin">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>General Memory — Library</title>
-<link rel="stylesheet" href="/web/shared/forest-design.css?v=20260723">
+<link rel="stylesheet" href="/web/shared/forest-design.css?v=20260725">
 <style>
-:root{--bg:#070a08;--card-bg:rgba(20,26,20,.6);--card-border:rgba(226,235,209,.09);--text:#f2efe4;--muted:#a9b3a1;--accent:#e8b86b;--purple:#8fe6ae;--radius:10px}
+:root{--bg:#07070b;--surface:#0f0f15;--accent:#4f46e5;--card-bg:rgba(20,26,20,.6);--card-border:rgba(226,235,209,.09);--text:#f2efe4;--muted:#a9b3a1;--library-accent:#e8b86b;--purple:#8fe6ae;--radius:8px}
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:var(--forest-body, Alegreya, Georgia, serif);background:var(--bg);color:var(--text);min-height:100vh;padding:36px 20px 80px}
-a{color:var(--accent);text-decoration:none}
+a{color:var(--library-accent);text-decoration:none}
 .wrap{max-width:780px;margin:0 auto}
 .nav{font-size:.82rem;color:var(--muted);margin-bottom:24px}
 h1{font-family:var(--forest-display, "Cormorant Garamond", Georgia, serif);font-size:1.9rem;font-weight:650;margin-bottom:4px}
 .sub{font-size:.88rem;color:var(--muted);margin-bottom:28px}
 .personal-badge{display:inline-block;font-family:var(--forest-sans, "Alegreya Sans", sans-serif);font-size:.72rem;background:rgba(143,230,174,.12);color:var(--purple);border-radius:5px;padding:2px 8px;margin-left:8px;vertical-align:middle}
 .search-row{display:flex;gap:10px;margin-bottom:28px}
-.search-row input{flex:1;background:rgba(255,255,255,.05);border:1px solid var(--card-border);border-radius:9px;color:var(--text);padding:11px 16px;font-size:.95rem;outline:none;transition:border-color .2s}
+.search-row input{flex:1;background:rgba(255,255,255,.05);border:1px solid var(--card-border);border-radius:9px;color:var(--text);padding:11px 16px;font-size:.95rem;outline:none;transition:border-color var(--duration-fast) var(--ease-out)}
 .search-row input:focus{border-color:var(--purple)}
-.search-row button{background:var(--purple);color:#0d120e;border:none;border-radius:9px;padding:11px 22px;font-family:var(--forest-sans, "Alegreya Sans", sans-serif);font-size:.9rem;font-weight:600;cursor:pointer;transition:opacity .2s}
+.search-row button{background:var(--purple);color:#0d120e;border:none;border-radius:9px;padding:11px 22px;font-family:var(--forest-sans, "Alegreya Sans", sans-serif);font-size:.9rem;font-weight:600;cursor:pointer;transition:opacity var(--duration-fast) var(--ease-out)}
 .search-row button:hover{opacity:.85}
 #results{display:flex;flex-direction:column;gap:12px}
 .card{background:var(--card-bg);border:1px solid var(--card-border);border-radius:var(--radius);padding:16px 18px;backdrop-filter:blur(8px)}
@@ -37,12 +37,12 @@ h1{font-family:var(--forest-display, "Cormorant Garamond", Georgia, serif);font-
 .gate-box p{font-size:.84rem;color:var(--muted);margin-bottom:20px}
 .gate-box input{width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(143,230,174,.3);border-radius:8px;color:var(--text);padding:11px 14px;font-size:.9rem;outline:none;margin-bottom:12px;text-align:center}
 .gate-box input:focus{border-color:var(--purple)}
-.gate-btn{width:100%;background:var(--purple);color:#0d120e;border:none;border-radius:8px;padding:11px;font-family:var(--forest-sans, "Alegreya Sans", sans-serif);font-size:.9rem;font-weight:600;cursor:pointer;transition:opacity .2s}
+.gate-btn{width:100%;background:var(--purple);color:#0d120e;border:none;border-radius:8px;padding:11px;font-family:var(--forest-sans, "Alegreya Sans", sans-serif);font-size:.9rem;font-weight:600;cursor:pointer;transition:opacity var(--duration-fast) var(--ease-out)}
 .gate-btn:hover{opacity:.85}
 .gate-err{font-size:.8rem;color:#d98a7f;margin-top:-6px;margin-bottom:10px;display:none}
 </style>
 </head>
-<body>
+<body data-forest-page="library">
 <div class="wrap">
   <div class="nav"><a href="/web/library/">← Library</a></div>
   <h1>🧠 Memory <span class="personal-badge">Personal</span></h1>
@@ -97,5 +97,6 @@ async function doSearch() {
 document.getElementById('q').addEventListener('keydown', e => { if (e.key === 'Enter') doSearch(); });
 checkGate();
 </script>
+<script src="/web/shared/forest-motion.js?v=20260725"></script>
 </body>
 </html>
