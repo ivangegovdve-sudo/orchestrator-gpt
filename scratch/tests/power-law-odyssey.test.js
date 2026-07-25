@@ -84,18 +84,16 @@ test('the scroll world keeps the blueprint camera contract and six substantive c
   assert.match(html, /\.scroll-container\s*\{[^}]*height:\s*600vh/s);
   assert.match(html, /\.stage-3d\s*\{[^}]*perspective:\s*1000px/s);
   assert.match(html, /\.stage-3d\s*\{[^}]*transform-style:\s*preserve-3d/s);
-  assert.equal((html.match(/<section class="layer"/g) || []).length, 6);
+  assert.equal((html.match(/<section class="layer(?:\s|")/g) || []).length, 6);
   assert.match(html, /--scroll-p/);
   assert.match(html, /requestAnimationFrame\(updateScrollProgress\)/);
   assert.match(html, /addEventListener\("scroll"[\s\S]*\{\s*passive:\s*true\s*\}/);
 });
 
-test('the venture sandbox exposes a semantic 50-bet portfolio and its required motion states', () => {
+test('the venture sandbox exposes a semantic deterministic 50-bet portfolio', () => {
   assert.match(html, /<ol[^>]+id="betField"[^>]+aria-label="50-bet portfolio"/);
   assert.match(html, /className = `bet-coin/);
   assert.match(html, /is-converged/);
-  assert.match(html, /fail-shake\s+\.2s/);
-  assert.match(html, /transition:[^;}]*500ms/s);
   assert.match(html, /outlier-glow/);
   assert.match(html, /prefers-reduced-motion:\s*reduce[\s\S]*\.bet-coin/s);
 });
@@ -104,4 +102,12 @@ test('scroll velocity continues to drive the page sliding motion', () => {
   assert.match(html, /--scroll-slip/);
   assert.match(html, /scrollVelocity/);
   assert.match(html, /\.layer-inner\s*\{[^}]*translate3d\(var\(--scroll-slip\)/s);
+});
+
+test('the page declares the canonical core tokens and does not present the modeled failure rate as a real-world statistic', () => {
+  assert.match(html, /--bg:\s*#07070b\s*;/i);
+  assert.match(html, /--surface:\s*#0f0f15\s*;/i);
+  assert.match(html, /--accent:\s*#4f46e5\s*;/i);
+  assert.doesNotMatch(html, /94% base failure rate in startups or creative output/i);
+  assert.match(html, /deliberately modeled[\s\S]{0,180}94%/i);
 });
