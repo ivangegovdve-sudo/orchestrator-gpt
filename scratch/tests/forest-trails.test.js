@@ -32,6 +32,17 @@ const expectedPaths = [
   '/web/replicator-void/',
 ];
 
+const libraryChildPaths = [
+  '/web/ai-init/',
+  '/web/library/glossary/',
+  '/web/library/platform/',
+  '/web/library/rag.html',
+  '/web/library/repos/',
+  '/web/library/general/',
+  '/web/library/chloe/',
+  '/web/library/memory/',
+];
+
 let baseUrl;
 let browser;
 let server;
@@ -130,6 +141,44 @@ test('every canonical public page mounts Forest Trails through production script
       1,
       `${routePath} must identify its current route`,
     );
+
+    const homeLink = navigation.getByRole('link', { name: 'Back to Forest HUB' });
+    if (routePath === '/') {
+      assert.equal(await homeLink.count(), 0, 'the HUB must not link to itself');
+      assert.equal(await navigation.getAttribute('data-at-hub'), 'true');
+    } else {
+      assert.equal(await homeLink.count(), 1, `${routePath} must expose one HUB return`);
+      assert.equal(await homeLink.getAttribute('href'), '/');
+      assert.equal(await navigation.getAttribute('data-at-hub'), 'false');
+    }
+  }
+
+  await page.close();
+});
+
+test('Library child views inherit one Library trail with a persistent HUB return', {
+  timeout: 20_000,
+}, async () => {
+  const page = await browser.newPage();
+
+  for (const childPath of libraryChildPaths) {
+    const response = await page.goto(`${baseUrl}${childPath}`, {
+      waitUntil: 'domcontentloaded',
+    });
+    assert.equal(response.status(), 200, `${childPath} must load`);
+
+    const navigation = page.getByRole('navigation', { name: 'Forest Trails' });
+    await navigation.waitFor({ state: 'attached', timeout: 4_000 });
+    assert.equal(await navigation.count(), 1, `${childPath} must mount one route rail`);
+    assert.equal(
+      await navigation.locator('.forest-trails__current').textContent(),
+      'Library & Platforms',
+    );
+    assert.equal(
+      await navigation.getByRole('link', { name: 'Back to Forest HUB' }).count(),
+      1,
+      `${childPath} must keep the HUB reachable`,
+    );
   }
 
   await page.close();
@@ -190,12 +239,21 @@ test('keeps every public destination in a safe, bounded route graph', async () =
 
   const routeIds = new Set(graph.routes.map(({ id }) => id));
   const trailIds = new Set(graph.trails.map(({ id }) => id));
-  const forbiddenPath = /tinylm|\/council\/(?:inner|byok)|llm-db|ai-init/i;
+  const forbiddenCanonicalPath = /tinylm|\/council\/(?:inner|byok)|llm-db|ai-init/i;
+  const forbiddenAliasPath = /tinylm|\/council\/(?:inner|byok)|llm-db/i;
 
   for (const route of graph.routes) {
-    assert.equal(forbiddenPath.test(route.path), false, `${route.path} is not a public trail`);
+    assert.equal(
+      forbiddenCanonicalPath.test(route.path),
+      false,
+      `${route.path} is not a canonical public trail`,
+    );
     for (const aliasPath of route.aliasPaths || []) {
-      assert.equal(forbiddenPath.test(aliasPath), false, `${aliasPath} is not a public trail alias`);
+      assert.equal(
+        forbiddenAliasPath.test(aliasPath),
+        false,
+        `${aliasPath} is not a public trail alias`,
+      );
     }
     assert.ok(
       route.id === 'forest-hub' || trailIds.has(route.trailId),
@@ -772,6 +830,12 @@ test('maps public child views to their trail while leaving retired council paths
       manifestoTranslation: resolve('/web/manifesto-newborn/bg/index.html'),
       openOverviewChild: resolve('/web/open-overview/github/index.html'),
       libraryChild: resolve('/web/library/glossary/index.html'),
+      legacyGlossary: resolve('/web/ai-init/index.html'),
+      ragHub: resolve('/web/library/rag.html'),
+      repoSearch: resolve('/web/library/repos/index.html'),
+      generalSearch: resolve('/web/library/general/'),
+      chloeSearch: resolve('/web/library/chloe/index.html'),
+      memorySearch: resolve('/web/library/memory/'),
       retiredStandalone: resolve('/web/council/tinylm/index.html'),
       retiredKeyConsole: resolve('/web/council/byok/index.html'),
       retiredInnerCouncil: resolve('/web/council/inner/index.html'),
@@ -782,6 +846,12 @@ test('maps public child views to their trail while leaving retired council paths
     manifestoTranslation: 'Manifesto for a Newborn',
     openOverviewChild: 'Open Overview',
     libraryChild: 'Library & Platforms',
+    legacyGlossary: 'Library & Platforms',
+    ragHub: 'Library & Platforms',
+    repoSearch: 'Library & Platforms',
+    generalSearch: 'Library & Platforms',
+    chloeSearch: 'Library & Platforms',
+    memorySearch: 'Library & Platforms',
     retiredStandalone: null,
     retiredKeyConsole: null,
     retiredInnerCouncil: null,

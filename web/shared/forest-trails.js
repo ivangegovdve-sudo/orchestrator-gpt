@@ -16,7 +16,16 @@ export const FOREST_ROUTES = Object.freeze([
     id: 'library',
     label: 'Library & Platforms',
     path: '/web/library/',
-    aliasPaths: ['/web/library/glossary/', '/web/library/platform/'],
+    aliasPaths: [
+      '/web/ai-init/',
+      '/web/library/glossary/',
+      '/web/library/platform/',
+      '/web/library/rag.html/',
+      '/web/library/repos/',
+      '/web/library/general/',
+      '/web/library/chloe/',
+      '/web/library/memory/',
+    ],
     trailId: 'signals',
     connectionIds: ['forest-hub', 'morning-news', 'open-overview', 'council'],
   },
@@ -254,9 +263,20 @@ export function mountForestTrails({
   navigation.id = 'forest-trails';
   navigation.className = 'forest-trails';
   navigation.setAttribute('aria-label', 'Forest Trails');
+  const isAtHub = context.current.id === 'forest-hub';
+  navigation.dataset.atHub = String(isAtHub);
   let requestCollisionCheck = () => {};
 
   navigation.append(createTrailNetwork(targetDocument, context.next.length));
+
+  if (!isAtHub) {
+    const homeLink = targetDocument.createElement('a');
+    homeLink.className = 'forest-trails__home-link';
+    homeLink.href = '/';
+    homeLink.setAttribute('aria-label', 'Back to Forest HUB');
+    homeLink.textContent = '\u2190 HUB';
+    navigation.append(homeLink);
+  }
 
   const current = targetDocument.createElement('span');
   current.className = 'forest-trails__current';
