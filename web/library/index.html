@@ -9,18 +9,19 @@
 <link rel="stylesheet" href="/web/shared/forest-shell.css?v=20260723">
 <style>
 :root {
-  --bg: #070a08;
-  --panel: rgba(20, 26, 20, .55);
+  --bg: #07070b;
+  --surface: #0f0f15;
+  --panel: rgba(15, 15, 21, .82);
   --card-bg: rgba(255,255,255,.03);
-  --card-border: rgba(226,235,209,.09);
-  --text: #f2efe4;
-  --muted: #a9b3a1;
-  --dim: #7d8877;
-  --accent: #e8b86b;
-  --accent-glow: rgba(232,184,107,.3);
-  --purple: #8fe6ae;
-  --green: #8fe6ae;
-  --amber: #e8b86b;
+  --card-border: rgba(255,255,255,.08);
+  --text: #f3f4f6;
+  --muted: #9ca3af;
+  --dim: #6b7280;
+  --accent: #4f46e5;
+  --accent-glow: rgba(79,70,229,.3);
+  --purple: #818cf8;
+  --green: #22c55e;
+  --amber: #f59e0b;
   --radius: 12px;
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -29,8 +30,8 @@ body {
   font-family: var(--forest-body, Alegreya, Georgia, serif);
   background-color: var(--bg);
   background-image:
-    radial-gradient(circle at 15% 10%, rgba(232,184,107,.06), transparent 40%),
-    radial-gradient(circle at 85% 8%, rgba(143,230,174,.06), transparent 40%);
+    radial-gradient(circle at 15% 10%, rgba(79,70,229,.11), transparent 40%),
+    radial-gradient(circle at 85% 8%, rgba(34,197,94,.06), transparent 40%);
   color: var(--text);
   min-height: 100vh;
 }
