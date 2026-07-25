@@ -8,7 +8,7 @@
   bottom: calc(max(12px, env(safe-area-inset-bottom)) + var(--forest-trails-lift, 0px));
   left: 50%;
   display: grid;
-  grid-template-columns: 86px auto minmax(0, 1fr) auto auto;
+  grid-template-columns: 86px auto auto minmax(0, 1fr) auto auto;
   align-items: center;
   gap: 8px;
   width: min(920px, calc(100vw - 24px));
@@ -29,6 +29,10 @@
   transition:
     width var(--duration-normal) var(--ease-out),
     min-height var(--duration-normal) var(--ease-out);
+}
+
+.forest-trails[data-at-hub="true"] {
+  grid-template-columns: 86px auto minmax(0, 1fr) auto auto;
 }
 
 .forest-trails__clearance {
@@ -119,6 +123,7 @@
 }
 
 .forest-trails__next a,
+.forest-trails__home-link,
 .forest-trails__map-button,
 .forest-trails__collapse,
 .forest-trails__close,
@@ -133,6 +138,17 @@
     color var(--duration-fast) var(--ease-out),
     border-color var(--duration-fast) var(--ease-out),
     background-color var(--duration-fast) var(--ease-out);
+}
+
+.forest-trails__home-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 56px;
+  padding: 0 10px;
+  border-color: color-mix(in srgb, var(--forest-trails-accent) 32%, transparent);
+  background: color-mix(in srgb, var(--forest-trails-accent) 7%, transparent);
+  white-space: nowrap;
 }
 
 .forest-trails__next a {
@@ -155,6 +171,7 @@
 }
 
 .forest-trails__next a:hover,
+.forest-trails__home-link:hover,
 .forest-trails__map-button:hover,
 .forest-trails__collapse:hover,
 .forest-trails__close:hover,
@@ -177,9 +194,13 @@
 }
 
 .forest-trails[data-collapsed="true"] {
-  grid-template-columns: minmax(0, 1fr) auto auto;
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
   width: min(430px, calc(100vw - 24px));
   min-height: 54px;
+}
+
+.forest-trails[data-at-hub="true"][data-collapsed="true"] {
+  grid-template-columns: minmax(0, 1fr) auto auto;
 }
 
 .forest-trails[data-collapsed="true"] .forest-trails__network,
@@ -380,11 +401,20 @@
 @media (max-width: 680px) {
   .forest-trails {
     bottom: calc(max(8px, env(safe-area-inset-bottom)) + var(--forest-trails-lift, 0px));
-    grid-template-columns: 54px minmax(0, 1fr) auto auto;
+    grid-template-columns: 54px auto minmax(0, 1fr) auto auto;
     gap: 4px;
     width: calc(100vw - 16px);
     min-height: 104px;
     border-radius: 18px;
+  }
+
+  .forest-trails[data-at-hub="true"] {
+    grid-template-columns: 54px minmax(0, 1fr) auto auto;
+  }
+
+  .forest-trails__home-link {
+    min-width: 48px;
+    padding-inline: 7px;
   }
 
   .forest-trails__network {
@@ -416,9 +446,13 @@
   }
 
   .forest-trails[data-collapsed="true"] {
-    grid-template-columns: minmax(0, 1fr) auto auto;
+    grid-template-columns: auto minmax(0, 1fr) auto auto;
     width: min(360px, calc(100vw - 16px));
     min-height: 54px;
+  }
+
+  .forest-trails[data-at-hub="true"][data-collapsed="true"] {
+    grid-template-columns: minmax(0, 1fr) auto auto;
   }
 
   .forest-trails__clearance {
@@ -451,6 +485,7 @@
 
 @media (pointer: coarse) {
   .forest-trails__next a,
+  .forest-trails__home-link,
   .forest-trails__map-button,
   .forest-trails__collapse,
   .forest-trails__close,
@@ -465,7 +500,11 @@
 }
 
 .forest-trails[data-collision-constrained="true"]
-  :where(.forest-trails__map-button, .forest-trails__collapse) {
+  :where(
+    .forest-trails__home-link,
+    .forest-trails__map-button,
+    .forest-trails__collapse
+  ) {
   min-height: 44px;
 }
 
@@ -478,6 +517,7 @@
   }
 
   .forest-trails__next a,
+  .forest-trails__home-link,
   .forest-trails__map-button,
   .forest-trails__collapse,
   .forest-trails__close,
