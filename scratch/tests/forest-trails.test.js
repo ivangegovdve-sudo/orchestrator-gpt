@@ -1,0 +1,354 @@
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const http = require('node:http');
+const path = require('node:path');
+const { after, before, test } = require('node:test');
+const { chromium } = require('playwright');
+
+const repoRoot = path.resolve(__dirname, '..', '..');
+const expectedPaths = [
+  '/',
+  '/web/morning-news/',
+  '/web/library/',
+  '/web/open-overview/',
+  '/web/council/',
+  '/web/ai-research/',
+  '/web/c2c-dolphin/',
+  '/web/c2c-self/',
+  '/web/avatar-playground/',
+  '/web/life-in-time/',
+  '/web/womens-health-os/',
+  '/web/hypertrophyos/',
+  '/web/calendar/',
+  '/web/kids/',
+  '/web/math-mania/',
+  '/web/kids-movie-library/',
+  '/web/math-forest/',
+  '/web/mendeleev-bg/',
+  '/web/vfx-portfolio/',
+  '/web/manifesto-newborn/',
+  '/web/m-popova/',
+  '/web/power-law-odyssey/',
+  '/web/replicator-void/',
+];
+
+let baseUrl;
+let browser;
+let server;
+
+before(async () => {
+  server = http.createServer((request, response) => {
+    const requestPath = decodeURIComponent(new URL(request.url, 'http://localhost').pathname);
+    const relativePath = requestPath.replace(/^\/+/, '');
+    let filePath = path.resolve(repoRoot, relativePath);
+
+    if (!filePath.startsWith(repoRoot)) {
+      response.writeHead(403).end('Forbidden');
+      return;
+    }
+
+    if (fs.existsSync(filePath) && fs.statSync(filePath).isDirectory()) {
+      filePath = path.join(filePath, 'index.html');
+    }
+
+    if (!fs.existsSync(filePath) || !fs.statSync(filePath).isFile()) {
+      response.writeHead(404).end('Not found');
+      return;
+    }
+
+    const contentType = {
+      '.css': 'text/css; charset=utf-8',
+      '.html': 'text/html; charset=utf-8',
+      '.js': 'text/javascript; charset=utf-8',
+      '.svg': 'image/svg+xml',
+    }[path.extname(filePath)] || 'application/octet-stream';
+
+    response.writeHead(200, { 'content-type': contentType });
+    fs.createReadStream(filePath).pipe(response);
+  });
+
+  await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
+  const address = server.address();
+  baseUrl = `http://127.0.0.1:${address.port}`;
+  browser = await chromium.launch({
+    headless: true,
+    executablePath: 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
+  });
+});
+
+after(async () => {
+  await browser?.close();
+  server?.closeAllConnections();
+  await new Promise((resolve) => server?.close(resolve));
+});
+
+test('publishes the exact canonical public route manifest', async () => {
+  const page = await browser.newPage();
+  await page.goto(`${baseUrl}/`, { waitUntil: 'domcontentloaded' });
+
+  const routes = await page.evaluate(async (moduleUrl) => {
+    const trails = await import(moduleUrl);
+    return trails.FOREST_ROUTES.map(({ id, label, path: routePath }) => ({
+      id,
+      label,
+      path: routePath,
+    }));
+  }, `${baseUrl}/web/shared/forest-trails.js?manifest-test`);
+
+  assert.deepEqual(routes.map((route) => route.path), expectedPaths);
+  assert.equal(new Set(routes.map((route) => route.id)).size, routes.length);
+  assert.equal(new Set(routes.map((route) => route.path)).size, routes.length);
+
+  for (const route of routes) {
+    const response = await page.request.get(`${baseUrl}${route.path}`);
+    assert.equal(response.status(), 200, `${route.label} must resolve at ${route.path}`);
+  }
+
+  await page.close();
+});
+
+test('resolves a canonical current page and meaningful next trail connections', async () => {
+  const page = await browser.newPage();
+  await page.goto(`${baseUrl}/web/life-in-time/`, { waitUntil: 'domcontentloaded' });
+
+  const context = await page.evaluate(async (moduleUrl) => {
+    const trails = await import(moduleUrl);
+    const result = trails.getForestTrailContext(
+      '/web/life-in-time/index.html?from=forest#remaining-time',
+    );
+    return {
+      current: result.current.label,
+      trail: result.trail.label,
+      next: result.next.map((route) => route.path),
+    };
+  }, `${baseUrl}/web/shared/forest-trails.js?context-test`);
+
+  assert.deepEqual(context, {
+    current: 'Life in Time',
+    trail: 'Living Systems',
+    next: [
+      '/web/calendar/',
+      '/web/womens-health-os/',
+      '/web/power-law-odyssey/',
+    ],
+  });
+
+  await page.close();
+});
+
+test('keeps every public destination in a safe, bounded route graph', async () => {
+  const page = await browser.newPage();
+  await page.goto(`${baseUrl}/`, { waitUntil: 'domcontentloaded' });
+
+  const graph = await page.evaluate(async (moduleUrl) => {
+    const trails = await import(moduleUrl);
+    return {
+      trails: trails.FOREST_TRAILS,
+      routes: trails.FOREST_ROUTES,
+    };
+  }, `${baseUrl}/web/shared/forest-trails.js?graph-test`);
+
+  assert.deepEqual(
+    graph.trails.map(({ label }) => label),
+    [
+      'Signals & Systems',
+      'Machine Grove',
+      'Living Systems',
+      'Wonder Path',
+      'Story Path',
+      'Wild Lab',
+    ],
+  );
+
+  const routeIds = new Set(graph.routes.map(({ id }) => id));
+  const trailIds = new Set(graph.trails.map(({ id }) => id));
+  const forbiddenPath = /tinylm|\/council\/(?:inner|byok)|llm-db|ai-init/i;
+
+  for (const route of graph.routes) {
+    assert.equal(forbiddenPath.test(route.path), false, `${route.path} is not a public trail`);
+    for (const aliasPath of route.aliasPaths || []) {
+      assert.equal(forbiddenPath.test(aliasPath), false, `${aliasPath} is not a public trail alias`);
+    }
+    assert.ok(
+      route.id === 'forest-hub' || trailIds.has(route.trailId),
+      `${route.label} must belong to a public trail`,
+    );
+    assert.ok(
+      route.connectionIds.length >= 2 && route.connectionIds.length <= 4,
+      `${route.label} must expose 2–4 next connections`,
+    );
+    assert.equal(new Set(route.connectionIds).size, route.connectionIds.length);
+    assert.equal(route.connectionIds.includes(route.id), false);
+    for (const connectionId of route.connectionIds) {
+      assert.ok(routeIds.has(connectionId), `${route.label} points to ${connectionId}`);
+    }
+  }
+
+  await page.close();
+});
+
+test('self-mounts one accessible current-page rail with three next links', async () => {
+  const page = await browser.newPage();
+  await page.goto(`${baseUrl}/web/life-in-time/`, { waitUntil: 'domcontentloaded' });
+  const moduleUrl = `${baseUrl}/web/shared/forest-trails.js`;
+
+  await page.evaluate(async (url) => {
+    await import(`${url}?mount-test-a`);
+    await import(`${url}?mount-test-b`);
+  }, moduleUrl);
+
+  const navigation = page.getByRole('navigation', { name: 'Forest Trails' });
+  await navigation.waitFor({ timeout: 2_000 });
+  assert.equal(await navigation.count(), 1);
+  assert.equal(
+    await navigation.locator('.forest-trails__current').textContent(),
+    'Life in Time',
+  );
+
+  const nextLinks = await navigation
+    .locator('[data-forest-trails-next] a')
+    .evaluateAll((links) => links.map((link) => ({
+      label: link.textContent,
+      path: new URL(link.href).pathname,
+    })));
+
+  assert.deepEqual(nextLinks, [
+    { label: 'Calendar Generator', path: '/web/calendar/' },
+    { label: 'Women’s Health OS', path: '/web/womens-health-os/' },
+    { label: 'Power Law Odyssey', path: '/web/power-law-odyssey/' },
+  ]);
+
+  const mapButton = navigation.getByRole('button', { name: 'Open full route map' });
+  assert.equal(await mapButton.getAttribute('aria-expanded'), 'false');
+  assert.equal(await mapButton.getAttribute('aria-controls'), 'forest-trails-map');
+  assert.equal(await page.locator('#forest-trails-map').count(), 1);
+
+  await page.close();
+});
+
+test('opens a keyboard-safe full map grouped into all six trails', { timeout: 6_000 }, async () => {
+  const page = await browser.newPage();
+  await page.goto(`${baseUrl}/web/kids/`, { waitUntil: 'domcontentloaded' });
+  await page.evaluate(async (moduleUrl) => {
+    await import(moduleUrl);
+  }, `${baseUrl}/web/shared/forest-trails.js?drawer-test`);
+
+  const navigation = page.getByRole('navigation', { name: 'Forest Trails' });
+  const mapButton = navigation.getByRole('button', { name: 'Open full route map' });
+  await mapButton.click({ timeout: 2_000 });
+
+  const drawer = page.locator('#forest-trails-map');
+  assert.equal(await drawer.getAttribute('open'), '');
+  assert.equal(await mapButton.getAttribute('aria-expanded'), 'true');
+  assert.equal(
+    await page.evaluate(() => document.activeElement?.getAttribute('aria-label')),
+    'Close route map',
+  );
+  assert.deepEqual(
+    await drawer.getByRole('heading', { level: 3 }).allTextContents(),
+    [
+      'Signals & Systems',
+      'Machine Grove',
+      'Living Systems',
+      'Wonder Path',
+      'Story Path',
+      'Wild Lab',
+    ],
+  );
+  assert.equal(
+    (await drawer.locator('.forest-trails__trail-description').allTextContents())
+      .every((description) => description.trim().length > 12),
+    true,
+  );
+
+  const mappedPaths = await drawer.locator('[data-forest-route]').evaluateAll(
+    (routes) => routes.map((route) => route.dataset.forestRoute),
+  );
+  assert.deepEqual(mappedPaths, expectedPaths);
+  assert.equal(
+    await drawer.locator('[aria-current="page"]').textContent(),
+    'Kids Corner',
+  );
+
+  await page.keyboard.press('Escape');
+  assert.equal(await drawer.getAttribute('open'), null);
+  assert.equal(await mapButton.getAttribute('aria-expanded'), 'false');
+  assert.equal(
+    await page.evaluate(() => document.activeElement?.getAttribute('aria-label')),
+    'Open full route map',
+  );
+
+  await page.close();
+});
+
+test('renders a fixed touch-safe route network and disables its motion when requested', async () => {
+  const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.goto(`${baseUrl}/web/m-popova/`, { waitUntil: 'domcontentloaded' });
+  await page.evaluate(async (moduleUrl) => {
+    await import(moduleUrl);
+  }, `${baseUrl}/web/shared/forest-trails.js?motion-test`);
+
+  const navigation = page.getByRole('navigation', { name: 'Forest Trails' });
+  await navigation.waitFor({ timeout: 2_000 });
+  await page.waitForFunction(() => {
+    const link = document.querySelector('link[data-forest-trails-styles]');
+    return Boolean(link?.sheet);
+  }, null, { timeout: 2_000 });
+
+  const network = navigation.locator('svg.forest-trails__network');
+  assert.equal(await network.getAttribute('aria-hidden'), 'true');
+  assert.equal(await network.locator('.forest-trails__node').count(), 4);
+
+  const measurements = await page.evaluate(() => {
+    const navigationRect = document.querySelector('.forest-trails').getBoundingClientRect();
+    const mapButtonRect = document
+      .querySelector('.forest-trails__map-button')
+      .getBoundingClientRect();
+    const pathStyle = getComputedStyle(document.querySelector('.forest-trails__edge'));
+    return {
+      left: navigationRect.left,
+      right: navigationRect.right,
+      bottom: navigationRect.bottom,
+      mapButtonHeight: mapButtonRect.height,
+      pathAnimation: pathStyle.animationName,
+    };
+  });
+
+  assert.ok(measurements.left >= 0);
+  assert.ok(measurements.right <= 390);
+  assert.ok(measurements.bottom <= 844);
+  assert.ok(measurements.mapButtonHeight >= 44);
+  assert.equal(measurements.pathAnimation, 'none');
+
+  await page.close();
+});
+
+test('maps public child views to their trail while leaving retired council paths unlisted', async () => {
+  const page = await browser.newPage();
+  await page.goto(`${baseUrl}/`, { waitUntil: 'domcontentloaded' });
+
+  const matches = await page.evaluate(async (moduleUrl) => {
+    const trails = await import(moduleUrl);
+    const resolve = (pathname) => trails.getForestTrailContext(pathname)?.current.label || null;
+    return {
+      manifestoTranslation: resolve('/web/manifesto-newborn/bg/index.html'),
+      openOverviewChild: resolve('/web/open-overview/github/index.html'),
+      libraryChild: resolve('/web/library/glossary/index.html'),
+      retiredStandalone: resolve('/web/council/tinylm/index.html'),
+      retiredKeyConsole: resolve('/web/council/byok/index.html'),
+      retiredInnerCouncil: resolve('/web/council/inner/index.html'),
+    };
+  }, `${baseUrl}/web/shared/forest-trails.js?alias-test`);
+
+  assert.deepEqual(matches, {
+    manifestoTranslation: 'Manifesto for a Newborn',
+    openOverviewChild: 'Open Overview',
+    libraryChild: 'Library & Platforms',
+    retiredStandalone: null,
+    retiredKeyConsole: null,
+    retiredInnerCouncil: null,
+  });
+
+  await page.close();
+});
