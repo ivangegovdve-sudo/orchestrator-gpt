@@ -1,25 +1,33 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="forest-skin">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Library — sdforest</title>
+<link rel="stylesheet" href="/web/shared/forest-design.css?v=20260723">
 <style>
 :root {
-  --bg: #09090b;
+  --bg: #07070b;
+  --surface: #0f0f15;
+  --border: rgba(255,255,255,.08);
+  --text-primary: #f3f4f6;
+  --text-muted: #9ca3af;
+  --accent: #4f46e5;
+  --accent-green: #22c55e;
+  --radius: 8px;
+  --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+
   --card-bg: rgba(24,24,27,.6);
-  --card-border: rgba(255,255,255,.08);
-  --text: #f8fafc;
-  --muted: #a1a1aa;
-  --accent: #0ea5e9;
+  --card-border: var(--border);
+  --text: var(--text-primary);
+  --muted: var(--text-muted);
   --accent-glow: rgba(14,165,233,.35);
   --purple: #8b5cf6;
-  --green: #22c55e;
+  --green: var(--accent-green);
   --amber: #f59e0b;
-  --radius: 12px;
 }
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:"Inter","Segoe UI",system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding:40px 20px 80px}
+body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;padding:40px 20px 80px}
 a{color:var(--accent);text-decoration:none}
 a:hover{text-decoration:underline}
 
@@ -34,13 +42,13 @@ h1{font-size:2.2rem;font-weight:700;background:linear-gradient(135deg,var(--acce
 .rag-box{background:var(--card-bg);border:1px solid var(--card-border);border-radius:var(--radius);padding:24px;margin-bottom:40px;backdrop-filter:blur(12px)}
 .rag-box h2{font-size:1rem;font-weight:600;margin-bottom:14px;color:var(--accent)}
 .rag-row{display:flex;gap:10px;flex-wrap:wrap}
-.rag-row input{flex:1;min-width:200px;background:rgba(255,255,255,.05);border:1px solid var(--card-border);border-radius:8px;color:var(--text);padding:10px 14px;font-size:.9rem;outline:none;transition:border-color .2s}
+.rag-row input{flex:1;min-width:200px;background:rgba(255,255,255,.05);border:1px solid var(--card-border);border-radius:8px;color:var(--text);padding:10px 14px;font-size:.9rem;outline:none;transition:border-color var(--duration-fast) var(--ease-out)}
 .rag-row input:focus{border-color:var(--accent)}
-.rag-row button{background:var(--accent);color:#fff;border:none;border-radius:8px;padding:10px 20px;font-size:.9rem;font-weight:600;cursor:pointer;transition:opacity .2s}
+.rag-row button{background:var(--accent);color:#fff;border:none;border-radius:8px;padding:10px 20px;font-size:.9rem;font-weight:600;cursor:pointer;transition:opacity var(--duration-fast) var(--ease-out)}
 .rag-row button:hover{opacity:.85}
 
 .rag-sources{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
-.src-chip{display:flex;align-items:center;gap:5px;font-size:.78rem;background:rgba(255,255,255,.05);border:1px solid var(--card-border);border-radius:6px;padding:4px 10px;cursor:pointer;user-select:none;transition:background .15s}
+.src-chip{display:flex;align-items:center;gap:5px;font-size:.78rem;background:rgba(255,255,255,.05);border:1px solid var(--card-border);border-radius:6px;padding:4px 10px;cursor:pointer;user-select:none;transition:background var(--duration-fast) var(--ease-standard)}
 .src-chip.on{background:rgba(14,165,233,.15);border-color:var(--accent);color:var(--accent)}
 .src-chip.personal{border-color:var(--purple)}
 .src-chip.personal.on{background:rgba(139,92,246,.15);color:var(--purple)}
@@ -56,7 +64,7 @@ h1{font-size:2.2rem;font-weight:700;background:linear-gradient(135deg,var(--acce
 
 /* Source grid */
 .sources-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;margin-bottom:48px}
-.src-card{background:var(--card-bg);border:1px solid var(--card-border);border-radius:var(--radius);padding:20px;text-decoration:none;color:var(--text);transition:border-color .2s,transform .2s;backdrop-filter:blur(8px);display:block}
+.src-card{background:var(--card-bg);border:1px solid var(--card-border);border-radius:var(--radius);padding:20px;text-decoration:none;color:var(--text);transition:border-color var(--duration-scroll-state) var(--ease-standard),transform var(--duration-scroll-state) var(--ease-out);backdrop-filter:blur(8px);display:block}
 .src-card:hover{border-color:var(--accent);transform:translateY(-2px);text-decoration:none}
 .src-card.personal{border-left:3px solid var(--purple)}
 .src-card.personal:hover{border-color:var(--purple)}
@@ -87,7 +95,7 @@ h1{font-size:2.2rem;font-weight:700;background:linear-gradient(135deg,var(--acce
 .status-bar .logged-in{color:var(--green)}
 </style>
 </head>
-<body>
+<body data-forest-page="library">
 <div class="wrap">
   <header>
     <div class="logo">sdforest · ivan's workspace</div>
@@ -280,5 +288,6 @@ document.getElementById('ragQ').addEventListener('keydown', e => {
 buildChips();
 updateStatusBar();
 </script>
+<script src="/web/shared/forest-motion.js?v=20260725"></script>
 </body>
 </html>
