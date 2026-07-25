@@ -31,6 +31,16 @@
 
   installEntranceMotion(reduceMotion);
 
+  // Open Overview already owns a stricter route-local renderer controller.
+  // Keeping that ownership explicit prevents this shared runtime from
+  // bypassing its intersection, reduced-motion, capability, and Save-Data
+  // gates while still allowing shared entrances and Forest Trails.
+  if (document.body.dataset.forestSceneOwner === 'route') {
+    ambient.engine = 'route-managed';
+    ambient.ready = Promise.resolve(ambient);
+    return;
+  }
+
   let canvases = [...document.querySelectorAll('canvas[data-forest-scene]')];
   if (!canvases.length && document.body.dataset.forestPage) {
     const canvas = document.createElement('canvas');
@@ -421,7 +431,10 @@
         state: this.canvas.dataset.forestState,
         reducedMotion: this.reduced,
         running: Boolean(this.raf),
+        destroyed: this.destroyed,
         contextLost: this.contextLost,
+        documentVisible: this.documentVisible,
+        intersectionVisible: this.intersectionVisible,
         scrollVelocity: Number(this.uniforms.uScroll.value.toFixed(4)),
         uniforms: {
           uMouse: this.uniforms.uMouse.value.toArray(),
@@ -456,10 +469,24 @@
 
   function installEntranceMotion(motionQuery) {
     const cards = [...document.querySelectorAll(
-      '[data-motion-card], [data-forest-card], .forest-panel, .mode-card, .hub-card',
+      [
+        '[data-motion-card]',
+        '[data-forest-card]',
+        '.forest-panel',
+        '.mode-card',
+        '.hub-card',
+        'body[data-forest-page="kids"] .kid-card',
+        'body[data-forest-page="library"] .panel',
+      ].join(', '),
     )];
     const headerCandidates = [...document.querySelectorAll(
-      '[data-motion-header], .section-header, .forest-section-label',
+      [
+        '[data-motion-header]',
+        '.section-header',
+        '.forest-section-label',
+        'body[data-forest-page="movie"] .header-row',
+        'body[data-open-overview-route] .oo-header',
+      ].join(', '),
     )];
     const centered = headerCandidates.map((header) => (
       getComputedStyle(header).textAlign === 'center'

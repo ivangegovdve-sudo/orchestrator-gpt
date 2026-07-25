@@ -10,7 +10,7 @@ const read = (...parts) => fs.readFileSync(path.join(ROUTE, ...parts), "utf8");
 const readFixture = (name) => JSON.parse(fs.readFileSync(path.join(__dirname, "fixtures", name), "utf8"));
 const importRoute = (file) => import(pathToFileURL(path.join(ROUTE, file)).href + `?t=${Date.now()}-${Math.random()}`);
 
-test("three canonical routes remain isolated and the shared 3D registry exposes Open Overview", () => {
+test("three canonical routes remain isolated and landing motion uses the crown, roots, and route slams", () => {
   for (const [file, route] of [["index.html", "overview"], ["openrouter/index.html", "openrouter"], ["github/index.html", "github"]]) {
     const html = read(...file.split("/"));
     assert.match(html, new RegExp(`data-open-overview-route="${route}"`));
@@ -21,19 +21,20 @@ test("three canonical routes remain isolated and the shared 3D registry exposes 
   }
 
   const entry = fs.readFileSync(path.join(ROOT, "web", "shared", "forest-three.js"), "utf8");
-  const tiles = fs.readFileSync(path.join(ROOT, "web", "shared", "forest-three", "tiles.js"), "utf8");
-  assert.match(entry, /Sixteen per-portal wireframes/);
-  assert.match(entry, /forest-three\/tiles\.js\?v=20260717/);
-  assert.match(tiles, /'open-overview'\(\)\s*\{/);
-  assert.match(tiles, /secondaryColor/);
+  assert.match(entry, /tiles\.js — per-portal atlas wireframes — and burst\.js are retired/);
+  assert.match(entry, /forest-three\/slams\.js\?v=20260724c/);
+  assert.match(entry, /forest-three\/crown\.js\?v=20260724e/);
+  assert.match(entry, /forest-three\/roots\.js\?v=20260724d/);
+  assert.doesNotMatch(entry, /^import .*forest-three\/tiles\.js/m);
 });
 
 test("SD Forest homepage exposes one truthful animated Open Overview portal", () => {
   const home = fs.readFileSync(path.join(ROOT, "index.html"), "utf8");
   const portals = home.match(/<button class="portal"/g) || [];
   const matches = home.match(/<button class="portal"[^>]*data-project="open-overview"[\s\S]*?<\/button>/g) || [];
-  assert.equal(portals.length, 16);
-  assert.match(home, /Portal lattice · 16 nodes/);
+  assert.equal(portals.length, 19);
+  assert.match(home, /The atlas/);
+  assert.match(home, /Every path <em>at a glance<\/em>/);
   assert.equal(matches.length, 1);
 
   const portal = matches[0];
@@ -45,7 +46,7 @@ test("SD Forest homepage exposes one truthful animated Open Overview portal", ()
   assert.match(portal, /<span class="portal-name">Open Overview<\/span>/);
   assert.match(portal, /<span class="portal-meta">AI ecosystem radar<\/span>/);
   assert.match(home, /<symbol id="icon-open-overview"[\s\S]*?--accent-secondary, #a9b2ff[\s\S]*?<\/symbol>/);
-  assert.match(home, /src="\/web\/shared\/forest-three\.js\?v=20260717"/);
+  assert.match(home, /src="\/web\/shared\/forest-three\.js\?v=20260724e"/);
   assert.doesNotMatch(home, /forest-icons\.js/);
 
   const routeReadme = fs.readFileSync(path.join(ROOT, "web", "open-overview", "README.md"), "utf8");

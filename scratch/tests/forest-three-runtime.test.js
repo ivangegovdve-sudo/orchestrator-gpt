@@ -44,6 +44,8 @@ test('ambient runtime is Three.js with real continuous interaction uniforms', ()
   assert.match(runtime, /visibilitychange/);
   assert.match(runtime, /prefers-reduced-motion/);
   assert.match(runtime, /window\.__forestAmbient/);
+  assert.match(runtime, /dataset\.forestSceneOwner/);
+  assert.match(runtime, /route-managed/);
 });
 
 test('theme registry gives public destinations distinct, deterministic scene identities', async () => {
@@ -77,6 +79,9 @@ test('public subpages opt into a named shared Three.js scene', () => {
     ['web/math-mania/index.html', 'math'],
     ['web/kids-movie-library/index.html', 'movie'],
     ['web/library/index.html', 'library'],
+    ['web/library/glossary/index.html', 'library'],
+    ['web/library/platform/index.html', 'library'],
+    ['web/library/rag.html', 'library'],
     ['web/ai-init/index.html', 'library'],
     ['web/council/index.html', 'council'],
     ['web/ai-research/index.html', 'ai-research'],
@@ -113,6 +118,75 @@ test('public subpages opt into a named shared Three.js scene', () => {
   }
 });
 
+test('Open Overview keeps ownership of its capability-gated route-local Three.js scene', () => {
+  for (const relativePath of [
+    'web/open-overview/index.html',
+    'web/open-overview/openrouter/index.html',
+    'web/open-overview/github/index.html',
+  ]) {
+    const html = read(relativePath);
+    assert.match(
+      html,
+      /<body[^>]+data-forest-scene-owner=["']route["']/i,
+      `${relativePath} does not preserve route-local renderer ownership`,
+    );
+    assert.match(html, /\/web\/shared\/forest-motion\.js\?v=20260725/);
+    assert.match(html, /\/web\/open-overview\/open-overview\.js/);
+  }
+
+  const localRenderer = read('web/open-overview/open-overview-three.js');
+  assert.match(localRenderer, /new THREE\.ShaderMaterial/);
+  assert.match(localRenderer, /\buMouse\b/);
+  assert.match(localRenderer, /\buClick\b/);
+  assert.match(localRenderer, /pointermove/);
+  assert.match(localRenderer, /pointerdown/);
+});
+
+test('entrance inventory scopes page-specific cards and headers without a global card selector', () => {
+  const runtime = read('web/shared/forest-motion.js');
+
+  for (const selector of [
+    'body[data-forest-page="kids"] .kid-card',
+    'body[data-forest-page="library"] .panel',
+    'body[data-forest-page="movie"] .header-row',
+    'body[data-open-overview-route] .oo-header',
+  ]) {
+    assert.match(runtime, new RegExp(escapeRegExp(selector)), selector);
+  }
+  assert.doesNotMatch(runtime, /(?:^|,\s*)\.card(?:\s*,|\s*['"`])/m);
+});
+
+test('shared runtime cache key is current across the reviewed public inventory', () => {
+  const oldKeyFiles = [];
+  const publicRoot = path.join(ROOT, 'web');
+
+  for (const filePath of walkHtml(publicRoot)) {
+    const html = fs.readFileSync(filePath, 'utf8');
+    if (!html.includes('/web/shared/forest-motion.js')) continue;
+    // Power Law is owned by its independent implementation/review round.
+    if (filePath.endsWith(path.join('power-law-odyssey', 'index.html'))) continue;
+    if (!html.includes('/web/shared/forest-motion.js?v=20260725')) {
+      oldKeyFiles.push(path.relative(ROOT, filePath));
+    }
+  }
+
+  assert.deepEqual(oldKeyFiles, []);
+});
+
 function pathToFileUrl(filePath) {
   return new URL(`file:///${filePath.replaceAll('\\', '/')}`).href;
+}
+
+function walkHtml(directory) {
+  const files = [];
+  for (const entry of fs.readdirSync(directory, { withFileTypes: true })) {
+    const absolute = path.join(directory, entry.name);
+    if (entry.isDirectory()) files.push(...walkHtml(absolute));
+    else if (entry.isFile() && entry.name.endsWith('.html')) files.push(absolute);
+  }
+  return files;
+}
+
+function escapeRegExp(value) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
