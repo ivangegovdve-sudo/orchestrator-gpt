@@ -1,15 +1,28 @@
 <!doctype html>
-<html lang="en" class="forest-skin forest-palette">
+<html lang="en" class="forest-skin">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="Hyper Trophy OS — a native training-intelligence dashboard with a strength estimate, research query surface, and transparent live-service fallback.">
-  <meta name="theme-color" content="#070a08">
+  <meta name="theme-color" content="#07070b">
   <title>Hyper Trophy OS — SDForest</title>
   <link rel="stylesheet" href="/web/shared/forest-shell.css?v=20260723">
   <link rel="stylesheet" href="/web/shared/forest-design.css?v=20260723">
   <style>
-    :root { --forest-accent:#e8996b; --forest-accent-rgb:232,153,107; }
+    :root {
+      --bg:#07070b;
+      --surface:#0f0f15;
+      --border:rgba(255,255,255,.08);
+      --text-primary:#f3f4f6;
+      --text-muted:#9ca3af;
+      --accent:#4f46e5;
+      --accent-green:#22c55e;
+      --radius:8px;
+      --font:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+      --forest-accent:#e8996b;
+      --forest-accent-rgb:232,153,107;
+      --hyper-delay-zero:calc(var(--duration-fast) * 0);
+    }
     .forest-kicker, .forest-section-label, .forest-back, .forest-top-action { font-family:var(--forest-sans,"Alegreya Sans",sans-serif); }
     .forest-title { font-size:clamp(53px,11vw,128px); font-weight:650; line-height:.92; letter-spacing:.01em; }
     .hyper-hero { min-height:76svh; display:grid; grid-template-columns:1fr minmax(300px,.68fr); align-items:center; gap:clamp(44px,8vw,100px); }
@@ -18,27 +31,27 @@
     .action { min-height:46px; display:inline-flex; align-items:center; justify-content:center; padding:0 17px; border:1px solid rgba(232,153,107,.42); border-radius:999px; background:rgba(232,153,107,.1); color:var(--forest-ink); font:700 10px/1 var(--forest-sans); letter-spacing:.12em; text-decoration:none; text-transform:uppercase; }
     .action.secondary { border-color:var(--forest-line); background:rgba(255,255,255,.025); }
     .muscle-field { position:relative; min-height:440px; display:grid; place-items:center; overflow:hidden; border:1px solid rgba(232,153,107,.18); border-radius:44% 44% 26px 26px; background:radial-gradient(circle,rgba(232,153,107,.12),transparent 62%); }
-    .fiber { position:absolute; width:78%; height:22px; border:1px solid rgba(232,153,107,.28); border-radius:50%; transform:rotate(var(--r)) translateY(var(--y)); animation:fiber-grow .9s cubic-bezier(.3,1.4,.5,1) var(--fd,0s) backwards, fiber-contract var(--d) ease-in-out var(--fd,0s) infinite alternate; }
+    .fiber { position:absolute; width:78%; height:22px; border:1px solid rgba(232,153,107,.28); border-radius:50%; transform:rotate(var(--r)) translateY(var(--y)); animation:fiber-grow var(--duration-hero) var(--spring) var(--fd,var(--hyper-delay-zero)) backwards, fiber-contract var(--d) var(--ease-in-out) var(--fd,var(--hyper-delay-zero)) infinite alternate; }
     .fiber::after { content:""; position:absolute; inset:5px 12%; border-radius:50%; background:linear-gradient(90deg,transparent,rgba(232,153,107,.32),transparent); }
-    .fiber:nth-child(1){--r:-18deg;--y:-105px;--d:3.8s;--fd:.42s}.fiber:nth-child(2){--r:-12deg;--y:-72px;--d:4.5s;--fd:.34s}.fiber:nth-child(3){--r:-6deg;--y:-36px;--d:3.4s;--fd:.26s}.fiber:nth-child(4){--r:0deg;--y:0;--d:4.2s;--fd:.18s}.fiber:nth-child(5){--r:6deg;--y:36px;--d:3.7s;--fd:.26s}.fiber:nth-child(6){--r:12deg;--y:72px;--d:4.6s;--fd:.34s}.fiber:nth-child(7){--r:18deg;--y:105px;--d:3.5s;--fd:.42s}
+    .fiber:nth-child(1){--r:-18deg;--y:-105px;--d:calc(var(--duration-loop) * 3.8);--fd:calc(var(--duration-loop) * .42)}.fiber:nth-child(2){--r:-12deg;--y:-72px;--d:calc(var(--duration-loop) * 4.5);--fd:calc(var(--duration-loop) * .34)}.fiber:nth-child(3){--r:-6deg;--y:-36px;--d:calc(var(--duration-loop) * 3.4);--fd:var(--duration-scroll-settle)}.fiber:nth-child(4){--r:0deg;--y:0;--d:calc(var(--duration-loop) * 4.2);--fd:var(--duration-scroll-state)}.fiber:nth-child(5){--r:6deg;--y:36px;--d:calc(var(--duration-loop) * 3.7);--fd:var(--duration-scroll-settle)}.fiber:nth-child(6){--r:12deg;--y:72px;--d:calc(var(--duration-loop) * 4.6);--fd:calc(var(--duration-loop) * .34)}.fiber:nth-child(7){--r:18deg;--y:105px;--d:calc(var(--duration-loop) * 3.5);--fd:calc(var(--duration-loop) * .42)}
     @keyframes fiber-contract { to { width:64%; filter:drop-shadow(0 0 9px rgba(232,153,107,.34)); } }
     /* Entrance: the muscle assembles outward from its core while the copy rises. */
     @keyframes fiber-grow { from { transform:rotate(var(--r)) translateY(var(--y)) scaleX(.1); opacity:0; } }
     @media (prefers-reduced-motion: no-preference) {
-      .hyper-hero .forest-kicker { animation:hyper-rise .7s cubic-bezier(.16,1,.3,1) backwards; }
-      .hyper-hero .forest-title { animation:hyper-rise .85s cubic-bezier(.16,1,.3,1) .07s backwards; }
-      .hyper-hero .forest-lede { animation:hyper-rise .85s cubic-bezier(.16,1,.3,1) .15s backwards; }
-      .hyper-hero .hero-actions { animation:hyper-rise .85s cubic-bezier(.16,1,.3,1) .23s backwards; }
-      .fiber-core { animation:core-ignite 1s cubic-bezier(.3,1.4,.5,1) .1s backwards; }
+      .hyper-hero .forest-kicker { animation:hyper-rise calc(var(--duration-loop) * .7) var(--ease-out) backwards; }
+      .hyper-hero .forest-title { animation:hyper-rise calc(var(--duration-loop) * .85) var(--ease-out) calc(var(--delay-stagger-sm) * .7) backwards; }
+      .hyper-hero .forest-lede { animation:hyper-rise calc(var(--duration-loop) * .85) var(--ease-out) var(--duration-fast) backwards; }
+      .hyper-hero .hero-actions { animation:hyper-rise calc(var(--duration-loop) * .85) var(--ease-out) calc(var(--duration-loop) * .23) backwards; }
+      .fiber-core { animation:core-ignite var(--duration-loop) var(--spring) var(--delay-stagger-sm) backwards; }
     }
     @keyframes hyper-rise { from { opacity:0; transform:translateY(24px); } }
     @keyframes core-ignite { from { opacity:0; transform:scale(.5); } }
-    .stat-pulse { animation:stat-pulse .5s ease; }
+    .stat-pulse { animation:stat-pulse var(--duration-recovery) var(--ease-standard); }
     @keyframes stat-pulse { 30% { transform:scale(1.05); filter:brightness(1.3); } }
-    .answer.is-querying { border-color:rgba(232,153,107,.4); animation:answer-scan 1.4s ease-in-out infinite; }
+    .answer.is-querying { border-color:rgba(232,153,107,.4); animation:answer-scan calc(var(--duration-loop) * 1.4) var(--ease-in-out) infinite; }
     @keyframes answer-scan { 50% { box-shadow:inset 0 0 34px rgba(232,153,107,.09); } }
-    .source-pill { animation:pill-pop .45s cubic-bezier(.3,1.4,.5,1) backwards; }
-    .source-pill:nth-child(2) { animation-delay:.08s; } .source-pill:nth-child(3) { animation-delay:.16s; } .source-pill:nth-child(n+4) { animation-delay:.24s; }
+    .source-pill { animation:pill-pop calc(var(--duration-loop) * .45) var(--spring) backwards; }
+    .source-pill:nth-child(2) { animation-delay:var(--delay-stagger-xs); } .source-pill:nth-child(3) { animation-delay:var(--delay-stagger-md); } .source-pill:nth-child(n+4) { animation-delay:var(--delay-stagger-lg); }
     @keyframes pill-pop { from { opacity:0; transform:scale(.7); } }
     .fiber-core { width:96px; aspect-ratio:1; display:grid; place-items:center; border:1px solid rgba(232,153,107,.55); border-radius:50%; background:rgba(5,8,6,.78); color:#f0b488; font:700 11px/1.2 var(--forest-sans); letter-spacing:.12em; text-align:center; text-transform:uppercase; box-shadow:0 0 60px rgba(232,153,107,.16); }
     .dashboard-grid { display:grid; grid-template-columns:.8fr 1.2fr; gap:18px; margin-top:clamp(70px,10vw,130px); }
@@ -83,7 +96,7 @@
 
     <section class="forest-section" aria-labelledby="system-title"><p class="forest-section-label" data-reveal>System map</p><div class="principles" id="system-title" data-reveal-stagger><article class="forest-panel principle" data-reveal><span>01 / Estimate</span><h3>Calculate locally</h3><p>The strength estimate runs entirely in this browser and never depends on the remote service.</p></article><article class="forest-panel principle" data-reveal><span>02 / Research</span><h3>Show sources</h3><p>Research answers expose whether support came from the project corpus, PubMed, or neither.</p></article><article class="forest-panel principle" data-reveal><span>03 / Failure</span><h3>Remain useful</h3><p>If the research service cannot be reached, the native dashboard stays visible and says so plainly.</p></article></div><p class="disclaimer" data-reveal>Training estimates and research summaries are educational tools, not medical advice. Use qualified professional guidance for personal health decisions.</p></section>
   </main>
-  <script src="/web/shared/forest-motion.js?v=20260714"></script>
+  <script src="/web/shared/forest-motion.js?v=20260725"></script>
   <script src="/web/shared/forest-reveal.js?v=20260714"></script>
   <script>
     (()=>{

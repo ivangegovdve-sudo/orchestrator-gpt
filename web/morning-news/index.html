@@ -1,15 +1,27 @@
 <!doctype html>
-<html lang="en" class="forest-skin forest-palette">
+<html lang="en" class="forest-skin">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="Morning News — a voice-led daily briefing project inside SDForest.">
-  <meta name="theme-color" content="#070a08">
+  <meta name="theme-color" content="#07070b">
   <title>Morning News — SDForest</title>
   <link rel="stylesheet" href="/web/shared/forest-shell.css?v=20260723">
   <link rel="stylesheet" href="/web/shared/forest-design.css?v=20260723">
   <style>
-    :root { --forest-accent:#e8b86b; --forest-accent-rgb:232,184,107; }
+    :root {
+      --bg:#07070b;
+      --surface:#0f0f15;
+      --border:rgba(255,255,255,.08);
+      --text-primary:#f3f4f6;
+      --text-muted:#9ca3af;
+      --accent:#4f46e5;
+      --accent-green:#22c55e;
+      --radius:8px;
+      --font:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+      --forest-accent:#e8b86b;
+      --forest-accent-rgb:232,184,107;
+    }
     .forest-kicker, .forest-section-label { font-family:var(--forest-sans,"Alegreya Sans",sans-serif); }
     .news-hero .forest-title { font-weight:650; font-size:clamp(52px,10.5vw,124px); line-height:.94; letter-spacing:0; }
     .news-hero { min-height:calc(100svh - 150px); display:grid; grid-template-columns:1fr minmax(310px,.8fr); align-items:center; gap:clamp(50px,8vw,110px); }
@@ -18,21 +30,21 @@
     .news-action { min-height:48px; display:inline-flex; align-items:center; justify-content:center; padding:0 19px; border:1px solid rgba(232,184,107,.45); border-radius:999px; background:rgba(232,184,107,.1); color:var(--forest-ink); font:700 10px/1 var(--forest-sans); letter-spacing:.12em; text-decoration:none; text-transform:uppercase; }
     .news-action.secondary { border-color:var(--forest-line); background:rgba(255,255,255,.025); }
     .signal-room { position:relative; min-height:480px; display:grid; place-items:center; overflow:hidden; padding:30px; border:1px solid rgba(232,184,107,.2); border-radius:28px; background:linear-gradient(145deg,rgba(232,184,107,.08),rgba(5,10,8,.9)); }
-    .signal-room::before,.signal-room::after { content:""; position:absolute; border:1px solid rgba(232,184,107,.16); border-radius:50%; animation:news-orbit 16s linear infinite; }.signal-room::before{width:370px;height:370px}.signal-room::after{width:270px;height:270px;animation-direction:reverse;animation-duration:10s}
+    .signal-room::before,.signal-room::after { content:""; position:absolute; border:1px solid rgba(232,184,107,.16); border-radius:50%; animation:news-orbit calc(var(--duration-loop) * 16) var(--ease-linear) infinite; }.signal-room::before{width:370px;height:370px}.signal-room::after{width:270px;height:270px;animation-direction:reverse;animation-duration:calc(var(--duration-loop) * 10)}
     @keyframes news-orbit{to{transform:rotate(360deg)}}
     .wave { position:relative; z-index:2; width:min(360px,90%); height:160px; display:flex; align-items:center; justify-content:center; gap:5px; }
-    .wave span { width:4px; height:calc(18px + var(--h)*1px); max-height:145px; border-radius:99px; background:linear-gradient(#e8b86b,rgba(232,184,107,.14)); box-shadow:0 0 12px rgba(232,184,107,.24); animation:wave-tune .7s cubic-bezier(.3,1.4,.5,1) calc(.25s + var(--i)*.045s) backwards, wave-breathe calc(1.1s + var(--h)*.008s) ease-in-out calc(.95s + var(--i)*-.06s) infinite alternate; }
+    .wave span { width:4px; height:calc(18px + var(--h)*1px); max-height:145px; border-radius:99px; background:linear-gradient(#e8b86b,rgba(232,184,107,.14)); box-shadow:0 0 12px rgba(232,184,107,.24); animation:wave-tune calc(var(--duration-loop) * .7) var(--spring) calc(var(--duration-recovery) * .5 + var(--i) * var(--duration-fast) * .3) backwards, wave-breathe calc(var(--duration-highlight) + var(--h) * var(--delay-stagger-xs) * .1) var(--ease-in-out) calc(var(--delay-hero-invite) - var(--i) * var(--duration-slow) * .1) infinite alternate; }
     @keyframes wave-breathe{to{transform:scaleY(.25);opacity:.38}}
     /* Entrance: the broadcast tunes in — copy rises, then each bar of the
        signal snaps up in sequence like a level meter coming online. */
     @keyframes wave-tune{from{transform:scaleY(.06);opacity:0}}
     @media (prefers-reduced-motion: no-preference) {
-      .news-hero .forest-kicker{animation:news-rise .65s cubic-bezier(.16,1,.3,1) backwards}
-      .news-hero .forest-title{animation:news-rise .8s cubic-bezier(.16,1,.3,1) .07s backwards}
-      .news-hero .forest-lede{animation:news-rise .8s cubic-bezier(.16,1,.3,1) .15s backwards}
-      .news-hero .news-actions{animation:news-rise .8s cubic-bezier(.16,1,.3,1) .23s backwards}
-      .signal-room{animation:room-on .9s cubic-bezier(.16,1,.3,1) .1s backwards}
-      .signal-label{animation:news-rise .7s ease .85s backwards}
+      .news-hero .forest-kicker{animation:news-rise calc(var(--duration-loop) * .65) var(--ease-out) backwards}
+      .news-hero .forest-title{animation:news-rise var(--duration-crown-enter) var(--ease-out) calc(var(--delay-stagger-sm) * .7) backwards}
+      .news-hero .forest-lede{animation:news-rise var(--duration-crown-enter) var(--ease-out) var(--duration-fast) backwards}
+      .news-hero .news-actions{animation:news-rise var(--duration-crown-enter) var(--ease-out) calc(var(--duration-loop) * .23) backwards}
+      .signal-room{animation:room-on var(--duration-hero) var(--ease-out) var(--delay-stagger-sm) backwards}
+      .signal-label{animation:news-rise calc(var(--duration-loop) * .7) var(--ease-standard) calc(var(--duration-loop) * .85) backwards}
     }
     @keyframes news-rise{from{opacity:0;transform:translateY(22px)}}
     @keyframes room-on{from{opacity:0;transform:scale(.965)}}
@@ -48,7 +60,7 @@
     <header class="news-hero"><div><p class="forest-kicker">Daily briefing · voice-led</p><h1 class="forest-title">Morning News</h1><p class="forest-lede">A focused way into the day: hear the briefing, follow the signal, and keep Morning News where it belongs—as one path inside the wider forest.</p><div class="news-actions"><a class="news-action" href="https://forest-voice-news.lovable.app" target="_blank" rel="noopener">Open live briefing ↗</a><a class="news-action secondary" href="#format">See the format</a></div></div><div class="signal-room" aria-label="Animated morning news signal"><div class="wave" aria-hidden="true"><span style="--h:24;--i:1"></span><span style="--h:52;--i:2"></span><span style="--h:78;--i:3"></span><span style="--h:36;--i:4"></span><span style="--h:92;--i:5"></span><span style="--h:61;--i:6"></span><span style="--h:110;--i:7"></span><span style="--h:49;--i:8"></span><span style="--h:82;--i:9"></span><span style="--h:33;--i:10"></span><span style="--h:69;--i:11"></span><span style="--h:101;--i:12"></span><span style="--h:46;--i:13"></span><span style="--h:74;--i:14"></span><span style="--h:29;--i:15"></span></div><div class="signal-label"><span>Forest channel · morning</span><b>Signal alive</b></div></div></header>
     <section class="forest-section" id="format"><p class="forest-section-label" data-reveal>Briefing architecture</p><div class="news-map" data-reveal-stagger><article class="forest-panel news-card" data-reveal><span>01 / Gather</span><h2>Find signal</h2><p>The live companion app collects the items selected for the morning briefing.</p></article><article class="forest-panel news-card" data-reveal><span>02 / Shape</span><h2>Make it legible</h2><p>A compact voice-led format turns a scattered queue into a deliberate starting point.</p></article><article class="forest-panel news-card" data-reveal><span>03 / Continue</span><h2>Open the source</h2><p>The live project remains the working surface; this page gives it a coherent home and handoff.</p></article></div></section>
   </main>
-  <script src="/web/shared/forest-motion.js?v=20260714"></script>
+  <script src="/web/shared/forest-motion.js?v=20260725"></script>
   <script src="/web/shared/forest-reveal.js?v=20260714"></script>
 </body>
 </html>
