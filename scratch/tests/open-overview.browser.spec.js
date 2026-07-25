@@ -193,7 +193,35 @@ test("reduced motion supplies a static relationship fallback without loading Thr
 });
 
 test("normal motion lazy-loads a bounded meaningful relationship canopy", async ({ page }) => {
-  const vendor = []; page.on("request", (request) => { if (request.url().includes("/web/vendor/three/three.module.min.js")) vendor.push(request.url()); }); await routeApi(page, { offline: true }); await page.goto("/web/open-overview/index.html"); expect(vendor).toEqual([]); await page.locator("#oo-network-region").scrollIntoViewIfNeeded(); await expect.poll(() => page.evaluate(() => Boolean(window.__openOverviewThreeDebug?.loaded))).toBe(true); expect(vendor).toHaveLength(1); await expect(page.locator("#oo-network-region canvas[aria-hidden=true]")).toHaveCount(1); const debug = await page.evaluate(() => window.__openOverviewThreeDebug); expect(debug.nodes).toBe(32); expect(debug.edges).toBeGreaterThan(0); expect(debug.edges).toBeLessThanOrEqual(110);
+  const vendor = [];
+  page.on("request", (request) => {
+    if (request.url().includes("/web/vendor/three/three.module.min.js")) vendor.push(request.url());
+  });
+  await routeApi(page, { offline: true });
+  await page.goto("/web/open-overview/index.html");
+  expect(vendor).toEqual([]);
+  const region = page.locator("#oo-network-region");
+  await region.scrollIntoViewIfNeeded();
+  await expect.poll(() => page.evaluate(() => Boolean(window.__openOverviewThreeDebug?.loaded))).toBe(true);
+  expect(vendor).toHaveLength(1);
+  await expect(region.locator("canvas[aria-hidden=true]")).toHaveCount(1);
+  const debug = await page.evaluate(() => window.__openOverviewThreeDebug);
+  expect(debug.nodes).toBe(32);
+  expect(debug.edges).toBeGreaterThan(0);
+  expect(debug.edges).toBeLessThanOrEqual(110);
+
+  const bounds = await region.boundingBox();
+  await page.mouse.move(bounds.x + bounds.width * .82, bounds.y + bounds.height * .22);
+  await expect.poll(() => page.evaluate(
+    () => window.__openOverviewThreeDebug.uniforms.uMouse[0],
+  )).toBeGreaterThan(.2);
+  await page.mouse.click(bounds.x + bounds.width * .7, bounds.y + bounds.height * .4);
+  await expect.poll(() => page.evaluate(
+    () => window.__openOverviewThreeDebug.uniforms.uClick,
+  )).toBeGreaterThan(0);
+  const frames = await page.evaluate(() => window.__openOverviewThreeDebug.frames);
+  await page.waitForTimeout(100);
+  expect(await page.evaluate(() => window.__openOverviewThreeDebug.frames)).toBeGreaterThan(frames);
 });
 
 test("Save-Data requires consent and WebGL context loss restores the semantic fallback", async ({ page }) => {
