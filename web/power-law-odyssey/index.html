@@ -22,10 +22,12 @@
       --violet: #e8b86b;
       --orange: #e8996b;
       --scroll-p: 0;
+      --scroll-slip: 0px;
+      --scroll-energy: 0;
     }
 
     * { box-sizing: border-box; }
-    html { background: var(--bg); scroll-behavior: smooth; }
+    html { background: var(--bg); scroll-behavior: smooth; overflow-x: clip; }
     body {
       margin: 0;
       color: var(--ink);
@@ -33,7 +35,7 @@
       background:
         radial-gradient(circle at 50% -20%, rgba(143,230,174,.14), transparent 34rem),
         linear-gradient(180deg, #070a08 0%, #0c120d 50%, #070a08 100%);
-      overflow-x: hidden;
+      overflow-x: clip;
     }
 
     a { color: inherit; }
@@ -72,14 +74,14 @@
     }
 
     .scroll-container {
-      height: 700vh;
+      height: 600vh;
       position: relative;
     }
     .viewport-sticky {
       position: sticky;
       top: 0;
       height: 100vh;
-      width: 100vw;
+      width: 100%;
       overflow: hidden;
       isolation: isolate;
     }
@@ -87,13 +89,9 @@
       position: relative;
       width: 100%;
       height: 100%;
-      perspective: 1100px;
-      /* Flat stacking: the parent's perspective still applies the depth zoom to
-         each layer's translateZ, but paint order is now governed by z-index
-         instead of 3D Z-sorting. That lets us always keep the *active* layer on
-         top during a crossfade, so an outgoing layer's large heading can never
-         render over the incoming section's UI. */
-      transform-style: flat;
+      perspective: 1000px;
+      transform-style: preserve-3d;
+      pointer-events: none;
     }
     .starfield {
       position: absolute;
@@ -122,7 +120,7 @@
       padding: clamp(28px, 5vw, 72px);
       text-align: center;
       backface-visibility: hidden;
-      will-change: transform, opacity;
+      transform: translate3d(0, 0, calc(var(--origin-z) + var(--scroll-p) * var(--z-velocity)));
       /* Base: sit behind and ignore pointer input. The active layer (set from JS
          by whichever band dominates the current scroll position) is lifted on top
          and re-enabled for interaction, so a transparent inactive layer can never
@@ -130,12 +128,17 @@
       z-index: 1;
       pointer-events: none;
     }
+    .is-scrolling .layer { will-change: transform, opacity; }
     .layer.is-active { z-index: 5; pointer-events: auto; }
     .layer-inner {
-      width: min(1120px, 100%);
+      width: auto;
+      max-width: 1120px;
+      justify-self: stretch;
       display: grid;
       gap: 24px;
       justify-items: center;
+      transform: translate3d(var(--scroll-slip), 0, 0);
+      transition: transform 140ms cubic-bezier(.16,1,.3,1);
     }
     .eyebrow {
       margin: 0;
@@ -188,28 +191,34 @@
     }
 
     #layer1 {
-      transform: translate3d(0, 0, calc(var(--scroll-p) * 1900px));
-      opacity: clamp(0, calc(1 - var(--scroll-p) * 6), 1);
+      --origin-z: -375px;
+      --z-velocity: 5000px;
+      opacity: clamp(0, calc((.15 - var(--scroll-p)) * 34), 1);
     }
     #layer2 {
-      transform: translate3d(0, 0, calc(-1700px + var(--scroll-p) * 4200px));
-      opacity: clamp(0, min(calc((var(--scroll-p) - .08) * 12), calc((.32 - var(--scroll-p)) * 12)), 1);
+      --origin-z: -1250px;
+      --z-velocity: 5000px;
+      opacity: clamp(0, min(calc((var(--scroll-p) - .12) * 34), calc((.35 - var(--scroll-p)) * 34)), 1);
     }
     #layer3 {
-      transform: translate3d(0, 0, calc(-2100px + var(--scroll-p) * 3900px));
-      opacity: clamp(0, min(calc((var(--scroll-p) - .24) * 12), calc((.50 - var(--scroll-p)) * 10)), 1);
+      --origin-z: -2250px;
+      --z-velocity: 5000px;
+      opacity: clamp(0, min(calc((var(--scroll-p) - .32) * 34), calc((.55 - var(--scroll-p)) * 34)), 1);
     }
     #layer4 {
-      transform: translate3d(0, 0, calc(-2300px + var(--scroll-p) * 3600px));
-      opacity: clamp(0, min(calc((var(--scroll-p) - .43) * 11), calc((.69 - var(--scroll-p)) * 10)), 1);
+      --origin-z: -3250px;
+      --z-velocity: 5000px;
+      opacity: clamp(0, min(calc((var(--scroll-p) - .52) * 34), calc((.75 - var(--scroll-p)) * 34)), 1);
     }
     #layer5 {
-      transform: translate3d(0, 0, calc(-2500px + var(--scroll-p) * 3300px));
-      opacity: clamp(0, min(calc((var(--scroll-p) - .60) * 11), calc((.86 - var(--scroll-p)) * 10)), 1);
+      --origin-z: -4125px;
+      --z-velocity: 5000px;
+      opacity: clamp(0, min(calc((var(--scroll-p) - .72) * 34), calc((.90 - var(--scroll-p)) * 34)), 1);
     }
     #layer6 {
-      transform: translate3d(0, 0, calc(-2300px + var(--scroll-p) * 2600px));
-      opacity: clamp(0, calc((var(--scroll-p) - .80) * 8), 1);
+      --origin-z: -4750px;
+      --z-velocity: 5000px;
+      opacity: clamp(0, calc((var(--scroll-p) - .87) * 34), 1);
     }
 
     .matrix {
@@ -378,6 +387,7 @@
     }
     .sandbox-actions { display:flex; flex-wrap:wrap; gap:8px; }
     .bet-button.secondary { color:var(--ink); background:rgba(255,255,255,.055); border:1px solid var(--line); }
+    .bet-button:disabled { cursor: not-allowed; opacity: .46; filter: grayscale(.45); }
     .seed-readout { width:100%; color:var(--muted); font:11px/1.5 ui-monospace,monospace; }
     .bet-button:focus-visible, .back-link:focus-visible {
       outline: 3px solid var(--accent);
@@ -386,6 +396,9 @@
     .bet-field {
       position: relative;
       height: 300px;
+      margin: 0;
+      padding: 0;
+      list-style: none;
       border: 1px solid rgba(255,255,255,.08);
       border-radius: 8px;
       overflow: hidden;
@@ -395,23 +408,76 @@
         rgba(0,0,0,.26);
       background-size: 40px 40px;
     }
-    .trajectory {
+    .bet-field::after {
+      content: "50 bets · every dot is one survivable attempt";
       position: absolute;
       left: 14px;
-      bottom: 34px;
-      height: 2px;
-      width: var(--w);
-      background: var(--c);
-      transform: rotate(var(--a));
-      transform-origin: left center;
-      box-shadow: 0 0 18px var(--c);
+      bottom: 10px;
+      color: rgba(255,255,255,.44);
+      font: 10px/1.2 var(--forest-sans, sans-serif);
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      pointer-events: none;
     }
-    .trajectory.hit {
-      height: 4px;
-      width: 118%;
-      transform: rotate(-32deg);
+    .bet-coin {
+      position: absolute;
+      left: var(--coin-x);
+      top: var(--coin-y);
+      width: clamp(20px, 2.4vw, 28px);
+      aspect-ratio: 1;
+      display: grid;
+      place-items: center;
+      border: 1px solid rgba(255,255,255,.23);
+      border-radius: 50%;
+      color: #f2efe4;
+      background: rgba(217,138,127,.22);
+      box-shadow: 0 5px 18px rgba(0,0,0,.24);
+      font: 700 10px/1 var(--forest-sans, sans-serif);
+      transform: translate(-50%, -50%) rotate(var(--coin-r));
+      transition:
+        left 500ms cubic-bezier(.16,1,.3,1),
+        top 500ms cubic-bezier(.16,1,.3,1),
+        transform 500ms cubic-bezier(.16,1,.3,1),
+        box-shadow 500ms ease;
+    }
+    .bet-coin[data-outcome="neutral"] {
+      color: var(--cyan);
+      background: rgba(143,230,174,.12);
+      border-color: rgba(143,230,174,.55);
+    }
+    .bet-coin[data-outcome="outlier"] {
+      z-index: 3;
+      color: #171006;
       background: var(--gold);
-      box-shadow: 0 0 34px var(--gold);
+      border-color: #fff1ad;
+      box-shadow: 0 0 0 5px rgba(232,184,107,.16), 0 0 36px rgba(232,184,107,.85);
+      transform: translate(-50%, -50%) rotate(0) scale(1.58);
+    }
+    .bet-field.is-converged .bet-coin {
+      left: var(--grid-x);
+      top: var(--grid-y);
+      transform: translate(-50%, -50%) rotate(0) scale(1);
+    }
+    .bet-field.is-converged .bet-coin[data-outcome="outlier"] {
+      transform: translate(-50%, -50%) rotate(0) scale(1.32);
+      box-shadow: 0 0 0 5px rgba(232,184,107,.13), 0 0 30px rgba(232,184,107,.72);
+    }
+    .portfolio-status {
+      min-height: 1.5em;
+      color: #e9e6d4;
+      font: 700 13px/1.45 var(--forest-sans, sans-serif);
+      text-align: left;
+    }
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
     }
 
     /* Distribution particles: each dot is a sample scattering onto the curve.
@@ -423,11 +489,12 @@
       .scatter-dot.outlier {
         animation:
           dot-scatter 1.15s cubic-bezier(.22,1,.36,1) calc(var(--sd, 0) * 1s) backwards,
-          outlier-glow 3s ease-in-out calc(var(--sd, 0) * 1s + 1.2s) infinite;
+          scatter-outlier-glow 3s ease-in-out calc(var(--sd, 0) * 1s + 1.2s) infinite;
       }
       .tail-zone { animation: tail-breathe 4.5s ease-in-out infinite; }
-      .trajectory { animation: bet-shoot .5s cubic-bezier(.22,1,.36,1) backwards; }
-      .trajectory.hit { animation: bet-shoot .7s cubic-bezier(.22,1,.36,1) backwards, hit-flash 1.4s ease .1s; }
+      .bet-coin[data-outcome="failure"] { animation: coin-arrive .34s cubic-bezier(.22,1,.36,1) backwards, fail-shake .2s linear .34s; }
+      .bet-coin[data-outcome="neutral"] { animation: coin-arrive .34s cubic-bezier(.22,1,.36,1) backwards; }
+      .bet-coin[data-outcome="outlier"] { animation: coin-arrive .45s cubic-bezier(.22,1,.36,1) backwards, outlier-glow 1.4s ease .45s infinite alternate; }
       #layer1 .layer-inner > * { animation: pl-rise .85s cubic-bezier(.16,1,.3,1) backwards; }
       #layer1 .layer-inner > :nth-child(2) { animation-delay: .1s; }
       #layer1 .layer-inner > :nth-child(3) { animation-delay: .2s; }
@@ -437,10 +504,19 @@
       from { opacity: 0; transform: translate(var(--dx, 0px), -46px) scale(0); }
       60% { opacity: 1; }
     }
-    @keyframes outlier-glow { 50% { filter: drop-shadow(0 0 6px currentColor); opacity: .7; } }
+    @keyframes scatter-outlier-glow { 50% { filter: drop-shadow(0 0 6px currentColor); opacity: .7; } }
     @keyframes tail-breathe { 50% { opacity: .55; } }
-    @keyframes bet-shoot { from { scale: 0 1; opacity: 0; } }
-    @keyframes hit-flash { from { filter: brightness(2.3); } }
+    @keyframes coin-arrive {
+      from { opacity: 0; transform: translate(-50%, -90%) rotate(var(--coin-r)) scale(.35); }
+    }
+    @keyframes fail-shake {
+      25% { translate: -3px 0; }
+      50% { translate: 3px 0; }
+      75% { translate: -2px 0; }
+    }
+    @keyframes outlier-glow {
+      to { filter: brightness(1.28); box-shadow: 0 0 0 9px rgba(232,184,107,.1), 0 0 48px rgba(232,184,107,1); }
+    }
     @keyframes pl-rise { from { opacity: 0; transform: translateY(24px); } }
 
     .final-list {
@@ -534,14 +610,39 @@
     }
 
     @media (max-width: 760px) {
-      .back-link { position: absolute; }
+      .back-link { position: fixed; padding: 7px 9px; font-size: 12px; }
       .matrix, .formula-row, .risk-scale, .risk-labels, .final-list, .blueprint-grid {
         grid-template-columns: 1fr;
       }
-      .layer { padding: 78px 18px 26px; align-items: start; }
-      .layer-inner { gap: 16px; }
-      .chart-panel, .sandbox, .risk-panel, .branch-panel { padding: 14px; }
-      .bet-field { height: 240px; }
+      .layer { padding: 58px 12px 18px; align-items: center; }
+      .layer-inner { gap: 10px; }
+      .layer h1 { font-size: clamp(2.8rem, 14vw, 4.2rem); }
+      .layer h2 { font-size: clamp(2rem, 10vw, 3.2rem); }
+      .layer p { font-size: .94rem; line-height: 1.35; }
+      .chart-panel, .sandbox, .risk-panel, .branch-panel { padding: 10px; }
+      .chart-panel svg { max-height: 135px; }
+      .branches { min-height: 150px; }
+      .formula { padding: 9px; }
+      .formula p { font-size: .82rem; }
+      .risk-scale, .risk-labels { grid-template-columns: 1fr 1fr; }
+      .risk-scale { min-height: 190px; gap: 10px; }
+      .risk-side { min-height: 170px; }
+      .upside { height: 145px; }
+      .upside::before { height: 55px; }
+      .risk-labels { gap: 10px; font-size: 12px; }
+      .sandbox { gap: 8px; }
+      .sandbox-head { gap: 7px; }
+      .sandbox-stats { gap: 4px; font-size: 10px; }
+      .sandbox-stats span { padding: 4px 5px; }
+      .bet-button { padding: 9px 10px; font-size: 11px; }
+      .portfolio-status { font-size: 11px; }
+      .bet-field { height: 220px; }
+      #layer1 { --origin-z: -75px; --z-velocity: 1000px; }
+      #layer2 { --origin-z: -250px; --z-velocity: 1000px; }
+      #layer3 { --origin-z: -450px; --z-velocity: 1000px; }
+      #layer4 { --origin-z: -650px; --z-velocity: 1000px; }
+      #layer5 { --origin-z: -825px; --z-velocity: 1000px; }
+      #layer6 { --origin-z: -950px; --z-velocity: 1000px; }
       .blueprint { padding-top: 56px; }
       .component-table { display: block; overflow-x: auto; }
     }
@@ -558,6 +659,8 @@
         pointer-events: auto !important;
         z-index: auto !important;
       }
+      .layer-inner { transform: none !important; transition: none !important; }
+      .bet-coin { animation: none !important; transition: none !important; }
       .starfield, .vignette { display: none; }
     }
   </style>
@@ -652,20 +755,22 @@
           <div class="layer-inner">
             <p class="eyebrow">75-90% Scroll | Venture Bet Sandbox</p>
             <h2>Most attempts flatline. One outlier can pay for all of them.</h2>
-            <p>Click the sandbox. It models a 94% base failure rate and a rare outlier trajectory that recovers cumulative losses.</p>
+            <p>Place the 50 one-unit bets. Exactly 47 fail, two break even, and the final gold outlier returns 50 units—enough to recover the whole portfolio.</p>
             <div class="sandbox">
               <div class="sandbox-head">
-                <div class="sandbox-actions"><button class="bet-button" id="betButton" type="button">Place one-unit bet</button><button class="bet-button secondary" id="batchButton" type="button">Run 25</button><button class="bet-button secondary" id="resetBets" type="button">Reset</button></div>
+                <div class="sandbox-actions"><button class="bet-button" id="betButton" type="button">Place next bet</button><button class="bet-button secondary" id="batchButton" type="button">Reveal all 50</button><button class="bet-button secondary" id="resetBets" type="button">Reset portfolio</button></div>
                 <div class="sandbox-stats" aria-live="polite">
                   <span>Attempts: <strong id="attemptCount">0</strong></span>
                   <span>Failures: <strong id="failureCount">0</strong></span>
-                  <span>Outliers: <strong id="hitCount">0</strong></span>
+                  <span>Neutral: <strong id="neutralCount">0</strong></span>
+                  <span>Outliers: <strong id="outlierCount">0</strong></span>
+                  <span>Returned: <strong id="returnCount">0</strong></span>
                   <span>Balance: <strong id="balanceCount">0</strong></span>
-                  <span>Best hit: <strong id="bestHitCount">0</strong></span>
                 </div>
-                <div class="seed-readout">Simulated · one-unit bets · seed: <strong id="seedValue"></strong></div>
+                <div class="seed-readout">Exact composition · 47 fail / 2 neutral / 1 outlier · seed: <strong id="seedValue"></strong></div>
               </div>
-              <div class="bet-field" id="betField" aria-label="Interactive bet trajectories"></div>
+              <p class="portfolio-status" id="portfolioStatus" aria-live="polite">No bets placed. Downside is capped at one unit per attempt.</p>
+              <ol class="bet-field" id="betField" aria-label="50-bet portfolio"></ol>
             </div>
           </div>
         </section>
@@ -729,9 +834,9 @@
         <table class="component-table">
           <thead><tr><th>Component</th><th>CSS/JS configuration</th><th>Functional responsibility</th></tr></thead>
           <tbody>
-            <tr><td>Scroll Track Container</td><td><code>height: 700vh; position: relative;</code></td><td>Establishes total travel length and master timeline for interpolation.</td></tr>
+            <tr><td>Scroll Track Container</td><td><code>height: 600vh; position: relative;</code></td><td>Establishes total travel length and master timeline for interpolation.</td></tr>
             <tr><td>Sticky Viewport Anchor</td><td><code>position: sticky; top: 0; height: 100vh; overflow: hidden;</code></td><td>Locks the visual canvas while the user scrolls through the track.</td></tr>
-            <tr><td>3D Stage Container</td><td><code>perspective: 1100px; transform-style: preserve-3d;</code></td><td>Creates depth context for layers and camera-like motion.</td></tr>
+            <tr><td>3D Stage Container</td><td><code>perspective: 1000px; transform-style: preserve-3d;</code></td><td>Creates depth context for layers and camera-like motion.</td></tr>
             <tr><td>GPU Compositor Layers</td><td><code>translate3d(); will-change: transform, opacity;</code></td><td>Maps each narrative panel to scroll progress with depth and opacity functions.</td></tr>
           </tbody>
         </table>
@@ -762,6 +867,9 @@
       &lt;section class="layer" id="layer1"&gt;...&lt;/section&gt;
       &lt;section class="layer" id="layer2"&gt;...&lt;/section&gt;
       &lt;section class="layer" id="layer3"&gt;...&lt;/section&gt;
+      &lt;section class="layer" id="layer4"&gt;...&lt;/section&gt;
+      &lt;section class="layer" id="layer5"&gt;...&lt;/section&gt;
+      &lt;section class="layer" id="layer6"&gt;...&lt;/section&gt;
     &lt;/main&gt;
   &lt;/div&gt;
 &lt;/div&gt;
@@ -772,59 +880,73 @@ document.documentElement.style.setProperty("--scroll-p", progress);</code></pre>
     </div>
   </section>
 
-  <script src="/web/power-law-odyssey/power-law-engine.js?v=20260714"></script>
+  <script src="/web/power-law-odyssey/power-law-engine.js?v=20260725-power50"></script>
   <script>
     const track = document.getElementById("scrollTrack");
     const root = document.documentElement;
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     let ticking = false;
+    let settleFrame = 0;
+    let scrollStopTimer = 0;
+    let previousScrollY = window.scrollY;
+    let previousScrollTime = performance.now();
+    let scrollVelocity = 0;
 
-    // Layers in DOM/scroll order. We recompute which one dominates the current
-    // scroll position (same opacity bands as the CSS) and flag it `.is-active`
-    // so it — and only it — is on top and interactive. This is what keeps the
-    // outgoing layer's giant heading from covering the incoming layer's UI, and
-    // stops a faded-out layer from swallowing clicks meant for the sandbox.
     const layers = Array.from(document.querySelectorAll(".stage-3d .layer"));
-    const clamp01 = (v) => Math.max(0, Math.min(1, v));
-    function layerOpacity(i, p) {
-      switch (i) {
-        case 0: return clamp01(1 - p * 6);
-        case 1: return clamp01(Math.min((p - 0.08) * 12, (0.32 - p) * 12));
-        case 2: return clamp01(Math.min((p - 0.24) * 12, (0.50 - p) * 10));
-        case 3: return clamp01(Math.min((p - 0.43) * 11, (0.69 - p) * 10));
-        case 4: return clamp01(Math.min((p - 0.60) * 11, (0.86 - p) * 10));
-        case 5: return clamp01((p - 0.80) * 8);
-        default: return 0;
-      }
-    }
+    const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
+    const clamp01 = (value) => clamp(value, 0, 1);
     let activeLayer = -1;
     function updateActiveLayer(p) {
-      let best = 0, bestOp = -1;
-      for (let i = 0; i < layers.length; i += 1) {
-        const op = layerOpacity(i, p);
-        if (op > bestOp) { bestOp = op; best = i; }
-      }
-      if (best === activeLayer) return;
+      const best = PowerLawEngine.layerForProgress(p);
+      if (best === activeLayer || best < 0) return;
       if (activeLayer >= 0 && layers[activeLayer]) layers[activeLayer].classList.remove("is-active");
       layers[best].classList.add("is-active");
       activeLayer = best;
     }
 
-    function updateScrollProgress() {
-      const trackHeight = Math.max(1, track.scrollHeight - window.innerHeight);
-      const progress = Math.max(0, Math.min(1, window.scrollY / trackHeight));
+    function settleScrollSlip(fromSlip) {
+      cancelAnimationFrame(settleFrame);
+      const started = performance.now();
+      function settle(now) {
+        const progress = clamp01((now - started) / 260);
+        const eased = 1 - Math.pow(1 - progress, 3);
+        root.style.setProperty("--scroll-slip", `${(fromSlip * (1 - eased)).toFixed(2)}px`);
+        root.style.setProperty("--scroll-energy", (Math.abs(fromSlip) / 22 * (1 - eased)).toFixed(3));
+        if (progress < 1) settleFrame = requestAnimationFrame(settle);
+        else scrollVelocity = 0;
+      }
+      settleFrame = requestAnimationFrame(settle);
+    }
+
+    function updateScrollProgress(now) {
+      const rect = track.getBoundingClientRect();
+      const trackHeight = Math.max(1, track.offsetHeight - window.innerHeight);
+      const progress = clamp01(-rect.top / trackHeight);
+      const elapsed = Math.max(1, now - previousScrollTime);
+      const instantVelocity = (window.scrollY - previousScrollY) / elapsed * 1000;
+      scrollVelocity += (instantVelocity - scrollVelocity) * .42;
+      const slip = reduceMotion ? 0 : clamp(-scrollVelocity / 95, -22, 22);
       root.style.setProperty("--scroll-p", progress.toFixed(4));
+      root.style.setProperty("--scroll-slip", `${slip.toFixed(2)}px`);
+      root.style.setProperty("--scroll-energy", (Math.abs(slip) / 22).toFixed(3));
       updateActiveLayer(progress);
+      previousScrollY = window.scrollY;
+      previousScrollTime = now;
+      settleScrollSlip(slip);
       ticking = false;
     }
 
     window.addEventListener("scroll", () => {
+      document.body.classList.add("is-scrolling");
+      clearTimeout(scrollStopTimer);
+      scrollStopTimer = window.setTimeout(() => document.body.classList.remove("is-scrolling"), 180);
       if (!ticking) {
         window.requestAnimationFrame(updateScrollProgress);
         ticking = true;
       }
     }, { passive: true });
-    window.addEventListener("resize", updateScrollProgress);
-    updateScrollProgress();
+    window.addEventListener("resize", () => window.requestAnimationFrame(updateScrollProgress));
+    window.requestAnimationFrame(updateScrollProgress);
 
     const branches = document.getElementById("branches");
     for (let i = 0; i < 90; i += 1) {
@@ -842,9 +964,13 @@ document.documentElement.style.setProperty("--scroll-p", progress);</code></pre>
     const betField = document.getElementById("betField");
     const attemptCount = document.getElementById("attemptCount");
     const failureCount = document.getElementById("failureCount");
-    const hitCount = document.getElementById("hitCount");
+    const neutralCount = document.getElementById("neutralCount");
+    const outlierCount = document.getElementById("outlierCount");
+    const returnCount = document.getElementById("returnCount");
     const balanceCount = document.getElementById("balanceCount");
-    const bestHitCount = document.getElementById("bestHitCount");
+    const batchButton = document.getElementById("batchButton");
+    const resetButton = document.getElementById("resetBets");
+    const portfolioStatus = document.getElementById("portfolioStatus");
     const seedParams = new URLSearchParams(location.search);
     const simulationSeed = seedParams.get("seed") || "forest-2026";
     if (!seedParams.has("seed")) {
@@ -853,36 +979,105 @@ document.documentElement.style.setProperty("--scroll-p", progress);</code></pre>
     }
     document.getElementById("seedValue").textContent = simulationSeed;
     const betEngine = PowerLawEngine.createPowerLawEngine(simulationSeed);
+    let revealFrame = 0;
+    let revealing = false;
 
     function renderBet(result) {
-      const line = document.createElement("span");
-      line.className = `trajectory${result.hit ? " hit" : ""}`;
-      line.style.setProperty("--w", `${result.visual.width}%`);
-      line.style.setProperty("--a", `${result.visual.angle}deg`);
-      line.style.setProperty("--c", result.hit ? "#fbbf24" : "rgba(251,113,133,.72)");
-      line.style.bottom = `${result.visual.bottom}px`;
-      line.title = result.hit ? `Outlier payout: ${result.payout}` : "One-unit miss";
-      betField.appendChild(line);
-      while (betField.children.length > 26) betField.removeChild(betField.firstChild);
+      if (!result) return;
+      const coin = document.createElement("li");
+      const column = (result.attempt - 1) % 10;
+      const row = Math.floor((result.attempt - 1) / 10);
+      coin.className = `bet-coin bet-coin--${result.outcome}`;
+      coin.dataset.outcome = result.outcome;
+      coin.style.setProperty("--coin-x", `${result.visual.scatterX.toFixed(2)}%`);
+      coin.style.setProperty("--coin-y", `${result.visual.scatterY.toFixed(2)}%`);
+      coin.style.setProperty("--coin-r", `${result.visual.rotation.toFixed(2)}deg`);
+      coin.style.setProperty("--grid-x", `${6 + column * (88 / 9)}%`);
+      coin.style.setProperty("--grid-y", `${12 + row * 17}%`);
+      coin.textContent = result.outcome === "outlier" ? "50×" : result.outcome === "neutral" ? "=" : "−1";
+      coin.setAttribute("aria-label", result.outcome === "outlier"
+        ? `Bet ${result.attempt}: gold outlier returned 50 units`
+        : result.outcome === "neutral"
+          ? `Bet ${result.attempt}: neutral, one unit returned`
+          : `Bet ${result.attempt}: failed, one unit lost`);
+      coin.title = coin.getAttribute("aria-label");
+      betField.appendChild(coin);
+
       const state = betEngine.state();
       attemptCount.textContent = state.attempts;
       failureCount.textContent = state.failures;
-      hitCount.textContent = state.hits;
-      balanceCount.textContent = state.balance;
-      bestHitCount.textContent = state.bestHit;
+      neutralCount.textContent = state.neutrals;
+      outlierCount.textContent = state.outliers;
+      returnCount.textContent = state.returned;
+      balanceCount.textContent = state.balance > 0 ? `+${state.balance}` : state.balance;
+      betButton.disabled = revealing || state.complete;
+      batchButton.disabled = revealing || state.complete;
+      portfolioStatus.textContent = state.complete
+        ? `Portfolio recovered: ${state.invested} units invested, ${state.returned} returned. The outlier repaid every loss.`
+        : `${state.remaining} bets remain. Current balance: ${state.balance} units.`;
+
+      if (state.complete) {
+        requestAnimationFrame(() => betField.classList.add("is-converged"));
+      }
     }
-    function addBet() { renderBet(betEngine.bet()); }
+
+    function addBet() {
+      renderBet(betEngine.bet());
+    }
+
+    function finishReveal() {
+      revealing = false;
+      const state = betEngine.state();
+      betButton.disabled = state.complete;
+      batchButton.disabled = state.complete;
+    }
+
+    function revealRemaining() {
+      if (revealing || betEngine.state().complete) return;
+      revealing = true;
+      betButton.disabled = true;
+      batchButton.disabled = true;
+      if (reduceMotion) {
+        while (!betEngine.state().complete) addBet();
+        finishReveal();
+        return;
+      }
+      function revealNext() {
+        addBet();
+        if (betEngine.state().complete) {
+          finishReveal();
+          return;
+        }
+        revealFrame = requestAnimationFrame(revealNext);
+      }
+      revealFrame = requestAnimationFrame(revealNext);
+    }
+
     betButton.addEventListener("click", addBet);
-    document.getElementById("batchButton").addEventListener("click", () => betEngine.batch(25).forEach(renderBet));
-    document.getElementById("resetBets").addEventListener("click", () => { betEngine.reset(); betField.replaceChildren(); betEngine.batch(12).forEach(renderBet); });
-    betEngine.batch(12).forEach(renderBet);
+    batchButton.addEventListener("click", revealRemaining);
+    resetButton.addEventListener("click", () => {
+      cancelAnimationFrame(revealFrame);
+      revealing = false;
+      betEngine.reset();
+      betField.replaceChildren();
+      betField.classList.remove("is-converged");
+      attemptCount.textContent = "0";
+      failureCount.textContent = "0";
+      neutralCount.textContent = "0";
+      outlierCount.textContent = "0";
+      returnCount.textContent = "0";
+      balanceCount.textContent = "0";
+      portfolioStatus.textContent = "No bets placed. Downside is capped at one unit per attempt.";
+      betButton.disabled = false;
+      batchButton.disabled = false;
+    });
 
     const canvas = document.getElementById("starfield");
     const ctx = canvas.getContext("2d");
-    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     let width = 0;
     let height = 0;
     let dpr = 1;
+    let starFrame = 0;
     const stars = Array.from({ length: 360 }, (_, i) => ({
       x: Math.random(),
       y: Math.random(),
@@ -916,9 +1111,14 @@ document.documentElement.style.setProperty("--scroll-p", progress);</code></pre>
         ctx.fillStyle = `rgba(${star.hue}, ${alpha})`;
         ctx.fill();
       }
-      if (!reduceMotion) requestAnimationFrame(drawStars);
+      if (!reduceMotion && !document.hidden) starFrame = requestAnimationFrame(drawStars);
     }
-    requestAnimationFrame(drawStars);
+    function startStars() {
+      cancelAnimationFrame(starFrame);
+      if (!reduceMotion && !document.hidden) starFrame = requestAnimationFrame(drawStars);
+    }
+    document.addEventListener("visibilitychange", startStars);
+    startStars();
   </script>
   <script>
     // Seeded distribution scatter: samples land along the real SVG curves the
