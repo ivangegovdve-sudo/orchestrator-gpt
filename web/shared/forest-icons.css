@@ -50,87 +50,91 @@ svg[data-icon] .icon-spark {
      or the loop visibly snaps when it wraps. Negative --cd delays de-phase
      the grid so the lattice never pulses in sync. */
   svg[data-icon] .icon-ring {
-    animation: fi-ring-march var(--march-t, 9s) linear infinite;
-    animation-delay: calc(var(--cd, 0) * -11s);
+    animation:
+      fi-ring-march
+      var(--march-t, calc(var(--duration-loop) * 9))
+      var(--ease-linear)
+      infinite;
+    animation-delay: calc(var(--cd, 0) * var(--duration-loop) * -11);
   }
 
   /* --- Life in Time: the dial creeps, the hands swing like a pendulum --- */
-  svg[data-icon="time"] { --march: -36px; --march-t: 12s; }
-  svg[data-icon="time"] .icon-line { animation: fi-pendulum 5.6s ease-in-out infinite; animation-delay: calc(var(--cd, 0) * -5.6s); }
-  svg[data-icon="time"] .icon-fill { animation: fi-pulse 2.8s ease-in-out infinite; }
+  svg[data-icon="time"] { --march: -36px; --march-t: calc(var(--duration-loop) * 12); }
+  svg[data-icon="time"] .icon-line { animation: fi-pendulum calc(var(--duration-loop) * 5.6) var(--ease-in-out) infinite; animation-delay: calc(var(--cd, 0) * var(--duration-loop) * -5.6); }
+  svg[data-icon="time"] .icon-fill { animation: fi-pulse calc(var(--duration-loop) * 2.8) var(--ease-in-out) infinite; }
 
   /* --- VFX Portfolio: projector flicker on the screen ------------------- */
-  svg[data-icon="vfx"] { --march: -36px; --march-t: 7s; }
-  svg[data-icon="vfx"] .icon-line { animation: fi-flicker 6.4s linear infinite; animation-delay: calc(var(--cd, 0) * -6.4s); }
-  svg[data-icon="vfx"] .icon-fill { animation: fi-blink 3.2s ease-in-out infinite; }
+  svg[data-icon="vfx"] { --march: -36px; --march-t: calc(var(--duration-loop) * 7); }
+  svg[data-icon="vfx"] .icon-line { animation: fi-flicker calc(var(--duration-loop) * 6.4) var(--ease-linear) infinite; animation-delay: calc(var(--cd, 0) * var(--duration-loop) * -6.4); }
+  svg[data-icon="vfx"] .icon-fill { animation: fi-blink calc(var(--duration-loop) * 3.2) var(--ease-in-out) infinite; }
 
   /* --- Kids Corner: the house bobs, the window light twinkles ----------- */
-  svg[data-icon="kids"] { --march: -40px; --march-t: 11s; }
-  svg[data-icon="kids"] .icon-inner { animation: fi-bob 5.2s ease-in-out infinite; animation-delay: calc(var(--cd, 0) * -5.2s); }
-  svg[data-icon="kids"] .icon-fill { animation: fi-twinkle 3.4s ease-in-out infinite; }
+  svg[data-icon="kids"] { --march: -40px; --march-t: calc(var(--duration-loop) * 11); }
+  svg[data-icon="kids"] .icon-inner { animation: fi-bob calc(var(--duration-loop) * 5.2) var(--ease-in-out) infinite; animation-delay: calc(var(--cd, 0) * var(--duration-loop) * -5.2); }
+  svg[data-icon="kids"] .icon-fill { animation: fi-twinkle calc(var(--duration-loop) * 3.4) var(--ease-in-out) infinite; }
 
   /* --- Women's Health OS: EKG double-thump, monitor breathes ------------ */
-  svg[data-icon="health"] { --march: -32px; --march-t: 10s; }
-  svg[data-icon="health"] .icon-line { animation: fi-thump 1.9s ease-in-out infinite; animation-delay: calc(var(--cd, 0) * -1.9s); }
-  svg[data-icon="health"] .icon-fill { animation: fi-heartbeat 1.9s ease-in-out infinite; animation-delay: calc(var(--cd, 0) * -1.9s); }
+  svg[data-icon="health"] { --march: -32px; --march-t: calc(var(--duration-loop) * 10); }
+  svg[data-icon="health"] .icon-line { animation: fi-thump calc(var(--duration-loop) * 1.9) var(--ease-in-out) infinite; animation-delay: calc(var(--cd, 0) * var(--duration-loop) * -1.9); }
+  svg[data-icon="health"] .icon-fill { animation: fi-heartbeat calc(var(--duration-loop) * 1.9) var(--ease-in-out) infinite; animation-delay: calc(var(--cd, 0) * var(--duration-loop) * -1.9); }
 
   /* --- Councils: bubbles lean toward each other, a dot "types" ---------- */
-  svg[data-icon="council"] { --march: -36px; --march-t: 8s; }
-  svg[data-icon="council"] .icon-line { animation: fi-confer 8s ease-in-out infinite; animation-delay: calc(var(--cd, 0) * -8s); }
-  svg[data-icon="council"] .icon-fill { animation: fi-typing 1.6s ease-in-out infinite; }
+  svg[data-icon="council"] { --march: -36px; --march-t: calc(var(--duration-loop) * 8); }
+  svg[data-icon="council"] .icon-line { animation: fi-confer calc(var(--duration-loop) * 8) var(--ease-in-out) infinite; animation-delay: calc(var(--cd, 0) * var(--duration-loop) * -8); }
+  svg[data-icon="council"] .icon-fill { animation: fi-typing calc(var(--duration-loop) * 1.6) var(--ease-in-out) infinite; }
 
   /* --- Library: a reader scans the shelf ------------------------------- */
-  svg[data-icon="library"] { --march: -36px; --march-t: 12s; }
-  svg[data-icon="library"] .icon-fill { animation: fi-scan 7.5s ease-in-out infinite; }
-  svg[data-icon="library"] .icon-line { animation: fi-lean 7.5s ease-in-out infinite; }
+  svg[data-icon="library"] { --march: -36px; --march-t: calc(var(--duration-loop) * 12); }
+  svg[data-icon="library"] .icon-fill { animation: fi-scan calc(var(--duration-loop) * 7.5) var(--ease-in-out) infinite; }
+  svg[data-icon="library"] .icon-line { animation: fi-lean calc(var(--duration-loop) * 7.5) var(--ease-in-out) infinite; }
 
   /* --- Calendar: the marker hops between dates -------------------------- */
-  svg[data-icon="calendar"] { --march: -40px; --march-t: 10s; }
-  svg[data-icon="calendar"] .icon-fill { animation: fi-date-hop 6.4s ease-in-out infinite; }
+  svg[data-icon="calendar"] { --march: -40px; --march-t: calc(var(--duration-loop) * 10); }
+  svg[data-icon="calendar"] .icon-fill { animation: fi-date-hop calc(var(--duration-loop) * 6.4) var(--ease-in-out) infinite; }
 
   /* --- Hyper Trophy OS: reps — squeeze, hold, release -------------------- */
-  svg[data-icon="muscle"] { --march: -40px; --march-t: 9s; }
-  svg[data-icon="muscle"] .icon-inner { animation: fi-pump 2.6s ease-in-out infinite; animation-delay: calc(var(--cd, 0) * -2.6s); }
-  svg[data-icon="muscle"] .icon-fill { animation: fi-pump-core 2.6s ease-in-out infinite; animation-delay: calc(var(--cd, 0) * -2.6s); }
+  svg[data-icon="muscle"] { --march: -40px; --march-t: calc(var(--duration-loop) * 9); }
+  svg[data-icon="muscle"] .icon-inner { animation: fi-pump calc(var(--duration-loop) * 2.6) var(--ease-in-out) infinite; animation-delay: calc(var(--cd, 0) * var(--duration-loop) * -2.6); }
+  svg[data-icon="muscle"] .icon-fill { animation: fi-pump-core calc(var(--duration-loop) * 2.6) var(--ease-in-out) infinite; animation-delay: calc(var(--cd, 0) * var(--duration-loop) * -2.6); }
 
   /* --- Manifesto: ink breathes, a comet rides the quill stroke ----------- */
-  svg[data-icon="manifesto"] { --march: -36px; --march-t: 10s; }
-  svg[data-icon="manifesto"] .icon-line { animation: fi-inkflow 4.6s ease-in-out infinite; }
-  svg[data-icon="manifesto"] .icon-fill { animation: fi-comet 4.6s ease-in-out infinite; }
+  svg[data-icon="manifesto"] { --march: -36px; --march-t: calc(var(--duration-loop) * 10); }
+  svg[data-icon="manifesto"] .icon-line { animation: fi-inkflow calc(var(--duration-loop) * 4.6) var(--ease-in-out) infinite; }
+  svg[data-icon="manifesto"] .icon-fill { animation: fi-comet calc(var(--duration-loop) * 4.6) var(--ease-in-out) infinite; }
 
   /* --- M.Popova Poetry: stems sway in wind, a firefly wanders ------------ */
-  svg[data-icon="poetry"] { --march: -32px; --march-t: 14s; }
+  svg[data-icon="poetry"] { --march: -32px; --march-t: calc(var(--duration-loop) * 14); }
   svg[data-icon="poetry"] .icon-line {
     transform-box: fill-box;
     transform-origin: 15% 85%;
-    animation: fi-sway 6s ease-in-out infinite;
-    animation-delay: calc(var(--cd, 0) * -6s);
+    animation: fi-sway calc(var(--duration-loop) * 6) var(--ease-in-out) infinite;
+    animation-delay: calc(var(--cd, 0) * var(--duration-loop) * -6);
   }
-  svg[data-icon="poetry"] .icon-fill { animation: fi-firefly 7s ease-in-out infinite; }
+  svg[data-icon="poetry"] .icon-fill { animation: fi-firefly calc(var(--duration-loop) * 7) var(--ease-in-out) infinite; }
 
   /* --- Power Law Odyssey: a sample rides the heavy-tail curve ------------ */
-  svg[data-icon="power"] { --march: -36px; --march-t: 7.5s; }
-  svg[data-icon="power"] .icon-fill { animation: fi-pulse 2.6s ease-in-out infinite; }
+  svg[data-icon="power"] { --march: -36px; --march-t: calc(var(--duration-loop) * 7.5); }
+  svg[data-icon="power"] .icon-fill { animation: fi-pulse calc(var(--duration-loop) * 2.6) var(--ease-in-out) infinite; }
 
   /* --- Morning News: live dot broadcasts, ticker hums --------------------- */
-  svg[data-icon="news"] { --march: -36px; --march-t: 4.2s; }
-  svg[data-icon="news"] .icon-fill { animation: fi-live 2.2s ease-in-out infinite; }
-  svg[data-icon="news"] .icon-line { animation: fi-ticker 3.6s ease-in-out infinite; }
+  svg[data-icon="news"] { --march: -36px; --march-t: calc(var(--duration-loop) * 4.2); }
+  svg[data-icon="news"] .icon-fill { animation: fi-live calc(var(--duration-loop) * 2.2) var(--ease-in-out) infinite; }
+  svg[data-icon="news"] .icon-line { animation: fi-ticker calc(var(--duration-loop) * 3.6) var(--ease-in-out) infinite; }
 
   /* --- Replicator Void: the spiral turns, the shell counter-turns -------- */
-  svg[data-icon="void"] { --march: 33px; --march-t: 9s; }
-  svg[data-icon="void"] .icon-line { animation: fi-spin 13s linear infinite; }
-  svg[data-icon="void"] .icon-fill { animation: fi-pulse 2s ease-in-out infinite; }
+  svg[data-icon="void"] { --march: 33px; --march-t: calc(var(--duration-loop) * 9); }
+  svg[data-icon="void"] .icon-line { animation: fi-spin calc(var(--duration-loop) * 13) var(--ease-linear) infinite; }
+  svg[data-icon="void"] .icon-fill { animation: fi-pulse calc(var(--duration-loop) * 2) var(--ease-in-out) infinite; }
 
   /* --- Multiply Magic: × turns into + and keeps going --------------------- */
-  svg[data-icon="multiply"] { --march: -40px; --march-t: 9s; }
-  svg[data-icon="multiply"] .icon-line { animation: fi-quarter 12s ease-in-out infinite; animation-delay: calc(var(--cd, 0) * -12s); }
-  svg[data-icon="multiply"] .icon-fill { animation: fi-pulse 3s ease-in-out infinite; }
+  svg[data-icon="multiply"] { --march: -40px; --march-t: calc(var(--duration-loop) * 9); }
+  svg[data-icon="multiply"] .icon-line { animation: fi-quarter calc(var(--duration-loop) * 12) var(--ease-in-out) infinite; animation-delay: calc(var(--cd, 0) * var(--duration-loop) * -12); }
+  svg[data-icon="multiply"] .icon-fill { animation: fi-pulse calc(var(--duration-loop) * 3) var(--ease-in-out) infinite; }
 
   /* --- Math Forest: the mountain breathes, the summit star twinkles ------ */
-  svg[data-icon="math"] { --march: -36px; --march-t: 11s; }
-  svg[data-icon="math"] .icon-inner { animation: fi-breathe 6.5s ease-in-out infinite; animation-delay: calc(var(--cd, 0) * -6.5s); }
-  svg[data-icon="math"] .icon-fill { animation: fi-twinkle 3s ease-in-out infinite; }
+  svg[data-icon="math"] { --march: -36px; --march-t: calc(var(--duration-loop) * 11); }
+  svg[data-icon="math"] .icon-inner { animation: fi-breathe calc(var(--duration-loop) * 6.5) var(--ease-in-out) infinite; animation-delay: calc(var(--cd, 0) * var(--duration-loop) * -6.5); }
+  svg[data-icon="math"] .icon-fill { animation: fi-twinkle calc(var(--duration-loop) * 3) var(--ease-in-out) infinite; }
 
   /* Desktop-only, capability-gated: the power-law sample actually travels
      the curve (native motion path; falls back to the pulse above). */
@@ -141,7 +145,7 @@ svg[data-icon] .icon-spark {
         cy: 0;
         offset-path: path('M12 36c8 0 10-1 15-4 7-5 6-15 12-22');
         offset-rotate: 0deg;
-        animation: fi-ride 5.2s ease-in-out infinite;
+        animation: fi-ride calc(var(--duration-loop) * 5.2) var(--ease-in-out) infinite;
       }
     }
   }
@@ -149,8 +153,8 @@ svg[data-icon] .icon-spark {
   /* Lighter idles on small screens / touch devices: slow the spinners,
      drop the fastest loop, keep the gentle ones. */
   @media (max-width: 900px), (pointer: coarse) {
-    svg[data-icon="void"] .icon-line { animation-duration: 22s; }
-    svg[data-icon="news"] { --march-t: 8s; }
+    svg[data-icon="void"] .icon-line { animation-duration: calc(var(--duration-loop) * 22); }
+    svg[data-icon="news"] { --march-t: calc(var(--duration-loop) * 8); }
     svg[data-icon="multiply"] .icon-line { animation: none; }
   }
 
