@@ -1,26 +1,33 @@
 <!DOCTYPE html>
-<html lang="en" class="forest-skin forest-palette">
+<html lang="en" class="forest-skin">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>The Power Law Odyssey | Forest HUB</title>
   <meta name="description" content="A 3D scrollytelling page about normal distributions, power laws, compounding, asymmetric risk, and repeated intelligent bets.">
-  <link rel="stylesheet" href="/web/shared/forest-shell.css?v=20260723">
-  <link rel="stylesheet" href="/web/shared/forest-design.css?v=20260723">
+  <link rel="stylesheet" href="/web/shared/forest-shell.css?v=20260725">
+  <link rel="stylesheet" href="/web/shared/forest-design.css?v=20260725">
   <style>
     :root {
-      --bg: #070a08;
+      --bg: #07070b;
+      --surface: #0f0f15;
+      --accent: #4f46e5;
       --ink: #f2efe4;
       --muted: #a9b3a1;
       --line: rgba(226,235,209,.12);
       --panel: rgba(13,18,14,.72);
-      --accent: #e8b86b;
-      --cyan: #8fe6ae;
-      --gold: #e8b86b;
-      --green: #8fe6ae;
-      --rose: #d98a7f;
-      --violet: #e8b86b;
-      --orange: #e8996b;
+      --power-cyan: #8fe6ae;
+      --power-gold: #e8b86b;
+      --power-green: #8fe6ae;
+      --power-rose: #d98a7f;
+      --power-violet: #e8b86b;
+      --power-orange: #e8996b;
+      --cyan: var(--power-cyan);
+      --gold: var(--power-gold);
+      --green: var(--power-green);
+      --rose: var(--power-rose);
+      --violet: var(--power-violet);
+      --orange: var(--power-orange);
       --scroll-p: 0;
       --scroll-slip: 0px;
       --scroll-energy: 0;
@@ -34,7 +41,7 @@
       font-family: var(--forest-body, Alegreya, Georgia, serif);
       background:
         radial-gradient(circle at 50% -20%, rgba(143,230,174,.14), transparent 34rem),
-        linear-gradient(180deg, #070a08 0%, #0c120d 50%, #070a08 100%);
+        linear-gradient(180deg, var(--bg) 0%, var(--surface) 50%, var(--bg) 100%);
       overflow-x: clip;
     }
 
@@ -138,7 +145,8 @@
       gap: 24px;
       justify-items: center;
       transform: translate3d(var(--scroll-slip), 0, 0);
-      transition: transform 140ms cubic-bezier(.16,1,.3,1);
+      transition:
+        transform var(--duration-fast) var(--ease-out);
     }
     .eyebrow {
       margin: 0;
@@ -435,10 +443,10 @@
       font: 700 10px/1 var(--forest-sans, sans-serif);
       transform: translate(-50%, -50%) rotate(var(--coin-r));
       transition:
-        left 500ms cubic-bezier(.16,1,.3,1),
-        top 500ms cubic-bezier(.16,1,.3,1),
-        transform 500ms cubic-bezier(.16,1,.3,1),
-        box-shadow 500ms ease;
+        left var(--duration-recovery) var(--ease-out),
+        top var(--duration-recovery) var(--ease-out),
+        transform var(--duration-recovery) var(--ease-out),
+        box-shadow var(--duration-recovery) var(--ease-out);
     }
     .bet-coin[data-outcome="neutral"] {
       color: var(--cyan);
@@ -485,20 +493,83 @@
        head and sends rare outliers streaking into the tail. */
     .scatter-dot { fill: currentColor; transform-box: fill-box; transform-origin: center; }
     @media (prefers-reduced-motion: no-preference) {
-      .scatter-dot { animation: dot-scatter .9s cubic-bezier(.22,1,.36,1) calc(var(--sd, 0) * 1s) backwards; }
+      .scatter-dot {
+        animation:
+          dot-scatter
+          var(--duration-loop)
+          var(--ease-out)
+          calc(var(--sd, 0) * var(--duration-loop))
+          backwards;
+      }
       .scatter-dot.outlier {
         animation:
-          dot-scatter 1.15s cubic-bezier(.22,1,.36,1) calc(var(--sd, 0) * 1s) backwards,
-          scatter-outlier-glow 3s ease-in-out calc(var(--sd, 0) * 1s + 1.2s) infinite;
+          dot-scatter
+          var(--duration-highlight)
+          var(--ease-out)
+          calc(var(--sd, 0) * var(--duration-loop))
+          backwards,
+          scatter-outlier-glow
+          var(--duration-loop-fast)
+          var(--ease-out)
+          calc(
+            var(--sd, 0) * var(--duration-loop)
+            + var(--duration-dot-pulse)
+          )
+          infinite;
       }
-      .tail-zone { animation: tail-breathe 4.5s ease-in-out infinite; }
-      .bet-coin[data-outcome="failure"] { animation: coin-arrive .34s cubic-bezier(.22,1,.36,1) backwards, fail-shake .2s linear .34s; }
-      .bet-coin[data-outcome="neutral"] { animation: coin-arrive .34s cubic-bezier(.22,1,.36,1) backwards; }
-      .bet-coin[data-outcome="outlier"] { animation: coin-arrive .45s cubic-bezier(.22,1,.36,1) backwards, outlier-glow 1.4s ease .45s infinite alternate; }
-      #layer1 .layer-inner > * { animation: pl-rise .85s cubic-bezier(.16,1,.3,1) backwards; }
-      #layer1 .layer-inner > :nth-child(2) { animation-delay: .1s; }
-      #layer1 .layer-inner > :nth-child(3) { animation-delay: .2s; }
-      #layer1 .layer-inner > :nth-child(4) { animation-delay: .34s; }
+      .tail-zone {
+        animation:
+          tail-breathe
+          var(--duration-loop-slow)
+          var(--ease-out)
+          infinite;
+      }
+      .bet-coin[data-outcome="failure"] {
+        animation:
+          coin-arrive
+          var(--duration-normal)
+          var(--ease-out)
+          backwards,
+          fail-shake
+          var(--duration-shake)
+          var(--ease-out)
+          var(--duration-normal);
+      }
+      .bet-coin[data-outcome="neutral"] {
+        animation:
+          coin-arrive
+          var(--duration-normal)
+          var(--ease-out)
+          backwards;
+      }
+      .bet-coin[data-outcome="outlier"] {
+        animation:
+          coin-arrive
+          var(--duration-spring)
+          var(--ease-out)
+          backwards,
+          outlier-glow
+          var(--duration-dot-pulse)
+          var(--ease-out)
+          var(--duration-spring)
+          infinite alternate;
+      }
+      #layer1 .layer-inner > * {
+        animation:
+          pl-rise
+          var(--duration-crown-enter)
+          var(--ease-out)
+          backwards;
+      }
+      #layer1 .layer-inner > :nth-child(2) {
+        animation-delay: var(--delay-stagger-sm);
+      }
+      #layer1 .layer-inner > :nth-child(3) {
+        animation-delay: calc(var(--delay-stagger-sm) * 2);
+      }
+      #layer1 .layer-inner > :nth-child(4) {
+        animation-delay: var(--duration-normal);
+      }
     }
     @keyframes dot-scatter {
       from { opacity: 0; transform: translate(var(--dx, 0px), -46px) scale(0); }
@@ -562,6 +633,7 @@
       margin-top: 28px;
     }
     .blueprint-card {
+      min-width: 0;
       border: 1px solid var(--line);
       border-radius: 8px;
       padding: 20px;
@@ -598,6 +670,7 @@
     }
     .component-table th { color: #f2efe4; }
     pre {
+      max-width: 100%;
       margin: 0;
       overflow: auto;
       padding: 18px;
@@ -644,7 +717,7 @@
       #layer5 { --origin-z: -825px; --z-velocity: 1000px; }
       #layer6 { --origin-z: -950px; --z-velocity: 1000px; }
       .blueprint { padding-top: 56px; }
-      .component-table { display: block; overflow-x: auto; }
+      .component-table { display: block; width: 100%; max-width: 100%; overflow-x: auto; }
     }
 
     @media (prefers-reduced-motion: reduce) {
@@ -660,7 +733,27 @@
         z-index: auto !important;
       }
       .layer-inner { transform: none !important; transition: none !important; }
-      .bet-coin { animation: none !important; transition: none !important; }
+      .bet-field {
+        display: grid;
+        grid-template-columns: repeat(10, minmax(20px, 1fr));
+        align-content: start;
+        gap: 8px 4px;
+        height: auto;
+        min-height: 220px;
+        padding: 14px 10px 38px;
+      }
+      .bet-coin,
+      .bet-field.is-converged .bet-coin,
+      .bet-field.is-converged .bet-coin[data-outcome="outlier"] {
+        position: relative;
+        left: auto !important;
+        top: auto !important;
+        width: min(28px, 100%);
+        justify-self: center;
+        animation: none !important;
+        transition: none !important;
+        transform: none !important;
+      }
       .starfield, .vignette { display: none; }
     }
   </style>
@@ -674,7 +767,7 @@
       <canvas class="starfield" id="starfield" aria-hidden="true"></canvas>
       <div class="vignette" aria-hidden="true"></div>
       <main class="stage-3d" aria-label="Power Law Odyssey scrollytelling">
-        <section class="layer" id="layer1">
+        <section class="layer is-active" id="layer1" aria-hidden="false">
           <div class="layer-inner">
             <p class="eyebrow">0-15% Scroll | Disruption</p>
             <h1>Are you playing the game of life wrong?</h1>
@@ -683,7 +776,7 @@
           </div>
         </section>
 
-        <section class="layer" id="layer2">
+        <section class="layer" id="layer2" inert aria-hidden="true">
           <div class="layer-inner">
             <p class="eyebrow">15-35% Scroll | Bifurcation Matrix</p>
             <h2>Reality splits into two operating systems.</h2>
@@ -718,7 +811,7 @@
           </div>
         </section>
 
-        <section class="layer" id="layer3">
+        <section class="layer" id="layer3" inert aria-hidden="true">
           <div class="layer-inner">
             <p class="eyebrow">35-55% Scroll | Multiplication Avalanche</p>
             <h2>Addition cancels. Multiplication compounds.</h2>
@@ -733,7 +826,7 @@
           </div>
         </section>
 
-        <section class="layer" id="layer4">
+        <section class="layer" id="layer4" inert aria-hidden="true">
           <div class="layer-inner">
             <p class="eyebrow">55-75% Scroll | Asymmetric Risk</p>
             <h2>Failure has a floor. Upside has altitude.</h2>
@@ -751,7 +844,7 @@
           </div>
         </section>
 
-        <section class="layer" id="layer5">
+        <section class="layer" id="layer5" inert aria-hidden="true">
           <div class="layer-inner">
             <p class="eyebrow">75-90% Scroll | Venture Bet Sandbox</p>
             <h2>Most attempts flatline. One outlier can pay for all of them.</h2>
@@ -759,7 +852,7 @@
             <div class="sandbox">
               <div class="sandbox-head">
                 <div class="sandbox-actions"><button class="bet-button" id="betButton" type="button">Place next bet</button><button class="bet-button secondary" id="batchButton" type="button">Reveal all 50</button><button class="bet-button secondary" id="resetBets" type="button">Reset portfolio</button></div>
-                <div class="sandbox-stats" aria-live="polite">
+                <div class="sandbox-stats">
                   <span>Attempts: <strong id="attemptCount">0</strong></span>
                   <span>Failures: <strong id="failureCount">0</strong></span>
                   <span>Neutral: <strong id="neutralCount">0</strong></span>
@@ -769,13 +862,13 @@
                 </div>
                 <div class="seed-readout">Exact composition · 47 fail / 2 neutral / 1 outlier · seed: <strong id="seedValue"></strong></div>
               </div>
-              <p class="portfolio-status" id="portfolioStatus" aria-live="polite">No bets placed. Downside is capped at one unit per attempt.</p>
+              <p class="portfolio-status" id="portfolioStatus" role="status" aria-live="polite" aria-atomic="true">No bets placed. Downside is capped at one unit per attempt.</p>
               <ol class="bet-field" id="betField" aria-label="50-bet portfolio"></ol>
             </div>
           </div>
         </section>
 
-        <section class="layer" id="layer6">
+        <section class="layer" id="layer6" inert aria-hidden="true">
           <div class="layer-inner">
             <p class="eyebrow">90-100% Scroll | Epiphany</p>
             <h2>Do not be average on a safe curve.</h2>
@@ -821,7 +914,7 @@
       </article>
       <article class="blueprint-card">
         <h3>Step 5: Venture Bet Sandbox</h3>
-        <p>An interactive simulation lets the user place repeated bets. Most attempts flatline, mirroring a 94% base failure rate in startups or creative output, but one outlier can recover cumulative losses.</p>
+        <p>This deliberately modeled portfolio sets 47 of 50 attempts to failure—a 94% simulation rate—plus two break-even attempts and one recovering outlier. It demonstrates skew; it is not presented as a measured failure rate for startups or creative work.</p>
       </article>
       <article class="blueprint-card">
         <h3>Step 6: Epiphany</h3>
@@ -880,7 +973,7 @@ document.documentElement.style.setProperty("--scroll-p", progress);</code></pre>
     </div>
   </section>
 
-  <script src="/web/power-law-odyssey/power-law-engine.js?v=20260725-power50"></script>
+  <script src="/web/power-law-odyssey/power-law-engine.js?v=20260725"></script>
   <script>
     const track = document.getElementById("scrollTrack");
     const root = document.documentElement;
@@ -898,11 +991,26 @@ document.documentElement.style.setProperty("--scroll-p", progress);</code></pre>
     let activeLayer = -1;
     function updateActiveLayer(p) {
       const best = PowerLawEngine.layerForProgress(p);
-      if (best === activeLayer || best < 0) return;
-      if (activeLayer >= 0 && layers[activeLayer]) layers[activeLayer].classList.remove("is-active");
-      layers[best].classList.add("is-active");
-      activeLayer = best;
+      if (best < 0) return;
+      if (best !== activeLayer) {
+        if (activeLayer >= 0 && layers[activeLayer]) {
+          layers[activeLayer].classList.remove("is-active");
+        }
+        layers[best].classList.add("is-active");
+        activeLayer = best;
+      }
+      layers.forEach((layer, index) => {
+        if (reduceMotion) {
+          layer.inert = false;
+          layer.removeAttribute("aria-hidden");
+          return;
+        }
+        const isActive = index === best;
+        layer.inert = !isActive;
+        layer.setAttribute("aria-hidden", String(!isActive));
+      });
     }
+    updateActiveLayer(0);
 
     function settleScrollSlip(fromSlip) {
       cancelAnimationFrame(settleFrame);
@@ -982,7 +1090,13 @@ document.documentElement.style.setProperty("--scroll-p", progress);</code></pre>
     let revealFrame = 0;
     let revealing = false;
 
-    function renderBet(result) {
+    function getPortfolioMessage(state) {
+      return state.complete
+        ? `Portfolio recovered: ${state.invested} units invested, ${state.returned} returned. The outlier repaid every loss.`
+        : `${state.remaining} bets remain. Current balance: ${state.balance} units.`;
+    }
+
+    function renderBet(result, { announce = true } = {}) {
       if (!result) return;
       const coin = document.createElement("li");
       const column = (result.attempt - 1) % 10;
@@ -1012,24 +1126,23 @@ document.documentElement.style.setProperty("--scroll-p", progress);</code></pre>
       balanceCount.textContent = state.balance > 0 ? `+${state.balance}` : state.balance;
       betButton.disabled = revealing || state.complete;
       batchButton.disabled = revealing || state.complete;
-      portfolioStatus.textContent = state.complete
-        ? `Portfolio recovered: ${state.invested} units invested, ${state.returned} returned. The outlier repaid every loss.`
-        : `${state.remaining} bets remain. Current balance: ${state.balance} units.`;
+      if (announce) portfolioStatus.textContent = getPortfolioMessage(state);
 
       if (state.complete) {
         requestAnimationFrame(() => betField.classList.add("is-converged"));
       }
     }
 
-    function addBet() {
-      renderBet(betEngine.bet());
+    function addBet(options) {
+      renderBet(betEngine.bet(), options);
     }
 
-    function finishReveal() {
+    function finishReveal({ announce = false } = {}) {
       revealing = false;
       const state = betEngine.state();
       betButton.disabled = state.complete;
       batchButton.disabled = state.complete;
+      if (announce) portfolioStatus.textContent = getPortfolioMessage(state);
     }
 
     function revealRemaining() {
@@ -1038,14 +1151,14 @@ document.documentElement.style.setProperty("--scroll-p", progress);</code></pre>
       betButton.disabled = true;
       batchButton.disabled = true;
       if (reduceMotion) {
-        while (!betEngine.state().complete) addBet();
-        finishReveal();
+        while (!betEngine.state().complete) addBet({ announce: false });
+        finishReveal({ announce: true });
         return;
       }
       function revealNext() {
-        addBet();
+        addBet({ announce: false });
         if (betEngine.state().complete) {
-          finishReveal();
+          finishReveal({ announce: true });
           return;
         }
         revealFrame = requestAnimationFrame(revealNext);
@@ -1190,6 +1303,6 @@ document.documentElement.style.setProperty("--scroll-p", progress);</code></pre>
       observer.observe(layer2, { attributes: true, attributeFilter: ["class"] });
     })();
   </script>
-  <script src="/web/shared/forest-motion.js?v=20260714"></script>
+  <script src="/web/shared/forest-motion.js?v=20260725"></script>
 </body>
 </html>
