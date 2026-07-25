@@ -1,13 +1,20 @@
 :root {
-  --bg: #f8fafc;
-  --panel: #ffffff;
-  --panel-soft: #eef6f3;
-  --text: #16211d;
-  --muted: #64736d;
-  --border: #d9e4df;
-  --accent: #12785a;
-  --accent-2: #b45309;
-  --shadow: 0 18px 45px rgba(22, 33, 29, 0.08);
+  --bg: #07070b;
+  --surface: #0f0f15;
+  --border: rgba(255,255,255,.08);
+  --text-primary: #f3f4f6;
+  --text-muted: #9ca3af;
+  --accent: #4f46e5;
+  --accent-green: #22c55e;
+  --radius: 8px;
+  --font: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  --panel: var(--surface);
+  --panel-soft: #151b19;
+  --text: var(--text-primary);
+  --muted: var(--text-muted);
+  --movie-accent: var(--accent-green);
+  --movie-warm: #f59e0b;
+  --shadow: 0 18px 45px rgba(0, 0, 0, .28);
 }
 
 * {
@@ -16,9 +23,10 @@
 
 body {
   margin: 0;
+  overflow-x: hidden;
   color: var(--text);
   background:
-    linear-gradient(180deg, #edf7f2 0, transparent 420px),
+    linear-gradient(180deg, rgba(34,197,94,.09) 0, transparent 420px),
     var(--bg);
   font-family: var(--forest-body, Alegreya, Georgia, serif);
 }
@@ -39,7 +47,7 @@ body {
 
 .eyebrow {
   margin: 0 0 8px;
-  color: var(--accent);
+  color: var(--movie-accent);
   font-family: var(--forest-sans, "Alegreya Sans", sans-serif);
   font-size: 12px;
   font-weight: 700;
@@ -77,7 +85,7 @@ h2 {
 
 .back-link {
   flex: 0 0 auto;
-  color: var(--accent);
+  color: var(--movie-accent);
   font-weight: 700;
   text-decoration: none;
 }
@@ -98,7 +106,7 @@ h2 {
 .movie-card,
 .controls {
   border: 1px solid var(--border);
-  background: rgba(255, 255, 255, 0.88);
+  background: color-mix(in srgb, var(--surface) 92%, transparent);
   border-radius: 8px;
   box-shadow: var(--shadow);
 }
@@ -110,7 +118,7 @@ h2 {
 .summary-grid strong {
   display: block;
   font-size: 32px;
-  color: var(--accent);
+  color: var(--movie-accent);
 }
 
 .summary-grid span,
@@ -144,9 +152,10 @@ button {
 input,
 select {
   width: 100%;
+  min-height: 44px;
   border: 1px solid var(--border);
   border-radius: 6px;
-  background: #fff;
+  background: #15151c;
   color: var(--text);
   padding: 9px 10px;
 }
@@ -174,7 +183,7 @@ button {
 .tag-list span,
 .movie-meta span {
   border: 1px solid var(--border);
-  background: #fff;
+  background: rgba(255,255,255,.035);
   border-radius: 999px;
   color: var(--text);
   padding: 5px 9px;
@@ -182,9 +191,9 @@ button {
 }
 
 .tag-chip.active {
-  border-color: rgba(18, 120, 90, 0.45);
+  border-color: color-mix(in srgb, var(--movie-accent) 48%, transparent);
   background: var(--panel-soft);
-  color: var(--accent);
+  color: var(--movie-accent);
   font-weight: 800;
 }
 
@@ -203,9 +212,9 @@ button {
 }
 
 .already-watched li {
-  border: 1px solid #ead6c0;
-  background: #fff8ed;
-  color: #7c3f09;
+  border: 1px solid rgba(245,158,11,.28);
+  background: rgba(245,158,11,.08);
+  color: #f7ca87;
   border-radius: 999px;
   padding: 6px 10px;
   font-size: 13px;
@@ -250,9 +259,10 @@ button {
 
 .watch-btn {
   flex: 0 0 auto;
-  border: 1px solid rgba(18, 120, 90, 0.4);
+  min-height: 46px;
+  border: 1px solid color-mix(in srgb, var(--movie-accent) 44%, transparent);
   background: var(--panel-soft);
-  color: var(--accent);
+  color: var(--movie-accent);
   border-radius: 6px;
   padding: 8px 10px;
   font-weight: 800;
@@ -282,12 +292,14 @@ button {
   border: 0;
   background: transparent;
   color: #cbd5d0;
-  padding: 0 2px;
+  min-width: 46px;
+  min-height: 46px;
+  padding: 0;
   font-size: 22px;
 }
 
 .star-btn.active {
-  color: var(--accent-2);
+  color: var(--movie-warm);
 }
 
 .hidden {
@@ -302,7 +314,7 @@ input:focus-visible,
 select:focus-visible,
 button:focus-visible,
 a:focus-visible {
-  outline: 3px solid rgba(18, 120, 90, 0.45);
+  outline: 3px solid color-mix(in srgb, var(--accent) 62%, transparent);
   outline-offset: 2px;
 }
 
@@ -326,36 +338,49 @@ a:focus-visible {
 }
 
 .movie-card {
-  animation: movieCardIn 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation: movieCardIn var(--duration-spring) var(--spring) both;
 }
 
 .tag-chip {
-  transition: background 0.18s, border-color 0.18s, color 0.18s, transform 0.15s;
-}
-.tag-chip:hover {
-  transform: translateY(-1px);
+  min-height: 44px;
+  transition:
+    background-color var(--duration-fast) var(--ease-out),
+    border-color var(--duration-fast) var(--ease-out),
+    color var(--duration-fast) var(--ease-out),
+    transform var(--duration-fast) var(--ease-out);
 }
 .tag-chip.active {
   transform: translateY(-1px);
 }
 
 .watch-btn {
-  transition: background 0.15s, transform 0.15s, box-shadow 0.15s;
-}
-.watch-btn:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(18, 120, 90, 0.2);
+  transition:
+    background-color var(--duration-fast) var(--ease-out),
+    transform var(--duration-fast) var(--ease-out),
+    box-shadow var(--duration-fast) var(--ease-out);
 }
 
 .movie-card.watched {
-  transition: opacity 0.3s;
+  transition: opacity var(--duration-normal) var(--ease-out);
 }
 
 .summary-grid div {
-  transition: box-shadow 0.2s;
+  transition: box-shadow var(--duration-fast) var(--ease-out);
 }
-.summary-grid div:hover {
-  box-shadow: 0 24px 56px rgba(22, 33, 29, 0.14);
+
+@media (hover: hover) {
+  .tag-chip:hover,
+  .watch-btn:hover {
+    transform: translateY(-1px);
+  }
+
+  .watch-btn:hover {
+    box-shadow: 0 4px 12px rgba(34,197,94,.2);
+  }
+
+  .summary-grid div:hover {
+    box-shadow: 0 24px 56px rgba(0,0,0,.38);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
