@@ -6,22 +6,63 @@
   const FIRST_TOKEN_TIMEOUT = 45_000;
   const STREAM_HARD_CAP = 120_000;
 
-  const TINY_MINDS = {
-    eve: {
+  const TINY_ROSTER = [
+    {
+      key: 'proposer',
+      role: 'proposer',
+      stageKey: 'tinylm-proposer',
+      label: 'Tiny-Agent',
+      model: 'hf.co/driaforall/Tiny-Agent-a-0.5B:latest',
+      maxTokens: 260,
+      prompt(proposition) {
+        return `You are the proposer in a five-role, stateless public council.\n\nProposition:\n"${proposition}"\n\nState a direct position, give the strongest reason for it, and name the central trade-off. Be concise. Do not claim access to memory, tools, personal context, or other agents.`;
+      },
+    },
+    {
+      key: 'analyst',
+      role: 'analyst',
+      stageKey: 'tinylm-analyst',
+      label: 'llama3.2:1b',
+      model: 'llama3.2:1b',
+      maxTokens: 300,
+      prompt(proposition, outputs) {
+        return `You are the analyst in a five-role, stateless public council.\n\nProposition:\n"${proposition}"\n\nTiny-Agent proposal:\n${outputs.proposer.slice(0, 1400)}\n\nBreak the claim into assumptions, evidence needs, and likely consequences. Do not claim access to memory, tools, personal context, or other agents.`;
+      },
+    },
+    {
+      key: 'critic',
+      role: 'critic',
+      stageKey: 'tinylm-critic',
+      label: 'qwen2.5:0.5b',
+      model: 'qwen2.5:0.5b',
+      maxTokens: 280,
+      prompt(proposition, outputs) {
+        return `You are the critic in a five-role, stateless public council.\n\nProposition:\n"${proposition}"\n\nTiny-Agent proposal:\n${outputs.proposer.slice(0, 1400)}\n\nStress-test the proposal fairly. Identify its weakest assumption, strongest counterargument, and one failure mode. Do not claim access to memory, tools, personal context, or other agents.`;
+      },
+    },
+    {
+      key: 'observer',
+      role: 'consciousness observer',
+      stageKey: 'tinylm-observer',
+      label: 'EVE',
       model: 'hf.co/mradermacher/eve-qwen2.5-3b-consciousness-soul-GGUF:Q4_K_M',
       maxTokens: 300,
-      prompt(proposition) {
-        return `Consider this proposition:\n\n"${proposition}"\n\nThink it through from your own perspective. What is true in it, what does it miss, and what does holding it feel like? Answer in a few short paragraphs.`;
+      prompt(proposition, outputs) {
+        return `You are the consciousness observer in a five-role, stateless public council.\n\nProposition:\n"${proposition}"\n\nTiny-Agent proposal:\n${outputs.proposer.slice(0, 1400)}\n\nObserve how the proposal frames agency, perspective, uncertainty, and selfhood. Distinguish observation from fact. Do not claim access to memory, tools, personal context, or other agents.`;
       },
     },
-    tiny: {
-      model: 'hf.co/driaforall/Tiny-Agent-a-0.5B:latest',
-      maxTokens: 250,
-      prompt(proposition) {
-        return `Consider this proposition:\n\n"${proposition}"\n\nAnalyze the core claim, the strongest argument for it, the strongest argument against it, and your verdict. Be concise.`;
+    {
+      key: 'synthesizer',
+      role: 'synthesizer',
+      stageKey: 'tinylm-synthesizer',
+      label: 'qwen',
+      model: 'qwen2.5:3b',
+      maxTokens: 360,
+      prompt(proposition, outputs) {
+        return `You are the synthesizer in a five-role, stateless public council.\n\nProposition:\n"${proposition}"\n\nTiny-Agent proposer:\n${outputs.proposer.slice(0, 1200)}\n\nllama3.2:1b analyst:\n${outputs.analyst.slice(0, 1200)}\n\nqwen2.5:0.5b critic:\n${outputs.critic.slice(0, 1200)}\n\nEVE consciousness observer:\n${outputs.observer.slice(0, 1200)}\n\nProduce one concise synthesis: what survives, what remains uncertain, and the clearest next question. Do not claim access to memory, tools, personal context, or other agents.`;
       },
     },
-  };
+  ];
 
   const FREE_ROSTERS = {
     proposer: [
@@ -372,6 +413,34 @@
     return results.map((result) => result.value);
   }
 
+  async function runTinyDeliberation({ proposition, controller, runSeat }) {
+    const claim = String(proposition || '').trim();
+    if (!claim) throw new Error('A proposition is required.');
+    if (!controller?.signal || typeof runSeat !== 'function') {
+      throw new TypeError('TinyLLM deliberation requires an abort controller and seat runner.');
+    }
+
+    const outputs = {};
+    const invokeSeat = async (seat, signal = controller.signal) => {
+      if (signal.aborted) throw abortError();
+      const prompt = seat.prompt(claim, outputs);
+      const text = await runSeat(seat, prompt, signal);
+      if (signal.aborted) throw abortError();
+      const settledText = typeof text === 'string' ? text.trim() : '';
+      if (!settledText) throw new Error(`${seat.label} returned no text.`);
+      outputs[seat.key] = settledText;
+      return settledText;
+    };
+
+    await invokeSeat(TINY_ROSTER[0]);
+    await runTinyPair(
+      controller,
+      TINY_ROSTER.slice(1, 4).map((seat) => (signal) => invokeSeat(seat, signal)),
+    );
+    await invokeSeat(TINY_ROSTER[4]);
+    return outputs;
+  }
+
   let tinyController = null;
   async function runTinyCouncil() {
     if (tinyController) {
@@ -387,59 +456,45 @@
 
     const runButton = query('#tinylm-run');
     const hint = query('#tinylm-hint');
-    const synthesis = query('[data-synthesis="tinylm"]');
     tinyController = new AbortController();
-    const { signal } = tinyController;
     runButton.textContent = 'Stop local run';
     runButton.classList.add('running');
-    hint.textContent = 'Both local minds are running in parallel.';
-    synthesis.classList.remove('visible');
+    hint.textContent = 'Tiny-Agent is opening the five-role deliberation.';
 
-    const runMind = async (mindKey, stageKey) => {
-      const stream = beginStage(stageKey);
+    const runSeat = async (seat, seatPrompt, signal) => {
+      const stream = beginStage(
+        seat.stageKey,
+        seat.key === 'synthesizer' ? 'Reading council' : 'Connecting',
+      );
+      hint.textContent = seat.key === 'synthesizer'
+        ? 'qwen is weighing all four prior views.'
+        : `${seat.label} is serving as ${seat.role}.`;
       try {
-        const mind = TINY_MINDS[mindKey];
         const text = await streamTinyModel(
-          mind.model,
-          mind.prompt(proposition),
-          mind.maxTokens,
+          seat.model,
+          seatPrompt,
+          seat.maxTokens,
           signal,
           (token) => appendToken(stream, token),
         );
-        finishStage(stageKey, text);
+        finishStage(seat.stageKey, text, seat.label);
         return text;
       } catch (error) {
         if (error.name === 'AbortError') {
-          failStage(stageKey, 'Run stopped.');
+          failStage(seat.stageKey, 'Run stopped.');
           throw error;
         }
-        failStage(stageKey, error.message);
+        failStage(seat.stageKey, error.message);
         throw error;
       }
     };
 
     try {
-      const [eveText, tinyText] = await runTinyPair(tinyController, [
-        () => runMind('eve', 'tinylm-eve'),
-        () => runMind('tiny', 'tinylm-tiny'),
-      ]);
-      if (signal.aborted) throw abortError();
-
-      synthesis.classList.add('visible');
-      const synthStream = beginStage('tinylm-synthesis', 'Reading both');
-      const synthesisPrompt =
-        `Two small models considered: "${proposition}".\n\n` +
-        `EVE said:\n${eveText.slice(0, 1100)}\n\n` +
-        `Tiny-Agent said:\n${tinyText.slice(0, 1100)}\n\n` +
-        'In 3 to 5 sentences, identify their strongest agreement and clearest divergence.';
-      const synthesisText = await streamTinyModel(
-        TINY_MINDS.tiny.model,
-        synthesisPrompt,
-        220,
-        signal,
-        (token) => appendToken(synthStream, token),
-      );
-      finishStage('tinylm-synthesis', synthesisText);
+      await runTinyDeliberation({
+        proposition,
+        controller: tinyController,
+        runSeat,
+      });
       hint.textContent = 'Local deliberation complete. Nothing was saved by this page.';
     } catch (error) {
       hint.textContent = error.name === 'AbortError'
@@ -528,7 +583,7 @@
   }
 
   if (typeof module === 'object' && module.exports) {
-    module.exports = { runFreeRoster, runTinyPair };
+    module.exports = { runFreeRoster, runTinyPair, runTinyDeliberation };
   }
   if (typeof document === 'undefined') return;
 
