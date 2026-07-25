@@ -8,16 +8,24 @@
   <meta property="og:title" content="M.Popova — Poetry Space" />
   <meta property="og:description" content="Words that emerge from the dark as you read them. On being here, on darkness, love, and loss." />
   <meta property="og:type" content="website" />
-  <meta name="theme-color" content="#0a0908" />
+  <meta name="theme-color" content="#07070b" />
 
   <link rel="stylesheet" href="/web/shared/forest-design.css?v=20260723">
   <link rel="stylesheet" href="/web/shared/forest-shell.css?v=20260723">
   <style>
     :root {
-      --bg:     #0a0908;
+      --bg:     #07070b;
+      --surface:#0f0f15;
+      --border: rgba(255,255,255,.08);
+      --text-primary:#f3f4f6;
+      --text-muted:#9ca3af;
+      --accent: #4f46e5;
+      --accent-green:#22c55e;
+      --radius:8px;
+      --font:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
       --text:   #ede8df;
       --muted:  #68625c;
-      --accent: #c88a28;
+      --poetry-accent: #c88a28;
       --col:    580px;
       --gut:    clamp(20px, 5vw, 40px);
     }
@@ -50,7 +58,7 @@
       text-transform: uppercase;
       color: var(--muted);
       text-decoration: none;
-      transition: color .25s;
+      transition: color var(--duration-fast) var(--ease-out);
     }
     .back-link:hover { color: var(--text); }
 
@@ -85,7 +93,7 @@
     .hero-rule {
       width: 36px;
       height: 1px;
-      background: var(--accent);
+      background: var(--poetry-accent);
       opacity: .5;
       margin: 24px 0;
     }
@@ -98,7 +106,7 @@
       letter-spacing: .12em;
       text-transform: uppercase;
       color: var(--muted);
-      animation: hintBob 2.6s ease-in-out infinite;
+      animation: hintBob var(--duration-slow) var(--ease-out) infinite;
     }
     @keyframes hintBob {
       0%,100% { opacity: .35; transform: translateY(0); }
@@ -158,11 +166,11 @@
     /* ── Word emergence ── */
     .word {
       opacity: 0;
-      transition: opacity 0.85s ease;
+      transition: opacity var(--duration-slow) var(--ease-out);
     }
     .word.visible { opacity: 1; }
 
-    .accent { color: var(--accent); }
+    .accent { color: var(--poetry-accent); }
 
     @media (prefers-reduced-motion: reduce) {
       .word { opacity: 1 !important; }
@@ -187,7 +195,7 @@
     .site-footer a {
       color: var(--muted);
       text-decoration: none;
-      transition: color .2s;
+      transition: color var(--duration-fast) var(--ease-out);
     }
     .site-footer a:hover { color: var(--text); }
   </style>
@@ -333,6 +341,6 @@
     })();
   </script>
 
-  <script src="/web/shared/forest-motion.js?v=20260714"></script>
+  <script src="/web/shared/forest-motion.js?v=20260725"></script>
 </body>
 </html>

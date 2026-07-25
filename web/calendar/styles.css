@@ -12,15 +12,23 @@
   --page-margin: calc(var(--page-bleed-area) + 10mm);
   --img-height: calc((var(--page-height) - 50mm) * 0.4);
   --day-height: calc((var(--page-height) - 183mm) / 6);
-  --bg: #070a08;
+  --bg: #07070b;
+  --surface: #0f0f15;
+  --border: rgba(255, 255, 255, 0.08);
+  --text-primary: #f3f4f6;
+  --text-muted: #9ca3af;
+  --accent: #4f46e5;
+  --accent-green: #22c55e;
+  --radius: 8px;
+  --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   --bg-glow: rgba(232, 184, 107, 0.16);
-  --panel: rgba(13, 18, 14, 0.84);
+  --panel: color-mix(in srgb, var(--surface) 88%, transparent);
   --panel-border: rgba(226, 235, 209, 0.16);
   --text: #f2efe4;
   --muted: #a9b3a1;
-  --accent: #8fe6ae;
+  --calendar-link: #8fe6ae;
   --accent-strong: #e8b86b;
-  --surface: #ffffff;
+  --paper-surface: #ffffff;
   --ink: #111827;
   --ink-muted: #4b5563;
   --holiday: #2f7dc0;
@@ -60,7 +68,7 @@ body {
 }
 
 .back-link {
-  color: var(--accent);
+  color: var(--calendar-link);
   text-decoration: none;
   font-family: var(--forest-sans, "Alegreya Sans", sans-serif);
   font-weight: 700;
@@ -323,7 +331,7 @@ button:hover {
 .calendar-page {
   width: var(--page-tot-width);
   min-height: var(--page-tot-height);
-  background: var(--surface);
+  background: var(--paper-surface);
   color: var(--ink);
   border-radius: 6px;
   overflow: hidden;
