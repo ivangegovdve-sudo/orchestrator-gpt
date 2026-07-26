@@ -6,7 +6,10 @@
 - Safety: feature branch only; `main` was not modified.
 - Upstream base: `origin/main` at `cd39326`
 - Implementation checkpoint: `fe4e2d2`
-- Final preview: `PENDING_FINAL_PREVIEW_URL`
+- Final preview (stable branch alias): `https://orchestrator-gpt-git-feat-sdfore-35eb5a-ivans-projects-1a79b2cd.vercel.app`
+- Verified implementation deployment: `dpl_CXm4m9UtczYpPh8mCwHnpoeoTF1Q`
+- Verified implementation commit: `98934c613f9b5ccf0a99e2db314705e41225f1e7`
+- Verified implementation URL: `https://orchestrator-ccllxn8tc-ivans-projects-1a79b2cd.vercel.app`
 - Authority reviewed before implementation:
   - `D:\projects\ivan-workspace\SDFOREST_REDESIGN_BRIEF.md`
   - `D:\projects\orchestrator-gpt\docs\SDFOREST_SUBPAGE_STATUS.md`
@@ -17,11 +20,13 @@
 
 | Check | Result | Evidence |
 |---|---:|---|
-| Integrated route and behavior contracts | PASS | 150/150 after rebasing onto current `origin/main` |
+| Integrated route and behavior contracts | PASS | 150/150 after the implementation rebase; final browser-free regression suite 111/111 |
 | Independent final static authority audit | PASS | 110/110 |
 | Static Vercel build | PASS | `npm run build` |
 | Patch hygiene | PASS | `git diff --check` |
-| Public route token/mobile pass | PASS | All 43 reviewed routes |
+| Public route HTTP pass | PASS | 43/43 reviewed routes returned HTTP 200 on the verified preview |
+| Library Memory deployment regression | PASS | Directory and explicit-index URLs both returned HTTP 200 |
+| Legacy Library redirect | PASS | Exact, no-slash, index, and child forms returned HTTP 308 with `Location: /web/library/` |
 | Scroll-speed-linked landing motion | PASS | Preserved velocity-amplified slam behavior |
 | Power Law six-step simulation | PASS | 47 failures, 2 neutral bets, 1 recovering outlier |
 | Public Council boundary | PASS | Exactly TinyLLM Local Oracle and OpenRouter Free; no public gate/key/private council code |
@@ -86,6 +91,12 @@
 | `/web/council/tinylm/` | PASS — redirects to the integrated TinyLLM public mode |
 | `/web/council/byok/` | PASS — redirects to the keyless OpenRouter Free public mode |
 
+## Final deployment regressions closed
+
+- The first complete preview exposed one real 404 at `/web/library/memory/`. Root cause was the unanchored `.vercelignore` pattern `memory`, which removed `web/library/memory/index.html` before the Vercel build. A regression test reproduced the exclusion, then the rule was narrowed to `/memory/`; both Memory URL forms now return the same HTTP 200 page.
+- The raw redirect audit found that the wildcard Library redirect did not cover the exact directory URL. An exact permanent rule for `/web/llm-db/` now precedes the wildcard. `/web/llm-db/`, `/web/llm-db`, `/web/llm-db/index.html`, and an arbitrary child path all return HTTP 308 with the exact destination `/web/library/`.
+- The two legacy Council URLs intentionally retain static client fallbacks to the two public Council anchors. They expose no gate, private route, or key-entry target.
+
 ## Authority-specific acceptance
 
 - Forest HUB has no Voice2Voice/v2v surface, contains Morning News, one Kids Corner card, one Library & Platforms card, exact core color tokens, and exactly one title crown SVG.
@@ -96,6 +107,16 @@
 - Power Law Odyssey contains six substantive chapters, a real user-controlled 50-bet simulation, and GPU-backed `translate3d` Z-scroll driven by `--scroll-p`.
 - Mendeleev, Life in Time, Women’s Health, and Kids Corner include the final keyboard, labeling, dialog, and decorative-image accessibility fixes.
 - Health ingestion used only explicitly licensed, non-retracted open-access artifacts resolved through Europe PMC/PMC OA/Unpaywall workflows. No public gate code or secret was added.
+
+## Health ingestion and backup evidence
+
+- Hypertrophy OS feature branch: `feat/lawful-oa-ingest` at `bcae0d36374c82c8d0bfca7ac3034c710fb0f40d`; live corpus 57 → 67 papers, 679 → 860 facts, 52 → 82 rules.
+- Women’s Health OS feature branch: `feat/lawful-oa-ingest` at `bb61fc89f0e323a59e6b1d25766390f75e3d9728`; live corpus 82 → 103 papers, 1,897 → 2,447 facts, 136 → 89 rebuilt rules.
+- Final verified SQLite backups: `D:\backup-logs\sdforest-health\20260725T223901Z-final\`
+  - `hypertrophy.db`: 593,920 bytes; SHA-256 `6e6f346c5a6a523c9ae88754c049cca5f74796820a96cdd40755313fe65b6a95`
+  - `womens_health.db`: 2,281,472 bytes; SHA-256 `4888e1a78723fd61b90ef7122318298179eba2831cac17673f14328b5ee19096`
+- Both backups report `quick_check=ok`, zero foreign-key errors, and were created through SQLite’s online backup API.
+- Final public health checks returned HTTP 200, and neither Oracle service was restarted.
 
 ## Deliberate non-actions
 
