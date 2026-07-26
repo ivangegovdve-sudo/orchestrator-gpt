@@ -2,10 +2,14 @@
 
 ## Release identity
 
-- Branch: `feat/sdforest-redesign`
-- Safety: feature branch only; `main` was not modified.
-- Upstream base: `origin/main` at `cd39326`
+- Implementation branch: `feat/sdforest-redesign`
+- Release safety: implementation stayed on feature branches and reached `main` through a GitHub rebase merge; no work was committed directly on `main`.
+- Implementation base: `origin/main` at `cd39326`
 - Implementation checkpoint: `fe4e2d2`
+- Production release PR: `https://github.com/ivangegovdve-sudo/orchestrator-gpt/pull/252`
+- Production design-release commit: `ff7405727bb7da08522a5350ba5184bd810c5572`
+- Production design-release deployment: `dpl_7TqFMtgrdbwoQ8ZBT5xPMnNt6YNJ`
+- Production site: `https://www.sdforest.site/`
 - Final preview (stable branch alias): `https://orchestrator-gpt-git-feat-sdfore-35eb5a-ivans-projects-1a79b2cd.vercel.app`
 - Verified implementation deployment: `dpl_CXm4m9UtczYpPh8mCwHnpoeoTF1Q`
 - Verified implementation commit: `98934c613f9b5ccf0a99e2db314705e41225f1e7`
@@ -24,7 +28,8 @@
 | Independent final static authority audit | PASS | 110/110 |
 | Static Vercel build | PASS | `npm run build` |
 | Patch hygiene | PASS | `git diff --check` |
-| Public route HTTP pass | PASS | 43/43 reviewed routes returned HTTP 200 on the verified preview |
+| Production deployment | PASS | Vercel READY for the merged design-release commit |
+| Public route HTTP pass | PASS | 43/43 reviewed routes returned HTTP 200 on `www.sdforest.site` after release |
 | Library Memory deployment regression | PASS | Directory and explicit-index URLs both returned HTTP 200 |
 | Legacy Library redirect | PASS | Exact, no-slash, index, and child forms returned HTTP 308 with `Location: /web/library/` |
 | Scroll-speed-linked landing motion | PASS | Preserved velocity-amplified slam behavior |
@@ -120,7 +125,7 @@
 
 ## Deliberate non-actions
 
-- No commit or merge was made to `main`.
+- No commit was created directly on `main`; the design release reached it through rebase-merged PR `#252`.
 - Neither Oracle health service was restarted.
 - Private Council surfaces were not exposed or linked.
 - The missing animation specification was not guessed or fabricated.
