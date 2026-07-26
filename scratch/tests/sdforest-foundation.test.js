@@ -62,11 +62,18 @@ test('Library is canonical and llm-db has deployment and static redirect coverag
   assert.match(library, /--accent:\s*#4f46e5\b/);
   assert.match(moved, /url=\/web\/library\//);
   assert.match(moved, /location\.replace\(["']\/web\/library\/["']\)/);
-  assert.deepEqual(vercel.redirects, [{
-    source: '/web/llm-db/:path*',
-    destination: '/web/library/',
-    permanent: true,
-  }]);
+  assert.deepEqual(vercel.redirects, [
+    {
+      source: '/web/llm-db/',
+      destination: '/web/library/',
+      permanent: true,
+    },
+    {
+      source: '/web/llm-db/:path*',
+      destination: '/web/library/',
+      permanent: true,
+    },
+  ]);
 });
 
 test('Vercel upload keeps the public Library Memory route', () => {
