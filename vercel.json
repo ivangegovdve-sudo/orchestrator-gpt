@@ -4,6 +4,11 @@
   "framework": null,
   "redirects": [
     {
+      "source": "/web/llm-db/",
+      "destination": "/web/library/",
+      "permanent": true
+    },
+    {
       "source": "/web/llm-db/:path*",
       "destination": "/web/library/",
       "permanent": true
