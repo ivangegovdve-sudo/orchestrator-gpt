@@ -1,0 +1,698 @@
+<!doctype html>
+<html lang="en" class="forest-skin forest-palette">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="The design evolution of sdforest.site — from a single Stable Diffusion prompt tool in December 2025 to today's dusk-forest jewel. A visual archive of every era.">
+  <meta name="theme-color" content="#070a08">
+  <meta property="og:title" content="Evolution — SDForest">
+  <meta property="og:description" content="How the forest grew: five design eras, from a lone prompt builder to a living project atlas.">
+  <meta property="og:type" content="website">
+  <title>Evolution — how the forest grew · SDForest</title>
+  <link rel="stylesheet" href="/web/shared/forest-design.css?v=20260723">
+  <link rel="stylesheet" href="/web/shared/forest-shell.css?v=20260723">
+  <style>
+    /* ============================================================
+       Evolution — a vertical retrospective of sdforest.site.
+       Sitewide voice comes from forest-design.css (grain, vignette,
+       fonts) + forest-shell.css (chrome, tokens, reveals). Everything
+       below is page-local: the timeline spine, and the per-era "ghost"
+       recreations that render each old homepage in its own real palette
+       and type — reconstructed from the actual commit-era CSS, so the
+       archive shows the past in its own colours, not a screenshot.
+       ============================================================ */
+
+    :root {
+      --spine: rgba(226, 235, 209, .12);
+    }
+
+    .evo-page { position: relative; }
+
+    /* ---- Title plate ---- */
+    .evo-hero { max-width: 900px; }
+    .evo-hero .forest-title em {
+      font-style: italic;
+      color: var(--forest-amber);
+    }
+    .evo-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px 26px;
+      margin: 34px 0 0;
+      padding: 0;
+      list-style: none;
+      color: var(--forest-muted);
+      font: 500 12px/1.4 var(--forest-sans);
+      letter-spacing: .1em;
+      text-transform: uppercase;
+    }
+    .evo-meta b { color: var(--forest-soft); font-weight: 600; }
+
+    /* ---- The spine: a lit root running the full timeline ---- */
+    .evo-timeline {
+      position: relative;
+      margin-top: clamp(70px, 11vw, 140px);
+      padding-left: clamp(0px, 4vw, 46px);
+    }
+    .evo-timeline::before {
+      content: "";
+      position: absolute;
+      left: clamp(9px, 4vw, 46px);
+      top: 6px;
+      bottom: 120px;
+      width: 2px;
+      transform: translateX(-1px);
+      background:
+        linear-gradient(180deg,
+          transparent 0,
+          var(--forest-amber) 3%,
+          var(--forest-moss) 62%,
+          var(--forest-amber) 100%);
+      opacity: .5;
+      border-radius: 2px;
+    }
+    @media (max-width: 720px) { .evo-timeline::before { display: none; } }
+
+    /* ---- Era block ---- */
+    .era {
+      position: relative;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: clamp(26px, 4vw, 64px);
+      align-items: center;
+      margin-top: clamp(72px, 12vw, 150px);
+      padding-left: clamp(28px, 5vw, 74px);
+    }
+    .era:first-child { margin-top: 0; }
+    .era.is-flipped .era-visual { order: 2; }
+
+    /* node on the spine */
+    .era::before {
+      content: "";
+      position: absolute;
+      left: calc(clamp(9px, 4vw, 46px) - clamp(28px, 5vw, 74px) + 46px);
+      left: 0;
+      top: 12px;
+      width: 15px;
+      height: 15px;
+      border-radius: 50%;
+      background: var(--era-accent, var(--forest-amber));
+      box-shadow: 0 0 0 4px rgba(7,10,8,.9), 0 0 22px var(--era-accent, var(--forest-amber));
+    }
+    .era::before { left: clamp(2px, 4vw, 39px); }
+    @media (max-width: 720px) {
+      .era { grid-template-columns: 1fr; padding-left: 0; }
+      .era.is-flipped .era-visual { order: 0; }
+      .era::before { display: none; }
+    }
+
+    .era-copy { min-width: 0; }
+    .era-index {
+      font: 600 13px/1 var(--forest-sans);
+      letter-spacing: .32em;
+      text-transform: uppercase;
+      color: var(--era-accent, var(--forest-amber));
+    }
+    .era-dates {
+      margin: 14px 0 0;
+      font: 500 12px/1.5 var(--forest-sans);
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: var(--forest-muted);
+    }
+    .era-name {
+      margin: 12px 0 0;
+      font: 600 clamp(30px, 4.6vw, 52px)/1.04 var(--forest-display);
+      letter-spacing: .01em;
+      text-wrap: balance;
+    }
+    .era-name em { font-style: italic; color: var(--era-accent, var(--forest-amber)); }
+    .era-life {
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      margin: 18px 0 0;
+      padding: 5px 13px 5px 11px;
+      border: 1px solid var(--forest-line);
+      border-radius: 999px;
+      background: rgba(9,14,10,.6);
+      color: var(--forest-soft);
+      font: 500 11px/1 var(--forest-sans);
+      letter-spacing: .13em;
+      text-transform: uppercase;
+    }
+    .era-life::before {
+      content: "";
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: var(--era-accent, var(--forest-amber));
+      box-shadow: 0 0 10px var(--era-accent, var(--forest-amber));
+    }
+    .era-body { margin: 22px 0 0; color: var(--forest-soft); font-size: clamp(16px, 1.9vw, 18px); line-height: 1.72; }
+    .era-body p { margin: 0 0 15px; }
+    .era-body p:last-child { margin-bottom: 0; }
+    .era-body strong { color: var(--forest-ink); font-weight: 600; }
+    .era-changed {
+      margin: 22px 0 0;
+      padding: 0;
+      list-style: none;
+      display: grid;
+      gap: 10px;
+    }
+    .era-changed li {
+      position: relative;
+      padding-left: 22px;
+      color: var(--forest-soft);
+      font-size: 15.5px;
+      line-height: 1.55;
+    }
+    .era-changed li::before {
+      content: "";
+      position: absolute;
+      left: 0; top: .58em;
+      width: 9px; height: 1px;
+      background: var(--era-accent, var(--forest-amber));
+      box-shadow: 0 0 8px var(--era-accent, var(--forest-amber));
+    }
+
+    /* ============================================================
+       Ghost recreations — a tiny browser frame rendering each era's
+       real homepage aesthetic. Each .ghost scopes its own palette.
+       ============================================================ */
+    .era-visual { min-width: 0; }
+    .ghost {
+      --g-bg: #0b0b12;
+      --g-ink: #e5e7eb;
+      --g-dim: #9aa1ad;
+      --g-accent: #8fe6ae;
+      position: relative;
+      border-radius: 14px;
+      overflow: hidden;
+      border: 1px solid rgba(255,255,255,.09);
+      background: var(--g-bg);
+      box-shadow: 0 40px 90px rgba(0,0,0,.5), 0 0 0 1px rgba(0,0,0,.3);
+      aspect-ratio: 4 / 3;
+      transform: perspective(1400px) rotateY(3deg) rotateX(1.4deg);
+      transition: transform .5s cubic-bezier(.16,1,.3,1);
+    }
+    .era.is-flipped .ghost { transform: perspective(1400px) rotateY(-3deg) rotateX(1.4deg); }
+    .ghost:hover { transform: perspective(1400px) rotateY(0) rotateX(0); }
+    .ghost-bar {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      height: 30px;
+      padding: 0 12px;
+      background: rgba(255,255,255,.05);
+      border-bottom: 1px solid rgba(255,255,255,.07);
+    }
+    .ghost-bar i { width: 9px; height: 9px; border-radius: 50%; background: rgba(255,255,255,.16); }
+    .ghost-url {
+      margin-left: 10px;
+      flex: 1;
+      height: 15px;
+      border-radius: 4px;
+      background: rgba(255,255,255,.06);
+      font: 500 9px/15px var(--forest-sans);
+      color: var(--g-dim);
+      letter-spacing: .04em;
+      padding: 0 9px;
+      overflow: hidden;
+      white-space: nowrap;
+    }
+    .ghost-screen {
+      position: absolute;
+      inset: 30px 0 0;
+      overflow: hidden;
+      background: var(--g-bg);
+      color: var(--g-ink);
+    }
+
+    /* --- shared ghost primitives --- */
+    .g-pad { padding: clamp(12px, 3.4vw, 26px); height: 100%; }
+    .g-word { font: 700 clamp(15px, 3vw, 24px)/1 var(--g-display, var(--forest-sans)); letter-spacing: -.01em; }
+    .g-tag { margin-top: 6px; font: 400 clamp(8px, 1.6vw, 11px)/1.4 var(--g-body, var(--forest-sans)); color: var(--g-dim); }
+    .g-grid { display: grid; gap: clamp(6px, 1.4vw, 11px); margin-top: clamp(10px, 2.4vw, 18px); }
+    .g-card {
+      border: 1px solid rgba(255,255,255,.1);
+      border-radius: 8px;
+      padding: clamp(6px, 1.6vw, 11px);
+      background: rgba(255,255,255,.03);
+    }
+    .g-card b { display: block; font: 600 clamp(8px, 1.5vw, 11px)/1.2 var(--g-display, var(--forest-sans)); color: var(--g-ink); }
+    .g-card span { display: block; margin-top: 4px; height: 4px; width: 70%; border-radius: 2px; background: rgba(255,255,255,.12); }
+
+    /* --- Era 1: Prompt Builder (Dec 2025) — slate + cyan, tool UI --- */
+    .ghost-pb {
+      --g-bg: #020617; --g-ink: #e5e7eb; --g-dim: #9ca3af; --g-accent: #38bdf8;
+      --g-display: system-ui, "Segoe UI", sans-serif; --g-body: var(--g-display);
+    }
+    .ghost-pb .g-word { color: #e5e7eb; font-weight: 600; }
+    .ghost-pb .g-word em { font-style: normal; color: #38bdf8; }
+    .pb-form { display: grid; gap: 8px; margin-top: 16px; }
+    .pb-field { display: grid; gap: 4px; }
+    .pb-label { font: 500 9px/1 var(--g-display); color: #9ca3af; text-transform: uppercase; letter-spacing: .08em; }
+    .pb-input { height: 20px; border: 1px solid #1f2937; border-radius: 6px; background: #0b1220; }
+    .pb-row { display: flex; gap: 7px; }
+    .pb-row .pb-input { flex: 1; }
+    .pb-chip { font: 600 8px/18px var(--g-display); color: #cbd5e1; border: 1px solid #1f2937; border-radius: 5px; padding: 0 8px; background: #0b1220; }
+    .pb-btn {
+      margin-top: 10px; height: 24px; border-radius: 6px;
+      background: linear-gradient(135deg, #38bdf8, #22c55e);
+      color: #041016; font: 700 10px/24px var(--g-display); text-align: center; letter-spacing: .04em;
+    }
+
+    /* --- Era 2: Forest HUB rebrand (Mar 2026) — sky+violet gradient, Inter cards --- */
+    .ghost-hub {
+      --g-bg: #09090b; --g-ink: #f8fafc; --g-dim: #a1a1aa; --g-accent: #0ea5e9;
+      --g-display: "Inter","Segoe UI",system-ui,sans-serif; --g-body: var(--g-display);
+    }
+    .ghost-hub .ghost-screen {
+      background:
+        radial-gradient(600px circle at 30% 0%, rgba(14,165,233,.16), transparent 55%),
+        radial-gradient(600px circle at 90% 20%, rgba(139,92,246,.16), transparent 55%),
+        #09090b;
+    }
+    .ghost-hub .g-word {
+      background: linear-gradient(90deg, #0ea5e9, #8b5cf6);
+      -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: transparent;
+    }
+    .ghost-hub .g-grid { grid-template-columns: repeat(3, 1fr); }
+    .ghost-hub .g-card:nth-child(2) { border-color: rgba(14,165,233,.4); box-shadow: 0 0 20px rgba(14,165,233,.18); }
+    .ghost-hub .g-card b { color: #f8fafc; }
+
+    /* --- Era 3: Constellation / taste redesign (Jun 2026) — plexus, Space Grotesk --- */
+    .ghost-con {
+      --g-bg: #07070b; --g-ink: #f4f5f7; --g-dim: #8a90a0; --g-accent: #56c7ff;
+      --g-display: "Space Grotesk","Segoe UI",sans-serif; --g-body: "Inter",sans-serif;
+    }
+    .ghost-con .ghost-screen { background: radial-gradient(120% 90% at 50% 0%, rgba(86,199,255,.08), transparent 60%), #07070b; }
+    .ghost-con .plexus { position: absolute; inset: 0; opacity: .5; }
+    .ghost-con .g-pad { position: relative; z-index: 2; }
+    .ghost-con .g-word { color: #f4f5f7; font-weight: 700; letter-spacing: -.02em; }
+    .ghost-con .g-word em { font-style: normal; color: #5eead4; }
+    .ghost-con .g-grid { grid-template-columns: repeat(3, 1fr); }
+    .ghost-con .g-card { border-color: rgba(255,255,255,.08); background: rgba(255,255,255,.02); }
+    .ghost-con .g-card:nth-child(1) { --c:#56c7ff; }
+    .ghost-con .g-card:nth-child(2) { --c:#b69bff; }
+    .ghost-con .g-card:nth-child(3) { --c:#5eead4; }
+    .ghost-con .g-card:nth-child(4) { --c:#ffb27a; }
+    .ghost-con .g-card:nth-child(5) { --c:#7ee0a8; }
+    .ghost-con .g-card:nth-child(6) { --c:#ff87b3; }
+    .ghost-con .g-card b { color: var(--c, #f4f5f7); }
+    .ghost-con .g-card span { background: color-mix(in srgb, var(--c, #fff) 45%, transparent); }
+
+    /* --- Era 4: Forest of light / SDForest (Jul 14) — organic WebGL, per-project accents --- */
+    .ghost-fol {
+      --g-bg: #060a09; --g-ink: #eaf3ea; --g-dim: #8ba392; --g-accent: #7ee2ff;
+      --g-display: "Space Grotesk","Segoe UI",sans-serif; --g-body: "Inter",sans-serif;
+    }
+    .ghost-fol .ghost-screen { background: radial-gradient(130% 100% at 50% 120%, rgba(126,226,255,.12), transparent 55%), #060a09; }
+    .ghost-fol .motes { position: absolute; inset: 0; }
+    .ghost-fol .g-pad { position: relative; z-index: 2; display: flex; flex-direction: column; align-items: center; text-align: center; justify-content: center; }
+    .ghost-fol .g-word { color: #eaf3ea; font-weight: 600; }
+    .ghost-fol .g-word em { font-style: normal; color: #7ee2ff; }
+    .fol-portals { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-top: 18px; max-width: 84%; }
+    .fol-portal { width: 26px; height: 26px; border-radius: 8px; border: 1px solid; }
+
+    /* --- Era 5: Dusk-forest jewel (current) — the arrived moment --- */
+    .ghost-dusk {
+      --g-bg: #070a08; --g-ink: #f2efe4; --g-dim: #7d8877; --g-accent: #e8b86b;
+      --g-display: "Cormorant Garamond", Georgia, serif; --g-body: Alegreya, Georgia, serif;
+    }
+    .ghost-dusk .ghost-screen {
+      background:
+        radial-gradient(circle at 14% -8%, rgba(143,230,174,.1), transparent 60%),
+        radial-gradient(circle at 90% 20%, rgba(232,184,107,.09), transparent 60%),
+        #070a08;
+    }
+    .ghost-dusk .g-pad { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+    .ghost-dusk .dusk-kicker { font: 500 8px/1 var(--forest-sans); letter-spacing: .28em; text-transform: uppercase; color: #e8b86b; }
+    .ghost-dusk .g-word { margin-top: 8px; font: 600 clamp(24px, 5.4vw, 44px)/.94 var(--g-display); color: #f2efe4; }
+    .ghost-dusk .g-word em { font-style: italic; color: #e8b86b; }
+    .dusk-flourish { width: 62%; max-width: 220px; margin: 8px 0 0; display: block; }
+    .dusk-flourish path { fill: none; stroke: #e8b86b; stroke-width: 1.4; opacity: .8; }
+    .ghost-dusk .g-tag { color: #bcc6b4; font-family: var(--g-body); font-size: clamp(8px, 1.7vw, 11px); max-width: 72%; }
+    .dusk-branches { display: flex; gap: 6px; margin-top: 14px; }
+    .dusk-branches i { width: 5px; height: 5px; border-radius: 50%; background: #8fe6ae; box-shadow: 0 0 8px #8fe6ae; opacity: .85; }
+
+    /* the final era gets extra presence */
+    .era-current .ghost { box-shadow: 0 46px 110px rgba(0,0,0,.6), 0 0 0 1px rgba(232,184,107,.18), 0 0 60px rgba(232,184,107,.1); }
+    .era-current .era-name { font-size: clamp(34px, 5.4vw, 60px); }
+    .you-are-here {
+      display: inline-flex; align-items: center; gap: 9px;
+      margin: 0 0 18px; padding: 6px 14px;
+      border: 1px solid rgba(232,184,107,.4); border-radius: 999px;
+      background: rgba(232,184,107,.1);
+      color: #e8b86b; font: 600 11px/1 var(--forest-sans);
+      letter-spacing: .2em; text-transform: uppercase;
+    }
+    .you-are-here::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: #e8b86b; box-shadow: 0 0 12px #e8b86b; animation: yah-pulse 2.4s ease-in-out infinite; }
+    @keyframes yah-pulse { 0%,100% { opacity: .4; } 50% { opacity: 1; } }
+    @media (prefers-reduced-motion: reduce) { .you-are-here::before { animation: none; } }
+
+    /* ---- closing note ---- */
+    .evo-coda {
+      margin: clamp(90px, 14vw, 180px) auto 0;
+      max-width: 640px;
+      text-align: center;
+    }
+    .evo-coda h2 { margin: 0; font: 600 clamp(26px, 4vw, 40px)/1.1 var(--forest-display); }
+    .evo-coda h2 em { font-style: italic; color: var(--forest-amber); }
+    .evo-coda p { margin: 20px 0 0; color: var(--forest-soft); font-size: clamp(16px, 2vw, 19px); line-height: 1.7; }
+    .evo-coda .back-home {
+      display: inline-flex; align-items: center; gap: 10px;
+      margin-top: 30px; padding: 12px 22px;
+      border: 1px solid rgba(143,230,174,.4); border-radius: 999px;
+      background: rgba(143,230,174,.08);
+      color: var(--forest-moss); text-decoration: none;
+      font: 600 12px/1 var(--forest-sans); letter-spacing: .16em; text-transform: uppercase;
+      transition: border-color .2s ease, background .2s ease;
+    }
+    .evo-coda .back-home:hover { border-color: rgba(143,230,174,.7); background: rgba(143,230,174,.14); }
+
+    .home-footer-lite {
+      margin-top: clamp(70px, 10vw, 120px);
+      padding-top: 26px;
+      border-top: 1px solid var(--forest-line);
+      color: var(--forest-muted);
+      font: 500 12px/1.6 var(--forest-sans);
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      text-align: center;
+    }
+  </style>
+</head>
+<body data-forest-page>
+  <div class="forest-grain" aria-hidden="true"></div>
+  <div class="forest-vignette" aria-hidden="true"></div>
+
+  <div class="forest-topbar">
+    <a class="forest-back" href="/">SDForest</a>
+    <a class="forest-top-action" href="#era-01">Start at the seed</a>
+  </div>
+
+  <main class="forest-page evo-page">
+    <!-- ============ Title plate ============ -->
+    <header class="evo-hero" data-reveal>
+      <p class="forest-kicker">The archive</p>
+      <h1 class="forest-title">How the forest <em>grew</em></h1>
+      <p class="forest-lede">
+        Every site is a fossil record of the taste that made it. This one began
+        as a single Stable Diffusion prompt tool and became a living atlas of
+        projects. Five design eras, each shown in its own colours — walk down and
+        watch the forest arrive.
+      </p>
+      <ul class="evo-meta">
+        <li><b>First commit</b> · 4 Dec 2025</li>
+        <li><b>Eras</b> · 5</li>
+        <li><b>Redesigns</b> · came faster each time</li>
+        <li><b>Today</b> · dusk-forest jewel</li>
+      </ul>
+    </header>
+
+    <!-- ============ Timeline ============ -->
+    <div class="evo-timeline">
+
+      <!-- ===== Era 1 — Prompt Builder ===== -->
+      <section class="era" id="era-01" style="--era-accent:#38bdf8" data-reveal>
+        <div class="era-visual" data-reveal="left">
+          <div class="ghost ghost-pb" role="img" aria-label="Recreation of the December 2025 Prompt Builder — a dark slate Stable Diffusion tool with cyan accents and a form-heavy interface.">
+            <div class="ghost-bar"><i></i><i></i><i></i><span class="ghost-url">sdforest.site / prompt-builder</span></div>
+            <div class="ghost-screen"><div class="g-pad">
+              <div class="g-word">Prompt Builder <em>· Fantasy Icon Lab v4</em></div>
+              <div class="pb-form">
+                <div class="pb-field"><span class="pb-label">Positive prompt</span><span class="pb-input"></span></div>
+                <div class="pb-field"><span class="pb-label">ControlNet</span>
+                  <div class="pb-row"><span class="pb-chip">canny</span><span class="pb-chip">depth</span><span class="pb-input"></span></div>
+                </div>
+                <div class="pb-btn">Generate with A1111</div>
+              </div>
+            </div></div>
+          </div>
+        </div>
+        <div class="era-copy" data-reveal="right">
+          <p class="era-index">Era I</p>
+          <p class="era-dates">Dec 2025 — Feb 2026</p>
+          <h2 class="era-name">The <em>prompt builder</em></h2>
+          <span class="era-life">Lived ~3 months</span>
+          <div class="era-body">
+            <p>
+              The site launched on <strong>4 December 2025</strong> as a single
+              static page: a Stable Diffusion prompt builder wired to a local
+              Automatic1111 backend. No hub, no navigation — just one tool doing
+              one job, deployed to Vercel.
+            </p>
+            <p>
+              Its look was pure developer-tool: a near-black slate canvas
+              (<strong>#020617</strong>), electric cyan and green accents, and a
+              system sans typeface. Over the winter it grew ControlNet controls,
+              a JSON preset loader, and eventually a first content page — the
+              AI glossary — which hinted at something larger.
+            </p>
+          </div>
+          <ul class="era-changed">
+            <li>One page, one purpose: prompt → image</li>
+            <li>Slate &amp; cyan palette, system-ui type</li>
+            <li>A1111 / ControlNet controls, preset JSON</li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- ===== Era 2 — Forest HUB rebrand ===== -->
+      <section class="era is-flipped" id="era-02" style="--era-accent:#8b5cf6" data-reveal>
+        <div class="era-visual" data-reveal="right">
+          <div class="ghost ghost-hub" role="img" aria-label="Recreation of the March 2026 Forest HUB rebrand — a dark dashboard with a sky-to-violet gradient wordmark and a glowing card grid.">
+            <div class="ghost-bar"><i></i><i></i><i></i><span class="ghost-url">sdforest.site</span></div>
+            <div class="ghost-screen"><div class="g-pad">
+              <div class="g-word">Forest HUB</div>
+              <div class="g-tag">Explore, build, and orchestrate AI applications.</div>
+              <div class="g-grid">
+                <div class="g-card"><b>Prompt Builder</b><span></span></div>
+                <div class="g-card"><b>Glossary</b><span></span></div>
+                <div class="g-card"><b>VFX</b><span></span></div>
+                <div class="g-card"><b>Calendar</b><span></span></div>
+                <div class="g-card"><b>LLM DB</b><span></span></div>
+                <div class="g-card"><b>Life in Time</b><span></span></div>
+              </div>
+            </div></div>
+          </div>
+        </div>
+        <div class="era-copy" data-reveal="left">
+          <p class="era-index">Era II</p>
+          <p class="era-dates">Mar 2026 — Jun 2026</p>
+          <h2 class="era-name">Forest <em>HUB</em></h2>
+          <span class="era-life">Lived ~3 months</span>
+          <div class="era-body">
+            <p>
+              In <strong>March 2026</strong> the single tool became a home. The
+              rebrand introduced <strong>Forest HUB</strong> — a dashboard whose
+              job was to hold many projects, not run one.
+            </p>
+            <p>
+              This was the gradient era: an Inter typeface, a sky-blue-to-violet
+              wordmark, and a grid of cards that lit up with a soft radial glow
+              under the cursor. "Explore, build, and orchestrate AI applications."
+              The VFX portfolio, glossary, calendar and LLM database all found a
+              door here.
+            </p>
+          </div>
+          <ul class="era-changed">
+            <li>One tool → a multi-project hub</li>
+            <li>Sky + violet gradient identity, Inter type</li>
+            <li>Cursor-reactive card grid dashboard</li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- ===== Era 3 — Constellation / taste redesign ===== -->
+      <section class="era" id="era-03" style="--era-accent:#56c7ff" data-reveal>
+        <div class="era-visual" data-reveal="left">
+          <div class="ghost ghost-con" role="img" aria-label="Recreation of the June 2026 taste-driven redesign — a black canvas with an interactive constellation background and per-colour portal cards in Space Grotesk.">
+            <div class="ghost-bar"><i></i><i></i><i></i><span class="ghost-url">sdforest.site</span></div>
+            <div class="ghost-screen">
+              <svg class="plexus" viewBox="0 0 400 300" aria-hidden="true">
+                <g stroke="rgba(120,180,230,.35)" stroke-width="1">
+                  <line x1="40" y1="60" x2="120" y2="110"/><line x1="120" y1="110" x2="210" y2="70"/>
+                  <line x1="210" y1="70" x2="300" y2="130"/><line x1="120" y1="110" x2="150" y2="210"/>
+                  <line x1="150" y1="210" x2="260" y2="240"/><line x1="300" y1="130" x2="350" y2="220"/>
+                  <line x1="260" y1="240" x2="300" y2="130"/><line x1="40" y1="60" x2="90" y2="180"/>
+                </g>
+                <g fill="#8fd3ff">
+                  <circle cx="40" cy="60" r="2.4"/><circle cx="120" cy="110" r="2.8"/><circle cx="210" cy="70" r="2.4"/>
+                  <circle cx="300" cy="130" r="2.8"/><circle cx="150" cy="210" r="2.4"/><circle cx="260" cy="240" r="2.6"/>
+                  <circle cx="350" cy="220" r="2.2"/><circle cx="90" cy="180" r="2.2"/>
+                </g>
+              </svg>
+              <div class="g-pad">
+                <div class="g-word">Forest<em>.</em>HUB</div>
+                <div class="g-tag">A living index of tools, research &amp; play.</div>
+                <div class="g-grid">
+                  <div class="g-card"><b>Council</b><span></span></div>
+                  <div class="g-card"><b>Manifesto</b><span></span></div>
+                  <div class="g-card"><b>Library</b><span></span></div>
+                  <div class="g-card"><b>Power Law</b><span></span></div>
+                  <div class="g-card"><b>Mendeleev</b><span></span></div>
+                  <div class="g-card"><b>Kids</b><span></span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="era-copy" data-reveal="right">
+          <p class="era-index">Era III</p>
+          <p class="era-dates">21 Jun 2026 — 14 Jul 2026</p>
+          <h2 class="era-name">The <em>constellation</em></h2>
+          <span class="era-life">Lived ~3 weeks</span>
+          <div class="era-body">
+            <p>
+              A taste-driven redesign in <strong>late June</strong> pulled the
+              whole site onto a single black field and drew a live
+              <strong>constellation</strong> behind everything — a plexus of
+              points that drifted, fled the cursor, and wired themselves together
+              with proximity lines.
+            </p>
+            <p>
+              Space Grotesk set the wordmark <em>Forest.HUB</em> with a teal dot
+              for a leaf. Cards became per-colour portals; a 3D nebula hero and an
+              orbital motion system arrived. The site had started to feel alive —
+              but still geometric and cool.
+            </p>
+          </div>
+          <ul class="era-changed">
+            <li>Interactive plexus / constellation background</li>
+            <li>Space Grotesk display, cool cyan–violet–teal accents</li>
+            <li>Per-colour portal cards, orbital motion, nebula hero</li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- ===== Era 4 — Forest of light / SDForest ===== -->
+      <section class="era is-flipped" id="era-04" style="--era-accent:#7ee2ff" data-reveal>
+        <div class="era-visual" data-reveal="right">
+          <div class="ghost ghost-fol" role="img" aria-label="Recreation of the mid-July 2026 SDForest — a WebGL forest-of-light landing with a centred title and a spray of per-project portal tiles.">
+            <div class="ghost-bar"><i></i><i></i><i></i><span class="ghost-url">sdforest.site</span></div>
+            <div class="ghost-screen">
+              <svg class="motes" viewBox="0 0 400 300" aria-hidden="true">
+                <g fill="#7ee2ff">
+                  <circle cx="60" cy="80" r="1.6" opacity=".7"/><circle cx="140" cy="60" r="1.2" opacity=".5"/>
+                  <circle cx="240" cy="90" r="1.8" opacity=".8"/><circle cx="320" cy="70" r="1.3" opacity=".5"/>
+                  <circle cx="100" cy="180" r="1.4" opacity=".6"/><circle cx="300" cy="200" r="1.6" opacity=".7"/>
+                  <circle cx="200" cy="230" r="1.2" opacity=".5"/><circle cx="360" cy="150" r="1.4" opacity=".6"/>
+                </g>
+                <g fill="#a282ff">
+                  <circle cx="180" cy="120" r="1.4" opacity=".6"/><circle cx="270" cy="150" r="1.2" opacity=".5"/>
+                </g>
+              </svg>
+              <div class="g-pad">
+                <div class="g-word">Forest <em>· projects in motion</em></div>
+                <div class="g-tag">A growing ecosystem you move through.</div>
+                <div class="fol-portals">
+                  <span class="fol-portal" style="border-color:#7ee2ff"></span>
+                  <span class="fol-portal" style="border-color:#a282ff"></span>
+                  <span class="fol-portal" style="border-color:#ffd15a"></span>
+                  <span class="fol-portal" style="border-color:#ff7fb0"></span>
+                  <span class="fol-portal" style="border-color:#60ecc1"></span>
+                  <span class="fol-portal" style="border-color:#ff745c"></span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="era-copy" data-reveal="left">
+          <p class="era-index">Era IV</p>
+          <p class="era-dates">14 Jul 2026 — 23 Jul 2026</p>
+          <h2 class="era-name">Forest of <em>light</em></h2>
+          <span class="era-life">Lived ~9 days</span>
+          <div class="era-body">
+            <p>
+              Mid-July brought the name it wears now — <strong>SDForest</strong>,
+              "projects in motion" — and a real <strong>Three.js</strong> layer:
+              a WebGL forest of drifting light, tile wireframes assembling from
+              velocity, per-icon character animation.
+            </p>
+            <p>
+              The metaphor turned organic. Projects became portals scattered like
+              seeds, each with its own accent glow. This was the shortest era —
+              barely a week and a half — a bridge between the cool geometric hub
+              and the warm editorial one about to replace it.
+            </p>
+          </div>
+          <ul class="era-changed">
+            <li>Renamed to SDForest · "projects in motion"</li>
+            <li>Three.js WebGL forest-of-light background</li>
+            <li>Per-project portals, velocity assembly, icon motion</li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- ===== Era 5 — Dusk-forest jewel (current) ===== -->
+      <section class="era era-current" id="era-05" style="--era-accent:#e8b86b" data-reveal>
+        <div class="era-visual" data-reveal="left">
+          <div class="ghost ghost-dusk" role="img" aria-label="The current dusk-forest design — an editorial title plate in Cormorant Garamond with an amber flourish, film grain, and moss-green branch markers.">
+            <div class="ghost-bar"><i></i><i></i><i></i><span class="ghost-url">sdforest.site</span></div>
+            <div class="ghost-screen"><div class="g-pad">
+              <div class="dusk-kicker">A living index by Ivan Gegov</div>
+              <div class="g-word">Forest<br><em>projects in motion</em></div>
+              <svg class="dusk-flourish" viewBox="0 0 420 46" aria-hidden="true">
+                <path d="M8 30 C 90 18, 150 40, 210 28 S 340 14, 412 26"/>
+                <path d="M118 30 q 8 -14 20 -16 q -4 14 -20 16 Z"/>
+                <path d="M268 24 q 10 12 22 12 q -6 -14 -22 -12 Z"/>
+              </svg>
+              <div class="g-tag">Move through it — the forest notices.</div>
+              <div class="dusk-branches"><i></i><i></i><i></i><i></i><i></i></div>
+            </div></div>
+          </div>
+        </div>
+        <div class="era-copy" data-reveal="right">
+          <span class="you-are-here">You are here</span>
+          <p class="era-index">Era V</p>
+          <p class="era-dates">23 Jul 2026 — today</p>
+          <h2 class="era-name">The <em>dusk-forest jewel</em></h2>
+          <span class="era-life">The current design</span>
+          <div class="era-body">
+            <p>
+              The redesign you're reading through now. On
+              <strong>23 July 2026</strong> the whole site turned editorial and
+              warm: <strong>Cormorant Garamond</strong> and Alegreya set every
+              heading and paragraph, and the palette dropped into dusk — near-black
+              green (<strong>#070a08</strong>), dawn amber, living moss.
+            </p>
+            <p>
+              A crown of sixteen branches hangs over the landing; scroll and each
+              project <em>slams</em> down to meet you, sending roots climbing back
+              up to light its branch. Film grain and a soft vignette sit over
+              everything. After four increasingly restless iterations, this one
+              feels less like a layout and more like a place — the arrived moment.
+            </p>
+          </div>
+          <ul class="era-changed">
+            <li>Editorial serif voice sitewide — Cormorant / Alegreya</li>
+            <li>Dusk-forest palette: near-black green, amber, moss</li>
+            <li>Per-project slams, an organic crown, climbing roots</li>
+            <li>Film grain + vignette across all 44 subpages</li>
+          </ul>
+        </div>
+      </section>
+    </div>
+
+    <!-- ============ Coda ============ -->
+    <section class="evo-coda" data-reveal>
+      <h2>The forest is <em>still growing</em></h2>
+      <p>
+        Nothing here is finished — that's the point. Each era outlived the last by
+        a shorter and shorter span, and this one will be replaced too. When it is,
+        it will land at the bottom of this page, and today's jewel will become
+        another fossil in the record.
+      </p>
+      <a class="back-home" href="/">Return to the living forest</a>
+    </section>
+
+    <footer class="home-footer-lite">
+      SDForest &nbsp;·&nbsp; sdforest.site &nbsp;·&nbsp; an evolving collection
+    </footer>
+  </main>
+
+  <script src="/web/shared/forest-reveal.js?v=20260723"></script>
+</body>
+</html>
