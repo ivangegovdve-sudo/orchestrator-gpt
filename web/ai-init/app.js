@@ -154,7 +154,12 @@
 
     var right = document.createElement("span");
     right.className = "accordion-count";
-    right.innerHTML = String(count) + " <span class=\"accordion-chevron\">></span>";
+    right.textContent = String(count) + " ";
+
+    var chevron = document.createElement("span");
+    chevron.className = "accordion-chevron";
+    chevron.textContent = ">";
+    right.appendChild(chevron);
 
     trigger.appendChild(left);
     trigger.appendChild(right);
