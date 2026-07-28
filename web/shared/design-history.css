@@ -1,0 +1,382 @@
+/* ==================================================================
+   Design History — an additive, opt-in time machine.
+
+   A vertical tab on the left edge opens a drawer listing every design
+   era sdforest.site has lived through. Picking one re-tints the page
+   by writing the era's tokens as INLINE custom properties on <html>;
+   nothing is persisted, and "Back to current" removes them again.
+
+   This file styles only its own `.dh-*` namespace. It must never
+   restyle a single existing selector — the whole point is that the
+   site is untouched when the drawer is closed.
+   ================================================================== */
+
+.dh-root {
+  --dh-panel: rgba(9, 13, 10, .94);
+  --dh-line: rgba(226, 235, 209, .14);
+  --dh-ink: #f2efe4;
+  --dh-dim: #8b9585;
+  --dh-gold: #e8b86b;
+  --dh-sans: "Alegreya Sans", "Gill Sans", "Segoe UI", system-ui, sans-serif;
+  --dh-serif: "Cormorant Garamond", "Iowan Old Style", Georgia, serif;
+  position: fixed;
+  inset: 0 auto 0 0;
+  width: 0;            /* a zero-width rail; every child sizes itself */
+  z-index: 900;
+  pointer-events: none;
+  /* The drawer must read in the site's *own* voice even while the page
+     behind it is wearing a historical palette, so it never inherits the
+     era tokens it is previewing. */
+  color: var(--dh-ink);
+  font-family: var(--dh-sans);
+}
+
+.dh-root *,
+.dh-root *::before,
+.dh-root *::after { box-sizing: border-box; }
+
+/* ---------------- The tab ---------------- */
+
+.dh-tab {
+  pointer-events: auto;
+  position: absolute;
+  top: 50%;
+  left: 0;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin: 0;
+  padding: 13px 7px 13px 5px;
+  border: 1px solid var(--dh-line);
+  border-left: 0;
+  border-radius: 0 9px 9px 0;
+  background: var(--dh-panel);
+  color: var(--dh-dim);
+  font: 600 9.5px/1 var(--dh-sans);
+  letter-spacing: .22em;
+  text-transform: uppercase;
+  writing-mode: vertical-rl;
+  cursor: pointer;
+  backdrop-filter: blur(7px);
+  -webkit-backdrop-filter: blur(7px);
+  transition: color .25s ease, border-color .25s ease, padding-left .25s ease, background .25s ease;
+}
+
+.dh-tab:hover,
+.dh-tab:focus-visible {
+  color: var(--dh-ink);
+  border-color: rgba(232, 184, 107, .4);
+  padding-left: 9px;
+}
+
+.dh-tab:focus-visible { outline: 2px solid var(--dh-gold); outline-offset: 2px; }
+
+.dh-tab .dh-rings {
+  writing-mode: horizontal-tb;
+  width: 11px;
+  height: 11px;
+  flex: 0 0 auto;
+}
+.dh-tab .dh-rings circle { fill: none; stroke: currentColor; stroke-width: 1.3; }
+
+/* A quiet gold pip marks "you are previewing an old era". */
+.dh-tab::after {
+  content: "";
+  writing-mode: horizontal-tb;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--dh-gold);
+  box-shadow: 0 0 7px var(--dh-gold);
+  opacity: 0;
+  transition: opacity .3s ease;
+}
+.dh-root.is-previewing .dh-tab { color: var(--dh-ink); border-color: rgba(232, 184, 107, .45); }
+.dh-root.is-previewing .dh-tab::after { opacity: 1; }
+
+.dh-root.is-open .dh-tab { opacity: 0; pointer-events: none; }
+
+/* ---------------- The drawer ---------------- */
+
+.dh-drawer {
+  pointer-events: auto;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: min(340px, 88vw);
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid var(--dh-line);
+  background: var(--dh-panel);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  box-shadow: 28px 0 70px rgba(0, 0, 0, .5);
+  transform: translateX(-102%);
+  visibility: hidden;
+  transition: transform .42s cubic-bezier(.22, .8, .3, 1), visibility 0s linear .42s;
+}
+
+.dh-root.is-open .dh-drawer {
+  transform: none;
+  visibility: visible;
+  transition: transform .42s cubic-bezier(.22, .8, .3, 1), visibility 0s;
+}
+
+.dh-head {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 20px 16px 14px 20px;
+  border-bottom: 1px solid var(--dh-line);
+}
+
+.dh-title {
+  margin: 0;
+  font: 400 22px/1.1 var(--dh-serif);
+  letter-spacing: .01em;
+}
+.dh-title em { font-style: italic; color: var(--dh-gold); }
+
+.dh-sub {
+  margin: 5px 0 0;
+  font: 500 9.5px/1.5 var(--dh-sans);
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--dh-dim);
+}
+
+.dh-close {
+  flex: 0 0 auto;
+  width: 28px;
+  height: 28px;
+  margin: -2px -2px 0 0;
+  padding: 0;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--dh-line);
+  border-radius: 7px;
+  background: transparent;
+  color: var(--dh-dim);
+  font: 400 15px/1 var(--dh-sans);
+  cursor: pointer;
+  transition: color .2s ease, border-color .2s ease;
+}
+.dh-close:hover, .dh-close:focus-visible { color: var(--dh-ink); border-color: rgba(232, 184, 107, .45); }
+.dh-close:focus-visible { outline: 2px solid var(--dh-gold); outline-offset: 2px; }
+
+/* ---------------- The list of eras ---------------- */
+
+.dh-list {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  margin: 0;
+  padding: 8px;
+  list-style: none;
+}
+
+.dh-era {
+  width: 100%;
+  display: block;
+  margin: 0;
+  padding: 12px 13px;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: background .22s ease, border-color .22s ease;
+}
+.dh-era:hover { background: rgba(255, 255, 255, .035); border-color: var(--dh-line); }
+.dh-era:focus-visible { outline: 2px solid var(--dh-gold); outline-offset: -2px; }
+
+.dh-era[aria-pressed="true"] {
+  background: rgba(232, 184, 107, .075);
+  border-color: rgba(232, 184, 107, .34);
+}
+
+.dh-era-top {
+  display: flex;
+  align-items: baseline;
+  gap: 9px;
+}
+
+.dh-era-numeral {
+  flex: 0 0 auto;
+  min-width: 22px;
+  font: 500 10px/1 var(--dh-sans);
+  letter-spacing: .14em;
+  color: var(--dh-era-accent, var(--dh-gold));
+}
+
+.dh-era-name {
+  flex: 1 1 auto;
+  font: 400 16px/1.2 var(--dh-serif);
+  color: var(--dh-ink);
+}
+
+.dh-era-dates {
+  display: block;
+  margin: 3px 0 0 31px;
+  font: 500 9px/1.4 var(--dh-sans);
+  letter-spacing: .13em;
+  text-transform: uppercase;
+  color: var(--dh-dim);
+}
+
+/* The commit hash is a literal — it must not be swept up by the
+   uppercasing on .dh-era-dates. */
+.dh-era-commit {
+  margin-left: 6px;
+  padding: 1px 4px;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, .05);
+  font: 400 9px/1.4 "Cascadia Code", Consolas, "JetBrains Mono", monospace;
+  letter-spacing: 0;
+  text-transform: none;
+  color: #8b9585;
+}
+
+.dh-era-note {
+  display: block;
+  margin: 7px 0 0 31px;
+  font: 400 12px/1.45 var(--dh-sans);
+  color: #a9b3a2;
+}
+
+.dh-swatches {
+  display: flex;
+  gap: 5px;
+  margin: 9px 0 0 31px;
+}
+
+.dh-swatch {
+  width: 15px;
+  height: 15px;
+  border-radius: 4px;
+  border: 1px solid rgba(255, 255, 255, .16);
+}
+
+.dh-current-pill {
+  margin-left: 8px;
+  padding: 2px 6px;
+  border-radius: 999px;
+  border: 1px solid rgba(143, 230, 174, .35);
+  font: 600 8px/1.4 var(--dh-sans);
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: #8fe6ae;
+  white-space: nowrap;
+}
+
+/* ---------------- Footer ---------------- */
+
+.dh-foot {
+  flex: 0 0 auto;
+  display: grid;
+  gap: 8px;
+  padding: 12px 14px 15px;
+  border-top: 1px solid var(--dh-line);
+}
+
+.dh-reset {
+  padding: 9px 12px;
+  border: 1px solid rgba(232, 184, 107, .4);
+  border-radius: 8px;
+  background: rgba(232, 184, 107, .08);
+  color: var(--dh-ink);
+  font: 600 10px/1 var(--dh-sans);
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background .2s ease, opacity .25s ease;
+}
+.dh-reset:hover { background: rgba(232, 184, 107, .16); }
+.dh-reset:focus-visible { outline: 2px solid var(--dh-gold); outline-offset: 2px; }
+.dh-reset[hidden] { display: none; }
+
+.dh-archive {
+  justify-self: start;
+  color: var(--dh-dim);
+  font: 500 9.5px/1.4 var(--dh-sans);
+  letter-spacing: .13em;
+  text-transform: uppercase;
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+  transition: color .2s ease, border-color .2s ease;
+}
+.dh-archive:hover, .dh-archive:focus-visible { color: var(--dh-gold); border-bottom-color: rgba(232, 184, 107, .5); }
+
+.dh-hint {
+  margin: 0;
+  font: 400 10.5px/1.45 var(--dh-sans);
+  color: var(--dh-dim);
+}
+
+/* ---------------- Preview banner ---------------- */
+
+.dh-banner {
+  pointer-events: auto;
+  position: fixed;
+  left: 50%;
+  bottom: 18px;
+  transform: translate(-50%, 130%);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 9px 8px 15px;
+  border: 1px solid rgba(232, 184, 107, .34);
+  border-radius: 999px;
+  background: var(--dh-panel);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow: 0 16px 44px rgba(0, 0, 0, .5);
+  font: 500 11px/1 var(--dh-sans);
+  color: #a9b3a2;
+  white-space: nowrap;
+  max-width: 92vw;
+  overflow: hidden;
+  transition: transform .38s cubic-bezier(.22, .8, .3, 1);
+}
+.dh-root.is-previewing .dh-banner { transform: translate(-50%, 0); }
+
+.dh-banner b { color: var(--dh-ink); font-weight: 600; }
+
+.dh-banner button {
+  padding: 6px 11px;
+  border: 1px solid var(--dh-line);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--dh-ink);
+  font: 600 9.5px/1 var(--dh-sans);
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: border-color .2s ease, background .2s ease;
+}
+.dh-banner button:hover { border-color: rgba(232, 184, 107, .5); background: rgba(232, 184, 107, .1); }
+.dh-banner button:focus-visible { outline: 2px solid var(--dh-gold); outline-offset: 2px; }
+
+/* ---------------- Small screens ---------------- */
+
+@media (max-width: 640px) {
+  .dh-tab {
+    padding: 10px 6px 10px 4px;
+    font-size: 8.5px;
+    letter-spacing: .18em;
+  }
+  .dh-banner { font-size: 10px; gap: 9px; padding-left: 13px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dh-root .dh-tab,
+  .dh-root .dh-drawer,
+  .dh-root .dh-banner,
+  .dh-root .dh-era { transition-duration: .01ms; }
+}
