@@ -1,7 +1,7 @@
 # SUBPAGES.md — Forest HUB sdforest.site Subpage Index
 
 **Purpose:** Concise per-subpage description of what each page currently is and its production state. Use this to decide what to improve next.
-**Last updated:** 2026-06-25
+**Last updated:** 2026-07-28
 **Production URL:** https://sdforest.site
 
 ---
@@ -172,6 +172,16 @@
 **What it is:** Expo-based dashboard for tracking voice production workflow and deliverables. Source lives in this repo subtree. Deployed separately to Vercel.
 **State:** Source present. Deployed separately. Hub card links to external Vercel URL.
 **Next:** Confirm external link is current. Decide whether source moves to its own repo.
+
+---
+
+## FlowForm — Yoga & Pilates
+
+**Route:** Hub card → `https://flowform.sdforest.site` (external / separate Vercel deployment)
+**Files:** none in this repo — source lives in `ivangegovdve-sudo/flowform` (React + Vite)
+**What it is:** Builds personalised yoga and Pilates sessions from an approved exercise library, shaped by how much time you have and what hurts today. Wears the SDForest palette, type, and page skin, and carries a `← SDForest` bar back to the hub.
+**State:** Card is on the hub as **In development**. The app is still on a PR and the `flowform.sdforest.site` subdomain is not wired yet, so the link does not resolve.
+**Next:** Merge the FlowForm PR, deploy to Vercel, point the subdomain at it, then flip the card's `data-status` to `Live`.
 
 ---
 
