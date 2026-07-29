@@ -427,3 +427,50 @@ test('the real stage lifecycle removes three dots once and renders hostile token
     else global.document = previousDocument;
   }
 });
+
+test('Tiny done event settles immediately even if the reader rejects afterward', async () => {
+  const runtime = loadRuntime();
+  const terminal = `${JSON.stringify({ response: 'complete', done: true })}\n`;
+  const tokens = [];
+  const text = await runtime.streamTinyModel(
+    'tiny-model',
+    'prompt',
+    40,
+    new AbortController().signal,
+    (token) => tokens.push(token),
+    { fetchImpl: async () => byteStreamResponse([terminal], 1) },
+  );
+
+  assert.equal(text, 'complete');
+  assert.deepEqual(tokens, ['complete']);
+});
+
+test('Tiny server event errors never escape into the card or outer failure hint', async () => {
+  const runtime = loadRuntime();
+  const rawDetail = 'model missing from /private/ollama/path';
+  const serverError = `${JSON.stringify({ error: rawDetail, done: true })}\n`;
+  let normalized;
+
+  await assert.rejects(
+    runtime.streamTinyModel('tiny-model', 'prompt', 40, new AbortController().signal, () => {}, {
+      fetchImpl: async () => byteStreamResponse([serverError]),
+    }),
+    (error) => {
+      normalized = error;
+      assert.equal(
+        error.message,
+        'The Local Oracle is offline. This page can only listen while Ivan’s ARM64 Ollama host and relay are reachable; no reply has been invented.',
+      );
+      assert.doesNotMatch(error.message, /model missing|private|ollama\/path/i);
+      return true;
+    },
+  );
+
+  assert.equal(typeof runtime.localFailureHint, 'function');
+  const hint = runtime.localFailureHint(normalized);
+  assert.equal(
+    hint,
+    'Local deliberation ended early: The Local Oracle is offline. This page can only listen while Ivan’s ARM64 Ollama host and relay are reachable; no reply has been invented.',
+  );
+  assert.doesNotMatch(hint, /model missing|private|ollama\/path/i);
+});
