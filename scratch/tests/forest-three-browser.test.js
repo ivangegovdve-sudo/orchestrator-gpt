@@ -230,7 +230,7 @@ test('representative public routes mount their theme and scoped entrance invento
   const routes = [
     { path: '/web/kids/', theme: 'kids', target: '.kid-card', motionClass: 'forest-motion-card' },
     { path: '/web/kids-movie-library/', theme: 'movie', target: '.header-row', motionClass: 'forest-motion-header' },
-    { path: '/web/library/', theme: 'library', target: '.panel', motionClass: 'forest-motion-card' },
+    { path: '/web/library/', theme: 'library', target: '.library-index', motionClass: 'forest-motion-card' },
     { path: '/web/library/glossary/', theme: 'library' },
     { path: '/web/library/platform/', theme: 'library' },
     { path: '/web/library/rag.html', theme: 'library' },

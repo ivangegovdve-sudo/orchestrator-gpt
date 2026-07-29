@@ -151,6 +151,15 @@ test('the venture sandbox supports one bet, one batch announcement, and reset', 
       outliers: document.querySelector('#outlierCount').textContent,
       status: document.querySelector('#portfolioStatus').textContent.trim(),
       statsLive: document.querySelector('.sandbox-stats').getAttribute('aria-live'),
+      transitions: [...document.querySelectorAll('#betField > .bet-coin')].map((coin) => {
+        const style = getComputedStyle(coin);
+        return {
+          outcome: coin.dataset.outcome,
+          property: style.transitionProperty,
+          duration: style.transitionDuration,
+          easing: style.transitionTimingFunction,
+        };
+      }),
     };
   });
   assert.deepEqual(
@@ -165,6 +174,15 @@ test('the venture sandbox supports one bet, one batch announcement, and reset', 
   assert.deepEqual(final.announcements, [final.status]);
   assert.match(final.status, /Portfolio recovered/);
   assert.notEqual(final.statsLive, 'polite');
+  assert.equal(final.transitions.length, 50);
+  assert.equal(final.transitions.at(-1).outcome, 'outlier');
+  assert.equal(final.transitions.every(({ property, duration, easing }) => (
+    property === 'left, top, transform, box-shadow'
+    && duration === Array(4).fill('0.5s').join(', ')
+    && easing === Array(4)
+      .fill('cubic-bezier(0.34, 1.56, 0.64, 1)')
+      .join(', ')
+  )), true, JSON.stringify(final.transitions[0]));
 
   await pointerClick(page, '#resetBets');
   assert.equal(await page.locator('#betField > .bet-coin').count(), 0);
