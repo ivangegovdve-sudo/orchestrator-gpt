@@ -9,7 +9,7 @@
    viewport resizes cost nothing and the skeleton is deterministic. */
 
 import * as THREE from '../../vendor/three/three.module.min.js';
-import { clamp, lerp, easeOutCubic, makeAdditive, mulberry32, PALETTE } from './util.js?v=20260729b';
+import { clamp, lerp, easeOutCubic, makeAdditive, mulberry32, PALETTE } from './util.js?v=20260729c';
 
 const CORE = new THREE.Color(PALETTE.amber);
 const TIP = new THREE.Color(PALETTE.green);

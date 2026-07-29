@@ -27,7 +27,7 @@
    part of the choreography: several identities assemble against it. */
 
 import * as THREE from '../../vendor/three/three.module.min.js';
-import { clamp, easeOutBack, lineBuilder, boxEdges, makeAdditive } from './util.js?v=20260729b';
+import { clamp, easeOutBack, lineBuilder, boxEdges, makeAdditive } from './util.js?v=20260729c';
 
 // Even 2-vertex steps for LineSegments drawRange.
 const lineRange = (geometry, fraction) => {
