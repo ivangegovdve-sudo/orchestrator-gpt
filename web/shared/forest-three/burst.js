@@ -10,7 +10,7 @@
    Edges: ONE merged LineSegments rebuilt on the CPU each frame. */
 
 import * as THREE from '../../vendor/three/three.module.min.js';
-import { lerp, easeInOutCubic, makeAdditive, PALETTE } from './util.js?v=20260729b';
+import { lerp, easeInOutCubic, makeAdditive, PALETTE } from './util.js?v=20260729c';
 
 const ACCENTS = [
   PALETTE.amber, PALETTE.gold, PALETTE.green, PALETTE.green,

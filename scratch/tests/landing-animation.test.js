@@ -53,13 +53,32 @@ after(async () => {
   await new Promise((resolve) => server?.close(resolve));
 });
 
-test('landing keeps one title crown and exposes Life in Time as the nineteenth branch', () => {
+test('landing source declares one title crown and twenty main-atlas branches', () => {
   assert.equal((landingSource.match(/<div\b[^>]*\bdata-title-crown\b/g) || []).length, 1);
+  assert.equal((landingSource.match(/<svg\b[^>]*\bclass="crown"/g) || []).length, 1);
   assert.equal((landingSource.match(/<symbol\s+id="leaf"\s/g) || []).length, 1);
   assert.match(landingSource, /data-project="time"[^>]+data-href="\/web\/life-in-time\//);
-  assert.match(landingSource, /Nineteen branches,\s*<em>one tree<\/em>/);
-  assert.equal((landingSource.match(/class="portal"/g) || []).length, 19);
+  assert.match(landingSource, /Twenty branches,\s*<em>one tree<\/em>/);
+  assert.equal((landingSource.match(/data-project-grid>[\s\S]*?<\/div>/)?.[0].match(/class="portal"/g) || []).length, 20);
   assert.doesNotMatch(landingSource, /voice(?:2|[- ]to[- ])voice|v2v/i);
+});
+
+test('the rendered atlas keeps greenhouse projects out of slams and crown activation', async () => {
+  const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
+  await page.goto(baseUrl, { waitUntil: 'networkidle' });
+
+  assert.equal(await page.locator('[data-title-crown]').count(), 1);
+  assert.equal(await page.locator('[data-title-crown] svg.crown').count(), 1);
+  assert.equal(await page.locator('[data-project-grid] .portal').count(), 20);
+  assert.equal(await page.locator('[data-greenhouse] .portal').count(), 2);
+  assert.deepEqual(
+    await page.locator('[data-greenhouse] .portal').evaluateAll((cards) => cards.map((card) => card.dataset.project)),
+    ['gallery', 'math'],
+  );
+  assert.equal(await page.locator('[data-routes] [data-slam]').count(), 20);
+  assert.equal(await page.locator('[data-routes] [data-project="gallery"], [data-routes] [data-project="math"]').count(), 0);
+  assert.equal(await page.locator('[data-crown-labels] [data-project="gallery"], [data-crown-labels] [data-project="math"]').count(), 0);
+  await page.close();
 });
 
 test('title crown has separate entrance, rooted breathing, and deterministic cluster sway', () => {

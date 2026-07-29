@@ -708,6 +708,26 @@ html.is-born .scroll-invite {
   margin-bottom: clamp(30px, 5vh, 56px);
 }
 
+.greenhouse {
+  position: relative;
+  z-index: 2;
+  width: min(1040px, calc(100% - 32px));
+  margin: clamp(30px, 8vh, 100px) auto 0;
+  padding: clamp(24px, 4vw, 42px);
+  border: 1px solid rgba(226, 235, 209, .1);
+  border-radius: 24px;
+  background: linear-gradient(145deg, rgba(143, 230, 174, .06), rgba(255, 255, 255, .012));
+}
+
+.greenhouse-head { text-align: center; margin-bottom: 20px; }
+.greenhouse-head h2 {
+  margin: 0;
+  font: 540 clamp(30px, 4vw, 50px)/1.04 var(--home-display);
+}
+.greenhouse-head h2 em { color: var(--home-amber); }
+.greenhouse-head p:last-child { margin: 12px auto 0; color: var(--home-muted); max-width: 42ch; }
+.greenhouse-strip { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+
 .project-grid {
   width: min(1280px, 100%);
   margin: 0 auto;
@@ -880,6 +900,8 @@ html.is-born .scroll-invite {
   .landing-copy { font-size: 16px; }
   .title-sub { letter-spacing: .1em; }
   .project-grid { grid-template-columns: 1fr; }
+  .greenhouse { width: min(100% - 24px, 1040px); padding: 20px 14px; }
+  .greenhouse-strip { grid-template-columns: 1fr; }
   .portal { min-height: 84px; }
 }
 

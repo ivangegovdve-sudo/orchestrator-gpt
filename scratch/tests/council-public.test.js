@@ -74,8 +74,8 @@ test('the public Council contains no private, key, or access-gate surface', () =
 
 test('legacy Council URLs redirect harmlessly to the two integrated anchors', () => {
   const redirects = new Map([
-    ['web/tinylm/index.html', '/web/council/index.html#tinylm'],
-    ['web/council/tinylm/index.html', '/web/council/index.html#tinylm'],
+    ['web/tinylm/index.html', '/web/council/#tinylm'],
+    ['web/council/tinylm/index.html', '/web/council/#tinylm'],
     ['web/council/byok/index.html', '/web/council/index.html#openrouter-free'],
     ['web/council/inner/index.html', '/web/council/index.html#openrouter-free'],
   ]);
