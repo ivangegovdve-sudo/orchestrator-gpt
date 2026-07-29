@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en" class="forest-skin">
 <head>
-<script defer src="/web/shared/feedback.js?v=20260729c"></script>
+<script defer src="/web/shared/feedback.js?v=20260729d"></script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Women's Health OS — Forest HUB</title>
@@ -10,8 +10,8 @@
   <meta property="og:description" content="Evidence-graded facts, rules, and claims for women's health, distilled from peer-reviewed research." />
   <meta property="og:type" content="website" />
   <meta name="theme-color" content="#07070b" />
-  <link rel="stylesheet" href="/web/shared/forest-shell.css?v=20260729c">
-  <link rel="stylesheet" href="/web/shared/forest-design.css?v=20260729c">
+  <link rel="stylesheet" href="/web/shared/forest-shell.css?v=20260729d">
+  <link rel="stylesheet" href="/web/shared/forest-design.css?v=20260729d">
   <style>
     :root {
       --bg: #07070b;
@@ -111,6 +111,7 @@
     .chip.conf-high { color: var(--accent-green); border-color: rgba(143,230,174,.3); }
     .chip.conf-medium { color: var(--amber); border-color: rgba(232,184,107,.35); }
     .chip.conf-low { color: var(--dim); }
+    .evidence-grade { display:inline-flex; margin-bottom:10px; color:var(--text-primary); font-family:var(--sans); font-size:16px; font-weight:800; letter-spacing:.08em; line-height:1; text-transform:uppercase; }.evidence-grade.conf-high { color:var(--accent-green); }.evidence-grade.conf-medium { color:var(--amber); }.evidence-grade.conf-low { color:var(--dim); }
     .item .src { color: var(--dim); }
     .item .src a { color: var(--plum); text-decoration: none; }
     .item .src a:hover { text-decoration: underline; }
@@ -191,7 +192,7 @@
     @keyframes wh-msg-right { from { opacity: 0; transform: translateX(14px); } }
     @keyframes wh-msg-left { from { opacity: 0; transform: translateX(-14px); } }
   </style>
-  <link rel="stylesheet" href="/web/shared/design-history.css?v=20260729c">
+  <link rel="stylesheet" href="/web/shared/design-history.css?v=20260729d">
 </head>
 <body data-forest-page="health">
   <a class="forest-back" href="/">← SDForest</a>
@@ -274,7 +275,7 @@
       controlsEl.style.display = "none";
       viewEl.innerHTML =
         '<div class="offline-note">' +
-        "The live evidence index is unavailable right now. The research space remains visible instead of rendering blank; reconnect below when the public service is reachable." +
+        "The live evidence index cannot reach the expected Women’s Health OS FastAPI on port 8091. The research atlas remains useful below instead of rendering blank; reconnect when the public service is reachable." +
         '<div class="offline-atlas" aria-label="Research areas"><div class="offline-topic">Menstrual cycle</div><div class="offline-topic">Hormones</div><div class="offline-topic">Fertility</div><div class="offline-topic">PCOS</div><div class="offline-topic">Perimenopause</div><div class="offline-topic">Thyroid</div></div>' +
         '<div class="api-form">' +
         '<input id="api-input" aria-label="Women’s Health API base URL" value="' + esc(API) + '" spellcheck="false" />' +
@@ -302,15 +303,21 @@
 
     function renderFacts(rows) {
       if (!rows.length) return empty();
-      viewEl.innerHTML = '<div class="list">' + rows.map(function (f) {
+      var list = document.createElement("div");
+      list.className = "list";
+      rows.forEach(function (f) {
         var cc = confClass(f.confidence_label, f.confidence);
-        return '<div class="item ' + cc + '"><div class="body">' + esc(f.fact) + "</div>" +
-          '<div class="meta">' +
-          '<span class="chip conf-' + cc + '">' + esc(f.confidence_label || cc) + "</span>" +
-          '<span class="chip">' + esc(f.category || f.paper_topic || "") + "</span>" +
-          '<span class="src">' + esc(f.paper_title || "") + " " + paperLink(f.paper_doi, f.paper_pmcid) + "</span>" +
-          "</div></div>";
-      }).join("") + "</div>";
+        var item = document.createElement("div"); item.className = "item " + cc;
+        var grade = document.createElement("span"); grade.className = "evidence-grade conf-" + cc; grade.textContent = String(f.confidence_label || cc).toUpperCase() + " evidence"; item.appendChild(grade);
+        var body = document.createElement("div"); body.className = "body"; body.textContent = String(f.fact || ""); item.appendChild(body);
+        var meta = document.createElement("div"); meta.className = "meta";
+        var category = document.createElement("span"); category.className = "chip"; category.textContent = String(f.category || f.paper_topic || ""); meta.appendChild(category);
+        var source = document.createElement("span"); source.className = "src"; source.textContent = String(f.paper_title || "");
+        var id = f.paper_pmcid || f.paper_doi;
+        if (id) { source.appendChild(document.createTextNode(" ")); var link = document.createElement("a"); link.href = f.paper_pmcid ? "https://www.ncbi.nlm.nih.gov/pmc/articles/" + encodeURIComponent(f.paper_pmcid) + "/" : "https://doi.org/" + encodeURIComponent(f.paper_doi); link.target = "_blank"; link.rel = "noopener"; link.textContent = String(id); source.appendChild(link); }
+        meta.appendChild(source); item.appendChild(meta); list.appendChild(item);
+      });
+      viewEl.replaceChildren(list);
     }
     function renderRules(rows) {
       if (!rows.length) return empty();
@@ -658,8 +665,8 @@
       });
     })();
   </script>
-  <script src="/web/shared/forest-motion.js?v=20260729c"></script>
-  <script src="/web/shared/forest-reveal.js?v=20260729c"></script>
-  <script src="/web/shared/design-history.js?v=20260729c"></script>
+  <script src="/web/shared/forest-motion.js?v=20260729d"></script>
+  <script src="/web/shared/forest-reveal.js?v=20260729d"></script>
+  <script src="/web/shared/design-history.js?v=20260729d"></script>
 </body>
 </html>

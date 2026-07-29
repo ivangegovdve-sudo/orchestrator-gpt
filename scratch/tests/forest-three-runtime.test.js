@@ -129,7 +129,7 @@ test('Open Overview keeps ownership of its capability-gated route-local Three.js
       /<body[^>]+data-forest-scene-owner=["']route["']/i,
       `${relativePath} does not preserve route-local renderer ownership`,
     );
-    assert.match(html, /\/web\/shared\/forest-motion\.js\?v=20260729c/);
+    assert.match(html, /\/web\/shared\/forest-motion\.js\?v=20260729d/);
     assert.match(html, /\/web\/open-overview\/open-overview\.js/);
   }
 
@@ -164,7 +164,7 @@ test('shared runtime cache key is current across the reviewed public inventory',
     if (!html.includes('/web/shared/forest-motion.js')) continue;
     // Power Law is owned by its independent implementation/review round.
     if (filePath.endsWith(path.join('power-law-odyssey', 'index.html'))) continue;
-    if (!html.includes('/web/shared/forest-motion.js?v=20260729c')) {
+    if (!html.includes('/web/shared/forest-motion.js?v=20260729d')) {
       oldKeyFiles.push(path.relative(ROOT, filePath));
     }
   }
