@@ -29,10 +29,10 @@
    without the light effects; no modules at all leaves plain content. */
 
 import * as THREE from '../vendor/three/three.module.min.js';
-import { clamp, lerp } from './forest-three/util.js?v=20260729d';
-import { initSlams, updateSlams, slamsAnimating, slamsDebug } from './forest-three/slams.js?v=20260729d';
-import { initCrown, updateCrown, crownDebug } from './forest-three/crown.js?v=20260729d';
-import { initRoots, updateRoots, rootsDebug } from './forest-three/roots.js?v=20260729d';
+import { clamp, lerp } from './forest-three/util.js?v=20260729e';
+import { initSlams, updateSlams, slamsAnimating, slamsDebug } from './forest-three/slams.js?v=20260729e';
+import { initCrown, updateCrown, crownDebug } from './forest-three/crown.js?v=20260729e';
+import { initRoots, updateRoots, rootsDebug } from './forest-three/roots.js?v=20260729e';
 // tiles.js (atlas wireframes) is retired from the boot sequence
 // (Ivan 2026-07-24): the crown and the mycelium are the only ambient
 // geometry on the landing. File kept on disk, like burst.js.

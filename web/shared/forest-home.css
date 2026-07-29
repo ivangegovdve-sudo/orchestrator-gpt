@@ -73,6 +73,10 @@ a, button { -webkit-tap-highlight-color: transparent; }
   text-transform: uppercase;
 }
 
+.home-brand {
+  view-transition-name: forest-chrome;
+}
+
 .home-brand::before {
   content: "";
   width: 8px;
