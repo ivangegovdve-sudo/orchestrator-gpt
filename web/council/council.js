@@ -169,7 +169,10 @@
     const view = stageView(key);
     if (!model) return view;
     view.card.style.setProperty('--model-accent', modelAccent(model));
-    if (view.modelLabel) view.modelLabel.textContent = model;
+    if (view.modelLabel) {
+      view.modelLabel.textContent = model;
+      view.modelLabel.setAttribute('title', model);
+    }
     return view;
   }
 
@@ -409,10 +412,11 @@
   async function streamTinyModel(model, prompt, maxTokens, outerSignal, onToken, temperature = MODES[DEFAULT_MODE].temperature) {
     const scope = createStreamScope(outerSignal);
     let fullText = '';
+    let terminated = false;
     try {
       let response;
       try {
-        response = await fetch(`${TINY_RELAY}/api/generate`, {
+        response = await fetchImpl(`${TINY_RELAY}/api/generate`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -424,7 +428,9 @@
           signal: scope.signal,
         });
       } catch (error) {
-        throw scope.classify(error);
+        const classified = scope.classify(error);
+        if (classified.name === 'AbortError') throw classified;
+        throw new Error(LOCAL_OUTAGE_MESSAGE);
       }
       if (!response.ok || !response.body) {
         throw tagFailure(new Error(`Local relay returned HTTP ${response.status}.`), 'http', response.status);
@@ -439,7 +445,8 @@
           chunk = await reader.read();
         } catch (error) {
           const classified = scope.classify(error, fullText);
-          throw classified;
+          if (classified.message === INCOMPLETE_MESSAGE || classified.name === 'AbortError') throw classified;
+          throw new Error(LOCAL_OUTAGE_MESSAGE);
         }
         if (chunk.done) break;
         buffer += decoder.decode(chunk.value, { stream: true });
@@ -459,6 +466,7 @@
             fullText += event.response;
             onToken(event.response);
           }
+          if (event.done === true) terminated = true;
         }
       }
       if (buffer.trim()) {
@@ -469,9 +477,14 @@
             fullText += finalEvent.response;
             onToken(finalEvent.response);
           }
+          if (finalEvent.done === true) terminated = true;
         } catch {
           // An incomplete terminal line carries no usable token.
         }
+      }
+      if (!terminated) {
+        if (fullText) throw new Error(INCOMPLETE_MESSAGE);
+        throw new Error(LOCAL_OUTAGE_MESSAGE);
       }
       return fullText.trim();
     } finally {
@@ -484,6 +497,7 @@
     const scope = createStreamScope(outerSignal, transport);
     const fetchImpl = transport.fetchImpl || fetch;
     let fullText = '';
+    let terminated = false;
     try {
       let response;
       try {
@@ -541,7 +555,10 @@
           const line = rawLine.trim();
           if (!line || line.startsWith(':') || !line.startsWith('data:')) continue;
           const payload = line.slice(5).trim();
-          if (payload === '[DONE]') return fullText.trim();
+          if (payload === '[DONE]') {
+            terminated = true;
+            return fullText.trim();
+          }
           let event;
           try {
             event = JSON.parse(payload);
@@ -556,6 +573,10 @@
             onToken(token);
           }
         }
+      }
+      if (!terminated) {
+        if (fullText) throw new Error(INCOMPLETE_MESSAGE);
+        throw new Error('The free model stream ended before its completion marker.');
       }
       return fullText.trim();
     } finally {
@@ -860,7 +881,11 @@
   }
 
   if (typeof module === 'object' && module.exports) {
-    module.exports = { streamFreeModel, runFreeRoster, runTinyPair, runTinyDeliberation, MODES, resolveMode, setActiveMode };
+    module.exports = {
+      appendToken, beginStage, finishStage, modelAccent, resolveMode,
+      runFreeRoster, runTinyPair, runTinyDeliberation, setActiveMode,
+      streamFreeModel, streamTinyModel, MODES,
+    };
   }
   if (typeof document === 'undefined') return;
 
