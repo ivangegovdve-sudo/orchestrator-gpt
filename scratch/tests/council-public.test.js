@@ -115,6 +115,9 @@ test('the built Council presents a separate actual-model label on every role car
   assert.equal((council.match(/data-model-label=/g) || []).length, 8);
   assert.match(council, /data-model-label="openrouter-proposer"/);
   assert.match(council, /data-model-label="tinylm-proposer"/);
+  const modelStyle = council.match(/\.stage-model\s*\{([\s\S]*?)\}/)?.[1] || '';
+  assert.doesNotMatch(modelStyle, /overflow:\s*hidden|white-space:\s*nowrap|text-overflow:\s*ellipsis/);
+  assert.match(modelStyle, /overflow-wrap:\s*anywhere/);
 });
 
 test('Council ships the exact honest failure language', () => {
