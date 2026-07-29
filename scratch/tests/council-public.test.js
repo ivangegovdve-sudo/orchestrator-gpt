@@ -11,6 +11,8 @@ const readBuilt = (relativePath) => {
   const absolutePath = path.join(OUT, relativePath);
   return fs.existsSync(absolutePath) ? fs.readFileSync(absolutePath, 'utf8') : '';
 };
+const withoutNavigationMetadata = (source) =>
+  source.replace(/<script\b[^>]*type=["']speculationrules["'][^>]*>[\s\S]*?<\/script>/gi, '');
 
 test.before(() => {
   execFileSync(process.execPath, [path.join(ROOT, 'build-vercel-static.cjs')], {
@@ -54,14 +56,14 @@ test('the built TinyLLM workspace visibly exposes exactly the five public counci
 });
 
 test('the public Council contains no private, key, or access-gate surface', () => {
-  const publicCouncil = [
+  const publicCouncil = withoutNavigationMetadata([
     readBuilt('web/council/index.html'),
     readBuilt('web/council/council.js'),
     readBuilt('web/council/byok/index.html'),
     readBuilt('web/council/inner/index.html'),
     readBuilt('web/council/tinylm/index.html'),
     readBuilt('web/tinylm/index.html'),
-  ].join('\n');
+  ].join('\n'));
 
   assert.doesNotMatch(
     publicCouncil,

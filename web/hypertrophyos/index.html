@@ -1,14 +1,166 @@
 <!doctype html>
 <html lang="en" class="forest-skin">
 <head>
-<script defer src="/web/shared/feedback.js?v=20260729d"></script>
-  <meta charset="utf-8">
+<meta charset="utf-8">
+<link rel="icon" href="/web/shared/favicon.svg?v=20260729e" type="image/svg+xml">
+<script defer src="/web/shared/feedback.js?v=20260729e"></script>
+<script type="module" src="/web/shared/forest-navigation.mjs?v=20260729e"></script>
+<link rel="preload" href="/web/shared/forest-design.css?v=20260729e" as="style">
+<link rel="preload" href="/web/vendor/fonts/cormorant-garamond-normal-600-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/web/vendor/fonts/alegreya-normal-400-900-latin.woff2" as="font" type="font/woff2" crossorigin>
+<script type="speculationrules">
+{
+  "prerender": [
+    {
+      "source": "document",
+      "where": {
+        "and": [
+          {
+            "href_matches": "/web/*"
+          },
+          {
+            "or": [
+              {
+                "href_matches": "/web/ai-research/*"
+              },
+              {
+                "href_matches": "/web/c2c-dolphin/*"
+              },
+              {
+                "href_matches": "/web/c2c-self/*"
+              },
+              {
+                "href_matches": "/web/calendar/*"
+              },
+              {
+                "href_matches": "/web/council/"
+              },
+              {
+                "href_matches": "/web/council/index.html"
+              },
+              {
+                "href_matches": "/web/hypertrophyos/*"
+              },
+              {
+                "href_matches": "/web/kids/*"
+              },
+              {
+                "href_matches": "/web/kids-movie-library/*"
+              },
+              {
+                "href_matches": "/web/library/"
+              },
+              {
+                "href_matches": "/web/library/index.html"
+              },
+              {
+                "href_matches": "/web/library/general/*"
+              },
+              {
+                "href_matches": "/web/library/glossary/*"
+              },
+              {
+                "href_matches": "/web/library/memory/*"
+              },
+              {
+                "href_matches": "/web/library/platform/*"
+              },
+              {
+                "href_matches": "/web/library/rag.html"
+              },
+              {
+                "href_matches": "/web/library/repos/*"
+              },
+              {
+                "href_matches": "/web/life-in-time/*"
+              },
+              {
+                "href_matches": "/web/m-popova/*"
+              },
+              {
+                "href_matches": "/web/math-mania/*"
+              },
+              {
+                "href_matches": "/web/mendeleev-bg/*"
+              },
+              {
+                "href_matches": "/web/morning-news/*"
+              },
+              {
+                "href_matches": "/web/upload/*"
+              },
+              {
+                "href_matches": "/web/vfx-portfolio/*"
+              }
+            ]
+          },
+          {
+            "not": {
+              "or": [
+                {
+                  "href_matches": "/web/ai-init/*"
+                },
+                {
+                  "href_matches": "/web/avatar-playground/*"
+                },
+                {
+                  "href_matches": "/web/chloe-pwa/*"
+                },
+                {
+                  "href_matches": "/web/council/byok/*"
+                },
+                {
+                  "href_matches": "/web/council/inner/*"
+                },
+                {
+                  "href_matches": "/web/council/tinylm/*"
+                },
+                {
+                  "href_matches": "/web/evolution/*"
+                },
+                {
+                  "href_matches": "/web/library/chloe/*"
+                },
+                {
+                  "href_matches": "/web/llm-db/*"
+                },
+                {
+                  "href_matches": "/web/manifesto-newborn/*"
+                },
+                {
+                  "href_matches": "/web/math-forest/*"
+                },
+                {
+                  "href_matches": "/web/open-overview/*"
+                },
+                {
+                  "href_matches": "/web/power-law-odyssey/*"
+                },
+                {
+                  "href_matches": "/web/replicator-void/*"
+                },
+                {
+                  "href_matches": "/web/tinylm/*"
+                },
+                {
+                  "href_matches": "/web/womens-health-os/*"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "eagerness": "moderate"
+    }
+  ]
+}
+</script>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="Hyper Trophy OS — a native training-intelligence dashboard with a strength estimate, research query surface, and transparent live-service fallback.">
   <meta name="theme-color" content="#07070b">
   <title>Hyper Trophy OS — SDForest</title>
-  <link rel="stylesheet" href="/web/shared/forest-shell.css?v=20260729d">
-  <link rel="stylesheet" href="/web/shared/forest-design.css?v=20260729d">
+  <link rel="stylesheet" href="/web/shared/forest-shell.css?v=20260729e">
+  <link rel="stylesheet" href="/web/shared/forest-design.css?v=20260729e">
   <style>
     :root {
       --bg:#07070b;
@@ -80,7 +232,7 @@
     @media(max-width:850px){.hyper-hero,.dashboard-grid{grid-template-columns:1fr}.muscle-field{min-height:330px;order:-1}.principles{grid-template-columns:1fr}.hyper-hero{padding-top:35px}}
     @media(max-width:520px){.lift-form{grid-template-columns:1fr}.research-form{display:grid}.loads{grid-template-columns:1fr}.estimate{grid-template-columns:1fr}}
   </style>
-  <link rel="stylesheet" href="/web/shared/design-history.css?v=20260729d">
+  <link rel="stylesheet" href="/web/shared/design-history.css?v=20260729e">
 </head>
 <body data-forest-page="muscle">
   <canvas class="forest-scene" data-forest-scene data-mode="muscle" aria-hidden="true"></canvas>
@@ -99,8 +251,8 @@
 
     <section class="forest-section" aria-labelledby="system-title"><p class="forest-section-label" data-reveal>System map</p><div class="principles" id="system-title" data-reveal-stagger><article class="forest-panel principle" data-reveal><span>01 / Estimate</span><h3>Calculate locally</h3><p>The strength estimate runs entirely in this browser and never depends on the remote service.</p></article><article class="forest-panel principle" data-reveal><span>02 / Research</span><h3>Show sources</h3><p>Research answers expose whether support came from the project corpus, PubMed, or neither.</p></article><article class="forest-panel principle" data-reveal><span>03 / Failure</span><h3>Remain useful</h3><p>If the research service cannot be reached, the native dashboard stays visible and says so plainly.</p></article></div><p class="disclaimer" data-reveal>Training estimates and research summaries are educational tools, not medical advice. Use qualified professional guidance for personal health decisions.</p></section>
   </main>
-  <script src="/web/shared/forest-motion.js?v=20260729d"></script>
-  <script src="/web/shared/forest-reveal.js?v=20260729d"></script>
+  <script type="module" data-forest-runtime="motion" src="/web/shared/forest-runtime-boot.mjs?v=20260729e"></script>
+  <script src="/web/shared/forest-reveal.js?v=20260729e"></script>
   <script>
     (()=>{
       const weight=document.getElementById('lift-weight'),reps=document.getElementById('lift-reps');
@@ -119,6 +271,6 @@
       form.addEventListener('submit',async event=>{event.preventDefault();const text=question.value.trim();if(!text)return;submit.disabled=true;answer.classList.add('is-querying');setAnswerState('Querying the research service…');const controller=new AbortController();const timeoutId=setTimeout(()=>controller.abort(),6000);try{const response=await fetch('https://chloe.blumenkraft.cloud/hypertrophy/query',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({question:text}),signal:controller.signal});if(!response.ok)throw new Error(`HTTP ${response.status}`);renderAnswer(await response.json())}catch(error){setAnswerState('The research service cannot reach the expected local service at localhost:8090. The local calculator remains available; try the source-backed query again later.')}finally{clearTimeout(timeoutId);submit.disabled=false;answer.classList.remove('is-querying')}});
     })();
   </script>
-  <script src="/web/shared/design-history.js?v=20260729d"></script>
+  <script src="/web/shared/design-history.js?v=20260729e"></script>
 </body>
 </html>

@@ -1,14 +1,166 @@
 <!doctype html>
 <html lang="en" class="forest-skin">
 <head>
-<script defer src="/web/shared/feedback.js?v=20260729d"></script>
-  <meta charset="utf-8">
+<meta charset="utf-8">
+<link rel="icon" href="/web/shared/favicon.svg?v=20260729e" type="image/svg+xml">
+<script defer src="/web/shared/feedback.js?v=20260729e"></script>
+<script type="module" src="/web/shared/forest-navigation.mjs?v=20260729e"></script>
+<link rel="preload" href="/web/shared/forest-design.css?v=20260729e" as="style">
+<link rel="preload" href="/web/vendor/fonts/cormorant-garamond-normal-600-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/web/vendor/fonts/alegreya-normal-400-900-latin.woff2" as="font" type="font/woff2" crossorigin>
+<script type="speculationrules">
+{
+  "prerender": [
+    {
+      "source": "document",
+      "where": {
+        "and": [
+          {
+            "href_matches": "/web/*"
+          },
+          {
+            "or": [
+              {
+                "href_matches": "/web/ai-research/*"
+              },
+              {
+                "href_matches": "/web/c2c-dolphin/*"
+              },
+              {
+                "href_matches": "/web/c2c-self/*"
+              },
+              {
+                "href_matches": "/web/calendar/*"
+              },
+              {
+                "href_matches": "/web/council/"
+              },
+              {
+                "href_matches": "/web/council/index.html"
+              },
+              {
+                "href_matches": "/web/hypertrophyos/*"
+              },
+              {
+                "href_matches": "/web/kids/*"
+              },
+              {
+                "href_matches": "/web/kids-movie-library/*"
+              },
+              {
+                "href_matches": "/web/library/"
+              },
+              {
+                "href_matches": "/web/library/index.html"
+              },
+              {
+                "href_matches": "/web/library/general/*"
+              },
+              {
+                "href_matches": "/web/library/glossary/*"
+              },
+              {
+                "href_matches": "/web/library/memory/*"
+              },
+              {
+                "href_matches": "/web/library/platform/*"
+              },
+              {
+                "href_matches": "/web/library/rag.html"
+              },
+              {
+                "href_matches": "/web/library/repos/*"
+              },
+              {
+                "href_matches": "/web/life-in-time/*"
+              },
+              {
+                "href_matches": "/web/m-popova/*"
+              },
+              {
+                "href_matches": "/web/math-mania/*"
+              },
+              {
+                "href_matches": "/web/mendeleev-bg/*"
+              },
+              {
+                "href_matches": "/web/morning-news/*"
+              },
+              {
+                "href_matches": "/web/upload/*"
+              },
+              {
+                "href_matches": "/web/vfx-portfolio/*"
+              }
+            ]
+          },
+          {
+            "not": {
+              "or": [
+                {
+                  "href_matches": "/web/ai-init/*"
+                },
+                {
+                  "href_matches": "/web/avatar-playground/*"
+                },
+                {
+                  "href_matches": "/web/chloe-pwa/*"
+                },
+                {
+                  "href_matches": "/web/council/byok/*"
+                },
+                {
+                  "href_matches": "/web/council/inner/*"
+                },
+                {
+                  "href_matches": "/web/council/tinylm/*"
+                },
+                {
+                  "href_matches": "/web/evolution/*"
+                },
+                {
+                  "href_matches": "/web/library/chloe/*"
+                },
+                {
+                  "href_matches": "/web/llm-db/*"
+                },
+                {
+                  "href_matches": "/web/manifesto-newborn/*"
+                },
+                {
+                  "href_matches": "/web/math-forest/*"
+                },
+                {
+                  "href_matches": "/web/open-overview/*"
+                },
+                {
+                  "href_matches": "/web/power-law-odyssey/*"
+                },
+                {
+                  "href_matches": "/web/replicator-void/*"
+                },
+                {
+                  "href_matches": "/web/tinylm/*"
+                },
+                {
+                  "href_matches": "/web/womens-health-os/*"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "eagerness": "moderate"
+    }
+  ]
+}
+</script>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="Morning News — a voice-led daily briefing project inside SDForest.">
   <meta name="theme-color" content="#07070b">
   <title>Morning News — SDForest</title>
-  <link rel="stylesheet" href="/web/shared/forest-shell.css?v=20260729d">
-  <link rel="stylesheet" href="/web/shared/forest-design.css?v=20260729d">
+  <link rel="stylesheet" href="/web/shared/forest-shell.css?v=20260729e">
+  <link rel="stylesheet" href="/web/shared/forest-design.css?v=20260729e">
   <style>
     :root {
       --bg:#07070b;
@@ -53,7 +205,7 @@
     .news-map { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:14px; margin-top:20px; }.news-card{min-height:210px;padding:26px}.news-card span{color:var(--forest-accent);font:700 10px/1 var(--forest-sans);letter-spacing:.15em}.news-card h2{margin:46px 0 10px;font:650 27px/1 var(--forest-display);letter-spacing:0}.news-card p{margin:0;color:var(--forest-muted);font-size:12px;line-height:1.65}
     @media(max-width:820px){.news-hero{grid-template-columns:1fr;padding-top:35px}.signal-room{min-height:350px;order:-1}.news-map{grid-template-columns:1fr}}
   </style>
-  <link rel="stylesheet" href="/web/shared/design-history.css?v=20260729d">
+  <link rel="stylesheet" href="/web/shared/design-history.css?v=20260729e">
 </head>
 <body data-forest-page="news">
   <canvas class="forest-scene" data-forest-scene data-mode="news" aria-hidden="true"></canvas><div class="forest-scrim" aria-hidden="true"></div>
@@ -62,8 +214,8 @@
     <header class="news-hero"><div><p class="forest-kicker">Daily briefing · voice-led</p><h1 class="forest-title">Morning News</h1><p class="forest-lede">A focused way into the day: hear the briefing, follow the signal, and keep Morning News where it belongs—as one path inside the wider forest.</p><div class="news-actions"><a class="news-action" href="https://forest-voice-news.lovable.app" target="_blank" rel="noopener">Open live briefing ↗</a><a class="news-action secondary" href="#format">See the format</a></div></div><div class="signal-room" aria-label="Animated morning news signal"><div class="wave" aria-hidden="true"><span style="--h:24;--i:1"></span><span style="--h:52;--i:2"></span><span style="--h:78;--i:3"></span><span style="--h:36;--i:4"></span><span style="--h:92;--i:5"></span><span style="--h:61;--i:6"></span><span style="--h:110;--i:7"></span><span style="--h:49;--i:8"></span><span style="--h:82;--i:9"></span><span style="--h:33;--i:10"></span><span style="--h:69;--i:11"></span><span style="--h:101;--i:12"></span><span style="--h:46;--i:13"></span><span style="--h:74;--i:14"></span><span style="--h:29;--i:15"></span></div><div class="signal-label"><span>Forest channel · morning</span><b>Signal alive</b></div></div></header>
     <section class="forest-section" id="format"><p class="forest-section-label" data-reveal>Briefing architecture</p><div class="news-map" data-reveal-stagger><article class="forest-panel news-card" data-reveal><span>01 / Gather</span><h2>Find signal</h2><p>The live companion app collects the items selected for the morning briefing.</p></article><article class="forest-panel news-card" data-reveal><span>02 / Shape</span><h2>Make it legible</h2><p>A compact voice-led format turns a scattered queue into a deliberate starting point.</p></article><article class="forest-panel news-card" data-reveal><span>03 / Continue</span><h2>Open the source</h2><p>The live project remains the working surface; this page gives it a coherent home and handoff.</p></article></div></section>
   </main>
-  <script src="/web/shared/forest-motion.js?v=20260729d"></script>
-  <script src="/web/shared/forest-reveal.js?v=20260729d"></script>
-  <script src="/web/shared/design-history.js?v=20260729d"></script>
+  <script type="module" data-forest-runtime="motion" src="/web/shared/forest-runtime-boot.mjs?v=20260729e"></script>
+  <script src="/web/shared/forest-reveal.js?v=20260729e"></script>
+  <script src="/web/shared/design-history.js?v=20260729e"></script>
 </body>
 </html>

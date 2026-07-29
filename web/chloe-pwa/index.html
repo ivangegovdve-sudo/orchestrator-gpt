@@ -1,8 +1,160 @@
 <!DOCTYPE html>
 <html lang="en" class="forest-skin forest-palette">
 <head>
-<script defer src="/web/shared/feedback.js?v=20260729d"></script>
 <meta charset="UTF-8">
+<link rel="icon" href="/web/shared/favicon.svg?v=20260729e" type="image/svg+xml">
+<script defer src="/web/shared/feedback.js?v=20260729e"></script>
+<script type="module" src="/web/shared/forest-navigation.mjs?v=20260729e"></script>
+<link rel="preload" href="/web/shared/forest-design.css?v=20260729e" as="style">
+<link rel="preload" href="/web/vendor/fonts/cormorant-garamond-normal-600-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/web/vendor/fonts/alegreya-normal-400-900-latin.woff2" as="font" type="font/woff2" crossorigin>
+<script type="speculationrules">
+{
+  "prerender": [
+    {
+      "source": "document",
+      "where": {
+        "and": [
+          {
+            "href_matches": "/web/*"
+          },
+          {
+            "or": [
+              {
+                "href_matches": "/web/ai-research/*"
+              },
+              {
+                "href_matches": "/web/c2c-dolphin/*"
+              },
+              {
+                "href_matches": "/web/c2c-self/*"
+              },
+              {
+                "href_matches": "/web/calendar/*"
+              },
+              {
+                "href_matches": "/web/council/"
+              },
+              {
+                "href_matches": "/web/council/index.html"
+              },
+              {
+                "href_matches": "/web/hypertrophyos/*"
+              },
+              {
+                "href_matches": "/web/kids/*"
+              },
+              {
+                "href_matches": "/web/kids-movie-library/*"
+              },
+              {
+                "href_matches": "/web/library/"
+              },
+              {
+                "href_matches": "/web/library/index.html"
+              },
+              {
+                "href_matches": "/web/library/general/*"
+              },
+              {
+                "href_matches": "/web/library/glossary/*"
+              },
+              {
+                "href_matches": "/web/library/memory/*"
+              },
+              {
+                "href_matches": "/web/library/platform/*"
+              },
+              {
+                "href_matches": "/web/library/rag.html"
+              },
+              {
+                "href_matches": "/web/library/repos/*"
+              },
+              {
+                "href_matches": "/web/life-in-time/*"
+              },
+              {
+                "href_matches": "/web/m-popova/*"
+              },
+              {
+                "href_matches": "/web/math-mania/*"
+              },
+              {
+                "href_matches": "/web/mendeleev-bg/*"
+              },
+              {
+                "href_matches": "/web/morning-news/*"
+              },
+              {
+                "href_matches": "/web/upload/*"
+              },
+              {
+                "href_matches": "/web/vfx-portfolio/*"
+              }
+            ]
+          },
+          {
+            "not": {
+              "or": [
+                {
+                  "href_matches": "/web/ai-init/*"
+                },
+                {
+                  "href_matches": "/web/avatar-playground/*"
+                },
+                {
+                  "href_matches": "/web/chloe-pwa/*"
+                },
+                {
+                  "href_matches": "/web/council/byok/*"
+                },
+                {
+                  "href_matches": "/web/council/inner/*"
+                },
+                {
+                  "href_matches": "/web/council/tinylm/*"
+                },
+                {
+                  "href_matches": "/web/evolution/*"
+                },
+                {
+                  "href_matches": "/web/library/chloe/*"
+                },
+                {
+                  "href_matches": "/web/llm-db/*"
+                },
+                {
+                  "href_matches": "/web/manifesto-newborn/*"
+                },
+                {
+                  "href_matches": "/web/math-forest/*"
+                },
+                {
+                  "href_matches": "/web/open-overview/*"
+                },
+                {
+                  "href_matches": "/web/power-law-odyssey/*"
+                },
+                {
+                  "href_matches": "/web/replicator-void/*"
+                },
+                {
+                  "href_matches": "/web/tinylm/*"
+                },
+                {
+                  "href_matches": "/web/womens-health-os/*"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "eagerness": "moderate"
+    }
+  ]
+}
+</script>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#070a08">
 <meta name="mobile-web-app-capable" content="yes">
@@ -12,8 +164,8 @@
 <title>Chloé</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon.svg">
-<link rel="stylesheet" href="/web/shared/forest-design.css?v=20260729d">
-<link rel="stylesheet" href="/web/shared/forest-shell.css?v=20260729d">
+<link rel="stylesheet" href="/web/shared/forest-design.css?v=20260729e">
+<link rel="stylesheet" href="/web/shared/forest-shell.css?v=20260729e">
 <!-- CHLOÉ PWA — fullscreen avatar conversation with text-first input,
      optional microphone/Whisper input, REST chat and speech synthesis,
      an audio-reactive dot orb, local device settings, and a service worker. -->
@@ -284,7 +436,7 @@ body {
 .btn-cancel { background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.1); color:var(--muted); border-radius:9px; padding:11px 16px; font-family:var(--forest-sans,"Alegreya Sans",sans-serif); font-size:.88rem; cursor:pointer; }
 .cfg-msg { margin-top:10px; font-size:.72rem; color:rgba(232,184,107,.75); text-align:center; min-height:1em; }
 </style>
-  <link rel="stylesheet" href="/web/shared/design-history.css?v=20260729d">
+  <link rel="stylesheet" href="/web/shared/design-history.css?v=20260729e">
 </head>
 <body>
 <div id="app">
@@ -1082,6 +1234,6 @@ if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('./sw.js', { scope: './' }).catch(() => {});
 }
 </script>
-  <script src="/web/shared/design-history.js?v=20260729d"></script>
+  <script src="/web/shared/design-history.js?v=20260729e"></script>
 </body>
 </html>

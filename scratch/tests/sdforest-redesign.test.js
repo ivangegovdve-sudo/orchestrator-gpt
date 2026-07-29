@@ -6,6 +6,8 @@ const { pathToFileURL } = require('node:url');
 
 const ROOT = path.resolve(__dirname, '../..');
 const read = (relativePath) => fs.readFileSync(path.join(ROOT, relativePath), 'utf8');
+const withoutNavigationMetadata = (source) =>
+  source.replace(/<script\b[^>]*type=["']speculationrules["'][^>]*>[\s\S]*?<\/script>/gi, '');
 
 test('home is a truthful portal with the requested project lineup', () => {
   const home = read('index.html');
@@ -49,7 +51,7 @@ test('home implements an accessible scroll-linked route walk and interactive atl
 });
 
 test('public council exposes exactly two truthful modes', () => {
-  const council = read('web/council/index.html');
+  const council = withoutNavigationMetadata(read('web/council/index.html'));
   const modes = council.match(/data-council-mode=/g) || [];
 
   assert.equal(modes.length, 2);
@@ -159,7 +161,11 @@ test('every live internal portal resolves to an animated page with a Forest retu
       /href="\/"|href="\/index\.html"|forest-(?:motion|trails)\.js/,
       `${route} has no Forest return path`,
     );
-    assert.match(page, /forest-motion\.js|open-overview\.js|id="world"|id="starfield"/, `${route} has no motion runtime`);
+    assert.match(
+      page,
+      /data-forest-runtime="motion"|open-overview\.js|id="world"|id="starfield"/,
+      `${route} has no motion runtime`,
+    );
   }
 });
 
