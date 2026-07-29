@@ -53,7 +53,7 @@ async function researchContext(mode) {
         : { count: 1, claims: [] },
     });
     if (pathname === '/womens-health/topics') return route.fulfill({
-      json: { topics: [{ name: mode === 'hostile' ? hostile('TOPIC') : 'hormones', facts: 4 }] },
+      json: { topics: [{ name: mode === 'hostile' ? hostile(`TOPIC-${'x'.repeat(420)}`) : 'hormones', facts: 4 }] },
     });
     if (pathname.startsWith('/womens-health/facts')) return route.fulfill({
       json: {
@@ -82,8 +82,15 @@ async function researchContext(mode) {
         sources: [hostile('CHAT-SOURCE')],
         facts: [{ fact: hostile('CHAT-FACT'), paper_title: hostile('CHAT-PAPER') }],
         pubmed: [
-          { pmid: '123', title: hostile('CHAT-UNSAFE'), journal: hostile('CHAT-JOURNAL'), year: hostile('CHAT-YEAR'), url: 'javascript:window.__payloadFired=1' },
-          { pmid: '456', title: 'Allowed reference', journal: 'Journal', year: 2026, url: 'https://pubmed.ncbi.nlm.nih.gov/456/' },
+          { pmid: '101', title: hostile('CHAT-HTTP'), journal: hostile('CHAT-JOURNAL'), year: hostile('CHAT-YEAR'), url: 'http://pubmed.ncbi.nlm.nih.gov/101/' },
+          { pmid: '102', title: 'Data URL', journal: 'Journal', year: 2026, url: 'data:text/html,payload' },
+          { pmid: '103', title: 'JavaScript URL', journal: 'Journal', year: 2026, url: 'javascript:window.__payloadFired=1' },
+          { pmid: '104', title: 'Lookalike host', journal: 'Journal', year: 2026, url: 'https://pubmed.ncbi.nlm.nih.gov.evil.example/104/' },
+          { pmid: '105', title: 'Userinfo host', journal: 'Journal', year: 2026, url: 'https://attacker@pubmed.ncbi.nlm.nih.gov/105/' },
+          { pmid: '201', title: 'PubMed reference', journal: 'Journal', year: 2026, url: 'https://pubmed.ncbi.nlm.nih.gov/201/' },
+          { pmid: '202', title: 'DOI reference', journal: 'Journal', year: 2026, url: 'https://doi.org/10.1000/example' },
+          { pmid: '203', title: 'NCBI reference', journal: 'Journal', year: 2026, url: 'https://www.ncbi.nlm.nih.gov/pmc/articles/PMC203/' },
+          { pmid: '204', title: 'PMC reference', journal: 'Journal', year: 2026, url: 'https://pmc.ncbi.nlm.nih.gov/articles/PMC204/' },
         ],
       },
     });
@@ -136,6 +143,21 @@ test('Women facts lead with a visually dominant evidence grade and counters only
     bodySize: Number.parseFloat(getComputedStyle(grade.parentElement.querySelector('.body')).fontSize),
   }));
   assert.ok(hierarchy.fontSize > hierarchy.bodySize && hierarchy.weight >= 700);
+  const desktopControls = await page.evaluate(() => {
+    const controls = document.querySelector('#controls');
+    const search = document.querySelector('#search').getBoundingClientRect();
+    const topic = document.querySelector('#topic').getBoundingClientRect();
+    return {
+      display: getComputedStyle(controls).display,
+      searchRight: search.right,
+      topicLeft: topic.left,
+      searchCenter: search.top + search.height / 2,
+      topicCenter: topic.top + topic.height / 2,
+    };
+  });
+  assert.equal(desktopControls.display, 'flex');
+  assert.ok(desktopControls.searchRight <= desktopControls.topicLeft);
+  assert.ok(Math.abs(desktopControls.searchCenter - desktopControls.topicCenter) < 1);
   await page.waitForFunction(() => {
     const stat = document.querySelector('#stat-papers');
     return stat.dataset.counted === 'true' && stat.textContent === '2';
@@ -214,10 +236,20 @@ test('all Women API payloads render as inert text and only allow known public re
   assert.equal(await page.locator('[onfocus], [onerror], [autofocus], [id$="-payload"]').count(), 0);
   assert.equal(await page.evaluate(() => window.__payloadFired), 0);
 
-  const unsafeReference = page.locator('.wh-ref').filter({ hasText: 'PMID:123' });
-  assert.equal(await unsafeReference.evaluate((element) => element.tagName), 'DIV');
-  const safeReference = page.locator('a.wh-ref').filter({ hasText: 'PMID:456' });
-  assert.equal(await safeReference.getAttribute('href'), 'https://pubmed.ncbi.nlm.nih.gov/456/');
+  for (const pmid of ['105', '101', '102', '103', '104']) {
+    const rejected = page.locator('.wh-ref').filter({ hasText: `PMID:${pmid}` });
+    assert.equal(await rejected.evaluate((element) => element.tagName), 'DIV', `PMID:${pmid} must not be linked`);
+  }
+  const allowed = [
+    ['201', 'https://pubmed.ncbi.nlm.nih.gov/201/'],
+    ['202', 'https://doi.org/10.1000/example'],
+    ['203', 'https://www.ncbi.nlm.nih.gov/pmc/articles/PMC203/'],
+    ['204', 'https://pmc.ncbi.nlm.nih.gov/articles/PMC204/'],
+  ];
+  for (const [pmid, href] of allowed) {
+    const reference = page.locator('a.wh-ref').filter({ hasText: `PMID:${pmid}` });
+    assert.equal(await reference.getAttribute('href'), href);
+  }
   await context.close();
 });
 
@@ -230,5 +262,31 @@ test('editing the Hypertrophy calculator during reveal keeps the newest input re
   await page.locator('#lift-reps').fill('6');
   await page.waitForTimeout(1100);
   assert.equal(await page.locator('#one-rm').textContent(), '116.1');
+  await context.close();
+});
+
+test('a long hostile Women topic stays readable and contained at 375x812', async () => {
+  const context = await researchContext('hostile');
+  const page = await context.newPage();
+  await page.setViewportSize({ width: 375, height: 812 });
+  await page.goto(`${baseUrl}/web/womens-health-os/`, { waitUntil: 'domcontentloaded' });
+  await page.waitForFunction(() => document.querySelector('#topic').options.length > 1);
+  await page.locator('#topic').selectOption({ index: 1 });
+  const layout = await page.evaluate(() => {
+    const select = document.querySelector('#topic');
+    const controls = document.querySelector('#controls');
+    return {
+      viewport: document.documentElement.clientWidth,
+      documentWidth: document.documentElement.scrollWidth,
+      selectWidth: select.getBoundingClientRect().width,
+      controlsWidth: controls.getBoundingClientRect().width,
+      selectedText: select.selectedOptions[0].textContent,
+      selectedValue: select.value,
+    };
+  });
+  assert.ok(layout.documentWidth <= layout.viewport, `mobile overflow: ${layout.documentWidth - layout.viewport}px`);
+  assert.ok(layout.selectWidth <= layout.controlsWidth);
+  assert.match(layout.selectedText, /TOPIC-/);
+  assert.ok(layout.selectedValue.length > 420);
   await context.close();
 });

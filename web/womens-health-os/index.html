@@ -87,7 +87,7 @@
     .tab:hover { color: var(--text-primary); }
     .tab.active { color: var(--text-primary); border-bottom-color: var(--rose); }
 
-    .controls { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+    .controls { min-width:0; max-width:100%; display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
     .search {
       flex: 1; min-width: 200px;
       background: rgba(0,0,0,0.35); border: 1px solid var(--border);
@@ -96,10 +96,12 @@
     }
     .search:focus { border-color: rgba(217,138,127,0.5); }
     select.topic {
+      min-width:0; max-width:100%;
       background: var(--surface-2); border: 1px solid var(--border);
       border-radius: var(--radius); color: var(--text-primary); font-family: var(--sans); font-size: 13.5px;
-      padding: 10px 12px; outline: none; cursor: pointer;
+      padding: 10px 12px; outline: none; cursor: pointer; text-overflow:ellipsis;
     }
+    #view, .list, .item, .item .meta, .phase, .wh-ref { min-width:0; max-width:100%; overflow-wrap:anywhere; }
 
     .list { display: flex; flex-direction: column; gap: 10px; margin-top: 4px; }
     .item {
@@ -157,7 +159,11 @@
     .disclaimer { text-align: center; font-size: 11.5px; color: var(--dim); max-width: 60ch; margin: 0 auto; line-height: 1.6; }
     .offline-atlas { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; margin:18px 0; }
     .offline-topic { min-height:96px; display:flex; align-items:flex-end; padding:15px; border:1px solid rgba(217,138,127,.2); border-radius:12px; background:linear-gradient(145deg,rgba(217,138,127,.08),rgba(255,255,255,.018)); color:var(--text-primary); font-family:var(--sans); font-size:12px; font-weight:700; letter-spacing:.04em; }
-    @media (max-width:640px) { .offline-atlas { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+    @media (max-width:640px) {
+      .offline-atlas { grid-template-columns:repeat(2,minmax(0,1fr)); }
+      .controls { display:grid; grid-template-columns:minmax(0,1fr); }
+      .controls > .search, .controls > select.topic { width:100%; min-width:0; max-width:100%; }
+    }
 
     /* ── Motion: bloom entrance, drawn cycle arcs, graded list arrivals ── */
     @property --ph-sweep { syntax: '<percentage>'; inherits: false; initial-value: 0%; }
@@ -282,7 +288,7 @@
     function safePublicReferenceUrl(value) {
       try {
         var url = new URL(String(value));
-        if (url.protocol !== "http:" && url.protocol !== "https:") return "";
+        if (url.protocol !== "https:" || url.username || url.password) return "";
         return allowedReferenceHosts.has(url.hostname.toLowerCase()) ? url.href : "";
       } catch (error) {
         return "";
