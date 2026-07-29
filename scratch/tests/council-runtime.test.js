@@ -41,6 +41,98 @@ function sseResponse(text) {
   };
 }
 
+function byteStreamResponse(chunks, rejectAfter = null) {
+  let index = 0;
+  return {
+    ok: true,
+    status: 200,
+    body: {
+      getReader() {
+        return {
+          async read() {
+            if (rejectAfter !== null && index === rejectAfter) throw new Error('socket closed');
+            if (index >= chunks.length) return { done: true, value: undefined };
+            return { done: false, value: Buffer.from(chunks[index++]) };
+          },
+        };
+      },
+    },
+  };
+}
+
+class FakeClassList {
+  constructor() { this.values = new Set(); }
+  add(...names) { names.forEach((name) => this.values.add(name)); }
+  remove(...names) { names.forEach((name) => this.values.delete(name)); }
+  contains(name) { return this.values.has(name); }
+}
+
+class FakeNode {
+  constructor(type = 'element') {
+    this.type = type;
+    this.children = [];
+    this.parentNode = null;
+    this.classList = new FakeClassList();
+    this.className = '';
+    this.attributes = new Map();
+    this.removeCount = 0;
+    this._text = '';
+    this.style = {
+      values: new Map(),
+      setProperty: (name, value) => this.style.values.set(name, value),
+    };
+  }
+  append(node) {
+    node.parentNode = this;
+    this.children.push(node);
+  }
+  replaceChildren(...nodes) {
+    this.children.forEach((node) => { node.parentNode = null; });
+    this.children = [];
+    this._text = '';
+    nodes.forEach((node) => this.append(node));
+  }
+  remove() {
+    this.removeCount += 1;
+    if (!this.parentNode) return;
+    this.parentNode.children = this.parentNode.children.filter((node) => node !== this);
+    this.parentNode = null;
+  }
+  setAttribute(name, value) { this.attributes.set(name, value); }
+  get textContent() {
+    if (this.type === 'text') return this._text;
+    return this._text || this.children.map((node) => node.textContent).join('');
+  }
+  set textContent(value) {
+    this.children.forEach((node) => { node.parentNode = null; });
+    this.children = [];
+    this._text = String(value);
+  }
+}
+
+function createStageFixture(key) {
+  const card = new FakeNode();
+  const status = new FakeNode();
+  const output = new FakeNode();
+  const modelLabel = new FakeNode();
+  const selectors = new Map([
+    [`[data-stage="${key}"]`, card],
+    [`[data-status="${key}"]`, status],
+    [`[data-output="${key}"]`, output],
+    [`[data-model-label="${key}"]`, modelLabel],
+  ]);
+  const document = {
+    querySelector: (selector) => selectors.get(selector) || null,
+    createElement: () => new FakeNode(),
+    createTextNode: (text) => {
+      const node = new FakeNode('text');
+      node.textContent = text;
+      return node;
+    },
+  };
+  return { card, document, modelLabel, output, status };
+}
+
 test('a pre-header timeout advances to the next fixed free model', async () => {
   const runtime = loadRuntime();
   assert.equal(typeof runtime.runFreeRoster, 'function', 'Council runtime must export its roster behavior');
@@ -238,4 +330,100 @@ test('an interrupted partial OpenRouter stream is never presented as complete', 
     }),
     /The answer ended incomplete\./,
   );
+});
+
+test('OpenRouter requires [DONE] before a partial clean EOF can settle', async () => {
+  const runtime = loadRuntime();
+  const partial = `data: ${JSON.stringify({ choices: [{ delta: { content: 'partial' } }] })}\n\n`;
+  await assert.rejects(
+    runtime.streamFreeModel('example/model:free', [], 40, new AbortController().signal, () => {}, {
+      fetchImpl: async () => byteStreamResponse([partial]),
+    }),
+    /The answer ended incomplete\./,
+  );
+});
+
+test('OpenRouter reader rejection after a token is classified as incomplete', async () => {
+  const runtime = loadRuntime();
+  const partial = `data: ${JSON.stringify({ choices: [{ delta: { content: 'partial' } }] })}\n\n`;
+  await assert.rejects(
+    runtime.streamFreeModel('example/model:free', [], 40, new AbortController().signal, () => {}, {
+      fetchImpl: async () => byteStreamResponse([partial], 1),
+    }),
+    /The answer ended incomplete\./,
+  );
+});
+
+test('Tiny NDJSON requires an event.done terminal marker', async () => {
+  const runtime = loadRuntime();
+  assert.equal(typeof runtime.streamTinyModel, 'function', 'Council runtime must export its Tiny NDJSON parser');
+  const partial = `${JSON.stringify({ response: 'partial', done: false })}\n`;
+  await assert.rejects(
+    runtime.streamTinyModel('tiny-model', 'prompt', 40, new AbortController().signal, () => {}, {
+      fetchImpl: async () => byteStreamResponse([partial]),
+    }),
+    /The answer ended incomplete\./,
+  );
+});
+
+test('Tiny reader rejection after a token is classified as incomplete', async () => {
+  const runtime = loadRuntime();
+  assert.equal(typeof runtime.streamTinyModel, 'function');
+  const partial = `${JSON.stringify({ response: 'partial', done: false })}\n`;
+  await assert.rejects(
+    runtime.streamTinyModel('tiny-model', 'prompt', 40, new AbortController().signal, () => {}, {
+      fetchImpl: async () => byteStreamResponse([partial], 1),
+    }),
+    /The answer ended incomplete\./,
+  );
+});
+
+test('Tiny transport outage is normalized without leaking network errors', async () => {
+  const runtime = loadRuntime();
+  assert.equal(typeof runtime.streamTinyModel, 'function');
+  await assert.rejects(
+    runtime.streamTinyModel('tiny-model', 'prompt', 40, new AbortController().signal, () => {}, {
+      fetchImpl: async () => { throw new Error('ECONNRESET private relay detail'); },
+    }),
+    /The Local Oracle is offline\. This page can only listen while Ivan’s ARM64 Ollama host and relay are reachable; no reply has been invented\./,
+  );
+});
+
+test('the real stage lifecycle removes three dots once and renders hostile tokens literally', () => {
+  const runtime = loadRuntime();
+  assert.equal(typeof runtime.beginStage, 'function');
+  assert.equal(typeof runtime.appendToken, 'function');
+  assert.equal(typeof runtime.finishStage, 'function');
+
+  const key = 'fixture-model';
+  const fixture = createStageFixture(key);
+  const previousDocument = global.document;
+  global.document = fixture.document;
+  try {
+    const model = 'meta-llama/llama-3.3-70b-instruct:free';
+    const stream = runtime.beginStage(key, 'Connecting', model);
+    const loader = stream.loader;
+    assert.equal(loader.children.length, 3);
+    assert.equal(fixture.output.children.length, 2);
+    assert.equal(fixture.modelLabel.textContent, model);
+
+    const hostile = '<img src=x onerror="globalThis.pwned=true">';
+    runtime.appendToken(stream, hostile);
+    assert.equal(loader.removeCount, 1);
+    assert.equal(stream.textNode.textContent, hostile);
+    assert.equal(fixture.output.classList.contains('streaming'), true);
+
+    runtime.appendToken(stream, ' tail');
+    assert.equal(loader.removeCount, 1, 'the loader must only be removed for the first token');
+    assert.equal(stream.textNode.textContent, `${hostile} tail`);
+
+    runtime.finishStage(key, stream.text, 'Settled');
+    assert.equal(fixture.output.textContent, `${hostile} tail`);
+    assert.equal(fixture.output.classList.contains('streaming'), false);
+    assert.equal(fixture.card.classList.contains('active'), false);
+    assert.equal(fixture.card.classList.contains('done'), true);
+  } finally {
+    if (previousDocument === undefined) delete global.document;
+    else global.document = previousDocument;
+  }
 });
