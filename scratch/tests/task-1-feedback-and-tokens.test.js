@@ -6,7 +6,7 @@ const { after, before, test } = require('node:test');
 const { chromium } = require('playwright');
 
 const ROOT = path.resolve(__dirname, '../..');
-const CACHE_VERSION = '20260729a';
+const CACHE_VERSION = '20260729b';
 const htmlFiles = () => {
   const walk = (dir) => fs.readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
     const file = path.join(dir, entry.name);
@@ -69,17 +69,36 @@ test('feedback is deferred exactly once in the head of all 55 shipped HTML sourc
 test('every shared CSS or JavaScript asset reference uses the single current cache version', () => {
   const walk = (dir) => fs.readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
     const file = path.join(dir, entry.name);
-    return entry.isDirectory() && entry.name !== 'vercel-public' ? walk(file) : (entry.isFile() && /\.(?:html|js|css)$/.test(file) ? [file] : []);
+    return entry.isDirectory() && entry.name !== 'vercel-public' ? walk(file) : (entry.isFile() && /\.(?:html|js|mjs|css)$/.test(file) ? [file] : []);
   });
   const references = [];
   for (const file of walk(ROOT)) {
     const source = fs.readFileSync(file, 'utf8');
-    for (const match of source.matchAll(/\/web\/shared\/[^"'`\s)]+?\.(?:css|js)\?v=([^"'`\s)&]+)/g)) {
+    for (const match of source.matchAll(/\/web\/shared\/[^"'`\s)]+?\.(?:css|js|mjs)\?v=([^"'`\s)&]+)/g)) {
       references.push({ file: path.relative(ROOT, file), version: match[1], asset: match[0] });
     }
   }
   assert.ok(references.length > 0, 'expected shared asset references');
   assert.deepEqual([...new Set(references.map(({ version }) => version))], [CACHE_VERSION], JSON.stringify(references, null, 2));
+});
+
+test('route inventory browser modules use native mjs paths without stale JavaScript references', () => {
+  for (const moduleName of ['forest-trails', 'route-inventory']) {
+    assert.ok(fs.existsSync(path.join(ROOT, 'web/shared', `${moduleName}.mjs`)), `${moduleName} is a native module`);
+    assert.equal(fs.existsSync(path.join(ROOT, 'web/shared', `${moduleName}.js`)), false, `${moduleName} no longer has a typeless .js duplicate`);
+  }
+
+  const routeSources = [
+    'index.html',
+    'web/shared/forest-motion.js',
+    'web/shared/forest-trails.mjs',
+  ].map((file) => ({ file, source: fs.readFileSync(path.join(ROOT, file), 'utf8') }));
+  for (const { file, source } of routeSources) {
+    assert.doesNotMatch(source, /(?:forest-trails|route-inventory)\.js\b/, `${file} has no stale route module reference`);
+  }
+  assert.match(routeSources[0].source, new RegExp(`/web/shared/forest-trails\\.mjs\\?v=${CACHE_VERSION}`));
+  assert.match(routeSources[1].source, new RegExp(`/web/shared/forest-trails\\.mjs\\?v=${CACHE_VERSION}`));
+  assert.match(routeSources[2].source, /from '\.\/route-inventory\.mjs'/);
 });
 
 test('computed public aliases resolve to their canonical token family values', async () => {

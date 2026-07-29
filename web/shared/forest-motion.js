@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const forestTrailsReady = import('/web/shared/forest-trails.js?v=20260729a')
+  const forestTrailsReady = import('/web/shared/forest-trails.mjs?v=20260729b')
     .then((trailModule) => {
       document.documentElement.dataset.forestTrailsState = 'ready';
       return trailModule;

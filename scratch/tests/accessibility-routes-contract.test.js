@@ -13,7 +13,7 @@ function openingTag(source, tagName, id) {
 }
 
 async function loadForestTrails() {
-  return import(pathToFileURL(path.join(repoRoot, 'web/shared/forest-trails.js')).href);
+  return import(pathToFileURL(path.join(repoRoot, 'web/shared/forest-trails.mjs')).href);
 }
 
 test('Knowledge Ingest resolves as a connected Signals & Systems trail', async () => {

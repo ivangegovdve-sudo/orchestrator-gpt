@@ -15,7 +15,7 @@ const projectDirectories = [
 ];
 
 async function inventory() {
-  return import(pathToFileURL(path.join(ROOT, 'web/shared/route-inventory.js')).href);
+  return import(pathToFileURL(path.join(ROOT, 'web/shared/route-inventory.mjs')).href);
 }
 
 test('route inventory owns every project directory exactly once with machine-readable delivery controls', async () => {
@@ -56,7 +56,7 @@ test('route inventory owns every project directory exactly once with machine-rea
 test('Forest Trails consumes and re-exports the canonical route inventory', async () => {
   const [{ ROUTE_INVENTORY }, trails] = await Promise.all([
     inventory(),
-    import(pathToFileURL(path.join(ROOT, 'web/shared/forest-trails.js')).href),
+    import(pathToFileURL(path.join(ROOT, 'web/shared/forest-trails.mjs')).href),
   ]);
   assert.equal(trails.ROUTE_INVENTORY, ROUTE_INVENTORY);
   assert.ok(trails.FOREST_ROUTES.some(({ id }) => id === 'chloe-pwa'));
@@ -101,7 +101,7 @@ test('canonical project pages retain explicit forest-back ownership links', asyn
     const source = read(`web/${entry.id}/index.html`);
     assert.match(
       source,
-      /<link rel="stylesheet" href="\/web\/shared\/forest-shell\.css\?v=20260729a">/,
+      /<link rel="stylesheet" href="\/web\/shared\/forest-shell\.css\?v=20260729b">/,
       `${entry.id} loads the shared forest-back styling`,
     );
     const expectedHref = kidsChildren.has(entry.id) ? '/web/kids/' : '/';
