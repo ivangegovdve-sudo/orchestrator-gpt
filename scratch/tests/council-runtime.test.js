@@ -164,3 +164,78 @@ test('the TinyLLM deliberation runs the required five-role roster and gives qwen
   assert.match(synthesisPrompt, /critique from small qwen/);
   assert.match(synthesisPrompt, /observation from EVE/);
 });
+
+test('the OpenRouter SSE parser drives safe token delivery from real data frames', async () => {
+  const runtime = loadRuntime();
+  assert.equal(typeof runtime.streamFreeModel, 'function', 'Council runtime must export its real SSE parser');
+
+  const delivered = [];
+  const text = await runtime.streamFreeModel(
+    'example/model:free',
+    [{ role: 'user', content: 'test' }],
+    40,
+    new AbortController().signal,
+    (token) => delivered.push(token),
+    { fetchImpl: async () => sseResponse('<em>real token</em>') },
+  );
+
+  assert.equal(text, '<em>real token</em>');
+  assert.deepEqual(delivered, ['<em>real token</em>']);
+});
+
+test('model accents are deterministic FNV-1a HSL values', () => {
+  const runtime = loadRuntime();
+  assert.equal(typeof runtime.modelAccent, 'function', 'Council runtime must export deterministic model accents');
+
+  assert.equal(runtime.modelAccent('qwen/qwen3-next-80b-a3b-instruct:free'), runtime.modelAccent('qwen/qwen3-next-80b-a3b-instruct:free'));
+  assert.match(runtime.modelAccent('qwen/qwen3-next-80b-a3b-instruct:free'), /^hsl\(\d+ 65% 70%\)$/);
+  assert.notEqual(runtime.modelAccent('qwen/qwen3-next-80b-a3b-instruct:free'), runtime.modelAccent('meta-llama/llama-3.3-70b-instruct:free'));
+});
+
+test('free relay failures become the promised public states', async () => {
+  const runtime = loadRuntime();
+  assert.equal(typeof runtime.streamFreeModel, 'function');
+  const signal = new AbortController().signal;
+
+  await assert.rejects(
+    runtime.streamFreeModel('example/model:free', [], 40, signal, () => {}, {
+      fetchImpl: async () => ({ ok: false, status: 429, body: null }),
+    }),
+    /The free OpenRouter roster is rate-limited right now\. No paid model was substituted\. Try again later\./,
+  );
+});
+
+test('an interrupted partial OpenRouter stream is never presented as complete', async () => {
+  const runtime = loadRuntime();
+  const outer = new AbortController();
+  let readCount = 0;
+
+  await assert.rejects(
+    runtime.streamFreeModel('example/model:free', [], 40, outer.signal, () => {}, {
+      hardCap: 5,
+      firstTokenTimeout: 100,
+      fetchImpl: async (_url, options) => ({
+        ok: true,
+        status: 200,
+        body: {
+          getReader() {
+            return {
+              async read() {
+                if (readCount++ === 0) {
+                  return {
+                    done: false,
+                    value: Buffer.from(`data: ${JSON.stringify({ choices: [{ delta: { content: 'partial' } }] })}\n\n`),
+                  };
+                }
+                return new Promise((_resolve, reject) => {
+                  options.signal.addEventListener('abort', () => reject(abortError()), { once: true });
+                });
+              },
+            };
+          },
+        },
+      }),
+    }),
+    /The answer ended incomplete\./,
+  );
+});
