@@ -9,6 +9,13 @@
   const FREE_RATE_LIMIT_MESSAGE = 'The free OpenRouter roster is rate-limited right now. No paid model was substituted. Try again later.';
   const INCOMPLETE_MESSAGE = 'The answer ended incomplete.';
 
+  function localFailureHint(error) {
+    const message = error?.message === INCOMPLETE_MESSAGE
+      ? INCOMPLETE_MESSAGE
+      : LOCAL_OUTAGE_MESSAGE;
+    return `Local deliberation ended early: ${message}`;
+  }
+
   const TINY_ROSTER = [
     {
       key: 'proposer',
@@ -220,7 +227,6 @@
     const scope = createStreamScope(outerSignal, transport);
     const fetchImpl = transport.fetchImpl || fetch;
     let fullText = '';
-    let terminated = false;
     try {
       let response;
       try {
@@ -266,33 +272,34 @@
           } catch {
             continue;
           }
-          if (event.error) throw new Error(String(event.error));
+          if (event.error) throw new Error(LOCAL_OUTAGE_MESSAGE);
           if (event.response) {
             scope.firstToken();
             fullText += event.response;
             onToken(event.response);
           }
-          if (event.done === true) terminated = true;
+          if (event.done === true) return fullText.trim();
         }
       }
       if (buffer.trim()) {
+        let finalEvent = null;
         try {
-          const finalEvent = JSON.parse(buffer);
+          finalEvent = JSON.parse(buffer);
+        } catch {
+          // An incomplete terminal line carries no usable token.
+        }
+        if (finalEvent) {
+          if (finalEvent.error) throw new Error(LOCAL_OUTAGE_MESSAGE);
           if (finalEvent.response) {
             scope.firstToken();
             fullText += finalEvent.response;
             onToken(finalEvent.response);
           }
-          if (finalEvent.done === true) terminated = true;
-        } catch {
-          // An incomplete terminal line carries no usable token.
+          if (finalEvent.done === true) return fullText.trim();
         }
       }
-      if (!terminated) {
-        if (fullText) throw new Error(INCOMPLETE_MESSAGE);
-        throw new Error(LOCAL_OUTAGE_MESSAGE);
-      }
-      return fullText.trim();
+      if (fullText) throw new Error(INCOMPLETE_MESSAGE);
+      throw new Error(LOCAL_OUTAGE_MESSAGE);
     } finally {
       scope.close();
     }
@@ -531,8 +538,11 @@
           failStage(seat.stageKey, 'Run stopped.');
           throw error;
         }
-        failStage(seat.stageKey, error.message === INCOMPLETE_MESSAGE ? INCOMPLETE_MESSAGE : LOCAL_OUTAGE_MESSAGE);
-        throw error;
+        const displayError = error.message === INCOMPLETE_MESSAGE
+          ? error
+          : new Error(LOCAL_OUTAGE_MESSAGE);
+        failStage(seat.stageKey, displayError.message);
+        throw displayError;
       }
     };
 
@@ -546,7 +556,7 @@
     } catch (error) {
       hint.textContent = error.name === 'AbortError'
         ? 'Local deliberation stopped.'
-        : `Local deliberation ended early: ${error.message}`;
+        : localFailureHint(error);
     } finally {
       tinyController = null;
       runButton.textContent = 'Begin local deliberation';
@@ -634,6 +644,7 @@
       appendToken,
       beginStage,
       finishStage,
+      localFailureHint,
       modelAccent,
       runFreeRoster,
       runTinyPair,
