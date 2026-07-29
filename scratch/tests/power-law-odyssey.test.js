@@ -14,6 +14,10 @@ const html = fs.readFileSync(
   path.resolve(__dirname, '../../web/power-law-odyssey/index.html'),
   'utf8',
 );
+const designCss = fs.readFileSync(
+  path.resolve(__dirname, '../../web/shared/forest-design.css'),
+  'utf8',
+);
 
 test('a complete portfolio contains exactly 47 failures, two neutral bets, and one recovering outlier', () => {
   const engine = createPowerLawEngine('portfolio-proof');
@@ -96,6 +100,21 @@ test('the venture sandbox exposes a semantic deterministic 50-bet portfolio', ()
   assert.match(html, /is-converged/);
   assert.match(html, /outlier-glow/);
   assert.match(html, /prefers-reduced-motion:\s*reduce[\s\S]*\.bet-coin/s);
+});
+
+test('all 50 physical coins use the convergence-only 500ms spring transition', () => {
+  const convergedRule = html.match(
+    /\.bet-field\.is-converged \.bet-coin\s*\{([\s\S]*?)\}/,
+  )?.[1] || '';
+  const baseRule = html.match(/\.bet-coin\s*\{([\s\S]*?)\}/)?.[1] || '';
+
+  assert.match(convergedRule, /left var\(--duration-convergence\) var\(--spring\)/);
+  assert.match(convergedRule, /top var\(--duration-convergence\) var\(--spring\)/);
+  assert.match(convergedRule, /transform var\(--duration-convergence\) var\(--spring\)/);
+  assert.match(convergedRule, /box-shadow var\(--duration-convergence\) var\(--spring\)/);
+  assert.match(baseRule, /var\(--duration-recovery\) var\(--ease-out\)/);
+  assert.doesNotMatch(baseRule, /--spring/);
+  assert.match(designCss, /--duration-convergence:\s*500ms/);
 });
 
 test('scroll velocity continues to drive the page sliding motion', () => {

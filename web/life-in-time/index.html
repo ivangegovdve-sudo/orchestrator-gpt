@@ -410,30 +410,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--forest-body,Alegre
 <div class="header">
   <h1>Life in Time</h1>
   <p class="sub">See what remains. Then see what's still possible.</p>
-  <div class="year-prog-wrap">
-    <div class="year-prog-labels">
-      <span id="yearProgLabel">2026 is 0% gone</span>
-      <span id="yearProgDays"></span>
-    </div>
-    <div class="year-prog-track" role="progressbar" aria-label="Current year elapsed" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-valuetext="0% of the current year elapsed">
-      <div class="year-prog-fill" id="yearProgBar"></div>
-    </div>
-  </div>
 </div>
-<script>
-(function(){
-  var now=new Date(),yr=now.getFullYear();
-  var start=new Date(yr,0,1),end=new Date(yr+1,0,1);
-  var pct=Math.round((now-start)/(end-start)*100);
-  var dLeft=Math.ceil((end-now)/86400000);
-  document.getElementById('yearProgLabel').textContent=yr+' is '+pct+'% gone';
-  document.getElementById('yearProgDays').textContent=dLeft+' days left';
-  var meter=document.querySelector('.year-prog-track');
-  meter.setAttribute('aria-valuenow',String(pct));
-  meter.setAttribute('aria-valuetext',pct+'% of '+yr+' elapsed; '+dLeft+' days remain');
-  setTimeout(function(){document.getElementById('yearProgBar').style.width=pct+'%';},120);
-})();
-</script>
 
 <div class="form-wrap">
   <div class="form-card">
@@ -471,6 +448,24 @@ body{background:var(--bg);color:var(--text);font-family:var(--forest-body,Alegre
     <p class="wake-sub" id="wakeSub"></p>
   </div>
 
+  <div class="year-prog-wrap">
+    <div class="year-prog-labels">
+      <span id="yearProgLabel">Current year</span>
+      <span id="yearProgDays"></span>
+    </div>
+    <div class="year-prog-track" role="progressbar" aria-label="Current year elapsed" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-valuetext="0% of the current year elapsed">
+      <div class="year-prog-fill" id="yearProgBar"></div>
+    </div>
+  </div>
+
+  <!-- Pivot -->
+  <section class="pivot-wrap" aria-labelledby="late-achiever-title">
+    <span class="section-label">Perspective shift</span>
+    <h2 id="late-achiever-title">The late-achiever pivot</h2>
+    <button class="btn-pivot" onclick="showPositive()">But you're nowhere near done ✨</button>
+    <p class="pivot-hint">History says your best work may still be ahead</p>
+  </section>
+
   <!-- Kid summers (only shown if child year given) -->
   <div id="kidBlock" class="kid-block" style="display:none">
     <div class="kid-count" id="kidCount">—</div>
@@ -496,14 +491,6 @@ body{background:var(--bg);color:var(--text);font-family:var(--forest-body,Alegre
     <div class="hb-val" id="heartTicker">0</div>
     <div class="hb-sub">at 70 bpm — counts down live</div>
   </div>
-
-  <!-- Pivot -->
-  <section class="pivot-wrap" aria-labelledby="late-achiever-title">
-    <span class="section-label">Perspective shift</span>
-    <h2 id="late-achiever-title">The late-achiever pivot</h2>
-    <button class="btn-pivot" onclick="showPositive()">But you're nowhere near done ✨</button>
-    <p class="pivot-hint">History says your best work may still be ahead</p>
-  </section>
 
   <!-- Part 2: hopeful -->
   <div id="positive">
@@ -590,6 +577,31 @@ var heartbeatInterval = null;
 
 function fmt(n) {
   return Math.max(0, Math.round(n)).toLocaleString();
+}
+
+function renderYearProgress() {
+  var now = new Date();
+  var year = now.getFullYear();
+  var start = new Date(year, 0, 1);
+  var end = new Date(year + 1, 0, 1);
+  var pct = Math.round((now - start) / (end - start) * 100);
+  var daysLeft = Math.ceil((end - now) / 86400000);
+  var meter = document.querySelector('.year-prog-track');
+  var bar = document.getElementById('yearProgBar');
+  document.getElementById('yearProgLabel').textContent = year + ' is ' + pct + '% gone';
+  document.getElementById('yearProgDays').textContent = daysLeft + ' days left';
+  meter.setAttribute('aria-valuenow', String(pct));
+  meter.setAttribute('aria-valuetext', pct + '% of ' + year + ' elapsed; ' + daysLeft + ' days remain');
+  bar.style.width = '0%';
+  if (REDUCED_MOTION.matches) {
+    bar.style.width = pct + '%';
+    return;
+  }
+  requestAnimationFrame(function() {
+    requestAnimationFrame(function() {
+      bar.style.width = pct + '%';
+    });
+  });
 }
 
 function buildLifeGrid(age, lifeExp, childYear, birthYear) {
@@ -773,6 +785,7 @@ function calculate() {
   document.getElementById('positive').classList.remove('is-visible');
   var resultsEl = document.getElementById('results');
   resultsEl.style.display = 'block';
+  renderYearProgress();
   resultsEl.classList.remove('is-visible');
   requestAnimationFrame(function(){ requestAnimationFrame(function(){
     resultsEl.classList.add('is-visible');
@@ -799,7 +812,7 @@ function shareLink() {
   if (by) params.set('by', by);
   if (py) params.set('py', py);
   if (cy) params.set('cy', cy);
-  if (le && le !== '83') params.set('le', le);
+  if (le) params.set('le', le);
   var url = location.origin + location.pathname + (params.toString() ? '?' + params.toString() : '');
   var write = navigator.clipboard && typeof navigator.clipboard.writeText === 'function'
     ? navigator.clipboard.writeText(url)

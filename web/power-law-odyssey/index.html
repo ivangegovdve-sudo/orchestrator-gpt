@@ -618,6 +618,11 @@
       left: var(--grid-x);
       top: var(--grid-y);
       transform: translate(-50%, -50%) rotate(0) scale(1);
+      transition:
+        left var(--duration-convergence) var(--spring),
+        top var(--duration-convergence) var(--spring),
+        transform var(--duration-convergence) var(--spring),
+        box-shadow var(--duration-convergence) var(--spring);
     }
     .bet-field.is-converged .bet-coin[data-outcome="outlier"] {
       transform: translate(-50%, -50%) rotate(0) scale(1.32);
