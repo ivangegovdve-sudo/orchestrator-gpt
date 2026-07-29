@@ -1,6 +1,6 @@
-import { FOREST_TRAIL_ROUTE_IDS, ROUTE_INVENTORY } from './route-inventory.mjs?v=20260729d';
+import { FOREST_TRAIL_ROUTE_IDS, ROUTE_INVENTORY } from './route-inventory.mjs?v=20260729e';
 
-export { ROUTE_INVENTORY } from './route-inventory.mjs?v=20260729d';
+export { ROUTE_INVENTORY } from './route-inventory.mjs?v=20260729e';
 
 const inventoryById = new Map(ROUTE_INVENTORY.map((route) => [route.id, route]));
 const routeFromInventory = (id) => {
@@ -64,7 +64,9 @@ export function normalizeForestPath(pathname) {
   const parsed = new URL(pathname || '/', 'https://forest.invalid');
   let normalized = parsed.pathname.replace(/\/index\.html$/i, '/');
   normalized = normalized.replace(/\/{2,}/g, '/');
-  if (normalized !== '/' && !normalized.endsWith('/')) normalized += '/';
+  const lastSegment = normalized.split('/').pop() || '';
+  const isFileRoute = /\.[a-z0-9]+$/i.test(lastSegment);
+  if (normalized !== '/' && !normalized.endsWith('/') && !isFileRoute) normalized += '/';
   return normalized;
 }
 

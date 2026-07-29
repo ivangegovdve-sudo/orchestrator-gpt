@@ -86,6 +86,10 @@ body[data-forest-page] {
     color var(--duration-fast) var(--ease-out);
 }
 
+.forest-back {
+  view-transition-name: forest-chrome;
+}
+
 .forest-back::before {
   content: "↙";
   color: var(--forest-accent);

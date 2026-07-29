@@ -22,9 +22,9 @@ test("three canonical routes remain isolated and landing motion uses the crown, 
 
   const entry = fs.readFileSync(path.join(ROOT, "web", "shared", "forest-three.js"), "utf8");
   assert.match(entry, /tiles\.js — per-portal atlas wireframes — and burst\.js are retired/);
-  assert.match(entry, /forest-three\/slams\.js\?v=20260725c/);
-  assert.match(entry, /forest-three\/crown\.js\?v=20260725c/);
-  assert.match(entry, /forest-three\/roots\.js\?v=20260724d/);
+  assert.match(entry, /forest-three\/slams\.js\?v=20260729e/);
+  assert.match(entry, /forest-three\/crown\.js\?v=20260729e/);
+  assert.match(entry, /forest-three\/roots\.js\?v=20260729e/);
   assert.doesNotMatch(entry, /^import .*forest-three\/tiles\.js/m);
 });
 
@@ -40,13 +40,16 @@ test("SD Forest homepage exposes one truthful animated Open Overview portal", ()
   const portal = matches[0];
   assert.match(portal, /style="--accent:#73e9ff;--accent-secondary:#a9b2ff"/);
   assert.match(portal, /data-href="\/web\/open-overview\/index\.html"/);
-  assert.match(portal, /data-status="Public snapshot"/);
-  assert.match(portal, /Compare OpenRouter models and apps with GitHub AI ecosystems through ten-deep rankings, observed relationships, lifecycle signals, and clearly labeled source evidence\./);
+  assert.match(portal, /data-status="Research"/);
+  assert.match(portal, /A sourced OpenRouter and GitHub AI ecosystem overview that labels unknowns rather than filling gaps with guesses\./);
   assert.match(portal, /<use href="#icon-open-overview"\/>/);
   assert.match(portal, /<span class="portal-name">Open Overview<\/span>/);
   assert.match(portal, /<span class="portal-meta">AI ecosystem radar<\/span>/);
   assert.match(home, /<symbol id="icon-open-overview"[\s\S]*?--accent-secondary, #a9b2ff[\s\S]*?<\/symbol>/);
-  assert.match(home, /src="\/web\/shared\/forest-three\.js\?v=20260725c"/);
+  assert.match(
+    home,
+    /data-forest-runtime="three"[^>]+src="\/web\/shared\/forest-runtime-boot\.mjs\?v=20260729e"/,
+  );
   assert.doesNotMatch(home, /forest-icons\.js/);
 
   const routeReadme = fs.readFileSync(path.join(ROOT, "web", "open-overview", "README.md"), "utf8");

@@ -6,6 +6,8 @@ const { pathToFileURL } = require('node:url');
 
 const ROOT = path.resolve(__dirname, '../..');
 const read = (relativePath) => fs.readFileSync(path.join(ROOT, relativePath), 'utf8');
+const withoutNavigationMetadata = (source) =>
+  source.replace(/<script\b[^>]*type=["']speculationrules["'][^>]*>[\s\S]*?<\/script>/gi, '');
 
 const attribute = (tag, name) => tag.match(new RegExp(`\\b${name}="([^"]*)"`))?.[1];
 const text = (markup) => markup.replace(/<[^>]+>/g, '').replace(/&(amp|rsquo);/g, (_, entity) => ({ amp: '&', rsquo: '’' })[entity]).replace(/\s+/g, ' ').trim();
@@ -131,7 +133,7 @@ test('home preserves the scroll-linked route walk without button-navigation shim
 });
 
 test('public council exposes exactly two truthful modes', () => {
-  const council = read('web/council/index.html');
+  const council = withoutNavigationMetadata(read('web/council/index.html'));
   const modes = council.match(/data-council-mode=/g) || [];
 
   assert.equal(modes.length, 2);
@@ -236,7 +238,7 @@ test('every live internal portal resolves to an animated page with a Forest retu
       /href="\/"|href="\/index\.html"|forest-(?:motion|trails)\.js/,
       `${route} has no Forest return path`,
     );
-    assert.match(page, /forest-motion\.js|open-overview\.js|id="world"|id="starfield"|\/web\/rubiks-teacher\/assets\/index-[^"]+\.js/, `${route} has no motion runtime`);
+    assert.match(page, /data-forest-runtime="motion"|forest-motion\.js|open-overview\.js|id="world"|id="starfield"|\/web\/rubiks-teacher\/assets\/index-[^"]+\.js/, `${route} has no motion runtime`);
   }
 });
 
