@@ -1,10 +1,13 @@
 <!doctype html>
-<html lang="en" class="forest-skin">
+<html lang="en" class="forest-skin forest-palette">
 <head>
 <script defer src="/web/shared/feedback.js?v=20260729a"></script>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>AI & Tech Glossary</title>
+<meta http-equiv="refresh" content="0; url=/web/library/"/>
+<link rel="canonical" href="/web/library/"/>
+<meta name="robots" content="noindex"/>
+<title>AI &amp; Tech Glossary moved to Library</title>
 <link rel="stylesheet" href="/web/shared/forest-design.css?v=20260729a"/>
 <style>
 :root {
@@ -40,6 +43,28 @@ body {
     var(--bg);
   font-family: var(--forest-body, Alegreya, Georgia, serif);
 }
+
+.forest-back {
+  display: inline-flex;
+  margin: 0 0 18px;
+  color: var(--glossary-accent);
+  font-family: var(--forest-sans, "Alegreya Sans", sans-serif);
+  text-decoration: none;
+}
+
+.redirect-card {
+  width: min(620px, 100%);
+  margin: 12vh auto;
+  padding: 28px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: linear-gradient(152deg, rgba(13, 18, 14, .98), rgba(5, 8, 6, .97));
+  box-shadow: var(--shadow);
+  text-align: center;
+}
+
+.redirect-card p { color: var(--muted); line-height: 1.55; }
+.redirect-card a:not(.forest-back) { color: var(--glossary-accent); }
 
 main {
   min-height: 100vh;
@@ -430,8 +455,13 @@ input:focus-visible,
 </head>
 <body data-forest-page="library">
 <main>
-  <div class="app-shell">
-    <a class="hub-link" href="/">← Forest HUB</a>
+  <section class="redirect-card" aria-labelledby="moved-heading">
+    <a class="forest-back" href="/">← SDForest</a>
+    <h1 id="moved-heading">The glossary now lives in the Library</h1>
+    <p>This exact parent route has moved into the unified Library &amp; Platforms experience.</p>
+    <p><a href="/web/library/">Continue to Library &amp; Platforms</a></p>
+  </section>
+  <div class="app-shell" hidden>
     <section id="home-view" class="view active" aria-label="Home Search">
       <header class="hero">
         <h1>AI & Tech Glossary</h1>
@@ -489,10 +519,8 @@ input:focus-visible,
 
 <div id="copy-toast" class="toast" role="status" aria-live="polite"></div>
 
-<script src="./glossary-data.js?v=20260706"></script>
-<script src="./glossary-search.js"></script>
-<script src="./app.js"></script>
 <script src="/web/shared/forest-motion.js?v=20260729a"></script>
   <script src="/web/shared/design-history.js?v=20260729a"></script>
+  <script>location.replace("/web/library/");</script>
 </body>
 </html>

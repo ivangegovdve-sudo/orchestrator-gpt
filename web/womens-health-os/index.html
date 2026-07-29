@@ -194,6 +194,7 @@
   <link rel="stylesheet" href="/web/shared/design-history.css?v=20260729a">
 </head>
 <body data-forest-page="health">
+  <a class="forest-back" href="/">← SDForest</a>
   <div class="page">
     <div class="topbar">
       <a href="/" class="back-link">&#8592; Forest HUB</a>
@@ -448,6 +449,8 @@
       box-shadow: 0 8px 28px rgba(232,184,107,.4);
       transition: transform var(--duration-scroll-state), box-shadow var(--duration-scroll-state);
     }
+    /* The feedback affordance remains available behind the higher-priority research control. */
+    button[aria-label="Send feedback"] { z-index: 190 !important; }
     .wh-chat-fab:hover { transform: translateY(-2px); box-shadow: 0 12px 34px rgba(232,184,107,.55); }
     .wh-chat-fab svg { width: 18px; height: 18px; }
     .wh-chat-panel {
