@@ -5,6 +5,9 @@
   const OPEN_RELAY = 'https://chloe.blumenkraft.cloud/council/relay';
   const FIRST_TOKEN_TIMEOUT = 45_000;
   const STREAM_HARD_CAP = 120_000;
+  const LOCAL_OUTAGE_MESSAGE = 'The Local Oracle is offline. This page can only listen while Ivan’s ARM64 Ollama host and relay are reachable; no reply has been invented.';
+  const FREE_RATE_LIMIT_MESSAGE = 'The free OpenRouter roster is rate-limited right now. No paid model was substituted. Try again later.';
+  const INCOMPLETE_MESSAGE = 'The answer ended incomplete.';
 
   // Both councils are public surfaces. This sentence is the standing guardrail from
   // CLAUDE.md — it must survive every prompt change, so it lives in one place and is
@@ -150,7 +153,25 @@
     card: query(`[data-stage="${key}"]`) || NULL_NODE,
     status: query(`[data-status="${key}"]`) || NULL_NODE,
     output: query(`[data-output="${key}"]`) || NULL_NODE,
+    modelLabel: query(`[data-model-label="${key}"]`) || NULL_NODE,
   });
+
+  function modelAccent(model) {
+    let hash = 0x811c9dc5;
+    for (const character of String(model)) {
+      hash ^= character.charCodeAt(0);
+      hash = Math.imul(hash, 0x01000193) >>> 0;
+    }
+    return `hsl(${hash % 360} 65% 70%)`;
+  }
+
+  function setStageModel(key, model) {
+    const view = stageView(key);
+    if (!model) return view;
+    view.card.style.setProperty('--model-accent', modelAccent(model));
+    if (view.modelLabel) view.modelLabel.textContent = model;
+    return view;
+  }
 
   function abortError() {
     const error = new Error('Stopped');
@@ -303,8 +324,8 @@
     return loader;
   }
 
-  function beginStage(key, label = 'Connecting') {
-    const view = stageView(key);
+  function beginStage(key, label = 'Connecting', model = '') {
+    const view = setStageModel(key, model);
     const textNode = document.createTextNode('');
     const loader = createDeliberationLoader();
     view.output.replaceChildren(textNode, loader);
@@ -325,7 +346,7 @@
       stream.view.status.textContent = 'Streaming';
     }
     stream.text += token;
-    stream.textNode.appendData(token);
+    stream.textNode.textContent += token;
   }
 
   function finishStage(key, text, label = 'Settled') {
@@ -418,7 +439,6 @@
           chunk = await reader.read();
         } catch (error) {
           const classified = scope.classify(error, fullText);
-          if (classified === null) return fullText;
           throw classified;
         }
         if (chunk.done) break;
@@ -511,7 +531,6 @@
           chunk = await reader.read();
         } catch (error) {
           const classified = scope.classify(error, fullText);
-          if (classified === null) return fullText;
           throw classified;
         }
         if (chunk.done) break;
@@ -594,7 +613,7 @@
       outerSignal,
       temperature,
       onAttempt(model, index, count) {
-        stream = beginStage(key, `Model ${index + 1}/${count}`);
+        stream = beginStage(key, `Model ${index + 1}/${count}`, model);
         hint.textContent = `Trying ${model.split('/').pop()} — free-tier queues can vary.`;
       },
       onToken(token) {
@@ -605,7 +624,7 @@
       },
     });
     if (result) {
-      finishStage(key, result.text, result.model.split('/').pop());
+      finishStage(key, result.text, 'Settled');
       return result;
     }
     runState.lastFailure = lastError;
@@ -685,6 +704,7 @@
       const stream = beginStage(
         seat.stageKey,
         seat.key === 'synthesizer' ? 'Reading council' : 'Connecting',
+        seat.model,
       );
       hint.textContent = seat.key === 'synthesizer'
         ? 'qwen is weighing all four prior views.'
@@ -698,7 +718,7 @@
           (token) => appendToken(stream, token),
           treatment.temperature,
         );
-        finishStage(seat.stageKey, text, seat.label);
+        finishStage(seat.stageKey, text, 'Settled');
         return text;
       } catch (error) {
         if (error.name === 'AbortError') {
@@ -840,7 +860,7 @@
   }
 
   if (typeof module === 'object' && module.exports) {
-    module.exports = { runFreeRoster, runTinyPair, runTinyDeliberation, MODES, resolveMode, setActiveMode };
+    module.exports = { streamFreeModel, runFreeRoster, runTinyPair, runTinyDeliberation, MODES, resolveMode, setActiveMode };
   }
   if (typeof document === 'undefined') return;
 

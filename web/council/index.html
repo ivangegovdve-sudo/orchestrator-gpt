@@ -341,8 +341,8 @@
         box-shadow var(--duration-normal) var(--ease-out);
     }
     .stage-card.active {
-      border-color: color-mix(in srgb, var(--mode) 58%, transparent);
-      box-shadow: 0 0 42px color-mix(in srgb, var(--mode) 8%, transparent);
+      border-color: color-mix(in srgb, var(--model-accent, var(--mode)) 58%, transparent);
+      box-shadow: 0 0 42px color-mix(in srgb, var(--model-accent, var(--mode)) 8%, transparent);
     }
     .stage-card.done { border-color: var(--accent-green); }
     /* A seat that went offline, timed out, or never opened keeps its header but drops
@@ -371,8 +371,18 @@
       border-bottom: 1px solid var(--border);
     }
     .stage-name { font: 700 18px/1.2 var(--forest-display, Georgia, serif); }
+    .stage-model {
+      display: block;
+      max-width: 25ch;
+      overflow: hidden;
+      color: var(--text-muted);
+      font: 600 9px/1.25 var(--forest-sans, sans-serif);
+      text-align: right;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
     .status { min-height: 24px; padding: 0 8px; font-size: 8px; }
-    .status.live { color: var(--mode); border-color: color-mix(in srgb, var(--mode) 40%, transparent); }
+    .status.live { color: var(--model-accent, var(--mode)); border-color: color-mix(in srgb, var(--model-accent, var(--mode)) 40%, transparent); }
     .stage-content {
       flex: 1;
       min-height: 180px;
@@ -393,21 +403,21 @@
       width: 7px;
       height: 7px;
       border-radius: 50%;
-      background: var(--mode);
+      background: var(--model-accent, var(--mode));
       animation: dot-pulse var(--duration-dot-pulse) ease-in-out infinite;
     }
     .deliberation-loader .dot:nth-child(2) {
-      animation-delay: var(--stagger-dot);
+      animation-delay: var(--duration-deliberation-stagger);
     }
     .deliberation-loader .dot:nth-child(3) {
-      animation-delay: calc(var(--stagger-dot) * 2);
+      animation-delay: calc(var(--duration-deliberation-stagger) * 2);
     }
     .stage-content.streaming::after {
       display: inline-block;
       width: 2px;
       height: 1em;
       margin-left: 2px;
-      background: var(--accent-green);
+      background: var(--model-accent, var(--mode));
       vertical-align: -.1em;
       content: "";
       animation: caret var(--duration-loop) steps(1) infinite;
@@ -564,23 +574,23 @@
 
       <div class="stage-grid tiny-stage-grid" aria-label="TinyLLM five-role responses">
         <article class="stage-card" data-stage="tinylm-proposer" data-tinylm-role="proposer">
-          <header class="stage-head"><span class="stage-name">Tiny-Agent · proposer</span><span class="status" data-status="tinylm-proposer">Waiting</span></header>
+          <header class="stage-head"><span class="stage-name">Tiny-Agent · proposer</span><span class="stage-model" data-model-label="tinylm-proposer">hf.co/driaforall/Tiny-Agent-a-0.5B:latest</span><span class="status" data-status="tinylm-proposer">Waiting</span></header>
           <div class="stage-content" data-output="tinylm-proposer" aria-live="off">Opens with a direct position and its central trade-off.</div>
         </article>
         <article class="stage-card" data-stage="tinylm-analyst" data-tinylm-role="analyst">
-          <header class="stage-head"><span class="stage-name">llama3.2:1b · analyst</span><span class="status" data-status="tinylm-analyst">Waiting</span></header>
+          <header class="stage-head"><span class="stage-name">llama3.2:1b · analyst</span><span class="stage-model" data-model-label="tinylm-analyst">llama3.2:1b</span><span class="status" data-status="tinylm-analyst">Waiting</span></header>
           <div class="stage-content" data-output="tinylm-analyst" aria-live="off">Maps assumptions, evidence needs, and likely consequences.</div>
         </article>
         <article class="stage-card" data-stage="tinylm-critic" data-tinylm-role="critic">
-          <header class="stage-head"><span class="stage-name">qwen2.5:0.5b · critic</span><span class="status" data-status="tinylm-critic">Waiting</span></header>
+          <header class="stage-head"><span class="stage-name">qwen2.5:0.5b · critic</span><span class="stage-model" data-model-label="tinylm-critic">qwen2.5:0.5b</span><span class="status" data-status="tinylm-critic">Waiting</span></header>
           <div class="stage-content" data-output="tinylm-critic" aria-live="off">Stress-tests the proposal and its weakest assumptions.</div>
         </article>
         <article class="stage-card" data-stage="tinylm-observer" data-tinylm-role="consciousness-observer">
-          <header class="stage-head"><span class="stage-name">EVE · consciousness observer</span><span class="status" data-status="tinylm-observer">Waiting</span></header>
+          <header class="stage-head"><span class="stage-name">EVE · consciousness observer</span><span class="stage-model" data-model-label="tinylm-observer">hf.co/mradermacher/eve-qwen2.5-3b-consciousness-soul-GGUF:Q4_K_M</span><span class="status" data-status="tinylm-observer">Waiting</span></header>
           <div class="stage-content" data-output="tinylm-observer" aria-live="off">Observes how the claim frames agency, perspective, and selfhood.</div>
         </article>
         <article class="stage-card" data-stage="tinylm-synthesizer" data-tinylm-role="synthesizer">
-          <header class="stage-head"><span class="stage-name">qwen · synthesizer</span><span class="status" data-status="tinylm-synthesizer">Waiting</span></header>
+          <header class="stage-head"><span class="stage-name">qwen · synthesizer</span><span class="stage-model" data-model-label="tinylm-synthesizer">qwen2.5:3b</span><span class="status" data-status="tinylm-synthesizer">Waiting</span></header>
           <div class="stage-content" data-output="tinylm-synthesizer" aria-live="off">Waits to weigh all four prior views into one bounded conclusion.</div>
         </article>
       </div>
@@ -622,15 +632,15 @@
 
       <div class="stage-grid" aria-label="OpenRouter Council responses">
         <article class="stage-card" data-stage="openrouter-proposer">
-          <header class="stage-head"><span class="stage-name">Proposer</span><span class="status" data-status="openrouter-proposer">Waiting</span></header>
+          <header class="stage-head"><span class="stage-name">Proposer</span><span class="stage-model" data-model-label="openrouter-proposer">Waiting for a free model</span><span class="status" data-status="openrouter-proposer">Waiting</span></header>
           <div class="stage-content" data-output="openrouter-proposer" aria-live="off">Forms a direct first position.</div>
         </article>
         <article class="stage-card" data-stage="openrouter-critic">
-          <header class="stage-head"><span class="stage-name">Critic</span><span class="status" data-status="openrouter-critic">Waiting</span></header>
+          <header class="stage-head"><span class="stage-name">Critic</span><span class="stage-model" data-model-label="openrouter-critic">Waiting for a free model</span><span class="status" data-status="openrouter-critic">Waiting</span></header>
           <div class="stage-content" data-output="openrouter-critic" aria-live="off">Tests assumptions, omissions, and failure modes.</div>
         </article>
         <article class="stage-card" data-stage="openrouter-synthesis">
-          <header class="stage-head"><span class="stage-name">Synthesis</span><span class="status" data-status="openrouter-synthesis">Waiting</span></header>
+          <header class="stage-head"><span class="stage-name">Synthesis</span><span class="stage-model" data-model-label="openrouter-synthesis">Waiting for a free model</span><span class="status" data-status="openrouter-synthesis">Waiting</span></header>
           <div class="stage-content" data-output="openrouter-synthesis" aria-live="off">Weighs both positions into one practical answer.</div>
         </article>
       </div>
