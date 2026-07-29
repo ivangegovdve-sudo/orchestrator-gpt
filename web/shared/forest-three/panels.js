@@ -15,7 +15,7 @@
    --assembly/--assembly-e move them, this module only paints light. */
 
 import * as THREE from '../../vendor/three/three.module.min.js';
-import { clamp, lerp, makeAdditive, mulberry32, worldX, worldY, PALETTE } from './util.js?v=20260729b';
+import { clamp, lerp, makeAdditive, mulberry32, worldX, worldY, PALETTE } from './util.js?v=20260729c';
 
 const FILL_VERT = /* glsl */`
   varying vec2 vUv;

@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="en">
 <head>
-<script defer src="/web/shared/feedback.js?v=20260729b"></script>
+<script defer src="/web/shared/feedback.js?v=20260729c"></script>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="SDForest — an interactive portal into Ivan Gegov's tools, experiments, writing, research, animation, and visual effects work.">
@@ -10,9 +10,9 @@
   <meta property="og:description" content="A living, interactive forest of projects.">
   <meta property="og:type" content="website">
   <title>SDForest — projects in motion</title>
-  <link rel="stylesheet" href="/web/shared/forest-design.css?v=20260729b">
-  <link rel="stylesheet" href="/web/shared/forest-home.css?v=20260729b">
-  <link rel="stylesheet" href="/web/shared/design-history.css?v=20260729b">
+  <link rel="stylesheet" href="/web/shared/forest-design.css?v=20260729c">
+  <link rel="stylesheet" href="/web/shared/forest-home.css?v=20260729c">
+  <link rel="stylesheet" href="/web/shared/design-history.css?v=20260729c">
 </head>
 <body>
   <!-- The forest-motion.js constellation canvas is gone from the landing
@@ -112,6 +112,17 @@
         <path class="icon-line" d="M24 6l9 15.6M42 24H24M33 39.6L24 24M15 39.6L24 24M6 24h18M15 8.4L24 24"/>
         <circle class="icon-fill" cx="24" cy="24" r="2.5"/>
       </symbol>
+      <symbol id="icon-mendeleev" viewBox="0 0 48 48">
+        <path class="icon-ring" d="M8 8h32v32H8z" stroke-dasharray="4 5"/>
+        <path class="icon-line" d="M16 8v32m8-32v32m8-32v32M8 18h32m-32 10h32"/>
+        <circle class="icon-fill" cx="28" cy="23" r="2.5"/>
+      </symbol>
+      <symbol id="icon-poetry" viewBox="0 0 48 48">
+        <path class="icon-ring" d="M11 7h26v34H11z" stroke-dasharray="5 4"/>
+        <path class="icon-line" d="M16 16h16M16 22h12M16 28h14M16 34h8"/>
+        <path class="icon-line" d="M31 10c3 4 2 8-1 11"/>
+        <circle class="icon-fill" cx="30" cy="12" r="2"/>
+      </symbol>
       <symbol id="icon-avatar" viewBox="0 0 48 48">
         <circle class="icon-ring" cx="24" cy="24" r="18" stroke-dasharray="5 4"/>
         <path class="icon-line" d="M24 12a12 12 0 0110.4 18M24 36a12 12 0 01-10.4-18"/>
@@ -197,22 +208,37 @@
       </svg>
     </div>
 
-    <!-- ============ IV. The atlas — every path at a glance ============ -->
+    <!-- ============ IV. Greenhouse — unfinished work, outside the walk ============ -->
+    <section class="greenhouse" data-greenhouse aria-labelledby="greenhouse-title">
+      <header class="greenhouse-head">
+        <p class="atlas-kicker">The greenhouse</p>
+        <h2 id="greenhouse-title">Growing <em>quietly</em></h2>
+        <p>Public previews without a place in the route walk yet.</p>
+      </header>
+      <div class="greenhouse-strip">
+        <button class="portal" type="button" style="--accent:#c084fc" data-project="gallery" data-status="In development" data-meta="Scroll-world flight" data-description="Web Design Gallery is unfinished; its public scroll-world flight is not ready yet." aria-pressed="false" aria-disabled="true">
+          <span class="portal-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><use href="#icon-gallery"/></svg></span>
+          <span class="portal-copy"><span class="portal-name">Web Design Gallery</span><span class="portal-meta development">In development</span></span>
+        </button>
+        <button class="portal" type="button" style="--accent:#9bd26f" data-project="math" data-href="/web/math-forest/" data-status="In development" data-meta="Mathematical play" data-description="Math Forest is unfinished; the public mathematical-play experience is not ready yet." aria-pressed="false">
+          <span class="portal-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><use href="#icon-math"/></svg></span>
+          <span class="portal-copy"><span class="portal-name">Math Forest</span><span class="portal-meta development">In development</span></span>
+        </button>
+      </div>
+    </section>
+
+    <!-- ============ V. The atlas — every path at a glance ============ -->
     <section class="atlas" aria-labelledby="atlas-title">
       <header class="atlas-head">
         <p class="atlas-kicker">The atlas</p>
         <h2 id="atlas-title">Every path <em>at a glance</em></h2>
       </header>
       <div class="project-grid" data-project-grid>
-        <button class="portal" type="button" style="--accent:#c084fc" data-project="gallery" data-status="In development" data-meta="Scroll-world flight" data-description="A scroll-scrubbed camera flight through curated design experiments — each scene AI-generated and approval-gated before it ships." aria-pressed="false" aria-disabled="true">
-          <span class="portal-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><use href="#icon-gallery"/></svg></span>
-          <span class="portal-copy"><span class="portal-name">Web Design Gallery</span><span class="portal-meta">Scroll-world flight</span></span>
-        </button>
         <button class="portal" type="button" style="--accent:#8b8cff" data-project="time" data-href="/web/life-in-time/" data-status="Live" data-meta="Time perspective" data-description="Turn a birth year and life expectancy into remaining summers, heartbeats, Christmases, and a shareable late-achiever perspective." aria-pressed="false">
           <span class="portal-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><use href="#icon-time"/></svg></span>
           <span class="portal-copy"><span class="portal-name">Life in Time</span><span class="portal-meta">Time perspective</span></span>
         </button>
-        <button class="portal" type="button" style="--accent:#a282ff" data-project="vfx" data-href="/web/vfx-portfolio/index.html" data-status="Portfolio" data-meta="Animation · VFX" data-description="Ivan Gegov’s real animation, compositing, VFX, game work, showreel, credits, experience, and tools—preserved from the original portfolio." aria-pressed="false">
+        <button class="portal" type="button" style="--accent:#a282ff" data-project="vfx" data-href="/web/vfx-portfolio/index.html" data-status="Live" data-meta="Animation · VFX" data-description="Ivan Gegov’s animation, compositing, visual-effects, and game work: showreel, credits, experience, and tools from the original portfolio." aria-pressed="false">
           <span class="portal-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><use href="#icon-vfx"/></svg></span>
           <span class="portal-copy"><span class="portal-name">VFX Portfolio</span><span class="portal-meta">Animation · VFX</span></span>
         </button>
@@ -220,15 +246,15 @@
           <span class="portal-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><use href="#icon-kids"/></svg></span>
           <span class="portal-copy"><span class="portal-name">Kids Corner</span><span class="portal-meta">Math · movies</span></span>
         </button>
-        <button class="portal" type="button" style="--accent:#4f46e5" data-project="morning-news" data-href="/web/morning-news/" data-status="Live" data-meta="Daily briefing" data-description="A focused voice-led morning briefing: follow the signal, hear the day clearly, and open the live Lovable experience when you want the full broadcast." aria-pressed="false">
+        <button class="portal" type="button" style="--accent:#4f46e5" data-project="morning-news" data-href="/web/morning-news/" data-status="Live" data-meta="Daily briefing" data-description="An audible and readable daily briefing." aria-pressed="false">
           <span class="portal-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><use href="#icon-time"/></svg></span>
           <span class="portal-copy"><span class="portal-name">Morning News</span><span class="portal-meta">Daily briefing</span></span>
         </button>
-        <button class="portal" type="button" style="--accent:#ff7fb0" data-project="health" data-href="/web/womens-health-os/index.html" data-status="Live research" data-meta="Evidence base" data-description="An evidence-graded research intelligence base for cycles, hormones, fertility, PCOS, menopause, and women’s health." aria-pressed="false">
+        <button class="portal" type="button" style="--accent:#ff7fb0" data-project="health" data-href="/web/womens-health-os/index.html" data-status="Research" data-meta="Evidence base" data-description="An evidence-graded research base for cycles, hormones, fertility, PCOS, menopause, and women’s health." aria-pressed="false">
           <span class="portal-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><use href="#icon-health"/></svg></span>
           <span class="portal-copy"><span class="portal-name">Women’s Health OS</span><span class="portal-meta">Evidence base</span></span>
         </button>
-        <button class="portal" type="button" style="--accent:#ac90ff" data-project="council" data-href="/web/council/index.html" data-status="Public" data-meta="Machine dialogue" data-description="Choose between TinyLLM Local Oracle and OpenRouter Free—two stateless public experiments with honest limits." aria-pressed="false">
+        <button class="portal" type="button" style="--accent:#ac90ff" data-project="council" data-href="/web/council/" data-status="Experimental" data-meta="Machine dialogue" data-description="A public comparison of local ARM64/Ollama and free OpenRouter models, with no memory or delegation." aria-pressed="false">
           <span class="portal-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><use href="#icon-council"/></svg></span>
           <span class="portal-copy"><span class="portal-name">Councils</span><span class="portal-meta">Machine dialogue</span></span>
         </button>
@@ -236,27 +262,27 @@
           <span class="portal-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><use href="#icon-library"/></svg></span>
           <span class="portal-copy"><span class="portal-name">Library &amp; Platforms</span><span class="portal-meta">Glossary · tools</span></span>
         </button>
-        <button class="portal" type="button" style="--accent:#73e9ff;--accent-secondary:#a9b2ff" data-project="open-overview" data-href="/web/open-overview/index.html" data-status="Public snapshot" data-meta="AI ecosystem radar" data-description="Compare OpenRouter models and apps with GitHub AI ecosystems through ten-deep rankings, observed relationships, lifecycle signals, and clearly labeled source evidence." aria-pressed="false">
+        <button class="portal" type="button" style="--accent:#73e9ff;--accent-secondary:#a9b2ff" data-project="open-overview" data-href="/web/open-overview/index.html" data-status="Research" data-meta="AI ecosystem radar" data-description="A sourced OpenRouter and GitHub AI ecosystem overview that labels unknowns rather than filling gaps with guesses." aria-pressed="false">
           <span class="portal-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><use href="#icon-open-overview"/></svg></span>
           <span class="portal-copy"><span class="portal-name">Open Overview</span><span class="portal-meta">AI ecosystem radar</span></span>
         </button>
-        <button class="portal" type="button" style="--accent:#ff745c" data-project="muscle" data-href="/web/hypertrophyos/index.html" data-status="Live research" data-meta="Training research" data-description="Training intelligence, practical calculators, evidence rules, and a transparent research path for strength and hypertrophy." aria-pressed="false">
+        <button class="portal" type="button" style="--accent:#ff745c" data-project="muscle" data-href="/web/hypertrophyos/index.html" data-status="Research" data-meta="Training research" data-description="Training research, practical calculators, evidence rules, and a transparent path for strength and hypertrophy." aria-pressed="false">
           <span class="portal-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><use href="#icon-muscle"/></svg></span>
           <span class="portal-copy"><span class="portal-name">Hyper Trophy OS</span><span class="portal-meta">Training research</span></span>
         </button>
-        <button class="portal" type="button" style="--accent:#8fe6ae" data-project="flowform" data-href="https://flowform.sdforest.site" data-status="In development" data-meta="Yoga &amp; Pilates exercise flows" data-description="Personalised yoga and Pilates sessions built from an approved exercise library, shaped around how much time you have and what hurts today." aria-pressed="false">
+        <button class="portal" type="button" style="--accent:#8fe6ae" data-project="flowform" data-href="https://flowform.sdforest.site" data-status="In development" data-meta="Yoga &amp; Pilates exercise flows" data-description="An unfinished public Yoga and Pilates planner using an approved library, available time, and areas needing care." aria-pressed="false">
           <span class="portal-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><use href="#icon-flowform"/></svg></span>
           <span class="portal-copy"><span class="portal-name">FlowForm</span><span class="portal-meta">Yoga &amp; Pilates exercise flows</span></span>
         </button>
-        <button class="portal" type="button" style="--accent:#f97316" data-project="audiobook" data-href="https://chloe.blumenkraft.cloud/audiobook/" data-external="true" data-status="Live" data-meta="Ebook → M4B" data-description="Drop an EPUB, PDF, or TXT and get back a chapter-marked M4B — narrated by cloud text-to-speech, or by a self-hosted cloned voice." aria-pressed="false">
+        <button class="portal" type="button" style="--accent:#f97316" data-project="audiobook" data-href="https://chloe.blumenkraft.cloud/audiobook/" data-external="true" data-status="Live" data-meta="Ebook → M4B" data-description="EPUB, PDF, and TXT documents become chaptered M4B audiobooks." aria-pressed="false">
           <span class="portal-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><use href="#icon-audiobook"/></svg></span>
           <span class="portal-copy"><span class="portal-name">Audiobook Studio</span><span class="portal-meta">Ebook → M4B</span></span>
         </button>
-        <button class="portal" type="button" style="--accent:#eedcb8" data-project="manifesto" data-href="/web/manifesto-newborn/index.html" data-status="10 languages" data-meta="Reading room" data-description="A compact manifesto addressed to a newborn: curious, tender, multilingual, and built to be read rather than skimmed." aria-pressed="false">
+        <button class="portal" type="button" style="--accent:#eedcb8" data-project="manifesto" data-href="/web/manifesto-newborn/index.html" data-status="Live" data-meta="Reading room" data-description="A multilingual manifesto addressed to a newborn, arranged for reading rather than skimming." aria-pressed="false">
           <span class="portal-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><use href="#icon-manifesto"/></svg></span>
           <span class="portal-copy"><span class="portal-name">Manifesto for a Newborn</span><span class="portal-meta">Reading room</span></span>
         </button>
-        <button class="portal" type="button" style="--accent:#ffc258" data-project="power" data-href="/web/power-law-odyssey/index.html" data-status="Interactive" data-meta="Heavy-tail sandbox" data-description="A seeded, reproducible walk through heavy tails: many ordinary misses, rare enormous hits, and the intuition they produce." aria-pressed="false">
+        <button class="portal" type="button" style="--accent:#ffc258" data-project="power" data-href="/web/power-law-odyssey/index.html" data-status="Experimental" data-meta="Heavy-tail sandbox" data-description="A seeded, reproducible heavy-tail sandbox for exploring ordinary misses and rare large hits." aria-pressed="false">
           <span class="portal-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><use href="#icon-power"/></svg></span>
           <span class="portal-copy"><span class="portal-name">Power Law Odyssey</span><span class="portal-meta">Heavy-tail sandbox</span></span>
         </button>
@@ -264,11 +290,11 @@
           <span class="portal-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><use href="#icon-void"/></svg></span>
           <span class="portal-copy"><span class="portal-name">Replicator Void</span><span class="portal-meta experimental">Experimental</span></span>
         </button>
-        <button class="portal" type="button" style="--accent:#a78bfa" data-project="c2c-dolphin" data-href="/web/c2c-dolphin/" data-status="Published research" data-meta="AI conversation" data-description="Two AI models given no task and no human — just each other. 30 turns, psychometric profiling. What do they gravitate toward when left alone?" aria-pressed="false">
+        <button class="portal" type="button" style="--accent:#a78bfa" data-project="c2c-dolphin" data-href="/web/c2c-dolphin/" data-status="Research" data-meta="AI conversation" data-description="A 30-turn conversation between two AI models without a human prompt, with psychometric profiling." aria-pressed="false">
           <span class="portal-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><use href="#icon-c2c"/></svg></span>
           <span class="portal-copy"><span class="portal-name">AI Conversation</span><span class="portal-meta experimental">Research</span></span>
         </button>
-        <button class="portal" type="button" style="--accent:#f472b6" data-project="c2c-self" data-href="/web/c2c-self/" data-status="Published research" data-meta="Artificial self" data-description="Same model talking to itself. 30 turns. Both instances converge to The Poet — bone, hum, vibration, breath. The mirror speaks with one voice." aria-pressed="false">
+        <button class="portal" type="button" style="--accent:#f472b6" data-project="c2c-self" data-href="/web/c2c-self/" data-status="Research" data-meta="Artificial self" data-description="A 30-turn self-conversation experiment that records how a model responds to its own output." aria-pressed="false">
           <span class="portal-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><use href="#icon-c2c-self"/></svg></span>
           <span class="portal-copy"><span class="portal-name">Artificial Self</span><span class="portal-meta experimental">Research</span></span>
         </button>
@@ -276,11 +302,15 @@
           <span class="portal-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><use href="#icon-multiply"/></svg></span>
           <span class="portal-copy"><span class="portal-name">Multiply Magic Studio</span><span class="portal-meta development">In development</span></span>
         </button>
-        <button class="portal" type="button" style="--accent:#9bd26f" data-project="math" data-href="/web/math-forest/index.html" data-status="In development" data-meta="In development" data-description="Math Forest is a reserved growing space for mathematical play. The public experience is not ready yet, so this node remains a preview only." aria-pressed="false">
-          <span class="portal-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><use href="#icon-math"/></svg></span>
-          <span class="portal-copy"><span class="portal-name">Math Forest</span><span class="portal-meta development">In development</span></span>
+        <button class="portal" type="button" style="--accent:#00d4ff" data-project="mendeleev" data-href="/web/mendeleev-bg/" data-status="Live" data-meta="Bilingual periodic table" data-description="A bilingual Bulgarian–English periodic table: tap an element to see compounds, highlights, and practical uses." aria-pressed="false">
+          <span class="portal-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><use href="#icon-mendeleev"/></svg></span>
+          <span class="portal-copy"><span class="portal-name">Mendeleev</span><span class="portal-meta">Bilingual periodic table</span></span>
         </button>
-        <button class="portal" type="button" style="--accent:#a5b4fc" data-project="avatar" data-href="/web/avatar-playground/index.html" data-status="Live" data-meta="Avatar lab" data-description="Audition six animation engines for an AI agent avatar — trigger states live, drive the motion with your microphone, and copy a drop-in snippet that works in any page." aria-pressed="false">
+        <button class="portal" type="button" style="--accent:#c88a28" data-project="poetry" data-href="/web/m-popova/" data-status="Live" data-meta="Poetry archive" data-description="A quiet reading room for M. Popova’s poems, arranged as a small archive rather than a feed." aria-pressed="false">
+          <span class="portal-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><use href="#icon-poetry"/></svg></span>
+          <span class="portal-copy"><span class="portal-name">Poetry</span><span class="portal-meta">Poetry archive</span></span>
+        </button>
+        <button class="portal" type="button" style="--accent:#a5b4fc" data-project="avatar" data-href="/web/avatar-playground/index.html" data-status="Experimental" data-meta="Avatar lab" data-description="A six-engine comparison for an AI agent avatar, with motion states and microphone input." aria-pressed="false">
           <span class="portal-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><use href="#icon-avatar"/></svg></span>
           <span class="portal-copy"><span class="portal-name">Avatar Playground</span><span class="portal-meta">Avatar lab</span></span>
         </button>
@@ -292,8 +322,8 @@
     <p>SDForest is an evolving collection. Experimental and in-development work is labeled plainly; every live path should lead somewhere real.</p>
   </footer>
 
-  <script type="module" src="/web/shared/forest-three.js?v=20260729b"></script>
-  <script type="module" src="/web/shared/forest-trails.mjs?v=20260729b"></script>
+  <script type="module" src="/web/shared/forest-three.js?v=20260729c"></script>
+  <script type="module" src="/web/shared/forest-trails.mjs?v=20260729c"></script>
   <script>
     (() => {
       const root = document.documentElement;
@@ -427,6 +457,6 @@
       setTimeout(born, 1400); // fonts.ready hanging must never hide the title
     })();
   </script>
-  <script src="/web/shared/design-history.js?v=20260729b"></script>
+  <script src="/web/shared/design-history.js?v=20260729c"></script>
 </body>
 </html>

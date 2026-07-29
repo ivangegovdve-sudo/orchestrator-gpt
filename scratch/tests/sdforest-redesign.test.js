@@ -17,20 +17,21 @@ test('home is a truthful portal with the requested project lineup', () => {
     'Women’s Health OS',
     'Replicator Void',
     'Multiply Magic Studio',
-    'Math Forest',
+    'Mendeleev',
+    'Poetry',
     'Open Overview',
   ]) {
     assert.match(home, new RegExp(title.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
   }
 
-  assert.equal((home.match(/data-project="/g) || []).length, 19);
   assert.match(home, /The atlas/);
   assert.match(home, /Every path <em>at a glance<\/em>/);
 
   assert.doesNotMatch(home, /Voice2Voice Buddy/i);
   assert.doesNotMatch(home, /TinyLM Experiment/i);
-  assert.match(home, /Multiply Magic Studio[\s\S]{0,600}In development/i);
-  assert.match(home, /Math Forest[\s\S]{0,600}In development/i);
+  assert.match(home, /data-project="mendeleev"(?=[^>]+data-status="Live")(?=[^>]+data-href="\/web\/mendeleev-bg\/)/);
+  assert.match(home, /data-project="poetry"(?=[^>]+data-status="Live")(?=[^>]+data-href="\/web\/m-popova\/)/);
+  assert.match(home, /data-greenhouse[\s\S]{0,1600}data-project="gallery"[\s\S]{0,1600}data-project="math"/);
   assert.match(home, /Replicator Void[\s\S]{0,600}Experimental/i);
   assert.match(home, /web\/vfx-portfolio\/index\.html/);
 });
@@ -61,8 +62,20 @@ test('public council exposes exactly two truthful modes', () => {
 
 test('TinyLM standalone route redirects into Councils', () => {
   const tiny = read('web/tinylm/index.html');
-  assert.match(tiny, /web\/council\/index\.html#tinylm/);
-  assert.match(tiny, /http-equiv="refresh"/i);
+  const vercel = JSON.parse(read('vercel.json'));
+  assert.match(tiny, /http-equiv="refresh"[^>]*\/web\/council\/#tinylm/i);
+  assert.match(tiny, /rel="canonical" href="\/web\/council\/#tinylm"/i);
+  assert.match(tiny, /name="robots" content="noindex"/i);
+  assert.match(tiny, /class="forest-back" href="\/"/i);
+  assert.match(tiny, /location\.replace\("\/web\/council\/#tinylm"\)/);
+  assert.doesNotMatch(tiny, /\/index\.html/);
+  assert.deepEqual(
+    vercel.redirects.filter(({ source }) => source.startsWith('/web/tinylm')),
+    [
+      { source: '/web/tinylm', destination: '/web/council/#tinylm', permanent: true },
+      { source: '/web/tinylm/', destination: '/web/council/#tinylm', permanent: true },
+    ],
+  );
 });
 
 test('VFX portfolio preserves real prior work and contains no generated imagery', () => {
@@ -134,8 +147,8 @@ test('every live internal portal resolves to an animated page with a Forest retu
   const home = read('index.html');
   const routes = [...home.matchAll(/data-href="(\/web\/[^"]+)"/g)].map((match) => match[1]);
 
-  assert.equal(routes.length, 16);
-  assert.equal(new Set(routes).size, 15);
+  assert.equal(routes.length, 18);
+  assert.equal(new Set(routes).size, 18);
   for (const route of new Set(routes)) {
     let relativePath = route.replace(/^\//, '');
     if (relativePath.endsWith('/')) relativePath += 'index.html';
