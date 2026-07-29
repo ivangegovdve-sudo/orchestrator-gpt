@@ -22,7 +22,7 @@ export const ROUTE_INVENTORY = Object.freeze([
   { id: 'ai-research', href: '/web/ai-research/', state: 'hub-trail', parent: 'forest-hub', placement: 'Machine Grove', prefetch: true, prerender: false, label: 'AI Research', trailId: 'machine', connectionIds: ['council', 'c2c-dolphin', 'c2c-self', 'avatar-playground'] },
   { id: 'calendar', href: '/web/calendar/', state: 'hub-trail', parent: 'forest-hub', placement: 'Living Systems', prefetch: true, prerender: false, label: 'Calendar Generator', trailId: 'living', connectionIds: ['life-in-time', 'morning-news', 'kids'] },
   { id: 'chloe-pwa', href: '/web/chloe-pwa/', state: 'hub-trail', parent: 'forest-hub', placement: 'Machine Grove', prefetch: false, prerender: false, label: 'Private client — token required', trailId: 'machine', connectionIds: ['ai-research', 'c2c-self', 'avatar-playground'] },
-  { id: 'evolution', href: '/web/evolution/', state: 'hub-trail', parent: 'forest-hub', placement: 'Wild Lab', prefetch: false, prerender: false },
+  { id: 'evolution', href: '/web/evolution/', state: 'hub-trail', parent: 'forest-hub', placement: 'Wild Lab', prefetch: false, prerender: false, label: 'Evolution', trailId: 'wild', connectionIds: ['replicator-void', 'power-law-odyssey', 'manifesto-newborn'] },
   { id: 'kids-movie-library', href: '/web/kids-movie-library/', state: 'hub-trail', parent: 'kids', placement: 'Wonder Path', prefetch: true, prerender: false, label: 'Kids Movie Library', trailId: 'wonder', connectionIds: ['kids', 'math-mania', 'manifesto-newborn'] },
   { id: 'math-mania', href: '/web/math-mania/', state: 'hub-trail', parent: 'kids', placement: 'Wonder Path', prefetch: true, prerender: false, label: 'Math Mania', trailId: 'wonder', connectionIds: ['kids', 'kids-movie-library', 'power-law-odyssey'] },
   { id: 'upload', href: '/web/upload/', state: 'hub-trail', parent: 'forest-hub', placement: 'Signals & Systems', prefetch: true, prerender: false, label: 'Knowledge Ingest', trailId: 'signals', connectionIds: ['library', 'ai-research', 'council'] },
@@ -36,5 +36,5 @@ export const FOREST_TRAIL_ROUTE_IDS = Object.freeze([
   'c2c-dolphin', 'c2c-self', 'avatar-playground', 'chloe-pwa', 'life-in-time',
   'womens-health-os', 'hypertrophyos', 'calendar', 'kids', 'math-mania',
   'kids-movie-library', 'math-forest', 'mendeleev-bg', 'vfx-portfolio',
-  'manifesto-newborn', 'm-popova', 'power-law-odyssey', 'replicator-void',
+  'manifesto-newborn', 'm-popova', 'power-law-odyssey', 'replicator-void', 'evolution',
 ]);

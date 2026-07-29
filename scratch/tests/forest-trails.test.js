@@ -32,6 +32,7 @@ const expectedPaths = [
   '/web/m-popova/',
   '/web/power-law-odyssey/',
   '/web/replicator-void/',
+  '/web/evolution/',
 ];
 const privateClientPaths = new Set(['/web/chloe-pwa/']);
 
@@ -539,6 +540,22 @@ test('representative route keeps Design History usable under reduced motion', as
   );
   await page.locator('.dh-banner button').click();
   assert.equal(await page.locator('.dh-root').getAttribute('class'), 'dh-root');
+  await page.close();
+});
+
+test('heavy and private-client pages keep a visible shared-shell forest return', async () => {
+  const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
+  for (const routePath of ['/web/replicator-void/', '/web/chloe-pwa/']) {
+    await page.goto(`${baseUrl}${routePath}`, { waitUntil: 'domcontentloaded' });
+    const back = page.locator('.forest-back').first();
+    await back.waitFor({ state: 'visible' });
+    assert.equal(await back.getAttribute('href'), '/');
+    assert.notEqual(await back.evaluate((element) => getComputedStyle(element).display), 'none');
+    assert.ok(
+      await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth + 3),
+      `${routePath} must not gain horizontal overflow`,
+    );
+  }
   await page.close();
 });
 

@@ -63,10 +63,16 @@ test('Forest Trails consumes and re-exports the canonical route inventory', asyn
   const chloe = trails.FOREST_ROUTES.find(({ id }) => id === 'chloe-pwa');
   assert.equal(chloe.label, 'Private client — token required');
   assert.equal(chloe.path, '/web/chloe-pwa/');
+  const trailIds = new Set(trails.FOREST_ROUTES.map(({ id }) => id));
+  for (const entry of ROUTE_INVENTORY.filter(({ state }) => state !== 'redirect')) {
+    assert.ok(trailIds.has(entry.id), `${entry.id} is represented by Forest Trails`);
+  }
 });
 
 test('only exact AI_INIT parent routes redirect while embeds, glossary assets, and Library imports remain reachable', () => {
   const redirect = read('web/ai-init/index.html');
+  assert.ok(redirect.split(/\r?\n/).length < 100, 'AI_INIT redirect stays minimal');
+  assert.doesNotMatch(redirect, /glossary-(?:data|search)|home-search-input|library-tree/i);
   assert.match(redirect, /http-equiv="refresh"[^>]*\/web\/library\//i);
   assert.match(redirect, /rel="canonical" href="\/web\/library\//i);
   assert.match(redirect, /name="robots" content="noindex"/i);
@@ -79,11 +85,25 @@ test('only exact AI_INIT parent routes redirect while embeds, glossary assets, a
   assert.match(read('web/library/index.html'), /src="\/web\/ai-init\/glossary-data\.js/);
 });
 
+test('AI_INIT Vercel redirects cover only exact parent paths', () => {
+  const redirects = JSON.parse(read('vercel.json')).redirects;
+  const aiInit = redirects.filter(({ source }) => source.startsWith('/web/ai-init'));
+  assert.deepEqual(aiInit, [
+    { source: '/web/ai-init', destination: '/web/library/', permanent: true },
+    { source: '/web/ai-init/', destination: '/web/library/', permanent: true },
+  ]);
+});
+
 test('canonical project pages retain explicit forest-back ownership links', async () => {
   const { ROUTE_INVENTORY } = await inventory();
   const kidsChildren = new Set(['kids-movie-library', 'math-mania']);
   for (const entry of ROUTE_INVENTORY.filter(({ state }) => state !== 'redirect')) {
     const source = read(`web/${entry.id}/index.html`);
+    assert.match(
+      source,
+      /<link rel="stylesheet" href="\/web\/shared\/forest-shell\.css\?v=20260729a">/,
+      `${entry.id} loads the shared forest-back styling`,
+    );
     const expectedHref = kidsChildren.has(entry.id) ? '/web/kids/' : '/';
     const expectedLabel = kidsChildren.has(entry.id) ? '← Kids Corner' : '← SDForest';
     assert.match(
@@ -96,6 +116,6 @@ test('canonical project pages retain explicit forest-back ownership links', asyn
 
 test('landing portals restore direct C2C destinations', () => {
   const home = read('index.html');
-  assert.match(home, /data-project="c2c-dolphin"[^>]*data-href="\/web\/c2c-dolphin\/index\.html"/);
-  assert.match(home, /data-project="c2c-self"[^>]*data-href="\/web\/c2c-self\/index\.html"/);
+  assert.match(home, /data-project="c2c-dolphin"[^>]*data-href="\/web\/c2c-dolphin\/"/);
+  assert.match(home, /data-project="c2c-self"[^>]*data-href="\/web\/c2c-self\/"/);
 });
