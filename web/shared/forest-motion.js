@@ -72,7 +72,7 @@
 
   ambient.ready = Promise.all([
     import('/web/vendor/three/three.module.min.js'),
-    import('/web/shared/forest-themes.mjs'),
+    import('/web/shared/forest-themes.mjs?v=20260729b'),
   ]).then(([THREE, themes]) => {
     ambient.engine = 'three';
     ambient.instances = canvases.map((canvas, index) => new ForestAmbientScene({
