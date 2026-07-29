@@ -255,7 +255,30 @@
     var topicEl = document.getElementById("topic");
     var controlsEl = document.getElementById("controls");
 
-    function esc(s) { return String(s == null ? "" : s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+    function makeElement(tag, className, text) {
+      var element = document.createElement(tag);
+      if (className) element.className = className;
+      if (text != null) element.textContent = String(text);
+      return element;
+    }
+    function showViewMessage(text, className) {
+      viewEl.replaceChildren(makeElement("div", className || "empty", text));
+    }
+    var allowedReferenceHosts = new Set([
+      "doi.org",
+      "pubmed.ncbi.nlm.nih.gov",
+      "www.ncbi.nlm.nih.gov",
+      "pmc.ncbi.nlm.nih.gov",
+    ]);
+    function safePublicReferenceUrl(value) {
+      try {
+        var url = new URL(String(value));
+        if (url.protocol !== "http:" && url.protocol !== "https:") return "";
+        return allowedReferenceHosts.has(url.hostname.toLowerCase()) ? url.href : "";
+      } catch (error) {
+        return "";
+      }
+    }
     function api(path) {
       var ctrl = new AbortController();
       var t = setTimeout(function () { ctrl.abort(); }, 3500);
@@ -273,14 +296,27 @@
 
     function offlineNote() {
       controlsEl.style.display = "none";
-      viewEl.innerHTML =
-        '<div class="offline-note">' +
-        "The live evidence index cannot reach the expected Women’s Health OS FastAPI on port 8091. The research atlas remains useful below instead of rendering blank; reconnect when the public service is reachable." +
-        '<div class="offline-atlas" aria-label="Research areas"><div class="offline-topic">Menstrual cycle</div><div class="offline-topic">Hormones</div><div class="offline-topic">Fertility</div><div class="offline-topic">PCOS</div><div class="offline-topic">Perimenopause</div><div class="offline-topic">Thyroid</div></div>' +
-        '<div class="api-form">' +
-        '<input id="api-input" aria-label="Women’s Health API base URL" value="' + esc(API) + '" spellcheck="false" />' +
-        '<button onclick="saveApi()">Connect</button>' +
-        "</div></div>";
+      var note = makeElement("div", "offline-note");
+      note.appendChild(document.createTextNode(
+        "The live evidence index cannot reach the expected Women’s Health OS FastAPI at localhost:8091. The research atlas remains useful below instead of rendering blank; reconnect when the public service is reachable.",
+      ));
+      var atlas = makeElement("div", "offline-atlas");
+      atlas.setAttribute("aria-label", "Research areas");
+      ["Menstrual cycle", "Hormones", "Fertility", "PCOS", "Perimenopause", "Thyroid"].forEach(function (topic) {
+        atlas.appendChild(makeElement("div", "offline-topic", topic));
+      });
+      var apiForm = makeElement("div", "api-form");
+      var input = makeElement("input");
+      input.id = "api-input";
+      input.setAttribute("aria-label", "Women’s Health API base URL");
+      input.spellcheck = false;
+      input.value = API;
+      var button = makeElement("button", null, "Connect");
+      button.type = "button";
+      button.addEventListener("click", saveApi);
+      apiForm.append(input, button);
+      note.append(atlas, apiForm);
+      viewEl.replaceChildren(note);
     }
     function saveApi() {
       var v = (document.getElementById("api-input").value || "").trim();
@@ -295,10 +331,18 @@
       return l === "HIGH" ? "high" : l === "MEDIUM" ? "medium" : "low";
     }
 
-    function paperLink(doi, pmcid) {
-      if (pmcid) return '<a href="https://www.ncbi.nlm.nih.gov/pmc/articles/' + esc(pmcid) + '/" target="_blank" rel="noopener">' + esc(pmcid) + "</a>";
-      if (doi) return '<a href="https://doi.org/' + esc(doi) + '" target="_blank" rel="noopener">' + esc(doi) + "</a>";
-      return "";
+    function appendPaperLink(container, doi, pmcid) {
+      var id = pmcid || doi;
+      if (!id) return;
+      var href = pmcid
+        ? "https://www.ncbi.nlm.nih.gov/pmc/articles/" + encodeURIComponent(pmcid) + "/"
+        : "https://doi.org/" + encodeURIComponent(doi);
+      container.appendChild(document.createTextNode(" "));
+      var link = makeElement("a", null, id);
+      link.href = href;
+      link.target = "_blank";
+      link.rel = "noopener";
+      container.appendChild(link);
     }
 
     function renderFacts(rows) {
@@ -307,65 +351,87 @@
       list.className = "list";
       rows.forEach(function (f) {
         var cc = confClass(f.confidence_label, f.confidence);
-        var item = document.createElement("div"); item.className = "item " + cc;
-        var grade = document.createElement("span"); grade.className = "evidence-grade conf-" + cc; grade.textContent = String(f.confidence_label || cc).toUpperCase() + " evidence"; item.appendChild(grade);
-        var body = document.createElement("div"); body.className = "body"; body.textContent = String(f.fact || ""); item.appendChild(body);
-        var meta = document.createElement("div"); meta.className = "meta";
-        var category = document.createElement("span"); category.className = "chip"; category.textContent = String(f.category || f.paper_topic || ""); meta.appendChild(category);
-        var source = document.createElement("span"); source.className = "src"; source.textContent = String(f.paper_title || "");
-        var id = f.paper_pmcid || f.paper_doi;
-        if (id) { source.appendChild(document.createTextNode(" ")); var link = document.createElement("a"); link.href = f.paper_pmcid ? "https://www.ncbi.nlm.nih.gov/pmc/articles/" + encodeURIComponent(f.paper_pmcid) + "/" : "https://doi.org/" + encodeURIComponent(f.paper_doi); link.target = "_blank"; link.rel = "noopener"; link.textContent = String(id); source.appendChild(link); }
+        var item = makeElement("div", "item " + cc);
+        var grade = makeElement("span", "evidence-grade conf-" + cc, String(f.confidence_label || cc).toUpperCase() + " evidence"); item.appendChild(grade);
+        var body = makeElement("div", "body", f.fact || ""); item.appendChild(body);
+        var meta = makeElement("div", "meta");
+        var category = makeElement("span", "chip", f.category || f.paper_topic || ""); meta.appendChild(category);
+        var source = makeElement("span", "src", f.paper_title || "");
+        appendPaperLink(source, f.paper_doi, f.paper_pmcid);
         meta.appendChild(source); item.appendChild(meta); list.appendChild(item);
       });
       viewEl.replaceChildren(list);
     }
     function renderRules(rows) {
       if (!rows.length) return empty();
-      viewEl.innerHTML = '<div class="list">' + rows.map(function (r) {
+      var list = makeElement("div", "list");
+      rows.forEach(function (r) {
         var cc = confClass(null, r.confidence);
-        return '<div class="item ' + cc + '"><div class="body">' + esc(r.rule) + "</div>" +
-          '<div class="meta">' +
-          '<span class="chip">' + esc(r.applies_to || "") + "</span>" +
-          '<span class="chip">' + (r.evidence_count || 0) + " sources</span>" +
-          "</div></div>";
-      }).join("") + "</div>";
+        var item = makeElement("div", "item " + cc);
+        item.appendChild(makeElement("div", "body", r.rule || ""));
+        var meta = makeElement("div", "meta");
+        meta.appendChild(makeElement("span", "chip", r.applies_to || ""));
+        meta.appendChild(makeElement("span", "chip", String(r.evidence_count || 0) + " sources"));
+        item.appendChild(meta);
+        list.appendChild(item);
+      });
+      viewEl.replaceChildren(list);
     }
     function renderClaims(rows) {
       if (!rows.length) return empty();
-      viewEl.innerHTML = '<div class="list">' + rows.map(function (c) {
-        var cc = confClass((c.confidence || "").toUpperCase());
-        return '<div class="item ' + cc + '"><div class="body">' + esc(c.statement || c.title) + "</div>" +
-          '<div class="meta">' +
-          '<span class="chip conf-' + cc + '">' + esc(c.confidence || "") + "</span>" +
-          '<span class="chip">' + esc(c.category || "") + "</span>" +
-          (c.contradictions && c.contradictions !== "None found"
-            ? '<span class="src">&#9888; ' + esc(c.contradictions) + "</span>" : "") +
-          "</div></div>";
-      }).join("") + "</div>";
+      var list = makeElement("div", "list");
+      rows.forEach(function (c) {
+        var cc = confClass(String(c.confidence || "").toUpperCase());
+        var item = makeElement("div", "item " + cc);
+        item.appendChild(makeElement("div", "body", c.statement || c.title || ""));
+        var meta = makeElement("div", "meta");
+        meta.appendChild(makeElement("span", "chip conf-" + cc, c.confidence || ""));
+        meta.appendChild(makeElement("span", "chip", c.category || ""));
+        if (c.contradictions && c.contradictions !== "None found") {
+          meta.appendChild(makeElement("span", "src", "⚠ " + c.contradictions));
+        }
+        item.appendChild(meta);
+        list.appendChild(item);
+      });
+      viewEl.replaceChildren(list);
     }
     function renderPapers(rows) {
       if (!rows.length) return empty();
-      viewEl.innerHTML = '<div class="list">' + rows.map(function (p) {
-        return '<div class="item"><div class="body">' + esc(p.title) + "</div>" +
-          '<div class="meta">' +
-          '<span class="chip">' + esc(p.topic_category || "") + "</span>" +
-          '<span class="src">' + esc(p.authors || "") + (p.year ? " &middot; " + p.year : "") + " " +
-          paperLink(p.doi, p.pmcid) + "</span>" +
-          "</div></div>";
-      }).join("") + "</div>";
+      var list = makeElement("div", "list");
+      rows.forEach(function (p) {
+        var item = makeElement("div", "item");
+        item.appendChild(makeElement("div", "body", p.title || ""));
+        var meta = makeElement("div", "meta");
+        meta.appendChild(makeElement("span", "chip", p.topic_category || ""));
+        var sourceText = String(p.authors || "") + (p.year ? " · " + String(p.year) : "");
+        var source = makeElement("span", "src", sourceText);
+        appendPaperLink(source, p.doi, p.pmcid);
+        meta.appendChild(source);
+        item.appendChild(meta);
+        list.appendChild(item);
+      });
+      viewEl.replaceChildren(list);
     }
     function renderCycle(data) {
       var phases = data.phases || data || [];
       if (!phases.length) return empty();
       controlsEl.style.display = "none";
-      viewEl.innerHTML = '<div class="phase-grid">' + phases.map(function (ph) {
+      var grid = makeElement("div", "phase-grid");
+      phases.forEach(function (ph) {
         var facts = (ph.facts || []).slice(0, 4);
-        return '<div class="phase"><h3>' + esc(ph.phase || ph.name) + "</h3>" +
-          '<div class="days">' + esc(ph.days || ph.day_range || "") + "</div>" +
-          "<ul>" + facts.map(function (f) { return "<li>" + esc(typeof f === "string" ? f : f.fact) + "</li>"; }).join("") + "</ul></div>";
-      }).join("") + "</div>";
+        var phase = makeElement("div", "phase");
+        phase.appendChild(makeElement("h3", null, ph.phase || ph.name || ""));
+        phase.appendChild(makeElement("div", "days", ph.days || ph.day_range || ""));
+        var list = makeElement("ul");
+        facts.forEach(function (fact) {
+          list.appendChild(makeElement("li", null, typeof fact === "string" ? fact : fact.fact || ""));
+        });
+        phase.appendChild(list);
+        grid.appendChild(phase);
+      });
+      viewEl.replaceChildren(grid);
     }
-    function empty() { viewEl.innerHTML = '<div class="empty">No entries match.</div>'; }
+    function empty() { showViewMessage("No entries match."); }
 
     function load() {
       if (!state.online) return;
@@ -373,7 +439,7 @@
       var topic = encodeURIComponent(topicEl.value);
       var tab = state.tab;
       controlsEl.style.display = (tab === "cycle") ? "none" : "flex";
-      viewEl.innerHTML = '<div class="empty">Loading&hellip;</div>';
+      showViewMessage("Loading…");
       var qs = "?limit=100" + (q ? "&search=" + q : "") + (topic ? "&topic=" + topic : "");
       if (tab === "facts")  return api("/facts" + qs).then(function (d) { renderFacts(d.facts || []); }).catch(fail);
       if (tab === "rules")  return api("/rules" + qs).then(function (d) { renderRules(d.rules || []); }).catch(fail);
@@ -381,7 +447,7 @@
       if (tab === "papers") return api("/papers" + qs).then(function (d) { renderPapers(d.papers || []); }).catch(fail);
       if (tab === "cycle")  return api("/cycle-phases").then(renderCycle).catch(fail);
     }
-    function fail() { viewEl.innerHTML = '<div class="empty">Couldn&#39;t load this view from the API.</div>'; }
+    function fail() { showViewMessage("Couldn't load this view from the API."); }
 
     var tabEls = Array.prototype.slice.call(document.querySelectorAll(".tab"));
     function activateTab(t, moveFocus) {
@@ -429,9 +495,15 @@
       }).then(function () {
         return api("/topics").then(function (d) {
           state.topics = d.topics || [];
-          topicEl.innerHTML = '<option value="">All topics</option>' + state.topics.map(function (t) {
-            return '<option value="' + esc(t.name) + '">' + esc(t.name.replace(/_/g, " ")) + " (" + (t.facts || 0) + ")</option>";
-          }).join("");
+          var options = [makeElement("option", null, "All topics")];
+          options[0].value = "";
+          state.topics.forEach(function (topic) {
+            var name = String(topic.name || "");
+            var option = makeElement("option", null, name.replace(/_/g, " ") + " (" + String(topic.facts || 0) + ")");
+            option.value = name;
+            options.push(option);
+          });
+          topicEl.replaceChildren.apply(topicEl, options);
         }).catch(function () {});
       }).then(function () {
         load();
@@ -551,8 +623,7 @@
       var sendBtn = document.getElementById("whChatSend");
       var lastFocused = null;
 
-      function esc(s) { return String(s == null ? "" : s).replace(/[&<>"]/g, function (c) { return ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;" })[c]; }); }
-      function el(tag, cls, html) { var e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; return e; }
+      function el(tag, cls, text) { var e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = String(text); return e; }
 
       function openChat() {
         lastFocused = document.activeElement;
@@ -604,31 +675,41 @@
       function srcBadges(sources) {
         var wrap = el("div", "wh-sources");
         if (!sources || !sources.length) { wrap.appendChild(el("span", "wh-badge none", "No source")); return wrap; }
-        sources.forEach(function (s) { wrap.appendChild(el("span", "wh-badge " + (s === "PubMed" ? "pubmed" : "oracle"), esc(s))); });
+        sources.forEach(function (s) { wrap.appendChild(el("span", "wh-badge " + (s === "PubMed" ? "pubmed" : "oracle"), s)); });
         return wrap;
       }
 
       function renderBot(data) {
         var bot = el("div", "wh-msg bot");
         bot.appendChild(srcBadges(data.sources));
-        bot.appendChild(el("div", "answer", esc(data.answer || data.note || "No answer available.")));
+        bot.appendChild(el("div", "answer", data.answer || data.note || "No answer available."));
         var facts = data.facts || [], pubmed = data.pubmed || [];
         if (facts.length || pubmed.length) {
           var refs = el("div", "wh-refs");
           if (facts.length) {
             refs.appendChild(el("h4", null, "Oracle DB · " + facts.length + " supporting fact" + (facts.length > 1 ? "s" : "")));
             facts.slice(0, 3).forEach(function (f) {
-              var src = esc((f.paper_title || "").slice(0, 70));
-              refs.appendChild(el("div", "wh-ref", esc((f.fact || "").slice(0, 140)) + (src ? ' <span class="meta">— ' + src + "</span>" : "")));
+              var reference = el("div", "wh-ref", (f.fact || "").slice(0, 140));
+              var source = String(f.paper_title || "").slice(0, 70);
+              if (source) reference.appendChild(el("span", "meta", " — " + source));
+              refs.appendChild(reference);
             });
           }
           if (pubmed.length) {
             refs.appendChild(el("h4", null, "PubMed · " + pubmed.length + " paper" + (pubmed.length > 1 ? "s" : "")));
             pubmed.forEach(function (p) {
-              var meta = [p.journal, p.year].filter(Boolean).map(esc).join(" · ");
-              var a = el("a", "wh-ref", '<span class="pmid">PMID:' + esc(p.pmid) + "</span> " + esc(p.title) + (meta ? ' <span class="meta">(' + meta + ")</span>" : ""));
-              a.href = p.url; a.target = "_blank"; a.rel = "noopener noreferrer";
-              refs.appendChild(a);
+              var href = safePublicReferenceUrl(p.url);
+              var reference = el(href ? "a" : "div", "wh-ref");
+              reference.appendChild(el("span", "pmid", "PMID:" + String(p.pmid || "")));
+              reference.appendChild(document.createTextNode(" " + String(p.title || "")));
+              var meta = [p.journal, p.year].filter(Boolean).map(String).join(" · ");
+              if (meta) reference.appendChild(el("span", "meta", " (" + meta + ")"));
+              if (href) {
+                reference.href = href;
+                reference.target = "_blank";
+                reference.rel = "noopener noreferrer";
+              }
+              refs.appendChild(reference);
             });
           }
           bot.appendChild(refs);
@@ -638,9 +719,13 @@
 
       function ask(question) {
         if (emptyEl) emptyEl.style.display = "none";
-        logEl.appendChild(el("div", "wh-msg user", esc(question)));
+        logEl.appendChild(el("div", "wh-msg user", question));
         var typing = el("div", "wh-msg bot");
-        typing.innerHTML = '<div class="answer"><span class="wh-typing"><span></span><span></span><span></span></span></div>';
+        var typingAnswer = el("div", "answer");
+        var typingDots = el("span", "wh-typing");
+        typingDots.append(el("span"), el("span"), el("span"));
+        typingAnswer.appendChild(typingDots);
+        typing.appendChild(typingAnswer);
         logEl.appendChild(typing);
         logEl.scrollTop = logEl.scrollHeight;
         sendBtn.disabled = true;
