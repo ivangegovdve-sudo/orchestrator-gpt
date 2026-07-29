@@ -6,7 +6,7 @@ const { after, before, test } = require('node:test');
 const { chromium } = require('playwright');
 
 const ROOT = path.resolve(__dirname, '../..');
-const CACHE_VERSION = '20260725c';
+const CACHE_VERSION = '20260729a';
 const htmlFiles = () => {
   const walk = (dir) => fs.readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
     const file = path.join(dir, entry.name);
@@ -64,6 +64,47 @@ test('feedback is deferred exactly once in the head of all 55 shipped HTML sourc
     assert.equal(tags.length, 1, path.relative(ROOT, file));
     assert.ok(source.indexOf(tags[0]) < source.toLowerCase().indexOf('</head>'), `${path.relative(ROOT, file)} feedback tag must be in head`);
   }
+});
+
+test('every shared CSS or JavaScript asset reference uses the single current cache version', () => {
+  const walk = (dir) => fs.readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
+    const file = path.join(dir, entry.name);
+    return entry.isDirectory() && entry.name !== 'vercel-public' ? walk(file) : (entry.isFile() && /\.(?:html|js|css)$/.test(file) ? [file] : []);
+  });
+  const references = [];
+  for (const file of walk(ROOT)) {
+    const source = fs.readFileSync(file, 'utf8');
+    for (const match of source.matchAll(/\/web\/shared\/[^"'`\s)]+?\.(?:css|js)\?v=([^"'`\s)&]+)/g)) {
+      references.push({ file: path.relative(ROOT, file), version: match[1], asset: match[0] });
+    }
+  }
+  assert.ok(references.length > 0, 'expected shared asset references');
+  assert.deepEqual([...new Set(references.map(({ version }) => version))], [CACHE_VERSION], JSON.stringify(references, null, 2));
+});
+
+test('computed public aliases resolve to their canonical token family values', async () => {
+  const page = await browser.newPage({ viewport: { width: 1440, height: 900 }, reducedMotion: 'reduce' });
+  await page.goto(`${baseUrl}/`, { waitUntil: 'networkidle' });
+  const aliases = await page.evaluate(() => {
+    const root = getComputedStyle(document.documentElement);
+    const pairs = [
+      ['--theme-shell-bg', '--forest-bg'], ['--theme-shell-surface', '--forest-surface'],
+      ['--theme-shell-ink', '--forest-ink'], ['--theme-shell-display', '--forest-display'],
+      ['--theme-shell-body', '--forest-body'], ['--theme-shell-sans', '--forest-sans'],
+      ['--theme-ui-bg', '--bg'], ['--theme-ui-surface', '--surface'], ['--theme-ui-border', '--border'],
+      ['--theme-ui-text-primary', '--text-primary'], ['--theme-ui-text-muted', '--text-muted'],
+      ['--theme-ui-accent', '--accent'], ['--theme-ui-accent-green', '--accent-green'],
+      ['--theme-ui-radius', '--radius'], ['--theme-ui-font', '--font'],
+      ['--theme-home-bg', '--home-bg'], ['--theme-home-surface', '--home-surface'],
+      ['--theme-home-ink', '--home-ink'], ['--theme-home-soft', '--home-soft'],
+      ['--theme-home-muted', '--home-muted'], ['--theme-home-line', '--home-line'],
+      ['--theme-home-amber', '--home-amber'], ['--theme-home-moss', '--home-moss'],
+      ['--theme-home-display', '--home-display'], ['--theme-home-body', '--home-body'], ['--theme-home-sans', '--home-sans'],
+    ];
+    return pairs.map(([canonical, alias]) => ({ canonical, alias, expected: root.getPropertyValue(canonical).trim(), actual: root.getPropertyValue(alias).trim() }));
+  });
+  assert.deepEqual(aliases.map(({ canonical, alias, expected, actual }) => ({ canonical, alias, expected, actual: expected })), aliases);
+  await page.close();
 });
 
 test('feedback injects an accessible dialog, sends the trimmed message and restores focus', async () => {

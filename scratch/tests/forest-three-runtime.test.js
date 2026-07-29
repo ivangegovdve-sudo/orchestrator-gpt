@@ -165,7 +165,7 @@ test('shared runtime cache key is current across the reviewed public inventory',
     if (!html.includes('/web/shared/forest-motion.js')) continue;
     // Power Law is owned by its independent implementation/review round.
     if (filePath.endsWith(path.join('power-law-odyssey', 'index.html'))) continue;
-    if (!html.includes('/web/shared/forest-motion.js?v=20260725c')) {
+    if (!html.includes('/web/shared/forest-motion.js?v=20260729a')) {
       oldKeyFiles.push(path.relative(ROOT, filePath));
     }
   }

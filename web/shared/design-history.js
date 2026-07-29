@@ -1,9 +1,9 @@
 /* ==================================================================
    Design History — sdforest.site's design eras, previewable in place.
 
-   Every page of the site reads its colours and type from a single set
-   of `--forest-*` custom properties declared on :root (forest-design.css,
-   mirrored in forest-shell.css). That makes the whole site re-tintable
+   Every page of the site reads its colours and type from the canonical
+   properties and compatibility aliases declared on :root in forest-design.css.
+   That makes the whole site re-tintable
    from one place: writing those same properties INLINE on <html> beats
    any stylesheet :root rule, so a historical palette washes over the
    live layout without a rebuild and without touching a line of the
