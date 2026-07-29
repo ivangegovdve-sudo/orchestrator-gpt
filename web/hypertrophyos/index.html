@@ -184,7 +184,6 @@
       let calculatedOnce=false;
       function calculate(){const w=Math.max(0,Number(weight.value)||0),r=Math.min(12,Math.max(1,Number(reps.value)||1));const rm=r===1?w:w*36/(37-r);outputs.rm.textContent=rm.toFixed(1);outputs.l70.textContent=(rm*.7).toFixed(1);outputs.l80.textContent=(rm*.8).toFixed(1);outputs.l90.textContent=(rm*.9).toFixed(1);if(calculatedOnce)pulse(outputs.rm);calculatedOnce=true}
       weight.addEventListener('input',calculate);reps.addEventListener('input',calculate);calculate();
-      document.getElementById('lift-tool').addEventListener('forest:reveal',()=>{if(window.forestReveal)[outputs.rm,outputs.l70,outputs.l80,outputs.l90].forEach(el=>forestReveal.countUp(el))},{once:true});
       const form=document.getElementById('research-form'),question=document.getElementById('research-question'),answer=document.getElementById('research-answer'),submit=document.getElementById('research-submit'),corpusStats=document.getElementById('corpus-stats');
       document.querySelectorAll('[data-question]').forEach(button=>button.addEventListener('click',()=>{question.value=button.dataset.question;form.requestSubmit()}));
       const escapeHtml=value=>String(value??'').replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
