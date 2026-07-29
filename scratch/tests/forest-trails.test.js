@@ -115,6 +115,8 @@ after(async () => {
 test('publishes the exact canonical public route manifest', async () => {
   const page = await browser.newPage();
   await page.goto(`${baseUrl}/`, { waitUntil: 'domcontentloaded' });
+  const moduleResponse = await page.request.get(`${baseUrl}/web/shared/forest-trails.mjs?v=manifest-test`);
+  assert.match(moduleResponse.headers()['content-type'], /^text\/javascript/);
 
   const routes = await page.evaluate(async (moduleUrl) => {
     const trails = await import(moduleUrl);
@@ -123,7 +125,7 @@ test('publishes the exact canonical public route manifest', async () => {
       label,
       path: routePath,
     }));
-  }, `${baseUrl}/web/shared/forest-trails.js?manifest-test`);
+  }, `${baseUrl}/web/shared/forest-trails.mjs?manifest-test`);
 
   assert.deepEqual(routes.map((route) => route.path), expectedPaths);
   assert.equal(new Set(routes.map((route) => route.id)).size, routes.length);
@@ -243,7 +245,7 @@ test('resolves a canonical current page and meaningful next trail connections', 
       trail: result.trail.label,
       next: result.next.map((route) => route.path),
     };
-  }, `${baseUrl}/web/shared/forest-trails.js?context-test`);
+  }, `${baseUrl}/web/shared/forest-trails.mjs?context-test`);
 
   assert.deepEqual(context, {
     current: 'Life in Time',
@@ -268,7 +270,7 @@ test('keeps every public destination in a safe, bounded route graph', async () =
       trails: trails.FOREST_TRAILS,
       routes: trails.FOREST_ROUTES,
     };
-  }, `${baseUrl}/web/shared/forest-trails.js?graph-test`);
+  }, `${baseUrl}/web/shared/forest-trails.mjs?graph-test`);
 
   assert.deepEqual(
     graph.trails.map(({ label }) => label),
@@ -920,7 +922,7 @@ test('maps public child views to their trail while leaving retired council paths
       retiredKeyConsole: resolve('/web/council/byok/index.html'),
       retiredInnerCouncil: resolve('/web/council/inner/index.html'),
     };
-  }, `${baseUrl}/web/shared/forest-trails.js?alias-test`);
+  }, `${baseUrl}/web/shared/forest-trails.mjs?alias-test`);
 
   assert.deepEqual(matches, {
     manifestoTranslation: 'Manifesto for a Newborn',
