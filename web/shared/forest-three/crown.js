@@ -32,7 +32,7 @@
    the page like any other content. */
 
 import * as THREE from '../../vendor/three/three.module.min.js';
-import { clamp, lerp, makeAdditive, mulberry32, worldX, worldY, PALETTE } from './util.js?v=20260729c';
+import { clamp, lerp, makeAdditive, mulberry32, worldX, worldY, PALETTE } from './util.js?v=20260729d';
 
 const MAX_BRANCHES = 16;
 
