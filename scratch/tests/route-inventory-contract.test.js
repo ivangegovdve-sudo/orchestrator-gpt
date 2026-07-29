@@ -15,7 +15,7 @@ const projectDirectories = [
 ];
 
 async function inventory() {
-  return import(pathToFileURL(path.join(ROOT, 'web/shared/route-inventory.mjs')).href);
+  return import(`${pathToFileURL(path.join(ROOT, 'web/shared/route-inventory.mjs')).href}?v=20260729b`);
 }
 
 test('route inventory owns every project directory exactly once with machine-readable delivery controls', async () => {
