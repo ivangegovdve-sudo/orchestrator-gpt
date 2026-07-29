@@ -7,6 +7,7 @@ const { chromium } = require('playwright');
 
 const repoRoot = path.resolve(__dirname, '..', '..');
 const chromeExecutable = 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe';
+const hostile = (label) => `" autofocus onfocus="window.__payloadFired=1">${label}<img id="${label}-payload" src=x onerror="window.__payloadFired=1">`;
 
 let baseUrl;
 let browser;
@@ -46,9 +47,46 @@ async function researchContext(mode) {
     if (pathname === '/hypertrophy/stats') return route.fulfill({ json: { papers: 43, facts: 254, rules: 45 } });
     if (pathname === '/hypertrophy/query') return route.fulfill({ json: { answer: '<safe answer>', sources: ['Corpus'] } });
     if (pathname === '/womens-health/health') return route.fulfill({ json: { papers: 2, facts: 4, rules: 1 } });
-    if (pathname === '/womens-health/claims') return route.fulfill({ json: { count: 1, claims: [] } });
-    if (pathname === '/womens-health/topics') return route.fulfill({ json: { topics: [{ name: 'hormones', facts: 4 }] } });
-    if (pathname.startsWith('/womens-health/facts')) return route.fulfill({ json: { facts: [{ fact: '<supported fact>', confidence_label: 'HIGH', confidence: 0.94, category: 'Hormones', paper_title: 'A paper', paper_doi: '10.1000/example' }] } });
+    if (pathname === '/womens-health/claims') return route.fulfill({
+      json: mode === 'hostile'
+        ? { count: 1, claims: [{ statement: hostile('CLAIM'), confidence: 'HIGH', category: hostile('CLAIM-CATEGORY'), contradictions: hostile('CLAIM-CONTRADICTION') }] }
+        : { count: 1, claims: [] },
+    });
+    if (pathname === '/womens-health/topics') return route.fulfill({
+      json: { topics: [{ name: mode === 'hostile' ? hostile('TOPIC') : 'hormones', facts: 4 }] },
+    });
+    if (pathname.startsWith('/womens-health/facts')) return route.fulfill({
+      json: {
+        facts: [{
+          fact: mode === 'hostile' ? hostile('FACT') : '<supported fact>',
+          confidence_label: 'HIGH',
+          confidence: 0.94,
+          category: mode === 'hostile' ? hostile('FACT-CATEGORY') : 'Hormones',
+          paper_title: mode === 'hostile' ? hostile('FACT-PAPER') : 'A paper',
+          paper_doi: '10.1000/example',
+        }],
+      },
+    });
+    if (pathname.startsWith('/womens-health/rules')) return route.fulfill({
+      json: { rules: [{ rule: hostile('RULE'), applies_to: hostile('RULE-SCOPE'), evidence_count: 3, confidence: 0.9 }] },
+    });
+    if (pathname.startsWith('/womens-health/papers')) return route.fulfill({
+      json: { papers: [{ title: hostile('PAPER'), topic_category: hostile('PAPER-TOPIC'), authors: hostile('PAPER-AUTHOR'), year: hostile('PAPER-YEAR'), doi: '10.1000/paper' }] },
+    });
+    if (pathname === '/womens-health/cycle-phases') return route.fulfill({
+      json: { phases: [{ phase: hostile('CYCLE'), days: hostile('CYCLE-DAYS'), facts: [{ fact: hostile('CYCLE-FACT') }] }] },
+    });
+    if (pathname === '/womens-health/query') return route.fulfill({
+      json: {
+        answer: hostile('CHAT-ANSWER'),
+        sources: [hostile('CHAT-SOURCE')],
+        facts: [{ fact: hostile('CHAT-FACT'), paper_title: hostile('CHAT-PAPER') }],
+        pubmed: [
+          { pmid: '123', title: hostile('CHAT-UNSAFE'), journal: hostile('CHAT-JOURNAL'), year: hostile('CHAT-YEAR'), url: 'javascript:window.__payloadFired=1' },
+          { pmid: '456', title: 'Allowed reference', journal: 'Journal', year: 2026, url: 'https://pubmed.ncbi.nlm.nih.gov/456/' },
+        ],
+      },
+    });
     return route.fulfill({ json: {} });
   });
   return context;
@@ -71,14 +109,14 @@ test('both Health OS pages render a useful named-port state when their mocked AP
   const context = await researchContext('offline');
   const hyper = await context.newPage();
   await hyper.goto(`${baseUrl}/web/hypertrophyos/`, { waitUntil: 'domcontentloaded' });
-  await hyper.locator('#corpus-stats').getByText(/8090/).waitFor();
+  await hyper.locator('#corpus-stats').getByText(/localhost:8090/).waitFor();
   assert.match(await hyper.locator('#corpus-stats').textContent(), /calculator/i);
   assert.equal(await hyper.locator('#lift-form').isVisible(), true);
 
   const women = await context.newPage();
   await women.goto(`${baseUrl}/web/womens-health-os/`, { waitUntil: 'domcontentloaded' });
   await women.locator('#view .offline-note').waitFor();
-  assert.match(await women.locator('#view .offline-note').textContent(), /8091/);
+  assert.match(await women.locator('#view .offline-note').textContent(), /localhost:8091/);
   assert.match(await women.locator('#view .offline-note').textContent(), /Menstrual cycle/);
   await context.close();
 });
@@ -115,13 +153,12 @@ test('reduced motion writes the final mock values without scheduling counter fra
     { text: '2', counted: 'true' }, { text: '4', counted: 'true' },
     { text: '1', counted: 'true' }, { text: '1', counted: 'true' },
   ]);
-  const repeat = await page.evaluate(async () => {
+  const repeat = await page.evaluate(() => {
     const stat = document.querySelector('#stat-papers');
     let calls = 0;
     const original = window.requestAnimationFrame;
-    window.requestAnimationFrame = (callback) => { calls += 1; return original(callback); };
+    window.requestAnimationFrame = () => { calls += 1; return 0; };
     window.forestReveal.countUp(stat);
-    await new Promise((resolve) => setTimeout(resolve, 50));
     window.requestAnimationFrame = original;
     return { calls, text: stat.textContent, counted: stat.dataset.counted };
   });
@@ -144,5 +181,54 @@ test('named-port fallback remains contained and navigable at a 375px mobile view
   assert.ok(layout.scrollWidth <= layout.width, `mobile overflow: ${layout.scrollWidth - layout.width}px`);
   assert.ok(layout.back && layout.back.height >= 40);
   assert.ok(layout.feedback && layout.feedback.width > 0);
+  await context.close();
+});
+
+test('all Women API payloads render as inert text and only allow known public reference hosts', async () => {
+  const context = await researchContext('hostile');
+  await context.addInitScript(() => { window.__payloadFired = 0; });
+  const page = await context.newPage();
+  await page.goto(`${baseUrl}/web/womens-health-os/`, { waitUntil: 'domcontentloaded' });
+
+  async function assertInert(label) {
+    assert.match(await page.locator('#view').textContent(), new RegExp(label));
+    assert.equal(await page.locator('[onfocus], [onerror], [autofocus], [id$="-payload"]').count(), 0);
+    assert.equal(await page.evaluate(() => window.__payloadFired), 0);
+  }
+
+  await page.locator('#view .evidence-grade').waitFor();
+  await assertInert('FACT');
+  assert.match(await page.locator('#topic option').nth(1).textContent(), /TOPIC/);
+  await assertInert('FACT');
+
+  for (const [tab, marker] of [['rules', 'RULE'], ['claims', 'CLAIM'], ['papers', 'PAPER'], ['cycle', 'CYCLE']]) {
+    await page.locator(`[data-tab="${tab}"]`).click();
+    await page.waitForFunction((text) => document.querySelector('#view').textContent.includes(text), marker);
+    await assertInert(marker);
+  }
+
+  await page.locator('#whChatFab').click();
+  await page.locator('#whChatInput').fill('hostile response');
+  await page.locator('#whChatForm').evaluate((form) => form.requestSubmit());
+  await page.waitForFunction(() => document.querySelector('#whChatLog').textContent.includes('CHAT-ANSWER'));
+  assert.equal(await page.locator('[onfocus], [onerror], [autofocus], [id$="-payload"]').count(), 0);
+  assert.equal(await page.evaluate(() => window.__payloadFired), 0);
+
+  const unsafeReference = page.locator('.wh-ref').filter({ hasText: 'PMID:123' });
+  assert.equal(await unsafeReference.evaluate((element) => element.tagName), 'DIV');
+  const safeReference = page.locator('a.wh-ref').filter({ hasText: 'PMID:456' });
+  assert.equal(await safeReference.getAttribute('href'), 'https://pubmed.ncbi.nlm.nih.gov/456/');
+  await context.close();
+});
+
+test('editing the Hypertrophy calculator during reveal keeps the newest input result', async () => {
+  const context = await researchContext('online');
+  const page = await context.newPage();
+  await page.goto(`${baseUrl}/web/hypertrophyos/`, { waitUntil: 'domcontentloaded' });
+  await page.locator('#lift-tool').scrollIntoViewIfNeeded();
+  await page.locator('#lift-weight').fill('100');
+  await page.locator('#lift-reps').fill('6');
+  await page.waitForTimeout(1100);
+  assert.equal(await page.locator('#one-rm').textContent(), '116.1');
   await context.close();
 });
