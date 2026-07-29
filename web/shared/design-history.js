@@ -188,16 +188,47 @@
 
   const CURRENT = ERAS.find((era) => era.current) || ERAS[ERAS.length - 1];
 
-  /* The site carries three parallel token families, and which one a page
-     reads from depends on how it opted in:
-       --forest-*  dusk tokens, used by forest-shell.css subpages
-       --bg/--accent/...  the unified set on :root, used by everything else
-       --home-*    the landing's own names (forest-home.css)
-     Editing those stylesheets to share one source is exactly the kind of
-     consolidation this feature is not allowed to do, so instead each era
-     writes all three families at runtime — every page re-tints, whichever
-     family it happens to read. Fonts already alias through --forest-*. */
+  /* Every era writes canonical primitives plus the compatibility aliases.
+     This keeps historical previews coherent while the stylesheets keep one
+     source of truth in forest-design.css. */
   const ALIASES = {
+    "--theme-shell-bg": "--forest-bg",
+    "--theme-shell-bg-deep": "--forest-bg-deep",
+    "--theme-shell-surface": "--forest-surface",
+    "--theme-shell-panel": "--forest-panel",
+    "--theme-shell-ink": "--forest-ink",
+    "--theme-shell-soft": "--forest-soft",
+    "--theme-shell-muted": "--forest-muted",
+    "--theme-shell-line": "--forest-line",
+    "--theme-shell-amber": "--forest-amber",
+    "--theme-shell-moss": "--forest-moss",
+    "--theme-shell-rose": "--forest-rose",
+    "--theme-shell-accent": "--forest-accent",
+    "--theme-shell-accent-rgb": "--forest-accent-rgb",
+    "--theme-shell-glow-amber": "--forest-glow-amber",
+    "--theme-shell-glow-moss": "--forest-glow-moss",
+    "--theme-shell-display": "--forest-display",
+    "--theme-shell-body": "--forest-body",
+    "--theme-shell-sans": "--forest-sans",
+    "--theme-ui-bg": "--forest-bg",
+    "--theme-ui-surface": "--forest-surface",
+    "--theme-ui-border": "--forest-line",
+    "--theme-ui-text-primary": "--forest-ink",
+    "--theme-ui-text-muted": "--forest-muted",
+    "--theme-ui-accent": "--forest-amber",
+    "--theme-ui-accent-green": "--forest-moss",
+    "--theme-ui-font": "--forest-sans",
+    "--theme-home-bg": "--forest-bg",
+    "--theme-home-surface": "--forest-surface",
+    "--theme-home-ink": "--forest-ink",
+    "--theme-home-soft": "--forest-soft",
+    "--theme-home-muted": "--forest-muted",
+    "--theme-home-line": "--forest-line",
+    "--theme-home-amber": "--forest-amber",
+    "--theme-home-moss": "--forest-moss",
+    "--theme-home-display": "--forest-display",
+    "--theme-home-body": "--forest-body",
+    "--theme-home-sans": "--forest-sans",
     "--home-bg": "--forest-bg",
     "--home-surface": "--forest-surface",
     "--home-ink": "--forest-ink",
