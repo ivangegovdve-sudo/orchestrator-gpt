@@ -56,12 +56,17 @@ test('publishes canonical tokens, an accessible year meter, and a prominent late
   assert.match(html, /aria-valuemax="100"/);
   assert.match(html, /id="late-achiever-title"[^>]*>The late-achiever pivot</);
   assert.match(html, /prefers-reduced-motion/);
+  const header = html.indexOf('class="header"');
+  const meter = html.indexOf('class="year-prog-wrap"');
+  const form = html.indexOf('class="form-wrap"');
   const wake = html.indexOf('class="wake-header"');
-  const meter = html.indexOf('class="year-prog-wrap"', wake);
   const pivot = html.indexOf('class="pivot-wrap"', wake);
   const kid = html.indexOf('id="kidBlock"', wake);
   const stats = html.indexOf('id="statsGrid"', wake);
-  assert.ok(wake < meter && meter < pivot && pivot < kid && kid < stats);
+  assert.ok(header < meter && meter < form && form < wake && wake < pivot && pivot < kid && kid < stats);
+  assert.equal((html.match(/class="year-prog-wrap"/g) || []).length, 1);
+  assert.match(html, /var yearProgressRendered = false;/);
+  assert.match(html, /function renderYearProgress\(\) \{\s*if \(yearProgressRendered\) return;\s*yearProgressRendered = true;/);
   assert.match(html, /function renderYearProgress\(\)[\s\S]*requestAnimationFrame\(function\(\) \{\s*requestAnimationFrame/);
   assert.match(html, /if \(REDUCED_MOTION\.matches\) \{\s*bar\.style\.width = pct \+ '%';\s*return;/);
 });
@@ -132,9 +137,11 @@ test('normal-motion year progress waits for two animation frames before arriving
     };
   });
   const page = await context.newPage();
-  await page.goto(`${baseUrl}/web/life-in-time/?by=1988&le=83`, {
+  await page.goto(`${baseUrl}/web/life-in-time/`, {
     waitUntil: 'domcontentloaded',
   });
+  assert.equal(await page.locator('#results').isVisible(), false);
+  assert.equal(await page.locator('.year-prog-wrap').isVisible(), true);
 
   const readMeter = () => page.locator('#yearProgBar').evaluate((bar) => {
     const style = getComputedStyle(bar);
@@ -163,7 +170,7 @@ test('year meter is current and the mobile layout stays inside the viewport', as
     reducedMotion: 'reduce',
   });
   const page = await context.newPage();
-  await page.goto(`${baseUrl}/web/life-in-time/?by=1988&le=83`, { waitUntil: 'domcontentloaded' });
+  await page.goto(`${baseUrl}/web/life-in-time/`, { waitUntil: 'domcontentloaded' });
 
   const meter = page.locator('.year-prog-track');
   const current = Number(await meter.getAttribute('aria-valuenow'));

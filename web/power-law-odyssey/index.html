@@ -615,8 +615,8 @@
       transform: translate(-50%, -50%) rotate(0) scale(1.58);
     }
     .bet-field.is-converged .bet-coin {
-      left: var(--grid-x);
-      top: var(--grid-y);
+      left: 50%;
+      top: 50%;
       transform: translate(-50%, -50%) rotate(0) scale(1);
       transition:
         left var(--duration-convergence) var(--spring),
@@ -1259,15 +1259,11 @@ document.documentElement.style.setProperty("--scroll-p", progress);</code></pre>
     function renderBet(result, { announce = true } = {}) {
       if (!result) return;
       const coin = document.createElement("li");
-      const column = (result.attempt - 1) % 10;
-      const row = Math.floor((result.attempt - 1) / 10);
       coin.className = `bet-coin bet-coin--${result.outcome}`;
       coin.dataset.outcome = result.outcome;
       coin.style.setProperty("--coin-x", `${result.visual.scatterX.toFixed(2)}%`);
       coin.style.setProperty("--coin-y", `${result.visual.scatterY.toFixed(2)}%`);
       coin.style.setProperty("--coin-r", `${result.visual.rotation.toFixed(2)}deg`);
-      coin.style.setProperty("--grid-x", `${6 + column * (88 / 9)}%`);
-      coin.style.setProperty("--grid-y", `${12 + row * 17}%`);
       coin.textContent = result.outcome === "outlier" ? "50×" : result.outcome === "neutral" ? "=" : "−1";
       coin.setAttribute("aria-label", result.outcome === "outlier"
         ? `Bet ${result.attempt}: gold outlier returned 50 units`

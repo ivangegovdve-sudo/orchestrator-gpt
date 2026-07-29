@@ -199,9 +199,9 @@ body{background:var(--bg);color:var(--text);font-family:var(--forest-body,Alegre
 .header .sub{color:var(--muted);margin-top:8px;font-size:.95em}
 
 /* ── Year progress bar ── */
-.year-prog-wrap{width:min(520px,calc(100% - 32px));margin:22px auto 0;padding:16px 18px 18px;border:1px solid var(--border);border-radius:16px;background:var(--surface);box-shadow:0 18px 48px rgba(0,0,0,.24)}
-.year-prog-labels{display:flex;justify-content:space-between;gap:16px;margin-bottom:9px;font:700 .78em/1.2 var(--font);color:var(--text-muted)}
-.year-prog-track{height:clamp(14px,2vw,18px);background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.08);border-radius:99px;overflow:hidden;box-shadow:inset 0 1px 3px rgba(0,0,0,.45)}
+.year-prog-wrap{width:min(680px,calc(100% - 32px));margin:22px auto 0;padding:20px 22px 22px;border:1px solid var(--border);border-radius:18px;background:var(--surface);box-shadow:0 18px 48px rgba(0,0,0,.24)}
+.year-prog-labels{display:flex;justify-content:space-between;gap:16px;margin-bottom:12px;font:700 .88em/1.2 var(--font);color:var(--text-muted)}
+.year-prog-track{height:clamp(18px,2.3vw,24px);background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.08);border-radius:99px;overflow:hidden;box-shadow:inset 0 1px 3px rgba(0,0,0,.45)}
 .year-prog-fill{position:relative;height:100%;width:0%;background:linear-gradient(90deg,var(--time-warm),var(--accent-green));border-radius:99px;transition:width var(--duration-slow) var(--ease-out);box-shadow:0 0 16px rgba(34,197,94,.45),0 0 6px rgba(232,184,107,.62)}
 .year-prog-fill::after{content:'';position:absolute;inset:0;border-radius:99px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.55),transparent);transform:translateX(-100%);animation:yearShimmer var(--duration-slow) var(--ease-out) var(--duration-slow) both}
 @keyframes yearShimmer{0%{transform:translateX(-100%)}60%,100%{transform:translateX(100%)}}
@@ -412,6 +412,16 @@ body{background:var(--bg);color:var(--text);font-family:var(--forest-body,Alegre
   <p class="sub">See what remains. Then see what's still possible.</p>
 </div>
 
+<div class="year-prog-wrap">
+  <div class="year-prog-labels">
+    <span id="yearProgLabel">Current year</span>
+    <span id="yearProgDays"></span>
+  </div>
+  <div class="year-prog-track" role="progressbar" aria-label="Current year elapsed" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-valuetext="0% of the current year elapsed">
+    <div class="year-prog-fill" id="yearProgBar"></div>
+  </div>
+</div>
+
 <div class="form-wrap">
   <div class="form-card">
     <h2>⏳ Your Time</h2>
@@ -446,16 +456,6 @@ body{background:var(--bg);color:var(--text);font-family:var(--forest-body,Alegre
   <div class="wake-header">
     <h2 id="wakeTitle">You have time.</h2>
     <p class="wake-sub" id="wakeSub"></p>
-  </div>
-
-  <div class="year-prog-wrap">
-    <div class="year-prog-labels">
-      <span id="yearProgLabel">Current year</span>
-      <span id="yearProgDays"></span>
-    </div>
-    <div class="year-prog-track" role="progressbar" aria-label="Current year elapsed" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-valuetext="0% of the current year elapsed">
-      <div class="year-prog-fill" id="yearProgBar"></div>
-    </div>
   </div>
 
   <!-- Pivot -->
@@ -574,12 +574,15 @@ var SKILL_PEAKS = [
 ];
 
 var heartbeatInterval = null;
+var yearProgressRendered = false;
 
 function fmt(n) {
   return Math.max(0, Math.round(n)).toLocaleString();
 }
 
 function renderYearProgress() {
+  if (yearProgressRendered) return;
+  yearProgressRendered = true;
   var now = new Date();
   var year = now.getFullYear();
   var start = new Date(year, 0, 1);
@@ -785,7 +788,6 @@ function calculate() {
   document.getElementById('positive').classList.remove('is-visible');
   var resultsEl = document.getElementById('results');
   resultsEl.style.display = 'block';
-  renderYearProgress();
   resultsEl.classList.remove('is-visible');
   requestAnimationFrame(function(){ requestAnimationFrame(function(){
     resultsEl.classList.add('is-visible');
@@ -825,6 +827,7 @@ function shareLink() {
 }
 
 (function(){
+  renderYearProgress();
   var p = new URLSearchParams(location.search);
   if (p.get('by')) document.getElementById('birthYear').value = p.get('by');
   if (p.get('py')) document.getElementById('parentYear').value = p.get('py');

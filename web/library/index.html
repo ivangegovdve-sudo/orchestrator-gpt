@@ -283,7 +283,7 @@ h1 {
 }
 .entry:hover { background: var(--card-bg); }
 .entry + .entry { border-top: 1px solid rgba(255,255,255,.04); }
-.entry-head { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+.entry-head { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; margin: 0; }
 .entry-abbr { font-weight: 700; font-size: .95rem; color: var(--text); }
 .entry-exp { font-size: .82rem; color: var(--accent); }
 .entry-by { font-size: .74rem; color: var(--dim); margin-left: auto; }
@@ -327,7 +327,7 @@ footer { text-align: center; color: var(--dim); font-size: .76rem; margin-top: 3
 .result-count{color:var(--muted);font:700 .76rem/1.2 var(--forest-sans,sans-serif)}
 .library-list{padding:4px 10px 12px}
 .library-row{display:grid;grid-template-columns:minmax(150px,.8fr) minmax(0,2fr) auto;gap:14px;align-items:start;padding:9px 8px;border-radius:8px;border-top:1px solid rgba(255,255,255,.045);animation:libraryRowIn var(--duration-normal) var(--ease-out) both;animation-delay:calc(var(--row-index,0) * var(--stagger-list))}
-.library-row:first-child{border-top:0}.library-row:hover{background:var(--card-bg)}.library-row:nth-child(n+11){animation:none}
+.library-row:first-child{border-top:0}.library-row:hover{background:var(--card-bg)}.library-row:nth-child(n+11){animation-delay:calc(var(--stagger-card) * 10)}
 @keyframes libraryRowIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
 .entry-main{min-width:0}.library-row .entry-link{white-space:nowrap}
 @media(max-width:860px){.library-row{grid-template-columns:1fr;gap:5px}.library-row .entry-link{white-space:normal}.library-head{align-items:flex-start;flex-direction:column}}
@@ -456,8 +456,10 @@ footer { text-align: center; color: var(--dim); font-size: .76rem; margin-top: 3
       row.className = "library-row";
       row.dataset.type = entry.type;
       row.style.setProperty("--row-index", String(Math.min(index, 9)));
-      var heading = document.createElement("div");
+      var heading = document.createElement("h3");
       heading.className = "entry-head";
+      heading.id = "library-entry-" + index;
+      row.setAttribute("aria-labelledby", heading.id);
       appendText(heading, "entry-abbr", entry.title);
       if (entry.subtitle && entry.subtitle !== entry.title) {
         appendText(heading, "entry-exp", entry.subtitle);
@@ -483,6 +485,7 @@ footer { text-align: center; color: var(--dim); font-size: .76rem; margin-top: 3
         link.href = href;
         link.target = "_blank";
         link.rel = "noopener noreferrer";
+        link.setAttribute("aria-label", "Visit " + entry.title);
         link.textContent = "Visit ↗";
         row.appendChild(link);
       }
