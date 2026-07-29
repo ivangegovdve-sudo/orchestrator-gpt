@@ -112,10 +112,13 @@ test('all 50 physical coins use the convergence-only 500ms spring transition', (
 
   assert.match(convergedRule, /left var\(--duration-convergence\) var\(--spring\)/);
   assert.match(convergedRule, /top var\(--duration-convergence\) var\(--spring\)/);
+  assert.match(convergedRule, /left:\s*50%/);
+  assert.match(convergedRule, /top:\s*50%/);
   assert.match(convergedRule, /transform var\(--duration-convergence\) var\(--spring\)/);
   assert.match(convergedRule, /box-shadow var\(--duration-convergence\) var\(--spring\)/);
   assert.match(baseRule, /var\(--duration-recovery\) var\(--ease-out\)/);
   assert.doesNotMatch(baseRule, /--spring/);
+  assert.doesNotMatch(html, /--grid-[xy]/);
   assert.match(designCss, /--duration-convergence:\s*500ms/);
 });
 

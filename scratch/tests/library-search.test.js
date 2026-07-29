@@ -55,7 +55,13 @@ test('library contract is data-derived, unified, bounded, and route-safe', () =>
   assert.match(html, /data-source="platform"[^>]+>Platforms/);
   assert.match(html, /function scheduleRender\(\)[\s\S]*requestAnimationFrame/);
   assert.doesNotMatch(html, /setTimeout\(renderAll/);
-  assert.match(html, /\.library-row:nth-child\(n\+11\)\{animation:none\}/);
+  assert.match(html, /document\.createElement\("h3"\)/);
+  assert.match(html, /row\.setAttribute\("aria-labelledby", heading\.id\)/);
+  assert.match(html, /link\.setAttribute\("aria-label", "Visit " \+ entry\.title\)/);
+  assert.match(
+    html,
+    /\.library-row:nth-child\(n\+11\)\{animation-delay:calc\(var\(--stagger-card\) \* 10\)\}/,
+  );
   assert.match(html, /prefers-reduced-motion:reduce\)\{\.library-row\{animation:none/);
   for (const href of [
     '/web/library/glossary/', '/web/library/platform/', '/web/library/rag.html',
@@ -89,6 +95,20 @@ test('search and source filters update one unified live result set', async () =>
     return rows.length > 0 && rows.every((row) => row.dataset.type === 'platform');
   });
   assert.match(await page.locator('#library-list').textContent(), /OpenAI/i);
+  const semantics = await page.locator('.library-row').evaluateAll((rows) => rows.map((row) => {
+    const heading = row.querySelector('h3');
+    const link = row.querySelector('a');
+    return {
+      labelledBy: row.getAttribute('aria-labelledby'),
+      headingId: heading?.id || '',
+      linkName: link?.getAttribute('aria-label') || '',
+    };
+  }));
+  assert.equal(semantics.every(({ labelledBy, headingId }) => labelledBy === headingId), true);
+  assert.equal(
+    semantics.filter(({ linkName }) => linkName).every(({ linkName }) => /^Visit .+/.test(linkName)),
+    true,
+  );
 
   await page.locator('#search-clear').click();
   await page.locator('[data-source="all"]').click();
@@ -96,9 +116,11 @@ test('search and source filters update one unified live result set', async () =>
   const motion = await page.locator('.library-row').evaluateAll((rows) => ({
     tenth: getComputedStyle(rows[9]).animationName,
     eleventh: getComputedStyle(rows[10]).animationName,
+    eleventhDelay: getComputedStyle(rows[10]).animationDelay,
   }));
   assert.notEqual(motion.tenth, 'none');
-  assert.equal(motion.eleventh, 'none');
+  assert.notEqual(motion.eleventh, 'none');
+  assert.equal(motion.eleventhDelay, '0.8s');
   await context.close();
 });
 

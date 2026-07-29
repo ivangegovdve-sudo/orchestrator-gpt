@@ -140,9 +140,15 @@ test('the venture sandbox supports one bet, one batch announcement, and reset', 
   await pointerClick(page, '#batchButton');
   await page.waitForFunction(() => document.querySelectorAll('#betField > .bet-coin').length === 50);
   await page.waitForFunction(() => document.querySelector('#betField').classList.contains('is-converged'));
+  await page.waitForTimeout(650);
 
   const final = await page.evaluate(() => {
     window.__portfolioObserver.disconnect();
+    const field = document.querySelector('#betField').getBoundingClientRect();
+    const target = {
+      x: field.left + field.width / 2,
+      y: field.top + field.height / 2,
+    };
     return {
       announcements: window.__portfolioAnnouncements,
       attempts: document.querySelector('#attemptCount').textContent,
@@ -158,6 +164,13 @@ test('the venture sandbox supports one bet, one batch announcement, and reset', 
           property: style.transitionProperty,
           duration: style.transitionDuration,
           easing: style.transitionTimingFunction,
+        };
+      }),
+      centerDeltas: [...document.querySelectorAll('#betField > .bet-coin')].map((coin) => {
+        const rect = coin.getBoundingClientRect();
+        return {
+          x: Math.abs(rect.left + rect.width / 2 - target.x),
+          y: Math.abs(rect.top + rect.height / 2 - target.y),
         };
       }),
     };
@@ -183,6 +196,11 @@ test('the venture sandbox supports one bet, one batch announcement, and reset', 
       .fill('cubic-bezier(0.34, 1.56, 0.64, 1)')
       .join(', ')
   )), true, JSON.stringify(final.transitions[0]));
+  assert.equal(
+    final.centerDeltas.every(({ x, y }) => x <= 1 && y <= 1),
+    true,
+    JSON.stringify(final.centerDeltas),
+  );
 
   await pointerClick(page, '#resetBets');
   assert.equal(await page.locator('#betField > .bet-coin').count(), 0);

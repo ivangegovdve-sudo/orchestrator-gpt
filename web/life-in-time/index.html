@@ -514,6 +514,16 @@ body{background:var(--bg);color:var(--text);font-family:var(--forest-body,Alegre
 })();
 </script>
 
+<div class="year-prog-wrap">
+  <div class="year-prog-labels">
+    <span id="yearProgLabel">Current year</span>
+    <span id="yearProgDays"></span>
+  </div>
+  <div class="year-prog-track" role="progressbar" aria-label="Current year elapsed" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-valuetext="0% of the current year elapsed">
+    <div class="year-prog-fill" id="yearProgBar"></div>
+  </div>
+</div>
+
 <div class="form-wrap">
   <div class="form-card">
     <h2>⏳ Your Time</h2>
@@ -548,16 +558,6 @@ body{background:var(--bg);color:var(--text);font-family:var(--forest-body,Alegre
   <div class="wake-header">
     <h2 id="wakeTitle">You have time.</h2>
     <p class="wake-sub" id="wakeSub"></p>
-  </div>
-
-  <div class="year-prog-wrap">
-    <div class="year-prog-labels">
-      <span id="yearProgLabel">Current year</span>
-      <span id="yearProgDays"></span>
-    </div>
-    <div class="year-prog-track" role="progressbar" aria-label="Current year elapsed" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-valuetext="0% of the current year elapsed">
-      <div class="year-prog-fill" id="yearProgBar"></div>
-    </div>
   </div>
 
   <!-- Pivot -->
@@ -689,12 +689,15 @@ var SKILL_PEAKS = [
 ];
 
 var heartbeatInterval = null;
+var yearProgressRendered = false;
 
 function fmt(n) {
   return Math.max(0, Math.round(n)).toLocaleString();
 }
 
 function renderYearProgress() {
+  if (yearProgressRendered) return;
+  yearProgressRendered = true;
   var now = new Date();
   var year = now.getFullYear();
   var start = new Date(year, 0, 1);
@@ -911,7 +914,6 @@ function calculate() {
   document.getElementById('positive').classList.remove('is-visible');
   var resultsEl = document.getElementById('results');
   resultsEl.style.display = 'block';
-  renderYearProgress();
   resultsEl.classList.remove('is-visible');
   requestAnimationFrame(function(){ requestAnimationFrame(function(){
     resultsEl.classList.add('is-visible');
@@ -967,6 +969,7 @@ function shareLink(btn, openPositive) {
 }
 
 (function(){
+  renderYearProgress();
   var p = new URLSearchParams(location.search);
   if (p.get('by')) document.getElementById('birthYear').value = p.get('by');
   if (p.get('py')) document.getElementById('parentYear').value = p.get('py');
