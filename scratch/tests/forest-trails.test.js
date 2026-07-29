@@ -17,6 +17,7 @@ const expectedPaths = [
   '/web/c2c-dolphin/',
   '/web/c2c-self/',
   '/web/avatar-playground/',
+  '/web/chloe-pwa/',
   '/web/life-in-time/',
   '/web/womens-health-os/',
   '/web/hypertrophyos/',
@@ -32,6 +33,7 @@ const expectedPaths = [
   '/web/power-law-odyssey/',
   '/web/replicator-void/',
 ];
+const privateClientPaths = new Set(['/web/chloe-pwa/']);
 
 const libraryChildPaths = [
   '/web/ai-init/',
@@ -139,7 +141,7 @@ test('every canonical public page mounts Forest Trails through production script
 }, async () => {
   const page = await browser.newPage();
 
-  for (const routePath of expectedPaths) {
+  for (const routePath of expectedPaths.filter((routePath) => !privateClientPaths.has(routePath))) {
     const response = await page.goto(`${baseUrl}${routePath}`, {
       waitUntil: 'domcontentloaded',
     });
@@ -521,6 +523,25 @@ test('renders a fixed touch-safe route network and disables its motion when requ
   await page.close();
 });
 
+test('representative route keeps Design History usable under reduced motion', async () => {
+  const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.goto(`${baseUrl}/web/c2c-dolphin/`, { waitUntil: 'domcontentloaded' });
+
+  const history = page.getByRole('button', { name: 'Design history', exact: true });
+  await history.click();
+  assert.equal(await history.getAttribute('aria-expanded'), 'true');
+  await page.getByRole('button', { name: 'The prompt builder' }).click();
+  assert.equal(await page.locator('.dh-root').getAttribute('class'), 'dh-root is-open is-previewing');
+  assert.equal(
+    await page.evaluate(() => document.documentElement.style.getPropertyValue('--forest-amber')),
+    '#38bdf8',
+  );
+  await page.locator('.dh-banner button').click();
+  assert.equal(await page.locator('.dh-root').getAttribute('class'), 'dh-root');
+  await page.close();
+});
+
 test('forced dialog fallback traps focus, closes on Escape, and restores its trigger', async () => {
   const context = await browser.newContext();
   const page = await context.newPage();
@@ -888,7 +909,7 @@ test('maps public child views to their trail while leaving retired council paths
     manifestoTranslation: 'Manifesto for a Newborn',
     openOverviewChild: 'Open Overview',
     libraryChild: 'Library & Platforms',
-    legacyGlossary: 'Library & Platforms',
+    legacyGlossary: null,
     ragHub: 'Library & Platforms',
     repoSearch: 'Library & Platforms',
     generalSearch: 'Library & Platforms',
