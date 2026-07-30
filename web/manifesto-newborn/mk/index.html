@@ -2,10 +2,11 @@
 <html lang="mk" class="forest-skin">
 <head>
 <meta charset="UTF-8">
-<link rel="icon" href="/web/shared/favicon.svg?v=20260729e" type="image/svg+xml">
-<script defer src="/web/shared/feedback.js?v=20260729e"></script>
-<script type="module" src="/web/shared/forest-navigation.mjs?v=20260729e"></script>
-<link rel="preload" href="/web/shared/forest-design.css?v=20260729e" as="style">
+<link rel="icon" href="/web/shared/favicon.svg?v=20260729g" type="image/svg+xml">
+<script defer src="/web/shared/feedback.js?v=20260729g"></script>
+<script defer src="/web/shared/manifesto-reading-room.js?v=20260729g"></script>
+<script type="module" src="/web/shared/forest-navigation.mjs?v=20260729g"></script>
+<link rel="preload" href="/web/shared/forest-design.css?v=20260729g" as="style">
 <link rel="preload" href="/web/vendor/fonts/cormorant-garamond-normal-600-cyrillic.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="/web/vendor/fonts/alegreya-normal-400-900-cyrillic.woff2" as="font" type="font/woff2" crossorigin>
 <script type="speculationrules">
@@ -163,11 +164,11 @@
 <meta property="og:type" content="website">
 <link rel="alternate" hreflang="en" href="../">
 <link rel="alternate" hreflang="bg" href="../bg/">
-<link rel="alternate" hreflang="mk" href="./">
+<link rel="alternate" hreflang="de" href="../de/">
 <link rel="alternate" hreflang="es" href="../es/">
 <link rel="alternate" hreflang="fr" href="../fr/">
-<link rel="alternate" hreflang="de" href="../de/">
 <link rel="alternate" hreflang="it" href="../it/">
+<link rel="alternate" hreflang="mk" href="./">
 <link rel="alternate" hreflang="pt" href="../pt/">
 <link rel="alternate" hreflang="ru" href="../ru/">
 <link rel="alternate" hreflang="zh-Hans" href="../zh/">
@@ -185,6 +186,7 @@
   --accent-green: #22c55e;
   --radius: 8px;
   --font: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  --reading-measure: 70ch;
   --text: var(--forest-ink, #f2efe4);
   --text-dim: #a9b3a1;
   --warm: var(--forest-amber, #e8b86b);
@@ -301,6 +303,7 @@ h1 em {
 
 /* ── Body text ── */
 .body-text {
+  max-width: var(--reading-measure);
   display: flex;
   flex-direction: column;
   gap: 0;
@@ -330,6 +333,7 @@ h1 em {
 
 /* Closing — special weight */
 .closing {
+  max-width: var(--reading-measure);
   margin-top: clamp(40px, 6vw, 60px);
   padding-top: clamp(32px, 5vw, 48px);
   border-top: 1px solid rgba(255,255,255,.07);
@@ -404,15 +408,15 @@ footer {
       <span class="sep">·</span>
       <a href="../bg/" hreflang="bg" lang="bg" title="Български">BG</a>
       <span class="sep">·</span>
-      <span class="current" aria-current="true" title="Македонски">МК</span>
+      <a href="../de/" hreflang="de" lang="de" title="Deutsch">DE</a>
       <span class="sep">·</span>
       <a href="../es/" hreflang="es" lang="es" title="Español">ES</a>
       <span class="sep">·</span>
       <a href="../fr/" hreflang="fr" lang="fr" title="Français">FR</a>
       <span class="sep">·</span>
-      <a href="../de/" hreflang="de" lang="de" title="Deutsch">DE</a>
-      <span class="sep">·</span>
       <a href="../it/" hreflang="it" lang="it" title="Italiano">IT</a>
+      <span class="sep">·</span>
+      <span class="current" aria-current="page" lang="mk" title="Македонски">МК</span>
       <span class="sep">·</span>
       <a href="../pt/" hreflang="pt" lang="pt" title="Português">PT</a>
       <span class="sep">·</span>

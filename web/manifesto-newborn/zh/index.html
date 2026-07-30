@@ -2,10 +2,11 @@
 <html lang="zh-Hans" class="forest-skin">
 <head>
 <meta charset="UTF-8">
-<link rel="icon" href="/web/shared/favicon.svg?v=20260729e" type="image/svg+xml">
-<script defer src="/web/shared/feedback.js?v=20260729e"></script>
-<script type="module" src="/web/shared/forest-navigation.mjs?v=20260729e"></script>
-<link rel="preload" href="/web/shared/forest-design.css?v=20260729e" as="style">
+<link rel="icon" href="/web/shared/favicon.svg?v=20260729g" type="image/svg+xml">
+<script defer src="/web/shared/feedback.js?v=20260729g"></script>
+<script defer src="/web/shared/manifesto-reading-room.js?v=20260729g"></script>
+<script type="module" src="/web/shared/forest-navigation.mjs?v=20260729g"></script>
+<link rel="preload" href="/web/shared/forest-design.css?v=20260729g" as="style">
 <script type="speculationrules">
 {
   "prerender": [
@@ -159,6 +160,16 @@
 <meta property="og:title" content="致新生的你">
 <meta property="og:description" content="你刚刚闯入我们称之为人生的盛宴。此时，你仍不懂饥饿的意义，未曾体会恐惧的感受，甚至不明白身体会怎样行动。没有剧本，只有哭声与温暖的手。等世界还未高声宣告它的期待，请先听我说：">
 <meta property="og:type" content="website">
+<link rel="alternate" hreflang="en" href="../">
+<link rel="alternate" hreflang="bg" href="../bg/">
+<link rel="alternate" hreflang="de" href="../de/">
+<link rel="alternate" hreflang="es" href="../es/">
+<link rel="alternate" hreflang="fr" href="../fr/">
+<link rel="alternate" hreflang="it" href="../it/">
+<link rel="alternate" hreflang="mk" href="../mk/">
+<link rel="alternate" hreflang="pt" href="../pt/">
+<link rel="alternate" hreflang="ru" href="../ru/">
+<link rel="alternate" hreflang="zh-Hans" href="./">
 <link rel="stylesheet" href="/web/shared/forest-design.css?v=20260807a">
 <link rel="stylesheet" href="/web/shared/forest-shell.css?v=20260807a"><style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -173,6 +184,7 @@
   --accent-green: #22c55e;
   --radius: 8px;
   --font: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  --reading-measure: 70ch;
   --text: var(--forest-ink, #f2efe4);
   --text-dim: #a9b3a1;
   --warm: var(--forest-amber, #e8b86b);
@@ -291,6 +303,7 @@ h1 em {
 
 /* ── Body text ── */
 .body-text {
+  max-width: var(--reading-measure);
   display: flex;
   flex-direction: column;
   gap: 0;
@@ -320,6 +333,7 @@ h1 em {
 
 /* Closing — special weight */
 .closing {
+  max-width: var(--reading-measure);
   margin-top: clamp(40px, 6vw, 60px);
   padding-top: clamp(32px, 5vw, 48px);
   border-top: 1px solid rgba(255,255,255,.07);
@@ -401,15 +415,15 @@ footer {
       <span class="sep">·</span>
       <a href="../fr/" hreflang="fr" lang="fr" title="Français">FR</a>
       <span class="sep">·</span>
-      <a href="../de/" hreflang="de" lang="de" title="Deutsch">DE</a>
-      <span class="sep">·</span>
       <a href="../it/" hreflang="it" lang="it" title="Italiano">IT</a>
+      <span class="sep">·</span>
+      <a href="../mk/" hreflang="mk" lang="mk" title="Македонски">МК</a>
       <span class="sep">·</span>
       <a href="../pt/" hreflang="pt" lang="pt" title="Português">PT</a>
       <span class="sep">·</span>
       <a href="../ru/" hreflang="ru" lang="ru" title="Русский">RU</a>
       <span class="sep">·</span>
-      <span class="current" aria-current="true" title="中文">中文</span>
+      <span class="current" aria-current="page" lang="zh-Hans" title="中文">中文</span>
     </nav>
   </div>
 

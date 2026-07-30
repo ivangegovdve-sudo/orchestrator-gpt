@@ -1,6 +1,6 @@
-import { FOREST_TRAIL_ROUTE_IDS, ROUTE_INVENTORY } from './route-inventory.mjs?v=20260729e';
+import { FOREST_TRAIL_ROUTE_IDS, ROUTE_INVENTORY } from './route-inventory.mjs?v=20260729g';
 
-export { ROUTE_INVENTORY } from './route-inventory.mjs?v=20260729e';
+export { ROUTE_INVENTORY } from './route-inventory.mjs?v=20260729g';
 
 const inventoryById = new Map(ROUTE_INVENTORY.map((route) => [route.id, route]));
 const routeFromInventory = (id) => {

@@ -1025,10 +1025,9 @@ html.is-born .scroll-invite {
 @media (prefers-reduced-motion: reduce) {
   :root { --title-p: 0; --rail-lit: 1; }
   *, *::before, *::after {
-    animation-duration: var(--duration-reduced) !important;
-    animation-iteration-count: 1 !important;
+    animation: none !important;
     scroll-behavior: auto !important;
-    transition-duration: var(--duration-reduced) !important;
+    transition: none !important;
   }
   .landing-core { opacity: 1; transform: none; }
   .title-crown .crown,

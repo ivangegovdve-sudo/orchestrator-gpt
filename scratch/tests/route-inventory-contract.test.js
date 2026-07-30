@@ -15,7 +15,7 @@ const projectDirectories = [
 ];
 
 async function inventory() {
-  return import(`${pathToFileURL(path.join(ROOT, 'web/shared/route-inventory.mjs')).href}?v=20260729e`);
+  return import(`${pathToFileURL(path.join(ROOT, 'web/shared/route-inventory.mjs')).href}?v=20260729g`);
 }
 
 test('route inventory owns every project directory exactly once with machine-readable delivery controls', async () => {
@@ -102,7 +102,7 @@ test('canonical project pages retain explicit forest-back ownership links', asyn
     const source = read(`web/${entry.id}/index.html`);
     assert.match(
       source,
-      /<link rel="stylesheet" href="\/web\/shared\/forest-shell\.css\?v=20260729e">/,
+      /<link rel="stylesheet" href="\/web\/shared\/forest-shell\.css\?v=20260729g">/,
       `${entry.id} loads the shared forest-back styling`,
     );
     const expectedHref = kidsChildren.has(entry.id) ? '/web/kids/' : '/';
@@ -119,4 +119,25 @@ test('landing portals restore direct C2C destinations', () => {
   const home = read('index.html');
   assert.match(home, /data-project="c2c-dolphin"[^>]*data-href="\/web\/c2c-dolphin\/"/);
   assert.match(home, /data-project="c2c-self"[^>]*data-href="\/web\/c2c-self\/"/);
+});
+
+test('Poetry remains one main-atlas portal while Calendar remains trail-only', async () => {
+  const { ROUTE_INVENTORY } = await inventory();
+  const poetry = ROUTE_INVENTORY.find(({ id }) => id === 'm-popova');
+  const calendar = ROUTE_INVENTORY.find(({ id }) => id === 'calendar');
+  assert.equal(poetry.state, 'main-atlas');
+  assert.equal(calendar.state, 'hub-trail');
+
+  const home = read('index.html');
+  const projectGrid = home.match(/<div class="project-grid" data-project-grid>[\s\S]*?<\/section>/)?.[0] || '';
+  assert.equal(
+    (projectGrid.match(/data-href="\/web\/m-popova\/"/g) || []).length,
+    1,
+    'Poetry has exactly one landing portal',
+  );
+  assert.equal(
+    (projectGrid.match(/data-href="\/web\/calendar\/"/g) || []).length,
+    0,
+    'Calendar has no landing portal',
+  );
 });
