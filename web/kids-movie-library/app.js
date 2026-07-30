@@ -389,6 +389,7 @@ const els = {
 let saved = readSavedState();
 let selectedTags = new Set();
 let searchDebounceTimer = null;
+const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
 
 function readSavedState() {
   try {
@@ -563,9 +564,12 @@ function render() {
     els.list.appendChild(createMovieCard(movie));
   }
 
-  // Stagger animation for movie cards
-  document.querySelectorAll('#resultsList .movie-card').forEach((card, i) => {
-    card.style.animationDelay = `${i * 0.05}s`;
+  document.querySelectorAll("#resultsList .movie-card").forEach((card, index) => {
+    if (reducedMotion.matches) {
+      card.style.removeProperty("--movie-stagger-step");
+      return;
+    }
+    card.style.setProperty("--movie-stagger-step", String(Math.min(index, 10)));
   });
 }
 
@@ -579,6 +583,7 @@ function wire() {
     el.addEventListener("input", render);
     el.addEventListener("change", render);
   });
+  reducedMotion.addEventListener("change", render);
 }
 
 renderOptions();
