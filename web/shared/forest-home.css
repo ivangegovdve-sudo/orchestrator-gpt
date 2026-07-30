@@ -146,7 +146,11 @@ a, button { -webkit-tap-highlight-color: transparent; }
 
 .crown-wrap {
   width: 100%;
-  transform: translateY(0);
+  /* translate3d, not translateY: promotes the breathing crown and its
+     added leaf layer to their own compositor layer so the sway never
+     repaints the hero text behind it. */
+  transform: translate3d(0, 0, 0);
+  will-change: transform;
 }
 
 .title-crown svg {
@@ -401,21 +405,10 @@ html.is-born .scroll-invite {
 }
 
 /* ================================================================== *
- * II. The crown
+ * Section headings (the atlas, and anything that follows it). These
+ * selectors were shared with the retired .crown-section — the crown
+ * halves are gone, the atlas halves are the live ones.
  * ================================================================== */
-.crown-section {
-  position: relative;
-  z-index: 2;
-  padding: clamp(60px, 10vh, 120px) 0 0;
-}
-
-.crown-head {
-  width: min(760px, 92vw);
-  margin: 0 auto;
-  text-align: center;
-}
-
-.crown-kicker,
 .atlas-kicker {
   margin: 0 0 12px;
   color: var(--home-amber);
@@ -424,7 +417,6 @@ html.is-born .scroll-invite {
   text-transform: uppercase;
 }
 
-.crown-head h2,
 .atlas-head h2 {
   margin: 0;
   font: 540 clamp(38px, 5.4vw, 72px)/1.04 var(--home-display);
@@ -432,76 +424,15 @@ html.is-born .scroll-invite {
   text-wrap: balance;
 }
 
-.crown-head h2 em,
 .atlas-head h2 em {
   font-style: italic;
   color: var(--home-amber);
 }
 
-.crown-copy {
-  max-width: 52ch;
-  margin: 18px auto 0;
-  color: var(--home-soft);
-  font-size: clamp(15px, 1.4vw, 18px);
-  line-height: 1.6;
-}
-
-.crown-stage {
-  position: relative;
-  height: clamp(540px, 108svh, 1080px);
-  margin-top: clamp(20px, 4vh, 56px);
-}
-
-.crown-labels { position: absolute; inset: 0; pointer-events: none; }
-
-.crown-label {
-  position: absolute;
-  transform: translate(-50%, -50%);
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  padding: 5px 8px;
-  pointer-events: auto;
-  color: var(--home-soft);
-  font: 500 clamp(10px, .85vw, 12.5px)/1 var(--home-sans);
-  letter-spacing: .14em;
-  text-decoration: none;
-  text-transform: uppercase;
-  white-space: nowrap;
-  opacity: .74;
-  transition:
-    opacity var(--duration-normal) var(--ease-standard),
-    color var(--duration-normal) var(--ease-standard);
-}
-
-.crown-label::before {
-  content: "";
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--label-accent, var(--home-moss));
-  box-shadow: 0 0 10px var(--label-accent, var(--home-moss));
-  opacity: .8;
-}
-
-.crown-label:hover,
-.crown-label:focus-visible {
-  color: var(--home-ink);
-  opacity: 1;
-}
-
-.crown-label:focus-visible {
-  outline: 1px solid var(--home-amber);
-  outline-offset: 3px;
-  border-radius: 4px;
-}
-
-.crown-label.is-lit { color: var(--home-ink); opacity: .95; }
-
 /* ================================================================== *
- * III. The walk of slams. The taproot (.root-rail) runs down its
- * spine; each collision grows WebGL roots from the seam up to the
- * crown, and the taproot lights as far as the walk has reached.
+ * II. The walk of slams. The taproot (.root-rail) runs down its
+ * spine; each collision grows WebGL roots from the seam upward, and
+ * the taproot lights as far as the walk has reached.
  * ================================================================== */
 .routes {
   position: relative;
@@ -904,19 +835,22 @@ html.is-born .scroll-invite {
 
 @media (max-width: 900px) {
   .home-nav-status { display: none; }
-  .crown-stage { height: clamp(440px, 74svh, 720px); }
   .slam { min-height: 66svh; }
   .slam-stage {
     grid-template-columns: 1fr;
     justify-items: center;
     gap: 0;
   }
+  /* translate3d so the scroll-scrubbed slam halves composite instead of
+     repainting on every scroll tick — this is the hot path on phones. */
   .slam-side-icon {
     justify-content: center;
-    transform: translateY(calc(var(--sx, 0) * -46vh)) rotate(calc(var(--sx, 0) * -3deg));
+    transform: translate3d(0, calc(var(--sx, 0) * -46vh), 0) rotate(calc(var(--sx, 0) * -3deg));
+    will-change: transform;
   }
   .slam-side-panel {
-    transform: translateY(calc(var(--sx, 0) * 46vh)) rotate(calc(var(--sx, 0) * 2deg));
+    transform: translate3d(0, calc(var(--sx, 0) * 46vh), 0) rotate(calc(var(--sx, 0) * 2deg));
+    will-change: transform;
   }
   .slam-plate { width: clamp(120px, 30vw, 160px); border-radius: 24px; margin-bottom: -26px; }
   .slam-seam { display: none; }
