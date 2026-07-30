@@ -109,7 +109,10 @@ import { initRoots, updateRoots, rootsPainted, rootsDebug } from './forest-three
     scene: null,
     pointer,
     scroll,
-    slamState: null, // created by initSlams, read by crown.js
+    // Created by initSlams. crown.js used to read it to light its
+    // branches; with crown.js out of the boot nothing consumes it yet, but
+    // slams.js still publishes it as the per-section lit level.
+    slamState: null,
     compact: () => compactMedia.matches,
     wake, // effect modules restart a sleeping loop on their events
   };
