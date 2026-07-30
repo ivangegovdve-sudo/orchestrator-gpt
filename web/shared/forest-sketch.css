@@ -1,0 +1,199 @@
+/* SDForest — the sketch layer's stylesheet.
+
+   Two states per host, cross-faded:
+     at rest          .sketch-twin visible, .sketch-src hidden  (hand-drawn)
+     .is-geo          .sketch-src visible, .sketch-twin hidden  (geometric)
+     .is-crystal      .is-geo plus a short, harder settle on click
+
+   Everything here is gated on html[data-sketch-ready], which forest-sketch.js
+   sets only after it has actually built the twins. Without the script — or
+   under prefers-reduced-motion, where the script returns early — the
+   geometric original is untouched and this file changes nothing. */
+
+:root {
+  --sketch-ink: var(--forest-amber, #e8b86b);
+  --sketch-fade: 460ms;
+  --sketch-draw: 1400ms;
+  --sketch-ease: cubic-bezier(.22, .8, .3, 1);
+}
+
+/* ------------------------------------------------------------------ *
+ * The two layers
+ * ------------------------------------------------------------------ */
+.sketch-twin {
+  opacity: 1;
+  transition: opacity var(--sketch-fade) var(--sketch-ease);
+}
+
+.sketch-stroke {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.4;          /* real weight — the old rails were hairlines */
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: .92;
+}
+
+/* The second pass: lighter, a touch wider, offset by its own seed. Two
+   strokes over one line is what reads as "drawn by hand". */
+.sketch-stroke--ghost {
+  stroke-width: 1.3;
+  opacity: .42;
+}
+
+html[data-sketch-ready] .sketch-src {
+  opacity: 0;
+  transition: opacity var(--sketch-fade) var(--sketch-ease);
+}
+
+html[data-sketch-ready] [data-sketch].is-geo .sketch-src { opacity: 1; }
+html[data-sketch-ready] [data-sketch].is-geo .sketch-twin { opacity: 0; }
+
+/* ------------------------------------------------------------------ *
+ * Draw-on: one pass, on first sight. Not a loop — the line is drawn
+ * once and then left alone, so a hero at rest costs nothing.
+ * ------------------------------------------------------------------ */
+html[data-sketch-ready] .sketch-stroke {
+  stroke-dasharray: var(--sketch-len, none);
+  stroke-dashoffset: var(--sketch-len, 0);
+}
+
+html[data-sketch-ready] [data-sketch].has-drawn .sketch-stroke {
+  animation: sketch-draw var(--sketch-draw) var(--sketch-ease) forwards;
+  will-change: stroke-dashoffset;
+}
+
+/* Stagger the second pass a little behind the first, like a hand coming
+   back over the line. */
+html[data-sketch-ready] [data-sketch].has-drawn .sketch-stroke--ghost {
+  animation-delay: 180ms;
+  animation-duration: calc(var(--sketch-draw) * 1.15);
+}
+
+@keyframes sketch-draw {
+  from { stroke-dashoffset: var(--sketch-len, 0); }
+  to { stroke-dashoffset: 0; }
+}
+
+/* ------------------------------------------------------------------ *
+ * Click: crystallise. The geometry snaps in harder than hover, glows
+ * for a beat, then relaxes back to the drawing.
+ * ------------------------------------------------------------------ */
+html[data-sketch-ready] [data-sketch].is-crystal {
+  animation: sketch-crystal 760ms var(--sketch-ease);
+}
+
+html[data-sketch-ready] [data-sketch].is-crystal .sketch-src {
+  filter: drop-shadow(0 0 10px var(--sketch-ink));
+  transition: filter 200ms var(--sketch-ease), opacity 160ms var(--sketch-ease);
+}
+
+@keyframes sketch-crystal {
+  0% { transform: scale(1); }
+  22% { transform: scale(1.022); }
+  60% { transform: scale(.998); }
+  100% { transform: scale(1); }
+}
+
+.sketch-ripple {
+  fill: none;
+  stroke: var(--sketch-ink);
+  stroke-width: 1.6;
+  vector-effect: non-scaling-stroke;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: sketch-ripple 720ms var(--sketch-ease) forwards;
+  will-change: transform, opacity;
+}
+
+@keyframes sketch-ripple {
+  from { transform: scale(1); opacity: .75; }
+  to { transform: scale(46); opacity: 0; }
+}
+
+/* ------------------------------------------------------------------ *
+ * Sketchy rules — the page-wide motif (item 7): wobbly underlines and
+ * dividers at rest, ruler-straight once seen or hovered.
+ * ------------------------------------------------------------------ */
+.sketch-rule {
+  display: block;
+  width: min(240px, 60%);
+  height: 9px;
+  margin: 14px auto 0;
+  overflow: visible;
+  color: var(--sketch-ink);
+}
+
+.sketch-rule .sketch-src {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.4;
+  stroke-linecap: round;
+}
+
+.sketch-rule--divider {
+  width: min(420px, 76%);
+  margin: clamp(30px, 6vh, 64px) auto;
+  color: var(--home-line, rgba(255, 255, 255, .28));
+}
+
+.sketch-rule--wide { width: min(320px, 68%); }
+
+/* ------------------------------------------------------------------ *
+ * The added crown leaf layer (item 10). The crown's own animation and
+ * its original clusters are untouched; this is a layer on top, and it
+ * sways on the same curve so it belongs to the same tree.
+ * ------------------------------------------------------------------ */
+.crown-leaf-layer {
+  color: var(--forest-moss, #8fe6ae);
+}
+
+.crown-leaf-layer .leaf-pair {
+  animation: cluster-sway var(--sway-dur, 9s) var(--ease-in-out, ease-in-out) infinite;
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  will-change: transform;
+}
+
+.crown-leaf-layer .leaf-geo,
+.crown-leaf-layer .leaf-sketch {
+  transition: opacity var(--sketch-fade) var(--sketch-ease);
+}
+
+/* Hand-drawn leaf at rest: an open, stroked outline. */
+.crown-leaf-layer .leaf-sketch {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: .9;
+}
+
+.crown-leaf-layer .leaf-geo {
+  fill: currentColor;
+  opacity: 0;
+}
+
+/* Geometric on touch: the outline gives way to the solid, sharp leaf. */
+html[data-sketch-ready] [data-sketch].is-geo .crown-leaf-layer .leaf-sketch { opacity: 0; }
+html[data-sketch-ready] [data-sketch].is-geo .crown-leaf-layer .leaf-geo { opacity: .96; }
+
+/* Without the script the solid leaves are the resting state, so the layer
+   is never invisible. */
+html:not([data-sketch-ready]) .crown-leaf-layer .leaf-sketch { opacity: 0; }
+html:not([data-sketch-ready]) .crown-leaf-layer .leaf-geo { opacity: .96; }
+
+/* ------------------------------------------------------------------ *
+ * Reduced motion: no drawing, no crystallising, no sway. The geometric
+ * original is the whole story.
+ * ------------------------------------------------------------------ */
+@media (prefers-reduced-motion: reduce) {
+  .sketch-twin { display: none; }
+  .sketch-ripple { display: none; }
+  .crown-leaf-layer .leaf-pair { animation: none !important; }
+  .crown-leaf-layer .leaf-sketch { opacity: 0; }
+  .crown-leaf-layer .leaf-geo { opacity: .96; }
+  html[data-sketch-ready] [data-sketch].has-drawn .sketch-stroke { animation: none; }
+  html[data-sketch-ready] [data-sketch].is-crystal { animation: none; }
+}

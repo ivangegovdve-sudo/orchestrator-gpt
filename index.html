@@ -11,7 +11,8 @@
   <title>SDForest — projects in motion</title>
   <link rel="stylesheet" href="/web/shared/forest-design.css?v=20260725c">
   <link rel="stylesheet" href="/web/shared/forest-home.css?v=20260725c">
-  <link rel="stylesheet" href="/web/shared/design-history.css?v=20260728">
+  <link rel="stylesheet" href="/web/shared/design-history.css?v=20260730a">
+  <link rel="stylesheet" href="/web/shared/forest-sketch.css?v=20260730a">
 </head>
 <body>
   <!-- The forest-motion.js constellation canvas is gone from the landing
@@ -30,6 +31,13 @@
     <defs>
       <symbol id="leaf" viewBox="0 0 24 28">
         <path d="M11.4 27.5l.9-7.2-5.1 2.1 1.4-5.2-6.1-1.8 4.8-3.2-3.2-5.4 6.2 1.8L12.7.5l3.1 7.3 5.7-2.4-2.1 6.2 4.1 3.1-5.5 2.1 1.3 5.5-5.1-2.2-.9 7.4z"/>
+      </symbol>
+      <!-- The same leaf drawn by hand: an open, slightly wobbly outline
+           with a stem and a midrib, stroked rather than filled. This is
+           the resting state of the added crown leaves; #leaf above is the
+           geometric form they settle into on hover. -->
+      <symbol id="leaf-sketch" viewBox="0 0 24 28">
+        <path d="M12.1 27.3c-.4-2.6.1-5.1.5-7.3M12.6 20.1c-1.7.4-3.4 1-4.9 1.9.3-1.7.8-3.4 1.2-5.1-2-.4-4-1.1-5.8-1.9 1.5-1 3.1-2 4.6-3.1-1-1.7-2.2-3.4-3-5.2 2 .5 4.1 1.1 6.1 1.7.2-2.5.7-5.1 1.5-7.5 1 2.3 2 4.7 2.9 7.1 1.9-.7 3.8-1.5 5.6-2.3-.6 2-1.3 4-2 6 1.3 1 2.7 1.9 4 3-1.8.7-3.6 1.4-5.4 2 .4 1.8.8 3.6 1.2 5.4-1.7-.6-3.4-1.3-5-2.1"/>
       </symbol>
       <symbol id="icon-time" viewBox="0 0 48 48">
         <circle class="icon-ring" cx="24" cy="24" r="19" stroke-dasharray="4 5"/>
@@ -140,7 +148,13 @@
       <div class="landing-core">
         <div class="title-crown forest-sigil" data-title-crown aria-hidden="true">
           <div class="crown-wrap">
-            <svg class="crown" viewBox="0 0 640 260" focusable="false">
+            <!-- data-sketch with no .sketch-src of its own: the crown's
+                 trunk, canopy and branches are untouched. The host exists
+                 so its added leaf layer can follow the page-wide
+                 hand-drawn / geometric state, driven by hovering the
+                 hero (the crown itself is pointer-events:none). -->
+            <svg class="crown" viewBox="0 0 640 260" focusable="false"
+                 data-sketch data-sketch-trigger=".landing">
               <path class="title-crown-trunk" d="M320 248C318 210 326 178 320 142M320 190C294 172 278 154 266 128M321 176C350 158 366 141 378 116"/>
               <path class="title-crown-canopy" d="M111 148C73 129 79 83 119 72C121 31 173 17 204 45C225 6 281 6 306 38C340 3 397 15 409 54C448 32 497 58 493 96C537 99 550 146 516 169C531 207 490 235 455 219C432 249 386 248 363 219C337 246 293 245 269 216C235 240 188 221 184 184C151 196 115 181 111 148Z"/>
               <g class="leaf-cluster" data-cluster="1" style="fill:#2d5a27">
@@ -162,6 +176,26 @@
                 <use href="#leaf" x="371" y="123" width="24" height="29"/><use href="#leaf" x="404" y="105" width="28" height="33"/><use href="#leaf" x="438" y="132" width="22" height="26"/>
               </g>
               <path class="title-crown-branch" d="M320 143C286 119 260 91 242 63M320 142C353 119 382 91 397 59M286 116C250 111 222 101 199 83M355 116C392 108 421 94 444 75"/>
+              <!-- ADDED leaf layer (Ivan 2026-07-30): sits on top of the
+                   crown, which is otherwise unchanged. Each leaf is a
+                   pair — a hand-drawn outline at rest, the solid
+                   geometric leaf on hover — swaying on the same
+                   cluster-sway curve as the crown's own clusters so it
+                   reads as part of the living tree. -->
+              <g class="crown-leaf-layer" aria-hidden="true">
+                <g class="leaf-pair" style="--sway-dur:8.1s;animation-delay:-1.4s"><use class="leaf-sketch" href="#leaf-sketch" x="138" y="60" width="26" height="30"/><use class="leaf-geo" href="#leaf" x="138" y="60" width="26" height="30"/></g>
+                <g class="leaf-pair" style="--sway-dur:9.6s;animation-delay:-3.1s"><use class="leaf-sketch" href="#leaf-sketch" x="192" y="30" width="29" height="34"/><use class="leaf-geo" href="#leaf" x="192" y="30" width="29" height="34"/></g>
+                <g class="leaf-pair" style="--sway-dur:7.4s;animation-delay:-.6s"><use class="leaf-sketch" href="#leaf-sketch" x="252" y="18" width="24" height="28"/><use class="leaf-geo" href="#leaf" x="252" y="18" width="24" height="28"/></g>
+                <g class="leaf-pair" style="--sway-dur:10.2s;animation-delay:-4.4s"><use class="leaf-sketch" href="#leaf-sketch" x="292" y="14" width="27" height="32"/><use class="leaf-geo" href="#leaf" x="292" y="14" width="27" height="32"/></g>
+                <g class="leaf-pair" style="--sway-dur:8.8s;animation-delay:-2.2s"><use class="leaf-sketch" href="#leaf-sketch" x="344" y="20" width="25" height="29"/><use class="leaf-geo" href="#leaf" x="344" y="20" width="25" height="29"/></g>
+                <g class="leaf-pair" style="--sway-dur:7.9s;animation-delay:-5.1s"><use class="leaf-sketch" href="#leaf-sketch" x="396" y="34" width="28" height="33"/><use class="leaf-geo" href="#leaf" x="396" y="34" width="28" height="33"/></g>
+                <g class="leaf-pair" style="--sway-dur:9.1s;animation-delay:-.9s"><use class="leaf-sketch" href="#leaf-sketch" x="452" y="62" width="26" height="30"/><use class="leaf-geo" href="#leaf" x="452" y="62" width="26" height="30"/></g>
+                <g class="leaf-pair" style="--sway-dur:8.4s;animation-delay:-3.7s"><use class="leaf-sketch" href="#leaf-sketch" x="486" y="96" width="23" height="27"/><use class="leaf-geo" href="#leaf" x="486" y="96" width="23" height="27"/></g>
+                <g class="leaf-pair" style="--sway-dur:9.9s;animation-delay:-2.8s"><use class="leaf-sketch" href="#leaf-sketch" x="108" y="104" width="24" height="28"/><use class="leaf-geo" href="#leaf" x="108" y="104" width="24" height="28"/></g>
+                <g class="leaf-pair" style="--sway-dur:7.6s;animation-delay:-4.9s"><use class="leaf-sketch" href="#leaf-sketch" x="228" y="88" width="22" height="26"/><use class="leaf-geo" href="#leaf" x="228" y="88" width="22" height="26"/></g>
+                <g class="leaf-pair" style="--sway-dur:10.6s;animation-delay:-1.9s"><use class="leaf-sketch" href="#leaf-sketch" x="332" y="84" width="25" height="29"/><use class="leaf-geo" href="#leaf" x="332" y="84" width="25" height="29"/></g>
+                <g class="leaf-pair" style="--sway-dur:8.2s;animation-delay:-5.6s"><use class="leaf-sketch" href="#leaf-sketch" x="424" y="112" width="23" height="27"/><use class="leaf-geo" href="#leaf" x="424" y="112" width="23" height="27"/></g>
+              </g>
             </svg>
           </div>
         </div>
@@ -171,27 +205,31 @@
           <span class="title-sub">projects in <em>motion</em></span>
         </h1>
         <p class="landing-copy">A growing ecosystem of visual work, research, playful tools, and strange little machines. Move through it—the forest notices.</p>
-      </div>
-      <button class="scroll-invite" type="button" data-scroll-to-crown>Walk in</button>
-    </section>
-
-    <!-- ============ II. The crown ============ -->
-    <section class="crown-section" data-crown aria-label="The tree crown — every project is a branch">
-      <header class="crown-head">
-        <p class="crown-kicker">The crown</p>
-        <h2>Twenty branches, <em>one tree</em></h2>
-        <p class="crown-copy">Every project grows from the same trunk. Keep walking — each branch comes down to meet you, and every meeting sends roots climbing back up to light its branch.</p>
-      </header>
-      <div class="crown-stage" data-crown-stage>
-        <nav class="crown-labels" data-crown-labels aria-label="Branches of the forest"></nav>
+        <!-- The invite lives inside the core, not pinned to the section
+             floor: as a bottom-anchored text link it fell to the very
+             edge of the viewport and carried no weight at all. -->
+        <button class="scroll-invite" type="button" data-scroll-to-walk>Walk in</button>
       </div>
     </section>
 
-    <!-- ============ III. The walk — one slam per project, roots climbing
-         from every collision back up to the crown ============ -->
+    <!-- ============ II. The walk — one slam per project, roots climbing
+         from every collision toward the title crown ============
+         There is exactly ONE tree crown on this page and it sits behind
+         the Forest HUB title (Ivan 2026-07-30). The second, WebGL crown
+         that used to stand here — .crown-section plus crown.js — is
+         retired; the atlas below already lists every project, so the
+         branch labels it drew were a duplicate navigation. -->
     <div class="routes" data-routes>
-      <svg class="root-rail" aria-hidden="true" viewBox="0 0 100 1600" preserveAspectRatio="none">
-        <path class="rail-ghost" d="M50 0 C 57 70, 43 140, 50 210 S 58 350, 50 420 S 42 560, 50 630 S 58 770, 50 840 S 42 980, 50 1050 S 58 1190, 50 1260 S 43 1400, 50 1470 S 55 1560, 50 1600"/>
+      <!-- The taproot. Hand-drawn at rest (forest-sketch.js twins the
+           ghost path and draws it on once, with weight), settling to the
+           exact geometric rail as the walk scrolls into view. .rail-lit is
+           deliberately NOT twinned: its stroke-dasharray is the lit-
+           progress mechanism, not decoration. -->
+      <!-- amp is small because preserveAspectRatio="none" stretches one
+           user unit to ~14 screen px across the rail's width. -->
+      <svg class="root-rail" aria-hidden="true" viewBox="0 0 100 1600" preserveAspectRatio="none"
+           data-sketch data-sketch-amp="1.2" data-sketch-step="30" data-sketch-settle="view">
+        <path class="rail-ghost sketch-src" data-sketch-width="2.2" d="M50 0 C 57 70, 43 140, 50 210 S 58 350, 50 420 S 42 560, 50 630 S 58 770, 50 840 S 42 980, 50 1050 S 58 1190, 50 1260 S 43 1400, 50 1470 S 55 1560, 50 1600"/>
         <path class="rail-lit" data-rail d="M50 0 C 57 70, 43 140, 50 210 S 58 350, 50 420 S 42 560, 50 630 S 58 770, 50 840 S 42 980, 50 1050 S 58 1190, 50 1260 S 43 1400, 50 1470 S 55 1560, 50 1600" pathLength="1"/>
       </svg>
     </div>
@@ -201,6 +239,12 @@
       <header class="atlas-head">
         <p class="atlas-kicker">The atlas</p>
         <h2 id="atlas-title">Every path <em>at a glance</em></h2>
+        <!-- The page-wide motif: a wobbly hand-drawn rule that pulls
+             itself straight once you've seen it. -->
+        <svg class="sketch-rule" viewBox="0 0 240 9" preserveAspectRatio="none" aria-hidden="true"
+             data-sketch data-sketch-amp="1.5" data-sketch-step="16" data-sketch-settle="view">
+          <path class="sketch-src" d="M3 4.5H237"/>
+        </svg>
       </header>
       <div class="project-grid" data-project-grid>
         <button class="portal" type="button" style="--accent:#c084fc" data-project="gallery" data-status="In development" data-meta="Scroll-world flight" data-description="A scroll-scrubbed camera flight through curated design experiments — each scene AI-generated and approval-gated before it ships." aria-pressed="false" aria-disabled="true">
@@ -287,7 +331,14 @@
     </section>
   </main>
 
-  <footer class="home-footer">
+  <svg class="sketch-rule sketch-rule--divider" viewBox="0 0 420 9" preserveAspectRatio="none" aria-hidden="true"
+       data-sketch data-sketch-amp="1.7" data-sketch-step="20" data-sketch-settle="view">
+    <path class="sketch-src" d="M3 4.5H417"/>
+  </svg>
+
+  <!-- design-history.js appends its trigger here as an inline badge
+       instead of floating a vertical tab against the left edge. -->
+  <footer class="home-footer" data-design-history-slot>
     <p>SDForest is an evolving collection. Experimental and in-development work is labeled plainly; every live path should lead somewhere real.</p>
   </footer>
 
@@ -357,8 +408,10 @@
         card.style.setProperty('--my', `${event.clientY - bounds.top}px`);
       }, { passive: true });
 
-      document.querySelector('[data-scroll-to-crown]').addEventListener('click', () => {
-        document.querySelector('[data-crown]').scrollIntoView({
+      /* The invite now opens the walk itself — the crown section it used
+         to target is retired, and the first slam is the real threshold. */
+      document.querySelector('[data-scroll-to-walk]').addEventListener('click', () => {
+        (document.querySelector('[data-slam]') || routes).scrollIntoView({
           behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth',
         });
       });
@@ -426,6 +479,7 @@
       setTimeout(born, 1400); // fonts.ready hanging must never hide the title
     })();
   </script>
-  <script src="/web/shared/design-history.js?v=20260728"></script>
+  <script src="/web/shared/forest-sketch.js?v=20260730a" defer></script>
+  <script src="/web/shared/design-history.js?v=20260730a"></script>
 </body>
 </html>

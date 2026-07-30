@@ -8,19 +8,16 @@
                 toward the pointer, pulses light on click. The forest-
                 sigil SVG is its hidden anchor — kept in the DOM for
                 getBoundingClientRect() but rendered invisible.
-     crown.js   The tree crown: trunk, sixteen project branches with
-                progressively random limbs down to the smallest twigs,
-                and a canopy of beveled diamond leaves that bloom from
-                flat 2D into rotating 3D and settle back into the page.
-                Branches light up as their slams fire below.
      slams.js   The walk: one scroll-scrubbed slam per project section
                 (icon plate meets detail panel at the seam). Each
                 collision grows branching roots upward from the impact
                 point toward the crown, throws impact dust, and lights
                 the taproot rail. Writes CSS vars; DOM motion itself
                 stays in stylesheets.
-   (tiles.js — per-portal atlas wireframes — and burst.js are retired
-   from the boot but kept on disk.)
+   (tiles.js — per-portal atlas wireframes — burst.js, and crown.js are
+   retired from the boot but kept on disk. crown.js drew a second tree
+   below the title; there is exactly one crown now and it is the SVG
+   behind the Forest HUB wordmark. Ivan 2026-07-30.)
 
    The camera is calibrated so 1 world unit = 1 CSS pixel at z=0, which
    lets every effect be positioned straight from getBoundingClientRect().
@@ -31,8 +28,7 @@
 import * as THREE from '../vendor/three/three.module.min.js';
 import { clamp, lerp } from './forest-three/util.js';
 import { initSlams, updateSlams, slamsAnimating, slamsDebug } from './forest-three/slams.js?v=20260725c';
-import { initCrown, updateCrown, crownDebug } from './forest-three/crown.js?v=20260725c';
-import { initRoots, updateRoots, rootsDebug } from './forest-three/roots.js?v=20260724d';
+import { initRoots, updateRoots, rootsPainted, rootsDebug } from './forest-three/roots.js?v=20260730a';
 // tiles.js (atlas wireframes) is retired from the boot sequence
 // (Ivan 2026-07-24): the crown and the mycelium are the only ambient
 // geometry on the landing. File kept on disk, like burst.js.
@@ -113,7 +109,10 @@ import { initRoots, updateRoots, rootsDebug } from './forest-three/roots.js?v=20
     scene: null,
     pointer,
     scroll,
-    slamState: null, // created by initSlams, read by crown.js
+    // Created by initSlams. crown.js used to read it to light its
+    // branches; with crown.js out of the boot nothing consumes it yet, but
+    // slams.js still publishes it as the per-section lit level.
+    slamState: null,
     compact: () => compactMedia.matches,
     wake, // effect modules restart a sleeping loop on their events
   };
@@ -180,9 +179,19 @@ import { initRoots, updateRoots, rootsDebug } from './forest-three/roots.js?v=20
   let canvasDirty = false;
   const stats = { fps: 60 };
 
+  // Coarse pointers (phones, tablets) run the loop at ~30fps. Halving the
+  // frame rate halves every per-frame buffer rewrite, and at this scale —
+  // drifting filaments and a slow sway — 30 reads the same as 60 while
+  // leaving the main thread far more headroom on mid-tier hardware.
+  const MIN_FRAME = 1 / 31;
+
   function frame(now) {
     frameHandle = 0;
     const time = now / 1000;
+    if (coarseMedia.matches && lastTime && time - lastTime < MIN_FRAME) {
+      if (running && !document.hidden) schedule();
+      return;
+    }
     const dt = clamp(lastTime ? time - lastTime : 1 / 60, 0.001, 1 / 20);
     lastTime = time;
     stats.fps = lerp(stats.fps, 1 / dt, 0.05);
@@ -195,13 +204,15 @@ import { initRoots, updateRoots, rootsDebug } from './forest-three/roots.js?v=20
 
     let rendered = false;
     if (renderer) {
-      const rootsVisible = updateRoots(shared, time, dt);
-      const crownVisible = updateCrown(shared, time);
-      rendered = rootsVisible || crownVisible || slamsDrawn;
+      // updateRoots returns false both when the field is gone AND when it
+      // has settled with its last frame still on the canvas. Only the
+      // former may be cleared — rootsPainted() tells the two apart.
+      const rootsNeedFrame = updateRoots(shared, time, dt);
+      rendered = rootsNeedFrame || slamsDrawn;
       if (rendered) {
         renderer.render(shared.scene, camera);
         canvasDirty = true;
-      } else if (canvasDirty) {
+      } else if (canvasDirty && !rootsPainted()) {
         // Clear exactly once when the last effect fades — not every frame.
         renderer.clear();
         canvasDirty = false;
@@ -261,7 +272,6 @@ import { initRoots, updateRoots, rootsDebug } from './forest-three/roots.js?v=20
       initSlams(shared); // CSS choreography works even without WebGL
       if (webgl) {
         initRoots(shared, coarseMedia.matches);
-        initCrown(shared);
         window.addEventListener('resize', resizeRenderer, { passive: true });
       }
     }
@@ -293,7 +303,6 @@ import { initRoots, updateRoots, rootsDebug } from './forest-three/roots.js?v=20
     scroll,
     get slams() { return slamsDebug; },
     get roots() { return rootsDebug; },
-    get crown() { return crownDebug; },
     get webgl() { return Boolean(renderer); },
     get sleeping() { return running && !frameHandle; },
     tick(now) { stop(); frame(now); },

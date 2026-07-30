@@ -261,47 +261,136 @@
     '<div class="dh-head">' +
       "<div>" +
         '<h2 class="dh-title">Design <em>history</em></h2>' +
-        '<p class="dh-sub">Six eras · since Dec 2025</p>' +
+        '<p class="dh-sub">Six states · since Dec 2025</p>' +
       "</div>" +
       '<button type="button" class="dh-close" aria-label="Close design history">&#10005;</button>' +
     "</div>" +
-    '<ul class="dh-list"></ul>' +
+    '<ol class="dh-list dh-timeline"></ol>' +
     '<div class="dh-foot">' +
       '<button type="button" class="dh-reset" hidden>&#8592; Back to current</button>' +
       '<a class="dh-archive" href="/web/evolution/">Read the full retrospective &#8594;</a>' +
-      '<p class="dh-hint">A preview only — colours and type, applied in memory. Reload to reset.</p>' +
+      '<p class="dh-hint">Pick a state to re-tint this page — colours and type only, applied in memory. Reload to reset.</p>' +
     "</div>";
 
   const list = drawer.querySelector(".dh-list");
   const resetBtn = drawer.querySelector(".dh-reset");
   const closeBtn = drawer.querySelector(".dh-close");
 
+  /* Where a real capture lives, once one exists. Drop a 16:9 image at
+     this path and the slot stops being a placeholder — no code change.
+     See web/evolution/snapshots/README.md. */
+  const SHOT_DIR = "/web/evolution/snapshots/";
+
   const buttons = new Map();
   ERAS.forEach((era) => {
     const li = document.createElement("li");
+    li.className = "dh-entry";
+    li.style.setProperty("--dh-era-accent", era.swatches[1]);
+
     const btn = document.createElement("button");
     btn.type = "button";
     btn.className = "dh-era";
-    btn.style.setProperty("--dh-era-accent", era.swatches[1]);
     btn.setAttribute("aria-pressed", String(era.id === activeId));
+    /* A state of the page, not a commit: the capture leads, the numeral
+       and dates label it. The commit hash and the prose moved to the
+       lightbox — they are provenance, not the headline. */
     btn.innerHTML =
+      '<span class="dh-shot" data-shot>' +
+        '<span class="dh-shot-pending">' +
+          '<span class="dh-shot-numeral">' + era.numeral + "</span>" +
+          '<span class="dh-shot-note">Snapshot pending</span>' +
+        "</span>" +
+      "</span>" +
       '<span class="dh-era-top">' +
         '<span class="dh-era-numeral">' + era.numeral + "</span>" +
         '<span class="dh-era-name">' + era.label + "</span>" +
         (era.current ? '<span class="dh-current-pill">Live</span>' : "") +
       "</span>" +
-      '<span class="dh-era-dates">' + era.dates +
-        ' <code class="dh-era-commit">' + era.commit + "</code></span>" +
-      '<span class="dh-era-note">' + era.note + "</span>" +
-      '<span class="dh-swatches">' +
-        era.swatches
-          .map((c) => '<span class="dh-swatch" style="background:' + c + '"></span>')
-          .join("") +
-      "</span>";
+      '<span class="dh-era-dates">' + era.dates + "</span>";
     btn.addEventListener("click", () => apply(era.id));
+
+    /* Try the real capture. It only replaces the placeholder once it has
+       actually decoded, so a 404 leaves the labelled slot standing. */
+    const frame = btn.querySelector("[data-shot]");
+    const probe = new Image();
+    probe.decoding = "async";
+    probe.loading = "lazy";
+    probe.alt = "sdforest.site in the " + era.label + " era, " + era.dates;
+    probe.className = "dh-shot-img";
+    probe.addEventListener("load", () => {
+      frame.classList.add("has-shot");
+      frame.appendChild(probe);
+      era.shot = probe.src;
+    });
+    probe.src = SHOT_DIR + era.id + ".jpg";
+
+    const zoom = document.createElement("button");
+    zoom.type = "button";
+    zoom.className = "dh-zoom";
+    zoom.setAttribute("aria-label", "View the " + era.label + " snapshot larger");
+    zoom.innerHTML = "&#9974;";
+    zoom.addEventListener("click", () => openShot(era));
+
     buttons.set(era.id, btn);
-    li.appendChild(btn);
+    li.append(btn, zoom);
     list.appendChild(li);
+  });
+
+  /* ---------------------------------------------------------------- *
+   * Lightbox — one state of the page, full width of the drawer host.
+   * ---------------------------------------------------------------- */
+  const lightbox = document.createElement("div");
+  lightbox.className = "dh-lightbox";
+  lightbox.setAttribute("role", "dialog");
+  lightbox.setAttribute("aria-modal", "true");
+  lightbox.setAttribute("aria-label", "Design history snapshot");
+  lightbox.hidden = true;
+  lightbox.innerHTML =
+    '<div class="dh-lightbox-panel">' +
+      '<button type="button" class="dh-lightbox-close" aria-label="Close snapshot">&#10005;</button>' +
+      '<div class="dh-lightbox-frame" data-frame></div>' +
+      '<div class="dh-lightbox-meta">' +
+        '<p class="dh-lightbox-title" data-title></p>' +
+        '<p class="dh-lightbox-dates" data-dates></p>' +
+        '<p class="dh-lightbox-note" data-note></p>' +
+      "</div>" +
+    "</div>";
+
+  const lbFrame = lightbox.querySelector("[data-frame]");
+  const lbTitle = lightbox.querySelector("[data-title]");
+  const lbDates = lightbox.querySelector("[data-dates]");
+  const lbNote = lightbox.querySelector("[data-note]");
+
+  function openShot(era) {
+    lbTitle.textContent = era.numeral + " · " + era.label;
+    lbDates.textContent = era.dates;
+    lbNote.textContent = era.note + " (" + era.commit + ")";
+    lbFrame.replaceChildren();
+    if (era.shot) {
+      const full = document.createElement("img");
+      full.src = era.shot;
+      full.alt = "sdforest.site in the " + era.label + " era";
+      lbFrame.appendChild(full);
+    } else {
+      const pending = document.createElement("div");
+      pending.className = "dh-shot-pending dh-shot-pending--large";
+      pending.innerHTML =
+        '<span class="dh-shot-numeral">' + era.numeral + "</span>" +
+        '<span class="dh-shot-note">No capture of this state yet — ' +
+        "drop <code>" + era.id + ".jpg</code> into /web/evolution/snapshots/</span>";
+      lbFrame.appendChild(pending);
+    }
+    lightbox.hidden = false;
+    lightbox.querySelector(".dh-lightbox-close").focus();
+  }
+
+  function closeShot() {
+    lightbox.hidden = true;
+  }
+
+  lightbox.querySelector(".dh-lightbox-close").addEventListener("click", closeShot);
+  lightbox.addEventListener("click", (event) => {
+    if (event.target === lightbox) closeShot();
   });
 
   const banner = document.createElement("div");
@@ -313,7 +402,21 @@
   const bannerName = banner.querySelector(".dh-banner-name");
   banner.querySelector("button").addEventListener("click", () => apply(CURRENT.id));
 
-  host.append(tab, drawer, banner);
+  /* Placement: the trigger used to float as a vertical tab pinned to the
+     middle of the left edge, where it cut straight across the hero on
+     every breakpoint. Where a page offers a slot — or simply has a
+     footer — it becomes a quiet inline badge there instead. Pages with
+     neither keep the edge tab, since there is nowhere else to put it. */
+  const inlineSlot = document.querySelector("[data-design-history-slot]")
+    || document.querySelector("footer");
+
+  if (inlineSlot) {
+    tab.classList.add("dh-inline");
+    host.append(drawer, banner, lightbox);
+    inlineSlot.append(tab);
+  } else {
+    host.append(tab, drawer, banner, lightbox);
+  }
 
   /* ---------------------------------------------------------------- *
    * Behaviour
@@ -327,6 +430,9 @@
 
     const previewing = !era.current;
     host.classList.toggle("is-previewing", previewing);
+    /* An inline trigger sits outside .dh-root, so it cannot inherit the
+       host's previewing state through a descendant selector. */
+    tab.classList.toggle("dh-previewing", previewing);
     resetBtn.hidden = !previewing;
     bannerName.textContent = era.label;
     buttons.forEach((btn, key) => btn.setAttribute("aria-pressed", String(key === activeId)));
@@ -349,11 +455,15 @@
   resetBtn.addEventListener("click", () => apply(CURRENT.id));
 
   document.addEventListener("keydown", (event) => {
-    if (event.key === "Escape" && host.classList.contains("is-open")) close();
+    if (event.key !== "Escape") return;
+    // The snapshot sits on top of the drawer, so it unwinds first.
+    if (!lightbox.hidden) { closeShot(); return; }
+    if (host.classList.contains("is-open")) close();
   });
 
   document.addEventListener("pointerdown", (event) => {
     if (!host.classList.contains("is-open")) return;
+    if (!lightbox.hidden) return; // the snapshot owns the outside click
     if (!drawer.contains(event.target) && event.target !== tab && !tab.contains(event.target)) close();
   });
 
