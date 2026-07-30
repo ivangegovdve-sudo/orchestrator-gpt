@@ -61,6 +61,18 @@
       text-transform: uppercase;
     }
 
+    .script-notice {
+      max-width: 60ch;
+      margin: 22px 0 0;
+      padding: 14px 16px;
+      border: 1px solid color-mix(in srgb, var(--warm) 28%, transparent);
+      border-radius: 14px;
+      background: color-mix(in srgb, var(--warm) 6%, transparent);
+      color: var(--text-muted);
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
     .mode-grid {
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -297,6 +309,23 @@
       box-shadow: 0 0 42px color-mix(in srgb, var(--mode) 8%, transparent);
     }
     .stage-card.done { border-color: var(--accent-green); }
+    /* A seat that went offline, timed out, or never opened keeps its header but drops
+       its reading height — a one-line notice should not sit in an empty 260px panel. */
+    .stage-card.quiet {
+      min-height: 0;
+      border-color: color-mix(in srgb, var(--warm) 22%, var(--border));
+      background: rgba(7,7,11,.4);
+    }
+    .stage-card.quiet .stage-content {
+      min-height: 0;
+      flex: 0 0 auto;
+      padding: 13px 16px 15px;
+      color: var(--text-muted);
+      font-size: 13px;
+      line-height: 1.6;
+    }
+    .tiny-stage-grid [data-tinylm-role="synthesizer"].quiet { min-height: 0; }
+    .status.quiet { color: var(--warm); border-color: color-mix(in srgb, var(--warm) 34%, transparent); }
     .stage-head {
       display: flex;
       align-items: center;
@@ -421,6 +450,9 @@
         <span class="truth-chip">No delegation</span>
         <span class="truth-chip">No saved conversation state</span>
       </div>
+      <noscript>
+        <p class="script-notice">Both councils stream their deliberation in the browser, so they need JavaScript enabled. With it off, the composers below stay inert rather than failing halfway.</p>
+      </noscript>
     </header>
 
     <section class="mode-grid" id="public-modes" aria-label="Public Council modes">
@@ -479,7 +511,7 @@
           <button class="example" type="button" data-fill="tinylm-prompt">Small minds can be honest where large minds perform.</button>
         </div>
         <div class="composer-actions">
-          <span class="composer-hint" id="tinylm-hint">Five local models run in sequence; model loading can make the first token slow.</span>
+          <span class="composer-hint" id="tinylm-hint" role="status">Five local models run in sequence; model loading can make the first token slow.</span>
           <button class="run-button" id="tinylm-run" type="button">Begin local deliberation</button>
         </div>
       </div>
@@ -487,23 +519,23 @@
       <div class="stage-grid tiny-stage-grid" aria-label="TinyLLM five-role responses">
         <article class="stage-card" data-stage="tinylm-proposer" data-tinylm-role="proposer">
           <header class="stage-head"><span class="stage-name">Tiny-Agent · proposer</span><span class="status" data-status="tinylm-proposer">Waiting</span></header>
-          <div class="stage-content" data-output="tinylm-proposer" aria-live="polite">Opens with a direct position and its central trade-off.</div>
+          <div class="stage-content" data-output="tinylm-proposer" aria-live="off">Opens with a direct position and its central trade-off.</div>
         </article>
         <article class="stage-card" data-stage="tinylm-analyst" data-tinylm-role="analyst">
           <header class="stage-head"><span class="stage-name">llama3.2:1b · analyst</span><span class="status" data-status="tinylm-analyst">Waiting</span></header>
-          <div class="stage-content" data-output="tinylm-analyst" aria-live="polite">Maps assumptions, evidence needs, and likely consequences.</div>
+          <div class="stage-content" data-output="tinylm-analyst" aria-live="off">Maps assumptions, evidence needs, and likely consequences.</div>
         </article>
         <article class="stage-card" data-stage="tinylm-critic" data-tinylm-role="critic">
           <header class="stage-head"><span class="stage-name">qwen2.5:0.5b · critic</span><span class="status" data-status="tinylm-critic">Waiting</span></header>
-          <div class="stage-content" data-output="tinylm-critic" aria-live="polite">Stress-tests the proposal and its weakest assumptions.</div>
+          <div class="stage-content" data-output="tinylm-critic" aria-live="off">Stress-tests the proposal and its weakest assumptions.</div>
         </article>
         <article class="stage-card" data-stage="tinylm-observer" data-tinylm-role="consciousness-observer">
           <header class="stage-head"><span class="stage-name">EVE · consciousness observer</span><span class="status" data-status="tinylm-observer">Waiting</span></header>
-          <div class="stage-content" data-output="tinylm-observer" aria-live="polite">Observes how the claim frames agency, perspective, and selfhood.</div>
+          <div class="stage-content" data-output="tinylm-observer" aria-live="off">Observes how the claim frames agency, perspective, and selfhood.</div>
         </article>
         <article class="stage-card" data-stage="tinylm-synthesizer" data-tinylm-role="synthesizer">
           <header class="stage-head"><span class="stage-name">qwen · synthesizer</span><span class="status" data-status="tinylm-synthesizer">Waiting</span></header>
-          <div class="stage-content" data-output="tinylm-synthesizer" aria-live="polite">Waits to weigh all four prior views into one bounded conclusion.</div>
+          <div class="stage-content" data-output="tinylm-synthesizer" aria-live="off">Waits to weigh all four prior views into one bounded conclusion.</div>
         </article>
       </div>
       <p class="workspace-foot">Tiny outputs can be literal, repetitive, or wrong. The value here is observational: the seams in small-model reasoning remain visible.</p>
@@ -527,7 +559,7 @@
           <button class="example" type="button" data-fill="openrouter-question">When should a small team optimize for speed over robustness?</button>
         </div>
         <div class="composer-actions">
-          <span class="composer-hint" id="openrouter-hint">Free-tier queues vary; the runtime falls through a fixed free roster.</span>
+          <span class="composer-hint" id="openrouter-hint" role="status">Free-tier queues vary; the runtime falls through a fixed free roster.</span>
           <button class="run-button" id="openrouter-run" type="button">Convene free council</button>
         </div>
       </div>
@@ -535,15 +567,15 @@
       <div class="stage-grid" aria-label="OpenRouter Council responses">
         <article class="stage-card" data-stage="openrouter-proposer">
           <header class="stage-head"><span class="stage-name">Proposer</span><span class="status" data-status="openrouter-proposer">Waiting</span></header>
-          <div class="stage-content" data-output="openrouter-proposer" aria-live="polite">Forms a direct first position.</div>
+          <div class="stage-content" data-output="openrouter-proposer" aria-live="off">Forms a direct first position.</div>
         </article>
         <article class="stage-card" data-stage="openrouter-critic">
           <header class="stage-head"><span class="stage-name">Critic</span><span class="status" data-status="openrouter-critic">Waiting</span></header>
-          <div class="stage-content" data-output="openrouter-critic" aria-live="polite">Tests assumptions, omissions, and failure modes.</div>
+          <div class="stage-content" data-output="openrouter-critic" aria-live="off">Tests assumptions, omissions, and failure modes.</div>
         </article>
         <article class="stage-card" data-stage="openrouter-synthesis">
           <header class="stage-head"><span class="stage-name">Synthesis</span><span class="status" data-status="openrouter-synthesis">Waiting</span></header>
-          <div class="stage-content" data-output="openrouter-synthesis" aria-live="polite">Weighs both positions into one practical answer.</div>
+          <div class="stage-content" data-output="openrouter-synthesis" aria-live="off">Weighs both positions into one practical answer.</div>
         </article>
       </div>
       <p class="workspace-foot">All selected model identifiers keep their <code>:free</code> suffix. If every fallback is queued or unavailable, the run stops honestly instead of switching to a paid model.</p>
@@ -552,7 +584,7 @@
 
   <script src="/web/shared/forest-motion.js?v=20260725c"></script>
   <script src="/web/shared/council-motion.js?v=20260725c"></script>
-  <script src="/web/council/council.js?v=20260725d"></script>
+  <script src="/web/council/council.js?v=20260730a"></script>
   <script src="/web/shared/design-history.js?v=20260728"></script>
 </body>
 </html>
