@@ -313,7 +313,21 @@
   const bannerName = banner.querySelector(".dh-banner-name");
   banner.querySelector("button").addEventListener("click", () => apply(CURRENT.id));
 
-  host.append(tab, drawer, banner);
+  /* Placement: the trigger used to float as a vertical tab pinned to the
+     middle of the left edge, where it cut straight across the hero on
+     every breakpoint. Where a page offers a slot — or simply has a
+     footer — it becomes a quiet inline badge there instead. Pages with
+     neither keep the edge tab, since there is nowhere else to put it. */
+  const inlineSlot = document.querySelector("[data-design-history-slot]")
+    || document.querySelector("footer");
+
+  if (inlineSlot) {
+    tab.classList.add("dh-inline");
+    host.append(drawer, banner);
+    inlineSlot.append(tab);
+  } else {
+    host.append(tab, drawer, banner);
+  }
 
   /* ---------------------------------------------------------------- *
    * Behaviour
@@ -327,6 +341,9 @@
 
     const previewing = !era.current;
     host.classList.toggle("is-previewing", previewing);
+    /* An inline trigger sits outside .dh-root, so it cannot inherit the
+       host's previewing state through a descendant selector. */
+    tab.classList.toggle("dh-previewing", previewing);
     resetBtn.hidden = !previewing;
     bannerName.textContent = era.label;
     buttons.forEach((btn, key) => btn.setAttribute("aria-pressed", String(key === activeId)));

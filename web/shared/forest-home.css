@@ -254,9 +254,15 @@ a, button { -webkit-tap-highlight-color: transparent; }
   letter-spacing: .16em;
 }
 
+/* --home-amber resolves to the indigo accent (#4f46e5), which lands at
+   ~3.2:1 on the #07070b plate — a WCAG AA fail for a 20px body-weight
+   word. The dawn-light amber clears 11:1, and 600 gives the italic
+   serif enough body to read as the emphasis it is. --forest-amber is
+   re-tinted by every design-history era, so previews still follow. */
 .title-sub em {
   font-style: italic;
-  color: var(--home-amber);
+  font-weight: 600;
+  color: var(--forest-amber, #e8b86b);
 }
 
 .landing-copy {
@@ -338,35 +344,60 @@ html.is-born .scroll-invite {
   }
 }
 
+/* The primary door into the walk. It sits in the flow of the core so it
+   always shares the hero's viewport, and it is a filled pill rather than
+   a bottom-pinned text link — moss on near-black reads at ~8.8:1, and
+   48px of height clears the touch-target floor. */
 .scroll-invite {
-  position: absolute;
-  left: 50%;
-  bottom: 26px;
-  display: grid;
-  justify-items: center;
-  gap: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 11px;
+  min-height: 48px;
+  margin: clamp(26px, 4.5vh, 42px) auto 0;
+  padding: 0 clamp(24px, 3vw, 34px);
   border: 0;
-  background: transparent;
-  color: var(--home-muted);
-  font: italic 500 clamp(14px, 1.2vw, 17px)/1 var(--home-display);
-  letter-spacing: .3em;
-  transform: translateX(-50%);
+  border-radius: 999px;
+  background: var(--home-moss);
+  color: #07070b;
+  font: 600 clamp(13px, 1.1vw, 15px)/1 var(--home-sans);
+  letter-spacing: .2em;
+  text-transform: uppercase;
   cursor: pointer;
-  opacity: calc(1 - var(--title-p, 0) * 2.2);
+  box-shadow: 0 12px 34px rgba(34, 197, 94, .26);
+  transition:
+    transform var(--duration-fast) var(--ease-out),
+    box-shadow var(--duration-fast) var(--ease-out),
+    filter var(--duration-fast) var(--ease-out);
 }
 
+.scroll-invite:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 18px 44px rgba(34, 197, 94, .36);
+  filter: brightness(1.07);
+}
+
+.scroll-invite:active { transform: translateY(0); }
+
+.scroll-invite:focus-visible {
+  outline: 2px solid var(--home-ink);
+  outline-offset: 3px;
+}
+
+/* A chevron nudging toward the crown — the old animated hairline read as
+   decoration beside the label rather than a direction to travel. */
 .scroll-invite::after {
   content: "";
-  width: 1px;
-  height: 40px;
-  background: linear-gradient(var(--home-amber), transparent);
-  animation: scroll-line var(--duration-scroll-invite) var(--ease-in-out) infinite;
-  transform-origin: top;
+  width: 7px;
+  height: 7px;
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  animation: scroll-nudge var(--duration-scroll-invite) var(--ease-in-out) infinite;
 }
 
-@keyframes scroll-line {
-  0%, 100% { transform: scaleY(.35); opacity: .45; }
-  55% { transform: scaleY(1); opacity: 1; }
+@keyframes scroll-nudge {
+  0%, 100% { transform: rotate(45deg) translate(-1px, -1px); opacity: .6; }
+  55% { transform: rotate(45deg) translate(2px, 2px); opacity: 1; }
 }
 
 /* ================================================================== *
@@ -851,6 +882,7 @@ html.is-born .scroll-invite {
   min-height: 240px;
   display: grid;
   place-items: center;
+  gap: 20px;              /* second row: the design-history badge */
   padding: 60px 20px;
   color: var(--home-muted);
   text-align: center;
@@ -894,6 +926,14 @@ html.is-born .scroll-invite {
 }
 
 @media (max-width: 560px) {
+  /* Centring a short core inside a full 100svh plate pushed the first
+     line of copy to ~41% of a 375×812 screen. Seating the core at the
+     top of the plate — just clear of the 72px nav — brings it back to
+     ~14% while the hero keeps its full-height stage. */
+  .landing {
+    align-content: start;
+    padding: 112px 20px 56px;
+  }
   .landing-copy { font-size: 16px; }
   .title-sub { letter-spacing: .1em; }
   .project-grid { grid-template-columns: 1fr; }

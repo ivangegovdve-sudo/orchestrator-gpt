@@ -93,9 +93,47 @@
   transition: opacity .3s ease;
 }
 .dh-root.is-previewing .dh-tab { color: var(--dh-ink); border-color: rgba(232, 184, 107, .45); }
-.dh-root.is-previewing .dh-tab::after { opacity: 1; }
+.dh-root.is-previewing .dh-tab::after,
+.dh-tab.dh-previewing::after { opacity: 1; }
 
-.dh-root.is-open .dh-tab { opacity: 0; pointer-events: none; }
+.dh-root.is-open .dh-tab:not(.dh-inline) { opacity: 0; pointer-events: none; }
+
+/* ---------------- The inline trigger ----------------
+   Mounted into a page's footer (or a [data-design-history-slot]) rather
+   than floated at the left edge. It lives outside .dh-root, so it has to
+   carry its own palette. */
+
+.dh-tab.dh-inline {
+  --dh-line: rgba(226, 235, 209, .14);
+  --dh-ink: #f2efe4;
+  --dh-dim: #8b9585;
+  --dh-gold: #e8b86b;
+  position: static;
+  top: auto;
+  left: auto;
+  transform: none;
+  display: inline-flex;
+  min-height: 34px;
+  padding: 8px 14px;
+  border: 1px solid var(--dh-line);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, .03);
+  color: var(--dh-dim);
+  font: 600 9.5px/1 var(--dh-sans, "Alegreya Sans", "Segoe UI", system-ui, sans-serif);
+  letter-spacing: .18em;
+  writing-mode: horizontal-tb;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  transition: color .25s ease, border-color .25s ease, background .25s ease;
+}
+
+.dh-tab.dh-inline:hover,
+.dh-tab.dh-inline:focus-visible {
+  padding-left: 14px;   /* the edge-tab nudge would jitter a pill */
+  color: var(--dh-ink);
+  border-color: rgba(232, 184, 107, .4);
+  background: rgba(232, 184, 107, .08);
+}
 
 /* ---------------- The drawer ---------------- */
 

@@ -171,8 +171,11 @@
           <span class="title-sub">projects in <em>motion</em></span>
         </h1>
         <p class="landing-copy">A growing ecosystem of visual work, research, playful tools, and strange little machines. Move through it—the forest notices.</p>
+        <!-- The invite lives inside the core, not pinned to the section
+             floor: as a bottom-anchored text link it fell to the very
+             edge of the viewport and carried no weight at all. -->
+        <button class="scroll-invite" type="button" data-scroll-to-crown>Walk in</button>
       </div>
-      <button class="scroll-invite" type="button" data-scroll-to-crown>Walk in</button>
     </section>
 
     <!-- ============ II. The crown ============ -->
@@ -287,7 +290,9 @@
     </section>
   </main>
 
-  <footer class="home-footer">
+  <!-- design-history.js appends its trigger here as an inline badge
+       instead of floating a vertical tab against the left edge. -->
+  <footer class="home-footer" data-design-history-slot>
     <p>SDForest is an evolving collection. Experimental and in-development work is labeled plainly; every live path should lead somewhere real.</p>
   </footer>
 
