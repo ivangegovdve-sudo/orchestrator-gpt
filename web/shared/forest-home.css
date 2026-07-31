@@ -131,13 +131,17 @@ a, button { -webkit-tap-highlight-color: transparent; }
   transform: translateY(calc(var(--title-p, 0) * -7vh)) scale(calc(1 - var(--title-p, 0) * .04));
 }
 
+/* Centred on .landing-title (the h1 it now lives in), not on .landing-core.
+   The core's height grows with the body copy, so anchoring here kept walking
+   the canopy down onto the paragraph — badly at 390px, where it covered 92%
+   of it. Centred on the title this self-corrects at every width. */
 .title-crown {
   position: absolute;
   z-index: -1;
   top: 50%;
   left: 50%;
   width: min(760px, 92vw);
-  transform: translate(-50%, -54%);
+  transform: translate(-50%, -50%);
   color: var(--accent);
   opacity: .48;
   pointer-events: none;
@@ -145,6 +149,8 @@ a, button { -webkit-tap-highlight-color: transparent; }
 }
 
 .crown-wrap {
+  /* A span by default is inline; the crown needs it to take the width. */
+  display: block;
   width: 100%;
   /* translate3d, not translateY: promotes the breathing crown and its
      added leaf layer to their own compositor layer so the sway never
@@ -241,7 +247,12 @@ a, button { -webkit-tap-highlight-color: transparent; }
   text-transform: uppercase;
 }
 
-.landing-title { position: relative; z-index: 1; margin: 0; }
+/* position: relative to be the crown's containing block, but deliberately no
+   z-index: that made the h1 a stacking context, which trapped the crown's
+   z-index:-1 inside it and painted the canopy OVER the kicker sitting above.
+   Without one, the crown resolves against an ancestor and sits behind all of
+   the hero text, which is the whole point of it. */
+.landing-title { position: relative; margin: 0; }
 
 .title-word {
   display: block;
