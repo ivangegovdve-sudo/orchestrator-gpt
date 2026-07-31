@@ -28,3 +28,8 @@ body[data-open-overview-route]{max-width:100%;overflow-x:clip;background:radial-
 /* Forest skin: tiny data annotations read in the humanist sans; serif stays for prose. */
 .oo-source-row,.oo-region-meta,.oo-history-line,.oo-lifecycle-timeline li,.oo-chart-legend,.oo-small-multiple h3,.oo-micro-panel p,.oo-app-coverage,.oo-task-coverage{font-family:var(--forest-sans,"Alegreya Sans",sans-serif)}
 .oo-ranking-meta,.oo-ranking-method,.oo-router-note{font-size:11px}
+
+/* The exact machine reason a slice is missing. Kept visible on purpose —
+   this route documents its own gaps — but demoted under the sentence that
+   explains it, so it reads as evidence rather than as leaked internals. */
+.oo-reason-code{margin:8px 0 0;color:var(--forest-muted);font-family:var(--forest-mono,ui-monospace,Consolas,monospace);font-size:10px;line-height:1.45;word-break:break-word;opacity:.85}
