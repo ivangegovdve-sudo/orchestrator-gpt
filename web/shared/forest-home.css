@@ -228,9 +228,14 @@ a, button { -webkit-tap-highlight-color: transparent; }
   will-change: transform, opacity;
 }
 
+/* Same --home-amber trap as .title-sub em below: the token resolves to the
+   indigo accent, which is ~3.2:1 on the #07070b plate. At 12.8px/500 this is
+   the smallest type on the page, so it needs 4.5:1 and was the furthest from
+   it. The dawn-light amber clears 11:1 and is re-tinted per design-history
+   era, so previews still follow. */
 .landing-kicker {
   margin: 0 0 10px;
-  color: var(--home-amber);
+  color: var(--forest-amber, #e8b86b);
   font: 500 clamp(11px, 1vw, 13px)/1 var(--home-sans);
   letter-spacing: .38em;
   text-transform: uppercase;
@@ -409,9 +414,10 @@ html.is-born .scroll-invite {
  * selectors were shared with the retired .crown-section — the crown
  * halves are gone, the atlas halves are the live ones.
  * ================================================================== */
+/* Same 3.2:1 failure as .landing-kicker — identical token, size and role. */
 .atlas-kicker {
   margin: 0 0 12px;
-  color: var(--home-amber);
+  color: var(--forest-amber, #e8b86b);
   font: 500 12px/1 var(--home-sans);
   letter-spacing: .34em;
   text-transform: uppercase;
