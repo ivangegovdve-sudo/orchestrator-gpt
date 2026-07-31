@@ -418,6 +418,36 @@
     const MAX_FILE_BYTES = 20 * 1024 * 1024;
     const ACCEPTED_EXTS = [".pdf", ".md", ".txt", ".docx", ".html", ".htm", ".json"];
 
+    // ── Failure translation ────────────────────────────────────────────────
+    // A browser reports a blocked, refused, or DNS-dead request as a bare
+    // "Failed to fetch" TypeError, and the ingest service can answer a bad
+    // request with a stack trace or a framework error page. Neither belongs in
+    // front of a visitor, so every failure is translated once, here, and the
+    // raw detail goes to the console for whoever is debugging.
+    const TRANSPORT_NOISE = /failed to fetch|networkerror|load failed|network request failed|connection (refused|closed|reset)/i;
+    const HOST_DOWN_STATUS = new Set([502, 503, 504, 521, 522, 523, 524]);
+
+    // Each returns a predicate that completes "<subject> …".
+    function describeIngestError(error) {
+      if (!error) return "could not be ingested.";
+      if (error.name === "TimeoutError" || error.name === "AbortError") {
+        return "took too long and was stopped. Try a smaller file, or paste the text instead.";
+      }
+      if (error instanceof TypeError || TRANSPORT_NOISE.test(error.message || "")) {
+        return "could not reach the ingest service. It may be offline — try again shortly.";
+      }
+      return "could not be ingested. Something went wrong on the way to the service.";
+    }
+
+    function describeIngestResponse(status) {
+      if (status === 401 || status === 403) return "was rejected — the access code is not valid.";
+      if (status === 413) return "was rejected as too large by the ingest service.";
+      if (status === 415) return "was rejected — the ingest service does not accept this type.";
+      if (status === 429) return "was rate-limited. Wait a moment and try again.";
+      if (HOST_DOWN_STATUS.has(status)) return "could not be stored — the ingest service is temporarily down.";
+      return "could not be stored by the ingest service.";
+    }
+
     // ── State ──────────────────────────────────────────────────────────────
     let authed = false;
     let accessCode = sessionStorage.getItem(SESSION_KEY) || "";
@@ -563,13 +593,15 @@
             addStatus("success", "✅", `${file.name} → ${col} (${chunks} chunks)`);
             logIngest(file.name, col, "ok");
           } else {
-            const msg = await r.text().catch(() => r.statusText);
-            addStatus("error", "❌", `${file.name} failed: ${msg.slice(0, 120)}`);
+            const detail = await r.text().catch(() => r.statusText);
+            console.warn(`[ingest] ${file.name} — HTTP ${r.status}`, detail);
+            addStatus("error", "❌", `${file.name} ${describeIngestResponse(r.status)}`);
             logIngest(file.name, col, "err");
             errors.push(file.name);
           }
         } catch (e) {
-          addStatus("error", "❌", `${file.name} error: ${e.message}`);
+          console.warn(`[ingest] ${file.name} — request failed`, e);
+          addStatus("error", "❌", `${file.name} ${describeIngestError(e)}`);
           logIngest(file.name, col, "err");
           errors.push(file.name);
         }
@@ -595,12 +627,14 @@
             logIngest(label + " (text)", col, "ok");
             textInput.value = "";
           } else {
-            const msg = await r.text().catch(() => r.statusText);
-            addStatus("error", "❌", `Text ingest failed: ${msg.slice(0, 120)}`);
+            const detail = await r.text().catch(() => r.statusText);
+            console.warn(`[ingest] pasted text — HTTP ${r.status}`, detail);
+            addStatus("error", "❌", `Pasted text ${describeIngestResponse(r.status)}`);
             logIngest(label + " (text)", col, "err");
           }
         } catch (e) {
-          addStatus("error", "❌", `Text ingest error: ${e.message}`);
+          console.warn("[ingest] pasted text — request failed", e);
+          addStatus("error", "❌", `Pasted text ${describeIngestError(e)}`);
           logIngest(label + " (text)", col, "err");
         }
       }
