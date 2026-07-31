@@ -64,35 +64,127 @@
     },
   ];
 
+  // Free slugs get retired without notice — a dead roster reads to the visitor as a
+  // broken page. Every entry below was verified live through OPEN_RELAY on 2026-07-30.
   const FREE_ROSTERS = {
     proposer: [
-      'meta-llama/llama-3.3-70b-instruct:free',
-      'qwen/qwen3-next-80b-a3b-instruct:free',
-      'microsoft/phi-3-mini-128k-instruct:free',
+      'nvidia/nemotron-3-super-120b-a12b:free',
+      'google/gemma-4-26b-a4b-it:free',
+      'openai/gpt-oss-20b:free',
     ],
     critic: [
       'openai/gpt-oss-20b:free',
-      'google/gemma-4-31b-it:free',
       'nvidia/nemotron-3-nano-30b-a3b:free',
+      'inclusionai/ling-3.0-flash:free',
     ],
     synthesis: [
-      'google/gemini-2.5-flash:free',
-      'deepseek/deepseek-r1:free',
-      'meta-llama/llama-3.3-70b-instruct:free',
+      'nvidia/nemotron-3-ultra-550b-a55b:free',
+      'google/gemma-4-26b-a4b-it:free',
+      'nvidia/nemotron-3-super-120b-a12b:free',
     ],
   };
 
   const query = (selector) => document.querySelector(selector);
+  const NULL_NODE = { textContent: '', classList: { add() {}, remove() {} }, replaceChildren() {}, setAttribute() {} };
+  // A missing card must not take the whole run down with it.
   const stageView = (key) => ({
-    card: query(`[data-stage="${key}"]`) || query(`[data-synthesis="${key.replace('-synthesis', '')}"]`),
-    status: query(`[data-status="${key}"]`),
-    output: query(`[data-output="${key}"]`),
+    card: query(`[data-stage="${key}"]`) || NULL_NODE,
+    status: query(`[data-status="${key}"]`) || NULL_NODE,
+    output: query(`[data-output="${key}"]`) || NULL_NODE,
   });
 
   function abortError() {
     const error = new Error('Stopped');
     error.name = 'AbortError';
     return error;
+  }
+
+  // A browser reports a blocked, refused, or DNS-dead request as a bare
+  // "Failed to fetch" TypeError. That string is meaningless to a visitor, so every
+  // failure gets tagged at its source and translated once, here.
+  const TRANSPORT_NOISE = /failed to fetch|networkerror|load failed|network request failed|connection (refused|closed|reset)/i;
+
+  function tagFailure(error, kind, status) {
+    if (!error || error.name === 'AbortError' || error.kind) return error;
+    error.kind = kind;
+    if (status !== undefined) error.status = status;
+    return error;
+  }
+
+  function transportFailure(error) {
+    if (!error || error.name === 'AbortError') return error;
+    if (error.kind) return error;
+    const looksLikeTransport = error instanceof TypeError || TRANSPORT_NOISE.test(error.message || '');
+    return tagFailure(error, looksLikeTransport ? 'transport' : 'stream');
+  }
+
+  const HOST_DOWN_STATUS = new Set([502, 503, 504, 521, 522, 523, 524]);
+
+  // Returns the badge shown on the seat card and the one line that replaces the
+  // card body. Nothing raw from the network ever reaches either.
+  function describeFailure(error, mode) {
+    if (!error) return { badge: 'Unavailable', message: 'This seat did not return an answer.' };
+    const local = mode === 'tinylm';
+
+    if (error.kind === 'timeout-first-token') {
+      return {
+        badge: 'Timed out',
+        message: local
+          ? 'The model did not begin answering in time. Tiny models are slow to load on a cold start.'
+          : 'No free provider began answering in time.',
+      };
+    }
+    if (error.kind === 'timeout-hard-cap') {
+      return { badge: 'Timed out', message: 'The answer ran past this council’s time limit and was cut short.' };
+    }
+    if (error.kind === 'transport') {
+      return {
+        badge: 'Offline',
+        message: local
+          ? 'The machine hosting the tiny models is not answering right now.'
+          : 'The free-model relay is unreachable from this device right now.',
+      };
+    }
+    if (error.kind === 'http') {
+      if (HOST_DOWN_STATUS.has(error.status)) {
+        return {
+          badge: 'Offline',
+          message: local
+            ? 'The relay is up but the machine hosting the tiny models is not answering.'
+            : 'The free-model relay is temporarily down.',
+        };
+      }
+      if (error.status === 429) {
+        return { badge: 'Busy', message: 'The free tier is rate-limited right now. Try again in a few minutes.' };
+      }
+      return { badge: 'Unavailable', message: 'The relay could not serve this seat.' };
+    }
+    if (error.kind === 'empty') {
+      return { badge: 'No answer', message: 'The model connected but returned no text.' };
+    }
+    return { badge: 'Unavailable', message: 'This seat could not complete its turn.' };
+  }
+
+  // The sentence under the composer. It has to tell the visitor what to do next,
+  // not restate the failure.
+  function describeRunFailure(error, mode) {
+    const { badge } = describeFailure(error, mode);
+    if (mode === 'tinylm') {
+      if (badge === 'Offline') {
+        return 'The local Oracle council is offline — the tiny models run on hardware that is not answering right now. The OpenRouter Free council below runs entirely in the cloud and is available.';
+      }
+      if (badge === 'Busy' || badge === 'Timed out') {
+        return 'The local council ran out of time before it settled. Tiny models are slow on a cold start — try again, or use the OpenRouter Free council below.';
+      }
+      return 'The local council could not finish this run. The OpenRouter Free council below is an independent path to the same question.';
+    }
+    if (badge === 'Offline') {
+      return 'The free-model relay is unreachable from this device right now. Nothing was sent and nothing was saved.';
+    }
+    if (badge === 'Busy') {
+      return 'Every free model in the roster is rate-limited right now. Free-tier queues clear on their own — try again shortly.';
+    }
+    return 'The free council could not finish this run. No paid model was substituted.';
   }
 
   function createStreamScope(outerSignal, options = {}) {
@@ -122,11 +214,15 @@
       },
       classify(error, partialText = '') {
         if (outerSignal.aborted) return abortError();
-        if (firstTokenExpired && !firstTokenSeen) return new Error('No first token arrived before the free-run timeout.');
-        if (hardCapExpired) {
-          return partialText ? null : new Error('The model stream exceeded its hard time limit.');
+        if (firstTokenExpired && !firstTokenSeen) {
+          return tagFailure(new Error('No first token arrived before the free-run timeout.'), 'timeout-first-token');
         }
-        return error;
+        if (hardCapExpired) {
+          return partialText
+            ? null
+            : tagFailure(new Error('The model stream exceeded its hard time limit.'), 'timeout-hard-cap');
+        }
+        return transportFailure(error);
       },
       close() {
         clearTimeout(firstTimer);
@@ -154,10 +250,11 @@
     const loader = createDeliberationLoader();
     view.output.replaceChildren(textNode, loader);
     view.output.classList.remove('streaming');
-    view.card.classList.remove('done');
+    view.card.classList.remove('done', 'quiet');
     view.card.classList.add('active');
     view.status.textContent = label;
     view.status.classList.add('live');
+    view.status.classList.remove('quiet');
     return { view, textNode, loader, text: '' };
   }
 
@@ -176,20 +273,58 @@
     const view = stageView(key);
     view.output.classList.remove('streaming');
     if (text !== undefined) view.output.textContent = text || 'The model returned no text.';
-    view.card.classList.remove('active');
+    view.card.classList.remove('active', 'quiet');
     view.card.classList.add('done');
     view.status.textContent = label;
-    view.status.classList.remove('live');
+    view.status.classList.remove('live', 'quiet');
   }
 
-  function failStage(key, message) {
+  // `quiet` collapses the card body so a one-line failure does not sit inside a
+  // 260px empty panel — the seat stays visible, its dead space does not.
+  function restStage(key, badge, message) {
     const view = stageView(key);
     view.output.classList.remove('streaming');
     view.output.textContent = message;
     view.card.classList.remove('active', 'done');
-    view.status.textContent = 'Unavailable';
+    view.card.classList.add('quiet');
+    view.status.textContent = badge;
     view.status.classList.remove('live');
+    view.status.classList.add('quiet');
   }
+
+  function failStage(key, error, mode) {
+    const { badge, message } = describeFailure(error, mode);
+    restStage(key, badge, message);
+  }
+
+  // Seats that never got their turn because an earlier seat died.
+  function skipStage(key) {
+    restStage(key, 'Not run', 'This seat never opened — the run ended before its turn.');
+  }
+
+  // The idle copy each card ships with, captured before any run can overwrite it.
+  const IDLE_COPY = new Map();
+  function rememberIdleCopy(keys) {
+    for (const key of keys) {
+      if (!IDLE_COPY.has(key)) IDLE_COPY.set(key, stageView(key).output.textContent || '');
+    }
+  }
+
+  // A new run must not inherit the previous run's failures — otherwise a seat that
+  // has not had its turn yet still reads "Offline" from ten minutes ago.
+  function resetStages(keys) {
+    for (const key of keys) {
+      const view = stageView(key);
+      view.output.classList.remove('streaming');
+      view.output.textContent = IDLE_COPY.get(key) ?? '';
+      view.card.classList.remove('active', 'done', 'quiet');
+      view.status.textContent = 'Waiting';
+      view.status.classList.remove('live', 'quiet');
+    }
+  }
+
+  const TINY_STAGE_KEYS = TINY_ROSTER.map((seat) => seat.stageKey);
+  const FREE_STAGE_KEYS = ['openrouter-proposer', 'openrouter-critic', 'openrouter-synthesis'];
 
   async function streamTinyModel(model, prompt, maxTokens, outerSignal, onToken) {
     const scope = createStreamScope(outerSignal);
@@ -211,7 +346,9 @@
       } catch (error) {
         throw scope.classify(error);
       }
-      if (!response.ok || !response.body) throw new Error(`Local relay returned HTTP ${response.status}.`);
+      if (!response.ok || !response.body) {
+        throw tagFailure(new Error(`Local relay returned HTTP ${response.status}.`), 'http', response.status);
+      }
 
       const reader = response.body.getReader();
       const decoder = new TextDecoder();
@@ -271,13 +408,14 @@
     try {
       let response;
       try {
+        // Only Content-Type may be sent from the browser. The relay's CORS policy
+        // allows a fixed header set, and any extra custom header (this once carried
+        // HTTP-Referer and X-Title) fails preflight with "Disallowed CORS headers",
+        // which the browser surfaces as a bare "Failed to fetch". OpenRouter
+        // attribution belongs on the relay, which holds the key anyway.
         response = await fetchImpl(OPEN_RELAY, {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'HTTP-Referer': typeof location === 'undefined' ? 'https://sdforest.site' : location.origin,
-            'X-Title': 'SDForest OpenRouter Free Council',
-          },
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             model,
             messages,
@@ -290,7 +428,20 @@
       } catch (error) {
         throw scope.classify(error);
       }
-      if (!response.ok || !response.body) throw new Error(`Free relay returned HTTP ${response.status}.`);
+      if (!response.ok || !response.body) {
+        throw tagFailure(new Error(`Free relay returned HTTP ${response.status}.`), 'http', response.status);
+      }
+      // A retired or rate-limited slug comes back as a JSON body with HTTP 200 rather
+      // than an SSE stream. Left unread it would look like an empty answer.
+      if ((response.headers?.get?.('content-type') || '').includes('application/json')) {
+        const detail = await response.json().catch(() => null);
+        const code = detail?.error?.code;
+        throw tagFailure(
+          new Error(detail?.error?.message || 'The free relay refused this model.'),
+          'http',
+          typeof code === 'number' ? code : undefined,
+        );
+      }
 
       const reader = response.body.getReader();
       const decoder = new TextDecoder();
@@ -361,7 +512,7 @@
           (token) => onToken(token, model, index),
           { fetchImpl, firstTokenTimeout, hardCap },
         );
-        if (!text) throw new Error('The free model returned no text.');
+        if (!text) throw tagFailure(new Error('The free model returned no text.'), 'empty');
         return { model, text };
       } catch (error) {
         if (outerSignal.aborted) throw abortError();
@@ -372,7 +523,7 @@
     return null;
   }
 
-  async function runFreeSeat(key, roster, messages, maxTokens, outerSignal, hint) {
+  async function runFreeSeat(key, roster, messages, maxTokens, outerSignal, hint, runState = {}) {
     let stream = null;
     let lastError = null;
     const result = await runFreeRoster({
@@ -395,7 +546,8 @@
       finishStage(key, result.text, result.model.split('/').pop());
       return result;
     }
-    failStage(key, `Every fixed free-model fallback was unavailable. ${lastError?.message || ''}`.trim());
+    runState.lastFailure = lastError;
+    failStage(key, lastError, 'openrouter');
     return null;
   }
 
@@ -456,12 +608,15 @@
 
     const runButton = query('#tinylm-run');
     const hint = query('#tinylm-hint');
+    resetStages(TINY_STAGE_KEYS);
     tinyController = new AbortController();
     runButton.textContent = 'Stop local run';
     runButton.classList.add('running');
     hint.textContent = 'Tiny-Agent is opening the five-role deliberation.';
 
+    const opened = new Set();
     const runSeat = async (seat, seatPrompt, signal) => {
+      opened.add(seat.stageKey);
       const stream = beginStage(
         seat.stageKey,
         seat.key === 'synthesizer' ? 'Reading council' : 'Connecting',
@@ -481,10 +636,10 @@
         return text;
       } catch (error) {
         if (error.name === 'AbortError') {
-          failStage(seat.stageKey, 'Run stopped.');
-          throw error;
+          restStage(seat.stageKey, 'Stopped', 'This run was stopped before the seat answered.');
+        } else {
+          failStage(seat.stageKey, error, 'tinylm');
         }
-        failStage(seat.stageKey, error.message);
         throw error;
       }
     };
@@ -497,9 +652,16 @@
       });
       hint.textContent = 'Local deliberation complete. Nothing was saved by this page.';
     } catch (error) {
-      hint.textContent = error.name === 'AbortError'
-        ? 'Local deliberation stopped.'
-        : `Local deliberation ended early: ${error.message}`;
+      const stopped = error.name === 'AbortError';
+      for (const seat of TINY_ROSTER) {
+        if (!opened.has(seat.stageKey)) {
+          if (stopped) restStage(seat.stageKey, 'Stopped', 'This run was stopped before the seat opened.');
+          else skipStage(seat.stageKey);
+        }
+      }
+      hint.textContent = stopped
+        ? 'Local deliberation stopped. Nothing was saved by this page.'
+        : describeRunFailure(error, 'tinylm');
     } finally {
       tinyController = null;
       runButton.textContent = 'Begin local deliberation';
@@ -522,11 +684,13 @@
 
     const runButton = query('#openrouter-run');
     const hint = query('#openrouter-hint');
+    resetStages(FREE_STAGE_KEYS);
     openController = new AbortController();
     const { signal } = openController;
     runButton.textContent = 'Stop free council';
     runButton.classList.add('running');
 
+    const runState = {};
     try {
       const proposer = await runFreeSeat(
         'openrouter-proposer',
@@ -538,8 +702,13 @@
         700,
         signal,
         hint,
+        runState,
       );
-      if (!proposer) throw new Error('The Proposer roster is currently unavailable.');
+      if (!proposer) {
+        skipStage('openrouter-critic');
+        skipStage('openrouter-synthesis');
+        throw runState.lastFailure || new Error('The Proposer roster is currently unavailable.');
+      }
 
       const critic = await runFreeSeat(
         'openrouter-critic',
@@ -551,6 +720,7 @@
         600,
         signal,
         hint,
+        runState,
       );
 
       const synthesis = await runFreeSeat(
@@ -568,13 +738,27 @@
         850,
         signal,
         hint,
+        runState,
       );
-      if (!synthesis) throw new Error('The synthesis roster is currently unavailable.');
-      hint.textContent = 'Free council complete. Nothing was saved by this page.';
+      if (!synthesis) {
+        throw runState.lastFailure || new Error('The synthesis roster is currently unavailable.');
+      }
+      hint.textContent = critic
+        ? 'Free council complete. Nothing was saved by this page.'
+        : 'Free council complete without a critic seat — weigh the synthesis with lower confidence. Nothing was saved by this page.';
     } catch (error) {
-      hint.textContent = error.name === 'AbortError'
-        ? 'Free council stopped.'
-        : `Free council ended early: ${error.message}`;
+      const stopped = error.name === 'AbortError';
+      // A seat aborted mid-stream would otherwise keep its live "Streaming" badge.
+      for (const key of FREE_STAGE_KEYS) {
+        if (stageView(key).card.classList?.contains?.('active')) {
+          restStage(key, stopped ? 'Stopped' : 'Unavailable', stopped
+            ? 'This run was stopped before the seat settled.'
+            : 'This seat could not complete its turn.');
+        }
+      }
+      hint.textContent = stopped
+        ? 'Free council stopped. Nothing was saved by this page.'
+        : describeRunFailure(error, 'openrouter');
     } finally {
       openController = null;
       runButton.textContent = 'Convene free council';
@@ -587,20 +771,44 @@
   }
   if (typeof document === 'undefined') return;
 
-  for (const button of document.querySelectorAll('[data-fill]')) {
-    button.addEventListener('click', () => {
-      const target = document.getElementById(button.dataset.fill);
-      target.value = button.textContent.trim();
-      target.focus();
-    });
+  // Each wiring step is independent: a control that fails to bind must not silently
+  // strip the listeners from the controls after it.
+  function bind(description, wire) {
+    try {
+      wire();
+    } catch (error) {
+      console.warn(`Council: ${description} could not be wired.`, error);
+    }
   }
 
-  query('#tinylm-run').addEventListener('click', runTinyCouncil);
-  query('#openrouter-run').addEventListener('click', runOpenCouncil);
-  query('#tinylm-prompt').addEventListener('keydown', (event) => {
-    if (event.key === 'Enter' && (event.ctrlKey || event.metaKey)) runTinyCouncil();
+  bind('idle card copy', () => rememberIdleCopy([...TINY_STAGE_KEYS, ...FREE_STAGE_KEYS]));
+
+  bind('example fills', () => {
+    for (const button of document.querySelectorAll('[data-fill]')) {
+      button.addEventListener('click', () => {
+        const target = document.getElementById(button.dataset.fill);
+        if (!target) return;
+        target.value = button.textContent.trim();
+        target.focus();
+      });
+    }
   });
-  query('#openrouter-question').addEventListener('keydown', (event) => {
-    if (event.key === 'Enter' && (event.ctrlKey || event.metaKey)) runOpenCouncil();
-  });
+
+  // A run handler must never leak an unhandled rejection into the console.
+  const guard = (run) => () => {
+    Promise.resolve()
+      .then(run)
+      .catch((error) => console.warn('Council: a run ended unexpectedly.', error));
+  };
+  const runTiny = guard(runTinyCouncil);
+  const runOpen = guard(runOpenCouncil);
+
+  bind('local run button', () => query('#tinylm-run').addEventListener('click', runTiny));
+  bind('free run button', () => query('#openrouter-run').addEventListener('click', runOpen));
+  bind('local shortcut', () => query('#tinylm-prompt').addEventListener('keydown', (event) => {
+    if (event.key === 'Enter' && (event.ctrlKey || event.metaKey)) runTiny();
+  }));
+  bind('free shortcut', () => query('#openrouter-question').addEventListener('keydown', (event) => {
+    if (event.key === 'Enter' && (event.ctrlKey || event.metaKey)) runOpen();
+  }));
 })();
