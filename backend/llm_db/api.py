@@ -7,16 +7,16 @@ from typing import List, Optional
 from urllib.parse import urljoin, urlparse
 
 import backend.llm_db.db as db
-from fastapi import APIRouter, BackgroundTasks, HTTPException
-from pydantic import BaseModel
+from fastapi import APIRouter, BackgroundTasks, HTTPException, Query, Path
+from pydantic import BaseModel, Field, HttpUrl
 
 router = APIRouter(prefix="/api/llm-db", tags=["llm-db"])
 ALLOWED_FETCH_SCHEMES = {"http", "https"}
 DEFAULT_FETCH_PORTS = {"http": 80, "https": 443}
 
 class IngestRequest(BaseModel):
-    url: str
-    name: str
+    url: HttpUrl
+    name: str = Field(..., min_length=1, max_length=200)
 
 class DocumentResponse(BaseModel):
     id: int
@@ -136,19 +136,25 @@ def process_ingestion(url: str, name: str):
 
 @router.post("/ingest")
 def ingest_source(req: IngestRequest, background_tasks: BackgroundTasks):
-    background_tasks.add_task(process_ingestion, req.url, req.name)
-    return {"status": "Ingestion started", "url": req.url}
+    url_str = str(req.url)
+    if not _is_safe_fetch_url(url_str):
+        raise HTTPException(status_code=400, detail="Invalid or unsafe URL")
+    background_tasks.add_task(process_ingestion, url_str, req.name)
+    return {"status": "Ingestion started", "url": url_str}
 
 @router.get("/sources", response_model=List[SourceResponse])
 def get_sources():
     return db.get_sources()
 
 @router.get("/docs", response_model=List[DocumentResponse])
-def search_docs(q: str = "", source_id: Optional[int] = None):
+def search_docs(
+    q: str = Query(default="", max_length=200),
+    source_id: Optional[int] = Query(default=None, ge=1)
+):
     return db.search_documents(q, source_id)
 
 @router.get("/docs/{doc_id}", response_model=DocumentResponse)
-def get_doc(doc_id: int):
+def get_doc(doc_id: int = Path(..., ge=1)):
     doc = db.get_document(doc_id)
     if not doc:
         raise HTTPException(status_code=404, detail="Document not found")
