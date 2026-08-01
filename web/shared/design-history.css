@@ -553,6 +553,11 @@
 .dh-reset:focus-visible { outline: 2px solid var(--dh-gold); outline-offset: 2px; }
 .dh-reset[hidden] { display: none; }
 
+/* WCAG 2.2 AA 2.5.8: at 9.5px/1.4 this measured 169x14, under the 24x24
+   minimum. padding-block grows the hit area to ~25px and the matching
+   negative margin keeps the drawer's grid rhythm exactly as it was. The
+   hover underline moves from border-bottom to text-decoration so it stays
+   on the baseline instead of drifting down to the new padding edge. */
 .dh-archive {
   justify-self: start;
   color: var(--dh-dim);
@@ -560,10 +565,16 @@
   letter-spacing: .13em;
   text-transform: uppercase;
   text-decoration: none;
-  border-bottom: 1px solid transparent;
-  transition: color .2s ease, border-color .2s ease;
+  padding-block: 6px;
+  margin-block: -6px;
+  text-underline-offset: 3px;
+  transition: color .2s ease, text-decoration-color .2s ease;
 }
-.dh-archive:hover, .dh-archive:focus-visible { color: var(--dh-gold); border-bottom-color: rgba(232, 184, 107, .5); }
+.dh-archive:hover, .dh-archive:focus-visible {
+  color: var(--dh-gold);
+  text-decoration: underline;
+  text-decoration-color: rgba(232, 184, 107, .5);
+}
 
 .dh-hint {
   margin: 0;

@@ -9,9 +9,9 @@
   <meta property="og:description" content="A living, interactive forest of projects.">
   <meta property="og:type" content="website">
   <title>SDForest — projects in motion</title>
-  <link rel="stylesheet" href="/web/shared/forest-design.css?v=20260725c">
-  <link rel="stylesheet" href="/web/shared/forest-home.css?v=20260725c">
-  <link rel="stylesheet" href="/web/shared/design-history.css?v=20260730a">
+  <link rel="stylesheet" href="/web/shared/forest-design.css?v=20260731a">
+  <link rel="stylesheet" href="/web/shared/forest-home.css?v=20260731b">
+  <link rel="stylesheet" href="/web/shared/design-history.css?v=20260731a">
   <link rel="stylesheet" href="/web/shared/forest-sketch.css?v=20260730a">
 </head>
 <body>
@@ -146,8 +146,15 @@
     <!-- ============ I. Title plate ============ -->
     <section class="landing" data-landing aria-labelledby="forest-title">
       <div class="landing-core">
-        <div class="title-crown forest-sigil" data-title-crown aria-hidden="true">
-          <div class="crown-wrap">
+        <p class="landing-kicker">A living index by Ivan Gegov</p>
+        <h1 id="forest-title" class="landing-title">
+        <!-- The crown lives inside the h1, not in .landing-core, so it centres
+             on the wordmark at every width. Anchored to .landing-core it was
+             centred on a box whose height grows with the body copy, which
+             walked the canopy down onto the paragraph as the copy wrapped.
+             span rather than div: an h1 takes phrasing content. -->
+        <span class="title-crown forest-sigil" data-title-crown aria-hidden="true">
+          <span class="crown-wrap">
             <!-- data-sketch with no .sketch-src of its own: the crown's
                  trunk, canopy and branches are untouched. The host exists
                  so its added leaf layer can follow the page-wide
@@ -197,10 +204,8 @@
                 <g class="leaf-pair" style="--sway-dur:8.2s;animation-delay:-5.6s"><use class="leaf-sketch" href="#leaf-sketch" x="424" y="112" width="23" height="27"/><use class="leaf-geo" href="#leaf" x="424" y="112" width="23" height="27"/></g>
               </g>
             </svg>
-          </div>
-        </div>
-        <p class="landing-kicker">A living index by Ivan Gegov</p>
-        <h1 id="forest-title" class="landing-title">
+          </span>
+        </span>
           <span class="title-word">Forest HUB</span>
           <span class="title-sub">projects in <em>motion</em></span>
         </h1>

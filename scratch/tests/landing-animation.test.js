@@ -54,7 +54,10 @@ after(async () => {
 });
 
 test('landing keeps one title crown and exposes Life in Time as the nineteenth branch', () => {
-  assert.equal((landingSource.match(/<div\b[^>]*\bdata-title-crown\b/g) || []).length, 1);
+  // Tag-agnostic like sdforest-foundation.test.js: the crown moved into the
+  // h1 (and so became a span) to centre on the wordmark. The guard here is
+  // that there is exactly ONE crown, which is the regression that matters.
+  assert.equal((landingSource.match(/<(?:div|span)\b[^>]*\bdata-title-crown\b/g) || []).length, 1);
   assert.equal((landingSource.match(/<symbol\s+id="leaf"\s/g) || []).length, 1);
   assert.match(landingSource, /data-project="time"[^>]+data-href="\/web\/life-in-time\//);
   assert.match(landingSource, /Nineteen branches,\s*<em>one tree<\/em>/);

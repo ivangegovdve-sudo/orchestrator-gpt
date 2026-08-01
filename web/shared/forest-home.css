@@ -131,13 +131,17 @@ a, button { -webkit-tap-highlight-color: transparent; }
   transform: translateY(calc(var(--title-p, 0) * -7vh)) scale(calc(1 - var(--title-p, 0) * .04));
 }
 
+/* Centred on .landing-title (the h1 it now lives in), not on .landing-core.
+   The core's height grows with the body copy, so anchoring here kept walking
+   the canopy down onto the paragraph — badly at 390px, where it covered 92%
+   of it. Centred on the title this self-corrects at every width. */
 .title-crown {
   position: absolute;
   z-index: -1;
   top: 50%;
   left: 50%;
   width: min(760px, 92vw);
-  transform: translate(-50%, -54%);
+  transform: translate(-50%, -50%);
   color: var(--accent);
   opacity: .48;
   pointer-events: none;
@@ -145,6 +149,8 @@ a, button { -webkit-tap-highlight-color: transparent; }
 }
 
 .crown-wrap {
+  /* A span by default is inline; the crown needs it to take the width. */
+  display: block;
   width: 100%;
   /* translate3d, not translateY: promotes the breathing crown and its
      added leaf layer to their own compositor layer so the sway never
@@ -228,15 +234,25 @@ a, button { -webkit-tap-highlight-color: transparent; }
   will-change: transform, opacity;
 }
 
+/* Same --home-amber trap as .title-sub em below: the token resolves to the
+   indigo accent, which is ~3.2:1 on the #07070b plate. At 12.8px/500 this is
+   the smallest type on the page, so it needs 4.5:1 and was the furthest from
+   it. The dawn-light amber clears 11:1 and is re-tinted per design-history
+   era, so previews still follow. */
 .landing-kicker {
   margin: 0 0 10px;
-  color: var(--home-amber);
+  color: var(--forest-amber, #e8b86b);
   font: 500 clamp(11px, 1vw, 13px)/1 var(--home-sans);
   letter-spacing: .38em;
   text-transform: uppercase;
 }
 
-.landing-title { position: relative; z-index: 1; margin: 0; }
+/* position: relative to be the crown's containing block, but deliberately no
+   z-index: that made the h1 a stacking context, which trapped the crown's
+   z-index:-1 inside it and painted the canopy OVER the kicker sitting above.
+   Without one, the crown resolves against an ancestor and sits behind all of
+   the hero text, which is the whole point of it. */
+.landing-title { position: relative; margin: 0; }
 
 .title-word {
   display: block;
@@ -409,9 +425,10 @@ html.is-born .scroll-invite {
  * selectors were shared with the retired .crown-section — the crown
  * halves are gone, the atlas halves are the live ones.
  * ================================================================== */
+/* Same 3.2:1 failure as .landing-kicker — identical token, size and role. */
 .atlas-kicker {
   margin: 0 0 12px;
-  color: var(--home-amber);
+  color: var(--forest-amber, #e8b86b);
   font: 500 12px/1 var(--home-sans);
   letter-spacing: .34em;
   text-transform: uppercase;
