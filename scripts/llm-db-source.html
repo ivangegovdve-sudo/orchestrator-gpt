@@ -361,6 +361,8 @@ const PLATFORMS = [
     desc:"Multimodal frontier LLMs from an AI safety-focused lab. Reka Core, Flash, and Edge models handle text, images, and video. Competitive with top providers on reasoning and vision tasks." },
   { name:"Minimax", cat:"LLM API Providers", tag:"llm-api", url:"https://www.minimaxi.com", by:"MiniMax (China)", isNew: true,
     desc:"Chinese AI startup building MoE-based LLMs (MiniMax-Text-01) with 1M context and the Hailuo video generation model. API available internationally." },
+  { name:"Kimi (Moonshot AI)", cat:"LLM API Providers", tag:"llm-api", url:"https://www.moonshot.cn", by:"Moonshot AI (China)", isNew: true,
+    desc:"Kimi is Moonshot AI's flagship LLM with 128K–1M context window. OpenAI-compatible API; available on AWS Marketplace with competitive pricing. Strong performance on long-document reasoning and code tasks." },
   { name:"Cerebras", cat:"Inference & Cloud Infra", tag:"infra", url:"https://cerebras.ai", by:"Cerebras Systems",
     desc:"World's fastest AI inference using Wafer Scale Engine chips (WSE-3). Llama 70B at 2,000+ tokens/sec via API — far faster than GPU alternatives. Free tier available." },
 
@@ -470,6 +472,12 @@ const PLATFORMS = [
   { name:"LlamaParse", cat:"Search & RAG", tag:"search-rag", url:"https://cloud.llamaindex.ai/parse", by:"LlamaIndex",
     desc:"AI-native PDF/document parser from LlamaIndex. PRIMARY parser in the Forest pipeline; PyMuPDF (fitz 1.28.0) is the fallback when credits are exhausted. Free tier: 10K credits/month (~10 hrs at ~1K credits/hr); Starter plan $50/mo (40K included). Status: OUT OF CREDITS since 2026-07-19." },
 
+  { name:"SerpApi", cat:"Search & RAG", tag:"search-rag", url:"https://serpapi.com", by:"SerpApi", isNew: true,
+    desc:"Real-time Google Search results API. Returns structured JSON for organic results, ads, knowledge panels, and more. Used to give AI agents live web search capability without browser automation." },
+  { name:"Firecrawl", cat:"Search & RAG", tag:"search-rag", url:"https://firecrawl.dev", by:"Firecrawl", isNew: true,
+    desc:"Web crawling and scraping API purpose-built for AI agents and LLM pipelines. Converts any URL into clean Markdown with a single API call. Supports full-site crawls, structured extraction, and JavaScript-heavy pages." },
+  { name:"Brave Search API", cat:"Search & RAG", tag:"search-rag", url:"https://brave.com/search/api", by:"Brave Software", isNew: true,
+    desc:"Independent web search index API — no Google or Bing data. Returns web, news, and image results in clean JSON. 2,000 free queries/month; popular for AI agents needing privacy-respecting web search." },
   // ── IMAGE & VIDEO ──────────────────────────────────────────────────────────
   { name:"Midjourney", cat:"Image & Video AI", tag:"image-vid", url:"https://www.midjourney.com", by:"Midjourney Inc.",
     desc:"The premier text-to-image model for artistic quality. V6/V7 produce photorealistic and stylized images. Discord-based workflow; no public API." },
@@ -506,6 +514,8 @@ const PLATFORMS = [
   { name:"Krea.ai", cat:"Image & Video AI", tag:"image-vid", url:"https://www.krea.ai", by:"Krea", isNew: true,
     desc:"Real-time AI image generation and enhancement. Sketch or describe → instant visual output with canvas controls, upscaling, and video generation. Live API for creative tools." },
 
+  { name:"HeyGen", cat:"Image & Video AI", tag:"image-vid", url:"https://www.heygen.com", by:"HeyGen", isNew: true,
+    desc:"AI video generation platform specializing in talking-head avatars and video translation. Create presenter videos from text with 100+ AI avatars; video dubbing in 40+ languages with lip-sync. API available." },
   // ── VOICE & AUDIO ──────────────────────────────────────────────────────────
   { name:"ElevenLabs", cat:"Voice & Audio AI", tag:"voice", url:"https://elevenlabs.io", by:"ElevenLabs",
     desc:"Best-in-class text-to-speech with voice cloning, multilingual support, and ultra-low latency streaming. Also offers Speech-to-Text and conversational AI voice." },
@@ -601,6 +611,10 @@ const PLATFORMS = [
     desc:"LLM proxy and observability layer. One-line integration — route API calls through Helicone to get logging, cost tracking, rate limiting, caching, and prompt management." },
   { name:"Scale AI", cat:"Data & Analytics", tag:"data", url:"https://scale.com", by:"Scale AI", isNew: true,
     desc:"Data labeling and AI evaluation platform used by leading AI labs. RLHF annotation, model evaluation (Scale Eval), and SEAL leaderboard for model quality assessments." },
+  { name:"SocialAPIs", cat:"Data & Analytics", tag:"data", url:"https://socialapis.io", by:"SocialAPIs", isNew: true,
+    desc:"Facebook & Instagram public-data REST API for developers. Scrapes pages, groups, posts, ads library, and marketplace without OAuth or app review. 200 free calls/month; MCP server available for AI agent integration." },
+  { name:"Neon", cat:"Data & Analytics", tag:"data", url:"https://neon.tech", by:"Neon (OSS)", isNew: true,
+    desc:"Serverless Postgres with autoscaling, branching, and instant cold starts. Scale-to-zero when idle; branch databases for dev/test workflows. Popular backend database for AI-powered apps and Vercel deployments." },
   { name:"Baseten", cat:"Inference & Cloud Infra", tag:"infra", url:"https://baseten.co", by:"Baseten", isNew: true,
     desc:"ML model deployment and serving platform. Deploy any model (open-source or custom) as a scalable API in minutes. Handles autoscaling, GPU selection, and observability." },
   { name:"Writer", cat:"LLM API Providers", tag:"llm-api", url:"https://writer.com", by:"Writer", isNew: true,
@@ -611,6 +625,8 @@ const PLATFORMS = [
     desc:"Custom AI accelerator chips (RDUs) and cloud inference. Offers some of the fastest token throughput for large models — Llama and custom models at >1000 tokens/sec speeds." },
   { name:"DeepInfra", cat:"Inference & Cloud Infra", tag:"infra", url:"https://deepinfra.com", by:"DeepInfra", isNew: true,
     desc:"Cost-optimized inference API for open-source models. Hosts Llama, Mistral, Qwen, Flux, Whisper, and more at competitive per-token rates with OpenAI-compatible endpoints." },
+  { name:"Railway", cat:"Inference & Cloud Infra", tag:"infra", url:"https://railway.app", by:"Railway", isNew: true,
+    desc:"Developer-friendly cloud deployment platform for any language or stack. Git-push deploys, managed Postgres/Redis/MySQL, and a full REST API for programmatic management. Zero-config deploys popular for AI app backends." },
   // ── Gaming / AI Game Creation ──
   { name:"8th Wall", cat:"Gaming / AI Game Creation", tag:"game", url:"https://www.8thwall.com", by:"Niantic",
     desc:"Web AR platform for building browser-based augmented reality experiences without app installs. Used by brands and studios for interactive AR games, ads, and product try-ons." },
