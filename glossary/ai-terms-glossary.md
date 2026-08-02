@@ -184,6 +184,8 @@
   <sub>freq 3 · sources: gmail</sub>
 - **BF** — _usage:_ "ry, drop the 3 leading BOM bytes (EF BB BF), and add a clean v - [obs 1647] Ivan"  
   <sub>freq 155 · sources: gmail+mem</sub>
+- **BF16** — Brain Float 16 — 16-bit floating-point format used in ML training; wider dynamic range than FP16 with same memory footprint. Native to Google TPUs and widely supported on NVIDIA A100/H100 GPUs.  
+  <sub>freq 0 · sources: curated</sub>
 - **BFS** — _usage:_ "ind_path(from_node, to_node)`: Utilizes BFS/Dijkstra to find paths between wiki"  
   <sub>freq 12 · sources: mem</sub>
 - **BG** — _usage:_ "`projects` **TASKS:** add the Mendeleev BG periodic table to the kids corner hub"  
@@ -273,6 +275,8 @@
   <sub>freq 86 · sources: gmail</sub>
 - **CI** — Continuous Integration  
   <sub>freq 459 · sources: gmail+mem</sub>
+- **CI/CD** — Continuous Integration / Continuous Deployment — automated pipeline that builds, tests, and ships code on every commit. Typically implemented with GitHub Actions, GitLab CI, or Jenkins.  
+  <sub>freq 0 · sources: curated</sub>
 - **CK** — _usage:_ "to five industry frameworks (MITRE ATT&CK, NIST CSF 2.0, MITRE ATLAS, D3FEND, N"  
   <sub>freq 26 · sources: gmail+mem</sub>
 - **CL** — _usage:_ "account. - **Futures access** (ES, NQ, CL, GC etc.) is a major advantage vs. Al"  
@@ -323,6 +327,8 @@
   <sub>freq 2 · sources: mem</sub>
 - **CORS** — _usage:_ "g to use a local HTTP server (even with CORS enabled) to serve the file content"  
   <sub>freq 119 · sources: gmail+mem</sub>
+- **CoT** — Chain of Thought — prompting strategy that instructs an LLM to reason step-by-step before giving a final answer, improving accuracy on math, logic, and multi-step tasks.  
+  <sub>freq 0 · sources: curated</sub>
 - **COVID** — _usage:_ "rrently in a state of high alert due to COVID-19 outbreaks and is working closel"  
   <sub>freq 11 · sources: gmail+mem</sub>
 - **CP** — _usage:_ "light/ q… **Workaround infrastructure (CP-vs-git-mv variant) in use since 2026"  
@@ -363,6 +369,8 @@
   <sub>freq 2 · sources: gmail+mem</sub>
 - **CSP** — _seen in email:_ "Exploitarium 0-Day Drop 📂, Chrome Longinus Flaw 🌐, GLM 5.2 Beats Claude 🤖"  
   <sub>freq 67 · sources: gmail</sub>
+- **CSRF** — Cross-Site Request Forgery — web attack that tricks an authenticated user's browser into making unauthorized requests on their behalf. Mitigated with CSRF tokens or SameSite cookies.  
+  <sub>freq 0 · sources: curated</sub>
 - **CSS** — Cascading Style Sheets  
   <sub>freq 605 · sources: gmail+mem</sub>
 - **CSV** — Comma-Separated Values  
@@ -646,10 +654,14 @@
   <sub>freq 2 · sources: mem</sub>
 - **FORMAT** — _usage:_ "asks - Structured specification format (FORMAT.md) including goals, constraints,"  
   <sub>freq 11 · sources: gmail+mem</sub>
+- **FOSS** — Free and Open Source Software — software that is both freely distributable and source-available under licenses such as MIT, Apache 2.0, or GPL.  
+  <sub>freq 22 · sources: gmail+mem</sub>
 - **FOUNDERS** — _seen in email:_ "The task economy 🤝 , the FDE race 🏃, agentic pods 🤖"  
   <sub>freq 75 · sources: gmail</sub>
 - **FP** — _usage:_ "ipecat selected as winner (13 wakes / 0 FP / avg conf 0.79 vs ADK 12 / 0 FP / 0."  
   <sub>freq 8 · sources: gmail+mem</sub>
+- **FP16** — Floating Point 16 — half-precision numeric format used in deep learning for reduced memory and faster computation. Supported by CUDA cores and most ML frameworks.  
+  <sub>freq 0 · sources: curated</sub>
 - **FPR** — _usage:_ "hen you want to know the reviewer's FNR/FPR before relying on its rubric scores."  
   <sub>freq 5 · sources: gmail+mem</sub>
 - **FPS** — _usage:_ "shape vocabulary, the adaptive-quality FPS monitor. These are render-agnostic a"  
@@ -749,6 +761,8 @@
   <sub>freq 13 · sources: gmail+mem</sub>
 - **GRPO** — _usage:_ ""iris", "task": "research: what is GRPO?"}, {"agent": "anderson", "task":"  
   <sub>freq 5 · sources: gmail+mem</sub>
+- **gRPC** — Google Remote Procedure Call — high-performance RPC framework using Protocol Buffers over HTTP/2. Common for microservice-to-microservice communication; strongly typed contracts.  
+  <sub>freq 0 · sources: curated</sub>
 - **GSAP** — _usage:_ "e HTML, CSS (Tailwind), and JavaScript (GSAP). ## Key Capabilities - Render HTM"  
   <sub>freq 10 · sources: gmail+mem</sub>
 - **GTM** — _usage:_ "ping, creative, code-tools | Library of GTM skills for Claude Code, Codex, Curso"  
@@ -813,6 +827,8 @@
   <sub>freq 2 · sources: gmail</sub>
 - **IAM** — _usage:_ "stgreSQL, Kubernetes, AI inference, and IAM services, aiming to be an alternativ"  
   <sub>freq 61 · sources: gmail+mem</sub>
+- **IaaS** — Infrastructure as a Service — cloud model providing raw compute, storage, and networking (e.g. AWS EC2, GCP Compute Engine, Oracle OCI). Consumer manages OS and up.  
+  <sub>freq 3 · sources: gmail+mem</sub>
 - **IAP** — _usage:_ "behind nginx 443; Iris (GCP) **9119** (IAP-only). NOTE: AnythingLLM's 3001 is o"  
   <sub>freq 6 · sources: gmail+mem</sub>
 - **IB** — _usage:_ "tc.) is a major advantage vs. Alpaca. - IB Gateway runs as a headless Java daemo"  
@@ -865,6 +881,10 @@
   <sub>freq 8 · sources: gmail+mem</sub>
 - **INNOVATION** — _seen in email:_ "JPMorgan Enters Vault Curation 🏦, Life is a Portfolio 💼, $1 Dollar Audits ✔️"  
   <sub>freq 72 · sources: gmail</sub>
+- **INT4** — 4-bit Integer — aggressive quantization format for LLM weights; reduces model size ~8x vs FP32 at some accuracy cost. Used in GGUF Q4_K_M models and llama.cpp.  
+  <sub>freq 0 · sources: curated</sub>
+- **INT8** — 8-bit Integer — quantization format halving model size vs FP16; near-lossless for inference. Supported by llama.cpp, vLLM, TensorRT-LLM, and most inference engines.  
+  <sub>freq 0 · sources: curated</sub>
 - **INTRODUCING** — _seen in email:_ "Rewriting Bun in Rust ⚡️, analyzing SWE benchmarks 🕵, LLM burnout 😮‍💨"  
   <sub>freq 120 · sources: gmail</sub>
 - **IO** — _usage:_ "nceDB CPU warning:** `"Number of CPUs ≤ IO core reservations — using 1 CPU for c"  
@@ -1126,10 +1146,14 @@
   <sub>freq 12 · sources: gmail+mem</sub>
 - **NIST** — _usage:_ "five industry frameworks (MITRE ATT&CK, NIST CSF 2.0, MITRE ATLAS, D3FEND, NIST"  
   <sub>freq 18 · sources: gmail+mem</sub>
+- **NLG** — Natural Language Generation — the AI subfield of producing coherent text output from structured data or model representations. Core capability of modern LLMs.  
+  <sub>freq 0 · sources: curated</sub>
 - **NLP** — Natural Language Processing  
   <sub>freq 15 · sources: gmail+mem</sub>
 - **NLTK** — _usage:_ "functionality (using `espeak-ng`), and NLTK data readiness. This acts as a fail"  
   <sub>freq 2 · sources: mem</sub>
+- **NLU** — Natural Language Understanding — the AI subfield of interpreting and extracting meaning from human language input, including intent detection, NER, and semantic parsing.  
+  <sub>freq 4 · sources: gmail+mem</sub>
 - **NMES** — _usage:_ "944.pdf` 2. **Blood Flow Restriction + NMES (Combo)** - PMCID: PMC13139430"  
   <sub>freq 2 · sources: mem</sub>
 - **NN** — _usage:_ "ing - Vector similarity search (e.g., k-NN, approximate nearest neighbor) - Filt"  
@@ -1240,6 +1264,8 @@
 
 - **PA** — _usage:_ "144.24.59.30 → TTL 300; then certbot + PA - start voice_loop_v2.service - run t"  
   <sub>freq 30 · sources: gmail+mem</sub>
+- **PaaS** — Platform as a Service — cloud model providing a managed runtime so developers deploy apps without managing infrastructure (e.g. Heroku, Railway, Vercel, Render).  
+  <sub>freq 5 · sources: gmail+mem</sub>
 - **PADDING** — _seen in email:_ "GLM 5.2 comparisons ⚔️, use AI for code review 👀, Deno Desktop 🖥"  
   <sub>freq 99 · sources: gmail</sub>
 - **PARA** — _usage:_ "obsidian-brain (291 MB) | ACTIVE | PARA vault, forestLibrary | | voice2voic"  
@@ -1336,11 +1362,15 @@
   <sub>freq 106 · sources: gmail+mem</sub>
 - **PYSEC** — _usage:_ "E-2026-39892 * **gitpython (3.0.6):** PYSEC-2024-4, PYSEC-2022-42992, PYSEC-20"  
   <sub>freq 5 · sources: mem</sub>
+- **PyMuPDF** — Python binding for MuPDF, imported as `fitz`. High-speed PDF and document parser. Fallback parser in the Forest pipeline when LlamaParse credits are exhausted (e.g. since 2026-07-19).  
+  <sub>freq 8 · sources: mem</sub>
 
 ## Q
 
 - **QA** — _usage:_ "chitecture, design review, code review, QA, security audits, and release managem"  
   <sub>freq 166 · sources: gmail+mem</sub>
+- **QLoRA** — Quantized Low-Rank Adaptation — fine-tuning technique combining 4-bit quantization with LoRA adapters, enabling large model fine-tuning on consumer GPUs with minimal quality loss.  
+  <sub>freq 0 · sources: curated</sub>
 - **QMD** — _usage:_ "igned for large-s - **[qmd](qmd.md)** — QMD is a mini CLI search engine designed"  
   <sub>freq 6 · sources: gmail+mem</sub>
 - **QML** — _usage:_ "cloud) - Cross-platform desktop app (Qt/QML) - Python bindings - LocalDocs for d"  
@@ -1575,6 +1605,8 @@
   <sub>freq 3 · sources: gmail+mem</sub>
 - **SSO** — Single Sign-On  
   <sub>freq 40 · sources: gmail+mem</sub>
+- **SSRF** — Server-Side Request Forgery — web vulnerability where an attacker makes the server issue requests to unintended internal or external destinations, bypassing network controls.  
+  <sub>freq 0 · sources: curated</sub>
 - **STABLECOIN** — _seen in email:_ "GCash to raise $1.5B 💰, UK dilutes stablecoin capital requirement 📝, World Cup chargebacks 💳"  
   <sub>freq 78 · sources: gmail</sub>
 - **STARTUP** — _seen in email:_ "Klarna seeks US bank charter 🏦, Fiserv explores sale of debit card network 🪪, Visa launches travel platform 🌍"  
@@ -1792,6 +1824,8 @@
   <sub>freq 66 · sources: gmail+mem</sub>
 - **VIP** — _seen in email:_ "🎉 $1 ANTI-INFLATION Sale... Plus, Code Inside"  
   <sub>freq 71 · sources: gmail</sub>
+- **ViT** — Vision Transformer — transformer architecture applied to image patches rather than sequences; basis for many modern image classification and multimodal models (CLIP, DALL-E, etc.).  
+  <sub>freq 0 · sources: curated</sub>
 - **VITS** — _usage:_ "le deps**: OpenAI API, Live2D, Whisper, VITS ## Leverage Profile Reach for this"  
   <sub>freq 3 · sources: mem</sub>
 - **VJ** — _usage:_ "ho use Splice. --- ### Live Visuals / VJ **Resolume Arena** *Problem it solve"  
@@ -1800,6 +1834,8 @@
   <sub>freq 7 · sources: gmail+mem</sub>
 - **VLLM** — _usage:_ "that is related to comparing Ollama vs VLLM vs LLM Studio vs open source altern"  
   <sub>freq 11 · sources: gmail+mem</sub>
+- **VLM** — Vision-Language Model — multimodal model that processes both image and text inputs (e.g. GPT-4o, Gemini 1.5, Claude 3, LLaVA, Qwen-VL). Core technology for image understanding + reasoning.  
+  <sub>freq 6 · sources: gmail+mem</sub>
 - **VM** — Virtual Machine  
   <sub>freq 762 · sources: gmail+mem</sub>
 - **VNC** — _usage:_ "arch knowledge bases. Requires one-time VNC/X11 browser auth per session (~7-day"  
@@ -1849,6 +1885,8 @@
   <sub>freq 7 · sources: mem</sub>
 - **WEB** — _usage:_ "flash-preview-05-20` or similar — DO A WEB SEARCH first to find the exact curre"  
   <sub>freq 62 · sources: gmail+mem</sub>
+- **WebRTC** — Web Real-Time Communication — browser API enabling peer-to-peer audio, video, and data streaming without plugins. Used in voice/video chat, collaborative tools, and real-time apps.  
+  <sub>freq 12 · sources: gmail+mem</sub>
 - **WEBSITE** — _seen in email:_ "Meta Muse Image 🎨, Tripo AI Raises $150M 🎮, Apple RAW Photos 📸"  
   <sub>freq 282 · sources: gmail</sub>
 - **WEEKLY** — _usage:_ "olated notes → Zone 2/3 candidates. ## WEEKLY CONSOLIDATION OUTPUT STRUCTURE `"  
