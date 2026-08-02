@@ -1,7 +1,7 @@
 # SUBPAGES.md — Forest HUB sdforest.site Subpage Index
 
 **Purpose:** Concise per-subpage description of what each page currently is and its production state. Use this to decide what to improve next.
-**Last updated:** 2026-07-28
+**Last updated:** 2026-08-02
 **Production URL:** https://sdforest.site
 
 ---
@@ -182,6 +182,16 @@
 **What it is:** Builds personalised yoga and Pilates sessions from an approved exercise library, shaped by how much time you have and what hurts today. Wears the SDForest palette, type, and page skin, and carries a `← SDForest` bar back to the hub.
 **State:** Card is on the hub as **In development**. The app is still on a PR and the `flowform.sdforest.site` subdomain is not wired yet, so the link does not resolve.
 **Next:** Merge the FlowForm PR, deploy to Vercel, point the subdomain at it, then flip the card's `data-status` to `Live`.
+
+---
+
+## Lobester Gym — Bilateral Coordination
+
+**Route:** Hub card → `https://adhd-exercise-app.vercel.app/` (external / separate Vercel deployment)
+**Files:** none in this repo — the app is deployed independently
+**What it is:** Installable PWA of interactive bilateral coordination exercises targeting working memory, inhibitory control, and pattern mapping. Adapted from a children's movement workbook and shaped for ADHD attention. Multi-touch gestures drive the exercises, so the viewport deliberately disables pinch-zoom.
+**State:** Live — the deployment returns 200 and the hub card is marked `Live` with `data-external="true"`, so it opens in a new tab.
+**Next:** Decide whether it earns a `*.sdforest.site` subdomain like FlowForm, and whether the source repo should be mirrored here.
 
 ---
 
