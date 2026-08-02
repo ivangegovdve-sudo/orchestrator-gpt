@@ -1,13 +1,17 @@
 # AI & Technical Terms Glossary
 
-> Abbreviations and technical terms mined from the Forest Gmail corpus (13,511 emails) and the LifeOS memory files, deduplicated and filtered. Definitions are provided for well-known terms; otherwise a representative usage snippet is shown.
+> Abbreviations and technical terms mined from the Forest Gmail corpus and the LifeOS memory files, deduplicated and filtered, plus a curated layer of general tech, business and email abbreviations added by hand. Definitions are provided where known; otherwise a representative usage snippet is shown. Scope is deliberately broad — an abbreviation earns a place by appearing in Ivan's mail or tech context, not by being AI-related.
 
-- **Generated:** 2026-07-10 · pipeline: `library-sync`
-- **Distinct terms:** 912 (with curated definitions: 115)
-- **Sources:** Gmail extraction (14,954 raw) + memory scan (1,519 raw)
+- **Generated:** 2026-07-10 · pipeline: `library-sync` · curated pass 2026-08-02
+- **Distinct terms:** 1065 (with curated definitions: 276)
+- **Sources:** Gmail extraction (14,954 raw) + memory scan (1,519 raw) + full-body token scan of 14,805 emails on Oracle (2026-08-02) + manual curation
 - **Filtered out:** hex colors, charset/encoding tokens, single letters, pure numbers, common words.
 
 ---
+
+## 0-9
+- **2FA** — Two-Factor Authentication — login that requires a second proof beyond the password, usually a TOTP code or hardware key. A subset of MFA.  
+  <sub>freq 0 · sources: curated</sub>
 
 ## A
 
@@ -75,13 +79,15 @@
   <sub>freq 21,690 · sources: gmail+mem</sub>
 - **AIDC** — _usage:_ "Autonomous financial research agent 8. AIDC-AI/Pixelle-Video ( Good - `curl` i"  
   <sub>freq 6 · sources: gmail+mem</sub>
+- **AIOps** — AI for IT Operations — applying ML to logs, metrics and traces for anomaly detection, alert correlation and automated remediation.  
+  <sub>freq 0 · sources: curated</sub>
 - **AIOS** — _usage:_ "s 7.5 (event-log replay, needs Docker). AIOS/AgentOS 3.5 (avoid as worker). **G"  
   <sub>freq 2 · sources: gmail+mem</sub>
 - **AKS** — _usage:_ "existing Kubernetes clusters (GKE, EKS, AKS) **Notable deps**: Kubernetes ## L"  
   <sub>freq 5 · sources: gmail+mem</sub>
 - **AL** — _usage:_ "app/docs/progress/STATE.md 2. Check if AL I'll start by checking the project s"  
   <sub>freq 15 · sources: gmail+mem</sub>
-- **AMD** — _usage:_ "es - Local LLM inference on CPU (Intel, AMD, Apple Silicon, Qualcomm Snapdragon)"  
+- **AMD** — (1) Advanced Micro Devices, the CPU/GPU maker behind Ryzen, EPYC and the Radeon/ROCm stack; (2) Asynchronous Module Definition, the pre-ESM browser module format used by RequireJS.  
   <sub>freq 58 · sources: gmail+mem</sub>
 - **ANALYSIS** — _seen in email:_ "Grok 4.5 🤖, GPT-Live 🎙️, SWE-1.7 👨‍💻"  
   <sub>freq 145 · sources: gmail</sub>
@@ -95,6 +101,8 @@
   <sub>freq 42 · sources: gmail+mem</sub>
 - **APA** — _usage:_ "ructure | Journal-ready (IMRaD, etc.) | APA 7.0 report | | Citation | Multi-form"  
   <sub>freq 9 · sources: mem</sub>
+- **APAC** — Asia-Pacific — the sales/support region covering East and South-East Asia, Australia and New Zealand. Sits alongside EMEA and AMER in vendor pricing and coverage tables.  
+  <sub>freq 0 · sources: curated</sub>
 - **API** — Application Programming Interface  
   <sub>freq 4,603 · sources: gmail+mem</sub>
 - **APK** — _usage:_ "e-android` **TASKS:** install the debug APK on the Galaxy A26 over Tailscale (10"  
@@ -111,6 +119,8 @@
   <sub>freq 191 · sources: gmail+mem</sub>
 - **ARM** — _usage:_ "e | ⬜ BLOCKED on Phase 1 | | 3 | Oracle ARM: Ollama + Qdrant | ⬜ BLOCKED on Phas"  
   <sub>freq 65 · sources: gmail+mem</sub>
+- **ARR** — Annual Recurring Revenue — normalised yearly value of active subscriptions. The headline SaaS metric; MRR × 12.  
+  <sub>freq 0 · sources: curated</sub>
 - **ARS** — _usage:_ "2 editorial synthesis). Within the full ARS pipeline, this skill sits at the orc"  
   <sub>freq 6 · sources: gmail+mem</sub>
 - **ART** — _seen in email:_ "Meta Muse Image 🎨, Tripo AI Raises $150M 🎮, Apple RAW Photos 📸"  
@@ -127,6 +137,10 @@
   <sub>freq 39 · sources: gmail+mem</sub>
 - **AST** — Abstract Syntax Tree  
   <sub>freq 27 · sources: gmail+mem</sub>
+- **ATDD** — Acceptance Test-Driven Development — the whole team agrees acceptance tests before coding; those tests then drive the implementation. BDD is a common notation for it.  
+  <sub>freq 0 · sources: curated</sub>
+- **ATS** — Applicant Tracking System — the software recruiters use to store and filter CVs. Why CVs are written to be machine-parsable. Greenhouse, Lever, Ashby, SmartRecruiters.  
+  <sub>freq 0 · sources: curated</sub>
 - **ATT** — _usage:_ "pped to five industry frameworks (MITRE ATT&CK, NIST CSF 2.0, MITRE ATLAS, D3FEN"  
   <sub>freq 14 · sources: gmail+mem</sub>
 - **ATTACH** — _usage:_ "ction against canonical, with stranded `ATTACH`ed read-only: 1. Insert entities"  
@@ -153,6 +167,8 @@
   <sub>freq 12 · sources: gmail+mem</sub>
 - **AVATAR** — _usage:_ ". IVAN'S CONSTRAINTS for this build: - AVATAR = ABSTRACT, NON-FACIAL, NO lip-sy"  
   <sub>freq 6 · sources: gmail+mem</sub>
+- **AVIF** — AV1 Image File Format — image codec derived from AV1 video. Smaller than WebP at equal quality, with alpha and HDR support; near-universal browser support since 2024.  
+  <sub>freq 0 · sources: curated</sub>
 - **AVP** — _usage:_ "ross 6 departments (INF=infrastructure, AVP=audio-voice-pipeline, AUT=automation"  
   <sub>freq 17 · sources: gmail+mem</sub>
 - **AVX** — _usage:_ "with hardware optimizations (ARM NEON, AVX, RVV) - LLM inference on NVIDIA, AMD"  
@@ -164,6 +180,10 @@
 
 ## B
 
+- **B2B** — Business-to-Business — selling to other companies rather than to consumers. Implies longer sales cycles, contracts and per-seat pricing.  
+  <sub>freq 0 · sources: curated</sub>
+- **B2C** — Business-to-Consumer — selling directly to individuals. Implies self-serve signup, credit-card billing and volume over deal size.  
+  <sub>freq 0 · sources: curated</sub>
 - **BA** — _seen in email:_ "OFFLINE лято с Мармот е тук!"  
   <sub>freq 186 · sources: gmail</sub>
 - **BACKUP** — _usage:_ "TBD | Backups of knowledge-forge | BACKUP | | **OpenClaw-windows-node** | T"  
@@ -176,8 +196,12 @@
   <sub>freq 202 · sources: gmail+mem</sub>
 - **BC** — _seen in email:_ "OFFLINE лято с Мармот е тук!"  
   <sub>freq 139 · sources: gmail</sub>
+- **BCC** — Blind Carbon Copy — email header that sends a copy to a recipient without revealing their address to the others on the message.  
+  <sub>freq 0 · sources: curated</sub>
 - **BD** — _seen in email:_ "JPMorgan Enters Vault Curation 🏦, Life is a Portfolio 💼, $1 Dollar Audits ✔️"  
   <sub>freq 335 · sources: gmail</sub>
+- **BDD** — Behaviour-Driven Development — TDD expressed in Given/When/Then business language so non-engineers can read the specs. Tooling: Cucumber, pytest-bdd.  
+  <sub>freq 0 · sources: curated</sub>
 - **BEM** — _usage:_ "red). A merged PR #48 would confirm the BEM-light + token-variable pattern befor"  
   <sub>freq 11 · sources: gmail+mem</sub>
 - **BERT** — Bidirectional Encoder Representations from Transformers  
@@ -192,6 +216,8 @@
   <sub>freq 675 · sources: gmail+mem</sub>
 - **BGN** — _seen in email:_ "Лятна промоция и събития през Юли"  
   <sub>freq 358 · sources: gmail</sub>
+- **BI** — Business Intelligence — reporting and dashboarding on warehouse data for decision-making. Looker, Power BI, Metabase, Tableau.  
+  <sub>freq 0 · sources: curated</sub>
 - **BILLION** — _seen in email:_ "Grok 4.5 🤖, GPT-Live 🎙️, SWE-1.7 👨‍💻"  
   <sub>freq 83 · sources: gmail</sub>
 - **BIOS** — _usage:_ "ured to listen for magic packets. * **BIOS/UEFI Setting:** WoL functionality o"  
@@ -206,6 +232,8 @@
   <sub>freq 24 · sources: mem</sub>
 - **BMI** — _usage:_ "nce] 3. Women with normal pre-pregnancy BMI should gain 25-35 pounds [High confi"  
   <sub>freq 2 · sources: mem</sub>
+- **BMW** — Bayerische Motoren Werke — German vehicle manufacturer.  
+  <sub>freq 0 · sources: curated</sub>
 - **BNE** — _usage:_ "que, synthesis, confidence, route}` - **BNE coordination**: Stage 1 = independen"  
   <sub>freq 23 · sources: mem</sub>
 - **BOM** — _usage:_ "y-id + r2-artist-secret (caught+fixed a BOM corruption, v2 clean). Isolation pro"  
@@ -224,6 +252,8 @@
   <sub>freq 2 · sources: mem</sub>
 - **BTC** — _usage:_ "based system using EMA8, VWAP, RSI3 on BTC via BitGet API, with a browser dashb"  
   <sub>freq 117 · sources: gmail+mem</sub>
+- **bun** — Bun — a JavaScript runtime, bundler, transpiler and package manager in one binary, written in Zig. Drop-in Node replacement aimed at startup and install speed.  
+  <sub>freq 0 · sources: curated</sub>
 - **BWS** — _usage:_ "emory, auto-imported] --- # Test a new BWS access token and use it to inject th"  
   <sub>freq 8 · sources: mem</sub>
 - **BYO** — _usage:_ "ser choices) - Web search capabilities (BYO keys) - Video and image attachment h"  
@@ -239,8 +269,10 @@
   <sub>freq 6 · sources: mem</sub>
 - **CBT** — _usage:_ "'thinking mode' - Apply evidence-based CBT/DBT interventions (thought records,"  
   <sub>freq 3 · sources: mem</sub>
-- **CC** — _usage:_ "h healthy on KVM2. On the GTX 470: CUDA CC 2.0 means no GPU acceleration in any"  
+- **CC** — (1) Carbon Copy, the email header that sends a visible copy to additional recipients (contrast BCC); (2) CUDA Compute Capability, the version number gating which GPU features a card supports.  
   <sub>freq 39 · sources: gmail+mem</sub>
+- **CCPA** — California Consumer Privacy Act — California's privacy law granting rights to know, delete and opt out of the sale of personal data. Broadly the US analogue of GDPR.  
+  <sub>freq 0 · sources: curated</sub>
 - **CD** — Continuous Delivery/Deployment  
   <sub>freq 175 · sources: gmail+mem</sub>
 - **CDK** — _usage:_ "ith existing AWS SDKs, CLIs, Terraform, CDK, and OpenTofu workflows. - Features"  
@@ -257,6 +289,8 @@
   <sub>freq 2 · sources: mem</sub>
 - **CEREBR** — _usage:_ "models -H "Authorization: Bearer $(grep CEREBR - Update the model ID wherever it"  
   <sub>freq 8 · sources: mem</sub>
+- **CET** — Central European Time — UTC+1 (UTC+2 as CEST in summer). Sofia is EET, one hour ahead of CET.  
+  <sub>freq 0 · sources: curated</sub>
 - **CF** — _usage:_ "ot claimed them — likely blocked by the CF-5 chronic in-flight backlog (Jules Sc"  
   <sub>freq 993 · sources: gmail+mem</sub>
 - **CFO** — _usage:_ "Pre-built personas for C-level roles (CFO, CMO, CTO, etc.) to guide agent thin"  
@@ -276,6 +310,12 @@
 - **CI** — Continuous Integration  
   <sub>freq 459 · sources: gmail+mem</sub>
 - **CI/CD** — Continuous Integration / Continuous Deployment — automated pipeline that builds, tests, and ships code on every commit. Typically implemented with GitHub Actions, GitLab CI, or Jenkins.  
+  <sub>freq 0 · sources: curated</sub>
+- **CIO** — Chief Information Officer — executive owning internal IT systems and infrastructure. Distinct from the CTO, who owns the product's technology.  
+  <sub>freq 0 · sources: curated</sub>
+- **CISA** — Cybersecurity and Infrastructure Security Agency — the US federal agency that publishes the KEV catalogue of actively exploited vulnerabilities and issues binding directives to federal agencies.  
+  <sub>freq 0 · sources: curated</sub>
+- **CJS** — CommonJS — Node.js's original module system, using `require()` and `module.exports`. Synchronous; being displaced by ESM.  
   <sub>freq 0 · sources: curated</sub>
 - **CK** — _usage:_ "to five industry frameworks (MITRE ATT&CK, NIST CSF 2.0, MITRE ATLAS, D3FEND, N"  
   <sub>freq 26 · sources: gmail+mem</sub>
@@ -303,6 +343,8 @@
   <sub>freq 18 · sources: gmail+mem</sub>
 - **CMO** — _usage:_ "built personas for C-level roles (CFO, CMO, CTO, etc.) to guide agent thinking"  
   <sub>freq 22 · sources: gmail+mem</sub>
+- **CMS** — Content Management System — software for authoring and publishing site content without touching code. WordPress, Contentful, Sanity, Strapi.  
+  <sub>freq 0 · sources: curated</sub>
 - **CMU** — _usage:_ "painting for Chinese Pinyin and English CMU phonemes - Text normalization for nu"  
   <sub>freq 6 · sources: gmail+mem</sub>
 - **CN** — _usage:_ "", "ja-JP-KeitaNeural", "zh-CN-XiaoxiaoNeural", "zh-CN-Yunyang"  
@@ -317,6 +359,8 @@
   <sub>freq 2 · sources: mem</sub>
 - **COMFY** — _usage:_ "String -Pattern "runpod|RUNPOD|comfyui|COMFY" -C... - Check if the Artist Herme"  
   <sub>freq 2 · sources: mem</sub>
+- **conda** — cross-language package and environment manager from the Anaconda ecosystem. Unlike pip it also installs non-Python binaries (CUDA, MKL, compilers).  
+  <sub>freq 0 · sources: curated</sub>
 - **CONFIG** — _usage:_ "ation Workflow (8 Phases) ``` Phase 0: CONFIG -> [intake_agent]"  
   <sub>freq 9 · sources: gmail+mem</sub>
 - **CONTENT** — _seen in email:_ "User-controlled algos ⚙️, lead magnet tip 🧲, AI-native marketer quiz ❓"  
@@ -377,6 +421,8 @@
   <sub>freq 73 · sources: gmail+mem</sub>
 - **CT** — _usage:_ "that enables fully automatic whole-body CT - **[space-agent](space-agent.md)"  
   <sub>freq 19 · sources: gmail+mem</sub>
+- **CTA** — Call To Action — the single action a page or email is designed to produce, and the button or link that carries it.  
+  <sub>freq 0 · sources: curated</sub>
 - **CTF** — _usage:_ "eering tasks - Offensive cybersecurity (CTF) challenge solving (EnIGMA mode) - C"  
   <sub>freq 12 · sources: gmail+mem</sub>
 - **CTO** — _usage:_ "t personas for C-level roles (CFO, CMO, CTO, etc.) to guide agent thinking - Spe"  
@@ -420,6 +466,8 @@
   <sub>freq 3 · sources: gmail+mem</sub>
 - **DAT** — _usage:_ "ackup\$folder" /E /Z /XO /DCOPY:T /COPY:DAT /R:2 /W:5 /MT:8 /NP /LOG+:"$logDir\$"  
   <sub>freq 2 · sources: gmail+mem</sub>
+- **DataOps** — Data Operations — DevOps practices applied to data pipelines: version-controlled transforms, automated testing of data quality, and continuous delivery of datasets.  
+  <sub>freq 0 · sources: curated</sub>
 - **DAW** — _usage:_ "entation/guidance connector, not direct DAW control — manage expectations accord"  
   <sub>freq 4 · sources: gmail+mem</sub>
 - **DAX** — _usage:_ "offer CFD APIs covering indices (SPX, DAX, FTSE), commodities, and individual"  
@@ -436,6 +484,8 @@
   <sub>freq 6 · sources: gmail+mem</sub>
 - **DD** — _usage:_ "y/_obsidian/journal/inner-voice/YYYY-MM-DD.md`, → MemPalace via the consolidator"  
   <sub>freq 109 · sources: gmail+mem</sub>
+- **DDD** — Domain-Driven Design — modelling software around the business domain, with bounded contexts, aggregates and a ubiquitous language shared by engineers and domain experts.  
+  <sub>freq 0 · sources: curated</sub>
 - **DE** — _usage:_ "", "fr-FR-HenriNeural", "de-DE-KatjaNeural", "de-DE-ConradNeur"  
   <sub>freq 63 · sources: gmail+mem</sub>
 - **DEBUG** — _usage:_ "48 **ts_nanos**: 296566300 **level**: DEBUG **target**: opentelemetry_sdk"  
@@ -452,6 +502,10 @@
   <sub>freq 456 · sources: gmail+mem</sub>
 - **DEV** — _usage:_ "09:00 (data-debug from import.meta.env.DEV) - Phase D next target: first live o"  
   <sub>freq 86 · sources: gmail+mem</sub>
+- **DevOps** — Development + Operations — the practice of merging software development and infrastructure operations, with automated build, deploy and monitoring owned by one team.  
+  <sub>freq 0 · sources: curated</sub>
+- **DevSecOps** — Development + Security + Operations — DevOps with security shifted left: dependency scanning, secret detection and policy checks run inside the CI/CD pipeline rather than at release.  
+  <sub>freq 0 · sources: curated</sub>
 - **DEX** — _usage:_ "hould be — highest-volume on-chain perp DEX with an API designed for algorithmic"  
   <sub>freq 24 · sources: gmail+mem</sub>
 - **DFS** — _usage:_ "betweenness centrality, PageRank, BFS, DFS) - Indexing: incremental by mtime, `"  
@@ -468,12 +522,18 @@
   <sub>freq 15 · sources: gmail+mem</sub>
 - **DL** — Deep Learning  
   <sub>freq 1 · sources: gmail</sub>
+- **DLL** — Dynamic-Link Library — Windows shared-library format (`.dll`), loaded at run time by one or more executables. The Linux equivalent is `.so`.  
+  <sub>freq 0 · sources: curated</sub>
 - **DLP** — _usage:_ "RBAC:** Role-based access control - **DLP:** Data leak prevention policies"  
   <sub>freq 7 · sources: gmail+mem</sub>
 - **DM** — _usage:_ "esilience - Security features including DM pairing policies and exposure runbook"  
   <sub>freq 59 · sources: gmail+mem</sub>
 - **DMA** — _usage:_ "rder entry. - **Direct Market Access:** DMA Gateway with VWAP/TWAP order types."  
   <sub>freq 3 · sources: mem</sub>
+- **DMG** — Apple Disk Image (`.dmg`) — the standard macOS app-distribution container; mounts as a virtual disk the user drags the app out of.  
+  <sub>freq 0 · sources: curated</sub>
+- **DNA** — Deoxyribonucleic Acid — the molecule carrying genetic instructions. Also used loosely to mean an organisation's defining characteristics.  
+  <sub>freq 0 · sources: curated</sub>
 - **DNS** — Domain Name System  
   <sub>freq 288 · sources: gmail+mem</sub>
 - **DNSSEC** — _usage:_ "y remote desktop. **DNS:** deSEC (free, DNSSEC, REST API), Dynu DDNS."  
@@ -490,7 +550,7 @@
   <sub>freq 111 · sources: gmail</sub>
 - **DOT** — _usage:_ "l | | **Export Graph View** | Mermaid / DOT export | No | ✅ .mmd / .dot | No | ~"  
   <sub>freq 7 · sources: gmail+mem</sub>
-- **DP** — _seen in email:_ "H100s and RTX Pro 6000s are available now for a limited-time rate"  
+- **DP** — DisplayPort, the VESA digital display interface for PC monitors, supporting daisy-chaining and higher refresh rates than HDMI at equal bandwidth.  
   <sub>freq 223 · sources: gmail</sub>
 - **DPAPI** — _usage:_ "ted using Windows' Data Protection API (DPAPI), providing per-user encryption th"  
   <sub>freq 3 · sources: gmail+mem</sub>
@@ -517,8 +577,12 @@
 
 ## E
 
+- **E2E** — End-to-End — testing that drives the whole system the way a user would, through the real UI and real services. Tooling: Playwright, Cypress, Selenium.  
+  <sub>freq 0 · sources: curated</sub>
 - **EA** — _usage:_ "Recurse -Filter "python.exe" -Depth 8 -EA SilentlyContinue | Select-Object Full"  
   <sub>freq 40 · sources: gmail+mem</sub>
+- **EC2** — Elastic Compute Cloud — AWS's virtual-machine service, the original IaaS offering. Instances are billed per second by type (t3, m7, g5, p5).  
+  <sub>freq 0 · sources: curated</sub>
 - **ECC** — _usage:_ "ory-systems.md) — MemPalace/Cavemem/SLM/ECC compared; cognitive-collapse batch l"  
   <sub>freq 177 · sources: gmail+mem</sub>
 - **ECI** — _usage:_ "t malware (install signed only); Docker ECI/gVisor/Cloudflare-ZT/allowedTools/Ag"  
@@ -529,8 +593,12 @@
   <sub>freq 14 · sources: gmail+mem</sub>
 - **EDGE** — _usage:_ "RONG. The CF:1010 error is a Cloudflare EDGE bloc - [obs 1908] Ivan asked specif"  
   <sub>freq 20 · sources: gmail+mem</sub>
+- **EDM** — (1) Electronic Direct Mail, marketing jargon for a designed promotional email; (2) Electronic Dance Music.  
+  <sub>freq 0 · sources: curated</sub>
 - **EDR** — _usage:_ "y": 1. **AppInit/IFEO injection**: AV, EDR, or something like a stale debugger"  
   <sub>freq 21 · sources: gmail+mem</sub>
+- **EDT** — Eastern Daylight Time — UTC−4, the US East Coast summer offset. Sofia is 7 hours ahead.  
+  <sub>freq 0 · sources: curated</sub>
 - **EE** — _usage:_ "w ## Pronunciation Lexicon - Ivan = **EE-van** - Chloé = **Chlo-wée** ## What"  
   <sub>freq 5 · sources: gmail+mem</sub>
 - **EEA** — _seen in email:_ "Your Google Play Order Receipt from Jul 8, 2026"  
@@ -547,6 +615,8 @@
   <sub>freq 10 · sources: gmail+mem</sub>
 - **ELIF** — _usage:_ "preserve verbatim, never summarize ELIF score > threshold_low AND has outbo"  
   <sub>freq 2 · sources: mem</sub>
+- **EM** — em — CSS length unit equal to the element's own computed font size, so it compounds through nesting. Contrast `rem`, which is always relative to the root.  
+  <sub>freq 0 · sources: curated</sub>
 - **EMEA** — _seen in email:_ "Google Cloud Platform & APIs: Your invoice is available for 014BEE-AD0891-DCDF80"  
   <sub>freq 82 · sources: gmail</sub>
 - **EMP** — _seen in email:_ "Enjoy Netflix again."  
@@ -567,6 +637,10 @@
   <sub>freq 4 · sources: gmail</sub>
 - **EOF** — _usage:_ "t > /root/hermes/docker-compose.yml << 'EOF' services: hermes: image: nous"  
   <sub>freq 8 · sources: gmail+mem</sub>
+- **EOM** — End Of Message — placed at the end of an email subject line to signal the whole message fits in the subject and the body is empty.  
+  <sub>freq 0 · sources: curated</sub>
+- **EOW** — End Of Week — deadline shorthand, typically Friday close of business.  
+  <sub>freq 0 · sources: curated</sub>
 - **EPUB** — _usage:_ "s - Web-based reader for CBZ, CBR, PDF, EPUB, MOBI, AZW3 files - API for program"  
   <sub>freq 3 · sources: gmail+mem</sub>
 - **EQ** — _usage:_ "malization, tempo/pitch control, system EQ integration) - Real-time synced lyric"  
@@ -577,14 +651,30 @@
   <sub>freq 21 · sources: gmail</sub>
 - **ES** — _usage:_ "2D and 3D game rendering using OpenGL (ES) - Rapid prototyping and iterative de"  
   <sub>freq 21 · sources: gmail+mem</sub>
+- **ES2015** — ECMAScript 2015 — the formal name for ES6, the release that introduced `let`/`const`, arrow functions, classes, promises, template literals and native modules.  
+  <sub>freq 0 · sources: curated</sub>
+- **ES2020** — ECMAScript 2020 — added optional chaining (`?.`), nullish coalescing (`??`), `BigInt`, `Promise.allSettled` and dynamic `import()`.  
+  <sub>freq 0 · sources: curated</sub>
+- **ES6** — ECMAScript 6 — the 2015 JavaScript language revision; the dividing line between "old" and "modern" JS. Formally ES2015.  
+  <sub>freq 0 · sources: curated</sub>
+- **ESM** — ECMAScript Modules — JavaScript's standard module system, using `import`/`export`. Statically analysable, so it enables tree-shaking. Contrast CJS.  
+  <sub>freq 0 · sources: curated</sub>
 - **ESP** — _usage:_ "the process of programming and managing ESP-based devices for home automation, a"  
   <sub>freq 8 · sources: gmail+mem</sub>
+- **EST** — Eastern Standard Time — UTC−5, the US East Coast winter offset. Sofia is 7 hours ahead.  
+  <sub>freq 0 · sources: curated</sub>
 - **ET** — _usage:_ "s now **24/5** (8pm Sunday – 8pm Friday ET) — rolled out February 2026, specific"  
   <sub>freq 199 · sources: gmail+mem</sub>
 - **ETA** — Estimated Time of Arrival  
   <sub>freq 5 · sources: mem</sub>
+- **ETF** — Exchange-Traded Fund — a fund holding a basket of assets that trades on an exchange like a single share.  
+  <sub>freq 0 · sources: curated</sub>
 - **ETH** — _usage:_ "conomist forecasts). - **Crypto** — BTC/ETH price targets ("Will BTC hit $150K b"  
   <sub>freq 140 · sources: gmail+mem</sub>
+- **EU** — European Union — the political and economic union of 27 member states; the source of GDPR, the AI Act and the DMA/DSA.  
+  <sub>freq 0 · sources: curated</sub>
+- **EULA** — End User Licence Agreement — the licence contract a user accepts before installing software. Distinct from ToS, which governs a hosted service.  
+  <sub>freq 0 · sources: curated</sub>
 - **EUR** — _usage:_ "024, ACTIVE, Infrastructure, **Currency EUR**, commitment €0.00, start May 17 20"  
   <sub>freq 89 · sources: gmail+mem</sub>
 - **EVI** — Empathic Voice Interface  
@@ -622,6 +712,8 @@
   <sub>freq 15 · sources: mem</sub>
 - **FI** — _usage:_ "If yes, get the PID and run `tasklist /FI "PID eq <PID>"` to confirm what proce"  
   <sub>freq 23 · sources: gmail+mem</sub>
+- **FIFA** — Fédération Internationale de Football Association — football's international governing body; also the long-running video game series.  
+  <sub>freq 0 · sources: curated</sub>
 - **FIFO** — _usage:_ "njection patterns; per-IP rate limit) → FIFO queue → BNE deliberation streamed o"  
   <sub>freq 4 · sources: gmail+mem</sub>
 - **FILED** — _usage:_ "ape. - **`server/src/routes/mcp.js`** — FILED (entry #1 above). ## Open questio"  
@@ -632,10 +724,14 @@
   <sub>freq 2 · sources: gmail+mem</sub>
 - **FIN** — _usage:_ ", SEC=security, KNR=knowledge-research, FIN=finances). All work products go to D"  
   <sub>freq 13 · sources: gmail+mem</sub>
+- **FinOps** — Financial Operations for cloud — the discipline of attributing, forecasting and reducing cloud spend, with engineering teams held accountable for their own bill.  
+  <sub>freq 0 · sources: curated</sub>
 - **FINRA** — _usage:_ "prohibited for US retail traders by SEC/FINRA rules). If Quant is running from o"  
   <sub>freq 3 · sources: gmail+mem</sub>
 - **FK** — _usage:_ "l: **0** - New triples with dangling FK (subject/object missing post-merge):"  
   <sub>freq 2 · sources: mem</sub>
+- **FLAC** — Free Lossless Audio Codec — open, lossless audio compression at roughly half the size of WAV. The archival format for music.  
+  <sub>freq 0 · sources: curated</sub>
 - **FLE** — _usage:_ "PreCompact Addendum — 2026-06-20 01:47 FLE Daylight Time > Auto-written by pre"  
   <sub>freq 6 · sources: mem</sub>
 - **FLEET** — _usage:_ "never forwarded at all. 2. **Delegation FLEET map wrong.** `chloe: 8642` (gatewa"  
@@ -650,6 +746,8 @@
   <sub>freq 4 · sources: mem</sub>
 - **FO** — _usage:_ "un `tasklist /FI "IMAGENAME eq py.exe" /FO LIST` and `tasklist /FI "IMAGENAME eq"  
   <sub>freq 6 · sources: mem</sub>
+- **FOMO** — Fear Of Missing Out — the anxiety that drives impulsive adoption of every new tool or trade. Common failure mode in fast-moving AI tooling.  
+  <sub>freq 0 · sources: curated</sub>
 - **FORKS** — _usage:_ "(research branch/variation) ### GITHUB FORKS TO DELETE (ivangegovdve-sudo) 1."  
   <sub>freq 2 · sources: mem</sub>
 - **FORMAT** — _usage:_ "asks - Structured specification format (FORMAT.md) including goals, constraints,"  
@@ -701,6 +799,8 @@
   <sub>freq 3 · sources: gmail+mem</sub>
 - **GC** — _usage:_ "ount. - **Futures access** (ES, NQ, CL, GC etc.) is a major advantage vs. Alpaca"  
   <sub>freq 11 · sources: gmail+mem</sub>
+- **GCE** — Google Compute Engine — Google Cloud's virtual-machine service, the GCP counterpart to AWS EC2.  
+  <sub>freq 0 · sources: curated</sub>
 - **GCM** — _usage:_ "ork with OpenClaw - OAuth2 with AES-256-GCM encrypted token storage (no plaintex"  
   <sub>freq 7 · sources: gmail+mem</sub>
 - **GCP** — Google Cloud Platform  
@@ -721,6 +821,8 @@
   <sub>freq 4 · sources: gmail+mem</sub>
 - **GHSA** — _usage:_ "23-165, CVE-2026-42284, CVE-2026-44244, GHSA-mv93-w799-cj2w * **pip (26.0.1):"  
   <sub>freq 86 · sources: gmail+mem</sub>
+- **GIF** — Graphics Interchange Format — 8-bit (256-colour) image format with animation and 1-bit transparency. Superseded technically by WebP/AVIF but entrenched culturally.  
+  <sub>freq 0 · sources: curated</sub>
 - **GIT** — _usage:_ "es and thinking levels. STEP 2 — CHECK GIT LOG Run: git log --oneline -15 Do NO"  
   <sub>freq 15 · sources: gmail+mem</sub>
 - **GKE** — _usage:_ "nt within existing Kubernetes clusters (GKE, EKS, AKS) **Notable deps**: Kubern"  
@@ -743,12 +845,18 @@
   <sub>freq 2 · sources: mem</sub>
 - **GNU** — _usage:_ "atible object store, open sourced under GNU | | [minisearch](https://github.com"  
   <sub>freq 3 · sources: gmail+mem</sub>
+- **Go** — Go (Golang) — Google's statically typed compiled language, built for concurrent network services. Fast builds, single static binaries, goroutines. Powers Docker, Kubernetes and Ollama.  
+  <sub>freq 0 · sources: curated</sub>
 - **GOAT** — _usage:_ "m every competing tool, then builds the GOAT CLI — designed for AI agents first,"  
   <sub>freq 2 · sources: mem</sub>
 - **GOO** — _usage:_ "EY` → `${ELEVENLABS_API_KEY}` - `env.GOO The read_file returned metadata onl"  
   <sub>freq 2 · sources: mem</sub>
+- **GPA** — Grade Point Average — numeric summary of academic grades, typically on a 4.0 scale.  
+  <sub>freq 0 · sources: curated</sub>
 - **GPL** — _usage:_ "rol ### Cons - Not beginner-friendly - GPL license in the main repo - Less suit"  
   <sub>freq 10 · sources: gmail+mem</sub>
+- **GPS** — Global Positioning System — the US satellite constellation for positioning and timing; used generically for any satellite navigation.  
+  <sub>freq 0 · sources: curated</sub>
 - **GPT** — Generative Pre-trained Transformer  
   <sub>freq 797 · sources: gmail+mem</sub>
 - **GPTQ** — _usage:_ "s (FP8, MXFP8/MXFP4, NVFP4, INT8, INT4, GPTQ/AWQ, GGUF) - Optimized attention ke"  
@@ -759,10 +867,10 @@
   <sub>freq 2 · sources: gmail+mem</sub>
 - **GRAPH** — _usage:_ "══╗ ║ DREAM LOCAL WIKI GRAPH PIPELINE v1.1"  
   <sub>freq 13 · sources: gmail+mem</sub>
-- **GRPO** — _usage:_ ""iris", "task": "research: what is GRPO?"}, {"agent": "anderson", "task":"  
-  <sub>freq 5 · sources: gmail+mem</sub>
 - **gRPC** — Google Remote Procedure Call — high-performance RPC framework using Protocol Buffers over HTTP/2. Common for microservice-to-microservice communication; strongly typed contracts.  
   <sub>freq 0 · sources: curated</sub>
+- **GRPO** — _usage:_ ""iris", "task": "research: what is GRPO?"}, {"agent": "anderson", "task":"  
+  <sub>freq 5 · sources: gmail+mem</sub>
 - **GSAP** — _usage:_ "e HTML, CSS (Tailwind), and JavaScript (GSAP). ## Key Capabilities - Render HTM"  
   <sub>freq 10 · sources: gmail+mem</sub>
 - **GTM** — _usage:_ "ping, creative, code-tools | Library of GTM skills for Claude Code, Codex, Curso"  
@@ -771,15 +879,27 @@
   <sub>freq 60 · sources: gmail+mem</sub>
 - **GUI** — Graphical User Interface  
   <sub>freq 67 · sources: gmail+mem</sub>
+- **GUID** — Globally Unique Identifier — Microsoft's name for a UUID. Same 128-bit value, different spelling convention.  
+  <sub>freq 0 · sources: curated</sub>
 
 ## H
 
 - **HBM** — _usage:_ "long ctx. **Specialized silicon (beats HBM wall for real-time/voice):** Groq LP"  
   <sub>freq 4 · sources: gmail+mem</sub>
+- **HBO** — Home Box Office — US premium television network and streaming service (HBO Max).  
+  <sub>freq 0 · sources: curated</sub>
+- **HD** — High Definition — video at 1280×720 or 1920×1080. Contrast 4K/UHD at 3840×2160.  
+  <sub>freq 0 · sources: curated</sub>
+- **HDD** — Hard Disk Drive — spinning magnetic storage. Cheap per terabyte, ~100× slower on random access than SSD; still the right choice for cold bulk storage.  
+  <sub>freq 0 · sources: curated</sub>
+- **HDMI** — High-Definition Multimedia Interface — the standard consumer display/audio cable. Contrast DP, which is the PC/monitor-oriented equivalent.  
+  <sub>freq 0 · sources: curated</sub>
 - **HEADLINES** — _seen in email:_ "Grok 4.5 🤖, GPT-Live 🎙️, SWE-1.7 👨‍💻"  
   <sub>freq 106 · sources: gmail</sub>
 - **HEALING** — _seen in email:_ "MRI scans of trauma survivors. What they found will shock you."  
   <sub>freq 72 · sources: gmail</sub>
+- **HEIC** — High Efficiency Image Container — Apple's default photo format since iOS 11, wrapping HEVC-compressed images. Roughly half a JPEG's size; poorly supported outside Apple.  
+  <sub>freq 0 · sources: curated</sub>
 - **HF** — _usage:_ "+SOUL, D=RunPod→Vast fallback + CivitAI/HF wiring, E=Console v2 (live WebRTC voi"  
   <sub>freq 38 · sources: gmail+mem</sub>
 - **HH** — _usage:_ "$line = "$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss') | $msg" Add-Content -Path"  
@@ -823,18 +943,22 @@
 
 ## I
 
+- **I/O** — Input/Output — data moving between a program and disk, network or peripherals. Usually the bottleneck, which is why async I/O exists.  
+  <sub>freq 0 · sources: curated</sub>
+- **IaaS** — Infrastructure as a Service — cloud model providing raw compute, storage, and networking (e.g. AWS EC2, GCP Compute Engine, Oracle OCI). Consumer manages OS and up.  
+  <sub>freq 3 · sources: gmail+mem</sub>
 - **IaC** — Infrastructure as Code  
   <sub>freq 2 · sources: gmail</sub>
 - **IAM** — _usage:_ "stgreSQL, Kubernetes, AI inference, and IAM services, aiming to be an alternativ"  
   <sub>freq 61 · sources: gmail+mem</sub>
-- **IaaS** — Infrastructure as a Service — cloud model providing raw compute, storage, and networking (e.g. AWS EC2, GCP Compute Engine, Oracle OCI). Consumer manages OS and up.  
-  <sub>freq 3 · sources: gmail+mem</sub>
 - **IAP** — _usage:_ "behind nginx 443; Iris (GCP) **9119** (IAP-only). NOTE: AnythingLLM's 3001 is o"  
   <sub>freq 6 · sources: gmail+mem</sub>
 - **IB** — _usage:_ "tc.) is a major advantage vs. Alpaca. - IB Gateway runs as a headless Java daemo"  
   <sub>freq 6 · sources: mem</sub>
 - **IBKR** — _usage:_ "massive liquidity, many markets ### 4. IBKR (Interactive Brokers) - Gold standa"  
   <sub>freq 34 · sources: gmail+mem</sub>
+- **IBM** — International Business Machines — the long-running enterprise computing company; owner of Red Hat and the Granite open model family.  
+  <sub>freq 0 · sources: curated</sub>
 - **ICE** — _usage:_ "ccessed via **IBKR** (CME, CBOT, NYMEX, ICE futures) or **Tradovate/NinjaTrader"  
   <sub>freq 20 · sources: gmail+mem</sub>
 - **ICLR** — _usage:_ "enue_disclosure_policies` (v1 database: ICLR, NeurIPS, Nature, Science, ACL, EMN"  
@@ -889,6 +1013,8 @@
   <sub>freq 120 · sources: gmail</sub>
 - **IO** — _usage:_ "nceDB CPU warning:** `"Number of CPUs ≤ IO core reservations — using 1 CPU for c"  
   <sub>freq 46 · sources: gmail+mem</sub>
+- **IoC** — (1) Indicator of Compromise: a hash, IP, domain or filename that evidences a breach; (2) Inversion of Control: the design pattern where a framework calls your code, of which dependency injection is the common form.  
+  <sub>freq 0 · sources: curated</sub>
 - **IoT** — Internet of Things  
   <sub>freq 2 · sources: gmail</sub>
 - **IP** — Internet Protocol  
@@ -899,12 +1025,18 @@
   <sub>freq 103 · sources: gmail+mem</sub>
 - **IPO** — _seen in email:_ "Grok 4.5 🤖, GPT-Live 🎙️, SWE-1.7 👨‍💻"  
   <sub>freq 258 · sources: gmail</sub>
+- **IQ** — Intelligence Quotient — standardised score from a cognitive test, normed to a mean of 100.  
+  <sub>freq 0 · sources: curated</sub>
 - **IRI** — _usage:_ "particularly with TTS, Voice-Loop, and IRI services, which could be affecting c"  
   <sub>freq 4 · sources: mem</sub>
 - **ISC** — _usage:_ "HINK→PLAN→BUILD→EXECUTE→VERIFY→LEARN) + ISC tracking (define success criteria pe"  
   <sub>freq 5 · sources: gmail+mem</sub>
 - **ISE** — _usage:_ "owerShell somehow I see only powerShell ISE.... (idk) tailscale login - no react"  
   <sub>freq 10 · sources: gmail+mem</sub>
+- **ISO** — (1) an optical-disc image file (`.iso`), a byte-for-byte copy of a CD/DVD used for OS installers; (2) the International Organization for Standardization, publisher of ISO 8601 dates and ISO 27001.  
+  <sub>freq 0 · sources: curated</sub>
+- **ISO27001** — ISO/IEC 27001 — the international standard for an information security management system (ISMS). Certification is audited by an accredited third party and widely demanded in enterprise procurement.  
+  <sub>freq 0 · sources: curated</sub>
 - **IT** — _usage:_ "LLM Platforms Database UI and API - AI/IT glossary application with embeddable"  
   <sub>freq 929 · sources: gmail+mem</sub>
 - **IUGR** — _usage:_ "H_CLAIMS.md`. Sample claims generated: IUGR definition, osteoporosis treatment"  
@@ -926,6 +1058,10 @@
   <sub>freq 46 · sources: gmail+mem</sub>
 - **JP** — _usage:_ ", "de-DE-ConradNeural", "ja-JP-NanamiNeural", "ja-JP-KeitaNeur"  
   <sub>freq 4 · sources: gmail+mem</sub>
+- **JPEG** — Joint Photographic Experts Group — the lossy photo compression standard (files usually `.jpg`). No transparency; artefacts on sharp edges and text.  
+  <sub>freq 0 · sources: curated</sub>
+- **JPG** — the three-letter file extension for JPEG, a holdover from MS-DOS 8.3 filenames. Identical format.  
+  <sub>freq 0 · sources: curated</sub>
 - **JS** — _usage:_ "atic→markdown, no key), TinyFish Fetch (JS render→markdown/JSON), Browserbase +"  
   <sub>freq 91 · sources: gmail+mem</sub>
 - **JSDOM** — _usage:_ "ls like Puppeteer, Playwright, Cheerio, JSDOM, or raw HTTP requests, and storing"  
@@ -945,6 +1081,8 @@
 
 ## K
 
+- **K8s** — Kubernetes — "K" + 8 letters + "s". Container orchestration: declarative deployments, self-healing pods, service discovery and horizontal autoscaling.  
+  <sub>freq 0 · sources: curated</sub>
 - **KB** — _usage:_ "wledge-base | LLM-maintained persistent KB, :7331. Idle — no agents connected"  
   <sub>freq 71 · sources: gmail+mem</sub>
 - **KDE** — _usage:_ "PowerToys, Linux distributions, GNOME, KDE) - Contains curated lists for specif"  
@@ -955,6 +1093,8 @@
   <sub>freq 34 · sources: mem</sub>
 - **KG** — Knowledge Graph  
   <sub>freq 170 · sources: gmail+mem</sub>
+- **KISS** — Keep It Simple, Stupid — design principle favouring the least clever solution that works. The counterweight to premature abstraction.  
+  <sub>freq 0 · sources: curated</sub>
 - **KLOH** — _usage:_ "Last assistant output:** Corrected — **KLOH-eh** (IPA /klɔ.e/), the é is a shor"  
   <sub>freq 4 · sources: mem</sub>
 - **KMV** — _usage:_ "present there. I don't know for Chloe's KMV, so I have no idea if there is any e"  
@@ -998,6 +1138,10 @@
   <sub>freq 3 · sources: gmail+mem</sub>
 - **LGPL** — _usage:_ "s completely free and open-source under LGPL. The original devs explicitly built"  
   <sub>freq 2 · sources: mem</sub>
+- **LGTM** — Looks Good To Me — code-review approval shorthand.  
+  <sub>freq 0 · sources: curated</sub>
+- **LIFO** — Last In, First Out — stack ordering; the most recently added item is removed first. Contrast FIFO.  
+  <sub>freq 0 · sources: curated</sub>
 - **LL** — _usage:_ "and CLI tool unifies access to multiple LL | | 10 | `CosyVoice` | 67.8 | tts-voi"  
   <sub>freq 38 · sources: gmail+mem</sub>
 - **LLC** — _usage:_ "cale tiers require a registered entity (LLC/C-Corp) + qualifying institutional e"  
@@ -1008,7 +1152,7 @@
   <sub>freq 56 · sources: gmail</sub>
 - **LM** — _usage:_ "ad units and tablets — perf | | [LiteRT-LM](https://github.com/ivangegovdve-sudo"  
   <sub>freq 81 · sources: gmail+mem</sub>
-- **LOC** — _usage:_ "source files (`client/src/App.jsx` 1015 LOC, `client/src/ui/StormCloudDemo.js"  
+- **LOC** — Lines Of Code — crude size metric for a codebase or a change. See SLOC for the variant that excludes blanks and comments.  
   <sub>freq 46 · sources: gmail+mem</sub>
 - **LOCA** — _usage:_ "TEMP", "C:\Windows\Temp", "$env:LOCA Let me start the disk assessment r"  
   <sub>freq 2 · sources: mem</sub>
@@ -1018,6 +1162,8 @@
   <sub>freq 2 · sources: mem</sub>
 - **LR** — _usage:_ "rning rate, betas, weight decay). * **LR Scheduler**: `lr_scheduler_params` (s"  
   <sub>freq 3 · sources: mem</sub>
+- **LRU** — Least Recently Used — cache eviction policy that discards the entry untouched for the longest. The default in most in-memory caches.  
+  <sub>freq 0 · sources: curated</sub>
 - **LS** — _seen in email:_ "Иван Гегов, тези оферти могат да бъдат твои!"  
   <sub>freq 80 · sources: gmail</sub>
 - **LSP** — _usage:_ "es deeply with IDE functionalities like LSP and debugging, enabling hash-anchore"  
@@ -1049,6 +1195,8 @@
   <sub>freq 4 · sources: mem</sub>
 - **MD** — _usage:_ "le ingestion for PDFs, DOCX, XLSX, TXT, MD, JSON, and more - Drop-in React compo"  
   <sub>freq 78 · sources: gmail+mem</sub>
+- **MDMA** — 3,4-Methylenedioxymethamphetamine — psychoactive compound, subject of clinical trials for PTSD treatment.  
+  <sub>freq 0 · sources: curated</sub>
 - **MED** — _usage:_ "ory, logs, hooks | | Downloads | 7.54 | MED | Ubuntu ISO (6.2 GB) + misc | | bef"  
   <sub>freq 7 · sources: mem</sub>
 - **MEDITATION** — _seen in email:_ "Loneliness is deadlier than smoking. Here’s the antidote"  
@@ -1073,6 +1221,8 @@
   <sub>freq 321 · sources: gmail+mem</sub>
 - **MLA** — _usage:_ "Citation | Multi-format (APA/Chicago/MLA/IEEE/Vancouver) | APA 7.0 only | | A"  
   <sub>freq 5 · sources: gmail+mem</sub>
+- **MLOps** — Machine Learning Operations — DevOps for models: versioned datasets and weights, reproducible training runs, automated evaluation, staged rollout and drift monitoring.  
+  <sub>freq 0 · sources: curated</sub>
 - **MLP** — Multi-Layer Perceptron  
   <sub>freq 2 · sources: gmail</sub>
 - **MLX** — _usage:_ "b.com/ivangegovdve-sudo/mlx) | api | | MLX: An array framework for Apple silico"  
@@ -1089,6 +1239,10 @@
   <sub>freq 153 · sources: gmail+mem</sub>
 - **MoE** — Mixture of Experts  
   <sub>freq 1 · sources: mem</sub>
+- **MP3** — MPEG-1 Audio Layer III — the lossy audio format that made digital music portable. Universally supported; superseded in quality by AAC and Opus.  
+  <sub>freq 0 · sources: curated</sub>
+- **MP4** — MPEG-4 Part 14 — the dominant video container, normally holding H.264/H.265 video and AAC audio. Streamable and supported essentially everywhere.  
+  <sub>freq 0 · sources: curated</sub>
 - **MPS** — _usage:_ "for Apple's Metal Performance Shaders (MPS) on Apple silicon, enabling faster m"  
   <sub>freq 2 · sources: mem</sub>
 - **MQTT** — _usage:_ "udo/zigbee2mqtt) | api | | Zigbee 🐝 to MQTT bridge 🌉, get rid of your proprieta"  
@@ -1105,6 +1259,8 @@
   <sub>freq 11 · sources: gmail+mem</sub>
 - **MTB** — _usage:_ "aler incident (Trojan:Win32/Reconyc.GVD!MTB, 2026-05-21) - Reports file+line+sev"  
   <sub>freq 7 · sources: gmail+mem</sub>
+- **MTBF** — Mean Time Between Failures — average uptime between incidents. Paired with MTTR to describe reliability.  
+  <sub>freq 0 · sources: curated</sub>
 - **MTP** — _usage:_ "applications - Multi-Token Prediction (MTP) for faster inference **Notable dep"  
   <sub>freq 23 · sources: gmail+mem</sub>
 - **MTTR** — _usage:_ "Audit trail for compliance - Reduced MTTR (mean time to resolution) - System"  
@@ -1115,21 +1271,31 @@
   <sub>freq 40 · sources: gmail+mem</sub>
 - **MV** — _usage:_ "memory, auto-imported] --- # CP-vs-Git-MV Soft-Completion Gap (CF-20) — 3 Deliv"  
   <sub>freq 7 · sources: mem</sub>
-- **MVP** — Minimum Viable Product  
+- **MVC** — Model-View-Controller — UI architecture splitting data (model), presentation (view) and input handling (controller). Rails, Django and ASP.NET are built on it.  
+  <sub>freq 0 · sources: curated</sub>
+- **MVP** — (1) Minimum Viable Product, the smallest release that tests the core hypothesis with real users; (2) Model-View-Presenter, the MVC variant where the presenter holds all view logic and the view stays passive.  
   <sub>freq 62 · sources: gmail+mem</sub>
 - **MVVM** — _usage:_ "Flexible architecture compatible with MVVM, MVP, Clean, VIPER, etc. **Notable"  
   <sub>freq 2 · sources: mem</sub>
 
 ## N
 
+- **NACK** — Negative Acknowledgement — protocol signal that a message was received but rejected, or was expected and never arrived. Opposite of ACK.  
+  <sub>freq 0 · sources: curated</sub>
 - **NAS** — _usage:_ "ntrusted platforms (like cloud storage, NAS, USB drives) where the provider migh"  
   <sub>freq 2 · sources: gmail+mem</sub>
+- **NASA** — National Aeronautics and Space Administration — the US civil space agency.  
+  <sub>freq 0 · sources: curated</sub>
+- **NASDAQ** — Nasdaq — US electronic stock exchange, heavily weighted toward technology listings.  
+  <sub>freq 0 · sources: curated</sub>
 - **NAT** — _usage:_ "help you expose a local server behind a NAT or firewall | | [gallery](https://g"  
   <sub>freq 5 · sources: gmail+mem</sub>
 - **NATIVE** — _seen in email:_ "User-controlled algos ⚙️, lead magnet tip 🧲, AI-native marketer quiz ❓"  
   <sub>freq 90 · sources: gmail</sub>
 - **NBBO** — _usage:_ "Routes ~87% of orders at or better than NBBO. - **Global markets:** US equities,"  
   <sub>freq 3 · sources: mem</sub>
+- **NDA** — Non-Disclosure Agreement — contract binding a party not to share specified confidential information.  
+  <sub>freq 0 · sources: curated</sub>
 - **NDJSON** — _usage:_ "and subprocess execution as structured NDJSON events, without requiring any cod"  
   <sub>freq 12 · sources: gmail+mem</sub>
 - **NEON** — _usage:_ "ISC-V) with hardware optimizations (ARM NEON, AVX, RVV) - LLM inference on NVIDI"  
@@ -1160,12 +1326,16 @@
   <sub>freq 7 · sources: mem</sub>
 - **NODE** — _usage:_ "loe-cloud is the KVM2 Chloé target). 5. NODE-BASED DELEGATOR HUB (n8n FleetDeleg"  
   <sub>freq 8 · sources: gmail+mem</sub>
+- **NoOps** — No Operations — the aspiration that fully managed/serverless platforms remove the need for a dedicated ops function. In practice it relocates ops work rather than deleting it.  
+  <sub>freq 0 · sources: curated</sub>
 - **NPM** — _usage:_ "n via CDN for quick web use. - Provides NPM and Yarn packages for project integr"  
   <sub>freq 26 · sources: gmail+mem</sub>
 - **NPU** — _usage:_ "re acceleration for LLM inference (GPU, NPU) - Multi-modal input support (vision"  
   <sub>freq 8 · sources: gmail+mem</sub>
 - **NQ** — _usage:_ "one account. - **Futures access** (ES, NQ, CL, GC etc.) is a major advantage vs"  
   <sub>freq 6 · sources: gmail+mem</sub>
+- **NSA** — National Security Agency — the US signals-intelligence agency; also publishes cryptographic and hardening guidance.  
+  <sub>freq 0 · sources: curated</sub>
 - **NSCA** — _usage:_ "hypertrophy papers from PubMed/bioRxiv/NSCA to validat - test --project=forest"  
   <sub>freq 2 · sources: mem</sub>
 - **NSFW** — _usage:_ "Tokyo NSFW image | NSFW text-to-image generati"  
@@ -1176,10 +1346,14 @@
   <sub>freq 39 · sources: gmail+mem</sub>
 - **NTFS** — _usage:_ "Failed The Linux mount is exposing the NTFS file entry but the file handle itse"  
   <sub>freq 5 · sources: gmail+mem</sub>
+- **NVMe** — Non-Volatile Memory Express — the protocol that lets SSDs talk to the CPU over PCIe instead of the SATA/AHCI legacy path. Order-of-magnitude lower latency and far deeper queues.  
+  <sub>freq 0 · sources: curated</sub>
 - **NWS** — _usage:_ "Weather markets** — short-duration, NWS-anchored, largely uncorrelated to ev"  
   <sub>freq 5 · sources: mem</sub>
 - **NY** — _seen in email:_ "Want to join us in Brooklyn?"  
   <sub>freq 199 · sources: gmail</sub>
+- **NYSE** — New York Stock Exchange — the largest US stock exchange by listed market capitalisation.  
+  <sub>freq 0 · sources: curated</sub>
 
 ## O
 
@@ -1217,6 +1391,8 @@
   <sub>freq 195 · sources: gmail+mem</sub>
 - **OKR** — _seen in email:_ "I Asked an AI to Audit My Own Career"  
   <sub>freq 3 · sources: gmail</sub>
+- **OLX** — classifieds marketplace, the dominant second-hand buy/sell platform in Bulgaria and much of Eastern Europe.  
+  <sub>freq 0 · sources: curated</sub>
 - **ONNX** — _usage:_ "euse: wake_word_daemon.py (openWakeWord ONNX, >0.65 conf → POST :8642), gateway_"  
   <sub>freq 85 · sources: gmail+mem</sub>
 - **OOB** — _usage:_ "l\gmail_auth.py is using the deprecated OOB / manual-copy flow (urn:ietf:wg:oaut"  
@@ -1225,6 +1401,8 @@
   <sub>freq 68 · sources: gmail</sub>
 - **OOM** — Out of Memory  
   <sub>freq 30 · sources: gmail+mem</sub>
+- **OOO** — Out Of Office — automatic email reply marking someone as away.  
+  <sub>freq 0 · sources: curated</sub>
 - **OOP** — _usage:_ "ed PascalCase to class/component names (OOP convention). ## Further reading - ["  
   <sub>freq 2 · sources: gmail+mem</sub>
 - **OP** — _usage:_ "— 2026-05-04 23:30 ## Run outcome: NO-OP (by protocol) Overnight handoff line"  
@@ -1280,12 +1458,16 @@
   <sub>freq 64 · sources: gmail</sub>
 - **PC** — _usage:_ "ces (≤0.5B params, runs even on the old PC) deployed as autonomous observers — r"  
   <sub>freq 392 · sources: gmail+mem</sub>
+- **PCI-DSS** — Payment Card Industry Data Security Standard — the security requirements any organisation storing or transmitting card data must meet. Avoiding scope is why most sites hand card entry to Stripe.  
+  <sub>freq 0 · sources: curated</sub>
 - **PCM** — _usage:_ "this session; accepts 16 kHz mono int16 PCM binary frames + `{"cmd":"wake"}`"  
   <sub>freq 14 · sources: mem</sub>
 - **PCOS** — _usage:_ ", contraceptives, fertility, menopause, PCOS, thyroid, cortisol - Iris is the re"  
   <sub>freq 5 · sources: gmail+mem</sub>
 - **PDF** — Portable Document Format  
   <sub>freq 291 · sources: gmail+mem</sub>
+- **PDT** — Pacific Daylight Time — UTC−7, the US West Coast summer offset. Sofia is 10 hours ahead.  
+  <sub>freq 0 · sources: curated</sub>
 - **PEFT** — Parameter-Efficient Fine-Tuning  
   <sub>freq 1 · sources: mem</sub>
 - **PEP** — _usage:_ "ed snake_case to Python code internals (PEP 8). * **2026-05-10:** Confined cam"  
@@ -1308,6 +1490,8 @@
   <sub>freq 38 · sources: gmail+mem</sub>
 - **PING** — _usage:_ "xactly this and nothing else: run `echo PING-TEST-START`, then `sleep 30`, then"  
   <sub>freq 3 · sources: mem</sub>
+- **pip** — Python's standard package installer, pulling from PyPI. `pip install -r requirements.txt`. Increasingly fronted by uv for speed.  
+  <sub>freq 0 · sources: curated</sub>
 - **PKCE** — _usage:_ "ify helper ### Note on URL expiry: The PKCE verifier for this URL was stored to"  
   <sub>freq 2 · sources: gmail+mem</sub>
 - **PLATFORM** — _seen in email:_ "Grok 4.5 🤖, GPT-Live 🎙️, SWE-1.7 👨‍💻"  
@@ -1330,6 +1514,8 @@
   <sub>freq 149 · sources: gmail+mem</sub>
 - **POC** — Proof of Concept  
   <sub>freq 14 · sources: gmail+mem</sub>
+- **POP3** — Post Office Protocol v3 — the older mail-retrieval protocol; downloads messages and by default deletes them from the server. Largely replaced by IMAP, which keeps state in sync.  
+  <sub>freq 0 · sources: curated</sub>
 - **POSIX** — _usage:_ "file mutexes + atomic rename commits** (POSIX-atomic, no DB, no broker) — the sa"  
   <sub>freq 8 · sources: gmail+mem</sub>
 - **PP** — _usage:_ "was talking about the Lang graph swap, PP install on KVM 2 code session that's"  
@@ -1340,7 +1526,7 @@
   <sub>freq 18 · sources: gmail+mem</sub>
 - **PQ** — _usage:_ "ger files. Then optionally build an IVF-PQ or HNSW index. Script below (§6)."  
   <sub>freq 10 · sources: gmail+mem</sub>
-- **PR** — Pull Request  
+- **PR** — (1) Pull Request, a proposed set of commits opened for review before merge; (2) Public Relations / press release, the communications discipline and its published announcements.  
   <sub>freq 3,886 · sources: gmail+mem</sub>
 - **PRAGMA** — _usage:_ "rc/storage.ts:23` opens the DB with no `PRAGMA journal_mode=WAL` and no `busy_ti"  
   <sub>freq 63 · sources: gmail+mem</sub>
@@ -1350,8 +1536,18 @@
   <sub>freq 77 · sources: gmail</sub>
 - **PS** — _usage:_ "ooks\session-stop-handoff-writer.ps1` | PS 5.1 `@()` fix + dup-to-archive fix"  
   <sub>freq 56 · sources: gmail+mem</sub>
+- **PSN** — PlayStation Network — Sony's online gaming and store service.  
+  <sub>freq 0 · sources: curated</sub>
+- **PST** — Pacific Standard Time — UTC−8, the US West Coast winter offset. Sofia is 10 hours ahead.  
+  <sub>freq 0 · sources: curated</sub>
 - **PSTN** — _usage:_ "oe. - **Twilio phone call**: Works, but PSTN latency + $110/month at moderate us"  
   <sub>freq 3 · sources: mem</sub>
+- **PT** — Pacific Time — the US West Coast zone, PST in winter and PDT in summer. Used when the offset should follow DST automatically.  
+  <sub>freq 0 · sources: curated</sub>
+- **PTO** — Paid Time Off — accrued leave.  
+  <sub>freq 0 · sources: curated</sub>
+- **PTSD** — Post-Traumatic Stress Disorder — psychiatric condition following exposure to trauma.  
+  <sub>freq 0 · sources: curated</sub>
 - **PTT** — Push To Talk
   <sub>freq 6 · sources: gmail+mem</sub>
 - **PTY** — _usage:_ "Delegate coding to OpenAI Codex CLI (PTY, background, worktrees, parallel PRs"  
@@ -1360,15 +1556,19 @@
   <sub>freq 11 · sources: mem</sub>
 - **PWA** — _usage:_ "es a browser-first Progressive Web App (PWA) that enables real-time, - **[voice2"  
   <sub>freq 106 · sources: gmail+mem</sub>
-- **PYSEC** — _usage:_ "E-2026-39892 * **gitpython (3.0.6):** PYSEC-2024-4, PYSEC-2022-42992, PYSEC-20"  
-  <sub>freq 5 · sources: mem</sub>
+- **pyenv** — installs and switches between multiple Python interpreter versions per shell or per directory. Solves version pinning, not dependency isolation (that is venv's job).  
+  <sub>freq 0 · sources: curated</sub>
 - **PyMuPDF** — Python binding for MuPDF, imported as `fitz`. High-speed PDF and document parser. Fallback parser in the Forest pipeline when LlamaParse credits are exhausted (e.g. since 2026-07-19).  
   <sub>freq 8 · sources: mem</sub>
+- **PYSEC** — _usage:_ "E-2026-39892 * **gitpython (3.0.6):** PYSEC-2024-4, PYSEC-2022-42992, PYSEC-20"  
+  <sub>freq 5 · sources: mem</sub>
 
 ## Q
 
 - **QA** — _usage:_ "chitecture, design review, code review, QA, security audits, and release managem"  
   <sub>freq 166 · sources: gmail+mem</sub>
+- **QC** — Quality Control — inspecting output to catch defects. Narrower than QA, which is about the process that prevents them.  
+  <sub>freq 0 · sources: curated</sub>
 - **QLoRA** — Quantized Low-Rank Adaptation — fine-tuning technique combining 4-bit quantization with LoRA adapters, enabling large model fine-tuning on consumer GPUs with minimal quality loss.  
   <sub>freq 0 · sources: curated</sub>
 - **QMD** — _usage:_ "igned for large-s - **[qmd](qmd.md)** — QMD is a mini CLI search engine designed"  
@@ -1422,6 +1622,10 @@
   <sub>freq 240 · sources: gmail+mem</sub>
 - **RFC** — Request For Comments  
   <sub>freq 7 · sources: gmail+mem</sub>
+- **RFP** — Request For Proposal — a buyer's formal solicitation asking vendors to propose a solution and price. Broader than an RFQ, which asks only for a price.  
+  <sub>freq 0 · sources: curated</sub>
+- **RFQ** — Request For Quotation — a buyer's request for pricing on an already-specified item or service.  
+  <sub>freq 0 · sources: curated</sub>
 - **RIGH** — _usage:_ "free voice APIs Check what's available RIGH... - Design and start building the"  
   <sub>freq 4 · sources: mem</sub>
 - **RISC** — _usage:_ "hardware, from Apple silicon to x86 and RISC-V architectures, by optimizing for"  
@@ -1458,6 +1662,8 @@
   <sub>freq 13 · sources: mem</sub>
 - **RPM** — _usage:_ "y**; >=$10 = **1,000/day**. Hard cap 20 RPM either way. Negative balance → 402 b"  
   <sub>freq 25 · sources: mem</sub>
+- **RPO** — Recovery Point Objective — the maximum acceptable amount of data loss, expressed as time. An RPO of 15 min means backups every 15 min. Paired with RTO.  
+  <sub>freq 0 · sources: curated</sub>
 - **RQ** — _usage:_ "Starting from scratch with a clear RQ | `full` | balanced | | Need help pla"  
   <sub>freq 4 · sources: gmail+mem</sub>
 - **RSA** — _usage:_ "ption/decryption operations (e.g., AES, RSA, XOR) - Encode/decode data using mul"  
@@ -1472,6 +1678,8 @@
   <sub>freq 4 · sources: gmail+mem</sub>
 - **RTL** — _usage:_ "ents, framework-native versions, modern RTL/LTR support, and long-term support,"  
   <sub>freq 2 · sources: mem</sub>
+- **RTO** — Recovery Time Objective — the maximum acceptable downtime before a system must be restored after an incident.  
+  <sub>freq 0 · sources: curated</sub>
 - **RTT** — _usage:_ "→ LangGraph :8672 → agent → back, with RTT, response text, pass/fail; fix failu"  
   <sub>freq 2 · sources: mem</sub>
 - **RTX** — _usage:_ "when rendering/fine-tuning, then kill): RTX 4090 24GB ~$0.18–0.31/hr (Clore/Vast"  
@@ -1484,9 +1692,13 @@
   <sub>freq 2 · sources: mem</sub>
 - **RW** — _usage:_ "center. May need Ivan to mint one repo-RW PAT. - 🔧 **Hermes Desktop ↔ Chloé re"  
   <sub>freq 2 · sources: gmail+mem</sub>
+- **RWA** — Real-World Assets — tokenised claims on off-chain assets such as treasuries, property or invoices.  
+  <sub>freq 0 · sources: curated</sub>
 
 ## S
 
+- **S3** — Simple Storage Service — AWS object storage. Its API became the de-facto standard, reimplemented by Cloudflare R2, MinIO, Backblaze B2 and Oracle Object Storage.  
+  <sub>freq 0 · sources: curated</sub>
 - **SA** — _usage:_ "sh path = Phase A of overnight runner). SA grant for fleet-agent-runtime ADC was"  
   <sub>freq 24 · sources: gmail+mem</sub>
 - **SaaS** — Software as a Service  
@@ -1555,10 +1767,14 @@
   <sub>freq 60 · sources: gmail+mem</sub>
 - **SLA** — Service-Level Agreement  
   <sub>freq 19 · sources: gmail+mem</sub>
+- **SLI** — Service Level Indicator — the actual measured number (p99 latency, success rate) that an SLO sets a target for and an SLA contracts on.  
+  <sub>freq 0 · sources: curated</sub>
 - **SLM** — Small Language Model  
   <sub>freq 10 · sources: mem</sub>
 - **SLO** — Service-Level Objective  
   <sub>freq 1 · sources: gmail</sub>
+- **SLOC** — Source Lines Of Code — LOC counting only real code, excluding blanks and comments.  
+  <sub>freq 0 · sources: curated</sub>
 - **SM** — Secrets Manager  
   <sub>freq 357 · sources: gmail+mem</sub>
 - **SMS** — _usage:_ "ram, Twitter, WhatsApp, Telegram, Line, SMS) - AI agent for automated responses"  
@@ -1567,10 +1783,14 @@
   <sub>freq 9 · sources: gmail+mem</sub>
 - **SOC** — _seen in email:_ "🦾 Greeks Predicted AI 2,500 Years Ago"  
   <sub>freq 78 · sources: gmail</sub>
+- **SOC2** — SOC 2 — AICPA audit report on a service organisation's controls for security, availability, processing integrity, confidentiality and privacy. Type I is a point in time, Type II covers a period.  
+  <sub>freq 0 · sources: curated</sub>
 - **SOCIAL** — _seen in email:_ "User-controlled algos ⚙️, lead magnet tip 🧲, AI-native marketer quiz ❓"  
   <sub>freq 60 · sources: gmail</sub>
 - **SOFTWARE** — _seen in email:_ "Siri Gets Expressive 🗣️, SpaceXAI New Logo 🚀, Meta Launches Pocket 🤖"  
   <sub>freq 162 · sources: gmail</sub>
+- **SOLID** — five object-oriented design principles: Single responsibility, Open/closed, Liskov substitution, Interface segregation, Dependency inversion.  
+  <sub>freq 0 · sources: curated</sub>
 - **SOP** — _usage:_ "ntradicts: [] --- # Same-Origin Policy (SOP) The Same-Origin Policy (SOP) is a"  
   <sub>freq 40 · sources: gmail+mem</sub>
 - **SOPS** — _usage:_ "eration - Manage API keys securely with SOPS + age encryption - Track image gene"  
@@ -1579,6 +1799,8 @@
   <sub>freq 10 · sources: gmail+mem</sub>
 - **SOUL** — _usage:_ "o separate). When building the Artist's SOUL + toolset, scope it to this full br"  
   <sub>freq 423 · sources: gmail+mem</sub>
+- **SOW** — Statement Of Work — the contract annex defining deliverables, milestones, acceptance criteria and price for an engagement.  
+  <sub>freq 0 · sources: curated</sub>
 - **SPA** — _usage:_ "ate for same-origin scripts/styles. - SPA navigateFallback to /index.html so d"  
   <sub>freq 7 · sources: gmail+mem</sub>
 - **SPARC** — _usage:_ "cp, infra, automation, code-tools | The SPARC Framework is a comprehensive metho"  
@@ -1591,6 +1813,8 @@
   <sub>freq 30 · sources: mem</sub>
 - **SQL** — Structured Query Language  
   <sub>freq 454 · sources: gmail+mem</sub>
+- **SRE** — Site Reliability Engineering — Google's operations discipline: reliability treated as a product feature, managed with SLOs and error budgets by engineers who write software.  
+  <sub>freq 0 · sources: curated</sub>
 - **SS** — _usage:_ "convention is `rollout-YYYY-MM-DDTHH-MM-SS-UUID.jsonl`. - Path: `C:\Users\Groo"  
   <sub>freq 9 · sources: gmail+mem</sub>
 - **SSD** — _usage:_ "oA Gateway). - Integrate with Flash-MoE SSD backend for enhanced performance."  
@@ -1613,8 +1837,14 @@
   <sub>freq 60 · sources: gmail</sub>
 - **STARTUPS** — _seen in email:_ "GPT-Live 🔊, Grok matches Opus 🤖, inside Bun's rewrite 👨‍💻"  
   <sub>freq 90 · sources: gmail</sub>
+- **stderr** — Standard Error — file descriptor 2, the conventional stream for diagnostics and errors. Kept separate from stdout so logs do not corrupt piped data.  
+  <sub>freq 0 · sources: curated</sub>
+- **stdin** — Standard Input — file descriptor 0, the stream a process reads input from; the left-hand side of a shell pipe.  
+  <sub>freq 0 · sources: curated</sub>
 - **STDIO** — _usage:_ "laude Code, Inspector's CLI) supporting STDIO and SSE transports. **Notable dep"  
   <sub>freq 6 · sources: gmail+mem</sub>
+- **stdout** — Standard Output — file descriptor 1, the stream a process writes its normal results to; what a shell pipe carries forward.  
+  <sub>freq 0 · sources: curated</sub>
 - **STE** — _usage:_ "ind in-progress work, push it further. STE You've hit your limit · resets Apr"  
   <sub>freq 2 · sources: mem</sub>
 - **STRATEGIES** — _seen in email:_ "AI Breaches AWS Environment ☁️, Accenture Data Breach 🔓, AI For Blue Teams 🟦"  
@@ -1633,6 +1863,10 @@
   <sub>freq 119 · sources: gmail</sub>
 - **SUPPORT** — _seen in email:_ "Aave Monad Market Hits $100M 💵, New Ethereum Roadmap 🛣️, Crypto Card Comparison ✅"  
   <sub>freq 73 · sources: gmail</sub>
+- **SUT** — System Under Test — the component a test is actually exercising, as distinct from its stubbed collaborators.  
+  <sub>freq 0 · sources: curated</sub>
+- **SUV** — Sport Utility Vehicle.  
+  <sub>freq 0 · sources: curated</sub>
 - **SVG** — Scalable Vector Graphics  
   <sub>freq 38 · sources: gmail+mem</sub>
 - **SVM** — Support Vector Machine  
@@ -1658,6 +1892,8 @@
   <sub>freq 12 · sources: mem</sub>
 - **TB** — _usage:_ "continues in Task 3) | | | **GDrive (5 TB)** | BackupTiers destination + resear"  
   <sub>freq 84 · sources: gmail+mem</sub>
+- **TBC** — To Be Confirmed — placeholder for a value that exists but is not yet verified. Contrast TBD, where the value is not yet decided.  
+  <sub>freq 0 · sources: curated</sub>
 - **TBD** — _usage:_ "oice Studio deployed somewhere (hosting TBD)" metadata: node_type: memory ty"  
   <sub>freq 50 · sources: gmail+mem</sub>
 - **TCP** — Transmission Control Protocol  
@@ -1684,6 +1920,8 @@
   <sub>freq 2 · sources: mem</sub>
 - **TL** — _usage:_ "ning Dispatcher Report — 2026-05-24 ## TL;DR **BLOCKED.** Morning queue empty"  
   <sub>freq 40 · sources: gmail+mem</sub>
+- **TL;DR** — Too Long; Didn't Read — a short summary placed at the top of a long document, or a request for one.  
+  <sub>freq 0 · sources: curated</sub>
 - **TLDR** — Too Long; Didn't Read  
   <sub>freq 4,263 · sources: gmail+mem</sub>
 - **TLS** — Transport Layer Security  
@@ -1698,6 +1936,8 @@
   <sub>freq 449 · sources: gmail</sub>
 - **TOML** — _usage:_ "\.printing-press\registry.toml` (5-line TOML stanza) instead of adding an MCP. M"  
   <sub>freq 4 · sources: gmail+mem</sub>
+- **ToS** — Terms of Service — the contract governing use of a hosted service. Distinct from a EULA, which licenses installed software.  
+  <sub>freq 0 · sources: curated</sub>
 - **TOTP** — _usage:_ "ti-Factor Authentication (MFA) support (TOTP, FIDO2/WebAuthn, Duo) - OpenID Conn"  
   <sub>freq 10 · sources: gmail+mem</sub>
 - **TP** — _usage:_ "tion - Touch: GT9xx interface (1080x600 TP resolution) ## Integration - Target"  
@@ -1720,7 +1960,7 @@
   <sub>freq 3 · sources: mem</sub>
 - **TRUTH** — _usage:_ "o the safe parts) ## FACTS - This is a TRUTH-FINDING audit. Ivan keeps catching"  
   <sub>freq 4 · sources: gmail+mem</sub>
-- **TS** — _usage:_ "d build cloud functions workflows in JS/TS, all in your browser. - **Updated:"  
+- **TS** — TypeScript — JavaScript with static types, compiled away at build time. Also the `.ts` file extension.  
   <sub>freq 45 · sources: gmail+mem</sub>
 - **TSV** — _usage:_ "SON, 10 Python scripts, 3 PS1, 2 TXT, 2 TSV, 2 PDF, 1 SQL, 1 HTML, 1 CMD **The m"  
   <sub>freq 11 · sources: gmail+mem</sub>
@@ -1744,6 +1984,8 @@
   <sub>freq 260 · sources: gmail</sub>
 - **TV** — _usage:_ "from any android (phone, tablet, watch, TV, car, fr | | [antigravity-sdk-python]"  
   <sub>freq 255 · sources: gmail+mem</sub>
+- **TVL** — Total Value Locked — the aggregate value of assets deposited in a DeFi protocol; the sector's headline size metric.  
+  <sub>freq 0 · sources: curated</sub>
 - **TW** — _usage:_ "A 7.0 only | | Abstract | Bilingual (zh-TW + EN) | Single language | | Peer revi"  
   <sub>freq 6 · sources: gmail+mem</sub>
 - **TWA** — _usage:_ "queries), and implementation notes (no TWA intents, no hardcoded hex, focus-vis"  
@@ -1761,20 +2003,30 @@
 
 - **UAC** — _usage:_ "o, you run the commands. I will approve UAC prompts if needed. I'll be standing"  
   <sub>freq 18 · sources: gmail+mem</sub>
+- **UAT** — User Acceptance Testing — the final stage where real users verify the system meets business needs before sign-off.  
+  <sub>freq 0 · sources: curated</sub>
 - **UDP** — _usage:_ "ices to the internet - Expose local TCP/UDP services to the internet - Support f"  
   <sub>freq 11 · sources: gmail+mem</sub>
 - **UEFI** — _usage:_ "to listen for magic packets. * **BIOS/UEFI Setting:** WoL functionality often"  
   <sub>freq 8 · sources: gmail+mem</sub>
 - **UFW** — _usage:_ "Port 3001 bound to 127.0.0.1:3001 ONLY UFW allows: 22 (SSH), 80 (HTTP), 443 (HT"  
   <sub>freq 7 · sources: mem</sub>
+- **UGC** — User-Generated Content — content produced by users rather than the platform. The supply side of every social product.  
+  <sub>freq 0 · sources: curated</sub>
 - **UI** — User Interface  
   <sub>freq 2,214 · sources: gmail+mem</sub>
+- **UK** — United Kingdom — of Great Britain and Northern Ireland.  
+  <sub>freq 0 · sources: curated</sub>
 - **UN** — _usage:_ "igh-profile international event for the UN INTERNATIONAL SERVICES, but their cur"  
   <sub>freq 6 · sources: gmail+mem</sub>
 - **URI** — _usage:_ "u do not have access" is not a redirect URI problem — your OAuth app is in Testi"  
   <sub>freq 24 · sources: gmail+mem</sub>
 - **URL** — Uniform Resource Locator  
   <sub>freq 1,600 · sources: gmail+mem</sub>
+- **US** — United States — of America. See also USA.  
+  <sub>freq 0 · sources: curated</sub>
+- **USA** — United States of America.  
+  <sub>freq 0 · sources: curated</sub>
 - **USB** — _usage:_ "ss returns. ADB reconnect after reboot: USB works once "Allow USB debugging" re"  
   <sub>freq 136 · sources: gmail+mem</sub>
 - **USD** — _usage:_ "cap on the InWorld API key (e.g., $200 USD). <br>• When the cap is reached, aut"  
@@ -1814,6 +2066,8 @@
   <sub>freq 13 · sources: mem</sub>
 - **VE** — _usage:_ "input=True, ``` Neither is wrong. `VE... ## Incremental log"  
   <sub>freq 38 · sources: gmail+mem</sub>
+- **venv** — Python's built-in virtual-environment module, creating an isolated per-project interpreter and `site-packages`. `python -m venv .venv`.  
+  <sub>freq 0 · sources: curated</sub>
 - **VERT** — _usage:_ "nds traditional RAG by making veri | | [VERT](https://github.com/ivangegovdve-su"  
   <sub>freq 14 · sources: mem</sub>
 - **VFX** — _usage:_ ""Artist agent scope is much wider than VFX — front-end design + motion graphics"  
@@ -1885,12 +2139,18 @@
   <sub>freq 7 · sources: mem</sub>
 - **WEB** — _usage:_ "flash-preview-05-20` or similar — DO A WEB SEARCH first to find the exact curre"  
   <sub>freq 62 · sources: gmail+mem</sub>
+- **WEBM** — WebM — open, royalty-free media container from Google holding VP8/VP9/AV1 video and Vorbis/Opus audio. The default output of most browser recording APIs.  
+  <sub>freq 0 · sources: curated</sub>
+- **WebP** — Google's image format supporting both lossy and lossless modes plus alpha and animation. Typically 25-35% smaller than JPEG at equal quality.  
+  <sub>freq 0 · sources: curated</sub>
 - **WebRTC** — Web Real-Time Communication — browser API enabling peer-to-peer audio, video, and data streaming without plugins. Used in voice/video chat, collaborative tools, and real-time apps.  
   <sub>freq 12 · sources: gmail+mem</sub>
 - **WEBSITE** — _seen in email:_ "Meta Muse Image 🎨, Tripo AI Raises $150M 🎮, Apple RAW Photos 📸"  
   <sub>freq 282 · sources: gmail</sub>
 - **WEEKLY** — _usage:_ "olated notes → Zone 2/3 candidates. ## WEEKLY CONSOLIDATION OUTPUT STRUCTURE `"  
   <sub>freq 26 · sources: gmail+mem</sub>
+- **WFH** — Work From Home.  
+  <sub>freq 0 · sources: curated</sub>
 - **WIKI** — _usage:_ "═══════╗ ║ DREAM LOCAL WIKI GRAPH PIPELINE v1.1"  
   <sub>freq 3 · sources: gmail+mem</sub>
 - **WIP** — Work In Progress  
@@ -1899,7 +2159,7 @@
   <sub>freq 8 · sources: gmail+mem</sub>
 - **WNN** — _usage:_ "append vs regenerate from weekly-YYYY-WNN). - **Q19** — source reference granu"  
   <sub>freq 21 · sources: mem</sub>
-- **WS** — _usage:_ "POST :8642), gateway_bridge.py (FastAPI WS :5001, /notify/thinking|speaking|audi"  
+- **WS** — WebSocket (`ws://`) — full-duplex, persistent TCP connection negotiated over an HTTP upgrade. See WSS for the TLS-secured form.  
   <sub>freq 59 · sources: gmail+mem</sub>
 - **WSE** — _usage:_ "s (Llama 3.3 70B) <100ms TTFT; Cerebras WSE-3 ~3,000 tok/s on gpt-oss-120B; Samb"  
   <sub>freq 3 · sources: gmail+mem</sub>
@@ -1907,9 +2167,15 @@
   <sub>freq 2 · sources: mem</sub>
 - **WSL** — _usage:_ "eBSD, NetBSD, OpenBSD, Solaris, Windows/WSL) - Pruning of old archives based on"  
   <sub>freq 84 · sources: gmail+mem</sub>
+- **WSS** — WebSocket Secure (`wss://`) — WebSocket over TLS. The `https` to WS's `http`.  
+  <sub>freq 0 · sources: curated</sub>
+- **WWDC** — Worldwide Developers Conference — Apple's annual developer event, where OS and SDK releases are announced.  
+  <sub>freq 0 · sources: curated</sub>
 
 ## X
 
+- **XHTML** — Extensible HyperText Markup Language — HTML reformulated as strict XML. Effectively dead on the web, but still the doctype of most HTML email templates.  
+  <sub>freq 0 · sources: curated</sub>
 - **XLSX** — _usage:_ "zation - File ingestion for PDFs, DOCX, XLSX, TXT, MD, JSON, and more - Drop-in"  
   <sub>freq 5 · sources: gmail+mem</sub>
 - **XML** — Extensible Markup Language  
@@ -1918,6 +2184,8 @@
   <sub>freq 2 · sources: gmail+mem</sub>
 - **XOR** — _usage:_ "/decryption operations (e.g., AES, RSA, XOR) - Encode/decode data using multiple"  
   <sub>freq 9 · sources: gmail+mem</sub>
+- **XP** — (1) Windows XP, Microsoft's 2001 OS; (2) experience points in games; (3) Extreme Programming, the agile methodology that gave us pair programming and TDD.  
+  <sub>freq 0 · sources: curated</sub>
 - **XPATH** — _usage:_ "ents. - Automatic fields extraction and XPATH generation for static and dynamic"  
   <sub>freq 7 · sources: mem</sub>
 - **XS** — _usage:_ "oolside/laguna-xs.2` — Poolside: Laguna XS.2 (in:$0.10/M out:$0.20/M) ## 🆓 Free"  
@@ -1935,6 +2203,8 @@
   <sub>freq 3 · sources: mem</sub>
 - **YAML** — YAML Ain't Markup Language  
   <sub>freq 108 · sources: gmail+mem</sub>
+- **yarn** — Yarn — JavaScript package manager introduced by Facebook to fix npm's early determinism and speed problems. Yarn Berry (v2+) adds Plug'n'Play and zero-installs.  
+  <sub>freq 0 · sources: curated</sub>
 - **YC** — _usage:_ "y platform purpose-built for AI agents. YC S24 | | [local-ai-mcp-chainlit](https"  
   <sub>freq 50 · sources: gmail+mem</sub>
 
