@@ -556,9 +556,12 @@
       };
       scrub.addEventListener('pointerdown', (event) => {
         if (!seekable()) return;
-        dragging = true;
-        scrub.setPointerCapture(event.pointerId);
+        // Seek before capturing: setPointerCapture throws on a pointer the
+        // browser no longer considers active, and a throw here would swallow
+        // the plain click-to-seek that most people use.
         seekTo(event.clientX);
+        dragging = true;
+        try { scrub.setPointerCapture(event.pointerId); } catch { /* drag-follow unavailable */ }
       });
       scrub.addEventListener('pointermove', (event) => { if (dragging) seekTo(event.clientX); });
       const endDrag = (event) => {
