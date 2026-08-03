@@ -60,7 +60,7 @@ test('landing keeps one title crown and exposes Life in Time in the 24-card dire
   assert.equal((landingSource.match(/<(?:div|span)\b[^>]*\bdata-title-crown\b/g) || []).length, 1);
   assert.equal((landingSource.match(/<symbol\s+id="leaf"\s/g) || []).length, 1);
   assert.match(landingSource, /data-project="time"[^>]+data-href="\/web\/life-in-time\//);
-  assert.equal((landingSource.match(/class="portal"/g) || []).length, 24);
+  assert.equal((landingSource.match(/<(?:a|article)\b[^>]*\bclass="[^"]*\bportal\b[^"]*"/g) || []).length, 24);
   assert.doesNotMatch(landingSource, /voice(?:2|[- ]to[- ])voice|v2v/i);
 });
 
