@@ -10,6 +10,11 @@
     />
     <title>Cubeflow — Rubik's Cube Teacher</title>
     <script type="module" crossorigin src="/web/rubiks-teacher/assets/index-wb2cPywt.js"></script>
+    <!-- Shared design tokens. Every rule in forest-design.css is scoped to
+         html.forest-skin, so loading it here supplies the sitewide token set
+         (--bg/--surface/--accent/--border/--radius) without restyling the
+         Cubeflow bundle, which keeps its own light theme. -->
+    <link rel="stylesheet" href="/web/shared/forest-design.css?v=20260803a">
     <link rel="stylesheet" crossorigin href="/web/rubiks-teacher/assets/index-BPD805vx.css">
     <style>
       .sdforest-return {
@@ -32,9 +37,13 @@
       }
       .sdforest-return:hover,
       .sdforest-return:focus-visible {
-        border-color: #4a7c59;
+        border-color: var(--accent, #4a7c59);
         outline: 2px solid transparent;
         color: #173e2d;
+      }
+      .sdforest-return:focus-visible {
+        outline: 3px solid var(--focus-ring, #4a7c59);
+        outline-offset: 3px;
       }
     </style>
   </head>
