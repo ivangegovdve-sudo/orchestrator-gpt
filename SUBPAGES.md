@@ -180,8 +180,8 @@
 **Route:** Hub card → `https://flowform.sdforest.site` (external / separate Vercel deployment)
 **Files:** none in this repo — source lives in `ivangegovdve-sudo/flowform` (React + Vite)
 **What it is:** Builds personalised yoga and Pilates sessions from an approved exercise library, shaped by how much time you have and what hurts today. Wears the SDForest palette, type, and page skin, and carries a `← SDForest` bar back to the hub.
-**State:** Card is on the hub as **In development**. The app is still on a PR and the `flowform.sdforest.site` subdomain is not wired yet, so the link does not resolve.
-**Next:** Merge the FlowForm PR, deploy to Vercel, point the subdomain at it, then flip the card's `data-status` to `Live`.
+**State:** Card is on the hub as **In development**, but `https://flowform.sdforest.site` now returns 200 (verified 2026-08-03) — the subdomain *is* wired and the status is stale. The repo is still on `feat/exercise-specific-art` with uncommitted work, so what is deployed and what is on disk have drifted.
+**Next:** Confirm which commit is live, land the outstanding art branch, then flip the card's `data-status` to `Live`.
 
 ---
 
@@ -191,7 +191,28 @@
 **Files:** none in this repo — the app is deployed independently
 **What it is:** Installable PWA of interactive bilateral coordination exercises targeting working memory, inhibitory control, and pattern mapping. Adapted from a children's movement workbook and shaped for ADHD attention. Multi-touch gestures drive the exercises, so the viewport deliberately disables pinch-zoom.
 **State:** Live — the deployment returns 200 and the hub card is marked `Live` with `data-external="true"`, so it opens in a new tab.
-**Next:** Decide whether it earns a `*.sdforest.site` subdomain like FlowForm, and whether the source repo should be mirrored here.
+**Next:** Decide whether it earns a `*.sdforest.site` subdomain like FlowForm, and whether the source repo should be mirrored here. A feedback widget posting to the contribution gateway is on `feat/contrib-feedback-widget` and is blocked on the gateway redeploy — see the Dyslexia entry below.
+
+---
+
+## Dyslexia Reading Platform
+
+**Route:** Hub card, no link yet — the app is not deployed anywhere.
+**Files:** none in this repo — source lives in `ivangegovdve-sudo/dyslexia-platform` (Next.js 16 + FastAPI)
+**What it is:** A reading environment for dyslexic readers: dyslexia-friendly typefaces (OpenDyslexic, Lexend, Atkinson Hyperlegible), a narrow measure, line focus, and colour/spacing controls. Typography, colour and layout controls are never paywalled by design; paid tiers gate voice quality only.
+**What it is *not*:** an ebook-to-audiobook converter. That framing was superseded on 2026-07-30 and lives on as a separate tool — see Audiobook Studio below. Narration exists here but is addressable only as `(chapter, block)`; there is deliberately no "play the whole book" endpoint.
+**State:** Not deployed. Repo is on `feat/stripe-checkout`, working tree clean, zero TODOs. Blocked on two things: `stripe-webhook-secret` is unvaulted (so no subscription can grant Pro), and the FastAPI backend on :8770 has no host — Vercel alone cannot serve it.
+**Next:** Host the backend, register the Stripe webhook against the public URL to obtain and vault the secret, deploy, then give the card a `data-href` and flip `data-status`.
+
+---
+
+## Audiobook Studio
+
+**Route:** Hub card → `https://chloe.blumenkraft.cloud/audiobook/` (external / Oracle, behind nginx)
+**Files:** none in this repo — source is `ivangegovdve-sudo/audiobook-saas`
+**What it is:** A standalone conversion utility. EPUB/PDF/TXT in, chapter-marked M4B out, narrated by Edge TTS or Hume. Separate product and separate codebase from the Dyslexia Reading Platform — the card copy now says so explicitly, because "the ebook→audiobook thing" and "the reading platform" had collapsed into one idea on the hub.
+**State:** Live — returns 200, and the page's own JS calls `engines`, `generate`, `status/{id}` under the same prefix.
+**Next:** Nothing outstanding for the hub. Worth deciding whether it stays a public door or becomes internal-only.
 
 ---
 
