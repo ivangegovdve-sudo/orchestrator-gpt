@@ -1,15 +1,16 @@
 "use strict";
 // Vercel serverless proxy — SDForest code-search → graphify service on Oracle.
 //
-// Forwards GET /api/graphify/search?q=<term> and /api/graphify/health
-// to the Oracle FastAPI service, adding CORS headers.
+// Vercel only routes the first path segment on this project (custom outputDirectory).
+// Sub-paths like /api/graphify/search 404. Route travels in query params instead:
+//
+//   GET /api/graphify?q=<term>&limit=<n>  → /graphify/search
+//   GET /api/graphify                      → /graphify/health
 //
 // Same pattern as api/voice.js.
 
 const GRAPHIFY_BASE =
   process.env.GRAPHIFY_API_URL || "https://chloe.blumenkraft.cloud";
-
-const ALLOWED_PATHS = new Set(["/graphify/search", "/graphify/health"]);
 
 module.exports = async (req, res) => {
   // CORS
@@ -23,15 +24,16 @@ module.exports = async (req, res) => {
     return res.status(405).json({ error: "Method not allowed" });
   }
 
-  // Route: /api/graphify/search → /graphify/search
-  //        /api/graphify/health → /graphify/health
-  const reqPath = req.url || "/";
-  let upstreamPath = "/graphify/health";
-  if (reqPath.includes("/search")) {
-    const q = new URL("http://x" + reqPath).searchParams.get("q") || "";
-    const limit = new URL("http://x" + reqPath).searchParams.get("limit") || "30";
-    if (!q) return res.status(400).json({ error: "q is required" });
+  const params = new URL("http://x" + (req.url || "/")).searchParams;
+  const q = params.get("q") || "";
+  const limit = params.get("limit") || "30";
+
+  // If q is provided → search; otherwise → health
+  let upstreamPath;
+  if (q) {
     upstreamPath = `/graphify/search?q=${encodeURIComponent(q)}&limit=${encodeURIComponent(limit)}`;
+  } else {
+    upstreamPath = "/graphify/health";
   }
 
   const upstreamUrl = `${GRAPHIFY_BASE}${upstreamPath}`;
@@ -40,7 +42,6 @@ module.exports = async (req, res) => {
     const upstream = await fetch(upstreamUrl, {
       method: "GET",
       headers: { Accept: "application/json" },
-      // Self-signed cert on Oracle — disable TLS verification via custom agent below
     });
     const data = await upstream.json();
     res.setHeader("Content-Type", "application/json");
