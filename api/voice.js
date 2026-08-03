@@ -266,35 +266,25 @@ async function audio(req, res, jobId) {
   }
 }
 
-function decodeSegment(segment) {
-  try {
-    return decodeURIComponent(segment);
-  } catch {
-    return segment;
-  }
-}
-
-// The [...path] catch-all is supposed to arrive as req.query.path, but that is
-// the one thing a local harness cannot honestly reproduce — it has to set the
-// field itself, so a route bug survives every local test and only shows up in
-// production. Read the URL, which is always there, and keep the query as a
-// fallback.
-function routeParts(req) {
-  const pathname = (req.url || "").split("?")[0];
-  const fromUrl = pathname
-    .replace(/^\/api\/voice\/?/, "")
-    .split("/")
-    .filter(Boolean)
-    .map(decodeSegment);
-  if (fromUrl.length) return fromUrl;
-
-  const raw = req.query && req.query.path;
-  if (!raw) return [];
-  return (Array.isArray(raw) ? raw : [raw]).map(String);
+// This was a /api/voice/[...path].js catch-all, and on this project Vercel only
+// ever routed the first segment to it: /api/voice/engines reached the function
+// while /api/voice/status/<id> fell through to a platform 404. Rather than keep
+// guessing at catch-all behaviour under a custom buildCommand/outputDirectory,
+// the route travels in the query string and this is one flat function — no
+// dynamic segments for the platform to interpret.
+//
+// The query is parsed off req.url rather than trusted from req.query, for the
+// same reason the segments were: it is the only form that is certainly present.
+function params(req) {
+  const raw = req.url || "";
+  const mark = raw.indexOf("?");
+  const search = new URLSearchParams(mark === -1 ? "" : raw.slice(mark + 1));
+  const pick = (name) => search.get(name) || (req.query ? req.query[name] : null) || null;
+  return { route: pick("route"), jobId: pick("job") };
 }
 
 module.exports = async function handler(req, res) {
-  const [route, jobId] = routeParts(req);
+  const { route, jobId } = params(req);
 
   if (route === "engines" && req.method === "GET") return listEngines(res);
   if (route === "speak" && req.method === "POST") return speak(req, res);

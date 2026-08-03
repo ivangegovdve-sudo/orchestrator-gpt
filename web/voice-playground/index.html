@@ -598,7 +598,7 @@
       // ---- Voice catalogue -------------------------------------------------
       const eq = '<span class="vp-eq" aria-hidden="true"><i></i><i></i><i></i><i></i></span>';
 
-      fetch('/api/voice/engines')
+      fetch('/api/voice?route=engines')
         .then((response) => response.json())
         .then((data) => {
           engines = data.engines || [];
@@ -636,7 +636,7 @@
             return reject(err);
           }
           try {
-            const response = await fetch(`/api/voice/status/${jobId}`);
+            const response = await fetch(`/api/voice?route=status&job=${encodeURIComponent(jobId)}`);
             const data = await response.json();
             if (!response.ok || data.status === 'error') {
               const err = new Error(data.error || 'Preview failed.');
@@ -679,7 +679,7 @@
           const headers = { 'Content-Type': 'application/json' };
           if (chosen?.requiresKey) headers['X-Audiobook-Key'] = keyInput.value.trim();
 
-          const response = await fetch('/api/voice/speak', {
+          const response = await fetch('/api/voice?route=speak', {
             method: 'POST',
             headers,
             body: JSON.stringify({ text: body, voice: engine }),
@@ -692,7 +692,7 @@
           }
 
           const result = await poll(data.job_id, Date.now());
-          const url = `/api/voice/audio/${data.job_id}`;
+          const url = `/api/voice?route=audio&job=${encodeURIComponent(data.job_id)}`;
           audio.src = url;
           download.href = url;
           out.hidden = false;
