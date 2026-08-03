@@ -1,0 +1,333 @@
+<!doctype html>
+<html lang="en" class="forest-skin">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Voice Playground — paste a few lines, pick a voice, and hear them read aloud inside SDForest.">
+  <meta name="theme-color" content="#07070b">
+  <title>Voice Playground — SDForest</title>
+  <link rel="stylesheet" href="/web/shared/forest-shell.css?v=20260725c">
+  <link rel="stylesheet" href="/web/shared/forest-design.css?v=20260731a">
+  <style>
+    :root {
+      --bg:#07070b;
+      --surface:#0f0f15;
+      --border:rgba(255,255,255,.08);
+      --text-primary:#f3f4f6;
+      --text-muted:#9ca3af;
+      --accent:#4f46e5;
+      --accent-green:#22c55e;
+      --radius:8px;
+      --font:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+      --forest-accent:#7dd3fc;
+      --forest-accent-rgb:125,211,252;
+    }
+    .forest-kicker, .forest-section-label { font-family:var(--forest-sans,"Alegreya Sans",sans-serif); }
+
+    .vp-hero { padding-top:clamp(30px,7vh,64px); max-width:44rem; }
+    .vp-hero .forest-title { font-weight:650; font-size:clamp(46px,9vw,96px); line-height:.96; letter-spacing:0; }
+
+    .vp-studio { display:grid; grid-template-columns:1fr minmax(280px,.62fr); gap:16px; margin-top:clamp(28px,5vh,48px); align-items:start; }
+    .vp-panel { padding:clamp(20px,3vw,28px); }
+
+    .vp-label { display:block; margin:0 0 10px; color:var(--forest-accent); font:700 10px/1 var(--forest-sans); letter-spacing:.15em; text-transform:uppercase; }
+
+    .vp-text {
+      width:100%; min-height:190px; padding:16px; resize:vertical;
+      border:1px solid var(--forest-line); border-radius:14px;
+      background:rgba(5,10,8,.55); color:var(--forest-ink);
+      font:400 15px/1.7 var(--forest-sans);
+    }
+    .vp-text::placeholder { color:var(--forest-muted); }
+    .vp-text:focus-visible { outline:none; border-color:rgba(var(--forest-accent-rgb),.55); }
+
+    .vp-count { margin:9px 0 0; color:var(--forest-muted); font:600 11px/1 var(--forest-sans); letter-spacing:.06em; }
+    .vp-count.over { color:#fca5a5; }
+
+    /* The voice picker is a radiogroup, not a <select>: four options with a
+       line of explanation each, and two of them can be unavailable. */
+    .vp-voices { display:grid; gap:9px; margin:0; padding:0; border:0; }
+    .vp-voice { position:relative; display:block; padding:13px 15px; border:1px solid var(--forest-line); border-radius:13px; background:rgba(255,255,255,.02); cursor:pointer; }
+    .vp-voice input { position:absolute; opacity:0; pointer-events:none; }
+    .vp-voice b { display:block; color:var(--forest-ink); font:650 15px/1.3 var(--forest-display); letter-spacing:0; }
+    .vp-voice span { display:block; margin-top:4px; color:var(--forest-muted); font:400 11.5px/1.55 var(--forest-sans); }
+    .vp-voice:has(input:checked) { border-color:rgba(var(--forest-accent-rgb),.5); background:rgba(var(--forest-accent-rgb),.07); }
+    .vp-voice:has(input:focus-visible) { outline:2px solid rgba(var(--forest-accent-rgb),.6); outline-offset:2px; }
+    .vp-voice:has(input:disabled) { opacity:.42; cursor:not-allowed; }
+    .vp-tag { display:inline-block; margin-left:7px; padding:2px 7px; border:1px solid var(--forest-line); border-radius:99px; color:var(--forest-muted); font:700 8.5px/1.5 var(--forest-sans); letter-spacing:.11em; text-transform:uppercase; vertical-align:2px; }
+
+    /* Only shown once a key-gated voice is selected — an access field with
+       nothing to unlock is just a question the visitor can't answer. */
+    .vp-key[hidden] { display:none; }
+    .vp-key { margin-top:14px; }
+    .vp-key input {
+      width:100%; padding:11px 13px; border:1px solid var(--forest-line); border-radius:11px;
+      background:rgba(5,10,8,.55); color:var(--forest-ink); font:400 13px/1.4 var(--forest-sans);
+    }
+    .vp-key input:focus-visible { outline:none; border-color:rgba(var(--forest-accent-rgb),.55); }
+    .vp-key p { margin:8px 0 0; color:var(--forest-muted); font:400 11px/1.55 var(--forest-sans); }
+
+    .vp-actions { display:flex; flex-wrap:wrap; align-items:center; gap:11px; margin-top:18px; }
+    .vp-btn {
+      min-height:48px; display:inline-flex; align-items:center; justify-content:center; gap:9px;
+      padding:0 22px; border:1px solid rgba(var(--forest-accent-rgb),.45); border-radius:999px;
+      background:rgba(var(--forest-accent-rgb),.12); color:var(--forest-ink);
+      font:700 10px/1 var(--forest-sans); letter-spacing:.12em; text-transform:uppercase;
+      text-decoration:none; cursor:pointer;
+    }
+    .vp-btn:disabled { opacity:.42; cursor:not-allowed; }
+    .vp-btn.secondary { border-color:var(--forest-line); background:rgba(255,255,255,.025); }
+    .vp-btn[hidden] { display:none; }
+
+    .vp-status { margin:0; color:var(--forest-muted); font:600 11.5px/1.5 var(--forest-sans); letter-spacing:.04em; }
+    .vp-status.error { color:#fca5a5; }
+    .vp-status b { color:var(--forest-accent); font-weight:700; }
+
+    .vp-out { margin-top:18px; }
+    .vp-out[hidden] { display:none; }
+    .vp-out audio { width:100%; margin-bottom:12px; }
+
+    /* Spins only while a preview is in flight. */
+    .vp-spin { width:13px; height:13px; border:2px solid rgba(var(--forest-accent-rgb),.28); border-top-color:var(--forest-accent); border-radius:50%; animation:vp-turn calc(var(--duration-loop,1s) * .8) var(--ease-linear,linear) infinite; }
+    .vp-spin[hidden] { display:none; }
+    @keyframes vp-turn { to { transform:rotate(360deg); } }
+    @media (prefers-reduced-motion: reduce) { .vp-spin { animation:none; } }
+
+    .vp-notes { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:14px; margin-top:20px; }
+    .vp-note { min-height:150px; padding:24px; }
+    .vp-note span { color:var(--forest-accent); font:700 10px/1 var(--forest-sans); letter-spacing:.15em; }
+    .vp-note h2 { margin:26px 0 9px; font:650 22px/1.2 var(--forest-display); letter-spacing:0; }
+    .vp-note p { margin:0; color:var(--forest-muted); font-size:12px; line-height:1.65; }
+
+    @media (max-width:880px) {
+      .vp-studio { grid-template-columns:1fr; }
+      .vp-notes { grid-template-columns:1fr; }
+    }
+  </style>
+  <link rel="stylesheet" href="/web/shared/design-history.css?v=20260731a">
+</head>
+<body data-forest-page="voice">
+  <canvas class="forest-scene" data-forest-scene data-mode="news" aria-hidden="true"></canvas><div class="forest-scrim" aria-hidden="true"></div>
+  <nav class="forest-topbar" aria-label="Voice Playground navigation">
+    <a class="forest-back" href="/">SDForest</a>
+    <a class="forest-top-action" href="/web/avatar-playground/">Avatar Playground →</a>
+  </nav>
+
+  <main class="forest-page">
+    <header class="vp-hero">
+      <p class="forest-kicker">Text to speech · preview</p>
+      <h1 class="forest-title">Voice Playground</h1>
+      <p class="forest-lede">Paste a few lines, choose a voice, and hear them read back. Short previews only — this is somewhere to listen to the voices before committing a whole book to one of them.</p>
+    </header>
+
+    <section class="vp-studio" aria-label="Voice preview">
+      <div class="forest-panel vp-panel">
+        <label class="vp-label" for="vp-text">Your text</label>
+        <textarea id="vp-text" class="vp-text" maxlength="500" spellcheck="true"
+          placeholder="The forest remembers every path you have walked."></textarea>
+        <p class="vp-count" id="vp-count" aria-live="polite">0 / 500 characters</p>
+
+        <div class="vp-actions">
+          <button type="button" class="vp-btn" id="vp-play">
+            <span class="vp-spin" id="vp-spin" hidden aria-hidden="true"></span>
+            <span id="vp-play-label">Play</span>
+          </button>
+          <p class="vp-status" id="vp-status" role="status" aria-live="polite"></p>
+        </div>
+
+        <div class="vp-out" id="vp-out" hidden>
+          <audio id="vp-audio" controls preload="none"></audio>
+          <a class="vp-btn secondary" id="vp-download" download="voice-preview.m4a" href="#">Download audio</a>
+        </div>
+      </div>
+
+      <div class="forest-panel vp-panel">
+        <fieldset class="vp-voices" id="vp-voices">
+          <legend class="vp-label">Voice</legend>
+          <p class="vp-status" id="vp-voices-status">Loading voices…</p>
+        </fieldset>
+
+        <div class="vp-key" id="vp-key" hidden>
+          <label class="vp-label" for="vp-key-input">Access key</label>
+          <input id="vp-key-input" type="password" autocomplete="off" placeholder="Required for this voice">
+          <p>The premium voices run on metered quota, so they stay behind a key. The standard voice is open to everyone.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="forest-section" aria-labelledby="vp-how">
+      <p class="forest-section-label" id="vp-how" data-reveal>How this works</p>
+      <div class="vp-notes" data-reveal-stagger>
+        <article class="forest-panel vp-note" data-reveal>
+          <span>01 / Send</span>
+          <h2>Text goes out</h2>
+          <p>Your lines are handed to the same narration service that converts full books, which is why the voices here are the voices you would actually get.</p>
+        </article>
+        <article class="forest-panel vp-note" data-reveal>
+          <span>02 / Narrate</span>
+          <h2>A voice reads it</h2>
+          <p>Each voice has its own trade-off between speed, quality, and how much of it there is to go around. The picker says which is which.</p>
+        </article>
+        <article class="forest-panel vp-note" data-reveal>
+          <span>03 / Listen</span>
+          <h2>Audio comes back</h2>
+          <p>Play it here or download the file. Nothing is kept — previews are generated on request and are not stored against you.</p>
+        </article>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    (() => {
+      const MAX = 500;
+      const POLL_MS = 900;
+      // A short preview finishes in a couple of seconds; anything past this is
+      // a queue backed up or a provider hanging, and saying so beats spinning.
+      const TIMEOUT_MS = 90000;
+
+      const $ = (id) => document.getElementById(id);
+      const text = $('vp-text');
+      const count = $('vp-count');
+      const play = $('vp-play');
+      const playLabel = $('vp-play-label');
+      const spin = $('vp-spin');
+      const status = $('vp-status');
+      const out = $('vp-out');
+      const audio = $('vp-audio');
+      const download = $('vp-download');
+      const voices = $('vp-voices');
+      const voicesStatus = $('vp-voices-status');
+      const keyBox = $('vp-key');
+      const keyInput = $('vp-key-input');
+
+      let engines = [];
+      let busy = false;
+
+      const say = (message, isError = false) => {
+        status.textContent = message;
+        status.classList.toggle('error', isError);
+      };
+
+      const selected = () => voices.querySelector('input:checked')?.value || null;
+
+      const syncKeyField = () => {
+        const engine = engines.find((e) => e.id === selected());
+        keyBox.hidden = !engine?.requiresKey;
+      };
+
+      const syncCount = () => {
+        const length = text.value.length;
+        count.textContent = `${length} / ${MAX} characters`;
+        count.classList.toggle('over', length >= MAX);
+      };
+
+      const setBusy = (state, label) => {
+        busy = state;
+        play.disabled = state;
+        spin.hidden = !state;
+        playLabel.textContent = label || (state ? 'Working' : 'Play');
+      };
+
+      text.addEventListener('input', syncCount);
+      syncCount();
+
+      // ---- Voice catalogue -------------------------------------------------
+      fetch('/api/voice/engines')
+        .then((response) => response.json())
+        .then((data) => {
+          engines = data.engines || [];
+          voicesStatus.remove();
+          for (const engine of engines) {
+            // `available` is null when the service could not be reached at all.
+            // Offer it rather than hiding it — the failure shows on Play.
+            const off = engine.available === false;
+            const label = document.createElement('label');
+            label.className = 'vp-voice';
+            label.innerHTML = `
+              <input type="radio" name="vp-voice" value="${engine.id}"
+                ${engine.default ? 'checked' : ''} ${off ? 'disabled' : ''}>
+              <b>${engine.label}${off ? '<span class="vp-tag">Unavailable</span>' : engine.requiresKey ? '<span class="vp-tag">Key</span>' : ''}</b>
+              <span>${engine.blurb}</span>`;
+            voices.append(label);
+          }
+          voices.addEventListener('change', syncKeyField);
+          syncKeyField();
+        })
+        .catch(() => {
+          voicesStatus.textContent = 'Could not load the voice list.';
+          voicesStatus.classList.add('error');
+        });
+
+      // ---- Preview ---------------------------------------------------------
+      const poll = (jobId, startedAt) => new Promise((resolve, reject) => {
+        const tick = async () => {
+          if (Date.now() - startedAt > TIMEOUT_MS) {
+            return reject(new Error('This is taking longer than a preview should. Try again.'));
+          }
+          try {
+            const response = await fetch(`/api/voice/status/${jobId}`);
+            const data = await response.json();
+            if (!response.ok) return reject(new Error(data.error || 'Preview failed.'));
+            if (data.status === 'error') return reject(new Error(data.error || 'Preview failed.'));
+            if (data.ready) return resolve(data);
+            say('Narrating…');
+            setTimeout(tick, POLL_MS);
+          } catch (err) {
+            reject(err);
+          }
+        };
+        tick();
+      });
+
+      play.addEventListener('click', async () => {
+        if (busy) return;
+        const body = text.value.trim();
+        if (!body) return say('Type or paste something first.', true);
+
+        const engine = selected();
+        const chosen = engines.find((e) => e.id === engine);
+        if (chosen?.requiresKey && !keyInput.value.trim()) {
+          return say('This voice needs an access key.', true);
+        }
+
+        out.hidden = true;
+        setBusy(true, 'Working');
+        say('Sending…');
+
+        try {
+          const headers = { 'Content-Type': 'application/json' };
+          if (chosen?.requiresKey) headers['X-Audiobook-Key'] = keyInput.value.trim();
+
+          const response = await fetch('/api/voice/speak', {
+            method: 'POST',
+            headers,
+            body: JSON.stringify({ text: body, voice: engine }),
+          });
+          const data = await response.json();
+          if (!response.ok) throw new Error(data.error || 'The voice service refused this preview.');
+
+          const result = await poll(data.job_id, Date.now());
+          const url = `/api/voice/audio/${data.job_id}`;
+          audio.src = url;
+          download.href = url;
+          out.hidden = false;
+          audio.play().catch(() => {
+            // Autoplay blocked — the controls are right there.
+          });
+          say(result.substituted
+            ? 'Ready — the voice you picked was unavailable, so a different one read this.'
+            : `Ready${result.duration ? ` — ${result.duration}` : ''}.`);
+        } catch (err) {
+          say(err.message, true);
+        } finally {
+          setBusy(false);
+        }
+      });
+    })();
+  </script>
+
+  <script src="/web/shared/forest-motion.js?v=20260725c"></script>
+  <script src="/web/shared/forest-reveal.js?v=20260714"></script>
+  <script src="/web/shared/design-history.js?v=20260728"></script>
+</body>
+</html>

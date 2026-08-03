@@ -77,7 +77,14 @@ export const FOREST_ROUTES = Object.freeze([
     label: 'Avatar Playground',
     path: '/web/avatar-playground/',
     trailId: 'machine',
-    connectionIds: ['ai-research', 'vfx-portfolio', 'replicator-void'],
+    connectionIds: ['voice-playground', 'ai-research', 'vfx-portfolio', 'replicator-void'],
+  },
+  {
+    id: 'voice-playground',
+    label: 'Voice Playground',
+    path: '/web/voice-playground/',
+    trailId: 'machine',
+    connectionIds: ['avatar-playground', 'ai-research', 'morning-news'],
   },
   {
     id: 'life-in-time',
