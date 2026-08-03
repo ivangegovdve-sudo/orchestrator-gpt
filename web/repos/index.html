@@ -86,6 +86,29 @@ h1 {
   color: var(--text-muted);
 }
 
+/* Pointer to the Library's semantic repo search. Accent-tinted rather than
+   amber, so it reads as a route onward and not as a second warning. */
+.sibling {
+  margin: 12px 0 0;
+  padding: 10px 13px;
+  max-width: 68ch;
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent);
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--accent) 7%, var(--surface));
+  font-family: var(--forest-sans, "Alegreya Sans", "Segoe UI", system-ui, sans-serif);
+  font-size: .82rem;
+  line-height: 1.65;
+  color: var(--text-muted);
+}
+.sibling a {
+  color: var(--text-primary);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.sibling a:hover { color: var(--accent-green); }
+.sibling strong { color: var(--text-primary); font-weight: 600; }
+
 .totals {
   display: flex;
   flex-wrap: wrap;
@@ -370,7 +393,19 @@ h1 {
   <header class="masthead">
     <h1>Repo Knowledge Base</h1>
     <p class="unlisted">
-      Internal, unlisted index &mdash; not linked from the public nav and excluded from search engines.
+      Unlisted index &mdash; kept out of the public nav and out of search engines. Public
+      repositories only; private ones are excluded at generation time.
+    </p>
+
+    <!-- Companion to the Library's repo search. The two answer different
+         questions over overlapping corpora, so each points at the other rather
+         than pretending to be the only entry point. -->
+    <p class="sibling">
+      Looking for a repo by <em>meaning</em> rather than by graph size?
+      <a href="/web/library/repos/">Semantic repo search in the Library &rarr;</a>
+      searches descriptions, languages and topics across the whole GitHub account.
+      This page indexes what <strong>graphify</strong> has actually parsed, with node
+      and edge counts.
     </p>
 
     <!-- role="list" is redundant in theory, but Safari/VoiceOver drops list
