@@ -32,7 +32,7 @@ test("SD Forest homepage exposes one truthful animated Open Overview portal", ()
   const home = fs.readFileSync(path.join(ROOT, "index.html"), "utf8");
   const portals = home.match(/<button class="portal"/g) || [];
   const matches = home.match(/<button class="portal"[^>]*data-project="open-overview"[\s\S]*?<\/button>/g) || [];
-  assert.equal(portals.length, 21);
+  assert.equal(portals.length, 22);
   assert.match(home, /The atlas/);
   assert.match(home, /Every path <em>at a glance<\/em>/);
   assert.equal(matches.length, 1);

@@ -19,11 +19,12 @@ test('home is a truthful portal with the requested project lineup', () => {
     'Multiply Magic Studio',
     'Math Forest',
     'Open Overview',
+    'Rubik',
   ]) {
     assert.match(home, new RegExp(title.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
   }
 
-  assert.equal((home.match(/data-project="/g) || []).length, 21);
+  assert.equal((home.match(/data-project="/g) || []).length, 22);
   assert.match(home, /The atlas/);
   assert.match(home, /Every path <em>at a glance<\/em>/);
 
@@ -134,8 +135,8 @@ test('every live internal portal resolves to an animated page with a Forest retu
   const home = read('index.html');
   const routes = [...home.matchAll(/data-href="(\/web\/[^"]+)"/g)].map((match) => match[1]);
 
-  assert.equal(routes.length, 17);
-  assert.equal(new Set(routes).size, 16);
+  assert.equal(routes.length, 18);
+  assert.equal(new Set(routes).size, 17);
   for (const route of new Set(routes)) {
     let relativePath = route.replace(/^\//, '');
     if (relativePath.endsWith('/')) relativePath += 'index.html';
@@ -146,7 +147,7 @@ test('every live internal portal resolves to an animated page with a Forest retu
       /href="\/"|href="\/index\.html"|forest-(?:motion|trails)\.js/,
       `${route} has no Forest return path`,
     );
-    assert.match(page, /forest-motion\.js|open-overview\.js|id="world"|id="starfield"/, `${route} has no motion runtime`);
+    assert.match(page, /forest-motion\.js|open-overview\.js|id="world"|id="starfield"|\/web\/rubiks-teacher\/assets\/index-[^"]+\.js/, `${route} has no motion runtime`);
   }
 });
 

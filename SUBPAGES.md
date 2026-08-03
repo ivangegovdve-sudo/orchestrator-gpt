@@ -26,6 +26,16 @@
 
 ---
 
+## Rubik's Teacher
+
+**Route:** `/web/rubiks-teacher/`
+**Files:** `web/rubiks-teacher/index.html`, `web/rubiks-teacher/assets/`
+**What it is:** A compiled 3D Rubik's Cube learning app with camera/manual cube entry, sticker validation, notation help, and a guided move-by-move solving workflow.
+**State:** Live static subpage. Built from the compiled `rubiks-teacher` client with a route-aware asset base; no React/TypeScript source, source maps, environment files, or secrets are vendored into this repo.
+**Next:** Keep this compiled subpage synchronized with production releases of the standalone Rubik's Teacher app.
+
+---
+
 ## Mendeleev BG — Bulgarian Periodic Table
 
 **Route:** `/web/mendeleev-bg/`
