@@ -128,3 +128,109 @@ test('reduced motion skips leaf generation entirely', async () => {
   assert.equal(await page.locator('.falling-leaf').count(), 0);
   await context.close();
 });
+
+const visiblePortalCount = (page) => page.locator('[data-project-grid] .portal').evaluateAll((cards) =>
+  cards.filter((card) => card.getClientRects().length > 0).length);
+
+test('desktop directory starts with sixteen featured cards and a complete 24-entry index', async () => {
+  const page = await browser.newPage({ viewport: { width: 1280, height: 800 } });
+  await page.goto(baseUrl, { waitUntil: 'domcontentloaded' });
+
+  assert.equal(await visiblePortalCount(page), 16);
+  assert.equal(await page.locator('[data-directory-index] [data-index-project]').count(), 24);
+
+  await page.close();
+});
+
+test('a disclosure reveals only its own overflow cards and restores the featured directory when closed', async () => {
+  const page = await browser.newPage({ viewport: { width: 1280, height: 800 } });
+  await page.goto(baseUrl, { waitUntil: 'domcontentloaded' });
+  const disclosure = page.locator('[data-directory-section="writing-media"] .directory-overflow');
+  const summary = disclosure.locator('summary');
+
+  assert.equal(await visiblePortalCount(page), 16);
+  assert.match(await summary.innerText(), /See all 5/i);
+  await summary.click();
+  assert.equal(await disclosure.getAttribute('open'), '');
+  assert.equal(await visiblePortalCount(page), 17);
+  assert.match(await summary.innerText(), /Show featured only/i);
+  assert.equal(
+    await page.locator('[data-directory-section="projects-play"] [data-overflow-projects] .portal').evaluateAll(
+      (cards) => cards.every((card) => card.getClientRects().length === 0),
+    ),
+    true,
+  );
+  await summary.click();
+  assert.equal(await visiblePortalCount(page), 16);
+
+  await page.close();
+});
+
+test('directory disclosures work from the keyboard with a visible focus treatment', async () => {
+  const page = await browser.newPage({ viewport: { width: 1280, height: 800 } });
+  await page.goto(baseUrl, { waitUntil: 'domcontentloaded' });
+  const disclosure = page.locator('[data-directory-section="tools"] .directory-overflow');
+  const summary = disclosure.locator('summary');
+
+  await summary.focus();
+  assert.equal(await page.evaluate(() => document.activeElement?.tagName), 'SUMMARY');
+  const focusStyle = await summary.evaluate((element) => {
+    const style = getComputedStyle(element);
+    return { outlineStyle: style.outlineStyle, outlineWidth: style.outlineWidth };
+  });
+  assert.notEqual(focusStyle.outlineStyle, 'none');
+  assert.notEqual(focusStyle.outlineWidth, '0px');
+  await summary.press('Enter');
+  assert.equal(await disclosure.getAttribute('open'), '');
+
+  await page.close();
+});
+
+test('desktop directory pairs a sticky index with the section-card column', async () => {
+  const page = await browser.newPage({ viewport: { width: 1280, height: 800 } });
+  await page.goto(baseUrl, { waitUntil: 'domcontentloaded' });
+  const layout = page.locator('.directory-layout');
+  const index = page.locator('.directory-index');
+
+  assert.equal(await layout.evaluate((element) => getComputedStyle(element).display), 'grid');
+  assert.equal(
+    await layout.evaluate((element) => getComputedStyle(element).gridTemplateColumns.split(' ').length),
+    2,
+  );
+  assert.equal(await index.evaluate((element) => getComputedStyle(element).position), 'sticky');
+
+  await page.close();
+});
+
+test('mobile directory stacks the index before one-column cards without horizontal overflow', async () => {
+  const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
+  await page.goto(baseUrl, { waitUntil: 'domcontentloaded' });
+  const layout = page.locator('.directory-layout');
+  const index = page.locator('.directory-index');
+  const sections = page.locator('.directory-sections');
+
+  assert.equal(await layout.evaluate((element) => getComputedStyle(element).gridTemplateColumns.split(' ').length), 1);
+  assert.ok((await index.boundingBox()).y < (await sections.boundingBox()).y);
+  assert.equal(
+    await page.locator('[data-featured-projects]').first().evaluate((element) =>
+      getComputedStyle(element).gridTemplateColumns.split(' ').length),
+    1,
+  );
+  assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
+
+  await page.close();
+});
+
+test('landing produces no browser console errors', async () => {
+  const page = await browser.newPage({ viewport: { width: 1280, height: 800 } });
+  const errors = [];
+  page.on('console', (message) => {
+    if (message.type() === 'error') errors.push(message.text());
+  });
+  page.on('pageerror', (error) => errors.push(error.message));
+
+  await page.goto(baseUrl, { waitUntil: 'networkidle' });
+  assert.deepEqual(errors, []);
+
+  await page.close();
+});
