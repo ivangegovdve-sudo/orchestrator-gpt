@@ -202,6 +202,49 @@ test('desktop directory pairs a sticky index with the section-card column', asyn
   await page.close();
 });
 
+test('sticky desktop index keeps every entry usable without constraining the stacked mobile index', async () => {
+  const desktop = await browser.newPage({ viewport: { width: 1280, height: 800 } });
+  await desktop.goto(baseUrl, { waitUntil: 'domcontentloaded' });
+  await desktop.evaluate(() => scrollTo(0, document.querySelector('.atlas').offsetTop + 200));
+  await desktop.waitForTimeout(50);
+  const desktopIndex = desktop.locator('.directory-index');
+  const desktopMetrics = await desktopIndex.evaluate((element) => {
+    const bounds = element.getBoundingClientRect();
+    const style = getComputedStyle(element);
+    return {
+      bottom: bounds.bottom,
+      clientHeight: element.clientHeight,
+      overflowY: style.overflowY,
+      scrollHeight: element.scrollHeight,
+      top: bounds.top,
+    };
+  });
+
+  assert.ok(desktopMetrics.bottom <= 800, `sticky index bottom ${desktopMetrics.bottom} exceeds the viewport`);
+  assert.match(desktopMetrics.overflowY, /auto|scroll/);
+  assert.ok(desktopMetrics.scrollHeight > desktopMetrics.clientHeight);
+  assert.equal(
+    await desktopIndex.evaluate((element) => {
+      element.scrollTop = element.scrollHeight;
+      const lastEntry = element.querySelector('[data-index-project="c2c-self"]');
+      return element.scrollTop > 0 && lastEntry.getBoundingClientRect().bottom <= element.getBoundingClientRect().bottom;
+    }),
+    true,
+  );
+
+  const mobile = await browser.newPage({ viewport: { width: 390, height: 844 } });
+  await mobile.goto(baseUrl, { waitUntil: 'domcontentloaded' });
+  const mobileMetrics = await mobile.locator('.directory-index').evaluate((element) => {
+    const style = getComputedStyle(element);
+    return { maxHeight: style.maxHeight, overflowY: style.overflowY };
+  });
+  assert.equal(mobileMetrics.maxHeight, 'none');
+  assert.equal(mobileMetrics.overflowY, 'visible');
+
+  await desktop.close();
+  await mobile.close();
+});
+
 test('mobile directory stacks the index before one-column cards without horizontal overflow', async () => {
   const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
   await page.goto(baseUrl, { waitUntil: 'domcontentloaded' });

@@ -716,6 +716,8 @@ html.is-born .scroll-invite {
 .directory-index {
   position: sticky;
   top: 100px;
+  max-height: calc(100svh - 118px);
+  overflow-y: auto;
   align-self: start;
   padding: 18px;
   border: 1px solid var(--home-line);
@@ -1007,7 +1009,11 @@ html.is-born .scroll-invite {
   .slam-panel { padding-top: 44px; text-align: center; }
   .slam-desc { margin-inline: auto; }
   .directory-layout { grid-template-columns: 1fr; gap: 28px; }
-  .directory-index { position: static; }
+  .directory-index {
+    position: static;
+    max-height: none;
+    overflow-y: visible;
+  }
   .project-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
