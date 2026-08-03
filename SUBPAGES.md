@@ -202,7 +202,7 @@
 **What it is:** A reading environment for dyslexic readers: dyslexia-friendly typefaces (OpenDyslexic, Lexend, Atkinson Hyperlegible), a narrow measure, line focus, and colour and spacing controls. Typography, colour and layout are never paywalled by design; paid tiers gate voice quality only.
 **What it is *not*:** an ebook-to-audiobook converter. That framing was superseded on 2026-07-30 and lives on as a separate tool — see Audiobook Studio. Narration exists here but is addressable only as `(chapter, block)`; there is deliberately no "play the whole book" endpoint.
 **State:** Live. The pages and the API are served by one process on Oracle behind a single nginx location, which is not incidental — the session cookie is host-scoped and `SameSite=Lax`, so a split across two hosts silently drops it and every narration request arrives anonymous. Signing in, per-block narration and the Free/Pro gate are all verified against the public URL.
-**Next:** Register the Stripe webhook against `/dyslexia/billing/webhook` and vault the signing secret; until then no subscription can grant Pro. Chapter export returns 500 on the host — `ffprobe` is not installed there.
+**Next:** Register the Stripe webhook against `/dyslexia/billing/webhook` and vault the signing secret; until then no subscription can grant Pro.
 
 ---
 
