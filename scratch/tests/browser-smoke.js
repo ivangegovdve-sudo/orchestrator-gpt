@@ -86,7 +86,7 @@ async function main() {
 
   const home = await context.newPage();
   await home.goto(BASE, { waitUntil: 'domcontentloaded' });
-  assert.equal(await home.locator('.portal').count(), 21);
+  assert.equal(await home.locator('.portal').count(), 16);
   await home.screenshot({ path: `${OUTPUT}/home-landing.png`, fullPage: false });
   await home.evaluate(() => {
     const assembly = document.querySelector('[data-assembly]');
@@ -163,7 +163,7 @@ async function main() {
   await installRoutes(mobile);
   const mobileHome = await mobile.newPage();
   await mobileHome.goto(BASE, { waitUntil: 'domcontentloaded' });
-  assert.equal(await mobileHome.locator('.portal').count(), 21);
+  assert.equal(await mobileHome.locator('.portal').count(), 16);
   assert.equal(await mobileHome.evaluate(() => matchMedia('(pointer: coarse)').matches), true);
   await mobileHome.locator('[data-project="open-overview"] .portal-icon').click();
   assert.equal(await mobileHome.locator('[data-preview-title]').textContent(), 'Open Overview');

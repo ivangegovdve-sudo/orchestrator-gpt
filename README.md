@@ -19,7 +19,6 @@ The landing page footer shows a live API status dot. It probes `https://api.sdfo
 - `index.html` — Forest HUB landing page: hero, project card grid, about section, API status footer.
 - `web/ai-init/` — AI/IT glossary (527+ terms) plus embeddable search.
 - `web/calendar/` — printable calendar generator with holiday lookup (redirect shim at `calendar/`).
-- `web/chair-or-ladder/` — Ivan Gegov’s essay on AI, judgment, dependence, and shared capability.
 - `web/chloe-pwa/` — Chloé assistant PWA shell (not linked from the hub yet).
 - `web/council/` — LLM Council: 4-stage free-tier deliberation UI.
 - `web/hypertrophyos/` — Hyper Trophy OS exercise-intelligence dashboard.
