@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en" class="forest-skin">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Code Search — sdforest</title>
+<meta name="description" content="Search Ivan's public authored repos by symbol, file, or keyword. Powered by graphify — returns code nodes with direct GitHub links.">
+<link rel="stylesheet" href="/web/shared/forest-design.css?v=20260731a">
+<link rel="stylesheet" href="/web/shared/forest-shell.css?v=20260725c">
+<style>
+:root {
+  --bg: #07070b;
+  --surface: #0f0f15;
+  --border: rgba(255,255,255,.08);
+  --text-primary: #f3f4f6;
+  --text-muted: #9ca3af;
+  --accent: #4f46e5;
+  --accent-green: #22c55e;
+  --radius: 8px;
+  --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+
+  --panel: rgba(15,15,21,.82);
+  --card-bg: rgba(255,255,255,.03);
+  --card-border: var(--border);
+  --text: var(--text-primary);
+  --muted: var(--text-muted);
+  --dim: #6b7280;
+  --accent-glow: rgba(79,70,229,.3);
+  --purple: #818cf8;
+  --green: var(--accent-green);
+  --amber: #f59e0b;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; }
+body {
+  font-family: var(--forest-body, Alegreya, Georgia, serif);
+  background-color: var(--bg);
+  background-image:
+    radial-gradient(circle at 20% 10%, rgba(79,70,229,.09), transparent 40%),
+    radial-gradient(circle at 80% 5%, rgba(34,197,94,.05), transparent 40%);
+  color: var(--text);
+  min-height: 100vh;
+}
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+code { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: .85em; }
+
+.wrap { max-width: 920px; margin: 0 auto; padding: 32px 22px 48px; }
+
+/* ── Header ─────────────────────────────────────────── */
+.nav { font-size: .82rem; color: var(--muted); margin-bottom: 18px; }
+header.hero { text-align: center; margin-bottom: 28px; }
+.logo { font-family: var(--forest-sans, "Alegreya Sans", sans-serif); font-size: 12px;
+  letter-spacing: .22em; text-transform: uppercase; color: var(--dim); margin-bottom: 10px; }
+h1 {
+  font-family: var(--forest-display, "Cormorant Garamond", Georgia, serif);
+  font-size: 2.6rem; font-weight: 650; letter-spacing: .01em;
+  background: linear-gradient(135deg, var(--accent), var(--purple));
+  -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+}
+.subtitle { color: var(--muted); font-size: .95rem; margin-top: 8px; }
+.corpus-badge {
+  display: inline-flex; align-items: center; gap: 8px; margin-top: 14px;
+  background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 999px;
+  padding: 5px 14px; font-size: .76rem; color: var(--dim);
+}
+.corpus-badge .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); }
+
+/* ── Search ─────────────────────────────────────────── */
+.search-dock { position: sticky; top: 14px; z-index: 40; display: flex; justify-content: center; margin: 8px 0 22px; }
+.search-bubble {
+  display: flex; align-items: center; gap: 10px; width: 100%; max-width: 680px;
+  background: rgba(15,15,18,.88); border: 1px solid rgba(255,255,255,.12);
+  border-radius: 999px; padding: 13px 20px; backdrop-filter: blur(16px);
+  box-shadow: 0 10px 40px rgba(0,0,0,.5), 0 0 0 1px rgba(79,70,229,.05);
+  transition: border-color .2s, box-shadow .2s;
+}
+.search-bubble:focus-within { border-color: var(--accent); box-shadow: 0 10px 40px rgba(0,0,0,.5), 0 0 0 3px var(--accent-glow); }
+.search-bubble .icon { font-size: 1.1rem; opacity: .65; flex-shrink: 0; }
+.search-bubble input {
+  flex: 1; background: transparent; border: none; outline: none;
+  color: var(--text); font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 1rem;
+}
+.search-bubble input::placeholder { color: var(--dim); font-family: inherit; }
+.search-clear {
+  background: rgba(255,255,255,.06); border: none; color: var(--muted);
+  width: 26px; height: 26px; border-radius: 50%; cursor: pointer; font-size: 14px;
+  display: none; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.search-clear.show { display: flex; }
+.search-clear:hover { background: rgba(255,255,255,.12); color: var(--text); }
+
+/* ── Status bar ──────────────────────────────────────── */
+.status-bar {
+  display: flex; align-items: center; justify-content: space-between;
+  font-size: .76rem; color: var(--dim); margin-bottom: 14px; padding: 0 4px;
+  flex-wrap: wrap; gap: 8px;
+}
+.status-bar .hits { color: var(--muted); }
+
+/* ── Fork search callout ─────────────────────────────── */
+.fork-callout {
+  background: var(--card-bg); border: 1px solid var(--card-border); border-radius: var(--radius);
+  padding: 12px 16px; margin-bottom: 20px; font-size: .82rem; color: var(--muted);
+  display: flex; align-items: center; gap: 10px;
+}
+.fork-callout .fork-icon { font-size: 1rem; flex-shrink: 0; }
+.fork-callout a { font-size: .82rem; }
+
+/* ── Results ─────────────────────────────────────────── */
+#results-list { display: flex; flex-direction: column; gap: 8px; }
+
+.result-card {
+  background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 10px;
+  padding: 12px 16px; transition: border-color .15s, background .15s;
+}
+.result-card:hover { background: rgba(255,255,255,.04); border-color: rgba(255,255,255,.14); }
+
+.rc-head { display: flex; align-items: flex-start; gap: 10px; flex-wrap: wrap; margin-bottom: 5px; }
+.rc-label {
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  font-size: .92rem; font-weight: 700; color: var(--text); word-break: break-all;
+}
+.rc-label .hi { background: rgba(79,70,229,.3); border-radius: 3px; padding: 0 2px; color: #e0f2fe; }
+.rc-repo {
+  font-size: .7rem; background: rgba(79,70,229,.12); border: 1px solid rgba(79,70,229,.25);
+  border-radius: 999px; padding: 2px 9px; color: #a5b4fc; white-space: nowrap; flex-shrink: 0;
+}
+.rc-file {
+  font-size: .76rem; color: var(--muted); font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  word-break: break-all; line-height: 1.5;
+}
+.rc-file .rc-line { color: var(--dim); }
+.rc-meta { display: flex; align-items: center; gap: 10px; margin-top: 7px; flex-wrap: wrap; }
+.rc-type {
+  font-size: .66rem; background: rgba(255,255,255,.05); border: 1px solid var(--card-border);
+  border-radius: 5px; padding: 1px 7px; color: var(--dim);
+}
+.rc-gh {
+  font-size: .74rem; display: inline-flex; align-items: center; gap: 4px; color: var(--accent);
+}
+.rc-gh:hover { text-decoration: underline; }
+
+/* ── States ──────────────────────────────────────────── */
+.state-empty { text-align: center; padding: 64px 20px; color: var(--dim); }
+.state-empty .big { font-size: 2rem; margin-bottom: 12px; }
+.state-empty p { font-size: .88rem; line-height: 1.7; }
+
+.loading-ring {
+  width: 28px; height: 28px; border-radius: 50%;
+  border: 3px solid rgba(79,70,229,.2); border-top-color: var(--accent);
+  animation: spin .7s linear infinite; margin: 48px auto;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.error-msg { text-align: center; color: #f87171; font-size: .85rem; padding: 32px 20px; }
+
+footer { text-align: center; color: var(--dim); font-size: .76rem; margin-top: 40px; line-height: 1.7; }
+
+@media (max-width: 640px) {
+  .wrap { padding: 20px 14px 32px; }
+  h1 { font-size: 1.9rem; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="nav">
+    <a href="/">Forest HUB</a> › <a href="/web/library/">Library</a> › Code Search
+  </div>
+
+  <header class="hero">
+    <div class="logo">sdforest · tools</div>
+    <h1>Code Search</h1>
+    <p class="subtitle">Search Ivan's public authored repos by symbol, file, or keyword</p>
+    <div class="corpus-badge">
+      <span class="dot"></span>
+      <span id="corpus-stat">Loading corpus…</span>
+    </div>
+  </header>
+
+  <!-- Sticky search -->
+  <div class="search-dock">
+    <div class="search-bubble">
+      <span class="icon">⌕</span>
+      <input id="q" type="search" placeholder="useEffect, StreamingSSE, orchestrator, …" autocomplete="off" spellcheck="false">
+      <button class="search-clear" id="clear-btn" onclick="clearSearch()" title="Clear">✕</button>
+    </div>
+  </div>
+
+  <!-- Fork callout (shown when query active) -->
+  <div class="fork-callout" id="fork-callout" style="display:none">
+    <span class="fork-icon">🍴</span>
+    <span>
+      This searches <strong>20 authored repos</strong>.
+      To search Ivan's <strong>736 public forks</strong> too:
+      <a id="fork-link" href="https://github.com/search?q=user%3Aivangegovdve-sudo&type=code" target="_blank" rel="noopener">Search on GitHub ↗</a>
+    </span>
+  </div>
+
+  <!-- Status bar -->
+  <div class="status-bar" id="status-bar" style="display:none">
+    <span class="hits" id="hits-label"></span>
+    <span id="timing-label"></span>
+  </div>
+
+  <!-- Results -->
+  <div id="results-list">
+    <div class="state-empty">
+      <div class="big">⌕</div>
+      <p>Type a symbol, filename, or keyword above.<br>Searches labels and file paths across ~30 k graphify nodes.</p>
+    </div>
+  </div>
+
+  <footer>
+    Code index powered by <a href="https://graphify.dev" target="_blank" rel="noopener">graphify</a> ·
+    Source on <a href="https://github.com/ivangegovdve-sudo/orchestrator-gpt" target="_blank" rel="noopener">GitHub</a> ·
+    <a href="/web/library/">Back to Library</a>
+  </footer>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  var API = '/api/graphify';
+  var debounceTimer = null;
+  var lastQuery = '';
+  var abortCtrl = null;
+  var corpusLoaded = false;
+
+  // ── DOM refs ────────────────────────────────────────────────────────────────
+  var qEl       = document.getElementById('q');
+  var clearBtn  = document.getElementById('clear-btn');
+  var resultEl  = document.getElementById('results-list');
+  var statusBar = document.getElementById('status-bar');
+  var hitsLabel = document.getElementById('hits-label');
+  var timingLbl = document.getElementById('timing-label');
+  var forkCall  = document.getElementById('fork-callout');
+  var forkLink  = document.getElementById('fork-link');
+  var corpusStat = document.getElementById('corpus-stat');
+
+  // ── Corpus health ───────────────────────────────────────────────────────────
+  function loadCorpus() {
+    fetch(API + '/health')
+      .then(function (r) { return r.json(); })
+      .then(function (d) {
+        corpusStat.textContent =
+          d.total_nodes.toLocaleString() + ' nodes · ' +
+          d.repos_loaded + ' repos · live index';
+        corpusLoaded = true;
+      })
+      .catch(function () {
+        corpusStat.textContent = 'index offline — results may be unavailable';
+      });
+  }
+
+  // ── Escape HTML ─────────────────────────────────────────────────────────────
+  function esc(s) {
+    return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  // ── Highlight term in text ──────────────────────────────────────────────────
+  function hi(text, term) {
+    if (!term) return esc(text);
+    var t = esc(text);
+    var tl = term.toLowerCase();
+    var idx = t.toLowerCase().indexOf(tl);
+    if (idx < 0) return t;
+    return t.slice(0, idx) +
+      '<span class="hi">' + t.slice(idx, idx + tl.length) + '</span>' +
+      t.slice(idx + tl.length);
+  }
+
+  // ── Render a single result card ─────────────────────────────────────────────
+  function renderCard(node, term) {
+    var line = node.line ? node.line.replace(/^L/, 'L') : '';
+    var ghUrl = esc(node.github_url || '#');
+    var fileParts = (node.file || '').split('/');
+    var fileName = fileParts[fileParts.length - 1];
+    var filePath = fileParts.slice(0, -1).join('/');
+
+    return '<div class="result-card">' +
+      '<div class="rc-head">' +
+        '<span class="rc-label">' + hi(node.label, term) + '</span>' +
+        '<span class="rc-repo">' + esc(node.repo) + '</span>' +
+      '</div>' +
+      '<div class="rc-file">' +
+        (filePath ? '<span style="opacity:.55">' + esc(filePath) + '/</span>' : '') +
+        '<strong>' + esc(fileName) + '</strong>' +
+        (line ? ' <span class="rc-line">' + esc(line) + '</span>' : '') +
+      '</div>' +
+      '<div class="rc-meta">' +
+        (node.type ? '<span class="rc-type">' + esc(node.type) + '</span>' : '') +
+        '<a class="rc-gh" href="' + ghUrl + '" target="_blank" rel="noopener">View on GitHub ↗</a>' +
+      '</div>' +
+    '</div>';
+  }
+
+  // ── Render results ──────────────────────────────────────────────────────────
+  function renderResults(data, term, elapsed) {
+    var results = data.results || [];
+    var count   = data.count || 0;
+
+    statusBar.style.display = 'flex';
+    hitsLabel.textContent = count === 0
+      ? 'No results'
+      : count + (count >= 30 ? '+' : '') + ' result' + (count !== 1 ? 's' : '');
+    timingLbl.textContent = elapsed + 'ms';
+
+    if (count === 0) {
+      resultEl.innerHTML = '<div class="state-empty"><div class="big">∅</div><p>No code nodes matched <strong>"' + esc(term) + '"</strong>.<br>Try a shorter term or search GitHub directly.</p></div>';
+      return;
+    }
+    resultEl.innerHTML = results.map(function (n) { return renderCard(n, term); }).join('');
+  }
+
+  // ── Search ──────────────────────────────────────────────────────────────────
+  function doSearch(term) {
+    if (!term || term.length < 2) {
+      showIdle();
+      return;
+    }
+    if (term === lastQuery) return;
+    lastQuery = term;
+
+    if (abortCtrl) abortCtrl.abort();
+    abortCtrl = new AbortController();
+
+    resultEl.innerHTML = '<div class="loading-ring"></div>';
+    statusBar.style.display = 'none';
+    forkCall.style.display = 'flex';
+    forkLink.href = 'https://github.com/search?q=user%3Aivangegovdve-sudo+' + encodeURIComponent(term) + '&type=code';
+
+    var t0 = Date.now();
+    fetch(API + '/search?q=' + encodeURIComponent(term) + '&limit=50', {
+      signal: abortCtrl.signal,
+    })
+      .then(function (r) {
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        return r.json();
+      })
+      .then(function (data) {
+        renderResults(data, term, Date.now() - t0);
+      })
+      .catch(function (err) {
+        if (err.name === 'AbortError') return;
+        resultEl.innerHTML = '<div class="error-msg">Search failed: ' + esc(err.message) + '<br><small>The code index may be temporarily offline.</small></div>';
+      });
+  }
+
+  function showIdle() {
+    lastQuery = '';
+    statusBar.style.display = 'none';
+    forkCall.style.display = 'none';
+    resultEl.innerHTML = '<div class="state-empty"><div class="big">⌕</div><p>Type a symbol, filename, or keyword above.<br>Searches labels and file paths across ~30 k graphify nodes.</p></div>';
+  }
+
+  window.clearSearch = function () {
+    qEl.value = '';
+    clearBtn.classList.remove('show');
+    showIdle();
+    qEl.focus();
+  };
+
+  // ── Events ──────────────────────────────────────────────────────────────────
+  qEl.addEventListener('input', function () {
+    var val = qEl.value.trim();
+    clearBtn.classList.toggle('show', val.length > 0);
+    clearTimeout(debounceTimer);
+    if (val.length < 2) { showIdle(); return; }
+    debounceTimer = setTimeout(function () { doSearch(val); }, 280);
+  });
+
+  qEl.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') window.clearSearch();
+    if (e.key === 'Enter') { clearTimeout(debounceTimer); doSearch(qEl.value.trim()); }
+  });
+
+  // ── Init ────────────────────────────────────────────────────────────────────
+  loadCorpus();
+})();
+</script>
+<script src="/web/shared/forest-motion.js?v=20260725c"></script>
+<script src="/web/shared/design-history.js?v=20260728"></script>
+</body>
+</html>

@@ -34,7 +34,14 @@ export const FOREST_ROUTES = Object.freeze([
       '/web/library/memory/',
     ],
     trailId: 'signals',
-    connectionIds: ['forest-hub', 'morning-news', 'open-overview', 'council'],
+    connectionIds: ['forest-hub', 'morning-news', 'open-overview', 'council', 'code-search'],
+  },
+  {
+    id: 'code-search',
+    label: 'Code Search',
+    path: '/web/code-search/',
+    trailId: 'signals',
+    connectionIds: ['library', 'open-overview'],
   },
   {
     id: 'open-overview',
