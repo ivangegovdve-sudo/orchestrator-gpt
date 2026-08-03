@@ -204,21 +204,63 @@ async function status(res, jobId) {
   }
 }
 
-async function audio(res, jobId) {
+// A 200 with the whole body is not enough for an <audio> element: without
+// Accept-Ranges the browser marks the resource unseekable (seekable resolves to
+// [0, 0] even once it is fully buffered) and silently drops every currentTime
+// write, so the scrubber on the playground would move and nothing would happen.
+// Previews are tens of kilobytes, so slicing the buffer we already hold is the
+// whole of the work.
+function serveRange(req, res, buffer) {
+  const total = buffer.length;
+  res.setHeader("Content-Type", "audio/mp4");
+  res.setHeader("Accept-Ranges", "bytes");
+  res.setHeader("Cache-Control", "no-store");
+  // Inline: the <audio> element streams it. The download button adds its own
+  // filename client-side.
+  res.setHeader("Content-Disposition", 'inline; filename="voice-preview.m4a"');
+
+  const header = req.headers.range;
+  const match = typeof header === "string" ? /^bytes=(\d*)-(\d*)$/.exec(header.trim()) : null;
+  if (!match) {
+    res.setHeader("Content-Length", String(total));
+    return res.status(200).send(buffer);
+  }
+
+  let [, rawStart, rawEnd] = match;
+  let start;
+  let end;
+  if (rawStart === "") {
+    // Suffix form: "bytes=-500" means the last 500 bytes.
+    if (rawEnd === "") {
+      res.setHeader("Content-Range", `bytes */${total}`);
+      return res.status(416).send("");
+    }
+    start = Math.max(0, total - Number(rawEnd));
+    end = total - 1;
+  } else {
+    start = Number(rawStart);
+    end = rawEnd === "" ? total - 1 : Math.min(Number(rawEnd), total - 1);
+  }
+
+  if (!Number.isFinite(start) || !Number.isFinite(end) || start > end || start >= total) {
+    res.setHeader("Content-Range", `bytes */${total}`);
+    return res.status(416).send("");
+  }
+
+  const slice = buffer.subarray(start, end + 1);
+  res.setHeader("Content-Range", `bytes ${start}-${end}/${total}`);
+  res.setHeader("Content-Length", String(slice.length));
+  return res.status(206).send(slice);
+}
+
+async function audio(req, res, jobId) {
   try {
     const upstream = await fetch(`${AUDIOBOOK_BASE}/download/${encodeURIComponent(jobId)}`);
     if (!upstream.ok) {
       const data = await upstream.json().catch(() => ({}));
       return json(res, upstream.status, { error: scrub(data.detail, "Audio not ready.") });
     }
-    const buffer = Buffer.from(await upstream.arrayBuffer());
-    res.setHeader("Content-Type", "audio/mp4");
-    res.setHeader("Content-Length", String(buffer.length));
-    res.setHeader("Cache-Control", "no-store");
-    // Inline: the <audio> element streams it. The download button adds its own
-    // filename client-side.
-    res.setHeader("Content-Disposition", 'inline; filename="voice-preview.m4a"');
-    return res.status(200).send(buffer);
+    return serveRange(req, res, Buffer.from(await upstream.arrayBuffer()));
   } catch (err) {
     return json(res, 502, { error: "Voice service unreachable.", detail: err.message });
   }
@@ -232,7 +274,7 @@ module.exports = async function handler(req, res) {
   if (route === "engines" && req.method === "GET") return listEngines(res);
   if (route === "speak" && req.method === "POST") return speak(req, res);
   if (route === "status" && jobId && req.method === "GET") return status(res, jobId);
-  if (route === "audio" && jobId && req.method === "GET") return audio(res, jobId);
+  if (route === "audio" && jobId && req.method === "GET") return audio(req, res, jobId);
 
   return json(res, 404, { error: "No such voice route." });
 };
