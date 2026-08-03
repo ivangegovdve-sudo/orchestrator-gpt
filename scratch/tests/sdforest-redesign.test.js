@@ -23,7 +23,7 @@ test('home is a truthful portal with the requested project lineup', () => {
     assert.match(home, new RegExp(title.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
   }
 
-  assert.equal((home.match(/data-project="/g) || []).length, 19);
+  assert.equal((home.match(/data-project="/g) || []).length, 21);
   assert.match(home, /The atlas/);
   assert.match(home, /Every path <em>at a glance<\/em>/);
 
@@ -134,8 +134,8 @@ test('every live internal portal resolves to an animated page with a Forest retu
   const home = read('index.html');
   const routes = [...home.matchAll(/data-href="(\/web\/[^"]+)"/g)].map((match) => match[1]);
 
-  assert.equal(routes.length, 16);
-  assert.equal(new Set(routes).size, 15);
+  assert.equal(routes.length, 17);
+  assert.equal(new Set(routes).size, 16);
   for (const route of new Set(routes)) {
     let relativePath = route.replace(/^\//, '');
     if (relativePath.endsWith('/')) relativePath += 'index.html';
