@@ -25,47 +25,103 @@
     .forest-kicker, .forest-section-label { font-family:var(--forest-sans,"Alegreya Sans",sans-serif); }
 
     .vp-hero { padding-top:clamp(30px,7vh,64px); max-width:44rem; }
-    .vp-hero .forest-title { font-weight:650; font-size:clamp(46px,9vw,96px); line-height:.96; letter-spacing:0; }
+    .vp-hero .forest-kicker { font-weight:700; font-size:10px; letter-spacing:.18em; }
+    .vp-hero .forest-title { font-weight:650; font-size:clamp(46px,9vw,96px); line-height:.96; letter-spacing:-.005em; }
+    .vp-hero .forest-lede { max-width:38rem; font-size:clamp(15px,1.5vw,17px); line-height:1.68; }
 
     .vp-studio { display:grid; grid-template-columns:1fr minmax(280px,.62fr); gap:16px; margin-top:clamp(28px,5vh,48px); align-items:start; }
     .vp-panel { padding:clamp(20px,3vw,28px); }
 
-    .vp-label { display:block; margin:0 0 10px; color:var(--forest-accent); font:700 10px/1 var(--forest-sans); letter-spacing:.15em; text-transform:uppercase; }
+    /* One label style for every field on the page, so the two panels read as
+       one instrument rather than two unrelated forms. */
+    .vp-label { display:block; margin:0; color:var(--forest-accent); font:700 10px/1 var(--forest-sans); letter-spacing:.16em; text-transform:uppercase; }
+    .vp-label-row { display:flex; align-items:baseline; justify-content:space-between; gap:12px; margin:0 0 10px; }
 
     .vp-text {
       width:100%; min-height:190px; padding:16px; resize:vertical;
       border:1px solid var(--forest-line); border-radius:14px;
       background:rgba(5,10,8,.55); color:var(--forest-ink);
       font:400 15px/1.7 var(--forest-sans);
+      transition:border-color var(--duration-fast) var(--ease-out), background var(--duration-fast) var(--ease-out);
     }
     .vp-text::placeholder { color:var(--forest-muted); }
-    .vp-text:focus-visible { outline:none; border-color:rgba(var(--forest-accent-rgb),.55); }
+    .vp-text:hover { border-color:rgba(var(--forest-accent-rgb),.24); }
+    .vp-text:focus-visible { outline:none; border-color:rgba(var(--forest-accent-rgb),.55); background:rgba(5,10,8,.7); }
 
-    .vp-count { margin:9px 0 0; color:var(--forest-muted); font:600 11px/1 var(--forest-sans); letter-spacing:.06em; }
+    .vp-count { margin:0; color:var(--forest-muted); font:600 10.5px/1 var(--forest-sans); letter-spacing:.08em; font-variant-numeric:tabular-nums; }
     .vp-count.over { color:#fca5a5; }
 
     /* The voice picker is a radiogroup, not a <select>: four options with a
        line of explanation each, and two of them can be unavailable. */
     .vp-voices { display:grid; gap:9px; margin:0; padding:0; border:0; }
-    .vp-voice { position:relative; display:block; padding:13px 15px; border:1px solid var(--forest-line); border-radius:13px; background:rgba(255,255,255,.02); cursor:pointer; }
+    .vp-voice {
+      position:relative; display:grid; grid-template-columns:auto 1fr; align-items:start; gap:12px;
+      padding:13px 15px; border:1px solid var(--forest-line); border-radius:13px;
+      background:rgba(255,255,255,.02); cursor:pointer; overflow:hidden;
+      transition:border-color var(--duration-fast) var(--ease-out),
+                 background var(--duration-fast) var(--ease-out),
+                 box-shadow var(--duration-fast) var(--ease-out),
+                 transform var(--duration-fast) var(--ease-out);
+    }
+    /* The rail is the selection cue that survives at a glance: a lit edge on
+       the option you picked. */
+    .vp-voice::before {
+      content:""; position:absolute; inset:0 auto 0 0; width:2px;
+      background:var(--forest-accent); opacity:0;
+      transform:scaleY(.3); transform-origin:center;
+      transition:opacity var(--duration-fast) var(--ease-out), transform var(--duration-spring) var(--ease-out);
+    }
     .vp-voice input { position:absolute; opacity:0; pointer-events:none; }
-    .vp-voice b { display:block; color:var(--forest-ink); font:650 15px/1.3 var(--forest-display); letter-spacing:0; }
-    .vp-voice span { display:block; margin-top:4px; color:var(--forest-muted); font:400 11.5px/1.55 var(--forest-sans); }
-    .vp-voice:has(input:checked) { border-color:rgba(var(--forest-accent-rgb),.5); background:rgba(var(--forest-accent-rgb),.07); }
+    .vp-voice-body { min-width:0; }
+    .vp-voice b { display:block; color:var(--forest-ink); font:650 15px/1.25 var(--forest-display); letter-spacing:0; }
+    .vp-voice span.vp-voice-blurb { display:block; margin-top:4px; color:var(--forest-muted); font:400 11.5px/1.55 var(--forest-sans); }
+    .vp-voice:hover:not(:has(input:disabled)) { transform:translateY(-1px); border-color:rgba(var(--forest-accent-rgb),.26); background:rgba(255,255,255,.035); }
+    .vp-voice:has(input:checked) {
+      border-color:rgba(var(--forest-accent-rgb),.5);
+      background:linear-gradient(180deg, rgba(var(--forest-accent-rgb),.11), rgba(var(--forest-accent-rgb),.035));
+      box-shadow:0 10px 26px -18px rgba(var(--forest-accent-rgb),.85), inset 0 0 0 1px rgba(var(--forest-accent-rgb),.12);
+    }
+    .vp-voice:has(input:checked)::before { opacity:.85; transform:scaleY(1); }
+    .vp-voice:has(input:checked) .vp-eq { color:var(--forest-accent); }
     .vp-voice:has(input:focus-visible) { outline:2px solid rgba(var(--forest-accent-rgb),.6); outline-offset:2px; }
     .vp-voice:has(input:disabled) { opacity:.42; cursor:not-allowed; }
     .vp-tag { display:inline-block; margin-left:7px; padding:2px 7px; border:1px solid var(--forest-line); border-radius:99px; color:var(--forest-muted); font:700 8.5px/1.5 var(--forest-sans); letter-spacing:.11em; text-transform:uppercase; vertical-align:2px; }
 
+    /* Four bars standing in for a waveform. They sit still until the selected
+       voice is actually sounding, then they move — so the icon reports state
+       instead of just decorating the card. */
+    .vp-eq { display:flex; align-items:center; gap:2px; height:22px; margin-top:1px; color:var(--forest-muted); transition:color var(--duration-fast) var(--ease-out); }
+    .vp-eq i { display:block; width:2.5px; border-radius:2px; background:currentColor; }
+    .vp-eq i:nth-child(1) { height:7px; }
+    .vp-eq i:nth-child(2) { height:15px; }
+    .vp-eq i:nth-child(3) { height:10px; }
+    .vp-eq i:nth-child(4) { height:18px; }
+    body.vp-sounding .vp-voice:has(input:checked) .vp-eq i { animation:vp-eq-bounce var(--duration-loop-fast) var(--ease-in-out) infinite; }
+    body.vp-sounding .vp-voice:has(input:checked) .vp-eq i:nth-child(2) { animation-delay:-.9s; }
+    body.vp-sounding .vp-voice:has(input:checked) .vp-eq i:nth-child(3) { animation-delay:-1.7s; }
+    body.vp-sounding .vp-voice:has(input:checked) .vp-eq i:nth-child(4) { animation-delay:-.4s; }
+    @keyframes vp-eq-bounce { 0%,100% { transform:scaleY(.45); } 50% { transform:scaleY(1.35); } }
+
     /* Only shown once a key-gated voice is selected — an access field with
-       nothing to unlock is just a question the visitor can't answer. */
-    .vp-key[hidden] { display:none; }
-    .vp-key { margin-top:14px; }
+       nothing to unlock is just a question the visitor can't answer. It grows
+       in rather than appearing, so the panel doesn't jump under the cursor. */
+    .vp-key {
+      display:grid; grid-template-rows:0fr; margin-top:0;
+      opacity:0; visibility:hidden;
+      transition:grid-template-rows var(--duration-spring) var(--ease-out),
+                 opacity var(--duration-normal) var(--ease-out),
+                 margin-top var(--duration-spring) var(--ease-out),
+                 visibility 0s linear var(--duration-spring);
+    }
+    .vp-key > div { overflow:hidden; min-height:0; }
+    .vp-key[data-open] { grid-template-rows:1fr; margin-top:14px; opacity:1; visibility:visible; transition-delay:0s,0s,0s,0s; }
     .vp-key input {
-      width:100%; padding:11px 13px; border:1px solid var(--forest-line); border-radius:11px;
+      width:100%; margin-top:10px; padding:11px 13px; border:1px solid var(--forest-line); border-radius:11px;
       background:rgba(5,10,8,.55); color:var(--forest-ink); font:400 13px/1.4 var(--forest-sans);
+      transition:border-color var(--duration-fast) var(--ease-out);
     }
     .vp-key input:focus-visible { outline:none; border-color:rgba(var(--forest-accent-rgb),.55); }
-    .vp-key p { margin:8px 0 0; color:var(--forest-muted); font:400 11px/1.55 var(--forest-sans); }
+    .vp-key p { margin:9px 0 0; color:var(--forest-muted); font:400 11px/1.6 var(--forest-sans); }
 
     .vp-actions { display:flex; flex-wrap:wrap; align-items:center; gap:11px; margin-top:18px; }
     .vp-btn {
@@ -74,28 +130,81 @@
       background:rgba(var(--forest-accent-rgb),.12); color:var(--forest-ink);
       font:700 10px/1 var(--forest-sans); letter-spacing:.12em; text-transform:uppercase;
       text-decoration:none; cursor:pointer;
+      transition:background var(--duration-fast) var(--ease-out), border-color var(--duration-fast) var(--ease-out), transform var(--duration-fast) var(--ease-out);
     }
+    .vp-btn:hover:not(:disabled) { background:rgba(var(--forest-accent-rgb),.2); border-color:rgba(var(--forest-accent-rgb),.65); }
+    .vp-btn:active:not(:disabled) { transform:translateY(1px); }
     .vp-btn:disabled { opacity:.42; cursor:not-allowed; }
-    .vp-btn.secondary { border-color:var(--forest-line); background:rgba(255,255,255,.025); }
+    .vp-btn.secondary { min-height:40px; padding:0 16px; border-color:var(--forest-line); background:rgba(255,255,255,.025); }
+    .vp-btn.secondary:hover { background:rgba(255,255,255,.06); border-color:rgba(var(--forest-accent-rgb),.35); }
     .vp-btn[hidden] { display:none; }
 
-    .vp-status { margin:0; color:var(--forest-muted); font:600 11.5px/1.5 var(--forest-sans); letter-spacing:.04em; }
+    .vp-status { display:flex; align-items:center; gap:8px; margin:0; color:var(--forest-muted); font:600 11.5px/1.5 var(--forest-sans); letter-spacing:.04em; }
     .vp-status.error { color:#fca5a5; }
     .vp-status b { color:var(--forest-accent); font-weight:700; }
 
+    /* Waiting state: five bars that read as sound being made, plus a rail that
+       fills once the job reports real progress. Before that it sweeps, which is
+       honest about not knowing how far along it is. */
+    .vp-wave { display:inline-flex; align-items:flex-end; gap:2px; height:13px; }
+    .vp-wave[hidden] { display:none; }
+    .vp-wave i { display:block; width:2px; height:100%; border-radius:2px; background:var(--forest-accent); opacity:.75; transform-origin:bottom; animation:vp-wave-step var(--duration-loop) var(--ease-in-out) infinite; }
+    .vp-wave i:nth-child(2) { animation-delay:-.85s; }
+    .vp-wave i:nth-child(3) { animation-delay:-.6s; }
+    .vp-wave i:nth-child(4) { animation-delay:-.35s; }
+    .vp-wave i:nth-child(5) { animation-delay:-.15s; }
+    @keyframes vp-wave-step { 0%,100% { transform:scaleY(.25); } 50% { transform:scaleY(1); } }
+
+    .vp-prog { position:relative; height:2px; margin-top:14px; border-radius:2px; background:rgba(255,255,255,.06); overflow:hidden; }
+    .vp-prog[hidden] { display:none; }
+    .vp-prog-fill { position:absolute; inset:0 auto 0 0; width:0; border-radius:2px; background:linear-gradient(90deg, rgba(var(--forest-accent-rgb),.35), var(--forest-accent)); transition:width var(--duration-recovery) var(--ease-out); }
+    .vp-prog[data-mode="wait"] .vp-prog-fill { width:38%; transition:none; animation:vp-sweep var(--duration-loop-fast) var(--ease-in-out) infinite; }
+    @keyframes vp-sweep { 0% { transform:translateX(-110%); } 100% { transform:translateX(300%); } }
+
+    /* Failure copy, written for a visitor rather than an operator: what went
+       wrong, and the one action that usually gets them listening anyway. */
+    .vp-alert { margin-top:16px; padding:15px 17px; border:1px solid rgba(252,165,165,.28); border-radius:13px; background:rgba(252,165,165,.06); }
+    .vp-alert[hidden] { display:none; }
+    .vp-alert b { display:block; color:#fecaca; font:650 15px/1.3 var(--forest-display); }
+    .vp-alert p { margin:6px 0 0; color:var(--forest-muted); font:400 12px/1.6 var(--forest-sans); }
+    .vp-alert .vp-btn { margin-top:13px; }
+
     .vp-out { margin-top:18px; }
     .vp-out[hidden] { display:none; }
-    .vp-out audio { width:100%; margin-bottom:12px; }
+    .vp-out audio { display:none; }
 
-    /* Spins only while a preview is in flight. */
-    .vp-spin { width:13px; height:13px; border:2px solid rgba(var(--forest-accent-rgb),.28); border-top-color:var(--forest-accent); border-radius:50%; animation:vp-turn calc(var(--duration-loop,1s) * .8) var(--ease-linear,linear) infinite; }
-    .vp-spin[hidden] { display:none; }
-    @keyframes vp-turn { to { transform:rotate(360deg); } }
-    @media (prefers-reduced-motion: reduce) { .vp-spin { animation:none; } }
+    /* A custom transport instead of the native player: the browser default is a
+       light grey slab that ignores every token on this page. */
+    .vp-player { display:flex; align-items:center; gap:13px; padding:11px 14px; border:1px solid var(--forest-line); border-radius:14px; background:rgba(5,10,8,.5); }
+    .vp-pp {
+      flex:0 0 auto; width:40px; height:40px; display:inline-flex; align-items:center; justify-content:center;
+      border:1px solid rgba(var(--forest-accent-rgb),.4); border-radius:50%;
+      background:rgba(var(--forest-accent-rgb),.13); color:var(--forest-accent); cursor:pointer;
+      transition:background var(--duration-fast) var(--ease-out), transform var(--duration-fast) var(--ease-out);
+    }
+    .vp-pp:hover { background:rgba(var(--forest-accent-rgb),.22); }
+    .vp-pp:active { transform:scale(.94); }
+    .vp-pp:focus-visible { outline:2px solid rgba(var(--forest-accent-rgb),.6); outline-offset:2px; }
+    .vp-pp svg { width:15px; height:15px; fill:currentColor; }
+    .vp-pp .vp-ico-pause, .vp-player.is-playing .vp-pp .vp-ico-play { display:none; }
+    .vp-player.is-playing .vp-pp .vp-ico-pause { display:block; }
+
+    .vp-scrub { position:relative; flex:1 1 auto; height:22px; display:flex; align-items:center; cursor:pointer; touch-action:none; }
+    .vp-scrub::before { content:""; position:absolute; inset:auto 0; height:3px; border-radius:3px; background:rgba(255,255,255,.09); }
+    .vp-scrub-fill { position:absolute; left:0; height:3px; width:0; border-radius:3px; background:var(--forest-accent); }
+    .vp-scrub-knob { position:absolute; left:0; width:10px; height:10px; margin-left:-5px; border-radius:50%; background:var(--forest-accent); box-shadow:0 0 0 4px rgba(var(--forest-accent-rgb),.16); transition:transform var(--duration-fast) var(--ease-out); }
+    .vp-scrub:hover .vp-scrub-knob, .vp-scrub:focus-visible .vp-scrub-knob { transform:scale(1.25); }
+    .vp-scrub:focus-visible { outline:2px solid rgba(var(--forest-accent-rgb),.6); outline-offset:3px; border-radius:4px; }
+    .vp-scrub[aria-disabled="true"] .vp-scrub-knob { display:none; }
+
+    .vp-time { flex:0 0 auto; color:var(--forest-muted); font:600 11px/1 var(--forest-sans); letter-spacing:.05em; font-variant-numeric:tabular-nums; }
+
+    .vp-out-actions { display:flex; flex-wrap:wrap; align-items:center; gap:10px; margin-top:12px; }
+    .vp-out-note { margin:0; color:var(--forest-muted); font:400 11px/1.5 var(--forest-sans); }
 
     .vp-notes { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:14px; margin-top:20px; }
     .vp-note { min-height:150px; padding:24px; }
-    .vp-note span { color:var(--forest-accent); font:700 10px/1 var(--forest-sans); letter-spacing:.15em; }
+    .vp-note span { color:var(--forest-accent); font:700 10px/1 var(--forest-sans); letter-spacing:.16em; }
     .vp-note h2 { margin:26px 0 9px; font:650 22px/1.2 var(--forest-display); letter-spacing:0; }
     .vp-note p { margin:0; color:var(--forest-muted); font-size:12px; line-height:1.65; }
 
@@ -103,6 +212,32 @@
       .vp-studio { grid-template-columns:1fr; }
       .vp-notes { grid-template-columns:1fr; }
     }
+    @media (max-width:560px) {
+      .vp-hero .forest-title { font-size:clamp(40px,12vw,58px); }
+      .vp-panel { padding:18px 16px; }
+      .vp-actions { gap:10px; }
+      .vp-actions .vp-btn { flex:1 1 100%; }
+      .vp-actions .vp-status { flex:1 1 100%; }
+      .vp-player { gap:10px; padding:10px 11px; }
+      /* Thumbs, not cursors: the transport needs a bigger target than a mouse
+         does, and the scrub track needs height to be draggable at all. */
+      .vp-pp { width:44px; height:44px; }
+      .vp-btn.secondary { min-height:44px; }
+      .vp-scrub { height:30px; }
+      .vp-time { font-size:10.5px; }
+      .vp-note { min-height:0; padding:20px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .vp-spin, .vp-wave i, .vp-eq i, .vp-prog[data-mode="wait"] .vp-prog-fill { animation:none; }
+      .vp-key, .vp-voice, .vp-btn, .vp-prog-fill { transition:none; }
+      .vp-key { transition:visibility 0s; }
+    }
+
+    /* Spins only while a preview is in flight. */
+    .vp-spin { width:13px; height:13px; border:2px solid rgba(var(--forest-accent-rgb),.28); border-top-color:var(--forest-accent); border-radius:50%; animation:vp-turn calc(var(--duration-loop,1s) * .8) var(--ease-linear,linear) infinite; }
+    .vp-spin[hidden] { display:none; }
+    @keyframes vp-turn { to { transform:rotate(360deg); } }
   </style>
   <link rel="stylesheet" href="/web/shared/design-history.css?v=20260731a">
 </head>
@@ -122,35 +257,66 @@
 
     <section class="vp-studio" aria-label="Voice preview">
       <div class="forest-panel vp-panel">
-        <label class="vp-label" for="vp-text">Your text</label>
+        <div class="vp-label-row">
+          <label class="vp-label" for="vp-text">Your text</label>
+          <p class="vp-count" id="vp-count" aria-live="polite">0 / 500</p>
+        </div>
         <textarea id="vp-text" class="vp-text" maxlength="500" spellcheck="true"
           placeholder="The forest remembers every path you have walked."></textarea>
-        <p class="vp-count" id="vp-count" aria-live="polite">0 / 500 characters</p>
 
         <div class="vp-actions">
           <button type="button" class="vp-btn" id="vp-play">
             <span class="vp-spin" id="vp-spin" hidden aria-hidden="true"></span>
             <span id="vp-play-label">Play</span>
           </button>
-          <p class="vp-status" id="vp-status" role="status" aria-live="polite"></p>
+          <p class="vp-status" id="vp-status" role="status" aria-live="polite">
+            <span class="vp-wave" id="vp-wave" hidden aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span>
+            <span id="vp-status-text"></span>
+          </p>
+        </div>
+        <div class="vp-prog" id="vp-prog" hidden aria-hidden="true"><div class="vp-prog-fill" id="vp-prog-fill"></div></div>
+
+        <div class="vp-alert" id="vp-alert" hidden>
+          <b id="vp-alert-title"></b>
+          <p id="vp-alert-body"></p>
+          <button type="button" class="vp-btn secondary" id="vp-alert-action" hidden></button>
         </div>
 
         <div class="vp-out" id="vp-out" hidden>
-          <audio id="vp-audio" controls preload="none"></audio>
-          <a class="vp-btn secondary" id="vp-download" download="voice-preview.m4a" href="#">Download audio</a>
+          <audio id="vp-audio" preload="metadata"></audio>
+          <div class="vp-player" id="vp-player">
+            <button type="button" class="vp-pp" id="vp-pp" aria-label="Play preview">
+              <svg class="vp-ico-play" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 2.4v11.2a.6.6 0 0 0 .92.5l8.7-5.6a.6.6 0 0 0 0-1L4.92 1.9a.6.6 0 0 0-.92.5Z"/></svg>
+              <svg class="vp-ico-pause" viewBox="0 0 16 16" aria-hidden="true"><path d="M3.6 2h3v12h-3zM9.4 2h3v12h-3z"/></svg>
+            </button>
+            <div class="vp-scrub" id="vp-scrub" role="slider" tabindex="0"
+              aria-label="Seek through the preview" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-valuetext="0:00">
+              <div class="vp-scrub-fill" id="vp-scrub-fill"></div>
+              <div class="vp-scrub-knob" id="vp-scrub-knob"></div>
+            </div>
+            <span class="vp-time" id="vp-time">0:00 / 0:00</span>
+          </div>
+          <div class="vp-out-actions">
+            <a class="vp-btn secondary" id="vp-download" download="voice-preview.m4a" href="#">Download audio</a>
+            <p class="vp-out-note" id="vp-out-note"></p>
+          </div>
         </div>
       </div>
 
       <div class="forest-panel vp-panel">
-        <fieldset class="vp-voices" id="vp-voices">
-          <legend class="vp-label">Voice</legend>
+        <div class="vp-label-row">
+          <p class="vp-label" id="vp-voice-label">Voice</p>
+        </div>
+        <fieldset class="vp-voices" id="vp-voices" aria-labelledby="vp-voice-label">
           <p class="vp-status" id="vp-voices-status">Loading voices…</p>
         </fieldset>
 
-        <div class="vp-key" id="vp-key" hidden>
-          <label class="vp-label" for="vp-key-input">Access key</label>
-          <input id="vp-key-input" type="password" autocomplete="off" placeholder="Required for this voice">
-          <p>The premium voices run on metered quota, so they stay behind a key. The standard voice is open to everyone.</p>
+        <div class="vp-key" id="vp-key">
+          <div>
+            <label class="vp-label" for="vp-key-input">Access key</label>
+            <input id="vp-key-input" type="password" autocomplete="off" placeholder="Required for this voice">
+            <p>The premium voices run on metered quota, so they stay behind a key. It travels with this one request, straight through to the voice service — nothing is stored, here or in your browser. The standard voice is open to everyone.</p>
+          </div>
         </div>
       </div>
     </section>
@@ -192,8 +358,23 @@
       const playLabel = $('vp-play-label');
       const spin = $('vp-spin');
       const status = $('vp-status');
+      const statusText = $('vp-status-text');
+      const wave = $('vp-wave');
+      const prog = $('vp-prog');
+      const progFill = $('vp-prog-fill');
+      const alertBox = $('vp-alert');
+      const alertTitle = $('vp-alert-title');
+      const alertBody = $('vp-alert-body');
+      const alertAction = $('vp-alert-action');
       const out = $('vp-out');
       const audio = $('vp-audio');
+      const player = $('vp-player');
+      const pp = $('vp-pp');
+      const scrub = $('vp-scrub');
+      const scrubFill = $('vp-scrub-fill');
+      const scrubKnob = $('vp-scrub-knob');
+      const timeOut = $('vp-time');
+      const outNote = $('vp-out-note');
       const download = $('vp-download');
       const voices = $('vp-voices');
       const voicesStatus = $('vp-voices-status');
@@ -204,34 +385,216 @@
       let busy = false;
 
       const say = (message, isError = false) => {
-        status.textContent = message;
+        statusText.textContent = message;
         status.classList.toggle('error', isError);
       };
 
       const selected = () => voices.querySelector('input:checked')?.value || null;
+      const engineOf = (id) => engines.find((e) => e.id === id) || null;
 
       const syncKeyField = () => {
-        const engine = engines.find((e) => e.id === selected());
-        keyBox.hidden = !engine?.requiresKey;
+        const engine = engineOf(selected());
+        const open = Boolean(engine?.requiresKey);
+        keyBox.toggleAttribute('data-open', open);
+        // Kept in the DOM for the grow-in transition, so it has to be taken out
+        // of the tab order explicitly while it is closed.
+        keyBox.inert = !open;
       };
 
       const syncCount = () => {
         const length = text.value.length;
-        count.textContent = `${length} / ${MAX} characters`;
+        count.textContent = `${length} / ${MAX}`;
         count.classList.toggle('over', length >= MAX);
+      };
+
+      const setProgress = (percent) => {
+        prog.hidden = false;
+        if (typeof percent === 'number' && percent > 0) {
+          prog.removeAttribute('data-mode');
+          progFill.style.width = `${Math.min(100, percent)}%`;
+        } else {
+          prog.setAttribute('data-mode', 'wait');
+          progFill.style.width = '';
+        }
       };
 
       const setBusy = (state, label) => {
         busy = state;
         play.disabled = state;
         spin.hidden = !state;
+        wave.hidden = !state;
         playLabel.textContent = label || (state ? 'Working' : 'Play');
+        if (state) setProgress(null);
+        else { prog.hidden = true; prog.removeAttribute('data-mode'); progFill.style.width = ''; }
+      };
+
+      // ---- Failures --------------------------------------------------------
+      const hideAlert = () => { alertBox.hidden = true; alertAction.hidden = true; alertAction.onclick = null; };
+
+      const showAlert = (title, body, action) => {
+        alertTitle.textContent = title;
+        alertBody.textContent = body;
+        if (action) {
+          alertAction.textContent = action.label;
+          alertAction.hidden = false;
+          alertAction.onclick = action.run;
+        } else {
+          alertAction.hidden = true;
+          alertAction.onclick = null;
+        }
+        alertBox.hidden = false;
+      };
+
+      const pickStandard = () => {
+        const fallback = engines.find((e) => !e.requiresKey && e.available !== false);
+        if (!fallback) return null;
+        const input = voices.querySelector(`input[value="${fallback.id}"]`);
+        if (!input || input.disabled) return null;
+        return () => { input.checked = true; syncKeyField(); hideAlert(); play.click(); };
+      };
+
+      // Turns a proxy error into something a visitor can act on. The raw string
+      // is already scrubbed of engine ids upstream, but it is still written for
+      // whoever runs the service.
+      const explain = (err, chosen) => {
+        const code = err.code || 0;
+        const raw = err.message || 'Something went wrong.';
+        const standard = pickStandard();
+        const offer = standard ? { label: 'Use the standard voice', run: standard } : null;
+
+        if (code === 401 || code === 403) {
+          return showAlert(
+            "That key wasn't accepted.",
+            'Check the access key and try again — or switch to the standard voice, which needs no key at all.',
+            offer);
+        }
+        if (code === 429) {
+          return showAlert(
+            'This voice is out of headroom right now.',
+            'It runs on a metered allowance that has been used up for the moment. The standard voice is free and unlimited.',
+            offer);
+        }
+        if (code === 502 || code === 503 || code === 504 || err.timedOut) {
+          return showAlert(
+            "This voice isn't available right now.",
+            err.timedOut
+              ? 'The preview took longer than it should, which usually means the narrator is backed up. The standard voice is the quickest one to answer.'
+              : 'The narration service did not answer. It may be restarting. The standard voice is the quickest one to answer.',
+            offer);
+        }
+        if (code === 413) {
+          return showAlert(
+            "That's longer than a preview.",
+            `Trim it to ${MAX} characters or fewer and try again.`,
+            null);
+        }
+        if (chosen?.requiresKey) {
+          return showAlert("This voice isn't available right now.", `${raw} The standard voice is free and always on.`, offer);
+        }
+        return showAlert("That preview didn't happen.", raw, null);
       };
 
       text.addEventListener('input', syncCount);
       syncCount();
+      syncKeyField();
+
+      // ---- Player ----------------------------------------------------------
+      const clock = (seconds) => {
+        if (!Number.isFinite(seconds) || seconds < 0) seconds = 0;
+        return `${Math.floor(seconds / 60)}:${String(Math.floor(seconds % 60)).padStart(2, '0')}`;
+      };
+
+      const playable = () => Number.isFinite(audio.duration) && audio.duration > 0;
+
+      // Being fully buffered is not the same as being seekable: a response with
+      // no byte-range support leaves audio.seekable empty and swallows every
+      // currentTime write. Ask, rather than offering a scrubber that does
+      // nothing when it drags.
+      const seekable = () => {
+        if (!playable()) return false;
+        const ranges = audio.seekable;
+        return ranges.length > 0 && ranges.end(ranges.length - 1) > 0;
+      };
+
+      const paintTime = () => {
+        const ratio = playable() ? audio.currentTime / audio.duration : 0;
+        const percent = `${(ratio * 100).toFixed(2)}%`;
+        scrubFill.style.width = percent;
+        scrubKnob.style.left = percent;
+        timeOut.textContent = `${clock(audio.currentTime)} / ${clock(audio.duration)}`;
+        scrub.setAttribute('aria-valuenow', String(Math.round(ratio * 100)));
+        scrub.setAttribute('aria-valuetext', clock(audio.currentTime));
+        scrub.setAttribute('aria-disabled', seekable() ? 'false' : 'true');
+      };
+
+      pp.addEventListener('click', () => {
+        if (audio.paused) audio.play().catch(() => {}); else audio.pause();
+      });
+      audio.addEventListener('play', () => {
+        player.classList.add('is-playing');
+        pp.setAttribute('aria-label', 'Pause preview');
+        document.body.classList.add('vp-sounding');
+      });
+      const stopped = () => {
+        player.classList.remove('is-playing');
+        pp.setAttribute('aria-label', 'Play preview');
+        document.body.classList.remove('vp-sounding');
+      };
+      audio.addEventListener('pause', stopped);
+      audio.addEventListener('ended', stopped);
+      audio.addEventListener('loadedmetadata', paintTime);
+      audio.addEventListener('timeupdate', paintTime);
+      audio.addEventListener('durationchange', paintTime);
+
+      let dragging = false;
+      const seekTo = (clientX) => {
+        if (!seekable()) return;
+        const rect = scrub.getBoundingClientRect();
+        const ratio = Math.min(1, Math.max(0, (clientX - rect.left) / rect.width));
+        audio.currentTime = ratio * audio.duration;
+        paintTime();
+      };
+      scrub.addEventListener('pointerdown', (event) => {
+        if (!seekable()) return;
+        dragging = true;
+        scrub.setPointerCapture(event.pointerId);
+        seekTo(event.clientX);
+      });
+      scrub.addEventListener('pointermove', (event) => { if (dragging) seekTo(event.clientX); });
+      const endDrag = (event) => {
+        if (!dragging) return;
+        dragging = false;
+        if (scrub.hasPointerCapture?.(event.pointerId)) scrub.releasePointerCapture(event.pointerId);
+      };
+      scrub.addEventListener('pointerup', endDrag);
+      scrub.addEventListener('pointercancel', endDrag);
+      scrub.addEventListener('keydown', (event) => {
+        if (!seekable()) return;
+        const step = event.shiftKey ? 10 : 5;
+        const keys = {
+          ArrowRight: () => audio.currentTime + step,
+          ArrowUp: () => audio.currentTime + step,
+          ArrowLeft: () => audio.currentTime - step,
+          ArrowDown: () => audio.currentTime - step,
+          Home: () => 0,
+          End: () => audio.duration,
+        };
+        const next = keys[event.key];
+        if (!next) {
+          if (event.key === ' ' || event.key === 'Enter') {
+            event.preventDefault();
+            if (audio.paused) audio.play().catch(() => {}); else audio.pause();
+          }
+          return;
+        }
+        event.preventDefault();
+        audio.currentTime = Math.min(audio.duration, Math.max(0, next()));
+        paintTime();
+      });
 
       // ---- Voice catalogue -------------------------------------------------
+      const eq = '<span class="vp-eq" aria-hidden="true"><i></i><i></i><i></i><i></i></span>';
+
       fetch('/api/voice/engines')
         .then((response) => response.json())
         .then((data) => {
@@ -246,11 +609,14 @@
             label.innerHTML = `
               <input type="radio" name="vp-voice" value="${engine.id}"
                 ${engine.default ? 'checked' : ''} ${off ? 'disabled' : ''}>
-              <b>${engine.label}${off ? '<span class="vp-tag">Unavailable</span>' : engine.requiresKey ? '<span class="vp-tag">Key</span>' : ''}</b>
-              <span>${engine.blurb}</span>`;
+              ${eq}
+              <span class="vp-voice-body">
+                <b>${engine.label}${off ? '<span class="vp-tag">Unavailable</span>' : engine.requiresKey ? '<span class="vp-tag">Key</span>' : ''}</b>
+                <span class="vp-voice-blurb">${engine.blurb}</span>
+              </span>`;
             voices.append(label);
           }
-          voices.addEventListener('change', syncKeyField);
+          voices.addEventListener('change', () => { syncKeyField(); hideAlert(); });
           syncKeyField();
         })
         .catch(() => {
@@ -262,14 +628,20 @@
       const poll = (jobId, startedAt) => new Promise((resolve, reject) => {
         const tick = async () => {
           if (Date.now() - startedAt > TIMEOUT_MS) {
-            return reject(new Error('This is taking longer than a preview should. Try again.'));
+            const err = new Error('This is taking longer than a preview should.');
+            err.timedOut = true;
+            return reject(err);
           }
           try {
             const response = await fetch(`/api/voice/status/${jobId}`);
             const data = await response.json();
-            if (!response.ok) return reject(new Error(data.error || 'Preview failed.'));
-            if (data.status === 'error') return reject(new Error(data.error || 'Preview failed.'));
+            if (!response.ok || data.status === 'error') {
+              const err = new Error(data.error || 'Preview failed.');
+              err.code = response.ok ? 0 : response.status;
+              return reject(err);
+            }
             if (data.ready) return resolve(data);
+            setProgress(data.progress);
             say('Narrating…');
             setTimeout(tick, POLL_MS);
           } catch (err) {
@@ -282,15 +654,21 @@
       play.addEventListener('click', async () => {
         if (busy) return;
         const body = text.value.trim();
+        hideAlert();
         if (!body) return say('Type or paste something first.', true);
 
         const engine = selected();
-        const chosen = engines.find((e) => e.id === engine);
+        const chosen = engineOf(engine);
         if (chosen?.requiresKey && !keyInput.value.trim()) {
-          return say('This voice needs an access key.', true);
+          say('', false);
+          return showAlert(
+            'This voice needs an access key.',
+            'Paste the key beside the picker, or pick the standard voice — it is open to everyone.',
+            pickStandard() ? { label: 'Use the standard voice', run: pickStandard() } : null);
         }
 
         out.hidden = true;
+        audio.pause();
         setBusy(true, 'Working');
         say('Sending…');
 
@@ -304,21 +682,28 @@
             body: JSON.stringify({ text: body, voice: engine }),
           });
           const data = await response.json();
-          if (!response.ok) throw new Error(data.error || 'The voice service refused this preview.');
+          if (!response.ok) {
+            const err = new Error(data.error || 'The voice service refused this preview.');
+            err.code = response.status;
+            throw err;
+          }
 
           const result = await poll(data.job_id, Date.now());
           const url = `/api/voice/audio/${data.job_id}`;
           audio.src = url;
           download.href = url;
           out.hidden = false;
+          paintTime();
           audio.play().catch(() => {
-            // Autoplay blocked — the controls are right there.
+            // Autoplay blocked — the transport is right there.
           });
-          say(result.substituted
-            ? 'Ready — the voice you picked was unavailable, so a different one read this.'
-            : `Ready${result.duration ? ` — ${result.duration}` : ''}.`);
+          outNote.textContent = result.substituted
+            ? 'The voice you picked was unavailable, so a different one read this.'
+            : '';
+          say(`Ready${result.duration ? ` — ${result.duration}` : ''}.`);
         } catch (err) {
-          say(err.message, true);
+          say('', true);
+          explain(err, chosen);
         } finally {
           setBusy(false);
         }
