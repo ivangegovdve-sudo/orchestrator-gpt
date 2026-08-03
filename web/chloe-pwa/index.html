@@ -9,6 +9,11 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Chloé">
 <title>Chloé</title>
+<!-- Internal-only. This is a personal-device client for Ivan's own Chloé
+     endpoints: it collects a Bearer token and private funnel URLs, and it is
+     useless without them. It is deliberately unlinked from the Forest HUB
+     landing page and the trails graph, so keep it out of search indexes. -->
+<meta name="robots" content="noindex, nofollow">
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon.svg">
 <link rel="stylesheet" href="/web/shared/forest-design.css?v=20260731a">
@@ -276,6 +281,8 @@ body {
 .cfg-f input:focus, .cfg-f textarea:focus { border-color: var(--purple); }
 .cfg-f textarea { resize: none; height: 66px; font-family: inherit; font-size: .8rem; }
 .cfg-hint { font-size: .68rem; color: rgba(255,255,255,.25); margin-top: 4px; line-height: 1.5; }
+.cfg-internal { margin: 0 0 16px; padding: 10px 12px; border: 1px solid rgba(232,184,107,.28); border-left-width: 3px; border-radius: 8px; background: rgba(232,184,107,.06); color: var(--muted); font-size: .72rem; line-height: 1.6; }
+.cfg-internal strong { color: var(--purple); }
 .cfg-actions { display: flex; gap: 10px; margin-top: 16px; }
 .btn-save { flex:1; background: var(--purple); color:#241505; border:none; border-radius:9px; padding:11px; font-family:var(--forest-sans,"Alegreya Sans",sans-serif); font-size:.88rem; font-weight:600; cursor:pointer; transition: opacity .15s; }
 .btn-save:active { opacity:.8; }
@@ -321,6 +328,13 @@ body {
   <div class="cfg-sheet">
     <div class="cfg-drag"></div>
     <h2>💜 Chloé Setup</h2>
+
+    <p class="cfg-internal">
+      <strong>Internal tool.</strong> This is a personal-device client for
+      Ivan&#39;s own Chloé endpoints, not a public feature of SDForest. It does
+      nothing without a chat URL and Bearer token you already hold. Nothing you
+      type here reaches sdforest.site.
+    </p>
 
     <div class="cfg-f">
       <label>Chat URL</label>
