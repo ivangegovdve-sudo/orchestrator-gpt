@@ -192,7 +192,7 @@ footer { text-align: center; color: var(--dim); font-size: .76rem; margin-top: 4
   <div class="fork-callout" id="fork-callout" style="display:none">
     <span class="fork-icon">🍴</span>
     <span>
-      This searches <strong>20 authored repos</strong>.
+      This searches <strong id="fork-repo-count">the indexed authored repos</strong>.
       To search Ivan's <strong>736 public forks</strong> too:
       <a id="fork-link" href="https://github.com/search?q=user%3Aivangegovdve-sudo&type=code" target="_blank" rel="noopener">Search on GitHub ↗</a>
     </span>
@@ -239,6 +239,7 @@ footer { text-align: center; color: var(--dim); font-size: .76rem; margin-top: 4
   var forkCall  = document.getElementById('fork-callout');
   var forkLink  = document.getElementById('fork-link');
   var corpusStat = document.getElementById('corpus-stat');
+  var forkRepoCount = document.getElementById('fork-repo-count');
 
   // ── Corpus health ───────────────────────────────────────────────────────────
   function loadCorpus() {
@@ -248,6 +249,10 @@ footer { text-align: center; color: var(--dim); font-size: .76rem; margin-top: 4
         corpusStat.textContent =
           d.total_nodes.toLocaleString() + ' nodes · ' +
           d.repos_loaded + ' repos · live index';
+        // Read the repo count off the same payload as the corpus stat. This
+        // used to be hardcoded ("20 authored repos") and drifted away from
+        // the index, which actually serves 14.
+        forkRepoCount.textContent = d.repos_loaded + ' indexed authored repos';
         corpusLoaded = true;
       })
       .catch(function () {
