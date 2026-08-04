@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-04T06:19:01.892824+00:00",
+  "generated_at": "2026-08-04T12:19:01.155843+00:00",
   "generated_by": "pr_helper.py on Oracle (forest-a1-v3)",
   "services": {
     "soul-server": {
@@ -9,27 +9,27 @@
     "iris": {
       "status": "ok",
       "platform": "hermes-agent",
-      "version": "0.16.0"
+      "version": "0.20.0"
     },
     "banker": {
       "status": "ok",
       "platform": "hermes-agent",
-      "version": "0.16.0"
+      "version": "0.20.0"
     },
     "sheriff": {
       "status": "ok",
       "platform": "hermes-agent",
-      "version": "0.16.0"
+      "version": "0.20.0"
     },
     "artist": {
       "status": "ok",
       "platform": "hermes-agent",
-      "version": "0.16.0"
+      "version": "0.20.0"
     },
     "librarian": {
       "status": "ok",
       "platform": "hermes-agent",
-      "version": "0.16.0"
+      "version": "0.20.0"
     },
     "chloe-api": {
       "status": "ok",
