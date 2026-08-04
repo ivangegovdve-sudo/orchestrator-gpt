@@ -53,15 +53,14 @@ after(async () => {
   await new Promise((resolve) => server?.close(resolve));
 });
 
-test('landing keeps one title crown and exposes Life in Time as the nineteenth branch', () => {
+test('landing keeps one title crown and exposes Life in Time in the 24-card directory', () => {
   // Tag-agnostic like sdforest-foundation.test.js: the crown moved into the
   // h1 (and so became a span) to centre on the wordmark. The guard here is
   // that there is exactly ONE crown, which is the regression that matters.
   assert.equal((landingSource.match(/<(?:div|span)\b[^>]*\bdata-title-crown\b/g) || []).length, 1);
   assert.equal((landingSource.match(/<symbol\s+id="leaf"\s/g) || []).length, 1);
   assert.match(landingSource, /data-project="time"[^>]+data-href="\/web\/life-in-time\//);
-  assert.match(landingSource, /Nineteen branches,\s*<em>one tree<\/em>/);
-  assert.equal((landingSource.match(/class="portal"/g) || []).length, 19);
+  assert.equal((landingSource.match(/<(?:a|article)\b[^>]*\bclass="[^"]*\bportal\b[^"]*"/g) || []).length, 24);
   assert.doesNotMatch(landingSource, /voice(?:2|[- ]to[- ])voice|v2v/i);
 });
 
@@ -128,4 +127,153 @@ test('reduced motion skips leaf generation entirely', async () => {
   await page.waitForTimeout(100);
   assert.equal(await page.locator('.falling-leaf').count(), 0);
   await context.close();
+});
+
+const visiblePortalCount = (page) => page.locator('[data-project-grid] .portal').evaluateAll((cards) =>
+  cards.filter((card) => card.getClientRects().length > 0).length);
+
+test('desktop directory starts with sixteen featured cards and a complete 24-entry index', async () => {
+  const page = await browser.newPage({ viewport: { width: 1280, height: 800 } });
+  await page.goto(baseUrl, { waitUntil: 'domcontentloaded' });
+
+  assert.equal(await visiblePortalCount(page), 16);
+  assert.equal(await page.locator('[data-directory-index] [data-index-project]').count(), 24);
+
+  await page.close();
+});
+
+test('a disclosure reveals only its own overflow cards and restores the featured directory when closed', async () => {
+  const page = await browser.newPage({ viewport: { width: 1280, height: 800 } });
+  await page.goto(baseUrl, { waitUntil: 'domcontentloaded' });
+  const disclosure = page.locator('[data-directory-section="writing-media"] .directory-overflow');
+  const summary = disclosure.locator('summary');
+
+  assert.equal(await visiblePortalCount(page), 16);
+  assert.match(await summary.innerText(), /See all 5/i);
+  await summary.click();
+  assert.equal(await disclosure.getAttribute('open'), '');
+  assert.equal(await visiblePortalCount(page), 17);
+  assert.match(await summary.innerText(), /Show featured only/i);
+  assert.equal(
+    await page.locator('[data-directory-section="projects-play"] [data-overflow-projects] .portal').evaluateAll(
+      (cards) => cards.every((card) => card.getClientRects().length === 0),
+    ),
+    true,
+  );
+  await summary.click();
+  assert.equal(await visiblePortalCount(page), 16);
+
+  await page.close();
+});
+
+test('directory disclosures work from the keyboard with a visible focus treatment', async () => {
+  const page = await browser.newPage({ viewport: { width: 1280, height: 800 } });
+  await page.goto(baseUrl, { waitUntil: 'domcontentloaded' });
+  const disclosure = page.locator('[data-directory-section="tools"] .directory-overflow');
+  const summary = disclosure.locator('summary');
+
+  await summary.focus();
+  assert.equal(await page.evaluate(() => document.activeElement?.tagName), 'SUMMARY');
+  const focusStyle = await summary.evaluate((element) => {
+    const style = getComputedStyle(element);
+    return { outlineStyle: style.outlineStyle, outlineWidth: style.outlineWidth };
+  });
+  assert.notEqual(focusStyle.outlineStyle, 'none');
+  assert.notEqual(focusStyle.outlineWidth, '0px');
+  await summary.press('Enter');
+  assert.equal(await disclosure.getAttribute('open'), '');
+
+  await page.close();
+});
+
+test('desktop directory pairs a sticky index with the section-card column', async () => {
+  const page = await browser.newPage({ viewport: { width: 1280, height: 800 } });
+  await page.goto(baseUrl, { waitUntil: 'domcontentloaded' });
+  const layout = page.locator('.directory-layout');
+  const index = page.locator('.directory-index');
+
+  assert.equal(await layout.evaluate((element) => getComputedStyle(element).display), 'grid');
+  assert.equal(
+    await layout.evaluate((element) => getComputedStyle(element).gridTemplateColumns.split(' ').length),
+    2,
+  );
+  assert.equal(await index.evaluate((element) => getComputedStyle(element).position), 'sticky');
+
+  await page.close();
+});
+
+test('sticky desktop index keeps every entry usable without constraining the stacked mobile index', async () => {
+  const desktop = await browser.newPage({ viewport: { width: 1280, height: 800 } });
+  await desktop.goto(baseUrl, { waitUntil: 'domcontentloaded' });
+  await desktop.evaluate(() => scrollTo(0, document.querySelector('.atlas').offsetTop + 200));
+  await desktop.waitForTimeout(50);
+  const desktopIndex = desktop.locator('.directory-index');
+  const desktopMetrics = await desktopIndex.evaluate((element) => {
+    const bounds = element.getBoundingClientRect();
+    const style = getComputedStyle(element);
+    return {
+      bottom: bounds.bottom,
+      clientHeight: element.clientHeight,
+      overflowY: style.overflowY,
+      scrollHeight: element.scrollHeight,
+      top: bounds.top,
+    };
+  });
+
+  assert.ok(desktopMetrics.bottom <= 800, `sticky index bottom ${desktopMetrics.bottom} exceeds the viewport`);
+  assert.match(desktopMetrics.overflowY, /auto|scroll/);
+  assert.ok(desktopMetrics.scrollHeight > desktopMetrics.clientHeight);
+  assert.equal(
+    await desktopIndex.evaluate((element) => {
+      element.scrollTop = element.scrollHeight;
+      const lastEntry = element.querySelector('[data-index-project="c2c-self"]');
+      return element.scrollTop > 0 && lastEntry.getBoundingClientRect().bottom <= element.getBoundingClientRect().bottom;
+    }),
+    true,
+  );
+
+  const mobile = await browser.newPage({ viewport: { width: 390, height: 844 } });
+  await mobile.goto(baseUrl, { waitUntil: 'domcontentloaded' });
+  const mobileMetrics = await mobile.locator('.directory-index').evaluate((element) => {
+    const style = getComputedStyle(element);
+    return { maxHeight: style.maxHeight, overflowY: style.overflowY };
+  });
+  assert.equal(mobileMetrics.maxHeight, 'none');
+  assert.equal(mobileMetrics.overflowY, 'visible');
+
+  await desktop.close();
+  await mobile.close();
+});
+
+test('mobile directory stacks the index before one-column cards without horizontal overflow', async () => {
+  const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
+  await page.goto(baseUrl, { waitUntil: 'domcontentloaded' });
+  const layout = page.locator('.directory-layout');
+  const index = page.locator('.directory-index');
+  const sections = page.locator('.directory-sections');
+
+  assert.equal(await layout.evaluate((element) => getComputedStyle(element).gridTemplateColumns.split(' ').length), 1);
+  assert.ok((await index.boundingBox()).y < (await sections.boundingBox()).y);
+  assert.equal(
+    await page.locator('[data-featured-projects]').first().evaluate((element) =>
+      getComputedStyle(element).gridTemplateColumns.split(' ').length),
+    1,
+  );
+  assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
+
+  await page.close();
+});
+
+test('landing produces no browser console errors', async () => {
+  const page = await browser.newPage({ viewport: { width: 1280, height: 800 } });
+  const errors = [];
+  page.on('console', (message) => {
+    if (message.type() === 'error') errors.push(message.text());
+  });
+  page.on('pageerror', (error) => errors.push(error.message));
+
+  await page.goto(baseUrl, { waitUntil: 'networkidle' });
+  assert.deepEqual(errors, []);
+
+  await page.close();
 });
