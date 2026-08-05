@@ -22,7 +22,14 @@
       --forest-accent:#e8996b;
       --forest-accent-rgb:232,153,107;
       --hyper-delay-zero:calc(var(--duration-fast) * 0);
+      /* Unified tokens drive the page chrome; the forest accent stays the brand note. */
+      --forest-ink:var(--text-primary);
+      --forest-muted:var(--text-muted);
+      --forest-line:var(--border);
+      --hyper-ok:var(--accent-green);
+      --hyper-down:#f87171;
     }
+    .forest-panel { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); }
     .forest-kicker, .forest-section-label, .forest-back, .forest-top-action { font-family:var(--forest-sans,"Alegreya Sans",sans-serif); }
     .forest-title { font-size:clamp(53px,11vw,128px); font-weight:650; line-height:.92; letter-spacing:.01em; }
     .hyper-hero { min-height:76svh; display:grid; grid-template-columns:1fr minmax(300px,.68fr); align-items:center; gap:clamp(44px,8vw,100px); }
@@ -75,6 +82,45 @@
     .answer .answer-state { color:var(--forest-muted); }.source-row { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:10px; }.source-pill { padding:4px 8px; border:1px solid rgba(232,153,107,.25); border-radius:999px; color:#f0b488; font-family:var(--forest-sans); font-size:8px; letter-spacing:.08em; text-transform:uppercase; }
     .principles { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:14px; margin-top:18px; }.principle { min-height:220px; padding:26px; }.principle span { color:var(--forest-accent); font:700 10px/1 var(--forest-sans); letter-spacing:.16em; }.principle h3 { margin:42px 0 12px; font:650 27px/1 var(--forest-display); letter-spacing:0; }.principle p { margin:0; color:var(--forest-muted); font-size:12px; line-height:1.65; }
     .disclaimer { max-width:700px; margin:30px auto 0; color:var(--forest-muted); font-size:10px; line-height:1.6; text-align:center; }
+    /* ── Live service status ── */
+    .service-strip { display:grid; gap:14px; margin-top:clamp(40px,7vw,72px); padding:clamp(18px,3vw,26px); }
+    .service-head { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:12px; }
+    .service-state { display:inline-flex; align-items:center; gap:9px; color:var(--text-muted); font:700 10px/1 var(--forest-sans); letter-spacing:.12em; text-transform:uppercase; }
+    .service-dot { width:9px; height:9px; border-radius:50%; background:var(--text-muted); box-shadow:0 0 0 3px rgba(255,255,255,.04); }
+    .service-strip[data-state="up"] .service-dot { background:var(--hyper-ok); box-shadow:0 0 0 3px rgba(34,197,94,.16),0 0 14px 2px rgba(34,197,94,.5); animation:svcPulse var(--duration-loop) ease-in-out infinite; }
+    .service-strip[data-state="down"] .service-dot { background:var(--hyper-down); box-shadow:0 0 0 3px rgba(248,113,113,.16); }
+    .service-strip[data-state="up"] .service-state { color:var(--hyper-ok); }
+    .service-strip[data-state="down"] .service-state { color:var(--hyper-down); }
+    @keyframes svcPulse { 50% { box-shadow:0 0 0 4px rgba(34,197,94,.2),0 0 20px 5px rgba(34,197,94,.7); } }
+    .service-endpoint { display:block; overflow-x:auto; padding:9px 12px; border:1px solid var(--border); border-radius:var(--radius); background:rgba(0,0,0,.34); color:var(--text-muted); font:600 11px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace; white-space:nowrap; }
+    .service-stats { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }
+    .service-stat { padding:13px; border:1px solid var(--border); border-radius:var(--radius); background:rgba(255,255,255,.02); }
+    .service-stat span { display:block; color:var(--text-muted); font:700 8px/1 var(--forest-sans); letter-spacing:.14em; text-transform:uppercase; }
+    .service-stat b { display:block; margin-top:8px; color:var(--text-primary); font:700 21px/1 var(--forest-sans); font-variant-numeric:tabular-nums; }
+    .service-note { margin:0; color:var(--text-muted); font-size:11px; line-height:1.6; }
+
+    /* ── Citations from the corpus ── */
+    .answer-meta { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:11px; }
+    .cites { display:grid; gap:8px; margin-top:16px; padding-top:14px; border-top:1px solid var(--border); }
+    .cites-hd { color:var(--forest-accent); font:700 9px/1 var(--forest-sans); letter-spacing:.16em; text-transform:uppercase; }
+    .cite { padding:11px 12px; border:1px solid var(--border); border-radius:var(--radius); background:rgba(0,0,0,.26); }
+    .cite-top { display:flex; flex-wrap:wrap; align-items:baseline; gap:8px; }
+    .cite-title { color:var(--text-primary); font-size:12px; font-weight:600; line-height:1.4; }
+    .cite-conf { padding:2px 7px; border:1px solid rgba(34,197,94,.3); border-radius:999px; background:rgba(34,197,94,.08); color:var(--accent-green); font:700 8px/1.5 var(--forest-sans); letter-spacing:.08em; text-transform:uppercase; }
+    .cite-conf[data-conf="MODERATE"] { border-color:rgba(232,153,107,.34); background:rgba(232,153,107,.09); color:#f0b488; }
+    .cite-conf[data-conf="LOW"] { border-color:var(--border); background:rgba(255,255,255,.03); color:var(--text-muted); }
+    .cite-claim { margin:7px 0 0; color:var(--text-muted); font-size:11.5px; line-height:1.6; }
+    .cite a { color:var(--accent); font-size:10px; text-decoration:none; }
+    .cite a:hover, .cite a:focus-visible { text-decoration:underline; }
+
+    /* ── Live dashboard embed ── */
+    .embed-section { margin-top:clamp(60px,9vw,110px); }
+    .embed-frame { position:relative; overflow:hidden; margin-top:18px; border:1px solid var(--border); border-radius:var(--radius); background:var(--surface); }
+    .embed-frame iframe { display:block; width:100%; height:min(70svh,620px); border:0; background:var(--bg); }
+    .embed-fallback { padding:clamp(26px,5vw,44px); text-align:center; color:var(--text-muted); font-size:12px; line-height:1.7; }
+    .embed-actions { display:flex; flex-wrap:wrap; gap:10px; margin-top:14px; }
+
+    @media(min-width:700px){ .service-strip { grid-template-columns:1fr; } .service-stats { grid-template-columns:repeat(4,minmax(0,1fr)); } }
     @media(max-width:850px){.hyper-hero,.dashboard-grid{grid-template-columns:1fr}.muscle-field{min-height:330px;order:-1}.principles{grid-template-columns:1fr}.hyper-hero{padding-top:35px}}
     @media(max-width:520px){.lift-form{grid-template-columns:1fr}.research-form{display:grid}.loads{grid-template-columns:1fr}.estimate{grid-template-columns:1fr}}
   </style>
@@ -86,13 +132,42 @@
   <nav class="forest-topbar" aria-label="Hyper Trophy navigation"><a class="forest-back" href="/">Back to Forest HUB</a><a class="forest-top-action" href="https://chloe.blumenkraft.cloud/hypertrophy/" target="_blank" rel="noopener noreferrer">Live service ↗</a></nav>
   <main class="forest-page">
     <header class="hyper-hero">
-      <div><p class="forest-kicker">Training intelligence · transparent estimates</p><h1 class="forest-title">Hyper Trophy OS</h1><p class="forest-lede">A native control surface for strength estimates and source-backed training research—useful even when the external dashboard is unavailable.</p><div class="hero-actions"><a class="action" href="#tools">Open tools</a><a class="action secondary" href="https://chloe.blumenkraft.cloud/hypertrophy/" target="_blank" rel="noopener noreferrer">Original dashboard ↗</a></div></div>
+      <div><p class="forest-kicker">Training intelligence · transparent estimates</p><h1 class="forest-title">Hyper Trophy OS</h1><p class="forest-lede">A native control surface for strength estimates and source-backed training research, wired to the live hypertrophy-os service on Oracle.</p><div class="hero-actions"><a class="action" href="#tools">Open tools</a><a class="action secondary" href="https://chloe.blumenkraft.cloud/hypertrophy/" target="_blank" rel="noopener noreferrer">Original dashboard ↗</a></div></div>
       <div class="muscle-field" aria-hidden="true"><span class="fiber"></span><span class="fiber"></span><span class="fiber"></span><span class="fiber"></span><span class="fiber"></span><span class="fiber"></span><span class="fiber"></span><span class="fiber-core">signal<br>to tissue</span></div>
     </header>
 
+    <section class="forest-panel service-strip" id="service" data-state="checking" data-reveal aria-live="polite">
+      <div class="service-head">
+        <p class="tool-kicker" style="margin:0">Live service</p>
+        <span class="service-state"><i class="service-dot" aria-hidden="true"></i><span id="service-label">Checking…</span></span>
+      </div>
+      <code class="service-endpoint">POST https://chloe.blumenkraft.cloud/hypertrophy/query</code>
+      <div class="service-stats" id="service-stats" hidden>
+        <div class="service-stat"><span>Papers</span><b id="stat-papers">—</b></div>
+        <div class="service-stat"><span>Facts</span><b id="stat-facts">—</b></div>
+        <div class="service-stat"><span>Rules</span><b id="stat-rules">—</b></div>
+        <div class="service-stat"><span>Synthesis</span><b id="stat-iris">—</b></div>
+      </div>
+      <p class="service-note" id="service-note">The research surface below is answered by the hypertrophy-os FastAPI on Oracle, reached over TLS through the chloe.blumenkraft.cloud reverse proxy.</p>
+    </section>
+
     <section class="dashboard-grid" id="tools" data-reveal-stagger>
       <article class="forest-panel tool" data-reveal id="lift-tool"><p class="tool-kicker">Calculator 01</p><h2>Estimated 1RM</h2><p class="tool-lede">A Brzycki estimate from one completed set. Treat it as a reference point, not a measurement or prescription.</p><form class="lift-form" id="lift-form"><label>Weight<input id="lift-weight" type="number" min="0" step="0.5" value="80" inputmode="decimal"></label><label>Repetitions<input id="lift-reps" type="number" min="1" max="12" step="1" value="6" inputmode="numeric"></label></form><div class="estimate"><div><span>Estimated maximum</span><strong id="one-rm">93.0</strong></div><small>same unit as weight</small></div><div class="loads"><div class="load">70% reference<b id="load-70">65.1</b></div><div class="load">80% reference<b id="load-80">74.4</b></div><div class="load">90% reference<b id="load-90">83.7</b></div></div></article>
-      <article class="forest-panel tool" data-reveal><p class="tool-kicker">Research 02</p><h2>Ask the corpus</h2><p class="tool-lede">When reachable, the live service synthesizes the project’s ingested research corpus and PubMed results with source labels.</p><form class="research-form" id="research-form"><input id="research-question" type="search" autocomplete="off" placeholder="Ask a training-science question…" aria-label="Research question"><button id="research-submit" type="submit">Ask</button></form><div class="suggestions"><button type="button" data-question="How should training volume be adjusted over time?">Training volume</button><button type="button" data-question="What does the evidence say about training to failure?">Failure</button><button type="button" data-question="How does sleep relate to recovery?">Recovery</button></div><div class="answer" id="research-answer" aria-live="polite"><span class="answer-state">The local tools are ready. Ask the live research service when you need a sourced synthesis.</span></div></article>
+      <article class="forest-panel tool" data-reveal><p class="tool-kicker">Research 02</p><h2>Ask the corpus</h2><p class="tool-lede">The live service synthesises the project’s ingested research corpus and returns the extracted findings each answer rests on, with confidence and DOI.</p><form class="research-form" id="research-form"><input id="research-question" type="search" autocomplete="off" placeholder="Ask a training-science question…" aria-label="Research question"><button id="research-submit" type="submit">Ask</button></form><div class="suggestions"><button type="button" data-question="How should training volume be adjusted over time?">Training volume</button><button type="button" data-question="What does the evidence say about training to failure?">Failure</button><button type="button" data-question="How does sleep relate to recovery?">Recovery</button></div><div class="answer" id="research-answer" aria-live="polite"><span class="answer-state">The local tools are ready. Ask the live research service when you need a sourced synthesis.</span></div></article>
+    </section>
+
+    <section class="forest-section embed-section" aria-labelledby="embed-title" data-reveal>
+      <p class="forest-section-label">Live dashboard</p>
+      <h2 id="embed-title" style="margin:0;font:650 clamp(30px,4.2vw,48px)/1 var(--forest-display)">The service itself</h2>
+      <p class="tool-lede" style="max-width:60ch">The original dashboard, served straight from the Oracle instance. If your browser blocks the frame, open it in a tab instead — the tools above keep working either way.</p>
+      <div class="embed-frame">
+        <iframe id="hyper-embed" src="about:blank" data-src="https://chloe.blumenkraft.cloud/hypertrophy/" title="Hyper Trophy OS live dashboard" loading="lazy" referrerpolicy="no-referrer"></iframe>
+        <div class="embed-fallback" id="embed-fallback" hidden>The live dashboard could not be embedded here. It is still reachable directly.</div>
+      </div>
+      <div class="embed-actions">
+        <a class="action secondary" href="https://chloe.blumenkraft.cloud/hypertrophy/" target="_blank" rel="noopener noreferrer">Open the dashboard ↗</a>
+        <a class="action secondary" href="https://chloe.blumenkraft.cloud/hypertrophy/health" target="_blank" rel="noopener noreferrer">Service health ↗</a>
+      </div>
     </section>
 
     <section class="forest-section" aria-labelledby="system-title"><p class="forest-section-label" data-reveal>System map</p><div class="principles" id="system-title" data-reveal-stagger><article class="forest-panel principle" data-reveal><span>01 / Estimate</span><h3>Calculate locally</h3><p>The strength estimate runs entirely in this browser and never depends on the remote service.</p></article><article class="forest-panel principle" data-reveal><span>02 / Research</span><h3>Show sources</h3><p>Research answers expose whether support came from the project corpus, PubMed, or neither.</p></article><article class="forest-panel principle" data-reveal><span>03 / Failure</span><h3>Remain useful</h3><p>If the research service cannot be reached, the native dashboard stays visible and says so plainly.</p></article></div><p class="disclaimer" data-reveal>Training estimates and research summaries are educational tools, not medical advice. Use qualified professional guidance for personal health decisions.</p></section>
@@ -111,7 +186,110 @@
       const form=document.getElementById('research-form'),question=document.getElementById('research-question'),answer=document.getElementById('research-answer'),submit=document.getElementById('research-submit');
       document.querySelectorAll('[data-question]').forEach(button=>button.addEventListener('click',()=>{question.value=button.dataset.question;form.requestSubmit()}));
       const escapeHtml=value=>String(value??'').replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
-      form.addEventListener('submit',async event=>{event.preventDefault();const text=question.value.trim();if(!text)return;submit.disabled=true;answer.classList.add('is-querying');answer.innerHTML='<span class="answer-state">Querying the research service…</span>';const controller=new AbortController();const timeoutId=setTimeout(()=>controller.abort(),6000);try{const response=await fetch('https://chloe.blumenkraft.cloud/hypertrophy/query',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({question:text}),signal:controller.signal});if(!response.ok)throw new Error(`HTTP ${response.status}`);const data=await response.json();const sources=(data.sources||[]).map(source=>`<span class="source-pill">${escapeHtml(source)}</span>`).join('');answer.innerHTML=`${sources?`<div class="source-row">${sources}</div>`:''}${escapeHtml(data.answer||data.note||'No answer available.')}`}catch(error){answer.innerHTML='<span class="answer-state">The live research service could not be reached. The local calculator remains available; try the source-backed query again later.</span>'}finally{clearTimeout(timeoutId);submit.disabled=false;answer.classList.remove('is-querying')}});
+      const API='https://chloe.blumenkraft.cloud/hypertrophy';
+
+      // Corpus synthesis is uncached on first ask and has been measured at ~12s.
+      const QUERY_TIMEOUT_MS=45000;
+
+      function renderCites(data){
+        const facts=Array.isArray(data.facts)?data.facts.slice(0,4):[];
+        if(!facts.length)return '';
+        const rows=facts.map(fact=>{
+          const title=escapeHtml(fact.paper_title||'Untitled source');
+          const conf=escapeHtml(String(fact.confidence||'').toUpperCase());
+          const claim=escapeHtml(fact.claim||'');
+          const doi=fact.paper_doi?String(fact.paper_doi):'';
+          // paper_source_url is sometimes a 'scihub:<doi>' pseudo-URL; only http(s) is navigable.
+          const raw=String(fact.paper_source_url||'');
+          const isWeb=raw.slice(0,7).toLowerCase()==='http://'||raw.slice(0,8).toLowerCase()==='https://';
+          const href=isWeb?raw:(doi?'https://doi.org/'+doi.split('/').map(encodeURIComponent).join('/'):'');
+          const link=href?`<a href="${escapeHtml(href)}" target="_blank" rel="noopener noreferrer">${doi?escapeHtml(doi):'source'} ↗</a>`:'';
+          return `<div class="cite"><div class="cite-top"><span class="cite-title">${title}</span>${conf?`<span class="cite-conf" data-conf="${conf}">${conf}</span>`:''}${link}</div>${claim?`<p class="cite-claim">${claim}</p>`:''}</div>`;
+        }).join('');
+        return `<div class="cites"><span class="cites-hd">Grounded in ${data.facts.length} extracted finding${data.facts.length===1?'':'s'}</span>${rows}</div>`;
+      }
+
+      form.addEventListener('submit',async event=>{
+        event.preventDefault();
+        const text=question.value.trim();
+        if(!text)return;
+        submit.disabled=true;
+        answer.classList.add('is-querying');
+        answer.innerHTML='<span class="answer-state">Querying the research service…</span>';
+        const slow=setTimeout(()=>{
+          const state=answer.querySelector('.answer-state');
+          if(state)state.textContent='Still synthesising — an uncached question takes around ten seconds…';
+        },4000);
+        const controller=new AbortController();
+        const timeoutId=setTimeout(()=>controller.abort(),QUERY_TIMEOUT_MS);
+        try{
+          const response=await fetch(API+'/query',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({question:text}),signal:controller.signal});
+          if(!response.ok)throw new Error(`HTTP ${response.status}`);
+          const data=await response.json();
+          // The service labels its synthesis backend and topic; `sources` is legacy.
+          const pills=[data.backend?'backend: '+data.backend:'',data.topic?'topic: '+data.topic:''].concat(data.sources||[]).filter(Boolean)
+            .map(label=>`<span class="source-pill">${escapeHtml(label)}</span>`).join('');
+          answer.innerHTML=`${pills?`<div class="answer-meta">${pills}</div>`:''}${escapeHtml(data.answer||data.note||'No answer available.')}${renderCites(data)}`;
+        }catch(error){
+          answer.innerHTML='<span class="answer-state">The live research service could not be reached. The local calculator remains available; try the source-backed query again later.</span>';
+        }finally{
+          clearTimeout(slow);clearTimeout(timeoutId);
+          submit.disabled=false;answer.classList.remove('is-querying');
+        }
+      });
+
+      // ── Live service probe: state + corpus size come from /health ──
+      (async()=>{
+        const strip=document.getElementById('service');
+        const label=document.getElementById('service-label');
+        const stats=document.getElementById('service-stats');
+        const note=document.getElementById('service-note');
+        const num=value=>Number(value||0).toLocaleString();
+        const controller=new AbortController();
+        const timeoutId=setTimeout(()=>controller.abort(),12000);
+        try{
+          const response=await fetch(API+'/health',{signal:controller.signal});
+          if(!response.ok)throw new Error(`HTTP ${response.status}`);
+          const health=await response.json();
+          if(health.status!=='ok')throw new Error('status '+health.status);
+          strip.dataset.state='up';
+          label.textContent='Online';
+          document.getElementById('stat-papers').textContent=num(health.papers);
+          document.getElementById('stat-facts').textContent=num(health.facts);
+          document.getElementById('stat-rules').textContent=num(health.rules);
+          document.getElementById('stat-iris').textContent=health.iris?'Iris':'Local';
+          stats.hidden=false;
+          if(window.forestReveal)['stat-papers','stat-facts','stat-rules'].forEach(id=>forestReveal.countUp(document.getElementById(id)));
+        }catch(error){
+          strip.dataset.state='down';
+          label.textContent='Unreachable';
+          note.textContent='The research service did not answer a health check, so sourced answers are unavailable right now. Every tool on this page that runs in your browser still works.';
+        }finally{clearTimeout(timeoutId)}
+      })();
+
+      // ── Embed: load only once visible, and surface a fallback if framing fails ──
+      (()=>{
+        const frame=document.getElementById('hyper-embed');
+        if(!frame)return;
+        let settled=false;
+        const fail=()=>{if(settled)return;settled=true;frame.style.display='none';document.getElementById('embed-fallback').hidden=false};
+        const load=()=>{
+          frame.src=frame.dataset.src;
+          frame.addEventListener('load',()=>{settled=true},{once:true});
+          frame.addEventListener('error',fail,{once:true});
+          setTimeout(()=>{if(!settled)fail()},15000);
+        };
+        let started=false;
+        const start=()=>{if(started)return;started=true;load()};
+        if('IntersectionObserver' in window){
+          const observer=new IntersectionObserver(entries=>{
+            if(entries.some(entry=>entry.isIntersecting)){observer.disconnect();start()}
+          },{rootMargin:'320px'});
+          observer.observe(frame);
+          // Safety net: never leave the frame blank if the observer never fires.
+          setTimeout(()=>{observer.disconnect();start()},8000);
+        }else{start()}
+      })();
     })();
   </script>
   <script src="/web/shared/design-history.js?v=20260728"></script>
