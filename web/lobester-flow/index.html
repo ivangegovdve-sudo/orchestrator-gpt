@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="en" class="forest-skin">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Lobester Flow — bilateral coordination brain gym for cognitive development and ADHD. Tap patterns, follow tempo ladders, and build the cross-hemisphere link.">
+  <meta name="theme-color" content="#07070b">
+  <title>Lobester Flow — SDForest</title>
+  <link rel="stylesheet" href="/web/shared/forest-shell.css?v=20260725c">
+  <link rel="stylesheet" href="/web/shared/forest-design.css?v=20260731a">
+  <style>
+    :root {
+      --bg:#07070b;
+      --surface:#0f0f15;
+      --border:rgba(255,255,255,.08);
+      --text-primary:#f3f4f6;
+      --text-muted:#9ca3af;
+      --accent:#4f46e5;
+      --accent-green:#22c55e;
+      --radius:8px;
+      --font:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+      --lob-accent:#818cf8;
+      --lob-accent-rgb:129,140,248;
+      --lob-glow:rgba(129,140,248,.18);
+    }
+    .forest-kicker,.forest-section-label,.forest-back,.forest-top-action{font-family:var(--forest-sans,"Alegreya Sans",sans-serif)}
+    .lob-hero{min-height:80svh;display:grid;grid-template-columns:1fr minmax(260px,.55fr);align-items:center;gap:clamp(40px,7vw,96px)}
+    .forest-title{font-size:clamp(52px,10vw,120px);font-weight:650;line-height:.92;letter-spacing:.01em}
+    .hero-actions{display:flex;flex-wrap:wrap;gap:11px;margin-top:30px}
+    .action{min-height:46px;display:inline-flex;align-items:center;justify-content:center;padding:0 20px;border:1px solid rgba(129,140,248,.42);border-radius:999px;background:rgba(129,140,248,.1);color:var(--forest-ink,#f3f4f6);font:700 10px/1 var(--forest-sans,"Alegreya Sans",sans-serif);letter-spacing:.12em;text-decoration:none;text-transform:uppercase;transition:background .15s,border-color .15s}
+    .action:hover{background:rgba(129,140,248,.18);border-color:rgba(129,140,248,.65)}
+    .action.secondary{border-color:var(--forest-line,rgba(255,255,255,.08));background:rgba(255,255,255,.025)}
+    .action.secondary:hover{border-color:rgba(129,140,248,.35);background:rgba(129,140,248,.06)}
+
+    /* Bilateral visualizer — two hemispheres pulsing alternately */
+    .brain-viz{position:relative;min-height:380px;display:grid;place-items:center;overflow:hidden}
+    .hemisphere-wrap{display:flex;gap:18px;align-items:center}
+    .hemisphere{width:clamp(100px,13vw,148px);aspect-ratio:1;border-radius:50% 50% 42% 42%;display:grid;place-items:center;border:1px solid rgba(129,140,248,.28);background:radial-gradient(circle at 40% 38%,rgba(129,140,248,.12),transparent 68%);position:relative}
+    .hemisphere::after{content:"";position:absolute;inset:0;border-radius:inherit;background:radial-gradient(circle at 60% 62%,rgba(129,140,248,.06),transparent 55%)}
+    .hemi-label{color:var(--lob-accent);font:700 9px/1 var(--forest-sans,"Alegreya Sans",sans-serif);letter-spacing:.14em;text-transform:uppercase;text-align:center}
+    .bridge{width:30px;height:4px;background:linear-gradient(90deg,rgba(129,140,248,.3),rgba(34,197,94,.3));border-radius:2px;position:relative}
+    .bridge::before{content:"";position:absolute;left:0;top:0;bottom:0;border-radius:inherit;background:linear-gradient(90deg,var(--lob-accent),var(--accent-green));animation:bridge-travel 1.6s cubic-bezier(.45,0,.55,1) infinite}
+    .tap-dot{width:24px;height:24px;border-radius:50%;background:var(--lob-accent);position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);animation:tap-left 1.6s cubic-bezier(.45,0,.55,1) infinite}
+    .hemisphere:last-of-type .tap-dot{background:var(--accent-green);animation:tap-right 1.6s cubic-bezier(.45,0,.55,1) infinite}
+    @keyframes tap-left{0%,100%{opacity:.9;transform:translate(-50%,-50%) scale(1)}50%{opacity:.3;transform:translate(-50%,-50%) scale(.55)}}
+    @keyframes tap-right{0%,100%{opacity:.3;transform:translate(-50%,-50%) scale(.55)}50%{opacity:.9;transform:translate(-50%,-50%) scale(1)}}
+    @keyframes bridge-travel{0%{width:0}50%{width:100%}100%{width:100%;opacity:0}}
+    @media (prefers-reduced-motion:reduce){.tap-dot,.bridge::before{animation:none;opacity:.6}}
+
+    /* Entrance animations */
+    @media(prefers-reduced-motion:no-preference){
+      .lob-hero .forest-kicker{animation:lob-rise .55s var(--ease-out,cubic-bezier(0,.6,.4,1)) backwards}
+      .lob-hero .forest-title{animation:lob-rise .7s var(--ease-out,cubic-bezier(0,.6,.4,1)) 60ms backwards}
+      .lob-hero .forest-lede{animation:lob-rise .7s var(--ease-out,cubic-bezier(0,.6,.4,1)) 110ms backwards}
+      .lob-hero .hero-actions{animation:lob-rise .7s var(--ease-out,cubic-bezier(0,.6,.4,1)) 180ms backwards}
+      .brain-viz{animation:lob-rise .9s var(--ease-out,cubic-bezier(0,.6,.4,1)) 80ms backwards}
+    }
+    @keyframes lob-rise{from{opacity:0;transform:translateY(22px)}}
+
+    /* Features grid */
+    .features{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-top:clamp(70px,10vw,120px)}
+    .feature{padding:clamp(22px,3.5vw,38px)}
+    .feature-num{color:var(--lob-accent);font:700 9px/1 var(--forest-sans,"Alegreya Sans",sans-serif);letter-spacing:.16em;text-transform:uppercase}
+    .feature h3{margin:36px 0 12px;font:650 clamp(28px,3.5vw,44px)/1 var(--forest-display,"Alegreya",Georgia,serif);letter-spacing:0}
+    .feature p{margin:0;color:var(--forest-muted,#9ca3af);font-size:13px;line-height:1.65}
+
+    /* Stack row */
+    .stack-row{display:flex;flex-wrap:wrap;gap:9px;margin-top:clamp(60px,8vw,100px)}
+    .stack-pill{min-height:34px;display:inline-flex;align-items:center;padding:0 14px;border:1px solid var(--border,rgba(255,255,255,.08));border-radius:999px;color:var(--text-muted,#9ca3af);font:600 10px/1 var(--forest-sans,"Alegreya Sans",sans-serif);letter-spacing:.09em;text-transform:uppercase}
+    .stack-pill.hi{border-color:rgba(129,140,248,.35);color:var(--lob-accent)}
+
+    @media(max-width:820px){.lob-hero,.features{grid-template-columns:1fr}.brain-viz{min-height:240px;order:-1;padding-top:32px}.features{grid-template-columns:1fr}}
+  </style>
+  <link rel="stylesheet" href="/web/shared/design-history.css?v=20260731a">
+</head>
+<body data-forest-page="lobester">
+  <canvas class="forest-scene" data-forest-scene data-mode="cool" aria-hidden="true"></canvas>
+  <div class="forest-scrim" aria-hidden="true"></div>
+  <nav class="forest-topbar" aria-label="Lobester Flow navigation">
+    <a class="forest-back" href="/">Back to Forest HUB</a>
+    <a class="forest-top-action" href="https://github.com/ivangegovdve-sudo/adhd-exercise-app" target="_blank" rel="noopener noreferrer">GitHub ↗</a>
+  </nav>
+
+  <main class="forest-page">
+    <header class="lob-hero">
+      <div>
+        <p class="forest-kicker">Bilateral coordination · cognitive development</p>
+        <h1 class="forest-title">Lobester Flow</h1>
+        <p class="forest-lede">A progressive brain gym built around bilateral tapping sequences. Alternate-hand exercises recruit both cerebral hemispheres simultaneously — building the cross-hemisphere link that underpins attention, working memory, and processing speed.</p>
+        <div class="hero-actions">
+          <a class="action" href="https://github.com/ivangegovdve-sudo/adhd-exercise-app" target="_blank" rel="noopener noreferrer">View on GitHub ↗</a>
+          <a class="action secondary" href="#features">How it works</a>
+        </div>
+      </div>
+
+      <div class="brain-viz" aria-label="Bilateral coordination animation" aria-hidden="true">
+        <div class="hemisphere-wrap">
+          <div class="hemisphere">
+            <div class="tap-dot"></div>
+            <span class="hemi-label" style="position:absolute;bottom:-26px;left:50%;transform:translateX(-50%)">Left</span>
+          </div>
+          <div class="bridge"></div>
+          <div class="hemisphere">
+            <div class="tap-dot"></div>
+            <span class="hemi-label" style="position:absolute;bottom:-26px;left:50%;transform:translateX(-50%)">Right</span>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <section class="features" id="features" data-reveal-stagger aria-labelledby="features-heading">
+      <p class="forest-section-label" data-reveal style="grid-column:1/-1">What it does</p>
+
+      <article class="forest-panel feature" data-reveal>
+        <span class="feature-num">01 / Tempo</span>
+        <h3>Ladder sessions</h3>
+        <p>Each session climbs a tempo ladder — cues accelerate progressively so the cortex is pushed just past its current synchronisation ceiling. A cue-fade continuation phase keeps the rhythm internal once the sound drops out.</p>
+      </article>
+
+      <article class="forest-panel feature" data-reveal>
+        <span class="feature-num">02 / Pattern</span>
+        <h3>Alternating cues</h3>
+        <p>Left-hand and right-hand taps are cued independently with distinct audio and visual signals. Crossing the midline — physically and neurologically — is the whole point. Errors are never penalised; accuracy emerges through repetition.</p>
+      </article>
+
+      <article class="forest-panel feature" data-reveal>
+        <span class="feature-num">03 / Continuity</span>
+        <h3>Session memory</h3>
+        <p>Practice history is stored locally under a stable key so progress survives updates and device restarts without an account. The data lives in your browser and goes nowhere else.</p>
+      </article>
+    </section>
+
+    <section class="forest-section" data-reveal-stagger aria-labelledby="stack-heading">
+      <p class="forest-section-label" data-reveal id="stack-heading">Stack</p>
+      <div class="stack-row" data-reveal>
+        <span class="stack-pill hi">React + TypeScript</span>
+        <span class="stack-pill hi">Vite PWA</span>
+        <span class="stack-pill">Web Audio API</span>
+        <span class="stack-pill">localStorage</span>
+        <span class="stack-pill">Tailwind CSS</span>
+        <span class="stack-pill">Open source</span>
+      </div>
+    </section>
+  </main>
+
+  <script src="/web/shared/forest-motion.js?v=20260725c"></script>
+  <script src="/web/shared/forest-reveal.js?v=20260714"></script>
+  <script src="/web/shared/design-history.js?v=20260728"></script>
+</body>
+</html>
