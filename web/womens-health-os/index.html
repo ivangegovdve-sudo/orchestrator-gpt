@@ -23,6 +23,15 @@
       --accent: #4f46e5;
       --accent-green: #22c55e;
       --radius: 8px;
+
+      /* Companions to the unified indigo accent. The chat widget used to be
+         styled against an amber accent; these keep every accented surface
+         readable now that --accent is #4f46e5. */
+      --on-accent: #ffffff;        /* text on a filled --accent surface  */
+      --accent-text: #a5b4fc;      /* accent as text/icon on dark ground */
+      --accent-tint: rgba(79,70,229,.10);
+      --accent-line: rgba(79,70,229,.42);
+      --accent-glow: rgba(79,70,229,.40);
       --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       --sans: var(--forest-sans, "Alegreya Sans", sans-serif);
 
@@ -442,12 +451,12 @@
       position: fixed; z-index: 200; right: 20px; bottom: 20px;
       display: inline-flex; align-items: center; gap: 8px;
       padding: 12px 18px; border: 0; cursor: pointer; border-radius: 999px;
-      background: var(--accent); color: #241505; font-family: var(--sans);
+      background: var(--accent); color: var(--on-accent); font-family: var(--sans);
       font-size: 14px; font-weight: 700; letter-spacing: .01em;
-      box-shadow: 0 8px 28px rgba(232,184,107,.4);
+      box-shadow: 0 8px 28px var(--accent-glow);
       transition: transform var(--duration-scroll-state), box-shadow var(--duration-scroll-state);
     }
-    .wh-chat-fab:hover { transform: translateY(-2px); box-shadow: 0 12px 34px rgba(232,184,107,.55); }
+    .wh-chat-fab:hover { transform: translateY(-2px); box-shadow: 0 12px 34px rgba(79,70,229,.55); }
     .wh-chat-fab svg { width: 18px; height: 18px; }
     .wh-chat-panel {
       position: fixed; z-index: 210; right: 20px; bottom: 20px;
@@ -460,7 +469,7 @@
     .wh-chat-head {
       display: flex; align-items: center; gap: 10px; padding: 13px 15px;
       border-bottom: 1px solid var(--border);
-      background: linear-gradient(180deg, rgba(232,184,107,.12), transparent);
+      background: linear-gradient(180deg, rgba(79,70,229,.18), transparent);
     }
     .wh-chat-head .d { width: 9px; height: 9px; border-radius: 50%; background: var(--accent-green); box-shadow: 0 0 8px var(--accent-green); }
     .wh-chat-head h2 { font-size: 14px; color: var(--text-primary); font-weight: 700; margin: 0; }
@@ -469,29 +478,29 @@
     .wh-chat-close:hover { color: var(--text-primary); }
     .wh-chat-log { flex: 1; overflow-y: auto; padding: 14px; display: flex; flex-direction: column; gap: 12px; }
     .wh-msg { font-size: 13.5px; line-height: 1.5; }
-    .wh-msg.user { align-self: flex-end; max-width: 85%; background: var(--accent); color: #241505; font-weight: 600; padding: 9px 13px; border-radius: 13px 13px 3px 13px; }
+    .wh-msg.user { align-self: flex-end; max-width: 85%; background: var(--accent); color: var(--on-accent); font-weight: 600; padding: 9px 13px; border-radius: 13px 13px 3px 13px; }
     .wh-msg.bot { align-self: flex-start; max-width: 100%; color: var(--text-primary); }
     .wh-msg.bot .answer { background: var(--surface-2); border: 1px solid var(--border); padding: 11px 13px; border-radius: 3px 13px 13px 13px; white-space: pre-wrap; }
     .wh-sources { display: flex; gap: 6px; flex-wrap: wrap; margin: 9px 0 2px; }
     .wh-badge { font-family: var(--sans); font-size: 10.5px; font-weight: 700; letter-spacing: .02em; padding: 3px 9px; border-radius: 999px; border: 1px solid; }
-    .wh-badge.oracle { color: var(--accent); border-color: rgba(232,184,107,.45); background: rgba(232,184,107,.1); }
+    .wh-badge.oracle { color: var(--accent-text); border-color: var(--accent-line); background: var(--accent-tint); }
     .wh-badge.pubmed { color: var(--rose); border-color: rgba(217,138,127,.4); background: rgba(217,138,127,.08); }
     .wh-badge.none { color: var(--text-muted); border-color: var(--border); }
     .wh-refs { margin-top: 9px; }
     .wh-refs h4 { font-family: var(--sans); font-size: 10.5px; text-transform: uppercase; letter-spacing: .07em; color: var(--text-muted); margin: 0 0 6px; }
     .wh-ref { display: block; font-size: 12px; color: var(--text-muted); padding: 6px 9px; margin-bottom: 5px; background: var(--surface-2); border: 1px solid var(--border); border-radius: 7px; text-decoration: none; }
-    a.wh-ref:hover { color: var(--text-primary); border-color: rgba(232,184,107,.4); }
+    a.wh-ref:hover { color: var(--text-primary); border-color: var(--accent-line); }
     .wh-ref .pmid { color: var(--rose); font-weight: 700; }
     .wh-ref .meta { color: var(--dim); }
     .wh-empty { color: var(--text-muted); font-size: 13px; line-height: 1.6; text-align: center; margin: auto 8px; }
     .wh-empty strong { color: var(--text-primary); }
     .wh-suggest { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; margin-top: 12px; }
-    .wh-suggest button { font-size: 11.5px; color: var(--accent); cursor: pointer; background: rgba(232,184,107,.08); border: 1px solid rgba(232,184,107,.28); padding: 6px 10px; border-radius: 999px; font-family: var(--sans); }
-    .wh-suggest button:hover { background: rgba(232,184,107,.16); }
+    .wh-suggest button { font-size: 11.5px; color: var(--accent-text); cursor: pointer; background: var(--accent-tint); border: 1px solid var(--accent-line); padding: 6px 10px; border-radius: 999px; font-family: var(--sans); }
+    .wh-suggest button:hover { background: rgba(79,70,229,.2); }
     .wh-chat-form { display: flex; gap: 8px; padding: 12px; border-top: 1px solid var(--border); }
     .wh-chat-form input { flex: 1; background: var(--surface-2); border: 1px solid var(--border); border-radius: 9px; color: var(--text-primary); padding: 10px 12px; font-size: 13.5px; font-family: var(--font); }
-    .wh-chat-form input:focus { outline: none; border-color: rgba(232,184,107,.5); }
-    .wh-chat-form button { background: var(--accent); border: 0; border-radius: 9px; cursor: pointer; color: #241505; font-weight: 700; padding: 0 15px; font-size: 13.5px; font-family: var(--sans); }
+    .wh-chat-form input:focus { outline: none; border-color: var(--accent-line); }
+    .wh-chat-form button { background: var(--accent); border: 0; border-radius: 9px; cursor: pointer; color: var(--on-accent); font-weight: 700; padding: 0 15px; font-size: 13.5px; font-family: var(--sans); }
     .wh-chat-form button:disabled { opacity: .5; cursor: default; }
     .wh-typing { display: inline-flex; gap: 4px; padding: 4px 2px; }
     .wh-typing span { width: 6px; height: 6px; border-radius: 50%; background: var(--text-muted); animation: whblink var(--duration-dot-pulse) infinite both; }
@@ -590,6 +599,17 @@
         b.addEventListener("click", function () { input.value = b.getAttribute("data-q"); form.requestSubmit(); });
       });
 
+      // The /query response carries facts/rules/pubmed but no explicit `sources`
+      // array, so derive the badges from the evidence actually present. Without
+      // this the panel showed "No source" directly above "Oracle DB · N facts".
+      function deriveSources(data) {
+        if (data.sources && data.sources.length) return data.sources;
+        var out = [];
+        if ((data.facts || []).length || (data.rules || []).length) out.push("Oracle DB");
+        if ((data.pubmed || []).length) out.push("PubMed");
+        return out;
+      }
+
       function srcBadges(sources) {
         var wrap = el("div", "wh-sources");
         if (!sources || !sources.length) { wrap.appendChild(el("span", "wh-badge none", "No source")); return wrap; }
@@ -599,16 +619,25 @@
 
       function renderBot(data) {
         var bot = el("div", "wh-msg bot");
-        bot.appendChild(srcBadges(data.sources));
+        bot.appendChild(srcBadges(deriveSources(data)));
         bot.appendChild(el("div", "answer", esc(data.answer || data.note || "No answer available.")));
-        var facts = data.facts || [], pubmed = data.pubmed || [];
-        if (facts.length || pubmed.length) {
+        var facts = data.facts || [], pubmed = data.pubmed || [], rules = data.rules || [];
+        if (facts.length || pubmed.length || rules.length) {
           var refs = el("div", "wh-refs");
           if (facts.length) {
             refs.appendChild(el("h4", null, "Oracle DB · " + facts.length + " supporting fact" + (facts.length > 1 ? "s" : "")));
             facts.slice(0, 3).forEach(function (f) {
               var src = esc((f.paper_title || "").slice(0, 70));
               refs.appendChild(el("div", "wh-ref", esc((f.fact || "").slice(0, 140)) + (src ? ' <span class="meta">— ' + src + "</span>" : "")));
+            });
+          }
+          // The payload also returns synthesised rules; surface them rather
+          // than silently dropping evidence the answer was built from.
+          if (rules.length) {
+            refs.appendChild(el("h4", null, "Synthesised rules · " + rules.length));
+            rules.slice(0, 3).forEach(function (r) {
+              var scope = esc((r.applies_to || "").slice(0, 50));
+              refs.appendChild(el("div", "wh-ref", esc((r.rule || "").slice(0, 140)) + (scope ? ' <span class="meta">— ' + scope + "</span>" : "")));
             });
           }
           if (pubmed.length) {

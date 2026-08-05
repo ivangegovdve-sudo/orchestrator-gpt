@@ -127,7 +127,19 @@
       padding: clamp(28px, 5vw, 72px);
       text-align: center;
       backface-visibility: hidden;
-      transform: translate3d(0, 0, calc(var(--origin-z) + var(--scroll-p) * var(--z-velocity)));
+      /* Piecewise camera timeline. Rather than sliding a layer linearly through
+         the whole track (which leaves every chapter permanently mid-flight and
+         re-scaling on every frame), each layer approaches from --z-near, HOLDS
+         at z:0 between --in1 and --out0, then departs to --z-far. The hold is
+         what makes chapter 5 usable: the sandbox is a still target while the
+         reader is actually clicking it, not a surface scaling under the cursor.
+         Both clamp() terms are pure compositor math off --scroll-p. */
+      --in0: 0; --in1: 0; --out0: 1; --out1: 1;
+      --in-v: 0px; --out-v: 0px;
+      transform: translate3d(0, 0, calc(
+          (clamp(var(--in0), var(--scroll-p), var(--in1)) - var(--in1)) * var(--in-v)
+        + (clamp(var(--out0), var(--scroll-p), var(--out1)) - var(--out0)) * var(--out-v)
+      ));
       /* Base: sit behind and ignore pointer input. The active layer (set from JS
          by whichever band dominates the current scroll position) is lifted on top
          and re-enabled for interaction, so a transparent inactive layer can never
@@ -198,34 +210,42 @@
       box-shadow: inset 0 -10px 0 var(--cyan);
     }
 
+    /* Each chapter: [--in0 .. --in1] approach, [--in1 .. --out0] HOLD at z:0,
+       [--out0 .. --out1] depart. Every hold window sits inside that chapter's
+       fully-opaque band, so the reader always gets a still, unscaled frame. */
     #layer1 {
-      --origin-z: -375px;
-      --z-velocity: 5000px;
+      /* Opening headline is already at the camera; it only departs. */
+      --in0: 0; --in1: 0; --in-v: 0px;
+      --out0: .075; --out1: .17; --out-v: 9470px;
       opacity: clamp(0, calc((.15 - var(--scroll-p)) * 34), 1);
     }
     #layer2 {
-      --origin-z: -1250px;
-      --z-velocity: 5000px;
+      --in0: .12; --in1: .20; --in-v: 6750px;
+      --out0: .29; --out1: .37; --out-v: 4750px;
       opacity: clamp(0, min(calc((var(--scroll-p) - .12) * 34), calc((.35 - var(--scroll-p)) * 34)), 1);
     }
     #layer3 {
-      --origin-z: -2250px;
-      --z-velocity: 5000px;
+      --in0: .32; --in1: .40; --in-v: 6750px;
+      --out0: .49; --out1: .57; --out-v: 4750px;
       opacity: clamp(0, min(calc((var(--scroll-p) - .32) * 34), calc((.55 - var(--scroll-p)) * 34)), 1);
     }
     #layer4 {
-      --origin-z: -3250px;
-      --z-velocity: 5000px;
+      --in0: .52; --in1: .60; --in-v: 6750px;
+      --out0: .69; --out1: .77; --out-v: 4750px;
       opacity: clamp(0, min(calc((var(--scroll-p) - .52) * 34), calc((.75 - var(--scroll-p)) * 34)), 1);
     }
     #layer5 {
-      --origin-z: -4125px;
-      --z-velocity: 5000px;
+      /* Widest hold on the site: the sandbox must be a still click target for
+         the whole stretch where it is legible, not a surface scaling mid-click. */
+      --in0: .72; --in1: .785; --in-v: 6150px;
+      --out0: .868; --out1: .92; --out-v: 5770px;
       opacity: clamp(0, min(calc((var(--scroll-p) - .72) * 34), calc((.90 - var(--scroll-p)) * 34)), 1);
     }
     #layer6 {
-      --origin-z: -4750px;
-      --z-velocity: 5000px;
+      /* The epiphany lands and stays landed — no depart term, so the last
+         frame of the odyssey settles at z:0 instead of ending mid-zoom. */
+      --in0: .87; --in1: .945; --in-v: 5600px;
+      --out0: 1; --out1: 1; --out-v: 0px;
       opacity: clamp(0, calc((var(--scroll-p) - .87) * 34), 1);
     }
 
