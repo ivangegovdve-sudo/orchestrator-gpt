@@ -11,23 +11,6 @@
    Without the driver every var defaults to the seated/lit state, so the
    page is fully readable with no JS at all. */
 
-:root {
-  --bg: #07070b;
-  --surface: #0f0f15;
-  --accent: #4f46e5;
-  --home-bg: var(--bg);
-  --home-surface: var(--surface);
-  --home-ink: #f3f4f6;
-  --home-soft: #d1d5db;
-  --home-muted: #9ca3af;
-  --home-line: rgba(255, 255, 255, .08);
-  --home-amber: var(--accent);
-  --home-moss: #22c55e;
-  --home-display: var(--forest-display, "Cormorant Garamond", Georgia, serif);
-  --home-body: var(--forest-body, Alegreya, Georgia, serif);
-  --home-sans: var(--forest-sans, "Alegreya Sans", "Segoe UI", sans-serif);
-}
-
 *, *::before, *::after { box-sizing: border-box; }
 
 html { background: var(--home-bg); }

@@ -4,6 +4,16 @@
   "framework": null,
   "redirects": [
     {
+      "source": "/web/ai-init",
+      "destination": "/web/library/",
+      "permanent": true
+    },
+    {
+      "source": "/web/ai-init/",
+      "destination": "/web/library/",
+      "permanent": true
+    },
+    {
       "source": "/web/llm-db/",
       "destination": "/web/library/",
       "permanent": true
