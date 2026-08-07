@@ -11,7 +11,7 @@ const projectDirectories = [
   'library', 'life-in-time', 'manifesto-newborn', 'mendeleev-bg', 'morning-news', 'm-popova',
   'open-overview', 'power-law-odyssey', 'replicator-void', 'vfx-portfolio', 'womens-health-os',
   'math-forest', 'ai-research', 'calendar', 'chloe-pwa', 'evolution', 'kids-movie-library',
-  'math-mania', 'upload', 'ai-init', 'llm-db', 'tinylm',
+  'math-mania', 'upload', 'explore', 'ai-init', 'llm-db', 'tinylm',
 ];
 
 async function inventory() {
@@ -48,6 +48,7 @@ test('route inventory owns every project directory exactly once with machine-rea
       'womens-health-os': 'main-atlas', 'math-forest': 'greenhouse', 'ai-research': 'hub-trail',
       calendar: 'hub-trail', 'chloe-pwa': 'hub-trail', evolution: 'hub-trail',
       'kids-movie-library': 'hub-trail', 'math-mania': 'hub-trail', upload: 'hub-trail',
+      explore: 'hub-trail',
       'ai-init': 'redirect', 'llm-db': 'redirect', tinylm: 'redirect',
     },
   );
