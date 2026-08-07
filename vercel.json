@@ -22,6 +22,16 @@
       "source": "/web/llm-db/:path*",
       "destination": "/web/library/",
       "permanent": true
+    },
+    {
+      "source": "/web/tinylm",
+      "destination": "/web/council/index.html#tinylm",
+      "permanent": true
+    },
+    {
+      "source": "/web/tinylm/",
+      "destination": "/web/council/index.html#tinylm",
+      "permanent": true
     }
   ]
 }
