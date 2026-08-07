@@ -112,7 +112,11 @@ test('public subpages opt into a named shared Three.js scene', () => {
       new RegExp(`<body[^>]+data-forest-page=["']${theme}["']`, 'i'),
       `${relativePath} does not declare ${theme}`,
     );
-    assert.match(html, /\/web\/shared\/forest-motion\.js/, `${relativePath} does not load the runtime`);
+    assert.match(
+      html,
+      /<script type="module" data-forest-runtime="motion" src="\/web\/shared\/forest-runtime-boot\.mjs\?v=20260729e"><\/script>/,
+      `${relativePath} does not activation-gate the runtime`,
+    );
     assert.match(html, /\/web\/shared\/forest-design\.css/, `${relativePath} does not load shared tokens`);
   }
 });
@@ -129,7 +133,10 @@ test('Open Overview keeps ownership of its capability-gated route-local Three.js
       /<body[^>]+data-forest-scene-owner=["']route["']/i,
       `${relativePath} does not preserve route-local renderer ownership`,
     );
-    assert.match(html, /\/web\/shared\/forest-motion\.js\?v=20260729d/);
+    assert.match(
+      html,
+      /<script type="module" data-forest-runtime="motion" src="\/web\/shared\/forest-runtime-boot\.mjs\?v=20260729e"><\/script>/,
+    );
     assert.match(html, /\/web\/open-overview\/open-overview\.js/);
   }
 
@@ -161,10 +168,10 @@ test('shared runtime cache key is current across the reviewed public inventory',
 
   for (const filePath of walkHtml(publicRoot)) {
     const html = fs.readFileSync(filePath, 'utf8');
-    if (!html.includes('/web/shared/forest-motion.js')) continue;
+    if (!html.includes('data-forest-runtime="motion"')) continue;
     // Power Law is owned by its independent implementation/review round.
     if (filePath.endsWith(path.join('power-law-odyssey', 'index.html'))) continue;
-    if (!html.includes('/web/shared/forest-motion.js?v=20260729d')) {
+    if (!html.includes('/web/shared/forest-runtime-boot.mjs?v=20260729e')) {
       oldKeyFiles.push(path.relative(ROOT, filePath));
     }
   }

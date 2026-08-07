@@ -64,7 +64,11 @@ test('calendar, poetry, and every manifesto locale use the canonical dark chrome
     assert.match(source, /--surface:\s*#0f0f15\b/, `${relativeFile} must declare --surface`);
     assert.match(source, /--accent:\s*#4f46e5\b/, `${relativeFile} must declare --accent`);
     assert.match(source, /href="\/"[^>]*>[^<]*(?:Forest HUB|SDForest)/, `${relativeFile} needs a Forest HUB return`);
-    assert.match(source, /forest-motion\.js\?v=20260725c/, `${relativeFile} must load current ambient motion`);
+    assert.match(
+      source,
+      /data-forest-runtime=["']motion["'][^>]+forest-runtime-boot\.mjs\?v=/,
+      `${relativeFile} must load current ambient motion through the prerender-safe activator`,
+    );
   }
 });
 

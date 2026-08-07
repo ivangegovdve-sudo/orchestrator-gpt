@@ -766,3 +766,37 @@ html.forest-skin ::selection {
   background: rgba(232, 184, 107, .28);
   color: var(--forest-ink);
 }
+
+/* Cross-document navigation keeps the page change legible without turning
+   persistent chrome into a second animation system. */
+@view-transition {
+  navigation: auto;
+}
+
+::view-transition-old(root) {
+  animation: forest-root-out var(--duration-normal) var(--ease-out) both;
+}
+
+::view-transition-new(root) {
+  animation: forest-root-in var(--duration-normal) var(--ease-out) both;
+}
+
+@keyframes forest-root-out {
+  to { opacity: 0; }
+}
+
+@keyframes forest-root-in {
+  from { opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(root),
+  ::view-transition-group(forest-chrome),
+  ::view-transition-old(root),
+  ::view-transition-new(root),
+  ::view-transition-old(forest-chrome),
+  ::view-transition-new(forest-chrome) {
+    animation: none !important;
+    animation-duration: 0s !important;
+  }
+}
