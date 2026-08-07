@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="en" class="forest-skin">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Explore Repos &mdash; sdforest</title>
+<link rel="stylesheet" href="/web/shared/forest-design.css?v=20260731a">
+<style>
+/* Tokens come from forest-design.css (:root). See /web/repos/index.html for the
+   sibling page this one is modeled on — same token discipline applies here. */
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: var(--forest-body, Alegreya, "Iowan Old Style", Georgia, serif);
+  background-color: var(--bg);
+  background-image:
+    radial-gradient(circle at 18% 0%,
+      color-mix(in srgb, var(--accent) 10%, transparent), transparent 42%),
+    radial-gradient(circle at 82% 4%,
+      color-mix(in srgb, var(--accent-green) 5%, transparent), transparent 38%);
+  background-attachment: fixed;
+  color: var(--text-primary);
+  min-height: 100vh;
+  line-height: 1.5;
+  overflow-x: hidden;
+}
+
+.wrap { max-width: 1180px; margin: 0 auto; padding: 24px 18px 64px; }
+
+a { color: var(--accent); }
+
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 14px 0 12px;
+  margin-bottom: 18px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  font-family: var(--forest-sans, "Alegreya Sans", "Segoe UI", system-ui, sans-serif);
+  font-size: .88rem;
+  color: var(--text-muted);
+  text-decoration: none;
+  transition: color .15s ease, border-color .15s ease;
+}
+.back-link:hover { color: var(--text-primary); border-color: rgba(255, 255, 255, .22); }
+
+.masthead { margin-bottom: 26px; }
+h1 {
+  font-family: var(--forest-display, "Cormorant Garamond", Georgia, serif);
+  font-size: clamp(2rem, 6vw, 2.9rem);
+  font-weight: 650;
+  letter-spacing: .01em;
+  line-height: 1.1;
+}
+.subtitle {
+  margin-top: 8px;
+  max-width: 68ch;
+  font-size: .98rem;
+  color: var(--text-muted);
+}
+
+.totals {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 18px;
+  list-style: none;
+}
+.totals li {
+  flex: 1 1 130px;
+  padding: 10px 14px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+.totals b {
+  display: block;
+  font-family: var(--forest-sans, "Alegreya Sans", "Segoe UI", system-ui, sans-serif);
+  font-size: 1.5rem;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-primary);
+}
+.totals span {
+  font-family: var(--forest-sans, "Alegreya Sans", "Segoe UI", system-ui, sans-serif);
+  font-size: .74rem;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.provenance {
+  margin-top: 14px;
+  font-size: .88rem;
+  color: var(--text-muted);
+  max-width: 72ch;
+}
+
+/* ── Toolbar ────────────────────────────────────────────────────────── */
+.toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  margin: 26px 0 18px;
+  padding: 14px 0;
+  background: color-mix(in srgb, var(--bg) 88%, transparent);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--border);
+}
+.field { display: flex; flex-direction: column; gap: 6px; }
+.field label {
+  font-family: var(--forest-sans, "Alegreya Sans", "Segoe UI", system-ui, sans-serif);
+  font-size: .78rem;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+#search {
+  width: 100%;
+  min-height: 46px;
+  padding: 10px 14px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text-primary);
+  font-family: var(--forest-sans, "Alegreya Sans", "Segoe UI", system-ui, sans-serif);
+  font-size: 1rem;
+}
+#search::placeholder { color: var(--text-muted); opacity: .75; }
+#search:focus { border-color: var(--focus-ring); outline: none; }
+#search:focus-visible { outline: 3px solid var(--focus-ring); outline-offset: 2px; }
+
+.filter-group { margin-top: 12px; }
+.filter-group .legend {
+  display: block;
+  margin-bottom: 6px;
+  font-family: var(--forest-sans, "Alegreya Sans", "Segoe UI", system-ui, sans-serif);
+  font-size: .78rem;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+.filters { display: flex; flex-wrap: wrap; gap: 8px; }
+.filters button {
+  min-height: 44px;
+  padding: 0 16px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text-muted);
+  font-family: var(--forest-sans, "Alegreya Sans", "Segoe UI", system-ui, sans-serif);
+  font-size: .9rem;
+  cursor: pointer;
+  transition: color .15s ease, border-color .15s ease, background .15s ease;
+}
+.filters button:hover { color: var(--text-primary); border-color: rgba(255, 255, 255, .22); }
+.filters button[aria-pressed="true"] {
+  color: var(--text-primary);
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 22%, var(--surface));
+}
+.filters .count { color: var(--text-muted); font-variant-numeric: tabular-nums; }
+.filters button[aria-pressed="true"] .count { color: var(--text-primary); opacity: .8; }
+
+.status-line {
+  margin-top: 12px;
+  font-family: var(--forest-sans, "Alegreya Sans", "Segoe UI", system-ui, sans-serif);
+  font-size: .88rem;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── Card grid ──────────────────────────────────────────────────────── */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(288px, 1fr));
+  gap: 14px;
+  list-style: none;
+}
+@media (max-width: 560px) {
+  .grid { grid-template-columns: 1fr; }
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px 16px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--border);
+  border-radius: var(--radius);
+  content-visibility: auto;
+  contain-intrinsic-size: auto 168px;
+  min-width: 0;
+}
+.card.hide { display: none; }
+
+.card.rel-high   { border-left-color: var(--accent-green); }
+.card.rel-medium { border-left-color: var(--accent); }
+.card.rel-low    { border-left-color: var(--forest-amber, #e8b86b); }
+.card.rel-none   { border-left-color: var(--border); }
+
+.card-head { display: flex; align-items: flex-start; gap: 10px; justify-content: space-between; }
+.card h2 {
+  font-family: var(--forest-sans, "Alegreya Sans", "Segoe UI", system-ui, sans-serif);
+  font-size: 1rem;
+  font-weight: 650;
+  line-height: 1.3;
+  color: var(--text-primary);
+  min-width: 0;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+.badges { display: flex; flex: none; gap: 5px; flex-wrap: wrap; justify-content: flex-end; }
+.badge {
+  flex: none;
+  padding: 3px 9px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  font-family: var(--forest-sans, "Alegreya Sans", "Segoe UI", system-ui, sans-serif);
+  font-size: .68rem;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+.rel-high   .badge.relevance { color: var(--accent-green);          border-color: color-mix(in srgb, var(--accent-green) 40%, transparent); }
+.rel-medium .badge.relevance { color: var(--accent);                border-color: color-mix(in srgb, var(--accent) 40%, transparent); }
+.rel-low    .badge.relevance { color: var(--forest-amber, #e8b86b); border-color: color-mix(in srgb, var(--forest-amber, #e8b86b) 40%, transparent); }
+
+.desc {
+  font-size: .92rem;
+  color: var(--text-muted);
+  overflow-wrap: anywhere;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.desc.is-missing { font-style: italic; opacity: .7; }
+
+.card-foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 14px;
+  margin-top: auto;
+  padding-top: 6px;
+  border-top: 1px solid var(--border);
+  font-family: var(--forest-sans, "Alegreya Sans", "Segoe UI", system-ui, sans-serif);
+  font-size: .78rem;
+  color: var(--text-muted);
+}
+.card-foot a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  text-decoration: none;
+}
+.card-foot a:hover { text-decoration: underline; }
+
+/* ── States ─────────────────────────────────────────────────────────── */
+.state {
+  margin-top: 26px;
+  padding: 22px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text-muted);
+  max-width: 64ch;
+}
+.state h2 {
+  font-family: var(--forest-sans, "Alegreya Sans", "Segoe UI", system-ui, sans-serif);
+  font-size: 1.05rem;
+  color: var(--text-primary);
+  margin-bottom: 6px;
+}
+.state.error { border-left: 3px solid var(--forest-rose, #d98a7f); }
+[hidden] { display: none !important; }
+
+@media (prefers-reduced-motion: reduce) {
+  * { transition-duration: .01ms !important; animation-duration: .01ms !important; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <a class="back-link" href="/">&larr; Back to Forest HUB</a>
+
+  <header class="masthead">
+    <h1>Explore Repos</h1>
+    <p class="subtitle">
+      A searchable index of every public repository on the fleet's GitHub account &mdash;
+      original projects and forked reference clones alike. Search by name or description,
+      or filter by relevance to the fleet.
+    </p>
+
+    <ul class="totals" id="totals" role="list" aria-label="Corpus totals"></ul>
+
+    <p class="provenance" id="provenance"></p>
+  </header>
+
+  <div class="toolbar">
+    <div class="field">
+      <label for="search">Search repositories</label>
+      <input id="search" type="search" autocomplete="off" spellcheck="false"
+             placeholder="Filter by name or description&hellip;">
+    </div>
+
+    <div class="filter-group">
+      <span class="legend" id="origin-legend">Origin</span>
+      <div class="filters" role="group" aria-labelledby="origin-legend" id="origin-filters">
+        <button type="button" data-origin="all"      aria-pressed="true">All <span class="count" data-count="all"></span></button>
+        <button type="button" data-origin="original"  aria-pressed="false">Original <span class="count" data-count="original"></span></button>
+        <button type="button" data-origin="forked"    aria-pressed="false">Forked <span class="count" data-count="forked"></span></button>
+      </div>
+    </div>
+
+    <div class="filter-group">
+      <span class="legend" id="rel-legend">Category &mdash; fleet relevance</span>
+      <div class="filters" role="group" aria-labelledby="rel-legend" id="rel-filters">
+        <button type="button" data-relevance="all"    aria-pressed="true">All <span class="count" data-count="rel-all"></span></button>
+        <button type="button" data-relevance="high"   aria-pressed="false">High <span class="count" data-count="high"></span></button>
+        <button type="button" data-relevance="medium" aria-pressed="false">Medium <span class="count" data-count="medium"></span></button>
+        <button type="button" data-relevance="low"    aria-pressed="false">Low <span class="count" data-count="low"></span></button>
+        <button type="button" data-relevance="none"   aria-pressed="false">None <span class="count" data-count="none"></span></button>
+      </div>
+    </div>
+
+    <p class="status-line" id="result-count" role="status" aria-live="polite" aria-atomic="true">Loading&hellip;</p>
+  </div>
+
+  <ul class="grid" id="grid" role="list"></ul>
+
+  <div class="state" id="empty" hidden>
+    <h2>No repositories match</h2>
+    <p id="empty-detail">Nothing here matches that search and filter combination.</p>
+  </div>
+
+  <div class="state error" id="error" hidden>
+    <h2>Could not load the index</h2>
+    <p id="error-detail"></p>
+  </div>
+
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  /* Resolve against the page's own directory so this works whether Vercel
+     serves it at /web/explore/ or /explore with no trailing slash. */
+  var DATA_URL = (function () {
+    var dir = window.location.pathname.replace(/[^/]*\.[^/]*$/, '');
+    if (dir.charAt(dir.length - 1) !== '/') dir += '/';
+    return dir + 'repos-data.json';
+  })();
+
+  var grid        = document.getElementById('grid');
+  var searchInput = document.getElementById('search');
+  var originEl    = document.getElementById('origin-filters');
+  var relEl       = document.getElementById('rel-filters');
+  var resultCount = document.getElementById('result-count');
+  var emptyEl     = document.getElementById('empty');
+  var emptyDetail = document.getElementById('empty-detail');
+  var errorEl     = document.getElementById('error');
+  var errorDetail = document.getElementById('error-detail');
+  var totalsEl    = document.getElementById('totals');
+  var provenance  = document.getElementById('provenance');
+
+  var records = [];       // {el, haystack, isFork, relevance, shown}
+  var total   = 0;
+  var activeOrigin = 'all';
+  var activeRelevance = 'all';
+  var debounceTimer = null;
+
+  function el(tag, className, text) {
+    var node = document.createElement(tag);
+    if (className) node.className = className;
+    if (text != null) node.textContent = text;
+    return node;
+  }
+
+  function num(v) {
+    return typeof v === 'number' && isFinite(v) ? v.toLocaleString('en-US') : null;
+  }
+
+  // A URL from a data file is still untrusted input. Allow only absolute
+  // http(s) links to github.com.
+  function safeGithubUrl(raw) {
+    if (typeof raw !== 'string' || !raw) return null;
+    try {
+      var u = new URL(raw, window.location.href);
+      if (u.protocol !== 'https:' && u.protocol !== 'http:') return null;
+      if (u.hostname !== 'github.com' && !u.hostname.endsWith('.github.com')) return null;
+      return u.href;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  function knownRelevance(r) {
+    return r === 'high' || r === 'medium' || r === 'low' ? r : 'none';
+  }
+
+  function buildCard(repo) {
+    var relevance = knownRelevance(repo.relevance);
+    var li = el('li', 'card rel-' + relevance);
+
+    var head = el('div', 'card-head');
+    head.appendChild(el('h2', null, String(repo.name == null ? '(unnamed)' : repo.name)));
+
+    var badges = el('div', 'badges');
+    if (relevance !== 'none') badges.appendChild(el('span', 'badge relevance', relevance));
+    badges.appendChild(el('span', 'badge', repo.is_fork ? 'fork' : 'original'));
+    head.appendChild(badges);
+    li.appendChild(head);
+
+    var hasDesc = typeof repo.description === 'string' && repo.description.trim() !== '';
+    var desc = el('p', 'desc' + (hasDesc ? '' : ' is-missing'),
+      hasDesc ? repo.description.trim() : 'No description available.');
+    if (hasDesc) desc.title = repo.description.trim();
+    li.appendChild(desc);
+
+    var foot = el('div', 'card-foot');
+    if (repo.language) foot.appendChild(el('span', null, String(repo.language)));
+    var url = safeGithubUrl(repo.url);
+    if (url) {
+      var link = el('a', null, 'GitHub ↗');
+      link.href = url;
+      link.target = '_blank';
+      link.rel = 'noopener';
+      link.setAttribute('aria-label', 'GitHub repository for ' + String(repo.name));
+      foot.appendChild(link);
+    }
+    if (foot.childNodes.length) li.appendChild(foot);
+
+    return {
+      el: li,
+      haystack: (String(repo.name || '') + ' ' + (hasDesc ? repo.description : '') + ' ' + (repo.language || '')).toLowerCase(),
+      isFork: !!repo.is_fork,
+      relevance: relevance,
+      shown: true
+    };
+  }
+
+  function renderHeader(data) {
+    var t = data.counts || {};
+    var rows = [
+      ['total',    t.total,    'Public repos'],
+      ['original', t.original, 'Original'],
+      ['forked',   t.forked,   'Forked']
+    ];
+    rows.forEach(function (row) {
+      var value = num(row[1]);
+      if (value === null) return;
+      var li = el('li');
+      li.appendChild(el('b', null, value));
+      li.appendChild(el('span', null, row[2]));
+      totalsEl.appendChild(li);
+    });
+
+    var when = 'unknown date';
+    if (data.generated_at) {
+      var d = new Date(data.generated_at);
+      when = isNaN(d.getTime())
+        ? String(data.generated_at)
+        : d.toISOString().slice(0, 10) + ' ' + d.toISOString().slice(11, 16) + ' UTC';
+    }
+    provenance.appendChild(el('span', null,
+      'Snapshot generated ' + when + (data.source_account ? ' from account ' + String(data.source_account) : '') + '.'));
+    if (data.note) {
+      var noteEl = el('span', null, ' ' + String(data.note));
+      provenance.appendChild(noteEl);
+    }
+  }
+
+  function renderFilterCounts(data) {
+    var t = data.counts || {};
+    var originMap = { all: t.total, original: t.original, forked: t.forked };
+    Object.keys(originMap).forEach(function (key) {
+      var span = originEl.querySelector('[data-count="' + key + '"]');
+      var value = num(originMap[key]);
+      if (span && value !== null) span.textContent = '(' + value + ')';
+    });
+    var relMap = { 'rel-all': t.total, high: t.high, medium: t.medium, low: t.low, none: t.none };
+    Object.keys(relMap).forEach(function (key) {
+      var span = relEl.querySelector('[data-count="' + key + '"]');
+      var value = num(relMap[key]);
+      if (span && value !== null) span.textContent = '(' + value + ')';
+    });
+  }
+
+  function applyFilter() {
+    debounceTimer = null;
+    var q = searchInput.value.trim().toLowerCase();
+    var visible = 0;
+
+    for (var i = 0; i < records.length; i++) {
+      var r = records[i];
+      var originMatch = activeOrigin === 'all' ||
+        (activeOrigin === 'original' && !r.isFork) ||
+        (activeOrigin === 'forked' && r.isFork);
+      var relMatch = activeRelevance === 'all' || r.relevance === activeRelevance;
+      var match = originMatch && relMatch && (q === '' || r.haystack.indexOf(q) !== -1);
+      if (match) visible++;
+      if (match !== r.shown) {
+        r.el.classList.toggle('hide', !match);
+        r.shown = match;
+      }
+    }
+
+    resultCount.textContent = visible.toLocaleString('en-US') + ' of ' +
+                              total.toLocaleString('en-US') + ' repositories';
+    emptyEl.hidden = visible !== 0;
+    if (visible === 0) {
+      emptyDetail.textContent = q
+        ? 'Nothing matches "' + q + '" with the current filters.'
+        : 'No repositories match the current filters.';
+    }
+  }
+
+  function scheduleFilter() {
+    if (debounceTimer !== null) clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(applyFilter, 50);
+  }
+
+  function wireGroup(container, attr, setActive) {
+    container.addEventListener('click', function (ev) {
+      var btn = ev.target.closest('button[data-' + attr + ']');
+      if (!btn) return;
+      setActive(btn.getAttribute('data-' + attr));
+      var buttons = container.querySelectorAll('button[data-' + attr + ']');
+      for (var i = 0; i < buttons.length; i++) {
+        buttons[i].setAttribute('aria-pressed', String(buttons[i] === btn));
+      }
+      if (debounceTimer !== null) { clearTimeout(debounceTimer); debounceTimer = null; }
+      applyFilter();
+    });
+  }
+
+  function wireControls() {
+    searchInput.addEventListener('input', scheduleFilter);
+    wireGroup(originEl, 'origin', function (v) { activeOrigin = v; });
+    wireGroup(relEl, 'relevance', function (v) { activeRelevance = v; });
+  }
+
+  function fail(message) {
+    errorDetail.textContent = message;
+    errorEl.hidden = false;
+    resultCount.textContent = 'Index unavailable.';
+    searchInput.disabled = true;
+    var buttons = document.querySelectorAll('.filters button');
+    for (var i = 0; i < buttons.length; i++) buttons[i].disabled = true;
+  }
+
+  fetch(DATA_URL, { cache: 'no-cache' })
+    .then(function (res) {
+      if (!res.ok) throw new Error('repos-data.json returned HTTP ' + res.status + ' ' + res.statusText);
+      return res.json();
+    })
+    .then(function (data) {
+      if (!data || !Array.isArray(data.repos)) {
+        throw new Error('repos-data.json loaded but has no "repos" array.');
+      }
+
+      renderHeader(data);
+      renderFilterCounts(data);
+
+      var frag = document.createDocumentFragment();
+      for (var i = 0; i < data.repos.length; i++) {
+        var rec = buildCard(data.repos[i]);
+        records.push(rec);
+        frag.appendChild(rec.el);
+      }
+      grid.appendChild(frag);
+
+      total = records.length;
+      applyFilter();
+      wireControls();
+    })
+    .catch(function (err) {
+      fail((err && err.message ? err.message : String(err)) +
+           ' — expected the snapshot at ' + DATA_URL + ' next to this page.');
+    });
+})();
+</script>
+</body>
+</html>
