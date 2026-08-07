@@ -2,10 +2,10 @@
 <html lang="en" class="forest-skin">
 <head>
 <meta charset="utf-8">
-<link rel="icon" href="/web/shared/favicon.svg?v=20260729e" type="image/svg+xml">
-<script defer src="/web/shared/feedback.js?v=20260729e"></script>
-<script type="module" src="/web/shared/forest-navigation.mjs?v=20260729e"></script>
-<link rel="preload" href="/web/shared/forest-design.css?v=20260729e" as="style">
+<link rel="icon" href="/web/shared/favicon.svg?v=20260729g" type="image/svg+xml">
+<script defer src="/web/shared/feedback.js?v=20260729g"></script>
+<script type="module" src="/web/shared/forest-navigation.mjs?v=20260729g"></script>
+<link rel="preload" href="/web/shared/forest-design.css?v=20260729g" as="style">
 <link rel="preload" href="/web/vendor/fonts/cormorant-garamond-normal-600-latin.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="/web/vendor/fonts/alegreya-normal-400-900-latin.woff2" as="font" type="font/woff2" crossorigin>
 <script type="speculationrules">
@@ -159,8 +159,8 @@
   <meta name="description" content="Hyper Trophy OS — a native training-intelligence dashboard with a strength estimate, research query surface, and transparent live-service fallback.">
   <meta name="theme-color" content="#07070b">
   <title>Hyper Trophy OS — SDForest</title>
-  <link rel="stylesheet" href="/web/shared/forest-shell.css?v=20260729e">
-  <link rel="stylesheet" href="/web/shared/forest-design.css?v=20260729e">
+  <link rel="stylesheet" href="/web/shared/forest-shell.css?v=20260729g">
+  <link rel="stylesheet" href="/web/shared/forest-design.css?v=20260729g">
   <style>
     :root {
       --bg:#07070b;
@@ -232,7 +232,7 @@
     @media(max-width:850px){.hyper-hero,.dashboard-grid{grid-template-columns:1fr}.muscle-field{min-height:330px;order:-1}.principles{grid-template-columns:1fr}.hyper-hero{padding-top:35px}}
     @media(max-width:520px){.lift-form{grid-template-columns:1fr}.research-form{display:grid}.loads{grid-template-columns:1fr}.estimate{grid-template-columns:1fr}}
   </style>
-  <link rel="stylesheet" href="/web/shared/design-history.css?v=20260729e">
+  <link rel="stylesheet" href="/web/shared/design-history.css?v=20260729g">
 </head>
 <body data-forest-page="muscle">
   <canvas class="forest-scene" data-forest-scene data-mode="muscle" aria-hidden="true"></canvas>
@@ -251,8 +251,8 @@
 
     <section class="forest-section" aria-labelledby="system-title"><p class="forest-section-label" data-reveal>System map</p><div class="principles" id="system-title" data-reveal-stagger><article class="forest-panel principle" data-reveal><span>01 / Estimate</span><h3>Calculate locally</h3><p>The strength estimate runs entirely in this browser and never depends on the remote service.</p></article><article class="forest-panel principle" data-reveal><span>02 / Research</span><h3>Show sources</h3><p>Research answers expose whether support came from the project corpus, PubMed, or neither.</p></article><article class="forest-panel principle" data-reveal><span>03 / Failure</span><h3>Remain useful</h3><p>If the research service cannot be reached, the native dashboard stays visible and says so plainly.</p></article></div><p class="disclaimer" data-reveal>Training estimates and research summaries are educational tools, not medical advice. Use qualified professional guidance for personal health decisions.</p></section>
   </main>
-  <script type="module" data-forest-runtime="motion" src="/web/shared/forest-runtime-boot.mjs?v=20260729e"></script>
-  <script src="/web/shared/forest-reveal.js?v=20260729e"></script>
+  <script type="module" data-forest-runtime="motion" src="/web/shared/forest-runtime-boot.mjs?v=20260729g"></script>
+  <script src="/web/shared/forest-reveal.js?v=20260729g"></script>
   <script>
     (()=>{
       const weight=document.getElementById('lift-weight'),reps=document.getElementById('lift-reps');
@@ -271,6 +271,6 @@
       form.addEventListener('submit',async event=>{event.preventDefault();const text=question.value.trim();if(!text)return;submit.disabled=true;answer.classList.add('is-querying');setAnswerState('Querying the research service…');const controller=new AbortController();const timeoutId=setTimeout(()=>controller.abort(),6000);try{const response=await fetch('https://chloe.blumenkraft.cloud/hypertrophy/query',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({question:text}),signal:controller.signal});if(!response.ok)throw new Error(`HTTP ${response.status}`);renderAnswer(await response.json())}catch(error){setAnswerState('The research service cannot reach the expected local service at localhost:8090. The local calculator remains available; try the source-backed query again later.')}finally{clearTimeout(timeoutId);submit.disabled=false;answer.classList.remove('is-querying')}});
     })();
   </script>
-  <script src="/web/shared/design-history.js?v=20260729e"></script>
+  <script src="/web/shared/design-history.js?v=20260729g"></script>
 </body>
 </html>

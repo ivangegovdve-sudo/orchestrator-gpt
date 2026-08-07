@@ -378,5 +378,5 @@
   .dh-root .dh-tab,
   .dh-root .dh-drawer,
   .dh-root .dh-banner,
-  .dh-root .dh-era { transition-duration: .01ms; }
+  .dh-root .dh-era { transition: none; }
 }

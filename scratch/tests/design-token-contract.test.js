@@ -51,6 +51,11 @@ const publicRoutes = [
   '/web/avatar-playground/',
   '/web/upload/',
 ];
+const groveRoutes = new Set([
+  '/web/kids/',
+  '/web/math-mania/',
+  '/web/kids-movie-library/',
+]);
 
 let baseUrl;
 let browser;
@@ -92,7 +97,7 @@ after(async () => {
   await new Promise((resolve) => server?.close(resolve));
 });
 
-test('all reviewed internal pages inherit the exact canonical design tokens', async () => {
+test('reviewed pages honor canonical tokens with the locked Playful Grove exception', async () => {
   const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
   const failures = [];
 
@@ -128,21 +133,60 @@ test('all reviewed internal pages inherit the exact canonical design tokens', as
       probe.remove();
       return result;
     });
-    if (
-      state.bg !== 'rgb(7, 7, 11)'
-      || state.surface !== 'rgb(15, 15, 21)'
-      || state.border !== 'rgba(255, 255, 255, 0.08)'
-      || state.textPrimary !== 'rgb(243, 244, 246)'
-      || state.textMuted !== 'rgb(156, 163, 175)'
-      || state.accent !== 'rgb(79, 70, 229)'
-      || state.accentGreen !== 'rgb(34, 197, 94)'
-      || state.radius !== '8px'
-      || state.font !== '-apple-system,blinkmacsystemfont,segoeui,roboto,sans-serif'
-    ) {
+    const expected = groveRoutes.has(route)
+      ? {
+          bg: 'rgb(16, 13, 10)',
+          surface: 'rgb(38, 28, 19)',
+          border: 'rgba(255, 247, 220, 0.18)',
+          textPrimary: 'rgb(255, 247, 220)',
+          textMuted: 'color(srgb 1 0.968627 0.862745 / 0.68)',
+          accent: 'rgb(255, 209, 90)',
+          accentGreen: 'rgb(143, 230, 174)',
+          radius: '18px',
+          font: 'alegreya,iowanoldstyle,georgia,serif',
+        }
+      : {
+          bg: 'rgb(7, 7, 11)',
+          surface: 'rgb(15, 15, 21)',
+          border: 'rgba(255, 255, 255, 0.08)',
+          textPrimary: 'rgb(243, 244, 246)',
+          textMuted: 'rgb(156, 163, 175)',
+          accent: 'rgb(79, 70, 229)',
+          accentGreen: 'rgb(34, 197, 94)',
+          radius: '8px',
+          font: '-apple-system,blinkmacsystemfont,segoeui,roboto,sans-serif',
+        };
+    if (Object.entries(expected).some(([key, value]) => state[key] !== value)) {
       failures.push({ route, ...state });
     }
   }
 
   assert.deepEqual(failures, []);
   await page.close();
+});
+
+test('shared reduced-motion paths are static rather than shortened animations', () => {
+  const shared = [
+    'web/shared/forest-shell.css',
+    'web/shared/forest-home.css',
+    'web/shared/council-motion.css',
+  ].map((file) => fs.readFileSync(path.join(repoRoot, file), 'utf8'));
+  for (const source of shared) {
+    assert.match(
+      source,
+      /@media\s*\(prefers-reduced-motion:\s*reduce\)[\s\S]*animation:\s*none\s*!important/,
+    );
+    assert.match(
+      source,
+      /@media\s*\(prefers-reduced-motion:\s*reduce\)[\s\S]*transition:\s*none\s*!important/,
+    );
+  }
+  const history = fs.readFileSync(
+    path.join(repoRoot, 'web/shared/design-history.css'),
+    'utf8',
+  );
+  assert.match(
+    history,
+    /@media\s*\(prefers-reduced-motion:\s*reduce\)[\s\S]*\.dh-root \.dh-era\s*\{\s*transition:\s*none/,
+  );
 });
