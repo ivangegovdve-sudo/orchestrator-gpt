@@ -256,8 +256,12 @@
     }
     /* Discussion-mode selector. Same pill idiom as .example, but these carry a
        pressed state — the visitor needs to see which treatment is armed. */
-    .modes { margin-bottom: 14px; }
-    .modes-label {
+    fieldset.modes {
+      margin: 0 0 14px 0;
+      padding: 0;
+      border: none;
+    }
+    legend.modes-label {
       display: block;
       margin-bottom: 8px;
       color: var(--text-muted);
@@ -535,16 +539,16 @@
       </header>
 
       <div class="composer">
-        <div class="modes">
-          <span class="modes-label" id="tinylm-modes-label">Discussion mode</span>
-          <div class="mode-options" role="group" aria-labelledby="tinylm-modes-label">
+        <fieldset class="modes">
+          <legend class="modes-label" id="tinylm-modes-label">Discussion mode</legend>
+          <div class="mode-options">
             <button class="mode-option selected" type="button" data-council-mode-option="default" aria-pressed="true" title="Balanced: direct answer, fair critique, definitive synthesis.">Default</button>
             <button class="mode-option" type="button" data-council-mode-option="adversarial" aria-pressed="false" title="Argue hard, attack assumptions, keep only what survives.">Adversarial</button>
             <button class="mode-option" type="button" data-council-mode-option="chaos" aria-pressed="false" title="Lateral and divergent — surprising angles over the safe take.">Chaos</button>
             <button class="mode-option" type="button" data-council-mode-option="dreamer" aria-pressed="false" title="Expansive and imaginative — the biggest honest version.">Dreamer</button>
             <button class="mode-option" type="button" data-council-mode-option="problem-solver" aria-pressed="false" title="Treat the input as a problem; compare approaches and recommend one.">Problem-solver</button>
           </div>
-        </div>
+        </fieldset>
         <label for="tinylm-prompt">Proposition to explore</label>
         <textarea id="tinylm-prompt" maxlength="600" placeholder="State a claim, not a command."></textarea>
         <div class="examples" aria-label="TinyLLM example propositions">
@@ -593,16 +597,16 @@
       </header>
 
       <div class="composer">
-        <div class="modes">
-          <span class="modes-label" id="openrouter-modes-label">Discussion mode</span>
-          <div class="mode-options" role="group" aria-labelledby="openrouter-modes-label">
+        <fieldset class="modes">
+          <legend class="modes-label" id="openrouter-modes-label">Discussion mode</legend>
+          <div class="mode-options">
             <button class="mode-option selected" type="button" data-council-mode-option="default" aria-pressed="true" title="Balanced: direct answer, fair critique, definitive synthesis.">Default</button>
             <button class="mode-option" type="button" data-council-mode-option="adversarial" aria-pressed="false" title="Argue hard, attack assumptions, keep only what survives.">Adversarial</button>
             <button class="mode-option" type="button" data-council-mode-option="chaos" aria-pressed="false" title="Lateral and divergent — surprising angles over the safe take.">Chaos</button>
             <button class="mode-option" type="button" data-council-mode-option="dreamer" aria-pressed="false" title="Expansive and imaginative — the biggest honest version.">Dreamer</button>
             <button class="mode-option" type="button" data-council-mode-option="problem-solver" aria-pressed="false" title="Treat the input as a problem; compare approaches and recommend one.">Problem-solver</button>
           </div>
-        </div>
+        </fieldset>
         <label for="openrouter-question">Question for the council</label>
         <textarea id="openrouter-question" maxlength="1200" placeholder="Give the council a decision, trade-off, or argument to test."></textarea>
         <div class="examples" aria-label="OpenRouter example questions">
