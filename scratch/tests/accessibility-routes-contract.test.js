@@ -1,6 +1,7 @@
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
+const { pathToFileURL } = require('node:url');
 const { test } = require('node:test');
 
 const repoRoot = path.resolve(__dirname, '..', '..');
@@ -12,9 +13,7 @@ function openingTag(source, tagName, id) {
 }
 
 async function loadForestTrails() {
-  const source = read('web/shared/forest-trails.js');
-  const moduleUrl = `data:text/javascript;base64,${Buffer.from(source).toString('base64')}`;
-  return import(moduleUrl);
+  return import(pathToFileURL(path.join(repoRoot, 'web/shared/forest-trails.mjs')).href);
 }
 
 test('Knowledge Ingest resolves as a connected Signals & Systems trail', async () => {
