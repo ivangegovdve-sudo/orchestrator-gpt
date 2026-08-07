@@ -6,13 +6,12 @@ from backend import movies_db
 client = TestClient(app)
 
 @pytest.fixture(autouse=True)
-def setup_db():
+def setup_db(tmp_path, monkeypatch):
+    test_db_path = tmp_path / "test_movies.db"
+    monkeypatch.setattr(movies_db, "DB_PATH", test_db_path)
+    monkeypatch.setattr(movies_db, "_DB_READY", False)
     movies_db.ensure_db()
     conn = movies_db.get_connection()
-    conn.execute("DELETE FROM movie_tags")
-    conn.execute("DELETE FROM user_ratings")
-    conn.execute("DELETE FROM movies")
-    conn.execute("DELETE FROM tags")
 
     # Insert some sample data
     movies = [
