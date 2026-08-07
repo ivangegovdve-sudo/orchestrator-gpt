@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#ffffff" />
+    <meta
+      name="description"
+      content="Cubeflow scans, validates, solves, and teaches every Rubik's Cube turn."
+    />
+    <title>Cubeflow — Rubik's Cube Teacher</title>
+    <script type="module" crossorigin src="/web/rubiks-teacher/assets/index-BOLL9lX0.js"></script>
+    <!-- Shared design tokens. Every rule in forest-design.css is scoped to
+         html.forest-skin, so loading it here supplies the sitewide token set
+         (--bg/--surface/--accent/--border/--radius) without restyling the
+         Cubeflow bundle, which keeps its own light theme. -->
+    <link rel="stylesheet" href="/web/shared/forest-design.css?v=20260803a">
+    <link rel="stylesheet" crossorigin href="/web/rubiks-teacher/assets/index-C52SfukJ.css">
+    <style>
+      .sdforest-return {
+        position: fixed;
+        z-index: 1000;
+        top: 20px;
+        left: 50%;
+        display: inline-flex;
+        min-height: 30px;
+        align-items: center;
+        padding: 0 10px;
+        transform: translateX(-50%);
+        border: 1px solid #cfd8d3;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.94);
+        color: #245c43;
+        font: 600 12px/1 system-ui, sans-serif;
+        text-decoration: none;
+        box-shadow: 0 2px 10px rgba(22, 62, 43, 0.08);
+      }
+      .sdforest-return:hover,
+      .sdforest-return:focus-visible {
+        border-color: var(--accent, #4a7c59);
+        outline: 2px solid transparent;
+        color: #173e2d;
+      }
+      .sdforest-return:focus-visible {
+        outline: 3px solid var(--focus-ring, #4a7c59);
+        outline-offset: 3px;
+      }
+    </style>
+  </head>
+  <body>
+    <a class="sdforest-return" href="/" aria-label="Back to SDForest">&larr; SDForest</a>
+    <div id="root"></div>
+  </body>
+</html>

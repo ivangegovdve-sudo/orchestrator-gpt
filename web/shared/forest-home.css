@@ -114,13 +114,17 @@ a, button { -webkit-tap-highlight-color: transparent; }
   transform: translateY(calc(var(--title-p, 0) * -7vh)) scale(calc(1 - var(--title-p, 0) * .04));
 }
 
+/* Centred on .landing-title (the h1 it now lives in), not on .landing-core.
+   The core's height grows with the body copy, so anchoring here kept walking
+   the canopy down onto the paragraph — badly at 390px, where it covered 92%
+   of it. Centred on the title this self-corrects at every width. */
 .title-crown {
   position: absolute;
   z-index: -1;
   top: 50%;
   left: 50%;
   width: min(760px, 92vw);
-  transform: translate(-50%, -54%);
+  transform: translate(-50%, -50%);
   color: var(--accent);
   opacity: .48;
   pointer-events: none;
@@ -128,8 +132,14 @@ a, button { -webkit-tap-highlight-color: transparent; }
 }
 
 .crown-wrap {
+  /* A span by default is inline; the crown needs it to take the width. */
+  display: block;
   width: 100%;
-  transform: translateY(0);
+  /* translate3d, not translateY: promotes the breathing crown and its
+     added leaf layer to their own compositor layer so the sway never
+     repaints the hero text behind it. */
+  transform: translate3d(0, 0, 0);
+  will-change: transform;
 }
 
 .title-crown svg {
@@ -207,15 +217,25 @@ a, button { -webkit-tap-highlight-color: transparent; }
   will-change: transform, opacity;
 }
 
+/* Same --home-amber trap as .title-sub em below: the token resolves to the
+   indigo accent, which is ~3.2:1 on the #07070b plate. At 12.8px/500 this is
+   the smallest type on the page, so it needs 4.5:1 and was the furthest from
+   it. The dawn-light amber clears 11:1 and is re-tinted per design-history
+   era, so previews still follow. */
 .landing-kicker {
   margin: 0 0 10px;
-  color: var(--home-amber);
+  color: var(--forest-amber, #e8b86b);
   font: 500 clamp(11px, 1vw, 13px)/1 var(--home-sans);
   letter-spacing: .38em;
   text-transform: uppercase;
 }
 
-.landing-title { position: relative; z-index: 1; margin: 0; }
+/* position: relative to be the crown's containing block, but deliberately no
+   z-index: that made the h1 a stacking context, which trapped the crown's
+   z-index:-1 inside it and painted the canopy OVER the kicker sitting above.
+   Without one, the crown resolves against an ancestor and sits behind all of
+   the hero text, which is the whole point of it. */
+.landing-title { position: relative; margin: 0; }
 
 .title-word {
   display: block;
@@ -237,9 +257,15 @@ a, button { -webkit-tap-highlight-color: transparent; }
   letter-spacing: .16em;
 }
 
+/* --home-amber resolves to the indigo accent (#4f46e5), which lands at
+   ~3.2:1 on the #07070b plate — a WCAG AA fail for a 20px body-weight
+   word. The dawn-light amber clears 11:1, and 600 gives the italic
+   serif enough body to read as the emphasis it is. --forest-amber is
+   re-tinted by every design-history era, so previews still follow. */
 .title-sub em {
   font-style: italic;
-  color: var(--home-amber);
+  font-weight: 600;
+  color: var(--forest-amber, #e8b86b);
 }
 
 .landing-copy {
@@ -321,62 +347,76 @@ html.is-born .scroll-invite {
   }
 }
 
+/* The primary door into the walk. It sits in the flow of the core so it
+   always shares the hero's viewport, and it is a filled pill rather than
+   a bottom-pinned text link — moss on near-black reads at ~8.8:1, and
+   48px of height clears the touch-target floor. */
 .scroll-invite {
-  position: absolute;
-  left: 50%;
-  bottom: 26px;
-  display: grid;
-  justify-items: center;
-  gap: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 11px;
+  min-height: 48px;
+  margin: clamp(26px, 4.5vh, 42px) auto 0;
+  padding: 0 clamp(24px, 3vw, 34px);
   border: 0;
-  background: transparent;
-  color: var(--home-muted);
-  font: italic 500 clamp(14px, 1.2vw, 17px)/1 var(--home-display);
-  letter-spacing: .3em;
-  transform: translateX(-50%);
+  border-radius: 999px;
+  background: var(--home-moss);
+  color: #07070b;
+  font: 600 clamp(13px, 1.1vw, 15px)/1 var(--home-sans);
+  letter-spacing: .2em;
+  text-transform: uppercase;
   cursor: pointer;
-  opacity: calc(1 - var(--title-p, 0) * 2.2);
+  box-shadow: 0 12px 34px rgba(34, 197, 94, .26);
+  transition:
+    transform var(--duration-fast) var(--ease-out),
+    box-shadow var(--duration-fast) var(--ease-out),
+    filter var(--duration-fast) var(--ease-out);
 }
 
+.scroll-invite:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 18px 44px rgba(34, 197, 94, .36);
+  filter: brightness(1.07);
+}
+
+.scroll-invite:active { transform: translateY(0); }
+
+.scroll-invite:focus-visible {
+  outline: 2px solid var(--home-ink);
+  outline-offset: 3px;
+}
+
+/* A chevron nudging toward the crown — the old animated hairline read as
+   decoration beside the label rather than a direction to travel. */
 .scroll-invite::after {
   content: "";
-  width: 1px;
-  height: 40px;
-  background: linear-gradient(var(--home-amber), transparent);
-  animation: scroll-line var(--duration-scroll-invite) var(--ease-in-out) infinite;
-  transform-origin: top;
+  width: 7px;
+  height: 7px;
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  animation: scroll-nudge var(--duration-scroll-invite) var(--ease-in-out) infinite;
 }
 
-@keyframes scroll-line {
-  0%, 100% { transform: scaleY(.35); opacity: .45; }
-  55% { transform: scaleY(1); opacity: 1; }
+@keyframes scroll-nudge {
+  0%, 100% { transform: rotate(45deg) translate(-1px, -1px); opacity: .6; }
+  55% { transform: rotate(45deg) translate(2px, 2px); opacity: 1; }
 }
 
 /* ================================================================== *
- * II. The crown
+ * Section headings (the atlas, and anything that follows it). These
+ * selectors were shared with the retired .crown-section — the crown
+ * halves are gone, the atlas halves are the live ones.
  * ================================================================== */
-.crown-section {
-  position: relative;
-  z-index: 2;
-  padding: clamp(60px, 10vh, 120px) 0 0;
-}
-
-.crown-head {
-  width: min(760px, 92vw);
-  margin: 0 auto;
-  text-align: center;
-}
-
-.crown-kicker,
+/* Same 3.2:1 failure as .landing-kicker — identical token, size and role. */
 .atlas-kicker {
   margin: 0 0 12px;
-  color: var(--home-amber);
+  color: var(--forest-amber, #e8b86b);
   font: 500 12px/1 var(--home-sans);
   letter-spacing: .34em;
   text-transform: uppercase;
 }
 
-.crown-head h2,
 .atlas-head h2 {
   margin: 0;
   font: 540 clamp(38px, 5.4vw, 72px)/1.04 var(--home-display);
@@ -384,76 +424,15 @@ html.is-born .scroll-invite {
   text-wrap: balance;
 }
 
-.crown-head h2 em,
 .atlas-head h2 em {
   font-style: italic;
   color: var(--home-amber);
 }
 
-.crown-copy {
-  max-width: 52ch;
-  margin: 18px auto 0;
-  color: var(--home-soft);
-  font-size: clamp(15px, 1.4vw, 18px);
-  line-height: 1.6;
-}
-
-.crown-stage {
-  position: relative;
-  height: clamp(540px, 108svh, 1080px);
-  margin-top: clamp(20px, 4vh, 56px);
-}
-
-.crown-labels { position: absolute; inset: 0; pointer-events: none; }
-
-.crown-label {
-  position: absolute;
-  transform: translate(-50%, -50%);
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  padding: 5px 8px;
-  pointer-events: auto;
-  color: var(--home-soft);
-  font: 500 clamp(10px, .85vw, 12.5px)/1 var(--home-sans);
-  letter-spacing: .14em;
-  text-decoration: none;
-  text-transform: uppercase;
-  white-space: nowrap;
-  opacity: .74;
-  transition:
-    opacity var(--duration-normal) var(--ease-standard),
-    color var(--duration-normal) var(--ease-standard);
-}
-
-.crown-label::before {
-  content: "";
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--label-accent, var(--home-moss));
-  box-shadow: 0 0 10px var(--label-accent, var(--home-moss));
-  opacity: .8;
-}
-
-.crown-label:hover,
-.crown-label:focus-visible {
-  color: var(--home-ink);
-  opacity: 1;
-}
-
-.crown-label:focus-visible {
-  outline: 1px solid var(--home-amber);
-  outline-offset: 3px;
-  border-radius: 4px;
-}
-
-.crown-label.is-lit { color: var(--home-ink); opacity: .95; }
-
 /* ================================================================== *
- * III. The walk of slams. The taproot (.root-rail) runs down its
- * spine; each collision grows WebGL roots from the seam up to the
- * crown, and the taproot lights as far as the walk has reached.
+ * II. The walk of slams. The taproot (.root-rail) runs down its
+ * spine; each collision grows WebGL roots from the seam upward, and
+ * the taproot lights as far as the walk has reached.
  * ================================================================== */
 .routes {
   position: relative;
@@ -708,12 +687,136 @@ html.is-born .scroll-invite {
   margin-bottom: clamp(30px, 5vh, 56px);
 }
 
+.directory-layout {
+  width: min(1280px, 100%);
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: minmax(210px, .72fr) minmax(0, 2fr);
+  align-items: start;
+  gap: clamp(28px, 5vw, 72px);
+}
+
+.directory-index {
+  position: sticky;
+  top: 100px;
+  max-height: calc(100svh - 118px);
+  overflow-y: auto;
+  align-self: start;
+  padding: 18px;
+  border: 1px solid var(--home-line);
+  border-radius: 18px;
+  background: rgba(15, 15, 21, .72);
+  box-shadow: 0 18px 54px rgba(0, 0, 0, .16);
+}
+
+.directory-index-section + .directory-index-section {
+  margin-top: 18px;
+  padding-top: 18px;
+  border-top: 1px solid var(--home-line);
+}
+
+.directory-index h3 {
+  margin: 0 0 8px;
+  color: var(--forest-amber, #e8b86b);
+  font: 600 11px/1.2 var(--home-sans);
+  letter-spacing: .14em;
+  text-transform: uppercase;
+}
+
+.directory-index ul {
+  display: grid;
+  gap: 5px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.directory-index a,
+.directory-index [aria-disabled="true"] {
+  display: block;
+  color: var(--home-soft);
+  font: 400 15px/1.25 var(--home-body);
+  text-decoration: none;
+}
+
+.directory-index a:hover,
+.directory-index a:focus-visible { color: var(--home-ink); }
+.directory-index a:focus-visible { outline: 2px solid var(--home-moss); outline-offset: 3px; }
+.directory-index [aria-disabled="true"] { color: var(--home-muted); cursor: not-allowed; }
+
+.directory-sections { min-width: 0; }
+
+.directory-section {
+  scroll-margin-top: 100px;
+  padding-bottom: clamp(30px, 5vw, 52px);
+}
+
+.directory-section + .directory-section {
+  padding-top: clamp(30px, 5vw, 52px);
+  border-top: 1px solid var(--home-line);
+}
+
+.directory-section-head { margin-bottom: 18px; }
+
+.directory-section-head h3 {
+  margin: 0;
+  color: var(--home-ink);
+  font: 600 clamp(28px, 3.2vw, 42px)/1 var(--home-display);
+  letter-spacing: .01em;
+}
+
+.directory-section-head p {
+  max-width: 56ch;
+  margin: 8px 0 0;
+  color: var(--home-soft);
+  font: 400 17px/1.45 var(--home-body);
+}
+
 .project-grid {
   width: min(1280px, 100%);
   margin: 0 auto;
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 12px;
+}
+
+.directory-sections .project-grid {
+  width: 100%;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.directory-overflow { margin-top: 12px; }
+.directory-overflow:not([open]) > .directory-overflow-grid { display: none; }
+
+.directory-overflow summary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 38px;
+  padding: 0 12px;
+  color: var(--home-soft);
+  font: 600 12px/1 var(--home-sans);
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  cursor: pointer;
+  list-style: none;
+}
+
+.directory-overflow summary::-webkit-details-marker { display: none; }
+.directory-overflow summary::before {
+  content: "+";
+  color: var(--forest-amber, #e8b86b);
+  font-size: 18px;
+  line-height: 1;
+}
+.directory-overflow[open] summary::before { content: "−"; }
+.directory-summary-open { display: none; }
+.directory-overflow[open] .directory-summary-closed { display: none; }
+.directory-overflow[open] .directory-summary-open { display: inline; }
+.directory-overflow summary:hover { color: var(--home-ink); }
+.directory-overflow summary:focus-visible {
+  outline: 2px solid var(--home-moss);
+  outline-offset: 3px;
 }
 
 .portal {
@@ -732,6 +835,7 @@ html.is-born .scroll-invite {
   background: rgba(255, 255, 255, .018);
   color: var(--home-ink);
   text-align: left;
+  text-decoration: none;
   cursor: pointer;
   isolation: isolate;
   transition:
@@ -766,7 +870,17 @@ html.is-born .scroll-invite {
 .portal:focus-visible::before { opacity: 1; }
 
 .portal:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
-.portal[aria-disabled="true"] { cursor: default; }
+.portal[aria-disabled="true"] {
+  cursor: not-allowed;
+  opacity: .58;
+  filter: saturate(.55);
+}
+.portal[aria-disabled="true"]::before { display: none; }
+.portal[aria-disabled="true"]:hover {
+  border-color: rgba(226, 235, 209, .1);
+  background: rgba(255, 255, 255, .018);
+  box-shadow: none;
+}
 
 .portal-icon {
   width: 48px;
@@ -834,6 +948,7 @@ html.is-born .scroll-invite {
   min-height: 240px;
   display: grid;
   place-items: center;
+  gap: 20px;              /* second row: the design-history badge */
   padding: 60px 20px;
   color: var(--home-muted);
   text-align: center;
@@ -855,31 +970,48 @@ html.is-born .scroll-invite {
 
 @media (max-width: 900px) {
   .home-nav-status { display: none; }
-  .crown-stage { height: clamp(440px, 74svh, 720px); }
   .slam { min-height: 66svh; }
   .slam-stage {
     grid-template-columns: 1fr;
     justify-items: center;
     gap: 0;
   }
+  /* translate3d so the scroll-scrubbed slam halves composite instead of
+     repainting on every scroll tick — this is the hot path on phones. */
   .slam-side-icon {
     justify-content: center;
-    transform: translateY(calc(var(--sx, 0) * -46vh)) rotate(calc(var(--sx, 0) * -3deg));
+    transform: translate3d(0, calc(var(--sx, 0) * -46vh), 0) rotate(calc(var(--sx, 0) * -3deg));
+    will-change: transform;
   }
   .slam-side-panel {
-    transform: translateY(calc(var(--sx, 0) * 46vh)) rotate(calc(var(--sx, 0) * 2deg));
+    transform: translate3d(0, calc(var(--sx, 0) * 46vh), 0) rotate(calc(var(--sx, 0) * 2deg));
+    will-change: transform;
   }
   .slam-plate { width: clamp(120px, 30vw, 160px); border-radius: 24px; margin-bottom: -26px; }
   .slam-seam { display: none; }
   .slam-panel { padding-top: 44px; text-align: center; }
   .slam-desc { margin-inline: auto; }
+  .directory-layout { grid-template-columns: 1fr; gap: 28px; }
+  .directory-index {
+    position: static;
+    max-height: none;
+    overflow-y: visible;
+  }
   .project-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
 @media (max-width: 560px) {
+  /* Centring a short core inside a full 100svh plate pushed the first
+     line of copy to ~41% of a 375×812 screen. Seating the core at the
+     top of the plate — just clear of the 72px nav — brings it back to
+     ~14% while the hero keeps its full-height stage. */
+  .landing {
+    align-content: start;
+    padding: 112px 20px 56px;
+  }
   .landing-copy { font-size: 16px; }
   .title-sub { letter-spacing: .1em; }
-  .project-grid { grid-template-columns: 1fr; }
+  .directory-sections .project-grid { grid-template-columns: 1fr; }
   .portal { min-height: 84px; }
 }
 

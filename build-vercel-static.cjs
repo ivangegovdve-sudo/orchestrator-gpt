@@ -21,7 +21,12 @@ function copyDir(from, to) {
   }
 }
 
-fs.rmSync(outDir, { recursive: true, force: true });
+// On Vercel, the build runs twice (vercel build + npm run vercel-build).
+// Deleting outDir mid-stream causes ENOENT in @vercel/build-utils.
+// Skip the wipe on Vercel; overwrite-in-place is safe because it's a fresh clone.
+if (!process.env.VERCEL) {
+  fs.rmSync(outDir, { recursive: true, force: true });
+}
 fs.mkdirSync(outDir, { recursive: true });
 
 [

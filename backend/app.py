@@ -9,7 +9,7 @@ from urllib.error import URLError, HTTPError
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from dataclasses import dataclass
 
 try:
@@ -94,17 +94,17 @@ def init_sqlite_databases() -> None:
 # -----------------------------------------------------------------------------
 
 class ItemIconRequest(BaseModel):
-    seedImage: str
-    assetDescription: str
-    styleHint: Optional[str] = None
+    seedImage: str = Field(..., min_length=1)
+    assetDescription: str = Field(..., min_length=1, max_length=1000)
+    styleHint: Optional[str] = Field(default=None, max_length=500)
     useWesternAnimationBase: bool = True
 
-    rarity: Optional[str] = "common"
-    element: Optional[str] = "none"
-    biome: Optional[str] = "none"
-    style: Optional[str] = "western_animation_default"
-    category: Optional[str] = "material"
-    loraPack: Optional[str] = "none"
+    rarity: Optional[str] = Field(default="common", max_length=100)
+    element: Optional[str] = Field(default="none", max_length=100)
+    biome: Optional[str] = Field(default="none", max_length=100)
+    style: Optional[str] = Field(default="western_animation_default", max_length=100)
+    category: Optional[str] = Field(default="material", max_length=100)
+    loraPack: Optional[str] = Field(default="none", max_length=100)
 
 
 class ItemIconResponse(BaseModel):

@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <html lang="en" class="forest-skin">
 <head>
-<script defer src="/web/shared/feedback.js?v=20260729b"></script>
+<script defer src="/web/shared/feedback.js?v=20260807a"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Repos — Library</title>
-<link rel="stylesheet" href="/web/shared/forest-design.css?v=20260729b">
+<link rel="stylesheet" href="/web/shared/forest-design.css?v=20260807a">
 <style>
 :root{--bg:#07070b;--surface:#0f0f15;--accent:#4f46e5;--card-bg:rgba(20,26,20,.6);--card-border:rgba(226,235,209,.09);--text:#f2efe4;--muted:#a9b3a1;--library-accent:#e8b86b;--purple:#8fe6ae;--radius:8px}
 *{box-sizing:border-box;margin:0;padding:0}
@@ -14,7 +14,13 @@ a{color:var(--library-accent);text-decoration:none}
 .wrap{max-width:780px;margin:0 auto}
 .nav{font-size:.82rem;color:var(--muted);margin-bottom:24px}
 h1{font-family:var(--forest-display, "Cormorant Garamond", Georgia, serif);font-size:1.9rem;font-weight:650;margin-bottom:4px}
-.sub{font-size:.88rem;color:var(--muted);margin-bottom:28px}
+.sub{font-size:.88rem;color:var(--muted);margin-bottom:16px}
+/* Route onward to the graphify index. Uses the page's own library-accent so it
+   reads as part of this page rather than a transplant from the other one. */
+.sibling{max-width:68ch;margin-bottom:26px;padding:10px 13px;border:1px solid var(--card-border);border-left:3px solid var(--library-accent);border-radius:var(--radius);background:var(--card-bg);font-family:var(--forest-sans,"Alegreya Sans",sans-serif);font-size:.8rem;line-height:1.65;color:var(--muted)}
+.sibling a{color:var(--library-accent);text-decoration:underline;text-underline-offset:3px}
+.sibling a:hover{color:var(--text)}
+.sibling strong{color:var(--text);font-weight:600}
 .personal-badge{display:inline-block;font-family:var(--forest-sans, "Alegreya Sans", sans-serif);font-size:.72rem;background:rgba(143,230,174,.12);color:var(--purple);border-radius:5px;padding:2px 8px;margin-left:8px;vertical-align:middle}
 .search-row{display:flex;gap:10px;margin-bottom:28px}
 .search-row input{flex:1;background:rgba(255,255,255,.05);border:1px solid var(--card-border);border-radius:9px;color:var(--text);padding:11px 16px;font-size:.95rem;outline:none;transition:border-color var(--duration-fast) var(--ease-out)}
@@ -44,13 +50,23 @@ h1{font-family:var(--forest-display, "Cormorant Garamond", Georgia, serif);font-
 .gate-btn:hover{opacity:.85}
 .gate-err{font-size:.8rem;color:#d98a7f;margin-top:-6px;margin-bottom:10px;display:none}
 </style>
-  <link rel="stylesheet" href="/web/shared/design-history.css?v=20260729b">
+  <link rel="stylesheet" href="/web/shared/design-history.css?v=20260807a">
 </head>
 <body data-forest-page="library">
 <div class="wrap">
   <div class="nav"><a href="/web/library/">← Library</a></div>
   <h1>📦 Repos <span class="personal-badge">Personal</span></h1>
   <div class="sub">Ivan's 611 GitHub repositories · Semantic search by name, description, language, topics</div>
+
+  <!-- Companion to the graphify index. This page searches the whole account by
+       meaning; that one browses what has actually been parsed into a code graph.
+       Overlapping corpora, different questions, so they point at each other. -->
+  <div class="sibling">
+    Browsing rather than searching?
+    <a href="/web/repos/">Repo Knowledge Base &rarr;</a>
+    lists every public repo <strong>graphify</strong> has parsed, with node and edge
+    counts per repo.
+  </div>
 
   <div class="search-row">
     <input id="q" type="text" placeholder="Search repos by description, language, topic…" />
@@ -133,7 +149,7 @@ async function doSearch() {
 document.getElementById('q').addEventListener('keydown', e => { if (e.key === 'Enter') doSearch(); });
 checkGate();
 </script>
-<script src="/web/shared/forest-motion.js?v=20260729b"></script>
-  <script src="/web/shared/design-history.js?v=20260729b"></script>
+<script src="/web/shared/forest-motion.js?v=20260807a"></script>
+  <script src="/web/shared/design-history.js?v=20260807a"></script>
 </body>
 </html>

@@ -491,6 +491,10 @@
   --theme-ui-text-muted: #9ca3af;
   --theme-ui-accent: #4f46e5;
   --theme-ui-accent-green: #22c55e;
+  /* Keyboard focus ring. Deliberately NOT --accent: indigo on this ground
+     is 3.2:1, too dim to find a ring by. This is the same #818cf8 the
+     title gradient bottoms out at — 6.7:1 on --bg. */
+  --theme-ui-focus-ring: #818cf8;
   --theme-ui-radius: 8px;
   --theme-ui-font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 
@@ -534,6 +538,7 @@
   --text-muted: var(--theme-ui-text-muted);
   --accent: var(--theme-ui-accent);
   --accent-green: var(--theme-ui-accent-green);
+  --focus-ring: var(--theme-ui-focus-ring);
   --radius: var(--theme-ui-radius);
   --font: var(--theme-ui-font);
 
@@ -621,6 +626,20 @@
   --home-sans: var(--theme-home-sans);
 }
 
+/* ------------------------------------------------------------------ *
+ * Keyboard focus.
+ * forest-shell.css carries the same ring, but only ever reaches pages
+ * that both set data-forest-page AND load it — which left the landing
+ * page and four subpages on the browser default, near-invisible on a
+ * #07070b ground. This file is the one stylesheet every page loads, so
+ * the ring belongs here. The shell's own rule is more specific and
+ * still wins where it applies; the two are kept identical on purpose.
+ * ------------------------------------------------------------------ */
+:where(a, button, input, textarea, select, summary, [tabindex]):focus-visible {
+  outline: 3px solid var(--focus-ring);
+  outline-offset: 4px;
+}
+
 /* Classes engage only after the shared runtime adds them, so content remains
    readable when JavaScript or IntersectionObserver is unavailable. */
 .forest-motion-card {
@@ -704,6 +723,7 @@ html.forest-skin.forest-palette {
   --text-muted: var(--forest-muted);
   --accent: var(--forest-amber);
   --accent-green: var(--forest-moss);
+  --focus-ring: var(--forest-moss);
 }
 
 html.forest-skin body { position: relative; }

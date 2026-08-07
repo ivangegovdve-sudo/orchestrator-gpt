@@ -247,4 +247,44 @@ export const validIsoTime = (value) => {
   return Number.isFinite(midnight.getTime()) && midnight.toISOString().slice(0, 10) === calendar && Number.isFinite(Date.parse(value));
 };
 
-export function renderUnavailable({ document, title, reason }) { const region = el(document, "section", "oo-data-region oo-unavailable"); region.setAttribute("role", "status"); region.append(el(document, "h2", "oo-region-title", title), el(document, "p", "", reason)); return region; }
+// This route deliberately shows the exact machine reason a slice is missing —
+// that auditability is the point of it, and the browser spec asserts the code
+// stays on screen. But the code alone read as leaked internals to a visitor.
+// So the sentence leads and the code stays underneath it as evidence; nothing
+// is hidden, and nothing is inferred.
+const REASON_TEXT = Object.freeze({
+  collection_disabled: "This relationship data is not being collected at the moment.",
+  insufficient_history: "There is not yet enough history to draw this.",
+  requires_8_consecutive_complete_days: "This needs eight consecutive complete days before it can be drawn.",
+  not_published: "This slice has not been published.",
+  no_observed_period: "No observed period covers this slice.",
+  no_common_period: "These items share no common observed period.",
+  period_mismatch: "The published period does not match the one requested.",
+  unmapped_alias: "This app could not be tied to a known identity.",
+  provenance_run_mismatch: "The evidence came from a different collection run.",
+  provenance_not_in_manifest: "The evidence is not listed in the published manifest.",
+  request_failed: "The request for this slice did not complete.",
+});
+
+const MACHINE_CODE = /\b[a-z][a-z0-9]*(?:_[a-z0-9]+)+\b/g;
+
+// Returns the sentence a visitor reads, plus the raw string to keep as evidence
+// (null when the caller already passed prose and there is nothing to preserve).
+export function describeUnavailable(reason, code = null) {
+  const raw = typeof reason === "string" ? reason : "";
+  if (code) return { text: raw || "This slice could not be loaded.", code };
+  const found = raw.match(MACHINE_CODE) || [];
+  const known = found.find((entry) => REASON_TEXT[entry]);
+  if (known) return { text: REASON_TEXT[known], code: raw };
+  if (found.length) return { text: "This slice is unavailable. Nothing is inferred in its place.", code: raw };
+  return { text: raw || "This slice is unavailable.", code: null };
+}
+
+export function renderUnavailable({ document, title, reason, code = null }) {
+  const region = el(document, "section", "oo-data-region oo-unavailable");
+  region.setAttribute("role", "status");
+  const described = describeUnavailable(reason, code);
+  region.append(el(document, "h2", "oo-region-title", title), el(document, "p", "", described.text));
+  if (described.code) region.appendChild(el(document, "p", "oo-reason-code", described.code));
+  return region;
+}

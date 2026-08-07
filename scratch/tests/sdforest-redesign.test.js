@@ -7,6 +7,88 @@ const { pathToFileURL } = require('node:url');
 const ROOT = path.resolve(__dirname, '../..');
 const read = (relativePath) => fs.readFileSync(path.join(ROOT, relativePath), 'utf8');
 
+const attribute = (tag, name) => tag.match(new RegExp(`\\b${name}="([^"]*)"`))?.[1];
+const text = (markup) => markup.replace(/<[^>]+>/g, '').replace(/&(amp|rsquo);/g, (_, entity) => ({ amp: '&', rsquo: '’' })[entity]).replace(/\s+/g, ' ').trim();
+const portalCards = (markup) => [...markup.matchAll(/<([a-z]+)\b(?=[^>]*\bclass="[^"]*\bportal\b[^"]*")[^>]*>([\s\S]*?)<\/\1>/gi)]
+  .map((match) => ({ tag: match[0], tagName: match[1], project: attribute(match[0], 'data-project'), name: text(match[2].match(/class="portal-name"[^>]*>([\s\S]*?)<\//)?.[1] || '') }));
+const indexItems = (markup) => [...markup.matchAll(/<([a-z]+)\b(?=[^>]*\bdata-index-project="[^"]+")[^>]*>([\s\S]*?)<\/\1>/gi)]
+  .map((match) => ({ tag: match[0], tagName: match[1], project: attribute(match[0], 'data-index-project'), name: text(match[2]) }));
+
+test('home presents the canonical grouped directory as progressively enhanced, truthful navigation', () => {
+  const home = read('index.html');
+  const escape = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  assert.match(home, /SDForest is Ivan Gegov(?:\u2019|&rsquo;)s living collection of writing, creative projects, practical web tools, and research experiments\. It is for curious readers, makers, learners, and families(?:\u2014|&mdash;)choose a section below based on whether you want to read, use something, play, or investigate\./);
+  assert.match(home, /<a[^>]+href="#atlas"[^>]*>Explore by section<\/a>/);
+
+  const taxonomy = [
+    ['writing-media', 'Writing & Media', 'Briefings, accessible reading, essays, and spoken-word experiences.', ['morning-news', 'reader', 'audiobook', 'manifesto'], ['voice']],
+    ['projects-play', 'Projects & Play', 'Creative work, family experiences, and playful builds.', ['vfx', 'kids', 'power', 'void'], ['gallery', 'flowform', 'multiply', 'math']],
+    ['tools', 'Tools', 'Practical utilities, tutors, and searchable references.', ['time', 'rubiks', 'library', 'avatar'], ['council']],
+    ['research-experiments', 'Research & Experiments', 'Evidence-led resources and investigations into AI, health, ecosystems, and model behavior.', ['health', 'open-overview', 'muscle', 'c2c-dolphin'], ['tinylm', 'c2c-self']],
+  ];
+  const sections = [...home.matchAll(/<section\b[^>]*\bdata-directory-section="([^"]+)"[^>]*>([\s\S]*?)<\/section>/g)];
+  assert.equal(sections.length, 4);
+  assert.deepEqual(sections.map((section) => section[1]), taxonomy.map(([id]) => id));
+  const indexSections = [...home.matchAll(/<section\b[^>]*\bdata-index-section="([^"]+)"[^>]*>([\s\S]*?)<\/section>/g)];
+  assert.deepEqual(indexSections.map((section) => section[1]), taxonomy.map(([id]) => id));
+
+  for (const [id, title, description, featured, overflow] of taxonomy) {
+    const body = sections.find((section) => section[1] === id)[2];
+    assert.match(body, new RegExp(`<h3[^>]*>${escape(title)}<\\/h3>`));
+    assert.match(body, new RegExp(escape(description)));
+    const featuredMarkup = body.match(/data-featured-projects[^>]*>([\s\S]*?)<\/div>/)?.[1];
+    const overflowMarkup = body.match(/<details[^>]*>[\s\S]*?data-overflow-projects[^>]*>([\s\S]*?)<\/div>[\s\S]*?<\/details>/)?.[1];
+    assert.ok(featuredMarkup, `${id} has a featured card group`);
+    assert.ok(overflowMarkup, `${id} has a details overflow group`);
+    assert.deepEqual(portalCards(featuredMarkup).map((card) => card.project), featured);
+    assert.deepEqual(portalCards(overflowMarkup).map((card) => card.project), overflow);
+    assert.deepEqual(
+      indexItems(indexSections.find((section) => section[1] === id)[2]).map((item) => item.project),
+      [...featured, ...overflow],
+    );
+    assert.match(body, new RegExp(`See all ${featured.length + overflow.length}`));
+    assert.match(body, /Show featured only/);
+  }
+
+  const directory = home;
+  assert.match(home, /<section\b[^>]*\bid="atlas"/);
+  const cards = portalCards(directory);
+  const index = indexItems(directory);
+  assert.equal(cards.length, 24);
+  assert.equal(new Set(cards.map((card) => card.project)).size, 24);
+  assert.equal(index.length, 24);
+  assert.equal(new Set(index.map((item) => item.project)).size, 24);
+
+  for (const card of cards) {
+    const item = index.find((candidate) => candidate.project === card.project);
+    assert.ok(item, `${card.project} is present in the compact index`);
+    assert.equal(item.name, card.name, `${card.project} keeps its name in the index`);
+    if (card.project === 'gallery') {
+      assert.notEqual(card.tagName, 'a');
+      assert.match(card.tag, /aria-disabled="true"/);
+      assert.match(card.tag, /tabindex="-1"/);
+      assert.notEqual(item.tagName, 'a');
+      continue;
+    }
+    assert.equal(card.tagName, 'a', `${card.project} is a real link`);
+    assert.doesNotMatch(card.tag, /aria-disabled="true"/);
+    assert.equal(attribute(card.tag, 'href'), attribute(card.tag, 'data-href'));
+    assert.equal(item.tagName, 'a', `${card.project} has an index link`);
+    assert.equal(attribute(item.tag, 'href'), attribute(card.tag, 'href'));
+    if (attribute(card.tag, 'data-external') === 'true') {
+      for (const tag of [card.tag, item.tag]) {
+        assert.equal(attribute(tag, 'target'), '_blank');
+        assert.match(tag, /rel="[^"]*\bnoopener\b[^"]*"/);
+      }
+    }
+  }
+
+  assert.doesNotMatch(directory, /aria-pressed/);
+  assert.ok(home.indexOf('id="atlas"') < home.indexOf('data-routes'));
+  assert.match(home, /document\.querySelectorAll\('\[data-project-grid\] \.portal'\)/);
+  assert.doesNotMatch(home, /card\.addEventListener\('click'/);
+});
+
 test('home is a truthful portal with the requested project lineup', () => {
   const home = read('index.html');
 
@@ -19,11 +101,12 @@ test('home is a truthful portal with the requested project lineup', () => {
     'Multiply Magic Studio',
     'Math Forest',
     'Open Overview',
+    'Rubik',
   ]) {
     assert.match(home, new RegExp(title.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
   }
 
-  assert.equal((home.match(/data-project="/g) || []).length, 19);
+  assert.equal((home.match(/data-project="/g) || []).length, 24);
   assert.match(home, /The atlas/);
   assert.match(home, /Every path <em>at a glance<\/em>/);
 
@@ -35,14 +118,14 @@ test('home is a truthful portal with the requested project lineup', () => {
   assert.match(home, /web\/vfx-portfolio\/index\.html/);
 });
 
-test('home implements an accessible scroll-linked route walk and interactive atlas', () => {
+test('home preserves the scroll-linked route walk without button-navigation shims', () => {
   const home = read('index.html');
 
   assert.match(home, /data-routes/);
   assert.match(home, /data-project-grid/);
   assert.match(home, /section\.dataset\.slam/);
-  assert.match(home, /class="portal" type="button"/);
-  assert.match(home, /aria-pressed="false"/);
+  assert.doesNotMatch(home, /class="portal" type="button"/);
+  assert.doesNotMatch(home, /aria-pressed="false"/);
   assert.match(home, /prefers-reduced-motion/);
   assert.match(home, /pointermove/);
 });
@@ -134,10 +217,10 @@ test('every live internal portal resolves to an animated page with a Forest retu
   const home = read('index.html');
   const routes = [...home.matchAll(/data-href="(\/web\/[^"]+)"/g)].map((match) => match[1]);
 
-  assert.equal(routes.length, 16);
-  assert.equal(new Set(routes).size, 15);
+  assert.equal(routes.length, 19);
+  assert.equal(new Set(routes).size, 18);
   for (const route of new Set(routes)) {
-    let relativePath = route.replace(/^\//, '');
+    let relativePath = route.replace(/^\//, '').split('#')[0];
     if (relativePath.endsWith('/')) relativePath += 'index.html';
     assert.ok(fs.existsSync(path.join(ROOT, relativePath)), `${route} does not exist`);
     const page = read(relativePath);
@@ -146,7 +229,7 @@ test('every live internal portal resolves to an animated page with a Forest retu
       /href="\/"|href="\/index\.html"|forest-(?:motion|trails)\.js/,
       `${route} has no Forest return path`,
     );
-    assert.match(page, /forest-motion\.js|open-overview\.js|id="world"|id="starfield"/, `${route} has no motion runtime`);
+    assert.match(page, /forest-motion\.js|open-overview\.js|id="world"|id="starfield"|\/web\/rubiks-teacher\/assets\/index-[^"]+\.js/, `${route} has no motion runtime`);
   }
 });
 

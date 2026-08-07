@@ -1,0 +1,760 @@
+<!DOCTYPE html>
+<html lang="en" class="forest-skin">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!-- Unlisted by design: this index exposes the shape of a private repo corpus.
+     It is not in the hub nav and must not end up in a search index. -->
+<meta name="robots" content="noindex, nofollow">
+<!-- Exactly the specified title. Sibling subpages append " — sdforest";
+     the brief was explicit here, so literal wins over house style. -->
+<title>Repo Knowledge Base</title>
+<link rel="stylesheet" href="/web/shared/forest-design.css?v=20260731a">
+<style>
+/* Tokens come from forest-design.css (:root). Nothing below re-declares the
+   background, surface, border, text, accent, radius or focus-ring tokens — when
+   the palette moves, this page moves with it. The only literals here are ones
+   the token set has no name for (card wash, tabular figures, hairlines).
+
+   Do not write a token name with a trailing wildcard in this comment: the "*"
+   followed by "/" would close the comment early, and CSS error recovery then
+   swallows the next rule block whole. That silently deleted the reset below. */
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: var(--forest-body, Alegreya, "Iowan Old Style", Georgia, serif);
+  background-color: var(--bg);
+  /* Derived from the accent tokens rather than hardcoded, so the wash follows
+     the palette instead of staying indigo/green when everything else changes. */
+  background-image:
+    radial-gradient(circle at 18% 0%,
+      color-mix(in srgb, var(--accent) 10%, transparent), transparent 42%),
+    radial-gradient(circle at 82% 4%,
+      color-mix(in srgb, var(--accent-green) 5%, transparent), transparent 38%);
+  background-attachment: fixed;
+  color: var(--text-primary);
+  min-height: 100vh;
+  line-height: 1.5;
+  /* 803 cards + a sticky toolbar: keep the horizontal axis pinned so a single
+     long repo name can never introduce a document-level scrollbar. */
+  overflow-x: hidden;
+}
+
+.wrap { max-width: 1180px; margin: 0 auto; padding: 24px 18px 64px; }
+
+a { color: var(--accent); }
+
+/* ── Back link ──────────────────────────────────────────────────────
+   Not in the shared sheet — every subpage styles its own. 44px min box
+   so it is a real touch target, not just a line of text. */
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 14px 0 12px;
+  margin-bottom: 18px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  font-family: var(--forest-sans, "Alegreya Sans", "Segoe UI", system-ui, sans-serif);
+  font-size: .88rem;
+  color: var(--text-muted);
+  text-decoration: none;
+  transition: color .15s ease, border-color .15s ease;
+}
+.back-link:hover { color: var(--text-primary); border-color: rgba(255, 255, 255, .22); }
+
+/* ── Header ─────────────────────────────────────────────────────────── */
+.masthead { margin-bottom: 26px; }
+h1 {
+  font-family: var(--forest-display, "Cormorant Garamond", Georgia, serif);
+  font-size: clamp(2rem, 6vw, 2.9rem);
+  font-weight: 650;
+  letter-spacing: .01em;
+  line-height: 1.1;
+}
+.unlisted {
+  display: inline-block;
+  margin: 10px 0 0;
+  padding: 6px 12px;
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--forest-amber, #e8b86b);
+  border-radius: var(--radius);
+  background: var(--surface);
+  font-family: var(--forest-sans, "Alegreya Sans", "Segoe UI", system-ui, sans-serif);
+  font-size: .8rem;
+  color: var(--text-muted);
+}
+
+/* Pointer to the Library's semantic repo search. Accent-tinted rather than
+   amber, so it reads as a route onward and not as a second warning. */
+.sibling {
+  margin: 12px 0 0;
+  padding: 10px 13px;
+  max-width: 68ch;
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent);
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--accent) 7%, var(--surface));
+  font-family: var(--forest-sans, "Alegreya Sans", "Segoe UI", system-ui, sans-serif);
+  font-size: .82rem;
+  line-height: 1.65;
+  color: var(--text-muted);
+}
+.sibling a {
+  color: var(--text-primary);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.sibling a:hover { color: var(--accent-green); }
+.sibling strong { color: var(--text-primary); font-weight: 600; }
+
+.totals {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 18px;
+  list-style: none;
+}
+.totals li {
+  flex: 1 1 130px;
+  padding: 10px 14px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+.totals b {
+  display: block;
+  font-family: var(--forest-sans, "Alegreya Sans", "Segoe UI", system-ui, sans-serif);
+  font-size: 1.5rem;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-primary);
+}
+.totals span {
+  font-family: var(--forest-sans, "Alegreya Sans", "Segoe UI", system-ui, sans-serif);
+  font-size: .74rem;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+.totals li.is-complete b { color: var(--accent-green); }
+.totals li.is-processing b { color: var(--forest-amber, #e8b86b); }
+.totals li.is-incomplete b { color: var(--forest-rose, #d98a7f); }
+
+.provenance {
+  margin-top: 14px;
+  font-size: .92rem;
+  color: var(--text-muted);
+  max-width: 72ch;
+}
+.provenance .note { display: block; margin-top: 4px; }
+
+/* ── Toolbar ────────────────────────────────────────────────────────
+   Sticky so the filter stays reachable after scrolling past card 400. */
+.toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  margin: 26px 0 18px;
+  padding: 14px 0;
+  background: color-mix(in srgb, var(--bg) 88%, transparent);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--border);
+}
+.field { display: flex; flex-direction: column; gap: 6px; }
+.field label {
+  font-family: var(--forest-sans, "Alegreya Sans", "Segoe UI", system-ui, sans-serif);
+  font-size: .78rem;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+#search {
+  width: 100%;
+  min-height: 46px;
+  padding: 10px 14px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text-primary);
+  font-family: var(--forest-sans, "Alegreya Sans", "Segoe UI", system-ui, sans-serif);
+  font-size: 1rem;
+}
+#search::placeholder { color: var(--text-muted); opacity: .75; }
+#search:focus { border-color: var(--focus-ring); outline: none; }
+#search:focus-visible { outline: 3px solid var(--focus-ring); outline-offset: 2px; }
+
+.filters { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.filters .legend {
+  flex-basis: 100%;
+  font-family: var(--forest-sans, "Alegreya Sans", "Segoe UI", system-ui, sans-serif);
+  font-size: .78rem;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+.filters button {
+  min-height: 44px;
+  padding: 0 16px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text-muted);
+  font-family: var(--forest-sans, "Alegreya Sans", "Segoe UI", system-ui, sans-serif);
+  font-size: .9rem;
+  cursor: pointer;
+  transition: color .15s ease, border-color .15s ease, background .15s ease;
+}
+.filters button:hover { color: var(--text-primary); border-color: rgba(255, 255, 255, .22); }
+/* aria-pressed is the state; style hangs off it so the two can never drift. */
+.filters button[aria-pressed="true"] {
+  color: var(--text-primary);
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 22%, var(--surface));
+}
+.filters .count { color: var(--text-muted); font-variant-numeric: tabular-nums; }
+.filters button[aria-pressed="true"] .count { color: var(--text-primary); opacity: .8; }
+
+.status-line {
+  margin-top: 12px;
+  font-family: var(--forest-sans, "Alegreya Sans", "Segoe UI", system-ui, sans-serif);
+  font-size: .88rem;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── Card grid ──────────────────────────────────────────────────────── */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(288px, 1fr));
+  gap: 14px;
+  list-style: none;
+}
+@media (max-width: 560px) {
+  .grid { grid-template-columns: 1fr; }
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px 16px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--border);
+  border-radius: var(--radius);
+  /* Offscreen cards skip layout/paint until scrolled near. With ~800 cards
+     this is the difference between a smooth scroll and a stuttering one;
+     contain-intrinsic-size keeps the scrollbar honest while they're skipped. */
+  content-visibility: auto;
+  contain-intrinsic-size: auto 168px;
+  min-width: 0;
+}
+.card.hide { display: none; }
+
+.card.status-complete   { border-left-color: var(--accent-green); }
+/* Not-yet-real states read as unfinished on purpose: dimmer ground, dashed
+   edge. A reader should never mistake an in-flight repo for a measured one. */
+.card.status-processing,
+.card.status-incomplete {
+  background: color-mix(in srgb, var(--surface) 70%, transparent);
+  border-style: dashed;
+  border-left-style: solid;
+}
+.card.status-processing { border-left-color: var(--forest-amber, #e8b86b); }
+.card.status-incomplete { border-left-color: var(--forest-rose, #d98a7f); }
+
+.card-head { display: flex; align-items: flex-start; gap: 10px; justify-content: space-between; }
+.card h2 {
+  font-family: var(--forest-sans, "Alegreya Sans", "Segoe UI", system-ui, sans-serif);
+  font-size: 1rem;
+  font-weight: 650;
+  line-height: 1.3;
+  color: var(--text-primary);
+  min-width: 0;
+  /* Repo names are arbitrary and sometimes 60 chars with no spaces. Wrap
+     inside the card rather than pushing the grid column wider. */
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+.badge {
+  flex: none;
+  padding: 3px 9px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  font-family: var(--forest-sans, "Alegreya Sans", "Segoe UI", system-ui, sans-serif);
+  font-size: .68rem;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+.status-complete   .badge { color: var(--accent-green);            border-color: color-mix(in srgb, var(--accent-green) 40%, transparent); }
+.status-processing .badge { color: var(--forest-amber, #e8b86b);   border-color: color-mix(in srgb, var(--forest-amber, #e8b86b) 40%, transparent); }
+.status-incomplete .badge { color: var(--forest-rose, #d98a7f);    border-color: color-mix(in srgb, var(--forest-rose, #d98a7f) 40%, transparent); }
+
+.desc {
+  font-size: .92rem;
+  color: var(--text-muted);
+  overflow-wrap: anywhere;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+/* An absent description is a fact about the corpus, not a layout hole —
+   say so plainly instead of leaving blank space. */
+.desc.is-missing { font-style: italic; opacity: .7; }
+.desc-src {
+  font-family: var(--forest-sans, "Alegreya Sans", "Segoe UI", system-ui, sans-serif);
+  font-size: .7rem;
+  letter-spacing: .06em;
+  color: var(--text-muted);
+  opacity: .65;
+}
+
+.stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+  margin-top: auto;
+  padding-top: 6px;
+  font-family: var(--forest-sans, "Alegreya Sans", "Segoe UI", system-ui, sans-serif);
+  font-size: .8rem;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+.stats b { color: var(--text-primary); font-weight: 600; }
+.no-stats {
+  margin-top: auto;
+  padding-top: 6px;
+  font-family: var(--forest-sans, "Alegreya Sans", "Segoe UI", system-ui, sans-serif);
+  font-size: .8rem;
+  font-style: italic;
+  color: var(--text-muted);
+  opacity: .8;
+}
+
+.card-foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 14px;
+  padding-top: 6px;
+  border-top: 1px solid var(--border);
+  font-family: var(--forest-sans, "Alegreya Sans", "Segoe UI", system-ui, sans-serif);
+  font-size: .78rem;
+  color: var(--text-muted);
+}
+.card-foot a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;   /* touch target — the visual weight stays small */
+  text-decoration: none;
+}
+.card-foot a:hover { text-decoration: underline; }
+
+/* ── States ─────────────────────────────────────────────────────────── */
+.state {
+  margin-top: 26px;
+  padding: 22px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text-muted);
+  max-width: 64ch;
+}
+.state h2 {
+  font-family: var(--forest-sans, "Alegreya Sans", "Segoe UI", system-ui, sans-serif);
+  font-size: 1.05rem;
+  color: var(--text-primary);
+  margin-bottom: 6px;
+}
+.state.error { border-left: 3px solid var(--forest-rose, #d98a7f); }
+.state code {
+  font-family: var(--forest-mono, Consolas, monospace);
+  font-size: .85em;
+  color: var(--text-primary);
+}
+[hidden] { display: none !important; }
+
+@media (prefers-reduced-motion: reduce) {
+  * { transition-duration: .01ms !important; animation-duration: .01ms !important; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <a class="back-link" href="/">&larr; Back to Forest HUB</a>
+
+  <header class="masthead">
+    <h1>Repo Knowledge Base</h1>
+    <p class="unlisted">
+      Unlisted index &mdash; kept out of the public nav and out of search engines. Public
+      repositories only; private ones are excluded at generation time.
+    </p>
+
+    <!-- Companion to the Library's repo search. The two answer different
+         questions over overlapping corpora, so each points at the other rather
+         than pretending to be the only entry point. -->
+    <p class="sibling">
+      Looking for a repo by <em>meaning</em> rather than by graph size?
+      <a href="/web/library/repos/">Semantic repo search in the Library &rarr;</a>
+      searches descriptions, languages and topics across the whole GitHub account.
+      This page indexes what <strong>graphify</strong> has actually parsed, with node
+      and edge counts.
+    </p>
+
+    <!-- role="list" is redundant in theory, but Safari/VoiceOver drops list
+         semantics from any <ul> styled list-style:none, which would leave the
+         totals and the 756-card grid unannounced and uncounted. -->
+    <ul class="totals" id="totals" role="list" aria-label="Corpus totals">
+      <!-- filled from data.totals; nothing is hardcoded so the page can never
+           disagree with the file it renders -->
+    </ul>
+
+    <p class="provenance" id="provenance"></p>
+  </header>
+
+  <div class="toolbar">
+    <div class="field">
+      <label for="search">Search repositories</label>
+      <input id="search" type="search" autocomplete="off" spellcheck="false"
+             placeholder="Filter by name or description&hellip;">
+    </div>
+
+    <div class="filters" role="group" aria-label="Filter by graphify status" id="filters">
+      <span class="legend" aria-hidden="true">Status</span>
+      <button type="button" data-status="all"        aria-pressed="true">All <span class="count" data-count="all"></span></button>
+      <button type="button" data-status="complete"   aria-pressed="false">Complete <span class="count" data-count="complete"></span></button>
+      <button type="button" data-status="processing" aria-pressed="false">Processing <span class="count" data-count="processing"></span></button>
+      <button type="button" data-status="incomplete" aria-pressed="false">Incomplete <span class="count" data-count="incomplete"></span></button>
+    </div>
+
+    <p class="status-line" id="result-count" role="status" aria-live="polite" aria-atomic="true">Loading&hellip;</p>
+  </div>
+
+  <ul class="grid" id="grid" role="list"></ul>
+
+  <div class="state" id="empty" hidden>
+    <h2>No repositories match</h2>
+    <p id="empty-detail">Nothing here matches that search and filter combination.</p>
+  </div>
+
+  <div class="state error" id="error" hidden>
+    <h2>Could not load the index</h2>
+    <p id="error-detail"></p>
+  </div>
+
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  /* ------------------------------------------------------------------ *
+   * Filtering strategy — render once, then toggle.
+   *
+   * 803 cards is enough that rebuilding the list per keystroke means ~800
+   * element constructions plus a full layout on every character. So: build
+   * every card exactly once into a DocumentFragment, keep a parallel array
+   * of {el, haystack, status, shown} records, and filtering only flips a
+   * class on the cards whose visibility actually CHANGED. Typing one more
+   * character usually hides a few dozen cards and touches nothing else.
+   *
+   * Input is coalesced by a 50ms trailing debounce, so a held backspace or a
+   * fast typist produces one filter run instead of one per event. Debounce
+   * rather than requestAnimationFrame on purpose: rAF does not fire while the
+   * page is hidden, which leaves an in-flight "already scheduled" flag stuck
+   * and silently swallows every later keystroke until the tab is looked at
+   * again. A timer has no such state to get stuck in. (Measured on an 803-repo
+   * corpus: matching is ~0.5ms, and even the pathological case where every
+   * card changes state costs ~6-14ms including forced layout — inside one
+   * frame. The debounce is about batching bursts, not about hiding slow code.)
+   * Combined with `content-visibility: auto` on .card (offscreen cards skip
+   * layout entirely) this stays smooth on a mid-range phone.
+   * ------------------------------------------------------------------ */
+
+  /* Deliberately NOT './repos-data.json'. Vercel (and `npx serve`) hand this
+     page out at /repos with no trailing slash, and a bare "./" relative to a
+     slash-less path resolves one directory too high — /repos-data.json, 404.
+     Resolve against the page's own directory instead: strip a trailing
+     filename segment if there is one, then force the trailing slash. */
+  var DATA_URL = (function () {
+    var dir = window.location.pathname.replace(/[^/]*\.[^/]*$/, '');
+    if (dir.charAt(dir.length - 1) !== '/') dir += '/';
+    return dir + 'repos-data.json';
+  })();
+
+  var grid        = document.getElementById('grid');
+  var searchInput = document.getElementById('search');
+  var filtersEl   = document.getElementById('filters');
+  var resultCount = document.getElementById('result-count');
+  var emptyEl     = document.getElementById('empty');
+  var emptyDetail = document.getElementById('empty-detail');
+  var errorEl     = document.getElementById('error');
+  var errorDetail = document.getElementById('error-detail');
+  var totalsEl    = document.getElementById('totals');
+  var provenance  = document.getElementById('provenance');
+
+  var records = [];       // {el, haystack, status, shown}
+  var total   = 0;        // denominator for "N of X"
+  var activeStatus = 'all';
+  var debounceTimer = null;
+
+  /* ---------- small helpers ---------- */
+
+  // Every string that reaches the DOM goes through textContent. README text is
+  // arbitrary; treating any of it as markup is how this page would get owned.
+  function el(tag, className, text) {
+    var node = document.createElement(tag);
+    if (className) node.className = className;
+    if (text != null) node.textContent = text;
+    return node;
+  }
+
+  function num(v) {
+    return typeof v === 'number' && isFinite(v) ? v.toLocaleString('en-US') : null;
+  }
+
+  // A URL from a data file is still untrusted input: `javascript:` in an href
+  // executes on click, and textContent does nothing to stop that. Allow only
+  // absolute http(s), and only to github.com.
+  function safeGithubUrl(raw) {
+    if (typeof raw !== 'string' || !raw) return null;
+    try {
+      var u = new URL(raw, window.location.href);
+      if (u.protocol !== 'https:' && u.protocol !== 'http:') return null;
+      if (u.hostname !== 'github.com' && !u.hostname.endsWith('.github.com')) return null;
+      return u.href;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  function knownStatus(s) {
+    return s === 'complete' || s === 'processing' || s === 'incomplete' ? s : 'incomplete';
+  }
+
+  /* ---------- card construction (runs once per repo) ---------- */
+
+  function buildCard(repo) {
+    var status = knownStatus(repo.status);
+    var li = el('li', 'card status-' + status);
+
+    var head = el('div', 'card-head');
+    head.appendChild(el('h2', null, String(repo.name == null ? '(unnamed)' : repo.name)));
+    head.appendChild(el('span', 'badge', status));
+    li.appendChild(head);
+
+    var hasDesc = typeof repo.description === 'string' && repo.description.trim() !== '';
+    var desc = el('p', 'desc' + (hasDesc ? '' : ' is-missing'),
+      hasDesc ? repo.description.trim() : 'No description found in package metadata or README.');
+    if (hasDesc) desc.title = repo.description.trim();   // .title is a plain string property, not markup
+    li.appendChild(desc);
+
+    if (hasDesc && repo.description_source) {
+      li.appendChild(el('p', 'desc-src', 'via ' + String(repo.description_source)));
+    }
+
+    // Stats only exist for graphified repos. An in-flight or failed repo shows
+    // an honest "no graph yet" line rather than zeros that look like measurements.
+    var nodes = num(repo.nodes);
+    var edges = num(repo.edges);
+    if (nodes !== null || edges !== null) {
+      var stats = el('div', 'stats');
+      if (nodes !== null) { var n = el('span', null, ' nodes'); n.prepend(el('b', null, nodes)); stats.appendChild(n); }
+      if (edges !== null) { var e = el('span', null, ' edges'); e.prepend(el('b', null, edges)); stats.appendChild(e); }
+      var communities = num(repo.communities);
+      var files = num(repo.files);
+      var words = num(repo.words);
+      if (communities !== null) { var c = el('span', null, ' communities'); c.prepend(el('b', null, communities)); stats.appendChild(c); }
+      if (files !== null)       { var f = el('span', null, ' files');       f.prepend(el('b', null, files));       stats.appendChild(f); }
+      if (words !== null)       { var w = el('span', null, ' words');       w.prepend(el('b', null, words));       stats.appendChild(w); }
+      li.appendChild(stats);
+    } else {
+      li.appendChild(el('p', 'no-stats',
+        status === 'processing' ? 'Graph still building — no counts yet.'
+                                : 'Not graphified — no counts available.'));
+    }
+
+    var foot = el('div', 'card-foot');
+    var url = safeGithubUrl(repo.github_url);
+    if (url) {
+      var link = el('a', null, 'GitHub ↗');
+      link.href = url;
+      link.target = '_blank';
+      link.rel = 'noopener';
+      // Name the destination for screen readers — 800 identical "GitHub" links
+      // are useless in a link list.
+      link.setAttribute('aria-label', 'GitHub repository for ' + String(repo.name));
+      foot.appendChild(link);
+    }
+    if (repo.graphified_on) {
+      foot.appendChild(el('span', null, 'graphified ' + String(repo.graphified_on)));
+    }
+    if (foot.childNodes.length) li.appendChild(foot);
+
+    return {
+      el: li,
+      // Precomputed once: lowercasing 803 strings per keystroke is pure waste.
+      haystack: (String(repo.name || '') + ' ' + (hasDesc ? repo.description : '')).toLowerCase(),
+      status: status,
+      shown: true
+    };
+  }
+
+  /* ---------- header ---------- */
+
+  function renderHeader(data) {
+    var t = data.totals || {};
+    var rows = [
+      ['repos',       t.repos,      'Repositories', ''],
+      ['complete',    t.complete,   'Complete',     'is-complete'],
+      ['processing',  t.processing, 'Processing',   'is-processing'],
+      ['incomplete',  t.incomplete, 'Incomplete',   'is-incomplete'],
+      ['nodes',       t.nodes,      'Nodes',        ''],
+      ['edges',       t.edges,      'Edges',        '']
+    ];
+    rows.forEach(function (row) {
+      var value = num(row[1]);
+      if (value === null) return;   // omit rather than print "undefined"
+      var li = el('li', row[3]);
+      li.appendChild(el('b', null, value));
+      li.appendChild(el('span', null, row[2]));
+      totalsEl.appendChild(li);
+    });
+
+    var when = 'unknown date';
+    if (data.generated_at) {
+      var d = new Date(data.generated_at);
+      when = isNaN(d.getTime())
+        ? String(data.generated_at)
+        : d.toISOString().slice(0, 10) + ' ' + d.toISOString().slice(11, 16) + ' UTC';
+    }
+    provenance.appendChild(el('span', null,
+      'Snapshot generated ' + when + (data.source_root ? ' from ' + String(data.source_root) : '') + '.'));
+    if (data.note) provenance.appendChild(el('span', 'note', String(data.note)));
+  }
+
+  function renderFilterCounts(data) {
+    var t = data.totals || {};
+    var map = { all: t.repos, complete: t.complete, processing: t.processing, incomplete: t.incomplete };
+    Object.keys(map).forEach(function (key) {
+      var span = filtersEl.querySelector('[data-count="' + key + '"]');
+      var value = num(map[key]);
+      // Counts are decoration on the button label; drop them if the file
+      // doesn't carry them rather than rendering an empty parenthesis.
+      if (span && value !== null) span.textContent = '(' + value + ')';
+    });
+  }
+
+  /* ---------- filtering ---------- */
+
+  function applyFilter() {
+    debounceTimer = null;
+    var q = searchInput.value.trim().toLowerCase();
+    var visible = 0;
+
+    for (var i = 0; i < records.length; i++) {
+      var r = records[i];
+      var match = (activeStatus === 'all' || r.status === activeStatus) &&
+                  (q === '' || r.haystack.indexOf(q) !== -1);
+      if (match) visible++;
+      // Only write to the DOM when the state actually flips.
+      if (match !== r.shown) {
+        r.el.classList.toggle('hide', !match);
+        r.shown = match;
+      }
+    }
+
+    resultCount.textContent = visible.toLocaleString('en-US') + ' of ' +
+                              total.toLocaleString('en-US') + ' repositories';
+    emptyEl.hidden = visible !== 0;
+    if (visible === 0) {
+      emptyDetail.textContent = q
+        ? 'Nothing matches "' + q + '"' + (activeStatus === 'all' ? '.' : ' with status "' + activeStatus + '".')
+        : 'No repositories have status "' + activeStatus + '".';
+    }
+  }
+
+  // Trailing debounce: restart the clock on every keystroke so a burst
+  // collapses to one pass once typing pauses.
+  function scheduleFilter() {
+    if (debounceTimer !== null) clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(applyFilter, 50);
+  }
+
+  function wireControls() {
+    searchInput.addEventListener('input', scheduleFilter);
+    filtersEl.addEventListener('click', function (ev) {
+      var btn = ev.target.closest('button[data-status]');
+      if (!btn) return;
+      activeStatus = btn.getAttribute('data-status');
+      var buttons = filtersEl.querySelectorAll('button[data-status]');
+      for (var i = 0; i < buttons.length; i++) {
+        buttons[i].setAttribute('aria-pressed', String(buttons[i] === btn));
+      }
+      // A deliberate click gets applied now — debouncing exists for keystroke
+      // bursts, and a button that lags behind its own pressed state feels broken.
+      if (debounceTimer !== null) { clearTimeout(debounceTimer); debounceTimer = null; }
+      applyFilter();
+    });
+  }
+
+  /* ---------- failure surface ---------- */
+
+  function fail(message) {
+    errorDetail.textContent = message;
+    errorEl.hidden = false;
+    resultCount.textContent = 'Index unavailable.';
+    // Controls that can't do anything shouldn't invite a click.
+    searchInput.disabled = true;
+    var buttons = filtersEl.querySelectorAll('button[data-status]');
+    for (var i = 0; i < buttons.length; i++) buttons[i].disabled = true;
+  }
+
+  /* ---------- boot ---------- */
+
+  fetch(DATA_URL, { cache: 'no-cache' })
+    .then(function (res) {
+      if (!res.ok) throw new Error('repos-data.json returned HTTP ' + res.status + ' ' + res.statusText);
+      return res.json();
+    })
+    .then(function (data) {
+      if (!data || !Array.isArray(data.repos)) {
+        throw new Error('repos-data.json loaded but has no "repos" array.');
+      }
+
+      renderHeader(data);
+      renderFilterCounts(data);
+
+      // The file is already sorted (status, then nodes desc, then name).
+      // Re-sorting here would only be a second opinion that can drift from the
+      // generator's — render in file order and let the generator own the rule.
+      var frag = document.createDocumentFragment();
+      for (var i = 0; i < data.repos.length; i++) {
+        var rec = buildCard(data.repos[i]);
+        records.push(rec);
+        frag.appendChild(rec.el);
+      }
+      grid.appendChild(frag);   // one reflow for the whole corpus
+
+      // Denominator is what's actually on the page. If totals.repos disagrees
+      // with repos.length the array is the truth — it's what a reader can see.
+      total = records.length;
+      applyFilter();
+      wireControls();
+    })
+    .catch(function (err) {
+      // Never a blank page: say what failed and where the file should be.
+      fail((err && err.message ? err.message : String(err)) +
+           ' — expected the snapshot at ' + DATA_URL + ' next to this page.');
+    });
+})();
+</script>
+</body>
+</html>

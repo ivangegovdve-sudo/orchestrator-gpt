@@ -28,11 +28,29 @@ const state = {
   sigil: null,
   particleUniforms: null,
   scratch: new THREE.Vector3(),
+  // Settle bookkeeping: once the grow-in has finished and nothing is
+  // touching the system, stop rewriting buffers entirely. The last frame
+  // stays on the canvas and the whole loop sleeps — a hero at rest costs
+  // nothing. Any of these bring it back: pointer nearby, a click pulse,
+  // or the page scrolling (the roots are positioned from a client rect,
+  // so a moved origin must be redrawn).
+  lastOriginY: NaN,
+  lastOriginX: NaN,
+  settled: false,
+  painted: false,
 };
+
+const POINTER_REACH = 0.5;          // unit space
+const POINTER_REACH_SQ = POINTER_REACH * POINTER_REACH;
 
 function buildSkeleton(random, coarse) {
   const segments = [];
-  const depthMax = coarse ? 4 : 5;
+  // Depth is the expensive dial, not the primary count: each extra level
+  // roughly doubles the segment total, and every segment costs two vertex
+  // rewrites per frame on the main thread. 5/4 produced 1317 segments
+  // (2634 vertex writes a frame) which is what stuttered on mid-tier
+  // phones; 4/3 lands near 630/360 for the same silhouette.
+  const depthMax = coarse ? 3 : 4;
   const primaries = coarse ? 8 : 10;
 
   function grow(x, y, z, angle, tilt, length, depth, dist) {
@@ -148,7 +166,7 @@ export function initRoots(shared, coarse) {
   // --- spore particles drifting outward along the filaments. A quarter
   // are "embers": bigger, warmer, packed near the seed so the core reads
   // as the hot heart of the burst.
-  const particleCount = coarse ? 320 : 680;
+  const particleCount = coarse ? 200 : 420;
   const pPositions = new Float32Array(particleCount * 3);
   const pSizes = new Float32Array(particleCount);
   const pSeeds = new Float32Array(particleCount);
@@ -224,6 +242,7 @@ export function updateRoots(shared, time, dt) {
   const rect = state.landing.getBoundingClientRect();
   if (rect.bottom < -60) {
     state.group.visible = false;
+    state.painted = false;
     return false;
   }
   state.group.visible = true;
@@ -243,6 +262,26 @@ export function updateRoots(shared, time, dt) {
   const pointer = shared.pointer;
   const px = pointer.seen ? (pointer.x - originX) / reach : 1e6;
   const py = pointer.seen ? -(pointer.y - originY) / reach : 1e6;
+
+  /* --- settle gate ---------------------------------------------------
+     Is there any reason to redraw this frame? Growing, a live pulse, a
+     pointer within reach of the field, or an origin that has moved
+     because the page scrolled or resized. If none hold, leave the last
+     frame standing and do no work at all. */
+  const originMoved = originX !== state.lastOriginX || originY !== state.lastOriginY;
+  const pointerNear = pointer.seen
+    && Math.abs(px) < POINTER_REACH + 1 && Math.abs(py) < POINTER_REACH + 1;
+  const needsFrame = grow < 1 || state.pulses.length > 0 || pointerNear || originMoved;
+  state.lastOriginX = originX;
+  state.lastOriginY = originY;
+
+  if (!needsFrame) {
+    state.settled = true;
+    state.painted = true;
+    return false; // painted, but asleep — forest-three.js must not clear
+  }
+  state.settled = false;
+  state.painted = true;
 
   // Advance pulses (uClick) — a wave of brightness by distance-from-seed.
   for (const pulse of state.pulses) {
@@ -267,10 +306,15 @@ export function updateRoots(shared, time, dt) {
       const swayK = end ? 1 : 0.55; // tips travel further than anchors
       let x = p[0] + seg.swayDir[0] * sway * amp * swayK;
       let y = p[1] + seg.swayDir[1] * sway * amp * swayK;
+      // Squared compare first: almost every vertex is out of reach, and
+      // this loop runs twice per segment per frame — the sqrt is only
+      // worth paying for the few that are actually near the pointer.
       const dxp = px - x, dyp = py - y;
-      const dp = Math.hypot(dxp, dyp);
-      if (dp < 0.5) {
-        const pull = ((1 - dp / 0.5) ** 2) * 0.1 * (0.4 + seg.depth * 0.2);
+      const d2 = dxp * dxp + dyp * dyp;
+      let dp = Infinity;
+      if (d2 < POINTER_REACH_SQ) {
+        dp = Math.sqrt(d2);
+        const pull = ((1 - dp / POINTER_REACH) ** 2) * 0.1 * (0.4 + seg.depth * 0.2);
         x += dxp * pull;
         y += dyp * pull;
       }
@@ -292,7 +336,7 @@ export function updateRoots(shared, time, dt) {
         if (d < 0.1) bright += (1 - d / 0.1) * 0.75 * (1 - pulse.r / 1.5);
       }
       // Pointer proximity lights the filament it bends.
-      if (dp < 0.5) bright += ((1 - dp / 0.5) ** 2) * 0.42;
+      if (dp < POINTER_REACH) bright += ((1 - dp / POINTER_REACH) ** 2) * 0.42;
       const r = lerp(CORE.r, TIP.r, tipMix) * bright;
       const g = lerp(CORE.g, TIP.g, tipMix) * bright;
       const b = lerp(CORE.b, TIP.b, tipMix) * bright;
@@ -318,9 +362,9 @@ export function updateRoots(shared, time, dt) {
     x += Math.sin(orbit) * particle.orbitR;
     y += Math.cos(orbit * 0.83) * particle.orbitR;
     const dxp = px - x, dyp = py - y;
-    const dp = Math.hypot(dxp, dyp);
-    if (dp < 0.4) {
-      const pull = ((1 - dp / 0.4) ** 2) * 0.28;
+    const d2 = dxp * dxp + dyp * dyp;
+    if (d2 < 0.16) {
+      const pull = ((1 - Math.sqrt(d2) / 0.4) ** 2) * 0.28;
       x += dxp * pull;
       y += dyp * pull;
     }
@@ -341,6 +385,12 @@ export function updateRoots(shared, time, dt) {
 }
 
 // Anything mid-flight (growth intro, pulses) keeps the loop awake.
-export const rootsAnimating = () => Boolean(state.group && state.group.visible);
+export const rootsAnimating = () => Boolean(state.group && state.group.visible && !state.settled);
+
+/* True while the roots' pixels are on the canvas — including while they
+   are settled and asking for no frames. The frame loop reads this so it
+   clears the canvas only when the field is genuinely gone, never when it
+   has merely gone quiet. */
+export const rootsPainted = () => state.painted;
 
 export const rootsDebug = state;

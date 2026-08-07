@@ -1,7 +1,8 @@
+<!-- index.html -->
 <!doctype html>
 <html lang="en">
 <head>
-<script defer src="/web/shared/feedback.js?v=20260729b"></script>
+<script defer src="/web/shared/feedback.js?v=20260807a"></script>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="SDForest — an interactive portal into Ivan Gegov's tools, experiments, writing, research, animation, and visual effects work.">
@@ -10,9 +11,10 @@
   <meta property="og:description" content="A living, interactive forest of projects.">
   <meta property="og:type" content="website">
   <title>SDForest — projects in motion</title>
-  <link rel="stylesheet" href="/web/shared/forest-design.css?v=20260729b">
-  <link rel="stylesheet" href="/web/shared/forest-home.css?v=20260729b">
-  <link rel="stylesheet" href="/web/shared/design-history.css?v=20260729b">
+  <link rel="stylesheet" href="/web/shared/forest-design.css?v=20260807a">
+  <link rel="stylesheet" href="/web/shared/forest-home.css?v=20260807a">
+  <link rel="stylesheet" href="/web/shared/design-history.css?v=20260807a">
+  <link rel="stylesheet" href="/web/shared/forest-sketch.css?v=20260807a">
 </head>
 <body>
   <!-- The forest-motion.js constellation canvas is gone from the landing
@@ -32,6 +34,13 @@
       <symbol id="leaf" viewBox="0 0 24 28">
         <path d="M11.4 27.5l.9-7.2-5.1 2.1 1.4-5.2-6.1-1.8 4.8-3.2-3.2-5.4 6.2 1.8L12.7.5l3.1 7.3 5.7-2.4-2.1 6.2 4.1 3.1-5.5 2.1 1.3 5.5-5.1-2.2-.9 7.4z"/>
       </symbol>
+      <!-- The same leaf drawn by hand: an open, slightly wobbly outline
+           with a stem and a midrib, stroked rather than filled. This is
+           the resting state of the added crown leaves; #leaf above is the
+           geometric form they settle into on hover. -->
+      <symbol id="leaf-sketch" viewBox="0 0 24 28">
+        <path d="M12.1 27.3c-.4-2.6.1-5.1.5-7.3M12.6 20.1c-1.7.4-3.4 1-4.9 1.9.3-1.7.8-3.4 1.2-5.1-2-.4-4-1.1-5.8-1.9 1.5-1 3.1-2 4.6-3.1-1-1.7-2.2-3.4-3-5.2 2 .5 4.1 1.1 6.1 1.7.2-2.5.7-5.1 1.5-7.5 1 2.3 2 4.7 2.9 7.1 1.9-.7 3.8-1.5 5.6-2.3-.6 2-1.3 4-2 6 1.3 1 2.7 1.9 4 3-1.8.7-3.6 1.4-5.4 2 .4 1.8.8 3.6 1.2 5.4-1.7-.6-3.4-1.3-5-2.1"/>
+      </symbol>
       <symbol id="icon-time" viewBox="0 0 48 48">
         <circle class="icon-ring" cx="24" cy="24" r="19" stroke-dasharray="4 5"/>
         <path class="icon-line" d="M24 8v16l10 6M14 15c-3 3-5 7-5 12m30-1c0 5-2 9-6 12"/>
@@ -47,6 +56,11 @@
         <path class="icon-line" d="M17 25h14v13H17zM13 17l11 7 11-7"/>
         <circle class="icon-fill" cx="24" cy="31" r="2.4"/>
       </symbol>
+      <symbol id="icon-rubiks" viewBox="0 0 48 48">
+        <path class="icon-ring" d="M24 5l17 10v18L24 43 7 33V15z" stroke-dasharray="5 4"/>
+        <path class="icon-line" d="M7 15l17 10 17-10M24 25v18M15.5 10l17 10M32.5 10l-17 10M12.7 18.4v10l8.5 5m14.1-15v10l-8.5 5"/>
+        <circle class="icon-fill" cx="24" cy="25" r="2.3"/>
+      </symbol>
       <symbol id="icon-health" viewBox="0 0 48 48">
         <circle class="icon-ring" cx="24" cy="24" r="18" stroke-dasharray="3 5"/>
         <path class="icon-line" d="M13 25h7l3-9 4 17 3-8h6M24 7v5m0 24v5"/>
@@ -56,6 +70,16 @@
         <path class="icon-ring" d="M24 5l17 10v18L24 43 7 33V15z" stroke-dasharray="5 4"/>
         <path class="icon-line" d="M14 19h12v9H14l-4 4V19zm12 4h8v8l4 4V23"/>
         <circle class="icon-fill" cx="19" cy="23.5" r="1.6"/>
+      </symbol>
+      <symbol id="icon-tinylm" viewBox="0 0 48 48">
+        <circle class="icon-ring" cx="24" cy="24" r="18" stroke-dasharray="4 5"/>
+        <rect class="icon-line" x="18.5" y="18.5" width="11" height="11" rx="3"/>
+        <path class="icon-line" d="M24 12v6.5M24 29.5V36M12 24h6.5M29.5 24H36"/>
+        <circle class="icon-line" cx="24" cy="10" r="2"/>
+        <circle class="icon-line" cx="24" cy="38" r="2"/>
+        <circle class="icon-line" cx="10" cy="24" r="2"/>
+        <circle class="icon-line" cx="38" cy="24" r="2"/>
+        <circle class="icon-fill" cx="24" cy="24" r="2"/>
       </symbol>
       <symbol id="icon-library" viewBox="0 0 48 48">
         <path class="icon-ring" d="M8 9h32v30H8z" stroke-dasharray="4 5"/>
@@ -76,6 +100,12 @@
         <circle class="icon-ring" cx="24" cy="24" r="19" stroke-dasharray="4 5"/>
         <path class="icon-line" d="M9 31c6 0 6.5-10 15-10s9 10 15 10M14 38h20"/>
         <circle class="icon-fill" cx="24" cy="15" r="2.4"/>
+      </symbol>
+      <symbol id="icon-reader" viewBox="0 0 48 48">
+        <circle class="icon-ring" cx="24" cy="24" r="19" stroke-dasharray="4 6"/>
+        <path class="icon-line" d="M12 15h10a3 3 0 013 3v16a3 3 0 00-3-3H12zM36 15H26a3 3 0 00-3 3v16a3 3 0 013-3h10z"/>
+        <path class="icon-line" d="M15 22h5M28 22h5M28 27h4"/>
+        <circle class="icon-fill" cx="18" cy="27" r="1.8"/>
       </symbol>
       <symbol id="icon-audiobook" viewBox="0 0 48 48">
         <circle class="icon-ring" cx="24" cy="24" r="19" stroke-dasharray="4 6"/>
@@ -119,6 +149,12 @@
         <circle class="icon-fill" cx="34.5" cy="30" r="1.5"/>
         <circle class="icon-fill" cx="13.5" cy="18" r="1.5"/>
       </symbol>
+      <symbol id="icon-voice" viewBox="0 0 48 48">
+        <circle class="icon-ring" cx="24" cy="24" r="19" stroke-dasharray="4 6"/>
+        <path class="icon-line" d="M24 12a4 4 0 014 4v9a4 4 0 01-8 0v-9a4 4 0 014-4zM16 24a8 8 0 0016 0M24 32v5m-4 0h8"/>
+        <path class="icon-line" d="M11 20v8M37 20v8"/>
+        <circle class="icon-fill" cx="24" cy="18" r="1.8"/>
+      </symbol>
       <symbol id="icon-c2c" viewBox="0 0 48 48">
         <circle class="icon-ring" cx="15" cy="24" r="10" stroke-dasharray="4 5"/>
         <circle class="icon-ring" cx="33" cy="24" r="10" stroke-dasharray="4 5"/>
@@ -139,9 +175,22 @@
     <!-- ============ I. Title plate ============ -->
     <section class="landing" data-landing aria-labelledby="forest-title">
       <div class="landing-core">
-        <div class="title-crown forest-sigil" data-title-crown aria-hidden="true">
-          <div class="crown-wrap">
-            <svg class="crown" viewBox="0 0 640 260" focusable="false">
+        <p class="landing-kicker">A living index by Ivan Gegov</p>
+        <h1 id="forest-title" class="landing-title">
+        <!-- The crown lives inside the h1, not in .landing-core, so it centres
+             on the wordmark at every width. Anchored to .landing-core it was
+             centred on a box whose height grows with the body copy, which
+             walked the canopy down onto the paragraph as the copy wrapped.
+             span rather than div: an h1 takes phrasing content. -->
+        <span class="title-crown forest-sigil" data-title-crown aria-hidden="true">
+          <span class="crown-wrap">
+            <!-- data-sketch with no .sketch-src of its own: the crown's
+                 trunk, canopy and branches are untouched. The host exists
+                 so its added leaf layer can follow the page-wide
+                 hand-drawn / geometric state, driven by hovering the
+                 hero (the crown itself is pointer-events:none). -->
+            <svg class="crown" viewBox="0 0 640 260" focusable="false"
+                 data-sketch data-sketch-trigger=".landing">
               <path class="title-crown-trunk" d="M320 248C318 210 326 178 320 142M320 190C294 172 278 154 266 128M321 176C350 158 366 141 378 116"/>
               <path class="title-crown-canopy" d="M111 148C73 129 79 83 119 72C121 31 173 17 204 45C225 6 281 6 306 38C340 3 397 15 409 54C448 32 497 58 493 96C537 99 550 146 516 169C531 207 490 235 455 219C432 249 386 248 363 219C337 246 293 245 269 216C235 240 188 221 184 184C151 196 115 181 111 148Z"/>
               <g class="leaf-cluster" data-cluster="1" style="fill:#2d5a27">
@@ -163,137 +212,237 @@
                 <use href="#leaf" x="371" y="123" width="24" height="29"/><use href="#leaf" x="404" y="105" width="28" height="33"/><use href="#leaf" x="438" y="132" width="22" height="26"/>
               </g>
               <path class="title-crown-branch" d="M320 143C286 119 260 91 242 63M320 142C353 119 382 91 397 59M286 116C250 111 222 101 199 83M355 116C392 108 421 94 444 75"/>
+              <!-- ADDED leaf layer (Ivan 2026-07-30): sits on top of the
+                   crown, which is otherwise unchanged. Each leaf is a
+                   pair — a hand-drawn outline at rest, the solid
+                   geometric leaf on hover — swaying on the same
+                   cluster-sway curve as the crown's own clusters so it
+                   reads as part of the living tree. -->
+              <g class="crown-leaf-layer" aria-hidden="true">
+                <g class="leaf-pair" style="--sway-dur:8.1s;animation-delay:-1.4s"><use class="leaf-sketch" href="#leaf-sketch" x="138" y="60" width="26" height="30"/><use class="leaf-geo" href="#leaf" x="138" y="60" width="26" height="30"/></g>
+                <g class="leaf-pair" style="--sway-dur:9.6s;animation-delay:-3.1s"><use class="leaf-sketch" href="#leaf-sketch" x="192" y="30" width="29" height="34"/><use class="leaf-geo" href="#leaf" x="192" y="30" width="29" height="34"/></g>
+                <g class="leaf-pair" style="--sway-dur:7.4s;animation-delay:-.6s"><use class="leaf-sketch" href="#leaf-sketch" x="252" y="18" width="24" height="28"/><use class="leaf-geo" href="#leaf" x="252" y="18" width="24" height="28"/></g>
+                <g class="leaf-pair" style="--sway-dur:10.2s;animation-delay:-4.4s"><use class="leaf-sketch" href="#leaf-sketch" x="292" y="14" width="27" height="32"/><use class="leaf-geo" href="#leaf" x="292" y="14" width="27" height="32"/></g>
+                <g class="leaf-pair" style="--sway-dur:8.8s;animation-delay:-2.2s"><use class="leaf-sketch" href="#leaf-sketch" x="344" y="20" width="25" height="29"/><use class="leaf-geo" href="#leaf" x="344" y="20" width="25" height="29"/></g>
+                <g class="leaf-pair" style="--sway-dur:7.9s;animation-delay:-5.1s"><use class="leaf-sketch" href="#leaf-sketch" x="396" y="34" width="28" height="33"/><use class="leaf-geo" href="#leaf" x="396" y="34" width="28" height="33"/></g>
+                <g class="leaf-pair" style="--sway-dur:9.1s;animation-delay:-.9s"><use class="leaf-sketch" href="#leaf-sketch" x="452" y="62" width="26" height="30"/><use class="leaf-geo" href="#leaf" x="452" y="62" width="26" height="30"/></g>
+                <g class="leaf-pair" style="--sway-dur:8.4s;animation-delay:-3.7s"><use class="leaf-sketch" href="#leaf-sketch" x="486" y="96" width="23" height="27"/><use class="leaf-geo" href="#leaf" x="486" y="96" width="23" height="27"/></g>
+                <g class="leaf-pair" style="--sway-dur:9.9s;animation-delay:-2.8s"><use class="leaf-sketch" href="#leaf-sketch" x="108" y="104" width="24" height="28"/><use class="leaf-geo" href="#leaf" x="108" y="104" width="24" height="28"/></g>
+                <g class="leaf-pair" style="--sway-dur:7.6s;animation-delay:-4.9s"><use class="leaf-sketch" href="#leaf-sketch" x="228" y="88" width="22" height="26"/><use class="leaf-geo" href="#leaf" x="228" y="88" width="22" height="26"/></g>
+                <g class="leaf-pair" style="--sway-dur:10.6s;animation-delay:-1.9s"><use class="leaf-sketch" href="#leaf-sketch" x="332" y="84" width="25" height="29"/><use class="leaf-geo" href="#leaf" x="332" y="84" width="25" height="29"/></g>
+                <g class="leaf-pair" style="--sway-dur:8.2s;animation-delay:-5.6s"><use class="leaf-sketch" href="#leaf-sketch" x="424" y="112" width="23" height="27"/><use class="leaf-geo" href="#leaf" x="424" y="112" width="23" height="27"/></g>
+              </g>
             </svg>
-          </div>
-        </div>
-        <p class="landing-kicker">A living index by Ivan Gegov</p>
-        <h1 id="forest-title" class="landing-title">
+          </span>
+        </span>
           <span class="title-word">Forest HUB</span>
           <span class="title-sub">projects in <em>motion</em></span>
         </h1>
-        <p class="landing-copy">A growing ecosystem of visual work, research, playful tools, and strange little machines. Move through it—the forest notices.</p>
-      </div>
-      <button class="scroll-invite" type="button" data-scroll-to-crown>Walk in</button>
-    </section>
-
-    <!-- ============ II. The crown ============ -->
-    <section class="crown-section" data-crown aria-label="The tree crown — every project is a branch">
-      <header class="crown-head">
-        <p class="crown-kicker">The crown</p>
-        <h2>Twenty branches, <em>one tree</em></h2>
-        <p class="crown-copy">Every project grows from the same trunk. Keep walking — each branch comes down to meet you, and every meeting sends roots climbing back up to light its branch.</p>
-      </header>
-      <div class="crown-stage" data-crown-stage>
-        <nav class="crown-labels" data-crown-labels aria-label="Branches of the forest"></nav>
+        <p class="landing-copy">SDForest is Ivan Gegov&rsquo;s living collection of writing, creative projects, practical web tools, and research experiments. It is for curious readers, makers, learners, and families&mdash;choose a section below based on whether you want to read, use something, play, or investigate.</p>
+        <!-- The invite lives inside the core, not pinned to the section
+             floor: as a bottom-anchored text link it fell to the very
+             edge of the viewport and carried no weight at all. -->
+        <a class="scroll-invite" href="#atlas">Explore by section</a>
       </div>
     </section>
 
-    <!-- ============ III. The walk — one slam per project, roots climbing
-         from every collision back up to the crown ============ -->
-    <div class="routes" data-routes>
-      <svg class="root-rail" aria-hidden="true" viewBox="0 0 100 1600" preserveAspectRatio="none">
-        <path class="rail-ghost" d="M50 0 C 57 70, 43 140, 50 210 S 58 350, 50 420 S 42 560, 50 630 S 58 770, 50 840 S 42 980, 50 1050 S 58 1190, 50 1260 S 43 1400, 50 1470 S 55 1560, 50 1600"/>
-        <path class="rail-lit" data-rail d="M50 0 C 57 70, 43 140, 50 210 S 58 350, 50 420 S 42 560, 50 630 S 58 770, 50 840 S 42 980, 50 1050 S 58 1190, 50 1260 S 43 1400, 50 1470 S 55 1560, 50 1600" pathLength="1"/>
-      </svg>
-    </div>
-
-    <!-- ============ IV. The atlas — every path at a glance ============ -->
-    <section class="atlas" aria-labelledby="atlas-title">
+    <!-- ============ II. The grouped directory ============ -->
+    <section class="atlas" id="atlas" aria-labelledby="atlas-title">
       <header class="atlas-head">
         <p class="atlas-kicker">The atlas</p>
         <h2 id="atlas-title">Every path <em>at a glance</em></h2>
+        <svg class="sketch-rule" viewBox="0 0 240 9" preserveAspectRatio="none" aria-hidden="true" data-sketch data-sketch-amp="1.5" data-sketch-step="16" data-sketch-settle="view"><path class="sketch-src" d="M3 4.5H237"/></svg>
       </header>
-      <div class="project-grid" data-project-grid>
-        <button class="portal" type="button" style="--accent:#c084fc" data-project="gallery" data-status="In development" data-meta="Scroll-world flight" data-description="A scroll-scrubbed camera flight through curated design experiments — each scene AI-generated and approval-gated before it ships." aria-pressed="false" aria-disabled="true">
-          <span class="portal-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><use href="#icon-gallery"/></svg></span>
-          <span class="portal-copy"><span class="portal-name">Web Design Gallery</span><span class="portal-meta">Scroll-world flight</span></span>
-        </button>
-        <button class="portal" type="button" style="--accent:#8b8cff" data-project="time" data-href="/web/life-in-time/" data-status="Live" data-meta="Time perspective" data-description="Turn a birth year and life expectancy into remaining summers, heartbeats, Christmases, and a shareable late-achiever perspective." aria-pressed="false">
-          <span class="portal-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><use href="#icon-time"/></svg></span>
-          <span class="portal-copy"><span class="portal-name">Life in Time</span><span class="portal-meta">Time perspective</span></span>
-        </button>
-        <button class="portal" type="button" style="--accent:#a282ff" data-project="vfx" data-href="/web/vfx-portfolio/index.html" data-status="Portfolio" data-meta="Animation · VFX" data-description="Ivan Gegov’s real animation, compositing, VFX, game work, showreel, credits, experience, and tools—preserved from the original portfolio." aria-pressed="false">
-          <span class="portal-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><use href="#icon-vfx"/></svg></span>
-          <span class="portal-copy"><span class="portal-name">VFX Portfolio</span><span class="portal-meta">Animation · VFX</span></span>
-        </button>
-        <button class="portal" type="button" style="--accent:#ffd15a" data-project="kids" data-href="/web/kids/" data-status="Live" data-meta="Math · movies" data-description="One playful hub for quick-fire Math Mania and the curated Kids Movie Library, with both original apps kept at their own routes." aria-pressed="false">
-          <span class="portal-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><use href="#icon-kids"/></svg></span>
-          <span class="portal-copy"><span class="portal-name">Kids Corner</span><span class="portal-meta">Math · movies</span></span>
-        </button>
-        <button class="portal" type="button" style="--accent:#4f46e5" data-project="morning-news" data-href="/web/morning-news/" data-status="Live" data-meta="Daily briefing" data-description="A focused voice-led morning briefing: follow the signal, hear the day clearly, and open the live Lovable experience when you want the full broadcast." aria-pressed="false">
+      <div class="directory-layout">
+        <nav class="directory-index" data-directory-index aria-label="Project index">
+          <section class="directory-index-section" data-index-section="writing-media" aria-labelledby="index-writing-media-title">
+            <h3 id="index-writing-media-title">Writing & Media</h3>
+            <ul><li><a data-index-project="morning-news" href="/web/morning-news/">Morning News</a></li><li><a data-index-project="reader" href="https://chloe.blumenkraft.cloud/dyslexia/" target="_blank" rel="noopener">Dyslexia Reading Platform</a></li><li><a data-index-project="audiobook" href="https://chloe.blumenkraft.cloud/audiobook/" target="_blank" rel="noopener">Audiobook Studio</a></li><li><a data-index-project="manifesto" href="/web/manifesto-newborn/index.html">Manifesto for a Newborn</a></li><li><a data-index-project="voice" href="/web/voice-playground/">Voice Playground</a></li></ul>
+          </section>
+          <section class="directory-index-section" data-index-section="projects-play" aria-labelledby="index-projects-play-title">
+            <h3 id="index-projects-play-title">Projects & Play</h3>
+            <ul><li><a data-index-project="vfx" href="/web/vfx-portfolio/index.html">VFX Portfolio</a></li><li><a data-index-project="kids" href="/web/kids/">Kids Corner</a></li><li><a data-index-project="power" href="/web/power-law-odyssey/index.html">Power Law Odyssey</a></li><li><a data-index-project="void" href="/web/replicator-void/index.html">Replicator Void</a></li><li><span data-index-project="gallery" aria-disabled="true">Web Design Gallery</span></li><li><a data-index-project="flowform" href="https://flowform.sdforest.site" target="_blank" rel="noopener">FlowForm</a></li><li><a data-index-project="multiply" href="https://multiply-magic-studio.lovable.app" target="_blank" rel="noopener">Multiply Magic Studio</a></li><li><a data-index-project="math" href="/web/math-forest/index.html">Math Forest</a></li></ul>
+          </section>
+          <section class="directory-index-section" data-index-section="tools" aria-labelledby="index-tools-title">
+            <h3 id="index-tools-title">Tools</h3>
+            <ul><li><a data-index-project="time" href="/web/life-in-time/">Life in Time</a></li><li><a data-index-project="rubiks" href="/web/rubiks-teacher/">Rubik&rsquo;s Teacher</a></li><li><a data-index-project="library" href="/web/library/">Library &amp; Platforms</a></li><li><a data-index-project="avatar" href="/web/avatar-playground/index.html">Avatar Playground</a></li><li><a data-index-project="council" href="/web/council/index.html">Councils</a></li></ul>
+          </section>
+          <section class="directory-index-section" data-index-section="research-experiments" aria-labelledby="index-research-experiments-title">
+            <h3 id="index-research-experiments-title">Research & Experiments</h3>
+            <ul><li><a data-index-project="health" href="/web/womens-health-os/index.html">Women’s Health OS</a></li><li><a data-index-project="open-overview" href="/web/open-overview/index.html">Open Overview</a></li><li><a data-index-project="muscle" href="/web/hypertrophyos/index.html">Hyper Trophy OS</a></li><li><a data-index-project="c2c-dolphin" href="/web/ai-research/index.html">AI Conversation</a></li><li><a data-index-project="tinylm" href="/web/council/index.html#tinylm">TinyLM Consciousness</a></li><li><a data-index-project="c2c-self" href="/web/ai-research/index.html">Artificial Self</a></li></ul>
+          </section>
+        </nav>
+        <div class="directory-sections">
+        <section class="directory-section" data-directory-section="writing-media" aria-labelledby="writing-media-title">
+          <header class="directory-section-head"><h3 id="writing-media-title">Writing & Media</h3><p>Briefings, accessible reading, essays, and spoken-word experiences.</p></header>
+          <div class="project-grid directory-featured" data-project-grid data-featured-projects>
+            <a class="portal" style="--accent:#4f46e5" data-project="morning-news" data-href="/web/morning-news/" data-status="Live" data-meta="Daily briefing" data-description="A focused voice-led morning briefing: follow the signal, hear the day clearly, and open the live Lovable experience when you want the full broadcast." href="/web/morning-news/">
           <span class="portal-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><use href="#icon-time"/></svg></span>
           <span class="portal-copy"><span class="portal-name">Morning News</span><span class="portal-meta">Daily briefing</span></span>
-        </button>
-        <button class="portal" type="button" style="--accent:#ff7fb0" data-project="health" data-href="/web/womens-health-os/index.html" data-status="Live research" data-meta="Evidence base" data-description="An evidence-graded research intelligence base for cycles, hormones, fertility, PCOS, menopause, and women’s health." aria-pressed="false">
-          <span class="portal-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><use href="#icon-health"/></svg></span>
-          <span class="portal-copy"><span class="portal-name">Women’s Health OS</span><span class="portal-meta">Evidence base</span></span>
-        </button>
-        <button class="portal" type="button" style="--accent:#ac90ff" data-project="council" data-href="/web/council/index.html" data-status="Public" data-meta="Machine dialogue" data-description="Choose between TinyLLM Local Oracle and OpenRouter Free—two stateless public experiments with honest limits." aria-pressed="false">
-          <span class="portal-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><use href="#icon-council"/></svg></span>
-          <span class="portal-copy"><span class="portal-name">Councils</span><span class="portal-meta">Machine dialogue</span></span>
-        </button>
-        <button class="portal" type="button" style="--accent:#60ecc1" data-project="library" data-href="/web/library/" data-status="Live" data-meta="Glossary · tools" data-description="Search the Forest’s AI glossary and platform reference side by side, with real structured entries and filters." aria-pressed="false">
-          <span class="portal-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><use href="#icon-library"/></svg></span>
-          <span class="portal-copy"><span class="portal-name">Library &amp; Platforms</span><span class="portal-meta">Glossary · tools</span></span>
-        </button>
-        <button class="portal" type="button" style="--accent:#73e9ff;--accent-secondary:#a9b2ff" data-project="open-overview" data-href="/web/open-overview/index.html" data-status="Public snapshot" data-meta="AI ecosystem radar" data-description="Compare OpenRouter models and apps with GitHub AI ecosystems through ten-deep rankings, observed relationships, lifecycle signals, and clearly labeled source evidence." aria-pressed="false">
-          <span class="portal-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><use href="#icon-open-overview"/></svg></span>
-          <span class="portal-copy"><span class="portal-name">Open Overview</span><span class="portal-meta">AI ecosystem radar</span></span>
-        </button>
-        <button class="portal" type="button" style="--accent:#ff745c" data-project="muscle" data-href="/web/hypertrophyos/index.html" data-status="Live research" data-meta="Training research" data-description="Training intelligence, practical calculators, evidence rules, and a transparent research path for strength and hypertrophy." aria-pressed="false">
-          <span class="portal-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><use href="#icon-muscle"/></svg></span>
-          <span class="portal-copy"><span class="portal-name">Hyper Trophy OS</span><span class="portal-meta">Training research</span></span>
-        </button>
-        <button class="portal" type="button" style="--accent:#8fe6ae" data-project="flowform" data-href="https://flowform.sdforest.site" data-status="In development" data-meta="Yoga &amp; Pilates exercise flows" data-description="Personalised yoga and Pilates sessions built from an approved exercise library, shaped around how much time you have and what hurts today." aria-pressed="false">
-          <span class="portal-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><use href="#icon-flowform"/></svg></span>
-          <span class="portal-copy"><span class="portal-name">FlowForm</span><span class="portal-meta">Yoga &amp; Pilates exercise flows</span></span>
-        </button>
-        <button class="portal" type="button" style="--accent:#f97316" data-project="audiobook" data-href="https://chloe.blumenkraft.cloud/audiobook/" data-external="true" data-status="Live" data-meta="Ebook → M4B" data-description="Drop an EPUB, PDF, or TXT and get back a chapter-marked M4B — narrated by cloud text-to-speech, or by a self-hosted cloned voice." aria-pressed="false">
+        </a>
+            <a class="portal" style="--accent:#5eead4" data-project="reader" data-href="https://chloe.blumenkraft.cloud/dyslexia/" data-status="Live" data-meta="Reading accessibility" data-description="A reading environment built for dyslexic readers: dyslexia-friendly typefaces, a narrow measure, line focus, and colour and spacing controls that are never paywalled. Narration is one output among several, not the point — the reader is." href="https://chloe.blumenkraft.cloud/dyslexia/" data-external="true" target="_blank" rel="noopener">
+          <span class="portal-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><use href="#icon-reader"/></svg></span>
+          <span class="portal-copy"><span class="portal-name">Dyslexia Reading Platform</span><span class="portal-meta">Reading accessibility</span></span>
+        </a>
+            <a class="portal" style="--accent:#f97316" data-project="audiobook" data-href="https://chloe.blumenkraft.cloud/audiobook/" data-status="Live" data-meta="Ebook → M4B" data-description="Drop an EPUB, PDF, or TXT and get back a chapter-marked M4B — narrated by cloud text-to-speech, or by a self-hosted cloned voice." href="https://chloe.blumenkraft.cloud/audiobook/" data-external="true" target="_blank" rel="noopener">
           <span class="portal-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><use href="#icon-audiobook"/></svg></span>
           <span class="portal-copy"><span class="portal-name">Audiobook Studio</span><span class="portal-meta">Ebook → M4B</span></span>
-        </button>
-        <button class="portal" type="button" style="--accent:#eedcb8" data-project="manifesto" data-href="/web/manifesto-newborn/index.html" data-status="10 languages" data-meta="Reading room" data-description="A compact manifesto addressed to a newborn: curious, tender, multilingual, and built to be read rather than skimmed." aria-pressed="false">
+        </a>
+            <a class="portal" style="--accent:#eedcb8" data-project="manifesto" data-href="/web/manifesto-newborn/index.html" data-status="10 languages" data-meta="Reading room" data-description="A compact manifesto addressed to a newborn: curious, tender, multilingual, and built to be read rather than skimmed." href="/web/manifesto-newborn/index.html">
           <span class="portal-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><use href="#icon-manifesto"/></svg></span>
           <span class="portal-copy"><span class="portal-name">Manifesto for a Newborn</span><span class="portal-meta">Reading room</span></span>
-        </button>
-        <button class="portal" type="button" style="--accent:#ffc258" data-project="power" data-href="/web/power-law-odyssey/index.html" data-status="Interactive" data-meta="Heavy-tail sandbox" data-description="A seeded, reproducible walk through heavy tails: many ordinary misses, rare enormous hits, and the intuition they produce." aria-pressed="false">
+        </a>
+          </div>
+          <details class="directory-overflow">
+            <summary><span class="directory-summary-closed">See all 5</span><span class="directory-summary-open">Show featured only</span><span class="sr-only"> in Writing & Media</span></summary>
+            <div class="project-grid directory-overflow-grid" data-project-grid data-overflow-projects>
+              <a class="portal" style="--accent:#7dd3fc" data-project="voice" data-href="/web/voice-playground/" data-status="Live" data-meta="Text to speech" data-description="Hear text read aloud in different voices — paste a few lines, pick a narrator, and listen before committing a whole book to one of them." href="/web/voice-playground/">
+          <span class="portal-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><use href="#icon-voice"/></svg></span>
+          <span class="portal-copy"><span class="portal-name">Voice Playground</span><span class="portal-meta">Text to speech</span></span>
+        </a>
+            </div>
+          </details>
+        </section>
+        <section class="directory-section" data-directory-section="projects-play" aria-labelledby="projects-play-title">
+          <header class="directory-section-head"><h3 id="projects-play-title">Projects & Play</h3><p>Creative work, family experiences, and playful builds.</p></header>
+          <div class="project-grid directory-featured" data-project-grid data-featured-projects>
+            <a class="portal" style="--accent:#a282ff" data-project="vfx" data-href="/web/vfx-portfolio/index.html" data-status="Portfolio" data-meta="Animation · VFX" data-description="Ivan Gegov’s real animation, compositing, VFX, game work, showreel, credits, experience, and tools—preserved from the original portfolio." href="/web/vfx-portfolio/index.html">
+          <span class="portal-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><use href="#icon-vfx"/></svg></span>
+          <span class="portal-copy"><span class="portal-name">VFX Portfolio</span><span class="portal-meta">Animation · VFX</span></span>
+        </a>
+            <a class="portal" style="--accent:#ffd15a" data-project="kids" data-href="/web/kids/" data-status="Live" data-meta="Math · movies" data-description="One playful hub for quick-fire Math Mania and the curated Kids Movie Library, with both original apps kept at their own routes." href="/web/kids/">
+          <span class="portal-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><use href="#icon-kids"/></svg></span>
+          <span class="portal-copy"><span class="portal-name">Kids Corner</span><span class="portal-meta">Math · movies</span></span>
+        </a>
+            <a class="portal" style="--accent:#ffc258" data-project="power" data-href="/web/power-law-odyssey/index.html" data-status="Interactive" data-meta="Heavy-tail sandbox" data-description="A seeded, reproducible walk through heavy tails: many ordinary misses, rare enormous hits, and the intuition they produce." href="/web/power-law-odyssey/index.html">
           <span class="portal-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><use href="#icon-power"/></svg></span>
           <span class="portal-copy"><span class="portal-name">Power Law Odyssey</span><span class="portal-meta">Heavy-tail sandbox</span></span>
-        </button>
-        <button class="portal" type="button" style="--accent:#51ebff" data-project="void" data-href="/web/replicator-void/index.html" data-status="Experimental" data-meta="Artificial life" data-description="A living population of tiny replicators mutates, feeds, divides, and dies under your cursor in a deliberately strange simulation." aria-pressed="false">
+        </a>
+            <a class="portal" style="--accent:#51ebff" data-project="void" data-href="/web/replicator-void/index.html" data-status="Experimental" data-meta="Artificial life" data-description="A living population of tiny replicators mutates, feeds, divides, and dies under your cursor in a deliberately strange simulation." href="/web/replicator-void/index.html">
           <span class="portal-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><use href="#icon-void"/></svg></span>
           <span class="portal-copy"><span class="portal-name">Replicator Void</span><span class="portal-meta experimental">Experimental</span></span>
-        </button>
-        <button class="portal" type="button" style="--accent:#a78bfa" data-project="c2c-dolphin" data-href="/web/c2c-dolphin/" data-status="Published research" data-meta="AI conversation" data-description="Two AI models given no task and no human — just each other. 30 turns, psychometric profiling. What do they gravitate toward when left alone?" aria-pressed="false">
-          <span class="portal-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><use href="#icon-c2c"/></svg></span>
-          <span class="portal-copy"><span class="portal-name">AI Conversation</span><span class="portal-meta experimental">Research</span></span>
-        </button>
-        <button class="portal" type="button" style="--accent:#f472b6" data-project="c2c-self" data-href="/web/c2c-self/" data-status="Published research" data-meta="Artificial self" data-description="Same model talking to itself. 30 turns. Both instances converge to The Poet — bone, hum, vibration, breath. The mirror speaks with one voice." aria-pressed="false">
-          <span class="portal-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><use href="#icon-c2c-self"/></svg></span>
-          <span class="portal-copy"><span class="portal-name">Artificial Self</span><span class="portal-meta experimental">Research</span></span>
-        </button>
-        <button class="portal" type="button" style="--accent:#efbc68" data-project="multiply" data-href="https://multiply-magic-studio.lovable.app" data-status="In development" data-meta="In development" data-description="Multiply Magic Studio is a visual multiplication project currently being developed. It is shown honestly here without a private or unfinished link." aria-pressed="false">
+        </a>
+          </div>
+          <details class="directory-overflow">
+            <summary><span class="directory-summary-closed">See all 8</span><span class="directory-summary-open">Show featured only</span><span class="sr-only"> in Projects & Play</span></summary>
+            <div class="project-grid directory-overflow-grid" data-project-grid data-overflow-projects>
+              <article class="portal portal--disabled" style="--accent:#c084fc" data-project="gallery" data-status="In development" data-meta="Scroll-world flight" data-description="A scroll-scrubbed camera flight through curated design experiments — each scene AI-generated and approval-gated before it ships." aria-disabled="true" tabindex="-1">
+          <span class="portal-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><use href="#icon-gallery"/></svg></span>
+          <span class="portal-copy"><span class="portal-name">Web Design Gallery</span><span class="portal-meta">Scroll-world flight</span></span>
+        </article>
+              <a class="portal" style="--accent:#8fe6ae" data-project="flowform" data-href="https://flowform.sdforest.site" data-status="In development" data-meta="Yoga &amp; Pilates exercise flows" data-description="Personalised yoga and Pilates sessions built from an approved exercise library, shaped around how much time you have and what hurts today." href="https://flowform.sdforest.site" data-external="true" target="_blank" rel="noopener">
+          <span class="portal-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><use href="#icon-flowform"/></svg></span>
+          <span class="portal-copy"><span class="portal-name">FlowForm</span><span class="portal-meta">Yoga &amp; Pilates exercise flows</span></span>
+        </a>
+              <a class="portal" style="--accent:#efbc68" data-project="multiply" data-href="https://multiply-magic-studio.lovable.app" data-status="In development" data-meta="In development" data-description="Multiply Magic Studio is a visual multiplication project currently being developed. It is shown honestly here without a private or unfinished link." href="https://multiply-magic-studio.lovable.app" data-external="true" target="_blank" rel="noopener">
           <span class="portal-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><use href="#icon-multiply"/></svg></span>
           <span class="portal-copy"><span class="portal-name">Multiply Magic Studio</span><span class="portal-meta development">In development</span></span>
-        </button>
-        <button class="portal" type="button" style="--accent:#9bd26f" data-project="math" data-href="/web/math-forest/index.html" data-status="In development" data-meta="In development" data-description="Math Forest is a reserved growing space for mathematical play. The public experience is not ready yet, so this node remains a preview only." aria-pressed="false">
+        </a>
+              <a class="portal" style="--accent:#9bd26f" data-project="math" data-href="/web/math-forest/index.html" data-status="In development" data-meta="In development" data-description="Math Forest is a reserved growing space for mathematical play. The public experience is not ready yet, so this node remains a preview only." href="/web/math-forest/index.html">
           <span class="portal-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><use href="#icon-math"/></svg></span>
           <span class="portal-copy"><span class="portal-name">Math Forest</span><span class="portal-meta development">In development</span></span>
-        </button>
-        <button class="portal" type="button" style="--accent:#a5b4fc" data-project="avatar" data-href="/web/avatar-playground/index.html" data-status="Live" data-meta="Avatar lab" data-description="Audition six animation engines for an AI agent avatar — trigger states live, drive the motion with your microphone, and copy a drop-in snippet that works in any page." aria-pressed="false">
+        </a>
+            </div>
+          </details>
+        </section>
+        <section class="directory-section" data-directory-section="tools" aria-labelledby="tools-title">
+          <header class="directory-section-head"><h3 id="tools-title">Tools</h3><p>Practical utilities, tutors, and searchable references.</p></header>
+          <div class="project-grid directory-featured" data-project-grid data-featured-projects>
+            <a class="portal" style="--accent:#8b8cff" data-project="time" data-href="/web/life-in-time/" data-status="Live" data-meta="Time perspective" data-description="Turn a birth year and life expectancy into remaining summers, heartbeats, Christmases, and a shareable late-achiever perspective." href="/web/life-in-time/">
+          <span class="portal-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><use href="#icon-time"/></svg></span>
+          <span class="portal-copy"><span class="portal-name">Life in Time</span><span class="portal-meta">Time perspective</span></span>
+        </a>
+            <a class="portal" style="--accent:#5dd6ff" data-project="rubiks" data-href="/web/rubiks-teacher/" data-status="Live" data-meta="3D cube tutor" data-description="Learn cube notation, scan or enter a real cube state, validate every sticker, and follow a guided move-by-move solve." href="/web/rubiks-teacher/">
+          <span class="portal-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><use href="#icon-rubiks"/></svg></span>
+          <span class="portal-copy"><span class="portal-name">Rubik&rsquo;s Teacher</span><span class="portal-meta">3D cube tutor</span></span>
+        </a>
+            <a class="portal" style="--accent:#60ecc1" data-project="library" data-href="/web/library/" data-status="Live" data-meta="Glossary · tools" data-description="Search the Forest’s AI glossary and platform reference side by side, with real structured entries and filters." href="/web/library/">
+          <span class="portal-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><use href="#icon-library"/></svg></span>
+          <span class="portal-copy"><span class="portal-name">Library &amp; Platforms</span><span class="portal-meta">Glossary · tools</span></span>
+        </a>
+            <a class="portal" style="--accent:#a5b4fc" data-project="avatar" data-href="/web/avatar-playground/index.html" data-status="Live" data-meta="Avatar lab" data-description="Audition six animation engines for an AI agent avatar — trigger states live, drive the motion with your microphone, and copy a drop-in snippet that works in any page." href="/web/avatar-playground/index.html">
           <span class="portal-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><use href="#icon-avatar"/></svg></span>
           <span class="portal-copy"><span class="portal-name">Avatar Playground</span><span class="portal-meta">Avatar lab</span></span>
-        </button>
+        </a>
+          </div>
+          <details class="directory-overflow">
+            <summary><span class="directory-summary-closed">See all 5</span><span class="directory-summary-open">Show featured only</span><span class="sr-only"> in Tools</span></summary>
+            <div class="project-grid directory-overflow-grid" data-project-grid data-overflow-projects>
+              <a class="portal" style="--accent:#ac90ff" data-project="council" data-href="/web/council/index.html" data-status="Public" data-meta="Machine dialogue" data-description="Choose between TinyLLM Local Oracle and OpenRouter Free—two stateless public experiments with honest limits." href="/web/council/index.html">
+          <span class="portal-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><use href="#icon-council"/></svg></span>
+          <span class="portal-copy"><span class="portal-name">Councils</span><span class="portal-meta">Machine dialogue</span></span>
+        </a>
+            </div>
+          </details>
+        </section>
+        <section class="directory-section" data-directory-section="research-experiments" aria-labelledby="research-experiments-title">
+          <header class="directory-section-head"><h3 id="research-experiments-title">Research & Experiments</h3><p>Evidence-led resources and investigations into AI, health, ecosystems, and model behavior.</p></header>
+          <div class="project-grid directory-featured" data-project-grid data-featured-projects>
+            <a class="portal" style="--accent:#ff7fb0" data-project="health" data-href="/web/womens-health-os/index.html" data-status="Live research" data-meta="Evidence base" data-description="An evidence-graded research intelligence base for cycles, hormones, fertility, PCOS, menopause, and women’s health." href="/web/womens-health-os/index.html">
+          <span class="portal-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><use href="#icon-health"/></svg></span>
+          <span class="portal-copy"><span class="portal-name">Women’s Health OS</span><span class="portal-meta">Evidence base</span></span>
+        </a>
+            <a class="portal" style="--accent:#73e9ff;--accent-secondary:#a9b2ff" data-project="open-overview" data-href="/web/open-overview/index.html" data-status="Public snapshot" data-meta="AI ecosystem radar" data-description="Compare OpenRouter models and apps with GitHub AI ecosystems through ten-deep rankings, observed relationships, lifecycle signals, and clearly labeled source evidence." href="/web/open-overview/index.html">
+          <span class="portal-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><use href="#icon-open-overview"/></svg></span>
+          <span class="portal-copy"><span class="portal-name">Open Overview</span><span class="portal-meta">AI ecosystem radar</span></span>
+        </a>
+            <a class="portal" style="--accent:#ff745c" data-project="muscle" data-href="/web/hypertrophyos/index.html" data-status="Live research" data-meta="Training research" data-description="Training intelligence, practical calculators, evidence rules, and a transparent research path for strength and hypertrophy." href="/web/hypertrophyos/index.html">
+          <span class="portal-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><use href="#icon-muscle"/></svg></span>
+          <span class="portal-copy"><span class="portal-name">Hyper Trophy OS</span><span class="portal-meta">Training research</span></span>
+        </a>
+            <a class="portal" style="--accent:#a78bfa" data-project="c2c-dolphin" data-href="/web/ai-research/index.html" data-status="Published research" data-meta="AI conversation" data-description="Two AI models given no task and no human — just each other. 30 turns, psychometric profiling. What do they gravitate toward when left alone?" href="/web/ai-research/index.html">
+          <span class="portal-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><use href="#icon-c2c"/></svg></span>
+          <span class="portal-copy"><span class="portal-name">AI Conversation</span><span class="portal-meta experimental">Research</span></span>
+        </a>
+          </div>
+          <details class="directory-overflow">
+            <summary><span class="directory-summary-closed">See all 6</span><span class="directory-summary-open">Show featured only</span><span class="sr-only"> in Research & Experiments</span></summary>
+            <div class="project-grid directory-overflow-grid" data-project-grid data-overflow-projects>
+              <a class="portal" style="--accent:#fbbf24" data-project="tinylm" data-href="/web/council/index.html#tinylm" data-status="Public" data-meta="Five tiny local models" data-description="Five small local models deliberate in sequence on one proposition — proposer, analyst, critic, observer, synthesizer. No fleet memory, no delegation, no saved conversation state; each model is told it cannot claim access to history or other agents." href="/web/council/index.html#tinylm">
+          <span class="portal-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><use href="#icon-tinylm"/></svg></span>
+          <span class="portal-copy"><span class="portal-name">TinyLM Consciousness</span><span class="portal-meta">Five tiny local models</span></span>
+        </a>
+              <a class="portal" style="--accent:#f472b6" data-project="c2c-self" data-href="/web/ai-research/index.html" data-status="Published research" data-meta="Artificial self" data-description="Same model talking to itself. 30 turns. Both instances converge to The Poet — bone, hum, vibration, breath. The mirror speaks with one voice." href="/web/ai-research/index.html">
+          <span class="portal-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><use href="#icon-c2c-self"/></svg></span>
+          <span class="portal-copy"><span class="portal-name">Artificial Self</span><span class="portal-meta experimental">Research</span></span>
+        </a>
+            </div>
+          </details>
+        </section>
+        </div>
       </div>
     </section>
+
+    <!-- ============ III. The animated walk ============ -->
+    <div class="routes" data-routes>
+      <!-- The taproot. Hand-drawn at rest (forest-sketch.js twins the
+           ghost path and draws it on once, with weight), settling to the
+           exact geometric rail as the walk scrolls into view. .rail-lit is
+           deliberately NOT twinned: its stroke-dasharray is the lit-
+           progress mechanism, not decoration. -->
+      <!-- amp is small because preserveAspectRatio="none" stretches one
+           user unit to ~14 screen px across the rail's width. -->
+      <svg class="root-rail" aria-hidden="true" viewBox="0 0 100 1600" preserveAspectRatio="none"
+           data-sketch data-sketch-amp="1.2" data-sketch-step="30" data-sketch-settle="view">
+        <path class="rail-ghost sketch-src" data-sketch-width="2.2" d="M50 0 C 57 70, 43 140, 50 210 S 58 350, 50 420 S 42 560, 50 630 S 58 770, 50 840 S 42 980, 50 1050 S 58 1190, 50 1260 S 43 1400, 50 1470 S 55 1560, 50 1600"/>
+        <path class="rail-lit" data-rail d="M50 0 C 57 70, 43 140, 50 210 S 58 350, 50 420 S 42 560, 50 630 S 58 770, 50 840 S 42 980, 50 1050 S 58 1190, 50 1260 S 43 1400, 50 1470 S 55 1560, 50 1600" pathLength="1"/>
+      </svg>
+    </div>
   </main>
 
-  <footer class="home-footer">
+  <svg class="sketch-rule sketch-rule--divider" viewBox="0 0 420 9" preserveAspectRatio="none" aria-hidden="true"
+       data-sketch data-sketch-amp="1.7" data-sketch-step="20" data-sketch-settle="view">
+    <path class="sketch-src" d="M3 4.5H417"/>
+  </svg>
+
+  <!-- design-history.js appends its trigger here as an inline badge
+       instead of floating a vertical tab against the left edge. -->
+  <footer class="home-footer" data-design-history-slot>
     <p>SDForest is an evolving collection. Experimental and in-development work is labeled plainly; every live path should lead somewhere real.</p>
   </footer>
 
-  <script type="module" src="/web/shared/forest-three.js?v=20260729b"></script>
-  <script type="module" src="/web/shared/forest-trails.mjs?v=20260729b"></script>
+  <script type="module" src="/web/shared/forest-three.js?v=20260807a"></script>
+  <script type="module" src="/web/shared/forest-trails.mjs?v=20260807a"></script>
   <script>
     (() => {
       const root = document.documentElement;
@@ -342,14 +491,7 @@
       });
       routes.appendChild(frag);
 
-      /* Atlas portals: hover-light vars + single-click navigation. */
-      cards.forEach((card) => {
-        card.addEventListener('click', () => {
-          if (!card.dataset.href) return;
-          if (card.dataset.external === 'true') window.open(card.dataset.href, '_blank', 'noopener');
-          else location.assign(card.dataset.href);
-        });
-      });
+      /* Atlas portals retain their pointer-light treatment as native links. */
       window.addEventListener('pointermove', (event) => {
         const card = event.target.closest?.('.portal');
         if (!card) return;
@@ -358,12 +500,8 @@
         card.style.setProperty('--my', `${event.clientY - bounds.top}px`);
       }, { passive: true });
 
-      document.querySelector('[data-scroll-to-crown]').addEventListener('click', () => {
-        document.querySelector('[data-crown]').scrollIntoView({
-          behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth',
-        });
-      });
-
+      /* The invite now opens the walk itself — the crown section it used
+         to target is retired, and the first slam is the real threshold. */
       /* One-shot leaf fall: the title crown sheds 6–10 lightweight SVG
          instances as its hero clears the viewport. The source silhouette
          stays in one inline symbol; every temporary leaf removes itself. */
@@ -427,6 +565,7 @@
       setTimeout(born, 1400); // fonts.ready hanging must never hide the title
     })();
   </script>
-  <script src="/web/shared/design-history.js?v=20260729b"></script>
+  <script src="/web/shared/forest-sketch.js?v=20260807a" defer></script>
+  <script src="/web/shared/design-history.js?v=20260807a"></script>
 </body>
 </html>

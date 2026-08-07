@@ -254,15 +254,45 @@
       const safeUUID = escapeHtml(taskUUID);
       const safeUrl = sanitizeUrl(imageURL);
 
-      resultContent.innerHTML = `
-        <div class="result-item fade-in"><span>Task UUID:</span> ${safeUUID}</div>
-        <div class="result-item fade-in" style="animation-delay: 0.1s;"><span>Image URL:</span> <a href="${safeUrl}" target="_blank" rel="noopener noreferrer">${safeUrl}</a></div>
-        <img class="preview fade-in" style="animation-delay: 0.2s;" src="${safeUrl}" alt="Generated item icon" />
-      `;
+      resultContent.textContent = '';
+
+      const uuidDiv = document.createElement('div');
+      uuidDiv.className = 'result-item fade-in';
+      const uuidSpan = document.createElement('span');
+      uuidSpan.textContent = 'Task UUID: ';
+      uuidDiv.appendChild(uuidSpan);
+      uuidDiv.appendChild(document.createTextNode(safeUUID));
+
+      const urlDiv = document.createElement('div');
+      urlDiv.className = 'result-item fade-in';
+      urlDiv.style.animationDelay = '0.1s';
+      const urlSpan = document.createElement('span');
+      urlSpan.textContent = 'Image URL: ';
+      const urlA = document.createElement('a');
+      urlA.href = safeUrl;
+      urlA.target = '_blank';
+      urlA.rel = 'noopener noreferrer';
+      urlA.textContent = safeUrl;
+      urlDiv.appendChild(urlSpan);
+      urlDiv.appendChild(urlA);
+
+      const img = document.createElement('img');
+      img.className = 'preview fade-in';
+      img.style.animationDelay = '0.2s';
+      img.src = safeUrl;
+      img.alt = 'Generated item icon';
+
+      resultContent.appendChild(uuidDiv);
+      resultContent.appendChild(urlDiv);
+      resultContent.appendChild(img);
     }
 
     function renderLoading() {
-      resultContent.innerHTML = '<p class="fade-in">Generating…</p>';
+      resultContent.textContent = '';
+      const p = document.createElement('p');
+      p.className = 'fade-in';
+      p.textContent = 'Generating…';
+      resultContent.appendChild(p);
     }
 
     function renderError(message) {
@@ -293,7 +323,11 @@
       try {
         generateButton.disabled = true;
         const originalText = generateButton.textContent;
-        generateButton.innerHTML = '<span class="spinner"></span> Generating...';
+        generateButton.textContent = '';
+        const spinner = document.createElement('span');
+        spinner.className = 'spinner';
+        generateButton.appendChild(spinner);
+        generateButton.appendChild(document.createTextNode(' Generating...'));
         renderLoading();
 
         const response = await fetch('http://localhost:8000/api/item-icon', {
@@ -310,7 +344,11 @@
         renderResult(data);
       } catch (err) {
         renderError(err.message || 'An unexpected error occurred.');
-        resultContent.innerHTML = '<p class="fade-in">Something went wrong. Please try again.</p>';
+        resultContent.textContent = '';
+        const p = document.createElement('p');
+        p.className = 'fade-in';
+        p.textContent = 'Something went wrong. Please try again.';
+        resultContent.appendChild(p);
       } finally {
         generateButton.disabled = false;
         generateButton.textContent = 'Generate Item Icon';
