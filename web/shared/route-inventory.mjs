@@ -28,6 +28,9 @@ export const ROUTE_INVENTORY = Object.freeze([
   { id: 'upload', href: '/web/upload/', state: 'hub-trail', parent: 'forest-hub', placement: 'Signals & Systems', prefetch: true, prerender: false, label: 'Knowledge Ingest', trailId: 'signals', connectionIds: ['library', 'ai-research', 'council'] },
   { id: 'ai-init', href: '/web/ai-init/', state: 'redirect', parent: 'library', placement: 'Library redirect', prefetch: false, prerender: false },
   { id: 'llm-db', href: '/web/llm-db/', state: 'redirect', parent: 'library', placement: 'Library redirect', prefetch: false, prerender: false },
+  // No file backs this one any more — web/tinylm/index.html was a byte-identical
+  // duplicate of web/council/tinylm/ and was removed; vercel.json now serves the
+  // old bookmark as a permanent redirect into the council anchor.
   { id: 'tinylm', href: '/web/tinylm/', state: 'redirect', parent: 'council', placement: 'Council redirect', prefetch: false, prerender: false },
 ]);
 

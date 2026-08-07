@@ -60,7 +60,6 @@ test('the public Council contains no private, key, or access-gate surface', () =
     readBuilt('web/council/byok/index.html'),
     readBuilt('web/council/inner/index.html'),
     readBuilt('web/council/tinylm/index.html'),
-    readBuilt('web/tinylm/index.html'),
   ].join('\n');
 
   assert.doesNotMatch(
@@ -73,8 +72,9 @@ test('the public Council contains no private, key, or access-gate surface', () =
 });
 
 test('legacy Council URLs redirect harmlessly to the two integrated anchors', () => {
+  // /web/tinylm/ was a byte-identical duplicate of web/council/tinylm/ and is
+  // gone; the old bookmark is now served by a permanent redirect in vercel.json.
   const redirects = new Map([
-    ['web/tinylm/index.html', '/web/council/index.html#tinylm'],
     ['web/council/tinylm/index.html', '/web/council/index.html#tinylm'],
     ['web/council/byok/index.html', '/web/council/index.html#openrouter-free'],
     ['web/council/inner/index.html', '/web/council/index.html#openrouter-free'],

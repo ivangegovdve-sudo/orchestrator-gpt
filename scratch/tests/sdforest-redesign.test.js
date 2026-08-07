@@ -21,9 +21,9 @@ test('home presents the canonical grouped directory as progressively enhanced, t
   assert.match(home, /<a[^>]+href="#atlas"[^>]*>Explore by section<\/a>/);
 
   const taxonomy = [
-    ['writing-media', 'Writing & Media', 'Briefings, accessible reading, essays, and spoken-word experiences.', ['morning-news', 'reader', 'audiobook', 'manifesto'], ['voice']],
-    ['projects-play', 'Projects & Play', 'Creative work, family experiences, and playful builds.', ['vfx', 'kids', 'power', 'void'], ['gallery', 'flowform', 'multiply', 'math']],
-    ['tools', 'Tools', 'Practical utilities, tutors, and searchable references.', ['time', 'rubiks', 'library', 'avatar'], ['council']],
+    ['writing-media', 'Writing & Media', 'Briefings, accessible reading, essays, and spoken-word experiences.', ['morning-news', 'reader', 'audiobook', 'manifesto'], ['voice', 'poetry']],
+    ['projects-play', 'Projects & Play', 'Creative work, family experiences, and playful builds.', ['vfx', 'kids', 'power', 'void'], ['gallery', 'flowform', 'lobester', 'multiply', 'math']],
+    ['tools', 'Tools', 'Practical utilities, tutors, and searchable references.', ['time', 'rubiks', 'library', 'avatar'], ['council', 'mendeleev', 'explore', 'calendar']],
     ['research-experiments', 'Research & Experiments', 'Evidence-led resources and investigations into AI, health, ecosystems, and model behavior.', ['health', 'open-overview', 'muscle', 'c2c-dolphin'], ['tinylm', 'c2c-self']],
   ];
   const sections = [...home.matchAll(/<section\b[^>]*\bdata-directory-section="([^"]+)"[^>]*>([\s\S]*?)<\/section>/g)];
@@ -54,10 +54,10 @@ test('home presents the canonical grouped directory as progressively enhanced, t
   assert.match(home, /<section\b[^>]*\bid="atlas"/);
   const cards = portalCards(directory);
   const index = indexItems(directory);
-  assert.equal(cards.length, 24);
-  assert.equal(new Set(cards.map((card) => card.project)).size, 24);
-  assert.equal(index.length, 24);
-  assert.equal(new Set(index.map((item) => item.project)).size, 24);
+  assert.equal(cards.length, 29);
+  assert.equal(new Set(cards.map((card) => card.project)).size, 29);
+  assert.equal(index.length, 29);
+  assert.equal(new Set(index.map((item) => item.project)).size, 29);
 
   for (const card of cards) {
     const item = index.find((candidate) => candidate.project === card.project);
@@ -106,7 +106,7 @@ test('home is a truthful portal with the requested project lineup', () => {
     assert.match(home, new RegExp(title.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
   }
 
-  assert.equal((home.match(/data-project="/g) || []).length, 24);
+  assert.equal((home.match(/data-project="/g) || []).length, 29);
   assert.match(home, /The atlas/);
   assert.match(home, /Every path <em>at a glance<\/em>/);
 
@@ -143,9 +143,16 @@ test('public council exposes exactly two truthful modes', () => {
 });
 
 test('TinyLM standalone route redirects into Councils', () => {
-  const tiny = read('web/tinylm/index.html');
+  const tiny = read('web/council/tinylm/index.html');
   assert.match(tiny, /web\/council\/index\.html#tinylm/);
   assert.match(tiny, /http-equiv="refresh"/i);
+
+  // The duplicate /web/tinylm/ stub is retired; its bookmark lives on as a
+  // permanent redirect rather than a second copy of the same meta-refresh page.
+  assert.equal(fs.existsSync(path.join(ROOT, 'web/tinylm')), false);
+  const vercel = JSON.parse(read('vercel.json'));
+  assert.ok(vercel.redirects.some(({ source, destination }) =>
+    source === '/web/tinylm/' && destination === '/web/council/index.html#tinylm'));
 });
 
 test('VFX portfolio preserves real prior work and contains no generated imagery', () => {
@@ -217,8 +224,8 @@ test('every live internal portal resolves to an animated page with a Forest retu
   const home = read('index.html');
   const routes = [...home.matchAll(/data-href="(\/web\/[^"]+)"/g)].map((match) => match[1]);
 
-  assert.equal(routes.length, 19);
-  assert.equal(new Set(routes).size, 18);
+  assert.equal(routes.length, 24);
+  assert.equal(new Set(routes).size, 24);
   for (const route of new Set(routes)) {
     let relativePath = route.replace(/^\//, '').split('#')[0];
     if (relativePath.endsWith('/')) relativePath += 'index.html';

@@ -1,10 +1,14 @@
 <!DOCTYPE html>
 <html lang="en" class="forest-skin">
 <head>
+<script defer src="/web/shared/feedback.js?v=20260807a"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="A searchable index of every public repository on the SDForest fleet's GitHub account — original projects and forked reference clones alike.">
 <title>Explore Repos &mdash; sdforest</title>
-<link rel="stylesheet" href="/web/shared/forest-design.css?v=20260731a">
+<link rel="stylesheet" href="/web/shared/forest-design.css?v=20260807a">
+<link rel="stylesheet" href="/web/shared/forest-shell.css?v=20260807a">
+<link rel="stylesheet" href="/web/shared/design-history.css?v=20260807a">
 <style>
 /* Tokens come from forest-design.css (:root). See /web/repos/index.html for the
    sibling page this one is modeled on — same token discipline applies here. */
@@ -287,7 +291,7 @@ h1 {
 }
 </style>
 </head>
-<body>
+<body data-forest-page="explore">
 <div class="wrap">
 
   <a class="back-link" href="/">&larr; Back to Forest HUB</a>
@@ -590,5 +594,7 @@ h1 {
     });
 })();
 </script>
+<script src="/web/shared/forest-motion.js?v=20260807a"></script>
+<script src="/web/shared/design-history.js?v=20260807a"></script>
 </body>
 </html>
