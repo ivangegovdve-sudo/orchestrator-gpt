@@ -130,7 +130,7 @@ test('navigation policy returns literal landing, hub, canonical, redirect, and a
   );
   assert.deepEqual(
     getDocumentPrefetches('/web/council/'),
-    ['/web/open-overview/', '/web/ai-research/'],
+    ['/web/explore/', '/web/ai-research/'],
   );
   assert.deepEqual(
     getDocumentPrefetches('/web/library/rag.html'),
@@ -238,11 +238,11 @@ test('document prefetch installation creates real document hints once without to
   assert.equal(appended.length, 2);
 });
 
-test('all 55 heads load navigation once while redirects and utilities advertise no prerender', () => {
+test('all 60 heads load navigation once while redirects and utilities advertise no prerender', () => {
   const files = htmlFiles();
-  assert.equal(files.length, 55);
+  assert.equal(files.length, 60);
   const advertisers = new Set(ADVERTISER_PATHS());
-  assert.equal(advertisers.size, 44);
+  assert.equal(advertisers.size, 50);
 
   for (const file of files) {
     const source = fs.readFileSync(file, 'utf8');
@@ -404,7 +404,7 @@ test('all shared Forest runtimes are activation-gated at their original document
     motionLoaders += loaders.filter((runtime) => runtime === 'motion').length;
   }
   assert.equal(threeLoaders, 1);
-  assert.equal(motionLoaders, 42);
+  assert.equal(motionLoaders, 46);
 });
 
 test('view transitions name only persistent Forest chrome and become static under reduced motion', () => {
