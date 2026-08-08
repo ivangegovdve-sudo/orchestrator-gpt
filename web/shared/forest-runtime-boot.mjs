@@ -1,6 +1,6 @@
 const RUNTIME_MODULES = Object.freeze({
-  motion: './forest-motion.js?v=20260729g',
-  three: './forest-three.js?v=20260729g',
+  motion: './forest-motion.js?v=20260807a',
+  three: './forest-three.js?v=20260807a',
 });
 const BOOT_KEY = Symbol.for('sdforest.forestRuntimeBoot');
 

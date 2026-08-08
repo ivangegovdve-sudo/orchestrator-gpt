@@ -7,7 +7,7 @@ const { chromium } = require('playwright');
 
 const repoRoot = path.resolve(__dirname, '..', '..');
 const manifestoLocales = ['', 'bg', 'de', 'es', 'fr', 'it', 'mk', 'pt', 'ru', 'zh'];
-const cacheVersion = '20260729g';
+const cacheVersion = '20260807a';
 const expectedAlternates = ['en', 'bg', 'de', 'es', 'fr', 'it', 'mk', 'pt', 'ru', 'zh-Hans'];
 const pageFiles = [
   'web/calendar/index.html',

@@ -15,7 +15,7 @@ const projectDirectories = [
 ];
 
 async function inventory() {
-  return import(`${pathToFileURL(path.join(ROOT, 'web/shared/route-inventory.mjs')).href}?v=20260729g`);
+  return import(`${pathToFileURL(path.join(ROOT, 'web/shared/route-inventory.mjs')).href}?v=20260807a`);
 }
 
 test('route inventory owns every project directory exactly once with machine-readable delivery controls', async () => {
@@ -102,7 +102,7 @@ test('canonical project pages retain explicit forest-back ownership links', asyn
     const source = read(`web/${entry.id}/index.html`);
     assert.match(
       source,
-      /<link rel="stylesheet" href="\/web\/shared\/forest-shell\.css\?v=20260729g">/,
+      /<link rel="stylesheet" href="\/web\/shared\/forest-shell\.css\?v=20260807a">/,
       `${entry.id} loads the shared forest-back styling`,
     );
     const expectedHref = kidsChildren.has(entry.id) ? '/web/kids/' : '/';

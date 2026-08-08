@@ -22,9 +22,9 @@ test("three canonical routes remain isolated and landing motion uses the crown, 
 
   const entry = fs.readFileSync(path.join(ROOT, "web", "shared", "forest-three.js"), "utf8");
   assert.match(entry, /tiles\.js — per-portal atlas wireframes — and burst\.js are retired/);
-  assert.match(entry, /forest-three\/slams\.js\?v=20260729g/);
-  assert.match(entry, /forest-three\/crown\.js\?v=20260729g/);
-  assert.match(entry, /forest-three\/roots\.js\?v=20260729g/);
+  assert.match(entry, /forest-three\/slams\.js\?v=20260807a/);
+  assert.match(entry, /forest-three\/crown\.js\?v=20260807a/);
+  assert.match(entry, /forest-three\/roots\.js\?v=20260807a/);
   assert.doesNotMatch(entry, /^import .*forest-three\/tiles\.js/m);
 });
 
@@ -48,7 +48,7 @@ test("SD Forest homepage exposes one truthful animated Open Overview portal", ()
   assert.match(home, /<symbol id="icon-open-overview"[\s\S]*?--accent-secondary, #a9b2ff[\s\S]*?<\/symbol>/);
   assert.match(
     home,
-    /data-forest-runtime="three"[^>]+src="\/web\/shared\/forest-runtime-boot\.mjs\?v=20260729g"/,
+    /data-forest-runtime="three"[^>]+src="\/web\/shared\/forest-runtime-boot\.mjs\?v=20260807a"/,
   );
   assert.doesNotMatch(home, /forest-icons\.js/);
 

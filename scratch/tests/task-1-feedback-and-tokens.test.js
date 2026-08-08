@@ -6,7 +6,7 @@ const { after, before, test } = require('node:test');
 const { chromium } = require('playwright');
 
 const ROOT = path.resolve(__dirname, '../..');
-const CACHE_VERSION = '20260729g';
+const CACHE_VERSION = '20260807a';
 const htmlFiles = () => {
   const walk = (dir) => fs.readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
     const file = path.join(dir, entry.name);
