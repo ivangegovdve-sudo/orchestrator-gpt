@@ -2,6 +2,16 @@
   "buildCommand": "npm run vercel-build",
   "outputDirectory": "vercel-public",
   "framework": null,
+  "rewrites": [
+    {
+      "source": "/firsthand",
+      "destination": "https://cognitive-autonomy-app.vercel.app/firsthand"
+    },
+    {
+      "source": "/firsthand/:path*",
+      "destination": "https://cognitive-autonomy-app.vercel.app/firsthand/:path*"
+    }
+  ],
   "redirects": [
     {
       "source": "/web/ai-init",
