@@ -10,13 +10,22 @@
   <link rel="stylesheet" href="/web/shared/forest-design.css?v=20260807a">
   <style>
     :root {
+      /* Canonical Forest HUB tokens. Declared locally as well as inherited from
+         forest-design.css so this page keeps the contract on its own. */
       --bg: #07070b;
       --surface: #0f0f15;
+      --border: rgba(255,255,255,0.08);
+      --text-primary: #f3f4f6;
+      --text-muted: #9ca3af;
       --accent: #4f46e5;
-      --ink: #f2efe4;
-      --muted: #a9b3a1;
-      --line: rgba(226,235,209,.12);
-      --panel: rgba(13,18,14,.72);
+      --accent-green: #22c55e;
+      --radius: 8px;
+
+      /* Page-local names resolve onto the canonical tokens above. */
+      --ink: var(--text-primary);
+      --muted: var(--text-muted);
+      --line: var(--border);
+      --panel: rgba(15,15,21,.78);
       --power-cyan: #8fe6ae;
       --power-gold: #e8b86b;
       --power-green: #8fe6ae;
@@ -32,6 +41,16 @@
       --scroll-p: 0;
       --scroll-slip: 0px;
       --scroll-energy: 0;
+
+      /* Camera throw, in px of Z per unit of scroll progress. Held at :root (not
+         on the #layerN rules) precisely so the mobile media query can retune the
+         whole rig — an ID selector would outrank any .layer-level override. */
+      --zv-in: 6750px;
+      --zv-out: 4750px;
+      --zv-open-out: 9470px;
+      --zv-sandbox-in: 7270px;
+      --zv-sandbox-out: 6000px;
+      --zv-final-in: 5600px;
     }
 
     * { box-sizing: border-box; }
@@ -57,7 +76,7 @@
       gap: 8px;
       padding: 10px 12px;
       border: 1px solid var(--line);
-      border-radius: 8px;
+      border-radius: var(--radius);
       background: rgba(7,10,8,.72);
       color: var(--muted);
       font-family: var(--forest-sans, "Alegreya Sans", sans-serif);
@@ -125,10 +144,25 @@
       display: grid;
       align-items: center;
       justify-items: center;
-      padding: clamp(28px, 5vw, 72px);
+      /* Vertical padding tracks viewport height, horizontal tracks width. A flat
+         clamp(28px, 5vw, 72px) spent 144px of a 720px-tall laptop on margin the
+         chapters with exhibits could not afford. */
+      padding: clamp(18px, 3.2vh, 48px) clamp(28px, 5vw, 72px);
       text-align: center;
       backface-visibility: hidden;
-      transform: translate3d(0, 0, calc(var(--origin-z) + var(--scroll-p) * var(--z-velocity)));
+      /* Piecewise camera timeline. Rather than sliding a layer linearly across
+         the whole track (which leaves every chapter permanently mid-flight and
+         re-scaling on every frame), each layer approaches from far, HOLDS at
+         z:0 between --in1 and --out0, then departs past the camera. The hold is
+         what makes chapter 5 usable: the sandbox is a still click target for the
+         whole stretch where it is legible, not a surface scaling under the
+         cursor. Both clamp() terms are pure compositor math off --scroll-p. */
+      --in0: 0; --in1: 0; --out0: 1; --out1: 1;
+      --in-v: 0px; --out-v: 0px;
+      transform: translate3d(0, 0, calc(
+          (clamp(var(--in0), var(--scroll-p), var(--in1)) - var(--in1)) * var(--in-v)
+        + (clamp(var(--out0), var(--scroll-p), var(--out1)) - var(--out0)) * var(--out-v)
+      ));
       /* Base: sit behind and ignore pointer input. The active layer (set from JS
          by whichever band dominates the current scroll position) is lifted on top
          and re-enabled for interaction, so a transparent inactive layer can never
@@ -169,6 +203,16 @@
     }
     h1 { font-size: clamp(3.4rem, 11vw, 9.5rem); }
     h2 { font-size: clamp(2.25rem, 7.2vw, 6.6rem); }
+
+    /* Chapters 2-5 carry an exhibit — charts, branches, the balance model, the
+       sandbox — and the exhibit is the point of the chapter, so the type yields
+       to it. Sizing on min(vw, vh) means a short laptop shrinks the headline
+       instead of pushing the exhibit below the fold, which is what a purely
+       width-based clamp did: at 1366x720 the venture sandbox's bet field sat
+       256px past the bottom of the screen, exactly where the reader clicks. */
+    .layer--exhibit h2 { font-size: clamp(1.7rem, min(5.4vw, 7.6vh), 3.9rem); }
+    .layer--exhibit p { font-size: clamp(.92rem, min(1.35vw, 2.1vh), 1.15rem); }
+    .layer--exhibit .layer-inner { gap: clamp(9px, 1.7vh, 22px); }
     p {
       margin: 0;
       max-width: 760px;
@@ -177,7 +221,7 @@
       line-height: 1.55;
     }
     .thesis {
-      color: #e9e6d4;
+      color: var(--ink);
       font-weight: 680;
     }
     .scroll-cue {
@@ -199,34 +243,42 @@
       box-shadow: inset 0 -10px 0 var(--cyan);
     }
 
+    /* Each chapter: [--in0 .. --in1] approach, [--in1 .. --out0] HOLD at z:0,
+       [--out0 .. --out1] depart. Every hold window sits inside that chapter's
+       fully-opaque band, so the reader always gets a still, unscaled frame. */
     #layer1 {
-      --origin-z: -375px;
-      --z-velocity: 5000px;
+      /* The opening headline is already at the camera; it only departs. */
+      --in0: 0; --in1: 0; --in-v: 0px;
+      --out0: .075; --out1: .17; --out-v: var(--zv-open-out);
       opacity: clamp(0, calc((.15 - var(--scroll-p)) * 34), 1);
     }
     #layer2 {
-      --origin-z: -1250px;
-      --z-velocity: 5000px;
+      --in0: .12; --in1: .20; --in-v: var(--zv-in);
+      --out0: .29; --out1: .37; --out-v: var(--zv-out);
       opacity: clamp(0, min(calc((var(--scroll-p) - .12) * 34), calc((.35 - var(--scroll-p)) * 34)), 1);
     }
     #layer3 {
-      --origin-z: -2250px;
-      --z-velocity: 5000px;
+      --in0: .32; --in1: .40; --in-v: var(--zv-in);
+      --out0: .49; --out1: .57; --out-v: var(--zv-out);
       opacity: clamp(0, min(calc((var(--scroll-p) - .32) * 34), calc((.55 - var(--scroll-p)) * 34)), 1);
     }
     #layer4 {
-      --origin-z: -3250px;
-      --z-velocity: 5000px;
+      --in0: .52; --in1: .60; --in-v: var(--zv-in);
+      --out0: .69; --out1: .77; --out-v: var(--zv-out);
       opacity: clamp(0, min(calc((var(--scroll-p) - .52) * 34), calc((.75 - var(--scroll-p)) * 34)), 1);
     }
     #layer5 {
-      --origin-z: -4125px;
-      --z-velocity: 5000px;
+      /* Widest hold on the page — the venture sandbox has to stay put while the
+         reader places up to fifty bets on it. */
+      --in0: .72; --in1: .775; --in-v: var(--zv-sandbox-in);
+      --out0: .870; --out1: .92; --out-v: var(--zv-sandbox-out);
       opacity: clamp(0, min(calc((var(--scroll-p) - .72) * 34), calc((.90 - var(--scroll-p)) * 34)), 1);
     }
     #layer6 {
-      --origin-z: -4750px;
-      --z-velocity: 5000px;
+      /* The epiphany lands and stays landed — no depart term, so the final frame
+         of the odyssey settles at z:0 instead of ending mid-zoom. */
+      --in0: .87; --in1: .945; --in-v: var(--zv-final-in);
+      --out0: 1; --out1: 1; --out-v: 0px;
       opacity: clamp(0, calc((var(--scroll-p) - .87) * 34), 1);
     }
 
@@ -239,7 +291,7 @@
     }
     .chart-panel, .sandbox, .risk-panel, .branch-panel {
       border: 1px solid var(--line);
-      border-radius: 8px;
+      border-radius: var(--radius);
       background: rgba(8,12,18,.68);
       padding: 18px;
       box-shadow: 0 24px 80px rgba(0,0,0,.34);
@@ -250,7 +302,7 @@
       justify-content: space-between;
       gap: 12px;
       margin-bottom: 12px;
-      color: #e7e4d6;
+      color: var(--ink);
       font-family: var(--forest-sans, "Alegreya Sans", sans-serif);
       font-weight: 700;
       font-size: 13px;
@@ -258,6 +310,7 @@
     }
     .chart-title span:last-child { color: var(--muted); font-weight: 600; }
     svg { width: 100%; height: auto; display: block; overflow: visible; }
+    .chart-panel svg { max-height: clamp(96px, 19vh, 190px); }
     .axis { stroke: rgba(255,255,255,.18); stroke-width: 1; }
     .normal-curve { fill: none; stroke: var(--cyan); stroke-width: 4; }
     .power-curve { fill: none; stroke: var(--gold); stroke-width: 4; }
@@ -266,7 +319,7 @@
 
     .branch-panel { width: min(980px, 96vw); }
     .branches {
-      min-height: 270px;
+      min-height: clamp(120px, 24vh, 270px);
       position: relative;
       overflow: hidden;
     }
@@ -289,7 +342,7 @@
     }
     .formula {
       border: 1px solid var(--line);
-      border-radius: 8px;
+      border-radius: var(--radius);
       padding: 14px;
       background: rgba(255,255,255,.04);
       text-align: left;
@@ -297,7 +350,7 @@
     .formula strong {
       display: block;
       margin-bottom: 8px;
-      color: #f2efe4;
+      color: var(--ink);
       font-size: 14px;
     }
     .formula code {
@@ -315,28 +368,28 @@
       grid-template-columns: 1fr 1fr;
       gap: 20px;
       align-items: end;
-      min-height: 300px;
+      min-height: clamp(150px, 26vh, 300px);
     }
     .risk-side {
       position: relative;
-      min-height: 260px;
+      min-height: clamp(130px, 23vh, 260px);
       border-bottom: 2px solid rgba(255,255,255,.25);
       display: grid;
       align-items: end;
       justify-items: center;
-      color: #f2efe4;
+      color: var(--ink);
     }
     .downside {
-      height: 52px;
+      height: clamp(26px, 4.6vh, 52px);
       width: 70%;
       background: linear-gradient(180deg, rgba(217,138,127,.85), rgba(217,138,127,.18));
-      border-radius: 8px 8px 0 0;
+      border-radius: var(--radius) var(--radius) 0 0;
     }
     .upside {
-      height: 240px;
+      height: clamp(120px, 21vh, 240px);
       width: 70%;
       background: linear-gradient(180deg, rgba(143,230,174,.1), rgba(143,230,174,.85));
-      border-radius: 8px 8px 0 0;
+      border-radius: var(--radius) var(--radius) 0 0;
       position: relative;
     }
     .upside::before {
@@ -386,7 +439,7 @@
     }
     .bet-button {
       border: 0;
-      border-radius: 8px;
+      border-radius: var(--radius);
       padding: 12px 16px;
       color: #101408;
       background: linear-gradient(135deg, var(--gold), var(--green));
@@ -404,12 +457,12 @@
     }
     .bet-field {
       position: relative;
-      height: 300px;
+      height: clamp(165px, 29vh, 300px);
       margin: 0;
       padding: 0;
       list-style: none;
       border: 1px solid rgba(255,255,255,.08);
-      border-radius: 8px;
+      border-radius: var(--radius);
       overflow: hidden;
       background:
         linear-gradient(rgba(255,255,255,.04) 1px, transparent 1px),
@@ -438,7 +491,7 @@
       place-items: center;
       border: 1px solid rgba(255,255,255,.23);
       border-radius: 50%;
-      color: #f2efe4;
+      color: var(--ink);
       background: rgba(217,138,127,.22);
       box-shadow: 0 5px 18px rgba(0,0,0,.24);
       font: 700 10px/1 var(--forest-sans, sans-serif);
@@ -473,7 +526,7 @@
     }
     .portfolio-status {
       min-height: 1.5em;
-      color: #e9e6d4;
+      color: var(--ink);
       font: 700 13px/1.45 var(--forest-sans, sans-serif);
       text-align: left;
     }
@@ -600,14 +653,14 @@
     .final-list div {
       min-height: 120px;
       border: 1px solid var(--line);
-      border-radius: 8px;
+      border-radius: var(--radius);
       padding: 18px;
       background: rgba(255,255,255,.05);
       text-align: left;
     }
     .final-list strong {
       display: block;
-      color: #f2efe4;
+      color: var(--ink);
       margin-bottom: 8px;
     }
     .final-list span {
@@ -636,13 +689,13 @@
     .blueprint-card {
       min-width: 0;
       border: 1px solid var(--line);
-      border-radius: 8px;
+      border-radius: var(--radius);
       padding: 20px;
       background: var(--panel);
     }
     .blueprint-card h3 {
       margin: 0 0 10px;
-      color: #f2efe4;
+      color: var(--ink);
       font-family: var(--forest-display, "Cormorant Garamond", Georgia, serif);
       font-size: 21px;
       font-weight: 650;
@@ -669,16 +722,16 @@
       text-align: left;
       vertical-align: top;
     }
-    .component-table th { color: #f2efe4; }
+    .component-table th { color: var(--ink); }
     pre {
       max-width: 100%;
       margin: 0;
       overflow: auto;
       padding: 18px;
-      border-radius: 8px;
+      border-radius: var(--radius);
       background: #060906;
       border: 1px solid rgba(255,255,255,.08);
-      color: #ccd2c2;
+      color: var(--muted);
       font-size: 13px;
       line-height: 1.5;
     }
@@ -688,21 +741,25 @@
       .matrix, .formula-row, .risk-scale, .risk-labels, .final-list, .blueprint-grid {
         grid-template-columns: 1fr;
       }
-      .layer { padding: 58px 12px 18px; align-items: center; }
+      /* Top padding clears the fixed back-link; both ends still yield on a
+         short phone so the exhibit keeps its room. */
+      .layer { padding: clamp(42px, 7vh, 58px) 12px clamp(11px, 2.2vh, 18px); align-items: center; }
       .layer-inner { gap: 10px; }
       .layer h1 { font-size: clamp(2.8rem, 14vw, 4.2rem); }
       .layer h2 { font-size: clamp(2rem, 10vw, 3.2rem); }
+      .layer--exhibit h2 { font-size: clamp(1.45rem, min(8vw, 5.2vh), 2.6rem); }
+      .layer--exhibit p { font-size: clamp(.8rem, min(3.6vw, 1.9vh), .94rem); }
       .layer p { font-size: .94rem; line-height: 1.35; }
       .chart-panel, .sandbox, .risk-panel, .branch-panel { padding: 10px; }
-      .chart-panel svg { max-height: 135px; }
-      .branches { min-height: 150px; }
+      .chart-panel svg { max-height: clamp(80px, 15vh, 135px); }
+      .branches { min-height: clamp(96px, 18vh, 150px); }
       .formula { padding: 9px; }
       .formula p { font-size: .82rem; }
       .risk-scale, .risk-labels { grid-template-columns: 1fr 1fr; }
-      .risk-scale { min-height: 190px; gap: 10px; }
-      .risk-side { min-height: 170px; }
-      .upside { height: 145px; }
-      .upside::before { height: 55px; }
+      .risk-scale { min-height: clamp(126px, 23vh, 190px); gap: 10px; }
+      .risk-side { min-height: clamp(112px, 20vh, 170px); }
+      .upside { height: clamp(94px, 17vh, 145px); }
+      .upside::before { height: clamp(32px, 6vh, 55px); }
       .risk-labels { gap: 10px; font-size: 12px; }
       .sandbox { gap: 8px; }
       .sandbox-head { gap: 7px; }
@@ -710,13 +767,37 @@
       .sandbox-stats span { padding: 4px 5px; }
       .bet-button { padding: 9px 10px; font-size: 11px; }
       .portfolio-status { font-size: 11px; }
-      .bet-field { height: 220px; }
-      #layer1 { --origin-z: -75px; --z-velocity: 1000px; }
-      #layer2 { --origin-z: -250px; --z-velocity: 1000px; }
-      #layer3 { --origin-z: -450px; --z-velocity: 1000px; }
-      #layer4 { --origin-z: -650px; --z-velocity: 1000px; }
-      #layer5 { --origin-z: -825px; --z-velocity: 1000px; }
-      #layer6 { --origin-z: -950px; --z-velocity: 1000px; }
+      .bet-field { height: clamp(148px, 26vh, 220px); }
+      /* Same hold windows, shallower camera throw. A phone GPU pays for every
+         pixel a scaled layer covers, so keeping |z| small keeps the composited
+         layer near 1:1 and the rasteriser off the critical path. */
+      :root {
+        --zv-in: 2300px;
+        --zv-out: 1600px;
+        --zv-open-out: 2200px;
+        --zv-sandbox-in: 2500px;
+        --zv-sandbox-out: 2100px;
+        --zv-final-in: 1900px;
+      }
+
+      /* backdrop-filter is the single most expensive thing on this page for a
+         mobile GPU: it forces a readback of everything behind a panel on every
+         frame the panel moves — and these panels move for the whole scroll.
+         Swap the blur for an opaque surface; the visual delta is negligible
+         over a near-black backdrop, the frame-time delta is not. */
+      .chart-panel, .sandbox, .risk-panel, .branch-panel {
+        backdrop-filter: none;
+        -webkit-backdrop-filter: none;
+        background: rgba(10, 13, 19, .92);
+        box-shadow: 0 10px 26px rgba(0,0,0,.34);
+      }
+      .back-link { backdrop-filter: none; -webkit-backdrop-filter: none; background: rgba(7,10,8,.92); }
+      /* Large-radius shadows on transformed elements re-rasterise per frame. */
+      .bet-coin { box-shadow: 0 2px 7px rgba(0,0,0,.3); }
+      .bet-coin[data-outcome="outlier"] { box-shadow: 0 0 0 3px rgba(232,184,107,.16), 0 0 14px rgba(232,184,107,.8); }
+      .bet-coin[data-outcome="failure"] { animation: coin-arrive var(--duration-normal) var(--ease-out) backwards; }
+      .scatter-dot.outlier { animation: dot-scatter var(--duration-highlight) var(--ease-out) calc(var(--sd, 0) * var(--duration-loop)) backwards; }
+      .tail-zone { animation: none; }
       .blueprint { padding-top: 56px; }
       .component-table { display: block; width: 100%; max-width: 100%; overflow-x: auto; }
     }
@@ -779,7 +860,7 @@
           </div>
         </section>
 
-        <section class="layer" id="layer2" inert aria-hidden="true">
+        <section class="layer layer--exhibit" id="layer2" inert aria-hidden="true">
           <div class="layer-inner">
             <p class="eyebrow">15-35% Scroll | Bifurcation Matrix</p>
             <h2>Reality splits into two operating systems.</h2>
@@ -814,7 +895,7 @@
           </div>
         </section>
 
-        <section class="layer" id="layer3" inert aria-hidden="true">
+        <section class="layer layer--exhibit" id="layer3" inert aria-hidden="true">
           <div class="layer-inner">
             <p class="eyebrow">35-55% Scroll | Multiplication Avalanche</p>
             <h2>Addition cancels. Multiplication compounds.</h2>
@@ -829,7 +910,7 @@
           </div>
         </section>
 
-        <section class="layer" id="layer4" inert aria-hidden="true">
+        <section class="layer layer--exhibit" id="layer4" inert aria-hidden="true">
           <div class="layer-inner">
             <p class="eyebrow">55-75% Scroll | Asymmetric Risk</p>
             <h2>Failure has a floor. Upside has altitude.</h2>
@@ -847,7 +928,7 @@
           </div>
         </section>
 
-        <section class="layer" id="layer5" inert aria-hidden="true">
+        <section class="layer layer--exhibit" id="layer5" inert aria-hidden="true">
           <div class="layer-inner">
             <p class="eyebrow">75-90% Scroll | Venture Bet Sandbox</p>
             <h2>Most attempts flatline. One outlier can pay for all of them.</h2>
@@ -940,9 +1021,10 @@
 
       <article class="blueprint-card">
         <h3>Z-Space Translation Map</h3>
-        <p>Let normalized scroll progress be <code>p</code>, where <code>0.0 <= p <= 1.0</code>. Layer depth is computed as:</p>
-        <pre><code>Tz = Oz + (p * v)</code></pre>
-        <p><code>Oz</code> is the layer depth offset and <code>v</code> is velocity through camera space. Opacity is localized around each layer's active scroll band.</p>
+        <p>Let normalized scroll progress be <code>p</code>, where <code>0.0 <= p <= 1.0</code>. The baseline brief mapped depth linearly, <code>Tz = Oz + (p * v)</code>, but a purely linear camera leaves every chapter permanently mid-flight: it is always scaling, never legible at 1:1, and chapter 5 becomes a click target that moves under the cursor. Depth is instead piecewise, with an explicit hold:</p>
+        <pre><code>Tz = (clamp(in0, p, in1) - in1) * vIn
+   + (clamp(out0, p, out1) - out0) * vOut</code></pre>
+        <p>Each layer approaches from far across <code>[in0, in1]</code>, <strong style="color:var(--ink)">holds at Tz = 0</strong> across <code>[in1, out0]</code>, then departs past the camera across <code>[out0, out1]</code>. Both terms are <code>clamp()</code> on a single custom property, so the whole rig stays compositor-side. Every hold window sits inside its chapter's fully-opaque band, giving 264-456px of scroll at exactly 1:1 scale, the widest of them on the interactive chapter. Opacity remains localized around each layer's active band.</p>
       </article>
       <article class="blueprint-card">
         <h3>Production Implementation Notes</h3>
@@ -950,6 +1032,10 @@
           <li>Use a standalone HTML route with no framework dependency.</li>
           <li>Set <code>--scroll-p</code> via <code>requestAnimationFrame</code>, not direct scroll mutation.</li>
           <li>Prefer CSS transforms and opacity for low-latency compositor work.</li>
+          <li>Read <code>--scroll-p</code> back from a cached JS value, never <code>getComputedStyle</code>, inside any per-frame loop.</li>
+          <li>Give the interactive chapter the widest hold on the page so the simulation is never a moving target.</li>
+          <li>On small screens: shorten the camera throw, drop <code>backdrop-filter</code> (it forces a per-frame readback behind every moving panel), and scale the starfield budget and DPR cap to the device.</li>
+          <li>Idle the starfield loop via <code>IntersectionObserver</code> once the sticky viewport leaves the screen.</li>
           <li>Provide reduced-motion fallback where layers become normal stacked sections.</li>
           <li>Keep interactive sandbox state local and deterministic enough to demonstrate skew.</li>
         </ul>
@@ -987,6 +1073,13 @@ document.documentElement.style.setProperty("--scroll-p", progress);</code></pre>
     let previousScrollY = window.scrollY;
     let previousScrollTime = performance.now();
     let scrollVelocity = 0;
+    // Cached so the starfield loop never has to call getComputedStyle(): reading
+    // a custom property back off the root forces a style resolution, and doing
+    // that once per animation frame is a measurable cost on a phone.
+    let scrollProgress = 0;
+    let lastSlip = 0;
+    const smallScreen = window.matchMedia("(max-width: 760px)").matches
+      || window.matchMedia("(pointer: coarse)").matches;
 
     const layers = Array.from(document.querySelectorAll(".stage-3d .layer"));
     const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
@@ -1017,6 +1110,12 @@ document.documentElement.style.setProperty("--scroll-p", progress);</code></pre>
 
     function settleScrollSlip(fromSlip) {
       cancelAnimationFrame(settleFrame);
+      if (Math.abs(fromSlip) < 0.1) {
+        root.style.setProperty("--scroll-slip", "0px");
+        root.style.setProperty("--scroll-energy", "0");
+        scrollVelocity = 0;
+        return;
+      }
       const started = performance.now();
       function settle(now) {
         const progress = clamp01((now - started) / 260);
@@ -1037,20 +1136,27 @@ document.documentElement.style.setProperty("--scroll-p", progress);</code></pre>
       const instantVelocity = (window.scrollY - previousScrollY) / elapsed * 1000;
       scrollVelocity += (instantVelocity - scrollVelocity) * .42;
       const slip = reduceMotion ? 0 : clamp(-scrollVelocity / 95, -22, 22);
+      scrollProgress = progress;
+      lastSlip = slip;
       root.style.setProperty("--scroll-p", progress.toFixed(4));
       root.style.setProperty("--scroll-slip", `${slip.toFixed(2)}px`);
       root.style.setProperty("--scroll-energy", (Math.abs(slip) / 22).toFixed(3));
       updateActiveLayer(progress);
       previousScrollY = window.scrollY;
       previousScrollTime = now;
-      settleScrollSlip(slip);
       ticking = false;
     }
 
     window.addEventListener("scroll", () => {
       document.body.classList.add("is-scrolling");
       clearTimeout(scrollStopTimer);
-      scrollStopTimer = window.setTimeout(() => document.body.classList.remove("is-scrolling"), 180);
+      // The slip only needs to relax once, when the scroll actually stops.
+      // Firing it per frame spawned a competing rAF chain on every scroll event
+      // and cancelled it a frame later — pure overhead mid-gesture.
+      scrollStopTimer = window.setTimeout(() => {
+        document.body.classList.remove("is-scrolling");
+        settleScrollSlip(lastSlip);
+      }, 180);
       if (!ticking) {
         window.requestAnimationFrame(updateScrollProgress);
         ticking = true;
@@ -1189,12 +1295,19 @@ document.documentElement.style.setProperty("--scroll-p", progress);</code></pre>
     });
 
     const canvas = document.getElementById("starfield");
-    const ctx = canvas.getContext("2d");
+    const ctx = canvas.getContext("2d", { alpha: true, desynchronized: true });
     let width = 0;
     let height = 0;
     let dpr = 1;
     let starFrame = 0;
-    const stars = Array.from({ length: 360 }, (_, i) => ({
+
+    // Star budget follows the device, not a fixed constant. A phone rasterises
+    // roughly a third as many arcs as a desktop, and caps its backing store at
+    // 1.5x rather than 2x — a full-screen 3x canvas is ~4x the fill cost of a
+    // 1.5x one for a starfield nobody looks at directly.
+    const starCount = smallScreen ? 130 : 360;
+    const maxDpr = smallScreen ? 1.5 : 2;
+    const stars = Array.from({ length: starCount }, (_, i) => ({
       x: Math.random(),
       y: Math.random(),
       z: Math.random(),
@@ -1203,19 +1316,28 @@ document.documentElement.style.setProperty("--scroll-p", progress);</code></pre>
     }));
 
     function resizeCanvas() {
-      dpr = Math.min(window.devicePixelRatio || 1, 2);
-      width = window.innerWidth;
-      height = window.innerHeight;
-      canvas.width = Math.max(1, Math.floor(width * dpr));
-      canvas.height = Math.max(1, Math.floor(height * dpr));
+      const nextWidth = window.innerWidth;
+      const nextHeight = window.innerHeight;
+      const nextDpr = Math.min(window.devicePixelRatio || 1, maxDpr);
+      // Guard against a zero-sized measurement (background tab, hidden pane)
+      // permanently baking a 1x1 backing store the resize handler never revisits.
+      if (nextWidth < 1 || nextHeight < 1) return;
+      if (nextWidth === width && nextHeight === height && nextDpr === dpr) return;
+      width = nextWidth;
+      height = nextHeight;
+      dpr = nextDpr;
+      canvas.width = Math.floor(width * dpr);
+      canvas.height = Math.floor(height * dpr);
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     }
     window.addEventListener("resize", resizeCanvas);
     resizeCanvas();
 
-    function drawStars(now) {
+    function paintStars(now) {
+      if (width < 1 || height < 1) resizeCanvas();
+      if (width < 1 || height < 1) return;
       ctx.clearRect(0, 0, width, height);
-      const p = Number(getComputedStyle(root).getPropertyValue("--scroll-p")) || 0;
+      const p = scrollProgress;
       const t = reduceMotion ? 0 : now / 1000;
       for (const star of stars) {
         const drift = (p * 1.8 + t * 0.012 * (star.z + .2)) % 1;
@@ -1227,11 +1349,35 @@ document.documentElement.style.setProperty("--scroll-p", progress);</code></pre>
         ctx.fillStyle = `rgba(${star.hue}, ${alpha})`;
         ctx.fill();
       }
-      if (!reduceMotion && !document.hidden) starFrame = requestAnimationFrame(drawStars);
+    }
+
+    function drawStars(now) {
+      paintStars(now);
+      starFrame = starsShouldRun() ? requestAnimationFrame(drawStars) : 0;
+    }
+
+    // Below the sticky viewport sits ~2400px of blueprint appendix where the
+    // starfield is entirely off-screen, so a reader parked down there was paying
+    // for a full-rate canvas loop that composited nothing. Same for a
+    // backgrounded tab and for reduced-motion users, who get one static frame.
+    let starsOnScreen = true;
+    function starsShouldRun() {
+      return !reduceMotion && !document.hidden && starsOnScreen;
     }
     function startStars() {
       cancelAnimationFrame(starFrame);
-      if (!reduceMotion && !document.hidden) starFrame = requestAnimationFrame(drawStars);
+      starFrame = 0;
+      if (starsShouldRun()) starFrame = requestAnimationFrame(drawStars);
+      // Paused: leave one correct still frame so stopping never blanks the sky.
+      else requestAnimationFrame(paintStars);
+    }
+    if ("IntersectionObserver" in window) {
+      new IntersectionObserver((entries) => {
+        const next = entries.some((entry) => entry.isIntersecting);
+        if (next === starsOnScreen) return;
+        starsOnScreen = next;
+        startStars();
+      }, { threshold: 0 }).observe(document.querySelector(".viewport-sticky"));
     }
     document.addEventListener("visibilitychange", startStars);
     startStars();

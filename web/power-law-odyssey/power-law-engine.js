@@ -47,8 +47,30 @@
     return SCROLL_BANDS.findIndex(([start, end]) => normalized >= start && normalized < end);
   }
 
+  // The blueprint's baseline linear camera. Kept because the appendix documents
+  // it as the starting point, but the page no longer uses it — see layerDepth.
   function translateZ(originZ, progress, velocity) {
     return Number(originZ) + clamp01(progress) * Number(velocity);
+  }
+
+  // The camera the page actually runs, and the exact arithmetic the CSS does:
+  // approach across [in0, in1], HOLD at 0 across [in1, out0], depart across
+  // [out0, out1]. A linear camera leaves every chapter permanently mid-flight,
+  // which makes the interactive chapter a target that moves under the cursor.
+  function layerDepth(track, progress) {
+    const {
+      in0 = 0, in1 = 0, out0 = 1, out1 = 1, inV = 0, outV = 0,
+    } = track || {};
+    const p = clamp01(progress);
+    const clampTo = (low, value, high) => Math.min(Math.max(value, low), high);
+    return (clampTo(in0, p, in1) - in1) * inV
+      + (clampTo(out0, p, out1) - out0) * outV;
+  }
+
+  // Scale a layer presents to the reader at a given depth, under the stage's
+  // CSS `perspective`. 1 means the chapter is sitting still at the camera plane.
+  function layerScale(depth, perspective = 1000) {
+    return perspective / (perspective - Number(depth));
   }
 
   function createOutcomeDeck(random) {
@@ -176,7 +198,9 @@
     SCROLL_BANDS,
     createPowerLawEngine,
     hashSeed,
+    layerDepth,
     layerForProgress,
+    layerScale,
     translateZ,
   };
 });
