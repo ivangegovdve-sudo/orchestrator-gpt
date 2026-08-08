@@ -38,33 +38,62 @@
 body{background:var(--bg);color:var(--text);font-family:var(--forest-body,Alegreya,Georgia,serif);min-height:100vh;overflow-x:hidden}
 
 /* ── Back link ── */
-.back-link{display:inline-flex;align-items:center;gap:6px;color:#7d8877;text-decoration:none;font-size:13px;padding:16px 20px 0;transition:color var(--duration-fast) var(--ease-out)}
-.back-link:hover{color:var(--text)}
+.back-link{display:inline-flex;align-items:center;gap:6px;min-height:44px;color:var(--text-muted);text-decoration:none;font-size:13px;padding:12px 20px 0;transition:color var(--duration-fast) var(--ease-out)}
+.back-link:hover,.back-link:focus-visible{color:var(--text-primary)}
 
 /* ── Header ── */
 .header{text-align:center;padding:36px 20px 24px}
 .header h1{font-family:var(--forest-display,"Cormorant Garamond",Georgia,serif);font-size:clamp(2.1em,5.5vw,3.4em);font-weight:700;letter-spacing:0;background:linear-gradient(135deg,#e8b86b,#8fe6ae);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
 .header .sub{color:var(--muted);margin-top:8px;font-size:.95em}
 
-/* ── Year progress bar ── */
-.year-prog-wrap{width:min(520px,calc(100% - 32px));margin:22px auto 0;padding:16px 18px 18px;border:1px solid var(--border);border-radius:16px;background:var(--surface);box-shadow:0 18px 48px rgba(0,0,0,.24)}
-.year-prog-labels{display:flex;justify-content:space-between;gap:16px;margin-bottom:9px;font:700 .78em/1.2 var(--font);color:var(--text-muted)}
-.year-prog-track{height:clamp(14px,2vw,18px);background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.08);border-radius:99px;overflow:hidden;box-shadow:inset 0 1px 3px rgba(0,0,0,.45)}
-.year-prog-fill{position:relative;height:100%;width:0%;background:linear-gradient(90deg,var(--time-warm),var(--accent-green));border-radius:99px;transition:width var(--duration-slow) var(--ease-out);box-shadow:0 0 16px rgba(34,197,94,.45),0 0 6px rgba(232,184,107,.62)}
-.year-prog-fill::after{content:'';position:absolute;inset:0;border-radius:99px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.55),transparent);transform:translateX(-100%);animation:yearShimmer var(--duration-slow) var(--ease-out) var(--duration-slow) both}
+/* ── Year progress bar (mobile-first) ── */
+.year-prog{width:min(680px,calc(100% - 28px));margin:26px auto 0;padding:20px 18px 16px;border:1px solid var(--border);border-radius:18px;background:
+  radial-gradient(120% 140% at 0% 0%,rgba(232,184,107,.09),transparent 58%),
+  radial-gradient(120% 140% at 100% 100%,rgba(34,197,94,.08),transparent 58%),
+  var(--surface);
+  box-shadow:0 22px 60px rgba(0,0,0,.34);text-align:left}
+.year-prog-head{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:14px;margin-bottom:16px}
+.year-prog-eyebrow{display:block;font:700 .64em/1 var(--forest-sans,"Alegreya Sans",sans-serif);letter-spacing:1.6px;text-transform:uppercase;color:var(--text-muted)}
+.year-prog-pct{display:flex;align-items:baseline;gap:3px;margin-top:6px;font-family:var(--forest-sans,"Alegreya Sans",sans-serif);line-height:.9;color:var(--text-primary)}
+.year-prog-pct b{font-size:clamp(2.5rem,13vw,3.6rem);font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:-.02em;background:linear-gradient(135deg,var(--time-warm),var(--accent-green));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.year-prog-pct i{font-size:1.15rem;font-style:normal;font-weight:700;color:var(--time-warm)}
+.year-prog-pct em{margin-left:6px;font-size:.72rem;font-style:normal;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;color:var(--text-muted);align-self:center}
+.year-prog-meta{display:flex;gap:18px;margin:0;font-family:var(--forest-sans,"Alegreya Sans",sans-serif)}
+.year-prog-meta>div{text-align:right}
+.year-prog-meta dt{font-size:.6rem;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--text-muted)}
+.year-prog-meta dd{margin:4px 0 0;font-size:1.02rem;font-weight:700;font-variant-numeric:tabular-nums;color:var(--text-primary)}
+.year-prog-track{position:relative;height:clamp(20px,5.4vw,26px);background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:99px;overflow:hidden;box-shadow:inset 0 2px 6px rgba(0,0,0,.55)}
+.year-prog-ticks{position:absolute;inset:0;border-radius:99px;pointer-events:none;z-index:2;
+  background:repeating-linear-gradient(90deg,transparent 0,transparent calc(100%/12 - 1px),rgba(255,255,255,.11) calc(100%/12 - 1px),rgba(255,255,255,.11) calc(100%/12))}
+.year-prog-fill{position:relative;height:100%;width:0%;border-radius:99px;background:linear-gradient(90deg,var(--time-warm) 0%,#f0a35c 46%,var(--accent-green) 100%);box-shadow:0 0 22px rgba(34,197,94,.4),0 0 10px rgba(232,184,107,.5);transition:width var(--duration-hero,900ms) var(--ease-out)}
+.year-prog-fill::after{content:'';position:absolute;inset:0;border-radius:99px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.6),transparent);transform:translateX(-100%);animation:yearShimmer var(--duration-hero,900ms) var(--ease-out) var(--duration-slow) both}
+.year-prog-knob{position:absolute;top:50%;right:0;width:11px;height:11px;margin-right:-1px;border-radius:50%;background:#fff;transform:translate(50%,-50%);box-shadow:0 0 0 3px rgba(7,7,11,.72),0 0 18px 4px rgba(34,197,94,.55);z-index:3;animation:knobPulse var(--duration-loop,1s) ease-in-out infinite}
+@keyframes knobPulse{0%,100%{box-shadow:0 0 0 3px rgba(7,7,11,.72),0 0 14px 2px rgba(34,197,94,.45)}50%{box-shadow:0 0 0 3px rgba(7,7,11,.72),0 0 24px 7px rgba(34,197,94,.7)}}
+.year-prog-scale{display:flex;justify-content:space-between;margin-top:9px;font:700 .58rem/1 var(--forest-sans,"Alegreya Sans",sans-serif);letter-spacing:1.1px;text-transform:uppercase;color:var(--text-muted);opacity:.72}
+.year-prog-note{margin:12px 0 0;font-size:.76rem;line-height:1.5;color:var(--text-muted)}
+.year-prog-note b{color:var(--time-warm);font-weight:700}
 @keyframes yearShimmer{0%{transform:translateX(-100%)}60%,100%{transform:translateX(100%)}}
-@media(prefers-reduced-motion:reduce){.year-prog-fill{transition:none}.year-prog-fill::after{animation:none;display:none}}
+@media(min-width:600px){
+  .year-prog{padding:26px 30px 22px}
+  .year-prog-meta{gap:28px}
+  .year-prog-meta dd{font-size:1.2rem}
+}
+@media(prefers-reduced-motion:reduce){
+  .year-prog-fill{transition:none}
+  .year-prog-fill::after{animation:none;display:none}
+  .year-prog-knob{animation:none}
+}
 
 /* ── Form ── */
 .form-wrap{max-width:520px;margin:28px auto 0;padding:0 20px}
-.form-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:28px 32px}
+.form-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:20px 16px}
 .form-card h2{font-family:var(--forest-display,"Cormorant Garamond",Georgia,serif);font-size:1.25em;color:var(--accent);margin-bottom:18px;letter-spacing:.5px}
 .field{margin-bottom:14px}
 .field label{display:block;font-family:var(--forest-sans,"Alegreya Sans",sans-serif);font-size:.8em;color:var(--muted);margin-bottom:5px;letter-spacing:.3px;text-transform:uppercase}
 .field input{width:100%;background:rgba(0,0,0,.4);border:1px solid var(--border);border-radius:8px;padding:10px 14px;color:var(--text);font-family:var(--forest-sans,"Alegreya Sans",sans-serif);font-size:.95em;outline:none;transition:border-color var(--duration-fast) var(--ease-out)}
 .field input:focus{border-color:var(--accent)}
 .field .hint{font-size:.71em;color:var(--muted);margin-top:4px;opacity:.7}
-.field-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.field-row{display:grid;grid-template-columns:1fr;gap:12px}
 .form-error{color:var(--red);font-size:.82em;margin:4px 0;padding:6px 10px;border-radius:6px;background:rgba(239,68,68,.06);border:1px solid rgba(239,68,68,.18);display:none}
 .form-error.visible{display:block}
 .btn-calc{width:100%;background:linear-gradient(135deg,#e8b86b,#d99a58);border:none;border-radius:8px;padding:13px;color:#201709;font-family:var(--forest-sans,"Alegreya Sans",sans-serif);font-size:1em;font-weight:700;cursor:pointer;letter-spacing:.5px;margin-top:8px;transition:opacity var(--duration-fast) var(--ease-out)}
@@ -79,7 +108,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--forest-body,Alegre
 .wake-sub{color:var(--muted);margin-top:8px;font-size:.9em}
 
 /* ── Kid summers section ── */
-.kid-block{background:rgba(245,158,11,.05);border:1px solid rgba(245,158,11,.2);border-radius:18px;padding:28px;margin-bottom:32px;text-align:center}
+.kid-block{background:rgba(245,158,11,.05);border:1px solid rgba(245,158,11,.2);border-radius:18px;padding:20px 16px;margin-bottom:32px;text-align:center}
 .kid-count{font-family:var(--forest-display,"Cormorant Garamond",Georgia,serif);font-size:clamp(2.9em,7.7vw,4.7em);font-weight:700;color:var(--gold);line-height:1;letter-spacing:0}
 .kid-subtitle{font-size:1.05em;color:var(--text);font-weight:600;margin:6px 0 4px}
 .kid-note{font-size:.85em;color:var(--muted);line-height:1.6;max-width:480px;margin:0 auto 20px}
@@ -109,7 +138,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--forest-body,Alegre
 .legend-dot{width:11px;height:11px;border-radius:2px;display:inline-block;flex-shrink:0}
 
 /* ── Stats grid ── */
-.stats-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(175px,1fr));gap:11px;margin-bottom:32px}
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,148px),1fr));gap:11px;margin-bottom:32px}
 .stat-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px 13px;text-align:center;transition:border-color var(--duration-normal) var(--ease-out);animation:statIn var(--duration-spring) var(--ease-out) both;animation-delay:calc(var(--i,0) * var(--stagger-list))}
 .stat-card:hover{border-color:rgba(255,255,255,.18)}
 .stat-card .icon{font-size:1.5em;margin-bottom:5px}
@@ -143,7 +172,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--forest-body,Alegre
 .section-hd{font-family:var(--forest-sans,"Alegreya Sans",sans-serif);font-size:.75em;letter-spacing:1.5px;text-transform:uppercase;font-weight:700;margin-bottom:16px;display:block}
 
 /* ── Achievers ── */
-.achievers-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:13px;margin-bottom:44px}
+.achievers-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,240px),1fr));gap:13px;margin-bottom:44px}
 .achiever-card{background:rgba(245,158,11,.04);border:1px solid rgba(245,158,11,.14);border-radius:12px;padding:16px 18px;transition:border-color var(--duration-fast) var(--ease-out);animation:achIn var(--duration-spring) var(--ease-out) both;animation-delay:calc(var(--i,0) * var(--stagger-card))}
 .achiever-card:hover{border-color:rgba(245,158,11,.34)}
 .ach-age{font-family:var(--forest-sans,"Alegreya Sans",sans-serif);font-size:.71em;color:var(--gold);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;font-weight:700}
@@ -154,15 +183,15 @@ body{background:var(--bg);color:var(--text);font-family:var(--forest-body,Alegre
 /* ── Skills peak chart ── */
 .peaks-section{margin-bottom:44px}
 .peaks-chart-outer{overflow-x:auto;padding-bottom:4px}
-.peaks-chart{min-width:380px;font-family:var(--forest-sans,"Alegreya Sans",sans-serif)}
-.peak-axis-row{display:flex;justify-content:space-between;padding-left:148px;font-size:.62em;color:var(--muted);margin-bottom:6px;padding-right:66px}
+.peaks-chart{min-width:318px;font-family:var(--forest-sans,"Alegreya Sans",sans-serif)}
+.peak-axis-row{display:flex;justify-content:space-between;padding-left:104px;font-size:.62em;color:var(--muted);margin-bottom:6px;padding-right:4px}
 .peak-row{display:flex;align-items:center;gap:8px;margin-bottom:5px}
-.peak-skill-lbl{width:140px;font-size:.74em;color:var(--muted);text-align:right;flex-shrink:0;line-height:1.25}
+.peak-skill-lbl{width:96px;font-size:.67em;color:var(--muted);text-align:right;flex-shrink:0;line-height:1.25}
 .peak-track{flex:1;height:19px;background:rgba(255,255,255,.04);border-radius:3px;position:relative}
 .peak-bar{position:absolute;top:0;height:100%;border-radius:3px;display:flex;align-items:center;justify-content:center;min-width:30px}
 .peak-bar-label{font-size:.58em;font-weight:600;white-space:nowrap;padding:0 4px}
 .peak-now-line{position:absolute;top:-5px;bottom:-5px;width:2px;border-radius:1px;background:rgba(255,255,255,.55);pointer-events:none;z-index:2}
-.peak-status-badge{width:60px;font-size:.61em;border-radius:3px;padding:2px 5px;text-align:center;flex-shrink:0;font-weight:600;letter-spacing:.03em}
+.peak-status-badge{display:none;width:60px;font-size:.61em;border-radius:3px;padding:2px 5px;text-align:center;flex-shrink:0;font-weight:600;letter-spacing:.03em}
 .psb-ahead{background:rgba(34,197,94,.1);color:#4ade80;border:1px solid rgba(34,197,94,.2)}
 .psb-now{background:rgba(245,158,11,.15);color:var(--amber);border:1px solid rgba(245,158,11,.3)}
 .psb-done{background:rgba(255,255,255,.04);color:var(--muted);border:1px solid rgba(255,255,255,.08)}
@@ -177,8 +206,8 @@ body{background:var(--bg);color:var(--text);font-family:var(--forest-body,Alegre
 
 /* ── Share ── */
 .share-row{text-align:center;margin:32px 0 0}
-.btn-share{display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.06);border:1px solid rgba(226,235,209,.14);color:#a9b3a1;border-radius:8px;padding:10px 20px;font-family:var(--forest-sans,"Alegreya Sans",sans-serif);font-size:.84em;cursor:pointer;transition:border-color var(--duration-fast) var(--ease-out),color var(--duration-fast) var(--ease-out)}
-.btn-share:hover{border-color:var(--accent);color:var(--text)}
+.btn-share{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:44px;background:rgba(255,255,255,.06);border:1px solid var(--border);color:var(--text-muted);border-radius:var(--radius);padding:10px 20px;font-family:var(--forest-sans,"Alegreya Sans",sans-serif);font-size:.84em;cursor:pointer;transition:border-color var(--duration-fast) var(--ease-out),color var(--duration-fast) var(--ease-out)}
+.btn-share:hover,.btn-share:focus-visible{border-color:var(--accent);color:var(--text-primary)}
 
 /* ── Footer ── */
 .page-note{text-align:center;padding:28px 20px 20px;font-size:.74em;color:var(--muted);border-top:1px solid var(--border);max-width:600px;margin:0 auto;line-height:1.6}
@@ -201,17 +230,25 @@ body{background:var(--bg);color:var(--text);font-family:var(--forest-body,Alegre
 .stats-grid{padding-top:4px}
 .hb-ticker{margin-bottom:40px}
 
-/* ── Pivot CTA framing ── */
+/* ── Pivot CTA framing (mobile-first) ── */
 .pivot-wrap{
   margin:12px 0 44px;
-  padding:32px 20px;
-  border-top:1px solid var(--border);
-  border-bottom:1px solid var(--border);
-  background:rgba(232,184,107,.04);
-  border-radius:14px;
+  padding:34px 18px 30px;
+  border:1px solid rgba(232,184,107,.22);
+  border-radius:18px;
+  background:
+    radial-gradient(130% 120% at 50% 0%,rgba(232,184,107,.11),transparent 62%),
+    rgba(232,184,107,.04);
+  box-shadow:0 22px 60px rgba(0,0,0,.3);
 }
 .pivot-wrap .section-label{margin-bottom:8px;color:var(--time-warm)}
-.pivot-wrap h2{margin:0 0 18px;font-family:var(--forest-display,"Cormorant Garamond",Georgia,serif);font-size:clamp(1.55rem,4vw,2.25rem);color:var(--text-primary)}
+.pivot-wrap h2{margin:0 0 12px;font-family:var(--forest-display,"Cormorant Garamond",Georgia,serif);font-size:clamp(1.75rem,7vw,2.6rem);color:var(--text-primary);line-height:1.08}
+.pivot-teaser{max-width:52ch;margin:0 auto 18px;font-size:.94rem;line-height:1.65;color:var(--text-muted)}
+.pivot-teaser b{color:var(--gold);font-weight:700}
+.pivot-figures{display:flex;flex-wrap:wrap;justify-content:center;gap:7px;margin:0 auto 22px;max-width:560px}
+.pivot-figures span{padding:5px 11px;border:1px solid rgba(245,158,11,.24);border-radius:99px;background:rgba(245,158,11,.06);font-family:var(--forest-sans,"Alegreya Sans",sans-serif);font-size:.68rem;font-weight:700;letter-spacing:.4px;color:var(--gold);white-space:nowrap;animation:achIn var(--duration-normal) var(--ease-out) both;animation-delay:calc(var(--i,0) * var(--stagger-dot))}
+.share-row--early{margin-top:20px}
+@media(min-width:600px){.pivot-wrap{padding:46px 34px 38px}.pivot-teaser{font-size:1.02rem}}
 @keyframes pivotGlow{
   0%,100%{box-shadow:0 0 30px rgba(232,184,107,.22),0 6px 32px rgba(0,0,0,.3)}
   50%    {box-shadow:0 0 56px rgba(232,184,107,.5),0 0 90px rgba(217,138,127,.2),0 6px 32px rgba(0,0,0,.3)}
@@ -237,15 +274,15 @@ body{background:var(--bg);color:var(--text);font-family:var(--forest-body,Alegre
   .stat-card,.achiever-card,.lg-row,#results{animation:none;opacity:1}
   .hb-ticker,.kd.left,.ld.current,.btn-pivot{animation:none}
 }
-@media(max-width:600px){
-  .form-card{padding:20px 16px}
-  .field-row{grid-template-columns:1fr}
-  .stats-grid{grid-template-columns:1fr 1fr}
-  .peak-skill-lbl{width:96px;font-size:.67em}
-  .peak-axis-row{padding-left:104px;padding-right:4px}
-  .peak-status-badge{display:none}
-  .kid-block{padding:20px 16px}
-  .pivot-wrap{padding:24px 14px}
+/* ── Mobile-first: everything above targets the narrow viewport; scale up from here ── */
+@media(min-width:600px){
+  .form-card{padding:28px 32px}
+  .field-row{grid-template-columns:1fr 1fr}
+  .kid-block{padding:28px}
+  .peaks-chart{min-width:380px}
+  .peak-skill-lbl{width:140px;font-size:.74em}
+  .peak-axis-row{padding-left:148px;padding-right:66px}
+  .peak-status-badge{display:block}
 }
 </style>
   <link rel="stylesheet" href="/web/shared/design-history.css?v=20260807a">
@@ -258,28 +295,70 @@ body{background:var(--bg);color:var(--text);font-family:var(--forest-body,Alegre
 <div class="header">
   <h1>Life in Time</h1>
   <p class="sub">See what remains. Then see what's still possible.</p>
-  <div class="year-prog-wrap">
-    <div class="year-prog-labels">
-      <span id="yearProgLabel">2026 is 0% gone</span>
-      <span id="yearProgDays"></span>
+  <section class="year-prog" aria-labelledby="yearProgHd">
+    <div class="year-prog-head">
+      <div>
+        <span class="year-prog-eyebrow" id="yearProgHd">Year <span id="yearProgYear">&mdash;</span> so far</span>
+        <div class="year-prog-pct"><b id="yearProgPct">0</b><i>%</i><em>gone</em></div>
+      </div>
+      <dl class="year-prog-meta">
+        <div><dt>Days left</dt><dd id="yearProgDays">&mdash;</dd></div>
+        <div><dt>Week</dt><dd id="yearProgWeek">&mdash;</dd></div>
+      </dl>
     </div>
     <div class="year-prog-track" role="progressbar" aria-label="Current year elapsed" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-valuetext="0% of the current year elapsed">
-      <div class="year-prog-fill" id="yearProgBar"></div>
+      <div class="year-prog-fill" id="yearProgBar"><span class="year-prog-knob" aria-hidden="true"></span></div>
+      <div class="year-prog-ticks" aria-hidden="true"></div>
     </div>
-  </div>
+    <div class="year-prog-scale" aria-hidden="true"><span>Jan</span><span>Apr</span><span>Jul</span><span>Oct</span><span>Dec</span></div>
+    <p class="year-prog-note" id="yearProgNote"></p>
+  </section>
 </div>
 <script>
 (function(){
-  var now=new Date(),yr=now.getFullYear();
-  var start=new Date(yr,0,1),end=new Date(yr+1,0,1);
-  var pct=Math.round((now-start)/(end-start)*100);
-  var dLeft=Math.ceil((end-now)/86400000);
-  document.getElementById('yearProgLabel').textContent=yr+' is '+pct+'% gone';
-  document.getElementById('yearProgDays').textContent=dLeft+' days left';
-  var meter=document.querySelector('.year-prog-track');
-  meter.setAttribute('aria-valuenow',String(pct));
-  meter.setAttribute('aria-valuetext',pct+'% of '+yr+' elapsed; '+dLeft+' days remain');
-  setTimeout(function(){document.getElementById('yearProgBar').style.width=pct+'%';},120);
+  var reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
+  var pctEl  = document.getElementById('yearProgPct');
+  var barEl  = document.getElementById('yearProgBar');
+  var track  = document.querySelector('.year-prog-track');
+  var countTimer = null;
+
+  function countUp(target){
+    if (countTimer) { clearInterval(countTimer); countTimer = null; }
+    if (reduced.matches) { pctEl.textContent = target; return; }
+    var v = 0, step = Math.max(1, Math.round(target / 34));
+    countTimer = setInterval(function(){
+      v += step;
+      if (v >= target) { v = target; clearInterval(countTimer); countTimer = null; }
+      pctEl.textContent = v;
+    }, 26);
+  }
+
+  function render(animate){
+    var now   = new Date(), yr = now.getFullYear();
+    var start = new Date(yr, 0, 1), end = new Date(yr + 1, 0, 1);
+    var pct   = Math.round((now - start) / (end - start) * 100);
+    var dLeft = Math.ceil((end - now) / 86400000);
+    var week  = Math.min(52, Math.floor((now - start) / 604800000) + 1);
+
+    document.getElementById('yearProgYear').textContent = yr;
+    document.getElementById('yearProgDays').textContent = dLeft.toLocaleString();
+    document.getElementById('yearProgWeek').textContent = week + '/52';
+    document.getElementById('yearProgNote').innerHTML =
+      'Every square below is a year. This bar is just <b>one</b> of them &mdash; and it is already ' + pct + '% spent.';
+    track.setAttribute('aria-valuenow', String(pct));
+    track.setAttribute('aria-valuetext', pct + '% of ' + yr + ' elapsed; ' + dLeft + ' days remain (week ' + week + ' of 52)');
+
+    if (animate) {
+      setTimeout(function(){ barEl.style.width = pct + '%'; countUp(pct); }, 140);
+    } else {
+      barEl.style.width = pct + '%';
+      pctEl.textContent = pct;
+    }
+  }
+
+  render(true);
+  // Keep the readout honest for long-lived tabs.
+  setInterval(function(){ render(false); }, 60000);
 })();
 </script>
 
@@ -349,8 +428,13 @@ body{background:var(--bg);color:var(--text);font-family:var(--forest-body,Alegre
   <section class="pivot-wrap" aria-labelledby="late-achiever-title">
     <span class="section-label">Perspective shift</span>
     <h2 id="late-achiever-title">The late-achiever pivot</h2>
+    <p class="pivot-teaser" id="pivotTeaser"></p>
+    <div class="pivot-figures" id="pivotFigures" aria-hidden="true"></div>
     <button class="btn-pivot" onclick="showPositive()">But you're nowhere near done ✨</button>
     <p class="pivot-hint">History says your best work may still be ahead</p>
+    <div class="share-row share-row--early">
+      <button class="btn-share" id="shareBtnTop" onclick="shareLink(this,false)">🔗 Copy a link to these numbers</button>
+    </div>
   </section>
 
   <!-- Part 2: hopeful -->
@@ -378,7 +462,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--forest-body,Alegre
     </div>
 
     <div class="share-row">
-      <button class="btn-share" id="shareBtn" onclick="shareLink()">🔗 Share this with someone who needs it</button>
+      <button class="btn-share" id="shareBtn" onclick="shareLink(this,true)">🔗 Share this with someone who needs it</button>
     </div>
 
   </div><!-- /positive -->
@@ -596,6 +680,17 @@ function calculate() {
   // ── Achievers ──
   var relevant = ACHIEVERS.filter(function(a){ return a.age >= age; });
   var toShow   = relevant.length >= 4 ? relevant : ACHIEVERS;
+
+  // ── Pivot teaser: the same evidence, surfaced before the reveal ──
+  var peaksAhead = SKILL_PEAKS.filter(function(p){ return age <= p.peakMax; }).length;
+  document.getElementById('pivotTeaser').innerHTML = relevant.length
+    ? '<b>' + relevant.length + ' of the ' + ACHIEVERS.length + '</b> people below did their defining work at ' + age +
+      ' or later &mdash; and <b>' + peaksAhead + ' of ' + SKILL_PEAKS.length + '</b> measured human abilities have not finished peaking for you yet.'
+    : '<b>' + peaksAhead + ' of ' + SKILL_PEAKS.length + '</b> measured human abilities are still at or before their peak for you. The research is not finished with you either.';
+  document.getElementById('pivotFigures').innerHTML = (relevant.length ? relevant : ACHIEVERS)
+    .slice(0, 6)
+    .map(function(a, i){ return '<span style="--i:' + i + '">' + a.name + ' &middot; ' + a.age + '</span>'; })
+    .join('');
   document.getElementById('achieversHd').textContent = relevant.length >= 4
     ? toShow.length + ' people who changed the world at age ' + age + ' or later:'
     : ACHIEVERS.length + ' inspiring late achievers:';
@@ -638,7 +733,7 @@ function showPositive() {
   setTimeout(function(){ pos.scrollIntoView({behavior:REDUCED_MOTION.matches?'auto':'smooth',block:'start'}); }, 50);
 }
 
-function shareLink() {
+function buildShareUrl(openPositive) {
   var params = new URLSearchParams();
   var by = document.getElementById('birthYear').value;
   var py = document.getElementById('parentYear').value;
@@ -647,16 +742,32 @@ function shareLink() {
   if (by) params.set('by', by);
   if (py) params.set('py', py);
   if (cy) params.set('cy', cy);
-  if (le && le !== '83') params.set('le', le);
-  var url = location.origin + location.pathname + (params.toString() ? '?' + params.toString() : '');
+  if (le && parseInt(le) !== LIFE_EXP_DEFAULT) params.set('le', le);
+  // Carry the reveal state so a link shared from the hopeful half opens there.
+  if (openPositive) params.set('v', '1');
+  var path = location.pathname.replace(/index\.html$/, '');
+  return location.origin + path + (params.toString() ? '?' + params.toString() : '');
+}
+
+function shareLink(btn, openPositive) {
+  btn = btn || document.getElementById('shareBtn');
+  var url   = buildShareUrl(openPositive !== false);
+  var label = btn.textContent;
+  function done(text) {
+    btn.textContent = text;
+    setTimeout(function(){ btn.textContent = label; }, 2200);
+  }
+  if (navigator.share) {
+    navigator.share({ title: 'Life in Time', text: "See what's left \u2014 and what's still ahead.", url: url })
+      .then(function(){ done('✓ Shared!'); })
+      .catch(function(){ /* user dismissed the share sheet: nothing to report */ });
+    return;
+  }
   var write = navigator.clipboard && typeof navigator.clipboard.writeText === 'function'
     ? navigator.clipboard.writeText(url)
     : Promise.reject(new Error('Clipboard API unavailable'));
-  write.then(function(){
-    var btn = document.getElementById('shareBtn');
-    btn.textContent = '✓ Copied!';
-    setTimeout(function(){ btn.textContent = '🔗 Share this with someone who needs it'; }, 2200);
-  }).catch(function(){ prompt('Copy this link:', url); });
+  write.then(function(){ done('✓ Copied!'); })
+       .catch(function(){ window.prompt('Copy this link:', url); });
 }
 
 (function(){
@@ -665,7 +776,10 @@ function shareLink() {
   if (p.get('py')) document.getElementById('parentYear').value = p.get('py');
   if (p.get('cy')) document.getElementById('childYear').value = p.get('cy');
   if (p.get('le')) document.getElementById('lifeExp').value = p.get('le');
-  if (p.get('by')) calculate();
+  if (p.get('by')) {
+    calculate();
+    if (p.get('v') === '1') showPositive();
+  }
 })();
 </script>
 <script src="/web/shared/forest-motion.js?v=20260807a"></script>
