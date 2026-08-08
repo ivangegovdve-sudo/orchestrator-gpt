@@ -11,6 +11,8 @@ const readBuilt = (relativePath) => {
   const absolutePath = path.join(OUT, relativePath);
   return fs.existsSync(absolutePath) ? fs.readFileSync(absolutePath, 'utf8') : '';
 };
+const withoutNavigationMetadata = (source) =>
+  source.replace(/<script\b[^>]*type=["']speculationrules["'][^>]*>[\s\S]*?<\/script>/gi, '');
 
 test.before(() => {
   execFileSync(process.execPath, [path.join(ROOT, 'build-vercel-static.cjs')], {
@@ -54,7 +56,7 @@ test('the built TinyLLM workspace visibly exposes exactly the five public counci
 });
 
 test('the public Council contains no private, key, or access-gate surface', () => {
-  const publicCouncil = [
+  const publicCouncil = withoutNavigationMetadata([
     readBuilt('web/council/index.html'),
     readBuilt('web/council/council.js'),
     readBuilt('web/council/byok/index.html'),
@@ -95,7 +97,7 @@ test('Council streaming writes text safely and uses only fixed public relays', (
 
   assert.match(runtime, /createTextNode|textContent/);
   assert.match(runtime, /deliberation-loader/);
-  assert.match(runtime, /loader\?\.remove\(\)[\s\S]*appendData\(token\)/);
+  assert.match(runtime, /loader\?\.remove\(\)[\s\S]*textContent\s*\+=\s*token/);
   assert.doesNotMatch(runtime, /\.innerHTML\s*=/);
   assert.doesNotMatch(runtime, /sessionStorage|localStorage|Authorization|X-BYOK-Key|apiKey/i);
   assert.match(runtime, /https:\/\/chloe\.blumenkraft\.cloud\/tinylm-api/);
@@ -103,7 +105,28 @@ test('Council streaming writes text safely and uses only fixed public relays', (
   assert.match(runtime, /:free/);
   assert.match(council, /\.deliberation-loader\s+\.dot/);
   assert.match(council, /var\(--duration-dot-pulse\)/);
-  assert.match(council, /var\(--stagger-dot\)/);
+  assert.match(council, /var\(--duration-deliberation-stagger\)/);
+  assert.match(runtime, /--model-accent/);
+  assert.match(council, /\.stage-card\.active[\s\S]*var\(--model-accent/);
+  assert.match(council, /\.stage-card\.done\s*\{\s*border-color:\s*var\(--accent-green\)/);
+  assert.match(council, /border-color var\(--duration-normal\)/);
+});
+
+test('the built Council presents a separate actual-model label on every role card', () => {
+  const council = readBuilt('web/council/index.html');
+  assert.equal((council.match(/data-model-label=/g) || []).length, 8);
+  assert.match(council, /data-model-label="openrouter-proposer"/);
+  assert.match(council, /data-model-label="tinylm-proposer"/);
+  const modelStyle = council.match(/\.stage-model\s*\{([\s\S]*?)\}/)?.[1] || '';
+  assert.doesNotMatch(modelStyle, /overflow:\s*hidden|white-space:\s*nowrap|text-overflow:\s*ellipsis/);
+  assert.match(modelStyle, /overflow-wrap:\s*anywhere/);
+});
+
+test('Council ships the exact honest failure language', () => {
+  const runtime = read('web/council/council.js');
+  assert.match(runtime, /The Local Oracle is offline\. This page can only listen while Ivan’s ARM64 Ollama host and relay are reachable; no reply has been invented\./);
+  assert.match(runtime, /The free OpenRouter roster is rate-limited right now\. No paid model was substituted\. Try again later\./);
+  assert.match(runtime, /ended incomplete/i);
 });
 
 test('AI Research describes and routes directly to the two public Councils', () => {

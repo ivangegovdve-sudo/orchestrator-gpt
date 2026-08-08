@@ -6,7 +6,7 @@ const { after, before, test } = require('node:test');
 const { chromium } = require('playwright');
 
 const ROOT = path.resolve(__dirname, '../..');
-const CACHE_VERSION = '20260729b';
+const CACHE_VERSION = '20260807a';
 const htmlFiles = () => {
   const walk = (dir) => fs.readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
     const file = path.join(dir, entry.name);
@@ -165,6 +165,8 @@ test('feedback injects an accessible dialog, sends the trimmed message and resto
   await page.getByRole('button', { name: 'Submit' }).click();
   assert.deepEqual(JSON.parse((await request).postData()), { message: 'Needs a little more moss.', url: `${baseUrl}/` });
   await assert.doesNotReject(page.getByText('Thanks — noted.').waitFor());
+  assert.equal(await dialog.locator('form').count(), 0);
+  assert.equal(await dialog.getByRole('status').textContent(), 'Thanks — noted.');
   await page.waitForTimeout(2100);
   assert.equal(await dialog.count(), 0);
   assert.equal(await page.evaluate(() => document.activeElement?.getAttribute('aria-label')), 'Send feedback');
@@ -187,6 +189,54 @@ test('feedback supports escape, backdrop, failure, reduced motion, and has no pe
   await page.getByRole('button', { name: 'Send feedback' }).click();
   await page.locator('[data-feedback-backdrop]').click({ position: { x: 4, y: 4 } });
   assert.equal(await dialog.count(), 0);
+  const clearsFixedControl = await page.evaluate(async () => {
+    const blocker = document.createElement('button');
+    blocker.textContent = 'Existing fixed action';
+    blocker.style.cssText = 'position:fixed;right:18px;bottom:18px;width:150px;height:44px;z-index:2147483647';
+    document.body.append(blocker);
+    window.dispatchEvent(new Event('resize'));
+    await new Promise((resolve) =>
+      requestAnimationFrame(() => requestAnimationFrame(resolve)));
+    const feedback = document.querySelector('button[aria-label="Send feedback"]');
+    const feedbackRect = feedback.getBoundingClientRect();
+    const blockerRect = blocker.getBoundingClientRect();
+    const overlaps = feedbackRect.left < blockerRect.right
+      && feedbackRect.right > blockerRect.left
+      && feedbackRect.top < blockerRect.bottom
+      && feedbackRect.bottom > blockerRect.top;
+    blocker.remove();
+    window.dispatchEvent(new Event('resize'));
+    return {
+      overlaps,
+      shiftedBottom: feedback.style.bottom,
+    };
+  });
+  assert.equal(clearsFixedControl.overlaps, false);
+  assert.ok(Number.parseFloat(clearsFixedControl.shiftedBottom) >= 18);
+  const clearsLateFixedControl = await page.evaluate(async () => {
+    const blocker = document.createElement('button');
+    blocker.textContent = 'Late fixed action';
+    blocker.style.cssText = 'position:fixed;right:18px;bottom:18px;width:150px;height:44px;z-index:2147483647';
+    document.body.append(blocker);
+    await new Promise((resolve) =>
+      requestAnimationFrame(() => requestAnimationFrame(resolve)));
+    const feedback = document.querySelector('button[aria-label="Send feedback"]');
+    const feedbackRect = feedback.getBoundingClientRect();
+    const blockerRect = blocker.getBoundingClientRect();
+    const overlaps = feedbackRect.left < blockerRect.right
+      && feedbackRect.right > blockerRect.left
+      && feedbackRect.top < blockerRect.bottom
+      && feedbackRect.bottom > blockerRect.top;
+    blocker.remove();
+    await new Promise((resolve) =>
+      requestAnimationFrame(() => requestAnimationFrame(resolve)));
+    return {
+      overlaps,
+      shiftedBottom: feedback.style.bottom,
+    };
+  });
+  assert.equal(clearsLateFixedControl.overlaps, false);
+  assert.ok(Number.parseFloat(clearsLateFixedControl.shiftedBottom) >= 18);
   await page.close();
 });
 

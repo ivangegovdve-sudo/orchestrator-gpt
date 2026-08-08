@@ -70,7 +70,9 @@ test('Women’s Health evidence tabs and inputs expose their interaction semanti
   }
   assert.match(search, /\baria-label="[^"]+"/);
   assert.match(topic, /\baria-label="[^"]+"/);
-  assert.match(source, /<input id="api-input"[^>]*aria-label="[^"]+"/);
+  assert.match(source, /input\.id\s*=\s*"api-input"/);
+  assert.match(source, /input\.setAttribute\("aria-label",\s*"Women’s Health API base URL"\)/);
+  assert.match(source, /button\.addEventListener\("click",\s*saveApi\)/);
   assert.match(chatInput, /\baria-label="[^"]+"/);
 });
 

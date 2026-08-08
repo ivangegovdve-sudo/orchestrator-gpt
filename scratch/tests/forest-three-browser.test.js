@@ -178,6 +178,7 @@ test('reduced motion renders a static scene without pointer, click, or scroll an
   const reduced = await page.evaluate(() => window.__forestAmbient.snapshot()[0]);
   assert.equal(reduced.theme, 'kids');
   assert.equal(reduced.reducedMotion, true);
+  assert.equal(reduced.running, false);
   assert.equal(reduced.uniforms.uClick, 0);
   assert.equal(reduced.uniforms.uScroll, 0);
   assert.deepEqual(reduced.uniforms.uResolution, [390, 844]);
@@ -186,6 +187,7 @@ test('reduced motion renders a static scene without pointer, click, or scroll an
   await page.evaluate(() => window.scrollTo({ top: 500, behavior: 'instant' }));
   await page.waitForTimeout(50);
   const afterInput = await page.evaluate(() => window.__forestAmbient.snapshot()[0]);
+  assert.equal(afterInput.running, false);
   assert.equal(afterInput.uniforms.uClick, 0);
   assert.equal(afterInput.uniforms.uScroll, 0);
   await context.close();
@@ -230,7 +232,7 @@ test('representative public routes mount their theme and scoped entrance invento
   const routes = [
     { path: '/web/kids/', theme: 'kids', target: '.kid-card', motionClass: 'forest-motion-card' },
     { path: '/web/kids-movie-library/', theme: 'movie', target: '.header-row', motionClass: 'forest-motion-header' },
-    { path: '/web/library/', theme: 'library', target: '.panel', motionClass: 'forest-motion-card' },
+    { path: '/web/library/', theme: 'library', target: '.library-index', motionClass: 'forest-motion-card' },
     { path: '/web/library/glossary/', theme: 'library' },
     { path: '/web/library/platform/', theme: 'library' },
     { path: '/web/library/rag.html', theme: 'library' },

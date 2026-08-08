@@ -140,9 +140,15 @@ test('the venture sandbox supports one bet, one batch announcement, and reset', 
   await pointerClick(page, '#batchButton');
   await page.waitForFunction(() => document.querySelectorAll('#betField > .bet-coin').length === 50);
   await page.waitForFunction(() => document.querySelector('#betField').classList.contains('is-converged'));
+  await page.waitForTimeout(650);
 
   const final = await page.evaluate(() => {
     window.__portfolioObserver.disconnect();
+    const field = document.querySelector('#betField').getBoundingClientRect();
+    const target = {
+      x: field.left + field.width / 2,
+      y: field.top + field.height / 2,
+    };
     return {
       announcements: window.__portfolioAnnouncements,
       attempts: document.querySelector('#attemptCount').textContent,
@@ -151,6 +157,22 @@ test('the venture sandbox supports one bet, one batch announcement, and reset', 
       outliers: document.querySelector('#outlierCount').textContent,
       status: document.querySelector('#portfolioStatus').textContent.trim(),
       statsLive: document.querySelector('.sandbox-stats').getAttribute('aria-live'),
+      transitions: [...document.querySelectorAll('#betField > .bet-coin')].map((coin) => {
+        const style = getComputedStyle(coin);
+        return {
+          outcome: coin.dataset.outcome,
+          property: style.transitionProperty,
+          duration: style.transitionDuration,
+          easing: style.transitionTimingFunction,
+        };
+      }),
+      centerDeltas: [...document.querySelectorAll('#betField > .bet-coin')].map((coin) => {
+        const rect = coin.getBoundingClientRect();
+        return {
+          x: Math.abs(rect.left + rect.width / 2 - target.x),
+          y: Math.abs(rect.top + rect.height / 2 - target.y),
+        };
+      }),
     };
   });
   assert.deepEqual(
@@ -165,6 +187,20 @@ test('the venture sandbox supports one bet, one batch announcement, and reset', 
   assert.deepEqual(final.announcements, [final.status]);
   assert.match(final.status, /Portfolio recovered/);
   assert.notEqual(final.statsLive, 'polite');
+  assert.equal(final.transitions.length, 50);
+  assert.equal(final.transitions.at(-1).outcome, 'outlier');
+  assert.equal(final.transitions.every(({ property, duration, easing }) => (
+    property === 'left, top, transform, box-shadow'
+    && duration === Array(4).fill('0.5s').join(', ')
+    && easing === Array(4)
+      .fill('cubic-bezier(0.34, 1.56, 0.64, 1)')
+      .join(', ')
+  )), true, JSON.stringify(final.transitions[0]));
+  assert.equal(
+    final.centerDeltas.every(({ x, y }) => x <= 1 && y <= 1),
+    true,
+    JSON.stringify(final.centerDeltas),
+  );
 
   await pointerClick(page, '#resetBets');
   assert.equal(await page.locator('#betField > .bet-coin').count(), 0);

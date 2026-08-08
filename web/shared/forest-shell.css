@@ -86,6 +86,10 @@ body[data-forest-page] {
     color var(--duration-fast) var(--ease-out);
 }
 
+.forest-back {
+  view-transition-name: forest-chrome;
+}
+
 .forest-back::before {
   content: "↙";
   color: var(--forest-accent);
@@ -216,9 +220,8 @@ body[data-forest-page] select:focus-visible {
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
   *, *::before, *::after {
-    animation-duration: var(--duration-reduced) !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: var(--duration-reduced) !important;
+    animation: none !important;
+    transition: none !important;
   }
   .forest-scene { opacity: .42; }
 }

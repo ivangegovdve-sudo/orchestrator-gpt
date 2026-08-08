@@ -21,7 +21,7 @@
    DOM motion itself stays in CSS: this module only writes variables. */
 
 import * as THREE from '../../vendor/three/three.module.min.js';
-import { clamp, lerp, easeOutCubic, makeAdditive, mulberry32, worldX, worldY, PALETTE } from './util.js?v=20260729b';
+import { clamp, lerp, easeOutCubic, makeAdditive, mulberry32, worldX, worldY, PALETTE } from './util.js?v=20260807a';
 
 const HIT_AT = 0.62;          // scrub progress where the collision fires
 const ROOT_GROW = 1.45;       // seconds a root system takes to reach full height
