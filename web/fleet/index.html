@@ -404,6 +404,36 @@ details.skills-disc[open] .arr{transform:rotate(90deg)}
   .agent-strip.s-online{animation:none}
   .btn-refresh.spinning .icon{animation:none}
 }
+/* ── Live data ── */
+.latency-badge{font-family:var(--mono);font-size:.65rem;color:var(--text-muted);opacity:.7}
+.fleet-ts.stale{color:var(--status-warn)}
+.soul-status{
+  font-family:var(--mono);font-size:.65rem;display:none;
+  padding:2px 7px;border-radius:3px;border:1px solid var(--border);
+  color:var(--text-muted);background:rgba(255,255,255,.02);
+  vertical-align:middle;margin-left:8px;
+}
+.soul-status.ok{border-color:rgba(34,197,94,.28);color:var(--status-online)}
+/* ── Signals ── */
+.signals-row{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:36px}
+.signal-card{
+  flex:1 1 200px;background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--radius);padding:14px 16px 12px;
+  position:relative;overflow:hidden;
+}
+.signal-card a{color:var(--accent);text-decoration:none}
+.signal-card a:hover{text-decoration:underline}
+.signal-val{
+  font-family:var(--forest-sans,"Alegreya Sans",sans-serif);
+  font-size:1.5rem;font-weight:700;font-variant-numeric:tabular-nums;
+  color:var(--text-primary);line-height:1;display:block;margin-bottom:4px;
+}
+.signal-lbl{
+  font-size:.63rem;font-weight:700;letter-spacing:1.5px;
+  text-transform:uppercase;color:var(--text-muted);display:block;margin-bottom:6px;
+}
+.signal-sub{font-family:var(--mono);font-size:.67rem;color:var(--text-muted);line-height:1.55}
+.signal-card::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px;background:var(--border)}
 </style>
 </head>
 <body>
@@ -412,7 +442,7 @@ details.skills-disc[open] .arr{transform:rotate(90deg)}
   <a class="forest-back" href="/">Back to Forest HUB</a>
   <div class="fleet-nav-right">
     <span class="fleet-host">144.24.59.30</span>
-    <span class="fleet-ts" id="fleet-ts" aria-live="polite">Audited 2026-08-10 12:50 UTC</span>
+    <span class="fleet-ts" id="fleet-ts" aria-live="polite">Fetching live data…</span>
     <button class="btn-refresh" id="btn-refresh" aria-label="Refresh status">
       <span class="icon" aria-hidden="true">↻</span> Refresh
     </button>
@@ -428,11 +458,11 @@ details.skills-disc[open] .arr{transform:rotate(90deg)}
 
   <div class="metrics-row" role="list" aria-label="Fleet metrics">
     <div class="metric m-online" role="listitem">
-      <span class="metric-val">5</span>
+      <span class="metric-val" id="m-online">5</span>
       <span class="metric-lbl">Online</span>
     </div>
     <div class="metric m-warn" role="listitem">
-      <span class="metric-val">1</span>
+      <span class="metric-val" id="m-warn">1</span>
       <span class="metric-lbl">Warning</span>
     </div>
     <div class="metric" role="listitem">
@@ -449,6 +479,27 @@ details.skills-disc[open] .arr{transform:rotate(90deg)}
     </div>
   </div>
 
+  <section aria-labelledby="signals-lbl">
+    <div class="section-lbl"><span id="signals-lbl">Signals</span></div>
+    <div class="signals-row">
+      <div class="signal-card">
+        <span class="signal-lbl">API Spend Today</span>
+        <span class="signal-val">—</span>
+        <span class="signal-sub">Personal billing API not yet wired.<br>See <a href="https://openrouter.ai/activity" target="_blank" rel="noopener">openrouter.ai/activity</a></span>
+      </div>
+      <div class="signal-card">
+        <span class="signal-lbl">Top Model (Platform)</span>
+        <span class="signal-val" id="sig-top-model">—</span>
+        <span class="signal-sub" id="sig-top-sub">Platform-wide OpenRouter data</span>
+      </div>
+      <div class="signal-card">
+        <span class="signal-lbl">Analytics Dashboard</span>
+        <span class="signal-val" style="font-size:.9rem;margin-bottom:8px">↗</span>
+        <span class="signal-sub"><a href="https://github.com/ivangegovdve-sudo/openrouter-github-dashboard" target="_blank" rel="noopener">openrouter-github-dashboard</a><br>Models · Apps · GitHub rankings</span>
+      </div>
+    </div>
+  </section>
+
   <section aria-labelledby="agents-lbl">
     <div class="section-lbl"><span id="agents-lbl">Agents</span></div>
     <div class="agents-grid" id="agents-grid"></div>
@@ -457,7 +508,7 @@ details.skills-disc[open] .arr{transform:rotate(90deg)}
   <section aria-labelledby="soul-lbl">
     <div class="section-lbl"><span id="soul-lbl">Soul Server</span></div>
     <div class="soul-panel">
-      <h2>soul-server</h2>
+      <h2>soul-server <span id="soul-status-badge" class="soul-status"></span></h2>
       <div class="soul-meta">Oracle :8654 · FastAPI · AUTO_CHAIN LLM routing · /opt/soul-server/brain.py</div>
       <div class="soul-chain" role="list" aria-label="AUTO_CHAIN">
         <span class="chain-lbl">AUTO_CHAIN</span>
@@ -667,7 +718,7 @@ function renderAgents(){
       <span class="agent-name">${esc(a.name)}</span>
       <span class="host-badge ${a.host === 'kvm2' ? 'kvm2' : ''}">${esc(a.host)}</span>
     </div>
-    <div class="agent-port">:<span class="port-num">${a.port}</span> · ${esc(a.unit)}</div>
+    <div class="agent-port">:<span class="port-num">${a.port}</span> · ${esc(a.unit)}<span class="latency-badge" id="lat-${a.id}"></span></div>
     ${discord}
     <div class="chip-row">
       <span class="chip skill">${esc(skillLabel)}</span>
@@ -733,23 +784,66 @@ function renderActions(){
     </div>`).join('');
 }
 
-// ── Refresh button (simulated — data is hardcoded) ──
+// ── Live fleet status ──
 
-function initRefresh(){
-  const btn = document.getElementById('btn-refresh');
+const pad = n => String(n).padStart(2, '0');
+
+function fmtUtc(iso) {
+  const d = new Date(iso);
+  return `${d.getUTCFullYear()}-${pad(d.getUTCMonth()+1)}-${pad(d.getUTCDate())} ${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())} UTC`;
+}
+
+function applyFleetStatus(data) {
+  let onlineCount = 0, warnCount = 0;
+  for (const agent of data.agents) {
+    const card = document.querySelector(`[data-agent="${agent.name}"]`);
+    if (!card) continue;
+    const s = agent.status === 'online' ? 'online' : 'error';
+    card.querySelector('.agent-strip').className = `agent-strip s-${s}`;
+    card.dataset.status = s;
+    const lat = document.getElementById(`lat-${agent.name}`);
+    if (lat) lat.textContent = ` · ${agent.latency_ms}ms`;
+    if (s === 'online') onlineCount++;
+    else warnCount++;
+  }
+  const mO = document.getElementById('m-online');
+  const mW = document.getElementById('m-warn');
+  if (mO) mO.textContent = String(onlineCount);
+  if (mW) mW.textContent = String(warnCount);
+  if (data.soul_server) {
+    const badge = document.getElementById('soul-status-badge');
+    if (badge) {
+      const ok = data.soul_server.status === 'online';
+      badge.textContent = ok
+        ? `online · ${data.soul_server.latency_ms}ms`
+        : `offline · ${data.soul_server.latency_ms}ms`;
+      badge.className = `soul-status${ok ? ' ok' : ''}`;
+      badge.style.display = '';
+    }
+  }
+}
+
+async function fetchFleetStatus() {
   const ts  = document.getElementById('fleet-ts');
-  btn.addEventListener('click', () => {
-    if(btn.disabled) return;
-    btn.classList.add('spinning');
-    btn.disabled = true;
-    setTimeout(() => {
-      btn.classList.remove('spinning');
-      btn.disabled = false;
-      const now = new Date();
-      const pad = n => String(n).padStart(2,'0');
-      ts.textContent = `Refreshed ${now.getUTCFullYear()}-${pad(now.getUTCMonth()+1)}-${pad(now.getUTCDate())} ${pad(now.getUTCHours())}:${pad(now.getUTCMinutes())} UTC`;
-    }, 1100);
-  });
+  const btn = document.getElementById('btn-refresh');
+  btn.classList.add('spinning');
+  btn.disabled = true;
+  try {
+    const res = await fetch('/api/fleet/status');
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    applyFleetStatus(data);
+    ts.textContent = `Updated ${fmtUtc(data.updated_at)}`;
+    ts.classList.remove('stale');
+  } catch (_) {
+    // Keep hardcoded data; mark as stale
+    const cur = ts.textContent;
+    ts.textContent = cur.includes('stale') ? cur : 'Audited 2026-08-10 · stale';
+    ts.classList.add('stale');
+  } finally {
+    btn.classList.remove('spinning');
+    btn.disabled = false;
+  }
 }
 
 // ── Init ──
@@ -757,7 +851,13 @@ renderAgents();
 renderSoulCurls();
 renderBuddies();
 renderActions();
-initRefresh();
+
+document.getElementById('btn-refresh').addEventListener('click', () => {
+  if (document.getElementById('btn-refresh').disabled) return;
+  fetchFleetStatus();
+});
+
+fetchFleetStatus();
 </script>
 
 </body>
