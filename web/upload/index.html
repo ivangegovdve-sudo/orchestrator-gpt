@@ -639,8 +639,8 @@
         // If /health doesn't gate by code, we do a lightweight probe instead:
         return r.ok;
       } catch (_) {
-        // Network down — still allow access if code looks plausible (non-empty)
-        return code.length >= 4;
+        // Network down, CORS, timeout - do not bypass security check
+        return false;
       }
     }
 
