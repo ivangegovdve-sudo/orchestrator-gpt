@@ -860,7 +860,7 @@
       function renderBot(data) {
         var bot = el("div", "wh-msg bot");
         bot.appendChild(srcBadges(deriveSources(data)));
-        bot.appendChild(el("div", "answer", esc(data.answer || data.note || "No answer available.")));
+        bot.appendChild(el("div", "answer", data.answer || data.note || "No answer available."));
         var facts = data.facts || [], pubmed = data.pubmed || [], rules = data.rules || [];
         if (facts.length || pubmed.length || rules.length) {
           var refs = el("div", "wh-refs");
@@ -878,8 +878,10 @@
           if (rules.length) {
             refs.appendChild(el("h4", null, "Synthesised rules · " + rules.length));
             rules.slice(0, 3).forEach(function (r) {
-              var scope = esc((r.applies_to || "").slice(0, 50));
-              refs.appendChild(el("div", "wh-ref", esc((r.rule || "").slice(0, 140)) + (scope ? ' <span class="meta">— ' + scope + "</span>" : "")));
+              var scope = (r.applies_to || "").slice(0, 50);
+              var reference = el("div", "wh-ref", (r.rule || "").slice(0, 140));
+              if (scope) reference.appendChild(el("span", "meta", " — " + scope));
+              refs.appendChild(reference);
             });
           }
           if (pubmed.length) {
