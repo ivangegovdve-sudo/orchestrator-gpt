@@ -53,14 +53,15 @@ after(async () => {
   await new Promise((resolve) => server?.close(resolve));
 });
 
-test('landing keeps one title crown and exposes Life in Time in the 29-card directory', () => {
+test('landing keeps one title crown and exposes Life in Time in the 30-card directory', () => {
   // Tag-agnostic like sdforest-foundation.test.js: the crown moved into the
   // h1 (and so became a span) to centre on the wordmark. The guard here is
   // that there is exactly ONE crown, which is the regression that matters.
   assert.equal((landingSource.match(/<(?:div|span)\b[^>]*\bdata-title-crown\b/g) || []).length, 1);
   assert.equal((landingSource.match(/<symbol\s+id="leaf"\s/g) || []).length, 1);
   assert.match(landingSource, /data-project="time"[^>]+data-href="\/web\/life-in-time\//);
-  assert.equal((landingSource.match(/<(?:a|article)\b[^>]*\bclass="[^"]*\bportal\b[^"]*"/g) || []).length, 29);
+  assert.match(landingSource, /data-project="chair-ladder"[^>]+data-href="\/web\/chair-or-ladder\//);
+  assert.equal((landingSource.match(/<(?:a|article)\b[^>]*\bclass="[^"]*\bportal\b[^"]*"/g) || []).length, 30);
   assert.doesNotMatch(landingSource, /voice(?:2|[- ]to[- ])voice|v2v/i);
 });
 
@@ -132,12 +133,12 @@ test('reduced motion skips leaf generation entirely', async () => {
 const visiblePortalCount = (page) => page.locator('[data-project-grid] .portal').evaluateAll((cards) =>
   cards.filter((card) => card.getClientRects().length > 0).length);
 
-test('desktop directory starts with sixteen featured cards and a complete 29-entry index', async () => {
+test('desktop directory starts with seventeen featured cards and a complete 30-entry index', async () => {
   const page = await browser.newPage({ viewport: { width: 1280, height: 800 } });
   await page.goto(baseUrl, { waitUntil: 'domcontentloaded' });
 
-  assert.equal(await visiblePortalCount(page), 16);
-  assert.equal(await page.locator('[data-directory-index] [data-index-project]').count(), 29);
+  assert.equal(await visiblePortalCount(page), 17);
+  assert.equal(await page.locator('[data-directory-index] [data-index-project]').count(), 30);
 
   await page.close();
 });
@@ -148,11 +149,11 @@ test('a disclosure reveals only its own overflow cards and restores the featured
   const disclosure = page.locator('[data-directory-section="writing-media"] .directory-overflow');
   const summary = disclosure.locator('summary');
 
-  assert.equal(await visiblePortalCount(page), 16);
-  assert.match(await summary.innerText(), /See all 6/i);
+  assert.equal(await visiblePortalCount(page), 17);
+  assert.match(await summary.innerText(), /See all 7/i);
   await summary.click();
   assert.equal(await disclosure.getAttribute('open'), '');
-  assert.equal(await visiblePortalCount(page), 18);
+  assert.equal(await visiblePortalCount(page), 19);
   assert.match(await summary.innerText(), /Show featured only/i);
   assert.equal(
     await page.locator('[data-directory-section="projects-play"] [data-overflow-projects] .portal').evaluateAll(
@@ -161,7 +162,7 @@ test('a disclosure reveals only its own overflow cards and restores the featured
     true,
   );
   await summary.click();
-  assert.equal(await visiblePortalCount(page), 16);
+  assert.equal(await visiblePortalCount(page), 17);
 
   await page.close();
 });
