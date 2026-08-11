@@ -21,6 +21,11 @@ function copyDir(from, to) {
   }
 }
 
+// Regenerate the glossary bundle BEFORE copying web/, so the deploy always carries the
+// terms currently in glossary/*.md. This is the whole point: Ivan's weekly term files
+// publish themselves on the next deploy instead of needing a manual re-index.
+require("./scripts/build-glossary-bundle.cjs").build();
+
 // On Vercel, the build runs twice (vercel build + npm run vercel-build).
 // Deleting outDir mid-stream causes ENOENT in @vercel/build-utils.
 // Skip the wipe on Vercel; overwrite-in-place is safe because it's a fresh clone.
