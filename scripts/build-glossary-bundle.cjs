@@ -23,6 +23,8 @@ const path = require("path");
 
 const ROOT = path.join(__dirname, "..");
 const OUT = path.join(ROOT, "web", "library", "glossary", "glossary-bundle.json");
+/** Reviewable record of everything the build refused to publish. Regenerated each build. */
+const QUARANTINE_OUT = path.join(ROOT, "glossary", "QUARANTINE.md");
 
 /** Files whose entries are unreviewed LLM output with demonstrated fabrications.
  *  2026-07-19 invented "BROCKMAN" (a hiring-assessment method) and "CAVERN" (a data
@@ -246,16 +248,33 @@ function build() {
       byKey.set(k, { ...e });
     }
   };
+  // QUARANTINE, not filter. Entries marked `review` are fabricated or off-topic; they are
+  // dropped from the bundle entirely rather than shipped and hidden client-side, because a
+  // hidden entry is still a retrievable one — anyone can fetch glossary-bundle.json.
+  // A glossary that invents terms is worse than one with gaps.
+  //
+  // Quarantine happens BEFORE the dedupe on purpose. If it ran after, a quarantined weekly
+  // entry would already have claimed its key and suppressed a legitimate lower-precedence
+  // entry for the same term, silently removing a real definition along with a fake one.
+  // (None of today's four collide, but the ordering trap is real and cheap to avoid.)
+  const quarantined = dedupeByTerm(weekly.entries.filter((e) => e.review));
+
   add(curated);
-  add(weekly.entries);
+  add(weekly.entries.filter((e) => !e.review));
   add(mined.entries);
 
   const terms = [...byKey.values()].sort((a, b) =>
     a.term.localeCompare(b.term, "en", { sensitivity: "base" })
   );
 
+  writeQuarantineReport(quarantined, weekly.failedFiles);
+
   const stats = {
-    total: terms.length,
+    published: terms.length,
+    // The COUNT is public so the page can be honest about gaps; the NAMES are not, because
+    // naming an invented term in a public file still publishes it. They live in
+    // glossary/QUARANTINE.md (repo) and in the build log.
+    quarantined: quarantined.length,
     bySource: {
       curated: terms.filter((t) => t.origin === "curated").length,
       weekly: terms.filter((t) => t.origin.startsWith("weekly:")).length,
@@ -266,7 +285,6 @@ function build() {
       usage: terms.filter((t) => t.kind === "usage").length,
       stub: terms.filter((t) => t.kind === "stub").length,
     },
-    flaggedForReview: terms.filter((t) => t.review).length,
     sourceCounts: {
       curatedFile: curated.length,
       minedFile: mined.entries.length,
@@ -280,18 +298,77 @@ function build() {
   fs.mkdirSync(path.dirname(OUT), { recursive: true });
   fs.writeFileSync(OUT, JSON.stringify(bundle), "utf8");
 
+  // Report published and dropped together. Printing only the smaller number would look like
+  // the source shrank, which is exactly the kind of quiet drift this pipeline already suffered.
   console.log("[glossary] wrote " + path.relative(ROOT, OUT));
-  console.log("[glossary] terms: " + stats.total +
-    "  (curated " + stats.bySource.curated +
-    " + weekly " + stats.bySource.weekly +
-    " + mined " + stats.bySource.mined + ")");
-  console.log("[glossary] kinds: definition " + stats.byKind.definition +
-    ", usage " + stats.byKind.usage + ", stub " + stats.byKind.stub);
-  console.log("[glossary] flagged for review: " + stats.flaggedForReview);
+  console.log("[glossary] parsed " + (stats.published + stats.quarantined) + " terms from source" +
+    "  ->  PUBLISHED " + stats.published + ", DROPPED " + stats.quarantined);
+  console.log("[glossary] published breakdown: curated " + stats.bySource.curated +
+    " + weekly " + stats.bySource.weekly + " + mined " + stats.bySource.mined +
+    "  (definition " + stats.byKind.definition + ", usage " + stats.byKind.usage +
+    ", stub " + stats.byKind.stub + ")");
+  if (quarantined.length) {
+    console.log("[glossary] WARNING dropped " + quarantined.length +
+      " fabricated/off-topic entries -> " + path.relative(ROOT, QUARANTINE_OUT));
+    for (const q of quarantined) {
+      console.log("[glossary]   - " + q.term + "  (from " + q.origin.replace("weekly:", "") + "-terms.md)");
+    }
+  }
   if (weekly.failedFiles.length) {
     console.log("[glossary] WARNING failed weekly runs (no terms): " + weekly.failedFiles.join(", "));
   }
   return stats;
+}
+
+/** Collapse duplicate terms within a single list, keeping the first. */
+function dedupeByTerm(list) {
+  const seen = new Set();
+  return list
+    .filter((e) => {
+      const k = keyOf(e.term);
+      if (!k || seen.has(k)) return false;
+      seen.add(k);
+      return true;
+    })
+    .sort((a, b) => a.term.localeCompare(b.term, "en", { sensitivity: "base" }));
+}
+
+/** Writes the dropped entries to a reviewable file in the repo, so the fact that the
+ *  generator produced fabrications stays visible after they leave the bundle. */
+function writeQuarantineReport(quarantined, failedFiles) {
+  const lines = [
+    "# Glossary quarantine",
+    "",
+    "> Generated by `scripts/build-glossary-bundle.cjs` on every build. **Do not edit by hand.**",
+    "",
+    "Entries listed here were produced by the weekly glossary generator and are **excluded from",
+    "`glossary-bundle.json` entirely** — not merely hidden by the page. They are kept here so the",
+    "fact that the generator produced them stays visible to the next reader.",
+    "",
+    "To clear an entry: correct or delete it in its source file, then remove that file from",
+    "`REVIEW_REQUIRED_FILES` in the generator. Nothing is auto-cleared.",
+    "",
+    "| term | source file | reason | text as generated |",
+    "| --- | --- | --- | --- |",
+  ];
+  for (const q of quarantined) {
+    const src = q.origin.replace("weekly:", "") + "-terms.md";
+    const txt = (q.desc || "").replace(/\|/g, "\\|").slice(0, 160);
+    lines.push(`| \`${q.term}\` | \`glossary/${src}\` | unreviewed generator output | ${txt} |`);
+  }
+  lines.push("");
+  lines.push("## Runs that produced no terms at all");
+  lines.push("");
+  if (failedFiles.length) {
+    for (const f of failedFiles) {
+      lines.push(`- \`glossary/${f}\` — the run failed and its error was committed as the file body.`);
+    }
+  } else {
+    lines.push("_None._");
+  }
+  lines.push("");
+  fs.mkdirSync(path.dirname(QUARANTINE_OUT), { recursive: true });
+  fs.writeFileSync(QUARANTINE_OUT, lines.join("\n"), "utf8");
 }
 
 if (require.main === module) build();
