@@ -206,36 +206,18 @@ h1{font-family:var(--forest-display, "Cormorant Garamond", Georgia, serif);font-
 <div class="wrap">
   <div class="nav"><a href="/web/library/">← Library</a></div>
   <h1 data-motion-header>📖 Glossary</h1>
-  <div class="sub">AI Engineering Knowledge Map · 353 terms · Semantic search</div>
+  <div class="sub">AI Engineering Knowledge Map · loading…</div>
 
   <div class="search-row">
     <input id="q" type="text" placeholder="Search terms, acronyms, concepts…" autofocus />
     <button onclick="doSearch()">Search</button>
   </div>
   <div class="count" id="count"></div>
-  <div id="results"><div class="empty">Type a term to search the AI glossary</div></div>
+  <div id="results"><div class="empty">Loading glossary…</div></div>
 </div>
-<script src="/web/library/shared.js"></script>
-<script>
-async function doSearch() {
-  const q = document.getElementById('q').value.trim();
-  if (!q) return;
-  const res = document.getElementById('results');
-  res.innerHTML = '<div class="empty">Searching…</div>';
-  try {
-    const data = await apiGet('search/glossary', { q, limit: 12 });
-    document.getElementById('count').textContent = data.count ? `${data.count} results` : '';
-    if (!data.results.length) {
-      res.innerHTML = '<div class="empty">No results found</div>';
-      return;
-    }
-    res.innerHTML = data.results.map(r => renderCard(r, 'Glossary')).join('');
-  } catch (e) {
-    res.innerHTML = `<div class="empty">Error: ${e.message}</div>`;
-  }
-}
-document.getElementById('q').addEventListener('keydown', e => { if (e.key === 'Enter') doSearch(); });
-</script>
+<!-- Static bundle, generated at build time by scripts/build-glossary-bundle.cjs.
+     Replaces the retired library-api (KVM2:8765) semantic-search backend. -->
+<script src="/web/library/glossary/glossary-static.js"></script>
 <script type="module" data-forest-runtime="motion" src="/web/shared/forest-runtime-boot.mjs?v=20260807a"></script>
   <script src="/web/shared/design-history.js?v=20260807a"></script>
 </body>

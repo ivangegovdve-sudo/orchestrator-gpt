@@ -5,12 +5,12 @@
   "redirects": [
     {
       "source": "/web/ai-init",
-      "destination": "/web/library/",
+      "destination": "/web/library/glossary/",
       "permanent": true
     },
     {
       "source": "/web/ai-init/",
-      "destination": "/web/library/",
+      "destination": "/web/library/glossary/",
       "permanent": true
     },
     {
