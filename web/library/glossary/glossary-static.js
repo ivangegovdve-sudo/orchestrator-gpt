@@ -98,8 +98,10 @@
       const r = await fetch(BUNDLE, { cache: "no-cache" });
       if (!r.ok) throw new Error("HTTP " + r.status);
       const bundle = await r.json();
-      // Entries flagged `review` are unreviewed machine output with known fabrications;
-      // they stay out of the public list until a human clears them.
+      // Quarantined entries (fabricated or off-topic generator output) are now dropped at
+      // BUILD time and never reach this file — see scripts/build-glossary-bundle.cjs and
+      // glossary/QUARANTINE.md. This filter is belt-and-braces only: if a flagged entry ever
+      // does appear in the bundle, it still must not render.
       TERMS = (bundle.terms || []).filter((t) => !t.review);
       READY = true;
       const sub = document.querySelector(".sub");
