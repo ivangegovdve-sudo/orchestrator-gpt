@@ -38,6 +38,43 @@ const REVIEW_REQUIRED_FILES = new Set(["2026-07-19-terms.md"]);
 /** Trailing conversational filler some weekly runs committed verbatim. */
 const CHATTER = /^(please let me know|let me know if|hope this helps|feel free to)/i;
 
+// ── DEFAULT-DENY VALIDATION OF GENERATED SOURCES ──────────────────────────────
+// `librarian_weekly` is "compose (librarian gateway) -> commit glossary/<date>-terms.md". An LLM
+// writes free-form markdown straight into this repo with no schema, and the build publishes
+// whatever parses out of it. Six runs have produced four distinct failure modes: fabricated terms
+// (07-19), a provider error committed as the file body (08-02), model chatter committed verbatim
+// (07-20), and a run report instead of terms (08-16).
+//
+// REVIEW_REQUIRED_FILES defends against exactly one of those, and only because a human found it
+// first. That is default-allow: every NEW way the generator fails publishes by default. The
+// 08-16 run report reached main and did not publish only because its headings were "#" rather
+// than "##" — luck of formatting, not a control.
+//
+// So generated sources are validated structurally here instead. A better prompt cannot fix this;
+// a model asked to write prose will sometimes write prose. The boundary is the place to catch it.
+
+/** Prose a generator emits when narrating its own run rather than defining a term. */
+const RUN_REPORT = /(^|\n)\s*(verification:|added:|git reports|the request says|updated \/|no missing or extra|markdown validation)/i;
+
+/** Absolute paths, hosts, addresses and credential names that must never reach a public page.
+ *  Applied to GENERATED sources only (weekly, mined) — those read from Ivan's private mail and
+ *  fleet notes. Hand-authored sources are exempt on purpose: a legitimate security definition
+ *  may need to name a cloud metadata address, and silently dropping it would be its own bug. */
+const PRIVATE_INFRA = [
+  /\b(?:\d{1,3}\.){3}\d{1,3}\b/,                       // IPv4
+  /\/(etc|opt|home|var|root|usr\/local)\//,            // absolute unix paths
+  /\b[A-Za-z]:[\\/](?:projects|output|Users)\b/i,      // absolute windows paths
+  /\b[\w.-]+\.(?:cloud|internal|local|lan)\b/i,        // internal-looking hostnames
+  /\b[A-Z][A-Z0-9]*_(?:API_KEY|KEY|TOKEN|SECRET|PASSWORD)\b/,
+  /\b(?:localhost|127\.0\.0\.1)(?::\d+)?\b/i,
+  /:\d{4,5}\b(?!\s*(?:BC|AD))/,                        // host:port
+];
+
+function privateInfraHit(text) {
+  const s = String(text || "");
+  return PRIVATE_INFRA.find((re) => re.test(s)) || null;
+}
+
 const norm = (s) => String(s || "").replace(/\s+/g, " ").trim();
 const keyOf = (s) => norm(s).toLowerCase();
 
@@ -138,7 +175,14 @@ function parseWeekly(file, text) {
 
   // A failed run once committed the provider error as the file body. Detect and skip.
   if (/API call failed after \d+ retries/i.test(text)) {
-    return { entries: [], failed: true };
+    return { entries: [], failed: true, reason: "provider error committed as the file body" };
+  }
+
+  // 2026-08-16 committed the generator's own run report — "Added: 40 supplied abbreviation
+  // terms…", "Verification: …", "Note: the request says '490,' but the supplied list contains
+  // 40" — plus two absolute server paths, and no term definitions at all.
+  if (RUN_REPORT.test(text)) {
+    return { entries: [], failed: true, reason: "run report / narration, not term definitions" };
   }
 
   const out = [];
@@ -169,7 +213,13 @@ function parseWeekly(file, text) {
     seen.add(k);
     return true;
   });
-  return { entries, failed: false };
+
+  // A run that parses to nothing is a failed run, whatever the reason. Previously only the two
+  // recognised shapes above were reported and any other empty file passed silently.
+  if (!entries.length) {
+    return { entries, failed: true, reason: "parsed to zero terms" };
+  }
+  return { entries, failed: false, reason: null };
 }
 
 /** shape C: "* **TERM**: definition" optionally followed by "\t+ elaboration". */
@@ -217,8 +267,8 @@ function loadWeekly() {
   const failedFiles = [];
   const perFile = {};
   for (const f of files) {
-    const { entries: e, failed } = parseWeekly(f, fs.readFileSync(path.join(dir, f), "utf8"));
-    if (failed) failedFiles.push(f);
+    const { entries: e, failed, reason } = parseWeekly(f, fs.readFileSync(path.join(dir, f), "utf8"));
+    if (failed) failedFiles.push({ file: f, reason });
     perFile[f] = failed ? "FAILED_RUN" : e.length;
     entries.push(...e);
   }
@@ -298,16 +348,29 @@ function build() {
   // (None of today's four collide, but the ordering trap is real and cheap to avoid.)
   const quarantined = dedupeByTerm(weekly.entries.filter((e) => e.review));
 
+  // Generated entries carrying private infrastructure are dropped regardless of which generated
+  // source produced them. The mined corpus proved this was necessary (49 published entries with
+  // paths, hosts, addresses and ports); the 08-16 weekly file proves the generator emits the same
+  // material, so the guard belongs on the shared path rather than on one loader.
+  const infraDropped = [];
+  const clean = (list) =>
+    list.filter((e) => {
+      const hit = privateInfraHit(e.desc) || privateInfraHit(e.expansion);
+      if (!hit) return true;
+      infraDropped.push({ term: e.term, origin: e.origin, pattern: String(hit) });
+      return false;
+    });
+
   add(verified);
   add(curated);
-  add(weekly.entries.filter((e) => !e.review));
-  add(mined.entries);
+  add(clean(weekly.entries.filter((e) => !e.review)));
+  add(clean(mined.entries));
 
   const terms = [...byKey.values()].sort((a, b) =>
     a.term.localeCompare(b.term, "en", { sensitivity: "base" })
   );
 
-  writeQuarantineReport(quarantined, weekly.failedFiles);
+  writeQuarantineReport(quarantined, weekly.failedFiles, infraDropped);
 
   const stats = {
     published: terms.length,
@@ -318,6 +381,9 @@ function build() {
     // Usage snippets are no longer publishable at all — see loadMined(). Reported so the drop in
     // the published count reads as a deliberate removal rather than a source that quietly shrank.
     usageSnippetsDropped: mined.usageDropped,
+    // Generated entries refused for carrying private infrastructure. The COUNT is public so the
+    // page can be honest that a filter ran; the matched text is not, for obvious reasons.
+    privateInfraDropped: infraDropped.length,
     // How many published entries carry a citation to the source their meaning was checked against.
     cited: terms.filter((t) => t.source).length,
     bySource: {
@@ -366,8 +432,16 @@ function build() {
       console.log("[glossary]   - " + q.term + "  (from " + q.origin.replace("weekly:", "") + "-terms.md)");
     }
   }
+  if (infraDropped.length) {
+    console.log("[glossary] WARNING refused " + infraDropped.length +
+      " generated entries carrying private infrastructure -> " +
+      path.relative(ROOT, QUARANTINE_OUT));
+  }
   if (weekly.failedFiles.length) {
-    console.log("[glossary] WARNING failed weekly runs (no terms): " + weekly.failedFiles.join(", "));
+    console.log("[glossary] WARNING failed weekly runs (no terms published):");
+    for (const f of weekly.failedFiles) {
+      console.log("[glossary]   - " + f.file + "  (" + f.reason + ")");
+    }
   }
   return stats;
 }
@@ -387,7 +461,7 @@ function dedupeByTerm(list) {
 
 /** Writes the dropped entries to a reviewable file in the repo, so the fact that the
  *  generator produced fabrications stays visible after they leave the bundle. */
-function writeQuarantineReport(quarantined, failedFiles) {
+function writeQuarantineReport(quarantined, failedFiles, infraDropped) {
   const lines = [
     "# Glossary quarantine",
     "",
@@ -413,7 +487,25 @@ function writeQuarantineReport(quarantined, failedFiles) {
   lines.push("");
   if (failedFiles.length) {
     for (const f of failedFiles) {
-      lines.push(`- \`glossary/${f}\` — the run failed and its error was committed as the file body.`);
+      lines.push(`- \`glossary/${f.file}\` — ${f.reason}.`);
+    }
+  } else {
+    lines.push("_None._");
+  }
+
+  lines.push("");
+  lines.push("## Generated entries refused for carrying private infrastructure");
+  lines.push("");
+  lines.push("The weekly and mined sources read from private mail and fleet notes. Any entry whose");
+  lines.push("text matches an absolute path, host name, address, port or credential name is dropped");
+  lines.push("before it can reach a public page. **The matched text is deliberately not reproduced");
+  lines.push("here** — this file is in the repo, and quoting the leak would defeat the filter.");
+  lines.push("");
+  if (infraDropped && infraDropped.length) {
+    lines.push("| term | source | pattern matched |");
+    lines.push("| --- | --- | --- |");
+    for (const d of infraDropped) {
+      lines.push(`| \`${d.term}\` | \`${d.origin}\` | \`${d.pattern.replace(/\|/g, "\\|")}\` |`);
     }
   } else {
     lines.push("_None._");
