@@ -43,17 +43,33 @@
 
   function card(t, sc) {
     const title = t.expansion ? `${t.term} — ${t.expansion}` : t.term;
-    const badge =
-      t.kind === "usage"
-        ? '<span class="card-source">usage example</span>'
-        : `<span class="card-source">${esc(t.category)}</span>`;
+    const badge = `<span class="card-source">${esc(t.category)}</span>`;
     const colour = sc > 0.7 ? "#22c55e" : sc > 0.4 ? "#0ea5e9" : "#a1a1aa";
+
+    // Where a term is commonly misunderstood, saying so is worth more to a reader than another
+    // restatement of the right answer — so it gets its own line rather than being buried in prose.
+    const misread = t.misread
+      ? `<p class="card-misread"><strong>Often got wrong:</strong> ${esc(t.misread)}</p>`
+      : "";
+
+    // Provenance. An entry a reader cannot trace back is a claim, not a definition; entries
+    // without one are inherited from the older curated set and have not been verified yet.
+    const cite = t.source
+      ? `<p class="card-cite">Verified against ${
+          t.sourceUrl
+            ? `<a class="card-link" href="${esc(t.sourceUrl)}" target="_blank" rel="noopener noreferrer">${esc(t.source)}</a>`
+            : esc(t.source)
+        }</p>`
+      : "";
+
     return `<div class="card">
       <div class="card-header">
         <span class="card-title">${esc(title)}</span>
         <span class="card-score" style="color:${colour}">${(sc * 100).toFixed(0)}%</span>
       </div>
       <p class="card-snippet">${esc(t.desc)}</p>
+      ${misread}
+      ${cite}
       <div class="card-footer">${badge}</div>
     </div>`;
   }
@@ -83,11 +99,19 @@
     render(hits.slice(0, MAX), "results");
   }
 
-  /** With no query, show defined terms alphabetically rather than an empty page. */
+  /** With no query, show defined terms rather than an empty page — source-verified ones first,
+   *  so the default view leads with the entries a reader can actually check. */
   function browse() {
     const defined = TERMS.filter((t) => t.kind === "definition" && t.desc);
+    const ordered = defined
+      .slice()
+      .sort(
+        (a, b) =>
+          (b.source ? 1 : 0) - (a.source ? 1 : 0) ||
+          a.term.localeCompare(b.term, "en", { sensitivity: "base" })
+      );
     render(
-      defined.slice(0, MAX).map((t) => ({ t, sc: 1 })),
+      ordered.slice(0, MAX).map((t) => ({ t, sc: 1 })),
       `of ${defined.length} defined terms`
     );
   }
@@ -106,8 +130,10 @@
       READY = true;
       const sub = document.querySelector(".sub");
       if (sub) {
+        const cited = TERMS.filter((t) => t.source).length;
         sub.textContent =
-          `AI Engineering Knowledge Map · ${TERMS.length} terms · instant search`;
+          `AI Engineering Knowledge Map · ${TERMS.length} terms · ` +
+          `${cited} checked against a primary source · instant search`;
       }
       browse();
     } catch (e) {
