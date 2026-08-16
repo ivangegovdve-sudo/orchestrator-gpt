@@ -199,32 +199,43 @@ function loadWeekly() {
 }
 
 // ── 3. the Gmail-mined master list ─────────────────────────────────────────────
+// USAGE SNIPPETS ARE NOT PUBLISHED. The miner recorded, for every term it had no definition
+// for, a fixed-width character window cut out of the surrounding email or memory text. Those are
+// not definitions and never were — they are mid-sentence fragments that happen to contain the
+// term, so "AB" was documented by a music-marketing subject line and "AA" by a fragment of the
+// phrase "WCAG AA". Worse, because the corpus is Ivan's private mail and fleet notes, dozens of
+// them carried absolute filesystem paths, host names, ports and internal usernames onto a public
+// page — and glossary-bundle.json is world-readable, so hiding them client-side would not have
+// helped. They are dropped at parse time and counted, never emitted.
+const USAGE_MARKER = /^_(usage|seen in email):_/i;
+
 function loadMined() {
   const raw = readIf(path.join(ROOT, "glossary", "ai-terms-glossary.md"));
-  if (!raw) return { entries: [], skipped: 0 };
+  if (!raw) return { entries: [], skipped: 0, usageDropped: 0 };
   const entries = [];
   let skipped = 0;
+  let usageDropped = 0;
   for (const line of raw.split(/\r?\n/)) {
     const m = line.match(/^- \*\*(.+?)\*\* — (.*)$/);
     if (!m) continue;
     const term = norm(m[1]);
     let body = norm(m[2]);
-    const usage = /^_(usage|seen in email):_/i.test(body);
-    body = body.replace(/^_(usage|seen in email):_\s*/i, "").replace(/^"|"$/g, "");
+    if (USAGE_MARKER.test(body)) { usageDropped++; continue; }
+    body = body.replace(/^"|"$/g, "");
     if (!term) { skipped++; continue; }
     entries.push({
       term,
       expansion: "",
       desc: norm(body),
-      category: usage ? "Mined from email" : "Foundations & Concepts",
+      category: "Foundations & Concepts",
       tags: [],
       related: [],
-      kind: usage ? "usage" : "definition",
+      kind: "definition",
       origin: "mined",
       review: false,
     });
   }
-  return { entries, skipped };
+  return { entries, skipped, usageDropped };
 }
 
 // ── merge: first writer wins, so precedence is the order we add ────────────────
@@ -275,6 +286,9 @@ function build() {
     // naming an invented term in a public file still publishes it. They live in
     // glossary/QUARANTINE.md (repo) and in the build log.
     quarantined: quarantined.length,
+    // Usage snippets are no longer publishable at all — see loadMined(). Reported so the drop in
+    // the published count reads as a deliberate removal rather than a source that quietly shrank.
+    usageSnippetsDropped: mined.usageDropped,
     bySource: {
       curated: terms.filter((t) => t.origin === "curated").length,
       weekly: terms.filter((t) => t.origin.startsWith("weekly:")).length,
@@ -307,6 +321,10 @@ function build() {
     " + weekly " + stats.bySource.weekly + " + mined " + stats.bySource.mined +
     "  (definition " + stats.byKind.definition + ", usage " + stats.byKind.usage +
     ", stub " + stats.byKind.stub + ")");
+  if (stats.usageSnippetsDropped) {
+    console.log("[glossary] dropped " + stats.usageSnippetsDropped +
+      " mined usage snippets (email/memory fragments, not definitions — never published)");
+  }
   if (quarantined.length) {
     console.log("[glossary] WARNING dropped " + quarantined.length +
       " fabricated/off-topic entries -> " + path.relative(ROOT, QUARANTINE_OUT));
