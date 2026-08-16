@@ -18,4 +18,14 @@ To clear an entry: correct or delete it in its source file, then remove that fil
 
 ## Runs that produced no terms at all
 
-- `glossary/2026-08-02-terms.md` — the run failed and its error was committed as the file body.
+- `glossary/2026-08-02-terms.md` — provider error committed as the file body.
+- `glossary/2026-08-16-terms.md` — run report / narration, not term definitions.
+
+## Generated entries refused for carrying private infrastructure
+
+The weekly and mined sources read from private mail and fleet notes. Any entry whose
+text matches an absolute path, host name, address, port or credential name is dropped
+before it can reach a public page. **The matched text is deliberately not reproduced
+here** — this file is in the repo, and quoting the leak would defeat the filter.
+
+_None._
