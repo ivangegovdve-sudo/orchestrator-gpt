@@ -11,6 +11,8 @@
  * recreate exactly the failure it replaces.
  *
  * SOURCES, highest precedence first:
+ *   0. glossary/verified-terms.json   — definitions checked against a primary/authoritative source,
+ *                                       each carrying the citation it was verified against
  *   1. web/ai-init/glossary-data.js   — 527 curated entries: good categories + relation graph
  *   2. glossary/<date>-terms.md       — weekly mined additions (newest content)
  *   3. glossary/ai-terms-glossary.md  — 912 terms mined from the Gmail corpus 2026-07-10
@@ -41,6 +43,31 @@ const keyOf = (s) => norm(s).toLowerCase();
 
 function readIf(p) {
   return fs.existsSync(p) ? fs.readFileSync(p, "utf8") : null;
+}
+
+// ── 0. verified dataset — highest precedence ──────────────────────────────────
+// These entries were checked against the RFC, the spec, the paper or the vendor's own
+// reference, and each carries the citation. They outrank every other source on purpose:
+// where a curated or mined entry disagrees with a cited primary source, the source wins.
+function loadVerified() {
+  const raw = readIf(path.join(ROOT, "glossary", "verified-terms.json"));
+  if (!raw) return [];
+  const parsed = JSON.parse(raw);
+  return (parsed.terms || []).map((e) => ({
+    term: norm(e.term),
+    expansion: norm(e.expansion),
+    desc: norm(e.desc),
+    category: norm(e.category) || "Uncategorized",
+    tags: [],
+    related: [],
+    kind: "definition",
+    origin: "verified",
+    review: false,
+    // Public-facing provenance. A glossary entry a reader cannot trace is a claim, not a definition.
+    source: norm(e.source),
+    sourceUrl: norm(e.sourceUrl),
+    misread: norm(e.misread),
+  }));
 }
 
 // ── 1. curated dataset (also the source of the category taxonomy) ──────────────
@@ -240,6 +267,7 @@ function loadMined() {
 
 // ── merge: first writer wins, so precedence is the order we add ────────────────
 function build() {
+  const verified = loadVerified();
   const curated = loadCurated();
   const weekly = loadWeekly();
   const mined = loadMined();
@@ -270,6 +298,7 @@ function build() {
   // (None of today's four collide, but the ordering trap is real and cheap to avoid.)
   const quarantined = dedupeByTerm(weekly.entries.filter((e) => e.review));
 
+  add(verified);
   add(curated);
   add(weekly.entries.filter((e) => !e.review));
   add(mined.entries);
@@ -289,7 +318,10 @@ function build() {
     // Usage snippets are no longer publishable at all — see loadMined(). Reported so the drop in
     // the published count reads as a deliberate removal rather than a source that quietly shrank.
     usageSnippetsDropped: mined.usageDropped,
+    // How many published entries carry a citation to the source their meaning was checked against.
+    cited: terms.filter((t) => t.source).length,
     bySource: {
+      verified: terms.filter((t) => t.origin === "verified").length,
       curated: terms.filter((t) => t.origin === "curated").length,
       weekly: terms.filter((t) => t.origin.startsWith("weekly:")).length,
       mined: terms.filter((t) => t.origin === "mined").length,
@@ -317,10 +349,12 @@ function build() {
   console.log("[glossary] wrote " + path.relative(ROOT, OUT));
   console.log("[glossary] parsed " + (stats.published + stats.quarantined) + " terms from source" +
     "  ->  PUBLISHED " + stats.published + ", DROPPED " + stats.quarantined);
-  console.log("[glossary] published breakdown: curated " + stats.bySource.curated +
+  console.log("[glossary] published breakdown: verified " + stats.bySource.verified +
+    " + curated " + stats.bySource.curated +
     " + weekly " + stats.bySource.weekly + " + mined " + stats.bySource.mined +
     "  (definition " + stats.byKind.definition + ", usage " + stats.byKind.usage +
     ", stub " + stats.byKind.stub + ")");
+  console.log("[glossary] " + stats.cited + " entries carry a source citation");
   if (stats.usageSnippetsDropped) {
     console.log("[glossary] dropped " + stats.usageSnippetsDropped +
       " mined usage snippets (email/memory fragments, not definitions — never published)");
