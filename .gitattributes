@@ -1,0 +1,12 @@
+# Files written by scripts/build-glossary-bundle.cjs on every build.
+#
+# The generator always writes LF. Without pinning, core.autocrlf=true checks them out as CRLF on
+# Windows, so every local `npm run build` leaves a phantom modification — git reports the file as
+# modified while `git diff` prints nothing and the byte counts match exactly.
+#
+# It is harmless in itself, and that is the problem: it trains you to ignore a dirty working tree
+# after a build, which is precisely the habit that lets a real change go unnoticed. The build is
+# byte-deterministic by design; pinning the line endings is what keeps "a clean build produces no
+# diff" actually true.
+glossary/QUARANTINE.md                     text eol=lf
+web/library/glossary/glossary-bundle.json  text eol=lf
