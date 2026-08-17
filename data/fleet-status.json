@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-17T12:19:01.253627+00:00",
+  "generated_at": "2026-08-17T18:19:01.762877+00:00",
   "generated_by": "pr_helper.py on Oracle (forest-a1-v3)",
   "services": {
     "soul-server": {
@@ -27,9 +27,8 @@
       "version": "0.20.0"
     },
     "librarian": {
-      "status": "ok",
-      "platform": "hermes-agent",
-      "version": "0.20.0"
+      "status": "down",
+      "error": "<urlopen error [Errno 111] Connection refused>"
     },
     "chloe-api": {
       "status": "ok",
