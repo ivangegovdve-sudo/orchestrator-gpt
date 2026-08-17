@@ -13,8 +13,8 @@ listed. Casing and punctuation differences are folded and never reported.
 ⚠ Repo-only. These are the estate's own errors and some name internal habits; this file is
 not published, unlike the bundle.
 
-## No disagreements in this build
+## 1 disagreement(s)
 
-Every verified term's expansion matched the estate's, or the term appeared in only one
-source. This section is written even when empty on purpose — an absent report and a clean
-one must not look alike.
+| term | correct (per source) | as the estate used it | where | source |
+|---|---|---|---|---|
+| `BERT` | Bidirectional Encoder Representations from Transformers | Bidirectional Encoder Representation from Transformers | curated | [Devlin et al., "BERT: Pre-training of Deep Bidirectional Transformers for Language Understanding", arXiv:1810.04805 (October 2018)](https://arxiv.org/abs/1810.04805) |

@@ -587,11 +587,17 @@ function writeMisuseReport(misuseIn) {
   // committed, the mined tier reads private mail, and the cost of checking twice is one
   // predicate, so the belt goes on next to the braces.
   misuse = misuse.filter((m) => {
-    // `source`/`sourceUrl` are hand-authored public citations, so they are the least
-    // likely carrier — but they are still text going into a committed file, and a
-    // reviewer was right that excluding them from the check was arbitrary.
-    const hit = privateInfraHit(m.asUsed) || privateInfraHit(m.correct) ||
-                privateInfraHit(m.source) || privateInfraHit(m.sourceUrl);
+    // ⚠⚠ DO NOT extend this to `source`/`sourceUrl`. It was tried, on a reviewer's
+    // suggestion that excluding them was arbitrary, and it silently deleted the only
+    // real finding in the report: PRIVATE_INFRA's host:port rule (`:\d{4,5}`) matches
+    // "arXiv:1810" inside the BERT citation. The row was withheld and the report then
+    // said "No disagreements in this build" — a clean result manufactured by
+    // suppressing the signal, which is the exact failure this file exists to prevent.
+    //
+    // The exclusion is not arbitrary: these fields are hand-authored public citations,
+    // while PRIVATE_INFRA is tuned for GENERATED text mined from private mail. Applying
+    // a generated-content filter to curated citations costs findings and buys nothing.
+    const hit = privateInfraHit(m.asUsed) || privateInfraHit(m.correct);
     if (hit) {
       console.log("[glossary] misuse row withheld (private infrastructure): " + m.term);
       return false;
