@@ -371,12 +371,27 @@ function build() {
           // built for, and it would have looked clean while being useless.
           // ...but only when the estate actually INVENTED words. "gRPC" expanded to "gRPC",
           // or "Transformer" to "Transformer Architecture", is the term restated, not a false
-          // acronym expansion. Listing those buries GGUF-class findings under four rows of
-          // nothing, and a report nobody trusts is read exactly as often as no report.
+          // acronym expansion. Listing those buries GGUF-class findings under rows of nothing,
+          // and a report nobody trusts is read exactly as often as no report.
+          //
+          // ⚠ A PLAIN PREFIX TEST IS TOO BLUNT HERE, and this was caught by mutating the real
+          // data rather than by reading the code: `startsWith` silently swallowed
+          // "GGUF" -> "GGUF Unified Format", which is an invented expansion one word away from
+          // the historical bug this detector exists for. Any term that happens to prefix its
+          // own false expansion escaped. Short terms are worst — `AA` is two characters.
+          //
+          // So a restatement is the term ALONE, or the term plus at most one descriptor word
+          // ("Transformer Architecture"). Term plus two or more words is a phrase presented as
+          // an expansion, which is the thing being looked for.
           const squash = (s) => String(s || "").toLowerCase().replace(/[^a-z0-9]/g, "");
-          const restatesTerm =
-            squash(e.expansion) === squash(cur.term) ||
-            squash(e.expansion).startsWith(squash(cur.term));
+          const extraWords = (() => {
+            const t = squash(cur.term);
+            const x = squash(e.expansion);
+            if (!x.startsWith(t)) return null;           // not a restatement at all
+            const tail = norm(e.expansion).slice(norm(cur.term).length).trim();
+            return tail ? tail.split(/\s+/).length : 0;
+          })();
+          const restatesTerm = extraWords !== null && extraWords <= 1;
           if (b && !a && !restatesTerm) {
             misuse.push({
               term: cur.term, correct: "(no expansion — not an acronym)",
