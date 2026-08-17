@@ -587,7 +587,11 @@ function writeMisuseReport(misuseIn) {
   // committed, the mined tier reads private mail, and the cost of checking twice is one
   // predicate, so the belt goes on next to the braces.
   misuse = misuse.filter((m) => {
-    const hit = privateInfraHit(m.asUsed) || privateInfraHit(m.correct);
+    // `source`/`sourceUrl` are hand-authored public citations, so they are the least
+    // likely carrier — but they are still text going into a committed file, and a
+    // reviewer was right that excluding them from the check was arbitrary.
+    const hit = privateInfraHit(m.asUsed) || privateInfraHit(m.correct) ||
+                privateInfraHit(m.source) || privateInfraHit(m.sourceUrl);
     if (hit) {
       console.log("[glossary] misuse row withheld (private infrastructure): " + m.term);
       return false;
