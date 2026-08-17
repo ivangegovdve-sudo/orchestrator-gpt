@@ -383,13 +383,31 @@ function build() {
           // So a restatement is the term ALONE, or the term plus at most one descriptor word
           // ("Transformer Architecture"). Term plus two or more words is a phrase presented as
           // an expansion, which is the thing being looked for.
+          // ⚠⚠ SECOND correction, from a cross-model review of the first one. Comparing
+          // SQUASHED strings with startsWith ignores word boundaries, so any single word
+          // beginning with the term's letters read as a restatement: `AA` vs "Aardvark"
+          // matched, the tail "rdvark" counted as one word, and a real invented expansion
+          // was suppressed. `MAC` vs "Machine" the same. The slice compounded it — the
+          // prefix was established on squashed text but sliced off the unsquashed string,
+          // so it could cut mid-word.
+          //
+          // Match on WORD boundaries instead: find the fewest leading words of the
+          // expansion whose squashed form equals the squashed term. That still absorbs
+          // pure respacing ("PagedAttention" -> "Paged Attention") without letting an
+          // unrelated word in. Anything beyond one trailing descriptor is a phrase being
+          // presented as an expansion, which is the thing being looked for.
           const squash = (s) => String(s || "").toLowerCase().replace(/[^a-z0-9]/g, "");
           const extraWords = (() => {
-            const t = squash(cur.term);
-            const x = squash(e.expansion);
-            if (!x.startsWith(t)) return null;           // not a restatement at all
-            const tail = norm(e.expansion).slice(norm(cur.term).length).trim();
-            return tail ? tail.split(/\s+/).length : 0;
+            const target = squash(cur.term);
+            if (!target) return null;
+            const words = normExpansion(e.expansion).split(/\s+/).filter(Boolean);
+            let acc = "";
+            for (let i = 0; i < words.length; i += 1) {
+              acc += words[i];
+              if (acc === target) return words.length - (i + 1);
+              if (!target.startsWith(acc)) break;   // diverged; cannot become a restatement
+            }
+            return null;
           })();
           const restatesTerm = extraWords !== null && extraWords <= 1;
           if (b && !a && !restatesTerm) {
@@ -447,7 +465,16 @@ function build() {
   );
 
   writeQuarantineReport(quarantined, weekly.failedFiles, infraDropped);
-  writeMisuseReport(misuse);
+  // Same term can lose to the cited entry once per lower-precedence source, so a term
+  // present in both curated and mined reported twice. Dedupe on what the row actually says.
+  const seenMisuse = new Set();
+  const misuseUnique = misuse.filter((m) => {
+    const k = keyOf(m.term) + " " + normExpansion(m.asUsed);
+    if (seenMisuse.has(k)) return false;
+    seenMisuse.add(k);
+    return true;
+  });
+  writeMisuseReport(misuseUnique);
 
   const stats = {
     published: terms.length,
@@ -535,7 +562,8 @@ function build() {
  * This is repo-only. It names Ivan's own wrong definitions, so it must not become a public
  * artefact the way the mined usage snippets did.
  */
-function writeMisuseReport(misuse) {
+function writeMisuseReport(misuseIn) {
+  let misuse = misuseIn;
   const lines = [
     "# Terms the estate defines differently from the source",
     "",
@@ -553,6 +581,19 @@ function writeMisuseReport(misuse) {
     "not published, unlike the bundle.",
     "",
   ];
+  // Defence in depth. The mined and weekly tiers are ALREADY passed through clean() before
+  // the merge, so nothing carrying private infrastructure should reach this array — a
+  // cross-model review claimed otherwise and was wrong about that. But this file is
+  // committed, the mined tier reads private mail, and the cost of checking twice is one
+  // predicate, so the belt goes on next to the braces.
+  misuse = misuse.filter((m) => {
+    const hit = privateInfraHit(m.asUsed) || privateInfraHit(m.correct);
+    if (hit) {
+      console.log("[glossary] misuse row withheld (private infrastructure): " + m.term);
+      return false;
+    }
+    return true;
+  });
   if (!misuse.length) {
     lines.push(
       "## No disagreements in this build",
