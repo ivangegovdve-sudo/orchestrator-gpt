@@ -27,6 +27,19 @@ const ROOT = path.join(__dirname, "..");
 const OUT = path.join(ROOT, "web", "library", "glossary", "glossary-bundle.json");
 /** Reviewable record of everything the build refused to publish. Regenerated each build. */
 const QUARANTINE_OUT = path.join(ROOT, "glossary", "QUARANTINE.md");
+/**
+ * Terms the estate defines differently from the primary source. Regenerated each build.
+ *
+ * The one-off report of 2026-08-16 found these by hand (GGUF expanded to a phrase that does
+ * not exist and credited to the wrong project; CUDA to an expansion NVIDIA dropped; OAuth to
+ * a backronym). Nothing regenerated it, so the next wrong expansion would go unnoticed the
+ * same way the first ones did.
+ *
+ * It does not need a separate pass. The merge below already resolves precedence, and where a
+ * cited primary source outranks a curated or mined entry for the same term, the losing text
+ * IS the estate's own wrong definition — it was simply being discarded. This records it.
+ */
+const MISUSE_OUT = path.join(ROOT, "glossary", "MISUSE.md");
 
 /** Files whose entries are unreviewed LLM output with demonstrated fabrications.
  *  2026-07-19 invented "BROCKMAN" (a hiring-assessment method) and "CAVERN" (a data
@@ -76,6 +89,18 @@ function privateInfraHit(text) {
 }
 
 const norm = (s) => String(s || "").replace(/\s+/g, " ").trim();
+
+/**
+ * Compare two expansions for MEANING, not for typography.
+ *
+ * "HyperText Transfer Protocol" and "Hypertext Transfer Protocol" are the same expansion
+ * written twice; reporting that pair as a misuse would bury the real findings under casing
+ * noise, and a report nobody trusts gets ignored — which is how the first wrong expansions
+ * survived. Folds case, punctuation, hyphens and spacing; keeps word content, because that
+ * is where "GGML Unified Format" differs from the real thing.
+ */
+const normExpansion = (s) =>
+  String(s || "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
 const keyOf = (s) => norm(s).toLowerCase();
 
 function readIf(p) {
@@ -323,6 +348,9 @@ function build() {
   const mined = loadMined();
 
   const byKey = new Map();
+  // Disagreements between a cited primary source and the estate's own wording. Collected
+  // during the merge because that is the only place both versions of a term coexist.
+  const misuse = [];
   const add = (list) => {
     for (const e of list) {
       const k = keyOf(e.term);
@@ -330,6 +358,72 @@ function build() {
       if (byKey.has(k)) {
         // keep the higher-precedence entry, but let a later source fill a missing desc
         const cur = byKey.get(k);
+        // Only a CITED entry can convict another of being wrong. A curated entry beating a
+        // mined one is precedence, not error — neither was checked against anything, so
+        // recording it would fill the report with noise and bury the real findings.
+        if (cur.origin === "verified" && cur.sourceUrl) {
+          const a = normExpansion(cur.expansion);
+          const b = normExpansion(e.expansion);
+          // An EMPTY verified expansion is a finding, not a gap. Several terms are not
+          // acronyms at all — GGUF is the case that started this: the estate expanded it to
+          // "GGML Unified Format", a phrase that appears in no specification. Requiring both
+          // sides to be non-empty would make this detector blind to exactly the error it was
+          // built for, and it would have looked clean while being useless.
+          // ...but only when the estate actually INVENTED words. "gRPC" expanded to "gRPC",
+          // or "Transformer" to "Transformer Architecture", is the term restated, not a false
+          // acronym expansion. Listing those buries GGUF-class findings under rows of nothing,
+          // and a report nobody trusts is read exactly as often as no report.
+          //
+          // ⚠ A PLAIN PREFIX TEST IS TOO BLUNT HERE, and this was caught by mutating the real
+          // data rather than by reading the code: `startsWith` silently swallowed
+          // "GGUF" -> "GGUF Unified Format", which is an invented expansion one word away from
+          // the historical bug this detector exists for. Any term that happens to prefix its
+          // own false expansion escaped. Short terms are worst — `AA` is two characters.
+          //
+          // So a restatement is the term ALONE, or the term plus at most one descriptor word
+          // ("Transformer Architecture"). Term plus two or more words is a phrase presented as
+          // an expansion, which is the thing being looked for.
+          // ⚠⚠ SECOND correction, from a cross-model review of the first one. Comparing
+          // SQUASHED strings with startsWith ignores word boundaries, so any single word
+          // beginning with the term's letters read as a restatement: `AA` vs "Aardvark"
+          // matched, the tail "rdvark" counted as one word, and a real invented expansion
+          // was suppressed. `MAC` vs "Machine" the same. The slice compounded it — the
+          // prefix was established on squashed text but sliced off the unsquashed string,
+          // so it could cut mid-word.
+          //
+          // Match on WORD boundaries instead: find the fewest leading words of the
+          // expansion whose squashed form equals the squashed term. That still absorbs
+          // pure respacing ("PagedAttention" -> "Paged Attention") without letting an
+          // unrelated word in. Anything beyond one trailing descriptor is a phrase being
+          // presented as an expansion, which is the thing being looked for.
+          const squash = (s) => String(s || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+          const extraWords = (() => {
+            const target = squash(cur.term);
+            if (!target) return null;
+            const words = normExpansion(e.expansion).split(/\s+/).filter(Boolean);
+            let acc = "";
+            for (let i = 0; i < words.length; i += 1) {
+              acc += words[i];
+              if (acc === target) return words.length - (i + 1);
+              if (!target.startsWith(acc)) break;   // diverged; cannot become a restatement
+            }
+            return null;
+          })();
+          const restatesTerm = extraWords !== null && extraWords <= 1;
+          if (b && !a && !restatesTerm) {
+            misuse.push({
+              term: cur.term, correct: "(no expansion — not an acronym)",
+              asUsed: e.expansion, origin: e.origin,
+              source: cur.source, sourceUrl: cur.sourceUrl, kind: "invented",
+            });
+          } else if (a && b && a !== b) {
+            misuse.push({
+              term: cur.term, correct: cur.expansion, asUsed: e.expansion,
+              origin: e.origin, source: cur.source, sourceUrl: cur.sourceUrl,
+              kind: "wrong",
+            });
+          }
+        }
         if (!cur.desc && e.desc) { cur.desc = e.desc; cur.kind = e.kind; }
         cur.alsoIn = (cur.alsoIn || []).concat(e.origin);
         continue;
@@ -371,6 +465,16 @@ function build() {
   );
 
   writeQuarantineReport(quarantined, weekly.failedFiles, infraDropped);
+  // Same term can lose to the cited entry once per lower-precedence source, so a term
+  // present in both curated and mined reported twice. Dedupe on what the row actually says.
+  const seenMisuse = new Set();
+  const misuseUnique = misuse.filter((m) => {
+    const k = keyOf(m.term) + " " + normExpansion(m.asUsed);
+    if (seenMisuse.has(k)) return false;
+    seenMisuse.add(k);
+    return true;
+  });
+  writeMisuseReport(misuseUnique);
 
   const stats = {
     published: terms.length,
@@ -447,6 +551,85 @@ function build() {
 }
 
 /** Collapse duplicate terms within a single list, keeping the first. */
+/**
+ * Regenerate glossary/MISUSE.md — terms the estate defines differently from the source.
+ *
+ * Written on EVERY build, including when the list is empty, and the empty file says so
+ * explicitly. A report that is only written when it has findings is indistinguishable from
+ * a build that did not run, which is the failure this pipeline already had once: the weekly
+ * markdown fed nothing and nobody noticed for months.
+ *
+ * This is repo-only. It names Ivan's own wrong definitions, so it must not become a public
+ * artefact the way the mined usage snippets did.
+ */
+function writeMisuseReport(misuseIn) {
+  let misuse = misuseIn;
+  const lines = [
+    "# Terms the estate defines differently from the source",
+    "",
+    "**Regenerated by `scripts/build-glossary-bundle.cjs` on every build. Do not edit by hand.**",
+    "",
+    "Each row is a term where a definition checked against a primary source disagrees with the",
+    "expansion the estate had been using. The citation is what makes it a finding rather than an",
+    "opinion: the `correct` column is what the linked source says, not what seemed right.",
+    "",
+    "Only entries carrying a `sourceUrl` can convict another of being wrong. A curated entry",
+    "outranking a mined one is precedence, not error — neither was verified, so those are not",
+    "listed. Casing and punctuation differences are folded and never reported.",
+    "",
+    "⚠ Repo-only. These are the estate's own errors and some name internal habits; this file is",
+    "not published, unlike the bundle.",
+    "",
+  ];
+  // Defence in depth. The mined and weekly tiers are ALREADY passed through clean() before
+  // the merge, so nothing carrying private infrastructure should reach this array — a
+  // cross-model review claimed otherwise and was wrong about that. But this file is
+  // committed, the mined tier reads private mail, and the cost of checking twice is one
+  // predicate, so the belt goes on next to the braces.
+  misuse = misuse.filter((m) => {
+    // ⚠⚠ DO NOT extend this to `source`/`sourceUrl`. It was tried, on a reviewer's
+    // suggestion that excluding them was arbitrary, and it silently deleted the only
+    // real finding in the report: PRIVATE_INFRA's host:port rule (`:\d{4,5}`) matches
+    // "arXiv:1810" inside the BERT citation. The row was withheld and the report then
+    // said "No disagreements in this build" — a clean result manufactured by
+    // suppressing the signal, which is the exact failure this file exists to prevent.
+    //
+    // The exclusion is not arbitrary: these fields are hand-authored public citations,
+    // while PRIVATE_INFRA is tuned for GENERATED text mined from private mail. Applying
+    // a generated-content filter to curated citations costs findings and buys nothing.
+    const hit = privateInfraHit(m.asUsed) || privateInfraHit(m.correct);
+    if (hit) {
+      console.log("[glossary] misuse row withheld (private infrastructure): " + m.term);
+      return false;
+    }
+    return true;
+  });
+  if (!misuse.length) {
+    lines.push(
+      "## No disagreements in this build",
+      "",
+      "Every verified term's expansion matched the estate's, or the term appeared in only one",
+      "source. This section is written even when empty on purpose — an absent report and a clean",
+      "one must not look alike."
+    );
+  } else {
+    lines.push(
+      "## " + misuse.length + " disagreement(s)",
+      "",
+      "| term | correct (per source) | as the estate used it | where | source |",
+      "|---|---|---|---|---|"
+    );
+    for (const m of misuse.slice().sort((a, b) => a.term.localeCompare(b.term))) {
+      lines.push(
+        "| `" + m.term + "` | " + (m.correct || "—") + " | " + (m.asUsed || "—") +
+        " | " + m.origin + " | [" + (m.source || "source") + "](" + m.sourceUrl + ") |"
+      );
+    }
+  }
+  lines.push("");
+  fs.writeFileSync(MISUSE_OUT, lines.join("\n"), "utf8");
+}
+
 function dedupeByTerm(list) {
   const seen = new Set();
   return list
