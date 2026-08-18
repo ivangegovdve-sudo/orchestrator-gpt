@@ -137,7 +137,7 @@
     critic: [
       'openai/gpt-oss-20b:free',
       'nvidia/nemotron-3-nano-30b-a3b:free',
-      'inclusionai/ling-3.0-flash:free',
+      'poolside/laguna-xs-2.1:free',
     ],
     synthesis: [
       'nvidia/nemotron-3-ultra-550b-a55b:free',
