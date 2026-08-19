@@ -1,0 +1,482 @@
+{
+  "_readme": [
+    "GLOSSARY CANDIDATES -- proposals only. NOT publishable as-is.",
+    "",
+    "Produced by scripts/glossary-candidates.py. Every entry has an empty `desc`,",
+    "`source` and `sourceUrl` BY DESIGN. This file is the discovery half of the job:",
+    "it says which terms are worth having, and says nothing about what they mean.",
+    "",
+    "To promote an entry: find the RFC, spec, paper or vendor reference; read it;",
+    "write `desc` from what it says; fill `source` and `sourceUrl` with what you read;",
+    "pick a `category` from the existing taxonomy; then move the entry into",
+    "glossary/verified-terms.json and delete `_evidence`. Verify first, cite second,",
+    "write third. An entry whose meaning cannot be traced does not get promoted.",
+    "",
+    "`_evidence` records how often the term appeared in each corpus. It is a reason to",
+    "look the term up. It is not evidence of what the term means."
+  ],
+  "generatedBy": "scripts/glossary-candidates.py",
+  "corpora": [
+    "sessions: D:\\output\\session_kb\\session_kb.db (10,184 candidate tokens)",
+    "emails: opc@144.24.59.30:/home/opc/email_db/emails.db (36,353 candidate tokens)",
+    "already known: 630 terms (bundle + verified)"
+  ],
+  "minCount": 5,
+  "candidates": [
+    {
+      "term": "MINUTE",
+      "expansion": "",
+      "desc": "",
+      "category": "",
+      "misread": "",
+      "source": "",
+      "sourceUrl": "",
+      "_evidence": {
+        "sessionHits": 0,
+        "emailHits": 961
+      }
+    },
+    {
+      "term": "egrmw9",
+      "expansion": "",
+      "desc": "",
+      "category": "",
+      "misread": "",
+      "source": "",
+      "sourceUrl": "",
+      "_evidence": {
+        "sessionHits": 0,
+        "emailHits": 759
+      }
+    },
+    {
+      "term": "SPONSOR",
+      "expansion": "",
+      "desc": "",
+      "category": "",
+      "misread": "",
+      "source": "",
+      "sourceUrl": "",
+      "_evidence": {
+        "sessionHits": 0,
+        "emailHits": 662
+      }
+    },
+    {
+      "term": "github-learn",
+      "expansion": "",
+      "desc": "",
+      "category": "",
+      "misread": "",
+      "source": "",
+      "sourceUrl": "",
+      "_evidence": {
+        "sessionHits": 0,
+        "emailHits": 627
+      }
+    },
+    {
+      "term": "ytmdesktop2",
+      "expansion": "",
+      "desc": "",
+      "category": "",
+      "misread": "",
+      "source": "",
+      "sourceUrl": "",
+      "_evidence": {
+        "sessionHits": 3,
+        "emailHits": 591
+      }
+    },
+    {
+      "term": "USA",
+      "expansion": "",
+      "desc": "",
+      "category": "",
+      "misread": "",
+      "source": "",
+      "sourceUrl": "",
+      "_evidence": {
+        "sessionHits": 0,
+        "emailHits": 513
+      }
+    },
+    {
+      "term": "CEO",
+      "expansion": "",
+      "desc": "",
+      "category": "",
+      "misread": "",
+      "source": "",
+      "sourceUrl": "",
+      "_evidence": {
+        "sessionHits": 3,
+        "emailHits": 490
+      }
+    },
+    {
+      "term": "P2",
+      "expansion": "",
+      "desc": "",
+      "category": "",
+      "misread": "",
+      "source": "",
+      "sourceUrl": "",
+      "_evidence": {
+        "sessionHits": 9,
+        "emailHits": 401
+      }
+    },
+    {
+      "term": "OPINIONS",
+      "expansion": "",
+      "desc": "",
+      "category": "",
+      "misread": "",
+      "source": "",
+      "sourceUrl": "",
+      "_evidence": {
+        "sessionHits": 0,
+        "emailHits": 403
+      }
+    },
+    {
+      "term": "P2-yellow",
+      "expansion": "",
+      "desc": "",
+      "category": "",
+      "misread": "",
+      "source": "",
+      "sourceUrl": "",
+      "_evidence": {
+        "sessionHits": 1,
+        "emailHits": 398
+      }
+    },
+    {
+      "term": "GPT-5",
+      "expansion": "",
+      "desc": "",
+      "category": "",
+      "misread": "",
+      "source": "",
+      "sourceUrl": "",
+      "_evidence": {
+        "sessionHits": 17,
+        "emailHits": 332
+      }
+    },
+    {
+      "term": "NY",
+      "expansion": "",
+      "desc": "",
+      "category": "",
+      "misread": "",
+      "source": "",
+      "sourceUrl": "",
+      "_evidence": {
+        "sessionHits": 0,
+        "emailHits": 328
+      }
+    },
+    {
+      "term": "BGN",
+      "expansion": "",
+      "desc": "",
+      "category": "",
+      "misread": "",
+      "source": "",
+      "sourceUrl": "",
+      "_evidence": {
+        "sessionHits": 0,
+        "emailHits": 317
+      }
+    },
+    {
+      "term": "x1",
+      "expansion": "",
+      "desc": "",
+      "category": "",
+      "misread": "",
+      "source": "",
+      "sourceUrl": "",
+      "_evidence": {
+        "sessionHits": 0,
+        "emailHits": 317
+      }
+    },
+    {
+      "term": "cdn-cgi",
+      "expansion": "",
+      "desc": "",
+      "category": "",
+      "misread": "",
+      "source": "",
+      "sourceUrl": "",
+      "_evidence": {
+        "sessionHits": 0,
+        "emailHits": 315
+      }
+    },
+    {
+      "term": "LLC",
+      "expansion": "",
+      "desc": "",
+      "category": "",
+      "misread": "",
+      "source": "",
+      "sourceUrl": "",
+      "_evidence": {
+        "sessionHits": 1,
+        "emailHits": 312
+      }
+    },
+    {
+      "term": "P1",
+      "expansion": "",
+      "desc": "",
+      "category": "",
+      "misread": "",
+      "source": "",
+      "sourceUrl": "",
+      "_evidence": {
+        "sessionHits": 25,
+        "emailHits": 279
+      }
+    },
+    {
+      "term": "PEP-8",
+      "expansion": "",
+      "desc": "",
+      "category": "",
+      "misread": "",
+      "source": "",
+      "sourceUrl": "",
+      "_evidence": {
+        "sessionHits": 0,
+        "emailHits": 284
+      }
+    },
+    {
+      "term": "github-code",
+      "expansion": "",
+      "desc": "",
+      "category": "",
+      "misread": "",
+      "source": "",
+      "sourceUrl": "",
+      "_evidence": {
+        "sessionHits": 0,
+        "emailHits": 284
+      }
+    },
+    {
+      "term": "P1-orange",
+      "expansion": "",
+      "desc": "",
+      "category": "",
+      "misread": "",
+      "source": "",
+      "sourceUrl": "",
+      "_evidence": {
+        "sessionHits": 0,
+        "emailHits": 274
+      }
+    },
+    {
+      "term": "TACTICS",
+      "expansion": "",
+      "desc": "",
+      "category": "",
+      "misread": "",
+      "source": "",
+      "sourceUrl": "",
+      "_evidence": {
+        "sessionHits": 0,
+        "emailHits": 237
+      }
+    },
+    {
+      "term": "GMT",
+      "expansion": "",
+      "desc": "",
+      "category": "",
+      "misread": "",
+      "source": "",
+      "sourceUrl": "",
+      "_evidence": {
+        "sessionHits": 2,
+        "emailHits": 228
+      }
+    },
+    {
+      "term": "WA",
+      "expansion": "",
+      "desc": "",
+      "category": "",
+      "misread": "",
+      "source": "",
+      "sourceUrl": "",
+      "_evidence": {
+        "sessionHits": 0,
+        "emailHits": 201
+      }
+    },
+    {
+      "term": "ECC",
+      "expansion": "",
+      "desc": "",
+      "category": "",
+      "misread": "",
+      "source": "",
+      "sourceUrl": "",
+      "_evidence": {
+        "sessionHits": 6,
+        "emailHits": 174
+      }
+    },
+    {
+      "term": "multi-step",
+      "expansion": "",
+      "desc": "",
+      "category": "",
+      "misread": "",
+      "source": "",
+      "sourceUrl": "",
+      "_evidence": {
+        "sessionHits": 7,
+        "emailHits": 166
+      }
+    },
+    {
+      "term": "all-jobs",
+      "expansion": "",
+      "desc": "",
+      "category": "",
+      "misread": "",
+      "source": "",
+      "sourceUrl": "",
+      "_evidence": {
+        "sessionHits": 0,
+        "emailHits": 171
+      }
+    },
+    {
+      "term": "EEA",
+      "expansion": "",
+      "desc": "",
+      "category": "",
+      "misread": "",
+      "source": "",
+      "sourceUrl": "",
+      "_evidence": {
+        "sessionHits": 0,
+        "emailHits": 169
+      }
+    },
+    {
+      "term": "PC",
+      "expansion": "",
+      "desc": "",
+      "category": "",
+      "misread": "",
+      "source": "",
+      "sourceUrl": "",
+      "_evidence": {
+        "sessionHits": 38,
+        "emailHits": 129
+      }
+    },
+    {
+      "term": "cgi-bin",
+      "expansion": "",
+      "desc": "",
+      "category": "",
+      "misread": "",
+      "source": "",
+      "sourceUrl": "",
+      "_evidence": {
+        "sessionHits": 0,
+        "emailHits": 167
+      }
+    },
+    {
+      "term": "DIVES",
+      "expansion": "",
+      "desc": "",
+      "category": "",
+      "misread": "",
+      "source": "",
+      "sourceUrl": "",
+      "_evidence": {
+        "sessionHits": 0,
+        "emailHits": 166
+      }
+    },
+    {
+      "term": "hands-on",
+      "expansion": "",
+      "desc": "",
+      "category": "",
+      "misread": "",
+      "source": "",
+      "sourceUrl": "",
+      "_evidence": {
+        "sessionHits": 1,
+        "emailHits": 163
+      }
+    },
+    {
+      "term": "PO",
+      "expansion": "",
+      "desc": "",
+      "category": "",
+      "misread": "",
+      "source": "",
+      "sourceUrl": "",
+      "_evidence": {
+        "sessionHits": 0,
+        "emailHits": 162
+      }
+    },
+    {
+      "term": "IOC",
+      "expansion": "",
+      "desc": "",
+      "category": "",
+      "misread": "",
+      "source": "",
+      "sourceUrl": "",
+      "_evidence": {
+        "sessionHits": 1,
+        "emailHits": 158
+      }
+    },
+    {
+      "term": "cutting-edge",
+      "expansion": "",
+      "desc": "",
+      "category": "",
+      "misread": "",
+      "source": "",
+      "sourceUrl": "",
+      "_evidence": {
+        "sessionHits": 0,
+        "emailHits": 159
+      }
+    },
+    {
+      "term": "VFX",
+      "expansion": "",
+      "desc": "",
+      "category": "",
+      "misread": "",
+      "source": "",
+      "sourceUrl": "",
+      "_evidence": {
+        "sessionHits": 9,
+        "emailHits": 143
+      }
+    }
+  ]
+}
