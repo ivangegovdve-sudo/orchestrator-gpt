@@ -9,6 +9,11 @@ const { spawnSync } = require('node:child_process');
 const { enqueueCandidates } = require('../../scripts/glossary-candidate-queue.cjs');
 
 const REPO_ROOT = path.resolve(__dirname, '..', '..');
+const CANONICAL_QUEUE_README = [
+  'This file is an inert review queue, not a glossary source.',
+  'A human reviewer must verify each term, write a cited definition in glossary/verified-terms.json, and rebuild the glossary.',
+  'Candidates from sessions or email require an explicit human publicness attestation before they enter this queue.',
+];
 
 function copyPath(source, destination) {
   fs.mkdirSync(path.dirname(destination), { recursive: true });
@@ -34,7 +39,7 @@ function writeStoredQueue(queuePath, candidates, extra = {}) {
     queuePath,
     `${JSON.stringify({
       schemaVersion: 1,
-      _readme: ['Synthetic queue fixture.'],
+      _readme: CANONICAL_QUEUE_README,
       candidates,
       ...extra,
     }, null, 2)}\n`,
@@ -623,6 +628,48 @@ test('rejects unknown stored queue envelope keys without rewriting the file', (t
   );
   assert.equal(digest(queuePath), before);
 });
+
+const NONCANONICAL_QUEUE_READMES = [
+  ['missing metadata', undefined],
+  ['non-array metadata', 'REDACTED METADATA'],
+  ['empty metadata', []],
+  ['arbitrary metadata', ['REDACTED METADATA']],
+  ['truncated metadata', CANONICAL_QUEUE_README.slice(0, 2)],
+  ['extended metadata', [...CANONICAL_QUEUE_README, 'REDACTED METADATA']],
+  ['malformed item metadata', [CANONICAL_QUEUE_README[0], null, CANONICAL_QUEUE_README[2]]],
+];
+
+for (const [name, readme] of NONCANONICAL_QUEUE_READMES) {
+  test(`rejects ${name} in the stored queue before rewriting the file`, (t) => {
+    const { root, queuePath } = temporaryQueue(t);
+    writeStoredQueue(
+      queuePath,
+      [
+        {
+          term: 'RAG',
+          evidenceCount: 2,
+          sourceKinds: ['manual'],
+          status: 'pending-human-review',
+        },
+      ],
+      { _readme: readme },
+    );
+    const before = digest(queuePath);
+
+    assert.throws(
+      () => enqueueCandidates(
+        {
+          candidates: [
+            { term: 'RLHF', evidenceCount: 1, sourceKinds: ['manual'] },
+          ],
+        },
+        { root },
+      ),
+      /invalid stored queue metadata/,
+    );
+    assert.equal(digest(queuePath), before);
+  });
+}
 
 test('rejects more than 500 stored rows before duplicate collapse or rewrite', (t) => {
   const { root, queuePath } = temporaryQueue(t);

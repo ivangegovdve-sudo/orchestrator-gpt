@@ -145,6 +145,13 @@ function readQueue(queuePath) {
   if (Object.keys(queue).some((field) => !STORED_QUEUE_FIELDS.has(field))) {
     throw new TypeError('unsupported stored queue envelope');
   }
+  if (
+    !Array.isArray(queue._readme)
+    || queue._readme.length !== QUEUE_README.length
+    || queue._readme.some((line, index) => line !== QUEUE_README[index])
+  ) {
+    throw new TypeError('invalid stored queue metadata');
+  }
   if (queue.candidates.length > MAX_QUEUE_CANDIDATES) {
     throw new TypeError('stored queue exceeds capacity');
   }
