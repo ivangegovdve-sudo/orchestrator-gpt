@@ -21,7 +21,6 @@ export const ROUTE_INVENTORY = Object.freeze([
   { id: 'math-forest', href: '/web/math-forest/', state: 'greenhouse', parent: 'forest-hub', placement: 'Wonder Path', prefetch: false, prerender: false, label: 'Math Forest', trailId: 'wonder', connectionIds: ['kids', 'math-mania', 'mendeleev-bg'] },
   { id: 'ai-research', href: '/web/ai-research/', state: 'hub-trail', parent: 'forest-hub', placement: 'Machine Grove', prefetch: true, prerender: false, label: 'AI Research', trailId: 'machine', connectionIds: ['council', 'c2c-dolphin', 'c2c-self', 'avatar-playground'] },
   { id: 'calendar', href: '/web/calendar/', state: 'hub-trail', parent: 'forest-hub', placement: 'Living Systems', prefetch: true, prerender: false, label: 'Calendar Generator', trailId: 'living', connectionIds: ['life-in-time', 'morning-news', 'kids'] },
-  { id: 'chloe-pwa', href: '/web/chloe-pwa/', state: 'hub-trail', parent: 'forest-hub', placement: 'Machine Grove', prefetch: false, prerender: false, label: 'Private client — token required', trailId: 'machine', connectionIds: ['ai-research', 'c2c-self', 'avatar-playground'] },
   { id: 'evolution', href: '/web/evolution/', state: 'hub-trail', parent: 'forest-hub', placement: 'Wild Lab', prefetch: false, prerender: false, label: 'Evolution', trailId: 'wild', connectionIds: ['replicator-void', 'power-law-odyssey', 'manifesto-newborn'] },
   // prerender stays false: the page is a thin shell that fetches a 225 KB
   // repos-data.json on load, so prerendering buys nothing and costs the payload.
@@ -39,7 +38,7 @@ export const ROUTE_INVENTORY = Object.freeze([
 
 export const FOREST_TRAIL_ROUTE_IDS = Object.freeze([
   'morning-news', 'upload', 'library', 'open-overview', 'explore', 'council', 'ai-research',
-  'c2c-dolphin', 'c2c-self', 'avatar-playground', 'chloe-pwa', 'life-in-time',
+  'c2c-dolphin', 'c2c-self', 'avatar-playground', 'life-in-time',
   'womens-health-os', 'hypertrophyos', 'calendar', 'kids', 'math-mania',
   'kids-movie-library', 'math-forest', 'mendeleev-bg', 'vfx-portfolio',
   'manifesto-newborn', 'm-popova', 'power-law-odyssey', 'replicator-void', 'evolution',

@@ -989,7 +989,11 @@ async function startRecording() {
       if (!text) { setState('idle', 'no speech detected'); armIdle(3000); return; }
       handleUserTurn(text);
     } catch (err) {
-      setState('idle', 'stt: ' + err.message);
+      if (err.message.includes('Failed to fetch')) {
+        setState('idle', 'this is a personal tool, not a public demo');
+      } else {
+        setState('idle', 'stt: ' + err.message);
+      }
       statusEl.className = 's-error';
       armIdle(5000);
     }
@@ -1186,7 +1190,11 @@ async function handleUserTurn(text) {
   } catch (err) {
     ttsRunning = false;
     window.orbAudio = 0;
-    setState('idle', 'chat: ' + err.message);
+    if (err.message.includes('Failed to fetch')) {
+      setState('idle', 'this is a personal tool, not a public demo');
+    } else {
+      setState('idle', 'chat: ' + err.message);
+    }
     statusEl.className = 's-error';
     textSendBtn.disabled = false;
     armIdle(6000);
