@@ -516,6 +516,96 @@
       "note": "Scoped to what was verifiable from SQLite's documentation. The originating information-retrieval literature was not reachable during verification, so no claim is made here about the formula or the meaning of \"BM\".",
       "source": "SQLite documentation, \"SQLite FTS5 Extension\" — Sorting by Auxiliary Function Results",
       "sourceUrl": "https://www.sqlite.org/fts5.html"
+    },
+    {
+      "term": "IDF",
+      "expansion": "Inverse Document Frequency",
+      "desc": "A weight that scores a search term by how rare it is across the whole collection, so matches on unusual words count for more than matches on common ones. Spärck Jones argued specificity should be measured statistically — by how often a term is used — rather than by what it means. The practical consequence is that a word appearing in every document contributes almost nothing to ranking, which also makes IDF a cheap way to detect that a query's distinctive words appear nowhere in the collection at all.",
+      "category": "Data & Knowledge Systems",
+      "misread": "That IDF rewards frequent words. It does the opposite: frequency across documents is what it divides by, so rare terms carry the signal. A term appearing in every document has an IDF near zero.",
+      "source": "Karen Spärck Jones, \"A Statistical Interpretation of Term Specificity and its Application in Retrieval\", Journal of Documentation 28(1), 1972, pp. 11–21",
+      "sourceUrl": "https://www.emerald.com/insight/content/doi/10.1108/eb026526/full/html"
+    },
+    {
+      "term": "RRF",
+      "expansion": "Reciprocal Rank Fusion",
+      "desc": "A way of merging several ranked result lists into one using each item's position rather than its score: every list contributes 1/(k + rank), and the contributions are summed. Because it ignores scores, it sidesteps the problem that relevance numbers from different retrieval methods are not comparable with each other. An item ranked modestly by several methods beats an item ranked first by only one, which is why RRF is the usual choice for combining keyword and vector search.",
+      "category": "Data & Knowledge Systems",
+      "misread": "That k=60 is a tuned constant with theoretical meaning. The paper says it \"was fixed during a pilot investigation and not altered during subsequent validation\", and its own table shows the choice \"was not critical\" — MAP barely moves between k=10 and k=100.",
+      "source": "Gordon V. Cormack, Charles L. A. Clarke and Stefan Büttcher, \"Reciprocal Rank Fusion outperforms Condorcet and individual Rank Learning Methods\", SIGIR '09, pp. 758–759",
+      "sourceUrl": "https://dl.acm.org/doi/10.1145/1571941.1572114"
+    },
+    {
+      "term": "HNSW",
+      "expansion": "Hierarchical Navigable Small World",
+      "desc": "The most widely used index for approximate nearest-neighbour search over vectors. It builds a layered graph in which each element appears up to a randomly chosen maximum layer, so a query starts at a sparse top layer and descends, hopping toward its neighbourhood instead of scanning everything. That gives logarithmic rather than linear search cost, at the price of index build time, memory, and results that are close but not guaranteed exact.",
+      "category": "Data & Knowledge Systems",
+      "misread": "That HNSW returns the true nearest neighbours. It is approximate by design — recall is a tuning parameter traded against speed. Note also that in this glossary ANN means artificial neural network; the approximate-nearest-neighbour sense of those same letters is a different idea entirely.",
+      "source": "Yu. A. Malkov and D. A. Yashunin, \"Efficient and Robust Approximate Nearest Neighbor Search Using Hierarchical Navigable Small World Graphs\", IEEE TPAMI 42(4), 2018, pp. 824–836 (arXiv:1603.09320)",
+      "sourceUrl": "https://arxiv.org/abs/1603.09320"
+    },
+    {
+      "term": "Chunking",
+      "expansion": "",
+      "desc": "Splitting a document into smaller passages before embedding them, because embedding models take bounded input and because one vector for a whole document loses the specific passage a reader wanted. The size chosen is load-bearing rather than cosmetic: too small and a passage loses the context that gave it meaning, too large and the relevant sentence is diluted by everything around it. Changing chunk size changes every downstream number — scores, thresholds and token budgets — so it is not a parameter to tune late.",
+      "category": "Data & Knowledge Systems",
+      "misread": "That chunking is a lossless preprocessing step. Splitting first and embedding each piece in isolation strips context from surrounding text, which is the specific failure late chunking was introduced to address.",
+      "source": "Michael Günther, Isabelle Mohr, Daniel James Williams, Bo Wang and Han Xiao, \"Late Chunking: Contextual Chunk Embeddings Using Long-Context Embedding Models\", arXiv:2409.04701, §1 (problem statement)",
+      "sourceUrl": "https://arxiv.org/abs/2409.04701"
+    },
+    {
+      "term": "Late chunking",
+      "expansion": "",
+      "desc": "An alternative to ordinary chunking that runs the whole document through a long-context embedding model first, then applies the chunk boundaries just before the mean-pooling step. Each chunk's vector is therefore pooled from token embeddings that already saw the entire document, so a passage saying \"it was deprecated in March\" keeps whatever \"it\" referred to. It needs no additional training and works with any long-context embedding model.",
+      "category": "Data & Knowledge Systems",
+      "misread": "That \"late\" refers to chunking later in the pipeline, or to using bigger chunks. The chunks are the same size; what moves is the pooling — the document is encoded in full first, and the split is applied to token embeddings rather than to text.",
+      "source": "Michael Günther, Isabelle Mohr, Daniel James Williams, Bo Wang and Han Xiao, \"Late Chunking: Contextual Chunk Embeddings Using Long-Context Embedding Models\", arXiv:2409.04701 (Jina AI / Weaviate)",
+      "sourceUrl": "https://arxiv.org/abs/2409.04701"
+    },
+    {
+      "term": "Reranking",
+      "expansion": "",
+      "desc": "A second scoring pass over the shortlist a first retrieval already produced, using a slower and more accurate model. The usual choice is a cross-encoder, which reads the query and the passage together as one input rather than comparing two separately computed vectors — more accurate precisely because it cannot be precomputed. The economics are the point: retrieval is cheap and approximate over everything, reranking is expensive and precise over the few dozen candidates that survived.",
+      "category": "Data & Knowledge Systems",
+      "misread": "That a reranker can rescue a bad retrieval. It only reorders what it is given — a relevant passage the first pass never returned cannot be recovered by reranking, however good the reranker.",
+      "source": "Rodrigo Nogueira and Kyunghyun Cho, \"Passage Re-ranking with BERT\", arXiv:1901.04085",
+      "sourceUrl": "https://arxiv.org/abs/1901.04085"
+    },
+    {
+      "term": "NSIS",
+      "expansion": "Nullsoft Scriptable Install System",
+      "desc": "A script-driven toolkit for building Windows installers, used as the default Windows target by packaging tools including electron-builder. Its most consequential property is a hard ceiling: the installer archive format cannot hold more than 2 GiB of compressed data, and the compiler hits a 32-bit integer overflow rather than reporting a size error. Builds that cross the line fail late, after the compression step has already run.",
+      "category": "Cloud & Infrastructure",
+      "misread": "That the 2 GiB ceiling is a memory limitation of the 32-bit makensis binary, fixable by setting its LARGE_ADDRESS_AWARE flag. The limit is in the archive format as well, so patching the flag can produce a build that completes without error and is silently corrupt.",
+      "source": "NSIS bug #1284, \"Unable to generate a solid compressed installer when size of installed files exceeds 2 GiB\"",
+      "sourceUrl": "https://sourceforge.net/p/nsis/bugs/1284/"
+    },
+    {
+      "term": "Blockmap",
+      "expansion": "",
+      "desc": "A small file published beside an installer that describes the installer's contents as a sequence of blocks with a hash for each. An updater fetches the blockmaps for the old and new versions, compares them to work out which blocks differ, and then downloads only those byte ranges over HTTP range requests. Without a blockmap for the previous release there is nothing to compare against, so the updater falls back to downloading the whole file.",
+      "category": "Cloud & Infrastructure",
+      "misread": "That the blockmap is an optional build artefact. It is the input the differential updater compares against, so omitting it from a release silently disables partial downloads rather than causing a visible error.",
+      "source": "electron-builder issue #3936, \"Can't download update due to missing blockmap file\", and #4788 on how autoUpdater uses the blockmap",
+      "sourceUrl": "https://github.com/electron-userland/electron-builder/issues/4788"
+    },
+    {
+      "term": "Differential update",
+      "expansion": "",
+      "desc": "Updating an installed application by downloading only the bytes that changed since the previous version, rather than the whole installer. The updater compares block hashes between the old and new releases and requests just the differing byte ranges. It is an optimisation rather than a guarantee: when the payload changes shape, most blocks differ and the saving disappears, and a change scattered across many small ranges can be slower than a single full download.",
+      "category": "Cloud & Infrastructure",
+      "misread": "That a differential update is always faster, and that you can tell it happened. It degrades quietly to a full download whenever a precondition is missing, reporting success either way — so whether it actually occurred has to be measured, not assumed.",
+      "source": "electron-builder issue #4788 (how autoUpdater computes ranges from blockmaps) and #3973 (cases where differential download is slower than full)",
+      "sourceUrl": "https://github.com/electron-userland/electron-builder/issues/4788"
+    },
+    {
+      "term": "Provisioning API key",
+      "expansion": "",
+      "desc": "A credential whose privilege is to create, inspect and revoke other API keys rather than to call the service itself. OpenRouter calls these management keys and issues them separately from ordinary inference keys, letting an application mint one key per customer, attach a spend limit to each, and rotate them without human involvement. Treat one as a higher class of secret than the keys it manages: it can rewrite an entire key inventory.",
+      "category": "Security & Identity",
+      "misread": "That a provisioning key is an ordinary key with extra permissions. OpenRouter's documentation is explicit that a management key \"only manages other keys — it can't make inference calls\", so a key that successfully serves a completion is by definition not one.",
+      "source": "OpenRouter, \"Provisioning API Keys — Programmatic Control of OpenRouter API Keys\"",
+      "sourceUrl": "https://openrouter.ai/docs/features/provisioning-api-keys"
     }
   ]
 }
