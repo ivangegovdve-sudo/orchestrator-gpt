@@ -6,11 +6,15 @@ const DEFAULT_QUEUE_PATH = path.join(ROOT, 'glossary', 'candidates', 'pending.js
 const QUEUE_README = [
   'This file is an inert review queue, not a glossary source.',
   'A human reviewer must verify each term, write a cited definition in glossary/verified-terms.json, and rebuild the glossary.',
+  'Candidates from sessions or email require an explicit human publicness attestation before they enter this queue.',
 ];
-const CANDIDATE_FIELDS = new Set(['term', 'evidenceCount', 'sourceKinds']);
+const CANDIDATE_FIELDS = new Set(['term', 'evidenceCount', 'sourceKinds', 'humanPublicnessAttested']);
 const STORED_CANDIDATE_FIELDS = new Set([...CANDIDATE_FIELDS, 'status']);
+const STORED_QUEUE_FIELDS = new Set(['schemaVersion', '_readme', 'candidates']);
 const SOURCE_KINDS = new Set(['email', 'manual', 'repository', 'sessions']);
+const PRIVATE_SOURCE_KINDS = new Set(['email', 'sessions']);
 const MAX_INPUT_CANDIDATES = 500;
+const MAX_QUEUE_CANDIDATES = 500;
 
 function rejectPrivateShape(term) {
   const dotCount = typeof term === 'string' ? (term.match(/\./gu) || []).length : 0;
@@ -19,7 +23,7 @@ function rejectPrivateShape(term) {
     || /[@/\\:]/u.test(term)
     || /^\d{1,3}(?:\.\d{1,3}){3}$/u.test(term)
     || term.endsWith('.')
-    || dotCount >= 2
+    || dotCount >= 1
     || /(?:^|[.-])(?:internal|local|localhost|lan|home|corp|prod|dev|stage|staging|test|svc|cluster|node|host)$/iu.test(term)
   ) {
     throw new TypeError('private-shaped candidate material is not allowed');
@@ -27,17 +31,24 @@ function rejectPrivateShape(term) {
 }
 
 function rejectCredentialShape(term) {
-  if (typeof term !== 'string' || term.length < 16) {
+  if (typeof term !== 'string' || term.length < 10) {
     return;
   }
 
   const characterClasses = [/[a-z]/u, /[A-Z]/u, /\d/u].filter((pattern) => pattern.test(term)).length;
   const uniqueRatio = new Set(term).size / term.length;
+  const shortMixed = /^[A-Za-z0-9]+$/u.test(term) && characterClasses === 3;
+  const shortTwoClass = term.length >= 12
+    && /^[A-Za-z0-9]+$/u.test(term)
+    && /[A-Za-z]/u.test(term)
+    && /\d/u.test(term)
+    && characterClasses === 2;
   const longHex = /^[0-9a-f]+$/iu.test(term) && /[a-f]/iu.test(term) && /\d/u.test(term);
   const longOpaque = term.length >= 20 && /^[A-Za-z0-9_-]+$/u.test(term) && characterClasses >= 2;
   const singleCaseOpaque = term.length >= 24 && (/^[a-z]+$/u.test(term) || /^[A-Z]+$/u.test(term));
   if (
-    (characterClasses === 3 && uniqueRatio >= 0.5)
+    (shortMixed && uniqueRatio >= 0.55)
+    || (shortTwoClass && uniqueRatio >= 0.65)
     || (longHex && uniqueRatio >= 0.5)
     || (longOpaque && uniqueRatio >= 0.55)
     || (singleCaseOpaque && uniqueRatio >= 0.7)
@@ -68,6 +79,21 @@ function validateEvidenceCount(evidenceCount) {
   }
 }
 
+function validatePrivateSourceAttestation(candidate) {
+  if (
+    Object.hasOwn(candidate, 'humanPublicnessAttested')
+    && candidate.humanPublicnessAttested !== true
+  ) {
+    throw new TypeError('publicness attestation must be true when provided');
+  }
+  if (
+    candidate.sourceKinds.some((sourceKind) => PRIVATE_SOURCE_KINDS.has(sourceKind))
+    && candidate.humanPublicnessAttested !== true
+  ) {
+    throw new TypeError('private-source candidates require human publicness attestation');
+  }
+}
+
 function normalizeCandidate(candidate, { stored = false } = {}) {
   const allowedFields = stored ? STORED_CANDIDATE_FIELDS : CANDIDATE_FIELDS;
   if (
@@ -85,11 +111,13 @@ function normalizeCandidate(candidate, { stored = false } = {}) {
   validateTermFormat(candidate.term);
   validateEvidenceCount(candidate.evidenceCount);
   validateSourceKinds(candidate.sourceKinds);
+  validatePrivateSourceAttestation(candidate);
 
   return {
     term: candidate.term,
     evidenceCount: candidate.evidenceCount,
     sourceKinds: [...new Set(candidate.sourceKinds)].sort(),
+    ...(candidate.humanPublicnessAttested === true ? { humanPublicnessAttested: true } : {}),
     status: 'pending-human-review',
   };
 }
@@ -114,8 +142,23 @@ function readQueue(queuePath) {
   ) {
     throw new TypeError('existing candidate queue is invalid');
   }
+  if (Object.keys(queue).some((field) => !STORED_QUEUE_FIELDS.has(field))) {
+    throw new TypeError('unsupported stored queue envelope');
+  }
+  if (queue.candidates.length > MAX_QUEUE_CANDIDATES) {
+    throw new TypeError('stored queue exceeds capacity');
+  }
 
-  return queue.candidates.map((candidate) => normalizeCandidate(candidate, { stored: true }));
+  const candidates = queue.candidates.map((candidate) => normalizeCandidate(candidate, { stored: true }));
+  const seenTerms = new Set();
+  for (const candidate of candidates) {
+    const key = candidate.term.toLowerCase();
+    if (seenTerms.has(key)) {
+      throw new TypeError('duplicate stored candidate term');
+    }
+    seenTerms.add(key);
+  }
+  return candidates;
 }
 
 function compareTerms(left, right) {
@@ -174,11 +217,14 @@ function enqueueCandidates(document, options) {
       ...previous,
       evidenceCount: Math.max(previous.evidenceCount, candidate.evidenceCount),
       sourceKinds: [...new Set([...previous.sourceKinds, ...candidate.sourceKinds])].sort(),
+      ...(previous.humanPublicnessAttested === true || candidate.humanPublicnessAttested === true
+        ? { humanPublicnessAttested: true }
+        : {}),
     });
   }
 
   const candidates = [...byTerm.values()].sort(compareTerms);
-  if (candidates.length > MAX_INPUT_CANDIDATES) {
+  if (candidates.length > MAX_QUEUE_CANDIDATES) {
     throw new TypeError('candidate queue is full');
   }
   const queue = {

@@ -45,7 +45,10 @@ jobs:
           node-version: '22'
 
       - name: Verify the human-review candidate boundary
-        run: node --test scratch/tests/glossary-candidate-queue.test.js
+        run: >-
+          node --test
+          scratch/tests/glossary-candidate-queue.test.js
+          scratch/tests/glossary-verified-input.test.js
 
       # The repo has no dependencies — `npm ci` would fail for want of a lockfile.
       # Running the generator directly is both correct and faster.

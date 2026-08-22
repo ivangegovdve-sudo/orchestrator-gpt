@@ -111,25 +111,47 @@ function readIf(p) {
 // These entries were checked against the RFC, the spec, the paper or the vendor's own
 // reference, and each carries the citation. They outrank every other source on purpose:
 // where a curated or mined entry disagrees with a cited primary source, the source wins.
+function verifiedEntryIsValid(entry) {
+  if (!entry || typeof entry !== "object" || Array.isArray(entry)) return false;
+  const requiredText = [entry.term, entry.desc, entry.source];
+  if (requiredText.some((value) => typeof value !== "string" || !value.trim())) return false;
+  if (typeof entry.sourceUrl !== "string" || !entry.sourceUrl.trim()) return false;
+  try {
+    const sourceUrl = new URL(entry.sourceUrl.trim());
+    const protocolAllowed = sourceUrl.protocol === "http:" || sourceUrl.protocol === "https:";
+    const hostnameLabels = sourceUrl.hostname.split(".");
+    const hostnameValid = Boolean(sourceUrl.hostname)
+      && hostnameLabels.every((label) => label && !label.startsWith("-") && !label.endsWith("-"));
+    return protocolAllowed && hostnameValid;
+  } catch {
+    return false;
+  }
+}
+
 function loadVerified() {
   const raw = readIf(path.join(ROOT, "glossary", "verified-terms.json"));
   if (!raw) return [];
   const parsed = JSON.parse(raw);
-  return (parsed.terms || []).map((e) => ({
-    term: norm(e.term),
-    expansion: norm(e.expansion),
-    desc: norm(e.desc),
-    category: norm(e.category) || "Uncategorized",
-    tags: [],
-    related: [],
-    kind: "definition",
-    origin: "verified",
-    review: false,
-    // Public-facing provenance. A glossary entry a reader cannot trace is a claim, not a definition.
-    source: norm(e.source),
-    sourceUrl: norm(e.sourceUrl),
-    misread: norm(e.misread),
-  }));
+  return (parsed.terms || []).map((e, index) => {
+    if (!verifiedEntryIsValid(e)) {
+      throw new Error(`verified-terms.json entry ${index + 1} is invalid`);
+    }
+    return {
+      term: norm(e.term),
+      expansion: norm(e.expansion),
+      desc: norm(e.desc),
+      category: norm(e.category) || "Uncategorized",
+      tags: [],
+      related: [],
+      kind: "definition",
+      origin: "verified",
+      review: false,
+      // Public-facing provenance. A glossary entry a reader cannot trace is a claim, not a definition.
+      source: norm(e.source),
+      sourceUrl: norm(e.sourceUrl),
+      misread: norm(e.misread),
+    };
+  });
 }
 
 // ── 1. curated dataset (also the source of the category taxonomy) ──────────────

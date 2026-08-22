@@ -28,6 +28,20 @@ function temporaryQueue(t) {
   };
 }
 
+function writeStoredQueue(queuePath, candidates, extra = {}) {
+  fs.mkdirSync(path.dirname(queuePath), { recursive: true });
+  fs.writeFileSync(
+    queuePath,
+    `${JSON.stringify({
+      schemaVersion: 1,
+      _readme: ['Synthetic queue fixture.'],
+      candidates,
+      ...extra,
+    }, null, 2)}\n`,
+    'utf8',
+  );
+}
+
 test('persists a pending candidate without adding it to the generated glossary', (t) => {
   const fixtureRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'glossary-candidate-'));
   t.after(() => fs.rmSync(fixtureRoot, { recursive: true, force: true }));
@@ -125,6 +139,24 @@ test('rejects alternate hostname-shaped candidate representations', (t) => {
   assert.equal(fs.existsSync(queuePath), false);
 });
 
+test('rejects every dotted candidate term as private-shaped', (t) => {
+  const { root, queuePath } = temporaryQueue(t);
+  const dottedPlaceholder = ['Public', 'Placeholder'].join('.');
+
+  assert.throws(
+    () => enqueueCandidates(
+      {
+        candidates: [
+          { term: dottedPlaceholder, evidenceCount: 2, sourceKinds: ['manual'] },
+        ],
+      },
+      { root },
+    ),
+    /private-shaped candidate material/,
+  );
+  assert.equal(fs.existsSync(queuePath), false);
+});
+
 test('rejects opaque credential-shaped candidate material before changing the queue', (t) => {
   const { root, queuePath } = temporaryQueue(t);
   enqueueCandidates(
@@ -132,7 +164,7 @@ test('rejects opaque credential-shaped candidate material before changing the qu
     { root },
   );
   const before = digest(queuePath);
-  const opaqueCandidate = ['AbCdEfGh', '11223344'].join('');
+  const opaqueCandidate = ['Synthetic', '9', 'Placeholder', '7'].join('');
 
   assert.throws(
     () => enqueueCandidates(
@@ -147,8 +179,8 @@ test('rejects opaque credential-shaped candidate material before changing the qu
 test('rejects long opaque candidate shapes even when they use only two character classes', (t) => {
   const { root, queuePath } = temporaryQueue(t);
   const opaqueCandidates = [
-    ['ZXCVBNMASDFG', '1234567890'].join(''),
-    ['a1b2c3d4', 'e5f60718'].join(''),
+    ['SYNTHETIC', '42', 'PLACEHOLDER', '7'].join(''),
+    ['synthetic', '42', 'placeholder', '7'].join(''),
   ];
 
   for (const term of opaqueCandidates) {
@@ -165,11 +197,47 @@ test('rejects long opaque candidate shapes even when they use only two character
 
 test('rejects high-entropy single-case opaque candidate material', (t) => {
   const { root, queuePath } = temporaryQueue(t);
-  const opaqueCandidate = ['abcdefghijkl', 'mnopqrstuvwx'].join('');
+  const opaqueCandidate = ['placeholder', 'quick', 'brown', 'z', 'fox'].join('');
 
   assert.throws(
     () => enqueueCandidates(
       { candidates: [{ term: opaqueCandidate, evidenceCount: 2, sourceKinds: ['manual'] }] },
+      { root },
+    ),
+    /credential-shaped candidate material/,
+  );
+  assert.equal(fs.existsSync(queuePath), false);
+});
+
+test('rejects short mixed-class opaque candidate material', (t) => {
+  const { root, queuePath } = temporaryQueue(t);
+  const opaquePlaceholder = ['Sample', '9', 'Mark', '7'].join('');
+
+  assert.throws(
+    () => enqueueCandidates(
+      {
+        candidates: [
+          { term: opaquePlaceholder, evidenceCount: 2, sourceKinds: ['manual'] },
+        ],
+      },
+      { root },
+    ),
+    /credential-shaped candidate material/,
+  );
+  assert.equal(fs.existsSync(queuePath), false);
+});
+
+test('rejects short two-class opaque candidate material', (t) => {
+  const { root, queuePath } = temporaryQueue(t);
+  const opaquePlaceholder = ['SAMPLE', '42', 'MARK'].join('');
+
+  assert.throws(
+    () => enqueueCandidates(
+      {
+        candidates: [
+          { term: opaquePlaceholder, evidenceCount: 2, sourceKinds: ['manual'] },
+        ],
+      },
       { root },
     ),
     /credential-shaped candidate material/,
@@ -212,6 +280,107 @@ test('rejects source labels that could disclose private corpus names', (t) => {
       { root },
     ),
     /unsupported source kind/,
+  );
+  assert.equal(fs.existsSync(queuePath), false);
+});
+
+test('rejects private-source candidates without explicit human publicness attestation', (t) => {
+  for (const sourceKind of ['sessions', 'email']) {
+    const { root, queuePath } = temporaryQueue(t);
+    assert.throws(
+      () => enqueueCandidates(
+        {
+          candidates: [
+            { term: 'PublicPlaceholder', evidenceCount: 2, sourceKinds: [sourceKind] },
+          ],
+        },
+        { root },
+      ),
+      /human publicness attestation/,
+    );
+    assert.equal(fs.existsSync(queuePath), false);
+  }
+});
+
+test('persists the explicit human publicness attestation for a private-source candidate', (t) => {
+  const { root, queuePath } = temporaryQueue(t);
+
+  assert.deepEqual(
+    enqueueCandidates(
+      {
+        candidates: [
+          {
+            term: 'PublicPlaceholder',
+            evidenceCount: 2,
+            sourceKinds: ['sessions'],
+            humanPublicnessAttested: true,
+          },
+        ],
+      },
+      { root },
+    ),
+    { added: 1, total: 1 },
+  );
+  assert.deepEqual(JSON.parse(fs.readFileSync(queuePath, 'utf8')).candidates, [
+    {
+      term: 'PublicPlaceholder',
+      evidenceCount: 2,
+      sourceKinds: ['sessions'],
+      humanPublicnessAttested: true,
+      status: 'pending-human-review',
+    },
+  ]);
+});
+
+test('retains publicness attestation when a public candidate gains private-source evidence', (t) => {
+  const { root, queuePath } = temporaryQueue(t);
+  enqueueCandidates(
+    {
+      candidates: [
+        { term: 'PublicPlaceholder', evidenceCount: 1, sourceKinds: ['manual'] },
+      ],
+    },
+    { root },
+  );
+
+  enqueueCandidates(
+    {
+      candidates: [
+        {
+          term: 'PublicPlaceholder',
+          evidenceCount: 2,
+          sourceKinds: ['sessions'],
+          humanPublicnessAttested: true,
+        },
+      ],
+    },
+    { root },
+  );
+
+  assert.equal(
+    JSON.parse(fs.readFileSync(queuePath, 'utf8')).candidates[0].humanPublicnessAttested,
+    true,
+  );
+});
+
+test('rejects malformed publicness attestations instead of silently dropping them', (t) => {
+  const { root, queuePath } = temporaryQueue(t);
+
+  assert.throws(
+    () => enqueueCandidates(
+      {
+        candidates: [
+          {
+            term: 'PublicPlaceholder',
+            evidenceCount: 2,
+            sourceKinds: ['manual'],
+            humanPublicnessAttested: 'placeholder',
+          },
+        ],
+      },
+      { root },
+    ),
+    /publicness attestation must be true/,
   );
   assert.equal(fs.existsSync(queuePath), false);
 });
@@ -261,7 +430,12 @@ test('merges candidates case-insensitively and remains idempotent on rerun', (t)
   const input = {
     candidates: [
       { term: 'rag', evidenceCount: 5, sourceKinds: ['repository'] },
-      { term: 'RLHF', evidenceCount: 3, sourceKinds: ['sessions'] },
+      {
+        term: 'RLHF',
+        evidenceCount: 3,
+        sourceKinds: ['sessions'],
+        humanPublicnessAttested: true,
+      },
     ],
   };
 
@@ -278,6 +452,7 @@ test('merges candidates case-insensitively and remains idempotent on rerun', (t)
       term: 'RLHF',
       evidenceCount: 3,
       sourceKinds: ['sessions'],
+      humanPublicnessAttested: true,
       status: 'pending-human-review',
     },
   ]);
@@ -417,4 +592,81 @@ test('refuses to grow the pending review queue beyond its bounded capacity', (t)
     /candidate queue is full/,
   );
   assert.equal(digest(queuePath), before);
+});
+
+test('rejects unknown stored queue envelope keys without rewriting the file', (t) => {
+  const { root, queuePath } = temporaryQueue(t);
+  writeStoredQueue(
+    queuePath,
+    [
+      {
+        term: 'RAG',
+        evidenceCount: 2,
+        sourceKinds: ['manual'],
+        status: 'pending-human-review',
+      },
+    ],
+    { unexpected: 'synthetic-placeholder' },
+  );
+  const before = digest(queuePath);
+
+  assert.throws(
+    () => enqueueCandidates(
+      {
+        candidates: [
+          { term: 'RLHF', evidenceCount: 1, sourceKinds: ['manual'] },
+        ],
+      },
+      { root },
+    ),
+    /unsupported stored queue envelope/,
+  );
+  assert.equal(digest(queuePath), before);
+});
+
+test('rejects more than 500 stored rows before duplicate collapse or rewrite', (t) => {
+  const { root, queuePath } = temporaryQueue(t);
+  const storedRows = Array.from({ length: 501 }, () => ({
+    term: 'RAG',
+    evidenceCount: 2,
+    sourceKinds: ['manual'],
+    status: 'pending-human-review',
+  }));
+  writeStoredQueue(queuePath, storedRows);
+  const before = digest(queuePath);
+
+  assert.throws(
+    () => enqueueCandidates({ candidates: [] }, { root }),
+    /stored queue exceeds capacity/,
+  );
+  assert.equal(digest(queuePath), before);
+});
+
+test('rejects case-insensitive stored duplicates without losing evidence counts', (t) => {
+  const { root, queuePath } = temporaryQueue(t);
+  writeStoredQueue(queuePath, [
+    {
+      term: 'RAG',
+      evidenceCount: 9,
+      sourceKinds: ['manual'],
+      status: 'pending-human-review',
+    },
+    {
+      term: 'rag',
+      evidenceCount: 1,
+      sourceKinds: ['repository'],
+      status: 'pending-human-review',
+    },
+  ]);
+  const before = digest(queuePath);
+
+  assert.throws(
+    () => enqueueCandidates({ candidates: [] }, { root }),
+    /duplicate stored candidate term/,
+  );
+  assert.equal(digest(queuePath), before);
+  assert.deepEqual(
+    JSON.parse(fs.readFileSync(queuePath, 'utf8')).candidates.map((candidate) => candidate.evidenceCount),
+    [9, 1],
+  );
 });
