@@ -1,0 +1,8 @@
+{
+  "schemaVersion": 1,
+  "_readme": [
+    "This file is an inert review queue, not a glossary source.",
+    "A human reviewer must verify each term, write a cited definition in glossary/verified-terms.json, and rebuild the glossary."
+  ],
+  "candidates": []
+}
