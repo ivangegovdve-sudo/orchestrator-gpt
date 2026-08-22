@@ -8,5 +8,6 @@
 # after a build, which is precisely the habit that lets a real change go unnoticed. The build is
 # byte-deterministic by design; pinning the line endings is what keeps "a clean build produces no
 # diff" actually true.
+glossary/MISUSE.md                         text eol=lf
 glossary/QUARANTINE.md                     text eol=lf
 web/library/glossary/glossary-bundle.json  text eol=lf
