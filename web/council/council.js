@@ -951,4 +951,18 @@
   bind('free shortcut', () => query('#openrouter-question').addEventListener('keydown', (event) => {
     if (event.key === 'Enter' && (event.ctrlKey || event.metaKey)) runOpen();
   }));
+
+  bind('hash navigation', () => {
+    if (window.location.hash) {
+      const targetId = window.location.hash.substring(1);
+      const targetElement = document.getElementById(targetId);
+      if (targetElement) {
+        // A slight delay ensures layout is complete before scrolling
+        setTimeout(() => {
+          targetElement.scrollIntoView({ behavior: 'smooth' });
+        }, 100);
+      }
+    }
+  });
+
 })();
