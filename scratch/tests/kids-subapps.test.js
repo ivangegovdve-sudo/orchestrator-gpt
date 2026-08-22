@@ -107,16 +107,16 @@ test('Movie Library filtering and watched state persist on mobile', async () => 
   const page = await context.newPage();
   await page.goto(`${baseUrl}/web/kids-movie-library/`, { waitUntil: 'domcontentloaded' });
   await page.locator('.movie-card').first().waitFor();
-  await page.locator('#searchInput').fill('Klaus');
+  await page.locator('#searchInput').fill('Spirited Away');
   await page.waitForTimeout(180);
   assert.equal(await page.locator('.movie-card').count(), 1);
-  assert.match(await page.locator('.movie-card h2').textContent(), /Klaus/i);
+  assert.match(await page.locator('.movie-card h2').textContent(), /Spirited Away/i);
   await page.locator('.watch-btn').click();
   assert.equal(await page.locator('.movie-card.watched').count(), 1);
 
   await page.reload({ waitUntil: 'domcontentloaded' });
   await page.locator('#statusFilter').selectOption('watched');
-  await page.locator('#searchInput').fill('Klaus');
+  await page.locator('#searchInput').fill('Spirited Away');
   await page.waitForTimeout(180);
   assert.equal(await page.locator('.movie-card.watched').count(), 1);
 

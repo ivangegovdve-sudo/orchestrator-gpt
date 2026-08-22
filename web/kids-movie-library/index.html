@@ -157,9 +157,9 @@
 </script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Kids Movie Library — Curated Films for Ages 8-11</title>
-  <meta name="description" content="24 curated animated films for ages 8-11, grouped by empathy, perspective, sibling collaboration, and generous action. Filter by theme, Bulgarian audio, and watch status.">
+  <meta name="description" content="74 family movie cards for ages 8-11, combining curated recommendations and imported family picks with one watch state and one set of filters.">
   <meta property="og:title" content="Kids Movie Library — Curated for Ages 8-11">
-  <meta property="og:description" content="24 hand-picked animated films teaching empathy, generosity, and perspective. Spirited Away, Spider-Verse, Klaus, Moana, and more.">
+  <meta property="og:description" content="74 family movie picks teaching empathy, generosity, and perspective. Spirited Away, Spider-Verse, Klaus, Moana, Luca, Nimona, and more.">
   <meta property="og:type" content="website">
   <link rel="stylesheet" href="/web/shared/forest-design.css?v=20260807a" />
   <link rel="stylesheet" href="/web/shared/forest-shell.css?v=20260807a">
@@ -174,15 +174,15 @@
         <p class="eyebrow">Forest family watchlist</p>
         <h1>Kids Movie Library</h1>
         <p class="intro">
-          Stylized animated films for ages 8-11, grouped by empathy, perspective, sibling collaboration, and generous action.
+          One family collection of curated recommendations and imported picks, grouped by empathy, perspective, sibling collaboration, and generous action.
         </p>
       </div>
       <a class="back-link" href="/web/kids/">&larr; Kids Corner</a>
     </header>
 
     <section class="summary-grid" aria-label="Movie library summary">
-      <div><strong>24</strong><span>curated films</span></div>
-      <div><strong>50+</strong><span>family archive titles</span></div>
+      <div><strong id="movieTotal">0</strong><span>family movie cards</span></div>
+      <div><strong id="watchedTotal">0</strong><span>currently watched</span></div>
       <div><strong>3</strong><span>verified Bulgarian audio picks</span></div>
     </section>
 
@@ -232,11 +232,6 @@
     <section class="tags-row">
       <span class="row-label">Tags</span>
       <div id="tagsContainer" class="tag-wrap"></div>
-    </section>
-
-    <section class="already-watched">
-      <h2>Already Watched &amp; Family Archive</h2>
-      <ul id="watchedList"></ul>
     </section>
 
     <section class="results-meta">
