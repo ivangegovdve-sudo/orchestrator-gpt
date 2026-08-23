@@ -21,6 +21,7 @@
  */
 
 const fs = require("fs");
+const net = require("net");
 const path = require("path");
 
 const ROOT = path.join(__dirname, "..");
@@ -111,25 +112,178 @@ function readIf(p) {
 // These entries were checked against the RFC, the spec, the paper or the vendor's own
 // reference, and each carries the citation. They outrank every other source on purpose:
 // where a curated or mined entry disagrees with a cited primary source, the source wins.
+const NON_PUBLIC_IPV4_CIDRS = [
+  ["0.0.0.0", 8],
+  ["10.0.0.0", 8],
+  ["100.64.0.0", 10],
+  ["127.0.0.0", 8],
+  ["169.254.0.0", 16],
+  ["172.16.0.0", 12],
+  ["192.0.0.0", 24],
+  ["192.0.2.0", 24],
+  ["192.88.99.0", 24],
+  ["192.168.0.0", 16],
+  ["198.18.0.0", 15],
+  ["198.51.100.0", 24],
+  ["203.0.113.0", 24],
+  ["224.0.0.0", 4],
+  ["240.0.0.0", 4],
+];
+
+const NON_PUBLIC_IPV6_CIDRS = [
+  ["::", 96],
+  ["::ffff:0:0", 96],
+  ["64:ff9b::", 96],
+  ["64:ff9b:1::", 48],
+  ["100::", 64],
+  ["2001::", 23],
+  ["2001:db8::", 32],
+  ["2002::", 16],
+  ["3fff::", 20],
+  ["5f00::", 16],
+  ["fc00::", 7],
+  ["fe80::", 10],
+  ["fec0::", 10],
+  ["ff00::", 8],
+];
+
+const NON_PUBLIC_DOMAIN_SUFFIXES = [
+  "alt",
+  "corp",
+  "example",
+  "home",
+  "home.arpa",
+  "internal",
+  "invalid",
+  "lan",
+  "local",
+  "localdomain",
+  "localhost",
+  "onion",
+  "test",
+];
+
+function ipv4ToNumber(address) {
+  return address.split(".").reduce((value, octet) => (value * 256) + Number(octet), 0);
+}
+
+function ipv4InCidr(address, network, prefixLength) {
+  const blockSize = 2 ** (32 - prefixLength);
+  return Math.floor(ipv4ToNumber(address) / blockSize)
+    === Math.floor(ipv4ToNumber(network) / blockSize);
+}
+
+function ipv6ToBigInt(address) {
+  let normalized = address.toLowerCase();
+  if (normalized.includes(".")) {
+    const lastColon = normalized.lastIndexOf(":");
+    const ipv4 = normalized.slice(lastColon + 1);
+    const ipv4Value = ipv4ToNumber(ipv4);
+    normalized = `${normalized.slice(0, lastColon)}:${(ipv4Value >>> 16).toString(16)}:${(ipv4Value & 0xffff).toString(16)}`;
+  }
+
+  const halves = normalized.split("::");
+  if (halves.length > 2) return null;
+  const left = halves[0] ? halves[0].split(":") : [];
+  const right = halves.length === 2 && halves[1] ? halves[1].split(":") : [];
+  const omitted = 8 - left.length - right.length;
+  if ((halves.length === 1 && omitted !== 0) || (halves.length === 2 && omitted < 1)) return null;
+  const groups = halves.length === 2
+    ? [...left, ...Array(omitted).fill("0"), ...right]
+    : left;
+  if (groups.length !== 8 || groups.some((group) => !/^[0-9a-f]{1,4}$/u.test(group))) return null;
+  return groups.reduce((value, group) => (value << 16n) | BigInt(`0x${group}`), 0n);
+}
+
+function ipv6InCidr(address, network, prefixLength) {
+  const value = ipv6ToBigInt(address);
+  const base = ipv6ToBigInt(network);
+  if (value === null || base === null) return false;
+  const shift = 128n - BigInt(prefixLength);
+  return (value >> shift) === (base >> shift);
+}
+
+function hostnameIsPublic(hostname) {
+  const unbracketed = hostname.startsWith("[") && hostname.endsWith("]")
+    ? hostname.slice(1, -1)
+    : hostname;
+  const ipVersion = net.isIP(unbracketed);
+  if (ipVersion === 4) {
+    return !NON_PUBLIC_IPV4_CIDRS.some(([network, prefixLength]) => (
+      ipv4InCidr(unbracketed, network, prefixLength)
+    ));
+  }
+  if (ipVersion === 6) {
+    return ipv6InCidr(unbracketed, "2000::", 3)
+      && !NON_PUBLIC_IPV6_CIDRS.some(([network, prefixLength]) => (
+        ipv6InCidr(unbracketed, network, prefixLength)
+      ));
+  }
+
+  const labels = hostname.toLowerCase().split(".");
+  if (
+    labels.length < 2
+    || labels.some((label) => !/^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$/u.test(label))
+    || !/[a-z]/u.test(labels.at(-1))
+  ) {
+    return false;
+  }
+  return !NON_PUBLIC_DOMAIN_SUFFIXES.some((suffix) => (
+    hostname === suffix || hostname.endsWith(`.${suffix}`)
+  ));
+}
+
+function verifiedEntryIsValid(entry) {
+  if (!entry || typeof entry !== "object" || Array.isArray(entry)) return false;
+  const requiredText = [entry.term, entry.desc, entry.source];
+  if (requiredText.some((value) => typeof value !== "string" || !value.trim())) return false;
+  if (typeof entry.sourceUrl !== "string" || !entry.sourceUrl.trim()) return false;
+  try {
+    const sourceUrl = new URL(entry.sourceUrl.trim());
+    const protocolAllowed = sourceUrl.protocol === "http:" || sourceUrl.protocol === "https:";
+    const credentialsAbsent = !sourceUrl.username && !sourceUrl.password;
+    return protocolAllowed && credentialsAbsent && hostnameIsPublic(sourceUrl.hostname);
+  } catch {
+    return false;
+  }
+}
+
 function loadVerified() {
   const raw = readIf(path.join(ROOT, "glossary", "verified-terms.json"));
-  if (!raw) return [];
+  if (typeof raw !== "string" || !raw.trim()) {
+    throw new Error("verified-terms.json root is invalid");
+  }
   const parsed = JSON.parse(raw);
-  return (parsed.terms || []).map((e) => ({
-    term: norm(e.term),
-    expansion: norm(e.expansion),
-    desc: norm(e.desc),
-    category: norm(e.category) || "Uncategorized",
-    tags: [],
-    related: [],
-    kind: "definition",
-    origin: "verified",
-    review: false,
-    // Public-facing provenance. A glossary entry a reader cannot trace is a claim, not a definition.
-    source: norm(e.source),
-    sourceUrl: norm(e.sourceUrl),
-    misread: norm(e.misread),
-  }));
+  if (
+    !parsed
+    || typeof parsed !== "object"
+    || Array.isArray(parsed)
+    || Object.getPrototypeOf(parsed) !== Object.prototype
+    || !Array.isArray(parsed.terms)
+    || parsed.terms.length === 0
+  ) {
+    throw new Error("verified-terms.json root is invalid");
+  }
+  return parsed.terms.map((e, index) => {
+    if (!verifiedEntryIsValid(e)) {
+      throw new Error(`verified-terms.json entry ${index + 1} is invalid`);
+    }
+    return {
+      term: norm(e.term),
+      expansion: norm(e.expansion),
+      desc: norm(e.desc),
+      category: norm(e.category) || "Uncategorized",
+      tags: [],
+      related: [],
+      kind: "definition",
+      origin: "verified",
+      review: false,
+      // Public-facing provenance. A glossary entry a reader cannot trace is a claim, not a definition.
+      source: norm(e.source),
+      sourceUrl: norm(e.sourceUrl),
+      misread: norm(e.misread),
+    };
+  });
 }
 
 // ── 1. curated dataset (also the source of the category taxonomy) ──────────────

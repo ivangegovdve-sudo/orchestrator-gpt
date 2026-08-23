@@ -10,4 +10,5 @@
 # diff" actually true.
 glossary/MISUSE.md                         text eol=lf
 glossary/QUARANTINE.md                     text eol=lf
+glossary/candidates/pending.json           text eol=lf
 web/library/glossary/glossary-bundle.json  text eol=lf
