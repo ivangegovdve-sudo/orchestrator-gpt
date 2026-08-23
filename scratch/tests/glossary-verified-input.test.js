@@ -126,6 +126,7 @@ const INVALID_VERIFIED_ROOTS = [
   ['null root', null],
   ['array root', []],
   ['missing terms array', {}],
+  ['empty terms array', { terms: [] }],
   ['non-array terms field', { terms: { redacted: true } }],
 ];
 

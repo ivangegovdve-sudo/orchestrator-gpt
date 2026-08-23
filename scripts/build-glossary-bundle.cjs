@@ -260,6 +260,7 @@ function loadVerified() {
     || Array.isArray(parsed)
     || Object.getPrototypeOf(parsed) !== Object.prototype
     || !Array.isArray(parsed.terms)
+    || parsed.terms.length === 0
   ) {
     throw new Error("verified-terms.json root is invalid");
   }
