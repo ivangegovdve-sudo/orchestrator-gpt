@@ -115,7 +115,6 @@ h2 {
 }
 
 .summary-grid div,
-.already-watched,
 .movie-card,
 .controls {
   border: 2px solid var(--border);
@@ -208,29 +207,6 @@ button {
   background: var(--panel-soft);
   color: var(--movie-accent);
   font-weight: 800;
-}
-
-.already-watched {
-  padding: 16px;
-  margin-bottom: 18px;
-}
-
-.already-watched ul {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.already-watched li {
-  border: 1px solid rgba(245,158,11,.28);
-  background: rgba(245,158,11,.08);
-  color: #f7ca87;
-  border-radius: 999px;
-  padding: 6px 10px;
-  font-size: 13px;
 }
 
 .results-meta {
