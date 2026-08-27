@@ -63,6 +63,32 @@
       <p>Node 20 or newer. No API key is needed for any tool except the optional key inventory. Published on npm as
         <a href="https://www.npmjs.com/package/open-dashboard-mcp">open-dashboard-mcp</a>.</p>
 
+      <h2>How it stays current</h2>
+      <p>It is consumed as an <strong>MCP server</strong>, not a snapshot. <code>npx -y open-dashboard-mcp</code>
+        resolves the latest published version on every launch, so an upgrade reaches you with nothing to reinstall
+        anywhere. A periodic snapshot would freeze pricing at build time — and a model that stopped being free yesterday
+        would still read as free in a copy taken last week, which is the precise harm this exists to prevent.</p>
+      <p>Every tool reads a public, zero-credential API <em>at query time</em>. That host is a hobby-tier deployment with
+        no uptime obligation, and it is a dependency of every answer. Two things follow, and both are visible in the
+        response rather than left to assumption.</p>
+      <p><strong>Responses are cached, and every answer carries its own age.</strong> One economics query can make two
+        dozen upstream requests — measured, ten requests and 733&nbsp;ms cold, then zero requests and 3&nbsp;ms on a
+        repeat. Each piece of evidence carries when it was measured and how old it is:</p>
+      <pre class="oo-code"><code>"freshness": {
+  "state": "cached",
+  "fetchedAt": "2026-08-27T20:21:52.494Z",
+  "ageSeconds": 30,
+  "expiresAt": "2026-08-27T20:26:52.494Z"
+}</code></pre>
+      <p><strong>When the host is slow or down, the answer says so.</strong> With nothing cached you get a structured
+        <em>unavailable</em> carrying a reason — never a fabricated number. With an expired entry in hand the last known
+        value is returned, but <em>marked</em>:</p>
+      <pre class="oo-code"><code>"state": "expired",
+"note": "Upstream could not be reached, so this is the last known value,
+         measured 2026-08-27T20:21:52.494Z (3600s ago). It is not current."</code></pre>
+      <p><strong>Unmeasured is not zero, and stale is not fresh.</strong> A number is never handed back as current when
+        it is not, and the age arrives with the answer so a caller can refuse it.</p>
+
       <h2>Why it exists</h2>
       <p>A free model does not announce itself when it stops being free. It simply starts costing money, and the bill
         arrives before the surprise does. Meanwhile the model that is cheapest for a task on one provider is rarely
@@ -83,9 +109,14 @@
         </li>
         <li class="oo-verdict" data-state="yes">
           <span class="oo-state">Yes — today</span>
-          <p><strong>Reads published discounts, not just list prices.</strong> OpenRouter attaches discounts to a
-            <em>provider endpoint</em>, not to the model — which is why looking at the model list alone shows none.
-            Measured 2026-08-19: zero of 550 models carried a discount field; 272 of 272 provider endpoints did.</p>
+          <p><strong>Reads published discounts, not just list prices — on OpenRouter.</strong> OpenRouter attaches
+            discounts to a <em>provider endpoint</em>, not to the model, which is why looking at the model list alone
+            shows none. Measured 2026-08-19: zero of 550 models carried a discount field; 272 of 272 provider endpoints
+            did.</p>
+          <p class="oo-measured"><strong>Not parity across providers.</strong> Groq and Cerebras publish no discounts at
+            all, so their rows always report <code>not_published_by_provider</code>. That is a fact about those
+            providers rather than something this tool can close, and discount coverage should be read as rich for
+            OpenRouter and absent elsewhere.</p>
         </li>
         <li class="oo-verdict" data-state="yes">
           <span class="oo-state">Yes — today</span>
