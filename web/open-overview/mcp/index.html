@@ -141,7 +141,25 @@
         <li class="oo-verdict" data-state="yes">
           <span class="oo-state">Yes — today</span>
           <p><strong>Detects a model that stopped being free.</strong> Its id does not change and it stays listed, so nothing else in a catalogue moves — the bill is the notification. The two most recent archived collection runs are compared and models that <em>left free</em> are reported in their own bucket, apart from every other price movement.</p>
-          <p class="oo-measured">Shipped in 0.2.0. Prices are compared as exact decimals, never floats, and a null price counts as unknown rather than free. An empty result means nothing left free; a source that could not be read says so instead of returning an empty list.</p>
+          <p class="oo-measured">Shipped in 0.2.0. Prices are compared as exact decimals, never floats, and a null price counts as unknown rather than free. A source that could not be read says so instead of returning an empty list.</p>
+        </li>
+        <li class="oo-verdict" data-state="partial">
+          <span class="oo-state">Yes, with the limit stated</span>
+          <p><strong>An empty result is not an all-clear, and the tool says so itself.</strong>
+            The comparison is the producer&rsquo;s own pair of archived runs, not the window you asked
+            about — and it publishes no date for the older of the two, so how far back it reaches
+            cannot be established from the response. A tool that answered &ldquo;nothing started
+            charging&rdquo; against an unknown window would be doing the exact thing this page says it
+            prevents.</p>
+          <p class="oo-measured">Shipped in 0.4.0. The report carries the date of the newest state it
+            examined <em>when the producer publishes one</em> — and <code>null</code> when it does not,
+            rather than a guess — states coverage as <code>incomplete</code> or
+            <code>indeterminate</code> and never as complete, and a successful report&rsquo;s status is
+            always <code>partial</code> rather than <code>ok</code>. Measured against production 2026-08-27, asking about 2026-08-18 onward:
+            <em>&ldquo;Price movement could not be shown to cover 2026-08-18 to 2026-08-25, so this is
+            not an all-clear on models that started charging.&rdquo;</em> It also refuses to state an
+            exact count from a paginated page it only partly read, and refuses to rule the transition
+            out from one.</p>
         </li>
         <li class="oo-verdict" data-state="no">
           <span class="oo-state">Not yet</span>
@@ -192,7 +210,7 @@ groq        openai/gpt-oss-120b   in $0.150/M   out $0.60/M</code></pre>
       <h2 id="roadmap">Roadmap — not built yet</h2>
       <div class="oo-roadmap">
         <h3>Longer price history</h3>
-        <p>Free-to-paid detection shipped in 0.2.0, and it compares the two most recent collection runs — so it answers &ldquo;did anything change since the last collection&rdquo;, not &ldquo;what has this model cost over the past month&rdquo;. The archive retains a price observation per model per run, so a longer window is a read away rather than new collection.</p>
+        <p>Free-to-paid detection shipped in 0.2.0, and it compares the two most recent collection runs — so it answers &ldquo;did anything change since the last collection&rdquo;, not &ldquo;what has this model cost over the past month&rdquo;. 0.4.0 made that limit explicit in every answer rather than leaving it to be discovered, which is the honest version of the gap but not a closing of it. The archive retains a price observation per model per run, so a longer window — and the run dates that would let coverage actually be established — are a read away rather than new collection.</p>
         <h3>Automated switching</h3>
         <p>Deliberately out of scope for the server, which stays read-only so it can ship inside a distributed
           application without carrying a credential. The intended path is an agent that reads from here and writes to
@@ -203,11 +221,15 @@ groq        openai/gpt-oss-120b   in $0.150/M   out $0.60/M</code></pre>
           and a cheap model that passes every structural filter can still be the wrong choice.</p>
       </div>
 
-      <h2>Open source</h2>
-      <p>MIT licensed. Source at
-        <a href="https://github.com/ivangegovdve-sudo/openrouter-dashboard-mcp">openrouter-dashboard-mcp</a>,
-        package at <a href="https://www.npmjs.com/package/open-dashboard-mcp">npmjs.com/package/open-dashboard-mcp</a>.
-        The server reads a public, zero-credential API; point it elsewhere with <code>DASHBOARD_BASE_URL</code>.</p>
+      <h2>Licence and source</h2>
+      <p>MIT licensed. The package is published at
+        <a href="https://www.npmjs.com/package/open-dashboard-mcp">npmjs.com/package/open-dashboard-mcp</a>,
+        and the server reads a public, zero-credential API; point it elsewhere with
+        <code>DASHBOARD_BASE_URL</code>.</p>
+      <p class="oo-measured">The repository is not public yet, so there is no source link to give you.
+        Its history carries infrastructure names that have to come out before it can be opened, and deleting a
+        file does not remove it from the commits behind it. Saying &ldquo;open source&rdquo; over a link that
+        404s would be the same kind of claim this page spends the rest of its length refusing to make.</p>
     </section>
   </main>
   <script type="module" data-forest-runtime="motion" src="/web/shared/forest-runtime-boot.mjs?v=20260807a"></script>
