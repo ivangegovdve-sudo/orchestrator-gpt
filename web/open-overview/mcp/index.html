@@ -152,9 +152,10 @@
             charging&rdquo; against an unknown window would be doing the exact thing this page says it
             prevents.</p>
           <p class="oo-measured">Shipped in 0.4.0. The report carries the date of the newest state it
-            examined, states coverage as <code>incomplete</code> or <code>indeterminate</code> and never
-            as complete, and a successful report&rsquo;s status is always <code>partial</code> rather than
-            <code>ok</code>. Measured against production 2026-08-27, asking about 2026-08-18 onward:
+            examined <em>when the producer publishes one</em> — and <code>null</code> when it does not,
+            rather than a guess — states coverage as <code>incomplete</code> or
+            <code>indeterminate</code> and never as complete, and a successful report&rsquo;s status is
+            always <code>partial</code> rather than <code>ok</code>. Measured against production 2026-08-27, asking about 2026-08-18 onward:
             <em>&ldquo;Price movement could not be shown to cover 2026-08-18 to 2026-08-25, so this is
             not an all-clear on models that started charging.&rdquo;</em> It also refuses to state an
             exact count from a paginated page it only partly read, and refuses to rule the transition
