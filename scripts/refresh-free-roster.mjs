@@ -416,14 +416,31 @@ export async function buildRoster({
   }
   log(`Eligible after catalogue gates: ${eligible.length}`);
 
-  // Spend the run's probe budget where the evidence is weakest: models never verified
-  // first, then those whose last success is oldest. A model skipped this run is not
-  // penalised — it keeps whatever standing its health record already earned.
-  const staleness = (id) => {
-    const lastOkAt = previousHealth[id]?.lastOkAt;
-    return lastOkAt ? Date.parse(lastOkAt) : -Infinity;
+  // Spend the run's probe budget on whatever has gone longest without being looked at,
+  // never-checked models first. A model skipped this run is not penalised — it keeps
+  // whatever standing its health record already earned.
+  //
+  // The key is lastCheckedAt, not lastOkAt, and the difference is a starvation bug rather
+  // than a preference. Ordering by lastOkAt puts every never-successful model at the same
+  // -Infinity; a stable sort then preserves catalogue order, so the same eight failures
+  // would consume the budget every single run and a healthy model further down the list
+  // would never be probed at all. Measured on this roster: ten models shared that tie.
+  //
+  // Every probe writes lastCheckedAt whether it passed or failed, so this key strictly
+  // rotates — nothing can be checked twice before everything has been checked once. A
+  // model that answered this morning also sorts last, so recent successes are not
+  // re-probed, which is what the budget was for.
+  const lastChecked = (id) => {
+    const value = previousHealth[id]?.lastCheckedAt;
+    const parsed = value ? Date.parse(value) : NaN;
+    return Number.isFinite(parsed) ? parsed : -Infinity;
   };
-  const byEvidenceAge = [...eligible].sort((a, b) => staleness(a.id) - staleness(b.id));
+  const byEvidenceAge = [...eligible].sort((a, b) => {
+    const age = lastChecked(a.id) - lastChecked(b.id);
+    // Ties are broken by id rather than left to catalogue order, so the rotation is
+    // deterministic instead of depending on the order the MCP happened to return.
+    return age !== 0 ? age : a.id.localeCompare(b.id);
+  });
   const toProbe = new Set(byEvidenceAge.slice(0, PROBE_BUDGET_PER_RUN).map((model) => model.id));
   const skipped = eligible.length - toProbe.size;
   if (skipped > 0) {

@@ -17,13 +17,27 @@
 #
 # So it does not run anywhere near a write token. `verify` holds `contents: read`, checks
 # out with `persist-credentials: false` so no credential is written to the runner's git
-# config, and hands its result on as an artifact. `publish` never runs npx or any
-# third-party code; it holds the write permission, validates what it was handed, and
-# commits. A compromised package therefore reaches neither a token nor a push.
+# config, and hands its result on as an artifact. `publish` holds the write permission,
+# validates what it was handed, and commits. A compromised package therefore reaches
+# neither a token nor a push.
 #
 # It also cannot smuggle anything into the roster: `publish` re-runs the contract tests
 # against the downloaded artifact before committing, and those assert every slug is a
 # `:free` model that appears in the run's own verified list.
+#
+# WHY publish CHECKS OUT main RATHER THAN THE TRIGGERING REF
+# -----------------------------------------------------------
+# `workflow_dispatch` runs against a ref the caller chooses. If `publish` checked out that
+# ref, the test file it runs to validate the artifact would itself be branch-controlled —
+# arbitrary code executing with `contents: write`. It therefore pins its checkout to
+# `main`, so the validation logic is always the reviewed version regardless of which ref
+# started the run. `verify` may run branch code freely; it has nothing worth stealing.
+#
+# Actions are pinned to commit SHAs, not tags. A tag is mutable, and every one of these
+# actions runs before or alongside the write token — an earlier draft of this file claimed
+# `publish` "runs no third-party code", which was wrong: an action IS third-party code.
+# Pinning is what makes that claim true in the only sense that matters. The trailing
+# comment records which tag each SHA was at, so the pins can be re-resolved deliberately.
 #
 # WHY THIS COMMITS TO main RATHER THAN OPENING A PULL REQUEST
 # -----------------------------------------------------------
@@ -73,11 +87,11 @@ jobs:
     permissions:
       contents: read
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
           persist-credentials: false
 
-      - uses: actions/setup-node@v5
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
         with:
           node-version: '22'
 
@@ -90,7 +104,7 @@ jobs:
       - name: Verify the roster satisfies its contract
         run: node --test scratch/tests/free-roster.test.js
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: free-roster
           path: web/council/free-roster.json
@@ -102,17 +116,24 @@ jobs:
     needs: verify
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    # The only job with write access, and it runs no third-party code.
+    # The only job with write access. Every action it runs is SHA-pinned, and the code it
+    # executes comes from main rather than from whichever ref triggered the run.
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          # Pinned to main on purpose: workflow_dispatch can be aimed at any ref, and this
+          # job runs scratch/tests/free-roster.test.js. Checking out the triggering ref
+          # would let branch-controlled test code execute holding contents: write.
+          ref: main
+          persist-credentials: false
 
-      - uses: actions/setup-node@v5
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
         with:
           node-version: '22'
 
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
         with:
           name: free-roster
           path: artifact
@@ -136,6 +157,10 @@ jobs:
           node --test scratch/tests/free-roster.test.js
 
       - name: Commit the roster if it changed
+        env:
+          # Supplied to this one step rather than persisted in the runner's git config, so
+          # nothing earlier in the job — including any action — has a credential to reach.
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           if git diff --quiet -- web/council/free-roster.json; then
             echo "Roster unchanged — every model verified the same as last run."
@@ -148,5 +173,7 @@ jobs:
 
           verified=$(node -p "require('./web/council/free-roster.json').verified.length")
           fresh=$(node -p "require('./web/council/free-roster.json').freshlyVerified")
-          git commit -m "chore(council): refresh verified free-model roster (${verified} published, ${fresh} confirmed live)"
-          git push
+          probed=$(node -p "require('./web/council/free-roster.json').probed")
+          git commit -m "chore(council): refresh verified free-model roster (${verified} published, ${fresh}/${probed} confirmed live)"
+          # HEAD:main rather than a bare push: the checkout is detached at main's SHA.
+          git push "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" HEAD:main

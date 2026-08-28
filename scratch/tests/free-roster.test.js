@@ -350,25 +350,16 @@ test('a run where nothing answers keeps the roster but does not advance verified
   fs.rmSync(path.dirname(rosterPath), { recursive: true, force: true });
 });
 
-test('a run spends its probe budget on the models with the oldest evidence', async () => {
-  // Verification shares the relay's free-tier budget with real visitors, so a run checks
-  // a subset. It must pick the models whose evidence is weakest, not an arbitrary slice,
-  // or a model could sit unverified until its window lapsed while others were re-checked
-  // daily.
-  const { buildRoster, PROBE_BUDGET_PER_RUN } = await importGenerator();
+// Drives buildRoster over `ids` with injected fakes, so probe-selection behaviour can be
+// exercised without touching the network.
+const runBuild = async ({ ids, health, probeResult, now = '2026-08-28T06:00:00.000Z' }) => {
+  const { buildRoster } = await importGenerator();
   const os = require('node:os');
   const rosterPath = path.join(fs.mkdtempSync(path.join(os.tmpdir(), 'roster-')), 'free-roster.json');
-  const ids = Array.from({ length: PROBE_BUDGET_PER_RUN + 3 }, (_, i) => `p${i}/m${i}:free`);
-  // p0 is the freshest, ascending to the oldest. The last three should never be skipped.
-  const health = {};
-  ids.forEach((id, i) => {
-    health[id] = { lastOkAt: new Date(Date.parse('2026-08-28T00:00:00.000Z') - i * 3_600_000).toISOString() };
-  });
   fs.writeFileSync(rosterPath, JSON.stringify({ schemaVersion: '1', health }));
-
   const probed = [];
   const roster = await buildRoster({
-    now: new Date('2026-08-28T06:00:00.000Z'),
+    now: new Date(now),
     rosterPath,
     log: () => {},
     sleepImpl: async () => {},
@@ -384,19 +375,75 @@ test('a run spends its probe budget on the models with the oldest evidence', asy
         data: ids.map((id) => ({ id, context_length: 900, pricing: { prompt: '0', completion: '0' } })),
       }),
     }),
-    probe: async (id) => { probed.push(id); return { ok: true, ms: 100, attempts: 1 }; },
+    probe: async (id) => { probed.push(id); return probeResult(id); },
   });
+  const written = JSON.parse(fs.readFileSync(rosterPath, 'utf8'));
+  fs.rmSync(path.dirname(rosterPath), { recursive: true, force: true });
+  return { roster, probed, written };
+};
+
+test('a run spends its probe budget on whatever has gone longest unchecked', async () => {
+  // Verification shares the relay's free-tier budget with real visitors, so a run checks
+  // a subset. It must pick by how long since each model was last looked at.
+  const { PROBE_BUDGET_PER_RUN } = await importGenerator();
+  const ids = Array.from({ length: PROBE_BUDGET_PER_RUN + 3 }, (_, i) => `p${i}/m${i}:free`);
+  const health = {};
+  ids.forEach((id, i) => {
+    // p0 checked most recently, ascending to the longest-unchecked at the end.
+    const at = new Date(Date.parse('2026-08-28T00:00:00.000Z') - i * 3_600_000).toISOString();
+    health[id] = { lastOkAt: at, lastCheckedAt: at };
+  });
+
+  const { roster, probed } = await runBuild({ ids, health, probeResult: () => ({ ok: true, ms: 100, attempts: 1 }) });
 
   assert.equal(probed.length, PROBE_BUDGET_PER_RUN, 'run exceeded its probe budget');
   assert.equal(roster.probed, PROBE_BUDGET_PER_RUN);
   assert.equal(roster.eligible, ids.length);
-  // The three oldest are ids at the end of the list.
-  for (const oldest of ids.slice(-3)) {
-    assert.ok(probed.includes(oldest), `${oldest} has the oldest evidence and was not probed`);
+  for (const longestUnchecked of ids.slice(-3)) {
+    assert.ok(probed.includes(longestUnchecked), `${longestUnchecked} waited longest and was not probed`);
   }
   // Everything still keeps its seat: skipped models ride their existing evidence.
   assert.equal(roster.verified.length, ids.length);
-  fs.rmSync(path.dirname(rosterPath), { recursive: true, force: true });
+});
+
+test('persistently failing models cannot starve the budget forever', async () => {
+  // The bug this replaced: ordering by lastOkAt put every never-successful model at the
+  // same -Infinity, and a stable sort then preserved catalogue order — so the same eight
+  // failures consumed every run's budget and a healthy model further down was never
+  // probed at all. Ten models on the real roster shared that tie.
+  //
+  // Two consecutive runs must therefore touch a strictly larger set than one run does.
+  const { PROBE_BUDGET_PER_RUN } = await importGenerator();
+  const failing = Array.from({ length: PROBE_BUDGET_PER_RUN * 2 }, (_, i) => `p${i}/m${i}:free`);
+  // Two healthy models so the run has something to publish; both were checked recently,
+  // so they sort last and the budget goes entirely to the never-checked failures.
+  const healthy = ['ok0/a:free', 'ok1/b:free'];
+  const ids = [...failing, ...healthy];
+  const health = Object.fromEntries(healthy.map((id) => [
+    id,
+    { lastOkAt: '2026-08-28T05:00:00.000Z', lastCheckedAt: '2026-08-28T05:00:00.000Z' },
+  ]));
+  // The failures have never succeeded AND never been checked: the exact -Infinity tie.
+  const probeResult = (id) => (healthy.includes(id)
+    ? { ok: true, ms: 100, attempts: 1 }
+    : { ok: false, reason: 'empty-stream', ms: 300, attempts: 3 });
+
+  const first = await runBuild({ ids, health, probeResult });
+  assert.equal(first.probed.length, PROBE_BUDGET_PER_RUN);
+
+  // Second run inherits the first run's health, where every probed model now carries a
+  // lastCheckedAt and so sorts last.
+  const second = await runBuild({
+    ids,
+    health: first.written.health,
+    probeResult,
+    now: '2026-08-29T06:00:00.000Z',
+  });
+
+  const overlap = second.probed.filter((id) => first.probed.includes(id));
+  assert.equal(overlap.length, 0, `the second run re-probed ${overlap.join(', ')} instead of rotating`);
+  const touched = new Set([...first.probed, ...second.probed]);
+  assert.equal(touched.size, failing.length, 'two runs did not cover every unchecked model');
 });
 
 test('a model skipped by the budget still drops once its window lapses', async () => {
@@ -451,7 +498,7 @@ test('the refresh workflow never runs third-party code in a job that can write',
   // The generator executes `npx -y open-dashboard-mcp`, i.e. code downloaded at run time.
   // It must not share a job with a write token or a persisted credential.
   const workflow = fs.readFileSync(path.join(ROOT, '.github/workflows/free-roster.yml'), 'utf8');
-  const jobs = workflow.split(/\n  (?=\w[\w-]*:\n)/);
+  const jobs = splitJobs(workflow);
   const npxJob = jobs.find((job) => job.includes('npx') || job.includes('refresh-free-roster.mjs'));
   assert.ok(npxJob, 'no job runs the generator');
   assert.doesNotMatch(npxJob, /contents: write/, 'the generator job holds write access');
@@ -461,6 +508,32 @@ test('the refresh workflow never runs third-party code in a job that can write',
   assert.doesNotMatch(writeJob, /npx/, 'the committing job runs third-party code');
 });
 
+test('the write-capable job runs code from main, not from the triggering ref', () => {
+  // workflow_dispatch can be aimed at any ref. The publish job runs the contract tests to
+  // validate the artifact, so checking out the triggering ref would let branch-controlled
+  // test code execute holding contents: write.
+  const workflow = fs.readFileSync(path.join(ROOT, '.github/workflows/free-roster.yml'), 'utf8');
+  const jobs = splitJobs(workflow);
+  const writeJob = jobs.find((job) => job.includes('contents: write'));
+  assert.match(writeJob, /ref: main/, 'the write job checks out the triggering ref');
+  assert.match(writeJob, /persist-credentials: false/, 'the write job persists a credential');
+});
+
+test('every action is pinned to a commit SHA rather than a mutable tag', () => {
+  // A tag can be moved. These actions run alongside the write token, so the pin is what
+  // makes "no unreviewed third-party code near the credential" actually true.
+  const workflow = fs.readFileSync(path.join(ROOT, '.github/workflows/free-roster.yml'), 'utf8');
+  const uses = [...workflow.matchAll(/^\s*- uses:\s*(\S+)/gm)].map((match) => match[1]);
+  assert.ok(uses.length >= 4, 'expected several actions');
+  for (const reference of uses) {
+    assert.match(
+      reference,
+      /@[0-9a-f]{40}$/,
+      `${reference} is pinned to a tag or branch rather than a commit SHA`,
+    );
+  }
+});
+
 test('the committed roster does not carry the two slugs that were withdrawn', () => {
   // Regression pin for the failure that prompted this work.
   const raw = fs.readFileSync(ROSTER_PATH, 'utf8');
@@ -468,6 +541,23 @@ test('the committed roster does not carry the two slugs that were withdrawn', ()
     assert.doesNotMatch(raw, new RegExp(dead.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')), `${dead} is back`);
   }
 });
+
+// Splits the workflow into one string per job. Done by indentation rather than a regex
+// over the whole file: a job key sits at exactly two spaces under `jobs:`, and anything
+// looser silently returns the entire file as a single "job", which makes every assertion
+// below pass or fail for the wrong reason.
+const splitJobs = (workflow) => {
+  const lines = workflow.split('\n');
+  const start = lines.findIndex((line) => line === 'jobs:');
+  assert.ok(start >= 0, 'workflow has no jobs: block');
+  const jobs = [];
+  for (const line of lines.slice(start + 1)) {
+    if (/^ {2}[\w-]+:\s*$/.test(line)) jobs.push([line]);
+    else if (jobs.length) jobs[jobs.length - 1].push(line);
+  }
+  assert.ok(jobs.length >= 2, `expected at least two jobs, found ${jobs.length}`);
+  return jobs.map((job) => job.join('\n'));
+};
 
 // ── The client contract ─────────────────────────────────────────────────────
 
