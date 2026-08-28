@@ -211,6 +211,38 @@ test('assignTiers spreads providers so one outage cannot empty a tier', async ()
   }
 });
 
+test('assignTiers keeps a tier diverse when one provider dominates the pool', async () => {
+  // The case the six-model fixture above misses, and the one that was actually broken:
+  // three models from one provider and a single alternative. The previous interleave
+  // gave the proposer tier all three NVIDIA seats, so a single provider outage emptied
+  // it — the exact failure this rule exists to prevent.
+  const { assignTiers } = await importGenerator();
+  const rosters = assignTiers([
+    { id: 'nvidia/a:free', contextLength: 900 },
+    { id: 'nvidia/b:free', contextLength: 800 },
+    { id: 'nvidia/c:free', contextLength: 700 },
+    { id: 'cohere/d:free', contextLength: 600 },
+  ]);
+  for (const [tier, models] of Object.entries(rosters)) {
+    const providers = new Set(models.map((id) => id.split('/')[0]));
+    assert.ok(providers.size > 1, `${tier} drew every seat from one provider: ${models.join(', ')}`);
+  }
+});
+
+test('assignTiers fills every seat even when only one provider exists', async () => {
+  // Diversity is preferred, not mandatory: with a single provider a short tier would be
+  // worse than a concentrated one.
+  const { assignTiers } = await importGenerator();
+  const rosters = assignTiers([
+    { id: 'nvidia/a:free', contextLength: 900 },
+    { id: 'nvidia/b:free', contextLength: 800 },
+    { id: 'nvidia/c:free', contextLength: 700 },
+  ]);
+  for (const [tier, models] of Object.entries(rosters)) {
+    assert.equal(models.length, 3, `${tier} left a seat empty`);
+  }
+});
+
 test('assignTiers never emits a duplicate seat within a tier', async () => {
   const { assignTiers } = await importGenerator();
   const rosters = assignTiers([
@@ -250,6 +282,92 @@ test('the committed roster carries a parseable verification timestamp', () => {
   const roster = JSON.parse(fs.readFileSync(ROSTER_PATH, 'utf8'));
   assert.equal(roster.schemaVersion, '1');
   assert.ok(Number.isFinite(Date.parse(roster.verifiedAt)), 'verifiedAt is not a date');
+  assert.ok(Number.isFinite(Date.parse(roster.generatedAt)), 'generatedAt is not a date');
+});
+
+test('verifiedAt is a real success, never merely the moment the run happened', () => {
+  // A run whose probes all fail still publishes, because the health window is what keeps
+  // a throttled afternoon from gutting the roster. It must not also reset the staleness
+  // clock: stamping verifiedAt with the run time would let the page claim "verified
+  // today" with no live confirmation behind it.
+  const roster = JSON.parse(fs.readFileSync(ROSTER_PATH, 'utf8'));
+  const successes = roster.verified.map((entry) => Date.parse(entry.lastOkAt));
+  assert.equal(Date.parse(roster.verifiedAt), Math.max(...successes));
+  assert.ok(
+    Date.parse(roster.verifiedAt) <= Date.parse(roster.generatedAt),
+    'verifiedAt is later than the run that wrote it',
+  );
+});
+
+test('a run where nothing answers keeps the roster but does not advance verifiedAt', async () => {
+  // The exact scenario the health window exists for, and the exact way it could have
+  // lied. Every probe fails; the previously-healthy models keep their seats, but the
+  // page must not be told the roster was verified now. verifiedAt therefore stays at
+  // yesterday's success while generatedAt records that the job did run.
+  const { buildRoster } = await importGenerator();
+  const os = require('node:os');
+  const rosterPath = path.join(fs.mkdtempSync(path.join(os.tmpdir(), 'roster-')), 'free-roster.json');
+  const yesterday = '2026-08-27T06:00:00.000Z';
+  fs.writeFileSync(rosterPath, JSON.stringify({
+    schemaVersion: '1',
+    health: {
+      'nvidia/a:free': { lastOkAt: yesterday, consecutiveFailures: 0 },
+      'cohere/b:free': { lastOkAt: yesterday, consecutiveFailures: 0 },
+    },
+  }));
+
+  const roster = await buildRoster({
+    now: new Date('2026-08-28T06:00:00.000Z'),
+    rosterPath,
+    log: () => {},
+    sleepImpl: async () => {},
+    catalogue: async () => ({
+      status: 'ok',
+      stale: false,
+      warnings: [],
+      candidates: [
+        { id: 'nvidia/a:free', isFree: true, freeKind: 'concrete_free', contextLength: '900' },
+        { id: 'cohere/b:free', isFree: true, freeKind: 'concrete_free', contextLength: '800' },
+      ],
+    }),
+    fetchImpl: async () => ({
+      ok: true,
+      json: async () => ({
+        data: [
+          { id: 'nvidia/a:free', context_length: 900, pricing: { prompt: '0', completion: '0' } },
+          { id: 'cohere/b:free', context_length: 800, pricing: { prompt: '0', completion: '0' } },
+        ],
+      }),
+    }),
+    probe: async () => ({ ok: false, reason: 'empty-stream', ms: 300, attempts: 3 }),
+  });
+
+  assert.equal(roster.freshlyVerified, 0, 'no model should have been confirmed live');
+  assert.equal(roster.verified.length, 2, 'both models should keep their seats');
+  assert.equal(roster.verifiedAt, yesterday, 'verifiedAt advanced without a live success');
+  assert.equal(roster.generatedAt, '2026-08-28T06:00:00.000Z');
+  assert.ok(Date.parse(roster.verifiedAt) < Date.parse(roster.generatedAt));
+  fs.rmSync(path.dirname(rosterPath), { recursive: true, force: true });
+});
+
+test('the page tells the visitor when the latest check confirmed nothing', () => {
+  const source = fs.readFileSync(COUNCIL_JS, 'utf8');
+  assert.match(source, /freshlyVerified === 0/);
+  assert.match(source, /confirmed no models/);
+});
+
+test('the refresh workflow never runs third-party code in a job that can write', () => {
+  // The generator executes `npx -y open-dashboard-mcp`, i.e. code downloaded at run time.
+  // It must not share a job with a write token or a persisted credential.
+  const workflow = fs.readFileSync(path.join(ROOT, '.github/workflows/free-roster.yml'), 'utf8');
+  const jobs = workflow.split(/\n  (?=\w[\w-]*:\n)/);
+  const npxJob = jobs.find((job) => job.includes('npx') || job.includes('refresh-free-roster.mjs'));
+  assert.ok(npxJob, 'no job runs the generator');
+  assert.doesNotMatch(npxJob, /contents: write/, 'the generator job holds write access');
+  assert.match(npxJob, /persist-credentials: false/, 'the generator job persists a credential');
+  const writeJob = jobs.find((job) => job.includes('contents: write'));
+  assert.ok(writeJob, 'no job can commit');
+  assert.doesNotMatch(writeJob, /npx/, 'the committing job runs third-party code');
 });
 
 test('the committed roster does not carry the two slugs that were withdrawn', () => {

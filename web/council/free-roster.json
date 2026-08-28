@@ -1,6 +1,8 @@
 {
   "schemaVersion": "1",
-  "verifiedAt": "2026-08-28T06:13:59.366Z",
+  "verifiedAt": "2026-08-28T06:44:06.136Z",
+  "generatedAt": "2026-08-28T06:44:06.136Z",
+  "freshlyVerified": 1,
   "generator": "scripts/refresh-free-roster.mjs",
   "relay": "https://chloe.blumenkraft.cloud/council/relay",
   "source": {
@@ -18,18 +20,18 @@
   "rosters": {
     "proposer": [
       "minimax/minimax-m3:free",
-      "poolside/laguna-s-2.1:free",
-      "nvidia/nemotron-3-super-120b-a12b:free"
+      "nvidia/nemotron-3-ultra-550b-a55b:free",
+      "dots-studio/dots-3-note-preview:free"
     ],
     "critic": [
       "nvidia/nemotron-3-ultra-550b-a55b:free",
-      "cohere/north-mini-code:free",
-      "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free"
+      "dots-studio/dots-3-note-preview:free",
+      "poolside/laguna-s-2.1:free"
     ],
     "synthesis": [
       "dots-studio/dots-3-note-preview:free",
-      "liquid/lfm-2.5-2.6b:free",
-      "minimax/minimax-m3:free"
+      "nvidia/nemotron-3-super-120b-a12b:free",
+      "poolside/laguna-s-2.1:free"
     ]
   },
   "verified": [
@@ -38,27 +40,27 @@
       "contextLength": "256000",
       "lastOkAt": "2026-08-28T06:13:59.366Z",
       "lastLatencyMs": 1457,
-      "freshlyVerified": true
+      "freshlyVerified": false
     },
     {
       "id": "dots-studio/dots-3-note-preview:free",
       "contextLength": "512000",
       "lastOkAt": "2026-08-28T06:13:59.366Z",
       "lastLatencyMs": 1303,
-      "freshlyVerified": true
+      "freshlyVerified": false
     },
     {
       "id": "liquid/lfm-2.5-2.6b:free",
       "contextLength": "65536",
       "lastOkAt": "2026-08-28T06:13:59.366Z",
       "lastLatencyMs": 2237,
-      "freshlyVerified": true
+      "freshlyVerified": false
     },
     {
       "id": "minimax/minimax-m3:free",
       "contextLength": "1048576",
-      "lastOkAt": "2026-08-28T06:13:59.366Z",
-      "lastLatencyMs": 12797,
+      "lastOkAt": "2026-08-28T06:44:06.136Z",
+      "lastLatencyMs": 3709,
       "freshlyVerified": true
     },
     {
@@ -66,28 +68,28 @@
       "contextLength": "256000",
       "lastOkAt": "2026-08-28T06:13:59.366Z",
       "lastLatencyMs": 1543,
-      "freshlyVerified": true
+      "freshlyVerified": false
     },
     {
       "id": "nvidia/nemotron-3-super-120b-a12b:free",
       "contextLength": "262144",
       "lastOkAt": "2026-08-28T06:13:59.366Z",
       "lastLatencyMs": 943,
-      "freshlyVerified": true
+      "freshlyVerified": false
     },
     {
       "id": "nvidia/nemotron-3-ultra-550b-a55b:free",
       "contextLength": "1000000",
       "lastOkAt": "2026-08-28T06:13:59.366Z",
       "lastLatencyMs": 1210,
-      "freshlyVerified": true
+      "freshlyVerified": false
     },
     {
       "id": "poolside/laguna-s-2.1:free",
       "contextLength": "262144",
       "lastOkAt": "2026-08-28T06:13:59.366Z",
       "lastLatencyMs": 6697,
-      "freshlyVerified": true
+      "freshlyVerified": false
     }
   ],
   "rejected": [
@@ -119,7 +121,7 @@
     {
       "id": "nvidia/nemotron-3.5-content-safety:free",
       "gate": "probe",
-      "reason": "empty-200"
+      "reason": "empty-stream"
     },
     {
       "id": "nvidia/nemotron-3.5-lightning:free",
@@ -154,123 +156,123 @@
   ],
   "health": {
     "cohere/north-mini-code:free": {
-      "lastCheckedAt": "2026-08-28T06:13:59.366Z",
+      "lastCheckedAt": "2026-08-28T06:44:06.136Z",
       "lastOkAt": "2026-08-28T06:13:59.366Z",
-      "lastReason": null,
+      "lastReason": "empty-stream",
       "lastLatencyMs": 1457,
-      "consecutiveFailures": 0
+      "consecutiveFailures": 1
     },
     "dots-studio/dots-3-note-preview:free": {
-      "lastCheckedAt": "2026-08-28T06:13:59.366Z",
+      "lastCheckedAt": "2026-08-28T06:44:06.136Z",
       "lastOkAt": "2026-08-28T06:13:59.366Z",
-      "lastReason": null,
+      "lastReason": "empty-stream",
       "lastLatencyMs": 1303,
-      "consecutiveFailures": 0
+      "consecutiveFailures": 1
     },
     "google/gemma-4-26b-a4b-it:free": {
-      "lastCheckedAt": "2026-08-28T06:13:59.366Z",
+      "lastCheckedAt": "2026-08-28T06:44:06.136Z",
       "lastOkAt": null,
       "lastReason": "empty-stream",
       "lastLatencyMs": null,
-      "consecutiveFailures": 1
+      "consecutiveFailures": 2
     },
     "google/gemma-4-31b-it:free": {
-      "lastCheckedAt": "2026-08-28T06:13:59.366Z",
+      "lastCheckedAt": "2026-08-28T06:44:06.136Z",
       "lastOkAt": null,
       "lastReason": "empty-stream",
       "lastLatencyMs": null,
-      "consecutiveFailures": 1
+      "consecutiveFailures": 2
     },
     "liquid/lfm-2.5-2.6b:free": {
-      "lastCheckedAt": "2026-08-28T06:13:59.366Z",
+      "lastCheckedAt": "2026-08-28T06:44:06.136Z",
       "lastOkAt": "2026-08-28T06:13:59.366Z",
-      "lastReason": null,
+      "lastReason": "empty-stream",
       "lastLatencyMs": 2237,
-      "consecutiveFailures": 0
+      "consecutiveFailures": 1
     },
     "minimax/minimax-m2.7:free": {
-      "lastCheckedAt": "2026-08-28T06:13:59.366Z",
+      "lastCheckedAt": "2026-08-28T06:44:06.136Z",
       "lastOkAt": null,
       "lastReason": "empty-200",
       "lastLatencyMs": null,
-      "consecutiveFailures": 1
+      "consecutiveFailures": 2
     },
     "minimax/minimax-m3:free": {
-      "lastCheckedAt": "2026-08-28T06:13:59.366Z",
-      "lastOkAt": "2026-08-28T06:13:59.366Z",
+      "lastCheckedAt": "2026-08-28T06:44:06.136Z",
+      "lastOkAt": "2026-08-28T06:44:06.136Z",
       "lastReason": null,
-      "lastLatencyMs": 12797,
+      "lastLatencyMs": 3709,
       "consecutiveFailures": 0
     },
     "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free": {
-      "lastCheckedAt": "2026-08-28T06:13:59.366Z",
+      "lastCheckedAt": "2026-08-28T06:44:06.136Z",
       "lastOkAt": "2026-08-28T06:13:59.366Z",
-      "lastReason": null,
+      "lastReason": "empty-stream",
       "lastLatencyMs": 1543,
-      "consecutiveFailures": 0
+      "consecutiveFailures": 1
     },
     "nvidia/nemotron-3-super-120b-a12b:free": {
-      "lastCheckedAt": "2026-08-28T06:13:59.366Z",
+      "lastCheckedAt": "2026-08-28T06:44:06.136Z",
       "lastOkAt": "2026-08-28T06:13:59.366Z",
-      "lastReason": null,
+      "lastReason": "empty-stream",
       "lastLatencyMs": 943,
-      "consecutiveFailures": 0
+      "consecutiveFailures": 1
     },
     "nvidia/nemotron-3-ultra-550b-a55b:free": {
-      "lastCheckedAt": "2026-08-28T06:13:59.366Z",
+      "lastCheckedAt": "2026-08-28T06:44:06.136Z",
       "lastOkAt": "2026-08-28T06:13:59.366Z",
-      "lastReason": null,
+      "lastReason": "empty-stream",
       "lastLatencyMs": 1210,
-      "consecutiveFailures": 0
+      "consecutiveFailures": 1
     },
     "nvidia/nemotron-3.5-content-safety:free": {
-      "lastCheckedAt": "2026-08-28T06:13:59.366Z",
+      "lastCheckedAt": "2026-08-28T06:44:06.136Z",
       "lastOkAt": null,
-      "lastReason": "empty-200",
+      "lastReason": "empty-stream",
       "lastLatencyMs": null,
-      "consecutiveFailures": 1
+      "consecutiveFailures": 2
     },
     "nvidia/nemotron-3.5-lightning:free": {
-      "lastCheckedAt": "2026-08-28T06:13:59.366Z",
+      "lastCheckedAt": "2026-08-28T06:44:06.136Z",
       "lastOkAt": null,
       "lastReason": "empty-stream",
       "lastLatencyMs": null,
-      "consecutiveFailures": 1
+      "consecutiveFailures": 2
     },
     "poolside/laguna-s-2.1:free": {
-      "lastCheckedAt": "2026-08-28T06:13:59.366Z",
+      "lastCheckedAt": "2026-08-28T06:44:06.136Z",
       "lastOkAt": "2026-08-28T06:13:59.366Z",
-      "lastReason": null,
+      "lastReason": "empty-stream",
       "lastLatencyMs": 6697,
-      "consecutiveFailures": 0
+      "consecutiveFailures": 1
     },
     "poolside/laguna-xs-2.1:free": {
-      "lastCheckedAt": "2026-08-28T06:13:59.366Z",
+      "lastCheckedAt": "2026-08-28T06:44:06.136Z",
       "lastOkAt": null,
       "lastReason": "empty-stream",
       "lastLatencyMs": null,
-      "consecutiveFailures": 1
+      "consecutiveFailures": 2
     },
     "thinkingmachines/inkling-small:free": {
-      "lastCheckedAt": "2026-08-28T06:13:59.366Z",
+      "lastCheckedAt": "2026-08-28T06:44:06.136Z",
       "lastOkAt": null,
       "lastReason": "empty-stream",
       "lastLatencyMs": null,
-      "consecutiveFailures": 1
+      "consecutiveFailures": 2
     },
     "thinkingmachines/inkling:free": {
-      "lastCheckedAt": "2026-08-28T06:13:59.366Z",
+      "lastCheckedAt": "2026-08-28T06:44:06.136Z",
       "lastOkAt": null,
       "lastReason": "empty-stream",
       "lastLatencyMs": null,
-      "consecutiveFailures": 1
+      "consecutiveFailures": 2
     },
     "z-ai/glm-5.2:free": {
-      "lastCheckedAt": "2026-08-28T06:13:59.366Z",
+      "lastCheckedAt": "2026-08-28T06:44:06.136Z",
       "lastOkAt": null,
       "lastReason": "empty-stream",
       "lastLatencyMs": null,
-      "consecutiveFailures": 1
+      "consecutiveFailures": 2
     }
   }
 }

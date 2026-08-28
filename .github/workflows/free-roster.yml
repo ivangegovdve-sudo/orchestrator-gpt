@@ -8,6 +8,23 @@
 # visitor who tried the council got failures. The set of free models changes weekly, and
 # a weekly manual chore is a chore that stops being done.
 #
+# WHY TWO JOBS
+# ------------
+# The generator runs `npx -y open-dashboard-mcp@0.4.0`, which downloads and executes code
+# from npm at run time. That is the price of tracking the MCP's published version rather
+# than vendoring a copy that would itself go stale — but it means the generator step must
+# be treated as running untrusted code.
+#
+# So it does not run anywhere near a write token. `verify` holds `contents: read`, checks
+# out with `persist-credentials: false` so no credential is written to the runner's git
+# config, and hands its result on as an artifact. `publish` never runs npx or any
+# third-party code; it holds the write permission, validates what it was handed, and
+# commits. A compromised package therefore reaches neither a token nor a push.
+#
+# It also cannot smuggle anything into the roster: `publish` re-runs the contract tests
+# against the downloaded artifact before committing, and those assert every slug is a
+# `:free` model that appears in the run's own verified list.
+#
 # WHY THIS COMMITS TO main RATHER THAN OPENING A PULL REQUEST
 # -----------------------------------------------------------
 # A PR would need a human to merge it every few days, which is the same chore wearing a
@@ -23,12 +40,13 @@
 #
 # IF THIS JOB STOPS RUNNING
 # -------------------------
-# The page does not depend on noticing. free-roster.json carries `verifiedAt`, and
-# council.js prints the age on the council itself, switching to an amber warning past
-# three days. A silently dead refresh therefore shows up to the visitor as "last verified
-# 9 days ago" rather than as an ageing list that still looks authoritative. Note that
-# GitHub disables scheduled workflows in repositories with no activity for 60 days — that
-# is a second way this can stop, and it fails the same visible way.
+# The page does not depend on noticing. free-roster.json carries `verifiedAt` — the newest
+# moment a published model actually answered, not the moment a run happened — and
+# council.js prints its age, switching to an amber warning past three days. A refresh that
+# dies, or one that runs but confirms nothing, both show up to the visitor as a growing
+# "last verified N days ago" rather than an ageing list that still looks authoritative.
+# Note that GitHub disables scheduled workflows in repositories with no activity for 60
+# days — that is a second way this can stop, and it fails the same visible way.
 
 name: free roster
 
@@ -44,14 +62,49 @@ concurrency:
   group: free-roster
   cancel-in-progress: false
 
-permissions:
-  contents: write
+permissions: {}
 
 jobs:
-  refresh:
-    name: verify free models and publish the roster
+  verify:
+    name: verify free models against the live relay
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    # Read-only, and no credential is left on disk. This is the job that runs npx.
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+
+      # The repo has no dependencies and no lockfile — `npm ci` would fail outright. The
+      # generator pulls open-dashboard-mcp through `npx -y` at run time instead, which is
+      # exactly why this job holds no write permission.
+      - name: Regenerate the roster
+        run: node scripts/refresh-free-roster.mjs
+
+      - name: Verify the roster satisfies its contract
+        run: node --test scratch/tests/free-roster.test.js
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: free-roster
+          path: web/council/free-roster.json
+          retention-days: 7
+          if-no-files-found: error
+
+  publish:
+    name: commit the roster
+    needs: verify
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    # The only job with write access, and it runs no third-party code.
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v5
 
@@ -59,16 +112,28 @@ jobs:
         with:
           node-version: '22'
 
-      # The repo has no dependencies and no lockfile — `npm ci` would fail outright. The
-      # generator pulls open-dashboard-mcp through `npx -y` at run time instead, which
-      # also means the roster tracks the MCP's published version rather than a vendored
-      # copy that would itself go stale.
-      - name: Regenerate the roster
-        run: node scripts/refresh-free-roster.mjs
+      - uses: actions/download-artifact@v4
+        with:
+          name: free-roster
+          path: artifact
 
-      # Runs before the commit, so a roster that fails its own contract is never pushed.
-      - name: Verify the roster satisfies its contract
-        run: node --test scratch/tests/free-roster.test.js
+      # Re-validated here rather than trusted. The artifact was produced by the job that
+      # ran untrusted code, so it is treated as input, not as a result.
+      - name: Adopt the artifact and re-run its contract tests
+        run: |
+          node -e "
+            const roster = require('./artifact/free-roster.json');
+            if (roster.schemaVersion !== '1') throw new Error('unexpected schemaVersion');
+            for (const [tier, models] of Object.entries(roster.rosters)) {
+              if (!Array.isArray(models) || models.length === 0) throw new Error(tier + ' is empty');
+              for (const model of models) {
+                if (!model.endsWith(':free')) throw new Error(tier + ' carries non-free ' + model);
+              }
+            }
+            console.log('artifact shape OK:', Object.keys(roster.rosters).join(', '));
+          "
+          cp artifact/free-roster.json web/council/free-roster.json
+          node --test scratch/tests/free-roster.test.js
 
       - name: Commit the roster if it changed
         run: |
@@ -82,6 +147,6 @@ jobs:
           git add web/council/free-roster.json
 
           verified=$(node -p "require('./web/council/free-roster.json').verified.length")
-          rejected=$(node -p "require('./web/council/free-roster.json').rejected.length")
-          git commit -m "chore(council): refresh verified free-model roster (${verified} verified, ${rejected} rejected)"
+          fresh=$(node -p "require('./web/council/free-roster.json').freshlyVerified")
+          git commit -m "chore(council): refresh verified free-model roster (${verified} published, ${fresh} confirmed live)"
           git push

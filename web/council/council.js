@@ -173,7 +173,7 @@
   };
 
   // What the page currently believes about its own roster, rendered by paintRosterStatus.
-  const rosterState = { source: 'fallback', verifiedAt: null, error: null };
+  const rosterState = { source: 'fallback', verifiedAt: null, freshlyVerified: null, error: null };
   // Resolves once the generated roster has been fetched (or definitively failed).
   let rosterLoad = null;
 
@@ -219,6 +219,12 @@
     if (ageDays > ROSTER_STALE_AFTER_DAYS) {
       return `Roster last verified ${when} — overdue, so some models may no longer answer.`;
     }
+    // verifiedAt is the newest real success, so this age is never advanced by a refresh
+    // that ran and confirmed nothing. When the most recent run confirmed nothing at all,
+    // say so rather than letting a recent-but-unconfirmed roster read as freshly checked.
+    if (state.freshlyVerified === 0) {
+      return `Roster last verified ${when}; the most recent check confirmed no models.`;
+    }
     return `Roster verified ${when} against the live free-model relay.`;
   }
 
@@ -245,11 +251,15 @@
       applyRoster(rosters);
       rosterState.source = 'generated';
       rosterState.verifiedAt = document.verifiedAt;
+      rosterState.freshlyVerified = typeof document.freshlyVerified === 'number'
+        ? document.freshlyVerified
+        : null;
       rosterState.error = null;
     } catch (error) {
       // A failed load is never fatal: the fallback roster is already installed.
       rosterState.source = 'fallback';
       rosterState.verifiedAt = null;
+      rosterState.freshlyVerified = null;
       rosterState.error = error?.message || String(error);
     }
     paintRosterStatus();

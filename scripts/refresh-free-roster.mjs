@@ -302,34 +302,36 @@ export function assignTiers(verified, { tierSize = TIER_SIZE, tiers = TIERS } = 
     const context = Number(b.contextLength ?? 0) - Number(a.contextLength ?? 0);
     return context !== 0 ? context : a.id.localeCompare(b.id);
   });
-
-  const byProvider = new Map();
-  for (const model of ranked) {
-    const provider = providerOf(model.id);
-    if (!byProvider.has(provider)) byProvider.set(provider, []);
-    byProvider.get(provider).push(model);
-  }
-  // Interleave providers: take the best remaining from each provider in turn.
-  const interleaved = [];
-  const queues = [...byProvider.values()];
-  while (interleaved.length < ranked.length) {
-    let moved = false;
-    for (const queue of queues) {
-      const next = queue.shift();
-      if (next) { interleaved.push(next); moved = true; }
-    }
-    if (!moved) break;
-  }
+  if (ranked.length === 0) return Object.fromEntries(tiers.map((tier) => [tier, []]));
 
   const rosters = {};
   for (const [index, tier] of tiers.entries()) {
+    // Rotating the starting point per tier stops every tier leading with the same model
+    // without affecting the diversity rule below.
+    const offset = index % ranked.length;
+    const rotated = [...ranked.slice(offset), ...ranked.slice(0, offset)];
+
+    // Diversity is enforced per tier, not merely encouraged by a globally interleaved
+    // ordering. An earlier version interleaved providers once and then had each tier
+    // stride through that list, which reads as diverse and is not: with three NVIDIA
+    // models and one Cohere, the proposer tier drew all three NVIDIA seats — precisely
+    // the single-provider tier this is supposed to prevent.
     const seats = [];
-    // Offsetting each tier's start means the tiers do not all lead with the same model
-    // while still drawing from one provider-diverse ordering.
-    for (let seat = 0; seat < tierSize && interleaved.length > 0; seat += 1) {
-      seats.push(interleaved[(index + seat * tiers.length) % interleaved.length].id);
+    const seatProviders = new Set();
+    for (const model of rotated) {
+      if (seats.length >= tierSize) break;
+      if (seatProviders.has(providerOf(model.id))) continue;
+      seats.push(model.id);
+      seatProviders.add(providerOf(model.id));
     }
-    rosters[tier] = [...new Set(seats)];
+    // Only once every distinct provider already holds a seat may a provider take a
+    // second one. With N providers and N < tierSize a repeat is unavoidable, and a
+    // short tier would be worse than a slightly concentrated one.
+    for (const model of rotated) {
+      if (seats.length >= tierSize) break;
+      if (!seats.includes(model.id)) seats.push(model.id);
+    }
+    rosters[tier] = seats;
   }
   return rosters;
 }
@@ -431,11 +433,32 @@ export async function buildRoster({
   const rosters = assignTiers(verified);
   assertFreeOnly(rosters, freeCatalogue);
 
+  // `verifiedAt` is the newest moment a published model actually answered — NOT the
+  // moment this run happened. The distinction matters: on a fully rate-limited day
+  // every probe fails while the rolling window keeps the roster intact, and stamping
+  // `verifiedAt` with the run time would reset the page's staleness clock without a
+  // single live confirmation behind it. The page would then claim "verified today" on
+  // the strength of nothing. Because this is a maximum over real successes, a run that
+  // confirms nothing leaves the timestamp where it was and the displayed age keeps
+  // growing, which is the honest outcome.
+  const successTimes = verified
+    .map((model) => Date.parse(model.health.lastOkAt))
+    .filter((value) => Number.isFinite(value));
+  const verifiedAt = new Date(Math.max(...successTimes)).toISOString();
+  const freshlyVerified = verified.filter((model) => model.freshlyVerified).length;
+  log(`Published ${verified.length} model(s); ${freshlyVerified} confirmed live in this run.`);
+  if (freshlyVerified === 0) {
+    log("WARNING: no model answered in this run — every seat is riding the health window.");
+  }
+
   const roster = {
     schemaVersion: "1",
-    // The field the page reads to decide whether to trust itself. A run that publishes
-    // is a run that verified, so these cannot drift apart.
-    verifiedAt: nowIso,
+    verifiedAt,
+    // When this run executed, whether or not anything answered. Kept separate from
+    // verifiedAt so "the job is alive" and "a model actually replied" stay distinguishable.
+    generatedAt: nowIso,
+    // How many published models answered in this run rather than riding the window.
+    freshlyVerified,
     generator: "scripts/refresh-free-roster.mjs",
     relay: RELAY,
     source: {
