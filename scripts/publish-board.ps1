@@ -195,18 +195,29 @@ if (-not (Test-Path $RepoDir)) { throw "Repo working copy not found: $RepoDir" }
 # github.com/ivangegovdve-sudo/orchestrator-gpt-evil, and evil.example.com/…/orchestrator-gpt,
 # both of which would have been force-pushed to happily.
 $EXPECTED_REMOTE = 'ivangegovdve-sudo/orchestrator-gpt'
-$originUrl = (& git -C $RepoDir remote get-url origin 2>$null | Select-Object -First 1)
-if (-not $originUrl) { throw "No 'origin' remote in $RepoDir." }
-$remoteOk = $originUrl -match ('^(https://github\.com/|git@github\.com:)' +
-                               [regex]::Escape($EXPECTED_REMOTE) + '(\.git)?/?$')
-if (-not $remoteOk) {
-    throw "Refusing to publish: origin is '$originUrl', expected github.com/$EXPECTED_REMOTE."
+# BOTH urls. `git push origin` follows remote.origin.pushurl when one is configured, so
+# validating only the fetch url leaves the destination that actually receives the
+# force-push unchecked -- which is the one that matters.
+$pattern = '^(https://github\.com/|git@github\.com:)' + [regex]::Escape($EXPECTED_REMOTE) + '(\.git)?/?$'
+$fetchUrl = (& git -C $RepoDir remote get-url origin 2>$null | Select-Object -First 1)
+$pushUrl  = (& git -C $RepoDir remote get-url --push origin 2>$null | Select-Object -First 1)
+if (-not $fetchUrl) { throw "No 'origin' remote in $RepoDir." }
+foreach ($pair in @(@{ Label = 'fetch url'; Url = $fetchUrl }, @{ Label = 'push url'; Url = $pushUrl })) {
+    if (-not $pair.Url) { continue }
+    if ($pair.Url -notmatch $pattern) {
+        throw "Refusing to publish: origin $($pair.Label) is '$($pair.Url)', expected github.com/$EXPECTED_REMOTE."
+    }
 }
 
 # A worktree, so publishing never touches the checkout Ivan may be working in. Without this
 # a 15-minute timer would be checking branches out from under an editor.
-$work = Join-Path ([System.IO.Path]::GetTempPath()) "board-live-$PID"
-if (Test-Path $work) { Remove-Item $work -Recurse -Force -WhatIf:$false }
+# REFUSED rather than reclaimed if it already exists. Deleting a path just because it
+# carries this run's PID assumes the name is ours; PIDs are reused, a concurrent run may
+# hold it, and nothing stops an unrelated directory sitting there. The name includes a
+# random component so a collision is a genuine anomaly rather than routine, and a genuine
+# anomaly should stop the run, not trigger a recursive delete of somebody else's data.
+$work = Join-Path ([System.IO.Path]::GetTempPath()) ("board-live-$PID-" + [System.IO.Path]::GetRandomFileName().Replace('.', ''))
+if (Test-Path $work) { throw "Refusing to publish: temporary path already exists: $work" }
 
 $staged = @()
 foreach ($item in $PUBLISH) {
