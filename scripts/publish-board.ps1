@@ -27,8 +27,10 @@
     pushed six weeks from now. It therefore runs on every publish and REFUSES rather than
     warning: a publisher that reports a problem and uploads anyway has not prevented it.
 
-    The snapshot commit contains exactly the two files in $PUBLISH and nothing else; the
-    tree is asserted against that list before the push. claims.jsonl, pr-cache.json and
+    The snapshot commit contains exactly $EXPECTED_FILES and nothing else: board.html and
+    state.json copied from $BoardDir, plus a generated vercel.json that disables Vercel
+    deployment for this branch (without it, every publish builds the site — measured).
+    The tree is asserted against that list before the push. claims.jsonl, pr-cache.json and
     jules-cache.json stay local — the first because it carries session paths and branch
     names, the other two because they are large caches of every PR title on the machine.
 
@@ -199,14 +201,16 @@ $EXPECTED_REMOTE = 'ivangegovdve-sudo/orchestrator-gpt'
 # validating only the fetch url leaves the destination that actually receives the
 # force-push unchecked -- which is the one that matters.
 $pattern = '^(https://github\.com/|git@github\.com:)' + [regex]::Escape($EXPECTED_REMOTE) + '(\.git)?/?$'
-$fetchUrl = (& git -C $RepoDir remote get-url origin 2>$null | Select-Object -First 1)
-$pushUrl  = (& git -C $RepoDir remote get-url --push origin 2>$null | Select-Object -First 1)
-if (-not $fetchUrl) { throw "No 'origin' remote in $RepoDir." }
-foreach ($pair in @(@{ Label = 'fetch url'; Url = $fetchUrl }, @{ Label = 'push url'; Url = $pushUrl })) {
-    if (-not $pair.Url) { continue }
-    if ($pair.Url -notmatch $pattern) {
-        throw "Refusing to publish: origin $($pair.Label) is '$($pair.Url)', expected github.com/$EXPECTED_REMOTE."
-    }
+# EVERY url, not the first. A remote may carry several pushurls and `git push` sends to all
+# of them, so checking one and pushing to several validates the wrong thing entirely.
+$fetchUrls = @(& git -C $RepoDir remote get-url --all origin 2>$null)
+$pushUrls  = @(& git -C $RepoDir remote get-url --push --all origin 2>$null)
+if (@($fetchUrls).Count -eq 0) { throw "No 'origin' remote in $RepoDir." }
+foreach ($u in @($fetchUrls)) {
+    if ($u -notmatch $pattern) { throw "Refusing to publish: origin fetch url '$u' is not github.com/$EXPECTED_REMOTE." }
+}
+foreach ($u in @($pushUrls)) {
+    if ($u -notmatch $pattern) { throw "Refusing to publish: origin push url '$u' is not github.com/$EXPECTED_REMOTE." }
 }
 
 # A worktree, so publishing never touches the checkout Ivan may be working in. Without this
@@ -281,10 +285,16 @@ $local = $null
 # Set only once `checkout --orphan` has actually created the branch, so the cleanup in
 # `finally` can never delete a ref this run did not make.
 $createdBranch = $null
+# Set once `worktree add` has actually created the directory; see the cleanup in `finally`.
+$createdWork = $null
 try {
     # --detach so the worktree is not bound to a branch; the orphan commit is built by hand.
     & git -C $RepoDir worktree add --detach --quiet $work 2>&1 | Out-Null
     if ($LASTEXITCODE -ne 0) { throw "git worktree add failed ($LASTEXITCODE)" }
+    # Only now is this directory ours. The cleanup below is keyed off this rather than off
+    # the path existing, so a failed `worktree add` -- or anything else that happens to
+    # occupy the path -- is never recursively deleted by us.
+    $createdWork = $work
 
     # -WhatIf:$false throughout this block. These all write inside a throwaway temp
     # worktree, and letting -WhatIf skip them would make a dry run build nothing and then
@@ -376,8 +386,10 @@ try {
 } finally {
     # Always removed. A stale worktree left behind by a failed run would make the next run's
     # `worktree add` fail, turning one bad publish into a permanently broken one.
-    & git -C $RepoDir worktree remove --force $work 2>&1 | Out-Null
-    if (Test-Path $work) { Remove-Item $work -Recurse -Force -ErrorAction SilentlyContinue -WhatIf:$false }
+    if ($createdWork) {
+        & git -C $RepoDir worktree remove --force $createdWork 2>&1 | Out-Null
+        if (Test-Path $createdWork) { Remove-Item $createdWork -Recurse -Force -ErrorAction SilentlyContinue -WhatIf:$false }
+    }
     & git -C $RepoDir worktree prune 2>&1 | Out-Null
     # The orphan branch is a ref in the shared repository, not in the worktree, so removing
     # the worktree does not remove it. Left behind, one ref per run would accumulate forever.
