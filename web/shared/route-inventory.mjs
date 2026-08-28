@@ -25,7 +25,7 @@ export const ROUTE_INVENTORY = Object.freeze([
   // prerender stays false: the page is a thin shell that fetches a 225 KB
   // repos-data.json on load, so prerendering buys nothing and costs the payload.
   { id: 'explore', href: '/web/explore/', state: 'hub-trail', parent: 'forest-hub', placement: 'Signals & Systems', prefetch: true, prerender: false, label: 'Explore Repos', trailId: 'signals', connectionIds: ['library', 'open-overview', 'ai-research'] },
-  { id: 'kids-movie-library', href: '/web/kids-movie-library/', state: 'hub-trail', parent: 'kids', placement: 'Wonder Path', prefetch: true, prerender: false, label: 'Kids Movie Library', trailId: 'wonder', connectionIds: ['kids', 'math-mania', 'manifesto-newborn'] },
+  { id: 'kids-movie-library', href: '/movies/', state: 'hub-trail', parent: 'kids', placement: 'Wonder Path', prefetch: true, prerender: false, label: 'Kids Movie Library', trailId: 'wonder', connectionIds: ['kids', 'math-mania', 'manifesto-newborn'] },
   { id: 'math-mania', href: '/web/math-mania/', state: 'hub-trail', parent: 'kids', placement: 'Wonder Path', prefetch: true, prerender: false, label: 'Math Mania', trailId: 'wonder', connectionIds: ['kids', 'kids-movie-library', 'power-law-odyssey'] },
   { id: 'upload', href: '/web/upload/', state: 'hub-trail', parent: 'forest-hub', placement: 'Signals & Systems', prefetch: true, prerender: false, label: 'Knowledge Ingest', trailId: 'signals', connectionIds: ['library', 'ai-research', 'council'] },
   { id: 'ai-init', href: '/web/ai-init/', state: 'redirect', parent: 'library', placement: 'Library redirect', prefetch: false, prerender: false },
