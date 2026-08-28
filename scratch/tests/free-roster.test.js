@@ -350,6 +350,97 @@ test('a run where nothing answers keeps the roster but does not advance verified
   fs.rmSync(path.dirname(rosterPath), { recursive: true, force: true });
 });
 
+test('a run spends its probe budget on the models with the oldest evidence', async () => {
+  // Verification shares the relay's free-tier budget with real visitors, so a run checks
+  // a subset. It must pick the models whose evidence is weakest, not an arbitrary slice,
+  // or a model could sit unverified until its window lapsed while others were re-checked
+  // daily.
+  const { buildRoster, PROBE_BUDGET_PER_RUN } = await importGenerator();
+  const os = require('node:os');
+  const rosterPath = path.join(fs.mkdtempSync(path.join(os.tmpdir(), 'roster-')), 'free-roster.json');
+  const ids = Array.from({ length: PROBE_BUDGET_PER_RUN + 3 }, (_, i) => `p${i}/m${i}:free`);
+  // p0 is the freshest, ascending to the oldest. The last three should never be skipped.
+  const health = {};
+  ids.forEach((id, i) => {
+    health[id] = { lastOkAt: new Date(Date.parse('2026-08-28T00:00:00.000Z') - i * 3_600_000).toISOString() };
+  });
+  fs.writeFileSync(rosterPath, JSON.stringify({ schemaVersion: '1', health }));
+
+  const probed = [];
+  const roster = await buildRoster({
+    now: new Date('2026-08-28T06:00:00.000Z'),
+    rosterPath,
+    log: () => {},
+    sleepImpl: async () => {},
+    catalogue: async () => ({
+      status: 'ok',
+      stale: false,
+      warnings: [],
+      candidates: ids.map((id) => ({ id, isFree: true, freeKind: 'concrete_free', contextLength: '900' })),
+    }),
+    fetchImpl: async () => ({
+      ok: true,
+      json: async () => ({
+        data: ids.map((id) => ({ id, context_length: 900, pricing: { prompt: '0', completion: '0' } })),
+      }),
+    }),
+    probe: async (id) => { probed.push(id); return { ok: true, ms: 100, attempts: 1 }; },
+  });
+
+  assert.equal(probed.length, PROBE_BUDGET_PER_RUN, 'run exceeded its probe budget');
+  assert.equal(roster.probed, PROBE_BUDGET_PER_RUN);
+  assert.equal(roster.eligible, ids.length);
+  // The three oldest are ids at the end of the list.
+  for (const oldest of ids.slice(-3)) {
+    assert.ok(probed.includes(oldest), `${oldest} has the oldest evidence and was not probed`);
+  }
+  // Everything still keeps its seat: skipped models ride their existing evidence.
+  assert.equal(roster.verified.length, ids.length);
+  fs.rmSync(path.dirname(rosterPath), { recursive: true, force: true });
+});
+
+test('a model skipped by the budget still drops once its window lapses', async () => {
+  // The budget delays re-verification; it must not exempt anything from it.
+  const { buildRoster } = await importGenerator();
+  const os = require('node:os');
+  const rosterPath = path.join(fs.mkdtempSync(path.join(os.tmpdir(), 'roster-')), 'free-roster.json');
+  const ids = Array.from({ length: 12 }, (_, i) => `p${i}/m${i}:free`);
+  const health = {};
+  ids.forEach((id, i) => {
+    // The freshest four are recent; everything else answered five weeks ago and so is
+    // far outside the window, whether or not this run gets round to probing it.
+    health[id] = { lastOkAt: i < 4 ? '2026-08-28T00:00:00.000Z' : '2026-07-20T00:00:00.000Z' };
+  });
+  fs.writeFileSync(rosterPath, JSON.stringify({ schemaVersion: '1', health }));
+
+  const roster = await buildRoster({
+    now: new Date('2026-08-28T06:00:00.000Z'),
+    rosterPath,
+    log: () => {},
+    sleepImpl: async () => {},
+    catalogue: async () => ({
+      status: 'ok',
+      stale: false,
+      warnings: [],
+      candidates: ids.map((id) => ({ id, isFree: true, freeKind: 'concrete_free', contextLength: '900' })),
+    }),
+    fetchImpl: async () => ({
+      ok: true,
+      json: async () => ({
+        data: ids.map((id) => ({ id, context_length: 900, pricing: { prompt: '0', completion: '0' } })),
+      }),
+    }),
+    probe: async () => ({ ok: false, reason: 'empty-stream', ms: 300, attempts: 3 }),
+  });
+
+  const kept = new Set(roster.verified.map((entry) => entry.id));
+  for (const id of ids.slice(4)) {
+    assert.ok(!kept.has(id), `${id} is five weeks stale and kept its seat`);
+  }
+  assert.equal(kept.size, 4, 'only the models inside the window should remain');
+  fs.rmSync(path.dirname(rosterPath), { recursive: true, force: true });
+});
+
 test('the page tells the visitor when the latest check confirmed nothing', () => {
   const source = fs.readFileSync(COUNCIL_JS, 'utf8');
   assert.match(source, /freshlyVerified === 0/);

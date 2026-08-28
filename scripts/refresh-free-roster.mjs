@@ -67,6 +67,18 @@ export const PROBE_SPACING_MS = 2500;
 export const PROBE_TIMEOUT_MS = 45_000;
 // A slug retiring sooner than this is not worth putting in front of a visitor.
 export const MIN_DAYS_BEFORE_EXPIRY = 14;
+// How many models this run may probe. Verification competes with real visitors for the
+// same shared free-tier budget on the same relay: measured on 2026-08-28, a session that
+// made roughly 200 probe calls left models that had answered in about a second refusing
+// in under 300ms, and a council run in that state lost two of its three seats. Checking
+// all 17 candidates every day would be a self-inflicted outage on a page that gets few
+// visitors but should work for the ones it gets.
+//
+// A seat only needs one success per VERIFY_WINDOW_DAYS, so there is no reason to re-probe
+// a model that answered this morning. Each run spends its budget on the models whose
+// evidence is oldest, which cycles the whole catalogue through verification every couple
+// of days — comfortably inside the window — at a third of the traffic.
+export const PROBE_BUDGET_PER_RUN = 8;
 // Tier sizes mirror the fallback chains council.js already expects.
 export const TIER_SIZE = 3;
 export const TIERS = ["proposer", "critic", "synthesis"];
@@ -404,20 +416,51 @@ export async function buildRoster({
   }
   log(`Eligible after catalogue gates: ${eligible.length}`);
 
+  // Spend the run's probe budget where the evidence is weakest: models never verified
+  // first, then those whose last success is oldest. A model skipped this run is not
+  // penalised — it keeps whatever standing its health record already earned.
+  const staleness = (id) => {
+    const lastOkAt = previousHealth[id]?.lastOkAt;
+    return lastOkAt ? Date.parse(lastOkAt) : -Infinity;
+  };
+  const byEvidenceAge = [...eligible].sort((a, b) => staleness(a.id) - staleness(b.id));
+  const toProbe = new Set(byEvidenceAge.slice(0, PROBE_BUDGET_PER_RUN).map((model) => model.id));
+  const skipped = eligible.length - toProbe.size;
+  if (skipped > 0) {
+    // Never silently. A run that checked 8 of 17 must not read as a run that checked 17.
+    log(`Probing ${toProbe.size} of ${eligible.length} (budget ${PROBE_BUDGET_PER_RUN}); ${skipped} carried on existing evidence.`);
+  }
+
   const health = { ...previousHealth };
   const verified = [];
-  for (const [index, model] of eligible.entries()) {
-    const result = await probe(model.id, { fetchImpl, sleepImpl });
-    health[model.id] = mergeHealth(previousHealth, model.id, result, nowIso);
-    log(`  ${result.ok ? "OK  " : "FAIL"} ${model.id} (${result.attempts} attempt(s), ${result.ms}ms${result.ok ? "" : `, ${result.reason}`})`);
-    if (isWithinWindow(health[model.id].lastOkAt, nowIso)) {
-      verified.push({ ...model, health: health[model.id], freshlyVerified: result.ok });
-    } else {
-      rejected.push({ id: model.id, gate: "probe", reason: result.reason ?? "no success in window" });
+  let probesSpent = 0;
+  for (const model of eligible) {
+    if (toProbe.has(model.id)) {
+      const result = await probe(model.id, { fetchImpl, sleepImpl });
+      health[model.id] = mergeHealth(previousHealth, model.id, result, nowIso);
+      probesSpent += 1;
+      log(`  ${result.ok ? "OK  " : "FAIL"} ${model.id} (${result.attempts} attempt(s), ${result.ms}ms${result.ok ? "" : `, ${result.reason}`})`);
+      if (isWithinWindow(health[model.id].lastOkAt, nowIso)) {
+        verified.push({ ...model, health: health[model.id], freshlyVerified: result.ok });
+      } else {
+        rejected.push({ id: model.id, gate: "probe", reason: result.reason ?? "no success in window" });
+      }
+      // Spacing between models as well as between attempts. Probing the whole set
+      // back-to-back is what triggered the throttling this window exists to absorb.
+      if (probesSpent < toProbe.size) await sleepImpl(PROBE_SPACING_MS);
+      continue;
     }
-    // Spacing between models as well as between attempts. Probing the whole set
-    // back-to-back is what triggered the throttling this window exists to absorb.
-    if (index < eligible.length - 1) await sleepImpl(PROBE_SPACING_MS);
+
+    // Not probed this run. Its seat still depends on having answered inside the window,
+    // so a carried model that goes quiet for VERIFY_WINDOW_DAYS still drops out — the
+    // budget delays re-verification, it does not exempt anything from it.
+    const carried = previousHealth[model.id];
+    if (carried && isWithinWindow(carried.lastOkAt, nowIso)) {
+      health[model.id] = carried;
+      verified.push({ ...model, health: carried, freshlyVerified: false });
+    } else {
+      rejected.push({ id: model.id, gate: "probe", reason: "not probed this run and no success in window" });
+    }
   }
 
   // Health entries for models that have left the catalogue entirely are dropped rather
@@ -468,6 +511,10 @@ export async function buildRoster({
       dashboardWarnings: mcp.warnings,
     },
     verifyWindowDays: VERIFY_WINDOW_DAYS,
+    // What this run actually checked, so "8 of 17" never reads as "17 of 17".
+    probed: probesSpent,
+    probeBudget: PROBE_BUDGET_PER_RUN,
+    eligible: eligible.length,
     rosters,
     verified: verified
       .map((model) => ({
