@@ -67,10 +67,20 @@
   // though it were current; it says so and puts the content behind a deliberate click.
   // Showing a stale board silently is the single failure this deployment must not have,
   // because a board that is wrong but looks live is worse than no board at all.
-  const VALID_UNTIL = /VALID UNTIL\s+(\S+)/;
-  // Fallback only. The board's own declared window is two generation intervals; this is
-  // used when the HTML could not be read but state.json could.
-  const FALLBACK_WINDOW_MS = 30 * 60 * 1000;
+  //
+  // The declaration is read from the generator's own diagnostics block, where GENERATED and
+  // VALID UNTIL sit on consecutive lines:
+  //
+  //   GENERATED 2026-08-28T09:28:01Z - age 0m - run 4eb7 - ...
+  //   VALID UNTIL 2026-08-28T09:58:01Z  (2 x 15 m interval). ...
+  //
+  // Both are required and both must be line-anchored. An earlier version searched the whole
+  // document for the first "VALID UNTIL" anywhere, which is unsafe: the board's body is
+  // assembled from task text and PR titles, so a task whose text happened to contain that
+  // phrase would have supplied the deadline and could have kept an expired board looking
+  // valid. Anchoring to line starts and pairing the two lines makes the body unable to
+  // impersonate the header.
+  const DECLARATION = /^GENERATED\s+(\S+)[^\r\n]*\r?\n^VALID UNTIL\s+(\S+)/m;
   const AGING_FRACTION = 0.6;   // amber once most of the validity window is spent
   const POLL_MS = 60_000;
 
@@ -116,8 +126,18 @@
         frame.classList.add('hidden');
         return;
       }
+      // Both halves are required. Treating a failed HTML fetch as a successful refresh
+      // would let the page report "Live" over a board it did not actually retrieve --
+      // either an empty frame or, worse, the previous fetch's board under a fresh
+      // timestamp.
+      if (!htmlRes.ok) {
+        setStatus('stale', 'Could not retrieve the board itself.',
+          `state.json loaded but the board returned HTTP ${htmlRes.status}. Nothing below can be trusted as current.`);
+        frame.classList.add('hidden');
+        return;
+      }
       state = await stateRes.json();
-      html = htmlRes.ok ? await htmlRes.text() : null;
+      html = await htmlRes.text();
     } catch (error) {
       // A failed refresh must never leave a previously-good board looking current.
       setStatus('stale', 'Could not reach the published board.',
@@ -133,18 +153,37 @@
       return;
     }
 
-    // Prefer the deadline the board declares over one derived here, so the page honours the
-    // generator's own rule rather than a second opinion about it.
-    const declared = html && VALID_UNTIL.exec(html);
-    const declaredMs = declared ? Date.parse(declared[1]) : NaN;
-    const validUntil = Number.isFinite(declaredMs) ? declaredMs : generatedAt + FALLBACK_WINDOW_MS;
+    // The deadline is the one the board declares. There is deliberately no fallback: if the
+    // declaration cannot be read, the board's expiry rule cannot be honoured, and a page
+    // that invents a window would be substituting its own judgement for the instruction it
+    // is supposed to be obeying. Unverifiable is treated as unusable.
+    const declared = DECLARATION.exec(html);
+    const declaredGenerated = declared ? Date.parse(declared[1]) : NaN;
+    const validUntil = declared ? Date.parse(declared[2]) : NaN;
+    if (!Number.isFinite(validUntil) || !Number.isFinite(declaredGenerated)) {
+      setStatus('stale', 'The published board declares no readable expiry.',
+        'Its GENERATED / VALID UNTIL header could not be parsed, so its validity window is unknown '
+        + 'and it is not shown. The board requires readers to reject it past that window; a window '
+        + 'that cannot be read cannot be respected.');
+      frame.classList.add('hidden');
+      return;
+    }
+    // The two files must describe the same run. They are published separately, and a
+    // mismatch means a reader has landed between the two writes or that one of them is a
+    // leftover -- either way the timestamp on screen would not belong to the board below it.
+    if (declaredGenerated !== generatedAt) {
+      setStatus('stale', 'The published board and its timestamp disagree.',
+        `state.json reports ${new Date(generatedAt).toISOString()} but the board itself declares `
+        + `${new Date(declaredGenerated).toISOString()}. They describe different runs, so neither is shown.`);
+      frame.classList.add('hidden');
+      return;
+    }
 
     const now = Date.now();
     const age = now - generatedAt;
     const window = Math.max(1, validUntil - generatedAt);
     const expired = now > validUntil;
-    const stamp = `generated ${new Date(generatedAt).toISOString()} · valid until ${new Date(validUntil).toISOString()}`
-      + (declared ? '' : ' (derived — the board did not declare one)');
+    const stamp = `generated ${new Date(generatedAt).toISOString()} · valid until ${new Date(validUntil).toISOString()} (declared by the board)`;
 
     if (expired) {
       const overdue = describeAge(now - validUntil).replace(' ago', '');
@@ -163,7 +202,7 @@
       : `Live — generated ${describeAge(age)}.`;
     setStatus(kind, lead, stamp);
 
-    if (html) {
+    {
       // srcdoc rather than pointing the frame at the proxy URL: the board is a standalone
       // document with its own stylesheet, and an iframe keeps it from fighting this page's.
       // Kept sandboxed with no allow-scripts — the board is static markup and has no reason

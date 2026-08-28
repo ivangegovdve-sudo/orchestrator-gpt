@@ -27,9 +27,11 @@
     pushed six weeks from now. It therefore runs on every publish and REFUSES rather than
     warning: a publisher that reports a problem and uploads anyway has not prevented it.
 
-    Only the two files below are ever published. claims.jsonl, pr-cache.json and
-    jules-cache.json stay local — the first carries session paths and branch names, the
-    other two are large caches of every PR title on the machine.
+    The snapshot commit contains exactly three files: the two board files below, plus a
+    README.md written here so anyone landing on the branch knows what it is and that its
+    history is rewritten. Nothing else is ever published — claims.jsonl, pr-cache.json
+    and jules-cache.json stay local, the first because it carries session paths and branch
+    names, the other two because they are large caches of every PR title on the machine.
 
 .PARAMETER BoardDir
     Where reconcile.ps1 writes. Defaults to D:\output\board.
@@ -43,12 +45,19 @@
 [CmdletBinding(SupportsShouldProcess)]
 param(
     [string]$BoardDir = 'D:\output\board',
-    [string]$RepoDir  = 'D:\projects\orchestrator-gpt',
-    [string]$Branch   = 'board-live'
+    [string]$RepoDir  = 'D:\projects\orchestrator-gpt'
 )
 
 $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version 2.0
+
+# A CONSTANT, not a parameter. This script force-pushes an orphan commit containing three
+# files; pointed at `main` it would replace the site with them. Nothing needs to vary the
+# destination, and a parameter that only ever holds one correct value is a loaded gun with
+# a safety catch made of convention. vercel.json disables deployment for this exact name,
+# which is a second reason it must not be caller-supplied: any other branch would still be
+# force-pushed AND would trigger a build.
+$Branch = 'board-live'
 
 # The allowlist. Adding to it means deciding to make something public, which is why it is a
 # literal list here rather than a directory copy with exclusions — an exclusion list fails
