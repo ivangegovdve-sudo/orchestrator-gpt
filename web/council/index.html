@@ -450,6 +450,12 @@
       margin-top: 16px;
     }
     .composer-hint { color: var(--text-muted); font-size: 12px; line-height: 1.5; }
+    /* Freshness of the generated model roster. Muted when current; the amber `.stale`
+       variant is the only signal a visitor gets that the refresh has stopped running,
+       so it must read as a warning rather than decoration. */
+    .roster-status { color: var(--text-muted); font-size: 12px; line-height: 1.5; margin: 10px 0 0; }
+    .roster-status.stale { color: #f59e0b; }
+    .roster-status.stale::before { content: "⚠ "; }
     .run-button {
       min-height: 46px;
       padding: 0 24px;
@@ -776,9 +782,12 @@
           <button class="example" type="button" data-fill="openrouter-question">When should a small team optimize for speed over robustness?</button>
         </div>
         <div class="composer-actions">
-          <span class="composer-hint" id="openrouter-hint" role="status">Free-tier queues vary; the runtime falls through a fixed free roster.</span>
+          <span class="composer-hint" id="openrouter-hint" role="status">Free-tier queues vary; the runtime falls through a verified free roster.</span>
           <button class="run-button" id="openrouter-run" type="button">Convene free council</button>
         </div>
+        <!-- Filled by council.js from free-roster.json. A refresh that quietly stopped
+             must be visible here rather than leaving an ageing list looking current. -->
+        <p class="roster-status" id="openrouter-roster-status" role="status">Checking the free-model roster…</p>
       </div>
 
       <div class="stage-grid" aria-label="OpenRouter Council responses">

@@ -62,7 +62,7 @@ test('the public Council contains no private, key, or access-gate surface', () =
     readBuilt('web/council/byok/index.html'),
     readBuilt('web/council/inner/index.html'),
     readBuilt('web/council/tinylm/index.html'),
-  ].join('\n');
+  ].join('\n'));
 
   assert.doesNotMatch(
     publicCouncil,

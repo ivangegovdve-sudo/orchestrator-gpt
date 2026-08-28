@@ -1,0 +1,87 @@
+# Keeps the public council's free-model roster alive without anyone editing a file.
+#
+# WHAT THIS REPLACES
+# ------------------
+# The roster used to be a literal in web/council/council.js, refreshed only when someone
+# noticed the page was broken. Nobody noticed for a month: by 2026-08-28 two of its six
+# slugs had been withdrawn from OpenRouter and the critic tier was two-thirds dead, so a
+# visitor who tried the council got failures. The set of free models changes weekly, and
+# a weekly manual chore is a chore that stops being done.
+#
+# WHY THIS COMMITS TO main RATHER THAN OPENING A PULL REQUEST
+# -----------------------------------------------------------
+# A PR would need a human to merge it every few days, which is the same chore wearing a
+# different hat. The job writes exactly one generated file and nothing else; the diff is
+# reviewable after the fact in the commit log, and free-roster.test.js gates the same
+# file on every pull request, so a bad roster still cannot arrive through the front door.
+#
+# NO SECRETS ARE INVOLVED
+# -----------------------
+# Verification calls go through the same public council relay a visitor's browser uses.
+# That relay holds the OpenRouter key and enforces free-only server-side, so this job
+# needs no credentials of its own and its probes are indistinguishable from real traffic.
+#
+# IF THIS JOB STOPS RUNNING
+# -------------------------
+# The page does not depend on noticing. free-roster.json carries `verifiedAt`, and
+# council.js prints the age on the council itself, switching to an amber warning past
+# three days. A silently dead refresh therefore shows up to the visitor as "last verified
+# 9 days ago" rather than as an ageing list that still looks authoritative. Note that
+# GitHub disables scheduled workflows in repositories with no activity for 60 days — that
+# is a second way this can stop, and it fails the same visible way.
+
+name: free roster
+
+on:
+  schedule:
+    # 05:20 UTC daily. Off the hour, because the top of the hour is when everybody else's
+    # cron fires and free-tier queues are worst.
+    - cron: '20 5 * * *'
+  workflow_dispatch:
+
+# Two runs writing the same generated file would race on push.
+concurrency:
+  group: free-roster
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  refresh:
+    name: verify free models and publish the roster
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+
+      # The repo has no dependencies and no lockfile — `npm ci` would fail outright. The
+      # generator pulls open-dashboard-mcp through `npx -y` at run time instead, which
+      # also means the roster tracks the MCP's published version rather than a vendored
+      # copy that would itself go stale.
+      - name: Regenerate the roster
+        run: node scripts/refresh-free-roster.mjs
+
+      # Runs before the commit, so a roster that fails its own contract is never pushed.
+      - name: Verify the roster satisfies its contract
+        run: node --test scratch/tests/free-roster.test.js
+
+      - name: Commit the roster if it changed
+        run: |
+          if git diff --quiet -- web/council/free-roster.json; then
+            echo "Roster unchanged — every model verified the same as last run."
+            exit 0
+          fi
+
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add web/council/free-roster.json
+
+          verified=$(node -p "require('./web/council/free-roster.json').verified.length")
+          rejected=$(node -p "require('./web/council/free-roster.json').rejected.length")
+          git commit -m "chore(council): refresh verified free-model roster (${verified} verified, ${rejected} rejected)"
+          git push
