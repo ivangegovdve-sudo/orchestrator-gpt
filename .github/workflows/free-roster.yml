@@ -138,21 +138,20 @@ jobs:
           name: free-roster
           path: artifact
 
-      # Re-validated here rather than trusted. The artifact was produced by the job that
-      # ran untrusted code, so it is treated as input, not as a result.
-      - name: Adopt the artifact and re-run its contract tests
+      # Validated against OpenRouter, not against itself. An earlier version checked only
+      # that each slug ended in `:free` and appeared in the artifact's own `verified`
+      # array — but the artifact supplies that array, so a forged file naming
+      # `fake/model:free` in both places passed. Every published slug is now checked
+      # against openrouter.ai, which the untrusted job cannot forge: it must be a model
+      # OpenRouter actually serves, priced at zero. All three tiers must be present.
+      #
+      # The validator itself comes from the main checkout above, so a branch cannot
+      # supply the code that judges its own artifact.
+      - name: Validate the artifact against the live OpenRouter catalogue
+        run: node scripts/validate-free-roster.mjs artifact/free-roster.json
+
+      - name: Adopt the artifact and re-run the contract tests
         run: |
-          node -e "
-            const roster = require('./artifact/free-roster.json');
-            if (roster.schemaVersion !== '1') throw new Error('unexpected schemaVersion');
-            for (const [tier, models] of Object.entries(roster.rosters)) {
-              if (!Array.isArray(models) || models.length === 0) throw new Error(tier + ' is empty');
-              for (const model of models) {
-                if (!model.endsWith(':free')) throw new Error(tier + ' carries non-free ' + model);
-              }
-            }
-            console.log('artifact shape OK:', Object.keys(roster.rosters).join(', '));
-          "
           cp artifact/free-roster.json web/council/free-roster.json
           node --test scratch/tests/free-roster.test.js
 

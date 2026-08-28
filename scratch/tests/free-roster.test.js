@@ -547,7 +547,11 @@ test('the committed roster does not carry the two slugs that were withdrawn', ()
 // looser silently returns the entire file as a single "job", which makes every assertion
 // below pass or fail for the wrong reason.
 const splitJobs = (workflow) => {
-  const lines = workflow.split('\n');
+  // Line endings are normalized first. This repo stores CRLF throughout, so a checkout
+  // hands these files back with \r on every line; YAML block scalars normalize that away
+  // for the runner, but a string comparison here does not. Without this the split finds
+  // no jobs and every assertion below fails for a reason unrelated to what it tests.
+  const lines = workflow.replace(/\r\n/g, '\n').split('\n');
   const start = lines.findIndex((line) => line === 'jobs:');
   assert.ok(start >= 0, 'workflow has no jobs: block');
   const jobs = [];
@@ -558,6 +562,113 @@ const splitJobs = (workflow) => {
   assert.ok(jobs.length >= 2, `expected at least two jobs, found ${jobs.length}`);
   return jobs.map((job) => job.join('\n'));
 };
+
+// ── The publish-time trust boundary ─────────────────────────────────────────
+// The write-capable job receives its artifact from the job that ran untrusted code. These
+// tests pin the property that makes the split worth having: the artifact is judged
+// against OpenRouter, never against itself.
+
+const importValidator = () => import(
+  require('node:url').pathToFileURL(path.join(ROOT, 'scripts/validate-free-roster.mjs')).href
+);
+
+const liveCatalogue = (ids) => new Map(ids.map((id) => [
+  id,
+  { id, pricing: { prompt: '0', completion: '0' } },
+]));
+
+const rosterDocument = (rosters) => ({
+  schemaVersion: '1',
+  verifiedAt: '2026-08-28T05:00:00.000Z',
+  generatedAt: '2026-08-28T06:00:00.000Z',
+  rosters,
+});
+
+test('the validator accepts a roster whose every slug OpenRouter actually serves', async () => {
+  const { validateRoster } = await importValidator();
+  const ids = ['a/one:free', 'b/two:free'];
+  const problems = validateRoster(
+    rosterDocument({ proposer: ids, critic: ids, synthesis: ids }),
+    liveCatalogue(ids),
+  );
+  assert.deepEqual(problems, []);
+});
+
+test('the validator rejects a forged slug that OpenRouter does not serve', async () => {
+  // Codex's scenario exactly: a compromised package submits JSON naming a model that
+  // does not exist, listing it in the artifact's own `verified` array so any
+  // self-referential check would pass it.
+  const { validateRoster } = await importValidator();
+  const problems = validateRoster(
+    rosterDocument({
+      proposer: ['fake/model:free'],
+      critic: ['a/one:free'],
+      synthesis: ['a/one:free'],
+    }),
+    liveCatalogue(['a/one:free']),
+  );
+  assert.equal(problems.length, 1);
+  assert.match(problems[0], /fake\/model:free, which OpenRouter does not serve/);
+});
+
+test('the validator rejects a slug OpenRouter prices above zero', async () => {
+  const { validateRoster } = await importValidator();
+  const catalogue = new Map([
+    ['a/one:free', { pricing: { prompt: '0', completion: '0' } }],
+    ['b/paid:free', { pricing: { prompt: '0', completion: '0.0000004' } }],
+  ]);
+  const problems = validateRoster(
+    rosterDocument({ proposer: ['b/paid:free'], critic: ['a/one:free'], synthesis: ['a/one:free'] }),
+    catalogue,
+  );
+  assert.equal(problems.length, 1);
+  assert.match(problems[0], /prices above zero/);
+});
+
+test('the validator rejects a roster that quietly drops a tier', async () => {
+  // A check that only inspected the tiers present would pass a file missing one.
+  const { validateRoster } = await importValidator();
+  const problems = validateRoster(
+    rosterDocument({ proposer: ['a/one:free'], critic: ['a/one:free'] }),
+    liveCatalogue(['a/one:free']),
+  );
+  assert.equal(problems.length, 1);
+  assert.match(problems[0], /tier synthesis is missing or empty/);
+});
+
+test('the validator rejects a roster claiming to be verified after it was generated', async () => {
+  const { validateRoster } = await importValidator();
+  const document = rosterDocument({
+    proposer: ['a/one:free'], critic: ['a/one:free'], synthesis: ['a/one:free'],
+  });
+  document.verifiedAt = '2026-08-29T00:00:00.000Z';
+  const problems = validateRoster(document, liveCatalogue(['a/one:free']));
+  assert.ok(problems.some((problem) => /verifiedAt is later than generatedAt/.test(problem)));
+});
+
+test('the validator fails loudly rather than rejecting everything when the catalogue is empty', async () => {
+  // An empty catalogue response would otherwise make every slug look forged, which reads
+  // identically to a genuine attack and would be acted on the same way.
+  const { fetchLiveFreeIds } = await importValidator();
+  await assert.rejects(
+    () => fetchLiveFreeIds({ fetchImpl: async () => ({ ok: true, json: async () => ({ data: [] }) }) }),
+    /returned no models/,
+  );
+});
+
+test('the committed roster passes the independent validator against a live catalogue shape', async () => {
+  const { validateRoster } = await importValidator();
+  const roster = JSON.parse(fs.readFileSync(ROSTER_PATH, 'utf8'));
+  const catalogue = liveCatalogue(roster.verified.map((entry) => entry.id));
+  assert.deepEqual(validateRoster(roster, catalogue), []);
+});
+
+test('the publish job validates the artifact against OpenRouter, not against itself', () => {
+  const workflow = fs.readFileSync(path.join(ROOT, '.github/workflows/free-roster.yml'), 'utf8');
+  const jobs = splitJobs(workflow);
+  const writeJob = jobs.find((job) => job.includes('contents: write'));
+  assert.match(writeJob, /validate-free-roster\.mjs/, 'the write job does not run the independent validator');
+});
 
 // ── The client contract ─────────────────────────────────────────────────────
 
