@@ -238,11 +238,11 @@ test('document prefetch installation creates real document hints once without to
   assert.equal(appended.length, 2);
 });
 
-test('all 62 heads load navigation once while redirects and utilities advertise no prerender', () => {
+test('all 63 heads load navigation once while redirects and utilities advertise no prerender', () => {
   const files = htmlFiles();
-  assert.equal(files.length, 62);
+  assert.equal(files.length, 63);
   const advertisers = new Set(ADVERTISER_PATHS());
-  assert.equal(advertisers.size, 52);
+  assert.equal(advertisers.size, 53);
 
   for (const file of files) {
     const source = fs.readFileSync(file, 'utf8');
@@ -404,7 +404,7 @@ test('all shared Forest runtimes are activation-gated at their original document
     motionLoaders += loaders.filter((runtime) => runtime === 'motion').length;
   }
   assert.equal(threeLoaders, 1);
-  assert.equal(motionLoaders, 47);
+  assert.equal(motionLoaders, 48);
 });
 
 test('view transitions name only persistent Forest chrome and become static under reduced motion', () => {

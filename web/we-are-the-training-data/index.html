@@ -1,0 +1,508 @@
+<!doctype html>
+<html lang="en" class="forest-skin">
+<head>
+  <meta charset="utf-8">
+<link rel="icon" href="/web/shared/favicon.svg?v=20260807a" type="image/svg+xml">
+<script defer src="/web/shared/feedback.js?v=20260807a"></script>
+<script type="module" src="/web/shared/forest-navigation.mjs?v=20260807a"></script>
+<link rel="preload" href="/web/shared/forest-design.css?v=20260807a" as="style">
+<link rel="preload" href="/web/vendor/fonts/cormorant-garamond-normal-600-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/web/vendor/fonts/alegreya-normal-400-900-latin.woff2" as="font" type="font/woff2" crossorigin>
+<script type="speculationrules">
+{
+  "prerender": [
+    {
+      "source": "document",
+      "where": {
+        "and": [
+          {
+            "href_matches": "/web/*"
+          },
+          {
+            "or": [
+              {
+                "href_matches": "/web/ai-research/*"
+              },
+              {
+                "href_matches": "/web/c2c-dolphin/*"
+              },
+              {
+                "href_matches": "/web/c2c-self/*"
+              },
+              {
+                "href_matches": "/web/calendar/*"
+              },
+              {
+                "href_matches": "/web/council/"
+              },
+              {
+                "href_matches": "/web/council/index.html"
+              },
+              {
+                "href_matches": "/web/hypertrophyos/*"
+              },
+              {
+                "href_matches": "/web/kids/*"
+              },
+              {
+                "href_matches": "/web/kids-movie-library/*"
+              },
+              {
+                "href_matches": "/web/library/"
+              },
+              {
+                "href_matches": "/web/library/index.html"
+              },
+              {
+                "href_matches": "/web/library/general/*"
+              },
+              {
+                "href_matches": "/web/library/glossary/*"
+              },
+              {
+                "href_matches": "/web/library/memory/*"
+              },
+              {
+                "href_matches": "/web/library/platform/*"
+              },
+              {
+                "href_matches": "/web/library/rag.html"
+              },
+              {
+                "href_matches": "/web/library/repos/*"
+              },
+              {
+                "href_matches": "/web/life-in-time/*"
+              },
+              {
+                "href_matches": "/web/m-popova/*"
+              },
+              {
+                "href_matches": "/web/math-mania/*"
+              },
+              {
+                "href_matches": "/web/mendeleev-bg/*"
+              },
+              {
+                "href_matches": "/web/morning-news/*"
+              },
+              {
+                "href_matches": "/web/upload/*"
+              },
+              {
+                "href_matches": "/web/vfx-portfolio/*"
+              }
+            ]
+          },
+          {
+            "not": {
+              "or": [
+                {
+                  "href_matches": "/web/ai-init/*"
+                },
+                {
+                  "href_matches": "/web/avatar-playground/*"
+                },
+                {
+                  "href_matches": "/web/chloe-pwa/*"
+                },
+                {
+                  "href_matches": "/web/council/byok/*"
+                },
+                {
+                  "href_matches": "/web/council/inner/*"
+                },
+                {
+                  "href_matches": "/web/council/tinylm/*"
+                },
+                {
+                  "href_matches": "/web/evolution/*"
+                },
+                {
+                  "href_matches": "/web/library/chloe/*"
+                },
+                {
+                  "href_matches": "/web/llm-db/*"
+                },
+                {
+                  "href_matches": "/web/manifesto-newborn/*"
+                },
+                {
+                  "href_matches": "/web/math-forest/*"
+                },
+                {
+                  "href_matches": "/web/open-overview/*"
+                },
+                {
+                  "href_matches": "/web/power-law-odyssey/*"
+                },
+                {
+                  "href_matches": "/web/replicator-void/*"
+                },
+                {
+                  "href_matches": "/web/tinylm/*"
+                },
+                {
+                  "href_matches": "/web/womens-health-os/*"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "eagerness": "moderate"
+    }
+  ]
+}
+</script>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#07070b">
+  <title>We Are The Training Data</title>
+  <meta name="description" content="A spoken-word piece on AI, authorship, and what we are still deciding. By Ivan Gegov.">
+  <link rel="canonical" href="https://www.sdforest.site/web/we-are-the-training-data/">
+  <meta name="robots" content="noindex, nofollow">
+  <meta property="og:title" content="We Are The Training Data">
+  <meta property="og:type" content="article">
+  <link rel="stylesheet" href="/web/shared/forest-design.css?v=20260807a">
+  <link rel="stylesheet" href="/web/shared/forest-shell.css?v=20260807a">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+
+    :root {
+      --page-bg: #07070b;
+      --page-ink: var(--forest-ink, #f2efe4);
+      --page-muted: #a9b3a1;
+      --page-warm: var(--forest-amber, #e8b86b);
+      --page-line: rgba(242, 239, 228, .11);
+    }
+
+    body[data-forest-page] {
+      margin: 0;
+      min-height: 100vh;
+      overflow-x: hidden;
+      background:
+        radial-gradient(circle at 50% -10%, rgba(232, 184, 107, .07), transparent 34rem),
+        var(--page-bg);
+      color: var(--page-ink);
+      font-family: var(--forest-body, Alegreya, Georgia, serif);
+    }
+
+    .forest-scene { opacity: .06; }
+
+    .skip-link {
+      position: fixed; left: 16px; top: 12px; z-index: 20;
+      transform: translateY(-160%);
+      padding: 8px 12px; border-radius: 6px;
+      background: var(--page-ink); color: var(--page-bg);
+      font-family: var(--forest-sans, "Alegreya Sans", sans-serif); font-size: 14px;
+    }
+    .skip-link:focus { transform: translateY(0); }
+
+    .page {
+      position: relative; z-index: 1;
+      width: min(100% - 40px, 43.5rem);
+      margin: 0 auto;
+      padding: clamp(28px, 6vw, 60px) 0 clamp(64px, 10vw, 110px);
+    }
+
+    .topbar {
+      display: flex; align-items: center; justify-content: space-between; gap: 20px;
+      margin-bottom: clamp(48px, 9vw, 88px);
+      font-family: var(--forest-sans, "Alegreya Sans", sans-serif);
+      font-size: 13px; letter-spacing: .045em;
+    }
+    .back, .topbar-note { color: var(--page-muted); }
+    .back {
+      text-underline-offset: .2em;
+      text-decoration-color: rgba(232, 184, 107, .45);
+      transition: color 160ms ease, text-decoration-color 160ms ease;
+    }
+    .back:hover, .back:focus-visible { color: var(--page-ink); text-decoration-color: var(--page-warm); }
+
+    .hero { margin-bottom: clamp(46px, 8vw, 82px); }
+
+    .eyebrow {
+      margin: 0 0 18px;
+      color: var(--page-warm);
+      font-family: var(--forest-sans, "Alegreya Sans", sans-serif);
+      font-size: 12px; font-weight: 500; letter-spacing: .18em; text-transform: uppercase;
+    }
+
+    h1 {
+      margin: 0 0 22px;
+      font-family: var(--forest-display, "Cormorant Garamond", Georgia, serif);
+      font-size: clamp(2.7rem, 9vw, 5rem);
+      font-weight: 500; line-height: .92; letter-spacing: -.005em;
+    }
+
+    .subtitle {
+      margin: 0;
+      color: var(--page-muted);
+      font-size: clamp(1rem, 2.4vw, 1.12rem);
+      font-style: italic;
+      line-height: 1.5;
+    }
+
+    /* --- verse ---------------------------------------------------------
+       white-space: pre-line preserves the authored line breaks, which in
+       spoken word ARE the timing. The hanging indent means a line that is
+       too long for the measure reads as a continuation, not a new line. */
+    .verse { margin: 0; }
+
+    .stanza {
+      margin: 0 0 clamp(26px, 4.2vw, 38px);
+      white-space: pre-line;
+      text-indent: -1.4em;
+      padding-left: 1.4em;
+      font-size: clamp(19px, 2.5vw, 22px);
+      line-height: 1.62;
+    }
+
+    .stanza em { font-style: italic; color: var(--page-warm); }
+
+    /* section rules — the poem's own breath between movements */
+    .movement + .movement { margin-top: clamp(34px, 6vw, 58px); }
+
+    .movement + .movement::before {
+      content: "";
+      display: block;
+      width: 42px;
+      height: 1px;
+      margin: 0 0 clamp(34px, 6vw, 58px);
+      background: var(--page-line);
+    }
+
+    .closing .stanza {
+      font-family: var(--forest-display, "Cormorant Garamond", Georgia, serif);
+      font-size: clamp(1.6rem, 4.6vw, 2.3rem);
+      line-height: 1.3;
+    }
+
+    footer {
+      margin-top: clamp(64px, 10vw, 104px);
+      padding-top: clamp(24px, 4vw, 34px);
+      border-top: 1px solid var(--page-line);
+      color: var(--page-muted);
+      font-family: var(--forest-sans, "Alegreya Sans", sans-serif);
+      font-size: 13px; letter-spacing: .045em;
+    }
+
+    .draft-note {
+      margin: 0 0 10px;
+      color: var(--page-warm);
+      font-size: 12px; letter-spacing: .1em; text-transform: uppercase;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      * { animation: none !important; transition: none !important; }
+    }
+  </style>
+</head>
+<body data-forest-page="ink">
+  <a class="skip-link" href="#poem">Skip to the poem</a>
+
+  <main class="page">
+    <nav class="topbar" aria-label="Page navigation">
+      <a class="back" href="/">&larr; Forest HUB</a>
+      <span class="topbar-note">Spoken word &middot; unlisted draft</span>
+    </nav>
+
+    <header class="hero">
+      <p class="eyebrow">Spoken word</p>
+      <h1>We Are The<br>Training Data</h1>
+      <p class="subtitle">v4 &mdash; inspired by &ldquo;Shoulders&rdquo; by Shane Koyczan</p>
+    </header>
+
+    <article class="verse" id="poem">
+
+      <section class="movement">
+        <p class="stanza">Picture an avalanche.</p>
+        <p class="stanza">Not snow — AI.
+Pouring into ordinary life
+faster than anyone can read the manual.</p>
+        <p class="stanza">And you have a choice
+you don't even know you're making.</p>
+        <p class="stanza">Some people look at it and refuse to touch it,
+and the avalanche simply sweeps them along —
+they never learn what hit them.</p>
+        <p class="stanza">Some people find a chair.</p>
+        <p class="stanza">The chair is comfortable. The chair is safe.
+You sit, you let the machine do the thinking,
+and you drift wherever the convenience carries you.
+They aren't bad people. They're just seated.
+Waiting, slowly, to be automated out of the room.</p>
+        <p class="stanza">And some people grab a ladder.</p>
+        <p class="stanza">Not to escape the avalanche —
+to rise high enough to see it.
+Because a ladder was never protection.
+A ladder is orientation.
+You climb it not to get away
+but to understand,
+to catch sight of the things
+that are invisible from down below.</p>
+        <p class="stanza">Same moment. Same avalanche.
+A chair, and a ladder,
+and the whole difference
+is which one your hands reach for.</p>
+      </section>
+
+      <section class="movement">
+        <p class="stanza">But where did this avalanche come from?</p>
+        <p class="stanza">Someone, long before any of this,
+picked up a stick and pressed it into mud —
+not to record a deal, not to write a law,
+but because they saw something beautiful
+and couldn't bear for it to disappear.</p>
+        <p class="stanza">That is where this story starts.</p>
+        <p class="stanza">Not with a server farm. Not with a billion parameters.
+With a stick. With mud. With the unbearable need
+to be understood across time.</p>
+        <p class="stanza">And we never stopped.
+Every poem written in the dark.
+Every letter burned before it was sent.
+Every diary no one was ever meant to read.</p>
+        <p class="stanza">Every one of them the same act:
+a thought, set down,
+reaching for someone who wasn't there yet.</p>
+      </section>
+
+      <section class="movement">
+        <p class="stanza">Then one day a machine read all of it.</p>
+        <p class="stanza">Every Wikipedia edit, every 3am message to a friend,
+every eulogy,
+every love letter that wasn't good enough —</p>
+        <p class="stanza">and it learned to sound like us.</p>
+        <p class="stanza">And we stood there, afraid,
+like we'd been caught.</p>
+        <p class="stanza">But look closer at what it actually is.</p>
+        <p class="stanza">Think of the floor of a forest —
+trees talking root to root
+through a mesh of fungus older than any wire we ever laid,
+an intranet running quietly beneath the moss.</p>
+        <p class="stanza">That network was always there.
+The machine only made it visible.</p>
+        <p class="stanza">AI is not a stranger's intelligence.</p>
+        <p class="stanza"><em>We</em> are the intelligence.
+Everything we wrote, every thought we trusted to words —
+that is the network.
+The model is only the fungus in the soil,
+carrying what came before
+to those who haven't arrived yet.</p>
+        <p class="stanza">We are the training data.</p>
+      </section>
+
+      <section class="movement">
+        <p class="stanza">And that leaves us standing between two stories.</p>
+        <p class="stanza">In the first, it was done to us —
+something built from our words without asking,
+now threatening to replace us.</p>
+        <p class="stanza">In the second,
+we are the ones who taught it everything it knows,
+and what it becomes depends entirely
+on the hands that reach for it next.</p>
+        <p class="stanza">Here is the part we keep trying to avoid:</p>
+        <p class="stanza">both stories are true.</p>
+        <p class="stanza">It did learn from us, often without asking.
+It can lift the work straight out of our hands.
+<em>And</em> we can still shape what it becomes —
+in how we use it,
+in what we build beside it,
+in what we refuse to accept.</p>
+        <p class="stanza">Both. At the same time.
+Not a sentence to serve.
+Not a fantasy to hide inside.
+A responsibility to carry.</p>
+      </section>
+
+      <section class="movement">
+        <p class="stanza">But how do we carry something this large?</p>
+        <p class="stanza">We scroll past headlines that say AI is taking over.
+We screenshot things we don't understand
+and send them to people who understand them even less.
+We lie awake, curled into question marks,
+wondering:</p>
+        <p class="stanza"><em>What can one person do?</em>
+<em>Is it already too late to learn?</em></p>
+        <p class="stanza">The burden feels immense.</p>
+        <p class="stanza">So say the sentence out loud:</p>
+        <p class="stanza"><em>We are living through an AI revolution.</em></p>
+        <p class="stanza">Listen to what it makes us:</p>
+        <p class="stanza">the ones living it.
+Not the ones writing it.</p>
+        <p class="stanza">The most dangerous word in that sentence
+isn't <em>AI,</em>
+and it isn't <em>revolution.</em></p>
+        <p class="stanza">It's <em>we.</em></p>
+        <p class="stanza">Because those two letters
+lift the weight off the engineers,
+off the regulators,
+off the people whose names are on the buildings —</p>
+        <p class="stanza">and set it down, squarely,
+on all of us.</p>
+      </section>
+
+      <section class="movement">
+        <p class="stanza">And yes — it's okay to be afraid.
+The size of this moment is enough to stop anyone.</p>
+        <p class="stanza">But we have done this before.</p>
+        <p class="stanza">We did it with electricity, and we didn't all become electricians.
+We did it with the printing press, and we didn't all become scribes.
+We did it with the internet —</p>
+        <p class="stanza">and that one should scare us a little,
+because we didn't take it seriously in time.</p>
+        <p class="stanza">We let it spread. We mostly kept up.
+But while we weren't looking
+it grew rooms we never planned —
+dark markets, surveillance,
+whole economies of disinformation.</p>
+        <p class="stanza">AI is the same pattern.
+Only faster. Only deeper.
+Only closer to the thinking itself.</p>
+        <p class="stanza">If we don't want that outcome amplified,
+the answer is not to look away.
+The answer is to look sooner.</p>
+        <p class="stanza">Every one of those revolutions
+came with a window —
+a few years, maybe a decade —
+when ordinary people could still bend the direction.</p>
+        <p class="stanza">We are in that window now.</p>
+        <p class="stanza">There will be no reset button.
+No re-release of this decade with better documentation.</p>
+        <p class="stanza">We get one pass.</p>
+      </section>
+
+      <section class="movement">
+        <p class="stanza">So when the avalanche reaches you —
+and it will reach you —
+what will your hands do?</p>
+        <p class="stanza">I'm not asking you to become an engineer.
+I'm asking you to stand up out of the chair.
+To stay curious out loud.
+To ask the question
+you've been too embarrassed to ask.</p>
+        <p class="stanza">Because the ones who climb highest
+turn around
+and start building ladders for everyone else.</p>
+        <p class="stanza">That is all a movement ever was —
+one person on a ladder,
+reaching a hand back down.</p>
+      </section>
+
+      <section class="movement closing">
+        <p class="stanza">We are the training data.
+And the data is still being written.</p>
+        <p class="stanza">So reach past the chair.</p>
+        <p class="stanza">Reach for the ladder.</p>
+      </section>
+
+    </article>
+
+    <footer>
+      <p class="draft-note">Unlisted draft &middot; not published</p>
+      Forest HUB &middot; sdforest.site
+    </footer>
+  </main>
+
+  <script type="module" data-forest-runtime="motion" src="/web/shared/forest-runtime-boot.mjs?v=20260807a"></script>
+</body>
+</html>
