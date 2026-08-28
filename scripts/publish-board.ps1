@@ -48,6 +48,7 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
+Set-StrictMode -Version 2.0
 
 # The allowlist. Adding to it means deciding to make something public, which is why it is a
 # literal list here rather than a directory copy with exclusions — an exclusion list fails
@@ -99,6 +100,10 @@ function Test-Publishable {
             $hits += "$($rule.Name) at offset $($m.Index) in $Label"
         }
     }
+    # Returned bare and re-wrapped with @() at the call site. The comma operator was tried
+    # here first and is wrong: `,$hits` yields a ONE-element array wrapping the (possibly
+    # empty) list, so .Count was 1 even with no findings and the publisher refused every
+    # run -- a scan that blocks everything is as useless as one that blocks nothing.
     return $hits
 }
 
@@ -116,7 +121,7 @@ foreach ($item in $PUBLISH) {
         if ($item.Required) { throw "Required file missing, refusing to publish a partial board: $src" }
         continue
     }
-    $findings = Test-Publishable -Path $src -Label $item.Name
+    $findings = @(Test-Publishable -Path $src -Label $item.Name)
     if ($findings.Count -gt 0) {
         # Refuse the whole publish, not just the offending file. Publishing state.json
         # without board.html would leave the page reporting a fresh timestamp against a
@@ -127,8 +132,9 @@ foreach ($item in $PUBLISH) {
     $staged += @{ Src = $src; Name = $item.Name }
 }
 
-if ($staged.Count -eq 0) { throw 'Nothing to publish.' }
+if (@($staged).Count -eq 0) { throw 'Nothing to publish.' }
 
+$local = $null
 try {
     # --detach so the worktree is not bound to a branch; the orphan commit is built by hand.
     & git -C $RepoDir worktree add --detach --quiet $work 2>&1 | Out-Null
@@ -155,11 +161,34 @@ try {
         'Do not branch from this or merge it anywhere. Its history is rewritten on every run.'
     ) -join "`n" | Set-Content -Path (Join-Path $work 'README.md') -Encoding utf8 -WhatIf:$false
 
-    & git -C $work checkout --orphan $Branch --quiet 2>&1 | Out-Null
-    & git -C $work add -A 2>&1 | Out-Null
+    # A UNIQUE local branch name, not $Branch itself. Worktrees share the repository's
+    # refs, so `checkout --orphan board-live` creates a local `board-live` that survives
+    # the worktree -- and every later run then dies on "a branch named 'board-live'
+    # already exists". That failure is silent unless the exit code is checked, and the
+    # run continues from the DETACHED main checkout: the commit it builds carries main's
+    # entire history, and the force-push replaces the snapshot branch with 888 commits of
+    # site code. That is exactly what happened on the first deployment of this script.
+    #
+    # The remote branch name is applied at push time by the refspec below, so nothing
+    # local is ever named $Branch and there is nothing to collide with.
+    $local = "board-snapshot-$PID"
+    & git -C $work checkout --orphan $local --quiet 2>&1 | Out-Null
+    if ($LASTEXITCODE -ne 0) { throw "git checkout --orphan failed ($LASTEXITCODE)" }
 
-    # Nothing changed: skip the push rather than rewriting the branch to an identical tree.
-    & git -C $work diff --cached --quiet HEAD 2>&1 | Out-Null
+    # Belt and braces on the same failure. If the orphan checkout ever silently leaves a
+    # parent attached, this catches it before anything is pushed rather than after.
+    #
+    # Checked by OUTPUT, not exit code. `$LASTEXITCODE` after a redirected-and-discarded
+    # native call is not dependable across the error preferences this script inherits from
+    # reconcile.ps1 -- measured: the identical sequence reports 128 standalone and 0 under
+    # the scheduler, so the guard fired on every real run and blocked every publish. With
+    # `--verify --quiet` an unborn HEAD prints nothing and a resolved one prints a SHA,
+    # which is unambiguous regardless of how the exit code is plumbed.
+    $headSha = (& git -C $work rev-parse --verify --quiet HEAD 2>$null | Select-Object -First 1)
+    if ($headSha) { throw "Expected an unborn branch; HEAD resolves to $headSha, so this commit would carry history." }
+
+    & git -C $work add -A 2>&1 | Out-Null
+    if ($LASTEXITCODE -ne 0) { throw "git add failed ($LASTEXITCODE)" }
 
     # Read as a string, not through ConvertFrom-Json: that parses an ISO timestamp into a
     # DateTime and renders it back in the machine's locale, so the commit trail would read
@@ -175,8 +204,15 @@ try {
         commit --quiet -m "board snapshot $generatedAt" 2>&1 | Out-Null
     if ($LASTEXITCODE -ne 0) { throw "git commit failed ($LASTEXITCODE)" }
 
+    # The snapshot must be a single commit. Verified rather than assumed, because the
+    # failure above produced a branch that looked fine from the outside -- the two files
+    # resolved over HTTP exactly as expected -- while carrying the whole repository.
+    $depth = (& git -C $work rev-list --count HEAD) | Select-Object -First 1
+    if ($LASTEXITCODE -ne 0) { throw "git rev-list failed ($LASTEXITCODE)" }
+    if ([int]$depth -ne 1) { throw "Refusing to push: snapshot has $depth commits, expected exactly 1." }
+
     if ($PSCmdlet.ShouldProcess("origin/$Branch", 'force-push board snapshot')) {
-        & git -C $work push --force --quiet origin "HEAD:refs/heads/$Branch" 2>&1 | Out-Null
+        & git -C $work push --force --quiet origin "refs/heads/${local}:refs/heads/$Branch" 2>&1 | Out-Null
         if ($LASTEXITCODE -ne 0) { throw "git push failed ($LASTEXITCODE)" }
         Write-Output "published board snapshot $generatedAt to $Branch"
     } else {
@@ -188,4 +224,7 @@ try {
     & git -C $RepoDir worktree remove --force $work 2>&1 | Out-Null
     if (Test-Path $work) { Remove-Item $work -Recurse -Force -ErrorAction SilentlyContinue -WhatIf:$false }
     & git -C $RepoDir worktree prune 2>&1 | Out-Null
+    # The orphan branch is a ref in the shared repository, not in the worktree, so removing
+    # the worktree does not remove it. Left behind, one ref per run would accumulate forever.
+    if ($local) { & git -C $RepoDir branch -D $local 2>&1 | Out-Null }
 }
