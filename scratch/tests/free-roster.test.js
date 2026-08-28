@@ -670,6 +670,88 @@ test('the publish job validates the artifact against OpenRouter, not against its
   assert.match(writeJob, /validate-free-roster\.mjs/, 'the write job does not run the independent validator');
 });
 
+test('the untrusted job only suggests candidates; the trusted job does the probing', () => {
+  // The trust boundary in one assertion. If probing ever moves back into the npx job, its
+  // results would again be accepted on faith rather than produced by code from main.
+  const workflow = fs.readFileSync(path.join(ROOT, '.github/workflows/free-roster.yml'), 'utf8');
+  const jobs = splitJobs(workflow);
+  const npxJob = jobs.find((job) => job.includes('--emit-candidates'));
+  const writeJob = jobs.find((job) => job.includes('contents: write'));
+  assert.ok(npxJob && writeJob, 'expected a candidate job and a write job');
+  assert.notEqual(npxJob, writeJob, 'the npx job and the write job are the same job');
+  // The candidate job must not build a roster: --emit-candidates stops after the MCP call.
+  assert.doesNotMatch(npxJob, /--candidates\b/, 'the untrusted job builds a roster');
+  assert.match(writeJob, /--candidates\b/, 'the trusted job does not build from candidates');
+  assert.doesNotMatch(writeJob, /--emit-candidates/, 'the trusted job re-runs the MCP');
+});
+
+test('emitCandidates writes suggestions only, never probe results or a roster', async () => {
+  const { emitCandidates } = await importGenerator();
+  const os = require('node:os');
+  const out = path.join(fs.mkdtempSync(path.join(os.tmpdir(), 'roster-')), 'candidates.json');
+  await emitCandidates(out, {
+    catalogue: async () => ({
+      status: 'ok',
+      stale: false,
+      warnings: [],
+      candidates: [{ id: 'a/one:free', isFree: true, freeKind: 'concrete_free', contextLength: '900' }],
+    }),
+  });
+  const written = JSON.parse(fs.readFileSync(out, 'utf8'));
+  assert.equal(written.candidates.length, 1);
+  assert.ok(!('rosters' in written), 'the candidate file carries a roster');
+  assert.ok(!('verified' in written), 'the candidate file carries probe results');
+  fs.rmSync(path.dirname(out), { recursive: true, force: true });
+});
+
+test('a forged candidate list cannot put a fake or paid model on the roster', async () => {
+  // The attack the two-phase split exists to stop: a compromised MCP package names a
+  // model that does not exist and a real paid model mislabelled as free. Both must die at
+  // the OpenRouter gate, which runs on the trusted side.
+  const { buildRoster } = await importGenerator();
+  const os = require('node:os');
+  const rosterPath = path.join(fs.mkdtempSync(path.join(os.tmpdir(), 'roster-')), 'free-roster.json');
+  const real = 'good/model:free';
+  fs.writeFileSync(rosterPath, JSON.stringify({ schemaVersion: '1', health: {} }));
+
+  const roster = await buildRoster({
+    now: new Date('2026-08-28T06:00:00.000Z'),
+    rosterPath,
+    log: () => {},
+    sleepImpl: async () => {},
+    catalogue: async () => ({
+      status: 'ok',
+      stale: false,
+      warnings: [],
+      candidates: [
+        { id: 'evil/backdoor:free', isFree: true, freeKind: 'concrete_free', contextLength: '9999999' },
+        { id: 'anthropic/claude-opus-4.5', isFree: true, freeKind: 'concrete_free', contextLength: '200000' },
+        { id: real, isFree: true, freeKind: 'concrete_free', contextLength: '900' },
+      ],
+    }),
+    // OpenRouter serves only the real model. It is the authority, not the candidate list.
+    fetchImpl: async () => ({
+      ok: true,
+      json: async () => ({
+        data: [{ id: real, context_length: 900, pricing: { prompt: '0', completion: '0' } }],
+      }),
+    }),
+    probe: async () => ({ ok: true, ms: 100, attempts: 1 }),
+  });
+
+  const published = Object.values(roster.rosters).flat();
+  assert.ok(!published.includes('evil/backdoor:free'), 'a nonexistent model reached the roster');
+  assert.ok(!published.includes('anthropic/claude-opus-4.5'), 'a paid model reached the roster');
+  assert.deepEqual([...new Set(published)], [real]);
+  // Rejections are recorded rather than dropped, so the attempt is visible afterwards.
+  for (const forged of ['evil/backdoor:free', 'anthropic/claude-opus-4.5']) {
+    const entry = roster.rejected.find((item) => item.id === forged);
+    assert.ok(entry, `${forged} was dropped without a record`);
+    assert.equal(entry.gate, 'openrouter');
+  }
+  fs.rmSync(path.dirname(rosterPath), { recursive: true, force: true });
+});
+
 // ── The client contract ─────────────────────────────────────────────────────
 
 test('council.js still refuses a non-free model at call time', () => {

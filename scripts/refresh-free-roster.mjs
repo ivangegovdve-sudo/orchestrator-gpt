@@ -553,17 +553,62 @@ export async function buildRoster({
   return roster;
 }
 
+// ── Splitting the catalogue call from the verification ───────────────────────
+// Only the catalogue lookup needs the MCP, and the MCP is the untrusted part: it arrives
+// through `npx -y`, i.e. code downloaded at run time. Everything that decides what
+// actually reaches a visitor — the OpenRouter cross-check, the live probes, the tier
+// assignment, the free-only assertion — is first-party code that can run somewhere the
+// downloaded package cannot influence.
+//
+// So the CLI has two halves. `--emit-candidates` runs only the MCP and writes what it
+// said; `--candidates <file>` builds a roster from that file without ever invoking the
+// MCP. The refresh workflow runs the first in a job with no credentials and the second in
+// the job that commits, which means probe results are produced by trusted code rather
+// than accepted from an artifact and taken on faith. Running with neither flag does both,
+// which is what a local `npm run refresh-roster` wants.
+export async function emitCandidates(outPath, { catalogue = catalogueFromMcp } = {}) {
+  const result = await catalogue();
+  await writeFile(outPath, `${JSON.stringify(result, null, 2)}\n`, "utf8");
+  return result;
+}
+
+export async function readCandidates(inPath) {
+  const parsed = JSON.parse(await readFile(inPath, "utf8"));
+  if (!Array.isArray(parsed?.candidates) || parsed.candidates.length === 0) {
+    throw new Error(`${inPath} contains no candidates`);
+  }
+  return {
+    candidates: parsed.candidates,
+    stale: parsed.stale === true,
+    status: parsed.status ?? "unknown",
+    warnings: Array.isArray(parsed.warnings) ? parsed.warnings : [],
+  };
+}
+
 const invokedDirectly = process.argv[1]
   && path.resolve(process.argv[1]) === path.resolve(fileURLToPath(import.meta.url));
 if (invokedDirectly) {
-  buildRoster()
-    .then((roster) => {
-      console.error(`Wrote ${ROSTER_PATH}`);
-      console.error(`  verified: ${roster.verified.length}  rejected: ${roster.rejected.length}`);
-      for (const tier of TIERS) console.error(`  ${tier}: ${roster.rosters[tier].join(", ")}`);
-    })
-    .catch((error) => {
-      console.error(`refresh-free-roster failed: ${error.message}`);
-      process.exitCode = 1;
-    });
+  const argv = process.argv.slice(2);
+  const valueOf = (flag) => {
+    const index = argv.indexOf(flag);
+    return index >= 0 ? argv[index + 1] : null;
+  };
+  const emitTo = valueOf("--emit-candidates");
+  const candidatesFrom = valueOf("--candidates");
+
+  const run = emitTo
+    ? emitCandidates(emitTo).then((result) => {
+        console.error(`Wrote ${emitTo}: ${result.candidates.length} candidate(s) (status=${result.status}, stale=${result.stale})`);
+      })
+    : buildRoster(candidatesFrom ? { catalogue: () => readCandidates(candidatesFrom) } : {})
+        .then((roster) => {
+          console.error(`Wrote ${ROSTER_PATH}`);
+          console.error(`  published: ${roster.verified.length}  rejected: ${roster.rejected.length}  confirmed live: ${roster.freshlyVerified}`);
+          for (const tier of TIERS) console.error(`  ${tier}: ${roster.rosters[tier].join(", ")}`);
+        });
+
+  run.catch((error) => {
+    console.error(`refresh-free-roster failed: ${error.message}`);
+    process.exitCode = 1;
+  });
 }

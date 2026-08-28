@@ -15,15 +15,22 @@
 # than vendoring a copy that would itself go stale — but it means the generator step must
 # be treated as running untrusted code.
 #
-# So it does not run anywhere near a write token. `verify` holds `contents: read`, checks
-# out with `persist-credentials: false` so no credential is written to the runner's git
-# config, and hands its result on as an artifact. `publish` holds the write permission,
-# validates what it was handed, and commits. A compromised package therefore reaches
-# neither a token nor a push.
+# So the npx call is confined to `catalogue`, a job holding `contents: read` and checking
+# out with `persist-credentials: false`, and it produces exactly one thing: the list of
+# model ids the MCP believes are free. Nothing that decides what reaches a visitor is
+# decided there.
 #
-# It also cannot smuggle anything into the roster: `publish` re-runs the contract tests
-# against the downloaded artifact before committing, and those assert every slug is a
-# `:free` model that appears in the run's own verified list.
+# `publish` does the rest with first-party code from main — it cross-checks that list
+# against OpenRouter, runs the live probes itself, assigns the tiers, and commits. The
+# probe results are therefore PRODUCED by trusted code rather than accepted from an
+# artifact and taken on faith, which is what an earlier draft got wrong: it re-validated
+# the artifact only against itself, so a compromised package could have named a
+# real-but-dead model in both `rosters` and `verified` and had it published.
+#
+# The split costs no extra traffic. The probes happen once either way; only their
+# location changed. What the untrusted job can still do is SUGGEST candidates — and a
+# candidate must survive OpenRouter's catalogue and a real streamed completion before it
+# becomes a seat, both judged on the trusted side.
 #
 # WHY publish CHECKS OUT main RATHER THAN THE TRIGGERING REF
 # -----------------------------------------------------------
@@ -79,10 +86,10 @@ concurrency:
 permissions: {}
 
 jobs:
-  verify:
-    name: verify free models against the live relay
+  catalogue:
+    name: ask the MCP which models are free
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 15
     # Read-only, and no credential is left on disk. This is the job that runs npx.
     permissions:
       contents: read
@@ -96,26 +103,23 @@ jobs:
           node-version: '22'
 
       # The repo has no dependencies and no lockfile — `npm ci` would fail outright. The
-      # generator pulls open-dashboard-mcp through `npx -y` at run time instead, which is
-      # exactly why this job holds no write permission.
-      - name: Regenerate the roster
-        run: node scripts/refresh-free-roster.mjs
-
-      - name: Verify the roster satisfies its contract
-        run: node --test scratch/tests/free-roster.test.js
+      # MCP arrives through `npx -y` at run time instead, which is exactly why this job
+      # holds no write permission and emits only a candidate list.
+      - name: Ask the MCP for free-model candidates
+        run: node scripts/refresh-free-roster.mjs --emit-candidates candidates.json
 
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
-          name: free-roster
-          path: web/council/free-roster.json
+          name: free-model-candidates
+          path: candidates.json
           retention-days: 7
           if-no-files-found: error
 
   publish:
     name: commit the roster
-    needs: verify
+    needs: catalogue
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 30
     # The only job with write access. Every action it runs is SHA-pinned, and the code it
     # executes comes from main rather than from whichever ref triggered the run.
     permissions:
@@ -124,8 +128,8 @@ jobs:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
           # Pinned to main on purpose: workflow_dispatch can be aimed at any ref, and this
-          # job runs scratch/tests/free-roster.test.js. Checking out the triggering ref
-          # would let branch-controlled test code execute holding contents: write.
+          # job runs the generator, the validator and the contract tests. Checking out the
+          # triggering ref would let branch-controlled code execute holding contents: write.
           ref: main
           persist-credentials: false
 
@@ -135,25 +139,24 @@ jobs:
 
       - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
         with:
-          name: free-roster
+          name: free-model-candidates
           path: artifact
 
-      # Validated against OpenRouter, not against itself. An earlier version checked only
-      # that each slug ended in `:free` and appeared in the artifact's own `verified`
-      # array — but the artifact supplies that array, so a forged file naming
-      # `fake/model:free` in both places passed. Every published slug is now checked
-      # against openrouter.ai, which the untrusted job cannot forge: it must be a model
-      # OpenRouter actually serves, priced at zero. All three tiers must be present.
-      #
-      # The validator itself comes from the main checkout above, so a branch cannot
-      # supply the code that judges its own artifact.
-      - name: Validate the artifact against the live OpenRouter catalogue
-        run: node scripts/validate-free-roster.mjs artifact/free-roster.json
+      # The candidate list is the ONLY thing carried over from the untrusted job, and it
+      # is treated as a set of suggestions. Everything below runs main's code: the
+      # OpenRouter cross-check, the live relay probes, the tier assignment, and the
+      # free-only assertion. A candidate the MCP invented does not survive the catalogue
+      # gate, and one that never answers does not survive the probe.
+      - name: Build the roster from the candidates, probing on this side of the boundary
+        run: node scripts/refresh-free-roster.mjs --candidates artifact/candidates.json
 
-      - name: Adopt the artifact and re-run the contract tests
-        run: |
-          cp artifact/free-roster.json web/council/free-roster.json
-          node --test scratch/tests/free-roster.test.js
+      # Belt and braces on the money question, checked against openrouter.ai rather than
+      # against the file's own claims about itself.
+      - name: Validate the result against the live OpenRouter catalogue
+        run: node scripts/validate-free-roster.mjs web/council/free-roster.json
+
+      - name: Re-run the contract tests against what will be committed
+        run: node --test scratch/tests/free-roster.test.js
 
       - name: Commit the roster if it changed
         env:
