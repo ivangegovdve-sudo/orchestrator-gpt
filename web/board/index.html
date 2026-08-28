@@ -80,7 +80,7 @@
   // phrase would have supplied the deadline and could have kept an expired board looking
   // valid. Anchoring to line starts and pairing the two lines makes the body unable to
   // impersonate the header.
-  const DECLARATION = /^GENERATED\s+(\S+)[^\r\n]*\r?\n^VALID UNTIL\s+(\S+)/m;
+  const DECLARATION = /^GENERATED\s+(\S+)[^\r\n]*\r?\n^VALID UNTIL\s+(\S+)/gm;
   const AGING_FRACTION = 0.6;   // amber once most of the validity window is spent
   const POLL_MS = 60_000;
 
@@ -139,9 +139,13 @@
       state = await stateRes.json();
       html = await htmlRes.text();
     } catch (error) {
-      // A failed refresh must never leave a previously-good board looking current.
+      // A failed refresh must never leave a previously-good board on screen. Setting the
+      // banner without hiding the frame was the bug: a tab open across an outage would keep
+      // rendering the last board it managed to fetch, which is the reject-and-do-not-render
+      // policy stated everywhere else in this file being quietly not applied.
       setStatus('stale', 'Could not reach the published board.',
-        `${error.message}. Anything shown below is from an earlier fetch and may be out of date.`);
+        `${error.message}. The board is not shown, because nothing here can be confirmed current.`);
+      frame.classList.add('hidden');
       return;
     }
 
@@ -157,27 +161,40 @@
     // declaration cannot be read, the board's expiry rule cannot be honoured, and a page
     // that invents a window would be substituting its own judgement for the instruction it
     // is supposed to be obeying. Unverifiable is treated as unusable.
-    const declared = DECLARATION.exec(html);
-    const declaredGenerated = declared ? Date.parse(declared[1]) : NaN;
-    const validUntil = declared ? Date.parse(declared[2]) : NaN;
-    if (!Number.isFinite(validUntil) || !Number.isFinite(declaredGenerated)) {
-      setStatus('stale', 'The published board declares no readable expiry.',
-        'Its GENERATED / VALID UNTIL header could not be parsed, so its validity window is unknown '
-        + 'and it is not shown. The board requires readers to reject it past that window; a window '
-        + 'that cannot be read cannot be respected.');
+    // EVERY declaration pair is collected, not just the first. Taking the first match was
+    // still forgeable: the board's body is assembled from task text and PR titles, so a
+    // task could carry its own GENERATED/VALID UNTIL pair, place it above the real header,
+    // copy state.json's timestamp onto the GENERATED line to satisfy the cross-check below,
+    // and hand the page any deadline it liked.
+    //
+    // So the rule is uniqueness rather than position: keep the pairs whose GENERATED
+    // matches state.json, and require exactly one. Zero means the header is unreadable.
+    // More than one means the document contains competing declarations and there is no
+    // principled way to pick between them -- which is a reason to refuse, not to guess.
+    const candidates = [...html.matchAll(DECLARATION)]
+      .map((match) => ({ generated: Date.parse(match[1]), until: Date.parse(match[2]) }))
+      .filter((c) => Number.isFinite(c.generated) && Number.isFinite(c.until));
+    const matching = candidates.filter((c) => c.generated === generatedAt);
+
+    if (matching.length === 0) {
+      const why = candidates.length === 0
+        ? 'Its GENERATED / VALID UNTIL header could not be parsed at all.'
+        : `Its header declares ${new Date(candidates[0].generated).toISOString()} but state.json reports `
+          + `${new Date(generatedAt).toISOString()}; they describe different runs.`;
+      setStatus('stale', 'The published board has no verifiable expiry.',
+        `${why} The board requires readers to reject it past its validity window, and a window that `
+        + 'cannot be established cannot be respected, so it is not shown.');
       frame.classList.add('hidden');
       return;
     }
-    // The two files must describe the same run. They are published separately, and a
-    // mismatch means a reader has landed between the two writes or that one of them is a
-    // leftover -- either way the timestamp on screen would not belong to the board below it.
-    if (declaredGenerated !== generatedAt) {
-      setStatus('stale', 'The published board and its timestamp disagree.',
-        `state.json reports ${new Date(generatedAt).toISOString()} but the board itself declares `
-        + `${new Date(declaredGenerated).toISOString()}. They describe different runs, so neither is shown.`);
+    if (matching.length > 1) {
+      setStatus('stale', 'The published board declares more than one expiry.',
+        `${matching.length} competing GENERATED/VALID UNTIL declarations carry this run's timestamp. `
+        + 'Which one is authoritative cannot be determined, so the board is not shown.');
       frame.classList.add('hidden');
       return;
     }
+    const validUntil = matching[0].until;
 
     const now = Date.now();
     const age = now - generatedAt;

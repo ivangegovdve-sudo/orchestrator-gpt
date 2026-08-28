@@ -27,9 +27,10 @@
     pushed six weeks from now. It therefore runs on every publish and REFUSES rather than
     warning: a publisher that reports a problem and uploads anyway has not prevented it.
 
-    The snapshot commit contains exactly three files: the two board files below, plus a
-    README.md written here so anyone landing on the branch knows what it is and that its
-    history is rewritten. Nothing else is ever published — claims.jsonl, pr-cache.json
+    The snapshot commit contains exactly the files in $EXPECTED_FILES: the two board files
+    copied from $BoardDir, plus a README.md generated here so anyone landing on the branch
+    knows what it is and that its history is rewritten. The tree is asserted against that
+    list before the push. Nothing else is ever published — claims.jsonl, pr-cache.json
     and jules-cache.json stay local, the first because it carries session paths and branch
     names, the other two because they are large caches of every PR title on the machine.
 
@@ -67,6 +68,14 @@ $PUBLISH = @(
     @{ Name = 'state.json'; Required = $true  }
 )
 
+# The commit also carries a generated README (see below). It is not in $PUBLISH because
+# that list governs which files are COPIED OUT OF $BoardDir and therefore which files the
+# credential gate must clear; the README is written here, from a literal in this file, and
+# contains nothing from the board. Named explicitly so the commit's contents are asserted
+# in one place rather than implied by two.
+$GENERATED = @('README.md')
+$EXPECTED_FILES = @($PUBLISH.Name) + $GENERATED
+
 # Patterns that must never reach a public branch. Deliberately broader than "real" secrets:
 # a false positive costs one skipped publish and a log line, a false negative is permanent
 # and public. Known-benign shapes are excluded below rather than by loosening these.
@@ -97,8 +106,8 @@ $BENIGN = @(
 )
 
 function Test-Publishable {
-    param([string]$Path, [string]$Label)
-    $text = [System.IO.File]::ReadAllText($Path)
+    param([string]$Text, [string]$Label)
+    $text = $Text
     foreach ($p in $BENIGN) { $text = [regex]::Replace($text, $p.Pattern, '<benign>') }
     $hits = @()
     foreach ($rule in $SECRET_PATTERNS) {
@@ -130,7 +139,13 @@ foreach ($item in $PUBLISH) {
         if ($item.Required) { throw "Required file missing, refusing to publish a partial board: $src" }
         continue
     }
-    $findings = @(Test-Publishable -Path $src -Label $item.Name)
+    # Read ONCE, here, and published from these bytes. Scanning the path and then copying
+    # the path reads the file twice, and reconcile.ps1 rewrites this directory every ~15
+    # minutes: a regeneration landing between the two reads would publish content that was
+    # never scanned. The gate has to cover the bytes that actually go out, not a snapshot
+    # of the same filename taken a moment earlier.
+    $bytes = [System.IO.File]::ReadAllBytes($src)
+    $findings = @(Test-Publishable -Text ([System.Text.Encoding]::UTF8.GetString($bytes)) -Label $item.Name)
     if ($findings.Count -gt 0) {
         # Refuse the whole publish, not just the offending file. Publishing state.json
         # without board.html would leave the page reporting a fresh timestamp against a
@@ -138,7 +153,7 @@ foreach ($item in $PUBLISH) {
         # generator's own publish ordering is designed to avoid.
         throw "REFUSING TO PUBLISH — possible credential material:`n  " + ($findings -join "`n  ")
     }
-    $staged += @{ Src = $src; Name = $item.Name }
+    $staged += @{ Bytes = $bytes; Name = $item.Name }
 }
 
 if (@($staged).Count -eq 0) { throw 'Nothing to publish.' }
@@ -156,7 +171,9 @@ try {
         Where-Object { $_.Name -ne '.git' } |
         Remove-Item -Recurse -Force -WhatIf:$false
 
-    foreach ($s in $staged) { Copy-Item -Path $s.Src -Destination (Join-Path $work $s.Name) -Force -WhatIf:$false }
+    # Written from the scanned bytes rather than re-copied from disk, so what is published
+    # is byte-identical to what the gate approved.
+    foreach ($f in $staged) { [System.IO.File]::WriteAllBytes((Join-Path $work $f.Name), $f.Bytes) }
 
     @(
         '# Fleet board snapshot — generated, not authored',
@@ -219,6 +236,14 @@ try {
     $depth = (& git -C $work rev-list --count HEAD) | Select-Object -First 1
     if ($LASTEXITCODE -ne 0) { throw "git rev-list failed ($LASTEXITCODE)" }
     if ([int]$depth -ne 1) { throw "Refusing to push: snapshot has $depth commits, expected exactly 1." }
+
+    # The contract is checked, not just written down. Anything that ever adds a file to this
+    # tree -- a stray temp file, a future edit -- fails here instead of being published.
+    $tree = @(& git -C $work ls-tree --name-only HEAD)
+    $unexpected = @($tree | Where-Object { $EXPECTED_FILES -notcontains $_ })
+    if ($unexpected.Count -gt 0) { throw "Refusing to push: unexpected file(s) in the snapshot: $($unexpected -join ', ')" }
+    $missing = @($EXPECTED_FILES | Where-Object { $tree -notcontains $_ })
+    if ($missing.Count -gt 0) { throw "Refusing to push: missing file(s) from the snapshot: $($missing -join ', ')" }
 
     if ($PSCmdlet.ShouldProcess("origin/$Branch", 'force-push board snapshot')) {
         & git -C $work push --force --quiet origin "refs/heads/${local}:refs/heads/$Branch" 2>&1 | Out-Null
