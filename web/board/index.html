@@ -101,6 +101,12 @@
   // The snapshot the reveal button would show, kept so the click has something to render
   // without re-fetching and without the frame holding a document it is not showing.
   let lastSnapshot = null;
+  // Loads overlap: a 60s poll, a visibilitychange, and the initial call can all be in
+  // flight at once, and they do not finish in the order they started. Without this an
+  // older response landing after a newer refusal would overwrite the banner and the frame
+  // and put a board back on screen that the page had already rejected. Each load takes a
+  // ticket; only the newest is allowed to touch the DOM.
+  let loadSeq = 0;
 
   const plural = (n, word) => `${n} ${word}${n === 1 ? '' : 's'}`;
   const describeAge = (ms) => {
@@ -131,6 +137,8 @@
   };
 
   async function load() {
+    const seq = ++loadSeq;
+    const current = () => seq === loadSeq;
     let state = null;
     let html = null;
     try {
@@ -142,7 +150,9 @@
       ]);
       if (!stateRes.ok) {
         const body = await stateRes.json().catch(() => ({}));
-        refuse('stale', 'No board is published.',
+        if (!current()) return;
+        if (!current()) return;
+      refuse('stale', 'No board is published.',
           body.error ? `${body.error} ${body.detail || ''}`.trim() : `The snapshot endpoint returned HTTP ${stateRes.status}.`);
         return;
       }
@@ -151,7 +161,9 @@
       // either an empty frame or, worse, the previous fetch's board under a fresh
       // timestamp.
       if (!htmlRes.ok) {
-        refuse('stale', 'Could not retrieve the board itself.',
+        if (!current()) return;
+        if (!current()) return;
+      refuse('stale', 'Could not retrieve the board itself.',
           `state.json loaded but the board returned HTTP ${htmlRes.status}. Nothing below can be trusted as current.`);
         return;
       }
@@ -162,6 +174,7 @@
       // banner without hiding the frame was the bug: a tab open across an outage would keep
       // rendering the last board it managed to fetch, which is the reject-and-do-not-render
       // policy stated everywhere else in this file being quietly not applied.
+      if (!current()) return;
       refuse('stale', 'Could not reach the published board.',
         `${error.message}. The board is not shown, because nothing here can be confirmed current.`);
       return;
@@ -169,6 +182,7 @@
 
     const generatedAt = Date.parse(state?.generatedAt ?? '');
     if (!Number.isFinite(generatedAt)) {
+      if (!current()) return;
       refuse('stale', 'The published board has no usable timestamp.',
         'state.json carried no parseable generatedAt, so its age cannot be established. Treating it as unusable.');
       return;
@@ -198,12 +212,14 @@
         ? 'Its GENERATED / VALID UNTIL header could not be parsed at all.'
         : `Its header declares ${new Date(candidates[0].generated).toISOString()} but state.json reports `
           + `${new Date(generatedAt).toISOString()}; they describe different runs.`;
+      if (!current()) return;
       refuse('stale', 'The published board has no verifiable expiry.',
         `${why} The board requires readers to reject it past its validity window, and a window that `
         + 'cannot be established cannot be respected, so it is not shown.');
       return;
     }
     if (matching.length > 1) {
+      if (!current()) return;
       refuse('stale', 'The published board declares more than one expiry.',
         `${matching.length} competing GENERATED/VALID UNTIL declarations carry this run's timestamp. `
         + 'Which one is authoritative cannot be determined, so the board is not shown.');
@@ -211,6 +227,7 @@
     }
     const validUntil = matching[0].until;
 
+    if (!current()) return;
     lastSnapshot = { generatedAt: state.generatedAt, html };
     const now = Date.now();
     const age = now - generatedAt;
@@ -220,6 +237,7 @@
 
     if (expired) {
       const overdue = describeAge(now - validUntil).replace(' ago', '');
+      if (!current()) return;
       setStatus('stale', `STALE — this board expired ${overdue} ago. Do not act on it.`,
         `Generated ${describeAge(age)}. The board instructs readers to reject it past its validity window, `
         + `so it is not shown. This normally means the generator on Ivan's machine stopped running or stopped publishing. ${stamp}`);
@@ -237,6 +255,7 @@
       return;
     }
 
+    if (!current()) return;
     reveal.classList.add('hidden');
     const kind = age > window * AGING_FRACTION ? 'aging' : 'live';
     const lead = kind === 'aging'

@@ -117,12 +117,32 @@ function Test-Publishable {
         return @("binary content (NUL byte) in $Label; refusing a file this gate cannot read as text")
     }
 
-    # Then two views. UTF-8 is the expected encoding; the Latin-1 view is byte-for-byte and
-    # catches anything whose UTF-8 decode would have mangled a pattern into safety.
+    # Then three views.
+    #
+    #   UTF-8      -- the expected encoding.
+    #   Latin-1    -- byte-for-byte, catching anything whose UTF-8 decode would have mangled
+    #                 a pattern into safety.
+    #   Entity-decoded -- because the published file is HTML and the browser renders it. A
+    #                 credential written `&#115;&#107;-...` matches none of these patterns as
+    #                 stored and reads as `sk-...` on screen. Scanning only the source text
+    #                 checks a representation nobody sees; the gate has to scan what the page
+    #                 will actually show.
+    $utf8 = [System.Text.Encoding]::UTF8.GetString($Bytes)
+    $decoded = [regex]::Replace($utf8, '&#(x[0-9a-fA-F]+|\d+);', {
+        param($m)
+        $token = $m.Groups[1].Value
+        try {
+            $code = if ($token[0] -eq 'x' -or $token[0] -eq 'X') {
+                [Convert]::ToInt32($token.Substring(1), 16)
+            } else { [int]$token }
+            if ($code -ge 0 -and $code -le 0x10FFFF) { [char]::ConvertFromUtf32($code) } else { $m.Value }
+        } catch { $m.Value }
+    })
     $hits = @()
     foreach ($view in @(
-        [System.Text.Encoding]::UTF8.GetString($Bytes),
-        [System.Text.Encoding]::GetEncoding('ISO-8859-1').GetString($Bytes))) {
+        $utf8,
+        [System.Text.Encoding]::GetEncoding('ISO-8859-1').GetString($Bytes),
+        $decoded)) {
         $text = $view
         foreach ($p in $BENIGN) { $text = [regex]::Replace($text, $p.Pattern, '<benign>') }
         foreach ($rule in $SECRET_PATTERNS) {
@@ -144,6 +164,17 @@ function Test-Publishable {
 }
 
 if (-not (Test-Path $RepoDir)) { throw "Repo working copy not found: $RepoDir" }
+
+# This script force-pushes, unattended, on a timer. "The destination is fixed" was only ever
+# true of the branch NAME -- the repository it lands in came from whatever `origin` happened
+# to point at, so a changed remote would have sent the snapshot somewhere else entirely and
+# overwritten a branch there. Asserted rather than assumed.
+$EXPECTED_REMOTE = 'ivangegovdve-sudo/orchestrator-gpt'
+$originUrl = (& git -C $RepoDir remote get-url origin 2>$null | Select-Object -First 1)
+if (-not $originUrl) { throw "No 'origin' remote in $RepoDir." }
+if ($originUrl -notmatch [regex]::Escape($EXPECTED_REMOTE)) {
+    throw "Refusing to publish: origin is '$originUrl', expected $EXPECTED_REMOTE."
+}
 
 # A worktree, so publishing never touches the checkout Ivan may be working in. Without this
 # a 15-minute timer would be checking branches out from under an editor.
@@ -175,6 +206,23 @@ foreach ($item in $PUBLISH) {
 }
 
 if (@($staged).Count -eq 0) { throw 'Nothing to publish.' }
+
+# The two files are read separately, and reconcile.ps1 rewrites this directory every ~15
+# minutes, so a regeneration landing between the two reads yields an old board carrying a
+# new timestamp. The page refuses that pair on sight -- it requires the board's own
+# GENERATED to equal state.json's generatedAt -- so publishing it would put up a snapshot
+# that renders nothing while this script reported success. Caught here instead, where the
+# fix is simply to wait for the next run.
+$boardText = [System.Text.Encoding]::UTF8.GetString((@($staged) | Where-Object { $_.Name -eq 'board.html' }).Bytes)
+$stateText = [System.Text.Encoding]::UTF8.GetString((@($staged) | Where-Object { $_.Name -eq 'state.json' }).Bytes)
+$boardStamp = [regex]::Match($boardText, '(?m)^GENERATED\s+(\S+)')
+$stateStamp = [regex]::Match($stateText, '"generatedAt"\s*:\s*"([^"]+)"')
+if (-not $boardStamp.Success) { throw 'board.html declares no GENERATED timestamp; refusing to publish it.' }
+if (-not $stateStamp.Success) { throw 'state.json carries no generatedAt; refusing to publish it.' }
+if ($boardStamp.Groups[1].Value -ne $stateStamp.Groups[1].Value) {
+    throw ("Refusing to publish a torn snapshot: board.html says $($boardStamp.Groups[1].Value) " +
+           "but state.json says $($stateStamp.Groups[1].Value). A regeneration landed between the two reads.")
+}
 
 $local = $null
 try {
