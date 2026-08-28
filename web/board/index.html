@@ -91,7 +91,16 @@
   const reveal = el('reveal');
   const frame = el('board');
 
-  let revealed = false;
+  // Which snapshot the reader deliberately revealed, identified by its generatedAt. A bare
+  // boolean was wrong twice over: it never reset, so one reveal made EVERY later expired
+  // board render without a second click, and it survived failed refreshes, so the button
+  // could re-show a board the page had just declared unreachable. Tying consent to a
+  // specific snapshot means it expires with that snapshot, which is what "reject past its
+  // validity window" has to mean if it means anything.
+  let revealedFor = null;
+  // The snapshot the reveal button would show, kept so the click has something to render
+  // without re-fetching and without the frame holding a document it is not showing.
+  let lastSnapshot = null;
 
   const plural = (n, word) => `${n} ${word}${n === 1 ? '' : 's'}`;
   const describeAge = (ms) => {
@@ -109,6 +118,18 @@
     detail.textContent = note;
   };
 
+  // Every path that refuses to show a board goes through here, so none of them can forget
+  // half the job: the frame is emptied rather than merely hidden (a hidden srcdoc is still
+  // one click from being shown), the reveal affordance is withdrawn, and any prior consent
+  // is dropped.
+  const refuse = (kind, title, note) => {
+    setStatus(kind, title, note);
+    frame.classList.add('hidden');
+    frame.removeAttribute('srcdoc');
+    reveal.classList.add('hidden');
+    revealedFor = null;
+  };
+
   async function load() {
     let state = null;
     let html = null;
@@ -121,9 +142,8 @@
       ]);
       if (!stateRes.ok) {
         const body = await stateRes.json().catch(() => ({}));
-        setStatus('stale', 'No board is published.',
+        refuse('stale', 'No board is published.',
           body.error ? `${body.error} ${body.detail || ''}`.trim() : `The snapshot endpoint returned HTTP ${stateRes.status}.`);
-        frame.classList.add('hidden');
         return;
       }
       // Both halves are required. Treating a failed HTML fetch as a successful refresh
@@ -131,9 +151,8 @@
       // either an empty frame or, worse, the previous fetch's board under a fresh
       // timestamp.
       if (!htmlRes.ok) {
-        setStatus('stale', 'Could not retrieve the board itself.',
+        refuse('stale', 'Could not retrieve the board itself.',
           `state.json loaded but the board returned HTTP ${htmlRes.status}. Nothing below can be trusted as current.`);
-        frame.classList.add('hidden');
         return;
       }
       state = await stateRes.json();
@@ -143,17 +162,15 @@
       // banner without hiding the frame was the bug: a tab open across an outage would keep
       // rendering the last board it managed to fetch, which is the reject-and-do-not-render
       // policy stated everywhere else in this file being quietly not applied.
-      setStatus('stale', 'Could not reach the published board.',
+      refuse('stale', 'Could not reach the published board.',
         `${error.message}. The board is not shown, because nothing here can be confirmed current.`);
-      frame.classList.add('hidden');
       return;
     }
 
     const generatedAt = Date.parse(state?.generatedAt ?? '');
     if (!Number.isFinite(generatedAt)) {
-      setStatus('stale', 'The published board has no usable timestamp.',
+      refuse('stale', 'The published board has no usable timestamp.',
         'state.json carried no parseable generatedAt, so its age cannot be established. Treating it as unusable.');
-      frame.classList.add('hidden');
       return;
     }
 
@@ -181,21 +198,20 @@
         ? 'Its GENERATED / VALID UNTIL header could not be parsed at all.'
         : `Its header declares ${new Date(candidates[0].generated).toISOString()} but state.json reports `
           + `${new Date(generatedAt).toISOString()}; they describe different runs.`;
-      setStatus('stale', 'The published board has no verifiable expiry.',
+      refuse('stale', 'The published board has no verifiable expiry.',
         `${why} The board requires readers to reject it past its validity window, and a window that `
         + 'cannot be established cannot be respected, so it is not shown.');
-      frame.classList.add('hidden');
       return;
     }
     if (matching.length > 1) {
-      setStatus('stale', 'The published board declares more than one expiry.',
+      refuse('stale', 'The published board declares more than one expiry.',
         `${matching.length} competing GENERATED/VALID UNTIL declarations carry this run's timestamp. `
         + 'Which one is authoritative cannot be determined, so the board is not shown.');
-      frame.classList.add('hidden');
       return;
     }
     const validUntil = matching[0].until;
 
+    lastSnapshot = { generatedAt: state.generatedAt, html };
     const now = Date.now();
     const age = now - generatedAt;
     const window = Math.max(1, validUntil - generatedAt);
@@ -207,8 +223,17 @@
       setStatus('stale', `STALE — this board expired ${overdue} ago. Do not act on it.`,
         `Generated ${describeAge(age)}. The board instructs readers to reject it past its validity window, `
         + `so it is not shown. This normally means the generator on Ivan's machine stopped running or stopped publishing. ${stamp}`);
-      reveal.classList.remove('hidden');
-      if (!revealed) frame.classList.add('hidden');
+      // Consent applies to one snapshot. A different one needs a fresh click.
+      if (revealedFor === state.generatedAt) {
+        frame.srcdoc = html;
+        frame.classList.remove('hidden');
+        reveal.classList.add('hidden');
+      } else {
+        frame.classList.add('hidden');
+        frame.removeAttribute('srcdoc');
+        reveal.classList.remove('hidden');
+        revealedFor = null;
+      }
       return;
     }
 
@@ -230,7 +255,9 @@
   }
 
   reveal.addEventListener('click', () => {
-    revealed = true;
+    if (!lastSnapshot) return;
+    revealedFor = lastSnapshot.generatedAt;
+    frame.srcdoc = lastSnapshot.html;
     frame.classList.remove('hidden');
     reveal.classList.add('hidden');
   });

@@ -27,11 +27,9 @@
     pushed six weeks from now. It therefore runs on every publish and REFUSES rather than
     warning: a publisher that reports a problem and uploads anyway has not prevented it.
 
-    The snapshot commit contains exactly the files in $EXPECTED_FILES: the two board files
-    copied from $BoardDir, plus a README.md generated here so anyone landing on the branch
-    knows what it is and that its history is rewritten. The tree is asserted against that
-    list before the push. Nothing else is ever published — claims.jsonl, pr-cache.json
-    and jules-cache.json stay local, the first because it carries session paths and branch
+    The snapshot commit contains exactly the two files in $PUBLISH and nothing else; the
+    tree is asserted against that list before the push. claims.jsonl, pr-cache.json and
+    jules-cache.json stay local — the first because it carries session paths and branch
     names, the other two because they are large caches of every PR title on the machine.
 
 .PARAMETER BoardDir
@@ -68,13 +66,12 @@ $PUBLISH = @(
     @{ Name = 'state.json'; Required = $true  }
 )
 
-# The commit also carries a generated README (see below). It is not in $PUBLISH because
-# that list governs which files are COPIED OUT OF $BoardDir and therefore which files the
-# credential gate must clear; the README is written here, from a literal in this file, and
-# contains nothing from the board. Named explicitly so the commit's contents are asserted
-# in one place rather than implied by two.
-$GENERATED = @('README.md')
-$EXPECTED_FILES = @($PUBLISH.Name) + $GENERATED
+# The snapshot is exactly $PUBLISH and nothing else. An earlier version also wrote a README
+# explaining the branch, which was useful but made every statement of the boundary need a
+# footnote. A one-file exception to an allowlist is how allowlists stop being allowlists;
+# the explanation now lives in this script's header, where it cannot be mistaken for
+# published content.
+$EXPECTED_FILES = @($PUBLISH.Name)
 
 # Patterns that must never reach a public branch. Deliberately broader than "real" secrets:
 # a false positive costs one skipped publish and a log line, a false negative is permanent
@@ -106,23 +103,44 @@ $BENIGN = @(
 )
 
 function Test-Publishable {
-    param([string]$Text, [string]$Label)
-    $text = $Text
-    foreach ($p in $BENIGN) { $text = [regex]::Replace($text, $p.Pattern, '<benign>') }
+    param([byte[]]$Bytes, [string]$Label)
+
+    # Scanning only the UTF-8 decode left a hole: the BYTES are what get published, and a
+    # credential encoded some other way -- UTF-16LE, or anything NUL-interleaved -- decodes
+    # to mojibake that matches no pattern here while the original bytes reach the public
+    # branch intact. The gate has to see what the reader will.
+    #
+    # NUL is refused outright first. board.html and state.json are text written by
+    # reconcile.ps1; a NUL byte means the file is not what this script takes it for, and
+    # there is no version of that worth publishing.
+    if ([Array]::IndexOf($Bytes, [byte]0) -ge 0) {
+        return @("binary content (NUL byte) in $Label; refusing a file this gate cannot read as text")
+    }
+
+    # Then two views. UTF-8 is the expected encoding; the Latin-1 view is byte-for-byte and
+    # catches anything whose UTF-8 decode would have mangled a pattern into safety.
     $hits = @()
-    foreach ($rule in $SECRET_PATTERNS) {
-        foreach ($m in [regex]::Matches($text, $rule.Pattern)) {
-            # The finding is reported by RULE and POSITION only. Printing the matched text
-            # would copy a suspected credential into the job log, which is the same exposure
-            # this function exists to prevent, just somewhere less obvious.
-            $hits += "$($rule.Name) at offset $($m.Index) in $Label"
+    foreach ($view in @(
+        [System.Text.Encoding]::UTF8.GetString($Bytes),
+        [System.Text.Encoding]::GetEncoding('ISO-8859-1').GetString($Bytes))) {
+        $text = $view
+        foreach ($p in $BENIGN) { $text = [regex]::Replace($text, $p.Pattern, '<benign>') }
+        foreach ($rule in $SECRET_PATTERNS) {
+            foreach ($m in [regex]::Matches($text, $rule.Pattern)) {
+                # Reported by RULE and POSITION only. Printing the matched text would copy a
+                # suspected credential into the job log, which is the same exposure this
+                # function exists to prevent, just somewhere less obvious.
+                $hits += "$($rule.Name) at offset $($m.Index) in $Label"
+            }
         }
     }
     # Returned bare and re-wrapped with @() at the call site. The comma operator was tried
     # here first and is wrong: `,$hits` yields a ONE-element array wrapping the (possibly
     # empty) list, so .Count was 1 even with no findings and the publisher refused every
     # run -- a scan that blocks everything is as useless as one that blocks nothing.
-    return $hits
+    # De-duplicated: the same credential is found once per view, and reporting it twice
+    # would suggest two problems.
+    return ($hits | Select-Object -Unique)
 }
 
 if (-not (Test-Path $RepoDir)) { throw "Repo working copy not found: $RepoDir" }
@@ -145,7 +163,7 @@ foreach ($item in $PUBLISH) {
     # never scanned. The gate has to cover the bytes that actually go out, not a snapshot
     # of the same filename taken a moment earlier.
     $bytes = [System.IO.File]::ReadAllBytes($src)
-    $findings = @(Test-Publishable -Text ([System.Text.Encoding]::UTF8.GetString($bytes)) -Label $item.Name)
+    $findings = @(Test-Publishable -Bytes $bytes -Label $item.Name)
     if ($findings.Count -gt 0) {
         # Refuse the whole publish, not just the offending file. Publishing state.json
         # without board.html would leave the page reporting a fresh timestamp against a
@@ -175,17 +193,6 @@ try {
     # is byte-identical to what the gate approved.
     foreach ($f in $staged) { [System.IO.File]::WriteAllBytes((Join-Path $work $f.Name), $f.Bytes) }
 
-    @(
-        '# Fleet board snapshot — generated, not authored',
-        '',
-        'Written by `scripts/publish-board.ps1` from `reconcile.ps1` every ~15 minutes and',
-        'force-pushed as a single commit. This branch carries no site code and is excluded',
-        'from Vercel deployment in `vercel.json`.',
-        '',
-        'Served at https://sdforest.site/web/board/ through `api/board.js`.',
-        '',
-        'Do not branch from this or merge it anywhere. Its history is rewritten on every run.'
-    ) -join "`n" | Set-Content -Path (Join-Path $work 'README.md') -Encoding utf8 -WhatIf:$false
 
     # A UNIQUE local branch name, not $Branch itself. Worktrees share the repository's
     # refs, so `checkout --orphan board-live` creates a local `board-live` that survives
