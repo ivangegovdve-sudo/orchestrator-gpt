@@ -509,14 +509,29 @@ test('the refresh workflow never runs third-party code in a job that can write',
 });
 
 test('the write-capable job runs code from main, not from the triggering ref', () => {
-  // workflow_dispatch can be aimed at any ref. The publish job runs the contract tests to
-  // validate the artifact, so checking out the triggering ref would let branch-controlled
-  // test code execute holding contents: write.
+  // The publish job runs the generator, the validator and the contract tests. Checking out
+  // the triggering ref would let branch-controlled code execute holding contents: write.
   const workflow = fs.readFileSync(path.join(ROOT, '.github/workflows/free-roster.yml'), 'utf8');
   const jobs = splitJobs(workflow);
   const writeJob = jobs.find((job) => job.includes('contents: write'));
   assert.match(writeJob, /ref: main/, 'the write job checks out the triggering ref');
   assert.match(writeJob, /persist-credentials: false/, 'the write job persists a credential');
+});
+
+test('the refresh workflow is schedule-only and cannot be dispatched from a branch', () => {
+  // `ref: main` above pins the checkout, not the workflow definition. workflow_dispatch
+  // runs the workflow file FROM THE SELECTED REF, so a dispatch from an untrusted branch
+  // would execute that branch's steps and its own `permissions:` block — the checkout pin
+  // cannot save a job whose definition came from elsewhere. A scheduled run always uses
+  // the default branch's definition, so the trigger is the load-bearing part.
+  const workflow = fs.readFileSync(path.join(ROOT, '.github/workflows/free-roster.yml'), 'utf8');
+  const triggers = workflow.replace(/\r\n/g, '\n').match(/\non:\n([\s\S]*?)\n\w/);
+  assert.ok(triggers, 'could not locate the on: block');
+  const declared = triggers[1]
+    .split('\n')
+    .filter((line) => /^ {2}\w/.test(line))
+    .map((line) => line.trim().replace(/:$/, ''));
+  assert.deepEqual(declared, ['schedule'], `unexpected trigger(s): ${declared.join(', ')}`);
 });
 
 test('every action is pinned to a commit SHA rather than a mutable tag', () => {

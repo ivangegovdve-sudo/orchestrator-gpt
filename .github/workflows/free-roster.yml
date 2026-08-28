@@ -32,13 +32,14 @@
 # candidate must survive OpenRouter's catalogue and a real streamed completion before it
 # becomes a seat, both judged on the trusted side.
 #
-# WHY publish CHECKS OUT main RATHER THAN THE TRIGGERING REF
-# -----------------------------------------------------------
-# `workflow_dispatch` runs against a ref the caller chooses. If `publish` checked out that
-# ref, the test file it runs to validate the artifact would itself be branch-controlled —
-# arbitrary code executing with `contents: write`. It therefore pins its checkout to
-# `main`, so the validation logic is always the reviewed version regardless of which ref
-# started the run. `verify` may run branch code freely; it has nothing worth stealing.
+# WHY publish PINS ITS CHECKOUT TO main
+# -------------------------------------
+# So the code it runs — the generator, the validator, the contract tests — is always the
+# reviewed version rather than whatever the running ref happens to contain. Combined with
+# the schedule-only trigger above, which fixes the workflow definition to the default
+# branch, that makes both the steps and the code they execute trusted. Neither measure
+# is sufficient alone: `ref: main` cannot protect a job whose own definition came from
+# somewhere else.
 #
 # Actions are pinned to commit SHAs, not tags. A tag is mutable, and every one of these
 # actions runs before or alongside the write token — an earlier draft of this file claimed
@@ -76,7 +77,15 @@ on:
     # 05:20 UTC daily. Off the hour, because the top of the hour is when everybody else's
     # cron fires and free-tier queues are worst.
     - cron: '20 5 * * *'
-  workflow_dispatch:
+  # Deliberately schedule-only. workflow_dispatch executes the workflow definition FROM
+  # THE SELECTED REF, so a run dispatched from a branch would run that branch's copy of
+  # this file — its steps and its `permissions:` block included. Pinning the checkout to
+  # `ref: main` does not help, because the thing choosing to check out main is itself the
+  # branch's file. A scheduled run always executes the default branch's definition, which
+  # is the only way to make the trust boundary below mean what it says.
+  #
+  # To refresh by hand, run `npm run refresh-roster` locally and open a PR with the
+  # result. That needs no CI privileges at all, which is rather the point.
 
 # Two runs writing the same generated file would race on push.
 concurrency:
@@ -127,9 +136,8 @@ jobs:
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
-          # Pinned to main on purpose: workflow_dispatch can be aimed at any ref, and this
-          # job runs the generator, the validator and the contract tests. Checking out the
-          # triggering ref would let branch-controlled code execute holding contents: write.
+          # Pinned to main so the generator, validator and tests this job runs are the
+          # reviewed versions, not whatever ref the run started from.
           ref: main
           persist-credentials: false
 
