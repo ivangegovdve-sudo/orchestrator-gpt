@@ -12,3 +12,8 @@ glossary/MISUSE.md                         text eol=lf
 glossary/QUARANTINE.md                     text eol=lf
 glossary/candidates/pending.json           text eol=lf
 web/library/glossary/glossary-bundle.json  text eol=lf
+
+# Written by scripts/refresh-free-roster.mjs, on a schedule rather than at build time.
+# Same reasoning as the glossary bundle above: the generator writes LF, so without this
+# pin every local `npm run refresh-roster` on Windows leaves a phantom modification.
+web/council/free-roster.json               text eol=lf
