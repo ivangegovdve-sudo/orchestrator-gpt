@@ -661,7 +661,7 @@ function build() {
       weeklyFiles: weekly.perFile,
     },
     failedWeeklyRuns: weekly.failedFiles,
-    categories: [...new Set(terms.map((t) => t.category))].sort(),
+    categories: [...new Set(terms.map((t) => t.category))].sort((a, b) => (a < b ? -1 : a > b ? 1 : 0)),
   };
 
   const bundle = { generatedAt: null, stats, terms };
