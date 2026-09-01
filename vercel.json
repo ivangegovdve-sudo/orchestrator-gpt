@@ -77,6 +77,16 @@
       "source": "/web/open-overview/:path*",
       "destination": "/web/open-dashboard/:path*",
       "permanent": true
+    },
+    {
+      "source": "/series",
+      "destination": "https://morning-news-anchor-platform.vercel.app/series",
+      "permanent": false
+    },
+    {
+      "source": "/series/dependency-map",
+      "destination": "https://morning-news-anchor-platform.vercel.app/series/dependency-map",
+      "permanent": false
     }
   ],
   "git": {

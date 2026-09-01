@@ -30,7 +30,16 @@ test('Forest HUB built artifact exposes the required foundation portals and titl
   assert.match(home, /data-project="kids"[^>]+data-href="\/web\/kids\/"/);
   assert.match(home, /data-project="library"[^>]+data-href="\/web\/library\/"/);
   assert.match(home, /data-project="morning-news"[^>]+data-href="\/web\/morning-news\/"/);
+  assert.doesNotMatch(home, /Lovable experience/);
   assert.doesNotMatch(home, /voice[ -]?2[ -]?voice|voice[- ]to[- ]voice|\bv2v\b/i);
+});
+
+test('Morning News links the live publication and AI dependency map', () => {
+  const morning = built('web/morning-news/index.html');
+
+  assert.doesNotMatch(morning, /forest-voice-news\.lovable\.app/);
+  assert.match(morning, /https:\/\/morning-news-anchor-platform\.vercel\.app/);
+  assert.match(morning, /href="\/series\/dependency-map"[^>]*>AI dependency map<\/a>/);
 });
 
 test('Forest HUB built styles publish the canonical design tokens', () => {
@@ -68,12 +77,12 @@ test('Library is canonical and llm-db has deployment and static redirect coverag
   assert.deepEqual(vercel.redirects, [
     {
       source: '/web/ai-init',
-      destination: '/web/library/',
+      destination: '/web/library/glossary/',
       permanent: true,
     },
     {
       source: '/web/ai-init/',
-      destination: '/web/library/',
+      destination: '/web/library/glossary/',
       permanent: true,
     },
     {
@@ -88,13 +97,23 @@ test('Library is canonical and llm-db has deployment and static redirect coverag
     },
     {
       source: '/web/tinylm',
-      destination: '/web/council/#tinylm',
+      destination: '/web/council/index.html#tinylm',
       permanent: true,
     },
     {
       source: '/web/tinylm/',
-      destination: '/web/council/#tinylm',
+      destination: '/web/council/index.html#tinylm',
       permanent: true,
+    },
+    {
+      source: '/series',
+      destination: 'https://morning-news-anchor-platform.vercel.app/series',
+      permanent: false,
+    },
+    {
+      source: '/series/dependency-map',
+      destination: 'https://morning-news-anchor-platform.vercel.app/series/dependency-map',
+      permanent: false,
     },
   ]);
 });
