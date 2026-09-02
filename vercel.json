@@ -33,10 +33,5 @@
       "destination": "/web/council/index.html#tinylm",
       "permanent": true
     }
-  ],
-  "git": {
-    "deploymentEnabled": {
-      "board-live": false
-    }
-  }
+  ]
 }

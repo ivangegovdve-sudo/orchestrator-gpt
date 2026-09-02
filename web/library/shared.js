@@ -42,9 +42,8 @@ async function verifyPassword(pw) {
 // Render a search result card
 function renderCard(result, source) {
   const scoreColor = result.score > 0.7 ? '#22c55e' : result.score > 0.4 ? '#0ea5e9' : '#a1a1aa';
-  const safe = safeUrl(result.meta?.url);
-  const urlHtml = safe
-    ? `<a href="${safe}" class="card-link" target="_blank">↗ view</a>`
+  const urlHtml = result.meta?.url
+    ? `<a href="${result.meta.url}" class="card-link" target="_blank">↗ view</a>`
     : '';
   return `<div class="card">
     <div class="card-header">
@@ -57,17 +56,6 @@ function renderCard(result, source) {
       ${urlHtml}
     </div>
   </div>`;
-}
-
-function safeUrl(u) {
-  if (!u) return '';
-  try {
-    const parsed = new URL(u, window.location.origin);
-    if (parsed.protocol === 'http:' || parsed.protocol === 'https:') {
-      return parsed.href;
-    }
-  } catch (e) {}
-  return '';
 }
 
 function escHtml(s) {

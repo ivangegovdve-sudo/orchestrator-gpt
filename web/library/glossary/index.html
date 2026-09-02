@@ -221,10 +221,6 @@ h1{font-family:var(--forest-display, "Cormorant Garamond", Georgia, serif);font-
 </div>
 <!-- Static bundle, generated at build time by scripts/build-glossary-bundle.cjs.
      Replaces the retired library-api (KVM2:8765) semantic-search backend. -->
-<script src="/web/library/shared.js"></script>
-<!-- shared.js first: glossary-static.js calls safeUrl() from it. Declarations
-     only, no load-time side effects, and it is how every other library page
-     includes it. -->
 <script src="/web/library/glossary/glossary-static.js"></script>
 <script type="module" data-forest-runtime="motion" src="/web/shared/forest-runtime-boot.mjs?v=20260807a"></script>
   <script src="/web/shared/design-history.js?v=20260807a"></script>

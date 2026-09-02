@@ -1,5 +1,4 @@
 # Forest HUB — sdforest.site
-<!-- This repository contains the source code for the Forest HUB web dashboard, mini-projects, and backend APIs. -->
 
 Forest HUB is a static web dashboard plus a small FastAPI backend. It hosts the landing page at [sdforest.site](https://sdforest.site) and a collection of self-contained mini-projects under `web/` — reference tools, kids' games, poetry pages, and scroll-driven stories.
 

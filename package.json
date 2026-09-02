@@ -7,7 +7,6 @@
   },
   "scripts": {
     "build": "node build-vercel-static.cjs",
-    "vercel-build": "npm run build",
-    "refresh-roster": "node scripts/refresh-free-roster.mjs"
+    "vercel-build": "npm run build"
   }
 }

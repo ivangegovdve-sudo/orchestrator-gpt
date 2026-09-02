@@ -57,14 +57,7 @@
     const cite = t.source
       ? `<p class="card-cite">Verified against ${
           t.sourceUrl
-            // esc() escapes HTML ENTITIES, which does nothing to a `javascript:`
-            // URI -- it contains no <, > or & to escape. The scheme has to be
-            // validated, which is what safeUrl does. Same defect as the three in
-            // the search pages; this file was missed because it loads its own
-            // script rather than shared.js.
-            ? (safeUrl(t.sourceUrl)
-                ? `<a class="card-link" href="${safeUrl(t.sourceUrl)}" target="_blank" rel="noopener noreferrer">${esc(t.source)}</a>`
-                : esc(t.source))
+            ? `<a class="card-link" href="${esc(t.sourceUrl)}" target="_blank" rel="noopener noreferrer">${esc(t.source)}</a>`
             : esc(t.source)
         }</p>`
       : "";

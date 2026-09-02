@@ -16,7 +16,6 @@ body[data-forest-page] {
   isolation: isolate;
   margin: 0;
   min-height: 100vh;
-  padding-bottom: calc(90px + env(safe-area-inset-bottom, 0px));
   background:
     radial-gradient(circle at 14% -8%, rgba(var(--forest-accent-rgb), .1), transparent 30rem),
     radial-gradient(circle at 90% 24%, rgba(232, 184, 107, .07), transparent 34rem),
@@ -225,9 +224,4 @@ body[data-forest-page] select:focus-visible {
     transition: none !important;
   }
   .forest-scene { opacity: .42; }
-}
-
-/* Targeted fix for Chloe PWA's 100dvh flex layout to clear the feedback button */
-#text-bar {
-  padding-bottom: calc(72px + env(safe-area-inset-bottom, 0px)) !important;
 }
