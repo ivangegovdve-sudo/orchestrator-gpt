@@ -157,11 +157,16 @@
     </script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#ffffff" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta
       name="description"
       content="Cubeflow scans, validates, solves, and teaches every Rubik's Cube turn."
     />
+    <link rel="manifest" href="/web/rubiks-teacher/manifest.json" />
+    <link rel="apple-touch-icon" href="/web/rubiks-teacher/assets/icons/apple-touch-icon.png" />
     <title>Cubeflow — Rubik's Cube Teacher</title>
+    <script src="/web/rubiks-teacher/sw-register.js"></script>
     <script type="module" crossorigin src="/web/rubiks-teacher/assets/index-BOLL9lX0.js"></script>
     <!-- Shared design tokens. Every rule in forest-design.css is scoped to
          html.forest-skin, so loading it here supplies the sitewide token set
