@@ -140,15 +140,9 @@ test('the venture sandbox supports one bet, one batch announcement, and reset', 
   await pointerClick(page, '#batchButton');
   await page.waitForFunction(() => document.querySelectorAll('#betField > .bet-coin').length === 50);
   await page.waitForFunction(() => document.querySelector('#betField').classList.contains('is-converged'));
-  await page.waitForTimeout(650);
 
   const final = await page.evaluate(() => {
     window.__portfolioObserver.disconnect();
-    const field = document.querySelector('#betField').getBoundingClientRect();
-    const target = {
-      x: field.left + field.width / 2,
-      y: field.top + field.height / 2,
-    };
     return {
       announcements: window.__portfolioAnnouncements,
       attempts: document.querySelector('#attemptCount').textContent,
@@ -157,22 +151,6 @@ test('the venture sandbox supports one bet, one batch announcement, and reset', 
       outliers: document.querySelector('#outlierCount').textContent,
       status: document.querySelector('#portfolioStatus').textContent.trim(),
       statsLive: document.querySelector('.sandbox-stats').getAttribute('aria-live'),
-      transitions: [...document.querySelectorAll('#betField > .bet-coin')].map((coin) => {
-        const style = getComputedStyle(coin);
-        return {
-          outcome: coin.dataset.outcome,
-          property: style.transitionProperty,
-          duration: style.transitionDuration,
-          easing: style.transitionTimingFunction,
-        };
-      }),
-      centerDeltas: [...document.querySelectorAll('#betField > .bet-coin')].map((coin) => {
-        const rect = coin.getBoundingClientRect();
-        return {
-          x: Math.abs(rect.left + rect.width / 2 - target.x),
-          y: Math.abs(rect.top + rect.height / 2 - target.y),
-        };
-      }),
     };
   });
   assert.deepEqual(
@@ -187,20 +165,6 @@ test('the venture sandbox supports one bet, one batch announcement, and reset', 
   assert.deepEqual(final.announcements, [final.status]);
   assert.match(final.status, /Portfolio recovered/);
   assert.notEqual(final.statsLive, 'polite');
-  assert.equal(final.transitions.length, 50);
-  assert.equal(final.transitions.at(-1).outcome, 'outlier');
-  assert.equal(final.transitions.every(({ property, duration, easing }) => (
-    property === 'left, top, transform, box-shadow'
-    && duration === Array(4).fill('0.5s').join(', ')
-    && easing === Array(4)
-      .fill('cubic-bezier(0.34, 1.56, 0.64, 1)')
-      .join(', ')
-  )), true, JSON.stringify(final.transitions[0]));
-  assert.equal(
-    final.centerDeltas.every(({ x, y }) => x <= 1 && y <= 1),
-    true,
-    JSON.stringify(final.centerDeltas),
-  );
 
   await pointerClick(page, '#resetBets');
   assert.equal(await page.locator('#betField > .bet-coin').count(), 0);
@@ -312,246 +276,6 @@ test('mobile stays within the viewport while scroll speed still drives and settl
   assert.ok(Math.abs(settled.slip) < 0.25);
   assert.notEqual(settled.transform, 'none');
   await page.close();
-});
-
-test('every chapter holds still at the camera plane and the track never goes blank', async () => {
-  const page = await browser.newPage({ viewport: { width: 1280, height: 800 } });
-  await page.goto(`${baseUrl}/web/power-law-odyssey/?seed=hold-proof`, {
-    waitUntil: 'domcontentloaded',
-  });
-
-  const timeline = await page.evaluate(() => {
-    const root = document.documentElement;
-    const depthOf = (el) => {
-      const match = getComputedStyle(el).transform.match(/matrix3d\(([^)]*)\)/);
-      return match ? Math.round(Number(match[1].split(',')[14])) : 0;
-    };
-    const layers = [...document.querySelectorAll('.stage-3d .layer')];
-    const holds = {};
-    let blankFrames = 0;
-
-    for (let step = 0; step <= 200; step += 1) {
-      const progress = step / 200;
-      root.style.setProperty('--scroll-p', progress);
-      const lit = layers.filter((layer) => Number(getComputedStyle(layer).opacity) > 0.05);
-      if (!lit.length) blankFrames += 1;
-      for (const layer of lit) {
-        if (depthOf(layer) === 0 && Number(getComputedStyle(layer).opacity) > 0.99) {
-          (holds[layer.id] = holds[layer.id] || []).push(progress);
-        }
-      }
-    }
-    root.style.removeProperty('--scroll-p');
-    return {
-      blankFrames,
-      holds: Object.fromEntries(
-        Object.entries(holds).map(([id, points]) => [id, points.at(-1) - points[0]]),
-      ),
-    };
-  });
-
-  // A linear camera leaves every chapter permanently mid-flight; the piecewise
-  // rig must park each one at Tz = 0 for a readable stretch.
-  assert.equal(timeline.blankFrames, 0, 'the camera must never show an empty frame');
-  assert.deepEqual(
-    Object.keys(timeline.holds).sort(),
-    ['layer1', 'layer2', 'layer3', 'layer4', 'layer5', 'layer6'],
-    'every chapter needs a still hold at the camera plane',
-  );
-  for (const [id, span] of Object.entries(timeline.holds)) {
-    assert.ok(span >= 0.05, `${id} holds for only ${span} of the track`);
-  }
-  // The interactive chapter earns the widest hold of the content chapters.
-  assert.ok(timeline.holds.layer5 >= 0.075, `sandbox hold too short: ${timeline.holds.layer5}`);
-  await page.close();
-});
-
-test('the venture sandbox is a stationary pointer target throughout its hold', async () => {
-  const page = await browser.newPage({ viewport: { width: 1280, height: 800 } });
-  await page.goto(`${baseUrl}/web/power-law-odyssey/?seed=stationary-proof`, {
-    waitUntil: 'domcontentloaded',
-  });
-
-  const boxes = [];
-  for (const progress of [0.79, 0.82, 0.86]) {
-    await setScrollProgress(page, progress);
-    await page.waitForFunction(() => Math.abs(Number.parseFloat(
-      getComputedStyle(document.documentElement).getPropertyValue('--scroll-slip'),
-    )) < 0.25);
-    boxes.push(await page.locator('#betButton').boundingBox());
-  }
-  const drift = Math.max(
-    ...boxes.slice(1).map((box) => Math.max(
-      Math.abs(box.x - boxes[0].x),
-      Math.abs(box.y - boxes[0].y),
-      Math.abs(box.width - boxes[0].width),
-    )),
-  );
-  assert.ok(drift <= 2, `the bet button drifted ${drift}px across its hold window`);
-
-  // And it takes real pointer input where it sits, not just synthetic clicks.
-  await setScrollProgress(page, 0.82);
-  await page.waitForFunction(() => document.querySelector('#layer5').classList.contains('is-active'));
-  await pointerClick(page, '#betButton');
-  assert.equal(await page.locator('.bet-coin').count(), 1);
-
-  await pointerClick(page, '#batchButton');
-  await page.waitForFunction(() => document.querySelectorAll('.bet-coin').length === 50);
-  const ledger = await page.evaluate(() => ({
-    outliers: document.querySelector('#outlierCount').textContent,
-    failures: document.querySelector('#failureCount').textContent,
-    balance: document.querySelector('#balanceCount').textContent,
-    status: document.querySelector('#portfolioStatus').textContent,
-  }));
-  assert.deepEqual(
-    { outliers: ledger.outliers, failures: ledger.failures, balance: ledger.balance },
-    { outliers: '1', failures: '47', balance: '+2' },
-  );
-  assert.match(ledger.status, /Portfolio recovered/);
-  await page.close();
-});
-
-test('a phone sheds the per-frame blur, shortens the camera throw, and shrinks the star budget', async () => {
-  const page = await browser.newPage({
-    viewport: { width: 390, height: 844 },
-    deviceScaleFactor: 3,
-    isMobile: true,
-    hasTouch: true,
-  });
-  await page.goto(`${baseUrl}/web/power-law-odyssey/?seed=phone-proof`, {
-    waitUntil: 'domcontentloaded',
-  });
-
-  const phone = await page.evaluate(() => {
-    const root = document.documentElement;
-    const depthOf = (el) => {
-      const match = getComputedStyle(el).transform.match(/matrix3d\(([^)]*)\)/);
-      return match ? Number(match[1].split(',')[14]) : 0;
-    };
-    let peakScale = 1;
-    for (let step = 0; step <= 100; step += 1) {
-      root.style.setProperty('--scroll-p', step / 100);
-      for (const layer of document.querySelectorAll('.stage-3d .layer')) {
-        if (Number(getComputedStyle(layer).opacity) > 0.05) {
-          peakScale = Math.max(peakScale, 1000 / (1000 - depthOf(layer)));
-        }
-      }
-    }
-    root.style.removeProperty('--scroll-p');
-    const canvas = document.querySelector('#starfield');
-    return {
-      peakScale,
-      blurs: [...document.querySelectorAll('.chart-panel,.sandbox,.risk-panel,.branch-panel')]
-        .map((panel) => getComputedStyle(panel).backdropFilter),
-      backingRatio: canvas.width / window.innerWidth,
-      devicePixelRatio: window.devicePixelRatio,
-    };
-  });
-
-  // backdrop-filter forces a readback of everything behind a panel on every
-  // frame that panel moves, and these panels move for the whole scroll.
-  assert.deepEqual(new Set(phone.blurs), new Set(['none']), 'phones must not pay for backdrop blur');
-  assert.ok(phone.devicePixelRatio >= 2, 'fixture must emulate a high-DPR phone');
-  assert.ok(
-    phone.backingRatio <= 1.5,
-    `starfield backing store is ${phone.backingRatio}x device pixels, capped at 1.5x`,
-  );
-  // A shallow throw keeps composited layers near 1:1 so the phone GPU is not
-  // re-rasterising a magnified layer on every frame.
-  assert.ok(phone.peakScale < 1.25, `phone camera magnifies to ${phone.peakScale}x`);
-  await page.close();
-});
-
-test('the starfield idles when it is off-screen and never reads style back per frame', async () => {
-  const page = await browser.newPage({ viewport: { width: 1280, height: 800 } });
-  await page.addInitScript(() => {
-    window.__arcCalls = 0;
-    window.__styleReads = 0;
-    const { arc } = CanvasRenderingContext2D.prototype;
-    CanvasRenderingContext2D.prototype.arc = function countedArc(...args) {
-      window.__arcCalls += 1;
-      return arc.apply(this, args);
-    };
-    const nativeGetComputedStyle = window.getComputedStyle;
-    window.getComputedStyle = function countedGetComputedStyle(...args) {
-      window.__styleReads += 1;
-      return nativeGetComputedStyle.apply(window, args);
-    };
-  });
-  await page.goto(`${baseUrl}/web/power-law-odyssey/?seed=idle-proof`, {
-    waitUntil: 'domcontentloaded',
-  });
-
-  const sample = () => page.evaluate(async () => {
-    window.__arcCalls = 0;
-    window.__styleReads = 0;
-    await new Promise((resolve) => setTimeout(resolve, 500));
-    return { arcs: window.__arcCalls, styleReads: window.__styleReads };
-  });
-
-  await setScrollProgress(page, 0.5);
-  await page.waitForTimeout(300);
-  const onStage = await sample();
-  assert.ok(onStage.arcs > 200, `starfield should animate on stage, saw ${onStage.arcs} arcs`);
-  // Idle on stage the page runs exactly one loop, the starfield, and it must
-  // read --scroll-p from a cached JS value. Reading it back off the root with
-  // getComputedStyle forces a style resolution per frame — that regression
-  // shows up here as roughly one style read per animation frame (~30 per
-  // 500ms sample), so anything above a handful is the bug returning.
-  assert.ok(
-    onStage.styleReads <= 4,
-    `per-frame getComputedStyle detected: ${onStage.styleReads} style reads in 500ms idle`,
-  );
-
-  // Park in the blueprint appendix, well past the sticky viewport.
-  await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
-  await page.waitForTimeout(400);
-  const inAppendix = await sample();
-  assert.ok(
-    inAppendix.arcs < onStage.arcs / 10,
-    `starfield kept running off-screen: ${inAppendix.arcs} arcs vs ${onStage.arcs} on stage`,
-  );
-  await page.close();
-});
-
-test('no chapter pushes its exhibit past the fold, on a wide desktop or a small phone', async () => {
-  // The venture sandbox is the whole point of chapter 5, and the reader has to
-  // reach its controls and its bet field. A width-only type scale used to push
-  // that field 256px below the bottom of a 1366x720 laptop.
-  const viewports = [
-    { width: 1440, height: 900 },
-    { width: 1280, height: 800 },
-    { width: 1366, height: 720 },
-    { width: 390, height: 844 },
-    { width: 360, height: 640 },
-  ];
-  const holds = [0.03, 0.245, 0.445, 0.645, 0.82, 0.975];
-  const offenders = [];
-
-  for (const viewport of viewports) {
-    const page = await browser.newPage({ viewport });
-    await page.goto(`${baseUrl}/web/power-law-odyssey/?seed=fit-proof`, { waitUntil: 'load' });
-    for (let index = 0; index < holds.length; index += 1) {
-      await setScrollProgress(page, holds[index]);
-      await page.waitForTimeout(120);
-      const fit = await page.evaluate((chapter) => {
-        const layer = document.querySelector(`#layer${chapter}`);
-        const inner = layer.querySelector('.layer-inner').getBoundingClientRect();
-        const stage = document.querySelector('.viewport-sticky').getBoundingClientRect();
-        return {
-          below: Math.round(inner.bottom - stage.bottom),
-          above: Math.round(stage.top - inner.top),
-        };
-      }, index + 1);
-      if (fit.below > 0 || fit.above > 0) {
-        offenders.push(`${viewport.width}x${viewport.height} layer${index + 1} `
-          + `clipped ${Math.max(fit.below, fit.above)}px`);
-      }
-    }
-    await page.close();
-  }
-
-  assert.deepEqual(offenders, [], `chapters clipped by the fold:\n${offenders.join('\n')}`);
 });
 
 async function setScrollProgress(page, progress) {

@@ -11,6 +11,23 @@
    Without the driver every var defaults to the seated/lit state, so the
    page is fully readable with no JS at all. */
 
+:root {
+  --bg: #07070b;
+  --surface: #0f0f15;
+  --accent: #4f46e5;
+  --home-bg: var(--bg);
+  --home-surface: var(--surface);
+  --home-ink: #f3f4f6;
+  --home-soft: #d1d5db;
+  --home-muted: #9ca3af;
+  --home-line: rgba(255, 255, 255, .08);
+  --home-amber: var(--accent);
+  --home-moss: #22c55e;
+  --home-display: var(--forest-display, "Cormorant Garamond", Georgia, serif);
+  --home-body: var(--forest-body, Alegreya, Georgia, serif);
+  --home-sans: var(--forest-sans, "Alegreya Sans", "Segoe UI", sans-serif);
+}
+
 *, *::before, *::after { box-sizing: border-box; }
 
 html { background: var(--home-bg); }
@@ -71,10 +88,6 @@ a, button { -webkit-tap-highlight-color: transparent; }
   font: 500 12px/1 var(--home-sans);
   letter-spacing: .3em;
   text-transform: uppercase;
-}
-
-.home-brand {
-  view-transition-name: forest-chrome;
 }
 
 .home-brand::before {
@@ -1025,9 +1038,10 @@ html.is-born .scroll-invite {
 @media (prefers-reduced-motion: reduce) {
   :root { --title-p: 0; --rail-lit: 1; }
   *, *::before, *::after {
-    animation: none !important;
+    animation-duration: var(--duration-reduced) !important;
+    animation-iteration-count: 1 !important;
     scroll-behavior: auto !important;
-    transition: none !important;
+    transition-duration: var(--duration-reduced) !important;
   }
   .landing-core { opacity: 1; transform: none; }
   .title-crown .crown,

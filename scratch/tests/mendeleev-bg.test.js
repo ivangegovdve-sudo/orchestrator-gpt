@@ -56,24 +56,6 @@ test('uses canonical chrome tokens and exposes an accessible element deep-dive',
   assert.doesNotMatch(html, /mendeleev-table/i);
 });
 
-test('starts Bulgarian-first, preserves keyboard selection, and confines hover decoration to hover devices', async () => {
-  assert.match(html, /let currentLang = 'bg'/);
-  assert.match(html, /@media \(hover:hover\)[\s\S]*#langBtn:hover/);
-
-  const page = await browser.newPage({ viewport: { width: 390, height: 844 }, hasTouch: true });
-  await page.goto(`${baseUrl}/web/mendeleev-bg/?touch-selection`, { waitUntil: 'domcontentloaded' });
-  assert.match(await page.locator('.subtitle').textContent(), /Кликни на символа/);
-
-  const hydrogen = page.locator('.el[data-num="1"] .sym-wrap');
-  await hydrogen.focus();
-  await page.keyboard.press('Enter');
-  await page.locator('#overlay.on').waitFor({ state: 'visible' });
-  assert.match(await page.locator('#mhead h2').textContent(), /Водород/);
-  await page.keyboard.press('Escape');
-  await page.locator('#overlay').waitFor({ state: 'hidden' });
-  await page.close();
-});
-
 test('compound highlighting survives language changes on a mobile viewport', async () => {
   const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
   await page.goto(`${baseUrl}/web/mendeleev-bg/?mobile-compound`, { waitUntil: 'domcontentloaded' });

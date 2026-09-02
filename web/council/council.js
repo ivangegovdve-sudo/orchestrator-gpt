@@ -5,9 +5,6 @@
   const OPEN_RELAY = 'https://chloe.blumenkraft.cloud/council/relay';
   const FIRST_TOKEN_TIMEOUT = 45_000;
   const STREAM_HARD_CAP = 120_000;
-  const LOCAL_OUTAGE_MESSAGE = 'The Local Oracle is offline. This page can only listen while Ivan’s ARM64 Ollama host and relay are reachable; no reply has been invented.';
-  const FREE_RATE_LIMIT_MESSAGE = 'The free OpenRouter roster is rate-limited right now. No paid model was substituted. Try again later.';
-  const INCOMPLETE_MESSAGE = 'The answer ended incomplete.';
 
   // Both councils are public surfaces. This sentence is the standing guardrail from
   // CLAUDE.md — it must survive every prompt change, so it lives in one place and is
@@ -126,145 +123,25 @@
     },
   ];
 
-  // ── The free roster ──────────────────────────────────────────────────────
   // Free slugs get retired without notice — a dead roster reads to the visitor as a
-  // broken page, and hand-editing this list is exactly the chore nobody performs. It is
-  // therefore generated: `scripts/refresh-free-roster.mjs` verifies every candidate
-  // with a real call through OPEN_RELAY and writes ROSTER_URL, which is loaded below.
-  //
-  // Hardcoding it here is what failed. On 2026-08-28 the previous literal still named
-  // `openai/gpt-oss-20b:free` and `nvidia/nemotron-3-nano-30b-a3b:free`, both withdrawn
-  // from OpenRouter, leaving the critic tier two-thirds dead.
-  const ROSTER_URL = '/web/council/free-roster.json';
-  // How old a verification may be before the page says so out loud. The generator runs
-  // daily, so a roster past this has missed several runs and the refresh is broken.
-  const ROSTER_STALE_AFTER_DAYS = 3;
-
-  // Last-resort seed, used only if ROSTER_URL cannot be fetched or fails validation.
-  // These five answered on every one of three spaced verification rounds on 2026-08-28,
-  // so a fetch failure degrades to a working council rather than a dead one. It is a
-  // floor, not the source of truth — the generated file supersedes it whenever it loads.
-  const FALLBACK_ROSTERS = {
+  // broken page. Every entry below was verified live through OPEN_RELAY on 2026-07-30.
+  const FREE_ROSTERS = {
     proposer: [
       'nvidia/nemotron-3-super-120b-a12b:free',
-      'minimax/minimax-m3:free',
-      'cohere/north-mini-code:free',
+      'google/gemma-4-26b-a4b-it:free',
+      'openai/gpt-oss-20b:free',
     ],
     critic: [
-      'cohere/north-mini-code:free',
-      'nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free',
-      'minimax/minimax-m3:free',
+      'openai/gpt-oss-20b:free',
+      'nvidia/nemotron-3-nano-30b-a3b:free',
+      'inclusionai/ling-3.0-flash:free',
     ],
     synthesis: [
       'nvidia/nemotron-3-ultra-550b-a55b:free',
+      'google/gemma-4-26b-a4b-it:free',
       'nvidia/nemotron-3-super-120b-a12b:free',
-      'minimax/minimax-m3:free',
     ],
   };
-
-  const ROSTER_TIERS = ['proposer', 'critic', 'synthesis'];
-
-  // Mutated in place by applyRoster so the run path can keep reading FREE_ROSTERS.<tier>
-  // without threading roster state through every call site.
-  const FREE_ROSTERS = {
-    proposer: [...FALLBACK_ROSTERS.proposer],
-    critic: [...FALLBACK_ROSTERS.critic],
-    synthesis: [...FALLBACK_ROSTERS.synthesis],
-  };
-
-  // What the page currently believes about its own roster, rendered by paintRosterStatus.
-  const rosterState = { source: 'fallback', verifiedAt: null, freshlyVerified: null, error: null };
-  // Resolves once the generated roster has been fetched (or definitively failed).
-  let rosterLoad = null;
-
-  // The same guarantee line 496 enforces per call, applied to the file as a whole. A
-  // generated artifact is still remote input: if anything in it is not a `:free` slug,
-  // the whole document is rejected and the baked-in fallback stands. Partial adoption
-  // would be the one outcome worse than not loading it at all.
-  function validateRosterDocument(document) {
-    if (!document || typeof document !== 'object') throw new Error('Roster is not an object.');
-    if (document.schemaVersion !== '1') throw new Error(`Unsupported roster schemaVersion ${document.schemaVersion}.`);
-    if (typeof document.verifiedAt !== 'string' || !Number.isFinite(Date.parse(document.verifiedAt))) {
-      throw new Error('Roster has no parseable verifiedAt.');
-    }
-    const rosters = document.rosters;
-    if (!rosters || typeof rosters !== 'object') throw new Error('Roster has no rosters block.');
-    for (const tier of ROSTER_TIERS) {
-      const models = rosters[tier];
-      if (!Array.isArray(models) || models.length === 0) throw new Error(`Roster tier ${tier} is empty.`);
-      for (const model of models) {
-        if (typeof model !== 'string' || !model.endsWith(':free')) {
-          throw new Error(`Roster tier ${tier} carries a non-free slug: ${model}`);
-        }
-      }
-    }
-    return rosters;
-  }
-
-  function rosterAgeDays(verifiedAt, now = Date.now()) {
-    const verified = Date.parse(verifiedAt);
-    if (!Number.isFinite(verified)) return Infinity;
-    return (now - verified) / 86_400_000;
-  }
-
-  // Staleness is stated, never inferred by silence. A refresh that quietly stopped
-  // would otherwise leave the page serving an ageing list that still looks authoritative.
-  function rosterStatusText(state, now = Date.now()) {
-    if (state.source === 'fallback') {
-      return 'Roster unverified — running a built-in fallback list. Models may be unavailable.';
-    }
-    const ageDays = rosterAgeDays(state.verifiedAt, now);
-    const whole = Math.floor(ageDays);
-    const when = whole < 1 ? 'today' : whole === 1 ? 'yesterday' : `${whole} days ago`;
-    if (ageDays > ROSTER_STALE_AFTER_DAYS) {
-      return `Roster last verified ${when} — overdue, so some models may no longer answer.`;
-    }
-    // verifiedAt is the newest real success, so this age is never advanced by a refresh
-    // that ran and confirmed nothing. When the most recent run confirmed nothing at all,
-    // say so rather than letting a recent-but-unconfirmed roster read as freshly checked.
-    if (state.freshlyVerified === 0) {
-      return `Roster last verified ${when}; the most recent check confirmed no models.`;
-    }
-    return `Roster verified ${when} against the live free-model relay.`;
-  }
-
-  function paintRosterStatus(now = Date.now()) {
-    const node = query('#openrouter-roster-status');
-    if (!node) return;
-    const stale = rosterState.source === 'fallback'
-      || rosterAgeDays(rosterState.verifiedAt, now) > ROSTER_STALE_AFTER_DAYS;
-    node.textContent = rosterStatusText(rosterState, now);
-    node.classList.toggle('stale', stale);
-    node.setAttribute('data-roster-source', rosterState.source);
-  }
-
-  function applyRoster(rosters) {
-    for (const tier of ROSTER_TIERS) FREE_ROSTERS[tier] = [...rosters[tier]];
-  }
-
-  async function loadFreeRoster({ fetchImpl = fetch, url = ROSTER_URL } = {}) {
-    try {
-      const response = await fetchImpl(url, { cache: 'no-cache' });
-      if (!response.ok) throw new Error(`HTTP ${response.status}`);
-      const document = await response.json();
-      const rosters = validateRosterDocument(document);
-      applyRoster(rosters);
-      rosterState.source = 'generated';
-      rosterState.verifiedAt = document.verifiedAt;
-      rosterState.freshlyVerified = typeof document.freshlyVerified === 'number'
-        ? document.freshlyVerified
-        : null;
-      rosterState.error = null;
-    } catch (error) {
-      // A failed load is never fatal: the fallback roster is already installed.
-      rosterState.source = 'fallback';
-      rosterState.verifiedAt = null;
-      rosterState.freshlyVerified = null;
-      rosterState.error = error?.message || String(error);
-    }
-    paintRosterStatus();
-    return rosterState;
-  }
 
   const query = (selector) => document.querySelector(selector);
   const NULL_NODE = { textContent: '', classList: { add() {}, remove() {} }, replaceChildren() {}, setAttribute() {} };
@@ -273,28 +150,7 @@
     card: query(`[data-stage="${key}"]`) || NULL_NODE,
     status: query(`[data-status="${key}"]`) || NULL_NODE,
     output: query(`[data-output="${key}"]`) || NULL_NODE,
-    modelLabel: query(`[data-model-label="${key}"]`) || NULL_NODE,
   });
-
-  function modelAccent(model) {
-    let hash = 0x811c9dc5;
-    for (const character of String(model)) {
-      hash ^= character.charCodeAt(0);
-      hash = Math.imul(hash, 0x01000193) >>> 0;
-    }
-    return `hsl(${hash % 360} 65% 70%)`;
-  }
-
-  function setStageModel(key, model) {
-    const view = stageView(key);
-    if (!model) return view;
-    view.card.style.setProperty('--model-accent', modelAccent(model));
-    if (view.modelLabel) {
-      view.modelLabel.textContent = model;
-      view.modelLabel.setAttribute('title', model);
-    }
-    return view;
-  }
 
   function abortError() {
     const error = new Error('Stopped');
@@ -447,8 +303,8 @@
     return loader;
   }
 
-  function beginStage(key, label = 'Connecting', model = '') {
-    const view = setStageModel(key, model);
+  function beginStage(key, label = 'Connecting') {
+    const view = stageView(key);
     const textNode = document.createTextNode('');
     const loader = createDeliberationLoader();
     view.output.replaceChildren(textNode, loader);
@@ -469,7 +325,7 @@
       stream.view.status.textContent = 'Streaming';
     }
     stream.text += token;
-    stream.textNode.textContent += token;
+    stream.textNode.appendData(token);
   }
 
   function finishStage(key, text, label = 'Settled') {
@@ -532,11 +388,10 @@
   async function streamTinyModel(model, prompt, maxTokens, outerSignal, onToken, temperature = MODES[DEFAULT_MODE].temperature) {
     const scope = createStreamScope(outerSignal);
     let fullText = '';
-    let terminated = false;
     try {
       let response;
       try {
-        response = await fetchImpl(`${TINY_RELAY}/api/generate`, {
+        response = await fetch(`${TINY_RELAY}/api/generate`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -548,9 +403,7 @@
           signal: scope.signal,
         });
       } catch (error) {
-        const classified = scope.classify(error);
-        if (classified.name === 'AbortError') throw classified;
-        throw new Error(LOCAL_OUTAGE_MESSAGE);
+        throw scope.classify(error);
       }
       if (!response.ok || !response.body) {
         throw tagFailure(new Error(`Local relay returned HTTP ${response.status}.`), 'http', response.status);
@@ -565,8 +418,8 @@
           chunk = await reader.read();
         } catch (error) {
           const classified = scope.classify(error, fullText);
-          if (classified.message === INCOMPLETE_MESSAGE || classified.name === 'AbortError') throw classified;
-          throw new Error(LOCAL_OUTAGE_MESSAGE);
+          if (classified === null) return fullText;
+          throw classified;
         }
         if (chunk.done) break;
         buffer += decoder.decode(chunk.value, { stream: true });
@@ -586,7 +439,6 @@
             fullText += event.response;
             onToken(event.response);
           }
-          if (event.done === true) terminated = true;
         }
       }
       if (buffer.trim()) {
@@ -597,14 +449,9 @@
             fullText += finalEvent.response;
             onToken(finalEvent.response);
           }
-          if (finalEvent.done === true) terminated = true;
         } catch {
           // An incomplete terminal line carries no usable token.
         }
-      }
-      if (!terminated) {
-        if (fullText) throw new Error(INCOMPLETE_MESSAGE);
-        throw new Error(LOCAL_OUTAGE_MESSAGE);
       }
       return fullText.trim();
     } finally {
@@ -617,7 +464,6 @@
     const scope = createStreamScope(outerSignal, transport);
     const fetchImpl = transport.fetchImpl || fetch;
     let fullText = '';
-    let terminated = false;
     try {
       let response;
       try {
@@ -665,6 +511,7 @@
           chunk = await reader.read();
         } catch (error) {
           const classified = scope.classify(error, fullText);
+          if (classified === null) return fullText;
           throw classified;
         }
         if (chunk.done) break;
@@ -675,10 +522,7 @@
           const line = rawLine.trim();
           if (!line || line.startsWith(':') || !line.startsWith('data:')) continue;
           const payload = line.slice(5).trim();
-          if (payload === '[DONE]') {
-            terminated = true;
-            return fullText.trim();
-          }
+          if (payload === '[DONE]') return fullText.trim();
           let event;
           try {
             event = JSON.parse(payload);
@@ -693,10 +537,6 @@
             onToken(token);
           }
         }
-      }
-      if (!terminated) {
-        if (fullText) throw new Error(INCOMPLETE_MESSAGE);
-        throw new Error('The free model stream ended before its completion marker.');
       }
       return fullText.trim();
     } finally {
@@ -754,7 +594,7 @@
       outerSignal,
       temperature,
       onAttempt(model, index, count) {
-        stream = beginStage(key, `Model ${index + 1}/${count}`, model);
+        stream = beginStage(key, `Model ${index + 1}/${count}`);
         hint.textContent = `Trying ${model.split('/').pop()} — free-tier queues can vary.`;
       },
       onToken(token) {
@@ -765,7 +605,7 @@
       },
     });
     if (result) {
-      finishStage(key, result.text, 'Settled');
+      finishStage(key, result.text, result.model.split('/').pop());
       return result;
     }
     runState.lastFailure = lastError;
@@ -845,7 +685,6 @@
       const stream = beginStage(
         seat.stageKey,
         seat.key === 'synthesizer' ? 'Reading council' : 'Connecting',
-        seat.model,
       );
       hint.textContent = seat.key === 'synthesizer'
         ? 'qwen is weighing all four prior views.'
@@ -859,7 +698,7 @@
           (token) => appendToken(stream, token),
           treatment.temperature,
         );
-        finishStage(seat.stageKey, text, 'Settled');
+        finishStage(seat.stageKey, text, seat.label);
         return text;
       } catch (error) {
         if (error.name === 'AbortError') {
@@ -912,9 +751,6 @@
 
     const runButton = query('#openrouter-run');
     const hint = query('#openrouter-hint');
-    // A run started before the generated roster lands would otherwise use the fallback
-    // list unnecessarily. Awaiting the in-flight load costs nothing once it has settled.
-    if (rosterLoad) await rosterLoad.catch(() => {});
     resetStages(FREE_STAGE_KEYS);
     openController = new AbortController();
     const { signal } = openController;
@@ -1004,11 +840,7 @@
   }
 
   if (typeof module === 'object' && module.exports) {
-    module.exports = {
-      appendToken, beginStage, finishStage, modelAccent, resolveMode,
-      runFreeRoster, runTinyPair, runTinyDeliberation, setActiveMode,
-      streamFreeModel, streamTinyModel, MODES,
-    };
+    module.exports = { runFreeRoster, runTinyPair, runTinyDeliberation, MODES, resolveMode, setActiveMode };
   }
   if (typeof document === 'undefined') return;
 
@@ -1074,27 +906,4 @@
   bind('free shortcut', () => query('#openrouter-question').addEventListener('keydown', (event) => {
     if (event.key === 'Enter' && (event.ctrlKey || event.metaKey)) runOpen();
   }));
-
-  // Kicked off at load rather than awaited: the fallback roster is already usable, so
-  // the page stays interactive while the generated one arrives. runOpenCouncil awaits
-  // this same promise so a run that starts within the first moments still uses the
-  // verified list rather than racing it.
-  bind('free roster', () => {
-    rosterLoad = loadFreeRoster();
-    paintRosterStatus();
-  });
-
-  bind('hash navigation', () => {
-    if (window.location.hash) {
-      const targetId = window.location.hash.substring(1);
-      const targetElement = document.getElementById(targetId);
-      if (targetElement) {
-        // A slight delay ensures layout is complete before scrolling
-        setTimeout(() => {
-          targetElement.scrollIntoView({ behavior: 'smooth' });
-        }, 100);
-      }
-    }
-  });
-
 })();

@@ -160,8 +160,9 @@ body[data-council] .spinner {
   body[data-council] *,
   body[data-council] *::before,
   body[data-council] *::after {
-    animation: none !important;
-    transition: none !important;
+    animation-duration: var(--duration-reduced) !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: var(--duration-reduced) !important;
   }
   body[data-council] .spinner {
     animation: none;

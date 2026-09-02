@@ -1,160 +1,7 @@
 <!DOCTYPE html>
 <html lang="en" class="forest-skin">
 <head>
-<meta charset="UTF-8" />
-<link rel="icon" href="/web/shared/favicon.svg?v=20260807a" type="image/svg+xml">
-<script defer src="/web/shared/feedback.js?v=20260807a"></script>
-<script type="module" src="/web/shared/forest-navigation.mjs?v=20260807a"></script>
-<link rel="preload" href="/web/shared/forest-design.css?v=20260807a" as="style">
-<link rel="preload" href="/web/vendor/fonts/cormorant-garamond-normal-600-latin.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="preload" href="/web/vendor/fonts/alegreya-normal-400-900-latin.woff2" as="font" type="font/woff2" crossorigin>
-<script type="speculationrules">
-{
-  "prerender": [
-    {
-      "source": "document",
-      "where": {
-        "and": [
-          {
-            "href_matches": "/web/*"
-          },
-          {
-            "or": [
-              {
-                "href_matches": "/web/ai-research/*"
-              },
-              {
-                "href_matches": "/web/c2c-dolphin/*"
-              },
-              {
-                "href_matches": "/web/c2c-self/*"
-              },
-              {
-                "href_matches": "/web/calendar/*"
-              },
-              {
-                "href_matches": "/web/council/"
-              },
-              {
-                "href_matches": "/web/council/index.html"
-              },
-              {
-                "href_matches": "/web/hypertrophyos/*"
-              },
-              {
-                "href_matches": "/web/kids/*"
-              },
-              {
-                "href_matches": "/web/kids-movie-library/*"
-              },
-              {
-                "href_matches": "/web/library/"
-              },
-              {
-                "href_matches": "/web/library/index.html"
-              },
-              {
-                "href_matches": "/web/library/general/*"
-              },
-              {
-                "href_matches": "/web/library/glossary/*"
-              },
-              {
-                "href_matches": "/web/library/memory/*"
-              },
-              {
-                "href_matches": "/web/library/platform/*"
-              },
-              {
-                "href_matches": "/web/library/rag.html"
-              },
-              {
-                "href_matches": "/web/library/repos/*"
-              },
-              {
-                "href_matches": "/web/life-in-time/*"
-              },
-              {
-                "href_matches": "/web/m-popova/*"
-              },
-              {
-                "href_matches": "/web/math-mania/*"
-              },
-              {
-                "href_matches": "/web/mendeleev-bg/*"
-              },
-              {
-                "href_matches": "/web/morning-news/*"
-              },
-              {
-                "href_matches": "/web/upload/*"
-              },
-              {
-                "href_matches": "/web/vfx-portfolio/*"
-              }
-            ]
-          },
-          {
-            "not": {
-              "or": [
-                {
-                  "href_matches": "/web/ai-init/*"
-                },
-                {
-                  "href_matches": "/web/avatar-playground/*"
-                },
-                {
-                  "href_matches": "/web/chloe-pwa/*"
-                },
-                {
-                  "href_matches": "/web/council/byok/*"
-                },
-                {
-                  "href_matches": "/web/council/inner/*"
-                },
-                {
-                  "href_matches": "/web/council/tinylm/*"
-                },
-                {
-                  "href_matches": "/web/evolution/*"
-                },
-                {
-                  "href_matches": "/web/library/chloe/*"
-                },
-                {
-                  "href_matches": "/web/llm-db/*"
-                },
-                {
-                  "href_matches": "/web/manifesto-newborn/*"
-                },
-                {
-                  "href_matches": "/web/math-forest/*"
-                },
-                {
-                  "href_matches": "/web/open-overview/*"
-                },
-                {
-                  "href_matches": "/web/power-law-odyssey/*"
-                },
-                {
-                  "href_matches": "/web/replicator-void/*"
-                },
-                {
-                  "href_matches": "/web/tinylm/*"
-                },
-                {
-                  "href_matches": "/web/womens-health-os/*"
-                }
-              ]
-            }
-          }
-        ]
-      },
-      "eagerness": "moderate"
-    }
-  ]
-}
-</script>
+  <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Women's Health OS — Forest HUB</title>
   <meta name="description" content="A research intelligence base for women's health — thousands of evidence-graded facts, synthesized rules, and verifiable claims distilled from peer-reviewed papers across the menstrual cycle, hormones, fertility, PCOS, menopause and more." />
@@ -162,8 +9,8 @@
   <meta property="og:description" content="Evidence-graded facts, rules, and claims for women's health, distilled from peer-reviewed research." />
   <meta property="og:type" content="website" />
   <meta name="theme-color" content="#07070b" />
-  <link rel="stylesheet" href="/web/shared/forest-shell.css?v=20260807a">
-  <link rel="stylesheet" href="/web/shared/forest-design.css?v=20260807a">
+  <link rel="stylesheet" href="/web/shared/forest-shell.css?v=20260725c">
+  <link rel="stylesheet" href="/web/shared/forest-design.css?v=20260731a">
   <style>
     :root {
       --bg: #07070b;
@@ -176,15 +23,6 @@
       --accent: #4f46e5;
       --accent-green: #22c55e;
       --radius: 8px;
-
-      /* Companions to the unified indigo accent. The chat widget was styled
-         against an amber accent; these keep every accented surface readable
-         now that --accent is #4f46e5. */
-      --on-accent: #ffffff;        /* text on a filled --accent surface  */
-      --accent-text: #a5b4fc;      /* accent as text/icon on dark ground */
-      --accent-tint: rgba(79,70,229,.10);
-      --accent-line: rgba(79,70,229,.42);
-      --accent-glow: rgba(79,70,229,.40);
       --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       --sans: var(--forest-sans, "Alegreya Sans", sans-serif);
 
@@ -239,7 +77,7 @@
     .tab:hover { color: var(--text-primary); }
     .tab.active { color: var(--text-primary); border-bottom-color: var(--rose); }
 
-    .controls { min-width:0; max-width:100%; display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+    .controls { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
     .search {
       flex: 1; min-width: 200px;
       background: rgba(0,0,0,0.35); border: 1px solid var(--border);
@@ -248,12 +86,10 @@
     }
     .search:focus { border-color: rgba(217,138,127,0.5); }
     select.topic {
-      min-width:0; max-width:100%;
       background: var(--surface-2); border: 1px solid var(--border);
       border-radius: var(--radius); color: var(--text-primary); font-family: var(--sans); font-size: 13.5px;
-      padding: 10px 12px; outline: none; cursor: pointer; text-overflow:ellipsis;
+      padding: 10px 12px; outline: none; cursor: pointer;
     }
-    #view, .list, .item, .item .meta, .phase, .wh-ref { min-width:0; max-width:100%; overflow-wrap:anywhere; }
 
     .list { display: flex; flex-direction: column; gap: 10px; margin-top: 4px; }
     .item {
@@ -274,7 +110,6 @@
     .chip.conf-high { color: var(--accent-green); border-color: rgba(143,230,174,.3); }
     .chip.conf-medium { color: var(--amber); border-color: rgba(232,184,107,.35); }
     .chip.conf-low { color: var(--dim); }
-    .evidence-grade { display:inline-flex; margin-bottom:10px; color:var(--text-primary); font-family:var(--sans); font-size:16px; font-weight:800; letter-spacing:.08em; line-height:1; text-transform:uppercase; }.evidence-grade.conf-high { color:var(--accent-green); }.evidence-grade.conf-medium { color:var(--amber); }.evidence-grade.conf-low { color:var(--dim); }
     .item .src { color: var(--dim); }
     .item .src a { color: var(--plum); text-decoration: none; }
     .item .src a:hover { text-decoration: underline; }
@@ -311,11 +146,7 @@
     .disclaimer { text-align: center; font-size: 11.5px; color: var(--dim); max-width: 60ch; margin: 0 auto; line-height: 1.6; }
     .offline-atlas { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; margin:18px 0; }
     .offline-topic { min-height:96px; display:flex; align-items:flex-end; padding:15px; border:1px solid rgba(217,138,127,.2); border-radius:12px; background:linear-gradient(145deg,rgba(217,138,127,.08),rgba(255,255,255,.018)); color:var(--text-primary); font-family:var(--sans); font-size:12px; font-weight:700; letter-spacing:.04em; }
-    @media (max-width:640px) {
-      .offline-atlas { grid-template-columns:repeat(2,minmax(0,1fr)); }
-      .controls { display:grid; grid-template-columns:minmax(0,1fr); }
-      .controls > .search, .controls > select.topic { width:100%; min-width:0; max-width:100%; }
-    }
+    @media (max-width:640px) { .offline-atlas { grid-template-columns:repeat(2,minmax(0,1fr)); } }
 
     /* ── Motion: bloom entrance, drawn cycle arcs, graded list arrivals ── */
     @property --ph-sweep { syntax: '<percentage>'; inherits: false; initial-value: 0%; }
@@ -359,10 +190,9 @@
     @keyframes wh-msg-right { from { opacity: 0; transform: translateX(14px); } }
     @keyframes wh-msg-left { from { opacity: 0; transform: translateX(-14px); } }
   </style>
-  <link rel="stylesheet" href="/web/shared/design-history.css?v=20260807a">
+  <link rel="stylesheet" href="/web/shared/design-history.css?v=20260731a">
 </head>
 <body data-forest-page="health">
-  <a class="forest-back" href="/">← SDForest</a>
   <div class="page">
     <div class="topbar">
       <a href="/" class="back-link">&#8592; Forest HUB</a>
@@ -422,30 +252,7 @@
     var topicEl = document.getElementById("topic");
     var controlsEl = document.getElementById("controls");
 
-    function makeElement(tag, className, text) {
-      var element = document.createElement(tag);
-      if (className) element.className = className;
-      if (text != null) element.textContent = String(text);
-      return element;
-    }
-    function showViewMessage(text, className) {
-      viewEl.replaceChildren(makeElement("div", className || "empty", text));
-    }
-    var allowedReferenceHosts = new Set([
-      "doi.org",
-      "pubmed.ncbi.nlm.nih.gov",
-      "www.ncbi.nlm.nih.gov",
-      "pmc.ncbi.nlm.nih.gov",
-    ]);
-    function safePublicReferenceUrl(value) {
-      try {
-        var url = new URL(String(value));
-        if (url.protocol !== "https:" || url.username || url.password) return "";
-        return allowedReferenceHosts.has(url.hostname.toLowerCase()) ? url.href : "";
-      } catch (error) {
-        return "";
-      }
-    }
+    function esc(s) { return String(s == null ? "" : s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
     function api(path) {
       var ctrl = new AbortController();
       var t = setTimeout(function () { ctrl.abort(); }, 3500);
@@ -463,27 +270,14 @@
 
     function offlineNote() {
       controlsEl.style.display = "none";
-      var note = makeElement("div", "offline-note");
-      note.appendChild(document.createTextNode(
-        "The live evidence index is unavailable right now. The research atlas remains useful below instead of rendering blank; reconnect when the public service is reachable.",
-      ));
-      var atlas = makeElement("div", "offline-atlas");
-      atlas.setAttribute("aria-label", "Research areas");
-      ["Menstrual cycle", "Hormones", "Fertility", "PCOS", "Perimenopause", "Thyroid"].forEach(function (topic) {
-        atlas.appendChild(makeElement("div", "offline-topic", topic));
-      });
-      var apiForm = makeElement("div", "api-form");
-      var input = makeElement("input");
-      input.id = "api-input";
-      input.setAttribute("aria-label", "Women’s Health API base URL");
-      input.spellcheck = false;
-      input.value = API;
-      var button = makeElement("button", null, "Connect");
-      button.type = "button";
-      button.addEventListener("click", saveApi);
-      apiForm.append(input, button);
-      note.append(atlas, apiForm);
-      viewEl.replaceChildren(note);
+      viewEl.innerHTML =
+        '<div class="offline-note">' +
+        "The live evidence index is unavailable right now. The research space remains visible instead of rendering blank; reconnect below when the public service is reachable." +
+        '<div class="offline-atlas" aria-label="Research areas"><div class="offline-topic">Menstrual cycle</div><div class="offline-topic">Hormones</div><div class="offline-topic">Fertility</div><div class="offline-topic">PCOS</div><div class="offline-topic">Perimenopause</div><div class="offline-topic">Thyroid</div></div>' +
+        '<div class="api-form">' +
+        '<input id="api-input" aria-label="Women’s Health API base URL" value="' + esc(API) + '" spellcheck="false" />' +
+        '<button onclick="saveApi()">Connect</button>' +
+        "</div></div>";
     }
     function saveApi() {
       var v = (document.getElementById("api-input").value || "").trim();
@@ -498,107 +292,71 @@
       return l === "HIGH" ? "high" : l === "MEDIUM" ? "medium" : "low";
     }
 
-    function appendPaperLink(container, doi, pmcid) {
-      var id = pmcid || doi;
-      if (!id) return;
-      var href = pmcid
-        ? "https://www.ncbi.nlm.nih.gov/pmc/articles/" + encodeURIComponent(pmcid) + "/"
-        : "https://doi.org/" + encodeURIComponent(doi);
-      container.appendChild(document.createTextNode(" "));
-      var link = makeElement("a", null, id);
-      link.href = href;
-      link.target = "_blank";
-      link.rel = "noopener";
-      container.appendChild(link);
+    function paperLink(doi, pmcid) {
+      if (pmcid) return '<a href="https://www.ncbi.nlm.nih.gov/pmc/articles/' + esc(pmcid) + '/" target="_blank" rel="noopener">' + esc(pmcid) + "</a>";
+      if (doi) return '<a href="https://doi.org/' + esc(doi) + '" target="_blank" rel="noopener">' + esc(doi) + "</a>";
+      return "";
     }
 
     function renderFacts(rows) {
       if (!rows.length) return empty();
-      var list = document.createElement("div");
-      list.className = "list";
-      rows.forEach(function (f) {
+      viewEl.innerHTML = '<div class="list">' + rows.map(function (f) {
         var cc = confClass(f.confidence_label, f.confidence);
-        var item = makeElement("div", "item " + cc);
-        var grade = makeElement("span", "evidence-grade conf-" + cc, String(f.confidence_label || cc).toUpperCase() + " evidence"); item.appendChild(grade);
-        var body = makeElement("div", "body", f.fact || ""); item.appendChild(body);
-        var meta = makeElement("div", "meta");
-        var category = makeElement("span", "chip", f.category || f.paper_topic || ""); meta.appendChild(category);
-        var source = makeElement("span", "src", f.paper_title || "");
-        appendPaperLink(source, f.paper_doi, f.paper_pmcid);
-        meta.appendChild(source); item.appendChild(meta); list.appendChild(item);
-      });
-      viewEl.replaceChildren(list);
+        return '<div class="item ' + cc + '"><div class="body">' + esc(f.fact) + "</div>" +
+          '<div class="meta">' +
+          '<span class="chip conf-' + cc + '">' + esc(f.confidence_label || cc) + "</span>" +
+          '<span class="chip">' + esc(f.category || f.paper_topic || "") + "</span>" +
+          '<span class="src">' + esc(f.paper_title || "") + " " + paperLink(f.paper_doi, f.paper_pmcid) + "</span>" +
+          "</div></div>";
+      }).join("") + "</div>";
     }
     function renderRules(rows) {
       if (!rows.length) return empty();
-      var list = makeElement("div", "list");
-      rows.forEach(function (r) {
+      viewEl.innerHTML = '<div class="list">' + rows.map(function (r) {
         var cc = confClass(null, r.confidence);
-        var item = makeElement("div", "item " + cc);
-        item.appendChild(makeElement("div", "body", r.rule || ""));
-        var meta = makeElement("div", "meta");
-        meta.appendChild(makeElement("span", "chip", r.applies_to || ""));
-        meta.appendChild(makeElement("span", "chip", String(r.evidence_count || 0) + " sources"));
-        item.appendChild(meta);
-        list.appendChild(item);
-      });
-      viewEl.replaceChildren(list);
+        return '<div class="item ' + cc + '"><div class="body">' + esc(r.rule) + "</div>" +
+          '<div class="meta">' +
+          '<span class="chip">' + esc(r.applies_to || "") + "</span>" +
+          '<span class="chip">' + (r.evidence_count || 0) + " sources</span>" +
+          "</div></div>";
+      }).join("") + "</div>";
     }
     function renderClaims(rows) {
       if (!rows.length) return empty();
-      var list = makeElement("div", "list");
-      rows.forEach(function (c) {
-        var cc = confClass(String(c.confidence || "").toUpperCase());
-        var item = makeElement("div", "item " + cc);
-        item.appendChild(makeElement("div", "body", c.statement || c.title || ""));
-        var meta = makeElement("div", "meta");
-        meta.appendChild(makeElement("span", "chip conf-" + cc, c.confidence || ""));
-        meta.appendChild(makeElement("span", "chip", c.category || ""));
-        if (c.contradictions && c.contradictions !== "None found") {
-          meta.appendChild(makeElement("span", "src", "⚠ " + c.contradictions));
-        }
-        item.appendChild(meta);
-        list.appendChild(item);
-      });
-      viewEl.replaceChildren(list);
+      viewEl.innerHTML = '<div class="list">' + rows.map(function (c) {
+        var cc = confClass((c.confidence || "").toUpperCase());
+        return '<div class="item ' + cc + '"><div class="body">' + esc(c.statement || c.title) + "</div>" +
+          '<div class="meta">' +
+          '<span class="chip conf-' + cc + '">' + esc(c.confidence || "") + "</span>" +
+          '<span class="chip">' + esc(c.category || "") + "</span>" +
+          (c.contradictions && c.contradictions !== "None found"
+            ? '<span class="src">&#9888; ' + esc(c.contradictions) + "</span>" : "") +
+          "</div></div>";
+      }).join("") + "</div>";
     }
     function renderPapers(rows) {
       if (!rows.length) return empty();
-      var list = makeElement("div", "list");
-      rows.forEach(function (p) {
-        var item = makeElement("div", "item");
-        item.appendChild(makeElement("div", "body", p.title || ""));
-        var meta = makeElement("div", "meta");
-        meta.appendChild(makeElement("span", "chip", p.topic_category || ""));
-        var sourceText = String(p.authors || "") + (p.year ? " · " + String(p.year) : "");
-        var source = makeElement("span", "src", sourceText);
-        appendPaperLink(source, p.doi, p.pmcid);
-        meta.appendChild(source);
-        item.appendChild(meta);
-        list.appendChild(item);
-      });
-      viewEl.replaceChildren(list);
+      viewEl.innerHTML = '<div class="list">' + rows.map(function (p) {
+        return '<div class="item"><div class="body">' + esc(p.title) + "</div>" +
+          '<div class="meta">' +
+          '<span class="chip">' + esc(p.topic_category || "") + "</span>" +
+          '<span class="src">' + esc(p.authors || "") + (p.year ? " &middot; " + p.year : "") + " " +
+          paperLink(p.doi, p.pmcid) + "</span>" +
+          "</div></div>";
+      }).join("") + "</div>";
     }
     function renderCycle(data) {
       var phases = data.phases || data || [];
       if (!phases.length) return empty();
       controlsEl.style.display = "none";
-      var grid = makeElement("div", "phase-grid");
-      phases.forEach(function (ph) {
+      viewEl.innerHTML = '<div class="phase-grid">' + phases.map(function (ph) {
         var facts = (ph.facts || []).slice(0, 4);
-        var phase = makeElement("div", "phase");
-        phase.appendChild(makeElement("h3", null, ph.phase || ph.name || ""));
-        phase.appendChild(makeElement("div", "days", ph.days || ph.day_range || ""));
-        var list = makeElement("ul");
-        facts.forEach(function (fact) {
-          list.appendChild(makeElement("li", null, typeof fact === "string" ? fact : fact.fact || ""));
-        });
-        phase.appendChild(list);
-        grid.appendChild(phase);
-      });
-      viewEl.replaceChildren(grid);
+        return '<div class="phase"><h3>' + esc(ph.phase || ph.name) + "</h3>" +
+          '<div class="days">' + esc(ph.days || ph.day_range || "") + "</div>" +
+          "<ul>" + facts.map(function (f) { return "<li>" + esc(typeof f === "string" ? f : f.fact) + "</li>"; }).join("") + "</ul></div>";
+      }).join("") + "</div>";
     }
-    function empty() { showViewMessage("No entries match."); }
+    function empty() { viewEl.innerHTML = '<div class="empty">No entries match.</div>'; }
 
     function load() {
       if (!state.online) return;
@@ -606,7 +364,7 @@
       var topic = encodeURIComponent(topicEl.value);
       var tab = state.tab;
       controlsEl.style.display = (tab === "cycle") ? "none" : "flex";
-      showViewMessage("Loading…");
+      viewEl.innerHTML = '<div class="empty">Loading&hellip;</div>';
       var qs = "?limit=100" + (q ? "&search=" + q : "") + (topic ? "&topic=" + topic : "");
       if (tab === "facts")  return api("/facts" + qs).then(function (d) { renderFacts(d.facts || []); }).catch(fail);
       if (tab === "rules")  return api("/rules" + qs).then(function (d) { renderRules(d.rules || []); }).catch(fail);
@@ -614,7 +372,7 @@
       if (tab === "papers") return api("/papers" + qs).then(function (d) { renderPapers(d.papers || []); }).catch(fail);
       if (tab === "cycle")  return api("/cycle-phases").then(renderCycle).catch(fail);
     }
-    function fail() { showViewMessage("Couldn't load this view from the API."); }
+    function fail() { viewEl.innerHTML = '<div class="empty">Couldn&#39;t load this view from the API.</div>'; }
 
     var tabEls = Array.prototype.slice.call(document.querySelectorAll(".tab"));
     function activateTab(t, moveFocus) {
@@ -662,15 +420,9 @@
       }).then(function () {
         return api("/topics").then(function (d) {
           state.topics = d.topics || [];
-          var options = [makeElement("option", null, "All topics")];
-          options[0].value = "";
-          state.topics.forEach(function (topic) {
-            var name = String(topic.name || "");
-            var option = makeElement("option", null, name.replace(/_/g, " ") + " (" + String(topic.facts || 0) + ")");
-            option.value = name;
-            options.push(option);
-          });
-          topicEl.replaceChildren.apply(topicEl, options);
+          topicEl.innerHTML = '<option value="">All topics</option>' + state.topics.map(function (t) {
+            return '<option value="' + esc(t.name) + '">' + esc(t.name.replace(/_/g, " ")) + " (" + (t.facts || 0) + ")</option>";
+          }).join("");
         }).catch(function () {});
       }).then(function () {
         load();
@@ -690,14 +442,12 @@
       position: fixed; z-index: 200; right: 20px; bottom: 20px;
       display: inline-flex; align-items: center; gap: 8px;
       padding: 12px 18px; border: 0; cursor: pointer; border-radius: 999px;
-      background: var(--accent); color: var(--on-accent); font-family: var(--sans);
+      background: var(--accent); color: #241505; font-family: var(--sans);
       font-size: 14px; font-weight: 700; letter-spacing: .01em;
-      box-shadow: 0 8px 28px var(--accent-glow);
+      box-shadow: 0 8px 28px rgba(232,184,107,.4);
       transition: transform var(--duration-scroll-state), box-shadow var(--duration-scroll-state);
     }
-    /* The feedback affordance remains available behind the higher-priority research control. */
-    button[aria-label="Send feedback"] { z-index: 190 !important; }
-    .wh-chat-fab:hover { transform: translateY(-2px); box-shadow: 0 12px 34px rgba(79,70,229,.55); }
+    .wh-chat-fab:hover { transform: translateY(-2px); box-shadow: 0 12px 34px rgba(232,184,107,.55); }
     .wh-chat-fab svg { width: 18px; height: 18px; }
     .wh-chat-panel {
       position: fixed; z-index: 210; right: 20px; bottom: 20px;
@@ -710,7 +460,7 @@
     .wh-chat-head {
       display: flex; align-items: center; gap: 10px; padding: 13px 15px;
       border-bottom: 1px solid var(--border);
-      background: linear-gradient(180deg, rgba(79,70,229,.18), transparent);
+      background: linear-gradient(180deg, rgba(232,184,107,.12), transparent);
     }
     .wh-chat-head .d { width: 9px; height: 9px; border-radius: 50%; background: var(--accent-green); box-shadow: 0 0 8px var(--accent-green); }
     .wh-chat-head h2 { font-size: 14px; color: var(--text-primary); font-weight: 700; margin: 0; }
@@ -719,29 +469,29 @@
     .wh-chat-close:hover { color: var(--text-primary); }
     .wh-chat-log { flex: 1; overflow-y: auto; padding: 14px; display: flex; flex-direction: column; gap: 12px; }
     .wh-msg { font-size: 13.5px; line-height: 1.5; }
-    .wh-msg.user { align-self: flex-end; max-width: 85%; background: var(--accent); color: var(--on-accent); font-weight: 600; padding: 9px 13px; border-radius: 13px 13px 3px 13px; }
+    .wh-msg.user { align-self: flex-end; max-width: 85%; background: var(--accent); color: #241505; font-weight: 600; padding: 9px 13px; border-radius: 13px 13px 3px 13px; }
     .wh-msg.bot { align-self: flex-start; max-width: 100%; color: var(--text-primary); }
     .wh-msg.bot .answer { background: var(--surface-2); border: 1px solid var(--border); padding: 11px 13px; border-radius: 3px 13px 13px 13px; white-space: pre-wrap; }
     .wh-sources { display: flex; gap: 6px; flex-wrap: wrap; margin: 9px 0 2px; }
     .wh-badge { font-family: var(--sans); font-size: 10.5px; font-weight: 700; letter-spacing: .02em; padding: 3px 9px; border-radius: 999px; border: 1px solid; }
-    .wh-badge.oracle { color: var(--accent-text); border-color: var(--accent-line); background: var(--accent-tint); }
+    .wh-badge.oracle { color: var(--accent); border-color: rgba(232,184,107,.45); background: rgba(232,184,107,.1); }
     .wh-badge.pubmed { color: var(--rose); border-color: rgba(217,138,127,.4); background: rgba(217,138,127,.08); }
     .wh-badge.none { color: var(--text-muted); border-color: var(--border); }
     .wh-refs { margin-top: 9px; }
     .wh-refs h4 { font-family: var(--sans); font-size: 10.5px; text-transform: uppercase; letter-spacing: .07em; color: var(--text-muted); margin: 0 0 6px; }
     .wh-ref { display: block; font-size: 12px; color: var(--text-muted); padding: 6px 9px; margin-bottom: 5px; background: var(--surface-2); border: 1px solid var(--border); border-radius: 7px; text-decoration: none; }
-    a.wh-ref:hover { color: var(--text-primary); border-color: var(--accent-line); }
+    a.wh-ref:hover { color: var(--text-primary); border-color: rgba(232,184,107,.4); }
     .wh-ref .pmid { color: var(--rose); font-weight: 700; }
     .wh-ref .meta { color: var(--dim); }
     .wh-empty { color: var(--text-muted); font-size: 13px; line-height: 1.6; text-align: center; margin: auto 8px; }
     .wh-empty strong { color: var(--text-primary); }
     .wh-suggest { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; margin-top: 12px; }
-    .wh-suggest button { font-size: 11.5px; color: var(--accent-text); cursor: pointer; background: var(--accent-tint); border: 1px solid var(--accent-line); padding: 6px 10px; border-radius: 999px; font-family: var(--sans); }
-    .wh-suggest button:hover { background: rgba(79,70,229,.2); }
+    .wh-suggest button { font-size: 11.5px; color: var(--accent); cursor: pointer; background: rgba(232,184,107,.08); border: 1px solid rgba(232,184,107,.28); padding: 6px 10px; border-radius: 999px; font-family: var(--sans); }
+    .wh-suggest button:hover { background: rgba(232,184,107,.16); }
     .wh-chat-form { display: flex; gap: 8px; padding: 12px; border-top: 1px solid var(--border); }
     .wh-chat-form input { flex: 1; background: var(--surface-2); border: 1px solid var(--border); border-radius: 9px; color: var(--text-primary); padding: 10px 12px; font-size: 13.5px; font-family: var(--font); }
-    .wh-chat-form input:focus { outline: none; border-color: var(--accent-line); }
-    .wh-chat-form button { background: var(--accent); border: 0; border-radius: 9px; cursor: pointer; color: var(--on-accent); font-weight: 700; padding: 0 15px; font-size: 13.5px; font-family: var(--sans); }
+    .wh-chat-form input:focus { outline: none; border-color: rgba(232,184,107,.5); }
+    .wh-chat-form button { background: var(--accent); border: 0; border-radius: 9px; cursor: pointer; color: #241505; font-weight: 700; padding: 0 15px; font-size: 13.5px; font-family: var(--sans); }
     .wh-chat-form button:disabled { opacity: .5; cursor: default; }
     .wh-typing { display: inline-flex; gap: 4px; padding: 4px 2px; }
     .wh-typing span { width: 6px; height: 6px; border-radius: 50%; background: var(--text-muted); animation: whblink var(--duration-dot-pulse) infinite both; }
@@ -790,7 +540,8 @@
       var sendBtn = document.getElementById("whChatSend");
       var lastFocused = null;
 
-      function el(tag, cls, text) { var e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = String(text); return e; }
+      function esc(s) { return String(s == null ? "" : s).replace(/[&<>"]/g, function (c) { return ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;" })[c]; }); }
+      function el(tag, cls, html) { var e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; return e; }
 
       function openChat() {
         lastFocused = document.activeElement;
@@ -839,66 +590,34 @@
         b.addEventListener("click", function () { input.value = b.getAttribute("data-q"); form.requestSubmit(); });
       });
 
-      // The /query response carries facts/rules/pubmed but no explicit `sources`
-      // array, so derive the badges from the evidence actually present. Without
-      // this the panel showed "No source" directly above "Oracle DB - N facts".
-      function deriveSources(data) {
-        if (data.sources && data.sources.length) return data.sources;
-        var out = [];
-        if ((data.facts || []).length || (data.rules || []).length) out.push("Oracle DB");
-        if ((data.pubmed || []).length) out.push("PubMed");
-        return out;
-      }
-
       function srcBadges(sources) {
         var wrap = el("div", "wh-sources");
         if (!sources || !sources.length) { wrap.appendChild(el("span", "wh-badge none", "No source")); return wrap; }
-        sources.forEach(function (s) { wrap.appendChild(el("span", "wh-badge " + (s === "PubMed" ? "pubmed" : "oracle"), s)); });
+        sources.forEach(function (s) { wrap.appendChild(el("span", "wh-badge " + (s === "PubMed" ? "pubmed" : "oracle"), esc(s))); });
         return wrap;
       }
 
       function renderBot(data) {
         var bot = el("div", "wh-msg bot");
-        bot.appendChild(srcBadges(deriveSources(data)));
-        bot.appendChild(el("div", "answer", data.answer || data.note || "No answer available."));
-        var facts = data.facts || [], pubmed = data.pubmed || [], rules = data.rules || [];
-        if (facts.length || pubmed.length || rules.length) {
+        bot.appendChild(srcBadges(data.sources));
+        bot.appendChild(el("div", "answer", esc(data.answer || data.note || "No answer available.")));
+        var facts = data.facts || [], pubmed = data.pubmed || [];
+        if (facts.length || pubmed.length) {
           var refs = el("div", "wh-refs");
           if (facts.length) {
             refs.appendChild(el("h4", null, "Oracle DB · " + facts.length + " supporting fact" + (facts.length > 1 ? "s" : "")));
             facts.slice(0, 3).forEach(function (f) {
-              var reference = el("div", "wh-ref", (f.fact || "").slice(0, 140));
-              var source = String(f.paper_title || "").slice(0, 70);
-              if (source) reference.appendChild(el("span", "meta", " — " + source));
-              refs.appendChild(reference);
-            });
-          }
-          // The payload also returns synthesised rules; surface them rather
-          // than silently dropping evidence the answer was built from.
-          if (rules.length) {
-            refs.appendChild(el("h4", null, "Synthesised rules · " + rules.length));
-            rules.slice(0, 3).forEach(function (r) {
-              var scope = (r.applies_to || "").slice(0, 50);
-              var reference = el("div", "wh-ref", (r.rule || "").slice(0, 140));
-              if (scope) reference.appendChild(el("span", "meta", " — " + scope));
-              refs.appendChild(reference);
+              var src = esc((f.paper_title || "").slice(0, 70));
+              refs.appendChild(el("div", "wh-ref", esc((f.fact || "").slice(0, 140)) + (src ? ' <span class="meta">— ' + src + "</span>" : "")));
             });
           }
           if (pubmed.length) {
             refs.appendChild(el("h4", null, "PubMed · " + pubmed.length + " paper" + (pubmed.length > 1 ? "s" : "")));
             pubmed.forEach(function (p) {
-              var href = safePublicReferenceUrl(p.url);
-              var reference = el(href ? "a" : "div", "wh-ref");
-              reference.appendChild(el("span", "pmid", "PMID:" + String(p.pmid || "")));
-              reference.appendChild(document.createTextNode(" " + String(p.title || "")));
-              var meta = [p.journal, p.year].filter(Boolean).map(String).join(" · ");
-              if (meta) reference.appendChild(el("span", "meta", " (" + meta + ")"));
-              if (href) {
-                reference.href = href;
-                reference.target = "_blank";
-                reference.rel = "noopener noreferrer";
-              }
-              refs.appendChild(reference);
+              var meta = [p.journal, p.year].filter(Boolean).map(esc).join(" · ");
+              var a = el("a", "wh-ref", '<span class="pmid">PMID:' + esc(p.pmid) + "</span> " + esc(p.title) + (meta ? ' <span class="meta">(' + meta + ")</span>" : ""));
+              a.href = p.url; a.target = "_blank"; a.rel = "noopener noreferrer";
+              refs.appendChild(a);
             });
           }
           bot.appendChild(refs);
@@ -908,13 +627,9 @@
 
       function ask(question) {
         if (emptyEl) emptyEl.style.display = "none";
-        logEl.appendChild(el("div", "wh-msg user", question));
+        logEl.appendChild(el("div", "wh-msg user", esc(question)));
         var typing = el("div", "wh-msg bot");
-        var typingAnswer = el("div", "answer");
-        var typingDots = el("span", "wh-typing");
-        typingDots.append(el("span"), el("span"), el("span"));
-        typingAnswer.appendChild(typingDots);
-        typing.appendChild(typingAnswer);
+        typing.innerHTML = '<div class="answer"><span class="wh-typing"><span></span><span></span><span></span></span></div>';
         logEl.appendChild(typing);
         logEl.scrollTop = logEl.scrollHeight;
         sendBtn.disabled = true;
@@ -939,8 +654,8 @@
       });
     })();
   </script>
-  <script type="module" data-forest-runtime="motion" src="/web/shared/forest-runtime-boot.mjs?v=20260807a"></script>
-  <script src="/web/shared/forest-reveal.js?v=20260807a"></script>
-  <script src="/web/shared/design-history.js?v=20260807a"></script>
+  <script src="/web/shared/forest-motion.js?v=20260725c"></script>
+  <script src="/web/shared/forest-reveal.js?v=20260714"></script>
+  <script src="/web/shared/design-history.js?v=20260728"></script>
 </body>
 </html>

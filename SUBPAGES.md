@@ -1,7 +1,7 @@
 # SUBPAGES.md — Forest HUB sdforest.site Subpage Index
 
 **Purpose:** Concise per-subpage description of what each page currently is and its production state. Use this to decide what to improve next.
-**Last updated:** 2026-08-02
+**Last updated:** 2026-07-28
 **Production URL:** https://sdforest.site
 
 ---
@@ -203,16 +203,6 @@
 **What it is *not*:** an ebook-to-audiobook converter. That framing was superseded on 2026-07-30 and lives on as a separate tool — see Audiobook Studio. Narration exists here but is addressable only as `(chapter, block)`; there is deliberately no "play the whole book" endpoint.
 **State:** Live. The pages and the API are served by one process on Oracle behind a single nginx location, which is not incidental — the session cookie is host-scoped and `SameSite=Lax`, so a split across two hosts silently drops it and every narration request arrives anonymous. Signing in, per-block narration and the Free/Pro gate are all verified against the public URL.
 **Next:** Register the Stripe webhook against `/dyslexia/billing/webhook` and vault the signing secret; until then no subscription can grant Pro.
-
----
-
-## Lobester Gym — Bilateral Coordination
-
-**Route:** Hub card → `https://adhd-exercise-app.vercel.app/` (external / separate Vercel deployment)
-**Files:** none in this repo — the app is deployed independently
-**What it is:** Installable PWA of interactive bilateral coordination exercises targeting working memory, inhibitory control, and pattern mapping. Adapted from a children's movement workbook and shaped for ADHD attention. Multi-touch gestures drive the exercises, so the viewport deliberately disables pinch-zoom.
-**State:** Live — the deployment returns 200 and the hub card is marked `Live` with `data-external="true"`, so it opens in a new tab.
-**Next:** Decide whether it earns a `*.sdforest.site` subdomain like FlowForm, and whether the source repo should be mirrored here.
 
 ---
 

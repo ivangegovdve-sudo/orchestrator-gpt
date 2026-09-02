@@ -1,7 +1,21 @@
-/* Shared tokens are owned by forest-design.css. The shell contains only
-   component rules, preventing its later load from overriding that source. */
+/* Dusk-forest tokens — kept in lockstep with forest-design.css. This
+   file loads AFTER forest-design.css on most subpages, so any name
+   both files declare must carry the SAME values here or the shell
+   silently reverts the site to the old fonts/palette. */
 :root {
   color-scheme: dark;
+  --forest-bg: #070a08;
+  --forest-ink: #f2efe4;
+  --forest-soft: #bcc6b4;
+  --forest-muted: #7d8877;
+  --forest-line: rgba(226, 235, 209, 0.13);
+  --forest-panel: rgba(9, 14, 10, 0.8);
+  --forest-accent: #8fe6ae;
+  --forest-accent-rgb: 143, 230, 174;
+  --forest-radius: 24px;
+  --forest-display: "Cormorant Garamond", "Iowan Old Style", Georgia, serif;
+  --forest-body: Alegreya, "Iowan Old Style", Georgia, serif;
+  --forest-sans: "Alegreya Sans", "Gill Sans", "Segoe UI", system-ui, sans-serif;
 }
 
 *, *::before, *::after { box-sizing: border-box; }
@@ -16,7 +30,6 @@ body[data-forest-page] {
   isolation: isolate;
   margin: 0;
   min-height: 100vh;
-  padding-bottom: calc(90px + env(safe-area-inset-bottom, 0px));
   background:
     radial-gradient(circle at 14% -8%, rgba(var(--forest-accent-rgb), .1), transparent 30rem),
     radial-gradient(circle at 90% 24%, rgba(232, 184, 107, .07), transparent 34rem),
@@ -85,10 +98,6 @@ body[data-forest-page] {
     border-color var(--duration-fast) var(--ease-out),
     background var(--duration-fast) var(--ease-out),
     color var(--duration-fast) var(--ease-out);
-}
-
-.forest-back {
-  view-transition-name: forest-chrome;
 }
 
 .forest-back::before {
@@ -221,13 +230,9 @@ body[data-forest-page] select:focus-visible {
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
   *, *::before, *::after {
-    animation: none !important;
-    transition: none !important;
+    animation-duration: var(--duration-reduced) !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: var(--duration-reduced) !important;
   }
   .forest-scene { opacity: .42; }
-}
-
-/* Targeted fix for Chloe PWA's 100dvh flex layout to clear the feedback button */
-#text-bar {
-  padding-bottom: calc(72px + env(safe-area-inset-bottom, 0px)) !important;
 }

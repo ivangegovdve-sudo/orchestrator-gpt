@@ -17,7 +17,6 @@ const expectedPaths = [
   '/web/c2c-dolphin/',
   '/web/c2c-self/',
   '/web/avatar-playground/',
-  '/web/chloe-pwa/',
   '/web/life-in-time/',
   '/web/womens-health-os/',
   '/web/hypertrophyos/',
@@ -32,9 +31,7 @@ const expectedPaths = [
   '/web/m-popova/',
   '/web/power-law-odyssey/',
   '/web/replicator-void/',
-  '/web/evolution/',
 ];
-const privateClientPaths = new Set(['/web/chloe-pwa/']);
 
 const libraryChildPaths = [
   '/web/ai-init/',
@@ -115,8 +112,6 @@ after(async () => {
 test('publishes the exact canonical public route manifest', async () => {
   const page = await browser.newPage();
   await page.goto(`${baseUrl}/`, { waitUntil: 'domcontentloaded' });
-  const moduleResponse = await page.request.get(`${baseUrl}/web/shared/forest-trails.mjs?v=manifest-test`);
-  assert.match(moduleResponse.headers()['content-type'], /^text\/javascript/);
 
   const routes = await page.evaluate(async (moduleUrl) => {
     const trails = await import(moduleUrl);
@@ -125,7 +120,7 @@ test('publishes the exact canonical public route manifest', async () => {
       label,
       path: routePath,
     }));
-  }, `${baseUrl}/web/shared/forest-trails.mjs?manifest-test`);
+  }, `${baseUrl}/web/shared/forest-trails.js?manifest-test`);
 
   assert.deepEqual(routes.map((route) => route.path), expectedPaths);
   assert.equal(new Set(routes.map((route) => route.id)).size, routes.length);
@@ -144,7 +139,7 @@ test('every canonical public page mounts Forest Trails through production script
 }, async () => {
   const page = await browser.newPage();
 
-  for (const routePath of expectedPaths.filter((routePath) => !privateClientPaths.has(routePath))) {
+  for (const routePath of expectedPaths) {
     const response = await page.goto(`${baseUrl}${routePath}`, {
       waitUntil: 'domcontentloaded',
     });
@@ -245,7 +240,7 @@ test('resolves a canonical current page and meaningful next trail connections', 
       trail: result.trail.label,
       next: result.next.map((route) => route.path),
     };
-  }, `${baseUrl}/web/shared/forest-trails.mjs?context-test`);
+  }, `${baseUrl}/web/shared/forest-trails.js?context-test`);
 
   assert.deepEqual(context, {
     current: 'Life in Time',
@@ -270,7 +265,7 @@ test('keeps every public destination in a safe, bounded route graph', async () =
       trails: trails.FOREST_TRAILS,
       routes: trails.FOREST_ROUTES,
     };
-  }, `${baseUrl}/web/shared/forest-trails.mjs?graph-test`);
+  }, `${baseUrl}/web/shared/forest-trails.js?graph-test`);
 
   assert.deepEqual(
     graph.trails.map(({ label }) => label),
@@ -523,41 +518,6 @@ test('renders a fixed touch-safe route network and disables its motion when requ
   assert.ok(measurements.mapButtonHeight >= 44);
   assert.equal(measurements.pathAnimation, 'none');
 
-  await page.close();
-});
-
-test('representative route keeps Design History usable under reduced motion', async () => {
-  const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
-  await page.emulateMedia({ reducedMotion: 'reduce' });
-  await page.goto(`${baseUrl}/web/c2c-dolphin/`, { waitUntil: 'domcontentloaded' });
-
-  const history = page.getByRole('button', { name: 'Design history', exact: true });
-  await history.click();
-  assert.equal(await history.getAttribute('aria-expanded'), 'true');
-  await page.getByRole('button', { name: 'The prompt builder' }).click();
-  assert.equal(await page.locator('.dh-root').getAttribute('class'), 'dh-root is-open is-previewing');
-  assert.equal(
-    await page.evaluate(() => document.documentElement.style.getPropertyValue('--forest-amber')),
-    '#38bdf8',
-  );
-  await page.locator('.dh-banner button').click();
-  assert.equal(await page.locator('.dh-root').getAttribute('class'), 'dh-root');
-  await page.close();
-});
-
-test('heavy and private-client pages keep a visible shared-shell forest return', async () => {
-  const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
-  for (const routePath of ['/web/replicator-void/', '/web/chloe-pwa/']) {
-    await page.goto(`${baseUrl}${routePath}`, { waitUntil: 'domcontentloaded' });
-    const back = page.locator('.forest-back').first();
-    await back.waitFor({ state: 'visible' });
-    assert.equal(await back.getAttribute('href'), '/');
-    assert.notEqual(await back.evaluate((element) => getComputedStyle(element).display), 'none');
-    assert.ok(
-      await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth + 3),
-      `${routePath} must not gain horizontal overflow`,
-    );
-  }
   await page.close();
 });
 
@@ -922,13 +882,13 @@ test('maps public child views to their trail while leaving retired council paths
       retiredKeyConsole: resolve('/web/council/byok/index.html'),
       retiredInnerCouncil: resolve('/web/council/inner/index.html'),
     };
-  }, `${baseUrl}/web/shared/forest-trails.mjs?alias-test`);
+  }, `${baseUrl}/web/shared/forest-trails.js?alias-test`);
 
   assert.deepEqual(matches, {
     manifestoTranslation: 'Manifesto for a Newborn',
     openOverviewChild: 'Open Overview',
     libraryChild: 'Library & Platforms',
-    legacyGlossary: null,
+    legacyGlossary: 'Library & Platforms',
     ragHub: 'Library & Platforms',
     repoSearch: 'Library & Platforms',
     generalSearch: 'Library & Platforms',

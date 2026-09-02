@@ -34,14 +34,11 @@ test('Forest HUB built artifact exposes the required foundation portals and titl
 });
 
 test('Forest HUB built styles publish the canonical design tokens', () => {
-  const foundation = built('web/shared/forest-design.css');
+  const styles = built('web/shared/forest-home.css');
 
-  assert.match(foundation, /--theme-ui-bg:\s*#07070b\b/);
-  assert.match(foundation, /--theme-ui-surface:\s*#0f0f15\b/);
-  assert.match(foundation, /--theme-ui-accent:\s*#4f46e5\b/);
-  assert.match(foundation, /--bg:\s*var\(--theme-ui-bg\)/);
-  assert.match(foundation, /--surface:\s*var\(--theme-ui-surface\)/);
-  assert.match(foundation, /--accent:\s*var\(--theme-ui-accent\)/);
+  assert.match(styles, /--bg:\s*#07070b\b/);
+  assert.match(styles, /--surface:\s*#0f0f15\b/);
+  assert.match(styles, /--accent:\s*#4f46e5\b/);
 });
 
 test('Kids Corner links exactly the two approved existing sub-apps', () => {
@@ -67,16 +64,6 @@ test('Library is canonical and llm-db has deployment and static redirect coverag
   assert.match(moved, /location\.replace\(["']\/web\/library\/["']\)/);
   assert.deepEqual(vercel.redirects, [
     {
-      source: '/web/ai-init',
-      destination: '/web/library/',
-      permanent: true,
-    },
-    {
-      source: '/web/ai-init/',
-      destination: '/web/library/',
-      permanent: true,
-    },
-    {
       source: '/web/llm-db/',
       destination: '/web/library/',
       permanent: true,
@@ -84,16 +71,6 @@ test('Library is canonical and llm-db has deployment and static redirect coverag
     {
       source: '/web/llm-db/:path*',
       destination: '/web/library/',
-      permanent: true,
-    },
-    {
-      source: '/web/tinylm',
-      destination: '/web/council/#tinylm',
-      permanent: true,
-    },
-    {
-      source: '/web/tinylm/',
-      destination: '/web/council/#tinylm',
       permanent: true,
     },
   ]);

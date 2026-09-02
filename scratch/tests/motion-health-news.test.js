@@ -82,10 +82,6 @@ test('health and news pages retain their thematic shared Three.js integration', 
   for (const [name, relativePath, mode] of pages) {
     const html = readPage(relativePath);
     assert.match(html, new RegExp(`data-forest-page=["']${mode}["']`), `${name} theme mode`);
-    assert.match(
-      html,
-      /data-forest-runtime=["']motion["'][^>]+\/web\/shared\/forest-runtime-boot\.mjs\?v=/,
-      `${name} prerender-safe shared motion runtime`,
-    );
+    assert.match(html, /\/web\/shared\/forest-motion\.js\?v=/, `${name} shared motion runtime`);
   }
 });

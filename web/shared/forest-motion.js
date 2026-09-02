@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const forestTrailsReady = import('/web/shared/forest-trails.mjs?v=20260807a')
+  const forestTrailsReady = import('/web/shared/forest-trails.js?v=20260725c')
     .then((trailModule) => {
       document.documentElement.dataset.forestTrailsState = 'ready';
       return trailModule;
@@ -72,7 +72,7 @@
 
   ambient.ready = Promise.all([
     import('/web/vendor/three/three.module.min.js'),
-    import('/web/shared/forest-themes.mjs?v=20260807a'),
+    import('/web/shared/forest-themes.mjs'),
   ]).then(([THREE, themes]) => {
     ambient.engine = 'three';
     ambient.instances = canvases.map((canvas, index) => new ForestAmbientScene({
@@ -374,10 +374,6 @@
     }
 
     schedule() {
-      if (this.reduced) {
-        this.render();
-        return;
-      }
       if (
         this.raf
         || this.destroyed

@@ -1,192 +1,32 @@
 <!DOCTYPE html>
 <html lang="en" class="forest-skin">
 <head>
-<meta charset="UTF-8" />
-<link rel="icon" href="/web/shared/favicon.svg?v=20260807a" type="image/svg+xml">
-<script defer src="/web/shared/feedback.js?v=20260807a"></script>
-<script type="module" src="/web/shared/forest-navigation.mjs?v=20260807a"></script>
-<link rel="preload" href="/web/shared/forest-design.css?v=20260807a" as="style">
-<link rel="preload" href="/web/vendor/fonts/cormorant-garamond-normal-600-latin.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="preload" href="/web/vendor/fonts/alegreya-normal-400-900-latin.woff2" as="font" type="font/woff2" crossorigin>
-<script type="speculationrules">
-{
-  "prerender": [
-    {
-      "source": "document",
-      "where": {
-        "and": [
-          {
-            "href_matches": "/web/*"
-          },
-          {
-            "or": [
-              {
-                "href_matches": "/web/ai-research/*"
-              },
-              {
-                "href_matches": "/web/c2c-dolphin/*"
-              },
-              {
-                "href_matches": "/web/c2c-self/*"
-              },
-              {
-                "href_matches": "/web/calendar/*"
-              },
-              {
-                "href_matches": "/web/council/"
-              },
-              {
-                "href_matches": "/web/council/index.html"
-              },
-              {
-                "href_matches": "/web/hypertrophyos/*"
-              },
-              {
-                "href_matches": "/web/kids/*"
-              },
-              {
-                "href_matches": "/web/kids-movie-library/*"
-              },
-              {
-                "href_matches": "/web/library/"
-              },
-              {
-                "href_matches": "/web/library/index.html"
-              },
-              {
-                "href_matches": "/web/library/general/*"
-              },
-              {
-                "href_matches": "/web/library/glossary/*"
-              },
-              {
-                "href_matches": "/web/library/memory/*"
-              },
-              {
-                "href_matches": "/web/library/platform/*"
-              },
-              {
-                "href_matches": "/web/library/rag.html"
-              },
-              {
-                "href_matches": "/web/library/repos/*"
-              },
-              {
-                "href_matches": "/web/life-in-time/*"
-              },
-              {
-                "href_matches": "/web/m-popova/*"
-              },
-              {
-                "href_matches": "/web/math-mania/*"
-              },
-              {
-                "href_matches": "/web/mendeleev-bg/*"
-              },
-              {
-                "href_matches": "/web/morning-news/*"
-              },
-              {
-                "href_matches": "/web/upload/*"
-              },
-              {
-                "href_matches": "/web/vfx-portfolio/*"
-              }
-            ]
-          },
-          {
-            "not": {
-              "or": [
-                {
-                  "href_matches": "/web/ai-init/*"
-                },
-                {
-                  "href_matches": "/web/avatar-playground/*"
-                },
-                {
-                  "href_matches": "/web/chloe-pwa/*"
-                },
-                {
-                  "href_matches": "/web/council/byok/*"
-                },
-                {
-                  "href_matches": "/web/council/inner/*"
-                },
-                {
-                  "href_matches": "/web/council/tinylm/*"
-                },
-                {
-                  "href_matches": "/web/evolution/*"
-                },
-                {
-                  "href_matches": "/web/library/chloe/*"
-                },
-                {
-                  "href_matches": "/web/llm-db/*"
-                },
-                {
-                  "href_matches": "/web/manifesto-newborn/*"
-                },
-                {
-                  "href_matches": "/web/math-forest/*"
-                },
-                {
-                  "href_matches": "/web/open-overview/*"
-                },
-                {
-                  "href_matches": "/web/power-law-odyssey/*"
-                },
-                {
-                  "href_matches": "/web/replicator-void/*"
-                },
-                {
-                  "href_matches": "/web/tinylm/*"
-                },
-                {
-                  "href_matches": "/web/womens-health-os/*"
-                }
-              ]
-            }
-          }
-        ]
-      },
-      "eagerness": "moderate"
-    }
-  ]
-}
-</script>
+  <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="description" content="Kids Corner — Forest HUB's playground for Math Mania arithmetic games and the Kids Movie Library." />
   <meta property="og:title" content="Kids Corner — Forest HUB" />
   <meta property="og:description" content="Games and movies for the small foresters: Math Mania + Kids Movie Library." />
   <meta property="og:type" content="website" />
-  <meta name="theme-color" content="#100d0a" />
+  <meta name="theme-color" content="#07070b" />
   <title>Kids Corner — Forest HUB</title>
 
-  <link rel="stylesheet" href="/web/shared/forest-design.css?v=20260807a">
-  <link rel="stylesheet" href="/web/shared/forest-shell.css?v=20260807a">
+  <link rel="stylesheet" href="/web/shared/forest-design.css?v=20260731a">
+  <link rel="stylesheet" href="/web/shared/forest-shell.css?v=20260725c">
   <style>
     :root {
-      --grove-bg: #100d0a;
-      --grove-surface: #261c13;
-      --grove-ink: #fff7dc;
-      --grove-yellow: #ffd15a;
-      --grove-moss: #8fe6ae;
-      --grove-coral: #ff8a70;
-      --grove-sky: #73e9ff;
-      --bg: var(--grove-bg);
-      --surface: var(--grove-surface);
-      --border: rgba(255,247,220,.18);
-      --text-primary: var(--grove-ink);
-      --text-muted: color-mix(in srgb, var(--grove-ink) 68%, transparent);
-      --accent: var(--grove-yellow);
-      --accent-green: var(--grove-moss);
-      --radius: 18px;
-      --font: var(--forest-body, Alegreya, Georgia, serif);
+      --bg: #07070b;
+      --surface: #0f0f15;
+      --border: rgba(255,255,255,0.08);
+      --text-primary: #f3f4f6;
+      --text-muted: #9ca3af;
+      --accent: #4f46e5;
+      --accent-green: #22c55e;
+      --radius: 8px;
+      --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       --display: var(--forest-display, "Cormorant Garamond", Georgia, serif);
 
-      --math: var(--grove-sky);
-      --movies: var(--grove-coral);
+      --math: #34d399;
+      --movies: #f97316;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -195,8 +35,8 @@
       min-height: 100vh;
       background-color: var(--bg);
       background-image:
-        radial-gradient(760px circle at 12% 4%, color-mix(in srgb, var(--grove-yellow) 13%, transparent), transparent 56%),
-        radial-gradient(720px circle at 88% 12%, color-mix(in srgb, var(--grove-coral) 12%, transparent), transparent 58%);
+        radial-gradient(760px circle at 15% 5%, rgba(52,211,153,.08), transparent 55%),
+        radial-gradient(760px circle at 85% 12%, rgba(249,115,22,.08), transparent 55%);
       color: var(--text-primary);
       font-family: var(--font);
       -webkit-font-smoothing: antialiased;
@@ -209,17 +49,14 @@
     .back-link {
       display: inline-flex; align-items: center; gap: 7px;
       color: var(--text-muted); text-decoration: none;
-      font-family: var(--forest-sans, "Alegreya Sans", sans-serif);
-      font-size: 14px; font-weight: 700;
-      min-width: 44px; min-height: 44px;
-      padding: 9px 16px;
-      border: 2px solid var(--border); border-radius: 16px 16px 5px 16px;
-      background: color-mix(in srgb, var(--grove-surface) 86%, transparent);
+      font-size: 13.5px; font-weight: 500;
+      padding: 7px 14px;
+      border: 1px solid var(--border); border-radius: 999px;
       transition:
         color var(--duration-fast) var(--ease-out),
-        border-color var(--duration-fast) var(--ease-out),
-        background-color var(--duration-fast) var(--ease-out);
+        border-color var(--duration-fast) var(--ease-out);
     }
+    .back-link:hover { color: var(--text-primary); border-color: rgba(255,255,255,.22); }
 
     .hero { text-align: center; padding: clamp(36px, 7vw, 64px) 0 clamp(28px, 5vw, 44px); }
     .eyebrow {
@@ -250,12 +87,9 @@
       --c: var(--accent);
       position: relative;
       display: flex; flex-direction: column; gap: 12px;
-      min-height: 286px;
-      background:
-        linear-gradient(145deg, color-mix(in srgb, var(--c) 9%, transparent), transparent 46%),
-        var(--surface);
-      border: 2px solid var(--border);
-      border-radius: 30px 30px 9px 30px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: calc(var(--radius) * 2);
       padding: clamp(22px, 4vw, 32px);
       text-decoration: none; color: var(--text-primary);
       overflow: hidden;
@@ -270,6 +104,11 @@
       background: linear-gradient(90deg, transparent, var(--c), transparent);
       opacity: .8;
     }
+    .kid-card:hover {
+      transform: translateY(-4px);
+      border-color: color-mix(in srgb, var(--c) 45%, transparent);
+      box-shadow: 0 18px 46px rgba(0,0,0,.45);
+    }
     .kid-card.math    { --c: var(--math); }
     .kid-card.movies  { --c: var(--movies); }
 
@@ -279,7 +118,7 @@
       font-size: 30px;
       background: color-mix(in srgb, var(--c) 12%, transparent);
       border: 1px solid color-mix(in srgb, var(--c) 30%, transparent);
-      border-radius: 20px 20px 6px 20px;
+      border-radius: 16px;
     }
     .kid-name { font-family: var(--display); font-size: 24px; font-weight: 600; letter-spacing: 0; }
     .kid-desc { color: var(--text-muted); font-size: 14.5px; line-height: 1.6; flex: 1; }
@@ -297,69 +136,21 @@
       margin-top: 6px;
       font-size: 14px; font-weight: 600; color: var(--c);
     }
+    .kid-card:hover .kid-cta { text-decoration: underline; text-underline-offset: 3px; }
+
     .note {
       margin-top: 40px; text-align: center;
       color: var(--text-muted); font-size: 13px; line-height: 1.7;
     }
-    .note a {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      min-width: 44px;
-      min-height: 44px;
-      padding-inline: 8px;
-      color: var(--text-primary);
-      font-weight: 700;
-    }
-
-    .back-link:focus-visible,
-    .kid-card:focus-visible,
-    .note a:focus-visible {
-      outline: 3px solid var(--grove-yellow);
-      outline-offset: 4px;
-    }
-
-    body[data-forest-page="kids"] .dh-tab { min-width: 44px; }
-    body[data-forest-page="kids"] .dh-close { width: 44px; height: 44px; }
-    body[data-forest-page="kids"] .dh-era,
-    body[data-forest-page="kids"] .dh-reset,
-    body[data-forest-page="kids"] .dh-archive,
-    body[data-forest-page="kids"] .dh-banner button {
-      min-width: 44px;
-      min-height: 44px;
-    }
-    body[data-forest-page="kids"] .dh-archive {
-      display: inline-flex;
-      align-items: center;
-    }
-
-    @media (hover: hover) {
-      .back-link:hover {
-        color: var(--text-primary);
-        border-color: color-mix(in srgb, var(--grove-yellow) 58%, transparent);
-        background: color-mix(in srgb, var(--grove-yellow) 10%, var(--grove-surface));
-      }
-      .kid-card:hover {
-        transform: translateY(-4px);
-        border-color: color-mix(in srgb, var(--c) 58%, transparent);
-        box-shadow: 0 18px 46px rgba(0,0,0,.45);
-      }
-      .kid-card:hover .kid-cta {
-        text-decoration: underline;
-        text-underline-offset: 3px;
-      }
-    }
+    .note a { color: var(--text-primary); }
 
     @media (prefers-reduced-motion: reduce) {
-      .back-link,
-      .kid-card,
-      .kid-card:hover { transition: none; transform: none; }
+      .kid-card, .kid-card:hover { transition: none; transform: none; }
     }
   </style>
-  <link rel="stylesheet" href="/web/shared/design-history.css?v=20260807a">
+  <link rel="stylesheet" href="/web/shared/design-history.css?v=20260731a">
 </head>
 <body data-forest-page="kids">
-  <a class="forest-back" href="/">← SDForest</a>
   <main class="page">
     <a class="back-link" href="/">← Forest HUB</a>
 
@@ -395,7 +186,7 @@
 
     <p class="note">Both are part of <a href="/">Forest HUB</a> — hand-built, ad-free, and kid-safe.</p>
   </main>
-  <script type="module" data-forest-runtime="motion" src="/web/shared/forest-runtime-boot.mjs?v=20260807a"></script>
-  <script src="/web/shared/design-history.js?v=20260807a"></script>
+  <script src="/web/shared/forest-motion.js?v=20260725c"></script>
+  <script src="/web/shared/design-history.js?v=20260728"></script>
 </body>
 </html>

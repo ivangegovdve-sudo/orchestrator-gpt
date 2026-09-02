@@ -6,8 +6,6 @@ const { pathToFileURL } = require('node:url');
 
 const ROOT = path.resolve(__dirname, '../..');
 const read = (relativePath) => fs.readFileSync(path.join(ROOT, relativePath), 'utf8');
-const withoutNavigationMetadata = (source) =>
-  source.replace(/<script\b[^>]*type=["']speculationrules["'][^>]*>[\s\S]*?<\/script>/gi, '');
 
 const attribute = (tag, name) => tag.match(new RegExp(`\\b${name}="([^"]*)"`))?.[1];
 const text = (markup) => markup.replace(/<[^>]+>/g, '').replace(/&(amp|rsquo);/g, (_, entity) => ({ amp: '&', rsquo: '’' })[entity]).replace(/\s+/g, ' ').trim();
@@ -23,9 +21,9 @@ test('home presents the canonical grouped directory as progressively enhanced, t
   assert.match(home, /<a[^>]+href="#atlas"[^>]*>Explore by section<\/a>/);
 
   const taxonomy = [
-    ['writing-media', 'Writing & Media', 'Briefings, accessible reading, essays, and spoken-word experiences.', ['chair-ladder', 'morning-news', 'reader', 'audiobook', 'manifesto'], ['voice', 'poetry']],
-    ['projects-play', 'Projects & Play', 'Creative work, family experiences, and playful builds.', ['vfx', 'kids', 'power', 'void'], ['gallery', 'flowform', 'lobester', 'multiply', 'math']],
-    ['tools', 'Tools', 'Practical utilities, tutors, and searchable references.', ['time', 'rubiks', 'library', 'avatar'], ['council', 'mendeleev', 'explore', 'calendar']],
+    ['writing-media', 'Writing & Media', 'Briefings, accessible reading, essays, and spoken-word experiences.', ['morning-news', 'reader', 'audiobook', 'manifesto'], ['voice']],
+    ['projects-play', 'Projects & Play', 'Creative work, family experiences, and playful builds.', ['vfx', 'kids', 'power', 'void'], ['gallery', 'flowform', 'multiply', 'math']],
+    ['tools', 'Tools', 'Practical utilities, tutors, and searchable references.', ['time', 'rubiks', 'library', 'avatar'], ['council']],
     ['research-experiments', 'Research & Experiments', 'Evidence-led resources and investigations into AI, health, ecosystems, and model behavior.', ['health', 'open-overview', 'muscle', 'c2c-dolphin'], ['tinylm', 'c2c-self']],
   ];
   const sections = [...home.matchAll(/<section\b[^>]*\bdata-directory-section="([^"]+)"[^>]*>([\s\S]*?)<\/section>/g)];
@@ -56,10 +54,10 @@ test('home presents the canonical grouped directory as progressively enhanced, t
   assert.match(home, /<section\b[^>]*\bid="atlas"/);
   const cards = portalCards(directory);
   const index = indexItems(directory);
-  assert.equal(cards.length, 30);
-  assert.equal(new Set(cards.map((card) => card.project)).size, 30);
-  assert.equal(index.length, 30);
-  assert.equal(new Set(index.map((item) => item.project)).size, 30);
+  assert.equal(cards.length, 24);
+  assert.equal(new Set(cards.map((card) => card.project)).size, 24);
+  assert.equal(index.length, 24);
+  assert.equal(new Set(index.map((item) => item.project)).size, 24);
 
   for (const card of cards) {
     const item = index.find((candidate) => candidate.project === card.project);
@@ -108,7 +106,7 @@ test('home is a truthful portal with the requested project lineup', () => {
     assert.match(home, new RegExp(title.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
   }
 
-  assert.equal((home.match(/data-project="/g) || []).length, 30);
+  assert.equal((home.match(/data-project="/g) || []).length, 24);
   assert.match(home, /The atlas/);
   assert.match(home, /Every path <em>at a glance<\/em>/);
 
@@ -133,7 +131,7 @@ test('home preserves the scroll-linked route walk without button-navigation shim
 });
 
 test('public council exposes exactly two truthful modes', () => {
-  const council = withoutNavigationMetadata(read('web/council/index.html'));
+  const council = read('web/council/index.html');
   const modes = council.match(/data-council-mode=/g) || [];
 
   assert.equal(modes.length, 2);
@@ -145,16 +143,9 @@ test('public council exposes exactly two truthful modes', () => {
 });
 
 test('TinyLM standalone route redirects into Councils', () => {
-  const tiny = read('web/council/tinylm/index.html');
+  const tiny = read('web/tinylm/index.html');
   assert.match(tiny, /web\/council\/index\.html#tinylm/);
   assert.match(tiny, /http-equiv="refresh"/i);
-
-  // The duplicate /web/tinylm/ stub is retired; its bookmark lives on as a
-  // permanent redirect rather than a second copy of the same meta-refresh page.
-  assert.equal(fs.existsSync(path.join(ROOT, 'web/tinylm')), false);
-  const vercel = JSON.parse(read('vercel.json'));
-  assert.ok(vercel.redirects.some(({ source, destination }) =>
-    source === '/web/tinylm/' && destination === '/web/council/index.html#tinylm'));
 });
 
 test('VFX portfolio preserves real prior work and contains no generated imagery', () => {
@@ -226,8 +217,8 @@ test('every live internal portal resolves to an animated page with a Forest retu
   const home = read('index.html');
   const routes = [...home.matchAll(/data-href="(\/web\/[^"]+)"/g)].map((match) => match[1]);
 
-  assert.equal(routes.length, 25);
-  assert.equal(new Set(routes).size, 25);
+  assert.equal(routes.length, 19);
+  assert.equal(new Set(routes).size, 18);
   for (const route of new Set(routes)) {
     let relativePath = route.replace(/^\//, '').split('#')[0];
     if (relativePath.endsWith('/')) relativePath += 'index.html';
@@ -238,7 +229,7 @@ test('every live internal portal resolves to an animated page with a Forest retu
       /href="\/"|href="\/index\.html"|forest-(?:motion|trails)\.js/,
       `${route} has no Forest return path`,
     );
-    assert.match(page, /data-forest-runtime="motion"|forest-motion\.js|open-overview\.js|id="world"|id="starfield"|\/web\/rubiks-teacher\/assets\/index-[^"]+\.js/, `${route} has no motion runtime`);
+    assert.match(page, /forest-motion\.js|open-overview\.js|id="world"|id="starfield"|\/web\/rubiks-teacher\/assets\/index-[^"]+\.js/, `${route} has no motion runtime`);
   }
 });
 

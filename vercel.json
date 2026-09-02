@@ -4,16 +4,6 @@
   "framework": null,
   "redirects": [
     {
-      "source": "/web/ai-init",
-      "destination": "/web/library/glossary/",
-      "permanent": true
-    },
-    {
-      "source": "/web/ai-init/",
-      "destination": "/web/library/glossary/",
-      "permanent": true
-    },
-    {
       "source": "/web/llm-db/",
       "destination": "/web/library/",
       "permanent": true
@@ -22,21 +12,6 @@
       "source": "/web/llm-db/:path*",
       "destination": "/web/library/",
       "permanent": true
-    },
-    {
-      "source": "/web/tinylm",
-      "destination": "/web/council/index.html#tinylm",
-      "permanent": true
-    },
-    {
-      "source": "/web/tinylm/",
-      "destination": "/web/council/index.html#tinylm",
-      "permanent": true
     }
-  ],
-  "git": {
-    "deploymentEnabled": {
-      "board-live": false
-    }
-  }
+  ]
 }

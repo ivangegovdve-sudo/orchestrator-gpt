@@ -1,24 +1,207 @@
-import { FOREST_TRAIL_ROUTE_IDS, ROUTE_INVENTORY } from './route-inventory.mjs?v=20260807a';
-
-export { ROUTE_INVENTORY } from './route-inventory.mjs?v=20260807a';
-
-const inventoryById = new Map(ROUTE_INVENTORY.map((route) => [route.id, route]));
-const routeFromInventory = (id) => {
-  const route = inventoryById.get(id);
-  return {
-    ...route,
-    path: route.href,
-  };
-};
-
 export const FOREST_ROUTES = Object.freeze([
   {
     id: 'forest-hub',
     label: 'Forest HUB',
     path: '/',
-    connectionIds: ['morning-news', 'kids', 'library', 'power-law-odyssey'],
+    connectionIds: ['morning-news', 'kids-corner', 'library', 'power-law'],
   },
-  ...FOREST_TRAIL_ROUTE_IDS.map(routeFromInventory),
+  {
+    id: 'morning-news',
+    label: 'Morning News',
+    path: '/web/morning-news/',
+    trailId: 'signals',
+    connectionIds: ['forest-hub', 'library', 'calendar'],
+  },
+  {
+    id: 'knowledge-ingest',
+    label: 'Knowledge Ingest',
+    path: '/web/upload/',
+    trailId: 'signals',
+    connectionIds: ['library', 'ai-research', 'council'],
+  },
+  {
+    id: 'library',
+    label: 'Library & Platforms',
+    path: '/web/library/',
+    aliasPaths: [
+      '/web/ai-init/',
+      '/web/library/glossary/',
+      '/web/library/platform/',
+      '/web/library/rag.html/',
+      '/web/library/repos/',
+      '/web/library/general/',
+      '/web/library/chloe/',
+      '/web/library/memory/',
+    ],
+    trailId: 'signals',
+    connectionIds: ['forest-hub', 'morning-news', 'open-overview', 'council', 'code-search'],
+  },
+  {
+    id: 'code-search',
+    label: 'Code Search',
+    path: '/web/code-search/',
+    trailId: 'signals',
+    connectionIds: ['library', 'open-overview'],
+  },
+  {
+    id: 'open-overview',
+    label: 'Open Overview',
+    path: '/web/open-overview/',
+    aliasPaths: ['/web/open-overview/github/', '/web/open-overview/openrouter/'],
+    trailId: 'signals',
+    connectionIds: ['library', 'council', 'ai-research', 'power-law'],
+  },
+  {
+    id: 'council',
+    label: 'Councils',
+    path: '/web/council/',
+    trailId: 'signals',
+    connectionIds: ['ai-research', 'library', 'open-overview'],
+  },
+  {
+    id: 'ai-research',
+    label: 'AI Research',
+    path: '/web/ai-research/',
+    trailId: 'machine',
+    connectionIds: ['council', 'ai-conversation', 'artificial-self', 'avatar-playground'],
+  },
+  {
+    id: 'ai-conversation',
+    label: 'AI Conversation',
+    path: '/web/c2c-dolphin/',
+    trailId: 'machine',
+    connectionIds: ['ai-research', 'artificial-self', 'council'],
+  },
+  {
+    id: 'artificial-self',
+    label: 'Artificial Self',
+    path: '/web/c2c-self/',
+    trailId: 'machine',
+    connectionIds: ['ai-research', 'ai-conversation', 'poetry'],
+  },
+  {
+    id: 'avatar-playground',
+    label: 'Avatar Playground',
+    path: '/web/avatar-playground/',
+    trailId: 'machine',
+    connectionIds: ['voice-playground', 'ai-research', 'vfx-portfolio', 'replicator-void'],
+  },
+  {
+    id: 'voice-playground',
+    label: 'Voice Playground',
+    path: '/web/voice-playground/',
+    trailId: 'machine',
+    connectionIds: ['avatar-playground', 'ai-research', 'morning-news'],
+  },
+  {
+    id: 'life-in-time',
+    label: 'Life in Time',
+    path: '/web/life-in-time/',
+    trailId: 'living',
+    connectionIds: ['calendar', 'womens-health', 'power-law'],
+  },
+  {
+    id: 'womens-health',
+    label: 'Women’s Health OS',
+    path: '/web/womens-health-os/',
+    trailId: 'living',
+    connectionIds: ['life-in-time', 'hyper-trophy', 'library'],
+  },
+  {
+    id: 'hyper-trophy',
+    label: 'Hyper Trophy OS',
+    path: '/web/hypertrophyos/',
+    trailId: 'living',
+    connectionIds: ['womens-health', 'life-in-time', 'power-law'],
+  },
+  {
+    id: 'calendar',
+    label: 'Calendar Generator',
+    path: '/web/calendar/',
+    trailId: 'living',
+    connectionIds: ['life-in-time', 'morning-news', 'kids-corner'],
+  },
+  {
+    id: 'kids-corner',
+    label: 'Kids Corner',
+    path: '/web/kids/',
+    trailId: 'wonder',
+    connectionIds: ['math-mania', 'kids-movies', 'math-forest', 'forest-hub'],
+  },
+  {
+    id: 'math-mania',
+    label: 'Math Mania',
+    path: '/web/math-mania/',
+    trailId: 'wonder',
+    connectionIds: ['kids-corner', 'kids-movies', 'power-law'],
+  },
+  {
+    id: 'kids-movies',
+    label: 'Kids Movie Library',
+    path: '/web/kids-movie-library/',
+    trailId: 'wonder',
+    connectionIds: ['kids-corner', 'math-mania', 'manifesto'],
+  },
+  {
+    id: 'math-forest',
+    label: 'Math Forest',
+    path: '/web/math-forest/',
+    trailId: 'wonder',
+    connectionIds: ['kids-corner', 'math-mania', 'mendeleev'],
+  },
+  {
+    id: 'mendeleev',
+    label: 'Mendeleev BG',
+    path: '/web/mendeleev-bg/',
+    trailId: 'wonder',
+    connectionIds: ['math-forest', 'power-law', 'library'],
+  },
+  {
+    id: 'vfx-portfolio',
+    label: 'VFX Portfolio',
+    path: '/web/vfx-portfolio/',
+    trailId: 'story',
+    connectionIds: ['avatar-playground', 'poetry', 'manifesto'],
+  },
+  {
+    id: 'manifesto',
+    label: 'Manifesto for a Newborn',
+    path: '/web/manifesto-newborn/',
+    aliasPaths: [
+      '/web/manifesto-newborn/bg/',
+      '/web/manifesto-newborn/de/',
+      '/web/manifesto-newborn/es/',
+      '/web/manifesto-newborn/fr/',
+      '/web/manifesto-newborn/it/',
+      '/web/manifesto-newborn/mk/',
+      '/web/manifesto-newborn/pt/',
+      '/web/manifesto-newborn/ru/',
+      '/web/manifesto-newborn/zh/',
+    ],
+    trailId: 'story',
+    connectionIds: ['poetry', 'kids-movies', 'life-in-time'],
+  },
+  {
+    id: 'poetry',
+    label: 'M.Popova Poetry',
+    path: '/web/m-popova/',
+    trailId: 'story',
+    connectionIds: ['manifesto', 'artificial-self', 'vfx-portfolio'],
+  },
+  {
+    id: 'power-law',
+    label: 'Power Law Odyssey',
+    path: '/web/power-law-odyssey/',
+    trailId: 'wild',
+    connectionIds: ['life-in-time', 'mendeleev', 'replicator-void', 'forest-hub'],
+  },
+  {
+    id: 'replicator-void',
+    label: 'Replicator Void',
+    path: '/web/replicator-void/',
+    trailId: 'wild',
+    connectionIds: ['power-law', 'avatar-playground', 'mendeleev'],
+  },
 ]);
 
 export const FOREST_TRAILS = Object.freeze([
@@ -64,9 +247,7 @@ export function normalizeForestPath(pathname) {
   const parsed = new URL(pathname || '/', 'https://forest.invalid');
   let normalized = parsed.pathname.replace(/\/index\.html$/i, '/');
   normalized = normalized.replace(/\/{2,}/g, '/');
-  const lastSegment = normalized.split('/').pop() || '';
-  const isFileRoute = /\.[a-z0-9]+$/i.test(lastSegment);
-  if (normalized !== '/' && !normalized.endsWith('/') && !isFileRoute) normalized += '/';
+  if (normalized !== '/' && !normalized.endsWith('/')) normalized += '/';
   return normalized;
 }
 

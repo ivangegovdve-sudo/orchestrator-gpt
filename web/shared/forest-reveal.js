@@ -41,14 +41,9 @@
   function countUp(element, duration = 950) {
     const raw = (element.textContent || '').trim();
     const target = parseFloat(raw.replace(/[^\d.\-]/g, ''));
-    if (!Number.isFinite(target) || element.dataset.counted) return;
-    // Stats are an arrival moment, not a loop: the same readout must not
-    // restart when a later async request resolves or a view reboots.
-    element.dataset.counted = 'true';
-    if (reduceMotion.matches) {
-      element.textContent = raw;
-      return;
-    }
+    if (!Number.isFinite(target) || reduceMotion.matches) return;
+    if (element.dataset.counting) return;
+    element.dataset.counting = 'true';
     const decimals = (raw.split('.')[1] || '').length;
     const start = performance.now();
     function frame(now) {
@@ -58,6 +53,7 @@
       if (progress < 1) requestAnimationFrame(frame);
       else {
         element.textContent = raw;
+        delete element.dataset.counting;
       }
     }
     requestAnimationFrame(frame);

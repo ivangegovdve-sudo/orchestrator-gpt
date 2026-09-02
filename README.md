@@ -1,5 +1,4 @@
 # Forest HUB — sdforest.site
-<!-- This repository contains the source code for the Forest HUB web dashboard, mini-projects, and backend APIs. -->
 
 Forest HUB is a static web dashboard plus a small FastAPI backend. It hosts the landing page at [sdforest.site](https://sdforest.site) and a collection of self-contained mini-projects under `web/` — reference tools, kids' games, poetry pages, and scroll-driven stories.
 
@@ -20,7 +19,6 @@ The landing page footer shows a live API status dot. It probes `https://api.sdfo
 - `index.html` — Forest HUB landing page: hero, project card grid, about section, API status footer.
 - `web/ai-init/` — AI/IT glossary (527+ terms) plus embeddable search.
 - `web/calendar/` — printable calendar generator with holiday lookup (redirect shim at `calendar/`).
-- `web/chair-or-ladder/` — Ivan Gegov’s essay on AI, judgment, dependence, and shared capability.
 - `web/chloe-pwa/` — Chloé assistant PWA shell (not linked from the hub yet).
 - `web/council/` — LLM Council: 4-stage free-tier deliberation UI.
 - `web/hypertrophyos/` — Hyper Trophy OS exercise-intelligence dashboard.

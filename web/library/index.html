@@ -2,164 +2,11 @@
 <html lang="en" class="forest-skin">
 <head>
 <meta charset="UTF-8">
-<link rel="icon" href="/web/shared/favicon.svg?v=20260807a" type="image/svg+xml">
-<script defer src="/web/shared/feedback.js?v=20260807a"></script>
-<script type="module" src="/web/shared/forest-navigation.mjs?v=20260807a"></script>
-<link rel="preload" href="/web/shared/forest-design.css?v=20260807a" as="style">
-<link rel="preload" href="/web/vendor/fonts/cormorant-garamond-normal-600-latin.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="preload" href="/web/vendor/fonts/alegreya-normal-400-900-latin.woff2" as="font" type="font/woff2" crossorigin>
-<script type="speculationrules">
-{
-  "prerender": [
-    {
-      "source": "document",
-      "where": {
-        "and": [
-          {
-            "href_matches": "/web/*"
-          },
-          {
-            "or": [
-              {
-                "href_matches": "/web/ai-research/*"
-              },
-              {
-                "href_matches": "/web/c2c-dolphin/*"
-              },
-              {
-                "href_matches": "/web/c2c-self/*"
-              },
-              {
-                "href_matches": "/web/calendar/*"
-              },
-              {
-                "href_matches": "/web/council/"
-              },
-              {
-                "href_matches": "/web/council/index.html"
-              },
-              {
-                "href_matches": "/web/hypertrophyos/*"
-              },
-              {
-                "href_matches": "/web/kids/*"
-              },
-              {
-                "href_matches": "/web/kids-movie-library/*"
-              },
-              {
-                "href_matches": "/web/library/"
-              },
-              {
-                "href_matches": "/web/library/index.html"
-              },
-              {
-                "href_matches": "/web/library/general/*"
-              },
-              {
-                "href_matches": "/web/library/glossary/*"
-              },
-              {
-                "href_matches": "/web/library/memory/*"
-              },
-              {
-                "href_matches": "/web/library/platform/*"
-              },
-              {
-                "href_matches": "/web/library/rag.html"
-              },
-              {
-                "href_matches": "/web/library/repos/*"
-              },
-              {
-                "href_matches": "/web/life-in-time/*"
-              },
-              {
-                "href_matches": "/web/m-popova/*"
-              },
-              {
-                "href_matches": "/web/math-mania/*"
-              },
-              {
-                "href_matches": "/web/mendeleev-bg/*"
-              },
-              {
-                "href_matches": "/web/morning-news/*"
-              },
-              {
-                "href_matches": "/web/upload/*"
-              },
-              {
-                "href_matches": "/web/vfx-portfolio/*"
-              }
-            ]
-          },
-          {
-            "not": {
-              "or": [
-                {
-                  "href_matches": "/web/ai-init/*"
-                },
-                {
-                  "href_matches": "/web/avatar-playground/*"
-                },
-                {
-                  "href_matches": "/web/chloe-pwa/*"
-                },
-                {
-                  "href_matches": "/web/council/byok/*"
-                },
-                {
-                  "href_matches": "/web/council/inner/*"
-                },
-                {
-                  "href_matches": "/web/council/tinylm/*"
-                },
-                {
-                  "href_matches": "/web/evolution/*"
-                },
-                {
-                  "href_matches": "/web/library/chloe/*"
-                },
-                {
-                  "href_matches": "/web/llm-db/*"
-                },
-                {
-                  "href_matches": "/web/manifesto-newborn/*"
-                },
-                {
-                  "href_matches": "/web/math-forest/*"
-                },
-                {
-                  "href_matches": "/web/open-overview/*"
-                },
-                {
-                  "href_matches": "/web/power-law-odyssey/*"
-                },
-                {
-                  "href_matches": "/web/replicator-void/*"
-                },
-                {
-                  "href_matches": "/web/tinylm/*"
-                },
-                {
-                  "href_matches": "/web/womens-health-os/*"
-                }
-              ]
-            }
-          }
-        ]
-      },
-      "eagerness": "moderate"
-    }
-  ]
-}
-</script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Library — sdforest</title>
 <meta name="description" content="The Forest Library — a searchable AI & tech glossary side-by-side with a reference of 160+ AI platforms and tools. One floating search filters both at once; filter by tag.">
-<link rel="stylesheet" href="/web/shared/forest-design.css?v=20260807a">
-<link rel="stylesheet" href="/web/shared/forest-shell.css?v=20260807a">
+<link rel="stylesheet" href="/web/shared/forest-design.css?v=20260731a">
+<link rel="stylesheet" href="/web/shared/forest-shell.css?v=20260725c">
 <style>
 :root {
   --bg: #07070b;
@@ -283,7 +130,7 @@ h1 {
 }
 .entry:hover { background: var(--card-bg); }
 .entry + .entry { border-top: 1px solid rgba(255,255,255,.04); }
-.entry-head { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; margin: 0; }
+.entry-head { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
 .entry-abbr { font-weight: 700; font-size: .95rem; color: var(--text); }
 .entry-exp { font-size: .82rem; color: var(--accent); }
 .entry-by { font-size: .74rem; color: var(--dim); margin-left: auto; }
@@ -313,73 +160,60 @@ footer { text-align: center; color: var(--dim); font-size: .76rem; margin-top: 3
   .panel-body { max-height: 62vh; }
   .search-dock { top: 8px; }
 }
-
-/* Task 7: one dense, source-filtered reference index. */
-.source-filters,.collections{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin:0 auto 18px}
-.source-filter,.collections a{border:1px solid var(--card-border);border-radius:999px;padding:7px 14px;background:var(--card-bg);color:var(--muted);font:700 .76rem/1 var(--forest-sans,sans-serif)}
-.source-filter{cursor:pointer}
-.source-filter[aria-pressed="true"]{background:rgba(79,70,229,.2);border-color:var(--accent);color:#d9ddff}
-.collections{max-width:980px}
-.collections a{border-radius:7px}
-.library-index{background:var(--panel);border:1px solid var(--card-border);border-radius:var(--library-panel-radius);backdrop-filter:blur(10px);overflow:hidden}
-.library-head{display:flex;align-items:baseline;justify-content:space-between;gap:16px;padding:13px 18px;border-bottom:1px solid var(--card-border)}
-.library-head h2{font:700 1rem/1.2 var(--forest-sans,sans-serif)}
-.result-count{color:var(--muted);font:700 .76rem/1.2 var(--forest-sans,sans-serif)}
-.library-list{padding:4px 10px 12px}
-.library-row{display:grid;grid-template-columns:minmax(150px,.8fr) minmax(0,2fr) auto;gap:14px;align-items:start;padding:9px 8px;border-radius:8px;border-top:1px solid rgba(255,255,255,.045);animation:libraryRowIn var(--duration-normal) var(--ease-out) both;animation-delay:calc(var(--row-index,0) * var(--stagger-list))}
-.library-row:first-child{border-top:0}.library-row:hover{background:var(--card-bg)}.library-row:nth-child(n+11){animation-delay:calc(var(--stagger-card) * 10)}
-@keyframes libraryRowIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
-.entry-main{min-width:0}.library-row .entry-link{white-space:nowrap}
-@media(max-width:860px){.library-row{grid-template-columns:1fr;gap:5px}.library-row .entry-link{white-space:normal}.library-head{align-items:flex-start;flex-direction:column}}
-@media(prefers-reduced-motion:reduce){.library-row{animation:none!important;transition:none!important}}
 </style>
-  <link rel="stylesheet" href="/web/shared/design-history.css?v=20260807a">
+  <link rel="stylesheet" href="/web/shared/design-history.css?v=20260731a">
 </head>
 <body data-forest-page="library">
-  <a class="forest-back" href="/">← SDForest</a>
 <div class="wrap">
   <div class="nav"><a href="/">&#8592; Forest HUB</a></div>
   <header class="hero">
     <div class="logo">Forest · Reference</div>
     <h1>&#128218; The Library</h1>
-    <p class="subtitle">One compact, searchable index of AI terms, platforms, tools, and research collections.</p>
+    <p class="subtitle">The AI &amp; tech glossary and the platform reference, side by side. One search filters both.</p>
   </header>
 
-  <!-- Floating search bubble: filters the unified reference index. -->
+  <!-- Floating search bubble: filters BOTH columns simultaneously -->
   <div class="search-dock">
     <div class="search-bubble">
       <span class="icon">&#128269;</span>
-      <input id="q" type="text" placeholder="Search terms, tools, makers, and tags&#8230;" autocomplete="off" autofocus aria-label="Search the library">
-      <button class="search-clear" id="search-clear" type="button" aria-label="Clear search">&#10005;</button>
+      <input id="q" type="text" placeholder="Search terms, tools, tags &mdash; both columns at once&#8230;" autocomplete="off" autofocus aria-label="Search the library">
+      <span class="search-meta" id="search-meta"></span>
+      <button class="search-clear" id="search-clear" aria-label="Clear search" onclick="clearSearch()">&#10005;</button>
     </div>
   </div>
 
-  <div class="source-filters" aria-label="Library source">
-    <button class="source-filter" type="button" data-source="all" aria-pressed="true">All</button>
-    <button class="source-filter" type="button" data-source="glossary" aria-pressed="false">Glossary</button>
-    <button class="source-filter" type="button" data-source="platform" aria-pressed="false">Platforms</button>
+  <div class="split">
+    <!-- LEFT: Glossary -->
+    <section class="panel" id="panel-glossary">
+      <div class="panel-head">
+        <div class="panel-title">
+          <h2>&#128214; <span class="accent-g">Glossary</span></h2>
+          <span class="count" id="g-count"></span>
+        </div>
+        <div class="panel-sub">AI, compute &amp; infra terms &mdash; alphabetical, tag-filtered</div>
+        <div class="tagbar" id="g-tagbar"></div>
+      </div>
+      <div class="panel-body" id="g-list"></div>
+    </section>
+
+    <!-- RIGHT: Platforms -->
+    <section class="panel" id="panel-platform">
+      <div class="panel-head">
+        <div class="panel-title">
+          <h2>&#127963;&#65039; <span class="accent-p">Platforms &amp; Tools</span></h2>
+          <span class="count" id="p-count"></span>
+        </div>
+        <div class="panel-sub">The AI ecosystem &mdash; APIs, agents, infra &amp; more, with links</div>
+        <div class="tagbar" id="p-tagbar"></div>
+      </div>
+      <div class="panel-body" id="p-list"></div>
+    </section>
   </div>
-
-  <nav class="collections" aria-label="Library collections">
-    <a href="/web/library/glossary/">Glossary</a>
-    <a href="/web/library/platform/">Platforms</a>
-    <a href="/web/library/rag.html">RAG</a>
-    <a href="/web/library/repos/">Repositories</a>
-    <a href="/web/library/general/">General</a>
-    <a href="/web/library/chloe/">Chloé</a>
-    <a href="/web/library/memory/">Memory</a>
-  </nav>
-
-  <section class="library-index" data-motion-card aria-labelledby="library-index-title">
-    <div class="library-head">
-      <h2 id="library-index-title">Unified reference index</h2>
-      <span class="result-count" id="result-count" aria-live="polite"></span>
-    </div>
-    <div class="library-list" id="library-list"></div>
-  </section>
 
   <footer>
-    Forest Library &middot; glossary and platform reference unified
+    Forest Library &middot; glossary &amp; platform reference merged &middot;
+    <a href="/web/ai-init/">full glossary explorer</a> &middot;
+    <a href="/web/library/rag.html">RAG hub</a>
   </footer>
 </div>
 
@@ -393,158 +227,161 @@ footer { text-align: center; color: var(--dim); font-size: .76rem; margin-top: 3
   var GLOSSARY = (window.AI_INIT_GLOSSARY_DATA || []).slice();
   var PLATFORMS = (window.LIBRARY_PLATFORMS || []).slice();
 
-  function initializeUnifiedLibrary() {
-    var entries = GLOSSARY.map(function (entry) {
-      var tags = Array.isArray(entry.tags) ? entry.tags.map(String) : [];
-      return {
-        type: "glossary",
-        title: String(entry.abbr || ""),
-        subtitle: String(entry.expansion || ""),
-        description: String(entry.desc || ""),
-        byline: String(entry.category || ""),
-        tags: tags,
-        url: "",
-      };
-    }).concat(PLATFORMS.map(function (entry) {
-      return {
-        type: "platform",
-        title: String(entry.name || ""),
-        subtitle: String(entry.by || ""),
-        description: String(entry.desc || ""),
-        byline: String(entry.cat || ""),
-        tags: [String(entry.tag || "")].filter(Boolean),
-        url: String(entry.url || ""),
-      };
-    })).sort(function (a, b) {
-      return a.title.toLowerCase().localeCompare(b.title.toLowerCase());
-    });
-    var unifiedState = { q: "", source: "all" };
-    var renderFrame = 0;
-    var host = document.getElementById("library-list");
-    var count = document.getElementById("result-count");
-    var qEl = document.getElementById("q");
-    var clear = document.getElementById("search-clear");
-    var filters = Array.from(document.querySelectorAll(".source-filter"));
+  // Friendly labels for the platform `tag` codes.
+  var PTAG_LABELS = {
+    "llm-api": "LLM APIs", "coding": "Coding", "builder": "App Builders",
+    "agents": "Agents", "search-rag": "Search & RAG", "image-vid": "Image & Video",
+    "voice": "Voice & Audio", "comms": "Comms", "infra": "Infra", "cloud": "Cloud",
+    "data": "Data", "digital-twin": "Digital Twins", "game": "Gaming"
+  };
 
-    function safeExternalUrl(value) {
-      try {
-        var parsed = new URL(value);
-        if (parsed.protocol !== "https:" || parsed.username || parsed.password) return "";
-        return parsed.href;
-      } catch (_) {
-        return "";
-      }
-    }
-    function visibleEntries() {
-      var query = unifiedState.q.trim().toLowerCase();
-      return entries.filter(function (entry) {
-        if (unifiedState.source !== "all" && entry.type !== unifiedState.source) return false;
-        if (!query) return true;
-        return [entry.title, entry.subtitle, entry.description, entry.byline].concat(entry.tags)
-          .join(" ").toLowerCase().includes(query);
-      });
-    }
-    function appendText(parent, className, text) {
-      if (!text) return;
-      var node = document.createElement("span");
-      node.className = className;
-      node.textContent = text;
-      parent.appendChild(node);
-    }
-    function renderRow(entry, index) {
-      var row = document.createElement("article");
-      row.className = "library-row";
-      row.dataset.type = entry.type;
-      row.style.setProperty("--row-index", String(Math.min(index, 9)));
-      var heading = document.createElement("h3");
-      heading.className = "entry-head";
-      heading.id = "library-entry-" + index;
-      row.setAttribute("aria-labelledby", heading.id);
-      appendText(heading, "entry-abbr", entry.title);
-      if (entry.subtitle && entry.subtitle !== entry.title) {
-        appendText(heading, "entry-exp", entry.subtitle);
-      }
-      var main = document.createElement("div");
-      main.className = "entry-main";
-      var description = document.createElement("div");
-      description.className = "entry-desc";
-      description.textContent = entry.description;
-      main.appendChild(description);
-      var tags = document.createElement("div");
-      tags.className = "entry-tags";
-      [entry.type, entry.byline].concat(entry.tags).filter(Boolean).forEach(function (tag) {
-        appendText(tags, "mini-tag", tag);
-      });
-      main.appendChild(tags);
-      row.appendChild(heading);
-      row.appendChild(main);
-      var href = safeExternalUrl(entry.url);
-      if (href) {
-        var link = document.createElement("a");
-        link.className = "entry-link";
-        link.href = href;
-        link.target = "_blank";
-        link.rel = "noopener noreferrer";
-        link.setAttribute("aria-label", "Visit " + entry.title);
-        link.textContent = "Visit ↗";
-        row.appendChild(link);
-      }
-      return row;
-    }
-    function renderUnified() {
-      var visible = visibleEntries();
-      host.replaceChildren();
-      if (!visible.length) {
-        var empty = document.createElement("div");
-        empty.className = "empty";
-        empty.textContent = "No matching entries.";
-        host.appendChild(empty);
-      } else {
-        var fragment = document.createDocumentFragment();
-        visible.forEach(function (entry, index) {
-          fragment.appendChild(renderRow(entry, index));
-        });
-        host.appendChild(fragment);
-      }
-      count.textContent = visible.length + " of " + entries.length + " entries";
-      clear.classList.toggle("show", Boolean(unifiedState.q));
-      filters.forEach(function (button) {
-        button.setAttribute("aria-pressed", String(button.dataset.source === unifiedState.source));
-      });
-    }
-    function scheduleRender() {
-      if (renderFrame) return;
-      renderFrame = requestAnimationFrame(function () {
-        renderFrame = 0;
-        renderUnified();
-      });
-    }
-    qEl.addEventListener("input", function () {
-      unifiedState.q = qEl.value;
-      scheduleRender();
-    });
-    qEl.addEventListener("keydown", function (event) {
-      if (event.key === "Escape") clear.click();
-    });
-    clear.addEventListener("click", function () {
-      unifiedState.q = "";
-      qEl.value = "";
-      qEl.focus();
-      scheduleRender();
-    });
-    filters.forEach(function (button) {
-      button.addEventListener("click", function () {
-        unifiedState.source = button.dataset.source;
-        scheduleRender();
-      });
-    });
-    renderUnified();
+  var state = { q: "", gTag: null, pTag: null };
+
+  function esc(s) {
+    return String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+  }
+  // Escape + highlight the query term inside already-escaped text.
+  function hi(text) {
+    var t = esc(text);
+    var q = state.q.trim();
+    if (!q) return t;
+    try {
+      var re = new RegExp("(" + q.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + ")", "ig");
+      return t.replace(re, '<span class="match-hi">$1</span>');
+    } catch (e) { return t; }
   }
 
-  initializeUnifiedLibrary();
+  // ── Build glossary tag filter bar (top tags by frequency) ────────────────
+  var gTagCounts = {};
+  GLOSSARY.forEach(function (e) {
+    (e.tags || []).forEach(function (t) { if (t) gTagCounts[t] = (gTagCounts[t] || 0) + 1; });
+  });
+  var gTags = Object.keys(gTagCounts).sort(function (a, b) { return gTagCounts[b] - gTagCounts[a]; }).slice(0, 12);
+
+  // ── Build platform tag filter bar (by frequency) ─────────────────────────
+  var pTagCounts = {};
+  PLATFORMS.forEach(function (p) { if (p.tag) pTagCounts[p.tag] = (pTagCounts[p.tag] || 0) + 1; });
+  var pTags = Object.keys(pTagCounts).sort(function (a, b) { return pTagCounts[b] - pTagCounts[a]; });
+
+  function renderTagbars() {
+    var g = document.getElementById("g-tagbar");
+    g.innerHTML = gTags.map(function (t) {
+      var on = state.gTag === t;
+      return '<span class="tag-chip g' + (on ? " on" : "") + '" onclick="toggleGTag(\'' + esc(t) + '\')">' +
+        esc(t) + ' <span class="n">' + gTagCounts[t] + '</span></span>';
+    }).join("");
+    var p = document.getElementById("p-tagbar");
+    p.innerHTML = pTags.map(function (t) {
+      var on = state.pTag === t;
+      return '<span class="tag-chip p' + (on ? " on" : "") + '" onclick="togglePTag(\'' + esc(t) + '\')">' +
+        esc(PTAG_LABELS[t] || t) + ' <span class="n">' + pTagCounts[t] + '</span></span>';
+    }).join("");
+  }
+
+  // ── Filtering ────────────────────────────────────────────────────────────
+  function matchesQuery(hay) {
+    var q = state.q.trim().toLowerCase();
+    if (!q) return true;
+    return hay.toLowerCase().indexOf(q) !== -1;
+  }
+  function filterGlossary() {
+    return GLOSSARY.filter(function (e) {
+      if (state.gTag && (e.tags || []).indexOf(state.gTag) === -1) return false;
+      if (!state.q.trim()) return true;
+      return matchesQuery((e.abbr || "") + " " + (e.expansion || "") + " " + (e.desc || "") + " " + (e.category || "") + " " + (e.tags || []).join(" "));
+    }).sort(function (a, b) {
+      return (a.abbr || "").toLowerCase().localeCompare((b.abbr || "").toLowerCase());
+    });
+  }
+  function filterPlatforms() {
+    return PLATFORMS.filter(function (p) {
+      if (state.pTag && p.tag !== state.pTag) return false;
+      if (!state.q.trim()) return true;
+      return matchesQuery((p.name || "") + " " + (p.by || "") + " " + (p.desc || "") + " " + (p.cat || "") + " " + (p.tag || ""));
+    }).sort(function (a, b) {
+      return (a.name || "").toLowerCase().localeCompare((b.name || "").toLowerCase());
+    });
+  }
+
+  // ── Rendering ────────────────────────────────────────────────────────────
+  function renderGlossary() {
+    var list = filterGlossary();
+    document.getElementById("g-count").textContent = list.length + " / " + GLOSSARY.length + " terms";
+    var host = document.getElementById("g-list");
+    if (!list.length) { host.innerHTML = '<div class="empty">No matching terms.</div>'; return; }
+    var html = "", curLetter = "";
+    list.forEach(function (e) {
+      var letter = (e.abbr || "#").charAt(0).toUpperCase();
+      if (!/[A-Z]/.test(letter)) letter = "#";
+      if (letter !== curLetter) { curLetter = letter; html += '<div class="alpha-head">' + letter + "</div>"; }
+      var tags = (e.tags || []).map(function (t) {
+        return '<span class="mini-tag" onclick="toggleGTag(\'' + esc(t) + '\')">' + esc(t) + "</span>";
+      }).join("");
+      var cat = e.category ? '<span class="mini-tag cat">' + esc(e.category) + "</span>" : "";
+      html += '<div class="entry">' +
+        '<div class="entry-head"><span class="entry-abbr">' + hi(e.abbr) + "</span>" +
+        (e.expansion && e.expansion !== e.abbr ? '<span class="entry-exp">' + hi(e.expansion) + "</span>" : "") +
+        "</div>" +
+        '<div class="entry-desc">' + hi(e.desc) + "</div>" +
+        (tags || cat ? '<div class="entry-tags">' + tags + cat + "</div>" : "") +
+        "</div>";
+    });
+    host.innerHTML = html;
+    host.scrollTop = 0;
+  }
+  function renderPlatforms() {
+    var list = filterPlatforms();
+    document.getElementById("p-count").textContent = list.length + " / " + PLATFORMS.length + " tools";
+    var host = document.getElementById("p-list");
+    if (!list.length) { host.innerHTML = '<div class="empty">No matching platforms.</div>'; return; }
+    host.innerHTML = list.map(function (p) {
+      var link = p.url ? '<a class="entry-link" href="' + esc(p.url) + '" target="_blank" rel="noopener noreferrer">&#8599; ' + esc((p.url || "").replace(/^https?:\/\//, "").replace(/\/$/, "")) + "</a>" : "";
+      var newTag = p.isNew ? '<span class="mini-tag new">new</span>' : "";
+      return '<div class="entry">' +
+        '<div class="entry-head"><span class="entry-abbr">' + hi(p.name) + "</span>" +
+        '<span class="entry-by">' + hi(p.by) + "</span></div>" +
+        '<div class="entry-desc">' + hi(p.desc) + "</div>" +
+        '<div class="entry-tags"><span class="mini-tag" onclick="togglePTag(\'' + esc(p.tag) + '\')">' + esc(PTAG_LABELS[p.tag] || p.tag) + "</span>" +
+        '<span class="mini-tag cat">' + esc(p.cat) + "</span>" + newTag + "</div>" +
+        link +
+        "</div>";
+    }).join("");
+    host.scrollTop = 0;
+  }
+  function renderMeta() {
+    var q = state.q.trim();
+    var meta = document.getElementById("search-meta");
+    var clear = document.getElementById("search-clear");
+    if (q || state.gTag || state.pTag) { clear.classList.add("show"); } else { clear.classList.remove("show"); }
+    if (q) {
+      var g = filterGlossary().length, p = filterPlatforms().length;
+      meta.textContent = (g + p) + " hits";
+    } else { meta.textContent = ""; }
+  }
+  function renderAll() { renderTagbars(); renderGlossary(); renderPlatforms(); renderMeta(); }
+
+  // ── Interactions (exposed globally for inline handlers) ──────────────────
+  window.toggleGTag = function (t) { state.gTag = state.gTag === t ? null : t; renderAll(); };
+  window.togglePTag = function (t) { state.pTag = state.pTag === t ? null : t; renderAll(); };
+  window.clearSearch = function () {
+    state.q = ""; state.gTag = null; state.pTag = null;
+    var el = document.getElementById("q"); el.value = ""; el.focus();
+    renderAll();
+  };
+
+  var qEl = document.getElementById("q");
+  var t = null;
+  qEl.addEventListener("input", function () {
+    state.q = qEl.value;
+    clearTimeout(t);
+    t = setTimeout(renderAll, 60);
+  });
+  qEl.addEventListener("keydown", function (e) { if (e.key === "Escape") window.clearSearch(); });
+
+  renderAll();
 })();
 </script>
-<script type="module" data-forest-runtime="motion" src="/web/shared/forest-runtime-boot.mjs?v=20260807a"></script>
-  <script src="/web/shared/design-history.js?v=20260807a"></script>
+<script src="/web/shared/forest-motion.js?v=20260725c"></script>
+  <script src="/web/shared/design-history.js?v=20260728"></script>
 </body>
 </html>

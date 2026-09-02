@@ -526,7 +526,7 @@ def upsert_movies_bulk(
         ).fetchall()
         tag_map = {str(row["name"]): int(row["id"]) for row in tag_rows}
 
-        missing_tags = all_tags - set(tag_map)
+        missing_tags = all_tags - set(tag_map.keys())
         if missing_tags:
             conn.executemany(
                 "INSERT OR IGNORE INTO tags(name) VALUES (?)",

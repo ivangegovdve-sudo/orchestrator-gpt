@@ -1,7 +1,6 @@
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
-const { pathToFileURL } = require('node:url');
 const { test } = require('node:test');
 
 const repoRoot = path.resolve(__dirname, '..', '..');
@@ -13,7 +12,9 @@ function openingTag(source, tagName, id) {
 }
 
 async function loadForestTrails() {
-  return import(pathToFileURL(path.join(repoRoot, 'web/shared/forest-trails.mjs')).href);
+  const source = read('web/shared/forest-trails.js');
+  const moduleUrl = `data:text/javascript;base64,${Buffer.from(source).toString('base64')}`;
+  return import(moduleUrl);
 }
 
 test('Knowledge Ingest resolves as a connected Signals & Systems trail', async () => {
@@ -70,9 +71,7 @@ test('Women’s Health evidence tabs and inputs expose their interaction semanti
   }
   assert.match(search, /\baria-label="[^"]+"/);
   assert.match(topic, /\baria-label="[^"]+"/);
-  assert.match(source, /input\.id\s*=\s*"api-input"/);
-  assert.match(source, /input\.setAttribute\("aria-label",\s*"Women’s Health API base URL"\)/);
-  assert.match(source, /button\.addEventListener\("click",\s*saveApi\)/);
+  assert.match(source, /<input id="api-input"[^>]*aria-label="[^"]+"/);
   assert.match(chatInput, /\baria-label="[^"]+"/);
 });
 

@@ -42,6 +42,14 @@ def setup_test_db(tmp_path, monkeypatch):
     monkeypatch.setattr(movies_db, "_DB_READY", False)
     movies_db.ensure_db()
 
+    conn = movies_db.get_connection()
+    conn.execute("DELETE FROM movie_tags")
+    conn.execute("DELETE FROM user_ratings")
+    conn.execute("DELETE FROM movies")
+    conn.execute("DELETE FROM tags")
+    conn.commit()
+    conn.close()
+
 def test_get_movie_by_id_exists():
     conn = movies_db.get_connection()
     try:
