@@ -1,8 +1,8 @@
 {
   "schemaVersion": "1",
   "verifiedAt": "2026-09-01T10:12:19.804Z",
-  "generatedAt": "2026-09-01T10:12:19.804Z",
-  "freshlyVerified": 1,
+  "generatedAt": "2026-09-02T09:42:53.419Z",
+  "freshlyVerified": 0,
   "generator": "scripts/refresh-free-roster.mjs",
   "relay": "https://chloe.blumenkraft.cloud/council/relay",
   "source": {
@@ -63,7 +63,7 @@
       "contextLength": "1048576",
       "lastOkAt": "2026-09-01T10:12:19.804Z",
       "lastLatencyMs": 769,
-      "freshlyVerified": true
+      "freshlyVerified": false
     },
     {
       "id": "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free",
@@ -98,12 +98,12 @@
     {
       "id": "google/gemma-4-26b-a4b-it:free",
       "gate": "probe",
-      "reason": "not probed this run and no success in window"
+      "reason": "empty-stream"
     },
     {
       "id": "google/gemma-4-31b-it:free",
       "gate": "probe",
-      "reason": "not probed this run and no success in window"
+      "reason": "empty-stream"
     },
     {
       "id": "google/lyria-3-clip-preview",
@@ -118,22 +118,22 @@
     {
       "id": "inclusionai/ling-3.0-flash-fin:free",
       "gate": "probe",
-      "reason": "not probed this run and no success in window"
+      "reason": "empty-stream"
     },
     {
       "id": "minimax/minimax-m2.7:free",
       "gate": "probe",
-      "reason": "not probed this run and no success in window"
+      "reason": "empty-200"
     },
     {
       "id": "nvidia/nemotron-3.5-content-safety:free",
       "gate": "probe",
-      "reason": "not probed this run and no success in window"
+      "reason": "empty-stream"
     },
     {
       "id": "nvidia/nemotron-3.5-lightning:free",
       "gate": "probe",
-      "reason": "not probed this run and no success in window"
+      "reason": "empty-stream"
     },
     {
       "id": "poolside/laguna-xs-2.1:free",
@@ -148,12 +148,12 @@
     {
       "id": "thinkingmachines/inkling:free",
       "gate": "probe",
-      "reason": "not probed this run and no success in window"
+      "reason": "empty-stream"
     },
     {
       "id": "z-ai/glm-5.2:free",
       "gate": "probe",
-      "reason": "not probed this run and no success in window"
+      "reason": "empty-stream"
     }
   ],
   "health": {
@@ -172,18 +172,18 @@
       "consecutiveFailures": 2
     },
     "google/gemma-4-26b-a4b-it:free": {
-      "lastCheckedAt": "2026-08-28T06:51:20.849Z",
+      "lastCheckedAt": "2026-09-02T09:42:53.419Z",
       "lastOkAt": null,
       "lastReason": "empty-stream",
       "lastLatencyMs": null,
-      "consecutiveFailures": 3
+      "consecutiveFailures": 4
     },
     "google/gemma-4-31b-it:free": {
-      "lastCheckedAt": "2026-08-28T06:51:20.849Z",
+      "lastCheckedAt": "2026-09-02T09:42:53.419Z",
       "lastOkAt": null,
       "lastReason": "empty-stream",
       "lastLatencyMs": null,
-      "consecutiveFailures": 3
+      "consecutiveFailures": 4
     },
     "liquid/lfm-2.5-2.6b:free": {
       "lastCheckedAt": "2026-09-01T10:12:19.804Z",
@@ -193,11 +193,11 @@
       "consecutiveFailures": 2
     },
     "minimax/minimax-m2.7:free": {
-      "lastCheckedAt": "2026-08-28T06:51:20.849Z",
+      "lastCheckedAt": "2026-09-02T09:42:53.419Z",
       "lastOkAt": null,
       "lastReason": "empty-200",
       "lastLatencyMs": null,
-      "consecutiveFailures": 3
+      "consecutiveFailures": 4
     },
     "minimax/minimax-m3:free": {
       "lastCheckedAt": "2026-09-01T10:12:19.804Z",
@@ -228,18 +228,18 @@
       "consecutiveFailures": 2
     },
     "nvidia/nemotron-3.5-content-safety:free": {
-      "lastCheckedAt": "2026-08-28T06:51:20.849Z",
+      "lastCheckedAt": "2026-09-02T09:42:53.419Z",
       "lastOkAt": null,
       "lastReason": "empty-stream",
       "lastLatencyMs": null,
-      "consecutiveFailures": 3
+      "consecutiveFailures": 4
     },
     "nvidia/nemotron-3.5-lightning:free": {
-      "lastCheckedAt": "2026-08-28T06:51:20.849Z",
+      "lastCheckedAt": "2026-09-02T09:42:53.419Z",
       "lastOkAt": null,
       "lastReason": "empty-stream",
       "lastLatencyMs": null,
-      "consecutiveFailures": 3
+      "consecutiveFailures": 4
     },
     "poolside/laguna-s-2.1:free": {
       "lastCheckedAt": "2026-09-01T10:12:19.804Z",
@@ -263,25 +263,25 @@
       "consecutiveFailures": 3
     },
     "thinkingmachines/inkling:free": {
-      "lastCheckedAt": "2026-08-28T06:44:06.136Z",
+      "lastCheckedAt": "2026-09-02T09:42:53.419Z",
       "lastOkAt": null,
       "lastReason": "empty-stream",
       "lastLatencyMs": null,
-      "consecutiveFailures": 2
+      "consecutiveFailures": 3
     },
     "z-ai/glm-5.2:free": {
-      "lastCheckedAt": "2026-08-28T06:44:06.136Z",
+      "lastCheckedAt": "2026-09-02T09:42:53.419Z",
+      "lastOkAt": null,
+      "lastReason": "empty-stream",
+      "lastLatencyMs": null,
+      "consecutiveFailures": 3
+    },
+    "inclusionai/ling-3.0-flash-fin:free": {
+      "lastCheckedAt": "2026-09-02T09:42:53.419Z",
       "lastOkAt": null,
       "lastReason": "empty-stream",
       "lastLatencyMs": null,
       "consecutiveFailures": 2
-    },
-    "inclusionai/ling-3.0-flash-fin:free": {
-      "lastCheckedAt": "2026-08-28T06:51:20.849Z",
-      "lastOkAt": null,
-      "lastReason": "empty-stream",
-      "lastLatencyMs": null,
-      "consecutiveFailures": 1
     }
   }
 }
