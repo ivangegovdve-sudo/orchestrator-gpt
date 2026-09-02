@@ -274,7 +274,8 @@ async function doSearch() {
     res.innerHTML = data.results.map(r => {
       const stars = r.meta.stars ? `⭐ ${r.meta.stars}` : '';
       const lang  = r.meta.language ? `· ${r.meta.language}` : '';
-      const url   = r.meta.url ? `<a class="card-link" href="${r.meta.url}" target="_blank">↗ GitHub</a>` : '';
+      const safe = safeUrl(r.meta.url);
+      const url   = safe ? `<a class="card-link" href="${safe}" target="_blank">↗ GitHub</a>` : '';
       return `<div class="card">
         <div class="card-header">
           <span class="card-title">${escHtml(r.title)}</span>

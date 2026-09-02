@@ -382,7 +382,8 @@ async function doRag() {
     textEl.textContent = data.answer;
     modelEl.textContent = `Answered by ${data.model}`;
     citeEl.innerHTML = data.citations.map(c => {
-      const link = c.url ? `<a href="${c.url}" target="_blank">${escHtml(c.title)}</a>` : escHtml(c.title);
+      const safe = safeUrl(c.url);
+      const link = safe ? `<a href="${safe}" target="_blank">${escHtml(c.title)}</a>` : escHtml(c.title);
       return `<span class="cite-chip">[${c.source}] ${link} (${(c.score*100).toFixed(0)}%)</span>`;
     }).join('');
   } catch (err) {
