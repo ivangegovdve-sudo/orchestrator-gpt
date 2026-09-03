@@ -26,7 +26,7 @@ test('home presents the canonical grouped directory as progressively enhanced, t
     ['writing-media', 'Writing & Media', 'Briefings, accessible reading, essays, and spoken-word experiences.', ['chair-ladder', 'morning-news', 'reader', 'audiobook', 'manifesto'], ['voice', 'poetry']],
     ['projects-play', 'Projects & Play', 'Creative work, family experiences, and playful builds.', ['vfx', 'kids', 'power', 'void'], ['gallery', 'flowform', 'lobester', 'multiply', 'math']],
     ['tools', 'Tools', 'Practical utilities, tutors, and searchable references.', ['time', 'rubiks', 'library', 'avatar'], ['council', 'mendeleev', 'explore', 'calendar']],
-    ['research-experiments', 'Research & Experiments', 'Evidence-led resources and investigations into AI, health, ecosystems, and model behavior.', ['health', 'open-overview', 'muscle', 'c2c-dolphin'], ['tinylm', 'c2c-self']],
+    ['research-experiments', 'Research & Experiments', 'Evidence-led resources and investigations into AI, health, ecosystems, and model behavior.', ['health', 'open-dashboard', 'muscle', 'c2c-dolphin'], ['tinylm', 'c2c-self']],
   ];
   const sections = [...home.matchAll(/<section\b[^>]*\bdata-directory-section="([^"]+)"[^>]*>([\s\S]*?)<\/section>/g)];
   assert.equal(sections.length, 4);
@@ -102,7 +102,7 @@ test('home is a truthful portal with the requested project lineup', () => {
     'Replicator Void',
     'Multiply Magic Studio',
     'Math Forest',
-    'Open Overview',
+    'Open Dashboard',
     'Rubik',
   ]) {
     assert.match(home, new RegExp(title.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
@@ -238,7 +238,7 @@ test('every live internal portal resolves to an animated page with a Forest retu
       /href="\/"|href="\/index\.html"|forest-(?:motion|trails)\.js/,
       `${route} has no Forest return path`,
     );
-    assert.match(page, /data-forest-runtime="motion"|forest-motion\.js|open-overview\.js|id="world"|id="starfield"|\/web\/rubiks-teacher\/assets\/index-[^"]+\.js/, `${route} has no motion runtime`);
+    assert.match(page, /data-forest-runtime="motion"|forest-motion\.js|open-dashboard\.js|id="world"|id="starfield"|\/web\/rubiks-teacher\/assets\/index-[^"]+\.js/, `${route} has no motion runtime`);
   }
 });
 

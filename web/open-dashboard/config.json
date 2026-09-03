@@ -2,7 +2,7 @@
   "schemaMajor": "2",
   "apiBase": "https://openrouter-github-dashboard.vercel.app",
   "timeoutMs": 8000,
-  "fallbackUrl": "/web/open-overview/fallback-data.json",
+  "fallbackUrl": "/web/open-dashboard/fallback-data.json",
   "fallbackOnMissingV2": true,
   "fixturePreviewOrigins": ["https://www.sdforest.site"],
   "conditionalRequests": false,

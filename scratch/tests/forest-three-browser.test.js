@@ -267,7 +267,7 @@ test('representative public routes mount their theme and scoped entrance invento
   await page.close();
 });
 
-test('Open Overview retains route-local Three ownership and shared motion makes no vendor request', async () => {
+test('Open Dashboard retains route-local Three ownership and shared motion makes no vendor request', async () => {
   const context = await browser.newContext({
     viewport: { width: 1200, height: 420 },
     reducedMotion: 'reduce',
@@ -280,7 +280,7 @@ test('Open Overview retains route-local Three ownership and shared motion makes 
     }
   });
 
-  await page.goto(`${baseUrl}/web/open-overview/?forest-route-owner-test`, {
+  await page.goto(`${baseUrl}/web/open-dashboard/?forest-route-owner-test`, {
     waitUntil: 'domcontentloaded',
   });
   await page.waitForFunction(() => window.__forestAmbient?.engine === 'route-managed');

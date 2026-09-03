@@ -1,5 +1,5 @@
 :root{--oo-accent:#8fe6ae;--oo-cyan:#73e9ff;--oo-violet:#a9b2ff;--oo-warn:#ffc66d;--oo-danger:#ff8c8c;--oo-cell:38px;color-scheme:dark}
-body[data-open-overview-route]{max-width:100%;overflow-x:clip;background:radial-gradient(circle at 18% -10%,rgba(232,184,107,.08),transparent 30rem),radial-gradient(circle at 92% 18%,rgba(143,230,174,.07),transparent 34rem),var(--forest-bg)}
+body[data-open-dashboard-route]{max-width:100%;overflow-x:clip;background:radial-gradient(circle at 18% -10%,rgba(232,184,107,.08),transparent 30rem),radial-gradient(circle at 92% 18%,rgba(143,230,174,.07),transparent 34rem),var(--forest-bg)}
 .oo-topbar{position:sticky;z-index:40;top:0;display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:16px;min-height:68px;padding:10px 16px;border-bottom:1px solid var(--forest-line);background:rgba(5,8,6,.92);backdrop-filter:blur(18px)}
 .oo-topbar>*{min-width:0;max-width:100%}
 .oo-topbar .forest-back{position:static}.oo-destinations,.oo-section-nav,.oo-mode-nav,.oo-app-picker,.oo-category-list,.oo-ranking-nav,.oo-momentum-windows,.oo-facet-list{display:flex;gap:7px;overflow-x:auto}.oo-destinations{justify-content:center}

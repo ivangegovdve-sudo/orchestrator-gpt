@@ -28,7 +28,7 @@ The landing page footer shows a live API status dot. It probes `https://api.sdfo
 - `web/library/` — sdforest library page (not linked from the hub yet).
 - `web/life-in-time/` — time-remaining calculator with shareable links.
 - `web/llm-db/` — LLM Platforms DB UI (166 platforms); expects same-origin `/api/llm-db`.
-- `web/open-overview/` — OpenRouter + GitHub cross-source ecosystem radar, linked from the homepage as a labeled public snapshot.
+- `web/open-dashboard/` — OpenRouter + GitHub cross-source ecosystem radar, linked from the homepage as a labeled public snapshot.
 - `web/m-popova/` — M.Popova poetry space.
 - `web/manifesto-newborn/` — Manifesto for a Newborn, a letter page.
 - `web/math-forest/` — reserved route for the Math Forest rebuild (placeholder).

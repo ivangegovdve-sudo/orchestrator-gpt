@@ -19,7 +19,7 @@ const routes = [
   '/web/kids/index.html',
   '/web/womens-health-os/index.html',
   '/web/library/index.html',
-  '/web/open-overview/index.html',
+  '/web/open-dashboard/index.html',
   '/web/calendar/index.html',
   '/web/manifesto-newborn/index.html',
   '/web/m-popova/index.html',
@@ -96,15 +96,15 @@ async function main() {
   await home.locator('[data-project="vfx"]').hover();
   await home.waitForTimeout(180);
   assert.equal(await home.locator('[data-preview-title]').textContent(), 'VFX Portfolio');
-  const overviewPortal = home.locator('[data-project="open-overview"]');
+  const overviewPortal = home.locator('[data-project="open-dashboard"]');
   await overviewPortal.focus();
-  await home.waitForFunction(() => window.__forestThree?.tiles?.some((tile) => tile.element.dataset.project === 'open-overview'));
+  await home.waitForFunction(() => window.__forestThree?.tiles?.some((tile) => tile.element.dataset.project === 'open-dashboard'));
   await home.waitForFunction(() => {
-    const tile = window.__forestThree?.tiles?.find((item) => item.element.dataset.project === 'open-overview');
+    const tile = window.__forestThree?.tiles?.find((item) => item.element.dataset.project === 'open-dashboard');
     return tile?.target === 1 && tile.alpha > 0;
   });
   const overviewTileDebug = await home.evaluate(() => {
-    const tile = window.__forestThree?.tiles?.find((item) => item.element.dataset.project === 'open-overview');
+    const tile = window.__forestThree?.tiles?.find((item) => item.element.dataset.project === 'open-dashboard');
     return {
       primaryAccent: tile ? `#${tile.accentColor.getHexString()}` : null,
       secondaryAccent: tile ? `#${tile.secondaryColor.getHexString()}` : null,
@@ -118,17 +118,17 @@ async function main() {
   assert.equal(overviewTileDebug.secondaryAccent, '#a9b2ff');
   assert.ok(
     overviewTileDebug.parts.some((part) => part.colorVertexCount > 0 && part.vertexColors),
-    `Open Overview tile lacks populated vertex-color geometry: ${JSON.stringify(overviewTileDebug)}`,
+    `Open Dashboard tile lacks populated vertex-color geometry: ${JSON.stringify(overviewTileDebug)}`,
   );
   assert.equal(await overviewPortal.getAttribute('aria-pressed'), 'true');
   assert.equal(await home.locator('[data-preview-number]').textContent(), '07');
-  assert.equal(await home.locator('[data-preview-title]').textContent(), 'Open Overview');
+  assert.equal(await home.locator('[data-preview-title]').textContent(), 'Open Dashboard');
   assert.equal(await home.locator('[data-preview-status]').textContent(), 'Public snapshot');
   assert.equal(
     await home.locator('[data-preview-description]').textContent(),
     'Compare OpenRouter models and apps with GitHub AI ecosystems through ten-deep rankings, observed relationships, lifecycle signals, and clearly labeled source evidence.',
   );
-  assert.equal(await home.locator('[data-preview-open]').getAttribute('href'), '/web/open-overview/index.html');
+  assert.equal(await home.locator('[data-preview-open]').getAttribute('href'), '/web/open-dashboard/index.html');
   assert.equal(await home.locator('[data-preview-open]').getAttribute('target'), '_self');
   await home.screenshot({ path: `${OUTPUT}/home-dashboard.png`, fullPage: false });
   await home.close();
@@ -165,8 +165,8 @@ async function main() {
   await mobileHome.goto(BASE, { waitUntil: 'domcontentloaded' });
   assert.equal(await mobileHome.locator('.portal').count(), 16);
   assert.equal(await mobileHome.evaluate(() => matchMedia('(pointer: coarse)').matches), true);
-  await mobileHome.locator('[data-project="open-overview"] .portal-icon').click();
-  assert.equal(await mobileHome.locator('[data-preview-title]').textContent(), 'Open Overview');
+  await mobileHome.locator('[data-project="open-dashboard"] .portal-icon').click();
+  assert.equal(await mobileHome.locator('[data-preview-title]').textContent(), 'Open Dashboard');
   assert.equal(await mobileHome.locator('[data-preview-status]').textContent(), 'Public snapshot');
   const mobileOverflow = await mobileHome.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
   assert.ok(mobileOverflow <= 3, `mobile home overflows by ${mobileOverflow}px`);
@@ -203,10 +203,10 @@ async function main() {
   const calmHome = await calm.newPage();
   await calmHome.goto(BASE, { waitUntil: 'domcontentloaded' });
   assert.equal(await calmHome.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue('--assembly').trim()), '1');
-  const calmOverview = calmHome.locator('[data-project="open-overview"]');
+  const calmOverview = calmHome.locator('[data-project="open-dashboard"]');
   assert.equal(await calmOverview.isVisible(), true);
   await calmOverview.focus();
-  assert.equal(await calmHome.locator('[data-preview-title]').textContent(), 'Open Overview');
+  assert.equal(await calmHome.locator('[data-preview-title]').textContent(), 'Open Dashboard');
   assert.equal(await calmHome.evaluate(() => window.__forestThree?.webgl ?? false), false);
   await calmHome.screenshot({ path: `${OUTPUT}/home-reduced-motion.png`, fullPage: false });
   await calm.close();

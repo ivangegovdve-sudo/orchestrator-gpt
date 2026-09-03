@@ -9,7 +9,7 @@ const read = (relativePath) => fs.readFileSync(path.join(ROOT, relativePath), 'u
 const projectDirectories = [
   'avatar-playground', 'c2c-dolphin', 'c2c-self', 'council', 'hypertrophyos', 'kids',
   'library', 'life-in-time', 'manifesto-newborn', 'mendeleev-bg', 'morning-news', 'm-popova',
-  'open-overview', 'power-law-odyssey', 'replicator-void', 'vfx-portfolio', 'womens-health-os',
+  'open-dashboard', 'power-law-odyssey', 'replicator-void', 'vfx-portfolio', 'womens-health-os',
   'math-forest', 'ai-research', 'calendar', 'chloe-pwa', 'evolution', 'kids-movie-library',
   'math-mania', 'upload', 'explore', 'ai-init', 'llm-db', 'tinylm',
 ];
@@ -43,7 +43,7 @@ test('route inventory owns every project directory exactly once with machine-rea
       'avatar-playground': 'main-atlas', 'c2c-dolphin': 'main-atlas', 'c2c-self': 'main-atlas',
       council: 'main-atlas', hypertrophyos: 'main-atlas', kids: 'main-atlas', library: 'main-atlas',
       'life-in-time': 'main-atlas', 'manifesto-newborn': 'main-atlas', 'mendeleev-bg': 'main-atlas',
-      'morning-news': 'main-atlas', 'm-popova': 'main-atlas', 'open-overview': 'main-atlas',
+      'morning-news': 'main-atlas', 'm-popova': 'main-atlas', 'open-dashboard': 'main-atlas',
       'power-law-odyssey': 'main-atlas', 'replicator-void': 'main-atlas', 'vfx-portfolio': 'main-atlas',
       'womens-health-os': 'main-atlas', 'math-forest': 'greenhouse', 'ai-research': 'hub-trail',
       calendar: 'hub-trail', 'chloe-pwa': 'hub-trail', evolution: 'hub-trail',

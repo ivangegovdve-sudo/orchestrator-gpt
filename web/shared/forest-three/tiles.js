@@ -8,7 +8,7 @@
      health    Cycle ring rotates with evidence particles
      council   Dialogue ribbons weave between nodes
      library   Knowledge lattice expands and indexes
-     open-overview Cross-source evidence matrix connects two ecosystems
+     open-dashboard Cross-source evidence matrix connects two ecosystems
      calendar  Day grid sweeps in with events
      muscle    Muscle fibers contract and glow
      manifesto Ink feather writes and unfolds
@@ -267,9 +267,9 @@ const BUILDERS = {
     ];
   },
 
-  // Open Overview — OpenRouter and GitHub node columns exchange evidence
+  // Open Dashboard — OpenRouter and GitHub node columns exchange evidence
   // through a central matrix; cyan-to-violet links pulse across sources.
-  'open-overview'() {
+  'open-dashboard'() {
     const matrix = lineBuilder();
     matrix.polyline([[-0.95, -0.76, 0], [0.95, -0.76, 0], [0.95, 0.76, 0], [-0.95, 0.76, 0]], true);
     [-0.32, 0.32].forEach((x) => matrix.line(x, -0.76, 0, x, 0.76, 0));

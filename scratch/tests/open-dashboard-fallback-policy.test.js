@@ -6,9 +6,9 @@ const path = require("node:path");
 const { pathToFileURL } = require("node:url");
 
 const ROOT = path.resolve(__dirname, "../..");
-const ROUTE = path.join(ROOT, "web", "open-overview");
+const ROUTE = path.join(ROOT, "web", "open-dashboard");
 const FALLBACK_PATH = path.join(ROUTE, "fallback-data.json");
-const SCRIPT_PATH = path.join(ROOT, "scripts", "sync-open-overview-fallback.mjs");
+const SCRIPT_PATH = path.join(ROOT, "scripts", "sync-open-dashboard-fallback.mjs");
 const importFresh = (file) => import(`${pathToFileURL(file).href}?t=${Date.now()}-${Math.random()}`);
 const readFixture = () => JSON.parse(fs.readFileSync(FALLBACK_PATH, "utf8"));
 
@@ -38,7 +38,7 @@ function liveFixtures(bundle, requiredFetchedAt, optionalFetchedAt, transformVer
 }
 
 async function buildLiveBundle({ now = new Date("2026-07-15T12:00:00.000Z"), requiredFetchedAt = "2026-07-15T11:00:00.000Z", optionalFetchedAt = "2026-07-15T10:00:00.000Z", transformVersion = "public-v2", timeoutMs = 8000, optionalStale = false, includeGitHubSeed = false, appSliceOverride = null } = {}) {
-  const api = await importFresh(path.join(ROUTE, "open-overview-api.js"));
+  const api = await importFresh(path.join(ROUTE, "open-dashboard-api.js"));
   const { buildFallback } = await importFresh(SCRIPT_PATH);
   const source = liveFixtures(readFixture(), requiredFetchedAt, optionalFetchedAt, transformVersion);
   source.apps.stale = optionalStale;
@@ -67,7 +67,7 @@ async function buildLiveBundle({ now = new Date("2026-07-15T12:00:00.000Z"), req
 }
 
 async function buildLiveFreeBundle({ mixedProvenance = false } = {}) {
-  const api = await importFresh(path.join(ROUTE, "open-overview-api.js"));
+  const api = await importFresh(path.join(ROUTE, "open-dashboard-api.js"));
   const { buildFallback } = await importFresh(SCRIPT_PATH);
   const fixture = readFixture();
   const source = liveFixtures(fixture, "2026-07-15T11:00:00.000Z", "2026-07-15T10:00:00.000Z", "public-v2");
@@ -92,7 +92,7 @@ async function buildLiveFreeBundle({ mixedProvenance = false } = {}) {
 }
 
 test("committed deterministic fallback is explicit fixture, stale, and non-production metadata", async () => {
-  const api = await importFresh(path.join(ROUTE, "open-overview-api.js"));
+  const api = await importFresh(path.join(ROUTE, "open-dashboard-api.js"));
   const bundle = readFixture();
   assert.equal(bundle.bundleKind, "fixture");
   assert.equal(bundle.generationMethod, "fixture");
@@ -105,14 +105,14 @@ test("committed deterministic fallback is explicit fixture, stale, and non-produ
 });
 
 test("fixture fallback is denied by default but explicitly labeled on the canonical SD Forest origin", async () => {
-  const api = await importFresh(path.join(ROUTE, "open-overview-api.js"));
+  const api = await importFresh(path.join(ROUTE, "open-dashboard-api.js"));
   const bundle = readFixture();
   const config = JSON.parse(fs.readFileSync(path.join(ROUTE, "config.json"), "utf8"));
-  const makeClient = (runtimeOrigin, fixturePreviewOrigins = []) => api.createOpenOverviewClient({
+  const makeClient = (runtimeOrigin, fixturePreviewOrigins = []) => api.createOpenDashboardClient({
     apiBase: "https://api.example.test",
     schemaMajor: "2",
     timeoutMs: 8000,
-    fallbackUrl: "/web/open-overview/fallback-data.json",
+    fallbackUrl: "/web/open-dashboard/fallback-data.json",
     fallbackOnMissingV2: true,
     runtimeOrigin,
     fixturePreviewOrigins,
@@ -160,7 +160,7 @@ test("require-live generation rejects an old optional dataset instead of labelin
 });
 
 test("require-live generation records typed optional unavailability without inventing freshness", async (t) => {
-  const api = await importFresh(path.join(ROUTE, "open-overview-api.js")); const { buildFallback } = await importFresh(SCRIPT_PATH); const source = liveFixtures(readFixture(), "2026-07-15T11:00:00.000Z", "2026-07-15T10:00:00.000Z", "public-v2");
+  const api = await importFresh(path.join(ROUTE, "open-dashboard-api.js")); const { buildFallback } = await importFresh(SCRIPT_PATH); const source = liveFixtures(readFixture(), "2026-07-15T11:00:00.000Z", "2026-07-15T10:00:00.000Z", "public-v2");
   const unavailable = { schemaVersion: "2.0", status: "unavailable", reason: "collection_disabled", lastSuccessAt: null, stale: false, staleAfterSeconds: 172800, completeness: { acquisitionComplete: false, populationCompleteness: "partial_or_unknown", missingFields: ["collection_disabled"] }, provenance: [], appIds: [], modelIds: [], cells: [] };
   const requests = [{ key: "models", path: api.ENDPOINTS.modelsTopWeekly, kind: "models", sourceId: "models_current" }, { key: "matrix", path: api.ENDPOINTS.appModelMatrix, kind: "matrix", optional: true }];
   const directory = fs.mkdtempSync(path.join(os.tmpdir(), "oo-fallback-unavailable-")); t.after(() => fs.rmSync(directory, { recursive: true, force: true }));

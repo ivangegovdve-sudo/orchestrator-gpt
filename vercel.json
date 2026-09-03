@@ -32,6 +32,21 @@
       "source": "/web/tinylm/",
       "destination": "/web/council/index.html#tinylm",
       "permanent": true
+    },
+    {
+      "source": "/web/open-overview",
+      "destination": "/web/open-dashboard/",
+      "permanent": true
+    },
+    {
+      "source": "/web/open-overview/",
+      "destination": "/web/open-dashboard/",
+      "permanent": true
+    },
+    {
+      "source": "/web/open-overview/:path*",
+      "destination": "/web/open-dashboard/:path*",
+      "permanent": true
     }
   ],
   "git": {

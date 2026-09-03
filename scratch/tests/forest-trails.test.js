@@ -11,7 +11,7 @@ const expectedPaths = [
   '/web/morning-news/',
   '/web/upload/',
   '/web/library/',
-  '/web/open-overview/',
+  '/web/open-dashboard/',
   '/web/council/',
   '/web/ai-research/',
   '/web/c2c-dolphin/',
@@ -48,8 +48,8 @@ const libraryChildPaths = [
 ];
 
 const routedChildViews = [
-  ['/web/open-overview/openrouter/', 'Open Overview'],
-  ['/web/open-overview/github/', 'Open Overview'],
+  ['/web/open-dashboard/openrouter/', 'Open Dashboard'],
+  ['/web/open-dashboard/github/', 'Open Dashboard'],
   ['/web/manifesto-newborn/bg/', 'Manifesto for a Newborn'],
   ['/web/manifesto-newborn/de/', 'Manifesto for a Newborn'],
   ['/web/manifesto-newborn/es/', 'Manifesto for a Newborn'],
@@ -910,7 +910,7 @@ test('maps public child views to their trail while leaving retired council paths
     const resolve = (pathname) => trails.getForestTrailContext(pathname)?.current.label || null;
     return {
       manifestoTranslation: resolve('/web/manifesto-newborn/bg/index.html'),
-      openOverviewChild: resolve('/web/open-overview/github/index.html'),
+      openDashboardChild: resolve('/web/open-dashboard/github/index.html'),
       libraryChild: resolve('/web/library/glossary/index.html'),
       legacyGlossary: resolve('/web/ai-init/index.html'),
       ragHub: resolve('/web/library/rag.html'),
@@ -926,7 +926,7 @@ test('maps public child views to their trail while leaving retired council paths
 
   assert.deepEqual(matches, {
     manifestoTranslation: 'Manifesto for a Newborn',
-    openOverviewChild: 'Open Overview',
+    openDashboardChild: 'Open Dashboard',
     libraryChild: 'Library & Platforms',
     legacyGlossary: null,
     ragHub: 'Library & Platforms',

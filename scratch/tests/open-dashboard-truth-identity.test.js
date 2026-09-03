@@ -5,12 +5,12 @@ const path = require("node:path");
 const { pathToFileURL } = require("node:url");
 
 const ROOT = path.resolve(__dirname, "../..");
-const ROUTE = path.join(ROOT, "web", "open-overview");
+const ROUTE = path.join(ROOT, "web", "open-dashboard");
 const importRoute = (file) => import(`${pathToFileURL(path.join(ROUTE, file)).href}?t=${Date.now()}-${Math.random()}`);
 const fixture = () => JSON.parse(fs.readFileSync(path.join(ROUTE, "fallback-data.json"), "utf8"));
 
 test("direct deterministic v2 evidence is fixture locally and fails closed on production", async () => {
-  const api = await importRoute("open-overview-api.js");
+  const api = await importRoute("open-dashboard-api.js");
   const bundle = fixture();
   const request = { key: "models", path: api.ENDPOINTS.modelsTopWeekly, kind: "models", sourceId: "models_current" };
   const fetchImpl = async (input) => {
@@ -19,7 +19,7 @@ test("direct deterministic v2 evidence is fixture locally and fails closed on pr
     const body = relative === api.ENDPOINTS.manifest ? bundle.manifest : bundle.responses[api.canonicalPath(relative)];
     return new Response(JSON.stringify(body), { status: body ? 200 : 404, headers: { "Content-Type": "application/json" } });
   };
-  const makeClient = (runtimeOrigin) => api.createOpenOverviewClient({ apiBase: "https://api.example.test", schemaMajor: "2", timeoutMs: 8000, runtimeOrigin, fetchImpl });
+  const makeClient = (runtimeOrigin) => api.createOpenDashboardClient({ apiBase: "https://api.example.test", schemaMajor: "2", timeoutMs: 8000, runtimeOrigin, fetchImpl });
   const local = await makeClient("http://127.0.0.1:4174").loadView([request]);
   assert.equal(local.mode, "fixture");
   assert.equal(local.productionEligible, false);
@@ -27,8 +27,8 @@ test("direct deterministic v2 evidence is fixture locally and fails closed on pr
 });
 
 test("valid response contracts remain bound to every requested identity and slice", async () => {
-  const api = await importRoute("open-overview-api.js");
-  const app = await importRoute("open-overview.js");
+  const api = await importRoute("open-dashboard-api.js");
+  const app = await importRoute("open-dashboard.js");
   const bundle = fixture();
   const responseAt = (pathValue) => bundle.responses[api.canonicalPath(pathValue)];
 
@@ -101,8 +101,8 @@ test("valid response contracts remain bound to every requested identity and slic
 });
 
 test("view merges require one exact manifest publication identity", async () => {
-  const api = await importRoute("open-overview-api.js");
-  const app = await importRoute("open-overview.js");
+  const api = await importRoute("open-dashboard-api.js");
+  const app = await importRoute("open-dashboard.js");
   const bundle = fixture();
   const primary = { mode: "live", manifest: bundle.manifest, publicationIdentity: "generation-a", responses: {}, errors: {} };
   const deferred = { ...primary, publicationIdentity: "generation-b" };
@@ -116,13 +116,13 @@ test("view merges require one exact manifest publication identity", async () => 
     if (url.pathname.endsWith("/manifest")) return new Response(JSON.stringify(manifestB), { status: 200, headers: { "Content-Type": "application/json" } });
     return new Response(JSON.stringify(bundle.responses[enrichmentPath]), { status: 200, headers: { "Content-Type": "application/json" } });
   };
-  const client = api.createOpenOverviewClient({ apiBase: "https://api.example.test", schemaMajor: "2", timeoutMs: 8000, runtimeOrigin: "http://127.0.0.1:4174", fetchImpl });
+  const client = api.createOpenDashboardClient({ apiBase: "https://api.example.test", schemaMajor: "2", timeoutMs: 8000, runtimeOrigin: "http://127.0.0.1:4174", fetchImpl });
   const spec = { key: `githubEnrichment:${bundle.responses[enrichmentPath].repositoryId}`, path: api.ENDPOINTS.githubEnrichment(bundle.responses[enrichmentPath].repositoryId, enrichmentUrl.searchParams.get("from"), enrichmentUrl.searchParams.get("to")), kind: "githubEnrichment", optional: true };
   await assert.rejects(() => client.loadView([spec], { manifest: bundle.manifest }), (error) => error.code === "mixed_snapshot");
 });
 
 test("GitHub enrichment source rows disclose public evidence and partial buckets are never exact", async () => {
-  const app = await importRoute("open-overview.js");
+  const app = await importRoute("open-dashboard.js");
   const bundle = fixture();
   const enrichmentPath = Object.keys(bundle.responses).find((key) => key.includes("/enrichment?"));
   const enrichment = bundle.responses[enrichmentPath];

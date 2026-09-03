@@ -74,8 +74,8 @@ const UNSAFE_PRERENDER_CANDIDATES = Object.freeze([
   '/web/avatar-playground/',
   '/web/replicator-void/',
   '/web/chloe-pwa/',
-  '/web/open-overview/',
-  '/web/open-overview/github/',
+  '/web/open-dashboard/',
+  '/web/open-dashboard/github/',
   '/web/power-law-odyssey/',
   '/web/library/chloe/',
   '/web/manifesto-newborn/',
@@ -134,7 +134,7 @@ test('navigation policy returns literal landing, hub, canonical, redirect, and a
   );
   assert.deepEqual(
     getDocumentPrefetches('/web/library/rag.html'),
-    ['/web/upload/', '/web/open-overview/'],
+    ['/web/upload/', '/web/open-dashboard/'],
   );
   assert.deepEqual(
     getDocumentPrefetches('/web/manifesto-newborn/bg/index.html'),
@@ -169,7 +169,7 @@ test('every route prefetch set is local, unique, self-free, eligible, and capped
     '/web/morning-news/',
     '/web/upload/',
     '/web/library/',
-    '/web/open-overview/',
+    '/web/open-dashboard/',
     '/web/council/',
     '/web/ai-research/',
     '/web/c2c-dolphin/',

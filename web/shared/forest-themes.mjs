@@ -16,7 +16,7 @@ const THEMES = Object.freeze({
   ink: theme('ink', 'Living ink', 'calligraphic-current', '#eedcb8', '#d98a7f', 0.12, 74),
   poetry: theme('poetry', 'Poetic breath', 'stanza-spiral', '#e084ff', '#eedcb8', 0.14, 70),
   news: theme('news', 'Morning signal', 'broadcast-waves', '#70eade', '#e8b86b', 0.24, 76),
-  'open-overview': theme('open-overview', 'Ecosystem graph', 'ecosystem-canopy', '#73e9ff', '#a9b2ff', 0.16, 88),
+  'open-dashboard': theme('open-dashboard', 'Ecosystem graph', 'ecosystem-canopy', '#73e9ff', '#a9b2ff', 0.16, 88),
   'ai-research': theme('ai-research', 'Machine dialogue', 'twin-mind-field', '#a78bfa', '#51ebff', 0.19, 78),
   void: theme('void', 'Replicator drift', 'mitosis-field', '#51ebff', '#9bd26f', 0.27, 80),
   vfx: theme('vfx', 'VFX aperture', 'aperture-rig', '#a282ff', '#73e9ff', 0.23, 84),
@@ -25,8 +25,8 @@ const THEMES = Object.freeze({
 });
 
 const ALIASES = Object.freeze({
-  open: 'open-overview',
-  overview: 'open-overview',
+  open: 'open-dashboard',
+  overview: 'open-dashboard',
   'math-mania': 'math',
   'math-forest': 'math',
   'kids-movie-library': 'movie',
@@ -210,7 +210,7 @@ function themedPoint(id, t, index, count, random) {
         Math.cos(x + band) * 0.34,
       ];
     }
-    case 'open-overview': {
+    case 'open-dashboard': {
       const ring = index % 4;
       const ringT = Math.floor(index / 4) / Math.max(1, Math.ceil(count / 4) - 1);
       const a = ringT * TAU + ring * 0.72;
