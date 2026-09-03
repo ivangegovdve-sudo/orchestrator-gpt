@@ -30,6 +30,7 @@
 
 import { readFile } from "node:fs/promises";
 import process from "node:process";
+import { priceVerdict } from "./free-roster-pricing.mjs";
 
 export const OPENROUTER_CATALOGUE = "https://openrouter.ai/api/v1/models";
 export const REQUIRED_TIERS = ["proposer", "critic", "synthesis"];
@@ -83,7 +84,13 @@ export function validateRoster(roster, catalogue) {
         problems.push(`tier ${tier} carries ${model}, which OpenRouter does not serve`);
         continue;
       }
-      if (Number(listed.pricing?.prompt) !== 0 || Number(listed.pricing?.completion) !== 0) {
+      // An unknown price is reported as unknown, not as zero and not as priced. The
+      // roster's claim is that every slug on it is free; a slug OpenRouter will not price
+      // is one this file cannot make that claim about, which is a problem in its own right.
+      const verdict = priceVerdict(listed.pricing);
+      if (verdict.state === "unknown") {
+        problems.push(`tier ${tier} carries ${model}, which OpenRouter does not price: ${verdict.reason}`);
+      } else if (!verdict.free) {
         problems.push(`tier ${tier} carries ${model}, which OpenRouter prices above zero`);
       }
     }

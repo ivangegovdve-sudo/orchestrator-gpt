@@ -803,3 +803,168 @@ test('the page reports roster staleness rather than serving an ageing list silen
   const markup = fs.readFileSync(path.join(ROOT, 'web/council/index.html'), 'utf8');
   assert.match(markup, /id="openrouter-roster-status"/);
 });
+
+// ── An unknown price is not a zero price ─────────────────────────────────────
+// Every check below existed and passed before 2026-09-03 as `Number(value) !== 0`. That
+// is a coercion, not a parse, and it reads `null`, `""`, `"   "` and `[]` as zero — so a
+// listing carrying no price at all was published to a roster whose only promise is that
+// its models are free. `undefined` was already safe, which is why the hole survived: an
+// absent key behaves correctly and a present-but-empty one does the opposite.
+
+const importPricing = () => import(
+  require('node:url').pathToFileURL(path.join(ROOT, 'scripts/free-roster-pricing.mjs')).href
+);
+
+test('parsePrice accepts only values that really are numbers', async () => {
+  const { parsePrice } = await importPricing();
+  // [input, expected] — null means "unknown", which is not the same as 0.
+  const cases = [
+    [0, 0],
+    ['0', 0],
+    ['0.0', 0],
+    ['0.0000004', 0.0000004],
+    [1.5, 1.5],
+    [null, null],
+    [undefined, null],
+    ['', null],
+    ['   ', null],
+    ['abc', null],
+    ['0abc', null],
+    [[], null],
+    [{}, null],
+    [true, null],
+    [NaN, null],
+    [Infinity, null],
+  ];
+  for (const [input, expected] of cases) {
+    assert.equal(parsePrice(input), expected, `parsePrice(${String(input)}) should be ${expected}`);
+  }
+});
+
+test('priceVerdict calls a genuine zero free and everything else not free', async () => {
+  const { priceVerdict } = await importPricing();
+
+  // The two genuinely-zero shapes, which are the only ones that may be published.
+  for (const zero of [0, '0', '0.0', '0.00000']) {
+    const verdict = priceVerdict({ prompt: zero, completion: zero });
+    assert.equal(verdict.state, 'free', `${String(zero)} should read as free`);
+    assert.equal(verdict.free, true);
+  }
+
+  // The hole: each of these coerces to 0 under `Number` and used to be published as free.
+  for (const unknown of [null, undefined, '', '   ', [], {}, 'abc', NaN]) {
+    const verdict = priceVerdict({ prompt: unknown, completion: '0' });
+    assert.equal(verdict.state, 'unknown', `prompt=${String(unknown)} should be unknown, not free`);
+    assert.equal(verdict.free, false);
+    assert.match(verdict.reason, /price not a number/);
+  }
+
+  // Unknown on the completion side alone is just as disqualifying.
+  const completionUnknown = priceVerdict({ prompt: '0', completion: null });
+  assert.equal(completionUnknown.state, 'unknown');
+  assert.match(completionUnknown.reason, /completion=null/);
+
+  // A real price is 'priced', a distinct outcome from 'unknown' so the two never share a
+  // reason string.
+  const priced = priceVerdict({ prompt: '0', completion: '0.0000004' });
+  assert.equal(priced.state, 'priced');
+  assert.equal(priced.free, false);
+
+  // An absent pricing object is unknown, not free.
+  assert.equal(priceVerdict(undefined).state, 'unknown');
+});
+
+test('assertFreeOnly refuses a slug whose price OpenRouter does not state', async () => {
+  const { assertFreeOnly } = await importGenerator();
+  for (const unknown of [null, '', '   ', []]) {
+    const catalogue = new Map([['a/one:free', { pricing: { prompt: unknown, completion: '0' } }]]);
+    assert.throws(
+      () => assertFreeOnly({ proposer: ['a/one:free'] }, catalogue),
+      /unknown price in proposer/,
+      `pricing.prompt=${String(unknown)} must not be published as free`,
+    );
+  }
+});
+
+test('liveFreeCatalogue keeps an unpriced :free slug out, and says why', async () => {
+  const { liveFreeCatalogue } = await importGenerator();
+  const fetchImpl = async () => ({
+    ok: true,
+    json: async () => ({
+      data: [
+        { id: 'good/one:free', pricing: { prompt: '0', completion: '0' } },
+        { id: 'unknown/two:free', pricing: { prompt: null, completion: '0' } },
+        { id: 'empty/three:free', pricing: { prompt: '', completion: '' } },
+        { id: 'priced/four:free', pricing: { prompt: '0', completion: '0.0000004' } },
+      ],
+    }),
+  });
+  const { free, excluded } = await liveFreeCatalogue({ fetchImpl });
+
+  assert.deepEqual([...free.keys()], ['good/one:free']);
+  // Excluded rather than dropped: the reason has to survive, because "OpenRouter does not
+  // serve this" and "OpenRouter will not price this" call for different responses.
+  assert.equal(excluded.get('unknown/two:free').state, 'unknown');
+  assert.equal(excluded.get('empty/three:free').state, 'unknown');
+  assert.equal(excluded.get('priced/four:free').state, 'priced');
+});
+
+test('validateRoster reports an unpriced slug rather than passing it', async () => {
+  const { validateRoster } = await importValidator();
+  const roster = {
+    schemaVersion: '1',
+    generatedAt: '2026-09-03T00:00:00.000Z',
+    verifiedAt: '2026-09-02T00:00:00.000Z',
+    rosters: { proposer: ['a/one:free'], critic: ['a/one:free'], synthesis: ['a/one:free'] },
+  };
+  const catalogue = new Map([['a/one:free', { pricing: { prompt: '', completion: null } }]]);
+  const problems = validateRoster(roster, catalogue);
+  assert.ok(
+    problems.some((problem) => /does not price/.test(problem)),
+    `expected an unpriced-slug problem, got: ${JSON.stringify(problems)}`,
+  );
+});
+
+// ── A corrupt roster is not a missing roster ─────────────────────────────────
+// readExistingRoster used to swallow every failure into null. buildRoster reads null as
+// "start fresh" and overwrites the file, so a truncated or unreadable roster silently
+// destroyed the health history that decides which models keep their seats.
+
+test('readExistingRoster returns null only when there is no roster yet', async () => {
+  const os = require('node:os');
+  const { readExistingRoster } = await importGenerator();
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'roster-missing-'));
+  assert.equal(await readExistingRoster(path.join(dir, 'free-roster.json')), null);
+});
+
+test('readExistingRoster refuses to treat a corrupt roster as a fresh start', async () => {
+  const os = require('node:os');
+  const { readExistingRoster } = await importGenerator();
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'roster-corrupt-'));
+
+  // A half-written file is exactly what an interrupted run leaves behind.
+  const truncated = path.join(dir, 'truncated.json');
+  fs.writeFileSync(truncated, '{"schemaVersion":"1","health":{"a/one:free":{"lastOkAt":');
+  await assert.rejects(() => readExistingRoster(truncated), /not valid JSON/);
+
+  const garbage = path.join(dir, 'garbage.json');
+  fs.writeFileSync(garbage, 'not json at all');
+  await assert.rejects(() => readExistingRoster(garbage), /Refusing to overwrite it/);
+
+  // A valid roster still reads back intact — the check must not cost the happy path.
+  const good = path.join(dir, 'good.json');
+  fs.writeFileSync(good, JSON.stringify({ schemaVersion: '1', health: { 'a/one:free': {} } }));
+  assert.deepEqual(await readExistingRoster(good), {
+    schemaVersion: '1',
+    health: { 'a/one:free': {} },
+  });
+});
+
+test('readExistingRoster surfaces a read failure that is not a missing file', async () => {
+  const os = require('node:os');
+  const { readExistingRoster } = await importGenerator();
+  // A directory where a file is expected: EISDIR on read, and emphatically not "no roster
+  // yet". Any non-ENOENT errno must reach the caller.
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'roster-eisdir-'));
+  await assert.rejects(() => readExistingRoster(dir), /Cannot read the existing roster/);
+});
