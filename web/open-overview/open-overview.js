@@ -8,10 +8,19 @@ import { renderAppModelMatrix, renderHistoryVisualization, renderPending, render
 export const datasetState = (view, key) =>
   Object.hasOwn(view.responses, key) ? "ready" : Object.hasOwn(view.errors, key) ? "failed" : "pending";
 const PENDING_NOTE = "Not requested yet — this panel loads when it scrolls into view.";
+// Prefer the SOURCE's own error code over our parser's classification, and carry
+// the HTTP status with it. A label that names the wrong party ends the reader's
+// investigation in the wrong place.
+const failureCode = (failure) => {
+  if (!failure) return null;
+  const status = failure?.details?.status;
+  const named = failure?.details?.apiCode ?? failure?.code ?? failure?.message ?? null;
+  return status ? `${named ?? "error"} · HTTP ${status}` : named;
+};
 const renderDatasetGap = (document, view, key, title, pendingNote = PENDING_NOTE) => {
   if (datasetState(view, key) === "pending") return renderPending({ document, title, note: pendingNote });
   const failure = view.errors[key];
-  return renderUnavailable({ document, title, reason: "This request failed; nothing is shown in its place.", code: failure?.details?.apiCode ?? failure?.code ?? failure?.message ?? null });
+  return renderUnavailable({ document, title, reason: "This request failed; nothing is shown in its place.", code: failureCode(failure) });
 };
 
 export const OPENROUTER_VIEWS = Object.freeze({
@@ -366,7 +375,7 @@ export function renderOverview(view, config) {
   const appRail = appLeaderboard(document, "oo-app-rail", "Popular app leaders", apps, appRankingSourceLabel(view.responses.apps), view.responses.apps?.provenance?.[0]?.sourceAsOf ?? view.responses.apps?.window?.end, view); appRail.dataset.mobilePanel = "apps";
   field.append(modelRail, matrix, appRail); field.dataset.mobileSegment = "models"; root.appendChild(field);
   const analysis = section(document, "oo-analysis-strip", "oo-analysis-strip");
-  for (const [title, key, note] of [["Free", "free", "Popularity default"], ["Deprecations", "deprecations", "Lifecycle evidence"], ["Tasks", "tasks", "7-day sample"], ["Benchmarks", "benchmarks", "Source-separated"], ["Providers", "providers", "Published endpoints"], ["Pareto Q×T", "freeFrontierQuality", "Quality × throughput"], ["Pareto C×P", "freeFrontierContext", "Context × popularity"]]) { const rows = envelopeRows(view,key); const article = document.createElement("article"); article.className = "oo-micro-panel"; article.dataset.overviewDataset = key; const h = document.createElement("h2"); h.textContent = title; const count = document.createElement("strong"); count.textContent = String(rows.length); const p = document.createElement("p"); p.textContent = view.errors[key] ? `Request failed · ${view.errors[key]?.details?.apiCode ?? view.errors[key]?.code ?? "error"}` : !Object.hasOwn(view.responses,key) && OVERVIEW_DEFERRED_KEYS.has(key) ? "Loads near this rail" : note; article.append(h,count,p); analysis.appendChild(article); }
+  for (const [title, key, note] of [["Free", "free", "Popularity default"], ["Deprecations", "deprecations", "Lifecycle evidence"], ["Tasks", "tasks", "7-day sample"], ["Benchmarks", "benchmarks", "Source-separated"], ["Providers", "providers", "Published endpoints"], ["Pareto Q×T", "freeFrontierQuality", "Quality × throughput"], ["Pareto C×P", "freeFrontierContext", "Context × popularity"]]) { const rows = envelopeRows(view,key); const article = document.createElement("article"); article.className = "oo-micro-panel"; article.dataset.overviewDataset = key; const h = document.createElement("h2"); h.textContent = title; const count = document.createElement("strong"); count.textContent = String(rows.length); const p = document.createElement("p"); p.textContent = view.errors[key] ? `Request failed · ${failureCode(view.errors[key]) ?? "error"}` : !Object.hasOwn(view.responses,key) && OVERVIEW_DEFERRED_KEYS.has(key) ? "Loads near this rail" : note; article.append(h,count,p); analysis.appendChild(article); }
   root.appendChild(analysis);
   const history = section(document, "oo-history-grid", "oo-history-grid"); history.append(renderHistoryPanel(view,"modelUsage","Model usage over time","stacked-area"),renderHistoryPanel(view,"modelUsage","Model rank movement","bump"),renderHistoryPanel(view,"githubRanks","GitHub category history","small-multiples")); root.appendChild(history);
   const github = section(document, "oo-github-grid", "oo-github-grid");
@@ -383,7 +392,7 @@ export const mergeCompatibleViews = (primary, deferred) => {
 
 function hydrateOverviewDeferred(view) {
   renderSourceRail(view); const { document } = context();
-  for (const [key, note] of [["providers", "Published endpoints"], ["freeFrontierQuality", "Quality × throughput"], ["freeFrontierContext", "Context × popularity"]]) { const article = document.querySelector(`[data-overview-dataset="${key}"]`); if (!article) continue; article.querySelector("strong").textContent = String(envelopeRows(view,key).length); article.querySelector("p").textContent = view.errors[key] ? `Request failed · ${view.errors[key]?.details?.apiCode ?? view.errors[key]?.code ?? "error"}` : note; }
+  for (const [key, note] of [["providers", "Published endpoints"], ["freeFrontierQuality", "Quality × throughput"], ["freeFrontierContext", "Context × popularity"]]) { const article = document.querySelector(`[data-overview-dataset="${key}"]`); if (!article) continue; article.querySelector("strong").textContent = String(envelopeRows(view,key).length); article.querySelector("p").textContent = view.errors[key] ? `Request failed · ${failureCode(view.errors[key]) ?? "error"}` : note; }
   const history = document.getElementById("oo-history-grid"); if (history) history.replaceChildren(renderHistoryPanel(view,"modelUsage","Model usage over time","stacked-area"),renderHistoryPanel(view,"modelUsage","Model rank movement","bump"),renderHistoryPanel(view,"githubRanks","GitHub category history","small-multiples"));
   const currentAppRail = document.getElementById("oo-app-rail");
   if (currentAppRail) {
