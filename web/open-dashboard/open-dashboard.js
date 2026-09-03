@@ -1,4 +1,4 @@
-import { CATALOGUE_PROVIDERS, ENDPOINTS, GITHUB_CATEGORIES, OVERVIEW_REQUESTS, createOpenDashboardClient, manifestPublicationIdentity, topAppModelRequests, topGitHubEnrichmentRequests } from "./open-dashboard-api.js";
+import { CATALOGUE_PROVIDERS, CATALOGUE_SERVED_AS_OF, ENDPOINTS, GITHUB_CATEGORIES, OVERVIEW_REQUESTS, createOpenDashboardClient, manifestPublicationIdentity, topAppModelRequests, topGitHubEnrichmentRequests } from "./open-dashboard-api.js";
 import { compactIntegerString } from "./open-dashboard-schema.js";
 import { renderAppModelMatrix, renderHistoryVisualization, renderPending, renderRankTable, renderSourceStates, renderUnavailable } from "./open-dashboard-charts.js";
 
@@ -481,21 +481,26 @@ export function catalogueSummary(rows) {
   // A model whose modalities the source does not publish is UNKNOWN, never "not
   // chat". Cerebras publishes no outputModalities at all, so reporting 0 chat
   // models there would be a claim the data does not support.
-  const text = list.filter((row) => Array.isArray(row.outputModalities) && row.outputModalities.includes("text"));
-  const other = list.filter((row) => Array.isArray(row.outputModalities) && !row.outputModalities.includes("text"));
-  const unknown = list.filter((row) => !Array.isArray(row.outputModalities));
+  // An empty array publishes nothing, so it is UNKNOWN, not "some other modality".
+  // Treating it as other produced the literal string "1 other modality ()".
+  const declared = (row) => Array.isArray(row.outputModalities) && row.outputModalities.length > 0;
+  const text = list.filter((row) => declared(row) && row.outputModalities.includes("text"));
+  const other = list.filter((row) => declared(row) && !row.outputModalities.includes("text"));
+  const unknown = list.filter((row) => !declared(row));
   const otherKinds = [...new Set(other.flatMap((row) => row.outputModalities))].sort();
   // Fields null on EVERY row are unpublished by this source, not zero.
   const columns = ["contextLength", "pricing", "isFree", "providerActive", "performance"];
   const unpublished = columns.filter((key) => list.length > 0 && list.every((row) => row[key] === null
     || (key === "pricing" && row.pricing?.promptUsdPerToken === null && row.pricing?.completionUsdPerToken === null)));
   // Cerebras publishes no modalities at all, so filtering to text-capable would
-  // render an empty table for a provider that does list models. Fall back to the
-  // unknown-modality rows and label them, rather than showing nothing.
-  const shown = text.length ? text : unknown;
+  // render an empty table for a provider that does list models. Fall back to
+  // EVERY row -- falling back to the unknown ones alone hid real other-modality
+  // models while the note claimed the source published no modalities.
+  const shown = text.length ? text : list;
   return Object.freeze({
     total: list.length, text: Object.freeze(text), textCount: text.length,
-    shown: Object.freeze(shown), shownAreUnknownModality: text.length === 0 && unknown.length > 0,
+    shown: Object.freeze(shown), shownAreNotTextCapable: text.length === 0 && list.length > 0,
+    noModalityPublished: unknown.length > 0 && other.length === 0,
     otherCount: other.length, otherKinds: Object.freeze(otherKinds),
     unknownCount: unknown.length, unpublished: Object.freeze(unpublished),
     disappeared: list.filter((row) => row.availability === "disappeared").length
@@ -512,7 +517,7 @@ export function renderCatalogues(view) {
   for (const [slug, label, served, sourceId] of CATALOGUE_PROVIDERS) {
     const key = `catalogue:${slug}`;
     if (!served) {
-      content.appendChild(renderUnavailable({ document, title: label, reason: "No source publishes this catalogue. The public API rejects it as an unknown provider, so nothing is shown in its place and no figure is inferred.", code: "provider not served · HTTP 400 INVALID_QUERY" }));
+      content.appendChild(renderUnavailable({ document, title: label, reason: `No source publishes this catalogue. The public API rejects it as an unknown provider, so nothing is shown in its place and no figure is inferred. Measured ${CATALOGUE_SERVED_AS_OF}; if the API starts serving it, this panel is what goes stale.`, code: "provider not served · HTTP 400 INVALID_QUERY" }));
       continue;
     }
     if (datasetState(view, key) !== "ready") { content.appendChild(renderDatasetGap(document, view, key, label)); continue; }
@@ -546,13 +551,16 @@ export function renderCatalogues(view) {
         { label: "Context", value: (row) => row.contextLength === null ? "—" : compactIntegerString(row.contextLength), exact: (row) => row.contextLength },
         { label: "Prompt $/tok", value: (row) => exact(row.pricing?.promptUsdPerToken) },
         { label: "Completion $/tok", value: (row) => exact(row.pricing?.completionUsdPerToken) },
+        { label: "Modality", value: (row) => Array.isArray(row.outputModalities) && row.outputModalities.length ? row.outputModalities.join(", ") : "not published" },
         { label: "Free", value: (row) => row.isFree === null ? "—" : row.isFree ? "yes" : "no" },
         { label: "Seen", value: (row) => String(row.lastConfirmedAt).slice(0, 10) }
       ]
     }));
-    if (summary.shownAreUnknownModality) {
+    if (summary.shownAreNotTextCapable) {
       const note = document.createElement("p"); note.className = "oo-region-meta oo-catalogue-unpublished";
-      note.textContent = "This source publishes no output modalities, so these models are listed without a text-capable claim being made about them.";
+      note.textContent = summary.noModalityPublished
+        ? "This source publishes no output modalities, so these models are listed without a text-capable claim being made about them."
+        : "No model here declares text output. Every listed model is shown with the modality its source does declare.";
       region.appendChild(note);
     }
     if (summary.shown.length > 25) {

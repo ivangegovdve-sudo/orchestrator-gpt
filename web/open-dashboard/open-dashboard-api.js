@@ -34,6 +34,10 @@ export const GITHUB_CATEGORIES = Object.freeze([
 // every /live-models response lists ALL THREE ingest sources in its provenance
 // regardless of which provider was requested -- so provenance[0] would label the
 // OpenRouter panel with the Cerebras source.
+// This roster is a DEPLOYMENT-TIME SNAPSHOT of what the API served when it was
+// written, not a live probe. The date is rendered next to any "not served"
+// claim so a stale claim is visible rather than quietly authoritative.
+export const CATALOGUE_SERVED_AS_OF = "2026-09-03";
 export const CATALOGUE_PROVIDERS = Object.freeze([
   ["openrouter", "OpenRouter", true, "models_current"],
   ["groq", "Groq", true, "groq_models_current"],
