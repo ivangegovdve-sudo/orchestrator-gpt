@@ -280,6 +280,18 @@ export function describeUnavailable(reason, code = null) {
   return { text: raw || "This slice is unavailable.", code: null };
 }
 
+// A panel whose request has not been made yet is NOT a failed panel. Saying
+// "request failed" for work that was never attempted points every reader at the
+// publisher for a decision this page made, which is how three dark history
+// panels read as an upstream outage for weeks.
+export function renderPending({ document, title, note }) {
+  const region = el(document, "section", "oo-data-region oo-pending");
+  region.setAttribute("role", "status");
+  region.setAttribute("aria-busy", "true");
+  region.append(el(document, "h2", "oo-region-title", title), el(document, "p", "", note));
+  return region;
+}
+
 export function renderUnavailable({ document, title, reason, code = null }) {
   const region = el(document, "section", "oo-data-region oo-unavailable");
   region.setAttribute("role", "status");
