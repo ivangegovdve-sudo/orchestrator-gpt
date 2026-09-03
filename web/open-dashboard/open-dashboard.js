@@ -487,7 +487,7 @@ export async function bootOpenDashboard({ fetchImpl = globalThis.fetch.bind(glob
   try {
     const config = await readConfig(fetchImpl);
     const client = createOpenDashboardClient({ ...config, fetchImpl });
-    const route = document.body.dataset.openOverviewRoute;
+    const route = document.body.dataset.openDashboardRoute;
     if (route === "overview") {
       const view = await client.loadView(OVERVIEW_INITIAL_REQUESTS);
       renderOverview(view, config);
@@ -527,6 +527,13 @@ export async function bootOpenDashboard({ fetchImpl = globalThis.fetch.bind(glob
         }
       }
       renderGithub(view, state);
+    } else {
+      // An unrecognised route used to fall through this if/else and complete the
+      // try having done nothing: no request, no render, no error, and the static
+      // "Loading validated public data..." placeholder left on screen forever.
+      // That is how a renamed data-open-dashboard-route attribute hid for a whole
+      // build. A route the page cannot serve is a failure and must say so.
+      throw new Error(`Unknown Open Dashboard route ${JSON.stringify(route ?? null)}; the page cannot choose what to load.`);
     }
   } catch (error) {
     // Lead with a sentence; keep the thrown message as evidence rather than as
