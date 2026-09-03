@@ -9,7 +9,7 @@
 <link rel="preload" href="/web/vendor/fonts/cormorant-garamond-normal-600-latin.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="/web/vendor/fonts/alegreya-normal-400-900-latin.woff2" as="font" type="font/woff2" crossorigin>
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Open Dashboard MCP: compare models across OpenRouter, Groq and Cerebras on price, discounts, capability, retirement risk, and models that quietly stopped being free. What it does today, and what it does not.">
+  <meta name="description" content="Open Dashboard MCP: compare models across OpenRouter, Groq, Cerebras and Sail on price, discounts, capability, retirement risk, and models that quietly stopped being free. What it does today, and what it does not.">
   <meta name="theme-color" content="#07070b">
   <title>MCP server — Open Overview</title>
   <link rel="stylesheet" href="/web/shared/forest-shell.css?v=20260807a">
@@ -51,7 +51,7 @@
   <main class="oo-page" id="oo-main">
     <header class="oo-header">
       <div>
-        <p class="forest-kicker">OpenRouter · Groq · Cerebras · one comparable shape</p>
+        <p class="forest-kicker">OpenRouter · Groq · Cerebras · Sail · one comparable shape</p>
         <h1>Open Dashboard MCP</h1>
       </div>
       <p>Pick the cheapest model that still does the job — across every provider you hold a key with, not one at a time.</p>
@@ -172,7 +172,7 @@
       </ul>
 
       <h2>What each provider actually publishes</h2>
-      <p>The three catalogues disagree about nearly everything, and normalising that is most of the work. Every gap
+      <p>The four catalogues disagree about nearly everything, and normalising that is most of the work. Every gap
         below is declared per provider, so a missing value is reported as <em>that provider withheld it</em> rather than
         appearing as a blank you might read as zero.</p>
       <div class="oo-scroll">
@@ -185,6 +185,7 @@
             <tr><th scope="row">OpenRouter</th><td>562</td><td>417</td><td>yes</td><td>yes</td><td>yes</td><td>yes</td></tr>
             <tr><th scope="row">Groq</th><td>13</td><td>6</td><td>yes</td><td>yes</td><td><strong>no</strong></td><td><strong>no</strong></td></tr>
             <tr><th scope="row">Cerebras</th><td>2</td><td><strong>0</strong></td><td><strong>no</strong></td><td><strong>no</strong></td><td><strong>no</strong></td><td><strong>no</strong></td></tr>
+            <tr><th scope="row">Sail</th><td>9</td><td>9</td><td><strong>no</strong></td><td><strong>no</strong></td><td><strong>no</strong></td><td><strong>no</strong></td></tr>
           </tbody>
         </table>
       </div>
@@ -206,6 +207,40 @@
 groq        openai/gpt-oss-120b   in $0.150/M   out $0.60/M</code></pre>
       <p class="oo-measured">Measured 2026-08-27. Four times cheaper on one provider than the other, for the identical
         model — the comparison a single-vendor tool cannot make.</p>
+
+      
+      <h2 id="sail">Sail, and why a price carries its window</h2>
+      <p>Sail publishes no prices programmatically. There is no catalogue endpoint to read, only a
+        pricing document written for people &mdash; so the server reads that document, pins it by
+        <strong>sha256</strong>, and parses the billing windows out of it.</p>
+      <p><strong>The pin is the feature, not a detail.</strong> When the document&rsquo;s digest does not match
+        the pinned value, every Sail model is dropped from the answer and the response says
+        <code>PRICES ARE STALE</code> and names the mismatch. It never falls back to prices it cannot
+        vouch for. A router quoting a stale price is worse than one that returns nothing, because the
+        caller cannot tell the difference.</p>
+      <p>Sail prices the same model differently by <strong>completion window</strong> &mdash; <code>asap</code>,
+        <code>balanced</code> and <code>flex</code> &mdash; so the window is part of the price rather than a
+        note about it. Two rows can carry identical numbers and require different settings to obtain,
+        and a caller who omits the setting pays the ASAP rate. Every Sail row therefore carries
+        <code>pricingWindow</code> naming the window its price came from, and
+        <code>latencyTolerance</code> is an input to the query.</p>
+      <div class="oo-scroll">
+        <table>
+          <caption class="oo-measured">Measured from the pinned pricing document, 2026-09-03.</caption>
+          <thead>
+            <tr><th scope="col">Sail models with prices</th><th scope="col">All three windows</th><th scope="col">Fewer windows</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>9</td><td>4</td><td>5</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>Five of the nine publish only one or two windows, so what you asked for is not always what is
+        available. The rule is <em>never slower than you asked for</em>: a <code>flex</code> request will
+        accept a <code>balanced</code> or <code>asap</code> price if that is all the model publishes, and
+        <code>pricingWindow</code> says which one you got. An <code>asap</code> request is the strict case
+        &mdash; a model that publishes only <code>flex</code> is left out of the answer rather than quoted
+        at a price you could not obtain at that latency.</p>
 
       <h2 id="roadmap">Roadmap — not built yet</h2>
       <div class="oo-roadmap">
