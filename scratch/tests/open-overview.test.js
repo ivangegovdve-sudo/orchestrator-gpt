@@ -70,8 +70,19 @@ test("strict public contracts preserve exact values and reject unknown keys", as
 test("schema-v2 parity separates manifest and provenance tiers and validates exact public fields", async () => {
   const schema = await importRoute("open-overview-schema.js");
   const manifest = manifestFixture();
+  // This used to assert that the manifest REFUSED "supported" while provenance
+  // accepted it. That asymmetry was not a feature: the producer's published
+  // schema for this endpoint is z.enum(["stable","supported"]), the live API
+  // sends "supported" for groq_models_current and cerebras_models_current, and
+  // on 2026-09-03 the refusal took the whole Open Overview page down -- manifest
+  // validation gates every panel. The tiers are still validated, against the
+  // same vocabulary the archive contract defines, and an unknown one is still
+  // refused below.
   manifest.sources[0].sourceTier = "supported";
-  assert.throws(() => schema.validateManifest(manifest, "2"), /manifest.*tier|source tier/i);
+  assert.equal(schema.validateManifest(manifest, "2").sources[0].sourceTier, "supported");
+  const unknownTier = manifestFixture();
+  unknownTier.sources[0].sourceTier = "experimental";
+  assert.throws(() => schema.validateManifest(unknownTier, "2"), /manifest.*tier|source tier/i);
 
   const supportedProvenance = collection("models", [], "models_current");
   supportedProvenance.provenance[0].sourceTier = "supported";
