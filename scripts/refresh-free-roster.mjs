@@ -50,6 +50,7 @@ import { spawn } from "node:child_process";
 import { readFile, writeFile, rename, rm } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { priceVerdict } from "./free-roster-pricing.mjs";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ROSTER_PATH = path.join(HERE, "..", "web", "council", "free-roster.json");
@@ -185,16 +186,24 @@ export async function liveFreeCatalogue({ fetchImpl = globalThis.fetch } = {}) {
   const models = Array.isArray(body?.data) ? body.data : [];
   if (models.length === 0) throw new Error("OpenRouter catalogue returned no models");
   const free = new Map();
+  // Slugs that carry the `:free` suffix but whose price is either above zero or not
+  // stated as a number. They are kept, with the reason, rather than dropped: a caller
+  // that cannot find a slug in `free` otherwise has to guess whether OpenRouter has
+  // never heard of it or merely declined to price it, and those need different reasons.
+  const excluded = new Map();
   for (const model of models) {
     // Belt and braces on the money question. The `:free` suffix is what council.js
     // enforces at call time; a zero prompt AND completion price is the independent
     // confirmation, so a suffix that stops meaning free cannot carry a paid model in.
     if (typeof model?.id !== "string" || !model.id.endsWith(":free")) continue;
-    if (Number(model?.pricing?.prompt) !== 0) continue;
-    if (Number(model?.pricing?.completion) !== 0) continue;
+    const verdict = priceVerdict(model?.pricing);
+    if (!verdict.free) {
+      excluded.set(model.id, verdict);
+      continue;
+    }
     free.set(model.id, model);
   }
-  return free;
+  return { free, excluded };
 }
 
 // ── Gate 3: a real call through the visitor's own relay ──────────────────────
@@ -361,19 +370,56 @@ export function assertFreeOnly(rosters, freeCatalogue) {
       if (!listed) {
         throw new Error(`Refusing to publish an unlisted slug in ${tier}: ${model}`);
       }
-      if (Number(listed.pricing?.prompt) !== 0 || Number(listed.pricing?.completion) !== 0) {
-        throw new Error(`Refusing to publish a priced slug in ${tier}: ${model}`);
+      // Three outcomes, not two. A model OpenRouter declines to price is refused on its
+      // own terms — publishing it would be this file asserting a zero it has never been
+      // told, which is the one thing the roster promises never to do.
+      const verdict = priceVerdict(listed.pricing);
+      if (verdict.state === "unknown") {
+        throw new Error(
+          `Refusing to publish a slug of unknown price in ${tier}: ${model} (${verdict.reason})`,
+        );
+      }
+      if (!verdict.free) {
+        throw new Error(`Refusing to publish a priced slug in ${tier}: ${model} (${verdict.reason})`);
       }
     }
   }
   return true;
 }
 
+// Returns null ONLY when there is genuinely no roster yet. Everything else throws.
+//
+// This used to be a bare `catch { return null }`, which made a corrupt or half-written
+// roster indistinguishable from a missing one. buildRoster reads the return value as
+// "start fresh" and then overwrites the file, so the blanket catch turned any read or
+// parse failure into the silent, unrecoverable loss of every model's health history —
+// the record that decides which models keep their seats through a throttled afternoon.
+//
+// Overwriting is destructive, so the only safe default is to refuse. A missing file is
+// the one failure that is expected, recoverable and correctly answered by null; an
+// unreadable one is a fault, and a fault must stop the run rather than launder itself
+// into a fresh start.
 export async function readExistingRoster(rosterPath = ROSTER_PATH) {
+  let raw;
   try {
-    return JSON.parse(await readFile(rosterPath, "utf8"));
-  } catch {
-    return null;
+    raw = await readFile(rosterPath, "utf8");
+  } catch (error) {
+    if (error?.code === "ENOENT") return null;
+    // EACCES, EISDIR, EBUSY, a truncated read — none of these mean "no roster yet".
+    throw new Error(`Cannot read the existing roster at ${rosterPath}: ${error?.message ?? error}`, {
+      cause: error,
+    });
+  }
+
+  try {
+    return JSON.parse(raw);
+  } catch (error) {
+    throw new Error(
+      `The existing roster at ${rosterPath} is not valid JSON, so its health history cannot ` +
+        `be carried forward. Refusing to overwrite it. Inspect or delete the file, then re-run. ` +
+        `(${error?.message ?? error})`,
+      { cause: error },
+    );
   }
 }
 
@@ -390,9 +436,17 @@ export async function buildRoster({
   const existing = await readExistingRoster(rosterPath);
   const previousHealth = existing?.health ?? {};
 
-  const [mcp, freeCatalogue] = await Promise.all([catalogue(), liveFreeCatalogue({ fetchImpl })]);
+  const [mcp, listing] = await Promise.all([catalogue(), liveFreeCatalogue({ fetchImpl })]);
+  const freeCatalogue = listing.free;
+  const priceExcluded = listing.excluded;
   log(`MCP: ${mcp.candidates.length} candidates (status=${mcp.status}, stale=${mcp.stale})`);
   log(`OpenRouter: ${freeCatalogue.size} live :free slugs`);
+  if (priceExcluded.size > 0) {
+    // Never silently. A `:free` slug OpenRouter will not price at zero is a change worth
+    // seeing in the log even when no candidate this run happened to ask for it.
+    const unknown = [...priceExcluded.values()].filter((v) => v.state === "unknown").length;
+    log(`OpenRouter: ${priceExcluded.size} :free slug(s) excluded on price (${unknown} of unknown price)`);
+  }
 
   const rejected = [];
   const eligible = [];
@@ -404,7 +458,15 @@ export async function buildRoster({
     }
     const listed = freeCatalogue.get(id);
     if (!listed) {
-      rejected.push({ id, gate: "openrouter", reason: "not a live :free slug" });
+      // Distinguish "OpenRouter does not serve this" from "OpenRouter serves it but will
+      // not confirm it is free". Both keep the model off the roster; only one of them is
+      // a reason to go and look at the listing.
+      const excluded = priceExcluded.get(id);
+      if (excluded) {
+        rejected.push({ id, gate: "pricing", reason: excluded.reason });
+      } else {
+        rejected.push({ id, gate: "openrouter", reason: "not a live :free slug" });
+      }
       continue;
     }
     const daysLeft = daysUntil(listed.expiration_date ?? candidate.expirationDate ?? null, nowIso);
