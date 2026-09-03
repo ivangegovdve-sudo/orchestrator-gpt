@@ -1,0 +1,82 @@
+# Runs the free-model roster contract tests on pull requests.
+#
+# WHY THIS FILE EXISTS SEPARATELY FROM free-roster.yml
+# ----------------------------------------------------
+# free-roster.yml runs these same tests, but only inside its `publish` job — which is
+# schedule-only and holds `contents: write`. That job runs AFTER a change has reached
+# main, so until this file existed the tests gated nothing on the way in. A pull request
+# could break the free-only invariant, the probe-budget rotation or the validator and
+# still show green.
+#
+# The header of free-roster.yml asserted the opposite for as long as it has existed:
+# "free-roster.test.js gates the same file on every pull request, so a bad roster still
+# cannot arrive through the front door." That was never true. The only PR-triggered
+# workflow was glossary-bundle.yml, whose test step names two glossary files explicitly
+# and has never run the roster tests. The claim has been corrected in that file; this one
+# is what makes it true.
+#
+# WHY NOT JUST ADD `pull_request:` TO free-roster.yml
+# ---------------------------------------------------
+# Because that file's schedule-only trigger is load-bearing, not incidental. A workflow
+# runs the definition FROM THE TRIGGERING REF, so a `pull_request:` trigger there would
+# let a branch supply its own copy of that file — its steps and its `permissions:` block
+# included — and that file's publish job holds `contents: write`. The trust boundary it
+# documents at length would be gone. A test-only workflow that never holds a write token
+# is the thing that can safely run on a branch.
+#
+# So this file is deliberately the mirror image of that one: no write permission, no
+# secrets, no npx, and nothing it produces is committed anywhere.
+#
+# WHY NO `paths:` FILTER
+# ----------------------
+# Same reasoning glossary-bundle.yml already gives, and it applies harder here. The repo
+# has no dependencies and the suite takes under a second, while a path filter would let a
+# roster-affecting change slip through under a path nobody thought to list — a check that
+# silently does not run reads identically to a check that passed, which is the exact
+# failure this file was written to remove.
+#
+# WHY THIS DOES NOT RUN validate-free-roster.mjs
+# ----------------------------------------------
+# That validator makes a live request to openrouter.ai, so running it here would put a
+# third-party network dependency on every pull request. The one thing worse than a check
+# that does not run is a check that fails for reasons unrelated to the diff: a flaky
+# required check gets disabled rather than fixed. The live cross-check stays where its
+# failure means something — in the scheduled job, immediately before the file is
+# committed. What runs here is the offline contract, which is deterministic.
+
+name: free roster tests
+
+on:
+  pull_request:
+  # Also on main, so the roster commit that free-roster.yml pushes directly — bypassing
+  # pull requests entirely, by design — still leaves an independent pass or fail in the
+  # log rather than being checked only by the job that wrote it.
+  push:
+    branches: [main]
+
+# Read-only. This workflow's whole safety argument is that it holds nothing worth
+# stealing and writes nothing, which is what lets it run a branch's own code.
+permissions:
+  contents: read
+
+jobs:
+  contract:
+    name: roster contract tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      # Pinned to SHAs rather than tags. A tag is mutable, and while this job holds no
+      # write token, the argument for pinning is the same one free-roster.yml makes: an
+      # action IS third-party code, and "it only runs tests" is a claim about the actions
+      # too, not just about the steps written here.
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
+        with:
+          node-version: '22'
+
+      # The repo has no dependencies and no lockfile, so there is nothing to install.
+      - name: Run the free-roster contract tests
+        run: node --test scratch/tests/free-roster.test.js

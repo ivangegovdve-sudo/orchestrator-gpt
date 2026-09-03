@@ -51,8 +51,16 @@
 # -----------------------------------------------------------
 # A PR would need a human to merge it every few days, which is the same chore wearing a
 # different hat. The job writes exactly one generated file and nothing else; the diff is
-# reviewable after the fact in the commit log, and free-roster.test.js gates the same
-# file on every pull request, so a bad roster still cannot arrive through the front door.
+# reviewable after the fact in the commit log, and the roster is validated against
+# openrouter.ai and re-tested here before the commit is made.
+#
+# This paragraph used to end with the claim that "free-roster.test.js gates the same file
+# on every pull request, so a bad roster still cannot arrive through the front door."
+# That was false from the day it was written. These tests ran only in the `publish` job
+# below — after a merge, never before one — and the sole PR-triggered workflow was
+# glossary-bundle.yml, which names two glossary test files explicitly. Nothing gated the
+# roster on the way in. free-roster-tests.yml now does, on every pull request, which is
+# what makes the sentence above true rather than aspirational.
 #
 # NO SECRETS ARE INVOLVED
 # -----------------------
