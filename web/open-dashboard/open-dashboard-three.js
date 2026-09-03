@@ -155,7 +155,7 @@ export async function mountRelationshipCanopy({
       uClick: 0,
     },
   };
-  window.__openOverviewThreeDebug = debug;
+  window.__openDashboardThreeDebug = debug;
 
   const render = (time) => {
     animationFrame = 0;

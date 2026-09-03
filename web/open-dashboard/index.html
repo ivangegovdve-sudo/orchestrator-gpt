@@ -131,7 +131,7 @@
                   "href_matches": "/web/math-forest/*"
                 },
                 {
-                  "href_matches": "/web/open-overview/*"
+                  "href_matches": "/web/open-dashboard/*"
                 },
                 {
                   "href_matches": "/web/power-law-odyssey/*"
@@ -158,31 +158,31 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="Source-backed model, app, and GitHub ecosystem intelligence inside SD Forest.">
   <meta name="theme-color" content="#07070b">
-  <title>Open Overview — SD Forest</title>
+  <title>Open Dashboard — SD Forest</title>
   <link rel="stylesheet" href="/web/shared/forest-shell.css?v=20260807a">
   <link rel="stylesheet" href="/web/shared/forest-design.css?v=20260807a">
-  <link rel="stylesheet" href="/web/open-overview/open-overview.css?v=20260731a">
+  <link rel="stylesheet" href="/web/open-dashboard/open-dashboard.css?v=20260731a">
   <link rel="stylesheet" href="/web/shared/design-history.css?v=20260807a">
 </head>
-<body data-forest-page="open-overview" data-open-overview-route="overview" data-forest-scene-owner="route">
-  <nav class="oo-topbar" aria-label="Open Overview navigation">
+<body data-forest-page="open-dashboard" data-open-dashboard-route="overview" data-forest-scene-owner="route">
+  <nav class="oo-topbar" aria-label="Open Dashboard navigation">
     <a class="forest-back" href="/">Back to Forest HUB</a>
     <div class="oo-destinations">
-      <a aria-current="page" href="/web/open-overview/index.html">Overview</a>
-      <a href="/web/open-overview/openrouter/index.html">OpenRouter</a>
-      <a href="/web/open-overview/github/index.html">GitHub</a>
+      <a aria-current="page" href="/web/open-dashboard/index.html">Overview</a>
+      <a href="/web/open-dashboard/openrouter/index.html">OpenRouter</a>
+      <a href="/web/open-dashboard/github/index.html">GitHub</a>
     </div>
     <button id="oo-source-status" class="oo-source-toggle" type="button" aria-expanded="false" aria-controls="oo-source-panel">Sources · loading</button>
   </nav>
   <main class="oo-page" id="oo-main">
-    <a class="oo-mcp-banner" href="/web/open-overview/mcp/index.html">
+    <a class="oo-mcp-banner" href="/web/open-dashboard/mcp/index.html">
       <span class="oo-mcp-banner-tag">MCP server</span>
       <span class="oo-mcp-banner-text">The same published data, read-only, inside your agent
         &mdash; <code>npx -y open-dashboard-mcp</code></span>
       <span class="oo-mcp-banner-go" aria-hidden="true">Setup and tools &rarr;</span>
     </a>
     <header class="oo-header">
-      <div><p class="forest-kicker">Published evidence · bounded public API</p><h1>Open Overview</h1></div>
+      <div><p class="forest-kicker">Published evidence · bounded public API</p><h1>Open Dashboard</h1></div>
       <p>Models, public apps, app-to-model usage and verified GitHub ecosystems in one compact, time-aware field.</p>
     </header>
     <section id="oo-source-panel" class="oo-source-panel" aria-label="Source status" hidden></section>
@@ -192,7 +192,7 @@
     <noscript><p class="oo-unavailable">JavaScript is required for the data views. The three destinations above remain direct links.</p></noscript>
   </main>
 <script type="module" data-forest-runtime="motion" src="/web/shared/forest-runtime-boot.mjs?v=20260807a"></script>
-  <script type="module" src="/web/open-overview/open-overview.js?v=20260807a"></script>
+  <script type="module" src="/web/open-dashboard/open-dashboard.js?v=20260807a"></script>
   <script src="/web/shared/design-history.js?v=20260807a"></script>
 </body>
 </html>

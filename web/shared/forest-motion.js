@@ -31,7 +31,7 @@
 
   installEntranceMotion(reduceMotion);
 
-  // Open Overview already owns a stricter route-local renderer controller.
+  // Open Dashboard already owns a stricter route-local renderer controller.
   // Keeping that ownership explicit prevents this shared runtime from
   // bypassing its intersection, reduced-motion, capability, and Save-Data
   // gates while still allowing shared entrances and Forest Trails.
@@ -489,7 +489,7 @@
         '.section-header',
         '.forest-section-label',
         'body[data-forest-page="movie"] .header-row',
-        'body[data-open-overview-route] .oo-header',
+        'body[data-open-dashboard-route] .oo-header',
       ].join(', '),
     )];
     const centered = headerCandidates.map((header) => (

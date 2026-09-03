@@ -1,8 +1,8 @@
 // The manifest validator rejected the whole page over a tier the API is
 // contractually allowed to send.
 //
-// On 2026-09-03 sdforest.site/web/open-overview/ rendered nothing but
-// "Open Overview unavailable ... manifest source tier must be stable and
+// On 2026-09-03 sdforest.site/web/open-dashboard/ rendered nothing but
+// "Open Dashboard unavailable ... manifest source tier must be stable and
 // source state must be valid". Two of eight sources -- groq_models_current
 // and cerebras_models_current -- carry sourceTier "supported", which the
 // producer's own published schema for this endpoint permits
@@ -20,7 +20,7 @@ const path = require("node:path");
 const { pathToFileURL } = require("node:url");
 
 const ROOT = path.resolve(__dirname, "../..");
-const ROUTE = path.join(ROOT, "web", "open-overview");
+const ROUTE = path.join(ROOT, "web", "open-dashboard");
 const importRoute = (file) =>
   import(pathToFileURL(path.join(ROUTE, file)).href + `?t=${Date.now()}-${Math.random()}`);
 const fixture = () =>
@@ -37,7 +37,7 @@ test("the fixture still exercises a non-stable tier", () => {
 });
 
 test("a supported-tier source does not take the whole page down", async () => {
-  const { validateManifest } = await importRoute("open-overview-schema.js");
+  const { validateManifest } = await importRoute("open-dashboard-schema.js");
   const manifest = validateManifest(fixture(), "2");
   assert.equal(manifest.sources.length, 8);
   const groq = manifest.sources.find((source) => source.sourceId === "groq_models_current");
@@ -45,21 +45,21 @@ test("a supported-tier source does not take the whole page down", async () => {
 });
 
 test("best_effort validates too, matching SOURCE_TIERS and the archive contract", async () => {
-  const { validateManifest } = await importRoute("open-overview-schema.js");
+  const { validateManifest } = await importRoute("open-dashboard-schema.js");
   const raw = fixture();
   raw.sources[0].sourceTier = "best_effort";
   assert.equal(validateManifest(raw, "2").sources[0].sourceTier, "best_effort");
 });
 
 test("an unrecognised tier is still refused -- widening is not disabling", async () => {
-  const { validateManifest } = await importRoute("open-overview-schema.js");
+  const { validateManifest } = await importRoute("open-dashboard-schema.js");
   const raw = fixture();
   raw.sources[0].sourceTier = "experimental";
   assert.throws(() => validateManifest(raw, "2"), /tier/i);
 });
 
 test("a non-boolean stale is still refused", async () => {
-  const { validateManifest } = await importRoute("open-overview-schema.js");
+  const { validateManifest } = await importRoute("open-dashboard-schema.js");
   const raw = fixture();
   raw.sources[0].stale = "false";
   assert.throws(() => validateManifest(raw, "2"), /stale|state/i);
@@ -68,7 +68,7 @@ test("a non-boolean stale is still refused", async () => {
 test("the refusal names the offending source and value", async () => {
   // The production message named neither, which is why a page-wide outage
   // took a manifest diff to explain rather than a glance.
-  const { validateManifest } = await importRoute("open-overview-schema.js");
+  const { validateManifest } = await importRoute("open-dashboard-schema.js");
   const raw = fixture();
   raw.sources[3].sourceTier = "experimental";
   try {
@@ -84,7 +84,7 @@ test("a failed source does not by itself invalidate the manifest", async () => {
   // benchmarks_current has lastAttemptStatus "failed" and a null publishedAt
   // in the fixture. It was the obvious suspect and it was not the cause; the
   // page must render around it.
-  const { validateManifest } = await importRoute("open-overview-schema.js");
+  const { validateManifest } = await importRoute("open-dashboard-schema.js");
   const manifest = validateManifest(fixture(), "2");
   const benchmarks = manifest.sources.find((source) => source.sourceId === "benchmarks_current");
   assert.equal(benchmarks.lastAttemptStatus, "failed");

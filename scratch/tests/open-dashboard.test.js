@@ -5,7 +5,7 @@ const path = require("node:path");
 const { pathToFileURL } = require("node:url");
 
 const ROOT = path.resolve(__dirname, "../..");
-const ROUTE = path.join(ROOT, "web", "open-overview");
+const ROUTE = path.join(ROOT, "web", "open-dashboard");
 const read = (...parts) => fs.readFileSync(path.join(ROUTE, ...parts), "utf8");
 const readFixture = (name) => JSON.parse(fs.readFileSync(path.join(__dirname, "fixtures", name), "utf8"));
 const importRoute = (file) => import(pathToFileURL(path.join(ROUTE, file)).href + `?t=${Date.now()}-${Math.random()}`);
@@ -13,9 +13,9 @@ const importRoute = (file) => import(pathToFileURL(path.join(ROUTE, file)).href 
 test("three canonical routes remain isolated and landing motion uses the crown, roots, and route slams", () => {
   for (const [file, route] of [["index.html", "overview"], ["openrouter/index.html", "openrouter"], ["github/index.html", "github"]]) {
     const html = read(...file.split("/"));
-    assert.match(html, new RegExp(`data-open-overview-route="${route}"`));
-    assert.match(html, /href="\/web\/open-overview\/open-overview\.css"/);
-    assert.match(html, /src="\/web\/open-overview\/open-overview\.js\?v=20260725c"/);
+    assert.match(html, new RegExp(`data-open-dashboard-route="${route}"`));
+    assert.match(html, /href="\/web\/open-dashboard\/open-dashboard\.css"/);
+    assert.match(html, /src="\/web\/open-dashboard\/open-dashboard\.js\?v=20260725c"/);
     assert.match(html, /id="oo-view-root"/);
     assert.doesNotMatch(html, /forest-three\.js/);
   }
@@ -28,10 +28,10 @@ test("three canonical routes remain isolated and landing motion uses the crown, 
   assert.doesNotMatch(entry, /^import .*forest-three\/tiles\.js/m);
 });
 
-test("SD Forest homepage exposes one truthful animated Open Overview portal", () => {
+test("SD Forest homepage exposes one truthful animated Open Dashboard portal", () => {
   const home = fs.readFileSync(path.join(ROOT, "index.html"), "utf8");
   const portals = home.match(/<button class="portal"/g) || [];
-  const matches = home.match(/<button class="portal"[^>]*data-project="open-overview"[\s\S]*?<\/button>/g) || [];
+  const matches = home.match(/<button class="portal"[^>]*data-project="open-dashboard"[\s\S]*?<\/button>/g) || [];
   assert.equal(portals.length, 20);
   assert.match(home, /The atlas/);
   assert.match(home, /Every path <em>at a glance<\/em>/);
@@ -39,27 +39,27 @@ test("SD Forest homepage exposes one truthful animated Open Overview portal", ()
 
   const portal = matches[0];
   assert.match(portal, /style="--accent:#73e9ff;--accent-secondary:#a9b2ff"/);
-  assert.match(portal, /data-href="\/web\/open-overview\/index\.html"/);
+  assert.match(portal, /data-href="\/web\/open-dashboard\/index\.html"/);
   assert.match(portal, /data-status="Research"/);
   assert.match(portal, /A sourced OpenRouter and GitHub AI ecosystem overview that labels unknowns rather than filling gaps with guesses\./);
-  assert.match(portal, /<use href="#icon-open-overview"\/>/);
-  assert.match(portal, /<span class="portal-name">Open Overview<\/span>/);
+  assert.match(portal, /<use href="#icon-open-dashboard"\/>/);
+  assert.match(portal, /<span class="portal-name">Open Dashboard<\/span>/);
   assert.match(portal, /<span class="portal-meta">AI ecosystem radar<\/span>/);
-  assert.match(home, /<symbol id="icon-open-overview"[\s\S]*?--accent-secondary, #a9b2ff[\s\S]*?<\/symbol>/);
+  assert.match(home, /<symbol id="icon-open-dashboard"[\s\S]*?--accent-secondary, #a9b2ff[\s\S]*?<\/symbol>/);
   assert.match(
     home,
     /data-forest-runtime="three"[^>]+src="\/web\/shared\/forest-runtime-boot\.mjs\?v=20260807a"/,
   );
   assert.doesNotMatch(home, /forest-icons\.js/);
 
-  const routeReadme = fs.readFileSync(path.join(ROOT, "web", "open-overview", "README.md"), "utf8");
+  const routeReadme = fs.readFileSync(path.join(ROOT, "web", "open-dashboard", "README.md"), "utf8");
   const rootReadme = fs.readFileSync(path.join(ROOT, "README.md"), "utf8");
   assert.doesNotMatch(routeReadme, /never changes the SD Forest homepage/);
-  assert.match(rootReadme, /web\/open-overview\//);
+  assert.match(rootReadme, /web\/open-dashboard\//);
 });
 
 test("strict public contracts preserve exact values and reject unknown keys", async () => {
-  const schema = await importRoute("open-overview-schema.js");
+  const schema = await importRoute("open-dashboard-schema.js");
   assert.equal(schema.compactIntegerString("90071992547409931234"), "90.0Q");
   assert.equal(schema.exactDecimalString("0.000000123400"), "0.000000123400");
   assert.equal(schema.safePublicUrl("http://127.0.0.1/x"), null);
@@ -68,13 +68,13 @@ test("strict public contracts preserve exact values and reject unknown keys", as
 });
 
 test("schema-v2 parity separates manifest and provenance tiers and validates exact public fields", async () => {
-  const schema = await importRoute("open-overview-schema.js");
+  const schema = await importRoute("open-dashboard-schema.js");
   const manifest = manifestFixture();
   // This used to assert that the manifest REFUSED "supported" while provenance
   // accepted it. That asymmetry was not a feature: the producer's published
   // schema for this endpoint is z.enum(["stable","supported"]), the live API
   // sends "supported" for groq_models_current and cerebras_models_current, and
-  // on 2026-09-03 the refusal took the whole Open Overview page down -- manifest
+  // on 2026-09-03 the refusal took the whole Open Dashboard page down -- manifest
   // validation gates every panel. The tiers are still validated, against the
   // same vocabulary the archive contract defines, and an unknown one is still
   // refused below.
@@ -108,7 +108,7 @@ test("schema-v2 parity separates manifest and provenance tiers and validates exa
 });
 
 test("current GitHub and app-model matrix fixtures validate exactly", async () => {
-  const schema = await importRoute("open-overview-schema.js");
+  const schema = await importRoute("open-dashboard-schema.js");
   const github = schema.validateGitHubRanking(readFixture("plan03-github-ranking.json"), "2");
   const matrix = schema.validateAppModelMatrix(readFixture("plan05-app-model-matrix.json"), "2");
   assert.equal(github.metricEvidence[0].repositoryId, github.data[0].repositoryId);
@@ -121,7 +121,7 @@ test("current GitHub and app-model matrix fixtures validate exactly", async () =
 });
 
 test("current per-app and GitHub enrichment contracts validate exact evidence", async () => {
-  const schema = await importRoute("open-overview-schema.js");
+  const schema = await importRoute("open-dashboard-schema.js");
   const period = { start: "2026-07-14", end: "2026-07-14", unit: "day", inclusive: true };
   const provenance = [{ sourceId: "openrouter.app-models.1001", sourceTier: "best_effort", runId: "60000000-0000-4000-8000-000000001001", fetchedAt: "2026-07-15T02:00:00.000Z", sourceAsOf: "2026-07-14T23:59:59.000Z", transformVersion: "openrouter-app-model-daily-v1", citation: "https://openrouter.ai/apps/1001" }];
   const appModels = {
@@ -149,7 +149,7 @@ test("current per-app and GitHub enrichment contracts validate exact evidence", 
 });
 
 test("API inventories both free frontiers and bounds dynamic app/repository enrichment", async () => {
-  const api = await importRoute("open-overview-api.js");
+  const api = await importRoute("open-dashboard-api.js");
   assert.match(api.ENDPOINTS.freeFrontierQualityThroughput, /x=benchmarkQuality.*y=medianThroughput/);
   assert.match(api.ENDPOINTS.freeFrontierContextPopularity, /x=contextLength.*y=weeklyPopularityRank/);
   const apps = { data: Array.from({ length: 12 }, (_, index) => ({ appId: String(index + 1), appName: `App ${index + 1}` })) };
@@ -166,7 +166,7 @@ test("API inventories both free frontiers and bounds dynamic app/repository enri
 });
 
 test("matrix validation rejects incoherent axes, cells, and coverage", async () => {
-  const { validateAppModelMatrix } = await importRoute("open-overview-schema.js");
+  const { validateAppModelMatrix } = await importRoute("open-dashboard-schema.js");
   const fixture = readFixture("plan05-app-model-matrix.json");
   const duplicateAxis = { ...fixture, appIds: ["1001", "1001"], apps: [...fixture.apps, fixture.apps[0]], coverage: { ...fixture.coverage, possibleCells: 2 }, cells: [...fixture.cells, fixture.cells[0]] };
   assert.throws(() => validateAppModelMatrix(duplicateAxis, "2"), /duplicate|unique/i);
@@ -181,7 +181,7 @@ test("matrix validation rejects incoherent axes, cells, and coverage", async () 
 });
 
 test("public validation bounds untrusted text and collection cardinality", async () => {
-  const schema = await importRoute("open-overview-schema.js");
+  const schema = await importRoute("open-dashboard-schema.js");
   const github = readFixture("plan03-github-ranking.json");
   github.data[0].fullName = "x".repeat(4097);
   assert.throws(() => schema.validateGitHubRanking(github, "2"), /length|bounded|4096/i);
@@ -204,7 +204,7 @@ test("public validation bounds untrusted text and collection cardinality", async
 });
 
 test("matrix cell model distinguishes observed zero from unknown", async () => {
-  const charts = await importRoute("open-overview-charts.js");
+  const charts = await importRoute("open-dashboard-charts.js");
   assert.deepEqual(charts.matrixCellModel({ state: "observed", totalTokens: "0", rankWithinPeriod: 1, evidenceUrl: "https://openrouter.ai/" }), { state: "observed", label: "0", exact: "0", rank: 1, reason: null, evidenceUrl: "https://openrouter.ai/" });
   assert.deepEqual(charts.matrixCellModel({ state: "unknown", reason: "not_observed" }), { state: "unknown", label: "?", exact: null, rank: null, reason: "not_observed", evidenceUrl: null });
   assert.equal(charts.validIsoTime("2026-02-29"), false);
@@ -214,7 +214,7 @@ test("matrix cell model distinguishes observed zero from unknown", async () => {
 });
 
 test("matrix labels are owned by the matrix evidence contract", async () => {
-  const charts = await importRoute("open-overview-charts.js");
+  const charts = await importRoute("open-dashboard-charts.js");
   const names = charts.matrixAxisNameMaps(
     { apps: [{ appId: "1", appName: "Evidence App" }], models: [{ modelId: "m", modelName: "Evidence Model" }] },
     [{ appId: "1", appName: "Unrelated ranking label" }],
@@ -225,7 +225,7 @@ test("matrix labels are owned by the matrix evidence contract", async () => {
 });
 
 test("matrix roving navigation stays inside the reviewed grid", async () => {
-  const charts = await importRoute("open-overview-charts.js");
+  const charts = await importRoute("open-dashboard-charts.js");
   assert.equal(charts.matrixNavigationTarget(0, 2, 3, "ArrowLeft"), 0);
   assert.equal(charts.matrixNavigationTarget(2, 2, 3, "ArrowRight"), 2);
   assert.equal(charts.matrixNavigationTarget(1, 2, 3, "ArrowDown"), 4);
@@ -236,13 +236,13 @@ test("matrix roving navigation stays inside the reviewed grid", async () => {
 });
 
 test("URL state is bounded to reviewed routes", async () => {
-  const app = await importRoute("open-overview.js");
+  const app = await importRoute("open-dashboard.js");
   assert.deepEqual(app.parseOpenRouterState("https://site.test/?view=bogus&app=secret"), { view: "usage", appId: null, freeMode: "popularity" });
   assert.deepEqual(app.parseGithubState("https://site.test/?category=bogus&metric=bogus&window=365"), { category: "ai-harnesses", metric: "adoption", windowDays: 7 });
 });
 
 test("source aggregation exposes required and optional failures plus typed unavailability", async () => {
-  const app = await importRoute("open-overview.js");
+  const app = await importRoute("open-dashboard.js");
   const optionalOnly = {
     mode: "live",
     snapshotStale: false,
@@ -261,7 +261,7 @@ test("source aggregation exposes required and optional failures plus typed unava
 });
 
 test("successful provenance absent from the manifest cannot report live current complete", async () => {
-  const app = await importRoute("open-overview.js");
+  const app = await importRoute("open-dashboard.js");
   const response = collection("models", [], "unmanifested_source");
   const view = { mode: "live", snapshotStale: false, manifest: manifestFixture(), responses: { providers: response }, errors: {} };
   const row = app.buildSourceRows(view).find((item) => item.datasetKey === "providers");
@@ -273,7 +273,7 @@ test("successful provenance absent from the manifest cannot report live current 
 });
 
 test("history presentation requires eight consecutive complete days and bounds exact rows", async () => {
-  const app = await importRoute("open-overview.js");
+  const app = await importRoute("open-dashboard.js");
   const bucket = (date, complete = true, count = 12) => ({ date, complete, rows: Array.from({ length: count }, (_, index) => ({ id: `id-${index}`, label: `Item ${index}`, scope: null, rank: index + 1, value: String(index), remainder: null, stars: null, forks: null })) });
   const seven = Array.from({ length: 7 }, (_, index) => bucket(`2026-07-${String(index + 1).padStart(2, "0")}`));
   const short = app.historySeriesModel(seven);
@@ -290,7 +290,7 @@ test("history presentation requires eight consecutive complete days and bounds e
 });
 
 test("eligible history produces positive stacked-area, bump, and category small-multiple geometry", async () => {
-  const charts = await importRoute("open-overview-charts.js");
+  const charts = await importRoute("open-dashboard-charts.js");
   const buckets = Array.from({ length: 8 }, (_, day) => ({
     date: `2026-07-${String(day + 1).padStart(2, "0")}`,
     complete: true,
@@ -314,7 +314,7 @@ test("eligible history produces positive stacked-area, bump, and category small-
 });
 
 test("stacked history keeps exactly ten current models and folds rank turnover into Other", async () => {
-  const charts = await importRoute("open-overview-charts.js");
+  const charts = await importRoute("open-dashboard-charts.js");
   const makeRows = (day) => Array.from({ length: 10 }, (_, index) => ({
     id: day === 0 && index === 9 ? "former-model" : `model-${index + 1}`,
     label: day === 0 && index === 9 ? "Former model" : `Model ${index + 1}`,
@@ -339,7 +339,7 @@ test("stacked history keeps exactly ten current models and folds rank turnover i
 });
 
 test("GitHub history geometry publishes stars, forks, and exact full-window deltas", async () => {
-  const charts = await importRoute("open-overview-charts.js");
+  const charts = await importRoute("open-dashboard-charts.js");
   const buckets = Array.from({ length: 8 }, (_, index) => ({
     date: `2026-07-${String(index + 1).padStart(2, "0")}`,
     complete: true,
@@ -355,7 +355,7 @@ test("GitHub history geometry publishes stars, forks, and exact full-window delt
 });
 
 test("Release-1 presentation models preserve source-published evidence without cross-source scoring", async () => {
-  const app = await importRoute("open-overview.js");
+  const app = await importRoute("open-dashboard.js");
   const bundle = JSON.parse(read("fallback-data.json"));
   const appModels = Object.values(bundle.responses).find((response) => response?.status === "available" && response?.appId === "1001");
   const appEvidence = app.appModelPresentation(appModels);
@@ -378,18 +378,18 @@ test("Release-1 presentation models preserve source-published evidence without c
 });
 
 test("Three.js is route-local, dynamic, deterministic and bounded", async () => {
-  const main = read("open-overview.js");
-  const threeSource = read("open-overview-three.js");
-  assert.doesNotMatch(main, /from\s+["']\.\/open-overview-three\.js["']/);
-  assert.match(main, /import\(["']\.\/open-overview-three\.js\?v=20260725c["']\)/);
+  const main = read("open-dashboard.js");
+  const threeSource = read("open-dashboard-three.js");
+  assert.doesNotMatch(main, /from\s+["']\.\/open-dashboard-three\.js["']/);
+  assert.match(main, /import\(["']\.\/open-dashboard-three\.js\?v=20260725c["']\)/);
   assert.match(threeSource, /\/web\/vendor\/three\/three\.module\.min\.js/);
-  const three = await importRoute("open-overview-three.js");
+  const three = await importRoute("open-dashboard-three.js");
   assert.deepEqual(three.deterministicLayout("repository:1", 2, 10, "repository"), three.deterministicLayout("repository:1", 2, 10, "repository"));
 });
 
 test("route assets expose no secret or private-message field names", () => {
   const forbidden = /OPENROUTER_API_KEY|GITHUB_TOKEN|DATABASE_URL|CRON_SECRET|sender|subject|snippet|threadId|accessCode/i;
-  for (const file of ["config.json", "open-overview.js", "open-overview-api.js", "open-overview-schema.js", "open-overview-charts.js", "open-overview-three.js"]) assert.doesNotMatch(read(file), forbidden, file);
+  for (const file of ["config.json", "open-dashboard.js", "open-dashboard-api.js", "open-dashboard-schema.js", "open-dashboard-charts.js", "open-dashboard-three.js"]) assert.doesNotMatch(read(file), forbidden, file);
 });
 
 const RUNS = {
@@ -420,12 +420,12 @@ const freePage = (base, data, cursor, total = data.length) => ({
 });
 
 test("free-model inventory requests the maximum public page size", async () => {
-  const { ENDPOINTS } = await importRoute("open-overview-api.js");
+  const { ENDPOINTS } = await importRoute("open-dashboard-api.js");
   assert.equal(ENDPOINTS.freeModels, "/free-models?limit=200");
 });
 
 test("free-model inventory follows opaque cursors and merges pages in returned order", async () => {
-  const api = await importRoute("open-overview-api.js");
+  const api = await importRoute("open-dashboard-api.js");
   const bundle = JSON.parse(read("fallback-data.json"));
   const base = freeFixtureEnvelope();
   const cursor = "opaque+/= token";
@@ -437,7 +437,7 @@ test("free-model inventory follows opaque cursors and merges pages in returned o
     const page = url.searchParams.has("cursor") ? pages[1] : pages[0];
     return new Response(JSON.stringify(page), { status: 200 });
   };
-  const client = api.createOpenOverviewClient({ apiBase: "https://api.example.test", schemaMajor: "2", timeoutMs: 8000, runtimeOrigin: "http://127.0.0.1:4174", fetchImpl });
+  const client = api.createOpenDashboardClient({ apiBase: "https://api.example.test", schemaMajor: "2", timeoutMs: 8000, runtimeOrigin: "http://127.0.0.1:4174", fetchImpl });
   const spec = { key: "free", path: "/free-models?limit=200", kind: "free", sourceId: "models_current" };
   const view = await client.loadView([spec]);
   assert.deepEqual(view.responses.free.data.map((row) => row.id), [base.data[0].id, base.data[1].id]);
@@ -447,11 +447,11 @@ test("free-model inventory follows opaque cursors and merges pages in returned o
 });
 
 test("free-model pagination rejects a repeated opaque cursor", async () => {
-  const api = await importRoute("open-overview-api.js");
+  const api = await importRoute("open-dashboard-api.js");
   const bundle = JSON.parse(read("fallback-data.json"));
   const base = freeFixtureEnvelope();
   const pages = [freePage(base, [base.data[0]], "repeat", 2), freePage(base, [base.data[1]], "repeat", 2)];
-  const client = api.createOpenOverviewClient({ apiBase: "https://api.example.test", schemaMajor: "2", timeoutMs: 8000, runtimeOrigin: "http://127.0.0.1:4174", fetchImpl: async (input) => {
+  const client = api.createOpenDashboardClient({ apiBase: "https://api.example.test", schemaMajor: "2", timeoutMs: 8000, runtimeOrigin: "http://127.0.0.1:4174", fetchImpl: async (input) => {
     const url = new URL(input);
     return new Response(JSON.stringify(url.pathname.endsWith("/manifest") ? bundle.manifest : url.searchParams.has("cursor") ? pages[1] : pages[0]), { status: 200 });
   } });
@@ -461,13 +461,13 @@ test("free-model pagination rejects a repeated opaque cursor", async () => {
 });
 
 test("free-model pagination rejects mixed page provenance", async () => {
-  const api = await importRoute("open-overview-api.js");
+  const api = await importRoute("open-dashboard-api.js");
   const bundle = JSON.parse(read("fallback-data.json"));
   const base = freeFixtureEnvelope();
   const first = freePage(base, [base.data[0]], "next", 2);
   const second = freePage(base, [base.data[1]], null, 2);
   second.provenance = second.provenance.map((item) => ({ ...item, fetchedAt: "2026-07-15T10:00:01.000Z" }));
-  const client = api.createOpenOverviewClient({ apiBase: "https://api.example.test", schemaMajor: "2", timeoutMs: 8000, runtimeOrigin: "http://127.0.0.1:4174", fetchImpl: async (input) => {
+  const client = api.createOpenDashboardClient({ apiBase: "https://api.example.test", schemaMajor: "2", timeoutMs: 8000, runtimeOrigin: "http://127.0.0.1:4174", fetchImpl: async (input) => {
     const url = new URL(input);
     const body = url.pathname.endsWith("/manifest") ? bundle.manifest : url.searchParams.has("cursor") ? second : first;
     return new Response(JSON.stringify(body), { status: 200 });
@@ -479,11 +479,11 @@ test("free-model pagination rejects mixed page provenance", async () => {
 });
 
 test("free-model pagination rejects duplicate rows across pages", async () => {
-  const api = await importRoute("open-overview-api.js");
+  const api = await importRoute("open-dashboard-api.js");
   const bundle = JSON.parse(read("fallback-data.json"));
   const base = freeFixtureEnvelope();
   const pages = [freePage(base, [base.data[0]], "next", 2), freePage(base, [base.data[0]], null, 2)];
-  const client = api.createOpenOverviewClient({ apiBase: "https://api.example.test", schemaMajor: "2", timeoutMs: 8000, runtimeOrigin: "http://127.0.0.1:4174", fetchImpl: async (input) => {
+  const client = api.createOpenDashboardClient({ apiBase: "https://api.example.test", schemaMajor: "2", timeoutMs: 8000, runtimeOrigin: "http://127.0.0.1:4174", fetchImpl: async (input) => {
     const url = new URL(input);
     const body = url.pathname.endsWith("/manifest") ? bundle.manifest : url.searchParams.has("cursor") ? pages[1] : pages[0];
     return new Response(JSON.stringify(body), { status: 200 });
@@ -494,11 +494,11 @@ test("free-model pagination rejects duplicate rows across pages", async () => {
 });
 
 test("free-model pagination is bounded to ten pages and two thousand rows", async () => {
-  const api = await importRoute("open-overview-api.js");
+  const api = await importRoute("open-dashboard-api.js");
   const bundle = JSON.parse(read("fallback-data.json"));
   const base = freeFixtureEnvelope();
   let freeCalls = 0;
-  const client = api.createOpenOverviewClient({ apiBase: "https://api.example.test", schemaMajor: "2", timeoutMs: 8000, runtimeOrigin: "http://127.0.0.1:4174", fetchImpl: async (input) => {
+  const client = api.createOpenDashboardClient({ apiBase: "https://api.example.test", schemaMajor: "2", timeoutMs: 8000, runtimeOrigin: "http://127.0.0.1:4174", fetchImpl: async (input) => {
     const url = new URL(input);
     if (url.pathname.endsWith("/manifest")) return new Response(JSON.stringify(bundle.manifest), { status: 200 });
     const pageIndex = freeCalls++;
@@ -515,11 +515,11 @@ test("free-model pagination is bounded to ten pages and two thousand rows", asyn
 });
 
 test("API client owns conditional bodies and rejects mixed publication runs", async () => {
-  const { createOpenOverviewClient } = await importRoute("open-overview-api.js");
-  const { validateManifest } = await importRoute("open-overview-schema.js");
+  const { createOpenDashboardClient } = await importRoute("open-dashboard-api.js");
+  const { validateManifest } = await importRoute("open-dashboard-schema.js");
   const calls = [];
   const responses = [new Response(JSON.stringify(collection("models", [])), { status: 200, headers: { ETag: '"models-1"' } }), new Response(null, { status: 304 })];
-  const client = createOpenOverviewClient({ apiBase: "https://api.example.test", schemaMajor: "2", timeoutMs: 8000, conditionalRequests: true, fetchImpl: async (_url, options) => { calls.push(new Headers(options.headers)); return responses.shift(); } });
+  const client = createOpenDashboardClient({ apiBase: "https://api.example.test", schemaMajor: "2", timeoutMs: 8000, conditionalRequests: true, fetchImpl: async (_url, options) => { calls.push(new Headers(options.headers)); return responses.shift(); } });
   const spec = { key: "models", path: "/models?limit=10&rank_source=top-weekly", kind: "models", sourceId: "models_current" };
   const manifest = validateManifest(manifestFixture(), "2");
   const first = await client.load(spec, manifest); const second = await client.load(spec, manifest);
@@ -527,7 +527,7 @@ test("API client owns conditional bodies and rejects mixed publication runs", as
 });
 
 test("fallback HTTP reads are redirect-safe, no-store, bounded to 4 MiB and validate Last-Modified", async () => {
-  const api = await importRoute("open-overview-api.js");
+  const api = await importRoute("open-dashboard-api.js");
   await assert.rejects(
     () => api.readFallbackResponse(new Response("{}", { headers: { "Last-Modified": "not-a-date" } }), new Date("2026-07-15T12:00:00Z")),
     (error) => error.code === "invalid_fallback" && /Last-Modified/i.test(error.message)
@@ -537,7 +537,7 @@ test("fallback HTTP reads are redirect-safe, no-store, bounded to 4 MiB and vali
     (error) => error.code === "response_too_large"
   );
   const calls = [];
-  const client = api.createOpenOverviewClient({ apiBase: "https://api.example.test", schemaMajor: "2", timeoutMs: 8000, fallbackUrl: "/fallback-data.json", fallbackOnMissingV2: true, runtimeOrigin: "http://127.0.0.1:4174", fetchImpl: async (url, options) => {
+  const client = api.createOpenDashboardClient({ apiBase: "https://api.example.test", schemaMajor: "2", timeoutMs: 8000, fallbackUrl: "/fallback-data.json", fallbackOnMissingV2: true, runtimeOrigin: "http://127.0.0.1:4174", fetchImpl: async (url, options) => {
     calls.push({ url: String(url), options });
     if (String(url).includes("/api/public/v2/manifest")) return new Response("<html>missing</html>", { status: 404, headers: { "Content-Type": "text/html" } });
     return new Response("{}", { status: 200, headers: { "Content-Length": String(4 * 1024 * 1024 + 1), "Last-Modified": "Wed, 15 Jul 2026 11:00:00 GMT" } });
@@ -550,15 +550,15 @@ test("fallback HTTP reads are redirect-safe, no-store, bounded to 4 MiB and vali
 });
 
 test("config reads are timeout-bounded and a verified fallback is cached per client", async () => {
-  const app = await importRoute("open-overview.js");
+  const app = await importRoute("open-dashboard.js");
   await assert.rejects(
     () => app.readConfig((_url, options) => new Promise((_resolve, reject) => options.signal.addEventListener("abort", () => reject(options.signal.reason), { once: true })), 100),
     /timed out/i
   );
-  const { createOpenOverviewClient, OVERVIEW_REQUESTS } = await importRoute("open-overview-api.js");
+  const { createOpenDashboardClient, OVERVIEW_REQUESTS } = await importRoute("open-dashboard-api.js");
   const bundle = JSON.parse(read("fallback-data.json"));
   let fallbackReads = 0;
-  const client = createOpenOverviewClient({ apiBase: "https://api.example.test", schemaMajor: "2", timeoutMs: 8000, fallbackUrl: "/fallback-data.json", fallbackOnMissingV2: true, runtimeOrigin: "http://127.0.0.1:4174", fetchImpl: async (url) => {
+  const client = createOpenDashboardClient({ apiBase: "https://api.example.test", schemaMajor: "2", timeoutMs: 8000, fallbackUrl: "/fallback-data.json", fallbackOnMissingV2: true, runtimeOrigin: "http://127.0.0.1:4174", fetchImpl: async (url) => {
     if (String(url).endsWith("/fallback-data.json")) { fallbackReads += 1; return new Response(JSON.stringify(bundle), { status: 200 }); }
     return new Response("missing", { status: 404, headers: { "Content-Type": "text/html" } });
   } });
@@ -568,7 +568,7 @@ test("config reads are timeout-bounded and a verified fallback is cached per cli
 });
 
 test("committed fallback is checksum-valid, complete, ten-deep and unambiguously snapshot mode", async () => {
-  const { verifyFallbackBundle, OVERVIEW_REQUESTS, ENDPOINTS, GITHUB_CATEGORIES } = await importRoute("open-overview-api.js");
+  const { verifyFallbackBundle, OVERVIEW_REQUESTS, ENDPOINTS, GITHUB_CATEGORIES } = await importRoute("open-dashboard-api.js");
   const bundle = JSON.parse(read("fallback-data.json"));
   const verified = await verifyFallbackBundle(bundle, OVERVIEW_REQUESTS, "2", new Date("2026-07-15T12:00:00Z"));
   assert.equal(verified.mode, "snapshot");
@@ -582,29 +582,29 @@ test("committed fallback is checksum-valid, complete, ten-deep and unambiguously
 
 test("built artifact includes every direct route and core stays within budget", () => {
   const zlib = require("node:zlib");
-  const output = path.join(ROOT, "vercel-public", "web", "open-overview");
-  for (const relative of ["index.html", "openrouter/index.html", "github/index.html", "open-overview.css", "open-overview.js", "open-overview-api.js", "open-overview-schema.js", "open-overview-charts.js", "open-overview-three.js", "fallback-data.json", "config.json"]) assert.equal(fs.existsSync(path.join(output, ...relative.split("/"))), true, relative);
-  const core = ["open-overview.js", "open-overview-api.js", "open-overview-schema.js", "open-overview-charts.js", "open-overview.css"].map((file) => fs.readFileSync(path.join(ROUTE, file)));
+  const output = path.join(ROOT, "vercel-public", "web", "open-dashboard");
+  for (const relative of ["index.html", "openrouter/index.html", "github/index.html", "open-dashboard.css", "open-dashboard.js", "open-dashboard-api.js", "open-dashboard-schema.js", "open-dashboard-charts.js", "open-dashboard-three.js", "fallback-data.json", "config.json"]) assert.equal(fs.existsSync(path.join(output, ...relative.split("/"))), true, relative);
+  const core = ["open-dashboard.js", "open-dashboard-api.js", "open-dashboard-schema.js", "open-dashboard-charts.js", "open-dashboard.css"].map((file) => fs.readFileSync(path.join(ROUTE, file)));
   assert.ok(zlib.gzipSync(Buffer.concat(core), { level: 9 }).length < 100 * 1024);
-  assert.doesNotMatch(read("open-overview-charts.js"), /\.innerHTML\s*=/);
+  assert.doesNotMatch(read("open-dashboard-charts.js"), /\.innerHTML\s*=/);
 });
 
 test("missing-v2 fixture policy is local-only while schema drift always fails closed", async () => {
-  const { createOpenOverviewClient, OVERVIEW_REQUESTS } = await importRoute("open-overview-api.js");
+  const { createOpenDashboardClient, OVERVIEW_REQUESTS } = await importRoute("open-dashboard-api.js");
   const bundle = JSON.parse(read("fallback-data.json"));
   let fallbackReads = 0;
   const fetchImpl = async (url) => {
     if (String(url).includes("fallback-data.json")) { fallbackReads += 1; return new Response(JSON.stringify(bundle), { status: 200 }); }
     return new Response("<html>not deployed</html>", { status: 404, headers: { "Content-Type": "text/html" } });
   };
-  const production = createOpenOverviewClient({
+  const production = createOpenDashboardClient({
     apiBase: "https://api.example.test", schemaMajor: "2", timeoutMs: 8000,
-    fallbackUrl: "/web/open-overview/fallback-data.json", fallbackOnMissingV2: true, runtimeOrigin: "https://www.sdforest.site", fetchImpl
+    fallbackUrl: "/web/open-dashboard/fallback-data.json", fallbackOnMissingV2: true, runtimeOrigin: "https://www.sdforest.site", fetchImpl
   });
   await assert.rejects(() => production.loadView(OVERVIEW_REQUESTS), (error) => error.code === "unavailable");
-  const local = createOpenOverviewClient({ apiBase: "https://api.example.test", schemaMajor: "2", timeoutMs: 8000, fallbackUrl: "/web/open-overview/fallback-data.json", fallbackOnMissingV2: true, runtimeOrigin: "http://127.0.0.1:4174", fetchImpl });
+  const local = createOpenDashboardClient({ apiBase: "https://api.example.test", schemaMajor: "2", timeoutMs: 8000, fallbackUrl: "/web/open-dashboard/fallback-data.json", fallbackOnMissingV2: true, runtimeOrigin: "http://127.0.0.1:4174", fetchImpl });
   const localView = await local.loadView(OVERVIEW_REQUESTS); assert.equal(localView.mode, "snapshot"); assert.equal(localView.bundleKind, "fixture"); assert.equal(localView.fallbackLabel, "Fixture · stale · non-production"); assert.equal(fallbackReads, 2);
 
-  const drift = createOpenOverviewClient({ apiBase: "https://api.example.test", schemaMajor: "2", timeoutMs: 8000, fallbackUrl: "/fallback.json", fallbackOnMissingV2: true, runtimeOrigin: "http://127.0.0.1:4174", fetchImpl: async () => new Response(JSON.stringify({ ...bundle.manifest, schemaVersion: "3.0" }), { status: 200 }) });
+  const drift = createOpenDashboardClient({ apiBase: "https://api.example.test", schemaMajor: "2", timeoutMs: 8000, fallbackUrl: "/fallback.json", fallbackOnMissingV2: true, runtimeOrigin: "http://127.0.0.1:4174", fetchImpl: async () => new Response(JSON.stringify({ ...bundle.manifest, schemaVersion: "3.0" }), { status: 200 }) });
   await assert.rejects(() => drift.loadView([]), (error) => error.code === "schema_major_mismatch");
 });

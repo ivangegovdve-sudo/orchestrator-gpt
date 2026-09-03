@@ -14,4 +14,4 @@ const server = createServer(async (request, response) => {
     response.writeHead(200, { "Content-Type": types[path.extname(resolved)] || "application/octet-stream", "Cache-Control": "no-store" }); createReadStream(resolved).pipe(response);
   } catch { response.writeHead(404, { "Content-Type": "text/plain; charset=utf-8" }); response.end("Not found"); }
 });
-server.listen(port, "127.0.0.1", () => process.stdout.write(`Open Overview static server listening on ${port}\n`));
+server.listen(port, "127.0.0.1", () => process.stdout.write(`Open Dashboard static server listening on ${port}\n`));

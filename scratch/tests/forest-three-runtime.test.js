@@ -53,7 +53,7 @@ test('theme registry gives public destinations distinct, deterministic scene ide
   const expected = [
     'portal', 'kids', 'math', 'movie', 'library', 'council', 'power', 'time',
     'mendeleev', 'health', 'muscle', 'calendar', 'ink', 'poetry', 'news',
-    'open-overview', 'ai-research', 'void', 'vfx', 'avatar', 'upload',
+    'open-dashboard', 'ai-research', 'void', 'vfx', 'avatar', 'upload',
   ];
   const kinds = new Set();
 
@@ -95,9 +95,9 @@ test('public subpages opt into a named shared Three.js scene', () => {
     ['web/manifesto-newborn/index.html', 'ink'],
     ['web/m-popova/index.html', 'poetry'],
     ['web/morning-news/index.html', 'news'],
-    ['web/open-overview/index.html', 'open-overview'],
-    ['web/open-overview/openrouter/index.html', 'open-overview'],
-    ['web/open-overview/github/index.html', 'open-overview'],
+    ['web/open-dashboard/index.html', 'open-dashboard'],
+    ['web/open-dashboard/openrouter/index.html', 'open-dashboard'],
+    ['web/open-dashboard/github/index.html', 'open-dashboard'],
     ['web/vfx-portfolio/index.html', 'vfx'],
     ['web/replicator-void/index.html', 'void'],
     ['web/math-forest/index.html', 'math'],
@@ -121,11 +121,11 @@ test('public subpages opt into a named shared Three.js scene', () => {
   }
 });
 
-test('Open Overview keeps ownership of its capability-gated route-local Three.js scene', () => {
+test('Open Dashboard keeps ownership of its capability-gated route-local Three.js scene', () => {
   for (const relativePath of [
-    'web/open-overview/index.html',
-    'web/open-overview/openrouter/index.html',
-    'web/open-overview/github/index.html',
+    'web/open-dashboard/index.html',
+    'web/open-dashboard/openrouter/index.html',
+    'web/open-dashboard/github/index.html',
   ]) {
     const html = read(relativePath);
     assert.match(
@@ -137,10 +137,10 @@ test('Open Overview keeps ownership of its capability-gated route-local Three.js
       html,
       /<script type="module" data-forest-runtime="motion" src="\/web\/shared\/forest-runtime-boot\.mjs\?v=20260807a"><\/script>/,
     );
-    assert.match(html, /\/web\/open-overview\/open-overview\.js/);
+    assert.match(html, /\/web\/open-dashboard\/open-dashboard\.js/);
   }
 
-  const localRenderer = read('web/open-overview/open-overview-three.js');
+  const localRenderer = read('web/open-dashboard/open-dashboard-three.js');
   assert.match(localRenderer, /new THREE\.ShaderMaterial/);
   assert.match(localRenderer, /\buMouse\b/);
   assert.match(localRenderer, /\buClick\b/);
@@ -155,7 +155,7 @@ test('entrance inventory scopes page-specific cards and headers without a global
     'body[data-forest-page="kids"] .kid-card',
     'body[data-forest-page="library"] .panel',
     'body[data-forest-page="movie"] .header-row',
-    'body[data-open-overview-route] .oo-header',
+    'body[data-open-dashboard-route] .oo-header',
   ]) {
     assert.match(runtime, new RegExp(escapeRegExp(selector)), selector);
   }

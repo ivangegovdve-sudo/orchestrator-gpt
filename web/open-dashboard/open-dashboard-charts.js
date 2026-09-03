@@ -1,4 +1,4 @@
-import { compactIntegerString, safePublicUrl } from "./open-overview-schema.js";
+import { compactIntegerString, safePublicUrl } from "./open-dashboard-schema.js";
 
 const el = (document, tag, className = "", text = null) => {
   const value = document.createElement(tag);

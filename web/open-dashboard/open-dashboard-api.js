@@ -13,7 +13,7 @@ import {
   validateOpenRouterCollection,
   validateProviders,
   validatePublicError
-} from "./open-overview-schema.js";
+} from "./open-dashboard-schema.js";
 
 export const GITHUB_CATEGORIES = Object.freeze([
   ["ai-harnesses", "AI harnesses and coding agents"],
@@ -114,7 +114,7 @@ export const FALLBACK_REQUESTS = Object.freeze([
 ]);
 
 export function canonicalPath(input) {
-  const url = new URL(input, "https://open-overview.invalid");
+  const url = new URL(input, "https://open-dashboard.invalid");
   const sorted = new URLSearchParams(Array.from(url.searchParams.entries()).sort(([a, av], [b, bv]) => a === b ? av.localeCompare(bv) : a.localeCompare(b)));
   return url.pathname + (sorted.size ? `?${sorted}` : "");
 }
@@ -138,7 +138,7 @@ const validateFor = (spec, raw, major) => spec.kind === "manifest"
             : validateOpenRouterCollection(raw, spec.kind, major);
 
 const identityMismatch = (message, details = null) => { throw new ContractError("identity_mismatch", message, details); };
-const requestUrl = (spec) => new URL(canonicalPath(spec.path), "https://open-overview.invalid");
+const requestUrl = (spec) => new URL(canonicalPath(spec.path), "https://open-dashboard.invalid");
 const inclusiveUtcDays = (window) => {
   if (window?.timezone !== "UTC" || window?.inclusive !== true || typeof window.start !== "string" || typeof window.end !== "string") return null;
   const start = Date.parse(`${window.start}T00:00:00Z`); const end = Date.parse(`${window.end}T00:00:00Z`);
@@ -190,7 +190,7 @@ export const MAX_FREE_MODEL_ROWS = 2_000;
 
 export function freeModelPagePath(initialPath, cursor) {
   if (typeof cursor !== "string" || cursor.length === 0) throw new ContractError("pagination_cursor", "Free-model pagination returned an empty cursor");
-  const url = new URL(canonicalPath(initialPath), "https://open-overview.invalid");
+  const url = new URL(canonicalPath(initialPath), "https://open-dashboard.invalid");
   url.searchParams.set("cursor", cursor);
   return canonicalPath(`${url.pathname}?${url.searchParams}`);
 }
@@ -405,7 +405,7 @@ export async function verifyFallbackBundle(bundle, requests, schemaMajor, now = 
   return Object.freeze({ ...bundle, manifest, publicationIdentity: manifestPublicationIdentity(manifest), responses: Object.freeze(responses), errors: Object.freeze(errors), snapshotStale, productionEligible: live && !snapshotStale });
 }
 
-export function createOpenOverviewClient({ apiBase, schemaMajor, timeoutMs, fallbackUrl = null, fallbackOnMissingV2 = false, fixturePreviewOrigins = [], runtimeOrigin = globalThis.location?.origin ?? null, conditionalRequests = false, fetchImpl = globalThis.fetch }) {
+export function createOpenDashboardClient({ apiBase, schemaMajor, timeoutMs, fallbackUrl = null, fallbackOnMissingV2 = false, fixturePreviewOrigins = [], runtimeOrigin = globalThis.location?.origin ?? null, conditionalRequests = false, fetchImpl = globalThis.fetch }) {
   const base = safePublicUrl(apiBase);
   if (!base || base.protocol !== "https:" || base.pathname !== "/" || base.search || base.hash) throw new TypeError("apiBase must be a public credential-free HTTPS origin");
   if (!Number.isInteger(timeoutMs) || timeoutMs < 100 || timeoutMs > 30_000) throw new TypeError("timeoutMs is outside the supported range");

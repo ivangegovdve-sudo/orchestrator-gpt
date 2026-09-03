@@ -2,7 +2,7 @@ const { test, expect } = require("playwright/test");
 const fs = require("node:fs");
 const path = require("node:path");
 
-const bundle = JSON.parse(fs.readFileSync(path.resolve(__dirname, "../../web/open-overview/fallback-data.json"), "utf8"));
+const bundle = JSON.parse(fs.readFileSync(path.resolve(__dirname, "../../web/open-dashboard/fallback-data.json"), "utf8"));
 const canonical = (input) => {
   const url = new URL(input, "https://snapshot.invalid");
   const sorted = new URLSearchParams(Array.from(url.searchParams.entries()).sort(([a,av],[b,bv]) => a === b ? av.localeCompare(bv) : a.localeCompare(b)));
@@ -38,31 +38,31 @@ const watchErrors = (page) => {
 };
 
 test("combined route renders a complete ten-deep archived snapshot", async ({ page }, testInfo) => {
-  const failures = watchErrors(page); await routeApi(page, { offline: true }); await page.goto("/web/open-overview/index.html");
+  const failures = watchErrors(page); await routeApi(page, { offline: true }); await page.goto("/web/open-dashboard/index.html");
   await expect(page.locator("#oo-model-rail tbody tr")).toHaveCount(10); await expect(page.locator("#oo-app-rail tbody tr")).toHaveCount(10); await expect(page.locator("#oo-matrix-field .oo-matrix tbody tr")).toHaveCount(10); await expect(page.locator("#oo-matrix-field .oo-matrix-control")).toHaveCount(100); await expect(page.locator("#oo-history-grid .oo-history-panel")).toHaveCount(3); await expect(page.locator("#oo-history-grid .oo-sparkline")).toHaveCount(0); await expect(page.locator("#oo-github-grid .oo-data-region")).toHaveCount(8); await expect(page.locator("#oo-source-status")).toContainText("snapshot"); await expect(page.locator(".oo-snapshot-notice")).toContainText("Fixture · stale · non-production"); await expect(page.locator(".oo-snapshot-notice")).toContainText("never mixed");
   await page.screenshot({ path: testInfo.outputPath("desktop-combined-snapshot.png"), fullPage: false }); expect(failures).toEqual([]);
 });
 
 test("typed matrix and enrichment unavailability preserve stable rankings", async ({ page }, testInfo) => {
-  await routeApi(page, { matrixUnavailable: true }); await page.goto("/web/open-overview/index.html"); await expect(page.locator("#oo-model-rail tbody tr")).toHaveCount(10); await expect(page.locator("#oo-app-rail tbody tr")).toHaveCount(10); await expect(page.locator("#oo-matrix-field")).toContainText("collection_disabled"); await expect(page.locator("#oo-source-status")).toContainText("fixture"); await expect(page.locator("#oo-source-status")).not.toContainText("live"); await page.screenshot({ path: testInfo.outputPath("desktop-matrix-unavailable.png"), fullPage: false });
-  await page.unrouteAll(); await routeApi(page, { gatedUnavailable: true }); await page.goto("/web/open-overview/openrouter/index.html?view=providers"); await expect(page.locator("#oo-openrouter-content")).toContainText("Provider enrichment is unavailable"); await expect(page.locator("#oo-openrouter-content")).toContainText("SOURCE_UNAVAILABLE");
+  await routeApi(page, { matrixUnavailable: true }); await page.goto("/web/open-dashboard/index.html"); await expect(page.locator("#oo-model-rail tbody tr")).toHaveCount(10); await expect(page.locator("#oo-app-rail tbody tr")).toHaveCount(10); await expect(page.locator("#oo-matrix-field")).toContainText("collection_disabled"); await expect(page.locator("#oo-source-status")).toContainText("fixture"); await expect(page.locator("#oo-source-status")).not.toContainText("live"); await page.screenshot({ path: testInfo.outputPath("desktop-matrix-unavailable.png"), fullPage: false });
+  await page.unrouteAll(); await routeApi(page, { gatedUnavailable: true }); await page.goto("/web/open-dashboard/openrouter/index.html?view=providers"); await expect(page.locator("#oo-openrouter-content")).toContainText("Provider enrichment is unavailable"); await expect(page.locator("#oo-openrouter-content")).toContainText("SOURCE_UNAVAILABLE");
 });
 
 test("source badge reports optional degradation, malformed matrix, and required failure", async ({ page }) => {
-  await routeApi(page, { matrixUnavailable: true }); await page.goto("/web/open-overview/index.html"); await expect(page.locator("#oo-source-status")).toContainText("partial"); await expect(page.locator("#oo-source-status")).not.toContainText("complete");
-  await page.unrouteAll(); await routeApi(page, { malformedMatrix: true }); await page.goto("/web/open-overview/index.html"); await expect(page.locator("#oo-source-status")).toContainText("partial"); await expect(page.locator("#oo-matrix-field")).toContainText("Relationship request failed");
-  await page.unrouteAll(); await routeApi(page, { requiredUnavailable: true }); await page.goto("/web/open-overview/index.html"); await expect(page.locator("#oo-source-status")).toContainText("unavailable");
+  await routeApi(page, { matrixUnavailable: true }); await page.goto("/web/open-dashboard/index.html"); await expect(page.locator("#oo-source-status")).toContainText("partial"); await expect(page.locator("#oo-source-status")).not.toContainText("complete");
+  await page.unrouteAll(); await routeApi(page, { malformedMatrix: true }); await page.goto("/web/open-dashboard/index.html"); await expect(page.locator("#oo-source-status")).toContainText("partial"); await expect(page.locator("#oo-matrix-field")).toContainText("Relationship request failed");
+  await page.unrouteAll(); await routeApi(page, { requiredUnavailable: true }); await page.goto("/web/open-dashboard/index.html"); await expect(page.locator("#oo-source-status")).toContainText("unavailable");
 });
 
 test("OpenRouter exposes nine compact sections plus app, provider and Pareto evidence", async ({ page }, testInfo) => {
-  await routeApi(page, { offline: true }); await page.goto("/web/open-overview/openrouter/index.html?view=free"); await expect(page.locator(".oo-section-nav a")).toHaveCount(9); await expect(page.locator("#oo-openrouter-content tbody tr")).toHaveCount(10); await expect(page.locator("#oo-openrouter-content")).toContainText(":free"); await expect(page.locator("#oo-openrouter-content")).toContainText("openrouter/free is a router"); await page.screenshot({ path: testInfo.outputPath("openrouter-free.png"), fullPage: false });
-  await page.goto("/web/open-overview/openrouter/index.html?view=app-to-model&app=1001"); await expect(page.locator(".oo-app-picker a")).toHaveCount(10); await expect(page.getByRole("heading", { name: "Claude Code model ranking" }).locator("..").locator("tbody tr")).toHaveCount(10);
-  await page.goto("/web/open-overview/openrouter/index.html?view=providers"); await expect(page.locator("#oo-openrouter-content tbody tr")).toHaveCount(10);
-  await page.goto("/web/open-overview/openrouter/index.html?view=free&freeMode=pareto"); await expect(page.locator(".oo-mode-nav a[aria-current=page]")).toHaveText("Pareto: quality x throughput"); await expect(page.locator("#oo-openrouter-content")).toContainText("benchmarkQuality"); await expect(page.locator("#oo-openrouter-content")).toContainText("medianThroughput"); await expect(page.locator("#oo-openrouter-content")).not.toContainText("efficiency score");
+  await routeApi(page, { offline: true }); await page.goto("/web/open-dashboard/openrouter/index.html?view=free"); await expect(page.locator(".oo-section-nav a")).toHaveCount(9); await expect(page.locator("#oo-openrouter-content tbody tr")).toHaveCount(10); await expect(page.locator("#oo-openrouter-content")).toContainText(":free"); await expect(page.locator("#oo-openrouter-content")).toContainText("openrouter/free is a router"); await page.screenshot({ path: testInfo.outputPath("openrouter-free.png"), fullPage: false });
+  await page.goto("/web/open-dashboard/openrouter/index.html?view=app-to-model&app=1001"); await expect(page.locator(".oo-app-picker a")).toHaveCount(10); await expect(page.getByRole("heading", { name: "Claude Code model ranking" }).locator("..").locator("tbody tr")).toHaveCount(10);
+  await page.goto("/web/open-dashboard/openrouter/index.html?view=providers"); await expect(page.locator("#oo-openrouter-content tbody tr")).toHaveCount(10);
+  await page.goto("/web/open-dashboard/openrouter/index.html?view=free&freeMode=pareto"); await expect(page.locator(".oo-mode-nav a[aria-current=page]")).toHaveText("Pareto: quality x throughput"); await expect(page.locator("#oo-openrouter-content")).toContainText("benchmarkQuality"); await expect(page.locator("#oo-openrouter-content")).toContainText("medianThroughput"); await expect(page.locator("#oo-openrouter-content")).not.toContainText("efficiency score");
 });
 
 test("GitHub exposes eight categories and transparent adoption metadata", async ({ page }, testInfo) => {
-  await routeApi(page, { offline: true }); await page.goto("/web/open-overview/github/index.html?category=mcp&metric=adoption"); await expect(page.locator(".oo-category-list a")).toHaveCount(8); await expect(page.locator(".oo-ranking-nav > *")).toHaveCount(3); await expect(page.locator("#oo-github-content > .oo-data-region:first-child tbody tr")).toHaveCount(10); await expect(page.locator("#oo-github-content")).toContainText("percent_rank"); await expect(page.locator("#oo-github-content")).toContainText("raw stars and forks"); await expect(page.locator("#oo-github-content")).toContainText("github-adoption-v1"); await expect(page.locator("#oo-github-content")).toContainText("Eligible population: 10"); await page.screenshot({ path: testInfo.outputPath("github-mcp-adoption.png"), fullPage: false });
+  await routeApi(page, { offline: true }); await page.goto("/web/open-dashboard/github/index.html?category=mcp&metric=adoption"); await expect(page.locator(".oo-category-list a")).toHaveCount(8); await expect(page.locator(".oo-ranking-nav > *")).toHaveCount(3); await expect(page.locator("#oo-github-content > .oo-data-region:first-child tbody tr")).toHaveCount(10); await expect(page.locator("#oo-github-content")).toContainText("percent_rank"); await expect(page.locator("#oo-github-content")).toContainText("raw stars and forks"); await expect(page.locator("#oo-github-content")).toContainText("github-adoption-v1"); await expect(page.locator("#oo-github-content")).toContainText("Eligible population: 10"); await page.screenshot({ path: testInfo.outputPath("github-mcp-adoption.png"), fullPage: false });
   await page.setViewportSize({ width: 390, height: 844 }); await page.reload(); const summary = page.locator(".oo-category-sheet > summary"); await expect(summary).toBeVisible(); await expect(page.locator(".oo-category-list")).toBeHidden(); await summary.click(); await expect(page.locator(".oo-category-list a").first()).toBeVisible();
 });
 
@@ -70,9 +70,9 @@ test("GitHub fetches and renders published enrichment only for the maintenance t
   const requested = [];
   page.on("request", (request) => { if (request.url().includes("/github/repositories/") && request.url().includes("/enrichment")) requested.push(request.url()); });
   await routeApi(page);
-  await page.goto("/web/open-overview/github/index.html?category=mcp&metric=adoption");
+  await page.goto("/web/open-dashboard/github/index.html?category=mcp&metric=adoption");
   expect(requested).toEqual([]);
-  await page.goto("/web/open-overview/github/index.html?category=mcp&metric=maintenance");
+  await page.goto("/web/open-dashboard/github/index.html?category=mcp&metric=maintenance");
   await expect.poll(() => requested.length).toBe(10);
   const maintenanceTableHead = page.getByRole("table", { name: "Maintenance · MCP" }).locator("thead");
   await expect(maintenanceTableHead).toContainText("Stable releases 90d");
@@ -95,7 +95,7 @@ test("GitHub fetches and renders published enrichment only for the maintenance t
 
 test("eligible history renders stacked usage, model bump, and GitHub small-multiple geometry", async ({ page }) => {
   await routeApi(page, { eligibleHistory: true });
-  await page.goto("/web/open-overview/index.html");
+  await page.goto("/web/open-dashboard/index.html");
   await page.locator("#oo-history-grid").scrollIntoViewIfNeeded();
   await expect(page.locator("#oo-history-grid .oo-stacked-area path[data-series-id]")).toHaveCount(11);
   await expect(page.locator("#oo-history-grid .oo-bump-chart path[data-series-id]")).toHaveCount(10);
@@ -107,32 +107,32 @@ test("eligible history renders stacked usage, model bump, and GitHub small-multi
 
 test("Release-1 evidence rows expose top-three, app coverage, task models, lifecycle dates, and source-separated benchmarks", async ({ page }) => {
   await routeApi(page, { lifecycleEvidence: true });
-  await page.goto("/web/open-overview/openrouter/index.html?view=usage");
+  await page.goto("/web/open-dashboard/openrouter/index.html?view=usage");
   await expect(page.locator("#oo-openrouter-content tbody tr[data-rank-tier=top-three]")).toHaveCount(3);
-  await page.goto("/web/open-overview/openrouter/index.html?view=apps");
+  await page.goto("/web/open-dashboard/openrouter/index.html?view=apps");
   await expect(page.locator("#oo-openrouter-content .oo-app-row-evidence")).toHaveCount(10);
   await expect(page.locator("#oo-openrouter-content .oo-app-row-evidence .oo-model-chip")).toHaveCount(30);
   await expect(page.locator("#oo-openrouter-content .oo-app-coverage")).toHaveCount(10);
-  await page.goto("/web/open-overview/openrouter/index.html?view=tasks");
+  await page.goto("/web/open-dashboard/openrouter/index.html?view=tasks");
   await expect(page.locator("#oo-openrouter-content .oo-task-models")).toHaveCount(10);
   await expect(page.locator("#oo-openrouter-content .oo-task-models .oo-model-chip")).toHaveCount(30);
-  await page.goto("/web/open-overview/openrouter/index.html?view=deprecations");
+  await page.goto("/web/open-dashboard/openrouter/index.html?view=deprecations");
   await expect(page.locator("#oo-openrouter-content thead")).toContainText("First observed");
   await expect(page.locator("#oo-openrouter-content thead")).toContainText("Last observed");
   await expect(page.locator("#oo-openrouter-content .oo-lifecycle-timeline time")).toHaveCount(3);
-  await page.goto("/web/open-overview/openrouter/index.html?view=benchmarks");
+  await page.goto("/web/open-dashboard/openrouter/index.html?view=benchmarks");
   await expect(page.locator("#oo-openrouter-content .oo-benchmark-source")).toHaveCount(2);
   await expect(page.getByRole("table", { name: "Artificial Analysis ranking" })).toBeVisible();
   await expect(page.getByRole("table", { name: "Design Arena ranking" })).toBeVisible();
 });
 
 test("portrait and landscape keep all three combined panels reachable", async ({ page }, testInfo) => {
-  await page.setViewportSize({ width: 390, height: 844 }); await routeApi(page, { offline: true }); await page.goto("/web/open-overview/index.html"); await expect(page.locator(".oo-mobile-segments button")).toHaveCount(3); await expect(page.locator(".oo-mobile-segments button").first()).toHaveCSS("min-height", "44px"); await page.getByRole("button", { name: "Matrix" }).click(); await expect(page.locator("#oo-matrix-field")).toBeVisible(); await expect(page.locator("#oo-model-rail")).toBeHidden(); await page.screenshot({ path: testInfo.outputPath("portrait-combined-matrix.png"), fullPage: false });
+  await page.setViewportSize({ width: 390, height: 844 }); await routeApi(page, { offline: true }); await page.goto("/web/open-dashboard/index.html"); await expect(page.locator(".oo-mobile-segments button")).toHaveCount(3); await expect(page.locator(".oo-mobile-segments button").first()).toHaveCSS("min-height", "44px"); await page.getByRole("button", { name: "Matrix" }).click(); await expect(page.locator("#oo-matrix-field")).toBeVisible(); await expect(page.locator("#oo-model-rail")).toBeHidden(); await page.screenshot({ path: testInfo.outputPath("portrait-combined-matrix.png"), fullPage: false });
   await page.setViewportSize({ width: 844, height: 390 }); await page.reload(); await expect(page.locator(".oo-mobile-segments")).toBeVisible(); await page.getByRole("button", { name: "Matrix" }).click(); await expect(page.locator("#oo-matrix-field .oo-matrix")).toBeVisible(); await page.screenshot({ path: testInfo.outputPath("landscape-matrix.png"), fullPage: false });
 });
 
 test("1440px matrix supports roving arrows, exact values, Escape and focus restoration", async ({ page }) => {
-  await page.setViewportSize({ width: 1440, height: 900 }); await routeApi(page); await page.goto("/web/open-overview/index.html");
+  await page.setViewportSize({ width: 1440, height: 900 }); await routeApi(page); await page.goto("/web/open-dashboard/index.html");
   const controls = page.locator("#oo-matrix-field .oo-matrix-control"); await expect(controls).toHaveCount(100);
   await controls.first().focus(); await expect(controls.first()).toHaveAttribute("tabindex", "0"); await expect(controls.nth(1)).toHaveAttribute("tabindex", "-1");
   await page.keyboard.press("ArrowRight"); await expect(controls.nth(1)).toBeFocused();
@@ -142,7 +142,7 @@ test("1440px matrix supports roving arrows, exact values, Escape and focus resto
 });
 
 test("combined route defers optional history and enrichment until the lower evidence rail is near", async ({ page }) => {
-  await page.setViewportSize({ width: 1440, height: 360 }); const requested = []; page.on("request", (request) => { if (request.url().includes("/api/public/v2/")) requested.push(request.url()); }); await routeApi(page); await page.goto("/web/open-overview/index.html"); await expect(page.locator("#oo-model-rail tbody tr")).toHaveCount(10);
+  await page.setViewportSize({ width: 1440, height: 360 }); const requested = []; page.on("request", (request) => { if (request.url().includes("/api/public/v2/")) requested.push(request.url()); }); await routeApi(page); await page.goto("/web/open-dashboard/index.html"); await expect(page.locator("#oo-model-rail tbody tr")).toHaveCount(10);
   expect(requested.some((url) => url.includes("/history?"))).toBe(false); expect(requested.some((url) => url.includes("/providers?"))).toBe(false); expect(requested.some((url) => url.includes("/free-frontiers?"))).toBe(false);
   await page.locator("#oo-history-grid").scrollIntoViewIfNeeded(); await expect.poll(() => requested.some((url) => url.includes("/history?"))).toBe(true); await expect.poll(() => requested.some((url) => url.includes("/providers?"))).toBe(true); await expect(page.locator("#oo-history-grid .oo-history-panel")).toHaveCount(3);
 });
@@ -151,7 +151,7 @@ test("missing IntersectionObserver eagerly loads semantic evidence and omits Thr
   await page.addInitScript(() => { delete window.IntersectionObserver; });
   const requested = []; const vendor = [];
   page.on("request", (request) => { if (request.url().includes("/api/public/v2/")) requested.push(request.url()); if (request.url().includes("three.module.min.js")) vendor.push(request.url()); });
-  await routeApi(page); await page.goto("/web/open-overview/index.html");
+  await routeApi(page); await page.goto("/web/open-dashboard/index.html");
   await expect.poll(() => requested.some((url) => url.includes("/history?"))).toBe(true);
   await expect(page.locator("#oo-history-grid .oo-history-panel")).toHaveCount(3);
   await expect(page.locator("#oo-network-region")).toContainText("Relationship map omitted");
@@ -159,7 +159,7 @@ test("missing IntersectionObserver eagerly loads semantic evidence and omits Thr
 });
 
 test("320px and 200 percent zoom remain page-contained with accessible data scrollers", async ({ page }) => {
-  await page.setViewportSize({ width: 320, height: 640 }); await routeApi(page, { offline: true }); await page.goto("/web/open-overview/index.html");
+  await page.setViewportSize({ width: 320, height: 640 }); await routeApi(page, { offline: true }); await page.goto("/web/open-dashboard/index.html");
   const session = await page.context().newCDPSession(page); await session.send("Emulation.setPageScaleFactor", { pageScaleFactor: 2 });
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
   expect(overflow).toBeLessThanOrEqual(3);
@@ -182,14 +182,14 @@ test("320px and 200 percent zoom remain page-contained with accessible data scro
 });
 
 test("history falls back to bounded exact tables until eight consecutive complete days", async ({ page }) => {
-  await routeApi(page, { offline: true }); await page.goto("/web/open-overview/index.html");
+  await routeApi(page, { offline: true }); await page.goto("/web/open-dashboard/index.html");
   await expect(page.locator("#oo-history-grid .oo-sparkline")).toHaveCount(0);
   await expect(page.locator("#oo-history-grid")).toContainText("eight consecutive complete daily buckets");
   for (const panel of await page.locator("#oo-history-grid .oo-history-panel").all()) await expect(panel.locator("tbody tr")).toHaveCount(70);
 });
 
 test("reduced motion supplies a static relationship fallback without loading Three.js", async ({ page }) => {
-  const vendor = []; page.on("request", (request) => { if (request.url().includes("/web/vendor/three/three.module.min.js")) vendor.push(request.url()); }); await page.emulateMedia({ reducedMotion: "reduce" }); await routeApi(page, { offline: true }); await page.goto("/web/open-overview/index.html"); await page.locator("#oo-network-region").scrollIntoViewIfNeeded(); await page.waitForTimeout(250); expect(vendor).toEqual([]); await expect(page.locator("#oo-network-region")).toContainText("remain authoritative");
+  const vendor = []; page.on("request", (request) => { if (request.url().includes("/web/vendor/three/three.module.min.js")) vendor.push(request.url()); }); await page.emulateMedia({ reducedMotion: "reduce" }); await routeApi(page, { offline: true }); await page.goto("/web/open-dashboard/index.html"); await page.locator("#oo-network-region").scrollIntoViewIfNeeded(); await page.waitForTimeout(250); expect(vendor).toEqual([]); await expect(page.locator("#oo-network-region")).toContainText("remain authoritative");
 });
 
 test("normal motion lazy-loads a bounded meaningful relationship canopy", async ({ page }) => {
@@ -198,14 +198,14 @@ test("normal motion lazy-loads a bounded meaningful relationship canopy", async 
     if (request.url().includes("/web/vendor/three/three.module.min.js")) vendor.push(request.url());
   });
   await routeApi(page, { offline: true });
-  await page.goto("/web/open-overview/index.html");
+  await page.goto("/web/open-dashboard/index.html");
   expect(vendor).toEqual([]);
   const region = page.locator("#oo-network-region");
   await region.scrollIntoViewIfNeeded();
-  await expect.poll(() => page.evaluate(() => Boolean(window.__openOverviewThreeDebug?.loaded))).toBe(true);
+  await expect.poll(() => page.evaluate(() => Boolean(window.__openDashboardThreeDebug?.loaded))).toBe(true);
   expect(vendor).toHaveLength(1);
   await expect(region.locator("canvas[aria-hidden=true]")).toHaveCount(1);
-  const debug = await page.evaluate(() => window.__openOverviewThreeDebug);
+  const debug = await page.evaluate(() => window.__openDashboardThreeDebug);
   expect(debug.nodes).toBe(32);
   expect(debug.edges).toBeGreaterThan(0);
   expect(debug.edges).toBeLessThanOrEqual(110);
@@ -213,25 +213,25 @@ test("normal motion lazy-loads a bounded meaningful relationship canopy", async 
   const bounds = await region.boundingBox();
   await page.mouse.move(bounds.x + bounds.width * .82, bounds.y + bounds.height * .22);
   await expect.poll(() => page.evaluate(
-    () => window.__openOverviewThreeDebug.uniforms.uMouse[0],
+    () => window.__openDashboardThreeDebug.uniforms.uMouse[0],
   )).toBeGreaterThan(.2);
   await page.mouse.click(bounds.x + bounds.width * .7, bounds.y + bounds.height * .4);
   await expect.poll(() => page.evaluate(
-    () => window.__openOverviewThreeDebug.uniforms.uClick,
+    () => window.__openDashboardThreeDebug.uniforms.uClick,
   )).toBeGreaterThan(0);
-  const frames = await page.evaluate(() => window.__openOverviewThreeDebug.frames);
+  const frames = await page.evaluate(() => window.__openDashboardThreeDebug.frames);
   await page.waitForTimeout(100);
-  expect(await page.evaluate(() => window.__openOverviewThreeDebug.frames)).toBeGreaterThan(frames);
+  expect(await page.evaluate(() => window.__openDashboardThreeDebug.frames)).toBeGreaterThan(frames);
 });
 
 test("Save-Data requires consent and WebGL context loss restores the semantic fallback", async ({ page }) => {
   const vendor = []; page.on("request", (request) => { if (request.url().includes("/web/vendor/three/three.module.min.js")) vendor.push(request.url()); });
-  await page.addInitScript(() => Object.defineProperty(navigator, "connection", { configurable: true, value: { saveData: true } })); await routeApi(page); await page.goto("/web/open-overview/index.html");
+  await page.addInitScript(() => Object.defineProperty(navigator, "connection", { configurable: true, value: { saveData: true } })); await routeApi(page); await page.goto("/web/open-dashboard/index.html");
   await page.locator("#oo-network-region").scrollIntoViewIfNeeded(); expect(vendor).toEqual([]); const load = page.getByRole("button", { name: "Load ecosystem map" }); await expect(load).toBeVisible(); await load.click(); await expect(page.locator("#oo-network-region canvas")).toHaveCount(1);
   await page.locator("#oo-network-region canvas").dispatchEvent("webglcontextlost"); await expect(page.locator("#oo-network-region .oo-network-note")).toContainText("semantic matrix and ranking tables remain authoritative");
 });
 
 test("schema-major mismatch fails closed and all canonical assets stay direct", async ({ page, request }) => {
-  for (const asset of ["/web/open-overview/index.html", "/web/open-overview/openrouter/index.html", "/web/open-overview/github/index.html", "/web/open-overview/open-overview.css", "/web/open-overview/open-overview.js", "/web/open-overview/fallback-data.json"]) expect((await request.get(asset)).status(), asset).toBe(200);
-  await page.route("https://openrouter-github-dashboard.vercel.app/api/public/v2/**", async (route) => { const bad = { ...bundle.manifest, schemaVersion: "3.0" }; await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(bad) }); }); await page.goto("/web/open-overview/index.html"); await expect(page.locator("#oo-view-root")).toContainText("Expected schema major 2"); await expect(page.locator("#oo-source-status")).toContainText("unavailable");
+  for (const asset of ["/web/open-dashboard/index.html", "/web/open-dashboard/openrouter/index.html", "/web/open-dashboard/github/index.html", "/web/open-dashboard/open-dashboard.css", "/web/open-dashboard/open-dashboard.js", "/web/open-dashboard/fallback-data.json"]) expect((await request.get(asset)).status(), asset).toBe(200);
+  await page.route("https://openrouter-github-dashboard.vercel.app/api/public/v2/**", async (route) => { const bad = { ...bundle.manifest, schemaVersion: "3.0" }; await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(bad) }); }); await page.goto("/web/open-dashboard/index.html"); await expect(page.locator("#oo-view-root")).toContainText("Expected schema major 2"); await expect(page.locator("#oo-source-status")).toContainText("unavailable");
 });
