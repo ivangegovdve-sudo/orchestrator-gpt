@@ -1,4 +1,4 @@
-import { ENDPOINTS, GITHUB_CATEGORIES, OVERVIEW_REQUESTS, createOpenDashboardClient, manifestPublicationIdentity, topAppModelRequests, topGitHubEnrichmentRequests } from "./open-dashboard-api.js";
+import { CATALOGUE_PROVIDERS, CATALOGUE_SERVED_AS_OF, ENDPOINTS, GITHUB_CATEGORIES, OVERVIEW_REQUESTS, createOpenDashboardClient, manifestPublicationIdentity, topAppModelRequests, topGitHubEnrichmentRequests } from "./open-dashboard-api.js";
 import { compactIntegerString } from "./open-dashboard-schema.js";
 import { renderAppModelMatrix, renderHistoryVisualization, renderPending, renderRankTable, renderSourceStates, renderUnavailable } from "./open-dashboard-charts.js";
 
@@ -472,6 +472,107 @@ export function renderGithub(view,state){
 
 const supportsWebGL=()=>{try{const canvas=document.createElement("canvas");return Boolean(canvas.getContext("webgl2")||canvas.getContext("webgl"))}catch{return false}};
 const reducedMotion=()=>new URL(location.href).searchParams.get("motion")==="reduce"||matchMedia("(prefers-reduced-motion: reduce)").matches;
+// A catalogue is what a provider's own API lists today, which is NOT the same
+// artefact as the OpenRouter "Providers" view (endpoint-level serving data for
+// OpenRouter models). Conflating the two has already caused one wrong reading,
+// so the two surfaces stay separate and each says which it is.
+export function catalogueSummary(rows) {
+  const list = Array.isArray(rows) ? rows : [];
+  // A model whose modalities the source does not publish is UNKNOWN, never "not
+  // chat". Cerebras publishes no outputModalities at all, so reporting 0 chat
+  // models there would be a claim the data does not support.
+  // An empty array publishes nothing, so it is UNKNOWN, not "some other modality".
+  // Treating it as other produced the literal string "1 other modality ()".
+  const declared = (row) => Array.isArray(row.outputModalities) && row.outputModalities.length > 0;
+  const text = list.filter((row) => declared(row) && row.outputModalities.includes("text"));
+  const other = list.filter((row) => declared(row) && !row.outputModalities.includes("text"));
+  const unknown = list.filter((row) => !declared(row));
+  const otherKinds = [...new Set(other.flatMap((row) => row.outputModalities))].sort();
+  // Fields null on EVERY row are unpublished by this source, not zero.
+  const columns = ["contextLength", "pricing", "isFree", "providerActive", "performance"];
+  const unpublished = columns.filter((key) => list.length > 0 && list.every((row) => row[key] === null
+    || (key === "pricing" && row.pricing?.promptUsdPerToken === null && row.pricing?.completionUsdPerToken === null)));
+  // Cerebras publishes no modalities at all, so filtering to text-capable would
+  // render an empty table for a provider that does list models. Fall back to
+  // EVERY row -- falling back to the unknown ones alone hid real other-modality
+  // models while the note claimed the source published no modalities.
+  const shown = text.length ? text : list;
+  return Object.freeze({
+    total: list.length, text: Object.freeze(text), textCount: text.length,
+    shown: Object.freeze(shown), shownAreNotTextCapable: text.length === 0 && list.length > 0,
+    noModalityPublished: unknown.length > 0 && other.length === 0,
+    otherCount: other.length, otherKinds: Object.freeze(otherKinds),
+    unknownCount: unknown.length, unpublished: Object.freeze(unpublished),
+    disappeared: list.filter((row) => row.availability === "disappeared").length
+  });
+}
+
+export function renderCatalogues(view) {
+  const { document, root } = context();
+  root.replaceChildren(); renderSourceRail(view); appendSnapshotNotice(document, root, view);
+  const content = section(document, "oo-catalogue-content", "oo-route-content");
+  const intro = document.createElement("p"); intro.className = "oo-router-note";
+  intro.textContent = "What each provider's own API lists as available today. This is a different artefact from the OpenRouter Providers view, which describes endpoint-level serving for OpenRouter models only.";
+  content.appendChild(intro);
+  for (const [slug, label, served, sourceId] of CATALOGUE_PROVIDERS) {
+    const key = `catalogue:${slug}`;
+    if (!served) {
+      content.appendChild(renderUnavailable({ document, title: label, reason: `No source publishes this catalogue. The public API rejects it as an unknown provider, so nothing is shown in its place and no figure is inferred. Measured ${CATALOGUE_SERVED_AS_OF}; if the API starts serving it, this panel is what goes stale.`, code: "provider not served · HTTP 400 INVALID_QUERY" }));
+      continue;
+    }
+    if (datasetState(view, key) !== "ready") { content.appendChild(renderDatasetGap(document, view, key, label)); continue; }
+    const response = view.responses[key];
+    // Name THIS provider's source, not whichever happens to be listed first.
+    const provenance = (response?.provenance ?? []).find((entry) => entry.sourceId === sourceId) ?? null;
+    const summary = catalogueSummary(response?.data);
+    const region = section(document, "", "oo-data-region oo-catalogue");
+    const heading = document.createElement("h2"); heading.className = "oo-region-title"; heading.textContent = label; region.appendChild(heading);
+    const counts = document.createElement("p"); counts.className = "oo-region-meta";
+    // A cursor means this is one page, not the catalogue. Reporting the page as a
+    // total is exactly the denominator error this dashboard exists to avoid.
+    const paged = Boolean(response?.cursor);
+    const parts = [paged ? `${summary.total} shown (first page; the source pages this catalogue)` : `${summary.total} listed`, `${summary.textCount} text-capable`];
+    if (summary.otherCount) parts.push(`${summary.otherCount} other modality (${summary.otherKinds.join(", ")})`);
+    if (summary.unknownCount) parts.push(`${summary.unknownCount} modality not published`);
+    if (summary.disappeared) parts.push(`${summary.disappeared} disappeared`);
+    counts.textContent = parts.join(" · ");
+    region.appendChild(counts);
+    if (summary.unpublished.length) {
+      const gap = document.createElement("p"); gap.className = "oo-region-meta oo-catalogue-unpublished";
+      gap.textContent = `Not published by this source for any model: ${summary.unpublished.join(", ")}. Blank cells below are unpublished, not zero.`;
+      region.appendChild(gap);
+    }
+    region.appendChild(renderRankTable({
+      document, title: `${label} catalogue`, rows: summary.shown.slice(0, 25),
+      sourceLabel: `${label} catalogue · ${provenance ? provenance.sourceId : `${sourceId} (not named in this response)`}`,
+      asOf: provenance?.fetchedAt ?? null,
+      columns: [
+        { label: "Model", value: (row) => row.id },
+        { label: "Context", value: (row) => row.contextLength === null ? "—" : compactIntegerString(row.contextLength), exact: (row) => row.contextLength },
+        { label: "Prompt $/tok", value: (row) => exact(row.pricing?.promptUsdPerToken) },
+        { label: "Completion $/tok", value: (row) => exact(row.pricing?.completionUsdPerToken) },
+        { label: "Modality", value: (row) => Array.isArray(row.outputModalities) && row.outputModalities.length ? row.outputModalities.join(", ") : "not published" },
+        { label: "Free", value: (row) => row.isFree === null ? "—" : row.isFree ? "yes" : "no" },
+        { label: "Seen", value: (row) => String(row.lastConfirmedAt).slice(0, 10) }
+      ]
+    }));
+    if (summary.shownAreNotTextCapable) {
+      const note = document.createElement("p"); note.className = "oo-region-meta oo-catalogue-unpublished";
+      note.textContent = summary.noModalityPublished
+        ? "This source publishes no output modalities, so these models are listed without a text-capable claim being made about them."
+        : "No model here declares text output. Every listed model is shown with the modality its source does declare.";
+      region.appendChild(note);
+    }
+    if (summary.shown.length > 25) {
+      const more = document.createElement("p"); more.className = "oo-region-meta";
+      more.textContent = `Showing the first 25 of ${summary.shown.length}${paged ? " on this page" : ""}.`;
+      region.appendChild(more);
+    }
+    content.appendChild(region);
+  }
+  root.appendChild(content); root.setAttribute("aria-busy", "false");
+}
+
 export function buildRelationshipGraph(view){const nodes=[];const edges=[];const seen=new Set();const matrix=view.responses.matrix;if(matrix?.status==="available"){for(const appId of matrix.appIds){const id=`app:${appId}`;seen.add(id);nodes.push({id,label:appId,kind:"app"})}for(const modelId of matrix.modelIds){const id=`model:${modelId}`;seen.add(id);nodes.push({id,label:modelId,kind:"model"})}for(const cell of matrix.cells.filter(item=>item.state==="observed").sort((a,b)=>a.rankWithinPeriod-b.rankWithinPeriod||a.appId.localeCompare(b.appId)||a.modelId.localeCompare(b.modelId)).slice(0,100))edges.push({sourceId:`app:${cell.appId}`,targetId:`model:${cell.modelId}`})}const categories=GITHUB_CATEGORIES.map(([slug,label])=>({slug,label,response:view.responses[`github:${slug}`]})).filter(item=>item.response);for(const category of categories){const id=`category:${category.slug}`;seen.add(id);nodes.push({id,label:category.label,kind:"category"})}for(let rowIndex=0;nodes.length<32&&rowIndex<10;rowIndex++)for(const category of categories){const row=category.response.data[rowIndex];if(!row||nodes.length>=32)continue;const id=`repository:${row.repositoryId}`;if(!seen.has(id)){seen.add(id);nodes.push({id,label:row.fullName,kind:"repository"});if(edges.length<110)edges.push({sourceId:`category:${category.slug}`,targetId:id})}}return Object.freeze({nodes:Object.freeze(nodes),edges:Object.freeze(edges)})}
 async function mountThreeNow(host,graph){const module=await import("./open-dashboard-three.js?v=20260725c");return module.mountRelationshipCanopy({host,graph})}
 export function installThreeEnhancement(view,config){const{document}=context();const host=document.getElementById("oo-network-region");const graph=buildRelationshipGraph(view);host.replaceChildren();if(!config.threeEnabled||!graph.nodes.length||reducedMotion()||!supportsWebGL()||typeof IntersectionObserver!=="function"){const note=document.createElement("p");note.className="oo-network-note";note.textContent="Relationship map omitted; the semantic matrix and ranking tables remain authoritative.";host.appendChild(note);return}const load=async()=>{if(host.dataset.threeState==="loading"||host.dataset.threeState==="ready")return;host.dataset.threeState="loading";try{const controller=await mountThreeNow(host,graph);host.dataset.threeState="ready";const active=new IntersectionObserver(([entry])=>controller.setActive(entry.isIntersecting));active.observe(host);window.addEventListener("pagehide",()=>{active.disconnect();controller.destroy()},{once:true})}catch{const note=document.createElement("p");note.className="oo-network-note";note.textContent="WebGL map unavailable; the semantic matrix and ranking tables remain authoritative.";host.replaceChildren(note);host.dataset.threeState="failed"}};if(navigator.connection?.saveData){const button=document.createElement("button");button.type="button";button.className="oo-load-map";button.textContent="Load ecosystem map";button.addEventListener("click",()=>{button.remove();load()},{once:true});host.appendChild(button);return}const observer=new IntersectionObserver(([entry])=>{if(!entry.isIntersecting)return;observer.disconnect();load()},{rootMargin:"100px"});observer.observe(host)}
@@ -527,6 +628,10 @@ export async function bootOpenDashboard({ fetchImpl = globalThis.fetch.bind(glob
         }
       }
       renderGithub(view, state);
+    } else if (route === "catalogues") {
+      const requests = CATALOGUE_PROVIDERS.filter(([, , served]) => served)
+        .map(([slug]) => ({ key: `catalogue:${slug}`, path: ENDPOINTS.liveModels(slug), kind: "liveModels", optional: true }));
+      renderCatalogues(await client.loadView(requests));
     } else {
       // An unrecognised route used to fall through this if/else and complete the
       // try having done nothing: no request, no render, no error, and the static

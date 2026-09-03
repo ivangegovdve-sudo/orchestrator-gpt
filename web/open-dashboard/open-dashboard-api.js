@@ -26,6 +26,25 @@ export const GITHUB_CATEGORIES = Object.freeze([
   ["ai-orchestration", "General AI orchestration"]
 ]);
 
+// Measured against the live API on 2026-09-03. `served: false` means no source
+// publishes that catalogue -- /live-models rejects it with HTTP 400 INVALID_QUERY
+// -- so the page renders a named gap instead of quietly showing three providers
+// when four were asked for.
+// [slug, label, served, sourceId]. The sourceId is carried explicitly because
+// every /live-models response lists ALL THREE ingest sources in its provenance
+// regardless of which provider was requested -- so provenance[0] would label the
+// OpenRouter panel with the Cerebras source.
+// This roster is a DEPLOYMENT-TIME SNAPSHOT of what the API served when it was
+// written, not a live probe. The date is rendered next to any "not served"
+// claim so a stale claim is visible rather than quietly authoritative.
+export const CATALOGUE_SERVED_AS_OF = "2026-09-03";
+export const CATALOGUE_PROVIDERS = Object.freeze([
+  ["openrouter", "OpenRouter", true, "models_current"],
+  ["groq", "Groq", true, "groq_models_current"],
+  ["cerebras", "Cerebras", true, "cerebras_models_current"],
+  ["sail", "Sail", false, null]
+]);
+
 export const ENDPOINTS = Object.freeze({
   manifest: "/manifest",
   sourceStatus: "/source-status",
@@ -41,6 +60,17 @@ export const ENDPOINTS = Object.freeze({
     return `/apps/${encodeURIComponent(String(appId))}/models?limit=100`;
   },
   providers: "/providers?limit=100",
+  liveModels(provider) {
+    // `served: false` providers have no URL to build. Checking membership alone
+    // let ENDPOINTS.liveModels("sail") through, which would have requested a
+    // provider the API rejects with HTTP 400.
+    if (!CATALOGUE_PROVIDERS.some(([slug, , served]) => slug === provider && served)) throw new TypeError("provider must be a served catalogue provider");
+    // 200 is MAX_COLLECTION_ROWS in the schema; asking for more makes the client
+    // reject its own valid response. Groq and Cerebras fit well inside it; the
+    // OpenRouter catalogue does not, and the view labels that page as a slice
+    // rather than reporting it as a total.
+    return `/live-models?limit=200&provider=${encodeURIComponent(provider)}`;
+  },
   freeFrontierQualityThroughput: "/free-frontiers?x=benchmarkQuality&y=medianThroughput&limit=200",
   freeFrontierContextPopularity: "/free-frontiers?x=contextLength&y=weeklyPopularityRank&limit=200",
   history: "/history?window=90d&limit=10",
@@ -129,7 +159,9 @@ const validateFor = (spec, raw, major) => spec.kind === "manifest"
         ? validateAppModels(raw, major)
         : spec.kind === "githubEnrichment"
           ? validateGitHubEnrichment(raw, major)
-        : spec.kind === "providers"
+        : spec.kind === "liveModels"
+      ? validateOpenRouterCollection(raw, "liveModels", major)
+    : spec.kind === "providers"
           ? validateProviders(raw, major)
           : spec.kind === "freeFrontiers"
             ? validateFreeFrontiers(raw, major)
