@@ -19,6 +19,12 @@ const SHA256 = /^[a-f0-9]{64}$/;
 const MAX_TEXT_LENGTH = 4096;
 const MAX_URL_LENGTH = 2048;
 const MAX_COLLECTION_ROWS = 200;
+// One provenance entry per distinct contributing source, so this scales with the
+// rows it explains, not with a hand-picked number. The old 32 was below what a
+// full 100-row providers payload actually cites (42), which rejected the whole
+// response — a bound must be a defence against a hostile payload, never a cap on
+// how well-sourced an honest one is allowed to be.
+const MAX_PROVENANCE_ROWS = MAX_COLLECTION_ROWS;
 const MAX_OBJECT_KEYS = 64;
 const MAX_NESTED_ITEMS = 256;
 const MAX_NESTED_DEPTH = 10;
@@ -41,6 +47,24 @@ const strictRecord = (value, keys, name) => {
   for (const key of Object.keys(value)) if (!allowed.has(key)) fail("unknown_field", `${name}.${key} is not in schema 2.0`);
   for (const key of keys) if (!Object.hasOwn(value, key)) fail("missing_field", `${name}.${key} is required`);
   return value;
+};
+// Data rows grow. A publisher adding a field is additive news, not a contract
+// break, so rejecting the whole payload over one unknown key throws away every
+// valid row with it — which is how 100 provider rows became "unavailable".
+// openRecord tolerates unknown keys and PROJECTS to the known ones, so nothing
+// unvalidated can reach the render layer, and the forbidden-key list is still
+// enforced on what it drops. Response envelopes and their metadata blocks stay
+// on strictRecord: an unexpected key there is a real contract change.
+const openRecord = (value, keys, name) => {
+  if (!isRecord(value)) fail("invalid_contract", `${name} must be an object`);
+  for (const key of keys) if (!Object.hasOwn(value, key)) fail("missing_field", `${name}.${key} is required`);
+  const allowed = new Set(keys);
+  const projection = {};
+  for (const key of Object.keys(value)) {
+    if (allowed.has(key)) { projection[key] = value[key]; continue; }
+    if (FORBIDDEN_PUBLIC_KEYS.has(key.replace(/[^A-Za-z0-9]/g, "").toLowerCase())) fail("invalid_contract", `${name}.${key} is a forbidden public field`);
+  }
+  return projection;
 };
 const string = (value, name, maximum = MAX_TEXT_LENGTH) => { if (typeof value !== "string") fail("invalid_contract", `${name} must be a string`); if (value.length > maximum) fail("invalid_contract", `${name} exceeds the bounded length ${maximum}`); return value; };
 const nonEmptyString = (value, name, maximum = MAX_TEXT_LENGTH) => { string(value, name, maximum); if (value.length === 0) fail("invalid_contract", `${name} must not be empty`); return value; };
@@ -111,7 +135,7 @@ const validateCompleteness = (raw) => {
 };
 
 const validateProvenance = (raw) => {
-  if (!Array.isArray(raw) || raw.length > 32) fail("invalid_contract", "provenance must be a bounded array");
+  if (!Array.isArray(raw) || raw.length > MAX_PROVENANCE_ROWS) fail("invalid_contract", "provenance must be a bounded array");
   return Object.freeze(raw.map((item, index) => {
     const row = strictRecord(item, ["sourceId", "sourceTier", "runId", "fetchedAt", "sourceAsOf", "transformVersion", "citation"], `provenance[${index}]`);
     nonEmptyString(row.sourceId, "provenance.sourceId");
@@ -135,7 +159,7 @@ const validateRank = (raw) => {
 
 const MODEL_KEYS = ["id", "canonicalSlug", "name", "description", "contentTrust", "createdUnix", "contextLength", "architecture", "pricing", "supportedParameters", "expirationDate", "lifecycleState", "freeKind", "weeklyRank", "rankMethod"];
 const validateModel = (raw, name) => {
-  const row = strictRecord(raw, MODEL_KEYS, name);
+  const row = openRecord(raw, MODEL_KEYS, name);
   string(row.id, `${name}.id`); string(row.canonicalSlug, `${name}.canonicalSlug`); string(row.name, `${name}.name`); nullableString(row.description, `${name}.description`, 16_384);
   if (row.contentTrust !== "untrusted-source") fail("invalid_contract", `${name}.contentTrust is invalid`);
   integerString(row.createdUnix, `${name}.createdUnix`); if (row.contextLength !== null) integerString(row.contextLength, `${name}.contextLength`);
@@ -153,26 +177,26 @@ const validators = {
   models: validateModel,
   free: validateModel,
   apps(raw, name) {
-    const row = strictRecord(raw, ["appId", "appName", "rank", "totalTokens", "totalRequests"], name);
+    const row = openRecord(raw, ["appId", "appName", "rank", "totalTokens", "totalRequests"], name);
     integerString(row.appId, `${name}.appId`); string(row.appName, `${name}.appName`);
     if (!Number.isInteger(row.rank) || row.rank < 1) fail("invalid_contract", `${name}.rank is invalid`);
     integerString(row.totalTokens, `${name}.totalTokens`); integerString(row.totalRequests, `${name}.totalRequests`);
     return Object.freeze({ ...row });
   },
   deprecations(raw, name) {
-    const row = strictRecord(raw, ["modelId", "state", "expirationDate", "firstObservedAt", "lastObservedAt", "evidenceRunId"], name);
+    const row = openRecord(raw, ["modelId", "state", "expirationDate", "firstObservedAt", "lastObservedAt", "evidenceRunId"], name);
     string(row.modelId, `${name}.modelId`); if (!LIFECYCLE.has(row.state)) fail("invalid_contract", `${name}.state is invalid`);
     if (row.expirationDate !== null) date(row.expirationDate, `${name}.expirationDate`);
     dateTime(row.firstObservedAt, `${name}.firstObservedAt`); dateTime(row.lastObservedAt, `${name}.lastObservedAt`); uuid(row.evidenceRunId, `${name}.evidenceRunId`);
     return Object.freeze({ ...row });
   },
   tasks(raw, name) {
-    const row = strictRecord(raw, ["tag", "displayName", "macroCategory", "usageShare", "tokenShare", "categoryUsageShare", "categoryTokenShare", "sampled", "absoluteVolumeAvailable", "otherExcluded", "topModelsComplete", "models"], name);
+    const row = openRecord(raw, ["tag", "displayName", "macroCategory", "usageShare", "tokenShare", "categoryUsageShare", "categoryTokenShare", "sampled", "absoluteVolumeAvailable", "otherExcluded", "topModelsComplete", "models"], name);
     string(row.tag, `${name}.tag`); string(row.displayName, `${name}.displayName`); string(row.macroCategory, `${name}.macroCategory`);
     for (const key of ["usageShare", "tokenShare", "categoryUsageShare", "categoryTokenShare"]) decimalString(row[key], `${name}.${key}`);
     if (row.sampled !== true || row.absoluteVolumeAvailable !== false || row.otherExcluded !== true || row.topModelsComplete !== false || !Array.isArray(row.models) || row.models.length > 100) fail("invalid_contract", `${name} sampled caveats are invalid`);
     const models = row.models.map((model, index) => {
-      const item = strictRecord(model, ["id", "sourcePosition", "usageShare", "tokenShare"], `${name}.models[${index}]`);
+      const item = openRecord(model, ["id", "sourcePosition", "usageShare", "tokenShare"], `${name}.models[${index}]`);
       string(item.id, "task model id"); if (!Number.isInteger(item.sourcePosition) || item.sourcePosition < 1) fail("invalid_contract", "task model position is invalid"); decimalString(item.usageShare, "task model usageShare"); decimalString(item.tokenShare, "task model tokenShare");
       return Object.freeze({ ...item });
     });
@@ -181,22 +205,22 @@ const validators = {
   benchmarks(raw, name) {
     const artificial = raw?.source === "artificial-analysis";
     const keys = artificial ? ["source", "modelPermaslug", "displayName", "matchStatus", "pricing", "citation", "sourceUrl", "intelligenceIndex", "codingIndex", "agenticIndex"] : ["source", "modelPermaslug", "displayName", "matchStatus", "pricing", "citation", "sourceUrl", "arena", "category", "elo", "winRate", "avgGenerationTimeMs", "tournamentStats"];
-    const row = strictRecord(raw, keys, name);
+    const row = openRecord(raw, keys, name);
     if (!['artificial-analysis', 'design-arena'].includes(row.source) || !['matched', 'unmatched'].includes(row.matchStatus)) fail("invalid_contract", `${name} benchmark discriminator is invalid`);
     string(row.modelPermaslug, `${name}.modelPermaslug`); string(row.displayName, `${name}.displayName`); string(row.citation, `${name}.citation`);
     if (row.sourceUrl !== null && !safePublicUrl(row.sourceUrl)) fail("invalid_contract", `${name}.sourceUrl is not public`);
-    const pricing = strictRecord(row.pricing, ["prompt", "completion"], `${name}.pricing`); if (pricing.prompt !== null) decimalString(pricing.prompt, `${name}.pricing.prompt`); if (pricing.completion !== null) decimalString(pricing.completion, `${name}.pricing.completion`);
+    const pricing = openRecord(row.pricing, ["prompt", "completion"], `${name}.pricing`); if (pricing.prompt !== null) decimalString(pricing.prompt, `${name}.pricing.prompt`); if (pricing.completion !== null) decimalString(pricing.completion, `${name}.pricing.completion`);
     if (artificial) {
       for (const key of ["intelligenceIndex", "codingIndex", "agenticIndex"]) if (row[key] !== null && typeof row[key] !== "number") fail("invalid_contract", `${name}.${key} is invalid`);
       return Object.freeze({ ...row, pricing: Object.freeze({ ...pricing }) });
     }
     string(row.arena, `${name}.arena`); string(row.category, `${name}.category`);
     if (typeof row.elo !== "number" || typeof row.winRate !== "number" || row.winRate < 0 || row.winRate > 100 || (row.avgGenerationTimeMs !== null && (typeof row.avgGenerationTimeMs !== "number" || row.avgGenerationTimeMs < 0))) fail("invalid_contract", `${name} metrics are invalid`);
-    const stats = strictRecord(row.tournamentStats, ["firstPlace", "secondPlace", "thirdPlace", "fourthPlace", "total"], `${name}.tournamentStats`); for (const value of Object.values(stats)) if (value !== null && !Number.isInteger(value)) fail("invalid_contract", `${name} tournament stats are invalid`);
+    const stats = openRecord(row.tournamentStats, ["firstPlace", "secondPlace", "thirdPlace", "fourthPlace", "total"], `${name}.tournamentStats`); for (const value of Object.values(stats)) if (value !== null && !Number.isInteger(value)) fail("invalid_contract", `${name} tournament stats are invalid`);
     return Object.freeze({ ...row, pricing: Object.freeze({ ...pricing }), tournamentStats: Object.freeze({ ...stats }) });
   },
   providers(raw, name) {
-    const row = strictRecord(raw, ["modelId", "provider", "endpoint", "quantization", "contextLength", "promptPrice", "completionPrice", "uptime", "latency", "throughput", "status", "sourceUrl", "fetchedAt"], name);
+    const row = openRecord(raw, ["modelId", "provider", "endpoint", "quantization", "contextLength", "promptPrice", "completionPrice", "uptime", "latency", "throughput", "status", "sourceUrl", "fetchedAt"], name);
     string(row.modelId, `${name}.modelId`); string(row.provider, `${name}.provider`); string(row.endpoint, `${name}.endpoint`); nullableString(row.quantization, `${name}.quantization`);
     if (row.contextLength !== null) integerString(row.contextLength, `${name}.contextLength`);
     for (const key of ["promptPrice", "completionPrice", "uptime", "latency", "throughput"]) if (row[key] !== null) decimalString(row[key], `${name}.${key}`);
@@ -204,13 +228,13 @@ const validators = {
     return Object.freeze({ ...row });
   },
   freeFrontiers(raw, name) {
-    const row = strictRecord(raw, ["ruleVersion", "dimensions", "members", "excluded"], name);
+    const row = openRecord(raw, ["ruleVersion", "dimensions", "members", "excluded"], name);
     if (row.ruleVersion !== "openrouter-free-pareto-v1") fail("invalid_contract", `${name}.ruleVersion is invalid`);
     const dimensions = strictRecord(row.dimensions, ["x", "y", "xDirection", "yDirection"], `${name}.dimensions`);
     if (!["benchmarkQuality", "contextLength"].includes(dimensions.x) || !["medianThroughput", "weeklyPopularityRank"].includes(dimensions.y) || !["min", "max"].includes(dimensions.xDirection) || !["min", "max"].includes(dimensions.yDirection)) fail("invalid_contract", `${name}.dimensions are invalid`);
     if (!Array.isArray(row.members) || row.members.length > MAX_COLLECTION_ROWS || !Array.isArray(row.excluded) || row.excluded.length > MAX_COLLECTION_ROWS) fail("invalid_contract", `${name} membership is not bounded`);
-    const members = row.members.map((item, index) => { const member = strictRecord(item, ["modelId", "x", "y"], `${name}.members[${index}]`); string(member.modelId, "frontier.modelId"); decimalString(member.x, "frontier.x"); decimalString(member.y, "frontier.y"); return Object.freeze({ ...member }); });
-    const excluded = row.excluded.map((item, index) => { const value = strictRecord(item, ["modelId", "reason"], `${name}.excluded[${index}]`); string(value.modelId, "frontier excluded modelId"); string(value.reason, "frontier excluded reason"); return Object.freeze({ ...value }); });
+    const members = row.members.map((item, index) => { const member = openRecord(item, ["modelId", "x", "y"], `${name}.members[${index}]`); string(member.modelId, "frontier.modelId"); decimalString(member.x, "frontier.x"); decimalString(member.y, "frontier.y"); return Object.freeze({ ...member }); });
+    const excluded = row.excluded.map((item, index) => { const value = openRecord(item, ["modelId", "reason"], `${name}.excluded[${index}]`); string(value.modelId, "frontier excluded modelId"); string(value.reason, "frontier excluded reason"); return Object.freeze({ ...value }); });
     return Object.freeze({ ...row, dimensions: Object.freeze({ ...dimensions }), members: Object.freeze(members), excluded: Object.freeze(excluded) });
   }
 };
@@ -255,12 +279,12 @@ const validateAppModelCompleteness = (raw, name) => {
 };
 const validateAppModelCell = (raw, name) => {
   if (raw?.state === "observed") {
-    const row = strictRecord(raw, ["state", "appId", "modelId", "totalTokens", "rankWithinPeriod", "period", "metricSemantics", "evidenceUrl"], name);
+    const row = openRecord(raw, ["state", "appId", "modelId", "totalTokens", "rankWithinPeriod", "period", "metricSemantics", "evidenceUrl"], name);
     integerString(row.appId, `${name}.appId`); nonEmptyString(row.modelId, `${name}.modelId`); integerString(row.totalTokens, `${name}.totalTokens`);
     if (!Number.isInteger(row.rankWithinPeriod) || row.rankWithinPeriod < 1 || row.metricSemantics !== "observed_daily_total_tokens" || !safePublicUrl(row.evidenceUrl)) fail("invalid_contract", `${name} observed evidence is invalid`);
     return Object.freeze({ ...row, period: validateObservedPeriod(row.period, `${name}.period`) });
   }
-  const row = strictRecord(raw, ["state", "appId", "modelId", "reason"], name);
+  const row = openRecord(raw, ["state", "appId", "modelId", "reason"], name);
   if (row.state !== "unknown" || !["not_observed", "unmapped_alias", "not_published"].includes(row.reason)) fail("invalid_contract", `${name} unknown state is invalid`);
   integerString(row.appId, `${name}.appId`); nonEmptyString(row.modelId, `${name}.modelId`); return Object.freeze({ ...row });
 };
@@ -270,8 +294,8 @@ export function validateAppModelMatrix(raw, expectedMajor = "2") {
     const row = strictRecord(raw, ["schemaVersion", "status", "watermark", "lastSuccessAt", "stale", "staleAfterSeconds", "completeness", "resolvedPeriod", "apps", "models", "appIds", "modelIds", "cells", "missingAliases", "unmappedModels", "coverage", "provenance"], "app-model matrix"); schema(row.schemaVersion, expectedMajor); nonEmptyString(row.watermark, "matrix.watermark"); dateTime(row.lastSuccessAt, "matrix.lastSuccessAt"); boolean(row.stale, "matrix.stale"); if (row.staleAfterSeconds !== 172800) fail("invalid_contract", "matrix.staleAfterSeconds is invalid");
     const completeness = validateAppModelCompleteness(row.completeness, "matrix.completeness");
     if (!Array.isArray(row.apps) || row.apps.length > 10 || !Array.isArray(row.models) || row.models.length > 10 || !Array.isArray(row.appIds) || row.appIds.length > 10 || !Array.isArray(row.modelIds) || row.modelIds.length > 10 || !Array.isArray(row.cells) || row.cells.length > 100 || !Array.isArray(row.missingAliases) || row.missingAliases.length > 10 || !Array.isArray(row.unmappedModels) || row.unmappedModels.length > 100) fail("invalid_contract", "matrix axes/cells are invalid or exceed their bounds");
-    const apps = row.apps.map((item, index) => { const app = strictRecord(item, ["appId", "appName"], `matrix.apps[${index}]`); integerString(app.appId, `matrix.apps[${index}].appId`); nonEmptyString(app.appName, `matrix.apps[${index}].appName`); return Object.freeze({ ...app }); });
-    const models = row.models.map((item, index) => { const model = strictRecord(item, ["modelId", "modelName"], `matrix.models[${index}]`); nonEmptyString(model.modelId, `matrix.models[${index}].modelId`); nonEmptyString(model.modelName, `matrix.models[${index}].modelName`); return Object.freeze({ ...model }); });
+    const apps = row.apps.map((item, index) => { const app = openRecord(item, ["appId", "appName"], `matrix.apps[${index}]`); integerString(app.appId, `matrix.apps[${index}].appId`); nonEmptyString(app.appName, `matrix.apps[${index}].appName`); return Object.freeze({ ...app }); });
+    const models = row.models.map((item, index) => { const model = openRecord(item, ["modelId", "modelName"], `matrix.models[${index}]`); nonEmptyString(model.modelId, `matrix.models[${index}].modelId`); nonEmptyString(model.modelName, `matrix.models[${index}].modelName`); return Object.freeze({ ...model }); });
     const appIds = row.appIds.map((value) => integerString(value, "matrix.appId"));
     const modelIds = row.modelIds.map((value) => string(value, "matrix.modelId"));
     if (new Set(appIds).size !== appIds.length || new Set(modelIds).size !== modelIds.length || new Set(apps.map((item) => item.appId)).size !== apps.length || new Set(models.map((item) => item.modelId)).size !== models.length) fail("invalid_contract", "matrix axes must contain unique IDs");
@@ -287,7 +311,7 @@ export function validateAppModelMatrix(raw, expectedMajor = "2") {
     });
     const possibleCells = appIds.length * modelIds.length;
     if (cells.length !== possibleCells) fail("invalid_contract", "matrix cells must form one complete axis grid");
-    const unmappedModels = row.unmappedModels.map((item, index) => { const value = strictRecord(item, ["appId", "sourcePermaslug", "totalTokens", "rankWithinPeriod", "reason"], `matrix.unmappedModels[${index}]`); integerString(value.appId, "matrix.unmappedModels.appId"); nonEmptyString(value.sourcePermaslug, "matrix.unmappedModels.sourcePermaslug"); integerString(value.totalTokens, "matrix.unmappedModels.totalTokens"); if (!appSet.has(value.appId) || !Number.isInteger(value.rankWithinPeriod) || value.rankWithinPeriod < 1 || !["ambiguous_model", "unmapped_model"].includes(value.reason)) fail("invalid_contract", `matrix.unmappedModels[${index}] is invalid`); return Object.freeze({ ...value }); });
+    const unmappedModels = row.unmappedModels.map((item, index) => { const value = openRecord(item, ["appId", "sourcePermaslug", "totalTokens", "rankWithinPeriod", "reason"], `matrix.unmappedModels[${index}]`); integerString(value.appId, "matrix.unmappedModels.appId"); nonEmptyString(value.sourcePermaslug, "matrix.unmappedModels.sourcePermaslug"); integerString(value.totalTokens, "matrix.unmappedModels.totalTokens"); if (!appSet.has(value.appId) || !Number.isInteger(value.rankWithinPeriod) || value.rankWithinPeriod < 1 || !["ambiguous_model", "unmapped_model"].includes(value.reason)) fail("invalid_contract", `matrix.unmappedModels[${index}] is invalid`); return Object.freeze({ ...value }); });
     const coverage = strictRecord(row.coverage, ["observedCells", "possibleCells", "unmappedObservations", "populationCompleteness"], "matrix.coverage");
     if (!Number.isInteger(coverage.observedCells) || coverage.observedCells !== observedCells || !Number.isInteger(coverage.possibleCells) || coverage.possibleCells !== possibleCells || !Number.isInteger(coverage.unmappedObservations) || coverage.unmappedObservations < 0 || coverage.populationCompleteness !== "partial_or_unknown") fail("invalid_contract", "matrix coverage does not match its cells and axes");
     const missingAliases = row.missingAliases.map((value) => integerString(value, "matrix.missingAlias"));
@@ -304,7 +328,7 @@ export function validateAppModels(raw, expectedMajor = "2") {
   if (raw?.status === "available") {
     const row = strictRecord(raw, ["schemaVersion", "status", "watermark", "lastSuccessAt", "stale", "staleAfterSeconds", "completeness", "appId", "appName", "resolvedPeriod", "data", "cursor", "coverage", "provenance"], "app models"); schema(row.schemaVersion, expectedMajor); nonEmptyString(row.watermark, "appModels.watermark"); dateTime(row.lastSuccessAt, "appModels.lastSuccessAt"); boolean(row.stale, "appModels.stale"); if (row.staleAfterSeconds !== 172800) fail("invalid_contract", "appModels.staleAfterSeconds is invalid"); integerString(row.appId, "appModels.appId"); nonEmptyString(row.appName, "appModels.appName");
     if (!Array.isArray(row.data) || row.data.length > 100 || row.cursor !== null) fail("invalid_contract", "appModels data/cursor is invalid");
-    const data = row.data.map((item, index) => { const value = strictRecord(item, ["modelId", "sourcePermaslug", "resolvedModelId", "matchMethod", "rank", "rankMethod", "totalTokens", "metricSemantics", "evidenceUrl", "period"], `appModels.data[${index}]`); nonEmptyString(value.modelId, "appModels.modelId"); nonEmptyString(value.sourcePermaslug, "appModels.sourcePermaslug"); if (value.resolvedModelId !== null) nonEmptyString(value.resolvedModelId, "appModels.resolvedModelId"); integerString(value.totalTokens, "appModels.totalTokens"); if (!["source_model_id", "canonical_slug", "ambiguous_model", "unmapped_model"].includes(value.matchMethod) || !Number.isInteger(value.rank) || value.rank < 1 || value.rankMethod !== "locally_calculated" || value.metricSemantics !== "observed_daily_total_tokens" || !safePublicUrl(value.evidenceUrl)) fail("invalid_contract", "appModels row is invalid"); return Object.freeze({ ...value, period: validateObservedPeriod(value.period, "appModels.period") }); });
+    const data = row.data.map((item, index) => { const value = openRecord(item, ["modelId", "sourcePermaslug", "resolvedModelId", "matchMethod", "rank", "rankMethod", "totalTokens", "metricSemantics", "evidenceUrl", "period"], `appModels.data[${index}]`); nonEmptyString(value.modelId, "appModels.modelId"); nonEmptyString(value.sourcePermaslug, "appModels.sourcePermaslug"); if (value.resolvedModelId !== null) nonEmptyString(value.resolvedModelId, "appModels.resolvedModelId"); integerString(value.totalTokens, "appModels.totalTokens"); if (!["source_model_id", "canonical_slug", "ambiguous_model", "unmapped_model"].includes(value.matchMethod) || !Number.isInteger(value.rank) || value.rank < 1 || value.rankMethod !== "locally_calculated" || value.metricSemantics !== "observed_daily_total_tokens" || !safePublicUrl(value.evidenceUrl)) fail("invalid_contract", "appModels row is invalid"); return Object.freeze({ ...value, period: validateObservedPeriod(value.period, "appModels.period") }); });
     const coverage = strictRecord(row.coverage, ["observedModels", "mappedModels", "unmappedModels", "populationCompleteness"], "appModels.coverage"); if (![coverage.observedModels, coverage.mappedModels, coverage.unmappedModels].every((value) => Number.isInteger(value) && value >= 0) || coverage.populationCompleteness !== "partial_or_unknown") fail("invalid_contract", "appModels coverage is invalid");
     return Object.freeze({ ...row, completeness: validateAppModelCompleteness(row.completeness, "appModels.completeness"), resolvedPeriod: validateObservedPeriod(row.resolvedPeriod, "appModels.resolvedPeriod"), data: Object.freeze(data), coverage: Object.freeze({ ...coverage }), provenance: validateProvenance(row.provenance) });
   }
@@ -316,7 +340,7 @@ export function validateAppModels(raw, expectedMajor = "2") {
 
 const validateHistoryBucket = (raw, name) => {
   const bucket = strictRecord(raw, ["date", "complete", "rows"], name); date(bucket.date, `${name}.date`); boolean(bucket.complete, `${name}.complete`); if (!Array.isArray(bucket.rows) || bucket.rows.length > MAX_COLLECTION_ROWS) fail("invalid_contract", `${name}.rows must be a bounded array of at most ${MAX_COLLECTION_ROWS}`);
-  const rows = bucket.rows.map((rawRow, index) => { const row = strictRecord(rawRow, ["id", "label", "scope", "rank", "value", "remainder", "stars", "forks"], `${name}.rows[${index}]`); string(row.id, `${name}.id`); string(row.label, `${name}.label`); nullableString(row.scope, `${name}.scope`); if (row.rank !== null && (!Number.isInteger(row.rank) || row.rank < 1)) fail("invalid_contract", `${name}.rank is invalid`); if (row.value !== null) signedDecimalString(row.value, `${name}.value`); if (row.remainder !== null) signedDecimalString(row.remainder, `${name}.remainder`); if (row.stars !== null) integerString(row.stars, `${name}.stars`); if (row.forks !== null) integerString(row.forks, `${name}.forks`); return Object.freeze({ ...row }); });
+  const rows = bucket.rows.map((rawRow, index) => { const row = openRecord(rawRow, ["id", "label", "scope", "rank", "value", "remainder", "stars", "forks"], `${name}.rows[${index}]`); string(row.id, `${name}.id`); string(row.label, `${name}.label`); nullableString(row.scope, `${name}.scope`); if (row.rank !== null && (!Number.isInteger(row.rank) || row.rank < 1)) fail("invalid_contract", `${name}.rank is invalid`); if (row.value !== null) signedDecimalString(row.value, `${name}.value`); if (row.remainder !== null) signedDecimalString(row.remainder, `${name}.remainder`); if (row.stars !== null) integerString(row.stars, `${name}.stars`); if (row.forks !== null) integerString(row.forks, `${name}.forks`); return Object.freeze({ ...row }); });
   return Object.freeze({ ...bucket, rows: Object.freeze(rows) });
 };
 export function validateHistory(raw, expectedMajor = "2") {
@@ -333,7 +357,7 @@ const SOURCE_KEYS = ["sourceId", "sourceTier", "cadenceSeconds", "staleAfterSeco
 export function validateManifest(raw, expectedMajor = "2") {
   const row = strictRecord(raw, ["schemaVersion", "publishedAt", "routes", "sources", "provenance", "window"], "manifest"); schema(row.schemaVersion, expectedMajor);
   if (!Array.isArray(row.routes) || row.routes.length > MAX_COLLECTION_ROWS || !Array.isArray(row.sources) || row.sources.length > MAX_COLLECTION_ROWS) fail("invalid_manifest", `manifest routes/sources must be bounded to ${MAX_COLLECTION_ROWS}`);
-  const sources = row.sources.map((item, index) => { const source = strictRecord(item, SOURCE_KEYS, `manifest.sources[${index}]`); string(source.sourceId, "sourceId"); if (!SOURCE_TIERS.has(source.sourceTier)) fail("invalid_manifest", `manifest source tier is invalid: ${source.sourceId} declares ${JSON.stringify(source.sourceTier)}`); if (typeof source.stale !== "boolean") fail("invalid_manifest", `manifest source state is invalid: ${source.sourceId} declares stale ${JSON.stringify(source.stale)}`); if (!Number.isInteger(source.cadenceSeconds) || source.cadenceSeconds < 1 || !Number.isInteger(source.staleAfterSeconds) || source.staleAfterSeconds < 1) fail("invalid_manifest", "manifest source cadence is invalid"); if (source.publishedRunId !== null) uuid(source.publishedRunId, "publishedRunId"); if (source.publishedAt !== null) dateTime(source.publishedAt, "publishedAt"); if (source.nextScheduledAt !== null) dateTime(source.nextScheduledAt, "nextScheduledAt"); string(source.transformVersion, "transformVersion"); if (source.lastAttemptRunId !== null) uuid(source.lastAttemptRunId, "lastAttemptRunId"); if (source.lastAttemptStatus !== null && !["running", "published", "failed"].includes(source.lastAttemptStatus)) fail("invalid_manifest", "lastAttemptStatus is invalid"); if (source.lastAttemptStartedAt !== null) dateTime(source.lastAttemptStartedAt, "lastAttemptStartedAt"); if (source.lastAttemptFinishedAt !== null) dateTime(source.lastAttemptFinishedAt, "lastAttemptFinishedAt"); if (source.lastAttemptErrorCode !== null) string(source.lastAttemptErrorCode, "lastAttemptErrorCode"); if (source.lastAttemptAcquisitionComplete !== null) boolean(source.lastAttemptAcquisitionComplete, "lastAttemptAcquisitionComplete"); if (source.lastAttemptPopulationCompleteness !== null && !POPULATION.has(source.lastAttemptPopulationCompleteness)) fail("invalid_manifest", "lastAttemptPopulationCompleteness is invalid"); if (source.citationUrl !== null && !safePublicUrl(source.citationUrl)) fail("invalid_manifest", "citationUrl is not public"); return Object.freeze({ ...source }); });
+  const sources = row.sources.map((item, index) => { const source = openRecord(item, SOURCE_KEYS, `manifest.sources[${index}]`); string(source.sourceId, "sourceId"); if (!SOURCE_TIERS.has(source.sourceTier)) fail("invalid_manifest", `manifest source tier is invalid: ${source.sourceId} declares ${JSON.stringify(source.sourceTier)}`); if (typeof source.stale !== "boolean") fail("invalid_manifest", `manifest source state is invalid: ${source.sourceId} declares stale ${JSON.stringify(source.stale)}`); if (!Number.isInteger(source.cadenceSeconds) || source.cadenceSeconds < 1 || !Number.isInteger(source.staleAfterSeconds) || source.staleAfterSeconds < 1) fail("invalid_manifest", "manifest source cadence is invalid"); if (source.publishedRunId !== null) uuid(source.publishedRunId, "publishedRunId"); if (source.publishedAt !== null) dateTime(source.publishedAt, "publishedAt"); if (source.nextScheduledAt !== null) dateTime(source.nextScheduledAt, "nextScheduledAt"); string(source.transformVersion, "transformVersion"); if (source.lastAttemptRunId !== null) uuid(source.lastAttemptRunId, "lastAttemptRunId"); if (source.lastAttemptStatus !== null && !["running", "published", "failed"].includes(source.lastAttemptStatus)) fail("invalid_manifest", "lastAttemptStatus is invalid"); if (source.lastAttemptStartedAt !== null) dateTime(source.lastAttemptStartedAt, "lastAttemptStartedAt"); if (source.lastAttemptFinishedAt !== null) dateTime(source.lastAttemptFinishedAt, "lastAttemptFinishedAt"); if (source.lastAttemptErrorCode !== null) string(source.lastAttemptErrorCode, "lastAttemptErrorCode"); if (source.lastAttemptAcquisitionComplete !== null) boolean(source.lastAttemptAcquisitionComplete, "lastAttemptAcquisitionComplete"); if (source.lastAttemptPopulationCompleteness !== null && !POPULATION.has(source.lastAttemptPopulationCompleteness)) fail("invalid_manifest", "lastAttemptPopulationCompleteness is invalid"); if (source.citationUrl !== null && !safePublicUrl(source.citationUrl)) fail("invalid_manifest", "citationUrl is not public"); return Object.freeze({ ...source }); });
   if (new Set(sources.map((item) => item.sourceId)).size !== sources.length) fail("invalid_manifest", "manifest source IDs must be unique");
   if (row.publishedAt !== null) dateTime(row.publishedAt, "manifest.publishedAt"); if (row.routes.some((route, index) => { try { string(route, `manifest.routes[${index}]`); return !route.startsWith("/api/public/v2/"); } catch { return true; } })) fail("invalid_manifest", "manifest route is invalid");
   const result = { schemaVersion: row.schemaVersion, publishedAt: row.publishedAt, routes: Object.freeze(row.routes.slice()), sources: Object.freeze(sources), provenance: validateProvenance(row.provenance), window: validateWindow(row.window) };
@@ -366,7 +390,7 @@ export function validateGitHubRanking(raw, expectedMajor = "2") {
     if (value.defaultBranchCommittedAt !== null) dateTime(value.defaultBranchCommittedAt, "metricEvidence.defaultBranchCommittedAt"); if (value.latestStableReleaseAt !== null) dateTime(value.latestStableReleaseAt, "metricEvidence.latestStableReleaseAt"); if (value.stableReleaseCount90d !== null && (!Number.isInteger(value.stableReleaseCount90d) || value.stableReleaseCount90d < 0)) fail("invalid_contract", "metricEvidence.stableReleaseCount90d is invalid"); return Object.freeze({ ...value });
   });
   const page = strictRecord(row.page, ["limit", "nextCursor"], "page"); if (!Number.isInteger(page.limit) || page.limit < 1 || page.limit > 100 || (page.nextCursor !== null && typeof page.nextCursor !== "string")) fail("invalid_contract", "GitHub page is invalid"); if (page.nextCursor !== null) string(page.nextCursor, "page.nextCursor", 2048);
-  if (!Array.isArray(row.provenance) || row.provenance.length > 32) fail("invalid_contract", "GitHub provenance is not bounded"); const provenance = row.provenance.map((item, index) => { const value = strictRecord(item, ["id", "sourceUrl", "fetchedAt", "payloadSha256"], `github.provenance[${index}]`); string(value.id, "provenance.id"); if (!safePublicUrl(value.sourceUrl)) fail("invalid_contract", "GitHub sourceUrl is not public"); dateTime(value.fetchedAt, "provenance.fetchedAt"); if (typeof value.payloadSha256 !== "string" || !SHA256.test(value.payloadSha256)) fail("invalid_contract", "GitHub payloadSha256 is invalid"); return Object.freeze({ ...value }); });
+  if (!Array.isArray(row.provenance) || row.provenance.length > MAX_PROVENANCE_ROWS) fail("invalid_contract", "GitHub provenance is not bounded"); const provenance = row.provenance.map((item, index) => { const value = strictRecord(item, ["id", "sourceUrl", "fetchedAt", "payloadSha256"], `github.provenance[${index}]`); string(value.id, "provenance.id"); if (!safePublicUrl(value.sourceUrl)) fail("invalid_contract", "GitHub sourceUrl is not public"); dateTime(value.fetchedAt, "provenance.fetchedAt"); if (typeof value.payloadSha256 !== "string" || !SHA256.test(value.payloadSha256)) fail("invalid_contract", "GitHub payloadSha256 is invalid"); return Object.freeze({ ...value }); });
   return Object.freeze({ schemaVersion: row.schemaVersion, watermark: row.watermark, coverage: Object.freeze({ ...coverage }), ranking: Object.freeze({ ...ranking }), data: Object.freeze(data), metricEvidence: Object.freeze(metricEvidence), page: Object.freeze({ ...page }), provenance: Object.freeze(provenance) });
 }
 
@@ -387,7 +411,7 @@ export function validateGitHubEnrichment(raw, expectedMajor = "2") {
   if (!Array.isArray(row.starBuckets) || row.starBuckets.length > 366) fail("invalid_contract", "GitHub starBuckets must contain at most 366 rows");
   const starBuckets = row.starBuckets.map((item, index) => { const value = strictRecord(item, ["start", "end", "count", "populationCompleteness"], `github enrichment.starBuckets[${index}]`); date(value.start, "starBucket.start"); date(value.end, "starBucket.end"); integerString(value.count, "starBucket.count"); if (!["full", "partial_or_unknown"].includes(value.populationCompleteness)) fail("invalid_contract", "starBucket.populationCompleteness is invalid"); return Object.freeze({ ...value }); });
   for (const [index, bucket] of starBuckets.entries()) { if (bucket.start > bucket.end) fail("invalid_contract", `github enrichment.starBuckets[${index}] start is after end`); if (bucket.start < requestRange.from || bucket.end > requestRange.to) fail("invalid_contract", `github enrichment.starBuckets[${index}] is outside requestRange`); }
-  if (!Array.isArray(row.provenance) || row.provenance.length > 32) fail("invalid_contract", "GitHub enrichment provenance is not bounded");
+  if (!Array.isArray(row.provenance) || row.provenance.length > MAX_PROVENANCE_ROWS) fail("invalid_contract", "GitHub enrichment provenance is not bounded");
   const provenance = row.provenance.map((item, index) => { const value = strictRecord(item, ["id", "sourceUrl", "fetchedAt"], `github enrichment.provenance[${index}]`); nonEmptyString(value.id, "enrichment.provenance.id"); if (!safePublicUrl(value.sourceUrl)) fail("invalid_contract", "GitHub enrichment sourceUrl is not public"); dateTime(value.fetchedAt, "enrichment.provenance.fetchedAt"); return Object.freeze({ ...value }); });
   return Object.freeze({ ...row, requestRange: Object.freeze({ ...requestRange }), releaseCadence: validateReleaseCadence(row.releaseCadence, "github enrichment.releaseCadence"), starBuckets: Object.freeze(starBuckets), provenance: Object.freeze(provenance) });
 }
