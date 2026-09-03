@@ -34,3 +34,4 @@ body[data-open-dashboard-route]{max-width:100%;overflow-x:clip;background:radial
    this route documents its own gaps — but demoted under the sentence that
    explains it, so it reads as evidence rather than as leaked internals. */
 .oo-reason-code{margin:8px 0 0;color:var(--forest-muted);font-family:var(--forest-mono,ui-monospace,Consolas,monospace);font-size:10px;line-height:1.45;word-break:break-word;opacity:.85}
+.oo-catalogue{border-right:0}.oo-catalogue+.oo-catalogue{border-top:1px solid var(--forest-line)}.oo-catalogue-unpublished{font-style:italic;opacity:.85}

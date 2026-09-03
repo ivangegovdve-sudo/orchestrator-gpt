@@ -219,6 +219,33 @@ const validators = {
     const stats = openRecord(row.tournamentStats, ["firstPlace", "secondPlace", "thirdPlace", "fourthPlace", "total"], `${name}.tournamentStats`); for (const value of Object.values(stats)) if (value !== null && !Number.isInteger(value)) fail("invalid_contract", `${name} tournament stats are invalid`);
     return Object.freeze({ ...row, pricing: Object.freeze({ ...pricing }), tournamentStats: Object.freeze({ ...stats }) });
   },
+  liveModels(raw, name) {
+    const row = openRecord(raw, ["provider", "id", "displayName", "ownedBy", "contextLength", "pricing", "isFree", "freeKind", "providerActive", "reasoningEfforts", "outputModalities", "performance", "availability", "firstSeenAt", "lastSeenAt", "lastConfirmedAt", "disappearedAt", "absenceStreak", "missingFields"], name);
+    nonEmptyString(row.provider, `${name}.provider`); nonEmptyString(row.id, `${name}.id`);
+    nullableString(row.displayName, `${name}.displayName`); nonEmptyString(row.ownedBy, `${name}.ownedBy`);
+    if (row.contextLength !== null) integerString(row.contextLength, `${name}.contextLength`);
+    const pricing = openRecord(row.pricing, ["promptUsdPerToken", "completionUsdPerToken"], `${name}.pricing`);
+    for (const key of ["promptUsdPerToken", "completionUsdPerToken"]) if (pricing[key] !== null) decimalString(pricing[key], `${name}.pricing.${key}`);
+    if (row.isFree !== null) boolean(row.isFree, `${name}.isFree`);
+    if (!["concrete_free", "free_router", "paid_or_unknown"].includes(row.freeKind)) fail("invalid_contract", `${name}.freeKind is invalid`);
+    if (row.providerActive !== null) boolean(row.providerActive, `${name}.providerActive`);
+    const stringList = (value, label) => { if (value === null) return null; if (!Array.isArray(value) || value.length > 64) fail("invalid_contract", `${name}.${label} is not a bounded array`); value.forEach((item, index) => string(item, `${name}.${label}[${index}]`, 256)); return Object.freeze(value.slice()); };
+    const reasoningEfforts = stringList(row.reasoningEfforts, "reasoningEfforts");
+    const outputModalities = stringList(row.outputModalities, "outputModalities");
+    let performance = null;
+    if (row.performance !== null) {
+      const observed = openRecord(row.performance, ["throughputTps", "latencyMsP50", "fastestProvider", "observedAt"], `${name}.performance`);
+      decimalString(observed.throughputTps, `${name}.performance.throughputTps`); decimalString(observed.latencyMsP50, `${name}.performance.latencyMsP50`);
+      string(observed.fastestProvider, `${name}.performance.fastestProvider`); dateTime(observed.observedAt, `${name}.performance.observedAt`);
+      performance = Object.freeze({ ...observed });
+    }
+    if (!["available", "disappeared"].includes(row.availability)) fail("invalid_contract", `${name}.availability is invalid`);
+    dateTime(row.firstSeenAt, `${name}.firstSeenAt`); dateTime(row.lastSeenAt, `${name}.lastSeenAt`); dateTime(row.lastConfirmedAt, `${name}.lastConfirmedAt`);
+    if (row.disappearedAt !== null) dateTime(row.disappearedAt, `${name}.disappearedAt`);
+    integerString(row.absenceStreak, `${name}.absenceStreak`);
+    const missingFields = stringList(row.missingFields, "missingFields") ?? Object.freeze([]);
+    return Object.freeze({ ...row, pricing: Object.freeze({ ...pricing }), reasoningEfforts, outputModalities, performance, missingFields });
+  },
   providers(raw, name) {
     const row = openRecord(raw, ["modelId", "provider", "endpoint", "quantization", "contextLength", "promptPrice", "completionPrice", "uptime", "latency", "throughput", "status", "sourceUrl", "fetchedAt"], name);
     string(row.modelId, `${name}.modelId`); string(row.provider, `${name}.provider`); string(row.endpoint, `${name}.endpoint`); nullableString(row.quantization, `${name}.quantization`);
