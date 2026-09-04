@@ -41,9 +41,12 @@ const GITHUB_FACETS = Object.freeze(["Maturity", "Interoperability", "Openness",
 // degrades to "not in catalogue" per row, which the view states rather than
 // silently dropping the price column.
 const MAX_CATALOGUE_PAGES = 4;
-const OVERVIEW_DEFERRED_KEYS = new Set(["providers", "freeFrontierQuality", "freeFrontierContext", "history"]);
+const CATALOGUE_KEYS = Object.freeze(CATALOGUE_PROVIDERS.filter(([, , served]) => served).map(([slug]) => `catalogue:${slug}`));
+const CATALOGUE_REQUESTS = Object.freeze(CATALOGUE_PROVIDERS.filter(([, , served]) => served)
+  .map(([slug]) => ({ key: `catalogue:${slug}`, path: ENDPOINTS.liveModels(slug), kind: "liveModels", optional: true })));
+const OVERVIEW_DEFERRED_KEYS = new Set(["providers", "freeFrontierQuality", "freeFrontierContext", "history", ...CATALOGUE_KEYS]);
 const OVERVIEW_INITIAL_REQUESTS = Object.freeze(OVERVIEW_REQUESTS.filter((spec) => !OVERVIEW_DEFERRED_KEYS.has(spec.key)));
-const OVERVIEW_DEFERRED_REQUESTS = Object.freeze(OVERVIEW_REQUESTS.filter((spec) => OVERVIEW_DEFERRED_KEYS.has(spec.key)));
+const OVERVIEW_DEFERRED_REQUESTS = Object.freeze([...OVERVIEW_REQUESTS.filter((spec) => OVERVIEW_DEFERRED_KEYS.has(spec.key)), ...CATALOGUE_REQUESTS]);
 
 export function parseOpenRouterState(url) {
   const query = new URL(url).searchParams; const requested = query.get("view") || "usage"; const appId = query.get("app");
@@ -365,6 +368,7 @@ export function renderOverview(view, config) {
   for (const [title, key, note] of [["Free", "free", "Popularity default"], ["Deprecations", "deprecations", "Lifecycle evidence"], ["Tasks", "tasks", "7-day sample"], ["Benchmarks", "benchmarks", "Source-separated"], ["Providers", "providers", "Published endpoints"], ["Pareto Q×T", "freeFrontierQuality", "Quality × throughput"], ["Pareto C×P", "freeFrontierContext", "Context × popularity"]]) { const rows = envelopeRows(view,key); const article = document.createElement("article"); article.className = "oo-micro-panel"; article.dataset.overviewDataset = key; const h = document.createElement("h2"); h.textContent = title; const count = document.createElement("strong"); count.textContent = String(rows.length); const p = document.createElement("p"); p.textContent = view.errors[key] ? `Request failed · ${failureCode(view.errors[key]) ?? "error"}` : !Object.hasOwn(view.responses,key) && OVERVIEW_DEFERRED_KEYS.has(key) ? "Loads near this rail" : note; article.append(h,count,p); analysis.appendChild(article); }
   root.appendChild(analysis);
   const history = section(document, "oo-history-grid", "oo-history-grid"); history.append(renderHistoryPanel(view,"modelUsage","Model usage over time","stacked-area"),renderHistoryPanel(view,"modelUsage","Model rank movement","bump"),renderHistoryPanel(view,"githubRanks","GitHub category history","small-multiples")); root.appendChild(history);
+  root.appendChild(renderProviderRail(view));
   const github = section(document, "oo-github-grid", "oo-github-grid");
   for (const [slug,label] of GITHUB_CATEGORIES) { const response = view.responses[`github:${slug}`]; github.appendChild(response ? renderRankTable({ document, title: label, rows: response.data.slice(0,10), sourceLabel: "GitHub adoption · percent_rank", asOf: response.coverage.resolvedAsOf, emphasizeTopThree: true, columns: [{ label:"Rank",value:(row)=>row.rank },{ label:"Project",value:(row)=>row.fullName,href:(row)=>`https://github.com/${row.fullName}` },{ label:"Stars",value:(row)=>compactIntegerString(row.stars),exact:(row)=>row.stars },{ label:"Forks",value:(row)=>compactIntegerString(row.forks),exact:(row)=>row.forks }] }) : renderDatasetGap(document, view, `github:${slug}`, label)); }
   root.appendChild(github); root.setAttribute("aria-busy", "false"); installThreeEnhancement(view, config);
@@ -380,6 +384,7 @@ export const mergeCompatibleViews = (primary, deferred) => {
 function hydrateOverviewDeferred(view) {
   renderSourceRail(view); const { document } = context();
   for (const [key, note] of [["providers", "Published endpoints"], ["freeFrontierQuality", "Quality × throughput"], ["freeFrontierContext", "Context × popularity"]]) { const article = document.querySelector(`[data-overview-dataset="${key}"]`); if (!article) continue; article.querySelector("strong").textContent = String(envelopeRows(view,key).length); article.querySelector("p").textContent = view.errors[key] ? `Request failed · ${failureCode(view.errors[key]) ?? "error"}` : note; }
+  const rail = document.getElementById("oo-provider-rail"); if (rail) rail.replaceWith(renderProviderRail(view));
   const history = document.getElementById("oo-history-grid"); if (history) history.replaceChildren(renderHistoryPanel(view,"modelUsage","Model usage over time","stacked-area"),renderHistoryPanel(view,"modelUsage","Model rank movement","bump"),renderHistoryPanel(view,"githubRanks","GitHub category history","small-multiples"));
   const currentAppRail = document.getElementById("oo-app-rail");
   if (currentAppRail) {
@@ -613,6 +618,48 @@ export function renderHarnessRoster(view) {
     ]
   }));
   return wrap;
+}
+
+export function renderProviderRail(view) {
+  const { document } = context();
+  const rail = section(document, "oo-provider-rail", "oo-provider-rail");
+  const heading = document.createElement("h2"); heading.className = "oo-region-title";
+  heading.textContent = "Providers compared"; rail.appendChild(heading);
+  const note = document.createElement("p"); note.className = "oo-region-meta";
+  note.textContent = "What each provider's own API lists today. Full tables, with every model and its source, are on the Catalogues page.";
+  rail.appendChild(note);
+  const grid = document.createElement("div"); grid.className = "oo-analysis-grid";
+  for (const [slug, label, served] of CATALOGUE_PROVIDERS) {
+    const key = `catalogue:${slug}`;
+    const article = document.createElement("article");
+    article.className = "oo-micro-panel"; article.dataset.overviewDataset = key;
+    const h = document.createElement("h2"); h.textContent = label;
+    const count = document.createElement("strong");
+    const p = document.createElement("p");
+    if (!served) {
+      // An unserved provider is named, not omitted. Asking for four and quietly
+      // seeing three is the failure this dashboard exists to prevent.
+      count.textContent = "—";
+      p.textContent = "No source publishes this catalogue";
+    } else if (datasetState(view, key) === "ready") {
+      const summary = catalogueSummary(view.responses[key]?.data);
+      count.textContent = String(summary.total);
+      p.textContent = `${summary.textCount} text-capable`;
+    } else if (datasetState(view, key) === "failed") {
+      count.textContent = "0";
+      p.textContent = `Request failed · ${failureCode(view.errors[key]) ?? "error"}`;
+    } else {
+      count.textContent = "0";
+      p.textContent = "Loads near this rail";
+    }
+    article.append(h, count, p); grid.appendChild(article);
+  }
+  rail.appendChild(grid);
+  const link = document.createElement("p"); link.className = "oo-region-meta";
+  const a = document.createElement("a"); a.href = "/web/open-dashboard/catalogues/index.html";
+  a.textContent = "Open the Catalogues page";
+  link.appendChild(a); rail.appendChild(link);
+  return rail;
 }
 
 export function renderCatalogues(view) {
