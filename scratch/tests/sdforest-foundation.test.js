@@ -91,6 +91,11 @@ test('Library is canonical and llm-db has deployment and static redirect coverag
       permanent: true,
     },
     {
+      source: '/web/llm-db/:path*/',
+      destination: '/web/library/',
+      permanent: true,
+    },
+    {
       source: '/web/llm-db/:path*',
       destination: '/web/library/',
       permanent: true,
@@ -146,6 +151,31 @@ test('Library is canonical and llm-db has deployment and static redirect coverag
       permanent: true,
     },
     {
+      source: '/web/open-overview/mcp/',
+      destination: '/web/open-dashboard/mcp/',
+      permanent: true,
+    },
+    {
+      source: '/web/open-overview/openrouter/',
+      destination: '/web/open-dashboard/openrouter/',
+      permanent: true,
+    },
+    {
+      source: '/web/open-overview/github/',
+      destination: '/web/open-dashboard/github/',
+      permanent: true,
+    },
+    {
+      source: '/web/open-overview/catalogues/',
+      destination: '/web/open-dashboard/catalogues/',
+      permanent: true,
+    },
+    {
+      source: '/web/open-overview/:path*/',
+      destination: '/web/open-dashboard/:path*/',
+      permanent: true,
+    },
+    {
       source: '/web/open-overview/:path*',
       destination: '/web/open-dashboard/:path*',
       permanent: true,
@@ -158,6 +188,11 @@ test('Library is canonical and llm-db has deployment and static redirect coverag
     {
       source: '/series/',
       destination: 'https://morning-news-anchor-platform.vercel.app/series',
+      permanent: false,
+    },
+    {
+      source: '/series/dependency-map/',
+      destination: 'https://morning-news-anchor-platform.vercel.app/series/dependency-map',
       permanent: false,
     },
     {
