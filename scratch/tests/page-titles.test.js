@@ -168,7 +168,12 @@ const scan = (html) => {
         break;
       }
     }
-    if (RAW_TEXT.has(tag.name) && !tag.closing) {
+    // Raw text is an HTML-namespace rule. Inside foreign content these are SVG
+    // or MathML elements whose contents are parsed as markup, so a "</svg>"
+    // written inside an SVG <script> or <style> really does break out. Skipping
+    // to the end tag there made the scanner stay in foreign content when the
+    // browser had already left it.
+    if (RAW_TEXT.has(tag.name) && !tag.closing && inert === 0) {
       // selfClosing is deliberately NOT consulted: HTML ignores the slash on
       // <script/>, so the element stays open and everything up to </script>
       // remains raw text. Honouring it let a <title> in a script body count as
@@ -206,7 +211,10 @@ const scan = (html) => {
   // judged: "&nbsp;" reads as six visible characters here and as an empty title
   // in a browser. Anything with other text in it is non-empty whatever the
   // entities decode to, so only the entities-and-whitespace case is unknown.
-  if (title && /&[#a-zA-Z0-9]+;/.test(title) && title.replace(/&[#a-zA-Z0-9]+;/g, "").trim() === "") {
+  // The semicolon is optional: a named reference may omit it when the next
+  // character is not alphanumeric, so "<title>&nbsp</title>" is an empty title
+  // in a browser just as "&nbsp;" is.
+  if (title && /&[#a-zA-Z0-9]+;?/.test(title) && title.replace(/&[#a-zA-Z0-9]+;?/g, "").trim() === "") {
     unmodelled.add("the title is made only of character references, which this guard does not decode");
   }
   return { title: title || null, redirect, unmodelled: [...unmodelled] };
@@ -326,6 +334,10 @@ const PARSER_CASES = [
   [`<head><title>Real</title/></head><body>y</body>`, "Real", "same, on the title end tag"],
   [`<head><template><svg><title>t</title></svg></template><title>Real</title></head><body>x</body>`, "Real", "svg nested inside template"],
   [`<!DOCTYPE html [ <!ENTITY x "y"> ]><title>Real</title>`, "Real", "doctype with an internal subset containing >"],
+  [`<!DOCTYPE html PUBLIC "> <title>fake</title> "><body>real</body>`, "fake", "a > inside a quoted PUBLIC identifier DOES end the doctype -- measured, not assumed"],
+  [`<svg><script>var x = "</svg>"</script><title> </title></svg><title>Real</title>`, null, "raw text is an HTML rule: an SVG <script> does not hide a </svg>, so the whitespace title wins and the later one is ignored"],
+  [`<svg><script>var y=1;</script></svg><title>Real</title>`, "Real", "an ordinary SVG script does not disturb the depth"],
+  [`<svg><style>a{content:"</svg>"}</style><title>icon</title></svg>`, "icon", "same for an SVG <style>: the </svg> in it really does break out"],
 ];
 
 // Character references are not decoded, so the scanner's title TEXT differs from
@@ -349,6 +361,8 @@ const FLAGGED_CASES = [
   [`<body><math><annotation-xml encoding="text/html"><title>ax</title></annotation-xml></math></body>`, "ax", "annotation-xml: browser titles it, scanner would say none"],
   [`<head><title>&nbsp;</title></head><body>x</body>`, null, "entity-only title: browser trims it to empty, scanner would say '&nbsp;'"],
   [`<body><svg><foreignObject><p>x</p></foreignObject><title>icon</title></svg></body>`, null, "foreignObject with no title inside: the scanner cannot tell that from one that has"],
+  [`<head><title>&nbsp</title></head><body>x</body>`, null, "entity-only title WITHOUT the semicolon: a named reference may omit it, and this still trims to empty in a browser"],
+  [`<head><title>&amp</title></head><body>x</body>`, "&", "refused conservatively: the browser titles this '&', but the scanner cannot tell it from the &nbsp case without decoding"],
 ];
 
 test("the scanner agrees with a real browser parser on every measured case", () => {
