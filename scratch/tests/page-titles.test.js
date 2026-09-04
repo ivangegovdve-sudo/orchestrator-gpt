@@ -52,7 +52,13 @@ const ROOT = path.resolve(__dirname, "../..");
 const RAW_TEXT = new Set([
   "script", "style", "textarea", "iframe", "noembed", "noframes", "xmp", "noscript",
 ]);
-const INERT = new Set(["svg", "math", "template"]);
+// Foreign elements honour a self-closing slash -- "<svg/>" really is closed, and
+// a <title> after it IS the document title. <template> is an HTML element, so
+// the slash is ignored and "<template/>" stays open, swallowing what follows.
+// Treating them alike accepted "<template/><title>fake</title>" as titled where
+// a browser gives none.
+const FOREIGN = new Set(["svg", "math"]);
+const INERT = new Set([...FOREIGN, "template"]);
 
 // Reads a tag beginning at `at`, which must point at "<". Returns null when
 // that "<" does not start one, so stray angle brackets in text are ignored.
@@ -189,7 +195,7 @@ const scan = (html) => {
       // An unterminated <svg> leaves this above zero to EOF, which is what a
       // browser does too: everything after it is foreign content.
       if (tag.closing) inert = Math.max(0, inert - 1);
-      else if (!tag.selfClosing) inert += 1;
+      else if (!(tag.selfClosing && FOREIGN.has(tag.name))) inert += 1;
       continue;
     }
     if (inert > 0) continue;
@@ -203,7 +209,14 @@ const scan = (html) => {
       title = (close ? html.slice(i, i + close.index) : html.slice(i)).trim();
       continue;
     }
-    if (tag.name === "meta" && /^refresh$/i.test((tag.attrs["http-equiv"] || "").trim())) {
+    // A meta refresh with no content attribute does not redirect anything, so it
+    // must not exempt a title-less page from the guard. The content must also
+    // name a destination -- a bare "content=5" is a self-reload, not a stub.
+    if (
+      tag.name === "meta" &&
+      /^refresh$/i.test((tag.attrs["http-equiv"] || "").trim()) &&
+      /\burl\s*=/i.test(tag.attrs.content || "")
+    ) {
       redirect = true;
     }
   }
@@ -225,7 +238,12 @@ const walk = (dir) => {
   for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
     const full = path.join(dir, entry.name);
     if (entry.isDirectory()) {
-      if (["node_modules", "vercel-public", ".git", "NotelyVoice-main"].includes(entry.name)) continue;
+      // Only node_modules is skipped, and only because a stray install inside
+      // web/ would otherwise be walked. vercel-public, .git and NotelyVoice-main
+      // were also listed here and are all at the REPO ROOT, outside this walk
+      // root -- dead entries that implied coverage gaps in web/ that do not
+      // exist. web/ holds 63 html files with or without the filter.
+      if (entry.name === "node_modules") continue;
       walk(full);
     } else if (entry.isFile() && entry.name.endsWith(".html")) {
       pages.push(full);
@@ -338,6 +356,9 @@ const PARSER_CASES = [
   [`<svg><script>var x = "</svg>"</script><title> </title></svg><title>Real</title>`, null, "raw text is an HTML rule: an SVG <script> does not hide a </svg>, so the whitespace title wins and the later one is ignored"],
   [`<svg><script>var y=1;</script></svg><title>Real</title>`, "Real", "an ordinary SVG script does not disturb the depth"],
   [`<svg><style>a{content:"</svg>"}</style><title>icon</title></svg>`, "icon", "same for an SVG <style>: the </svg> in it really does break out"],
+  [`<head><template/><title>fake</title></head><body>x</body>`, null, "<template/> is an HTML element: the slash is ignored and it stays open"],
+  [`<head><template></template><title>Real</title></head><body>x</body>`, "Real", "a properly closed template does not swallow what follows"],
+  [`<body><math/><title>m</title></body>`, "m", "<math/> IS foreign content, so the slash does close it"],
 ];
 
 // Character references are not decoded, so the scanner's title TEXT differs from
