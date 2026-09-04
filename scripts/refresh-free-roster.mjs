@@ -168,7 +168,7 @@ export async function catalogueFromMcp({ spawnClient = mcpClient } = {}) {
       // and a roster built from stale evidence should say so in its own record.
       stale: structured?.stale === true,
       status: structured?.status ?? "unknown",
-      warnings: Array.isArray(structured?.warnings) ? structured.warnings : [],
+      warnings: projectEnvelopeWarnings(structured?.warnings),
     };
   } finally {
     client.close();
@@ -643,6 +643,25 @@ export async function emitCandidates(outPath, { catalogue = catalogueFromMcp } =
 // The builder reads exactly five fields off a candidate (id, isFree, freeKind,
 // expirationDate, contextLength). Projecting to those makes the workflow's claim
 // true: nothing else the package emits can reach the build, whatever it sends.
+const MAX_WARNINGS = 32;
+
+// `status` and `warnings` come from the same untrusted package as the
+// candidates and are published verbatim into free-roster.json. A non-string
+// status or an object inside warnings would be serialised into a file the
+// council page reads, so both are constrained to what they are documented to
+// be: a short string, and a bounded list of short strings.
+export function projectEnvelopeStatus(raw) {
+  return typeof raw === "string" && raw.length > 0 && raw.length <= 200 ? raw : "unknown";
+}
+
+export function projectEnvelopeWarnings(raw) {
+  if (!Array.isArray(raw)) return [];
+  return raw
+    .filter((entry) => typeof entry === "string" && entry.length > 0)
+    .slice(0, MAX_WARNINGS)
+    .map((entry) => entry.slice(0, 500));
+}
+
 const CANDIDATE_FIELDS = ["id", "isFree", "freeKind", "expirationDate", "contextLength"];
 
 export function projectCandidate(raw, index) {
@@ -667,8 +686,8 @@ export async function readCandidates(inPath) {
   return {
     candidates: parsed.candidates.map(projectCandidate),
     stale: parsed.stale === true,
-    status: parsed.status ?? "unknown",
-    warnings: Array.isArray(parsed.warnings) ? parsed.warnings : [],
+    status: projectEnvelopeStatus(parsed.status),
+    warnings: projectEnvelopeWarnings(parsed.warnings),
   };
 }
 
