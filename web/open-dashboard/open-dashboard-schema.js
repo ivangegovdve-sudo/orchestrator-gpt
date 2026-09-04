@@ -401,6 +401,41 @@ export function validatePublicError(raw, expectedMajor = "2") {
   const row = strictRecord(raw, ["schemaVersion", "error"], "public error"); schema(row.schemaVersion, expectedMajor); const error = strictRecord(row.error, ["code", "message", "correlationId", "retryable"], "public error.error"); string(error.code, "error.code"); string(error.message, "error.message"); uuid(error.correlationId, "error.correlationId"); boolean(error.retryable, "error.retryable"); return Object.freeze({ schemaVersion: row.schemaVersion, error: Object.freeze({ ...error }) });
 }
 
+export function validateGitHubRepositories(raw, expectedMajor = "2") {
+  const row = strictRecord(raw, ["schemaVersion", "watermark", "coverage", "data", "page", "provenance"], "github repositories");
+  schema(row.schemaVersion, expectedMajor); string(row.watermark, "watermark");
+  const coverage = strictRecord(row.coverage, ["resolvedAsOf", "acquisitionComplete", "populationCompleteness", "missingFields", "stale", "lastSuccessAt", "staleAfterSeconds"], "coverage");
+  date(coverage.resolvedAsOf, "coverage.resolvedAsOf"); boolean(coverage.acquisitionComplete, "coverage.acquisitionComplete"); boolean(coverage.stale, "coverage.stale");
+  dateTime(coverage.lastSuccessAt, "coverage.lastSuccessAt");
+  if (!POPULATION.has(coverage.populationCompleteness) || !Array.isArray(coverage.missingFields) || coverage.missingFields.length > MAX_COLLECTION_ROWS || !Number.isInteger(coverage.staleAfterSeconds) || coverage.staleAfterSeconds < 1) fail("invalid_contract", "repositories coverage is invalid");
+  coverage.missingFields.forEach((value, index) => string(value, `coverage.missingFields[${index}]`));
+  if (!Array.isArray(row.data) || row.data.length > MAX_COLLECTION_ROWS) fail("invalid_contract", "repositories data must be a bounded array");
+  const data = row.data.map((item, index) => {
+    const value = openRecord(item, ["repositoryId", "familyId", "isCanonical", "fullName", "url", "primaryCategory", "roles", "lifecycle", "license", "language", "stars", "forks"], `repositories.data[${index}]`);
+    repositoryId(value.repositoryId, "repositoryId"); if (value.familyId !== null) nonEmptyString(value.familyId, "familyId");
+    boolean(value.isCanonical, "isCanonical"); nonEmptyString(value.fullName, "fullName");
+    if (!safePublicUrl(value.url)) fail("invalid_contract", `${index} repository url is not public`);
+    if (!GITHUB_CATEGORIES.has(value.primaryCategory)) fail("invalid_contract", "repository primaryCategory is invalid");
+    if (!Array.isArray(value.roles) || value.roles.length > 32) fail("invalid_contract", "repository roles is not bounded");
+    value.roles.forEach((role, roleIndex) => string(role, `roles[${roleIndex}]`, 128));
+    nullableString(value.lifecycle, "lifecycle"); nullableString(value.license, "license"); nullableString(value.language, "language");
+    integerString(value.stars, "stars"); integerString(value.forks, "forks");
+    return Object.freeze({ ...value, roles: Object.freeze(value.roles.slice()) });
+  });
+  const page = strictRecord(row.page, ["limit", "nextCursor"], "page");
+  if (!Number.isInteger(page.limit) || page.limit < 1 || page.limit > 100 || (page.nextCursor !== null && typeof page.nextCursor !== "string")) fail("invalid_contract", "repositories page is invalid");
+  if (page.nextCursor !== null) string(page.nextCursor, "repositories.page.nextCursor", 2048);
+  if (!Array.isArray(row.provenance) || row.provenance.length > MAX_PROVENANCE_ROWS) fail("invalid_contract", "repositories provenance is not bounded");
+  const provenance = row.provenance.map((item, index) => {
+    const value = openRecord(item, ["id", "sourceUrl", "fetchedAt", "payloadSha256"], `repositories.provenance[${index}]`);
+    string(value.id, "provenance.id"); if (!safePublicUrl(value.sourceUrl)) fail("invalid_contract", "repositories sourceUrl is not public");
+    dateTime(value.fetchedAt, "provenance.fetchedAt");
+    if (typeof value.payloadSha256 !== "string" || !SHA256.test(value.payloadSha256)) fail("invalid_contract", "repositories payloadSha256 is invalid");
+    return Object.freeze({ ...value });
+  });
+  return Object.freeze({ schemaVersion: row.schemaVersion, watermark: row.watermark, coverage: Object.freeze({ ...coverage }), data: Object.freeze(data), page: Object.freeze({ ...page }), provenance: Object.freeze(provenance) });
+}
+
 export function validateGitHubRanking(raw, expectedMajor = "2") {
   const row = strictRecord(raw, ["schemaVersion", "watermark", "coverage", "ranking", "data", "metricEvidence", "page", "provenance"], "github ranking"); schema(row.schemaVersion, expectedMajor); string(row.watermark, "watermark");
   const coverage = strictRecord(row.coverage, ["resolvedAsOf", "acquisitionComplete", "populationCompleteness", "missingFields", "stale", "lastSuccessAt", "staleAfterSeconds"], "coverage"); date(coverage.resolvedAsOf, "coverage.resolvedAsOf"); boolean(coverage.acquisitionComplete, "coverage.acquisitionComplete"); boolean(coverage.stale, "coverage.stale"); dateTime(coverage.lastSuccessAt, "coverage.lastSuccessAt"); if (!POPULATION.has(coverage.populationCompleteness) || !Array.isArray(coverage.missingFields) || coverage.missingFields.length > MAX_COLLECTION_ROWS || !Number.isInteger(coverage.staleAfterSeconds) || coverage.staleAfterSeconds < 1) fail("invalid_contract", "GitHub coverage is invalid"); coverage.missingFields.forEach((value, index) => string(value, `coverage.missingFields[${index}]`));
