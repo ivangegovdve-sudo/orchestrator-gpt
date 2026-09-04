@@ -8,6 +8,7 @@ import {
   validateFreeFrontiers,
   validateGitHubEnrichment,
   validateGitHubRanking,
+  validateGitHubRepositories,
   validateHistory,
   validateManifest,
   validateOpenRouterCollection,
@@ -60,7 +61,10 @@ export const ENDPOINTS = Object.freeze({
     return `/apps/${encodeURIComponent(String(appId))}/models?limit=100`;
   },
   providers: "/providers?limit=100",
-  liveModels(provider) {
+  githubRepositories(category, limit = 25) {
+    return `/github/repositories?category=${encodeURIComponent(category)}&limit=${encodeURIComponent(String(limit))}`;
+  },
+  liveModels(provider, cursor = null) {
     // `served: false` providers have no URL to build. Checking membership alone
     // let ENDPOINTS.liveModels("sail") through, which would have requested a
     // provider the API rejects with HTTP 400.
@@ -69,7 +73,7 @@ export const ENDPOINTS = Object.freeze({
     // reject its own valid response. Groq and Cerebras fit well inside it; the
     // OpenRouter catalogue does not, and the view labels that page as a slice
     // rather than reporting it as a total.
-    return `/live-models?limit=200&provider=${encodeURIComponent(provider)}`;
+    return `/live-models?limit=200&provider=${encodeURIComponent(provider)}${cursor === null ? "" : `&cursor=${encodeURIComponent(cursor)}`}`;
   },
   freeFrontierQualityThroughput: "/free-frontiers?x=benchmarkQuality&y=medianThroughput&limit=200",
   freeFrontierContextPopularity: "/free-frontiers?x=contextLength&y=weeklyPopularityRank&limit=200",
@@ -103,6 +107,28 @@ export const OVERVIEW_REQUESTS = Object.freeze([
   request("history", ENDPOINTS.history, "history", null, true),
   ...GITHUB_CATEGORIES.map(([slug]) => request(`github:${slug}`, ENDPOINTS.githubRanking(slug), "github", null, true))
 ]);
+
+export const undatedModelId = (id) => String(id).replace(/:free$/, "").replace(/-\d{8}$/, "").replace(/-\d{2}-\d{2}$/, "");
+
+export function resolveTaskModel(id, catalogue) {
+  if (catalogue.exact.has(id)) return Object.freeze({ match: "exact", row: catalogue.exact.get(id), via: null });
+  const undated = undatedModelId(id);
+  if (catalogue.undated.has(undated)) return Object.freeze({ match: "undated", row: catalogue.undated.get(undated), via: catalogue.undated.get(undated).id });
+  return Object.freeze({ match: "unresolved", row: null, via: null });
+}
+
+export function buildModelCatalogue(responses) {
+  const exact = new Map();
+  const undated = new Map();
+  for (const response of responses) {
+    for (const row of Array.isArray(response?.data) ? response.data : []) {
+      if (!exact.has(row.id)) exact.set(row.id, row);
+      const key = undatedModelId(row.id);
+      if (!undated.has(key)) undated.set(key, row);
+    }
+  }
+  return Object.freeze({ exact, undated, size: exact.size });
+}
 
 export function topAppModelRequests(appsResponse) {
   const seen = new Set(); const requests = [];
@@ -159,7 +185,9 @@ const validateFor = (spec, raw, major) => spec.kind === "manifest"
         ? validateAppModels(raw, major)
         : spec.kind === "githubEnrichment"
           ? validateGitHubEnrichment(raw, major)
-        : spec.kind === "liveModels"
+        : spec.kind === "githubRepositories"
+      ? validateGitHubRepositories(raw, major)
+    : spec.kind === "liveModels"
       ? validateOpenRouterCollection(raw, "liveModels", major)
     : spec.kind === "providers"
           ? validateProviders(raw, major)

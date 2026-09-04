@@ -1,4 +1,4 @@
-import { CATALOGUE_PROVIDERS, CATALOGUE_SERVED_AS_OF, ENDPOINTS, GITHUB_CATEGORIES, OVERVIEW_REQUESTS, createOpenDashboardClient, manifestPublicationIdentity, topAppModelRequests, topGitHubEnrichmentRequests } from "./open-dashboard-api.js";
+import { CATALOGUE_PROVIDERS, CATALOGUE_SERVED_AS_OF, ENDPOINTS, buildModelCatalogue, resolveTaskModel, GITHUB_CATEGORIES, OVERVIEW_REQUESTS, createOpenDashboardClient, manifestPublicationIdentity, topAppModelRequests, topGitHubEnrichmentRequests } from "./open-dashboard-api.js";
 import { compactIntegerString } from "./open-dashboard-schema.js";
 import { renderAppModelMatrix, renderHistoryVisualization, renderPending, renderRankTable, renderSourceStates, renderUnavailable } from "./open-dashboard-charts.js";
 
@@ -36,6 +36,11 @@ export const OPENROUTER_VIEWS = Object.freeze({
 });
 const GITHUB_METRICS = Object.freeze([["adoption", "Adoption"], ["momentum", "Momentum"], ["maintenance", "Maintenance"]]);
 const GITHUB_FACETS = Object.freeze(["Maturity", "Interoperability", "Openness", "Confidence"]);
+// Three pages cover the OpenRouter catalogue today (598 rows at 200/page).
+// The bound stops a runaway cursor; if the catalogue grows past it the join
+// degrades to "not in catalogue" per row, which the view states rather than
+// silently dropping the price column.
+const MAX_CATALOGUE_PAGES = 4;
 const OVERVIEW_DEFERRED_KEYS = new Set(["providers", "freeFrontierQuality", "freeFrontierContext", "history"]);
 const OVERVIEW_INITIAL_REQUESTS = Object.freeze(OVERVIEW_REQUESTS.filter((spec) => !OVERVIEW_DEFERRED_KEYS.has(spec.key)));
 const OVERVIEW_DEFERRED_REQUESTS = Object.freeze(OVERVIEW_REQUESTS.filter((spec) => OVERVIEW_DEFERRED_KEYS.has(spec.key)));
@@ -286,24 +291,6 @@ function appLeaderboard(document, id, title, rows, source, asOf, view) {
   return table;
 }
 
-function taskColumns(document) {
-  return [
-    { label: "Task", value: (row) => row.displayName },
-    { label: "Category", value: (row) => row.macroCategory },
-    { label: "Usage share", value: (row) => row.usageShare },
-    { label: "Token share", value: (row) => row.tokenShare },
-    { label: "Published top models", render: (row) => {
-      const evidence = taskModelPresentation(row);
-      const wrapper = document.createElement("span");
-      wrapper.appendChild(modelChipList(document, evidence.models.slice(0, 3), "oo-task-models"));
-      const coverage = document.createElement("span");
-      coverage.className = "oo-task-coverage";
-      coverage.textContent = evidence.complete ? "Complete published list" : "Partial published list";
-      wrapper.appendChild(coverage);
-      return wrapper;
-    } },
-  ];
-}
 
 function renderLifecycleTimeline(document, rows) {
   const events = lifecycleTimelineModel(rows);
@@ -423,10 +410,10 @@ const openRouterColumns = {
   benchmarks: [{ label:"Model",value:(row)=>row.displayName },{ label:"Source",value:(row)=>row.source },{ label:"Score",value:(row)=>row.source === "artificial-analysis" ? exact(row.intelligenceIndex) : exact(row.elo) },{ label:"Match",value:(row)=>row.matchStatus }]
 };
 
-export function renderOpenRouter(view, state) {
+export function renderOpenRouter(view, state, catalogue = buildModelCatalogue([])) {
   const { document, root } = context(); root.replaceChildren(openRouterNav(document,state)); renderSourceRail(view); appendSnapshotNotice(document, root, view); const content = section(document,"oo-openrouter-content","oo-route-content"); const key = state.view === "usage" ? "models" : state.view;
   if (state.view === "source-status") content.appendChild(renderSourceStates({ document, datasets: buildSourceRows(view) }));
-  else if (state.view === "app-to-model") { const apps = envelopeRows(view,"apps"); const models = envelopeRows(view,"models"); const picker = document.createElement("nav"); picker.className = "oo-app-picker"; picker.setAttribute("aria-label","Top apps"); for (const app of apps.slice(0,10)) { const link = document.createElement("a"); link.href = `/web/open-dashboard/openrouter/index.html?view=app-to-model&app=${encodeURIComponent(app.appId)}`; link.textContent = `${app.rank}. ${app.appName}`; if (app.appId === state.appId) link.setAttribute("aria-current","page"); picker.appendChild(link); } content.append(picker,renderAppModelMatrix({ document,response:view.responses.matrix,apps,models,onInspect:showMatrixEvidence })); if (state.appId) { const response=view.responses.appModels; content.appendChild(response?.status === "available" ? renderRankTable({ document,title:`${response.appName} model ranking`,rows:response.data,sourceLabel:"Observed daily tokens",asOf:response.resolvedPeriod.end,columns:[{label:"Rank",value:(row)=>row.rank},{label:"Model",value:(row)=>row.modelId},{label:"Tokens",value:(row)=>compactIntegerString(row.totalTokens),exact:(row)=>row.totalTokens}] }) : renderUnavailable({document,title:"Per-app model ranking",reason:response?`Enrichment unavailable: ${response.reason}`:"Per-app request failed"})); } }
+  else if (state.view === "app-to-model") { const apps = envelopeRows(view,"apps"); const models = envelopeRows(view,"models"); const picker = document.createElement("nav"); picker.className = "oo-app-picker"; picker.setAttribute("aria-label","Top apps"); for (const app of apps.slice(0,10)) { const link = document.createElement("a"); link.href = `/web/open-dashboard/openrouter/index.html?view=app-to-model&app=${encodeURIComponent(app.appId)}`; link.textContent = `${app.rank}. ${app.appName}`; if (app.appId === state.appId) link.setAttribute("aria-current","page"); picker.appendChild(link); } content.append(picker,renderAppModelMatrix({ document,response:view.responses.matrix,apps,models,onInspect:showMatrixEvidence }),renderHarnessRoster(view)); if (state.appId) { const response=view.responses.appModels; content.appendChild(response?.status === "available" ? renderRankTable({ document,title:`${response.appName} model ranking`,rows:response.data,sourceLabel:"Observed daily tokens",asOf:response.resolvedPeriod.end,columns:[{label:"Rank",value:(row)=>row.rank},{label:"Model",value:(row)=>row.modelId},{label:"Tokens",value:(row)=>compactIntegerString(row.totalTokens),exact:(row)=>row.totalTokens}] }) : renderUnavailable({document,title:"Per-app model ranking",reason:response?`Enrichment unavailable: ${response.reason}`:"Per-app request failed"})); } }
   else if (state.view === "providers") { const rows=envelopeRows(view,"providers"); content.appendChild(rows.length ? renderRankTable({ document,title:"Providers",rows,sourceLabel:"Published endpoints",asOf:view.responses.providers?.provenance?.[0]?.fetchedAt,columns:[{label:"Model",value:(row)=>row.modelId},{label:"Provider",value:(row)=>row.provider},{label:"Quant",value:(row)=>exact(row.quantization)},{label:"Context",value:(row)=>exact(row.contextLength)},{label:"Prompt",value:(row)=>exact(row.promptPrice)},{label:"Completion",value:(row)=>exact(row.completionPrice)},{label:"Uptime",value:(row)=>exact(row.uptime)},{label:"Latency",value:(row)=>exact(row.latency)},{label:"Throughput",value:(row)=>exact(row.throughput)},{label:"Status",value:(row)=>exact(row.status)}] }) : (datasetState(view,"providers")!=="ready" ? renderDatasetGap(document,view,"providers","Providers") : renderUnavailable({document,title:"Providers",reason:"The source published no provider endpoints for this slice; no values are inferred."}))); }
   else if (state.view === "free" && state.freeMode === "pareto") { content.appendChild(freeModeNav(document,state)); let rendered=0; for(const key of ["freeFrontierQuality","freeFrontierContext"]){const response=view.responses[key];const frontier=envelopeRows(view,key)[0];if(!frontier)continue;rendered+=1;content.appendChild(renderRankTable({document,title:`Free Pareto · ${frontier.dimensions.x} × ${frontier.dimensions.y}`,rows:frontier.members,sourceLabel:`${frontier.ruleVersion} · ${frontier.dimensions.x} ${frontier.dimensions.xDirection} × ${frontier.dimensions.y} ${frontier.dimensions.yDirection}`,asOf:response?.window?.end,columns:[{label:"Model",value:(row)=>row.modelId},{label:frontier.dimensions.x,value:(row)=>row.x},{label:frontier.dimensions.y,value:(row)=>row.y}]}));}if(!rendered){const frontierKeys=["freeFrontierQuality","freeFrontierContext"];const failedKey=frontierKeys.find((frontierKey)=>datasetState(view,frontierKey)==="failed");content.appendChild(failedKey?renderDatasetGap(document,view,failedKey,"Free Pareto frontiers"):frontierKeys.every((frontierKey)=>datasetState(view,frontierKey)==="pending")?renderPending({document,title:"Free Pareto frontiers",note:PENDING_NOTE}):renderUnavailable({document,title:"Free Pareto frontiers",reason:"The source published no frontier for these dimensions. Popularity remains available; no composite efficiency score is substituted."}));} }
   else if (datasetState(view,key)!=="ready") content.appendChild(renderDatasetGap(document,view,key,OPENROUTER_VIEWS[state.view].label));
@@ -435,7 +422,7 @@ export function renderOpenRouter(view, state) {
     const sourceLabel="OpenRouter public v2";
     const asOf=view.responses[key]?.provenance?.[0]?.sourceAsOf ?? view.responses[key]?.window?.end;
     if (state.view === "apps") content.appendChild(appLeaderboard(document,"oo-openrouter-apps","Apps",rows,appRankingSourceLabel(view.responses.apps),asOf,view));
-    else if (state.view === "tasks") content.appendChild(renderRankTable({document,title:"Tasks",rows,sourceLabel,asOf,columns:taskColumns(document)}));
+    else if (state.view === "tasks") content.appendChild(renderTaskFitness(view, catalogue));
     else if (state.view === "benchmarks") content.appendChild(rows.length ? renderBenchmarkRegions(document,rows,view.responses.benchmarks) : (datasetState(view,"benchmarks")!=="ready"?renderDatasetGap(document,view,"benchmarks","Benchmarks"):renderUnavailable({document,title:"Benchmarks",reason:"No source benchmark rankings are published."})));
     else content.appendChild(renderRankTable({document,title:OPENROUTER_VIEWS[state.view].label,rows,sourceLabel,asOf,emphasizeTopThree:state.view==="usage"||state.view==="free",columns:openRouterColumns[state.view]}));
     if(state.view==="usage")content.appendChild(renderHistoryPanel(view,"modelUsage","Model usage over time"));
@@ -505,6 +492,117 @@ export function catalogueSummary(rows) {
     unknownCount: unknown.length, unpublished: Object.freeze(unpublished),
     disappeared: list.filter((row) => row.availability === "disappeared").length
   });
+}
+
+// TASK FITNESS. This answers "for this task, what do people actually route to",
+// which is REVEALED PREFERENCE, not a quality verdict. That distinction is the
+// whole point: an unsourced claim that a model is good enough is worse than a
+// plain ranking, so nothing here scores a model. Usage share is the source's
+// own; price and context are joined from the published catalogue and each row
+// carries HOW it was matched.
+const percent = (share) => `${(Number(share) * 100).toFixed(1)}%`;
+
+export function taskFitnessRows(task, catalogue) {
+  return Object.freeze((Array.isArray(task?.models) ? task.models : [])
+    .slice()
+    .sort((left, right) => left.sourcePosition - right.sourcePosition)
+    .map((model) => {
+      const resolved = resolveTaskModel(model.id, catalogue);
+      return Object.freeze({
+        id: model.id, sourcePosition: model.sourcePosition,
+        usageShare: model.usageShare, tokenShare: model.tokenShare,
+        match: resolved.match, via: resolved.via,
+        contextLength: resolved.row?.contextLength ?? null,
+        promptPrice: resolved.row?.pricing?.promptUsdPerToken ?? null
+      });
+    }));
+}
+
+export function renderTaskFitness(view, catalogue) {
+  const { document } = context();
+  const wrap = section(document, "oo-task-fitness", "oo-task-fitness");
+  const intro = document.createElement("p"); intro.className = "oo-router-note";
+  intro.textContent = "What people actually route to for each task, from observed usage. This is revealed preference, not a quality verdict: nothing here scores a model or claims one is good enough. Usage share is the source's own; price and context are joined from the published catalogue.";
+  wrap.appendChild(intro);
+  const quality = document.createElement("p"); quality.className = "oo-region-meta oo-catalogue-unpublished";
+  quality.textContent = datasetState(view, "benchmarks") === "ready"
+    ? "Benchmark evidence is available and shown separately; it is deliberately not folded into a single fitness score."
+    : "No benchmark evidence is available right now, so no quality term exists and none is invented. The ranking below is by observed usage only.";
+  wrap.appendChild(quality);
+  const tasks = envelopeRows(view, "tasks").slice().sort((left, right) => Number(right.usageShare) - Number(left.usageShare));
+  const asOf = view.responses.tasks?.provenance?.[0]?.sourceAsOf ?? null;
+  for (const task of tasks) {
+    const rows = taskFitnessRows(task, catalogue);
+    const region = section(document, "", "oo-data-region oo-task");
+    const heading = document.createElement("h2"); heading.className = "oo-region-title";
+    heading.textContent = `${task.displayName} · ${task.macroCategory}`; region.appendChild(heading);
+    const meta = document.createElement("p"); meta.className = "oo-region-meta";
+    meta.textContent = `${percent(task.usageShare)} of all observed usage · ${percent(task.categoryUsageShare)} within ${task.macroCategory} · ${task.tag}`;
+    region.appendChild(meta);
+    const caveats = [];
+    if (task.sampled) caveats.push("the source samples rather than counting every request");
+    if (task.otherExcluded) caveats.push("a long tail is excluded from these shares");
+    if (task.topModelsComplete === false) caveats.push("this is the published top slice, not every model used");
+    if (caveats.length) {
+      const note = document.createElement("p"); note.className = "oo-region-meta oo-catalogue-unpublished";
+      note.textContent = `Source caveats: ${caveats.join("; ")}.`;
+      region.appendChild(note);
+    }
+    const substituted = rows.filter((row) => row.match === "undated").length;
+    const unresolved = rows.filter((row) => row.match === "unresolved").length;
+    if (substituted || unresolved) {
+      const join = document.createElement("p"); join.className = "oo-region-meta oo-catalogue-unpublished";
+      const parts = [];
+      if (substituted) parts.push(`${substituted} priced via an undated catalogue entry, because the task names a date-pinned build the catalogue does not list \u2014 that price belongs to the undated entry, not to the pinned build`);
+      if (unresolved) parts.push(`${unresolved} absent from the published catalogue, so no price or context is shown`);
+      join.textContent = `Join: ${parts.join("; ")}.`;
+      region.appendChild(join);
+    }
+    region.appendChild(renderRankTable({
+      document, title: `${task.displayName} model usage`, rows, sourceLabel: "Observed usage \u00b7 task_classifications", asOf,
+      columns: [
+        { label: "#", value: (row) => row.sourcePosition },
+        { label: "Model", value: (row) => row.id },
+        { label: "Usage", value: (row) => percent(row.usageShare), exact: (row) => row.usageShare },
+        { label: "Tokens", value: (row) => percent(row.tokenShare), exact: (row) => row.tokenShare },
+        { label: "Prompt $/tok", value: (row) => row.promptPrice === null ? "\u2014" : row.promptPrice },
+        { label: "Context", value: (row) => row.contextLength === null ? "\u2014" : compactIntegerString(row.contextLength), exact: (row) => row.contextLength },
+        { label: "Matched", value: (row) => row.match === "exact" ? "exact" : row.match === "undated" ? `via ${row.via}` : "not in catalogue" }
+      ]
+    }));
+    wrap.appendChild(region);
+  }
+  return wrap;
+}
+
+// PAIRING, harness half. WHICH open-source harnesses exist, with licence
+// actually verified, is publishable today. Which MODELS each one routes to is
+// not: /app-model-matrix and /apps/{id}/models are collection_disabled, and no
+// published field joins a GitHub repository to an OpenRouter app. So the view
+// shows both halves and names the missing link rather than guessing it by name.
+export function renderHarnessRoster(view) {
+  const { document } = context();
+  if (datasetState(view, "harnesses") !== "ready") return renderDatasetGap(document, view, "harnesses", "Open-source harnesses");
+  const response = view.responses.harnesses;
+  const wrap = section(document, "", "oo-data-region oo-harness-roster");
+  const heading = document.createElement("h2"); heading.className = "oo-region-title";
+  heading.textContent = "Open-source harnesses"; wrap.appendChild(heading);
+  const note = document.createElement("p"); note.className = "oo-region-meta";
+  note.textContent = "The harness half of the pairing. These are repositories the GitHub taxonomy classifies as harnesses; the apps leaderboard above is largely the same software seen as an API consumer. No published field joins the two, so this page does not assert which repository is which app.";
+  wrap.appendChild(note);
+  wrap.appendChild(renderRankTable({
+    document, title: "Open-source harnesses", rows: response.data.slice(0, 25),
+    sourceLabel: "GitHub taxonomy \u00b7 project-family", asOf: response.coverage?.resolvedAsOf ?? null,
+    columns: [
+      { label: "Repository", value: (row) => row.fullName, href: (row) => row.url },
+      { label: "Language", value: (row) => exact(row.language) },
+      { label: "Licence", value: (row) => row.license === null ? "not published" : String(row.license).replaceAll("_", " ") },
+      { label: "Lifecycle", value: (row) => exact(row.lifecycle) },
+      { label: "Stars", value: (row) => compactIntegerString(row.stars), exact: (row) => row.stars },
+      { label: "Forks", value: (row) => compactIntegerString(row.forks), exact: (row) => row.forks }
+    ]
+  }));
+  return wrap;
 }
 
 export function renderCatalogues(view) {
@@ -610,7 +708,27 @@ export async function bootOpenDashboard({ fetchImpl = globalThis.fetch.bind(glob
           }
         }
       }
-      renderOpenRouter(view, state);
+      let catalogue = buildModelCatalogue([]);
+      if (state.view === "tasks") {
+        const pages = [];
+        let cursor = null;
+        for (let page = 0; page < MAX_CATALOGUE_PAGES; page += 1) {
+          let loaded;
+          try { loaded = await client.loadView([{ key: `catalogue:page:${page}`, path: ENDPOINTS.liveModels("openrouter", cursor), kind: "liveModels", optional: true }], view.mode === "snapshot" ? {} : { manifest: view.manifest }); }
+          catch { break; }
+          const response = loaded.responses[`catalogue:page:${page}`];
+          if (!response) break;
+          pages.push(response);
+          cursor = response.cursor;
+          if (!cursor) break;
+        }
+        catalogue = buildModelCatalogue(pages);
+      }
+      if (state.view === "app-to-model") {
+        try { view = mergeCompatibleViews(view, await client.loadView([{ key: "harnesses", path: ENDPOINTS.githubRepositories("ai-harnesses", 25), kind: "githubRepositories", optional: true }], view.mode === "snapshot" ? {} : { manifest: view.manifest })); }
+        catch (error) { view = Object.freeze({ ...view, errors: Object.freeze({ ...view.errors, harnesses: error }) }); }
+      }
+      renderOpenRouter(view, state, catalogue);
     } else if (route === "github") {
       const state = parseGithubState(location.href);
       const request = { key: "ranking", path: ENDPOINTS.githubRanking(state.category, state.metric, state.metric === "momentum" ? state.windowDays : null), kind: "github" };
