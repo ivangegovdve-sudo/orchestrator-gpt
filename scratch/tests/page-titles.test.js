@@ -215,7 +215,9 @@ const scan = (html) => {
     if (
       tag.name === "meta" &&
       /^refresh$/i.test((tag.attrs["http-equiv"] || "").trim()) &&
-      /\burl\s*=/i.test(tag.attrs.content || "")
+      // The destination must be non-empty: "content=5; url=" names nothing and
+      // must not excuse a title-less page.
+      /\burl\s*=\s*\S/i.test(tag.attrs.content || "")
     ) {
       redirect = true;
     }
