@@ -634,13 +634,38 @@ export async function emitCandidates(outPath, { catalogue = catalogueFromMcp } =
   return result;
 }
 
+// The npx job that produces this file is UNTRUSTED: it runs a third-party
+// package and its output crosses into the roster build. The workflow describes
+// that boundary as passing model identity only, but emitCandidates serialises
+// whatever the package returned, and this reader used to hand `parsed.candidates`
+// straight through -- so the envelope was narrowed while the payload was not.
+//
+// The builder reads exactly five fields off a candidate (id, isFree, freeKind,
+// expirationDate, contextLength). Projecting to those makes the workflow's claim
+// true: nothing else the package emits can reach the build, whatever it sends.
+const CANDIDATE_FIELDS = ["id", "isFree", "freeKind", "expirationDate", "contextLength"];
+
+export function projectCandidate(raw, index) {
+  if (raw === null || typeof raw !== "object" || Array.isArray(raw)) {
+    throw new Error(`candidate[${index}] is not an object`);
+  }
+  if (typeof raw.id !== "string" || raw.id.length === 0) {
+    throw new Error(`candidate[${index}] has no usable id`);
+  }
+  const projected = {};
+  for (const field of CANDIDATE_FIELDS) {
+    if (Object.hasOwn(raw, field)) projected[field] = raw[field];
+  }
+  return projected;
+}
+
 export async function readCandidates(inPath) {
   const parsed = JSON.parse(await readFile(inPath, "utf8"));
   if (!Array.isArray(parsed?.candidates) || parsed.candidates.length === 0) {
     throw new Error(`${inPath} contains no candidates`);
   }
   return {
-    candidates: parsed.candidates,
+    candidates: parsed.candidates.map(projectCandidate),
     stale: parsed.stale === true,
     status: parsed.status ?? "unknown",
     warnings: Array.isArray(parsed.warnings) ? parsed.warnings : [],
