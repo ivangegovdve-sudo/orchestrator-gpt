@@ -636,20 +636,29 @@ export function renderProviderRail(view) {
     const h = document.createElement("h2"); h.textContent = label;
     const count = document.createElement("strong");
     const p = document.createElement("p");
+    // A count is only ever printed where one was actually measured. "0" is a
+    // measurement; not-yet-loaded and failed are not, so they render as an em
+    // dash. Both reviewers caught this rail printing 0 for states that are not
+    // counts at all.
     if (!served) {
       // An unserved provider is named, not omitted. Asking for four and quietly
       // seeing three is the failure this dashboard exists to prevent.
       count.textContent = "—";
-      p.textContent = "No source publishes this catalogue";
+      p.textContent = `No source publishes this catalogue (measured ${CATALOGUE_SERVED_AS_OF})`;
     } else if (datasetState(view, key) === "ready") {
       const summary = catalogueSummary(view.responses[key]?.data);
       count.textContent = String(summary.total);
-      p.textContent = `${summary.textCount} text-capable`;
+      // catalogueSummary's own comment forbids reporting 0 text-capable for a
+      // source that publishes no modalities -- that is a claim its data cannot
+      // support. Cerebras is exactly that case.
+      p.textContent = summary.noModalityPublished
+        ? "modality not published by this source"
+        : `${summary.textCount} text-capable`;
     } else if (datasetState(view, key) === "failed") {
-      count.textContent = "0";
+      count.textContent = "—";
       p.textContent = `Request failed · ${failureCode(view.errors[key]) ?? "error"}`;
     } else {
-      count.textContent = "0";
+      count.textContent = "—";
       p.textContent = "Loads near this rail";
     }
     article.append(h, count, p); grid.appendChild(article);
