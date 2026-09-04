@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en" class="forest-skin">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Observed OpenRouter app-to-model usage in a bounded, inspectable matrix with exact values, source evidence, and explicit gaps.">
+<meta name="theme-color" content="#07070b">
+<link rel="icon" href="/web/shared/favicon.svg?v=20260807a" type="image/svg+xml">
+<script defer src="/web/shared/feedback.js?v=20260807a"></script>
+<script type="module" src="/web/shared/forest-navigation.mjs?v=20260807a"></script>
+<link rel="preconnect" href="https://openrouter-github-dashboard.vercel.app" crossorigin>
+<link rel="preload" href="/web/shared/forest-design.css?v=20260807a" as="style">
+<link rel="preload" href="/web/vendor/fonts/cormorant-garamond-normal-600-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/web/vendor/fonts/alegreya-normal-400-900-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/web/shared/forest-shell.css?v=20260807a">
+<link rel="stylesheet" href="/web/shared/forest-design.css?v=20260807a">
+<link rel="stylesheet" href="/web/open-dashboard/open-dashboard.css?v=20260904a">
+<link rel="stylesheet" href="/web/shared/design-history.css?v=20260807a">
+</head>
+<body data-forest-page="open-dashboard" data-open-dashboard-route="matrix" data-forest-scene-owner="route">
+  <nav class="oo-topbar" aria-label="Open Dashboard navigation">
+    <a class="forest-back" href="/">SD Forest</a>
+    <div class="oo-destinations">
+      <a href="/web/open-dashboard/index.html">Overview</a>
+      <a href="/web/open-dashboard/openrouter/index.html">OpenRouter</a>
+      <a aria-current="page" href="/web/open-dashboard/matrix/index.html">Matrix</a>
+      <a href="/web/open-dashboard/github/index.html">GitHub</a>
+      <a href="/web/open-dashboard/catalogues/index.html">Catalogues</a>
+    </div>
+    <button id="oo-source-status" class="oo-source-toggle" type="button" aria-expanded="false" aria-controls="oo-source-panel">Sources · loading</button>
+  </nav>
+  <main class="oo-page" id="oo-main">
+    <a class="oo-mcp-banner" href="/web/open-dashboard/mcp/index.html">
+      <span class="oo-mcp-banner-tag">MCP server</span>
+      <span class="oo-mcp-banner-text">The same published data, read-only, inside your agent
+        &mdash; <code>npx -y open-dashboard-mcp</code></span>
+      <span class="oo-mcp-banner-go" aria-hidden="true">Setup and tools &rarr;</span>
+    </a>
+    <header class="oo-header">
+      <div><p class="forest-kicker">OpenRouter public v2 · latest-complete window</p><h1>Model matrix</h1></div>
+      <p>See which top public apps and models were observed together. Exact values stay inspectable; a missing relationship stays a missing relationship.</p>
+    </header>
+    <section id="oo-source-panel" class="oo-source-panel" aria-label="Source status" hidden></section>
+    <section id="oo-view-root" class="oo-view-root" aria-live="polite" aria-busy="true"><p class="oo-loading">Loading validated public data…</p></section>
+    <aside id="oo-inspector" class="oo-inspector" tabindex="-1" hidden aria-label="Selected item details"></aside>
+    <noscript><p class="oo-unavailable">JavaScript is required for the live matrix. The destinations above remain direct links.</p></noscript>
+  </main>
+  <script type="module" data-forest-runtime="motion" src="/web/shared/forest-runtime-boot.mjs?v=20260807a"></script>
+  <script type="module" src="/web/open-dashboard/open-dashboard.js?v=20260904a"></script>
+  <script src="/web/shared/design-history.js?v=20260807a"></script>
+</body>
+</html>

@@ -10,29 +10,46 @@ const read = (...parts) => fs.readFileSync(path.join(ROUTE, ...parts), "utf8");
 const readFixture = (name) => JSON.parse(fs.readFileSync(path.join(__dirname, "fixtures", name), "utf8"));
 const importRoute = (file) => import(pathToFileURL(path.join(ROUTE, file)).href + `?t=${Date.now()}-${Math.random()}`);
 
-test("three canonical routes remain isolated and landing motion uses the crown, roots, and route slams", () => {
-  for (const [file, route] of [["index.html", "overview"], ["openrouter/index.html", "openrouter"], ["github/index.html", "github"]]) {
+test("canonical routes remain isolated and landing motion uses the crown, roots, and route slams", () => {
+  for (const [file, route] of [["index.html", "overview"], ["openrouter/index.html", "openrouter"], ["matrix/index.html", "matrix"], ["github/index.html", "github"], ["catalogues/index.html", "catalogues"]]) {
     const html = read(...file.split("/"));
     assert.match(html, new RegExp(`data-open-dashboard-route="${route}"`));
-    assert.match(html, /href="\/web\/open-dashboard\/open-dashboard\.css"/);
-    assert.match(html, /src="\/web\/open-dashboard\/open-dashboard\.js\?v=20260725c"/);
+    assert.match(html, /href="\/web\/open-dashboard\/open-dashboard\.css(?:\?[^\"]*)?"/);
+    assert.match(html, /src="\/web\/open-dashboard\/open-dashboard\.js\?v=20260904a"/);
     assert.match(html, /id="oo-view-root"/);
     assert.doesNotMatch(html, /forest-three\.js/);
   }
 
   const entry = fs.readFileSync(path.join(ROOT, "web", "shared", "forest-three.js"), "utf8");
-  assert.match(entry, /tiles\.js — per-portal atlas wireframes — and burst\.js are retired/);
+  assert.match(entry, /tiles\.js[\s\S]*burst\.js[\s\S]*retired/);
   assert.match(entry, /forest-three\/slams\.js\?v=20260807a/);
-  assert.match(entry, /forest-three\/crown\.js\?v=20260807a/);
+  assert.doesNotMatch(entry, /forest-three\/crown\.js\?v=20260807a/);
   assert.match(entry, /forest-three\/roots\.js\?v=20260807a/);
   assert.doesNotMatch(entry, /^import .*forest-three\/tiles\.js/m);
 });
 
+test("dedicated matrix route is linked between OpenRouter and GitHub and MCP copy is current", () => {
+  const matrix = read("matrix", "index.html");
+  const openRouterPosition = matrix.indexOf("/web/open-dashboard/openrouter/index.html");
+  const matrixPosition = matrix.indexOf("/web/open-dashboard/matrix/index.html");
+  const githubPosition = matrix.indexOf("/web/open-dashboard/github/index.html");
+  assert.ok(openRouterPosition < matrixPosition && matrixPosition < githubPosition);
+  assert.match(matrix, /data-open-dashboard-route="matrix"/);
+  assert.match(matrix, /latest-complete/);
+
+  const mcp = read("mcp", "index.html");
+  assert.match(mcp, /v0\.6\.1/);
+  assert.match(mcp, /<div class="mcp-signal"><strong>10<\/strong><span>read-only tools/);
+  assert.match(mcp, /dashboard_github_trending/);
+  assert.match(mcp, /dashboard_whats_changed/);
+  assert.doesNotMatch(mcp, /All nine tools/);
+});
+
 test("SD Forest homepage exposes one truthful animated Open Dashboard portal", () => {
   const home = fs.readFileSync(path.join(ROOT, "index.html"), "utf8");
-  const portals = home.match(/<button class="portal"/g) || [];
-  const matches = home.match(/<button class="portal"[^>]*data-project="open-dashboard"[\s\S]*?<\/button>/g) || [];
-  assert.equal(portals.length, 20);
+  const portals = home.match(/<(?:a|article) class="portal(?:\s|")/g) || [];
+  const matches = home.match(/<a class="portal"[^>]*data-project="open-dashboard"[\s\S]*?<\/a>/g) || [];
+  assert.equal(portals.length, 32);
   assert.match(home, /The atlas/);
   assert.match(home, /Every path <em>at a glance<\/em>/);
   assert.equal(matches.length, 1);
@@ -40,8 +57,8 @@ test("SD Forest homepage exposes one truthful animated Open Dashboard portal", (
   const portal = matches[0];
   assert.match(portal, /style="--accent:#73e9ff;--accent-secondary:#a9b2ff"/);
   assert.match(portal, /data-href="\/web\/open-dashboard\/index\.html"/);
-  assert.match(portal, /data-status="Research"/);
-  assert.match(portal, /A sourced OpenRouter and GitHub AI ecosystem overview that labels unknowns rather than filling gaps with guesses\./);
+  assert.match(portal, /data-status="Public snapshot"/);
+  assert.match(portal, /Compare OpenRouter models and apps with GitHub AI ecosystems through ten-deep rankings, observed relationships, lifecycle signals, and clearly labeled source evidence\./);
   assert.match(portal, /<use href="#icon-open-dashboard"\/>/);
   assert.match(portal, /<span class="portal-name">Open Dashboard<\/span>/);
   assert.match(portal, /<span class="portal-meta">AI ecosystem radar<\/span>/);
@@ -583,7 +600,7 @@ test("committed fallback is checksum-valid, complete, ten-deep and unambiguously
 test("built artifact includes every direct route and core stays within budget", () => {
   const zlib = require("node:zlib");
   const output = path.join(ROOT, "vercel-public", "web", "open-dashboard");
-  for (const relative of ["index.html", "openrouter/index.html", "github/index.html", "open-dashboard.css", "open-dashboard.js", "open-dashboard-api.js", "open-dashboard-schema.js", "open-dashboard-charts.js", "open-dashboard-three.js", "fallback-data.json", "config.json"]) assert.equal(fs.existsSync(path.join(output, ...relative.split("/"))), true, relative);
+  for (const relative of ["index.html", "openrouter/index.html", "matrix/index.html", "github/index.html", "catalogues/index.html", "mcp/index.html", "open-dashboard.css", "open-dashboard.js", "open-dashboard-api.js", "open-dashboard-schema.js", "open-dashboard-charts.js", "open-dashboard-three.js", "fallback-data.json", "config.json"]) assert.equal(fs.existsSync(path.join(output, ...relative.split("/"))), true, relative);
   const core = ["open-dashboard.js", "open-dashboard-api.js", "open-dashboard-schema.js", "open-dashboard-charts.js", "open-dashboard.css"].map((file) => fs.readFileSync(path.join(ROUTE, file)));
   assert.ok(zlib.gzipSync(Buffer.concat(core), { level: 9 }).length < 100 * 1024);
   assert.doesNotMatch(read("open-dashboard-charts.js"), /\.innerHTML\s*=/);
