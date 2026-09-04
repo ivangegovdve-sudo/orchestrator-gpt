@@ -96,6 +96,15 @@ const scan = (html) => {
       i = end === -1 ? html.length : end + 3;
       continue;
     }
+    if (html.startsWith("<![CDATA[", lt)) {
+      // Legal only inside foreign content, and it runs to "]]>" -- not to the
+      // first ">". Ending it at the first ">" left the rest of the CDATA text to
+      // be scanned as markup, so a "</svg>" sitting in that text closed a
+      // subtree that was never open and exposed the icon title after it.
+      const end = html.indexOf("]]>", lt + 9);
+      i = end === -1 ? html.length : end + 3;
+      continue;
+    }
     if (html.startsWith("<!", lt) || html.startsWith("<?", lt)) {
       const end = html.indexOf(">", lt);
       i = end === -1 ? html.length : end + 1;
@@ -105,8 +114,15 @@ const scan = (html) => {
     if (!tag) { i = lt + 1; continue; }
     i = tag.end;
 
-    if (RAW_TEXT.has(tag.name) && !tag.closing && !tag.selfClosing) {
-      const close = new RegExp(`</${tag.name}\\s*>`, "i").exec(html.slice(i));
+    if (RAW_TEXT.has(tag.name) && !tag.closing) {
+      // selfClosing is deliberately NOT consulted: HTML ignores the slash on
+      // <script/>, so the element stays open and everything up to </script>
+      // remains raw text. Honouring it let a <title> in a script body count as
+      // the document title.
+      // The end tag may also carry attributes -- "</script foo>" is a parse
+      // error that the tokenizer still emits as an end tag, so it has to close
+      // the element here too, or a real title after it is never seen.
+      const close = new RegExp(`</${tag.name}(?:\\s[^>]*)?>`, "i").exec(html.slice(i));
       i = close ? i + close.index + close[0].length : html.length;
       continue;
     }
