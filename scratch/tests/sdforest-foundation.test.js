@@ -106,7 +106,57 @@ test('Library is canonical and llm-db has deployment and static redirect coverag
       permanent: true,
     },
     {
+      source: '/web/open-overview',
+      destination: '/web/open-dashboard/',
+      permanent: true,
+    },
+    {
+      source: '/web/open-overview/',
+      destination: '/web/open-dashboard/',
+      permanent: true,
+    },
+    {
+      source: '/web/open-overview/open-overview.js',
+      destination: '/web/open-dashboard/open-dashboard.js',
+      permanent: true,
+    },
+    {
+      source: '/web/open-overview/open-overview.css',
+      destination: '/web/open-dashboard/open-dashboard.css',
+      permanent: true,
+    },
+    {
+      source: '/web/open-overview/open-overview-api.js',
+      destination: '/web/open-dashboard/open-dashboard-api.js',
+      permanent: true,
+    },
+    {
+      source: '/web/open-overview/open-overview-charts.js',
+      destination: '/web/open-dashboard/open-dashboard-charts.js',
+      permanent: true,
+    },
+    {
+      source: '/web/open-overview/open-overview-schema.js',
+      destination: '/web/open-dashboard/open-dashboard-schema.js',
+      permanent: true,
+    },
+    {
+      source: '/web/open-overview/open-overview-three.js',
+      destination: '/web/open-dashboard/open-dashboard-three.js',
+      permanent: true,
+    },
+    {
+      source: '/web/open-overview/:path*',
+      destination: '/web/open-dashboard/:path*',
+      permanent: true,
+    },
+    {
       source: '/series',
+      destination: 'https://morning-news-anchor-platform.vercel.app/series',
+      permanent: false,
+    },
+    {
+      source: '/series/',
       destination: 'https://morning-news-anchor-platform.vercel.app/series',
       permanent: false,
     },

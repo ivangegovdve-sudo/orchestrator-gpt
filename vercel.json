@@ -84,6 +84,11 @@
       "permanent": false
     },
     {
+      "source": "/series/",
+      "destination": "https://morning-news-anchor-platform.vercel.app/series",
+      "permanent": false
+    },
+    {
       "source": "/series/dependency-map",
       "destination": "https://morning-news-anchor-platform.vercel.app/series/dependency-map",
       "permanent": false
