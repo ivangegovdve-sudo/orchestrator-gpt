@@ -1,4 +1,4 @@
-import { CATALOGUE_PROVIDERS, CATALOGUE_SERVED_AS_OF, ENDPOINTS, buildModelCatalogue, resolveTaskModel, GITHUB_CATEGORIES, OVERVIEW_REQUESTS, createOpenDashboardClient, manifestPublicationIdentity, topAppModelRequests, topGitHubEnrichmentRequests } from "./open-dashboard-api.js";
+import { CATALOGUE_PROVIDERS, CATALOGUE_SERVED_AS_OF, ENDPOINTS, MATRIX_REQUESTS, buildModelCatalogue, resolveTaskModel, GITHUB_CATEGORIES, OVERVIEW_REQUESTS, createOpenDashboardClient, manifestPublicationIdentity, topAppModelRequests, topGitHubEnrichmentRequests } from "./open-dashboard-api.js";
 import { compactIntegerString } from "./open-dashboard-schema.js";
 import { renderAppModelMatrix, renderHistoryVisualization, renderPending, renderRankTable, renderSourceStates, renderUnavailable } from "./open-dashboard-charts.js";
 
@@ -368,6 +368,48 @@ export function renderOverview(view, config) {
   const github = section(document, "oo-github-grid", "oo-github-grid");
   for (const [slug,label] of GITHUB_CATEGORIES) { const response = view.responses[`github:${slug}`]; github.appendChild(response ? renderRankTable({ document, title: label, rows: response.data.slice(0,10), sourceLabel: "GitHub adoption · percent_rank", asOf: response.coverage.resolvedAsOf, emphasizeTopThree: true, columns: [{ label:"Rank",value:(row)=>row.rank },{ label:"Project",value:(row)=>row.fullName,href:(row)=>`https://github.com/${row.fullName}` },{ label:"Stars",value:(row)=>compactIntegerString(row.stars),exact:(row)=>row.stars },{ label:"Forks",value:(row)=>compactIntegerString(row.forks),exact:(row)=>row.forks }] }) : renderDatasetGap(document, view, `github:${slug}`, label)); }
   root.appendChild(github); root.setAttribute("aria-busy", "false"); installThreeEnhancement(view, config);
+}
+
+export function renderMatrix(view) {
+  const { document, root } = context();
+  root.replaceChildren();
+  renderSourceRail(view);
+  appendSnapshotNotice(document, root, view);
+  const content = section(document, "oo-matrix-route-content", "oo-route-content oo-matrix-route-content");
+  const intro = section(document, "oo-matrix-route-intro", "oo-matrix-route-intro");
+  const heading = document.createElement("h2");
+  heading.className = "oo-region-title";
+  heading.textContent = "A bounded relationship, kept inspectable";
+  const copy = document.createElement("p");
+  copy.textContent = "This is the same observed app-to-model evidence used by the overview, given room to read. It is a top-10 slice for one complete published window — not a complete census of apps, models, or causal usage.";
+  intro.append(heading, copy);
+  content.appendChild(intro);
+  const legend = document.createElement("div");
+  legend.className = "oo-matrix-legend";
+  legend.setAttribute("aria-label", "Matrix legend");
+  for (const [label, note, className] of [["Observed", "exact daily tokens", "is-observed"], ["?", "unknown in the source", "is-unknown"], ["—", "cell not returned", "is-missing"]]) {
+    const item = document.createElement("span");
+    item.className = "oo-matrix-legend-item";
+    const swatch = document.createElement("b");
+    swatch.className = `oo-matrix-legend-swatch ${className}`;
+    swatch.textContent = label;
+    const text = document.createElement("span");
+    text.textContent = note;
+    item.append(swatch, text);
+    legend.appendChild(item);
+  }
+  content.appendChild(legend);
+  const apps = envelopeRows(view, "apps");
+  const models = envelopeRows(view, "models");
+  const matrix = renderAppModelMatrix({ document, response: view.responses.matrix, apps, models, onInspect: showMatrixEvidence, onDismiss: dismissMatrixEvidence });
+  matrix.id = "oo-matrix-field";
+  content.appendChild(matrix);
+  const note = document.createElement("p");
+  note.className = "oo-matrix-footnote";
+  note.textContent = "Select any observed cell for its exact value and source evidence. Keyboard users can move through the grid with the arrow keys, Home, and End.";
+  content.appendChild(note);
+  root.appendChild(content);
+  root.setAttribute("aria-busy", "false");
 }
 
 export const mergeCompatibleViews = (primary, deferred) => {
@@ -764,6 +806,8 @@ export async function bootOpenDashboard({ fetchImpl = globalThis.fetch.bind(glob
       const requests = CATALOGUE_PROVIDERS.filter(([, , served]) => served)
         .map(([slug]) => ({ key: `catalogue:${slug}`, path: ENDPOINTS.liveModels(slug), kind: "liveModels", optional: true }));
       renderCatalogues(await client.loadView(requests));
+    } else if (route === "matrix") {
+      renderMatrix(await client.loadView(MATRIX_REQUESTS));
     } else {
       // An unrecognised route used to fall through this if/else and complete the
       // try having done nothing: no request, no render, no error, and the static

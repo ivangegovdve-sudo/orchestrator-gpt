@@ -61,6 +61,26 @@ test("OpenRouter exposes nine compact sections plus app, provider and Pareto evi
   await page.goto("/web/open-dashboard/openrouter/index.html?view=free&freeMode=pareto"); await expect(page.locator(".oo-mode-nav a[aria-current=page]")).toHaveText("Pareto: quality x throughput"); await expect(page.locator("#oo-openrouter-content")).toContainText("benchmarkQuality"); await expect(page.locator("#oo-openrouter-content")).toContainText("medianThroughput"); await expect(page.locator("#oo-openrouter-content")).not.toContainText("efficiency score");
 });
 
+test("dedicated matrix route keeps the full grid readable and preserves unavailable evidence", async ({ page }) => {
+  const failures = watchErrors(page);
+  await routeApi(page, { offline: true });
+  await page.goto("/web/open-dashboard/matrix/index.html");
+  await expect(page.locator(".oo-destinations a").nth(2)).toHaveText("Matrix");
+  await expect(page.locator(".oo-destinations a").nth(2)).toHaveAttribute("aria-current", "page");
+  await expect(page.locator("#oo-matrix-field .oo-matrix tbody tr")).toHaveCount(10);
+  await expect(page.locator("#oo-matrix-field .oo-matrix-control")).toHaveCount(100);
+  await expect(page.locator("#oo-matrix-route-intro")).toContainText("bounded relationship");
+  await expect(page.locator(".oo-matrix-legend")).toContainText("exact daily tokens");
+  await expect(page.locator(".oo-snapshot-notice")).toContainText("never mixed");
+  expect(failures).toEqual([]);
+
+  await page.unrouteAll();
+  await routeApi(page, { matrixUnavailable: true });
+  await page.goto("/web/open-dashboard/matrix/index.html");
+  await expect(page.locator("#oo-matrix-field")).toContainText("collection_disabled");
+  await expect(page.locator("#oo-matrix-field .oo-matrix")).toHaveCount(0);
+});
+
 test("GitHub exposes eight categories and transparent adoption metadata", async ({ page }, testInfo) => {
   await routeApi(page, { offline: true }); await page.goto("/web/open-dashboard/github/index.html?category=mcp&metric=adoption"); await expect(page.locator(".oo-category-list a")).toHaveCount(8); await expect(page.locator(".oo-ranking-nav > *")).toHaveCount(3); await expect(page.locator("#oo-github-content > .oo-data-region:first-child tbody tr")).toHaveCount(10); await expect(page.locator("#oo-github-content")).toContainText("percent_rank"); await expect(page.locator("#oo-github-content")).toContainText("raw stars and forks"); await expect(page.locator("#oo-github-content")).toContainText("github-adoption-v1"); await expect(page.locator("#oo-github-content")).toContainText("Eligible population: 10"); await page.screenshot({ path: testInfo.outputPath("github-mcp-adoption.png"), fullPage: false });
   await page.setViewportSize({ width: 390, height: 844 }); await page.reload(); const summary = page.locator(".oo-category-sheet > summary"); await expect(summary).toBeVisible(); await expect(page.locator(".oo-category-list")).toBeHidden(); await summary.click(); await expect(page.locator(".oo-category-list a").first()).toBeVisible();

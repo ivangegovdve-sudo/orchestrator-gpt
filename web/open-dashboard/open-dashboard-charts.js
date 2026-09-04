@@ -72,10 +72,13 @@ export function matrixAxisNameMaps(response, apps = [], models = []) {
 }
 
 export function renderAppModelMatrix({ document, response, apps = [], models = [], onInspect = () => {}, onDismiss = () => {} }) {
-  if (!response || response.status === "unavailable") return renderUnavailable({ document, title: "Observed app/model relationships", reason: response ? `Enrichment unavailable: ${response.reason}${response.lastSuccessAt ? ` · last success ${response.lastSuccessAt}` : ""}` : "Relationship request failed; stable rankings remain available." });
+  if (!response || response.status === "unavailable") return renderUnavailable({ document, title: "Observed app → model usage", reason: response ? `Enrichment unavailable: ${response.reason}${response.lastSuccessAt ? ` · last success ${response.lastSuccessAt}` : ""}` : "Relationship request failed; stable rankings remain available." });
   const { appNames, modelNames } = matrixAxisNameMaps(response, apps, models); const cells = new Map(response.cells.map((cell) => [`${cell.appId}\0${cell.modelId}`, cell]));
   const region = el(document, "section", "oo-data-region oo-matrix-region");
-  region.append(el(document, "h2", "oo-region-title", "Observed app/model relationships"), el(document, "p", "oo-region-meta", `${response.resolvedPeriod.start} · daily tokens · ${response.coverage.observedCells}/${response.coverage.possibleCells} observed`));
+  const observed = `${response.coverage.observedCells}/${response.coverage.possibleCells} cells observed`;
+  const period = response.resolvedPeriod.start === response.resolvedPeriod.end ? response.resolvedPeriod.start : `${response.resolvedPeriod.start} → ${response.resolvedPeriod.end}`;
+  region.dataset.matrixStatus = response.status;
+  region.append(el(document, "h2", "oo-region-title", "Observed app → model usage"), el(document, "p", "oo-region-meta", `${period} · daily tokens · ${observed} · population ${response.coverage.populationCompleteness}`));
   const scroll = el(document, "div", "oo-matrix-scroll"); scroll.tabIndex = 0; scroll.setAttribute("role", "region"); scroll.setAttribute("aria-label", "Top app by model matrix; scroll horizontally for all models"); const table = el(document, "table", "oo-matrix"); table.appendChild(el(document, "caption", "sr-only", "Top app by model observed token matrix"));
   const thead = el(document, "thead"); const head = el(document, "tr"); const corner = el(document, "th", "", "App / model"); corner.scope = "col"; head.appendChild(corner);
   for (const modelId of response.modelIds) { const th = el(document, "th", "", modelNames.get(modelId) || modelId); th.scope = "col"; th.title = modelId; head.appendChild(th); }

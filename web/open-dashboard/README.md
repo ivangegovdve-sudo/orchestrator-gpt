@@ -6,7 +6,9 @@ Canonical routes:
 
 - `/web/open-dashboard/index.html`
 - `/web/open-dashboard/openrouter/index.html`
+- `/web/open-dashboard/matrix/index.html`
 - `/web/open-dashboard/github/index.html`
+- `/web/open-dashboard/catalogues/index.html`
 - `/web/open-dashboard/mcp/index.html`
 
 When the live manifest cannot be reached—or the reviewed v2 manifest has not yet been deployed—the explicit `fallbackOnMissingV2` policy loads one checksum-verified deterministic snapshot and labels it `snapshot`; live and fallback rows are never mixed. A valid response with a different schema major still fails closed and never falls back.

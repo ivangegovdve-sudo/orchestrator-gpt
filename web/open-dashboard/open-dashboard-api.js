@@ -108,6 +108,15 @@ export const OVERVIEW_REQUESTS = Object.freeze([
   ...GITHUB_CATEGORIES.map(([slug]) => request(`github:${slug}`, ENDPOINTS.githubRanking(slug), "github", null, true))
 ]);
 
+// The full matrix route deliberately asks only for the two named axes and the
+// relationship evidence. It does not pay the overview's cost for histories,
+// GitHub rankings, or deferred enrichment.
+export const MATRIX_REQUESTS = Object.freeze([
+  request("models", ENDPOINTS.modelsTopWeekly, "models", "models_current"),
+  request("apps", ENDPOINTS.appsPopular, "apps", "apps_ranked"),
+  request("matrix", ENDPOINTS.appModelMatrix, "matrix", null, true)
+]);
+
 export const undatedModelId = (id) => String(id).replace(/:free$/, "").replace(/-\d{8}$/, "").replace(/-\d{2}-\d{2}$/, "");
 
 export function resolveTaskModel(id, catalogue) {

@@ -1,270 +1,211 @@
 <!doctype html>
 <html lang="en" class="forest-skin">
 <head>
-<meta charset="utf-8">
-<link rel="icon" href="/web/shared/favicon.svg?v=20260807a" type="image/svg+xml">
-<script defer src="/web/shared/feedback.js?v=20260807a"></script>
-<script type="module" src="/web/shared/forest-navigation.mjs?v=20260807a"></script>
-<link rel="preload" href="/web/shared/forest-design.css?v=20260807a" as="style">
-<link rel="preload" href="/web/vendor/fonts/cormorant-garamond-normal-600-latin.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="preload" href="/web/vendor/fonts/alegreya-normal-400-900-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Open Dashboard MCP: compare models across OpenRouter, Groq, Cerebras and Sail on price, discounts, capability, retirement risk, and models that quietly stopped being free. What it does today, and what it does not.">
+  <meta name="description" content="Open Dashboard MCP 0.6.1: ten read-only tools for source health, model economics, free models, GitHub movement and provider-aware routing evidence.">
   <meta name="theme-color" content="#07070b">
-  <title>MCP server — Open Dashboard</title>
+  <link rel="icon" href="/web/shared/favicon.svg?v=20260807a" type="image/svg+xml">
+  <script defer src="/web/shared/feedback.js?v=20260807a"></script>
+  <script type="module" src="/web/shared/forest-navigation.mjs?v=20260807a"></script>
+  <link rel="preload" href="/web/shared/forest-design.css?v=20260807a" as="style">
+  <link rel="preload" href="/web/vendor/fonts/cormorant-garamond-normal-600-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="/web/vendor/fonts/alegreya-normal-400-900-latin.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="/web/shared/forest-shell.css?v=20260807a">
   <link rel="stylesheet" href="/web/shared/forest-design.css?v=20260807a">
-  <link rel="stylesheet" href="/web/open-dashboard/open-dashboard.css?v=20260731a">
+  <link rel="stylesheet" href="/web/open-dashboard/open-dashboard.css?v=20260904a">
   <link rel="stylesheet" href="/web/shared/design-history.css?v=20260807a">
   <style>
-    /* Route-local only. Nothing here overrides a shared token. */
-    .oo-prose { max-width: 68ch; }
-    .oo-prose h2 { margin-block: 2.5rem 0.75rem; }
-    .oo-prose h3 { margin-block: 1.75rem 0.5rem; }
-    .oo-prose p, .oo-prose li { line-height: 1.65; }
-    .oo-verdict-list { list-style: none; padding: 0; margin: 1.5rem 0; display: grid; gap: 1rem; }
-    .oo-verdict { border-left: 3px solid currentColor; padding: 0.85rem 0 0.85rem 1rem; }
-    .oo-verdict[data-state="yes"] { color: #6fd39b; }
-    .oo-verdict[data-state="partial"] { color: #e3c46b; }
-    .oo-verdict[data-state="no"] { color: #e08a8a; }
-    .oo-verdict > * { color: var(--forest-ink, inherit); }
-    .oo-verdict .oo-state {
-      color: inherit; font-weight: 700; letter-spacing: 0.06em;
-      text-transform: uppercase; font-size: 0.78rem; display: block; margin-bottom: 0.3rem;
-    }
-    .oo-verdict .oo-claim { font-style: italic; opacity: 0.85; }
-    .oo-scroll { overflow-x: auto; margin: 1.25rem 0; }
-    .oo-scroll table { border-collapse: collapse; min-width: 34rem; width: 100%; font-size: 0.94rem; }
-    .oo-scroll th, .oo-scroll td { text-align: left; padding: 0.5rem 0.9rem 0.5rem 0; vertical-align: top; }
-    .oo-scroll thead th { border-bottom: 1px solid currentColor; opacity: 0.75; font-size: 0.82rem; letter-spacing: 0.04em; text-transform: uppercase; }
-    .oo-scroll tbody tr + tr td { border-top: 1px solid rgba(128,128,128,0.22); }
-    .oo-code { overflow-x: auto; padding: 0.9rem 1rem; border: 1px solid rgba(128,128,128,0.28); border-radius: 4px; font-size: 0.86rem; line-height: 1.5; }
-    .oo-roadmap { border: 1px dashed rgba(128,128,128,0.45); padding: 1rem 1.25rem; border-radius: 4px; margin: 1.5rem 0; }
-    .oo-measured { font-size: 0.86rem; opacity: 0.72; }
+    .mcp-page { max-width: 1180px; }
+    .mcp-hero { margin-bottom: 22px; }
+    .mcp-hero > p { max-width: 560px; }
+    .mcp-signal-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); margin-bottom: 18px; border: 1px solid var(--forest-line); background: rgba(8, 15, 12, .76); }
+    .mcp-signal { display: grid; gap: 5px; min-height: 78px; padding: 14px 16px; border-right: 1px solid var(--forest-line); }
+    .mcp-signal:last-child { border-right: 0; }
+    .mcp-signal strong { color: var(--forest-ink); font: 650 24px/.95 var(--forest-display); }
+    .mcp-signal span { color: var(--forest-muted); font: 700 9px/1.25 var(--forest-sans); letter-spacing: .1em; text-transform: uppercase; }
+    .mcp-callout { display: flex; align-items: center; justify-content: space-between; gap: 20px; margin-bottom: 34px; padding: 18px 20px; border: 1px solid rgba(115, 233, 255, .3); background: linear-gradient(100deg, rgba(115, 233, 255, .08), rgba(143, 230, 174, .035)); }
+    .mcp-callout p { max-width: 70ch; margin: 0; color: var(--forest-soft); font-size: 15px; line-height: 1.5; }
+    .mcp-callout a { flex: 0 0 auto; color: var(--oo-cyan); font: 700 10px/1 var(--forest-sans); letter-spacing: .08em; text-decoration: none; text-transform: uppercase; }
+    .mcp-section { content-visibility: auto; contain-intrinsic-size: 420px; padding: 28px 0; border-top: 1px solid var(--forest-line); }
+    .mcp-section > h2 { margin: 0 0 8px; font: 650 clamp(25px, 3vw, 38px)/1 var(--forest-display); }
+    .mcp-section > .mcp-section-lede { max-width: 68ch; margin: 0 0 18px; color: var(--forest-soft); font-size: 15px; line-height: 1.6; }
+    .mcp-install-grid, .mcp-tool-grid, .mcp-freshness-grid, .mcp-boundary-grid, .mcp-fact-grid { display: grid; gap: 10px; }
+    .mcp-install-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .mcp-tool-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .mcp-freshness-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .mcp-boundary-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .mcp-fact-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .mcp-card { min-width: 0; padding: 16px; border: 1px solid rgba(213, 239, 215, .13); background: rgba(8, 15, 12, .52); }
+    .mcp-card h3 { margin: 0 0 8px; color: var(--forest-ink); font: 650 20px/1.1 var(--forest-display); }
+    .mcp-card p, .mcp-card li { color: var(--forest-soft); font-size: 14px; line-height: 1.55; }
+    .mcp-card p { margin: 0; }
+    .mcp-card ul { margin: 8px 0 0; padding-left: 18px; }
+    .mcp-card code, .mcp-code { font-family: var(--forest-mono, ui-monospace, Consolas, monospace); }
+    .mcp-card pre { min-height: 72px; margin: 0 0 10px; padding: 11px 12px; overflow-x: auto; border: 1px solid rgba(115, 233, 255, .16); background: rgba(5, 8, 6, .7); color: var(--forest-ink); font: 12px/1.55 var(--forest-mono, ui-monospace, Consolas, monospace); white-space: pre-wrap; overflow-wrap: anywhere; }
+    .mcp-card pre code { color: inherit; }
+    .mcp-tool { display: grid; grid-template-columns: minmax(150px, .46fr) minmax(0, 1fr); gap: 14px; align-items: start; }
+    .mcp-tool h3 { margin: 0; font: 700 12px/1.35 var(--forest-mono, ui-monospace, Consolas, monospace); overflow-wrap: anywhere; }
+    .mcp-tool p { margin: 0; font-size: 13px; }
+    .mcp-badge { display: inline-flex; width: fit-content; margin-bottom: 8px; padding: 4px 7px; border: 1px solid rgba(143, 230, 174, .28); border-radius: 999px; color: var(--oo-accent); font: 700 9px/1 var(--forest-sans); letter-spacing: .08em; text-transform: uppercase; }
+    .mcp-table-scroll { overflow-x: auto; border: 1px solid rgba(213, 239, 215, .13); }
+    .mcp-table { width: 100%; min-width: 760px; border-collapse: collapse; color: var(--forest-soft); font: 14px/1.4 var(--forest-sans); }
+    .mcp-table th, .mcp-table td { padding: 12px 14px; border-bottom: 1px solid rgba(213, 239, 215, .09); text-align: left; vertical-align: top; }
+    .mcp-table thead th { color: var(--forest-muted); font-size: 10px; letter-spacing: .08em; text-transform: uppercase; }
+    .mcp-table tbody tr:last-child th, .mcp-table tbody tr:last-child td { border-bottom: 0; }
+    .mcp-table tbody th { color: var(--forest-ink); font-weight: 700; }
+    .mcp-table caption { padding: 11px 14px; color: var(--forest-muted); font-size: 12px; text-align: left; }
+    .mcp-table .mcp-muted { color: var(--forest-muted); }
+    .mcp-inline-note { margin: 14px 0 0; color: var(--forest-muted); font-size: 13px; line-height: 1.55; }
+    .mcp-link-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px 24px; margin: 0; padding: 0; list-style: none; }
+    .mcp-link-list li { min-width: 0; padding: 9px 0; border-bottom: 1px solid rgba(213, 239, 215, .09); color: var(--forest-soft); font-size: 14px; }
+    .mcp-link-list a { color: var(--oo-cyan); overflow-wrap: anywhere; }
+    .mcp-page a:focus-visible, .mcp-page button:focus-visible { outline: 2px solid var(--oo-cyan); outline-offset: 3px; }
+    @media (max-width: 860px) { .mcp-signal-grid, .mcp-install-grid, .mcp-freshness-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .mcp-signal:nth-child(2) { border-right: 0; } .mcp-signal:nth-child(-n+2) { border-bottom: 1px solid var(--forest-line); } .mcp-signal:nth-child(3) { border-right: 1px solid var(--forest-line); } .mcp-tool { grid-template-columns: 1fr; gap: 6px; } }
+    @media (max-width: 640px) { .mcp-page { width: min(calc(100% - 18px), 1180px); } .mcp-signal-grid, .mcp-install-grid, .mcp-tool-grid, .mcp-freshness-grid, .mcp-boundary-grid, .mcp-fact-grid, .mcp-link-list { grid-template-columns: 1fr; } .mcp-signal { min-height: 0; border-right: 0; border-bottom: 1px solid var(--forest-line); } .mcp-signal:last-child { border-bottom: 0; } .mcp-signal:nth-child(3) { border-right: 0; } .mcp-callout { display: block; } .mcp-callout a { display: inline-block; margin-top: 13px; } .mcp-card { padding: 14px; } }
   </style>
 </head>
 <body data-forest-page="open-dashboard" data-open-dashboard-route="mcp" data-forest-scene-owner="route">
   <nav class="oo-topbar" aria-label="Open Dashboard navigation">
     <a class="forest-back" href="/">SD Forest</a>
-    <div class="oo-destinations"><a href="/web/open-dashboard/index.html">Overview</a><a href="/web/open-dashboard/openrouter/index.html">OpenRouter</a><a href="/web/open-dashboard/github/index.html">GitHub</a><a href="/web/open-dashboard/catalogues/index.html">Catalogues</a></div>
+    <div class="oo-destinations"><a href="/web/open-dashboard/index.html">Overview</a><a href="/web/open-dashboard/openrouter/index.html">OpenRouter</a><a href="/web/open-dashboard/matrix/index.html">Matrix</a><a href="/web/open-dashboard/github/index.html">GitHub</a><a href="/web/open-dashboard/catalogues/index.html">Catalogues</a></div>
   </nav>
-  <main class="oo-page" id="oo-main">
-    <header class="oo-header">
-      <div>
-        <p class="forest-kicker">OpenRouter · Groq · Cerebras · Sail · one comparable shape</p>
-        <h1>Open Dashboard MCP</h1>
-      </div>
-      <p>Pick the cheapest model that still does the job — across every provider you hold a key with, not one at a time.</p>
+  <main class="oo-page mcp-page" id="oo-main">
+    <header class="oo-header mcp-hero">
+      <div><p class="forest-kicker">npm package · v0.6.1 · checked 2026-09-04</p><h1>Open Dashboard MCP</h1></div>
+      <p>Ten read-only tools for comparing model economics, source health, provider availability and GitHub movement in one evidence-shaped interface.</p>
     </header>
 
-    <section class="oo-prose">
-      <h2>Install</h2>
-      <pre class="oo-code"><code>claude mcp add open-dashboard -- npx -y open-dashboard-mcp</code></pre>
-      <p>Node 20 or newer. No API key is needed for any tool except the optional key inventory. Published on npm as
-        <a href="https://www.npmjs.com/package/open-dashboard-mcp">open-dashboard-mcp</a>.</p>
+    <div class="mcp-signal-grid" aria-label="MCP package facts">
+      <div class="mcp-signal"><strong>10</strong><span>read-only tools</span></div>
+      <div class="mcp-signal"><strong>4</strong><span>provider registry</span></div>
+      <div class="mcp-signal"><strong>20+</strong><span>required Node version</span></div>
+      <div class="mcp-signal"><strong>0</strong><span>keys needed by default</span></div>
+    </div>
 
-      <h2>How it stays current</h2>
-      <p>It is consumed as an <strong>MCP server</strong>, not a snapshot. <code>npx -y open-dashboard-mcp</code>
-        resolves the latest published version on every launch, so an upgrade reaches you with nothing to reinstall
-        anywhere. A periodic snapshot would freeze pricing at build time — and a model that stopped being free yesterday
-        would still read as free in a copy taken last week, which is the precise harm this exists to prevent.</p>
-      <p>Every tool reads a public, zero-credential API <em>at query time</em>. That host is a hobby-tier deployment with
-        no uptime obligation, and it is a dependency of every answer. Two things follow, and both are visible in the
-        response rather than left to assumption.</p>
-      <p><strong>Responses are cached, and every answer carries its own age.</strong> One economics query can make two
-        dozen upstream requests — measured, ten requests and 733&nbsp;ms cold, then zero requests and 3&nbsp;ms on a
-        repeat. Each piece of evidence carries when it was measured and how old it is:</p>
-      <pre class="oo-code"><code>"freshness": {
-  "state": "cached",
-  "fetchedAt": "2026-08-27T20:21:52.494Z",
-  "ageSeconds": 30,
-  "expiresAt": "2026-08-27T20:26:52.494Z"
+    <div class="mcp-callout">
+      <p>Install it once, then let <code>npx</code> resolve the published package when the server starts. Every answer carries its own provenance and freshness state.</p>
+      <a href="/web/open-dashboard/matrix/index.html">Open the matrix &rarr;</a>
+    </div>
+
+    <section class="mcp-section" id="install">
+      <h2>Install in your client</h2>
+      <p class="mcp-section-lede">Node 20 or newer. The public dashboard data needs no API key. Key inventory is opt-in and is the only tool that touches configured credentials.</p>
+      <div class="mcp-install-grid">
+        <article class="mcp-card">
+          <span class="mcp-badge">Claude Code</span>
+          <pre><code>claude mcp add open-dashboard -- npx -y open-dashboard-mcp</code></pre>
+          <p>Registers the server for the current Claude Code environment.</p>
+        </article>
+        <article class="mcp-card">
+          <span class="mcp-badge">Claude Desktop</span>
+          <pre><code>{
+  "mcpServers": {
+    "open-dashboard": {
+      "command": "npx",
+      "args": ["-y", "open-dashboard-mcp"]
+    }
+  }
 }</code></pre>
-      <p><strong>When the host is slow or down, the answer says so.</strong> With nothing cached you get a structured
-        <em>unavailable</em> carrying a reason — never a fabricated number. With an expired entry in hand the last known
-        value is returned, but <em>marked</em>:</p>
-      <pre class="oo-code"><code>"state": "expired",
-"note": "Upstream could not be reached, so this is the last known value,
-         measured 2026-08-27T20:21:52.494Z (3600s ago). It is not current."</code></pre>
-      <p><strong>Unmeasured is not zero, and stale is not fresh.</strong> A number is never handed back as current when
-        it is not, and the age arrives with the answer so a caller can refuse it.</p>
+        </article>
+        <article class="mcp-card">
+          <span class="mcp-badge">Any MCP client</span>
+          <pre><code>npx -y open-dashboard-mcp</code></pre>
+          <p>Communicates over stdio with protocol <code>2025-06-18</code>; the checked release identifies as <code>0.6.1</code>.</p>
+        </article>
+      </div>
+    </section>
 
-      <h2>Why it exists</h2>
-      <p>A free model does not announce itself when it stops being free. It simply starts costing money, and the bill
-        arrives before the surprise does. Meanwhile the model that is cheapest for a task on one provider is rarely
-        cheapest on another, and OpenRouter's own MCP server is single-vendor by construction — it cannot compare across
-        the providers you actually use.</p>
-      <p>This server reads all three catalogues, puts them in one shape, and refuses to guess where they disagree.</p>
+    <section class="mcp-section" id="tools">
+      <h2>What it can answer</h2>
+      <p class="mcp-section-lede">The tool list is bounded, read-only and explicit about unknowns. A missing field is not silently converted into a favorable ranking.</p>
+      <div class="mcp-tool-grid">
+        <article class="mcp-card mcp-tool"><h3><code>dashboard_source_health</code></h3><p>Report source freshness, collector failures and available public routes.</p></article>
+        <article class="mcp-card mcp-tool"><h3><code>dashboard_model_economics</code></h3><p>Compare OpenRouter, Groq, Cerebras and Sail on exact prices, discounts, context, modality, tools, performance, availability and retirement risk. Sail prices only count when its pinned document verifies.</p></article>
+        <article class="mcp-card mcp-tool"><h3><code>dashboard_resolve_model</code></h3><p>Return a bounded fallback list that satisfies every explicit provider, capability and lifecycle constraint.</p></article>
+        <article class="mcp-card mcp-tool"><h3><code>dashboard_model_status</code></h3><p>Diagnose an exact model id, separating last seen from the latest complete check that could have observed its absence.</p></article>
+        <article class="mcp-card mcp-tool"><h3><code>dashboard_free_models</code></h3><p>Find currently listed, genuinely free models. Rate-limited free routing and unknown prices are kept separate.</p></article>
+        <article class="mcp-card mcp-tool"><h3><code>dashboard_whats_changed</code></h3><p>Surface appearances, disappearances, deprecations, price movement and models that stopped being free. The result is partial when the archive cannot establish full coverage.</p></article>
+        <article class="mcp-card mcp-tool"><h3><code>dashboard_usage_leaders</code></h3><p>Rank public model usage while keeping rolling app totals, latest app-model evidence and the producer-selected matrix as separate sections.</p></article>
+        <article class="mcp-card mcp-tool"><h3><code>dashboard_github_movers</code></h3><p>Return category-scoped project-family momentum for exact 7-, 30- or 90-day baselines.</p></article>
+        <article class="mcp-card mcp-tool"><h3><code>dashboard_github_trending</code></h3><p>List GitHub trending repositories with collection time, source path and a six-hour stale flag.</p></article>
+        <article class="mcp-card mcp-tool"><h3><code>dashboard_key_inventory</code></h3><p>Opt-in liveness and spend visibility for configured provider keys. It returns secret names only; values are never returned, logged or modified.</p></article>
+      </div>
+    </section>
 
-      <h2>What it does today</h2>
-      <p>Each claim below is marked with what was actually measured, not what is intended. Where the answer is
-        <em>no</em>, it says no.</p>
-
-      <ul class="oo-verdict-list">
-        <li class="oo-verdict" data-state="yes">
-          <span class="oo-state">Yes — today</span>
-          <p><strong>Sees real prices, per token and per million tokens, across all three providers.</strong>
-            Prices are carried as exact decimal strings end to end, so a price like $0.000000088606 per token does not
-            become a rounded float on the way to you.</p>
-        </li>
-        <li class="oo-verdict" data-state="yes">
-          <span class="oo-state">Yes — today</span>
-          <p><strong>Reads published discounts, not just list prices — on OpenRouter.</strong> OpenRouter attaches
-            discounts to a <em>provider endpoint</em>, not to the model, which is why looking at the model list alone
-            shows none. Measured 2026-08-19: zero of 550 models carried a discount field; 272 of 272 provider endpoints
-            did.</p>
-          <p class="oo-measured"><strong>Not parity across providers.</strong> Groq and Cerebras publish no discounts at
-            all, so their rows always report <code>not_published_by_provider</code>. That is a fact about those
-            providers rather than something this tool can close, and discount coverage should be read as rich for
-            OpenRouter and absent elsewhere.</p>
-        </li>
-        <li class="oo-verdict" data-state="yes">
-          <span class="oo-state">Yes — today</span>
-          <p><strong>Answers “cheapest that satisfies these criteria”, not merely “cheapest”.</strong>
-            Capability is modelled and filtered before ranking: output modality, minimum context length, tool-call
-            support, reasoning support, provider, current availability, and retirement risk.
-            <span class="oo-measured">Quality and benchmark fitness are <em>not</em> modelled — see the roadmap.</span></p>
-        </li>
-        <li class="oo-verdict" data-state="yes">
-          <span class="oo-state">Yes — today</span>
-          <p><strong>Separates genuinely free from rate-limited free.</strong> A real zero-priced model, a
-            rate-limited free routing tier, and “the provider publishes no price at all” are three different answers.
-            The third is reported as <em>unknown</em> and never as free.</p>
-        </li>
-        <li class="oo-verdict" data-state="yes">
-          <span class="oo-state">Yes — today</span>
-          <p><strong>Constrains a selection to free models only, and notices when that set shrinks — both ways.</strong>
-            A free-only query is one flag. A model that <em>disappears</em> from a catalogue is reported as a
-            disappearance; a model that stays listed and stops being free is reported as a price change. Those are the
-            two ways the free set can shrink, and both are now covered.</p>
-        </li>
-        <li class="oo-verdict" data-state="yes">
-          <span class="oo-state">Yes — today</span>
-          <p><strong>Detects a model that stopped being free.</strong> Its id does not change and it stays listed, so nothing else in a catalogue moves — the bill is the notification. The two most recent archived collection runs are compared and models that <em>left free</em> are reported in their own bucket, apart from every other price movement.</p>
-          <p class="oo-measured">Shipped in 0.2.0. Prices are compared as exact decimals, never floats, and a null price counts as unknown rather than free. A source that could not be read says so instead of returning an empty list.</p>
-        </li>
-        <li class="oo-verdict" data-state="partial">
-          <span class="oo-state">Yes, with the limit stated</span>
-          <p><strong>An empty result is not an all-clear, and the tool says so itself.</strong>
-            The comparison is the producer&rsquo;s own pair of archived runs, not the window you asked
-            about — and it publishes no date for the older of the two, so how far back it reaches
-            cannot be established from the response. A tool that answered &ldquo;nothing started
-            charging&rdquo; against an unknown window would be doing the exact thing this page says it
-            prevents.</p>
-          <p class="oo-measured">Shipped in 0.4.0. The report carries the date of the newest state it
-            examined <em>when the producer publishes one</em> — and <code>null</code> when it does not,
-            rather than a guess — states coverage as <code>incomplete</code> or
-            <code>indeterminate</code> and never as complete, and a successful report&rsquo;s status is
-            always <code>partial</code> rather than <code>ok</code>. Measured against production 2026-08-27, asking about 2026-08-18 onward:
-            <em>&ldquo;Price movement could not be shown to cover 2026-08-18 to 2026-08-25, so this is
-            not an all-clear on models that started charging.&rdquo;</em> It also refuses to state an
-            exact count from a paginated page it only partly read, and refuses to rule the transition
-            out from one.</p>
-        </li>
-        <li class="oo-verdict" data-state="no">
-          <span class="oo-state">Not yet</span>
-          <p class="oo-claim">“Automates switching to the correct model.”</p>
-          <p><strong>The server never switches anything.</strong> All nine tools are read-only by construction — there
-            is no code path that writes a config, changes a route, or mints a key. It is the <em>input</em> to
-            automation: an agent holding this answer can switch, and that is the intended shape. But the switching lives
-            in the agent, not here.</p>
-        </li>
-      </ul>
-
-      <h2>What each provider actually publishes</h2>
-      <p>The four catalogues disagree about nearly everything, and normalising that is most of the work. Every gap
-        below is declared per provider, so a missing value is reported as <em>that provider withheld it</em> rather than
-        appearing as a blank you might read as zero.</p>
-      <div class="oo-scroll">
-        <table>
-          <caption class="oo-measured">Measured against the live API, 2026-08-27.</caption>
-          <thead>
-            <tr><th scope="col">Provider</th><th scope="col">Models</th><th scope="col">With prices</th><th scope="col">Context</th><th scope="col">Modality</th><th scope="col">Deprecation signal</th><th scope="col">Spend API</th></tr>
-          </thead>
+    <section class="mcp-section" id="coverage">
+      <h2>Current provider shape</h2>
+      <p class="mcp-section-lede">The registry intentionally preserves asymmetry. “Not published” means the provider did not give the field to the source; it never means zero or free.</p>
+      <div class="mcp-table-scroll">
+        <table class="mcp-table">
+          <caption>Package README snapshot checked 2026-09-04. OpenRouter, Groq and Cerebras rows measured 2026-08-27; Sail measured 2026-09-04.</caption>
+          <thead><tr><th scope="col">Provider</th><th scope="col">Catalogue</th><th scope="col">Pricing</th><th scope="col">Context / modality</th><th scope="col">Lifecycle / spend</th></tr></thead>
           <tbody>
-            <tr><th scope="row">OpenRouter</th><td>562</td><td>417</td><td>yes</td><td>yes</td><td>yes</td><td>yes</td></tr>
-            <tr><th scope="row">Groq</th><td>13</td><td>6</td><td>yes</td><td>yes</td><td><strong>no</strong></td><td><strong>no</strong></td></tr>
-            <tr><th scope="row">Cerebras</th><td>2</td><td><strong>0</strong></td><td><strong>no</strong></td><td><strong>no</strong></td><td><strong>no</strong></td><td><strong>no</strong></td></tr>
-            <tr><th scope="row">Sail</th><td>9</td><td>9</td><td><strong>no</strong></td><td><strong>no</strong></td><td><strong>no</strong></td><td><strong>no</strong></td></tr>
+            <tr><th scope="row">OpenRouter</th><td>560+</td><td>Most models</td><td>Yes / yes</td><td>Yes / billing API</td></tr>
+            <tr><th scope="row">Groq</th><td>13</td><td>Some models</td><td>Yes / yes</td><td>No / no billing API</td></tr>
+            <tr><th scope="row">Cerebras</th><td>2</td><td class="mcp-muted">Not published</td><td class="mcp-muted">No / no</td><td class="mcp-muted">No / no billing API</td></tr>
+            <tr><th scope="row">Sail</th><td>10</td><td>SHA-256-pinned document</td><td class="mcp-muted">No / no</td><td class="mcp-muted">No / no billing API</td></tr>
           </tbody>
         </table>
       </div>
-      <p>Three rules follow from that table, and the server enforces all three:</p>
-      <ul>
-        <li><strong>An unpriced model is cost-unknown, never free.</strong> It keeps its place in the answer, after the
-          ranked rows, with a stated reason — otherwise “cheapest across everything” quietly means “cheapest among the
-          rows that happened to carry a number”.</li>
-        <li><strong>No deprecation signal is not the same as no risk.</strong> Groq and Cerebras publish none, so their
-          models report <em>unforeseeable</em> rather than a reassuring <em>none</em>. For those two, a model vanishing
-          is the only retirement notice there ever is.</li>
-        <li><strong>Stale data announces itself.</strong> When one provider's catalogue was last confirmed days before
-          another's, the answer says so instead of presenting a mixed-age comparison as current.</li>
+      <p class="mcp-inline-note">Sail’s catalogue publishes model ids, not programmatic prices. The server parses <code>pricing.md</code> only when its digest matches the pin, and carries the completion window (<code>asap</code>, <code>balanced</code> or <code>flex</code>) with each price.</p>
+    </section>
+
+    <section class="mcp-section" id="freshness">
+      <h2>Freshness is part of the answer</h2>
+      <p class="mcp-section-lede">The server reads the public zero-credential API at query time. The default host is a hobby-tier deployment with no uptime guarantee, so failure and age are returned as structured state.</p>
+      <div class="mcp-freshness-grid">
+        <article class="mcp-card"><span class="mcp-badge">Live</span><h3>Read now</h3><p>Use <code>cache: { "ttlMs": 0 }</code>, or disable the cache with <code>cache: false</code> when the question needs a fresh upstream read.</p></article>
+        <article class="mcp-card"><span class="mcp-badge">Cached</span><h3>Fast repeat</h3><p>The default cache TTL is five minutes. Each evidence item includes <code>fetchedAt</code>, <code>ageSeconds</code> and <code>expiresAt</code>.</p></article>
+        <article class="mcp-card"><span class="mcp-badge">Expired</span><h3>Last known, marked</h3><p>If the upstream is unreachable but an older value exists, it is returned as expired with a note. With no value, the tool says unavailable.</p></article>
+      </div>
+      <p class="mcp-inline-note">Point the server at a compatible deployment with <code>DASHBOARD_BASE_URL</code>. It never silently substitutes a number whose freshness or provenance it cannot establish.</p>
+    </section>
+
+    <section class="mcp-section" id="evidence-notes">
+      <h2>Three sharp edges, made visible</h2>
+      <p class="mcp-section-lede">These are the details most likely to be flattened into a misleading “cheapest” or “nothing changed” answer. The package keeps them attached to the evidence.</p>
+      <div class="mcp-fact-grid">
+        <article class="mcp-card"><span class="mcp-badge">Discounts</span><h3>Endpoint fact, not model fact</h3><p>Measured 2026-08-19: 0 of 550 OpenRouter model rows exposed a discount, while 272 of 272 provider endpoints did. No expiry is published, so <code>expiresAt</code> stays <code>null</code>.</p></article>
+        <article class="mcp-card"><span class="mcp-badge">Change detection</span><h3>Empty is not all-clear</h3><p><code>dashboard_whats_changed</code> compares the two latest archived runs. Price movement and “stopped being free” stay in their own bucket, and successful coverage remains <code>partial</code> when the span cannot be established.</p></article>
+        <article class="mcp-card"><span class="mcp-badge">Sail</span><h3>The document is the evidence</h3><p>Sail prices come from a SHA-256-pinned <code>pricing.md</code>, not an API. If the digest moves, prices go quiet until the pin is reconciled; <code>asap</code>, <code>balanced</code> and <code>flex</code> remain distinct windows.</p></article>
+      </div>
+    </section>
+
+    <section class="mcp-section" id="boundaries">
+      <h2>Boundaries worth keeping</h2>
+      <div class="mcp-boundary-grid">
+        <article class="mcp-card"><h3>Unknown ≠ free</h3><p>Unpriced models stay in the response as cost-unknown. A concrete zero price, a free router tier and an absent price are three different states.</p></article>
+        <article class="mcp-card"><h3>No signal ≠ no risk</h3><p>Groq, Cerebras and Sail do not publish the same lifecycle evidence as OpenRouter. The server reports that absence instead of calling it safe.</p></article>
+        <article class="mcp-card"><h3>GitHub time is collection time</h3><p>Trending data carries the origin collection timestamp, the path that served it and whether it has crossed the six-hour staleness boundary.</p></article>
+        <article class="mcp-card"><h3>Read-only by construction</h3><p>The server does not switch models, write configuration, mint credentials or rotate keys. An agent may use the evidence to make a decision; the server does not make the change.</p></article>
+      </div>
+    </section>
+
+    <section class="mcp-section" id="matrix-note">
+      <h2>The matrix has its own boundary</h2>
+      <p class="mcp-section-lede">The site’s <a href="/web/open-dashboard/matrix/index.html">Matrix page</a> visualizes the same <code>latest-complete</code> app-model evidence used by <code>dashboard_usage_leaders</code>. It is a top-10 slice for one published period, not a complete app census or a causal attribution.</p>
+      <p class="mcp-inline-note">When the source returns <code>collection_disabled</code> or another unavailable state, the page keeps that reason visible. Archived fixture data is explicitly labelled as a snapshot and is never mixed with live rows.</p>
+    </section>
+
+    <section class="mcp-section" id="limits">
+      <h2>Not in this release</h2>
+      <div class="mcp-boundary-grid">
+        <article class="mcp-card"><h3>Automated switching</h3><p>Deliberately outside the server. The intended writer is the agent or your own deployment configuration.</p></article>
+        <article class="mcp-card"><h3>Task-quality fitness</h3><p>Structural constraints are available; actual “good enough for this task” quality is not modelled.</p></article>
+        <article class="mcp-card"><h3>Long price history</h3><p>Change detection compares the two most recent archived runs. A longer, fully dated history remains future work.</p></article>
+      </div>
+    </section>
+
+    <section class="mcp-section" id="sources">
+      <h2>Package and source links</h2>
+      <ul class="mcp-link-list">
+        <li>Package and release notes: <a href="https://www.npmjs.com/package/open-dashboard-mcp">npmjs.com/package/open-dashboard-mcp</a></li>
+        <li>Read-only API host: <a href="https://openrouter-github-dashboard.vercel.app">openrouter-github-dashboard.vercel.app</a></li>
+        <li>Sail pricing document: <a href="https://docs.sailresearch.com/pricing.md">docs.sailresearch.com/pricing.md</a></li>
+        <li>GitHub trending source: <a href="https://github.com/trending">github.com/trending</a></li>
       </ul>
-
-      <h2>What it can tell you that one provider cannot</h2>
-      <p>The same model, on the same day, across two providers:</p>
-      <pre class="oo-code"><code>openrouter  openai/gpt-oss-120b   in $0.037/M   out $0.17/M
-groq        openai/gpt-oss-120b   in $0.150/M   out $0.60/M</code></pre>
-      <p class="oo-measured">Measured 2026-08-27. Four times cheaper on one provider than the other, for the identical
-        model — the comparison a single-vendor tool cannot make.</p>
-
-      
-      <h2 id="sail">Sail, and why a price carries its window</h2>
-      <p>Sail publishes no prices programmatically. There is no catalogue endpoint to read, only a
-        pricing document written for people &mdash; so the server reads that document, pins it by
-        <strong>sha256</strong>, and parses the billing windows out of it.</p>
-      <p><strong>The pin is the feature, not a detail.</strong> When the document&rsquo;s digest does not match
-        the pinned value, every Sail model is dropped from the answer and the response says
-        <code>PRICES ARE STALE</code> and names the mismatch. It never falls back to prices it cannot
-        vouch for. A router quoting a stale price is worse than one that returns nothing, because the
-        caller cannot tell the difference.</p>
-      <p>Sail prices the same model differently by <strong>completion window</strong> &mdash; <code>asap</code>,
-        <code>balanced</code> and <code>flex</code> &mdash; so the window is part of the price rather than a
-        note about it. Two rows can carry identical numbers and require different settings to obtain,
-        and a caller who omits the setting pays the ASAP rate. Every Sail row therefore carries
-        <code>pricingWindow</code> naming the window its price came from, and
-        <code>latencyTolerance</code> is an input to the query.</p>
-      <div class="oo-scroll">
-        <table>
-          <caption class="oo-measured">Measured from the pinned pricing document, 2026-09-03.</caption>
-          <thead>
-            <tr><th scope="col">Sail models with prices</th><th scope="col">All three windows</th><th scope="col">Fewer windows</th></tr>
-          </thead>
-          <tbody>
-            <tr><td>9</td><td>4</td><td>5</td></tr>
-          </tbody>
-        </table>
-      </div>
-      <p>Five of the nine publish only one or two windows, so what you asked for is not always what is
-        available. The rule is <em>never slower than you asked for</em>: a <code>flex</code> request will
-        accept a <code>balanced</code> or <code>asap</code> price if that is all the model publishes, and
-        <code>pricingWindow</code> says which one you got. An <code>asap</code> request is the strict case
-        &mdash; a model that publishes only <code>flex</code> is left out of the answer rather than quoted
-        at a price you could not obtain at that latency.</p>
-
-      <h2 id="roadmap">Roadmap — not built yet</h2>
-      <div class="oo-roadmap">
-        <h3>Longer price history</h3>
-        <p>Free-to-paid detection shipped in 0.2.0, and it compares the two most recent collection runs — so it answers &ldquo;did anything change since the last collection&rdquo;, not &ldquo;what has this model cost over the past month&rdquo;. 0.4.0 made that limit explicit in every answer rather than leaving it to be discovered, which is the honest version of the gap but not a closing of it. The archive retains a price observation per model per run, so a longer window — and the run dates that would let coverage actually be established — are a read away rather than new collection.</p>
-        <h3>Automated switching</h3>
-        <p>Deliberately out of scope for the server, which stays read-only so it can ship inside a distributed
-          application without carrying a credential. The intended path is an agent that reads from here and writes to
-          your own configuration — not a server that reaches into it.</p>
-        <h3>Task-quality fitness</h3>
-        <p>“Satisfies the criteria for the task” is currently as good as the criteria you can state: modality, context,
-          tools, reasoning, availability. Whether a model is actually <em>good enough</em> at your task is not modelled,
-          and a cheap model that passes every structural filter can still be the wrong choice.</p>
-      </div>
-
-      <h2>Licence and source</h2>
-      <p>MIT licensed. The package is published at
-        <a href="https://www.npmjs.com/package/open-dashboard-mcp">npmjs.com/package/open-dashboard-mcp</a>,
-        and the server reads a public, zero-credential API; point it elsewhere with
-        <code>DASHBOARD_BASE_URL</code>.</p>
-      <p class="oo-measured">The repository is not public yet, so there is no source link to give you.
-        Its history carries infrastructure names that have to come out before it can be opened, and deleting a
-        file does not remove it from the commits behind it. Saying &ldquo;open source&rdquo; over a link that
-        404s would be the same kind of claim this page spends the rest of its length refusing to make.</p>
+      <p class="mcp-inline-note">The package is MIT licensed. The public data server is read-only; optional key inventory remains dormant unless <code>OPEN_DASHBOARD_KEY_SOURCES</code> is configured.</p>
     </section>
   </main>
   <script type="module" data-forest-runtime="motion" src="/web/shared/forest-runtime-boot.mjs?v=20260807a"></script>
