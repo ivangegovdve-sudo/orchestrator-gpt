@@ -525,10 +525,18 @@ export function renderTaskFitness(view, catalogue) {
   intro.textContent = "What people actually route to for each task, from observed usage. This is revealed preference, not a quality verdict: nothing here scores a model or claims one is good enough. Usage share is the source's own; price and context are joined from the published catalogue.";
   wrap.appendChild(intro);
   const quality = document.createElement("p"); quality.className = "oo-region-meta oo-catalogue-unpublished";
-  quality.textContent = datasetState(view, "benchmarks") === "ready"
-    ? "Benchmark evidence is available and shown separately; it is deliberately not folded into a single fitness score."
-    : "No benchmark evidence is available right now, so no quality term exists and none is invented. The ranking below is by observed usage only.";
+  // This view does not request /benchmarks, so it cannot claim the evidence is
+  // unavailable -- that would be asserting an absence it never observed, which
+  // is the same error as reporting a failure as a finding.
+  quality.textContent = datasetState(view, "benchmarks") === "failed"
+    ? "The benchmark request failed on this view, so no quality term is shown and none is invented. The ranking below is by observed usage only."
+    : "No quality score is computed here and none is invented. Benchmark evidence is not loaded on this view -- see the Benchmarks tab for it. The ranking below is by observed usage only.";
   wrap.appendChild(quality);
+  if (!catalogue.complete) {
+    const partial = document.createElement("p"); partial.className = "oo-region-meta oo-catalogue-unpublished";
+    partial.textContent = `The model catalogue was only partly read (${catalogue.size} entries), so price and context are joined against an incomplete set. Rows shown as unmatched below may simply be on a page that was not read. This is a failure of the join, not a statement about the source.`;
+    wrap.appendChild(partial);
+  }
   const tasks = envelopeRows(view, "tasks").slice().sort((left, right) => Number(right.usageShare) - Number(left.usageShare));
   const asOf = view.responses.tasks?.provenance?.[0]?.sourceAsOf ?? null;
   for (const task of tasks) {
@@ -554,7 +562,9 @@ export function renderTaskFitness(view, catalogue) {
       const join = document.createElement("p"); join.className = "oo-region-meta oo-catalogue-unpublished";
       const parts = [];
       if (substituted) parts.push(`${substituted} priced via an undated catalogue entry, because the task names a date-pinned build the catalogue does not list \u2014 that price belongs to the undated entry, not to the pinned build`);
-      if (unresolved) parts.push(`${unresolved} absent from the published catalogue, so no price or context is shown`);
+      if (unresolved) parts.push(catalogue.complete
+        ? `${unresolved} absent from the published catalogue, so no price or context is shown`
+        : `${unresolved} unmatched, but the catalogue was only partly read, so this is an incomplete join and NOT evidence the models are absent`);
       join.textContent = `Join: ${parts.join("; ")}.`;
       region.appendChild(join);
     }
@@ -567,7 +577,7 @@ export function renderTaskFitness(view, catalogue) {
         { label: "Tokens", value: (row) => percent(row.tokenShare), exact: (row) => row.tokenShare },
         { label: "Prompt $/tok", value: (row) => row.promptPrice === null ? "\u2014" : row.promptPrice },
         { label: "Context", value: (row) => row.contextLength === null ? "\u2014" : compactIntegerString(row.contextLength), exact: (row) => row.contextLength },
-        { label: "Matched", value: (row) => row.match === "exact" ? "exact" : row.match === "undated" ? `via ${row.via}` : "not in catalogue" }
+        { label: "Matched", value: (row) => row.match === "exact" ? "exact" : row.match === "undated" ? `via ${row.via}` : catalogue.complete ? "not in catalogue" : "join incomplete" }
       ]
     }));
     wrap.appendChild(region);
@@ -712,17 +722,21 @@ export async function bootOpenDashboard({ fetchImpl = globalThis.fetch.bind(glob
       if (state.view === "tasks") {
         const pages = [];
         let cursor = null;
+        let complete = false;
         for (let page = 0; page < MAX_CATALOGUE_PAGES; page += 1) {
-          let loaded;
+          let loaded = null;
           try { loaded = await client.loadView([{ key: `catalogue:page:${page}`, path: ENDPOINTS.liveModels("openrouter", cursor), kind: "liveModels", optional: true }], view.mode === "snapshot" ? {} : { manifest: view.manifest }); }
           catch { break; }
           const response = loaded.responses[`catalogue:page:${page}`];
+          // A missing page is a FAILED read, not the end of the catalogue.
           if (!response) break;
           pages.push(response);
           cursor = response.cursor;
-          if (!cursor) break;
+          // Only a null cursor means we reached the end. Running out of page
+          // budget with a cursor still in hand does not.
+          if (!cursor) { complete = true; break; }
         }
-        catalogue = buildModelCatalogue(pages);
+        catalogue = buildModelCatalogue(pages, { complete });
       }
       if (state.view === "app-to-model") {
         try { view = mergeCompatibleViews(view, await client.loadView([{ key: "harnesses", path: ENDPOINTS.githubRepositories("ai-harnesses", 25), kind: "githubRepositories", optional: true }], view.mode === "snapshot" ? {} : { manifest: view.manifest })); }

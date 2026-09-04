@@ -117,7 +117,12 @@ export function resolveTaskModel(id, catalogue) {
   return Object.freeze({ match: "unresolved", row: null, via: null });
 }
 
-export function buildModelCatalogue(responses) {
+// `complete` says whether every page of the catalogue was actually read. A
+// partial catalogue makes models look absent that are merely on a page we never
+// got, so the flag travels with the data and the view reports an incomplete
+// JOIN rather than an absent MODEL. A failure must never be rendered as a
+// finding about the source.
+export function buildModelCatalogue(responses, { complete = true } = {}) {
   const exact = new Map();
   const undated = new Map();
   for (const response of responses) {
@@ -127,7 +132,7 @@ export function buildModelCatalogue(responses) {
       if (!undated.has(key)) undated.set(key, row);
     }
   }
-  return Object.freeze({ exact, undated, size: exact.size });
+  return Object.freeze({ exact, undated, size: exact.size, complete });
 }
 
 export function topAppModelRequests(appsResponse) {

@@ -424,6 +424,7 @@ export function validateGitHubRepositories(raw, expectedMajor = "2") {
   });
   const page = strictRecord(row.page, ["limit", "nextCursor"], "page");
   if (!Number.isInteger(page.limit) || page.limit < 1 || page.limit > 100 || (page.nextCursor !== null && typeof page.nextCursor !== "string")) fail("invalid_contract", "repositories page is invalid");
+  if (page.nextCursor !== null) string(page.nextCursor, "repositories.page.nextCursor", 2048);
   if (!Array.isArray(row.provenance) || row.provenance.length > MAX_PROVENANCE_ROWS) fail("invalid_contract", "repositories provenance is not bounded");
   const provenance = row.provenance.map((item, index) => {
     const value = openRecord(item, ["id", "sourceUrl", "fetchedAt", "payloadSha256"], `repositories.provenance[${index}]`);
