@@ -91,11 +91,31 @@ const readTag = (html, at) => {
   return tag;
 };
 
+// Constructs the scanner does not model. Five rounds of review each turned up
+// another tokenizer rule it had got wrong, which is what re-deriving an HTML
+// parser by adversarial iteration looks like -- it has no natural end, and every
+// miss was a SILENT false pass on the exact thing the guard exists to catch.
+//
+// So the guard fails closed instead. When a page uses one of these, the scanner
+// stops claiming to know the answer and the test reports the page for a human to
+// check. An unmodelled construct can then cost a minute of someone's attention;
+// it can no longer cost a missing title on a published page.
+//
+// Refusals fire only while no title has been found yet -- see the check itself.
+// One page in web/ does use an SVG <desc>, several hundred lines after its own
+// <title>, which is exactly the case that must NOT be refused.
+const UNMODELLED = {
+  plaintext: "<plaintext> turns the rest of the document into text",
+  foreignobject: "<foreignObject> is an HTML integration point: HTML parsing resumes inside it",
+  "annotation-xml": "<annotation-xml> may be an HTML integration point depending on its encoding",
+};
+
 const scan = (html) => {
   let i = 0;
   let inert = 0;
   let title = null;
   let redirect = false;
+  const unmodelled = new Set();
   while (i < html.length) {
     const lt = html.indexOf("<", i);
     if (lt === -1) break;
@@ -105,8 +125,12 @@ const scan = (html) => {
       // swallows the rest of the document, so a real title after one is lost.
       if (html.startsWith("<!-->", lt)) { i = lt + 5; continue; }
       if (html.startsWith("<!--->", lt)) { i = lt + 6; continue; }
-      const end = html.indexOf("-->", lt + 4);
-      i = end === -1 ? html.length : end + 3;
+      // "--!>" closes a comment too (comment-end-bang), so take whichever
+      // terminator comes first rather than only looking for "-->".
+      const plain = html.indexOf("-->", lt + 4);
+      const bang = html.indexOf("--!>", lt + 4);
+      const end = plain === -1 ? bang : bang === -1 ? plain : Math.min(plain, bang);
+      i = end === -1 ? html.length : end + (end === bang ? 4 : 3);
       continue;
     }
     if (html.startsWith("<![CDATA[", lt)) {
@@ -127,6 +151,23 @@ const scan = (html) => {
     if (!tag) { i = lt + 1; continue; }
     i = tag.end;
 
+    // Refusals fire only while no title has been found yet. The first title in
+    // the document wins, so a construct appearing after one cannot change the
+    // answer -- and web/chair-or-ladder/index.html really does carry an SVG
+    // <desc>, 400 lines below its own <title>. Refusing that page would have
+    // been a false alarm on the only page in the tree that trips this at all.
+    if (title === null && !tag.closing) {
+      if (UNMODELLED[tag.name]) {
+        unmodelled.add(UNMODELLED[tag.name]);
+        break;
+      }
+      // <desc> is an integration point only inside foreign content; as an HTML
+      // element name it is meaningless and harmless.
+      if (tag.name === "desc" && inert > 0) {
+        unmodelled.add("<desc> inside foreign content is an HTML integration point");
+        break;
+      }
+    }
     if (RAW_TEXT.has(tag.name) && !tag.closing) {
       // selfClosing is deliberately NOT consulted: HTML ignores the slash on
       // <script/>, so the element stays open and everything up to </script>
@@ -135,7 +176,7 @@ const scan = (html) => {
       // The end tag may also carry attributes -- "</script foo>" is a parse
       // error that the tokenizer still emits as an end tag, so it has to close
       // the element here too, or a real title after it is never seen.
-      const close = new RegExp(`</${tag.name}(?:\\s[^>]*)?>`, "i").exec(html.slice(i));
+      const close = new RegExp(`</${tag.name}(?:[\\s/][^>]*)?>`, "i").exec(html.slice(i));
       i = close ? i + close.index + close[0].length : html.length;
       continue;
     }
@@ -153,7 +194,7 @@ const scan = (html) => {
       // the tokenizer still emits as an end tag, so it closes the element. Only
       // the raw-text branch was fixed for this at first, which left
       // "<title></title foo>" reading as titled when the browser gives none.
-      const close = /<\/title(?:\s[^>]*)?>/i.exec(html.slice(i));
+      const close = /<\/title(?:[\s/][^>]*)?>/i.exec(html.slice(i));
       title = (close ? html.slice(i, i + close.index) : html.slice(i)).trim();
       continue;
     }
@@ -161,7 +202,14 @@ const scan = (html) => {
       redirect = true;
     }
   }
-  return { title: title || null, redirect };
+  // Character references are not decoded, so a title made only of them cannot be
+  // judged: "&nbsp;" reads as six visible characters here and as an empty title
+  // in a browser. Anything with other text in it is non-empty whatever the
+  // entities decode to, so only the entities-and-whitespace case is unknown.
+  if (title && /&[#a-zA-Z0-9]+;/.test(title) && title.replace(/&[#a-zA-Z0-9]+;/g, "").trim() === "") {
+    unmodelled.add("the title is made only of character references, which this guard does not decode");
+  }
+  return { title: title || null, redirect, unmodelled: [...unmodelled] };
 };
 
 const pages = [];
@@ -183,11 +231,19 @@ test("every web page has a non-empty document <title>", () => {
   assert.ok(pages.length > 40, `expected to walk the site's pages, found ${pages.length}`);
   const problems = [];
   for (const file of pages) {
-    const { title, redirect } = scan(fs.readFileSync(file, "utf8"));
+    const rel = path.relative(ROOT, file).replace(/\\/g, "/");
+    const { title, redirect, unmodelled } = scan(fs.readFileSync(file, "utf8"));
+    // Reported before the title check, and regardless of it: if the page uses
+    // markup outside the modelled subset, whatever the scanner found is not
+    // trustworthy either way.
+    if (unmodelled.length > 0) {
+      problems.push(`${rel} -- open it in a browser and check its title by hand: ${unmodelled.join("; ")}`);
+      continue;
+    }
     if (redirect) continue;
-    if (!title) problems.push(path.relative(ROOT, file).replace(/\\/g, "/"));
+    if (!title) problems.push(`${rel} -- no document <title>`);
   }
-  assert.deepEqual(problems, [], `pages missing a document <title>:\n  ${problems.join("\n  ")}`);
+  assert.deepEqual(problems, [], `\n  ${problems.join("\n  ")}\n`);
 });
 
 test("the published MCP homepage keeps its title and its path", () => {
@@ -265,17 +321,71 @@ const PARSER_CASES = [
   [`<HTML><HEAD><TITLE>Upper</TITLE></HEAD><BODY>x</BODY></HTML>`, "Upper", "uppercase tags"],
   [`<body><p>x</p><title>Late</title></body>`, "Late", "a title after <body> is still the document title"],
   [`<head><title>First</title><title>Second</title></head><body>x</body>`, "First", "the first title wins"],
+  [`<!-- c --!><title>Real</title>`, "Real", "--!> closes a comment too"],
+  [`<head><script>var x=1;</script/><title>Real</title></head><body>y</body>`, "Real", "end tag with a slash still closes"],
+  [`<head><title>Real</title/></head><body>y</body>`, "Real", "same, on the title end tag"],
+  [`<head><template><svg><title>t</title></svg></template><title>Real</title></head><body>x</body>`, "Real", "svg nested inside template"],
+  [`<!DOCTYPE html [ <!ENTITY x "y"> ]><title>Real</title>`, "Real", "doctype with an internal subset containing >"],
+];
+
+// Character references are not decoded, so the scanner's title TEXT differs from
+// the browser's here. Both still read as "titled", which is the only thing the
+// guard decides, so this is a known and bounded gap rather than a defect -- and
+// the entity-ONLY case, where the decision itself would differ, is refused
+// instead (see FLAGGED_CASES).
+const UNDECODED_ENTITY_CASES = [
+  [`<head><title>A&amp;B</title></head><body>x</body>`, "A&amp;B", "A&B"],
+  [`<head><title>&#82;eal</title></head><body>x</body>`, "&#82;eal", "Real"],
+];
+
+// These are the cases the scanner deliberately REFUSES rather than models. The
+// browser's answer is recorded next to each one to show what is being given up:
+// in every one of them the scanner would otherwise have been silently wrong.
+const FLAGGED_CASES = [
+  [`<body><plaintext><title>pt</title>`, null, "plaintext: browser has no title, scanner would say 'pt'"],
+  [`<head><plaintext></head><body><title>Real</title>`, null, "plaintext: browser has no title, scanner would say 'Real'"],
+  [`<body><svg><foreignObject><title>Real</title></foreignObject></svg></body>`, "Real", "foreignObject: browser titles it, scanner would say none"],
+  [`<body><svg><desc><title>d</title></desc></svg></body>`, "d", "desc: browser titles it, scanner would say none"],
+  [`<body><math><annotation-xml encoding="text/html"><title>ax</title></annotation-xml></math></body>`, "ax", "annotation-xml: browser titles it, scanner would say none"],
+  [`<head><title>&nbsp;</title></head><body>x</body>`, null, "entity-only title: browser trims it to empty, scanner would say '&nbsp;'"],
+  [`<body><svg><foreignObject><p>x</p></foreignObject><title>icon</title></svg></body>`, null, "foreignObject with no title inside: the scanner cannot tell that from one that has"],
 ];
 
 test("the scanner agrees with a real browser parser on every measured case", () => {
   const disagreements = [];
   for (const [html, expected, why] of PARSER_CASES) {
-    const actual = scan(html).title;
-    if (actual !== expected) {
-      disagreements.push(`${why}\n    document: ${html}\n    scanner:  ${JSON.stringify(actual)}\n    browser:  ${JSON.stringify(expected)}`);
+    const { title, unmodelled } = scan(html);
+    if (unmodelled.length > 0) {
+      disagreements.push(`${why}\n    this case should be modelled, but the scanner refused it: ${unmodelled.join("; ")}`);
+    } else if (title !== expected) {
+      disagreements.push(`${why}\n    document: ${html}\n    scanner:  ${JSON.stringify(title)}\n    browser:  ${JSON.stringify(expected)}`);
     }
   }
-  assert.deepEqual(disagreements, [], `scanner diverged from the browser on:\n  ${disagreements.join("\n  ")}`);
+  assert.deepEqual(disagreements, [], `scanner diverged from the browser on:\n  ${disagreements.join("\n  ")}\n`);
+});
+
+test("undecoded character references change the title text but never the verdict", () => {
+  for (const [html, scannerText, browserText] of UNDECODED_ENTITY_CASES) {
+    const { title, unmodelled } = scan(html);
+    assert.deepEqual(unmodelled, [], `${html} should be answered, not refused`);
+    assert.equal(title, scannerText, `scanner text changed for ${html}`);
+    assert.ok(
+      Boolean(title) === Boolean(browserText),
+      `the titled/untitled verdict now differs from the browser for ${html}: ` +
+        `scanner ${JSON.stringify(title)}, browser ${JSON.stringify(browserText)}`,
+    );
+  }
+});
+
+test("the scanner refuses the cases it cannot model rather than guessing", () => {
+  const guessed = [];
+  for (const [html, browserTitle, why] of FLAGGED_CASES) {
+    const { unmodelled } = scan(html);
+    if (unmodelled.length === 0) {
+      guessed.push(`${why}\n    document: ${html}\n    browser:  ${JSON.stringify(browserTitle)}\n    the scanner answered instead of refusing, so this case is now silently wrong`);
+    }
+  }
+  assert.deepEqual(guessed, [], `\n  ${guessed.join("\n  ")}\n`);
 });
 
 module.exports = { scan };
