@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" class="forest-skin">
   <head>
 <meta charset="UTF-8" />
 <link rel="icon" href="/web/shared/favicon.svg?v=20260807a" type="image/svg+xml">
@@ -155,20 +155,13 @@
   ]
 }
 </script>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="color-scheme" content="dark" />
-    <title>Avatar Playground</title>
-    <!-- Absolute, not "./assets/...": a visit to /web/avatar-playground (no
-         trailing slash) resolves relative paths against /web/, so every bundle
-         404s and the page renders blank. Matches rubiks-teacher's pattern. -->
-    <script type="module" crossorigin src="/web/avatar-playground/assets/index-QZlLhv9d.js"></script>
-    <link rel="modulepreload" crossorigin href="/web/avatar-playground/assets/three-PrYIpVMW.js">
-    <link rel="modulepreload" crossorigin href="/web/avatar-playground/assets/lottie-D_akyxJo.js">
-    <link rel="modulepreload" crossorigin href="/web/avatar-playground/assets/gsap-SFc2wnMY.js">
-    <link rel="modulepreload" crossorigin href="/web/avatar-playground/assets/anime-BNELU3II.js">
-    <link rel="stylesheet" href="/web/shared/forest-design.css?v=20260807a">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="dark">
+    <meta name="description" content="Avatar Playground — Chloé's dot-cloud avatar on a stage: every state, expression, symbol and rule one click away, driven by real sound and her own voice.">
+    <meta name="theme-color" content="#07070b">
+    <title>Avatar Playground — SDForest</title>
     <link rel="stylesheet" href="/web/shared/forest-shell.css?v=20260807a">
-    <link rel="stylesheet" crossorigin href="/web/avatar-playground/assets/index-F47g0wHp.css">
+    <link rel="stylesheet" href="/web/shared/forest-design.css?v=20260807a">
     <style>
       :root {
         --bg: #07070b;
@@ -180,122 +173,406 @@
         --accent-green: #22c55e;
         --radius: 8px;
         --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      }
-
-      .preview-bg {
-        transition: background var(--duration-recovery) var(--ease-out);
-      }
-
-      .preview-badge {
-        transition: border-color var(--duration-normal) var(--ease-out);
-      }
-
-      .state-btn {
-        transition:
-          border-color var(--duration-fast) var(--ease-out),
-          color var(--duration-fast) var(--ease-out);
-      }
-
-      @media (max-width: 760px) {
-        html,
-        body,
-        #root {
-          min-height: 100%;
-          height: auto;
-        }
-
-        .app {
-          min-height: 100dvh;
-          height: auto;
-        }
-
-        .topbar {
-          min-height: 54px;
-          height: auto;
-          padding: 8px 12px;
-          flex-wrap: wrap;
-        }
-
-        .topbar-sub {
-          flex-basis: 100%;
-          padding-left: 22px;
-        }
-
-        .columns {
-          display: flex;
-          flex-direction: column;
-          min-height: 0;
-        }
-
-        .panel {
-          overflow: visible;
-        }
-
-        .left,
-        .right {
-          border: 0;
-          border-bottom: 1px solid var(--border);
-        }
-
-        .lib-list {
-          display: grid;
-          grid-auto-flow: column;
-          grid-auto-columns: minmax(160px, 72vw);
-          overflow-x: auto;
-          overscroll-behavior-inline: contain;
-          scroll-snap-type: inline proximity;
-          padding-bottom: 10px;
-        }
-
-        .lib-item {
-          min-height: 56px;
-          scroll-snap-align: start;
-        }
-
-        .param-list {
-          display: grid;
-          grid-template-columns: repeat(2, minmax(0, 1fr));
-        }
-
-        .center {
-          min-height: 430px;
-          height: 62dvh;
-        }
-
-        .right {
-          min-height: 440px;
-        }
-
-        .audio-btn,
-        .state-btn,
-        .btn,
-        .lib-item {
-          min-height: 44px;
-        }
-      }
-
-      @media (max-width: 420px) {
-        .param-list {
-          grid-template-columns: 1fr;
-        }
-
-        .state-bar {
-          width: calc(100% - 24px);
-          justify-content: center;
-        }
-
-        .state-btn {
-          flex: 1;
-          padding-inline: 10px;
-        }
+        /* The hub card for this route is periwinkle; the page keeps it. */
+        --forest-accent: #a5b4fc;
+        --forest-accent-rgb: 165, 180, 252;
       }
     </style>
+    <link rel="stylesheet" href="/web/avatar-playground/avatar-playground.css?v=20260905a">
     <link rel="stylesheet" href="/web/shared/design-history.css?v=20260807a">
   </head>
-  <body data-forest-page="avatar" data-forest-ambient-overlay="true">
-    <a class="forest-back" href="/">← SDForest</a>
-    <div id="root"></div>
+  <!-- data-forest-scene-owner="route": the shared runtime must not spawn its
+       ambient WebGL scene here. The avatar is the one canvas on this page. -->
+  <body data-forest-page="avatar" data-forest-scene-owner="route">
+    <div class="forest-scrim" aria-hidden="true"></div>
+    <nav class="forest-topbar" aria-label="Avatar Playground navigation">
+      <a class="forest-back" href="/">← SDForest</a>
+      <a class="forest-top-action" href="/web/voice-playground/">Voice Playground →</a>
+    </nav>
+
+    <main class="forest-page ap-page">
+      <header class="ap-hero">
+        <p class="forest-kicker">Chloé’s avatar · behaviour lab</p>
+        <h1 class="forest-title">Avatar Playground</h1>
+        <p class="forest-lede">Chloé is a cloud of dots joined by a shifting web — not a face, not an orb. This is the real engine she runs on, with every state, gesture and rule one click away, so you can feel what each one does and take the call or the tuning patch with you.</p>
+      </header>
+
+      <section class="ap-studio" aria-label="Avatar stage and controls">
+        <div class="ap-stage-col">
+          <div class="forest-panel ap-stage" id="ap-stage" data-state="poster">
+            <div class="ap-stage-host" id="ap-host" role="img" aria-label="Chloé’s dot-cloud avatar"></div>
+            <div class="ap-poster" id="ap-poster" data-kind="loading">
+              <svg class="ap-poster-art" viewBox="0 0 200 200" aria-hidden="true" focusable="false">
+                <line x1="64.9" y1="56.8" x2="77.5" y2="81.9"/>
+                <line x1="64.9" y1="56.8" x2="92.0" y2="65.3"/>
+                <line x1="64.9" y1="56.8" x2="76.8" y2="54.0"/>
+                <line x1="64.9" y1="56.8" x2="80.5" y2="34.2"/>
+                <line x1="77.9" y1="188.2" x2="95.4" y2="167.1"/>
+                <line x1="77.9" y1="188.2" x2="88.7" y2="184.8"/>
+                <line x1="77.9" y1="188.2" x2="54.8" y2="170.9"/>
+                <line x1="151.1" y1="67.7" x2="120.0" y2="70.8"/>
+                <line x1="151.1" y1="67.7" x2="173.4" y2="63.9"/>
+                <line x1="151.1" y1="67.7" x2="118.6" y2="70.3"/>
+                <line x1="76.4" y1="126.3" x2="58.9" y2="97.2"/>
+                <line x1="76.4" y1="126.3" x2="80.4" y2="132.6"/>
+                <line x1="76.4" y1="126.3" x2="64.8" y2="117.1"/>
+                <line x1="76.4" y1="126.3" x2="56.4" y2="143.0"/>
+                <line x1="76.4" y1="126.3" x2="56.1" y2="126.6"/>
+                <line x1="76.4" y1="126.3" x2="86.0" y2="129.6"/>
+                <line x1="76.4" y1="126.3" x2="63.4" y2="150.6"/>
+                <line x1="76.4" y1="126.3" x2="73.8" y2="141.4"/>
+                <line x1="76.4" y1="126.3" x2="92.8" y2="147.4"/>
+                <line x1="76.4" y1="126.3" x2="65.9" y2="104.1"/>
+                <line x1="95.4" y1="167.1" x2="103.1" y2="148.7"/>
+                <line x1="95.4" y1="167.1" x2="88.7" y2="184.8"/>
+                <line x1="95.4" y1="167.1" x2="73.8" y2="141.4"/>
+                <line x1="95.4" y1="167.1" x2="92.8" y2="147.4"/>
+                <line x1="95.4" y1="167.1" x2="117.0" y2="146.5"/>
+                <line x1="140.2" y1="164.0" x2="117.0" y2="146.5"/>
+                <line x1="58.9" y1="97.2" x2="37.6" y2="117.0"/>
+                <line x1="58.9" y1="97.2" x2="64.8" y2="117.1"/>
+                <line x1="58.9" y1="97.2" x2="77.5" y2="81.9"/>
+                <line x1="58.9" y1="97.2" x2="56.1" y2="126.6"/>
+                <line x1="58.9" y1="97.2" x2="65.9" y2="104.1"/>
+                <line x1="37.6" y1="117.0" x2="64.8" y2="117.1"/>
+                <line x1="37.6" y1="117.0" x2="56.4" y2="143.0"/>
+                <line x1="37.6" y1="117.0" x2="56.1" y2="126.6"/>
+                <line x1="37.6" y1="117.0" x2="65.9" y2="104.1"/>
+                <line x1="37.6" y1="117.0" x2="36.5" y2="142.0"/>
+                <line x1="80.4" y1="132.6" x2="64.8" y2="117.1"/>
+                <line x1="80.4" y1="132.6" x2="110.2" y2="122.0"/>
+                <line x1="80.4" y1="132.6" x2="56.4" y2="143.0"/>
+                <line x1="80.4" y1="132.6" x2="103.1" y2="148.7"/>
+                <line x1="80.4" y1="132.6" x2="56.1" y2="126.6"/>
+                <line x1="80.4" y1="132.6" x2="86.0" y2="129.6"/>
+                <line x1="80.4" y1="132.6" x2="63.4" y2="150.6"/>
+                <line x1="80.4" y1="132.6" x2="73.8" y2="141.4"/>
+                <line x1="80.4" y1="132.6" x2="92.8" y2="147.4"/>
+                <line x1="80.4" y1="132.6" x2="65.9" y2="104.1"/>
+                <line x1="120.0" y1="70.8" x2="92.0" y2="65.3"/>
+                <line x1="120.0" y1="70.8" x2="106.2" y2="71.8"/>
+                <line x1="120.0" y1="70.8" x2="118.6" y2="70.3"/>
+                <line x1="64.8" y1="117.1" x2="56.4" y2="143.0"/>
+                <line x1="64.8" y1="117.1" x2="56.1" y2="126.6"/>
+                <line x1="64.8" y1="117.1" x2="86.0" y2="129.6"/>
+                <line x1="64.8" y1="117.1" x2="63.4" y2="150.6"/>
+                <line x1="64.8" y1="117.1" x2="73.8" y2="141.4"/>
+                <line x1="64.8" y1="117.1" x2="65.9" y2="104.1"/>
+                <line x1="77.5" y1="81.9" x2="92.0" y2="65.3"/>
+                <line x1="77.5" y1="81.9" x2="76.8" y2="54.0"/>
+                <line x1="77.5" y1="81.9" x2="106.2" y2="71.8"/>
+                <line x1="77.5" y1="81.9" x2="65.9" y2="104.1"/>
+                <line x1="153.3" y1="112.7" x2="132.8" y2="122.0"/>
+                <line x1="110.2" y1="122.0" x2="103.1" y2="148.7"/>
+                <line x1="110.2" y1="122.0" x2="86.0" y2="129.6"/>
+                <line x1="110.2" y1="122.0" x2="92.8" y2="147.4"/>
+                <line x1="110.2" y1="122.0" x2="132.8" y2="122.0"/>
+                <line x1="110.2" y1="122.0" x2="115.8" y2="128.5"/>
+                <line x1="110.2" y1="122.0" x2="117.0" y2="146.5"/>
+                <line x1="56.4" y1="143.0" x2="42.2" y2="152.0"/>
+                <line x1="56.4" y1="143.0" x2="56.1" y2="126.6"/>
+                <line x1="56.4" y1="143.0" x2="86.0" y2="129.6"/>
+                <line x1="56.4" y1="143.0" x2="63.4" y2="150.6"/>
+                <line x1="56.4" y1="143.0" x2="73.8" y2="141.4"/>
+                <line x1="56.4" y1="143.0" x2="54.8" y2="170.9"/>
+                <line x1="56.4" y1="143.0" x2="36.5" y2="142.0"/>
+                <line x1="42.2" y1="152.0" x2="56.1" y2="126.6"/>
+                <line x1="42.2" y1="152.0" x2="63.4" y2="150.6"/>
+                <line x1="42.2" y1="152.0" x2="73.8" y2="141.4"/>
+                <line x1="42.2" y1="152.0" x2="54.8" y2="170.9"/>
+                <line x1="42.2" y1="152.0" x2="36.5" y2="142.0"/>
+                <line x1="103.1" y1="148.7" x2="86.0" y2="129.6"/>
+                <line x1="103.1" y1="148.7" x2="73.8" y2="141.4"/>
+                <line x1="103.1" y1="148.7" x2="92.8" y2="147.4"/>
+                <line x1="103.1" y1="148.7" x2="115.8" y2="128.5"/>
+                <line x1="103.1" y1="148.7" x2="117.0" y2="146.5"/>
+                <line x1="56.1" y1="126.6" x2="86.0" y2="129.6"/>
+                <line x1="56.1" y1="126.6" x2="63.4" y2="150.6"/>
+                <line x1="56.1" y1="126.6" x2="73.8" y2="141.4"/>
+                <line x1="56.1" y1="126.6" x2="65.9" y2="104.1"/>
+                <line x1="56.1" y1="126.6" x2="36.5" y2="142.0"/>
+                <line x1="92.0" y1="65.3" x2="76.8" y2="54.0"/>
+                <line x1="92.0" y1="65.3" x2="106.2" y2="71.8"/>
+                <line x1="92.0" y1="65.3" x2="80.5" y2="34.2"/>
+                <line x1="92.0" y1="65.3" x2="118.6" y2="70.3"/>
+                <line x1="86.0" y1="129.6" x2="63.4" y2="150.6"/>
+                <line x1="86.0" y1="129.6" x2="73.8" y2="141.4"/>
+                <line x1="86.0" y1="129.6" x2="92.8" y2="147.4"/>
+                <line x1="86.0" y1="129.6" x2="115.8" y2="128.5"/>
+                <line x1="86.0" y1="129.6" x2="65.9" y2="104.1"/>
+                <line x1="63.4" y1="150.6" x2="73.8" y2="141.4"/>
+                <line x1="63.4" y1="150.6" x2="92.8" y2="147.4"/>
+                <line x1="63.4" y1="150.6" x2="54.8" y2="170.9"/>
+                <line x1="63.4" y1="150.6" x2="36.5" y2="142.0"/>
+                <line x1="76.8" y1="54.0" x2="80.5" y2="34.2"/>
+                <line x1="73.8" y1="141.4" x2="92.8" y2="147.4"/>
+                <line x1="92.8" y1="147.4" x2="115.8" y2="128.5"/>
+                <line x1="92.8" y1="147.4" x2="117.0" y2="146.5"/>
+                <line x1="132.8" y1="122.0" x2="115.8" y2="128.5"/>
+                <line x1="132.8" y1="122.0" x2="117.0" y2="146.5"/>
+                <line x1="115.8" y1="128.5" x2="117.0" y2="146.5"/>
+                <line x1="106.2" y1="71.8" x2="118.6" y2="70.3"/>
+                <circle cx="64.9" cy="56.8" r="2.4"/>
+                <circle cx="77.9" cy="188.2" r="1.3"/>
+                <circle cx="151.1" cy="67.7" r="2.1"/>
+                <circle cx="76.4" cy="126.3" r="1.2"/>
+                <circle cx="95.4" cy="167.1" r="2.5"/>
+                <circle cx="140.2" cy="164.0" r="1.4"/>
+                <circle cx="58.9" cy="97.2" r="2.1"/>
+                <circle cx="37.6" cy="117.0" r="2.6"/>
+                <circle cx="80.4" cy="132.6" r="1.5"/>
+                <circle cx="120.0" cy="70.8" r="2.6"/>
+                <circle cx="64.8" cy="117.1" r="1.7"/>
+                <circle cx="77.5" cy="81.9" r="2.3"/>
+                <circle cx="173.4" cy="63.9" r="2.5"/>
+                <circle cx="153.3" cy="112.7" r="1.5"/>
+                <circle cx="110.2" cy="122.0" r="2.6"/>
+                <circle cx="56.4" cy="143.0" r="1.3"/>
+                <circle cx="42.2" cy="152.0" r="1.5"/>
+                <circle cx="103.1" cy="148.7" r="2.1"/>
+                <circle cx="56.1" cy="126.6" r="1.2"/>
+                <circle cx="92.0" cy="65.3" r="1.2"/>
+                <circle cx="201.6" cy="91.7" r="1.3"/>
+                <circle cx="132.8" cy="29.5" r="1.1"/>
+                <circle cx="86.0" cy="129.6" r="2.3"/>
+                <circle cx="88.7" cy="184.8" r="1.4"/>
+                <circle cx="63.4" cy="150.6" r="2.0"/>
+                <circle cx="76.8" cy="54.0" r="1.9"/>
+                <circle cx="73.8" cy="141.4" r="1.7"/>
+                <circle cx="34.5" cy="26.3" r="2.2"/>
+                <circle cx="92.8" cy="147.4" r="1.8"/>
+                <circle cx="132.8" cy="122.0" r="2.6"/>
+                <circle cx="115.8" cy="128.5" r="1.5"/>
+                <circle cx="106.2" cy="71.8" r="2.5"/>
+                <circle cx="65.9" cy="104.1" r="2.4"/>
+                <circle cx="80.5" cy="34.2" r="2.4"/>
+                <circle cx="118.6" cy="70.3" r="2.0"/>
+                <circle cx="54.8" cy="170.9" r="1.5"/>
+                <circle cx="117.0" cy="146.5" r="1.4"/>
+                <circle cx="36.5" cy="142.0" r="1.5"/>
+              </svg>
+              <p class="ap-poster-kicker" id="ap-poster-kicker">Loading</p>
+              <h2 class="ap-poster-title" id="ap-poster-title">Loading the page</h2>
+              <p class="ap-poster-body" id="ap-poster-body">If this line stays, the page script did not load. The cloud starts only when you ask for it.</p>
+              <div class="ap-poster-actions" id="ap-poster-actions"></div>
+              <noscript><p>JavaScript is off in this browser, so the cloud cannot start. The notes further down still describe what each state means.</p></noscript>
+            </div>
+            <div class="ap-hud" id="ap-hud" hidden>
+              <span class="ap-chip" data-tone="accent"><b id="ap-hud-state">idle</b></span>
+              <span class="ap-chip"><b id="ap-hud-fps">–</b> fps</span>
+              <span class="ap-chip"><b id="ap-hud-dots">–</b> dots</span>
+              <span class="ap-chip"><b id="ap-hud-lines">–</b> lines</span>
+              <span class="ap-chip" id="ap-hud-motion">full motion</span>
+              <button type="button" class="ap-btn secondary tiny" id="ap-stop">Stop</button>
+            </div>
+          </div>
+
+          <div class="forest-panel ap-panel">
+            <div class="ap-row">
+              <p class="ap-label" id="ap-states-label">State</p>
+              <div class="ap-chips" id="ap-states" role="group" aria-labelledby="ap-states-label"></div>
+            </div>
+            <div class="ap-row ap-row-inline">
+              <label class="ap-label" for="ap-intensity">Thinking intensity</label>
+              <input type="range" id="ap-intensity" min="0" max="100" value="50" aria-describedby="ap-intensity-out">
+              <output id="ap-intensity-out" for="ap-intensity">0.50</output>
+            </div>
+            <div class="ap-row">
+              <p class="ap-label" id="ap-expressions-label">Expression</p>
+              <div class="ap-chips" id="ap-expressions" role="group" aria-labelledby="ap-expressions-label"></div>
+            </div>
+            <div class="ap-row">
+              <p class="ap-label" id="ap-symbols-label">Symbol</p>
+              <div class="ap-chips" id="ap-symbols" role="group" aria-labelledby="ap-symbols-label"></div>
+            </div>
+            <div class="ap-row ap-chips">
+              <button type="button" class="ap-chipbtn" id="ap-pulse">Transmit pulse</button>
+              <button type="button" class="ap-chipbtn" id="ap-script" aria-pressed="false">Play a conversation</button>
+              <span class="ap-status" id="ap-script-status" role="status" aria-live="polite"></span>
+            </div>
+            <p class="ap-status error" id="ap-controls-status" role="status"></p>
+            <p class="ap-hint">Keys <kbd>1</kbd>–<kbd>7</kbd> switch state in the order above, <kbd>S</kbd> toggles the synthetic envelope, <kbd>M</kbd> the microphone, <kbd>Esc</kbd> stops sound and scripts.</p>
+          </div>
+        </div>
+
+        <div class="ap-side">
+          <div class="forest-panel ap-panel" id="ap-sound">
+            <div class="ap-label-row">
+              <p class="ap-label">Drive the cloud with sound</p>
+              <span class="ap-tag">Amplitude only</span>
+            </div>
+            <p class="ap-note"><b>None of these is Chloé’s voice.</b> They feed the same number her TTS does — a 0–1 level, every frame — so you can watch amplitude move the cloud without any key. Nothing here is uploaded or recorded.</p>
+            <div class="ap-chips">
+              <button type="button" class="ap-chipbtn" id="ap-synth" aria-pressed="false">Synthetic envelope</button>
+              <button type="button" class="ap-chipbtn" id="ap-mic" aria-pressed="false">Microphone</button>
+              <label class="ap-chipbtn ap-btn-file" id="ap-file-label">Local audio file<input type="file" id="ap-file" accept="audio/*" aria-label="Choose a local audio file to drive the cloud"></label>
+            </div>
+            <div class="ap-meter" aria-hidden="true"><div class="ap-meter-fill" id="ap-meter"></div></div>
+            <p class="ap-status" id="ap-sound-status" role="status" aria-live="polite"></p>
+            <div class="ap-alert" id="ap-sound-alert" hidden><b></b><p></p><button type="button" class="ap-btn secondary" hidden></button></div>
+          </div>
+
+          <div class="forest-panel ap-panel" id="ap-voice">
+            <div class="ap-label-row">
+              <p class="ap-label" id="ap-voice-label">Chloé’s voice</p>
+              <span class="ap-tag" id="ap-voice-tag">Checking</span>
+            </div>
+            <p class="ap-note">Her own cloned voice, through each engine that can serve it, so you can hear the same line twice and watch the cloud react to each. <b>She is never given another voice</b> — not as a placeholder, not on error. If an engine cannot serve her, this panel says so and plays nothing.</p>
+            <fieldset class="ap-voices" id="ap-voices" aria-labelledby="ap-voice-label">
+              <p class="ap-status" id="ap-voices-status">Checking which engines can serve her voice…</p>
+            </fieldset>
+            <div class="ap-key" id="ap-key" hidden>
+              <label class="ap-label" for="ap-key-input">Access key</label>
+              <input id="ap-key-input" type="password" autocomplete="off" placeholder="Operator key for this engine">
+              <p>Both engines cost metered quota, so they stay behind the operator key. It travels with each request straight to the voice service — this page holds no key and stores nothing. One click, one clip, at most 200 characters.</p>
+            </div>
+            <div class="ap-lines" id="ap-lines" aria-label="Sample lines"></div>
+            <div class="ap-label-row">
+              <label class="ap-label" for="ap-text">Line</label>
+              <p class="ap-count" id="ap-count" aria-live="polite">0 / 200</p>
+            </div>
+            <textarea id="ap-text" class="ap-text" maxlength="200" spellcheck="true" placeholder="A line for her to say — or pick one above."></textarea>
+            <div class="ap-actions">
+              <button type="button" class="ap-btn" id="ap-say">
+                <span class="ap-spin" id="ap-say-spin" hidden aria-hidden="true"></span>
+                <span id="ap-say-label">Hear it</span>
+              </button>
+              <p class="ap-status" id="ap-voice-status" role="status" aria-live="polite"></p>
+            </div>
+            <div class="ap-alert" id="ap-voice-alert" hidden><b></b><p></p><button type="button" class="ap-btn secondary" hidden></button></div>
+            <div class="ap-out" id="ap-voice-out" hidden>
+              <audio id="ap-audio" preload="auto"></audio>
+              <button type="button" class="ap-btn secondary" id="ap-replay">Play again</button>
+              <p class="ap-out-note" id="ap-voice-note"></p>
+            </div>
+          </div>
+
+          <div class="forest-panel ap-panel" id="ap-tune">
+            <div class="ap-label-row">
+              <p class="ap-label">Tune</p>
+              <span class="ap-tag" data-tone="accent" id="ap-tune-state">idle</span>
+            </div>
+            <p class="ap-note">Sliders rewrite the live rule set for the state on stage, through the same <code>setTuning</code> Chloé’s brain would call. Changed rules turn periwinkle; the patch panel below collects only those.</p>
+            <p class="ap-subhead">Cloud</p>
+            <div class="ap-sliders">
+              <div class="ap-slider">
+                <label for="ap-quality">Dots</label>
+                <select id="ap-quality">
+                  <option value="high">120 (high)</option>
+                  <option value="medium">80 (medium)</option>
+                  <option value="low">50 (low)</option>
+                </select>
+                <output aria-hidden="true"></output>
+              </div>
+              <div class="ap-slider">
+                <label for="ap-seed">Seed</label>
+                <input type="number" id="ap-seed" min="0" step="1" aria-describedby="ap-seed-note">
+                <button type="button" class="ap-btn secondary tiny" id="ap-reseed" title="Restart the cloud with this seed">Reseed</button>
+              </div>
+            </div>
+            <div class="ap-sliders" id="ap-global"></div>
+            <p class="ap-subhead">Rules of the state on stage</p>
+            <div class="ap-sliders" id="ap-state-sliders"></div>
+            <div class="ap-actions">
+              <button type="button" class="ap-btn secondary" id="ap-reset">Reset to shipped rules</button>
+            </div>
+          </div>
+
+          <div class="forest-panel ap-panel" id="ap-send">
+            <div class="ap-label-row">
+              <p class="ap-label">Take it with you</p>
+              <span class="ap-status" id="ap-copy-status" role="status" aria-live="polite"></span>
+            </div>
+            <p class="ap-note">The last thing you did, as the engine call that does it; and your tuning as the patch <code>setTuning</code> accepts — the shape <code>TUNING.md</code> asks Chloé to persist.</p>
+            <div class="ap-code-row"><p class="ap-label">Last call</p><button type="button" class="ap-btn secondary tiny" id="ap-copy-call">Copy</button></div>
+            <pre class="ap-code" id="ap-call">// nothing yet</pre>
+            <div class="ap-code-row"><p class="ap-label">Tuning patch</p><button type="button" class="ap-btn secondary tiny" id="ap-copy-patch">Copy</button></div>
+            <pre class="ap-code" id="ap-patch">{}</pre>
+          </div>
+        </div>
+      </section>
+
+      <section class="forest-section" aria-labelledby="ap-read">
+        <p class="forest-section-label" id="ap-read" data-reveal>How to read the cloud</p>
+        <div class="ap-notes" data-reveal-stagger>
+          <article class="forest-panel ap-note-card" data-reveal>
+            <span class="ap-note-k"><i class="ap-sw" style="--sw:#6B8CAE"></i>Idle</span>
+            <h2>Settled presence</h2>
+            <p>Slow drift through the noise field, a four-second breath, a soft web. Every few seconds a faint long-range bond flickers between distant dots — heat lightning.</p>
+          </article>
+          <article class="forest-panel ap-note-card" data-reveal>
+            <span class="ap-note-k"><i class="ap-sw" style="--sw:#4FB3A1"></i>Listening</span>
+            <h2>Leaning in</h2>
+            <p>The cloud tightens and stills, turns teal, and incoming sound sends ripples inward. This is the state the microphone driver uses.</p>
+          </article>
+          <article class="forest-panel ap-note-card" data-reveal>
+            <span class="ap-note-k"><i class="ap-sw" style="--sw:#3D52A0"></i>Thinking</span>
+            <h2>Fire along the web</h2>
+            <p>The cloud contracts and dots fire in Poisson bursts. Each fire can excite neighbours inside line range, so activation travels along the proximity web; two fires within 100 ms flash the line between them white.</p>
+          </article>
+          <article class="forest-panel ap-note-card" data-reveal>
+            <span class="ap-note-k"><i class="ap-sw" style="--sw:#E8A045"></i>Excited</span>
+            <h2>Lit up</h2>
+            <p>Two and a half times the speed, twice the noise, a wider field and a denser web. Streamed audio blends every state toward this one, so she visibly energises while speaking.</p>
+          </article>
+          <article class="forest-panel ap-note-card" data-reveal>
+            <span class="ap-note-k"><i class="ap-sw" style="--sw:#5C8A8A"></i>Wandering</span>
+            <h2>Not sure yet</h2>
+            <p>Thirty percent speed, loose cohesion, and after about a second the dots migrate into a sustained question mark that holds until the state changes.</p>
+          </article>
+          <article class="forest-panel ap-note-card" data-reveal>
+            <span class="ap-note-k"><i class="ap-sw" style="--sw:#E8DCC8"></i>Speaking</span>
+            <h2>Outward and vocal</h2>
+            <p>The cloud spreads wide and moves with energy; amplitude rides on top as breath and motion kicks radiating from a wandering speak-point. Words can fade through the centre one at a time.</p>
+          </article>
+          <article class="forest-panel ap-note-card" data-reveal>
+            <span class="ap-note-k"><i class="ap-sw" style="--sw:#4CAF50"></i>Transmitting</span>
+            <h2>Something sent</h2>
+            <p>A green wave radiates from the centre over 1.2 seconds, dots brighten, and the cloud returns to the previous state by itself. A one-shot, not a posture.</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="forest-section" aria-labelledby="ap-real">
+        <p class="forest-section-label" id="ap-real" data-reveal>What is real here</p>
+        <div class="ap-notes" data-reveal-stagger>
+          <article class="forest-panel ap-note-card" data-reveal>
+            <span class="ap-note-k">Amplitude<span class="ap-tag" data-tone="ok">Implemented</span></span>
+            <h2>Real audio level</h2>
+            <p>The engine takes a 0–1 level per frame. On this page it comes from an analyser on whichever source is playing — the microphone, a local file, or her own voice from the narration service.</p>
+          </article>
+          <article class="forest-panel ap-note-card" data-reveal>
+            <span class="ap-note-k">Colour<span class="ap-tag">Partly</span></span>
+            <h2>State and expression, not prosody</h2>
+            <p>Every state and expression carries its own palette, and the palette of any state is tunable above. There is no prosody input yet: nothing on this page reads emotion out of the voice. When that lands it will arrive through <code>setExpression</code>, which already exists.</p>
+          </article>
+          <article class="forest-panel ap-note-card" data-reveal>
+            <span class="ap-note-k">Thinking<span class="ap-tag" data-tone="ok">Implemented</span></span>
+            <h2>Propagation, not blinking</h2>
+            <p>Fires cascade only to dots within line range, with decaying probability and a subcritical cap, so bursts of three to fifteen dots run along the web and never strobe the whole cloud. Turn the fire rate up in Tune to see the avalanches.</p>
+          </article>
+          <article class="forest-panel ap-note-card" data-reveal>
+            <span class="ap-note-k">Symbols<span class="ap-tag" data-tone="ok">Implemented</span></span>
+            <h2>Sketched, never typeset</h2>
+            <p>Six glyphs. Slots are paired with the nearest free dots, a spring pulls them in over half a second, and every formation gets a random tilt, scale and roughness so no two are alike.</p>
+          </article>
+          <article class="forest-panel ap-note-card" data-reveal>
+            <span class="ap-note-k">Engine<span class="ap-tag" data-tone="ok">Verbatim</span></span>
+            <h2>The one the fleet runs</h2>
+            <p>The engine on stage is <code>ChloeAvatar.js</code> v1.1.0 from the public <code>chloe-avatar</code> repository, copied byte for byte and pinned to its commit. What you tune here is what she runs. Three.js is the site’s shared copy.</p>
+          </article>
+          <article class="forest-panel ap-note-card" data-reveal>
+            <span class="ap-note-k">Voice<span class="ap-tag">By key</span></span>
+            <h2>No live session, no stand-in</h2>
+            <p>Clips come from the same narration proxy the Voice Playground uses: one click, one short clip, key forwarded and never stored. This page opens no live voice session and never plays a voice that is not hers.</p>
+          </article>
+        </div>
+      </section>
+    </main>
+
+    <script src="/web/avatar-playground/avatar-playground.js?v=20260905a" defer></script>
     <script type="module" data-forest-runtime="motion" src="/web/shared/forest-runtime-boot.mjs?v=20260807a"></script>
+    <script src="/web/shared/forest-reveal.js?v=20260807a"></script>
     <script src="/web/shared/design-history.js?v=20260807a"></script>
   </body>
 </html>
