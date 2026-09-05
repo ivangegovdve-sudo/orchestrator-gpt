@@ -1,0 +1,24 @@
+{
+  "copy_id": "copy-oracle",
+  "source": "oracle:/opt/fleet/state/intent-ledger.db",
+  "entry_count": 1372,
+  "collected_at": "2026-09-03T02:14:00Z",
+  "entries": [
+    {
+      "id": "INT-1001",
+      "statement": "Reconcile 24 unmatched candidate rows from tavily sync"
+    },
+    {
+      "id": "INT-1002",
+      "statement": "Backfill missing dispatch metadata for cycle 2026-09-03T00:15:00Z"
+    },
+    {
+      "id": "INT-2001",
+      "statement": "Retry failed dependency verdict for social-hunt source"
+    },
+    {
+      "id": "INT-2002",
+      "statement": "Review fallback source credentials for closed-loop research"
+    }
+  ]
+}

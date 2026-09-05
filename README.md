@@ -23,6 +23,7 @@ The landing page footer shows a live API status dot. It probes `https://api.sdfo
 - `web/chair-or-ladder/` — Ivan Gegov’s essay on AI, judgment, dependence, and shared capability.
 - `web/chloe-pwa/` — Chloé assistant PWA shell (not linked from the hub yet).
 - `web/council/` — LLM Council: 4-stage free-tier deliberation UI.
+- `web/fleet/` — Fleet Dashboard for the four-agent fleet: stuck detection, intent draining, research budgets, and voice surfaces.
 - `web/hypertrophyos/` — Hyper Trophy OS exercise-intelligence dashboard.
 - `web/kids-movie-library/` — curated family movie catalog with localStorage watch/rating state (redirect shim at `movies/`).
 - `web/library/` — sdforest library page (not linked from the hub yet).
@@ -44,6 +45,13 @@ The landing page footer shows a live API status dot. It probes `https://api.sdfo
 ## API surface
 
 FastAPI serves `/api/movies`, `/api/llm-db`, `/jobs`, `/health`, `/api/schema`, and `/api/item-icon`. See `backend/app.py` for the app wiring.
+
+## Fleet dashboard semantics
+
+- A pipeline is stuck when it has eligible work, free capacity, and zero dispatches in the observed window. That state is rendered as a failure even if a source labels the pipeline `ok`.
+- The intent ledger has one canonical source of truth at `data/fleet/intents-canonical.json`. The other divergent copies are shown for comparison, and claim/close actions write back to the canonical ledger.
+- Every panel shows provenance and collection time. Stale data degrades visibly, and empty or failed fetches render an explicit on-screen state instead of blank space.
+- Wake-word telemetry treats false triggers as first-class events, including confidence scores, timestamps, and abnormal-trigger signals.
 
 ## Quick start
 
