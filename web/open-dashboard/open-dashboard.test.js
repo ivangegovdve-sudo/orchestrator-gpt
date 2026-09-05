@@ -68,7 +68,6 @@ test("accepts a public OpenRouter benchmark row", () => {
   }, "benchmarks");
   assert.equal(response.data[0].source, "openrouter");
 });
-
 test("starts every deferred panel when the observer is unavailable", async () => {
   const targets = Array.from({ length: 11 }, () => ({ dataset: {} }));
   let calls = 0;
