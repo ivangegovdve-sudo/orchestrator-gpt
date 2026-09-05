@@ -60,6 +60,58 @@ export function parseGithubState(url) {
 const hasDom = typeof document !== "undefined";
 const exact = (value) => value === null || value === undefined ? "—" : String(value);
 const population = (acquisitionComplete, completeness) => acquisitionComplete === false || completeness === "partial_or_unknown" ? "partial" : "complete";
+const SOURCE_STATE_LABELS = Object.freeze({
+  current: "Current",
+  "published-but-old": "Published but overdue",
+  stale: "Stale",
+  "never-published": "Never published",
+  failed: "Failed",
+  "approval-pending": "Approval pending",
+  "collection-disabled": "Collection disabled",
+  pending: "Pending",
+});
+const DATASET_SOURCE_IDS = Object.freeze({ models: "models_current", apps: "apps_ranked", free: "models_current", deprecations: "models_current", tasks: "task_classifications", benchmarks: "benchmarks_current" });
+const parsedTime = (value) => typeof value === "string" && Number.isFinite(Date.parse(value)) ? Date.parse(value) : null;
+const sourceFreshness = (state) => state === "current" ? "current" : state === "published-but-old" ? "overdue" : state === "stale" ? "stale" : "unavailable";
+
+export function classifySourceState(source, response, { now = new Date(), snapshotStale = false, runMismatch = false } = {}) {
+  const responseReason = response?.reason;
+  if (responseReason === "approval_incomplete") return "approval-pending";
+  if (responseReason === "collection_disabled") return "collection-disabled";
+  if (runMismatch) return "failed";
+  const publishedAt = parsedTime(source.publishedAt);
+  if (source.publishedRunId === null || publishedAt === null) return "never-published";
+  const attemptedAt = parsedTime(source.lastAttemptStartedAt) ?? parsedTime(source.lastAttemptFinishedAt);
+  if (source.lastAttemptStatus === "failed" && attemptedAt !== null && attemptedAt >= publishedAt) return "failed";
+  if (source.stale || response?.stale || response?.coverage?.stale || snapshotStale) return "stale";
+  const scheduledAt = parsedTime(source.nextScheduledAt);
+  if (scheduledAt !== null && now.getTime() >= scheduledAt && (attemptedAt === null || attemptedAt < scheduledAt)) return "published-but-old";
+  return "current";
+}
+
+function sourceStatusNote(source, state) {
+  const published = source.publishedAt || null;
+  const scheduled = source.nextScheduledAt || null;
+  const failure = source.lastAttemptErrorCode ? ` · ${source.lastAttemptErrorCode}` : "";
+  if (state === "current") return `Current · last published ${published || "unknown"}`;
+  if (state === "published-but-old") return `Published ${published || "unknown"} · scheduled refresh ${scheduled || "unknown"} is overdue`;
+  if (state === "stale") return `Published ${published || "unknown"} · stale threshold crossed`;
+  if (state === "never-published") return `Never published${source.lastAttemptStatus === "failed" ? ` · last attempt failed${failure}` : ""}`;
+  if (state === "failed") return `Last attempt failed${failure}${published ? ` · last published ${published}` : ""}`;
+  if (state === "approval-pending") return "Collection is quiet pending the required approvals";
+  if (state === "collection-disabled") return "Collection is disabled by configuration";
+  return SOURCE_STATE_LABELS[state] || state;
+}
+
+export function datasetStatusLabel(view, key, now = new Date()) {
+  if (Object.hasOwn(view.errors || {}, key)) return SOURCE_STATE_LABELS.failed;
+  const rows = buildSourceRows(view, { now });
+  const direct = rows.find((row) => row.datasetKey === key);
+  const sourceId = DATASET_SOURCE_IDS[key];
+  const source = sourceId ? rows.find((row) => row.datasetKey === `source:${sourceId}`) : null;
+  if (direct || source) return SOURCE_STATE_LABELS[(direct || source).state] || SOURCE_STATE_LABELS.current;
+  return !Object.hasOwn(view.responses || {}, key) ? SOURCE_STATE_LABELS.pending : SOURCE_STATE_LABELS.current;
+}
 
 export function appRankingSourceLabel(response) {
   const period = response?.requestSlice?.period;
@@ -153,45 +205,47 @@ const appendSnapshotNotice = (document, root, view) => {
 const OPTIONAL_DATASET_KEYS = new Set(["matrix", "providers", "freeFrontierQuality", "freeFrontierContext", "history", "appModels"]);
 const isOptionalDataset = (key) => OPTIONAL_DATASET_KEYS.has(key) || key.startsWith("github:") || key.startsWith("githubEnrichment:") || key.startsWith("momentum:") || key.startsWith("fallback:");
 
-export function buildSourceRows(view) {
+export function buildSourceRows(view, { now = new Date() } = {}) {
   const manifestIndex = new Map(view.manifest.sources.map((source) => [source.sourceId, source]));
   const rows = view.manifest.sources.map((source) => {
     const response = Object.values(view.responses).find((item) => Array.isArray(item?.provenance) && item.provenance.some((entry) => entry.sourceId === source.sourceId));
     const provenance = response?.provenance?.find((entry) => entry.sourceId === source.sourceId);
     const runMismatch = Boolean(provenance && provenance.runId !== source.publishedRunId);
-    return { datasetKey: `source:${source.sourceId}`, sourceId: source.sourceId, required: true, mode: view.mode, freshness: source.stale || response?.stale || response?.coverage?.stale || view.snapshotStale || runMismatch ? "stale" : "current", completeness: source.publishedRunId === null || runMismatch ? "unavailable" : response?.completeness ? population(response.completeness.acquisitionComplete, response.completeness.populationCompleteness) : response?.coverage ? population(response.coverage.acquisitionComplete, response.coverage.populationCompleteness) : population(source.lastAttemptAcquisitionComplete ?? true, source.lastAttemptPopulationCompleteness ?? "partial_or_unknown"), asOf: provenance?.sourceAsOf ?? source.publishedAt, ...(runMismatch ? { reason: "provenance_run_mismatch" } : {}) };
+    const state = classifySourceState(source, response, { now, snapshotStale: view.snapshotStale, runMismatch });
+    return { datasetKey: `source:${source.sourceId}`, sourceId: source.sourceId, required: true, mode: view.mode, state, freshness: sourceFreshness(state), completeness: source.publishedRunId === null || runMismatch ? "unavailable" : response?.completeness ? population(response.completeness.acquisitionComplete, response.completeness.populationCompleteness) : response?.coverage ? population(response.coverage.acquisitionComplete, response.coverage.populationCompleteness) : population(source.lastAttemptAcquisitionComplete ?? true, source.lastAttemptPopulationCompleteness ?? "partial_or_unknown"), asOf: provenance?.sourceAsOf ?? source.publishedAt, publishedAt: source.publishedAt, nextScheduledAt: source.nextScheduledAt, lastAttemptStatus: source.lastAttemptStatus, lastAttemptErrorCode: source.lastAttemptErrorCode, statusNote: sourceStatusNote(source, state), ...(runMismatch ? { reason: "provenance_run_mismatch" } : {}) };
   });
   for (const [key, response] of Object.entries(view.responses)) {
     if (key.startsWith("githubEnrichment:") && Array.isArray(response?.provenance)) {
       for (const evidence of response.provenance) {
         const stargazers = evidence.id.endsWith(":stargazers");
         const complete = stargazers ? response.starBuckets.length > 0 && response.starBuckets.every((bucket) => bucket.populationCompleteness === "full") : response.releaseCadence.coverageComplete;
-        rows.push({ datasetKey: `${key}:${evidence.id}`, sourceId: `github.enrichment:${response.repositoryId}:${stargazers ? "stargazers" : "releases"}`, sourceKind: "github-enrichment", required: false, mode: view.mode, freshness: view.snapshotStale ? "stale" : "current", completeness: complete ? "complete" : "partial", asOf: evidence.fetchedAt, sourceUrl: evidence.sourceUrl, publicationIdentity: evidence.id });
+        rows.push({ datasetKey: `${key}:${evidence.id}`, sourceId: `github.enrichment:${response.repositoryId}:${stargazers ? "stargazers" : "releases"}`, sourceKind: "github-enrichment", required: false, mode: view.mode, state: view.snapshotStale ? "stale" : "current", freshness: view.snapshotStale ? "stale" : "current", completeness: complete ? "complete" : "partial", asOf: evidence.fetchedAt, statusNote: view.snapshotStale ? "Stale snapshot evidence" : "Current evidence", sourceUrl: evidence.sourceUrl, publicationIdentity: evidence.id });
       }
       continue;
     }
     const publicationProvenance = Array.isArray(response?.provenance) ? response.provenance.filter((entry) => typeof entry?.sourceId === "string") : [];
     const unmanifested = publicationProvenance.find((entry) => !manifestIndex.has(entry.sourceId));
     const mismatched = publicationProvenance.find((entry) => manifestIndex.has(entry.sourceId) && manifestIndex.get(entry.sourceId).publishedRunId !== entry.runId);
-    if (unmanifested || mismatched) rows.push({ datasetKey: key, sourceId: unmanifested?.sourceId || mismatched.sourceId, required: !isOptionalDataset(key), mode: view.mode, freshness: "stale", completeness: "unavailable", asOf: (unmanifested || mismatched).sourceAsOf ?? (unmanifested || mismatched).fetchedAt ?? null, reason: unmanifested ? "provenance_not_in_manifest" : "provenance_run_mismatch" });
-    else if (key.startsWith("github:") || key === "ranking" || key.startsWith("momentum:")) rows.push({ datasetKey: key, sourceId: `github.${response.ranking.metric}:${response.ranking.category}`, required: !isOptionalDataset(key), mode: view.mode, freshness: response.coverage.stale || view.snapshotStale ? "stale" : "current", completeness: population(response.coverage.acquisitionComplete, response.coverage.populationCompleteness), asOf: response.coverage.resolvedAsOf });
-    else if (response?.status === "unavailable") rows.push({ datasetKey: key, sourceId: key, required: !isOptionalDataset(key), mode: view.mode, freshness: view.snapshotStale ? "stale" : "current", completeness: "unavailable", asOf: response.lastSuccessAt, reason: response.reason });
-    else if (!Array.isArray(response?.provenance) || response.provenance.length === 0) rows.push({ datasetKey: key, sourceId: key, required: !isOptionalDataset(key), mode: view.mode, freshness: response?.stale || view.snapshotStale ? "stale" : "current", completeness: response?.completeness ? population(response.completeness.acquisitionComplete, response.completeness.populationCompleteness) : response?.coverage ? population(response.coverage.acquisitionComplete, response.coverage.populationCompleteness) : "complete", asOf: response?.window?.end ?? response?.resolvedPeriod?.end ?? null });
+    if (unmanifested || mismatched) rows.push({ datasetKey: key, sourceId: unmanifested?.sourceId || mismatched.sourceId, required: !isOptionalDataset(key), mode: view.mode, state: "failed", freshness: "stale", completeness: "unavailable", asOf: (unmanifested || mismatched).sourceAsOf ?? (unmanifested || mismatched).fetchedAt ?? null, statusNote: unmanifested ? "Evidence is not listed in the manifest" : "Evidence came from a different collection run", reason: unmanifested ? "provenance_not_in_manifest" : "provenance_run_mismatch" });
+    else if (key.startsWith("github:") || key === "ranking" || key.startsWith("momentum:")) { const state = response.coverage.stale || view.snapshotStale ? "stale" : "current"; rows.push({ datasetKey: key, sourceId: `github.${response.ranking.metric}:${response.ranking.category}`, required: !isOptionalDataset(key), mode: view.mode, state, freshness: state, completeness: population(response.coverage.acquisitionComplete, response.coverage.populationCompleteness), asOf: response.coverage.resolvedAsOf, statusNote: state === "stale" ? "Published evidence is stale" : "Current published evidence" }); }
+    else if (response?.status === "unavailable") { const state = response.reason === "approval_incomplete" ? "approval-pending" : response.reason === "collection_disabled" ? "collection-disabled" : "failed"; rows.push({ datasetKey: key, sourceId: key, required: !isOptionalDataset(key), mode: view.mode, state, freshness: state === "failed" ? "unavailable" : "current", completeness: "unavailable", asOf: response.lastSuccessAt, statusNote: state === "approval-pending" ? "Collection is quiet pending the required approvals" : state === "collection-disabled" ? "Collection is disabled by configuration" : "Request failed", reason: response.reason }); }
+    else if (!Array.isArray(response?.provenance) || response.provenance.length === 0) { const state = response?.stale || view.snapshotStale ? "stale" : "current"; rows.push({ datasetKey: key, sourceId: key, required: !isOptionalDataset(key), mode: view.mode, state, freshness: state, completeness: response?.completeness ? population(response.completeness.acquisitionComplete, response.completeness.populationCompleteness) : response?.coverage ? population(response.coverage.acquisitionComplete, response.coverage.populationCompleteness) : "complete", asOf: response?.window?.end ?? response?.resolvedPeriod?.end ?? null, statusNote: state === "stale" ? "Published evidence is stale" : "Current published evidence" }); }
   }
-  for (const [key, error] of Object.entries(view.errors || {})) rows.push({ datasetKey: key, sourceId: key, required: !isOptionalDataset(key), mode: view.mode, freshness: view.snapshotStale ? "stale" : "current", completeness: "unavailable", asOf: null, reason: error?.code || error?.message || "request_failed" });
+  for (const [key, error] of Object.entries(view.errors || {})) rows.push({ datasetKey: key, sourceId: key, required: !isOptionalDataset(key), mode: view.mode, state: "failed", freshness: view.snapshotStale ? "stale" : "unavailable", completeness: "unavailable", asOf: null, statusNote: "Request failed", reason: error?.code || error?.message || "request_failed" });
   return Object.freeze(rows.map((row) => Object.freeze(row)));
 }
 
 export function summarizeSourceRows(datasets) {
-  const freshness = datasets.some((item) => item.freshness === "stale") ? "stale" : "current";
+  const freshness = datasets.some((item) => item.freshness === "stale") ? "stale" : datasets.some((item) => item.freshness === "overdue") ? "overdue" : datasets.some((item) => item.freshness === "unavailable") ? "unavailable" : "current";
   const completeness = datasets.some((item) => item.required && item.completeness === "unavailable") ? "unavailable" : datasets.some((item) => item.completeness !== "complete") ? "partial" : "complete";
-  return Object.freeze({ freshness, completeness });
+  const status = datasets.find((item) => item.state && item.state !== "current")?.state || "current";
+  return Object.freeze({ freshness, completeness, status });
 }
 
 export function renderSourceRail(view) {
   const { document, sourceToggle, sourcePanel } = context(); const datasets = buildSourceRows(view); sourcePanel.replaceChildren(renderSourceStates({ document, datasets }));
-  const { freshness, completeness } = summarizeSourceRows(datasets);
-  sourceToggle.textContent = `Sources · ${view.mode} · ${freshness} · ${completeness}`;
+  const { freshness, completeness, status } = summarizeSourceRows(datasets);
+  sourceToggle.textContent = `Sources · ${view.mode} · ${SOURCE_STATE_LABELS[status] || status} · ${freshness} · ${completeness}`;
 }
 
 let lastInspectorTrigger = null;
@@ -344,7 +398,7 @@ function renderBenchmarkRegions(document, rows, response) {
       columns: [
         { label: "Source rank", value: (row) => row.sourceRank },
         { label: "Model", value: (row) => row.displayName },
-        { label: "Score", value: (row) => row.source === "artificial-analysis" ? exact(row.intelligenceIndex) : exact(row.elo) },
+        { label: "Score", value: (row) => row.source === "artificial-analysis" ? exact(row.intelligenceIndex) : row.source === "openrouter" ? exact(row.primaryScore ?? row.accuracy) : exact(row.elo) },
         { label: "Match", value: (row) => row.matchStatus },
       ],
     }));
@@ -365,7 +419,7 @@ export function renderOverview(view, config) {
   const appRail = appLeaderboard(document, "oo-app-rail", "Popular app leaders", apps, appRankingSourceLabel(view.responses.apps), view.responses.apps?.provenance?.[0]?.sourceAsOf ?? view.responses.apps?.window?.end, view); appRail.dataset.mobilePanel = "apps";
   field.append(modelRail, matrix, appRail); field.dataset.mobileSegment = "models"; root.appendChild(field);
   const analysis = section(document, "oo-analysis-strip", "oo-analysis-strip");
-  for (const [title, key, note] of [["Free", "free", "Popularity default"], ["Deprecations", "deprecations", "Lifecycle evidence"], ["Tasks", "tasks", "7-day sample"], ["Benchmarks", "benchmarks", "Source-separated"], ["Providers", "providers", "Published endpoints"], ["Pareto Q×T", "freeFrontierQuality", "Quality × throughput"], ["Pareto C×P", "freeFrontierContext", "Context × popularity"]]) { const rows = envelopeRows(view,key); const article = document.createElement("article"); article.className = "oo-micro-panel"; article.dataset.overviewDataset = key; const h = document.createElement("h2"); h.textContent = title; const count = document.createElement("strong"); count.textContent = String(rows.length); const p = document.createElement("p"); p.textContent = view.errors[key] ? `Request failed · ${failureCode(view.errors[key]) ?? "error"}` : !Object.hasOwn(view.responses,key) && OVERVIEW_DEFERRED_KEYS.has(key) ? "Loads near this rail" : note; article.append(h,count,p); analysis.appendChild(article); }
+  for (const [title, key, note] of [["Free", "free", "Popularity default"], ["Deprecations", "deprecations", "Lifecycle evidence"], ["Tasks", "tasks", "7-day sample"], ["Benchmarks", "benchmarks", "Source-separated"], ["Providers", "providers", "Published endpoints"], ["Pareto Q×T", "freeFrontierQuality", "Quality × throughput"], ["Pareto C×P", "freeFrontierContext", "Context × popularity"]]) { const rows = envelopeRows(view,key); const article = document.createElement("article"); article.className = "oo-micro-panel"; article.dataset.overviewDataset = key; const h = document.createElement("h2"); h.textContent = title; const count = document.createElement("strong"); count.textContent = String(rows.length); const p = document.createElement("p"); p.textContent = view.errors[key] ? `Failed · ${failureCode(view.errors[key]) ?? "error"}` : !Object.hasOwn(view.responses,key) && OVERVIEW_DEFERRED_KEYS.has(key) ? "Pending · loads near this rail" : `${datasetStatusLabel(view, key)} · ${note}`; article.append(h,count,p); analysis.appendChild(article); }
   root.appendChild(analysis);
   const history = section(document, "oo-history-grid", "oo-history-grid"); history.append(renderHistoryPanel(view,"modelUsage","Model usage over time","stacked-area"),renderHistoryPanel(view,"modelUsage","Model rank movement","bump"),renderHistoryPanel(view,"githubRanks","GitHub category history","small-multiples")); root.appendChild(history);
   root.appendChild(renderProviderRail(view));
@@ -454,7 +508,7 @@ const openRouterColumns = {
   free: [{ label:"Rank",value:(row)=>row.weeklyRank },{ label:"Concrete model",value:(row)=>row.id },{ label:"Context",value:(row)=>exact(row.contextLength) },{ label:"Lifecycle",value:(row)=>row.lifecycleState }],
   deprecations: [{ label:"Model",value:(row)=>row.modelId },{ label:"State",value:(row)=>row.state },{ label:"First observed",value:(row)=>exact(row.firstObservedAt) },{ label:"Last observed",value:(row)=>exact(row.lastObservedAt) },{ label:"May be removed after",value:(row)=>exact(row.expirationDate) }],
   tasks: [{ label:"Task",value:(row)=>row.displayName },{ label:"Category",value:(row)=>row.macroCategory },{ label:"Usage share",value:(row)=>row.usageShare },{ label:"Token share",value:(row)=>row.tokenShare }],
-  benchmarks: [{ label:"Model",value:(row)=>row.displayName },{ label:"Source",value:(row)=>row.source },{ label:"Score",value:(row)=>row.source === "artificial-analysis" ? exact(row.intelligenceIndex) : exact(row.elo) },{ label:"Match",value:(row)=>row.matchStatus }]
+  benchmarks: [{ label:"Model",value:(row)=>row.displayName },{ label:"Source",value:(row)=>row.source },{ label:"Score",value:(row)=>row.source === "artificial-analysis" ? exact(row.intelligenceIndex) : row.source === "openrouter" ? exact(row.primaryScore ?? row.accuracy) : exact(row.elo) },{ label:"Match",value:(row)=>row.matchStatus }]
 };
 
 export function renderOpenRouter(view, state, catalogue = buildModelCatalogue([])) {
