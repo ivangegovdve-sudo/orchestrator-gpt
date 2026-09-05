@@ -1,0 +1,27 @@
+{
+  "name": "Cubeflow — Rubik's Cube Teacher",
+  "short_name": "Cubeflow",
+  "start_url": "/web/rubiks-teacher/",
+  "scope": "/web/rubiks-teacher/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#ffffff",
+  "icons": [
+    {
+      "src": "/web/rubiks-teacher/assets/icons/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/web/rubiks-teacher/assets/icons/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "/web/rubiks-teacher/assets/icons/icon-512x512-maskable.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}
