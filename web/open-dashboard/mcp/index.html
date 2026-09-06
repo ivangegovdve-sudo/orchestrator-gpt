@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>MCP server — Open Dashboard</title>
-  <meta name="description" content="Open Dashboard MCP 0.6.1: ten read-only tools for source health, model economics, free models, GitHub movement and provider-aware routing evidence.">
+  <meta name="description" content="Open Dashboard MCP 0.7.0: twelve read-only tools for benchmark observations, app-model evidence, source health, model economics, free models and GitHub movement.">
   <meta name="theme-color" content="#07070b">
   <link rel="icon" href="/web/shared/favicon.svg?v=20260807a" type="image/svg+xml">
   <script defer src="/web/shared/feedback.js?v=20260807a"></script>
@@ -73,12 +73,12 @@
   </nav>
   <main class="oo-page mcp-page" id="oo-main">
     <header class="oo-header mcp-hero">
-      <div><p class="forest-kicker">npm package · v0.6.1 · checked 2026-09-04</p><h1>Open Dashboard MCP</h1></div>
-      <p>Ten read-only tools for comparing model economics, source health, provider availability and GitHub movement in one evidence-shaped interface.</p>
+      <div><p class="forest-kicker">npm package · v0.7.0 · prepared 2026-09-06</p><h1>Open Dashboard MCP</h1></div>
+      <p>Twelve read-only tools for benchmark observations, app-model evidence, model economics, source health, provider availability and GitHub movement in one evidence-shaped interface.</p>
     </header>
 
     <div class="mcp-signal-grid" aria-label="MCP package facts">
-      <div class="mcp-signal"><strong>10</strong><span>read-only tools</span></div>
+      <div class="mcp-signal"><strong>12</strong><span>read-only tools</span></div>
       <div class="mcp-signal"><strong>4</strong><span>provider registry</span></div>
       <div class="mcp-signal"><strong>20+</strong><span>required Node version</span></div>
       <div class="mcp-signal"><strong>0</strong><span>keys needed by default</span></div>
@@ -112,7 +112,7 @@
         <article class="mcp-card">
           <span class="mcp-badge">Any MCP client</span>
           <pre><code>npx -y open-dashboard-mcp</code></pre>
-          <p>Communicates over stdio with protocol <code>2025-06-18</code>; the checked release identifies as <code>0.6.1</code>.</p>
+          <p>Communicates over stdio with protocol <code>2025-06-18</code>; the prepared release identifies as <code>0.7.0</code>.</p>
         </article>
       </div>
     </section>
@@ -121,6 +121,7 @@
       <h2>What it can answer</h2>
       <p class="mcp-section-lede">The tool list is bounded, read-only and explicit about unknowns. A missing field is not silently converted into a favorable ranking.</p>
       <div class="mcp-tool-grid">
+        <article class="mcp-card mcp-tool"><h3><code>dashboard_benchmarks</code></h3><p>Read published Artificial Analysis, Design Arena and OpenRouter benchmark observations with exact provenance; upstream failures stay explicit.</p></article>
         <article class="mcp-card mcp-tool"><h3><code>dashboard_source_health</code></h3><p>Report source freshness, collector failures and available public routes.</p></article>
         <article class="mcp-card mcp-tool"><h3><code>dashboard_model_economics</code></h3><p>Compare OpenRouter, Groq, Cerebras and Sail on exact prices, discounts, context, modality, tools, performance, availability and retirement risk. Sail prices only count when its pinned document verifies.</p></article>
         <article class="mcp-card mcp-tool"><h3><code>dashboard_resolve_model</code></h3><p>Return a bounded fallback list that satisfies every explicit provider, capability and lifecycle constraint.</p></article>
@@ -128,6 +129,7 @@
         <article class="mcp-card mcp-tool"><h3><code>dashboard_free_models</code></h3><p>Find currently listed, genuinely free models. Rate-limited free routing and unknown prices are kept separate.</p></article>
         <article class="mcp-card mcp-tool"><h3><code>dashboard_whats_changed</code></h3><p>Surface appearances, disappearances, deprecations, price movement and models that stopped being free. The result is partial when the archive cannot establish full coverage.</p></article>
         <article class="mcp-card mcp-tool"><h3><code>dashboard_usage_leaders</code></h3><p>Rank public model usage while keeping rolling app totals, latest app-model evidence and the producer-selected matrix as separate sections.</p></article>
+        <article class="mcp-card mcp-tool"><h3><code>dashboard_matrix</code></h3><p>Read the published app-model matrix while preserving approval-pending, collection-disabled, unavailable and observed states.</p></article>
         <article class="mcp-card mcp-tool"><h3><code>dashboard_github_movers</code></h3><p>Return category-scoped project-family momentum for exact 7-, 30- or 90-day baselines.</p></article>
         <article class="mcp-card mcp-tool"><h3><code>dashboard_github_trending</code></h3><p>List GitHub trending repositories with collection time, source path and a six-hour stale flag.</p></article>
         <article class="mcp-card mcp-tool"><h3><code>dashboard_key_inventory</code></h3><p>Opt-in liveness and spend visibility for configured provider keys. It returns secret names only; values are never returned, logged or modified.</p></article>
@@ -139,7 +141,7 @@
       <p class="mcp-section-lede">The registry intentionally preserves asymmetry. “Not published” means the provider did not give the field to the source; it never means zero or free.</p>
       <div class="mcp-table-scroll">
         <table class="mcp-table">
-          <caption>Package README snapshot checked 2026-09-04. OpenRouter, Groq and Cerebras rows measured 2026-08-27; Sail measured 2026-09-04.</caption>
+          <caption>Prepared package README snapshot checked 2026-09-06. OpenRouter, Groq and Cerebras rows remain source-dated; Sail is measured from its pinned document.</caption>
           <thead><tr><th scope="col">Provider</th><th scope="col">Catalogue</th><th scope="col">Pricing</th><th scope="col">Context / modality</th><th scope="col">Lifecycle / spend</th></tr></thead>
           <tbody>
             <tr><th scope="row">OpenRouter</th><td>560+</td><td>Most models</td><td>Yes / yes</td><td>Yes / billing API</td></tr>
@@ -186,7 +188,7 @@
     <section class="mcp-section" id="matrix-note">
       <h2>The matrix has its own boundary</h2>
       <p class="mcp-section-lede">The site’s <a href="/web/open-dashboard/matrix/index.html">Matrix page</a> visualizes the same <code>latest-complete</code> app-model evidence used by <code>dashboard_usage_leaders</code>. It is a top-10 slice for one published period, not a complete app census or a causal attribution.</p>
-      <p class="mcp-inline-note">When the source returns <code>collection_disabled</code> or another unavailable state, the page keeps that reason visible. Archived fixture data is explicitly labelled as a snapshot and is never mixed with live rows.</p>
+      <p class="mcp-inline-note">When the source returns <code>approval_incomplete</code>, <code>collection_disabled</code> or another unavailable state, the page keeps that reason visible. Archived fixture data is explicitly labelled as a snapshot and is never mixed with live rows.</p>
     </section>
 
     <section class="mcp-section" id="limits">
