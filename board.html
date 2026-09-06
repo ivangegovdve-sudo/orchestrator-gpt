@@ -1,0 +1,608 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Fleet Board</title>
+<style>
+:root{--bg:#fbfbfa;--fg:#1c1c1a;--muted:#6b6b66;--line:#e2e2dd;--card:#fff;
+--accent:#2f5fd0;--warn:#b45309;--bad:#b42318;--ok:#15803d;--chip:#f1f1ee;}
+@media (prefers-color-scheme:dark){:root{--bg:#141414;--fg:#e8e8e4;--muted:#9a9a93;
+--line:#2c2c29;--card:#1b1b1a;--accent:#7ea6ff;--warn:#f59e0b;--bad:#f87171;--ok:#4ade80;--chip:#232322;}}
+*{box-sizing:border-box}
+body{margin:0;padding:0 0 4rem;background:var(--bg);color:var(--fg);
+font:15px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;}
+.wrap{max-width:1080px;margin:0 auto;padding:0 1.25rem}
+h1{font-size:1.35rem;margin:1.5rem 0 .25rem;letter-spacing:-.01em}
+h2{font-size:.8rem;text-transform:uppercase;letter-spacing:.09em;color:var(--muted);
+margin:2.25rem 0 .6rem;font-weight:600}
+.freshness{font:12px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace;color:var(--muted);
+border-bottom:1px solid var(--line);padding:.6rem 0 .7rem;margin-bottom:.25rem}
+.wip{display:flex;flex-wrap:wrap;gap:.5rem;margin:.9rem 0 .25rem}
+.wip .n{background:var(--chip);border:1px solid var(--line);border-radius:6px;
+padding:.4rem .7rem;font:13px/1.2 ui-monospace,SFMono-Regular,Menlo,monospace}
+.wip .n b{font-size:1.05rem;font-weight:650}
+.note{color:var(--muted);font-size:12.5px;margin:.35rem 0 0}
+table{width:100%;border-collapse:collapse;margin:.2rem 0 .4rem}
+th{text-align:left;font-size:11.5px;text-transform:uppercase;letter-spacing:.06em;
+color:var(--muted);font-weight:600;padding:.35rem .6rem;border-bottom:1px solid var(--line)}
+td{padding:.5rem .6rem;border-bottom:1px solid var(--line);vertical-align:top}
+tr:last-child td{border-bottom:none}
+.t{font-weight:500}
+.sub{color:var(--muted);font-size:12.5px}
+.chip{display:inline-block;background:var(--chip);border:1px solid var(--line);
+border-radius:4px;padding:.05rem .4rem;font:11.5px/1.5 ui-monospace,Menlo,monospace;color:var(--muted)}
+.goal{color:var(--accent);font:11.5px/1.5 ui-monospace,Menlo,monospace}
+.age{font:12px/1.5 ui-monospace,Menlo,monospace;white-space:nowrap}
+.age.hot{color:var(--warn);font-weight:600}
+.bad{color:var(--bad)} .ok{color:var(--ok)} .warn{color:var(--warn)}
+a{color:var(--accent)}
+.empty{color:var(--muted);font-size:13px;padding:.5rem .6rem}
+details{border-top:1px solid var(--line);margin-top:2.5rem;padding-top:.5rem}
+h3{font-size:.72rem;text-transform:uppercase;letter-spacing:.09em;color:var(--muted);
+font-weight:600;margin:1.6rem 0 .4rem}
+summary{cursor:pointer;font-size:.8rem;text-transform:uppercase;letter-spacing:.09em;
+color:var(--muted);font-weight:600;padding:.5rem 0}
+pre{background:var(--chip);border:1px solid var(--line);border-radius:6px;padding:.7rem .8rem;
+overflow-x:auto;font:12px/1.5 ui-monospace,Menlo,monospace;margin:.4rem 0}
+#stalebar{display:none;position:sticky;top:0;z-index:50;background:var(--bad);color:#fff;
+padding:.85rem 1.25rem;font:13px/1.5 ui-monospace,Menlo,monospace;font-weight:600}
+body.stale #stalebar{display:block}
+body.stale .wrap{opacity:.38;filter:grayscale(.85)}
+.banner{border:1px solid var(--warn);border-left-width:4px;border-radius:6px;
+padding:.7rem .85rem;margin:1rem 0;font-size:13px}
+.banner.err{border-color:var(--bad)}
+
+/* Phone. Ivan reads this one-handed, so the multi-column tables stop being tables and
+   become stacked records: title first, metadata under it. Column headers carry no
+   information once the cells are stacked, so they are hidden -- except where the value
+   alone is ambiguous (a bare "0" under a goal), where data-l reinstates the label. */
+@media (max-width:640px){
+  .wrap{padding:0 .85rem}
+  body{font-size:15.5px}
+  h1{font-size:1.2rem}
+  h2{margin:1.9rem 0 .5rem}
+  .freshness{font-size:11.5px;word-break:break-word}
+  table,tbody,tr,td{display:block;width:100%}
+  tr:has(th){display:none}
+  th{display:none}
+  tr{border-bottom:1px solid var(--line);padding:.6rem 0}
+  tr:last-child{border-bottom:none}
+  td{border:none;padding:.06rem 0}
+  td:empty{display:none}
+  td.t{font-weight:550;line-height:1.4}
+  td.t a{display:inline-block;padding:.15rem 0;min-height:24px}
+  .sub,.age{font-size:12.5px}
+  td[data-l]::before{content:attr(data-l) ": ";color:var(--muted);
+    font-size:11px;text-transform:uppercase;letter-spacing:.05em}
+  .wip .n{flex:1 1 45%}
+  #stalebar{padding:.8rem .85rem;font-size:12.5px}
+  pre{font-size:11.5px}
+}
+</style>
+<body data-generated="2026-09-06T23:43:42Z" data-validminutes="30">
+<div id="stalebar"></div>
+<div class="wrap">
+<h1>Fleet Board</h1>
+<div class="freshness">generated <span id="age">just now</span> &middot; 2026-09-06T23:43:42Z &middot; run fd27 &middot; sources 14/14 ok &middot; scope: this machine + 1 fleet host(s)</div>
+<div class="wip">
+<div class="n"><b>0</b> in flight</div>
+<div class="n"><b>0</b> goals touched</div>
+<div class="n"><b>0</b> serving no stated goal</div>
+<div class="n"><b>9</b> waiting on you</div>
+</div>
+<h2>Waiting on you</h2>
+<table><tr><th>Task</th><th>Waiting</th><th>Why</th></tr>
+<tr><td class="t">feat(corpus): crawler grid, corpus builder, and the security gate that was not in the repo  (PR #215 in hermes_agents)</td><td class="age hot">16d</td><td class="sub">your open PR, no movement - merge or close</td></tr>
+<tr><td class="t">Snapshot: Pi naming convergence + Windows delegate (local-only history)  (PR #227 in hermes_agents)</td><td class="age hot">16d</td><td class="sub">your open PR, no movement - merge or close</td></tr>
+<tr><td class="t">chloe: capability ladder R5/R6 + TEMPORARY prune of dead SOUL capability sections  (PR #216 in hermes_agents)</td><td class="age hot">14d</td><td class="sub">your open PR, no movement - merge or close</td></tr>
+<tr><td class="t">Mint the replacement OpenRouter key — agents can't, minting needs an emailed verification code <span class="goal">G1</span></td><td class="age hot">&gt;= 12d</td><td class="sub">flagged !waiting in tasks.md</td></tr>
+<tr><td class="t">Prototype cinematic motion portfolio redesign  (PR #26 in vfx-portfolio)</td><td class="age hot">11d</td><td class="sub">your open PR, no movement - merge or close</td></tr>
+<tr><td class="t">feat(session-kb): walk long sessions with a cursor instead of truncating them  (PR #278 in hermes_agents)</td><td class="age hot">10d</td><td class="sub">your open PR, no movement - merge or close</td></tr>
+<tr><td class="t">feat(approvals): ask Ivan for permission on any transport, and get a real answer back  (PR #300 in hermes_agents)</td><td class="age hot">10d</td><td class="sub">your open PR, no movement - merge or close</td></tr>
+<tr><td class="t">Needle 2 as the model router: measured, and it loses to a keyword baseline  (PR #319 in hermes_agents)</td><td class="age hot">9d</td><td class="sub">your open PR, no movement - merge or close</td></tr>
+<tr><td class="t">Codex remote delegation: reach the box without a credential on it  (PR #222 in hermes_agents)</td><td class="age hot">8d</td><td class="sub">your open PR, no movement - merge or close</td></tr>
+</table>
+<h2>In flight</h2>
+<div class="empty">Nothing claimed. If sessions are working without claiming, the diagnostics section below will say so.</div>
+<h2>Finished elsewhere</h2>
+<p class="note">Delegated work that reached a terminal state in the system that owns it. Verified against that system, not assumed.</p>
+<table><tr><th>Work</th><th>Who</th><th>Outcome</th></tr>
+<tr><td class="t"><a href="https://jules.google.com/task/6265842050578852305">add unit tests for the pure functions of tools/decisions/backfill_until_dry.py</a></td><td class="sub" data-l="who">jules</td><td class="sub" data-l="outcome">Jules session reached COMPLETED</td></tr>
+<tr><td class="t"><a href="https://jules.google.com/task/13519868786718436231">add unit tests for the pure functions of tools/chloe_ptt.py</a></td><td class="sub" data-l="who">jules</td><td class="sub" data-l="outcome">Jules session reached COMPLETED</td></tr>
+<tr><td class="t"><a href="https://jules.google.com/task/16104509480082854852">add unit tests for the pure functions of tools/call_ivan_live.py</a></td><td class="sub" data-l="who">jules</td><td class="sub" data-l="outcome">Jules session reached COMPLETED</td></tr>
+<tr><td class="t"><a href="https://jules.google.com/task/14949632063798822869">add unit tests for the pure functions of tools/consult_memory.py</a></td><td class="sub" data-l="who">jules</td><td class="sub" data-l="outcome">Jules session reached COMPLETED</td></tr>
+<tr><td class="t"><a href="https://jules.google.com/task/7412291123079383123">add unit tests for the pure functions of tools/decisions/decay.py</a></td><td class="sub" data-l="who">jules</td><td class="sub" data-l="outcome">Jules session reached COMPLETED</td></tr>
+<tr><td class="t"><a href="https://jules.google.com/task/3182460081969917062">add unit tests for the pure functions of tools/cavemem_add.py</a></td><td class="sub" data-l="who">jules</td><td class="sub" data-l="outcome">Jules session reached COMPLETED</td></tr>
+<tr><td class="t"><a href="https://jules.google.com/task/9885488660113896233">add unit tests for the pure functions of tools/dispatch_session_ingest.py</a></td><td class="sub" data-l="who">jules</td><td class="sub" data-l="outcome">Jules session reached COMPLETED</td></tr>
+<tr><td class="t"><a href="https://jules.google.com/task/13233606435922639621">add unit tests for the pure functions of tools/cloud_watchdog.py</a></td><td class="sub" data-l="who">jules</td><td class="sub" data-l="outcome">Jules session reached COMPLETED</td></tr>
+<tr><td class="t"><a href="https://jules.google.com/task/14562814842830552388">add unit tests for the pure functions of tools/call_review.py</a></td><td class="sub" data-l="who">jules</td><td class="sub" data-l="outcome">Jules session reached COMPLETED</td></tr>
+<tr><td class="t"><a href="https://jules.google.com/task/17423996604614017344">add unit tests for the pure functions of tools/delegate_gated.py</a></td><td class="sub" data-l="who">jules</td><td class="sub" data-l="outcome">Jules session reached COMPLETED</td></tr>
+</table>
+<p class="note">Showing 10 of 12.</p>
+<h2>Abandoned</h2>
+<table><tr><th>Task</th><th>Was held by</th><th>Owner died</th></tr>
+<tr><td class="t">designing and building the fleet coordination board</td><td class="sub bad" data-l="was held by">output-23</td><td class="age" data-l="owner died">12d</td></tr>
+<tr><td class="t">redesign the board into an operable task table (design phase)</td><td class="sub bad" data-l="was held by">claude-code:aa79bbe3-a863-489c-b47b-6e799431b783</td><td class="age" data-l="owner died">11d</td></tr>
+<tr><td class="t">wiring memory: stop hook, board claims, age-decay</td><td class="sub bad" data-l="was held by">claude-code:16087679-009f-45fc-84a8-d43431541993</td><td class="age" data-l="owner died">10d</td></tr>
+<tr><td class="t">Wire session participation so working sessions claim what they are doing</td><td class="sub bad" data-l="was held by">claude-code:16087679-009f-45fc-84a8-d43431541993</td><td class="age" data-l="owner died">10d</td></tr>
+<tr><td class="t">Ivan's three novels about a protagonist named **Kalo** need to become a canonical knowledge base â€” events, l</td><td class="sub bad" data-l="was held by">claude-code:3dcd3911-2abc-4062-9d44-91c8bb6c12f1</td><td class="age" data-l="owner died">10d</td></tr>
+<tr><td class="t">Ivan approved: give ChloÃ© the drop task.** Go.</td><td class="sub bad" data-l="was held by">claude-code:88182be7-e687-4b44-a92a-12d92e9d4cac</td><td class="age" data-l="owner died">9d</td></tr>
+<tr><td class="t">&lt;task-notification&gt; &lt;task-id&gt;b2x7fbb2m&lt;/task-id&gt; &lt;tool-use-id&gt;toolu_016kGKQuc8KD9hnXZtMWozYz&lt;/tool-use-id&gt; &lt;ou</td><td class="sub bad" data-l="was held by">claude-code:8bc7ffb3-a0a2-47b8-aae4-59ab0be82fc8</td><td class="age" data-l="owner died">9d</td></tr>
+<tr><td class="t">Ivan approved: lift the score filter.** *&quot;yes lift it.&quot;</td><td class="sub bad" data-l="was held by">claude-code:6fe915b4-f52a-4e5d-af50-96466478262f</td><td class="age" data-l="owner died">9d</td></tr>
+<tr><td class="t">&lt;task-notification&gt; &lt;task-id&gt;bv9vq4f1c&lt;/task-id&gt; &lt;tool-use-id&gt;toolu_018syhS8Fx19YQRfXuyZ9min&lt;/tool-use-id&gt; &lt;ou</td><td class="sub bad" data-l="was held by">claude-code:ef0435a9-4a87-4b4b-a98a-586672b9aed8</td><td class="age" data-l="owner died">9d</td></tr>
+<tr><td class="t">Ivan wants PR #364 fixed â€” the review requested changes and it has not merged.** Pick it back up.</td><td class="sub bad" data-l="was held by">claude-code:b466ca39-9516-460d-8a2d-32f6c2384d82</td><td class="age" data-l="owner died">9d</td></tr>
+<tr><td class="t">Good work, and the guard diagnosis is better than mine â€” I had blamed `EnumerateFiles` truncation and it was</td><td class="sub bad" data-l="was held by">claude-code:d7462721-aba6-40db-9716-d8649bcc928f</td><td class="age" data-l="owner died">9d</td></tr>
+<tr><td class="t">Ivan wants to see what is actually running in `/opt/soul-server/main.py` on Oracle versus what is in the repo,</td><td class="sub bad" data-l="was held by">claude-code:a3ab2476-ff2f-4191-9a6c-1c5052ffc98c</td><td class="age" data-l="owner died">9d</td></tr>
+<tr><td class="t">&lt;task-notification&gt; &lt;task-id&gt;b4yiu8o09&lt;/task-id&gt; &lt;tool-use-id&gt;toolu_013ZBqCgc19TqYnMMwASMygg&lt;/tool-use-id&gt; &lt;ou</td><td class="sub bad" data-l="was held by">claude-code:6500b59a-e23c-416d-b0ad-9d78dbd22863</td><td class="age" data-l="owner died">9d</td></tr>
+<tr><td class="t">Ivan wants the fleet to become visible and audible in Discord. His words:</td><td class="sub bad" data-l="was held by">claude-code:892b6c4f-9445-48eb-bd44-4f1b8f782fdb</td><td class="age" data-l="owner died">9d</td></tr>
+<tr><td class="t">âš **The upload has regressed to the slow path you already diagnosed and fixed. Measured just now:</td><td class="sub bad" data-l="was held by">claude-code:1bed4d24-9b3e-4b6f-81dd-8137742aa832</td><td class="age" data-l="owner died">9d</td></tr>
+<tr><td class="t">&lt;task-notification&gt; &lt;task-id&gt;btis2v6it&lt;/task-id&gt; &lt;tool-use-id&gt;toolu_0161UCKYwhTwECjwvkYKHu8z&lt;/tool-use-id&gt; &lt;ou</td><td class="sub bad" data-l="was held by">claude-code:53e008dc-a232-4721-97e7-5a3b764bf8fd</td><td class="age" data-l="owner died">9d</td></tr>
+<tr><td class="t">Ivan's morning instruction, verbatim: *&quot;Land them. Have the fleet land them. I don't want to review anything.&quot;</td><td class="sub bad" data-l="was held by">claude-code:85802be5-42c9-4dd3-bc2c-8b563eaac6e3</td><td class="age" data-l="owner died">9d</td></tr>
+<tr><td class="t">&lt;task-notification&gt; &lt;task-id&gt;b7n6sh732&lt;/task-id&gt; &lt;tool-use-id&gt;toolu_013ewyUhFTH7qprvnjxTB5f9&lt;/tool-use-id&gt; &lt;ou</td><td class="sub bad" data-l="was held by">claude-code:740c315e-3bfe-45d3-946a-52a62d3dfbf6</td><td class="age" data-l="owner died">9d</td></tr>
+<tr><td class="t">&lt;task-notification&gt; &lt;task-id&gt;b9v4vhal0&lt;/task-id&gt; &lt;tool-use-id&gt;toolu_01PyNSbtriqRckiQ9tUptedu&lt;/tool-use-id&gt; &lt;ou</td><td class="sub bad" data-l="was held by">claude-code:09539b6c-e91e-4f50-9078-68f2589b9591</td><td class="age" data-l="owner died">9d</td></tr>
+<tr><td class="t">&lt;task-notification&gt; &lt;task-id&gt;bauc7dhmu&lt;/task-id&gt; &lt;tool-use-id&gt;toolu_018ZLKEFKiFN66fM1C7QGMkk&lt;/tool-use-id&gt; &lt;ou</td><td class="sub bad" data-l="was held by">claude-code:dc9efb88-9c2e-4bc6-a3fd-ee8127521d20</td><td class="age" data-l="owner died">9d</td></tr>
+<tr><td class="t">Priority change from Ivan. He asked directly: &quot;are buddy rooms ready, is the voice chat room ready?&quot; The answe</td><td class="sub bad" data-l="was held by">claude-code:8645197f-ba9e-42f1-9c27-3d55bc2d17d1</td><td class="age" data-l="owner died">8d</td></tr>
+<tr><td class="t">Ivan: &quot;can we finish Chloe's proactivity and the discord voice chat&quot;</td><td class="sub bad" data-l="was held by">claude-code:5e28b7e7-e9f0-4022-906f-80c26beadec6</td><td class="age" data-l="owner died">6d</td></tr>
+<tr><td class="t">Ivan: &quot;let's start with proactivity and the voice daemon&quot; â€” and he has now asked twice, so build it, don't p</td><td class="sub bad" data-l="was held by">claude-code:1e6e4db3-a684-40d1-b91c-d48b57b70d10</td><td class="age" data-l="owner died">6d</td></tr>
+<tr><td class="t">Ivan: &quot;I know I said merge, but in this case I meant rebase. Obviously, you know what I mean. You have my say </td><td class="sub bad" data-l="was held by">claude-code:a38344cc-8a4c-4ca9-83a0-ecd4fe82515b</td><td class="age" data-l="owner died">6d</td></tr>
+<tr><td class="t">In D:\projects\hermes_agents, the file `tests/test_disk_guard_truncation.py` is UNTRACKED (never git-added) an</td><td class="sub bad" data-l="was held by">claude-code:18f56113-5b84-47db-bb29-3f72a0a94652</td><td class="age" data-l="owner died">6d</td></tr>
+<tr><td class="t">Ivan approved this. Another session planned it and stopped to ask; I looked at the tree and it never implement</td><td class="sub bad" data-l="was held by">claude-code:2e946ea0-c694-4129-ab4f-5738edb5f95e</td><td class="age" data-l="owner died">6d</td></tr>
+<tr><td class="t">merge 380 first, then 379</td><td class="sub bad" data-l="was held by">claude-code:9a63fd3e-5c30-4be8-ba73-fcd23baaf848</td><td class="age" data-l="owner died">6d</td></tr>
+<tr><td class="t">Ivan has answered on the stashes, verbatim:</td><td class="sub bad" data-l="was held by">claude-code:8a27cecb-c68b-4761-8aaa-764232601206</td><td class="age" data-l="owner died">5d</td></tr>
+<tr><td class="t">&lt;task-notification&gt; &lt;task-id&gt;bhvvz4l39&lt;/task-id&gt; &lt;tool-use-id&gt;toolu_01KxPSewbqSdn8VFfUGVw7NN&lt;/tool-use-id&gt; &lt;ou</td><td class="sub bad" data-l="was held by">claude-code:8a3175aa-0f72-4ac2-aa16-0194df005c77</td><td class="age" data-l="owner died">4d</td></tr>
+<tr><td class="t">Resume, and build the thing rather than scope it further. Ivan asked directly and the honest answer was no:</td><td class="sub bad" data-l="was held by">claude-code:e30d9e1a-e8a9-4427-9470-1918e90341d4</td><td class="age" data-l="owner died">5d</td></tr>
+<tr><td class="t">STOP. Ivan's instruction, effective immediately.</td><td class="sub bad" data-l="was held by">claude-code:270e8b20-4eb9-4d59-8d11-3167a105b4a1</td><td class="age" data-l="owner died">26h</td></tr>
+<tr><td class="t">ðŸ”´ðŸ”´ **STOP THE TOOLCHAIN INSTALL NOW. Cancel session `20260902T162710-rhpl7xjq` immediately.** Ivan:</td><td class="sub bad" data-l="was held by">claude-code:8b0a0406-ca3a-40c1-b51b-5eabfb156dcf</td><td class="age" data-l="owner died">4d</td></tr>
+<tr><td class="t">Green light on the accuracy benchmark â€” and it is now the **gating measurement for the voice room**, not a c</td><td class="sub bad" data-l="was held by">claude-code:7d8ce1e1-444e-4e43-9023-c8bb63df0149</td><td class="age" data-l="owner died">5d</td></tr>
+<tr><td class="t">&lt;task-notification&gt; &lt;task-id&gt;b3fukjku8&lt;/task-id&gt; &lt;tool-use-id&gt;toolu_01RjFrrmvCReebHwz7r9Vmub&lt;/tool-use-id&gt; &lt;ou</td><td class="sub bad" data-l="was held by">claude-code:0a9e7e2a-d76e-46ec-9e58-c1116869c665</td><td class="age" data-l="owner died">11h</td></tr>
+<tr><td class="t">go ahead with a and b, then finish the audit</td><td class="sub bad" data-l="was held by">claude-code:9df26f41-c56f-409f-8514-411a6aa7f657</td><td class="age" data-l="owner died">5d</td></tr>
+<tr><td class="t">Report on tomorrow's 06:05 run once it fires.</td><td class="sub bad" data-l="was held by">claude-code:92657342-847b-447f-96fb-51c8a4d2c568</td><td class="age" data-l="owner died">8h</td></tr>
+<tr><td class="t">do 2 open it as its own PR</td><td class="sub bad" data-l="was held by">claude-code:9c2af81b-d7eb-4e95-87ae-e11d3b556470</td><td class="age" data-l="owner died">3d</td></tr>
+<tr><td class="t">In D:\projects\hermes_agents (or a worktree of it), tests/test_video_kb.py::test_genuine_short_video_is_kept c</td><td class="sub bad" data-l="was held by">claude-code:a93d3602-ee04-40cb-a632-c2195491a4bf</td><td class="age" data-l="owner died">10h</td></tr>
+</table>
+<h2>What happened</h2>
+<h3 class="sub">Delegation</h3>
+<p class="note">delegation fatal: jules-sessions: pwsh exceeded 180s and was killed</p>
+<p class="banner">delegation fatal: landing pressure UNKNOWN - could not read the board PR cache: gh exceeded 30s and was killed</p>
+<div class="banner err">Delegation job reported <b>FAILED</b> 0m ago.</div>
+<p class="note">Slots, as the delegation job saw them 0m ago: <b>0 of 15 active</b> &middot; 15 free &middot; 5 held in reserve &middot; 10 available to it. Concurrency, not a daily budget &mdash; a slot only comes back when a session reaches COMPLETED or FAILED.</p>
+<p class="note">Full reasoning: <a href="jules-queue.md">which items it held, and why</a>.</p>
+<p class="note">225 tasks on this machine, 69 non-Microsoft</p>
+<p class="note">Scheduled jobs on this machine: 69 examined &middot; 14 ok &middot; 8 running &middot; <b>3 could not run</b> &middot; 9 exited non-zero &middot; 32 switched off. A job that is running, whose trigger was skipped because an instance was already up, or that is disabled, is not counted as broken.</p>
+<p class="note">Switched off, so their last result is a fossil rather than news: AILocalGeminiPRReview, AIProjectSnapshotRefresh, AndersonInboxDigest, BankerBurnLoop, cavemem-transcript-ingest, CavememDispatchIngest.</p>
+<p class="note"><b>Windows could not run these.</b> The error is Windows&rsquo; own rather than the script&rsquo;s exit code, so these are unambiguous.</p>
+<table><tr><th>Job</th><th>Last run</th><th>Error</th></tr>
+<tr><td class="t">CavememNightlyIngest</td><td class="age hot" data-l="last run">42m ago</td><td class="sub bad" data-l="error">0x80070002 the system cannot find the file specified</td></tr>
+<tr><td class="t">ChloePcAgent</td><td class="age hot" data-l="last run">7h ago</td><td class="sub bad" data-l="error">0x80070002 the system cannot find the file specified</td></tr>
+<tr><td class="t">PreResetShutdown-OneTime</td><td class="age" data-l="last run">77d ago</td><td class="sub bad" data-l="error">0xFFFD0000 (Windows error)</td></tr>
+</table>
+<p class="note"><b>9 job(s) exited non-zero.</b> That number is the script&rsquo;s own and the board does not know what it means &mdash; <span class="chip">DiskSpaceMonitor</span> returns 1 to say <i>the disk is critical</i>, which is it working, not failing. Listed so you can judge; deliberately not graded.</p>
+<table><tr><th>Job</th><th>Last run</th><th>Exit</th></tr>
+<tr><td class="t">Fleet-JulesHarvest</td><td class="age" data-l="last run">0m ago</td><td class="sub warn" data-l="exit">exited 2</td></tr>
+<tr><td class="t">HermesMemoryReconcile</td><td class="age" data-l="last run">18m ago</td><td class="sub warn" data-l="exit">exited 2</td></tr>
+<tr><td class="t">DiskSpaceMonitor</td><td class="age" data-l="last run">42m ago</td><td class="sub warn" data-l="exit">exited 1</td></tr>
+<tr><td class="t">DailyBurn-CodeBurnReport</td><td class="age" data-l="last run">2h ago</td><td class="sub warn" data-l="exit">exited 1</td></tr>
+<tr><td class="t">HermesMemoryGapAudit</td><td class="age" data-l="last run">17h ago</td><td class="sub warn" data-l="exit">exited 2</td></tr>
+<tr><td class="t">Fleet-PinnedModelGuard</td><td class="age" data-l="last run">19h ago</td><td class="sub warn" data-l="exit">exited 3</td></tr>
+<tr><td class="t">NightlySessionAudit</td><td class="age" data-l="last run">24h ago</td><td class="sub warn" data-l="exit">exited 2</td></tr>
+<tr><td class="t">hermes-fleet-efficiency-scan</td><td class="age" data-l="last run">3d ago</td><td class="sub warn" data-l="exit">exited 1</td></tr>
+</table>
+<p class="note">Showing 8 of 9.</p>
+<h2>Agent jobs</h2>
+<p class="banner">UNREACHABLE: kvm2: ssh to 100.77.50.41 failed: # Tailscale SSH requires an additional check. # To authenticate, visit: https://login.tailscale.com/a/lc4840222f5452 Connection to 100.77.50.41 port 22 timed out - jobs on those hosts are UNKNOWN, not absent</p>
+<p class="note">11 OS-level timer(s) excluded as noise</p>
+<p class="note">19 agent timer(s) across 1 host(s) &middot; 1 failing or never run.</p>
+<table><tr><th>Unit</th><th>Host</th><th>Last run</th></tr>
+<tr><td class="t">librarian-maintenance.timer <span class="chip">FAILED</span></td><td class="sub bad" data-l="host">100.109.5.44</td><td class="age" data-l="last run">2h ago</td></tr>
+<tr><td class="t">banker-chatgpt-tracker.timer</td><td class="sub" data-l="host">100.109.5.44</td><td class="age" data-l="last run">-6m ago</td></tr>
+<tr><td class="t">newsletter-kb-ingest.timer</td><td class="sub" data-l="host">100.109.5.44</td><td class="age" data-l="last run">-6m ago</td></tr>
+<tr><td class="t">librarian-rag-warm.timer</td><td class="sub" data-l="host">100.109.5.44</td><td class="age" data-l="last run">-6m ago</td></tr>
+<tr><td class="t">fleet-ear-watch.timer</td><td class="sub" data-l="host">100.109.5.44</td><td class="age" data-l="last run">-6m ago</td></tr>
+<tr><td class="t">iris-email-watch.timer</td><td class="sub" data-l="host">100.109.5.44</td><td class="age" data-l="last run">0m ago</td></tr>
+<tr><td class="t">chloe-fleet-check.timer</td><td class="sub" data-l="host">100.109.5.44</td><td class="age" data-l="last run">0m ago</td></tr>
+<tr><td class="t">chloe-proactive.timer</td><td class="sub" data-l="host">100.109.5.44</td><td class="age" data-l="last run">6m ago</td></tr>
+<tr><td class="t">chloe-memory-sync.timer</td><td class="sub" data-l="host">100.109.5.44</td><td class="age" data-l="last run">12m ago</td></tr>
+<tr><td class="t">librarian-rag-ingest.timer</td><td class="sub" data-l="host">100.109.5.44</td><td class="age" data-l="last run">42m ago</td></tr>
+<tr><td class="t">fleet-signal-ingest.timer</td><td class="sub" data-l="host">100.109.5.44</td><td class="age" data-l="last run">2h ago</td></tr>
+<tr><td class="t">chloe-fleet-triage.timer</td><td class="sub" data-l="host">100.109.5.44</td><td class="age" data-l="last run">14h ago</td></tr>
+</table>
+<p class="note">Showing 12 of 19.</p>
+<h2>Jules</h2>
+<p class="note">Jules capacity: <b>1 running</b> &middot; 3 paused &middot; <b>38 waiting on an answer from you</b> &middot; 42 of 1106 sessions still holding a slot. The concurrency cap is <b>15</b> &mdash; that figure is <i>stated</i>, not measured by this board; the occupancy beside it is measured.</p>
+<div class="banner">38 Jules sessions asked you a question and are waiting. A parked session does not fail and does not time out &mdash; it waits forever, holding its slot and its repo. They are not failures; they are unanswered questions.</div>
+<p class="note"><b>1 session(s) have been running for over a day</b> and are still holding a slot:</p>
+<table><tr><th>Session</th><th>Running for</th></tr>
+<tr><td class="t">Palette: Micro-UX &amp; Accessibility Agent</td><td class="age hot" data-l="running for">166d</td></tr>
+</table>
+<p class="note">Session states from cache, fetched 46m ago.</p>
+<h2>Jules dispatches</h2>
+<p class="banner">4 line(s) in the jules log could not be parsed</p>
+<p class="note">the log records dispatch attempts, not outcomes - a line here is not a completion</p>
+<p class="note">0 dispatched in the last 72h &middot; <b>0 waiting on your answer</b> &middot; 0 failed &middot; 0 finished &middot; 0 still running &middot; 0 unknown.</p>
+<div class="empty">Nothing dispatched to Jules in that window.</div>
+<h2>Codex delegations</h2>
+<div class="banner">The codex inbox has recorded nothing for 21d. 1 record(s) total &mdash; this feed looks dormant, which is not the same as there being no delegations.</div>
+<table><tr><th>Job</th><th>State</th><th>When</th></tr>
+<tr><td class="t">Stage 2 of the Hypertrophy OS delegation: establish the design system and apply it to ONE screen.  IMPORTANT —...</td><td class="sub" data-l="state">done</td><td class="age" data-l="when">21d ago</td></tr>
+</table>
+<h2>Your open PRs</h2>
+<p class="note">45 open, authored by you, across 9 repo(s). Filtered by authorship: an unfiltered count here is 132, mostly upstream PRs in forks.</p>
+<table><tr><th>PR</th><th>Repo</th><th>Idle</th></tr>
+<tr><td class="t"><a href="https://github.com/ivangegovdve-sudo/hermes_agents/pull/215">feat(corpus): crawler grid, corpus builder, and the security gate that was not in the repo</a> <span class="chip">#215</span></td><td class="sub" data-l="repo">hermes_agents</td><td class="age hot" data-l="idle">16d</td></tr>
+<tr><td class="t"><a href="https://github.com/ivangegovdve-sudo/hermes_agents/pull/227">Snapshot: Pi naming convergence + Windows delegate (local-only history)</a> <span class="chip">#227</span></td><td class="sub" data-l="repo">hermes_agents</td><td class="age hot" data-l="idle">16d</td></tr>
+<tr><td class="t"><a href="https://github.com/ivangegovdve-sudo/hermes_agents/pull/216">chloe: capability ladder R5/R6 + TEMPORARY prune of dead SOUL capability sections</a> <span class="chip">#216</span></td><td class="sub" data-l="repo">hermes_agents</td><td class="age hot" data-l="idle">14d</td></tr>
+<tr><td class="t"><a href="https://github.com/ivangegovdve-sudo/vfxportfolio-ee820969/pull/26">Prototype cinematic motion portfolio redesign</a> <span class="chip">#26</span></td><td class="sub" data-l="repo">vfx-portfolio</td><td class="age hot" data-l="idle">11d</td></tr>
+<tr><td class="t"><a href="https://github.com/ivangegovdve-sudo/hermes_agents/pull/278">feat(session-kb): walk long sessions with a cursor instead of truncating them</a> <span class="chip">#278</span></td><td class="sub" data-l="repo">hermes_agents</td><td class="age hot" data-l="idle">10d</td></tr>
+<tr><td class="t"><a href="https://github.com/ivangegovdve-sudo/hermes_agents/pull/300">feat(approvals): ask Ivan for permission on any transport, and get a real answer back</a> <span class="chip">#300</span></td><td class="sub" data-l="repo">hermes_agents</td><td class="age hot" data-l="idle">10d</td></tr>
+<tr><td class="t"><a href="https://github.com/ivangegovdve-sudo/hermes_agents/pull/319">Needle 2 as the model router: measured, and it loses to a keyword baseline</a> <span class="chip">#319</span></td><td class="sub" data-l="repo">hermes_agents</td><td class="age hot" data-l="idle">9d</td></tr>
+<tr><td class="t"><a href="https://github.com/ivangegovdve-sudo/hermes_agents/pull/222">Codex remote delegation: reach the box without a credential on it</a> <span class="chip">#222</span></td><td class="sub" data-l="repo">hermes_agents</td><td class="age hot" data-l="idle">8d</td></tr>
+<tr><td class="t"><a href="https://github.com/ivangegovdve-sudo/soul-server/pull/10">feat(realtime): OpenAI-compatible /v1/realtime endpoint, Hume Octave TTS, anderson worker</a> <span class="chip">#10</span></td><td class="sub" data-l="repo">soul-server</td><td class="age" data-l="idle">5d</td></tr>
+<tr><td class="t"><a href="https://github.com/ivangegovdve-sudo/hermes_agents/pull/403">feat(email): a one-time code is one-time — measured, after word-shape failed</a> <span class="chip">#403</span></td><td class="sub" data-l="repo">hermes_agents</td><td class="age" data-l="idle">5d</td></tr>
+<tr><td class="t"><a href="https://github.com/ivangegovdve-sudo/hypertrophyos-40f826ee/pull/5">Consolidate FastAPI beneath the canonical Lovable frontend</a> <span class="chip">#5</span></td><td class="sub" data-l="repo">hypertrophyos</td><td class="age" data-l="idle">4d</td></tr>
+<tr><td class="t"><a href="https://github.com/ivangegovdve-sudo/morning-news-anchor/pull/41">Feat/invention map graph rebuild</a> <span class="chip">#41</span></td><td class="sub" data-l="repo">morning-news-anchor</td><td class="age" data-l="idle">4d</td></tr>
+<tr><td class="t"><a href="https://github.com/ivangegovdve-sudo/hermes_agents/pull/320">feat(review-gate): a merge gate that GitHub actually counts, reviewed by a model that did not write it</a> <span class="chip">#320</span></td><td class="sub" data-l="repo">hermes_agents</td><td class="age" data-l="idle">4d</td></tr>
+<tr><td class="t"><a href="https://github.com/ivangegovdve-sudo/hermes_agents/pull/407">feat(voice): the room hears, answers, and supervises itself</a> <span class="chip">#407</span></td><td class="sub" data-l="repo">hermes_agents</td><td class="age" data-l="idle">4d</td></tr>
+<tr><td class="t"><a href="https://github.com/ivangegovdve-sudo/hermes_agents/pull/415">fix(fleet-bin): the research wrappers had no executable bit, and they are invoked by bare path</a> <span class="chip">#415</span></td><td class="sub" data-l="repo">hermes_agents</td><td class="age" data-l="idle">4d</td></tr>
+<tr><td class="t"><a href="https://github.com/ivangegovdve-sudo/hermes_agents/pull/419">fix(voice): the room's mouth ran from /tmp, and its error handler kept it shut</a> <span class="chip">#419</span></td><td class="sub" data-l="repo">hermes_agents</td><td class="age" data-l="idle">4d</td></tr>
+<tr><td class="t"><a href="https://github.com/ivangegovdve-sudo/hermes_agents/pull/386">fix(email): one-time codes and reset links were at rest in a searchable index</a> <span class="chip">#386</span></td><td class="sub" data-l="repo">hermes_agents</td><td class="age" data-l="idle">4d</td></tr>
+<tr><td class="t"><a href="https://github.com/ivangegovdve-sudo/chloe-android/pull/3">ci: build the mic-free delegate flavour and publish the APK</a> <span class="chip">#3</span></td><td class="sub" data-l="repo">chloe-android</td><td class="age" data-l="idle">4d</td></tr>
+<tr><td class="t"><a href="https://github.com/ivangegovdve-sudo/hermes_agents/pull/421">feat(voice): Chloe's EVI opens only when Ivan is in the room and can hear</a> <span class="chip">#421</span></td><td class="sub" data-l="repo">hermes_agents</td><td class="age" data-l="idle">3d</td></tr>
+<tr><td class="t"><a href="https://github.com/ivangegovdve-sudo/hermes_agents/pull/423">test: Add basic import tests for cavemem_add.py</a> <span class="chip">#423</span></td><td class="sub" data-l="repo">hermes_agents</td><td class="age" data-l="idle">3d</td></tr>
+<tr><td class="t"><a href="https://github.com/ivangegovdve-sudo/hermes_agents/pull/424">Add unit tests for tools/consult_memory.py</a> <span class="chip">#424</span></td><td class="sub" data-l="repo">hermes_agents</td><td class="age" data-l="idle">3d</td></tr>
+<tr><td class="t"><a href="https://github.com/ivangegovdve-sudo/hermes_agents/pull/425">Add test file for tools/call_ivan_live.py</a> <span class="chip">#425</span></td><td class="sub" data-l="repo">hermes_agents</td><td class="age" data-l="idle">3d</td></tr>
+<tr><td class="t"><a href="https://github.com/ivangegovdve-sudo/hermes_agents/pull/426">Add chloe_ptt pure function tests</a> <span class="chip">#426</span></td><td class="sub" data-l="repo">hermes_agents</td><td class="age" data-l="idle">3d</td></tr>
+<tr><td class="t"><a href="https://github.com/ivangegovdve-sudo/morning-news-anchor/pull/46">Build The Drop subscriber welcome with independent pools</a> <span class="chip">#46</span></td><td class="sub" data-l="repo">morning-news-anchor</td><td class="age" data-l="idle">3d</td></tr>
+<tr><td class="t"><a href="https://github.com/ivangegovdve-sudo/morning-news-anchor/pull/47">Fix publication target drift and honest drop errors</a> <span class="chip">#47</span></td><td class="sub" data-l="repo">morning-news-anchor</td><td class="age" data-l="idle">3d</td></tr>
+</table>
+<p class="note">Showing 25 of 45.</p>
+<h2>Landed</h2>
+<div class="empty">Nothing recorded as landed.</div>
+<h2>Goals</h2>
+<table><tr><th>Goal</th><th>In flight</th><th>Queued</th><th>Landed</th></tr>
+<tr><td class="t"><span class="goal">G0</span> Publish &quot;A Chair or a Ladder&quot; essay publicly.</td><td class="age" data-l="in flight">0</td><td class="age" data-l="queued">0</td><td class="age" data-l="landed">0</td></tr>
+<tr><td class="t"><span class="goal">G1</span> Shift the fleet's inference stack toward free/open-source models — reduce paid API dependency for non-frontier tasks.</td><td class="age" data-l="in flight">0</td><td class="age" data-l="queued">1</td><td class="age" data-l="landed">0</td></tr>
+<tr><td class="t"><span class="goal">G2</span> Produce and release the spoken-word piece inspired by Koyczan's &quot;Shoulders&quot; (companion to the essay — arc: personal → collective → call to action).</td><td class="age" data-l="in flight">0</td><td class="age" data-l="queued">0</td><td class="age" data-l="landed">0</td></tr>
+<tr><td class="t"><span class="goal">G3</span> Hypertrophy OS + Women's Health OS each reach 100 active users.</td><td class="age" data-l="in flight">0</td><td class="age" data-l="queued">0</td><td class="age" data-l="landed">0</td></tr>
+<tr><td class="t"><span class="goal">G4</span> Complete the Chloe system to a state ready for selective sharing (core stays private until commercialization is decided).</td><td class="age" data-l="in flight">0</td><td class="age" data-l="queued">0</td><td class="age" data-l="landed">0</td></tr>
+<tr><td class="t"><span class="goal">G5</span> Publish one independent AI research finding (J-Space, CKA, or TinyLM Council output).</td><td class="age" data-l="in flight">0</td><td class="age" data-l="queued">0</td><td class="age" data-l="landed">0</td></tr>
+<tr><td class="t"><span class="goal">G6</span> TinyLM Council produces one citable result about small model cognition.</td><td class="age" data-l="in flight">0</td><td class="age" data-l="queued">0</td><td class="age" data-l="landed">0</td></tr>
+<tr><td class="t"><span class="goal">G7</span> Publish the fleet orchestration + memory efficiency guide as a $2–5 &quot;buy me a coffee&quot; product.</td><td class="age" data-l="in flight">0</td><td class="age" data-l="queued">0</td><td class="age" data-l="landed">0</td></tr>
+<tr><td class="t"><span class="goal">G8</span> SDForest becomes the public showcase hub (conditional: after fleet delegation and automated orchestration are working satisfactorily).</td><td class="age" data-l="in flight">0</td><td class="age" data-l="queued">0</td><td class="age" data-l="landed">0</td></tr>
+<tr><td class="t"><span class="goal">G9</span> Products cover their own infrastructure costs.</td><td class="age" data-l="in flight">0</td><td class="age" data-l="queued">0</td><td class="age" data-l="landed">0</td></tr>
+<tr><td class="t"><span class="goal">G10</span> First $500/month recurring revenue from any product.</td><td class="age" data-l="in flight">0</td><td class="age" data-l="queued">0</td><td class="age" data-l="landed">0</td></tr>
+</table>
+<h2>Queue</h2>
+<div class="empty">Nothing queued. Add what you want done to <span class="chip">D:\output\board\tasks.md</span> &mdash; one line each.</div>
+<div class="banner"><b>12 claim(s) reference a task id that no longer exists.</b> Usually a task was reworded in tasks.md. Shown rather than discarded.</div>
+<details><summary>Diagnostics &mdash; fleet plumbing</summary>
+<pre>
+GENERATED 2026-09-06T23:43:42Z - age 0m - run fd27 - 449228ms total - sources 14/14 ok - scope: this machine + 1 fleet host(s)
+VALID UNTIL 2026-09-07T00:13:42Z  (2 x 15 m interval). A reader MUST reject this board past that time.
+GENERATED BY reconcile.ps1. Do not hand-edit. Declared state goes in claims.jsonl.
+
+## Work
+
+WIP  **0 in flight** across 0 goal(s) - 0 serving no stated goal - 9 waiting on Ivan
+goals  11 read from TELOS.md - 0 refused as sample-template content
+tasks  1 declared - 0 in flight, 0 blocked, 38 abandoned, 0 queued, 0 landed
+
+Waiting on Ivan:
+- **feat(corpus): crawler grid, corpus builder, and the security gate that was not in the repo  (PR #215 in hermes_agents)** - waiting 16d - your open PR, no movement - merge or close
+- **Snapshot: Pi naming convergence + Windows delegate (local-only history)  (PR #227 in hermes_agents)** - waiting 16d - your open PR, no movement - merge or close
+- **chloe: capability ladder R5/R6 + TEMPORARY prune of dead SOUL capability sections  (PR #216 in hermes_agents)** - waiting 14d - your open PR, no movement - merge or close
+- **Mint the replacement OpenRouter key — agents can't, minting needs an emailed verification code** - waiting &gt;= 12d - flagged !waiting in tasks.md
+- **Prototype cinematic motion portfolio redesign  (PR #26 in vfx-portfolio)** - waiting 11d - your open PR, no movement - merge or close
+- **feat(session-kb): walk long sessions with a cursor instead of truncating them  (PR #278 in hermes_agents)** - waiting 10d - your open PR, no movement - merge or close
+- **feat(approvals): ask Ivan for permission on any transport, and get a real answer back  (PR #300 in hermes_agents)** - waiting 10d - your open PR, no movement - merge or close
+- **Needle 2 as the model router: measured, and it loses to a keyword baseline  (PR #319 in hermes_agents)** - waiting 9d - your open PR, no movement - merge or close
+- **Codex remote delegation: reach the box without a credential on it  (PR #222 in hermes_agents)** - waiting 8d - your open PR, no movement - merge or close
+
+Abandoned (the owning process was looked for and is gone - NOT in progress):
+- **designing and building the fleet coordination board** - was held by output-23
+- **redesign the board into an operable task table (design phase)** - was held by claude-code:aa79bbe3-a863-489c-b47b-6e799431b783
+- **wiring memory: stop hook, board claims, age-decay** - was held by claude-code:16087679-009f-45fc-84a8-d43431541993
+- **Wire session participation so working sessions claim what they are doing** - was held by claude-code:16087679-009f-45fc-84a8-d43431541993
+- **Ivan's three novels about a protagonist named **Kalo** need to become a canonical knowledge base â€” events, l** - was held by claude-code:3dcd3911-2abc-4062-9d44-91c8bb6c12f1
+- **Ivan approved: give ChloÃ© the drop task.** Go.** - was held by claude-code:88182be7-e687-4b44-a92a-12d92e9d4cac
+- **&lt;task-notification&gt; &lt;task-id&gt;b2x7fbb2m&lt;/task-id&gt; &lt;tool-use-id&gt;toolu_016kGKQuc8KD9hnXZtMWozYz&lt;/tool-use-id&gt; &lt;ou** - was held by claude-code:8bc7ffb3-a0a2-47b8-aae4-59ab0be82fc8
+- **Ivan approved: lift the score filter.** *&quot;yes lift it.&quot;** - was held by claude-code:6fe915b4-f52a-4e5d-af50-96466478262f
+- **&lt;task-notification&gt; &lt;task-id&gt;bv9vq4f1c&lt;/task-id&gt; &lt;tool-use-id&gt;toolu_018syhS8Fx19YQRfXuyZ9min&lt;/tool-use-id&gt; &lt;ou** - was held by claude-code:ef0435a9-4a87-4b4b-a98a-586672b9aed8
+- **Ivan wants PR #364 fixed â€” the review requested changes and it has not merged.** Pick it back up.** - was held by claude-code:b466ca39-9516-460d-8a2d-32f6c2384d82
+- **Good work, and the guard diagnosis is better than mine â€” I had blamed `EnumerateFiles` truncation and it was** - was held by claude-code:d7462721-aba6-40db-9716-d8649bcc928f
+- **Ivan wants to see what is actually running in `/opt/soul-server/main.py` on Oracle versus what is in the repo,** - was held by claude-code:a3ab2476-ff2f-4191-9a6c-1c5052ffc98c
+- **&lt;task-notification&gt; &lt;task-id&gt;b4yiu8o09&lt;/task-id&gt; &lt;tool-use-id&gt;toolu_013ZBqCgc19TqYnMMwASMygg&lt;/tool-use-id&gt; &lt;ou** - was held by claude-code:6500b59a-e23c-416d-b0ad-9d78dbd22863
+- **Ivan wants the fleet to become visible and audible in Discord. His words:** - was held by claude-code:892b6c4f-9445-48eb-bd44-4f1b8f782fdb
+- **âš **The upload has regressed to the slow path you already diagnosed and fixed. Measured just now:** - was held by claude-code:1bed4d24-9b3e-4b6f-81dd-8137742aa832
+- **&lt;task-notification&gt; &lt;task-id&gt;btis2v6it&lt;/task-id&gt; &lt;tool-use-id&gt;toolu_0161UCKYwhTwECjwvkYKHu8z&lt;/tool-use-id&gt; &lt;ou** - was held by claude-code:53e008dc-a232-4721-97e7-5a3b764bf8fd
+- **Ivan's morning instruction, verbatim: *&quot;Land them. Have the fleet land them. I don't want to review anything.&quot;** - was held by claude-code:85802be5-42c9-4dd3-bc2c-8b563eaac6e3
+- **&lt;task-notification&gt; &lt;task-id&gt;b7n6sh732&lt;/task-id&gt; &lt;tool-use-id&gt;toolu_013ewyUhFTH7qprvnjxTB5f9&lt;/tool-use-id&gt; &lt;ou** - was held by claude-code:740c315e-3bfe-45d3-946a-52a62d3dfbf6
+- **&lt;task-notification&gt; &lt;task-id&gt;b9v4vhal0&lt;/task-id&gt; &lt;tool-use-id&gt;toolu_01PyNSbtriqRckiQ9tUptedu&lt;/tool-use-id&gt; &lt;ou** - was held by claude-code:09539b6c-e91e-4f50-9078-68f2589b9591
+- **&lt;task-notification&gt; &lt;task-id&gt;bauc7dhmu&lt;/task-id&gt; &lt;tool-use-id&gt;toolu_018ZLKEFKiFN66fM1C7QGMkk&lt;/tool-use-id&gt; &lt;ou** - was held by claude-code:dc9efb88-9c2e-4bc6-a3fd-ee8127521d20
+- **Priority change from Ivan. He asked directly: &quot;are buddy rooms ready, is the voice chat room ready?&quot; The answe** - was held by claude-code:8645197f-ba9e-42f1-9c27-3d55bc2d17d1
+- **Ivan: &quot;can we finish Chloe's proactivity and the discord voice chat&quot;** - was held by claude-code:5e28b7e7-e9f0-4022-906f-80c26beadec6
+- **Ivan: &quot;let's start with proactivity and the voice daemon&quot; â€” and he has now asked twice, so build it, don't p** - was held by claude-code:1e6e4db3-a684-40d1-b91c-d48b57b70d10
+- **Ivan: &quot;I know I said merge, but in this case I meant rebase. Obviously, you know what I mean. You have my say ** - was held by claude-code:a38344cc-8a4c-4ca9-83a0-ecd4fe82515b
+- **In D:\projects\hermes_agents, the file `tests/test_disk_guard_truncation.py` is UNTRACKED (never git-added) an** - was held by claude-code:18f56113-5b84-47db-bb29-3f72a0a94652
+- **Ivan approved this. Another session planned it and stopped to ask; I looked at the tree and it never implement** - was held by claude-code:2e946ea0-c694-4129-ab4f-5738edb5f95e
+- **merge 380 first, then 379** - was held by claude-code:9a63fd3e-5c30-4be8-ba73-fcd23baaf848
+- **Ivan has answered on the stashes, verbatim:** - was held by claude-code:8a27cecb-c68b-4761-8aaa-764232601206
+- **&lt;task-notification&gt; &lt;task-id&gt;bhvvz4l39&lt;/task-id&gt; &lt;tool-use-id&gt;toolu_01KxPSewbqSdn8VFfUGVw7NN&lt;/tool-use-id&gt; &lt;ou** - was held by claude-code:8a3175aa-0f72-4ac2-aa16-0194df005c77
+- **Resume, and build the thing rather than scope it further. Ivan asked directly and the honest answer was no:** - was held by claude-code:e30d9e1a-e8a9-4427-9470-1918e90341d4
+- **STOP. Ivan's instruction, effective immediately.** - was held by claude-code:270e8b20-4eb9-4d59-8d11-3167a105b4a1
+- **ðŸ”´ðŸ”´ **STOP THE TOOLCHAIN INSTALL NOW. Cancel session `20260902T162710-rhpl7xjq` immediately.** Ivan:** - was held by claude-code:8b0a0406-ca3a-40c1-b51b-5eabfb156dcf
+- **Green light on the accuracy benchmark â€” and it is now the **gating measurement for the voice room**, not a c** - was held by claude-code:7d8ce1e1-444e-4e43-9023-c8bb63df0149
+- **&lt;task-notification&gt; &lt;task-id&gt;b3fukjku8&lt;/task-id&gt; &lt;tool-use-id&gt;toolu_01RjFrrmvCReebHwz7r9Vmub&lt;/tool-use-id&gt; &lt;ou** - was held by claude-code:0a9e7e2a-d76e-46ec-9e58-c1116869c665
+- **go ahead with a and b, then finish the audit** - was held by claude-code:9df26f41-c56f-409f-8514-411a6aa7f657
+- **Report on tomorrow's 06:05 run once it fires.** - was held by claude-code:92657342-847b-447f-96fb-51c8a4d2c568
+- **do 2 open it as its own PR** - was held by claude-code:9c2af81b-d7eb-4e95-87ae-e11d3b556470
+- **In D:\projects\hermes_agents (or a worktree of it), tests/test_video_kb.py::test_genuine_short_video_is_kept c** - was held by claude-code:a93d3602-ee04-40cb-a632-c2195491a4bf
+
+## Delegation
+
+Status `FAILED` as of 0m ago - 0 dispatched, 0 eligible, 0/15 slots active (10 available to it).
+Provenance: hold-threshold **unmeasured**, merge rate **measured**; the 0 open PRs are counted.
+- the hold-threshold is not a derived figure; do not treat it as one.
+- delegation fatal: jules-sessions: pwsh exceeded 180s and was killed
+- delegation fatal: landing pressure UNKNOWN - could not read the board PR cache: gh exceeded 30s and was killed
+
+## Participation
+
+```
+PARTICIPATION  0 / 0 live sessions have written to the board in the last 60 m
+               0 / 0 - quiet fleet. Nothing to report is the correct reading.
+```
+
+The denominator is derived from process state (PID + procStart), not from who checked in.
+That is why `0/0` and `0/0` are different strings from one code path: a fleet-wide
+failure to check in renders as an alarm, not as an empty healthy board.
+
+## Write path
+
+Reconciler heartbeat in `claims.jsonl`: last 16m. Ledger: 1914 line(s) read, 0 note(s).
+The heartbeat is a **test fixture**. It proves the append path works and nothing else.
+It is excluded from the participation numerator above, permanently and by design.
+
+## Conflicts
+
+**0 conflict(s)** from 0 live session(s) and 42 repo(s) examined.
+
+- none
+
+## Wrong
+
+sessions   1 record(s) examined - 0 live - 1 dead pid - **0 PID REUSED**
+worktrees  155 examined across 42 repo(s) - 0 held - **21 orphaned** - 134 unknown owner
+branches   724 examined - **368 unlanded** - 0 stalled &gt;24h
+
+Orphaned worktrees (owner session is dead). **Reported, never deleted** - they may hold uncommitted work:
+- `C:/Users/ivang/AppData/Local/Temp/claude/D--projects-hermes-agents/a38344cc-8a4c-4ca9-83a0-ecd4fe82515b/scratchpad/wt-org` branch `rb/o6` owner a38344cc-8a4c-4ca9-83a0-ecd4fe82515b
+- `C:/Users/ivang/AppData/Local/Temp/claude/D--projects-hermes-agents/a38344cc-8a4c-4ca9-83a0-ecd4fe82515b/scratchpad/wt-acl` branch `rb/a1` owner a38344cc-8a4c-4ca9-83a0-ecd4fe82515b
+- `C:/Users/ivang/AppData/Local/Temp/claude/D--projects-hermes-agents/1fc6f828-7822-4c00-9ca8-860d45e772aa/scratchpad/wtools` branch `feat/review-gate-github-app` owner 1fc6f828-7822-4c00-9ca8-860d45e772aa
+- `C:/Users/ivang/AppData/Local/Temp/claude/D--projects-hermes-agents/270e8b20-4eb9-4d59-8d11-3167a105b4a1/scratchpad/wt` branch `fix/email-credentials-at-rest` owner 270e8b20-4eb9-4d59-8d11-3167a105b4a1
+- `C:/Users/ivang/AppData/Local/Temp/claude/D--projects-hermes-agents/8a3175aa-0f72-4ac2-aa16-0194df005c77/scratchpad/wt-voice` branch `feat/voice-dispatch-v2` owner 8a3175aa-0f72-4ac2-aa16-0194df005c77
+- `C:/Users/ivang/AppData/Local/Temp/claude/D--projects-hermes-agents/8b0a0406-ca3a-40c1-b51b-5eabfb156dcf/scratchpad/wt-385` branch `fix/recall-finds-what-the-store-holds` owner 8b0a0406-ca3a-40c1-b51b-5eabfb156dcf
+- `D:/claude-temp/D--projects-hermes-agents/0a9e7e2a-d76e-46ec-9e58-c1116869c665/scratchpad/wt-jules` branch `fix/jules-judgement-null-payload` owner 0a9e7e2a-d76e-46ec-9e58-c1116869c665
+- `D:/claude-temp/D--projects-hermes-agents/0a9e7e2a-d76e-46ec-9e58-c1116869c665/scratchpad/wt-main` branch `` owner 0a9e7e2a-d76e-46ec-9e58-c1116869c665
+- `D:/claude-temp/D--projects-hermes-agents/0a9e7e2a-d76e-46ec-9e58-c1116869c665/scratchpad/wt-reviewer` branch `` owner 0a9e7e2a-d76e-46ec-9e58-c1116869c665
+- `D:/claude-temp/D--projects-hermes-agents/270e8b20-4eb9-4d59-8d11-3167a105b4a1/scratchpad/wt2` branch `feat/credential-word-shape` owner 270e8b20-4eb9-4d59-8d11-3167a105b4a1
+- `D:/claude-temp/D--projects-hermes-agents/270e8b20-4eb9-4d59-8d11-3167a105b4a1/wt-prreview` branch `feat/local-pr-reviewer` owner 270e8b20-4eb9-4d59-8d11-3167a105b4a1
+- `D:/claude-temp/D--projects-hermes-agents/8a3175aa-0f72-4ac2-aa16-0194df005c77/scratchpad/wt-carryover` branch `fix/room-agent-voice` owner 8a3175aa-0f72-4ac2-aa16-0194df005c77
+- `D:/claude-temp/D--projects-hermes-agents/8a3175aa-0f72-4ac2-aa16-0194df005c77/scratchpad/wt-room` branch `pr407` owner 8a3175aa-0f72-4ac2-aa16-0194df005c77
+- `D:/claude-temp/D--projects-hermes-agents/8a3175aa-0f72-4ac2-aa16-0194df005c77/scratchpad/wt-split-a` branch `feat/safe-patch-control` owner 8a3175aa-0f72-4ac2-aa16-0194df005c77
+- `C:/Users/ivang/AppData/Local/Temp/claude/D--projects-hermes-agents/a38344cc-8a4c-4ca9-83a0-ecd4fe82515b/scratchpad/wt-soul` branch `rb/s10` owner a38344cc-8a4c-4ca9-83a0-ecd4fe82515b
+- ... showing 15 of 21
+
+Unlanded branches (not merged into base, no open PR):
+- `feat/live-filesystem-index` in Windows-MCP-fork - last commit -4m (clock skew) ago
+- `main` in Windows-MCP-fork - last commit 2h 7m ago
+- `fix/remove-unexplained-overview-graph` in orchestrator-gpt - last commit 4h 3m ago
+- `fix/benchmark-batch-variant-matching` in openrouter-github-dashboard - last commit 4h 4m ago
+- `codex/drop-pr1-video-policy-reconciled` in morning-news-anchor - last commit 4h 23m ago
+- `feat/computer-bridge-client-20260906` in chloe-desktop - last commit 6h 32m ago
+- `feat/live-indexed-discovery` in windows-mcp-server-fork - last commit 6h 2m ago
+- `pr505b` in orchestrator-gpt - last commit 7h 26m ago
+- `fix/open-dashboard-deferred-loader` in orchestrator-gpt - last commit 7h 26m ago
+- `fix/tier-two-repairable-units` in hermes_agents - last commit 8h 7m ago
+- `pr505` in orchestrator-gpt - last commit 8h 10m ago
+- `fix/pr-review-doc-catches-up-with-the-gate` in hermes_agents - last commit 10h 28m ago
+- `fix/auto-merge-prefilter-accepts-independent-bots` in hermes_agents - last commit 11h 33m ago
+- `fix/open-dashboard-live-state` in orchestrator-gpt - last commit 11h 40m ago
+- `codex/drop-graph-revision` in morning-news-anchor - last commit 11h 9m ago
+- ... showing 15 of 368
+
+## Missing
+
+unknown-owner worktrees  **134** of 155 examined - owner is UNKNOWN, not 'free'
+expired claims           38 of 88 active claim(s)
+undeclared activity      0 repo(s) of 42 examined
+- 49 of 95 repo(s) under roots not scanned: no ref activity in 7 d
+- repo unreadable: 8 candidate dir(s) merged into their canonical repo (linked worktrees); 43 distinct repo(s) scanned
+- repo unreadable: D:\: git worktree list --porcelain exit 128 -- fatal: not a git repository (or any of the parent directories): .git
+
+Expired claims (presumed stale, not presumed true):
+- `c-designing-and-building-the-fleet-coordin` - designing and building the fleet coordination board (expired 12d ago)
+- `c-redesign-the-board-into-an-operable-task` - redesign the board into an operable task table (design phase) (expired 11d ago)
+- `c-wiring-memory-stop-hook-board-claims-age` - wiring memory: stop hook, board claims, age-decay (expired 10d ago)
+- `c-sess-16087679` - Wire session participation so working sessions claim what they are doing (expired 10d ago)
+- `c-sess-3dcd3911` - Ivan's three novels about a protagonist named **Kalo** need to become a canonical knowledge base â€” events, l (expired 10d ago)
+- `c-sess-88182be7` - Ivan approved: give ChloÃ© the drop task.** Go. (expired 9d ago)
+- `c-sess-8bc7ffb3` - &lt;task-notification&gt; &lt;task-id&gt;b2x7fbb2m&lt;/task-id&gt; &lt;tool-use-id&gt;toolu_016kGKQuc8KD9hnXZtMWozYz&lt;/tool-use-id&gt; &lt;ou (expired 9d ago)
+- `c-sess-6fe915b4` - Ivan approved: lift the score filter.** *&quot;yes lift it.&quot; (expired 9d ago)
+- `c-sess-ef0435a9` - &lt;task-notification&gt; &lt;task-id&gt;bv9vq4f1c&lt;/task-id&gt; &lt;tool-use-id&gt;toolu_018syhS8Fx19YQRfXuyZ9min&lt;/tool-use-id&gt; &lt;ou (expired 9d ago)
+- `c-sess-b466ca39` - Ivan wants PR #364 fixed â€” the review requested changes and it has not merged.** Pick it back up. (expired 9d ago)
+- `c-sess-d7462721` - Good work, and the guard diagnosis is better than mine â€” I had blamed `EnumerateFiles` truncation and it was (expired 9d ago)
+- `c-sess-a3ab2476` - Ivan wants to see what is actually running in `/opt/soul-server/main.py` on Oracle versus what is in the repo, (expired 9d ago)
+- `c-sess-6500b59a` - &lt;task-notification&gt; &lt;task-id&gt;b4yiu8o09&lt;/task-id&gt; &lt;tool-use-id&gt;toolu_013ZBqCgc19TqYnMMwASMygg&lt;/tool-use-id&gt; &lt;ou (expired 9d ago)
+- `c-sess-892b6c4f` - Ivan wants the fleet to become visible and audible in Discord. His words: (expired 9d ago)
+- `c-sess-1bed4d24` - âš **The upload has regressed to the slow path you already diagnosed and fixed. Measured just now: (expired 9d ago)
+- `c-sess-53e008dc` - &lt;task-notification&gt; &lt;task-id&gt;btis2v6it&lt;/task-id&gt; &lt;tool-use-id&gt;toolu_0161UCKYwhTwECjwvkYKHu8z&lt;/tool-use-id&gt; &lt;ou (expired 9d ago)
+- `c-sess-85802be5` - Ivan's morning instruction, verbatim: *&quot;Land them. Have the fleet land them. I don't want to review anything.&quot; (expired 9d ago)
+- `c-sess-740c315e` - &lt;task-notification&gt; &lt;task-id&gt;b7n6sh732&lt;/task-id&gt; &lt;tool-use-id&gt;toolu_013ewyUhFTH7qprvnjxTB5f9&lt;/tool-use-id&gt; &lt;ou (expired 9d ago)
+- `c-sess-09539b6c` - &lt;task-notification&gt; &lt;task-id&gt;b9v4vhal0&lt;/task-id&gt; &lt;tool-use-id&gt;toolu_01PyNSbtriqRckiQ9tUptedu&lt;/tool-use-id&gt; &lt;ou (expired 9d ago)
+- `c-sess-dc9efb88` - &lt;task-notification&gt; &lt;task-id&gt;bauc7dhmu&lt;/task-id&gt; &lt;tool-use-id&gt;toolu_018ZLKEFKiFN66fM1C7QGMkk&lt;/tool-use-id&gt; &lt;ou (expired 9d ago)
+- `c-sess-8645197f` - Priority change from Ivan. He asked directly: &quot;are buddy rooms ready, is the voice chat room ready?&quot; The answe (expired 8d ago)
+- `c-sess-5e28b7e7` - Ivan: &quot;can we finish Chloe's proactivity and the discord voice chat&quot; (expired 6d ago)
+- `c-sess-1e6e4db3` - Ivan: &quot;let's start with proactivity and the voice daemon&quot; â€” and he has now asked twice, so build it, don't p (expired 6d ago)
+- `c-sess-a38344cc` - Ivan: &quot;I know I said merge, but in this case I meant rebase. Obviously, you know what I mean. You have my say  (expired 6d ago)
+- `c-sess-18f56113` - In D:\projects\hermes_agents, the file `tests/test_disk_guard_truncation.py` is UNTRACKED (never git-added) an (expired 6d ago)
+- `c-sess-2e946ea0` - Ivan approved this. Another session planned it and stopped to ask; I looked at the tree and it never implement (expired 6d ago)
+- `c-sess-9a63fd3e` - merge 380 first, then 379 (expired 6d ago)
+- `c-sess-8a27cecb` - Ivan has answered on the stashes, verbatim: (expired 5d ago)
+- `c-sess-8a3175aa` - &lt;task-notification&gt; &lt;task-id&gt;bhvvz4l39&lt;/task-id&gt; &lt;tool-use-id&gt;toolu_01KxPSewbqSdn8VFfUGVw7NN&lt;/tool-use-id&gt; &lt;ou (expired 3d ago)
+- `c-sess-e30d9e1a` - Resume, and build the thing rather than scope it further. Ivan asked directly and the honest answer was no: (expired 5d ago)
+- `c-sess-270e8b20` - STOP. Ivan's instruction, effective immediately. (expired 25h 32m ago)
+- `c-sess-8b0a0406` - ðŸ”´ðŸ”´ **STOP THE TOOLCHAIN INSTALL NOW. Cancel session `20260902T162710-rhpl7xjq` immediately.** Ivan: (expired 4d ago)
+- `c-sess-7d8ce1e1` - Green light on the accuracy benchmark â€” and it is now the **gating measurement for the voice room**, not a c (expired 4d ago)
+- `c-sess-0a9e7e2a` - &lt;task-notification&gt; &lt;task-id&gt;b3fukjku8&lt;/task-id&gt; &lt;tool-use-id&gt;toolu_01RjFrrmvCReebHwz7r9Vmub&lt;/tool-use-id&gt; &lt;ou (expired 10h 46m ago)
+- `c-sess-9df26f41` - go ahead with a and b, then finish the audit (expired 5d ago)
+- `c-sess-92657342` - Report on tomorrow's 06:05 run once it fires. (expired 6h 27m ago)
+- `c-sess-9c2af81b` - do 2 open it as its own PR (expired 3d ago)
+- `c-sess-a93d3602` - In D:\projects\hermes_agents (or a worktree of it), tests/test_video_kb.py::test_genuine_short_video_is_kept c (expired 8h 3m ago)
+
+## Findings
+
+Findings are facts about the world, not about a session. **They do not expire** - a true
+fact does not rot when its author dies. They are checked by supersession (a later record
+with the same id wins) and by the SHA they were learned at.
+
+**6 active finding(s)** from 1914 ledger line(s).
+
+- **git rev-parse --git-common-dir returns 'D' instead of a path in PowerShell**
+    - cause: PowerShell unrolls a one-element array on return, so (Invoke-Git ...)[0] indexes the returned STRING and yields its first character. It never throws.
+    - resolution: Return the array with a leading comma (,@($out)) and read single lines via Invoke-GitLine, which flattens through a pipe. The same trap silently renders a 12-commit rev-list --count as 1.
+    - _id `f-git-rev-parse-git-common-dir-returns-d-i`_
+- **worktree and branch counts roughly double; phantom 'N live worktrees on one branch' conflicts**
+    - cause: A linked worktree under a scanned root has a .git FILE pointing at its parent, and 'git worktree list' inside it returns the PARENT's whole set, so the same repo is scanned once per alias directory.
+    - resolution: Group candidate dirs by 'git rev-parse --path-format=absolute --git-common-dir' before counting anything. On D:\projects this is 79 dirs -&gt; 72 real repos (hermes_agents x3, anycloudllm x6).
+    - _id `f-worktree-and-branch-counts-roughly-doubl`_
+- **Get-Item on .git fails with 'Could not find item' though Test-Path says it exists**
+    - cause: A linked worktree's .git is a hidden FILE. Get-Item and Get-ChildItem omit hidden items without -Force.
+    - resolution: Use Get-Item -Force / Get-ChildItem -Force when stat-ing .git.
+    - _id `f-get-item-on-git-fails-with-could-not-fin`_
+- **Filtering repos by .git mtime does not narrow anything - nearly every repo looks active**
+    - cause: A fetch, a ref update, or any gc touches .git, so the mtime is not a proxy for someone working in the repo. Measured 2026-08-25: RepoActivityDays of 7 and of 1 both selected 74 of 79 dirs under D:\projects.
+    - resolution: Treat .git mtime as a weak filter that only excludes long-dead repos. For a genuinely narrow scan, select repos by live-session cwd and active claims instead (reconcile.ps1 -Fast: 4 repos, 1.7s vs 74 repos, 22s).
+    - _id `f-filtering-repos-by-git-mtime-does-not-na`_
+- **task assumes a new OpenRouter key must be minted**
+    - cause: vault inventory not checked at task-writing time
+    - resolution: openrouter-spare in GCP SM is ALIVE (HTTP 200 on /auth/key), PAID tier, ~USD 4.29 used, no hard limit - pointing consumers at it may close this task without minting; Ivan decides
+    - _id `f-task-assumes-a-new-openrouter-key-must-b`, learned at `49e8f58` - **264 commit(s) to that path since**_
+- **openrouter key mint needs an emailed verification code**
+    - cause: The board task #openrouter-key-mint records that minting needs an emailed code and lists Ivan as the blocker. That is the WEB UI path, not the provisioning API.
+    - resolution: The provisioning API mints unattended. Read vault secret openrouter-management-key, POST /api/v1/keys with name and limit. Done 2026-09-02: minted openrouter-github-dashboard 2026-09-02, hash 133a7e6698bf, capped 10 USD, vaulted as openrouter-github-dashboard, verified by 200 from /benchmarks, /datasets/app-rankings, /datasets/rankings-daily and /classifications/task. No email step. The task no longer needs Ivan.
+    - _id `f-openrouter-key-mint-needs-an-emailed-ver`, learned at `d483a01` - **6 commit(s) to that path since**_
+
+## Live sessions
+
+0 live of 1 record(s) examined.
+
+| session | pid | cwd | up | claim |
+|---|---|---|---|---|
+
+---
+
+_This board reports. It does not lock, assign, or delete. Scope: this machine + 1 fleet host(s):_
+_Oracle and KVM2 agents use a systemd liveness model and are deliberately not represented here._
+
+_Source timings: sessions 688ms, ledger 3420ms, repo-discovery 2434ms, repos 387157ms, github 24081ms, telos 17ms, tasks 13ms, jules 40ms, jules-api 24ms, scheduled-jobs 1399ms, fleet-jobs 14571ms, codex 9ms, serve-log 16ms, delegation 58ms._
+</pre>
+</details>
+</div>
+<script>
+(function(){
+  // Freshness is decided at VIEW time, so a dead reconciler paints a loud page rather
+  // than a quiet one. On a phone that check has two extra ways to lie, and both are
+  // handled here rather than assumed away:
+  //
+  //   1. THE READER'S CLOCK. Age was computed purely from Date.now(). A phone whose
+  //      clock runs slow makes a stale board read fresh -- the honesty feature becomes
+  //      the liar. When served over http(s) we read the server's clock from the Date
+  //      response header of a same-origin request and measure the skew.
+  //   2. A CACHED PAGE. The generation time is baked into the HTML, so a browser
+  //      serving this page from cache also serves a stale timestamp. state.json is
+  //      re-fetched with no-store, and its generatedAt overrides the baked value.
+  //
+  // Over file:// neither is possible; the page falls back to the baked value and the
+  // local clock, which is what it always did, and says so rather than implying it
+  // checked something it could not.
+  var bakedGen = new Date(document.body.dataset.generated);
+  var validMin = parseInt(document.body.dataset.validminutes,10);
+  var gen      = bakedGen;
+  var skewMs   = 0;        // server clock minus this device's clock
+  var verified = false;    // did we reach the server this load?
+  var offline  = false;    // we tried to verify and could not
+  var offlineWhy = '';     // WHY. Never collapse 'no network' into 'the server is down'.
+  var isHttp   = /^https?:$/.test(location.protocol);
+
+  function fmt(m){
+    m = Math.abs(m);
+    if (m < 90)   return Math.round(m) + 'm';
+    if (m < 2880) return Math.round(m/60) + 'h';
+    return Math.round(m/1440) + 'd';
+  }
+
+  function paint(){
+    var ageMin = ((Date.now() + skewMs) - gen.getTime())/60000;
+    var bar = document.getElementById('stalebar');
+    var note = [];
+    if (offline)                      note.push('could not verify against the server: ' + offlineWhy);
+    if (Math.abs(skewMs) > 120000)    note.push('your device clock is off by ' + fmt(skewMs/60000) + '; corrected against the server');
+    var suffix = note.length ? ' (' + note.join('; ') + ')' : '';
+
+    if (ageMin > validMin){
+      var missed = Math.max(1, Math.floor(ageMin/(validMin/2)) - 1);
+      document.body.classList.add('stale');
+      bar.textContent =
+        'STALE - DO NOT TRUST. Last generated ' + fmt(ageMin) + ' ago; expected every ' +
+        (validMin/2) + ' min. Approximately ' + missed + ' run(s) missed. Nothing below has ' +
+        'been checked against reality since then.' + suffix;
+    } else if (offline){
+      // Not stale, but not confirmed either. A cached copy that happens to be inside
+      // the window is not the same as a board just checked against reality.
+      document.body.classList.remove('stale');
+      bar.style.display = 'block';
+      bar.style.background = 'var(--warn)';
+      bar.textContent =
+        'UNVERIFIED - ' + offlineWhy + '. Falling back to the timestamp baked into this ' +
+        'page and your device clock: generated ' + fmt(ageMin) + ' ago. That is inside the ' +
+        'freshness window, but it has not been confirmed against the server.';
+      var e0 = document.getElementById('age');
+      if (e0) e0.textContent = fmt(ageMin) + ' ago (cached)';
+    } else {
+      document.body.classList.remove('stale');
+      var el = document.getElementById('age');
+      if (el) el.textContent = fmt(ageMin) + ' ago' +
+        (verified ? '' : (isHttp ? '' : ' (local clock)')) + suffix;
+    }
+  }
+
+  function check(){
+    if (!isHttp) { paint(); return; }
+    fetch('state.json?_=' + Date.now(), {cache:'no-store'}).then(function(r){
+      if (!r.ok) throw new Error('the server answered HTTP ' + r.status + ' for state.json');
+      var d = r.headers.get('Date');
+      // Same-origin: every response header is readable. Date is the server's clock at
+      // the moment it answered, which is the only clock here that is not the phone's.
+      if (d) { var sv = new Date(d).getTime(); if (!isNaN(sv)) skewMs = sv - Date.now(); }
+      return r.json();
+    }).then(function(j){
+      if (j && j.generatedAt) {
+        var g = new Date(j.generatedAt);
+        if (!isNaN(g.getTime())) gen = g;   // beats the baked value if the HTML is cached
+      }
+      verified = true; offline = false; offlineWhy = ''; paint();
+    }).catch(function(e){
+      // A request that never left the device (no network, or a content blocker) is NOT
+      // evidence that the board server is down. Say what was observed, not a diagnosis.
+      offline = true;
+      offlineWhy = (e && e.message && e.message.indexOf('HTTP') !== -1)
+        ? e.message
+        : 'the request for state.json failed - no network, or blocked by this browser';
+      paint();
+    });
+  }
+
+  paint();
+  check();
+  setInterval(check, 30000);
+})();
+</script>
+</body>
