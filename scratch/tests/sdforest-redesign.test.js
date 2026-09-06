@@ -96,7 +96,7 @@ test('home is a truthful portal with the requested project lineup', () => {
 
   for (const title of [
     'VFX Portfolio',
-    'Morning News',
+    'The Drop',
     'Life in Time',
     'Women’s Health OS',
     'Replicator Void',
