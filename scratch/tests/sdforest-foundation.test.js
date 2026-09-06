@@ -34,11 +34,12 @@ test('Forest HUB built artifact exposes the required foundation portals and titl
   assert.doesNotMatch(home, /voice[ -]?2[ -]?voice|voice[- ]to[- ]voice|\bv2v\b/i);
 });
 
-test('Morning News links the live publication and AI dependency map', () => {
+test('The Drop links the live publication and AI dependency map', () => {
   const morning = built('web/morning-news/index.html');
 
   assert.doesNotMatch(morning, /forest-voice-news\.lovable\.app/);
   assert.match(morning, /https:\/\/morning-news-anchor-platform\.vercel\.app/);
+  assert.doesNotMatch(morning, /Morning News|Morning News Anchor/);
   assert.match(morning, /href="\/series\/dependency-map"[^>]*>AI dependency map<\/a>/);
 });
 
