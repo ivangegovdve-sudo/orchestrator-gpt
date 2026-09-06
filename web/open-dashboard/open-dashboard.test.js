@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { buildSourceRows, classifySourceState, datasetStatusLabel, summarizeSourceRows } from "./open-dashboard.js";
+import { buildSourceRows, classifySourceState, datasetStatusLabel, installDeferredLoader, summarizeSourceRows } from "./open-dashboard.js";
 import { validateOpenRouterCollection } from "./open-dashboard-schema.js";
 
 const source = (overrides = {}) => ({
@@ -60,4 +60,27 @@ test("accepts a public OpenRouter benchmark row", () => {
     provenance: [],
   }, "benchmarks");
   assert.equal(response.data[0].source, "openrouter");
+});
+
+test("starts deferred loading when the observer is unavailable or cannot be constructed", async () => {
+  const targets = [{ dataset: {} }, { dataset: {} }];
+  let calls = 0;
+  class BrokenObserver {
+    constructor() {
+      throw new Error("observer unavailable");
+    }
+  }
+
+  installDeferredLoader({
+    targets,
+    load: async () => {
+      calls += 1;
+    },
+    observerCtor: BrokenObserver,
+  });
+
+  assert.deepEqual(targets.map((target) => target.dataset.deferredState), ["loading", "loading"]);
+  await Promise.resolve();
+  assert.equal(calls, 1);
+  assert.deepEqual(targets.map((target) => target.dataset.deferredState), ["ready", "ready"]);
 });

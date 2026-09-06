@@ -480,6 +480,39 @@ export const mergeCompatibleViews = (primary, deferred) => {
   return Object.freeze({ ...primary, responses: Object.freeze({ ...primary.responses, ...deferred.responses }), errors: Object.freeze({ ...primary.errors, ...deferred.errors }) });
 };
 
+export function installDeferredLoader({ targets, load, observerCtor = globalThis.IntersectionObserver }) {
+  const panels = Array.isArray(targets) ? targets.filter(Boolean) : [];
+  if (!panels.length || typeof load !== "function") return;
+  const setState = (state) => panels.forEach((panel) => { panel.dataset.deferredState = state; });
+  let started = false;
+  let observer = null;
+  const run = async () => {
+    if (started) return;
+    started = true;
+    observer?.disconnect();
+    setState("loading");
+    try {
+      await load();
+      setState("ready");
+    } catch {
+      setState("failed");
+    }
+  };
+  setState("pending");
+  if (typeof observerCtor === "function") {
+    try {
+      observer = new observerCtor(([entry]) => {
+        if (entry?.isIntersecting) void run();
+      }, { rootMargin: "100px" });
+      observer.observe(panels[0]);
+      return;
+    } catch {
+      observer?.disconnect();
+    }
+  }
+  void run();
+}
+
 function hydrateOverviewDeferred(view) {
   renderSourceRail(view); const { document } = context();
   for (const [key, note] of [["providers", "Published endpoints"], ["freeFrontierQuality", "Quality × throughput"], ["freeFrontierContext", "Context × popularity"]]) { const article = document.querySelector(`[data-overview-dataset="${key}"]`); if (!article) continue; article.querySelector("strong").textContent = String(envelopeRows(view,key).length); article.querySelector("p").textContent = view.errors[key] ? `Request failed · ${failureCode(view.errors[key]) ?? "error"}` : note; }
@@ -497,9 +530,14 @@ function hydrateOverviewDeferred(view) {
 function installOverviewDeferredLoad(client, initialView) {
   const { document } = context(); const target = document.getElementById("oo-history-grid"); if (!target || !OVERVIEW_DEFERRED_REQUESTS.length) return;
   const requests = Object.freeze([...OVERVIEW_DEFERRED_REQUESTS, ...topAppModelRequests(initialView.responses.apps)]);
-  const load = async () => { target.dataset.deferredState = "loading"; try { const deferred = await client.loadView(requests, initialView.mode === "snapshot" ? {} : { manifest: initialView.manifest }); hydrateOverviewDeferred(mergeCompatibleViews(initialView, deferred)); target.dataset.deferredState = "ready"; } catch (error) { const failed = Object.fromEntries(requests.map((spec) => [spec.key, error])); hydrateOverviewDeferred(Object.freeze({ ...initialView, errors: Object.freeze({ ...initialView.errors, ...failed }) })); target.dataset.deferredState = "failed"; } };
-  if (typeof IntersectionObserver !== "function") { load(); return; }
-  const observer = new IntersectionObserver(([entry]) => { if (!entry.isIntersecting) return; observer.disconnect(); load(); }, { rootMargin: "100px" }); observer.observe(target);
+  const load = async () => { try { const deferred = await client.loadView(requests, initialView.mode === "snapshot" ? {} : { manifest: initialView.manifest }); hydrateOverviewDeferred(mergeCompatibleViews(initialView, deferred)); } catch (error) { const failed = Object.fromEntries(requests.map((spec) => [spec.key, error])); hydrateOverviewDeferred(Object.freeze({ ...initialView, errors: Object.freeze({ ...initialView.errors, ...failed }) })); throw error; } };
+  const panels = [
+    target,
+    ...Array.from(document.querySelectorAll("[data-overview-dataset]"))
+      .filter((panel) => OVERVIEW_DEFERRED_KEYS.has(panel.dataset.overviewDataset) || panel.dataset.overviewDataset?.startsWith("catalogue:")),
+    ...Array.from(target.querySelectorAll(".oo-pending")),
+  ];
+  installDeferredLoader({ targets: panels, load });
 }
 
 const openRouterNav = (document, state) => { const nav = document.createElement("nav"); nav.className = "oo-section-nav"; nav.setAttribute("aria-label", "OpenRouter sections"); for (const [key, definition] of Object.entries(OPENROUTER_VIEWS)) { const link = document.createElement("a"); link.href = `/web/open-dashboard/openrouter/index.html?view=${encodeURIComponent(key)}`; link.textContent = definition.label; if (key === state.view) link.setAttribute("aria-current", "page"); nav.appendChild(link); } return nav; };
