@@ -38,7 +38,7 @@ test('The Drop links the live publication and AI dependency map', () => {
   const morning = built('web/morning-news/index.html');
 
   assert.doesNotMatch(morning, /forest-voice-news\.lovable\.app/);
-  assert.match(morning, /https:\/\/thismorningsdrop\.vercel\.app/);
+  assert.match(morning, /https:\/\/morning-news-anchor-platform\.vercel\.app/);
   assert.doesNotMatch(morning, /Morning News|Morning News Anchor/);
   assert.match(morning, /href="\/series\/dependency-map"[^>]*>AI dependency map<\/a>/);
 });
@@ -183,22 +183,22 @@ test('Library is canonical and llm-db has deployment and static redirect coverag
     },
     {
       source: '/series',
-      destination: 'https://thismorningsdrop.vercel.app/series',
+      destination: 'https://morning-news-anchor-platform.vercel.app/series',
       permanent: false,
     },
     {
       source: '/series/',
-      destination: 'https://thismorningsdrop.vercel.app/series',
+      destination: 'https://morning-news-anchor-platform.vercel.app/series',
       permanent: false,
     },
     {
       source: '/series/dependency-map/',
-      destination: 'https://thismorningsdrop.vercel.app/series/dependency-map',
+      destination: 'https://morning-news-anchor-platform.vercel.app/series/dependency-map',
       permanent: false,
     },
     {
       source: '/series/dependency-map',
-      destination: 'https://thismorningsdrop.vercel.app/series/dependency-map',
+      destination: 'https://morning-news-anchor-platform.vercel.app/series/dependency-map',
       permanent: false,
     },
   ]);
