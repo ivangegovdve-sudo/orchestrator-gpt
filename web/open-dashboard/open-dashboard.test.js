@@ -1,9 +1,15 @@
 import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
 import test from "node:test";
 
 import { buildSourceRows, classifySourceState, datasetStatusLabel, installDeferredLoader, summarizeSourceRows } from "./open-dashboard.js";
 import { isSyntheticEvidenceRecord } from "./open-dashboard-api.js";
 import { validateOpenRouterCollection } from "./open-dashboard-schema.js";
+
+test("does not mount an unexplained relationship canvas on the overview page", async () => {
+  const html = await readFile(new URL("./index.html", import.meta.url), "utf8");
+  assert.doesNotMatch(html, /id="oo-network-region"/);
+});
 
 const source = (overrides = {}) => ({
   sourceId: "models_current",

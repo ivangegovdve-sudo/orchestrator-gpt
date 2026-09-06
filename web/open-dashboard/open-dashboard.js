@@ -428,7 +428,7 @@ export function renderOverview(view, config) {
   root.appendChild(renderProviderRail(view));
   const github = section(document, "oo-github-grid", "oo-github-grid");
   for (const [slug,label] of GITHUB_CATEGORIES) { const response = view.responses[`github:${slug}`]; github.appendChild(response ? renderRankTable({ document, title: label, rows: response.data.slice(0,10), sourceLabel: "GitHub adoption · percent_rank", asOf: response.coverage.resolvedAsOf, emphasizeTopThree: true, columns: [{ label:"Rank",value:(row)=>row.rank },{ label:"Project",value:(row)=>row.fullName,href:(row)=>`https://github.com/${row.fullName}` },{ label:"Stars",value:(row)=>compactIntegerString(row.stars),exact:(row)=>row.stars },{ label:"Forks",value:(row)=>compactIntegerString(row.forks),exact:(row)=>row.forks }] }) : renderDatasetGap(document, view, `github:${slug}`, label)); }
-  root.appendChild(github); root.setAttribute("aria-busy", "false"); installThreeEnhancement(view, config);
+  root.appendChild(github); root.setAttribute("aria-busy", "false");
 }
 
 export function renderMatrix(view) {
