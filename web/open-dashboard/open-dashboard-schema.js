@@ -204,14 +204,24 @@ const validators = {
   },
   benchmarks(raw, name) {
     const artificial = raw?.source === "artificial-analysis";
-    const keys = artificial ? ["source", "modelPermaslug", "displayName", "matchStatus", "pricing", "citation", "sourceUrl", "intelligenceIndex", "codingIndex", "agenticIndex"] : ["source", "modelPermaslug", "displayName", "matchStatus", "pricing", "citation", "sourceUrl", "arena", "category", "elo", "winRate", "avgGenerationTimeMs", "tournamentStats"];
+    const openRouter = raw?.source === "openrouter";
+    const keys = artificial ? ["source", "modelPermaslug", "displayName", "matchStatus", "pricing", "citation", "sourceUrl", "intelligenceIndex", "codingIndex", "agenticIndex"] : openRouter ? ["source", "modelPermaslug", "displayName", "matchStatus", "pricing", "citation", "sourceUrl", "benchmarkType", "primaryMetric", "primaryScore", "accuracy", "accuracyStddev", "avgCostPerTask", "avgLatencyPerTaskMs", "totalTasks", "lastRunTimestamp", "searchEngine", "searchSurface"] : ["source", "modelPermaslug", "displayName", "matchStatus", "pricing", "citation", "sourceUrl", "arena", "category", "elo", "winRate", "avgGenerationTimeMs", "tournamentStats"];
     const row = openRecord(raw, keys, name);
-    if (!['artificial-analysis', 'design-arena'].includes(row.source) || !['matched', 'unmatched'].includes(row.matchStatus)) fail("invalid_contract", `${name} benchmark discriminator is invalid`);
+    if (!['artificial-analysis', 'design-arena', 'openrouter'].includes(row.source) || !['matched', 'unmatched'].includes(row.matchStatus)) fail("invalid_contract", `${name} benchmark discriminator is invalid`);
     string(row.modelPermaslug, `${name}.modelPermaslug`); string(row.displayName, `${name}.displayName`); string(row.citation, `${name}.citation`);
     if (row.sourceUrl !== null && !safePublicUrl(row.sourceUrl)) fail("invalid_contract", `${name}.sourceUrl is not public`);
     const pricing = openRecord(row.pricing, ["prompt", "completion"], `${name}.pricing`); if (pricing.prompt !== null) decimalString(pricing.prompt, `${name}.pricing.prompt`); if (pricing.completion !== null) decimalString(pricing.completion, `${name}.pricing.completion`);
     if (artificial) {
       for (const key of ["intelligenceIndex", "codingIndex", "agenticIndex"]) if (row[key] !== null && typeof row[key] !== "number") fail("invalid_contract", `${name}.${key} is invalid`);
+      return Object.freeze({ ...row, pricing: Object.freeze({ ...pricing }) });
+    }
+    if (openRouter) {
+      string(row.benchmarkType, `${name}.benchmarkType`); nullableString(row.primaryMetric, `${name}.primaryMetric`);
+      for (const key of ["primaryScore", "accuracy", "accuracyStddev", "avgCostPerTask", "avgLatencyPerTaskMs"]) if (row[key] !== null && typeof row[key] !== "number") fail("invalid_contract", `${name}.${key} is invalid`);
+      if ((row.avgCostPerTask !== null && row.avgCostPerTask < 0) || (row.avgLatencyPerTaskMs !== null && row.avgLatencyPerTaskMs < 0)) fail("invalid_contract", `${name} OpenRouter cost/latency is invalid`);
+      if (row.totalTasks !== null && (!Number.isInteger(row.totalTasks) || row.totalTasks < 0)) fail("invalid_contract", `${name}.totalTasks is invalid`);
+      if (row.lastRunTimestamp !== null) dateTime(row.lastRunTimestamp, `${name}.lastRunTimestamp`);
+      nullableString(row.searchEngine, `${name}.searchEngine`); nullableString(row.searchSurface, `${name}.searchSurface`);
       return Object.freeze({ ...row, pricing: Object.freeze({ ...pricing }) });
     }
     string(row.arena, `${name}.arena`); string(row.category, `${name}.category`);
@@ -346,7 +356,7 @@ export function validateAppModelMatrix(raw, expectedMajor = "2") {
     return Object.freeze({ ...row, completeness, resolvedPeriod, apps: Object.freeze(apps), models: Object.freeze(models), appIds: Object.freeze(appIds), modelIds: Object.freeze(modelIds), cells: Object.freeze(cells), missingAliases: Object.freeze(missingAliases), unmappedModels: Object.freeze(unmappedModels), coverage: Object.freeze({ ...coverage }), provenance: validateProvenance(row.provenance) });
   }
   const row = strictRecord(raw, ["schemaVersion", "status", "reason", "lastSuccessAt", "stale", "staleAfterSeconds", "completeness", "provenance", "appIds", "modelIds", "cells"], "app-model matrix unavailable"); schema(row.schemaVersion, expectedMajor);
-  if (row.status !== "unavailable" || !["collection_disabled", "not_published", "no_observed_period", "no_common_period", "period_mismatch"].includes(row.reason) || !Array.isArray(row.appIds) || row.appIds.length > 10 || !Array.isArray(row.modelIds) || row.modelIds.length > 10 || !Array.isArray(row.cells) || row.cells.length !== 0 || typeof row.stale !== "boolean" || row.staleAfterSeconds !== 172800) fail("invalid_contract", "matrix unavailable state is invalid");
+  if (row.status !== "unavailable" || !["collection_disabled", "approval_incomplete", "not_published", "no_observed_period", "no_common_period", "period_mismatch"].includes(row.reason) || !Array.isArray(row.appIds) || row.appIds.length > 10 || !Array.isArray(row.modelIds) || row.modelIds.length > 10 || !Array.isArray(row.cells) || row.cells.length !== 0 || typeof row.stale !== "boolean" || row.staleAfterSeconds !== 172800) fail("invalid_contract", "matrix unavailable state is invalid");
   if (row.lastSuccessAt !== null) dateTime(row.lastSuccessAt, "matrix.lastSuccessAt");
   return Object.freeze({ ...row, completeness: validateAppModelCompleteness(row.completeness, "matrix.completeness"), provenance: validateProvenance(row.provenance), appIds: Object.freeze(row.appIds.map((value) => integerString(value, "matrix.appId"))), modelIds: Object.freeze(row.modelIds.map((value) => string(value, "matrix.modelId"))), cells: Object.freeze([]) });
 }
@@ -360,7 +370,7 @@ export function validateAppModels(raw, expectedMajor = "2") {
     return Object.freeze({ ...row, completeness: validateAppModelCompleteness(row.completeness, "appModels.completeness"), resolvedPeriod: validateObservedPeriod(row.resolvedPeriod, "appModels.resolvedPeriod"), data: Object.freeze(data), coverage: Object.freeze({ ...coverage }), provenance: validateProvenance(row.provenance) });
   }
   const row = strictRecord(raw, ["schemaVersion", "status", "reason", "lastSuccessAt", "stale", "staleAfterSeconds", "completeness", "provenance", "appId", "data", "cursor"], "app models unavailable"); schema(row.schemaVersion, expectedMajor);
-  if (row.status !== "unavailable" || !["collection_disabled", "unmapped_alias", "not_published", "no_observed_period", "period_mismatch"].includes(row.reason) || !Array.isArray(row.data) || row.data.length !== 0 || row.cursor !== null || typeof row.stale !== "boolean" || row.staleAfterSeconds !== 172800) fail("invalid_contract", "appModels unavailable state is invalid");
+  if (row.status !== "unavailable" || !["collection_disabled", "approval_incomplete", "unmapped_alias", "not_published", "no_observed_period", "period_mismatch"].includes(row.reason) || !Array.isArray(row.data) || row.data.length !== 0 || row.cursor !== null || typeof row.stale !== "boolean" || row.staleAfterSeconds !== 172800) fail("invalid_contract", "appModels unavailable state is invalid");
   if (row.lastSuccessAt !== null) dateTime(row.lastSuccessAt, "appModels.lastSuccessAt");
   integerString(row.appId, "appModels.appId"); return Object.freeze({ ...row, completeness: validateAppModelCompleteness(row.completeness, "appModels.completeness"), provenance: validateProvenance(row.provenance), data: Object.freeze([]) });
 }

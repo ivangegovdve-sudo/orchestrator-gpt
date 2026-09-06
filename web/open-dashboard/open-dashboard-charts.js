@@ -232,10 +232,12 @@ export function renderHistoryVisualization({ document, type, buckets, title }) {
 export function renderSourceStates({ document, datasets }) {
   const list = el(document, "ul", "oo-source-list");
   for (const dataset of datasets) {
-    const item = el(document, "li", "oo-source-row"); item.dataset.mode = dataset.mode; item.dataset.freshness = dataset.freshness; item.dataset.completeness = dataset.completeness; if (dataset.sourceKind) item.dataset.sourceKind = dataset.sourceKind;
+    const item = el(document, "li", "oo-source-row"); item.dataset.mode = dataset.mode; item.dataset.freshness = dataset.freshness; item.dataset.completeness = dataset.completeness; if (dataset.state) item.dataset.status = dataset.state; if (dataset.sourceKind) item.dataset.sourceKind = dataset.sourceKind;
     const identity = el(document, "strong"); const sourceUrl = safePublicUrl(dataset.sourceUrl); if (sourceUrl) { const link = el(document, "a", "", dataset.sourceId); link.href = sourceUrl.href; link.target = "_blank"; link.rel = "noopener noreferrer"; identity.appendChild(link); } else identity.textContent = dataset.sourceId;
     const time = el(document, "time", "", dataset.asOf || "as-of unknown"); if (validIsoTime(dataset.asOf)) time.setAttribute("datetime", dataset.asOf);
-    item.append(identity, el(document, "span", "", `${dataset.mode} · ${dataset.freshness} · ${dataset.completeness}`), time);
+    const status = dataset.state || dataset.freshness || "unknown";
+    item.append(identity, el(document, "span", "oo-source-status-label", dataset.statusLabel || status.replaceAll("-", " ")), el(document, "span", "", `${dataset.mode} · ${dataset.freshness} · ${dataset.completeness}`), time);
+    if (dataset.statusNote) item.appendChild(el(document, "span", "oo-source-note", dataset.statusNote));
     if (dataset.publicationIdentity) { const publication = el(document, "span", "oo-source-publication", `publication ${dataset.publicationIdentity}`); publication.title = dataset.publicationIdentity; item.appendChild(publication); }
     list.appendChild(item);
   }
@@ -257,6 +259,7 @@ export const validIsoTime = (value) => {
 // is hidden, and nothing is inferred.
 const REASON_TEXT = Object.freeze({
   collection_disabled: "This relationship data is not being collected at the moment.",
+  approval_incomplete: "Collection is quiet while the required approvals are pending.",
   insufficient_history: "There is not yet enough history to draw this.",
   requires_8_consecutive_complete_days: "This needs eight consecutive complete days before it can be drawn.",
   not_published: "This slice has not been published.",
