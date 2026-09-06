@@ -109,7 +109,10 @@ export function datasetStatusLabel(view, key, now = new Date()) {
   const direct = rows.find((row) => row.datasetKey === key);
   const sourceId = DATASET_SOURCE_IDS[key];
   const source = sourceId ? rows.find((row) => row.datasetKey === `source:${sourceId}`) : null;
-  if (direct || source) return SOURCE_STATE_LABELS[(direct || source).state] || SOURCE_STATE_LABELS.current;
+  // Degrade to the raw state name, never to "Current". A state this table does not
+  // know about is an unknown, and rendering an unknown as current is exactly how a
+  // newly-added failure state would ship silently reading as healthy.
+  if (direct || source) { const state = (direct || source).state; return SOURCE_STATE_LABELS[state] || state; }
   return !Object.hasOwn(view.responses || {}, key) ? SOURCE_STATE_LABELS.pending : SOURCE_STATE_LABELS.current;
 }
 
