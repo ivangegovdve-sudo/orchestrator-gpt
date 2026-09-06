@@ -1,7 +1,8 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { buildSourceRows, classifySourceState, datasetStatusLabel, summarizeSourceRows } from "./open-dashboard.js";
+import { buildSourceRows, classifySourceState, datasetStatusLabel, installDeferredLoader, summarizeSourceRows } from "./open-dashboard.js";
+import { isSyntheticEvidenceRecord } from "./open-dashboard-api.js";
 import { validateOpenRouterCollection } from "./open-dashboard-schema.js";
 
 const source = (overrides = {}) => ({
@@ -60,4 +61,27 @@ test("accepts a public OpenRouter benchmark row", () => {
     provenance: [],
   }, "benchmarks");
   assert.equal(response.data[0].source, "openrouter");
+});
+
+test("starts every deferred panel when the observer is unavailable", async () => {
+  const targets = Array.from({ length: 11 }, () => ({ dataset: {} }));
+  let calls = 0;
+  globalThis.IntersectionObserver = undefined;
+
+  installDeferredLoader({ targets, load: async () => { calls += 1; } });
+
+  assert.deepEqual(targets.map((target) => target.dataset.deferredState), Array(11).fill("loading"));
+  await Promise.resolve();
+  assert.equal(calls, 1);
+  assert.deepEqual(targets.map((target) => target.dataset.deferredState), Array(11).fill("ready"));
+});
+
+test("does not classify real Seedance provider provenance as fixture evidence", () => {
+  assert.equal(isSyntheticEvidenceRecord({
+    sourceId: "openrouter.providers.Ynl0ZWRhbmNlL3NlZWRhbmNlLTEtNS1wcm8",
+    transformVersion: "openrouter-provider-endpoints-v1",
+    citation: "https://openrouter.ai/bytedance/seedance-1.5-pro/providers",
+  }), false);
+  assert.equal(isSyntheticEvidenceRecord({ sourceId: "fixture.models_current" }), true);
+  assert.equal(isSyntheticEvidenceRecord({ transformVersion: "deterministic-preview-snapshot-v1" }), true);
 });
