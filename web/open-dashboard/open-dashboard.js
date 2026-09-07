@@ -89,18 +89,24 @@ export function classifySourceState(source, response, { now = new Date(), snapsh
   return "current";
 }
 
-function sourceStatusNote(source, state) {
+function sourceStatusNote(source, state, now = new Date()) {
   const published = source.publishedAt || null;
   const scheduled = source.nextScheduledAt || null;
   const failure = source.lastAttemptErrorCode ? ` · ${source.lastAttemptErrorCode}` : "";
-  if (state === "current") return `Current · last published ${published || "unknown"}`;
-  if (state === "published-but-old") return `Published ${published || "unknown"} · scheduled refresh ${scheduled || "unknown"} is overdue`;
-  if (state === "stale") return `Published ${published || "unknown"} · stale threshold crossed`;
-  if (state === "never-published") return `Never published${source.lastAttemptStatus === "failed" ? ` · last attempt failed${failure}` : ""}`;
-  if (state === "failed") return `Last attempt failed${failure}${published ? ` · last published ${published}` : ""}`;
-  if (state === "approval-pending") return "Collection is quiet pending the required approvals";
-  if (state === "collection-disabled") return "Collection is disabled by configuration";
-  return SOURCE_STATE_LABELS[state] || state;
+  const base = state === "current" ? `Current · last published ${published || "unknown"}`
+    : state === "published-but-old" ? `Published ${published || "unknown"} · scheduled refresh ${scheduled || "unknown"} is overdue`
+      : state === "stale" ? `Published ${published || "unknown"} · stale threshold crossed`
+        : state === "never-published" ? `Never published${source.lastAttemptStatus === "failed" ? ` · last attempt failed${failure}` : ""}`
+          : state === "failed" ? `Last attempt failed${failure}${published ? ` · last published ${published}` : ""}`
+            : state === "approval-pending" ? "Collection is quiet pending the required approvals"
+              : state === "collection-disabled" ? "Collection is disabled by configuration" : SOURCE_STATE_LABELS[state] || state;
+  const details = [];
+  const failureCount = typeof source.consecutiveFailureCount === "string" ? BigInt(source.consecutiveFailureCount) : 0n;
+  if (failureCount > 0n) details.push(`${failureCount.toString()} consecutive failure${failureCount === 1n ? "" : "s"}${source.failureEscalated ? " · escalation threshold reached" : ""}`);
+  const lastSuccess = parsedTime(source.lastSuccessAt);
+  const ageDays = lastSuccess === null ? null : Math.floor((now.getTime() - lastSuccess) / 86_400_000);
+  if (ageDays !== null && ageDays > 1) details.push(`last successful collection: ${ageDays} days ago`);
+  return [base, ...details].join(" · ");
 }
 
 export function datasetStatusLabel(view, key, now = new Date()) {
@@ -215,7 +221,7 @@ export function buildSourceRows(view, { now = new Date() } = {}) {
     const provenance = response?.provenance?.find((entry) => entry.sourceId === source.sourceId);
     const runMismatch = Boolean(provenance && provenance.runId !== source.publishedRunId);
     const state = classifySourceState(source, response, { now, snapshotStale: view.snapshotStale, runMismatch });
-    return { datasetKey: `source:${source.sourceId}`, sourceId: source.sourceId, required: true, mode: view.mode, state, freshness: sourceFreshness(state), completeness: source.publishedRunId === null || runMismatch ? "unavailable" : response?.completeness ? population(response.completeness.acquisitionComplete, response.completeness.populationCompleteness) : response?.coverage ? population(response.coverage.acquisitionComplete, response.coverage.populationCompleteness) : population(source.lastAttemptAcquisitionComplete ?? true, source.lastAttemptPopulationCompleteness ?? "partial_or_unknown"), asOf: provenance?.sourceAsOf ?? source.publishedAt, publishedAt: source.publishedAt, nextScheduledAt: source.nextScheduledAt, lastAttemptStatus: source.lastAttemptStatus, lastAttemptErrorCode: source.lastAttemptErrorCode, statusNote: sourceStatusNote(source, state), ...(runMismatch ? { reason: "provenance_run_mismatch" } : {}) };
+    return { datasetKey: `source:${source.sourceId}`, sourceId: source.sourceId, required: true, mode: view.mode, state, freshness: sourceFreshness(state), completeness: source.publishedRunId === null || runMismatch ? "unavailable" : response?.completeness ? population(response.completeness.acquisitionComplete, response.completeness.populationCompleteness) : response?.coverage ? population(response.coverage.acquisitionComplete, response.coverage.populationCompleteness) : population(source.lastAttemptAcquisitionComplete ?? true, source.lastAttemptPopulationCompleteness ?? "partial_or_unknown"), asOf: provenance?.sourceAsOf ?? source.publishedAt, publishedAt: source.publishedAt, nextScheduledAt: source.nextScheduledAt, lastAttemptStatus: source.lastAttemptStatus, lastAttemptErrorCode: source.lastAttemptErrorCode, lastSuccessAt: source.lastSuccessAt, consecutiveFailureCount: source.consecutiveFailureCount, failureEscalationThreshold: source.failureEscalationThreshold, failureEscalated: source.failureEscalated, statusNote: sourceStatusNote(source, state, now), ...(runMismatch ? { reason: "provenance_run_mismatch" } : {}) };
   });
   for (const [key, response] of Object.entries(view.responses)) {
     if (key.startsWith("githubEnrichment:") && Array.isArray(response?.provenance)) {

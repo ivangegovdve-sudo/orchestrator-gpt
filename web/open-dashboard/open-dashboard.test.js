@@ -47,6 +47,25 @@ test("keeps never-published and failed evidence visible", () => {
   assert.deepEqual(summarizeSourceRows([row]), { freshness: "unavailable", completeness: "unavailable", status: "never-published" });
 });
 
+test("surfaces consecutive failures and an old last-success timestamp", () => {
+  const failed = source({
+    publishedAt: "2026-09-01T06:00:00.000Z",
+    lastAttemptStatus: "failed",
+    lastAttemptStartedAt: "2026-09-03T06:00:00.000Z",
+    lastAttemptFinishedAt: "2026-09-03T06:01:00.000Z",
+    consecutiveFailureCount: "3",
+    lastSuccessAt: "2026-09-01T06:00:00.000Z",
+    failureEscalationThreshold: 2,
+    failureEscalated: true,
+  });
+  const row = buildSourceRows({ mode: "live", snapshotStale: false, manifest: { sources: [failed] }, responses: {}, errors: {} }, { now: new Date("2026-09-04T06:02:00.000Z") })[0];
+
+  assert.equal(row.state, "failed");
+  assert.equal(row.freshness, "unavailable");
+  assert.match(row.statusNote, /3 consecutive failures.*escalation threshold reached/);
+  assert.match(row.statusNote, /last successful collection: 3 days ago/);
+});
+
 test("distinguishes approval pending from disabled collection", () => {
   const pending = source({ publishedRunId: null, publishedAt: null, nextScheduledAt: null });
   assert.equal(classifySourceState(pending, { status: "unavailable", reason: "approval_incomplete" }), "approval-pending");
@@ -68,7 +87,6 @@ test("accepts a public OpenRouter benchmark row", () => {
   }, "benchmarks");
   assert.equal(response.data[0].source, "openrouter");
 });
-
 test("starts every deferred panel when the observer is unavailable", async () => {
   const targets = Array.from({ length: 11 }, () => ({ dataset: {} }));
   let calls = 0;
