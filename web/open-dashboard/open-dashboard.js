@@ -68,11 +68,12 @@ const SOURCE_STATE_LABELS = Object.freeze({
   failed: "Failed",
   "approval-pending": "Approval pending",
   "collection-disabled": "Collection disabled",
+  "registry-stale": "Registry stale",
   pending: "Pending",
 });
 const DATASET_SOURCE_IDS = Object.freeze({ models: "models_current", apps: "apps_ranked", free: "models_current", deprecations: "models_current", tasks: "task_classifications", benchmarks: "benchmarks_current" });
 const parsedTime = (value) => typeof value === "string" && Number.isFinite(Date.parse(value)) ? Date.parse(value) : null;
-const sourceFreshness = (state) => state === "current" ? "current" : state === "published-but-old" ? "overdue" : state === "stale" ? "stale" : "unavailable";
+const sourceFreshness = (state) => state === "current" ? "current" : state === "published-but-old" ? "overdue" : state === "stale" || state === "registry-stale" ? "stale" : "unavailable";
 
 export function classifySourceState(source, response, { now = new Date(), snapshotStale = false, runMismatch = false } = {}) {
   const responseReason = response?.reason;
@@ -86,6 +87,7 @@ export function classifySourceState(source, response, { now = new Date(), snapsh
   if (source.stale || response?.stale || response?.coverage?.stale || snapshotStale) return "stale";
   const scheduledAt = parsedTime(source.nextScheduledAt);
   if (scheduledAt !== null && now.getTime() >= scheduledAt && (attemptedAt === null || attemptedAt < scheduledAt)) return "published-but-old";
+  if (source.aliasRegistryDrift?.status === "registry_stale") return "registry-stale";
   return "current";
 }
 
@@ -95,7 +97,8 @@ function sourceStatusNote(source, state, now = new Date()) {
   const failure = source.lastAttemptErrorCode ? ` · ${source.lastAttemptErrorCode}` : "";
   const base = state === "current" ? `Current · last published ${published || "unknown"}`
     : state === "published-but-old" ? `Published ${published || "unknown"} · scheduled refresh ${scheduled || "unknown"} is overdue`
-      : state === "stale" ? `Published ${published || "unknown"} · stale threshold crossed`
+        : state === "stale" ? `Published ${published || "unknown"} · stale threshold crossed`
+          : state === "registry-stale" ? "Published ranking is current · reviewed app registry is stale"
         : state === "never-published" ? `Never published${source.lastAttemptStatus === "failed" ? ` · last attempt failed${failure}` : ""}`
           : state === "failed" ? `Last attempt failed${failure}${published ? ` · last published ${published}` : ""}`
             : state === "approval-pending" ? "Collection is quiet pending the required approvals"

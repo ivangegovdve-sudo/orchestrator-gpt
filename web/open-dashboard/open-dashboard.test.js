@@ -90,7 +90,9 @@ test("surfaces named reviewed-alias drift on the public source rail", () => {
     },
   });
   const view = { mode: "live", snapshotStale: false, manifest: { sources: [drifted] }, responses: {}, errors: {} };
-  const row = buildSourceRows(view)[0];
+  const row = buildSourceRows(view, { now: new Date("2026-09-04T06:02:00.000Z") })[0];
+  assert.equal(row.state, "registry-stale");
+  assert.equal(row.freshness, "stale");
   assert.match(row.statusNote, /reviewed app registry stale/);
   assert.match(row.statusNote, /Zazen/);
   assert.match(row.statusNote, /Former App/);
