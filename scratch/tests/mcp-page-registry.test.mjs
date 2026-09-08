@@ -5,15 +5,12 @@ import { tmpdir } from 'node:os';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { createRequire } from 'node:module';
-import { spawnSync } from 'node:child_process';
 
 const root = resolve(import.meta.dirname, '../..');
 const require = createRequire(import.meta.url);
-const packageRoot = process.env.MCP_PACKAGE_ROOT || resolve(require.resolve('open-dashboard-mcp/package.json'), '..');
-const sourceMode = Boolean(process.env.MCP_PACKAGE_ROOT);
-const load = async name => sourceMode
-  ? (await import('tsx/esm/api')).tsImport(pathToFileURL(resolve(packageRoot, `src/${name}.ts`)).href, import.meta.url)
-  : import(pathToFileURL(resolve(packageRoot, `build/${name}.js`)).href);
+const packageRoot = process.env.MCP_PACKAGE_ROOT;
+if (!packageRoot) throw Error('Set MCP_PACKAGE_ROOT to the pinned package source checkout; this guard must compare against the actual source registry and tools/list.');
+const load = async name => (await import('tsx/esm/api')).tsImport(pathToFileURL(resolve(packageRoot, `src/${name}.ts`)).href, import.meta.url);
 const { PROVIDER_IDS, PROVIDER_REGISTRY } = await load('providers/registry');
 const pages = ['mcp', 'catalogues'];
 
@@ -23,6 +20,9 @@ for (const page of pages) {
     const rows = [...html.matchAll(/<tr\b[^>]*data-provider-id="([^"]+)"/g)].map(m => m[1]);
     assert.equal(rows.length, PROVIDER_IDS.length, 'generated provider table must have one row per source registry provider');
     assert.deepEqual(rows.toSorted(), [...PROVIDER_IDS].toSorted());
+    const counts = [...html.matchAll(/data-package-provider-count>(\d+)</g)].map(m => Number(m[1]));
+    assert.ok(counts.length > 0);
+    assert.ok(counts.every(count => count === PROVIDER_IDS.length));
   });
   test(`${page} carries each source publication state without turning unknown into never`, async () => {
     const html = await readFile(resolve(root, `web/open-dashboard/${page}/index.html`), 'utf8');
@@ -32,6 +32,8 @@ for (const page of pages) {
       for (const field of ['pricing', 'contextLength', 'outputModalities', 'lifecycle']) {
         assert.ok(row.includes(`data-field="${field}" data-publication="${PROVIDER_REGISTRY[id].publishes[field]}"`), `${id}.${field} must preserve its registry state`);
       }
+      const kind = row.match(/data-provider-kind="([^"]+)"/)?.[1];
+      assert.equal(kind, PROVIDER_REGISTRY[id].providerKind, `${id} must preserve its optional source provider kind`);
     }
   });
 }
@@ -49,8 +51,11 @@ test('MCP tool names and every displayed count match the real tools/list registr
     const html = await readFile(resolve(root, 'web/open-dashboard/mcp/index.html'), 'utf8');
     const actual = [...html.matchAll(/data-package-tool="([^"]+)"/g)].map(m => m[1]).sort();
     assert.deepEqual(actual, expected);
-    const counts = [...html.matchAll(/data-package-tool-count>(\d+)</g)].map(m => Number(m[1]));
-    assert.ok(counts.length >= 2); assert.ok(counts.every(count => count === expected.length));
+    for (const page of pages) {
+      const pageHtml = await readFile(resolve(root, `web/open-dashboard/${page}/index.html`), 'utf8');
+      const counts = [...pageHtml.matchAll(/data-package-tool-count>(\d+)</g)].map(m => Number(m[1]));
+      assert.ok(counts.length > 0); assert.ok(counts.every(count => count === expected.length));
+    }
   } finally { await client.close(); await server.close(); }
 });
 
@@ -77,7 +82,7 @@ test('unknown publication data renders as unknown while never remains Not publis
   facts.providers[0].publishes.contextLength = 'never';
   const html = providerTable(facts);
   assert.match(html, /data-field="pricing" data-publication="unknown">Unknown — not established/);
-  assert.match(html, /data-field="contextLength" data-publication="never">Not published</);
+  assert.match(html, /data-field="contextLength" data-publication="never">Not published in this connector</);
 });
 
 test('a new npm release fails the pin guard instead of silently retaining old generated facts', async () => {
@@ -85,8 +90,73 @@ test('a new npm release fails the pin guard instead of silently retaining old ge
   await assert.rejects(assertPublishedVersion('0.8.0', async () => Response.json({ name: 'open-dashboard-mcp', version: '0.9.0' })), /differs from npm latest/);
 });
 
-test('published-package checks reject an editable source override even with a matching version', () => {
-  const child = spawnSync(process.execPath, ['scripts/generate-mcp-pages.mjs', '--check-published'], { cwd: root, env: { ...process.env, MCP_PACKAGE_ROOT: packageRoot }, encoding: 'utf8', timeout: 30000, windowsHide: true });
-  assert.equal(child.status, 1);
-  assert.match(child.stderr, /Published-package checks require the lockfile-installed artifact/);
+test('candidate manifest matches an immutable package commit and independently regenerated facts', async () => {
+  const { assertSourceManifest } = await import('../../scripts/generate-mcp-pages.mjs');
+  await assertSourceManifest();
+});
+
+test('candidate labels are separate from the installed npm version and installation pins', async () => {
+  const { readReleaseManifest } = await import('../../scripts/generate-mcp-pages.mjs');
+  const release = await readReleaseManifest();
+  const installed = JSON.parse(await readFile(require.resolve('open-dashboard-mcp/package.json'), 'utf8'));
+  const html = await readFile(resolve(root, 'web/open-dashboard/mcp/index.html'), 'utf8');
+  assert.ok(html.includes(release.channel === 'published' ? 'Published release:' : 'Source release candidate:'));
+  assert.ok(html.includes('Source commit (repository access required)'));
+  assert.ok(html.includes(`data-installed-package-version>${installed.version}</span>`));
+  assert.ok(html.includes(`open-dashboard-mcp@${installed.version}`));
+  const catalogue = await readFile(resolve(root, 'web/open-dashboard/catalogues/index.html'), 'utf8');
+  assert.ok(catalogue.includes('<!-- package:banner:begin generated, do not edit -->'));
+  const banner = catalogue.match(/<a class="oo-mcp-banner"[\s\S]*?<\/a>/)?.[0];
+  assert.ok(banner?.includes(`open-dashboard-mcp@${installed.version}`));
+  assert.doesNotMatch(banner, /same published data/i);
+});
+
+test('matching a version string cannot promote different package facts as published', async () => {
+  const { loadInstalledPackageFacts, assertInstalledReleaseFacts } = await import('../../scripts/generate-mcp-pages.mjs');
+  const installed = await loadInstalledPackageFacts();
+  const facts = structuredClone(installed);
+  assert.doesNotThrow(() => assertInstalledReleaseFacts(facts, installed));
+  facts.providers[0].displayName = 'Changed package fact';
+  assert.throws(() => assertInstalledReleaseFacts(facts, installed), /Installed npm artifact differs/);
+});
+
+test('manifest integrity catches altered facts before generation', async () => {
+  const { readReleaseManifest } = await import('../../scripts/generate-mcp-pages.mjs');
+  const temporary = await mkdtemp(resolve(tmpdir(), 'mcp-release-integrity-'));
+  try {
+    await mkdir(resolve(temporary, 'web/open-dashboard'), { recursive: true });
+    const release = await readReleaseManifest();
+    release.facts.providers.pop();
+    await writeFile(resolve(temporary, 'web/open-dashboard/package-release.json'), JSON.stringify(release));
+    await assert.rejects(readReleaseManifest({ siteRoot: temporary }), /Invalid or altered/);
+  } finally { await rm(temporary, { recursive: true, force: true }); }
+});
+
+test('write-mode generation rejects altered source facts instead of labelling them with an older immutable pin', async () => {
+  const { generate, loadPackageFacts } = await import('../../scripts/generate-mcp-pages.mjs');
+  const temporary = await mkdtemp(resolve(tmpdir(), 'mcp-source-substitution-'));
+  try {
+    for (const page of pages) {
+      await mkdir(resolve(temporary, `web/open-dashboard/${page}`), { recursive: true });
+      await writeFile(resolve(temporary, `web/open-dashboard/${page}/index.html`), await readFile(resolve(root, `web/open-dashboard/${page}/index.html`)));
+    }
+    await writeFile(resolve(temporary, 'web/open-dashboard/package-facts.mjs'), await readFile(resolve(root, 'web/open-dashboard/package-facts.mjs')));
+    const facts = structuredClone(await loadPackageFacts());
+    facts.providers[0].displayName = 'Altered candidate source';
+    await assert.rejects(generate({ siteRoot: temporary, facts }), /pinned source release/);
+  } finally { await rm(temporary, { recursive: true, force: true }); }
+});
+
+test('provider quotes, caveat units and their absence states retain their source meaning', async () => {
+  const { loadPackageFacts, providerEvidence } = await import('../../scripts/generate-mcp-pages.mjs');
+  const facts = await loadPackageFacts();
+  const groq = facts.providers.find(p => p.id === 'groq');
+  assert.ok(groq.caveats.some(c => c.value === '8000' && c.unit === 'tokens/minute'));
+  const html = providerEvidence(groq);
+  assert.ok(html.includes(groq.pitch.sourceUrl));
+  assert.ok(html.includes('tokens/minute'));
+  const none = providerEvidence({ pitchResearch: { status: 'not_researched' }, caveatResearch: { status: 'not_found_in_checked_sources', observedAt: '2026-09-08' } });
+  assert.match(none, /Pitch: Not researched/);
+  assert.match(none, /Caveats: Not found in checked sources/);
+  assert.doesNotMatch(none, /Not published/);
 });

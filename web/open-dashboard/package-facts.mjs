@@ -1,12 +1,46 @@
-// Generated from the installed open-dashboard-mcp package; do not edit.
+// Generated from the pinned package release source; generated-do-not-edit.
 export const PACKAGE_FACTS = {
   "name": "open-dashboard-mcp",
-  "version": "0.8.0",
+  "version": "0.9.0",
   "node": ">=20",
   "providers": [
     {
       "id": "openrouter",
+      "caveats": [
+        {
+          "kind": "rate_limit",
+          "value": "20",
+          "unit": "requests/minute",
+          "scope": "Free model variants (IDs ending in :free), regardless of account status; paid variants are outside this limit. This is the published platform quota, not the caller's remaining allowance.",
+          "sourceUrl": "https://openrouter.ai/docs/api_reference/limits",
+          "observedAt": "2026-09-08",
+          "basis": "provider_published"
+        }
+      ],
+      "caveatResearch": {
+        "status": "published",
+        "checkedSources": [
+          "https://openrouter.ai/docs/api_reference/limits"
+        ],
+        "observedAt": "2026-09-08",
+        "scope": "Only the numeric policies listed in caveats were checked. No inference benchmark or account-specific limit was measured."
+      },
+      "pitch": {
+        "text": "The Unified Interface For Every Model",
+        "attribution": "OpenRouter",
+        "sourceUrl": "https://openrouter.ai/",
+        "observedAt": "2026-09-08"
+      },
+      "pitchResearch": {
+        "status": "published",
+        "checkedSources": [
+          "https://openrouter.ai/"
+        ],
+        "observedAt": "2026-09-08",
+        "scope": "Provider-owned platform marketing copy; quoted as a provider claim, not endorsed as a comparison result."
+      },
       "displayName": "OpenRouter",
+      "providerKind": "aggregator",
       "catalogueUrl": "https://openrouter.ai/api/v1/models",
       "citationUrl": "https://openrouter.ai/docs/api/api-reference/models/get-models",
       "publishes": {
@@ -24,6 +58,39 @@ export const PACKAGE_FACTS = {
     },
     {
       "id": "groq",
+      "caveats": [
+        {
+          "kind": "rate_limit",
+          "value": "8000",
+          "unit": "tokens/minute",
+          "scope": "Free Plan summary, openai/gpt-oss-120b, organization-level combined token quota. Cached tokens are excluded. Exact organization limits can differ; this is not tokens per second or an inference-speed ceiling.",
+          "sourceUrl": "https://console.groq.com/docs/rate-limits",
+          "observedAt": "2026-09-08",
+          "basis": "provider_published"
+        }
+      ],
+      "caveatResearch": {
+        "status": "published",
+        "checkedSources": [
+          "https://console.groq.com/docs/rate-limits"
+        ],
+        "observedAt": "2026-09-08",
+        "scope": "Only the numeric policies listed in caveats were checked. No inference benchmark or account-specific limit was measured."
+      },
+      "pitch": {
+        "text": "Groq makes inference work at scale.",
+        "attribution": "Groq",
+        "sourceUrl": "https://groq.com/",
+        "observedAt": "2026-09-08"
+      },
+      "pitchResearch": {
+        "status": "published",
+        "checkedSources": [
+          "https://groq.com/"
+        ],
+        "observedAt": "2026-09-08",
+        "scope": "Provider-owned platform marketing copy; quoted as a provider claim, not endorsed as a comparison result."
+      },
       "displayName": "Groq",
       "catalogueUrl": "https://api.groq.com/openai/v1/models",
       "citationUrl": "https://console.groq.com/docs/api-reference#models-list",
@@ -42,6 +109,39 @@ export const PACKAGE_FACTS = {
     },
     {
       "id": "cerebras",
+      "caveats": [
+        {
+          "kind": "trial_expiry",
+          "value": "30",
+          "unit": "days",
+          "scope": "Free Trial credits expire 30 days after they are granted. This is the published trial policy, not this caller's credit balance or expiry date.",
+          "sourceUrl": "https://inference-docs.cerebras.ai/support/rate-limits",
+          "observedAt": "2026-09-08",
+          "basis": "provider_published"
+        }
+      ],
+      "caveatResearch": {
+        "status": "published",
+        "checkedSources": [
+          "https://inference-docs.cerebras.ai/support/rate-limits"
+        ],
+        "observedAt": "2026-09-08",
+        "scope": "Only the numeric policies listed in caveats were checked. No inference benchmark or account-specific limit was measured."
+      },
+      "pitch": {
+        "text": "Build Products that Others Can't",
+        "attribution": "Cerebras",
+        "sourceUrl": "https://www.cerebras.ai/",
+        "observedAt": "2026-09-08"
+      },
+      "pitchResearch": {
+        "status": "published",
+        "checkedSources": [
+          "https://www.cerebras.ai/"
+        ],
+        "observedAt": "2026-09-08",
+        "scope": "Provider-owned platform marketing copy; quoted as a provider claim, not endorsed as a comparison result."
+      },
       "displayName": "Cerebras",
       "catalogueUrl": "https://api.cerebras.ai/v1/models",
       "citationUrl": "https://inference-docs.cerebras.ai/api-reference/models",
@@ -56,16 +156,38 @@ export const PACKAGE_FACTS = {
         "lifecycle": "never"
       },
       "spendVisibility": "no_billing_api",
-      "comparabilityNote": "Cerebras publishes only a model id and owner — no price, no context length, no modality. Its models therefore cannot be ranked on cost or filtered on capability from catalogue data alone, and are reported as unrankable rather than dropped. It exposes no billing API, so per-key spend cannot be read."
+      "comparabilityNote": "Cerebras's current /v1/models connector supplies only a model id and owner, so those collected rows cannot be ranked on cost or filtered on capability. This is a connector limitation: a separate public native source returned richer metadata for 3 of 3 models on 2026-09-08. Its collector integration is pending; those values are not yet available here."
     },
     {
       "id": "sail",
+      "caveatResearch": {
+        "status": "not_found_in_checked_sources",
+        "checkedSources": [
+          "https://www.sailresearch.com/"
+        ],
+        "observedAt": "2026-09-08",
+        "scope": "No numeric operating limit was established from this checked platform page. This limited check does not establish that the provider publishes none elsewhere."
+      },
+      "pitch": {
+        "text": "Sail is the most cost-efficient API for the best open-source models.",
+        "attribution": "Sail Research",
+        "sourceUrl": "https://www.sailresearch.com/",
+        "observedAt": "2026-09-08"
+      },
+      "pitchResearch": {
+        "status": "published",
+        "checkedSources": [
+          "https://www.sailresearch.com/"
+        ],
+        "observedAt": "2026-09-08",
+        "scope": "Provider-owned platform marketing copy; quoted as a provider claim, not endorsed as a comparison result."
+      },
       "displayName": "Sail",
       "catalogueUrl": "https://api.sailresearch.com/v1/models",
       "citationUrl": "https://docs.sailresearch.com/pricing.md",
       "publishes": {
-        "pricing": "never",
-        "contextLength": "never",
+        "pricing": "partial",
+        "contextLength": "partial",
         "outputModalities": "never",
         "reasoningEfforts": "never",
         "activeFlag": "never",
@@ -73,29 +195,84 @@ export const PACKAGE_FACTS = {
         "discountExpiry": "never",
         "lifecycle": "never"
       },
-      "spendVisibility": "no_billing_api",
-      "comparabilityNote": "Sail models expose no programmatic price endpoint and are parsed periodically from a markdown document. Prices are strictly per-completion window; an optional availability source is absent."
+      "spendVisibility": "unknown",
+      "comparabilityNote": "Sail publishes prices and context information in public documents. This MCP quotes prices only after checking its pinned pricing document and carries the chosen completion window; it does not yet collect the documented context values. The billing routes at https://docs.sailresearch.com/usage-endpoints.md are documented but not probed or read by this integration, so spend visibility is unknown here."
     },
     {
       "id": "qwencloud",
+      "caveatResearch": {
+        "status": "not_found_in_checked_sources",
+        "checkedSources": [
+          "https://modelstudio.alibabacloud.com/"
+        ],
+        "observedAt": "2026-09-08",
+        "scope": "No numeric operating limit was established from this checked platform page. This limited check does not establish that the provider publishes none elsewhere."
+      },
+      "pitch": {
+        "text": "Foundation for AI Innovation",
+        "attribution": "Alibaba Cloud Model Studio",
+        "sourceUrl": "https://modelstudio.alibabacloud.com/",
+        "observedAt": "2026-09-08"
+      },
+      "pitchResearch": {
+        "status": "published",
+        "checkedSources": [
+          "https://modelstudio.alibabacloud.com/"
+        ],
+        "observedAt": "2026-09-08",
+        "scope": "Provider-owned platform marketing copy; quoted as a provider claim, not endorsed as a comparison result."
+      },
       "displayName": "QwenCloud",
-      "catalogueUrl": "https://dashscope-intl.aliyuncs.com/compatible-mode/v1/models",
-      "citationUrl": "https://www.alibabacloud.com/help/en/model-studio/compatibility-of-openai-with-dashscope",
+      "catalogueUrl": "https://dashscope-intl.aliyuncs.com/api/v1/models",
+      "citationUrl": "https://dashscope-intl.aliyuncs.com/api/v1/models",
       "publishes": {
-        "pricing": "never",
-        "contextLength": "never",
-        "outputModalities": "never",
-        "reasoningEfforts": "never",
+        "pricing": "partial",
+        "contextLength": "partial",
+        "outputModalities": "partial",
+        "reasoningEfforts": "partial",
         "activeFlag": "never",
         "discounts": "never",
         "discountExpiry": "never",
         "lifecycle": "never"
       },
       "spendVisibility": "no_billing_api",
-      "comparabilityNote": "QwenCloud is a front end onto Alibaba Model Studio's DashScope international plane, and its catalogue lists 165 models with nothing but an id and an owner — no price, no context length, no modality. Cheap Qwen figures quoted elsewhere come from OpenRouter's catalogue, and a relayed price is a fact about the relay, so they are not reported here as QwenCloud prices. Its value is that it lists models OpenRouter does not relay at all."
+      "comparabilityNote": "QwenCloud has price blocks on 242 of 249 native models: 306 outer price blocks contain 893 price entries (measured 2026-09-08). The archive retains 255 identities: 249 native plus 6 compatibility-only ids, preventing false disappearance when changing endpoints (159 of 165 compatibility ids overlap). Native metadata supplies 59 comparable prompt/completion pairs, 134 usable context values and 247 nonempty response-modality lists. The 893 entries include 738 token entries and 155 non-token price entries excluded from token comparisons: 94 per second, 38 per image, 20 per 10,000 characters and 3 per voice. All native prices, ranges and time bands remain in the raw archive; the current API does not publish bands. Flat rates requiring a selection are withheld on 39 models: 37 with multiple ranges and 2 with distinct peak/offpeak bands. Only unambiguous default general input/output rates are quoted. The 72 explicit Reasoning capabilities become empty effort lists without invented effort levels; numeric reasoning limits stay raw. Media-only models, the 7 native models without price blocks and the 6 identity-only supplements remain paid or unknown."
     },
     {
       "id": "deepinfra",
+      "caveats": [
+        {
+          "kind": "concurrency_limit",
+          "value": "200",
+          "unit": "concurrent_requests",
+          "scope": "Default account limit per model; not requests per minute. An account can request a higher limit, and a busy model can still return 429 below the default.",
+          "sourceUrl": "https://docs.deepinfra.com/account/rate-limits",
+          "observedAt": "2026-09-08",
+          "basis": "provider_published"
+        }
+      ],
+      "caveatResearch": {
+        "status": "published",
+        "checkedSources": [
+          "https://docs.deepinfra.com/account/rate-limits"
+        ],
+        "observedAt": "2026-09-08",
+        "scope": "Only the numeric policies listed in caveats were checked. No inference benchmark or account-specific limit was measured."
+      },
+      "pitch": {
+        "text": "Accelerate your AI with developer-friendly APIs designed for performance and cost-efficiency.",
+        "attribution": "DeepInfra",
+        "sourceUrl": "https://deepinfra.com/",
+        "observedAt": "2026-09-08"
+      },
+      "pitchResearch": {
+        "status": "published",
+        "checkedSources": [
+          "https://deepinfra.com/"
+        ],
+        "observedAt": "2026-09-08",
+        "scope": "Provider-owned platform marketing copy; quoted as a provider claim, not endorsed as a comparison result."
+      },
       "displayName": "DeepInfra",
       "catalogueUrl": "https://api.deepinfra.com/models/list",
       "citationUrl": "https://deepinfra.com/models",
@@ -110,10 +287,32 @@ export const PACKAGE_FACTS = {
         "lifecycle": "partial"
       },
       "spendVisibility": "no_billing_api",
-      "comparabilityNote": "DeepInfra publishes prices with no credential, in cents per token, and is the only provider here that says when a model retires and what replaces it. Two cautions: more than half its token-priced catalogue (114 of 218) already carries a retirement date, so a cheap price is often a price on a model being withdrawn; and 153 further models are billed per second, image, character or frame and are deliberately absent from per-token comparisons rather than converted."
+      "comparabilityNote": "DeepInfra's legacy token connector observed 218 token-priced models out of 371 on 2026-09-08, with 114 carrying a retirement date and 153 further models using second, image, character or frame billing. Its publication flags describe that token connector. The media catalogue separately reads the public model list, retains other billing axes and reports its own acquired population and price coverage. Native prices and conversion conditions accompany comparable rates; catalogue presence alone does not establish that a model is current or its price comparable."
     },
     {
       "id": "novita",
+      "caveatResearch": {
+        "status": "not_found_in_checked_sources",
+        "checkedSources": [
+          "https://novita.ai/"
+        ],
+        "observedAt": "2026-09-08",
+        "scope": "No numeric operating limit was established from this checked platform page. This limited check does not establish that the provider publishes none elsewhere."
+      },
+      "pitch": {
+        "text": "Run models, scale GPUs, and build AI agents, all on one platform.",
+        "attribution": "Novita AI",
+        "sourceUrl": "https://novita.ai/",
+        "observedAt": "2026-09-08"
+      },
+      "pitchResearch": {
+        "status": "published",
+        "checkedSources": [
+          "https://novita.ai/"
+        ],
+        "observedAt": "2026-09-08",
+        "scope": "Provider-owned platform marketing copy; quoted as a provider claim, not endorsed as a comparison result."
+      },
       "displayName": "Novita",
       "catalogueUrl": "https://api.novita.ai/v3/openai/models",
       "citationUrl": "https://novita.ai/docs/api-reference/model-apis-llm-list-models",
@@ -132,6 +331,28 @@ export const PACKAGE_FACTS = {
     },
     {
       "id": "sambanova",
+      "caveatResearch": {
+        "status": "not_found_in_checked_sources",
+        "checkedSources": [
+          "https://sambanova.ai/products/sambacloud"
+        ],
+        "observedAt": "2026-09-08",
+        "scope": "No numeric operating limit was established from this checked platform page. This limited check does not establish that the provider publishes none elsewhere."
+      },
+      "pitch": {
+        "text": "The fastest AI inference on the largest models",
+        "attribution": "SambaNova, SambaCloud",
+        "sourceUrl": "https://sambanova.ai/products/sambacloud",
+        "observedAt": "2026-09-08"
+      },
+      "pitchResearch": {
+        "status": "published",
+        "checkedSources": [
+          "https://sambanova.ai/products/sambacloud"
+        ],
+        "observedAt": "2026-09-08",
+        "scope": "Provider-owned platform marketing copy; quoted as a provider claim, not endorsed as a comparison result."
+      },
       "displayName": "SambaNova",
       "catalogueUrl": "https://api.sambanova.ai/v1/models",
       "citationUrl": "https://docs.sambanova.ai/cloud/api-reference/endpoints/models",
@@ -150,6 +371,28 @@ export const PACKAGE_FACTS = {
     },
     {
       "id": "chutes",
+      "caveatResearch": {
+        "status": "not_found_in_checked_sources",
+        "checkedSources": [
+          "https://chutes.ai/"
+        ],
+        "observedAt": "2026-09-08",
+        "scope": "No numeric operating limit was established from this checked platform page. This limited check does not establish that the provider publishes none elsewhere."
+      },
+      "pitch": {
+        "text": "Breakthrough Serverless Compute for AI, at Scale.",
+        "attribution": "Chutes",
+        "sourceUrl": "https://chutes.ai/",
+        "observedAt": "2026-09-08"
+      },
+      "pitchResearch": {
+        "status": "published",
+        "checkedSources": [
+          "https://chutes.ai/"
+        ],
+        "observedAt": "2026-09-08",
+        "scope": "Provider-owned platform marketing copy; quoted as a provider claim, not endorsed as a comparison result."
+      },
       "displayName": "Chutes",
       "catalogueUrl": "https://llm.chutes.ai/v1/models",
       "citationUrl": "https://chutes.ai/app/api",
@@ -164,7 +407,130 @@ export const PACKAGE_FACTS = {
         "lifecycle": "never"
       },
       "spendVisibility": "no_billing_api",
-      "comparabilityNote": "Chutes publishes prices in USD per MILLION tokens as bare numbers, which look identical in shape to this server's per-token strings and are a million times larger; they are rescaled once at ingest. It also quotes every price in Bittensor's TAO alongside USD — that figure is deliberately ignored here, because it floats against the dollar and would turn a price comparison into a currency bet. Its broader catalogue reports 495 entries including image and video models; only the 14 chat models are collected today."
+      "comparabilityNote": "Chutes's legacy LLM connector observed 14 models on 2026-09-08 and rescales USD-per-million-token prices once at ingest. Its publication flags describe those LLM rows. The media catalogue separately reads the broader public chute inventory, retains other model types and reports its own denominator. USD prices are used only where their output unit is established; TAO values and GPU-time prices are not converted into a guessed USD price per image or second of generated video."
+    },
+    {
+      "id": "wavespeed",
+      "caveatResearch": {
+        "status": "not_found_in_checked_sources",
+        "checkedSources": [
+          "https://wavespeed.ai/"
+        ],
+        "observedAt": "2026-09-08",
+        "scope": "No numeric operating limit was established from this checked platform page. This limited check does not establish that the provider publishes none elsewhere."
+      },
+      "pitch": {
+        "text": "WaveSpeedAI is the ultimate AI media generation platform — easy to use, affordable, scalable, and fast.",
+        "attribution": "WaveSpeedAI",
+        "sourceUrl": "https://wavespeed.ai/",
+        "observedAt": "2026-09-08"
+      },
+      "pitchResearch": {
+        "status": "published",
+        "checkedSources": [
+          "https://wavespeed.ai/"
+        ],
+        "observedAt": "2026-09-08",
+        "scope": "Provider-owned platform marketing copy; quoted as a provider claim, not endorsed as a comparison result."
+      },
+      "displayName": "WaveSpeedAI",
+      "providerKind": "media",
+      "catalogueUrl": "https://wavespeed.ai/api/models",
+      "citationUrl": "https://wavespeed.ai/",
+      "publishes": {
+        "pricing": "partial",
+        "contextLength": "never",
+        "outputModalities": "partial",
+        "reasoningEfforts": "never",
+        "activeFlag": "never",
+        "discounts": "never",
+        "discountExpiry": "never",
+        "lifecycle": "never"
+      },
+      "spendVisibility": "unknown",
+      "comparabilityNote": "WaveSpeedAI's public catalogue includes media models and native prices. The media collector retains every listed model, converts only prices with explicit supported units and required parameters, and records native values and arithmetic. Other rates are reported as unavailable for comparison; missing prices are not evidence that a model is free. Account spend is not read by this integration."
+    },
+    {
+      "id": "fal",
+      "caveatResearch": {
+        "status": "not_found_in_checked_sources",
+        "checkedSources": [
+          "https://fal.ai/docs/documentation"
+        ],
+        "observedAt": "2026-09-08",
+        "scope": "No numeric operating limit was established from this checked platform page. This limited check does not establish that the provider publishes none elsewhere."
+      },
+      "pitch": {
+        "text": "The generative media platform powering the world’s top AI apps.",
+        "attribution": "fal",
+        "sourceUrl": "https://fal.ai/docs/documentation",
+        "observedAt": "2026-09-08"
+      },
+      "pitchResearch": {
+        "status": "published",
+        "checkedSources": [
+          "https://fal.ai/docs/documentation"
+        ],
+        "observedAt": "2026-09-08",
+        "scope": "Provider-owned platform marketing copy; quoted as a provider claim, not endorsed as a comparison result."
+      },
+      "displayName": "fal",
+      "providerKind": "media",
+      "catalogueUrl": "https://api.fal.ai/v1/models",
+      "citationUrl": "https://fal.ai/docs/documentation",
+      "publishes": {
+        "pricing": "partial",
+        "contextLength": "never",
+        "outputModalities": "partial",
+        "reasoningEfforts": "never",
+        "activeFlag": "never",
+        "discounts": "never",
+        "discountExpiry": "never",
+        "lifecycle": "never"
+      },
+      "spendVisibility": "unknown",
+      "comparabilityNote": "fal is a media generation platform. With FAL_API_KEY, the collector reads its full key-visible catalogue and bounded authenticated pricing batches; account-specific rates can apply. Without a key it reads the public catalogue and summary pricing table. Every acquired identity is retained. Only explicit supported output units become USD/image or USD/video-second; compute time, unobserved batches and unsupported prices remain unavailable with distinct reasons. Catalogue coverage and price coverage are reported separately. Account spend is not read by this integration."
+    },
+    {
+      "id": "crazyrouter",
+      "caveatResearch": {
+        "status": "not_found_in_checked_sources",
+        "checkedSources": [
+          "https://crazyrouter.com/tools/"
+        ],
+        "observedAt": "2026-09-08",
+        "scope": "No numeric operating limit was established from this checked platform page. This limited check does not establish that the provider publishes none elsewhere."
+      },
+      "pitch": {
+        "text": "Same OpenAI-style workflow. More models. Lower pricing. Easier experimentation.",
+        "attribution": "Crazyrouter",
+        "sourceUrl": "https://crazyrouter.com/tools/",
+        "observedAt": "2026-09-08"
+      },
+      "pitchResearch": {
+        "status": "published",
+        "checkedSources": [
+          "https://crazyrouter.com/tools/"
+        ],
+        "observedAt": "2026-09-08",
+        "scope": "Provider-owned platform marketing copy; quoted as a provider claim, not endorsed as a comparison result."
+      },
+      "displayName": "Crazyrouter",
+      "providerKind": "aggregator",
+      "catalogueUrl": "https://api.crazyrouter.com/v1/models",
+      "citationUrl": "https://docs.crazyrouter.com/en/chat/openai/models",
+      "publishes": {
+        "pricing": "partial",
+        "contextLength": "unknown",
+        "outputModalities": "partial",
+        "reasoningEfforts": "unknown",
+        "activeFlag": "unknown",
+        "discounts": "partial",
+        "discountExpiry": "unknown",
+        "lifecycle": "unknown"
+      },
+      "spendVisibility": "unknown",
+      "comparabilityNote": "Crazyrouter is a multi-provider aggregator. With CRAZYROUTER_API_KEY the catalogue contains every model visible to that key; without it only public pricing identities are observed and the platform denominator is unknown. The separate comparison tool joins exact model aliases using explicit native author evidence to OpenRouter quotes and available dated direct-provider references. Public default-group rates do not establish the caller's billing group or settled charges. Tiered or unsupported native billing remains unpriced for comparison. The vendor's dated discount claim is assessed against collected comparable quotes rather than assumed true; immutable model snapshot equivalence and account spend are not established."
     }
   ],
   "tools": [
@@ -172,6 +538,16 @@ export const PACKAGE_FACTS = {
       "name": "dashboard_benchmarks",
       "title": "Dashboard benchmark observations",
       "description": "Read the published OpenRouter benchmark observations, including Artificial Analysis, Design Arena and OpenRouter's own benchmark variant. Upstream unavailability remains an explicit structured error.",
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "openWorldHint": true
+      }
+    },
+    {
+      "name": "dashboard_catalogue",
+      "title": "Provider model catalogue and comparable media prices",
+      "description": "List model identities including price_not_available rows, provider pitches and structured caveats. Image prices are USD/image; video prices USD/second, with native values, exact conversions and configuration conditions. Each source reports its population, exclusions and acquisition limits. Other prices retain their native billing axis. Paginate with offset/limit; filter providers, mediaKind or modelIds. modelIds also requests WaveSpeed price detail (20 IDs maximum). This never generates media or makes a paid inference call.",
       "annotations": {
         "readOnlyHint": true,
         "destructiveHint": false,
@@ -242,6 +618,16 @@ export const PACKAGE_FACTS = {
       "name": "dashboard_model_status",
       "title": "Dashboard model status",
       "description": "Diagnose an exact model id across providers. lastSeenAt is the last complete provider listing that contained the model; lastConfirmedAt is the latest complete provider listing whether or not it contained the model. A later lastConfirmedAt is positive evidence of absence.",
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "openWorldHint": true
+      }
+    },
+    {
+      "name": "dashboard_price_comparison",
+      "title": "Shared-model aggregator price comparison",
+      "description": "Compare exact Crazyrouter model aliases with OpenRouter public input/output token quotes and available dated direct-provider references. Native author evidence establishes alias matching, not identical immutable snapshots. Retains unpriced and unmatched identities with source populations and filter/pagination counts. Exact decimal savings assess the attributed, dated Crazyrouter discount claim where a direct reference is available; contradictions remain visible. Public default-group quotes are not measured account charges. Optional modelIds selects up to 20 Crazyrouter IDs; offset/limit paginate all acquired identities. Read-only metadata calls; no inference, account mutation or spend reading.",
       "annotations": {
         "readOnlyHint": true,
         "destructiveHint": false,
