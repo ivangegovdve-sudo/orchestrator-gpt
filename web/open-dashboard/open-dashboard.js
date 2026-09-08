@@ -68,11 +68,12 @@ const SOURCE_STATE_LABELS = Object.freeze({
   failed: "Failed",
   "approval-pending": "Approval pending",
   "collection-disabled": "Collection disabled",
+  "registry-stale": "Registry stale",
   pending: "Pending",
 });
 const DATASET_SOURCE_IDS = Object.freeze({ models: "models_current", apps: "apps_ranked", free: "models_current", deprecations: "models_current", tasks: "task_classifications", benchmarks: "benchmarks_current" });
 const parsedTime = (value) => typeof value === "string" && Number.isFinite(Date.parse(value)) ? Date.parse(value) : null;
-const sourceFreshness = (state) => state === "current" ? "current" : state === "published-but-old" ? "overdue" : state === "stale" ? "stale" : "unavailable";
+const sourceFreshness = (state) => state === "current" ? "current" : state === "published-but-old" ? "overdue" : state === "stale" || state === "registry-stale" ? "stale" : "unavailable";
 
 export function classifySourceState(source, response, { now = new Date(), snapshotStale = false, runMismatch = false } = {}) {
   const responseReason = response?.reason;
@@ -86,6 +87,7 @@ export function classifySourceState(source, response, { now = new Date(), snapsh
   if (source.stale || response?.stale || response?.coverage?.stale || snapshotStale) return "stale";
   const scheduledAt = parsedTime(source.nextScheduledAt);
   if (scheduledAt !== null && now.getTime() >= scheduledAt && (attemptedAt === null || attemptedAt < scheduledAt)) return "published-but-old";
+  if (source.aliasRegistryDrift?.status === "registry_stale") return "registry-stale";
   return "current";
 }
 
@@ -95,12 +97,23 @@ function sourceStatusNote(source, state, now = new Date()) {
   const failure = source.lastAttemptErrorCode ? ` · ${source.lastAttemptErrorCode}` : "";
   const base = state === "current" ? `Current · last published ${published || "unknown"}`
     : state === "published-but-old" ? `Published ${published || "unknown"} · scheduled refresh ${scheduled || "unknown"} is overdue`
-      : state === "stale" ? `Published ${published || "unknown"} · stale threshold crossed`
+        : state === "stale" ? `Published ${published || "unknown"} · stale threshold crossed`
+          : state === "registry-stale" ? "Published ranking is current · reviewed app registry is stale"
         : state === "never-published" ? `Never published${source.lastAttemptStatus === "failed" ? ` · last attempt failed${failure}` : ""}`
           : state === "failed" ? `Last attempt failed${failure}${published ? ` · last published ${published}` : ""}`
             : state === "approval-pending" ? "Collection is quiet pending the required approvals"
               : state === "collection-disabled" ? "Collection is disabled by configuration" : SOURCE_STATE_LABELS[state] || state;
   const details = [];
+  const drift = source.aliasRegistryDrift;
+  if (drift?.status === "registry_stale") {
+    const uncovered = drift.uncovered.map((app) => app.appName).join(", ") || "none";
+    const dropped = drift.dropped.map((app) => app.appName).join(", ") || "none";
+    details.push(`reviewed app registry stale · ${drift.uncoveredCount} uncovered (${uncovered}) · ${drift.droppedCount} dropped (${dropped})`);
+  } else if (drift?.status === "collection_failed") details.push("current ranking collection failed; registry comparison is not current");
+  else if (drift?.status === "collection_running") details.push("current ranking collection is running");
+  else if (drift?.status === "collection_not_run") details.push("current ranking collection has not run");
+  else if (drift?.status === "check_failed") details.push(`reviewed app registry drift check failed${drift.errorCode ? ` · ${drift.errorCode}` : ""}`);
+  else if (drift?.status === "clear") details.push("reviewed app registry covers the current top ten");
   const failureCount = typeof source.consecutiveFailureCount === "string" ? BigInt(source.consecutiveFailureCount) : 0n;
   if (failureCount > 0n) details.push(`${failureCount.toString()} consecutive failure${failureCount === 1n ? "" : "s"}${source.failureEscalated ? " · escalation threshold reached" : ""}`);
   const lastSuccess = parsedTime(source.lastSuccessAt);
@@ -221,7 +234,7 @@ export function buildSourceRows(view, { now = new Date() } = {}) {
     const provenance = response?.provenance?.find((entry) => entry.sourceId === source.sourceId);
     const runMismatch = Boolean(provenance && provenance.runId !== source.publishedRunId);
     const state = classifySourceState(source, response, { now, snapshotStale: view.snapshotStale, runMismatch });
-    return { datasetKey: `source:${source.sourceId}`, sourceId: source.sourceId, required: true, mode: view.mode, state, freshness: sourceFreshness(state), completeness: source.publishedRunId === null || runMismatch ? "unavailable" : response?.completeness ? population(response.completeness.acquisitionComplete, response.completeness.populationCompleteness) : response?.coverage ? population(response.coverage.acquisitionComplete, response.coverage.populationCompleteness) : population(source.lastAttemptAcquisitionComplete ?? true, source.lastAttemptPopulationCompleteness ?? "partial_or_unknown"), asOf: provenance?.sourceAsOf ?? source.publishedAt, publishedAt: source.publishedAt, nextScheduledAt: source.nextScheduledAt, lastAttemptStatus: source.lastAttemptStatus, lastAttemptErrorCode: source.lastAttemptErrorCode, lastSuccessAt: source.lastSuccessAt, consecutiveFailureCount: source.consecutiveFailureCount, failureEscalationThreshold: source.failureEscalationThreshold, failureEscalated: source.failureEscalated, statusNote: sourceStatusNote(source, state, now), ...(runMismatch ? { reason: "provenance_run_mismatch" } : {}) };
+    return { datasetKey: `source:${source.sourceId}`, sourceId: source.sourceId, required: true, mode: view.mode, state, freshness: sourceFreshness(state), completeness: source.publishedRunId === null || runMismatch ? "unavailable" : response?.completeness ? population(response.completeness.acquisitionComplete, response.completeness.populationCompleteness) : response?.coverage ? population(response.coverage.acquisitionComplete, response.coverage.populationCompleteness) : population(source.lastAttemptAcquisitionComplete ?? true, source.lastAttemptPopulationCompleteness ?? "partial_or_unknown"), asOf: provenance?.sourceAsOf ?? source.publishedAt, publishedAt: source.publishedAt, nextScheduledAt: source.nextScheduledAt, lastAttemptStatus: source.lastAttemptStatus, lastAttemptErrorCode: source.lastAttemptErrorCode, lastSuccessAt: source.lastSuccessAt, consecutiveFailureCount: source.consecutiveFailureCount, failureEscalationThreshold: source.failureEscalationThreshold, failureEscalated: source.failureEscalated, aliasRegistryDrift: source.aliasRegistryDrift ?? null, statusNote: sourceStatusNote(source, state, now), ...(runMismatch ? { reason: "provenance_run_mismatch" } : {}) };
   });
   for (const [key, response] of Object.entries(view.responses)) {
     if (key.startsWith("githubEnrichment:") && Array.isArray(response?.provenance)) {
