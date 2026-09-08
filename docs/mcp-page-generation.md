@@ -6,15 +6,22 @@ This release must land the site before npm publication. The site keeps its exact
 
 `scripts/generate-docs.ts` in the package exports `exportPackageFacts()`. It reads `PROVIDER_IDS` / `PROVIDER_REGISTRY` and obtains tools from an in-memory MCP `tools/list` handshake. No tool is called; dashboard/provider fetching during generation throws. The existing `scripts/generate-mcp-pages.mjs` remains the site's only page renderer and consumes this package export.
 
-`web/open-dashboard/package-release.json` records the candidate facts, the immutable package Git commit, its repository, and SHA-256 of `JSON.stringify(facts)`. GitHub Actions checks out that exact commit, installs its lockfile, re-derives registry and tool facts, checks the digest, and compares the actual source registry and actual tools/list with HTML. A digest alone is not source verification; that independent checkout is required by the workflow.
+`web/open-dashboard/package-release.json` records the candidate facts, the immutable package Git commit, its repository, and SHA-256 of `JSON.stringify(facts)`. The independent source-verification job checks out that exact commit, installs its lockfile, re-derives registry and tool facts, checks the digest, and compares the actual source registry and actual tools/list with HTML. A digest alone is not source verification. Pull-request checks use the committed manifest and cannot supply this independent proof.
 
 ## Private package source access
 
-The package repository is private. The site's default `GITHUB_TOKEN` cannot read it. This workflow requires an Actions secret named `MCP_PACKAGE_READ_TOKEN`, granting **Contents: read** access to `ivangegovdve-sudo/openrouter-dashboard-mcp`. Prefer a fine-grained credential restricted to that repository; no write scope is needed. The token is supplied only to the package checkout, with `persist-credentials: false`. The preflight exposes only whether configuration exists, never its value.
+The package repository is private. The site's default `GITHUB_TOKEN` is scoped to the site repository and cannot read it. A repository- or organization-scoped `MCP_PACKAGE_READ_TOKEN` is **not permitted**: same-repository pull requests can alter workflows and steal repository secrets. Fork secret withholding does not protect that path. See GitHub's [compromised-runner guidance](https://docs.github.com/en/actions/concepts/security/compromised-runners).
 
-Provisioning or granting this access requires Ivan's approval. The code change does not create a credential, configure a secret or alter repository visibility. Until approved access is configured, CI fails before package-checkout retries with an actionable message. It must not substitute the vendored manifest for independent source verification.
+The workflow separates two kinds of evidence:
 
-Fork pull requests do not receive repository secrets, so they cannot complete this private-source guard. After review, run the guard from an approved same-repository branch. Do not change to `pull_request_target` or grant secrets to fork code to bypass this boundary. The public generated manifest remains readable; opening the exact source commit requires access to the package repository.
+- **Manifest/page consistency only** runs without configured secrets or an environment on pull requests, main pushes, scheduled runs and manual dispatch. It checks generated output, the installed public npm artifact, runtime mappings and promotion fixtures. Its summary explicitly records `Independent private-source verification: NOT RUN`. It does not compare the manifest to the actual private `PROVIDER_IDS` or `tools/list`.
+- **Independent private-source verification (approved main only)** runs only on a main-branch push or manual dispatch targeting `refs/heads/main`. Its separate hosted runner checks out the exact site `github.sha`, then the immutable package pin. It does not consume PR caches, artifacts or workspaces. The actual source guard and source-registry tests remain required; there is no manifest-only fallback, ignored failure or substitute green check. On a pull request this job is skipped, which is **not** a source-verification pass. A successful trusted run is evidence for its exact main commit after merge, not for a PR head.
+
+Provisioning requires Ivan's approval and administrator action outside this code change. Before adding any credential, configure the dedicated `mcp-source-verification` environment with **required reviewers, prevent self-review, and selected deployment branches allowing only `main`**. Merely referencing an environment in YAML can create it without protection; this workflow does not configure or verify those server-side rules. At the review on 2026-09-08, the environment did not exist and main was not protected. Do not assume those protections are in place. See GitHub's [environment protections](https://docs.github.com/en/actions/reference/workflows-and-actions/deployments-and-environments) and [deployment reviews](https://docs.github.com/en/actions/how-tos/deploy/configure-and-manage-deployments/review-deployments).
+
+Only after those protections are verified may an administrator add `MCP_PACKAGE_READ_TOKEN` **as a secret of that environment only**, with **Contents: read** permission restricted to `ivangegovdve-sudo/openrouter-dashboard-mcp`. Do not create a repository or organization secret with that name. The token value is passed only to package checkout, with `persist-credentials: false`; it is not placed in workflow/job environment variables. The preflight reports configuration presence only. The source checkout is executed to read the real registry and tools, so each environment approval must cover **both the exact site `github.sha` and the pinned package commit**, not merely a version label. No source archive or artifact is uploaded.
+
+The code change creates no credential, grants no permission, configures no environment protection and changes no visibility. Until approved access exists, the trusted job fails its preflight before package-checkout retries. A missing approval, skipped job, absent credential or failed source check remains an external release gate. After the separately authorized site merge, obtain a successful trusted verification for that exact main commit and package pin before npm publication. Do not switch to `pull_request_target`, grant access to PR code or bypass environment review. The public generated manifest remains readable; opening the source commit requires package-repository access.
 
 ## Updating the candidate
 
@@ -25,7 +32,7 @@ npm ci --ignore-scripts
 $env:MCP_PACKAGE_ROOT = 'D:\path\to\openrouter-dashboard-mcp'
 node scripts/generate-mcp-pages.mjs --pin-source
 node scripts/generate-mcp-pages.mjs --check-source --check
-node --test scratch/tests/mcp-page-registry.test.mjs scratch/tests/catalogue-provider-registry.test.js scratch/tests/mcp-release-promotion.test.mjs
+node --test scratch/tests/mcp-page-registry.test.mjs scratch/tests/catalogue-provider-registry.test.js scratch/tests/mcp-release-promotion.test.mjs scratch/tests/mcp-workflow-boundary.test.mjs
 Remove-Item Env:MCP_PACKAGE_ROOT
 npm run check:mcp-pages
 npm run build
@@ -35,7 +42,7 @@ npm run build
 
 Every generation path compares supplied or loaded facts with the pinned manifest digest before writing. Source overrides also verify the exact package HEAD. Normal generation and static/Vercel builds use the integrity-checked release manifest. `check:mcp-pages` and production builds separately verify that installed npm is npm latest. A new npm release or unavailable registry fails the published-version guard rather than silently promoting candidate claims. The manifest channel controls every page label. Matching version strings alone never promote a candidate. A published manifest additionally requires the installed artifact to match its version and facts; mismatches fail before rendering. Promotion is the explicit operation documented below, not a side effect of a build.
 
-CI checks committed output **before** building so generation cannot hide an HTML hand edit. The build generates both pages before copying to `vercel-public`; CI verifies generated sources remain unchanged. Build-time generation reads package-derived facts without manufacturing a fresh observation date.
+Both jobs check committed output **before** building so generation cannot hide an HTML hand edit. The build generates both pages before copying to `vercel-public`; CI verifies generated sources remain unchanged. Build-time generation reads package-derived facts without manufacturing a fresh observation date. The focused workflow-boundary tests reject configured secrets in PR-capable jobs and require the trusted event condition, approval environment and actual source guard; these static checks do not establish that GitHub's environment protections have been configured.
 
 ## Promoting an authorized published release
 
