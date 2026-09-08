@@ -4,6 +4,7 @@ import test from "node:test";
 
 import { buildSourceRows, classifySourceState, datasetStatusLabel, installDeferredLoader, summarizeSourceRows } from "./open-dashboard.js";
 import { isSyntheticEvidenceRecord } from "./open-dashboard-api.js";
+import * as charts from "./open-dashboard-charts.js";
 import { validateOpenRouterCollection } from "./open-dashboard-schema.js";
 
 test("does not mount an unexplained relationship canvas on the overview page", async () => {
@@ -96,6 +97,48 @@ test("surfaces named reviewed-alias drift on the public source rail", () => {
   assert.match(row.statusNote, /reviewed app registry stale/);
   assert.match(row.statusNote, /Zazen/);
   assert.match(row.statusNote, /Former App/);
+});
+
+test("keeps observed, checked-absent, unknown, and missing matrix states distinct", () => {
+  assert.equal(typeof charts.matrixStateCounts, "function");
+  assert.equal(typeof charts.matrixCellModel, "function");
+  if (typeof charts.matrixStateCounts !== "function" || typeof charts.matrixCellModel !== "function") return;
+  const cells = [
+    { state: "observed", appId: "1", modelId: "a", totalTokens: "10", rankWithinPeriod: 1, evidenceUrl: "https://example.com/a" },
+    { state: "unknown", reason: "not_observed", appId: "1", modelId: "b" },
+    { state: "unknown", reason: "not_published", appId: "2", modelId: "a" },
+  ];
+  assert.deepEqual(charts.matrixStateCounts({ appIds: ["1", "2"], modelIds: ["a", "b"], cells }), { observed: 1, notObserved: 1, unknown: 1, notPublished: 1, missing: 1 });
+  assert.equal(charts.matrixCellModel(cells[0]).state, "observed");
+  assert.equal(charts.matrixCellModel(cells[1]).state, "not_observed");
+  assert.equal(charts.matrixCellModel(cells[1]).label, "0");
+  assert.equal(charts.matrixCellModel(cells[2]).state, "unknown");
+  assert.equal(charts.matrixCellModel(cells[2]).variant, "not_published");
+  assert.equal(charts.matrixCellModel(cells[2]).label, "N/P");
+});
+
+test("orders flow axes by exact observed totals and retains exact token strings", () => {
+  assert.equal(typeof charts.appModelFlowGeometry, "function");
+  if (typeof charts.appModelFlowGeometry !== "function") return;
+  const response = {
+    appIds: ["1", "2"],
+    modelIds: ["a", "b"],
+    apps: [{ appId: "1", appName: "Small" }, { appId: "2", appName: "Large" }],
+    models: [{ modelId: "a", modelName: "Model A" }, { modelId: "b", modelName: "Model B" }],
+    cells: [
+      { state: "observed", appId: "1", modelId: "a", totalTokens: "9007199254740993000", rankWithinPeriod: 1, evidenceUrl: "https://example.com/1a" },
+      { state: "observed", appId: "2", modelId: "b", totalTokens: "9007199254740994000", rankWithinPeriod: 1, evidenceUrl: "https://example.com/2b" },
+      { state: "unknown", appId: "1", modelId: "b", reason: "not_observed" },
+      { state: "unknown", appId: "2", modelId: "a", reason: "not_published" },
+    ],
+  };
+  const geometry = charts.appModelFlowGeometry(response);
+  assert.deepEqual(geometry.apps.map((row) => row.label), ["Large", "Small"]);
+  assert.deepEqual(geometry.models.map((row) => row.label), ["Model B", "Model A"]);
+  assert.equal(geometry.apps[0].totalTokens, "9007199254740994000");
+  assert.equal(geometry.links[0].totalTokens, "9007199254740994000");
+  assert.equal(geometry.totalTokens, "18014398509481987000");
+  assert.equal(typeof geometry.links[0].widthBasisPoints, "bigint");
 });
 
 test("accepts a public OpenRouter benchmark row", () => {

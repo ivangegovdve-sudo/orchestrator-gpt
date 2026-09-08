@@ -49,7 +49,75 @@ export function renderRankTable({ document, title, rows, columns, sourceLabel, a
 export function barWidthBasisPoints(value, maximum) { const max = BigInt(maximum); return max === 0n ? 0n : BigInt(value) * 10000n / max; }
 export function matrixCellModel(cell) {
   if (cell.state === "observed") return Object.freeze({ state: "observed", label: compactIntegerString(cell.totalTokens), exact: cell.totalTokens, rank: cell.rankWithinPeriod, reason: null, evidenceUrl: cell.evidenceUrl });
-  return Object.freeze({ state: "unknown", label: "?", exact: null, rank: null, reason: cell.reason, evidenceUrl: null });
+  if (cell.reason === "not_observed") return Object.freeze({ state: "not_observed", label: "0", exact: null, rank: null, reason: cell.reason, evidenceUrl: null });
+  return Object.freeze({ state: "unknown", variant: cell.reason === "not_published" ? "not_published" : "unknown", label: cell.reason === "not_published" ? "N/P" : "?", exact: null, rank: null, reason: cell.reason, evidenceUrl: null });
+}
+
+const matrixCellKey = (appId, modelId) => `${appId}\0${modelId}`;
+
+export function matrixStateCounts(response) {
+  const cells = new Map((response?.cells || []).map((cell) => [matrixCellKey(cell.appId, cell.modelId), cell]));
+  const counts = { observed: 0, notObserved: 0, unknown: 0, notPublished: 0, missing: 0 };
+  for (const appId of response?.appIds || []) {
+    for (const modelId of response?.modelIds || []) {
+      const cell = cells.get(matrixCellKey(appId, modelId));
+      if (!cell) counts.missing += 1;
+      else if (cell.state === "observed") counts.observed += 1;
+      else if (cell.reason === "not_observed") counts.notObserved += 1;
+      else { counts.unknown += 1; if (cell.reason === "not_published") counts.notPublished += 1; }
+    }
+  }
+  return Object.freeze(counts);
+}
+
+const compareExactDescending = (left, right) => right.totalTokens > left.totalTokens ? 1 : right.totalTokens < left.totalTokens ? -1 : left.label.localeCompare(right.label) || left.id.localeCompare(right.id);
+const exactRatioBasisPoints = (value, total) => total === 0n ? 0n : value * 10000n / total;
+const flowRowY = (index, top, rowHeight, rowGap) => top + index * (rowHeight + rowGap);
+
+export function appModelFlowGeometry(response, { width = 980, rowHeight = 28, rowGap = 14 } = {}) {
+  const appNames = new Map((response?.apps || []).map((row) => [row.appId, row.appName]));
+  const modelNames = new Map((response?.models || []).map((row) => [row.modelId, row.modelName]));
+  const observed = (response?.cells || []).filter((cell) => cell.state === "observed");
+  const appTotals = new Map((response?.appIds || []).map((id) => [id, 0n]));
+  const modelTotals = new Map((response?.modelIds || []).map((id) => [id, 0n]));
+  let totalTokens = 0n;
+  for (const cell of observed) {
+    const value = BigInt(cell.totalTokens);
+    appTotals.set(cell.appId, (appTotals.get(cell.appId) || 0n) + value);
+    modelTotals.set(cell.modelId, (modelTotals.get(cell.modelId) || 0n) + value);
+    totalTokens += value;
+  }
+  const toRow = (id, totals, names) => ({ id, label: names.get(id) || id, totalTokens: totals.get(id) || 0n });
+  const apps = (response?.appIds || []).map((id) => toRow(id, appTotals, appNames)).sort(compareExactDescending);
+  const models = (response?.modelIds || []).map((id) => toRow(id, modelTotals, modelNames)).sort(compareExactDescending);
+  const top = 34;
+  const height = Math.max(180, top * 2 + Math.max(apps.length, models.length) * rowHeight + Math.max(0, Math.max(apps.length, models.length) - 1) * rowGap);
+  const leftNodeX = 248;
+  const rightNodeX = width - 248;
+  const nodeWidth = 14;
+  const nodeByApp = new Map(apps.map((row, index) => [row.id, { ...row, index, y: flowRowY(index, top, rowHeight, rowGap) }]));
+  const nodeByModel = new Map(models.map((row, index) => [row.id, { ...row, index, y: flowRowY(index, top, rowHeight, rowGap) }]));
+  const appOffsets = new Map((response?.appIds || []).map((id) => [id, 0n]));
+  const modelOffsets = new Map((response?.modelIds || []).map((id) => [id, 0n]));
+  const orderedObserved = observed.slice().sort((left, right) => nodeByApp.get(left.appId).index - nodeByApp.get(right.appId).index || nodeByModel.get(left.modelId).index - nodeByModel.get(right.modelId).index);
+  const links = orderedObserved.map((cell) => {
+    const value = BigInt(cell.totalTokens);
+    const app = nodeByApp.get(cell.appId); const model = nodeByModel.get(cell.modelId);
+    const appTotal = appTotals.get(cell.appId) || 0n; const modelTotal = modelTotals.get(cell.modelId) || 0n;
+    const sourceCenter = appTotal === 0n ? 0n : (appOffsets.get(cell.appId) * 10000n + value * 5000n) / appTotal;
+    const targetCenter = modelTotal === 0n ? 0n : (modelOffsets.get(cell.modelId) * 10000n + value * 5000n) / modelTotal;
+    const sourceY = app.y + rowHeight * Number(sourceCenter) / 10000;
+    const targetY = model.y + rowHeight * Number(targetCenter) / 10000;
+    const widthBasisPoints = exactRatioBasisPoints(value, totalTokens);
+    const strokeWidth = Math.max(1.25, Math.min(32, 1.25 + Number(widthBasisPoints) / 10000 * 30));
+    const startX = leftNodeX + nodeWidth; const endX = rightNodeX;
+    const bend = (endX - startX) * 0.46;
+    const path = `M${startX.toFixed(2)} ${sourceY.toFixed(2)} C${(startX + bend).toFixed(2)} ${sourceY.toFixed(2)} ${(endX - bend).toFixed(2)} ${targetY.toFixed(2)} ${endX.toFixed(2)} ${targetY.toFixed(2)}`;
+    appOffsets.set(cell.appId, (appOffsets.get(cell.appId) || 0n) + value);
+    modelOffsets.set(cell.modelId, (modelOffsets.get(cell.modelId) || 0n) + value);
+    return Object.freeze({ appId: cell.appId, modelId: cell.modelId, totalTokens: cell.totalTokens, widthBasisPoints, strokeWidth, path, sourceY, targetY });
+  });
+  return Object.freeze({ width, height, rowHeight, rowGap, leftNodeX, rightNodeX, nodeWidth, apps: Object.freeze(apps.map((row) => Object.freeze({ ...row, totalTokens: String(row.totalTokens), y: nodeByApp.get(row.id).y }))), models: Object.freeze(models.map((row) => Object.freeze({ ...row, totalTokens: String(row.totalTokens), y: nodeByModel.get(row.id).y }))), links: Object.freeze(links), totalTokens: String(totalTokens) });
 }
 
 export function matrixNavigationTarget(index, rowCount, columnCount, key) {
@@ -71,6 +139,111 @@ export function matrixAxisNameMaps(response, apps = [], models = []) {
   });
 }
 
+const svgElement = (document, tag, className = "", text = null) => {
+  const value = document.createElementNS("http://www.w3.org/2000/svg", tag);
+  if (className) value.setAttribute("class", className);
+  if (text !== null) value.textContent = String(text);
+  return value;
+};
+
+const flowLabel = (value, max = 27) => String(value).length > max ? `${String(value).slice(0, max - 1)}…` : String(value);
+
+export function renderMatrixStateSummary({ document, response }) {
+  const counts = matrixStateCounts(response);
+  const summary = el(document, "div", "oo-matrix-state-summary");
+  summary.setAttribute("aria-label", "Relationship state summary");
+  const states = [
+    ["observed", counts.observed, "Observed relationships", "solid"],
+    ["not-observed", counts.notObserved, "Checked and absent", "dotted"],
+    ["unknown", counts.unknown, "Not collected or not published", "hatched"],
+  ];
+  for (const [className, count, label, swatch] of states) {
+    const item = el(document, "span", `oo-matrix-state-item is-${className}`);
+    const reasonDetail = className === "unknown" && counts.notPublished ? `; ${counts.notPublished} not published` : "";
+    item.setAttribute("aria-label", `${count} ${label}${reasonDetail}`);
+    const marker = el(document, "b", `oo-matrix-state-marker is-${swatch}`, String(count));
+    marker.setAttribute("aria-hidden", "true");
+    item.append(marker, el(document, "span", "oo-matrix-state-label", label));
+    if (reasonDetail) item.appendChild(el(document, "span", "oo-matrix-state-detail", `(${counts.notPublished} not published)`));
+    summary.appendChild(item);
+  }
+  if (counts.missing) {
+    const item = el(document, "span", "oo-matrix-state-item is-missing");
+    item.append(el(document, "b", "oo-matrix-state-marker is-missing", String(counts.missing)), el(document, "span", "oo-matrix-state-label", "Not returned"));
+    summary.appendChild(item);
+  }
+  return summary;
+}
+
+export function renderAppModelFlow({ document, response }) {
+  const geometry = appModelFlowGeometry(response);
+  const figure = el(document, "figure", "oo-app-model-flow");
+  const caption = el(document, "figcaption", "oo-flow-caption");
+  caption.append(el(document, "h3", "oo-flow-title", "Observed relationships only"), el(document, "p", "oo-flow-description", "Ribbon width is derived from exact observed token volume; the thinnest ribbons receive a legibility floor. Both sides are sorted by descending observed total; the flow does not show checked-absent or unknown relationships."));
+  figure.appendChild(caption);
+  figure.appendChild(renderMatrixStateSummary({ document, response }));
+  const scroll = el(document, "div", "oo-flow-scroll");
+  scroll.tabIndex = 0;
+  scroll.setAttribute("role", "region");
+  scroll.setAttribute("aria-label", "Observed app to model flow; scroll horizontally for all labels");
+  const svg = svgElement(document, "svg", "oo-flow-svg");
+  svg.setAttribute("viewBox", `0 0 ${geometry.width} ${geometry.height}`);
+  svg.setAttribute("role", "img");
+  svg.setAttribute("aria-hidden", "true");
+  const linksGroup = svgElement(document, "g", "oo-flow-links");
+  for (const link of geometry.links) {
+    const path = svgElement(document, "path", "oo-flow-link");
+    path.setAttribute("d", link.path);
+    path.setAttribute("stroke-width", String(link.strokeWidth));
+    const title = svgElement(document, "title", "", `${link.appId} → ${link.modelId}: ${link.totalTokens} observed tokens`);
+    path.appendChild(title);
+    linksGroup.appendChild(path);
+  }
+  svg.appendChild(linksGroup);
+  const nodesGroup = svgElement(document, "g", "oo-flow-nodes");
+  for (const [kind, rows, x, anchor] of [["app", geometry.apps, geometry.leftNodeX, "end"], ["model", geometry.models, geometry.rightNodeX, "start"]]) {
+    for (const row of rows) {
+      const node = svgElement(document, "rect", `oo-flow-node is-${kind}`);
+      node.setAttribute("x", String(x)); node.setAttribute("y", String(row.y)); node.setAttribute("width", String(geometry.nodeWidth)); node.setAttribute("height", String(geometry.rowHeight));
+      node.setAttribute("rx", "2");
+      nodesGroup.appendChild(node);
+      const label = svgElement(document, "text", "oo-flow-node-label", flowLabel(row.label));
+      label.setAttribute("x", String(kind === "app" ? x - 10 : x + geometry.nodeWidth + 10)); label.setAttribute("y", String(row.y + 12)); label.setAttribute("text-anchor", anchor);
+      nodesGroup.appendChild(label);
+      const total = svgElement(document, "text", "oo-flow-node-total", compactIntegerString(row.totalTokens));
+      total.setAttribute("x", String(kind === "app" ? x - 10 : x + geometry.nodeWidth + 10)); total.setAttribute("y", String(row.y + 23)); total.setAttribute("text-anchor", anchor);
+      nodesGroup.appendChild(total);
+    }
+  }
+  svg.appendChild(nodesGroup);
+  scroll.appendChild(svg); figure.appendChild(scroll);
+  const note = el(document, "p", "oo-flow-note", `${geometry.apps.length} apps · ${geometry.models.length} models · ${geometry.links.length} observed relationships · ${compactIntegerString(geometry.totalTokens)} total observed tokens`);
+  figure.appendChild(note);
+  return figure;
+}
+
+export function renderUnmappedModels({ document, response }) {
+  const count = response?.coverage?.unmappedObservations ?? 0;
+  const rows = Array.isArray(response?.unmappedModels) ? response.unmappedModels : [];
+  if (!count && !rows.length) return null;
+  const details = el(document, "details", "oo-unmapped-models");
+  const summary = el(document, "summary", "oo-unmapped-summary", `${count} unresolved observations · largest ${rows.length} shown`);
+  details.appendChild(summary);
+  details.appendChild(el(document, "p", "oo-unmapped-note", "These model observations could not be resolved to the named model axis. The API publishes the largest observations, not an arbitrary first page."));
+  const table = el(document, "table", "oo-table oo-unmapped-table");
+  table.appendChild(el(document, "caption", "sr-only", "Largest unresolved model observations"));
+  const head = el(document, "tr");
+  for (const label of ["App", "Source model", "Tokens", "Reason"]) { const th = el(document, "th", "", label); th.scope = "col"; head.appendChild(th); }
+  const thead = el(document, "thead"); thead.appendChild(head); table.appendChild(thead);
+  const tbody = el(document, "tbody");
+  for (const row of rows) {
+    const tr = el(document, "tr");
+    tr.append(el(document, "td", "", row.appId), el(document, "td", "", row.sourcePermaslug));
+    const tokens = el(document, "td", "", compactIntegerString(row.totalTokens)); appendExactValue(document, tokens, row.totalTokens); tr.append(tokens, el(document, "td", "", row.reason)); tbody.appendChild(tr);
+  }
+  table.appendChild(tbody); details.appendChild(table); return details;
+}
+
 export function renderAppModelMatrix({ document, response, apps = [], models = [], onInspect = () => {}, onDismiss = () => {} }) {
   if (!response || response.status === "unavailable") return renderUnavailable({ document, title: "Observed app → model usage", reason: response ? `Enrichment unavailable: ${response.reason}${response.lastSuccessAt ? ` · last success ${response.lastSuccessAt}` : ""}` : "Relationship request failed; stable rankings remain available." });
   const { appNames, modelNames } = matrixAxisNameMaps(response, apps, models); const cells = new Map(response.cells.map((cell) => [`${cell.appId}\0${cell.modelId}`, cell]));
@@ -79,6 +252,8 @@ export function renderAppModelMatrix({ document, response, apps = [], models = [
   const period = response.resolvedPeriod.start === response.resolvedPeriod.end ? response.resolvedPeriod.start : `${response.resolvedPeriod.start} → ${response.resolvedPeriod.end}`;
   region.dataset.matrixStatus = response.status;
   region.append(el(document, "h2", "oo-region-title", "Observed app → model usage"), el(document, "p", "oo-region-meta", `${period} · daily tokens · ${observed} · population ${response.coverage.populationCompleteness}`));
+  region.appendChild(renderAppModelFlow({ document, response }));
+  region.appendChild(el(document, "h3", "oo-matrix-evidence-title", "Cell evidence grid"));
   const scroll = el(document, "div", "oo-matrix-scroll"); scroll.tabIndex = 0; scroll.setAttribute("role", "region"); scroll.setAttribute("aria-label", "Top app by model matrix; scroll horizontally for all models"); const table = el(document, "table", "oo-matrix"); table.appendChild(el(document, "caption", "sr-only", "Top app by model observed token matrix"));
   const thead = el(document, "thead"); const head = el(document, "tr"); const corner = el(document, "th", "", "App / model"); corner.scope = "col"; head.appendChild(corner);
   for (const modelId of response.modelIds) { const th = el(document, "th", "", modelNames.get(modelId) || modelId); th.scope = "col"; th.title = modelId; head.appendChild(th); }
@@ -86,14 +261,14 @@ export function renderAppModelMatrix({ document, response, apps = [], models = [
   for (const appId of response.appIds) {
     const tr = el(document, "tr"); const th = el(document, "th", "", appNames.get(appId) || appId); th.scope = "row"; th.title = appId; tr.appendChild(th);
     for (const modelId of response.modelIds) {
-      const cell = cells.get(`${appId}\0${modelId}`); const td = el(document, "td", `oo-matrix-cell ${!cell ? "is-missing" : cell.state === "unknown" ? "is-unknown" : cell.totalTokens === "0" ? "is-zero" : "is-observed"}`);
-      if (!cell) { td.textContent = "—"; td.title = "Cell not returned by the API"; }
-      else { const model = matrixCellModel(cell); const control = el(document, "button", "oo-matrix-control", model.label); const controlIndex = controls.length; control.type = "button"; control.tabIndex = controlIndex === 0 ? 0 : -1; control.dataset.matrixIndex = String(controlIndex); control.setAttribute("aria-controls", "oo-inspector"); control.setAttribute("aria-label", `${appNames.get(appId) || appId} and ${modelNames.get(modelId) || modelId}: ${model.state === "observed" ? `${model.exact} observed tokens` : `unknown, ${model.reason}`}`); control.addEventListener("click", () => onInspect({ appId, modelId, cell, model, trigger: control })); control.addEventListener("keydown", (event) => { if (event.key === "Escape") { event.preventDefault(); onDismiss({ restoreFocus: control }); return; } const targetIndex = matrixNavigationTarget(controlIndex, response.appIds.length, response.modelIds.length, event.key); if (targetIndex === null || targetIndex === controlIndex) return; event.preventDefault(); for (const item of controls) item.tabIndex = -1; const target = controls[targetIndex]; if (target) { target.tabIndex = 0; target.focus(); } }); controls.push(control); td.appendChild(control); }
+      const cell = cells.get(`${appId}\0${modelId}`); const model = cell ? matrixCellModel(cell) : null; const stateClass = !model ? "is-missing" : model.state === "observed" ? "is-observed" : model.state === "not_observed" ? "is-not-observed" : `is-unknown${model.variant === "not_published" ? " is-not-published" : ""}`; const td = el(document, "td", `oo-matrix-cell ${stateClass}`);
+      if (!cell) { td.textContent = "·"; td.title = "Cell not returned by the API"; }
+      else { const control = el(document, "button", "oo-matrix-control", model.label); const controlIndex = controls.length; control.type = "button"; control.tabIndex = controlIndex === 0 ? 0 : -1; control.dataset.matrixIndex = String(controlIndex); control.setAttribute("aria-controls", "oo-inspector"); const description = model.state === "observed" ? `${model.exact} observed tokens` : model.state === "not_observed" ? "checked and no observed usage" : `unknown, ${model.reason}`; control.setAttribute("aria-label", `${appNames.get(appId) || appId} and ${modelNames.get(modelId) || modelId}: ${description}`); control.addEventListener("click", () => onInspect({ appId, modelId, cell, model, trigger: control })); control.addEventListener("keydown", (event) => { if (event.key === "Escape") { event.preventDefault(); onDismiss({ restoreFocus: control }); return; } const targetIndex = matrixNavigationTarget(controlIndex, response.appIds.length, response.modelIds.length, event.key); if (targetIndex === null || targetIndex === controlIndex) return; event.preventDefault(); for (const item of controls) item.tabIndex = -1; const target = controls[targetIndex]; if (target) { target.tabIndex = 0; target.focus(); } }); controls.push(control); td.appendChild(control); }
       tr.appendChild(td);
     }
     tbody.appendChild(tr);
   }
-  table.appendChild(tbody); scroll.appendChild(table); region.appendChild(scroll); return region;
+  table.appendChild(tbody); scroll.appendChild(table); region.appendChild(scroll); const unmapped = renderUnmappedModels({ document, response }); if (unmapped) region.appendChild(unmapped); return region;
 }
 
 export function renderHorizontalBars({ document, title, rows, label, value }) {
