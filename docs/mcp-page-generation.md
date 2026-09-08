@@ -1,32 +1,46 @@
 # Package facts on the MCP and Catalogues pages
 
-The package owns provider publication declarations and tool registrations. Both pages and the catalogue runtime consume generated facts; do not edit their marked blocks or `web/open-dashboard/package-facts.mjs` by hand.
+The package owns provider declarations, attributed pitches, measured caveats and tool registrations. Both pages and the catalogue runtime consume generated facts. Do not edit marked HTML blocks, `package-facts.mjs` or `package-release.json` by hand.
 
-The npm dependency and lockfile pin the published package. `loadPackageFacts` imports its compiled `providers/registry.js` (the output of `src/providers/registry.ts`) and walks the actual server registration graph through an in-memory MCP `tools/list` handshake. It does not count files, imports, regular-expression matches, or a second list. No tool is called and dashboard fetching throws during this handshake. Tool titles are generated too; upstream prose descriptions that enumerate older provider subsets are not presented as current page claims.
+This release must land the site before npm publication. The site keeps its exact published npm dependency and separately documents a release candidate from an immutable package commit. The page labels these versions separately and pins installation commands to the installed, published package. Candidate provider/tool counts do not describe that installed version.
 
-```sh
+`scripts/generate-docs.ts` in the package exports `exportPackageFacts()`. It reads `PROVIDER_IDS` / `PROVIDER_REGISTRY` and obtains tools from an in-memory MCP `tools/list` handshake. No tool is called; dashboard/provider fetching during generation throws. The existing `scripts/generate-mcp-pages.mjs` remains the site's only page renderer and consumes this package export.
+
+`web/open-dashboard/package-release.json` records the candidate facts, the immutable package Git commit, its repository, and SHA-256 of `JSON.stringify(facts)`. GitHub Actions checks out that exact commit, installs its lockfile, re-derives registry and tool facts, checks the digest, and compares the actual source registry and actual tools/list with HTML. A digest alone is not source verification; that independent checkout is required by the workflow.
+
+## Updating the candidate
+
+In the package checkout, run tests and `npm run docs:check`, then commit source. Do not publish npm. In the site checkout:
+
+```powershell
 npm ci --ignore-scripts
-npm run generate:mcp-pages
-npm run check:mcp-pages
+$env:MCP_PACKAGE_ROOT = 'D:\path\to\openrouter-dashboard-mcp'
+node scripts/generate-mcp-pages.mjs --pin-source
+node scripts/generate-mcp-pages.mjs --check-source --check
 node --test scratch/tests/mcp-page-registry.test.mjs scratch/tests/catalogue-provider-registry.test.js
+Remove-Item Env:MCP_PACKAGE_ROOT
+npm run check:mcp-pages
 npm run build
 ```
 
-`generate:mcp-pages` is deterministic and can run offline after installation. `check:mcp-pages` additionally reads npm latest and fails if the dependency pin is behind or the registry cannot be checked. The static/Vercel build also performs that published-version check before generating and copying the pages, so a direct deployment cannot silently ship an older pin. The read-only GitHub Actions guard checks committed output **before** building, on pull requests, main pushes and a daily schedule. Generated data contains a package version, not a misleading new observation timestamp.
+`--pin-source` refuses uncommitted package source changes. Push the package commit so CI can retrieve it. The pin, generated module, both HTML pages and tests belong in the site PR. `--check-source` refuses a different package HEAD even if its version matches. The source test requires `MCP_PACKAGE_ROOT`; it never substitutes npm or compares the manifest with itself.
 
-When the package changes, update its exact dependency pin and lockfile, regenerate both pages, and include the resulting diff in the release PR. Generation follows the published artifact by default. For release-candidate validation and the required local mutation proof, set `MCP_PACKAGE_ROOT` to an isolated source checkout with its dependencies installed. This explicitly loads `src/providers/registry.ts` and `src/server.ts` through `tsx`; changing that registry while leaving the page unchanged must fail the same test:
+Every generation path compares supplied or loaded facts with the pinned manifest digest before writing. Source overrides also verify the exact package HEAD. Normal generation and static/Vercel builds use the integrity-checked candidate manifest. `check:mcp-pages` and production builds separately verify that installed npm is npm latest. A new npm release or unavailable registry fails the published-version guard rather than silently promoting candidate claims. After authorized npm publication, update the exact installed dependency/lockfile and regenerate installation facts. When installed npm matches the source version, the generator compares its compiled registry and actual tools/list with the source digest before changing the page label to Published release. A same-version/different-artifact mismatch fails. That promotion is a separate reviewed change; neither this generator nor this PR publishes or merges anything.
+
+CI checks committed output **before** building so generation cannot hide an HTML hand edit. The build generates both pages before copying to `vercel-public`; CI verifies generated sources remain unchanged. Build-time generation reads package-derived facts without manufacturing a fresh observation date.
+
+## Required negative proof
+
+With `MCP_PACKAGE_ROOT` set, temporarily remove one provider property from the actual source `PROVIDER_REGISTRY` in an isolated checkout, leaving generated pages unchanged. Run:
 
 ```powershell
-$env:MCP_PACKAGE_ROOT='D:\path\to\isolated\openrouter-dashboard-mcp'
 node --test scratch/tests/mcp-page-registry.test.mjs
 ```
 
-Restore the mutation and clear the environment variable after testing. Do not publish candidate-generated content as evidence of what npm currently ships. `--check-published` and production builds reject this override even if the source checkout retains the same version string. Normal CI and production builds use the lockfile-installed artifact.
+Provider-row count/set comparison and generated-output comparison must fail. Restore the exact registry and run the same test again; retain both exit statuses as evidence. A fabricated fixture mutation is additional coverage, not a replacement for this real source mutation. Repeat provider-set assertions in a browser against built pages; HTTP 200 does not prove row identity.
 
-The test independently compares each HTML provider-row set with `PROVIDER_IDS`, including count and duplicates, checks publication attributes against registry values, compares the displayed tool names/counts with actual `tools/list`, and rejects any changed generated block or runtime fact. The browser check should repeat the provider-set assertion against the built pages at desktop and phone widths.
+## Reading the data honestly
 
-Publication meanings remain separate: `always` is published for all models, `partial` for some, `never` is not published, and `unknown` means the package has not established it. The registry does not provide per-field observation dates; the caption says so. Generation propagates package declarations, not new upstream measurements. A null field on one returned catalogue page does not establish `never`.
+Publication flags describe the named connector: `always` means all collected models, `partial` some, `never` no published value in this connector, and `unknown` not established. Missing sampled values do not establish provider-wide absence. Pitches retain quotation, attribution, URL and observation date. Caveats retain kind, exact decimal value, units, scope, URL and date; a published quota is not a benchmark measurement. An absent caveat preserves `not_researched`, `not_found_in_checked_sources`, or explicit source-supported `not_published`.
 
-Catalogue runtime identities come from generated provider descriptors. The live manifest determines which provider endpoints can be requested, including future declarations. A provider absent from the manifest is “not declared by this API,” not “the provider publishes nothing.” Pending reads, failed requests, unavailable manifests and missing sampled fields remain distinct. Partial pages are labelled as slices; this change does not claim a full catalogue census. Nullable `ownedBy` follows the producer's schema, allowing QwenCloud rows without inventing an owner.
-
-Both existing URLs remain unchanged. PROMPT-B's served-page/published-artifact check can verify provider-name coverage after deployment. This PR does not publish npm or deploy/merge itself.
+Catalogue runtime identities come from generated descriptors. The live dashboard manifest determines which endpoints can be requested. A candidate provider absent from that manifest is not declared by this API; this says nothing about what the provider publishes. Pending reads, failures, unavailable manifests and missing sampled fields remain distinct. Partial pages stay labelled as slices; this site does not claim a full live catalogue census.

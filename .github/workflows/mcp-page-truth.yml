@@ -21,9 +21,26 @@ jobs:
           node-version: '22'
           cache: npm
       - run: npm ci --ignore-scripts
+      - name: Read immutable package source pin
+        id: package-source
+        run: node --input-type=module -e "import {readReleaseManifest} from './scripts/generate-mcp-pages.mjs'; import {appendFileSync} from 'node:fs'; const release = await readReleaseManifest(); appendFileSync(process.env.GITHUB_OUTPUT, 'commit=' + release.source.commit + '\n');"
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          repository: ivangegovdve-sudo/openrouter-dashboard-mcp
+          ref: ${{ steps.package-source.outputs.commit }}
+          path: .mcp-package-source
+          persist-credentials: false
+      - run: npm ci --ignore-scripts
+        working-directory: .mcp-package-source
+      - name: Check exact source commit, registry and tools/list against manifest
+        run: node scripts/generate-mcp-pages.mjs --check-source --check
+        env:
+          MCP_PACKAGE_ROOT: ${{ github.workspace }}/.mcp-package-source
       # Check first: a build must not hide a hand edit by regenerating it in CI.
       - run: npm run check:mcp-pages
       - run: node --test scratch/tests/mcp-page-registry.test.mjs scratch/tests/catalogue-provider-registry.test.js
+        env:
+          MCP_PACKAGE_ROOT: ${{ github.workspace }}/.mcp-package-source
       - run: npm run build
       - name: Build must leave the generated sources unchanged
-        run: git diff --exit-code -- web/open-dashboard/mcp/index.html web/open-dashboard/catalogues/index.html web/open-dashboard/package-facts.mjs
+        run: git diff --exit-code -- web/open-dashboard/mcp/index.html web/open-dashboard/catalogues/index.html web/open-dashboard/package-facts.mjs web/open-dashboard/package-release.json
