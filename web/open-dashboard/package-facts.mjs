@@ -244,7 +244,7 @@ export const PACKAGE_FACTS = {
       },
       "publishes": {
         "pricing": "partial",
-        "contextLength": "partial",
+        "contextLength": "never",
         "outputModalities": "never",
         "reasoningEfforts": "never",
         "activeFlag": "never",
@@ -344,7 +344,7 @@ export const PACKAGE_FACTS = {
         "lifecycle": "partial"
       },
       "spendVisibility": "no_billing_api",
-      "comparabilityNote": "DeepInfra's legacy token connector observed 218 token-priced models out of 371 on 2026-09-08, with 114 carrying a retirement date and 153 further models using second, image, character or frame billing. Its publication flags describe that token connector. The media catalogue separately reads the public model list, retains other billing axes and reports its own acquired population and price coverage. Native prices and conversion conditions accompany comparable rates; catalogue presence alone does not establish that a model is current or its price comparable."
+      "comparabilityNote": "DeepInfra's legacy token connector observed 219 token-priced models out of 372 on 2026-09-08, with 114 carrying a retirement date and 153 further models using second, image, character or frame billing. Its publication flags describe that token connector. The media catalogue separately reads the public model list, retains other billing axes and reports its own acquired population and price coverage. Native prices and conversion conditions accompany comparable rates; catalogue presence alone does not establish that a model is current or its price comparable."
     },
     {
       "id": "novita",
@@ -587,7 +587,7 @@ export const PACKAGE_FACTS = {
         "lifecycle": "unknown"
       },
       "spendVisibility": "unknown",
-      "comparabilityNote": "Crazyrouter is a multi-provider aggregator. With CRAZYROUTER_API_KEY the catalogue contains every model visible to that key; without it only public pricing identities are observed and the platform denominator is unknown. The separate comparison tool joins exact model aliases using explicit native author evidence to OpenRouter quotes and available dated direct-provider references. Public default-group rates do not establish the caller's billing group or settled charges. Tiered or unsupported native billing remains unpriced for comparison. The vendor's dated discount claim is assessed against collected comparable quotes rather than assumed true; immutable model snapshot equivalence and account spend are not established."
+      "comparabilityNote": "Crazyrouter is a multi-provider aggregator. With CRAZYROUTER_API_KEY the catalogue contains every model visible to that key; without it only public pricing identities are observed and the platform denominator is unknown. The separate comparison tool joins exact model aliases using explicit native author evidence to OpenRouter quotes and available dated direct-provider references. The exact GPT-4o, GPT-4o mini and GPT-4.1 default-group figures that equal 0.65x OpenAI list prices are marked derived with their source and observed multiplier, and are excluded from competition claims. Public default-group rates do not establish the caller's billing group or settled charges. Tiered or unsupported native billing remains unpriced for comparison. The vendor's dated discount claim is assessed against collected independently comparable quotes rather than assumed true; immutable model snapshot equivalence and account spend are not established."
     }
   ],
   "tools": [
@@ -684,7 +684,7 @@ export const PACKAGE_FACTS = {
     {
       "name": "dashboard_price_comparison",
       "title": "Shared-model aggregator price comparison",
-      "description": "Compare exact Crazyrouter model aliases with OpenRouter public input/output token quotes and available dated direct-provider references. Native author evidence establishes alias matching, not identical immutable snapshots. Retains unpriced and unmatched identities with source populations and filter/pagination counts. Exact decimal savings assess the attributed, dated Crazyrouter discount claim where a direct reference is available; contradictions remain visible. Public default-group quotes are not measured account charges. Optional modelIds selects up to 20 Crazyrouter IDs; offset/limit paginate all acquired identities. Read-only metadata calls; no inference, account mutation or spend reading.",
+      "description": "Compare exact Crazyrouter model aliases with OpenRouter public input/output token quotes and available dated direct-provider references. Native author evidence establishes alias matching, not identical immutable snapshots. Retains unpriced and unmatched identities with source populations and filter/pagination counts. Exact decimal savings assess the attributed, dated Crazyrouter discount claim only for independently comparable prices; known rate-card-derived GPT-4o, GPT-4o mini and GPT-4.1 quotes carry source and observed multiplier provenance and are excluded from competition claims. Public default-group quotes are not measured account charges. Optional modelIds selects up to 20 Crazyrouter IDs; offset/limit paginate all acquired identities. Read-only metadata calls; no inference, account mutation or spend reading.",
       "annotations": {
         "readOnlyHint": true,
         "destructiveHint": false,
