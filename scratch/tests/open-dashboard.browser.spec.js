@@ -95,6 +95,8 @@ test("matrix evidence keeps all three states legible without colour", async ({ p
   await expect(page.locator("#oo-matrix-field .oo-matrix-cell.is-observed")).toHaveCount(2);
   await expect(page.locator("#oo-matrix-field .oo-matrix-cell.is-not-observed")).toHaveCount(97);
   await expect(page.locator("#oo-matrix-field .oo-matrix-cell.is-unknown")).toHaveCount(1);
+  await expect(page.locator("#oo-matrix-field .oo-matrix-cell.is-unknown.is-not-published .oo-matrix-control")).toHaveText("?");
+  await expect(page.locator("#oo-matrix-field .oo-matrix-state-item.is-unknown .oo-matrix-state-detail")).toHaveText("(1 not published)");
   await expect(page.locator("#oo-matrix-field .oo-matrix-cell.is-not-observed .oo-matrix-control").first()).toHaveText("0");
   await expect(page.locator("#oo-matrix-field .oo-matrix-cell.is-unknown .oo-matrix-control").first()).toHaveText("?");
   await expect(page.locator("#oo-matrix-field .oo-matrix-cell.is-not-observed .oo-matrix-control").first()).toHaveAttribute("aria-label", /checked and no observed usage/);

@@ -50,21 +50,21 @@ export function barWidthBasisPoints(value, maximum) { const max = BigInt(maximum
 export function matrixCellModel(cell) {
   if (cell.state === "observed") return Object.freeze({ state: "observed", label: compactIntegerString(cell.totalTokens), exact: cell.totalTokens, rank: cell.rankWithinPeriod, reason: null, evidenceUrl: cell.evidenceUrl });
   if (cell.reason === "not_observed") return Object.freeze({ state: "not_observed", label: "0", exact: null, rank: null, reason: cell.reason, evidenceUrl: null });
-  return Object.freeze({ state: "unknown", label: "?", exact: null, rank: null, reason: cell.reason, evidenceUrl: null });
+  return Object.freeze({ state: "unknown", variant: cell.reason === "not_published" ? "not_published" : "unknown", label: "?", exact: null, rank: null, reason: cell.reason, evidenceUrl: null });
 }
 
 const matrixCellKey = (appId, modelId) => `${appId}\0${modelId}`;
 
 export function matrixStateCounts(response) {
   const cells = new Map((response?.cells || []).map((cell) => [matrixCellKey(cell.appId, cell.modelId), cell]));
-  const counts = { observed: 0, notObserved: 0, unknown: 0, missing: 0 };
+  const counts = { observed: 0, notObserved: 0, unknown: 0, notPublished: 0, missing: 0 };
   for (const appId of response?.appIds || []) {
     for (const modelId of response?.modelIds || []) {
       const cell = cells.get(matrixCellKey(appId, modelId));
       if (!cell) counts.missing += 1;
       else if (cell.state === "observed") counts.observed += 1;
       else if (cell.reason === "not_observed") counts.notObserved += 1;
-      else counts.unknown += 1;
+      else { counts.unknown += 1; if (cell.reason === "not_published") counts.notPublished += 1; }
     }
   }
   return Object.freeze(counts);
@@ -159,10 +159,12 @@ export function renderMatrixStateSummary({ document, response }) {
   ];
   for (const [className, count, label, swatch] of states) {
     const item = el(document, "span", `oo-matrix-state-item is-${className}`);
-    item.setAttribute("aria-label", `${count} ${label}`);
+    const reasonDetail = className === "unknown" && counts.notPublished ? `; ${counts.notPublished} not published` : "";
+    item.setAttribute("aria-label", `${count} ${label}${reasonDetail}`);
     const marker = el(document, "b", `oo-matrix-state-marker is-${swatch}`, String(count));
     marker.setAttribute("aria-hidden", "true");
     item.append(marker, el(document, "span", "oo-matrix-state-label", label));
+    if (reasonDetail) item.appendChild(el(document, "span", "oo-matrix-state-detail", `(${counts.notPublished} not published)`));
     summary.appendChild(item);
   }
   if (counts.missing) {
@@ -259,7 +261,7 @@ export function renderAppModelMatrix({ document, response, apps = [], models = [
   for (const appId of response.appIds) {
     const tr = el(document, "tr"); const th = el(document, "th", "", appNames.get(appId) || appId); th.scope = "row"; th.title = appId; tr.appendChild(th);
     for (const modelId of response.modelIds) {
-      const cell = cells.get(`${appId}\0${modelId}`); const model = cell ? matrixCellModel(cell) : null; const stateClass = !model ? "is-missing" : model.state === "observed" ? "is-observed" : model.state === "not_observed" ? "is-not-observed" : "is-unknown"; const td = el(document, "td", `oo-matrix-cell ${stateClass}`);
+      const cell = cells.get(`${appId}\0${modelId}`); const model = cell ? matrixCellModel(cell) : null; const stateClass = !model ? "is-missing" : model.state === "observed" ? "is-observed" : model.state === "not_observed" ? "is-not-observed" : `is-unknown${model.variant === "not_published" ? " is-not-published" : ""}`; const td = el(document, "td", `oo-matrix-cell ${stateClass}`);
       if (!cell) { td.textContent = "·"; td.title = "Cell not returned by the API"; }
       else { const control = el(document, "button", "oo-matrix-control", model.label); const controlIndex = controls.length; control.type = "button"; control.tabIndex = controlIndex === 0 ? 0 : -1; control.dataset.matrixIndex = String(controlIndex); control.setAttribute("aria-controls", "oo-inspector"); const description = model.state === "observed" ? `${model.exact} observed tokens` : model.state === "not_observed" ? "checked and no observed usage" : `unknown, ${model.reason}`; control.setAttribute("aria-label", `${appNames.get(appId) || appId} and ${modelNames.get(modelId) || modelId}: ${description}`); control.addEventListener("click", () => onInspect({ appId, modelId, cell, model, trigger: control })); control.addEventListener("keydown", (event) => { if (event.key === "Escape") { event.preventDefault(); onDismiss({ restoreFocus: control }); return; } const targetIndex = matrixNavigationTarget(controlIndex, response.appIds.length, response.modelIds.length, event.key); if (targetIndex === null || targetIndex === controlIndex) return; event.preventDefault(); for (const item of controls) item.tabIndex = -1; const target = controls[targetIndex]; if (target) { target.tabIndex = 0; target.focus(); } }); controls.push(control); td.appendChild(control); }
       tr.appendChild(td);
