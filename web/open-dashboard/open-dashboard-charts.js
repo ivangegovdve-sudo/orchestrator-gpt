@@ -50,7 +50,7 @@ export function barWidthBasisPoints(value, maximum) { const max = BigInt(maximum
 export function matrixCellModel(cell) {
   if (cell.state === "observed") return Object.freeze({ state: "observed", label: compactIntegerString(cell.totalTokens), exact: cell.totalTokens, rank: cell.rankWithinPeriod, reason: null, evidenceUrl: cell.evidenceUrl });
   if (cell.reason === "not_observed") return Object.freeze({ state: "not_observed", label: "0", exact: null, rank: null, reason: cell.reason, evidenceUrl: null });
-  return Object.freeze({ state: "unknown", variant: cell.reason === "not_published" ? "not_published" : "unknown", label: "?", exact: null, rank: null, reason: cell.reason, evidenceUrl: null });
+  return Object.freeze({ state: "unknown", variant: cell.reason === "not_published" ? "not_published" : "unknown", label: cell.reason === "not_published" ? "N/P" : "?", exact: null, rank: null, reason: cell.reason, evidenceUrl: null });
 }
 
 const matrixCellKey = (appId, modelId) => `${appId}\0${modelId}`;
