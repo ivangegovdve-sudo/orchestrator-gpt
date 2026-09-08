@@ -1,4 +1,4 @@
-import { CATALOGUE_PROVIDERS, CATALOGUE_SERVED_AS_OF, ENDPOINTS, MATRIX_REQUESTS, buildModelCatalogue, resolveTaskModel, GITHUB_CATEGORIES, OVERVIEW_REQUESTS, createOpenDashboardClient, manifestPublicationIdentity, topAppModelRequests, topGitHubEnrichmentRequests } from "./open-dashboard-api.js";
+import { CATALOGUE_PROVIDERS, catalogueProvidersFor, catalogueRequestsFor, ENDPOINTS, MATRIX_REQUESTS, buildModelCatalogue, resolveTaskModel, GITHUB_CATEGORIES, OVERVIEW_REQUESTS, createOpenDashboardClient, manifestPublicationIdentity, topAppModelRequests, topGitHubEnrichmentRequests } from "./open-dashboard-api.js";
 import { compactIntegerString } from "./open-dashboard-schema.js";
 import { renderAppModelMatrix, renderHistoryVisualization, renderPending, renderRankTable, renderSourceStates, renderUnavailable } from "./open-dashboard-charts.js";
 
@@ -41,12 +41,10 @@ const GITHUB_FACETS = Object.freeze(["Maturity", "Interoperability", "Openness",
 // degrades to "not in catalogue" per row, which the view states rather than
 // silently dropping the price column.
 const MAX_CATALOGUE_PAGES = 4;
-const CATALOGUE_KEYS = Object.freeze(CATALOGUE_PROVIDERS.filter(([, , served]) => served).map(([slug]) => `catalogue:${slug}`));
-const CATALOGUE_REQUESTS = Object.freeze(CATALOGUE_PROVIDERS.filter(([, , served]) => served)
-  .map(([slug]) => ({ key: `catalogue:${slug}`, path: ENDPOINTS.liveModels(slug), kind: "liveModels", optional: true })));
+const CATALOGUE_KEYS = Object.freeze(CATALOGUE_PROVIDERS.map(([slug]) => `catalogue:${slug}`));
 const OVERVIEW_DEFERRED_KEYS = new Set(["providers", "freeFrontierQuality", "freeFrontierContext", "history", ...CATALOGUE_KEYS]);
 const OVERVIEW_INITIAL_REQUESTS = Object.freeze(OVERVIEW_REQUESTS.filter((spec) => !OVERVIEW_DEFERRED_KEYS.has(spec.key)));
-const OVERVIEW_DEFERRED_REQUESTS = Object.freeze([...OVERVIEW_REQUESTS.filter((spec) => OVERVIEW_DEFERRED_KEYS.has(spec.key)), ...CATALOGUE_REQUESTS]);
+const OVERVIEW_DEFERRED_REQUESTS = Object.freeze(OVERVIEW_REQUESTS.filter((spec) => OVERVIEW_DEFERRED_KEYS.has(spec.key)));
 
 export function parseOpenRouterState(url) {
   const query = new URL(url).searchParams; const requested = query.get("view") || "usage"; const appId = query.get("app");
@@ -556,7 +554,7 @@ function hydrateOverviewDeferred(view) {
 
 function installOverviewDeferredLoad(client, initialView) {
   const { document } = context(); const target = document.getElementById("oo-history-grid"); if (!target || !OVERVIEW_DEFERRED_REQUESTS.length) return;
-  const requests = Object.freeze([...OVERVIEW_DEFERRED_REQUESTS, ...topAppModelRequests(initialView.responses.apps)]);
+  const requests = Object.freeze([...OVERVIEW_DEFERRED_REQUESTS, ...catalogueRequestsFor(initialView.manifest), ...topAppModelRequests(initialView.responses.apps)]);
   const load = async () => { try { const deferred = await client.loadView(requests, initialView.mode === "snapshot" ? {} : { manifest: initialView.manifest }); hydrateOverviewDeferred(mergeCompatibleViews(initialView, deferred)); } catch (error) { const failed = Object.fromEntries(requests.map((spec) => [spec.key, error])); hydrateOverviewDeferred(Object.freeze({ ...initialView, errors: Object.freeze({ ...initialView.errors, ...failed }) })); throw error; } };
   const panels = [
     target,
@@ -644,9 +642,12 @@ export function catalogueSummary(rows) {
   const other = list.filter((row) => declared(row) && !row.outputModalities.includes("text"));
   const unknown = list.filter((row) => !declared(row));
   const otherKinds = [...new Set(other.flatMap((row) => row.outputModalities))].sort();
-  // Fields null on EVERY row are unpublished by this source, not zero.
+  // Nulls describe this response, not the provider's publication policy. This
+  // may be a single page, and performance is measured separately from catalogue
+  // fields. Neither an unread page nor an unmeasured value proves publication
+  // never happens.
   const columns = ["contextLength", "pricing", "isFree", "providerActive", "performance"];
-  const unpublished = columns.filter((key) => list.length > 0 && list.every((row) => row[key] === null
+  const absentFields = columns.filter((key) => list.length > 0 && list.every((row) => row[key] === null
     || (key === "pricing" && row.pricing?.promptUsdPerToken === null && row.pricing?.completionUsdPerToken === null)));
   // Cerebras publishes no modalities at all, so filtering to text-capable would
   // render an empty table for a provider that does list models. Fall back to
@@ -656,9 +657,9 @@ export function catalogueSummary(rows) {
   return Object.freeze({
     total: list.length, text: Object.freeze(text), textCount: text.length,
     shown: Object.freeze(shown), shownAreNotTextCapable: text.length === 0 && list.length > 0,
-    noModalityPublished: unknown.length > 0 && other.length === 0,
+    noModalityPublished: unknown.length > 0 && text.length === 0 && other.length === 0,
     otherCount: other.length, otherKinds: Object.freeze(otherKinds),
-    unknownCount: unknown.length, unpublished: Object.freeze(unpublished),
+    unknownCount: unknown.length, absentFields: Object.freeze(absentFields), unpublished: Object.freeze([]),
     disappeared: list.filter((row) => row.availability === "disappeared").length
   });
 }
@@ -784,16 +785,36 @@ export function renderHarnessRoster(view) {
   return wrap;
 }
 
+export function catalogueAvailability(view, provider) {
+  if (provider.declared === null) return Object.freeze({ state: "not_checked", note: "Catalogue availability was not checked because the API source declarations are unavailable." });
+  if (!provider.declared) return Object.freeze({ state: "not_declared", note: "This API does not declare a catalogue source for this provider. Its publication capabilities were not checked here." });
+  const state = datasetState(view, `catalogue:${provider.id}`);
+  return Object.freeze({ state, note: state === "failed" ? "This catalogue request failed; provider publication is unknown from this check." : state === "pending" ? PENDING_NOTE : "Catalogue response received." });
+}
+
+export function catalogueFieldLabel(provider, field) {
+  return provider?.publishes?.[field] === "never" ? "not published (package registry)" : "unknown in this response";
+}
+
+export async function loadCatalogues(client) {
+  const initial = await client.loadView([]);
+  const requests = catalogueRequestsFor(initial.manifest);
+  if (!requests.length) return initial;
+  const loaded = await client.loadView(requests, initial.mode === "snapshot" ? {} : { manifest: initial.manifest });
+  return mergeCompatibleViews(initial, loaded);
+}
+
 export function renderProviderRail(view) {
   const { document } = context();
   const rail = section(document, "oo-provider-rail", "oo-provider-rail");
   const heading = document.createElement("h2"); heading.className = "oo-region-title";
   heading.textContent = "Providers compared"; rail.appendChild(heading);
   const note = document.createElement("p"); note.className = "oo-region-meta";
-  note.textContent = "What each provider's own API lists today. Full tables, with every model and its source, are on the Catalogues page.";
+  note.textContent = "Provider catalogue observations from this API. The Catalogues page names each source and whether its response is a partial page.";
   rail.appendChild(note);
   const grid = document.createElement("div"); grid.className = "oo-analysis-grid";
-  for (const [slug, label, served] of CATALOGUE_PROVIDERS) {
+  for (const provider of catalogueProvidersFor(view.manifest)) {
+    const { id: slug, displayName: label } = provider;
     const key = `catalogue:${slug}`;
     const article = document.createElement("article");
     article.className = "oo-micro-panel"; article.dataset.overviewDataset = key;
@@ -804,19 +825,18 @@ export function renderProviderRail(view) {
     // measurement; not-yet-loaded and failed are not, so they render as an em
     // dash. Both reviewers caught this rail printing 0 for states that are not
     // counts at all.
-    if (!served) {
-      // An unserved provider is named, not omitted. Asking for four and quietly
-      // seeing three is the failure this dashboard exists to prevent.
+    const availability = catalogueAvailability(view, provider);
+    if (availability.state === "not_declared" || availability.state === "not_checked") {
       count.textContent = "—";
-      p.textContent = `No source publishes this catalogue (measured ${CATALOGUE_SERVED_AS_OF})`;
+      p.textContent = availability.note;
     } else if (datasetState(view, key) === "ready") {
       const summary = catalogueSummary(view.responses[key]?.data);
-      count.textContent = String(summary.total);
+      count.textContent = `${summary.total}${view.responses[key]?.cursor ? " shown" : ""}`;
       // catalogueSummary's own comment forbids reporting 0 text-capable for a
       // source that publishes no modalities -- that is a claim its data cannot
       // support. Cerebras is exactly that case.
       p.textContent = summary.noModalityPublished
-        ? "modality not published by this source"
+        ? `modality ${catalogueFieldLabel(provider, "outputModalities")}`
         : `${summary.textCount} text-capable`;
     } else if (datasetState(view, key) === "failed") {
       count.textContent = "—";
@@ -840,12 +860,14 @@ export function renderCatalogues(view) {
   root.replaceChildren(); renderSourceRail(view); appendSnapshotNotice(document, root, view);
   const content = section(document, "oo-catalogue-content", "oo-route-content");
   const intro = document.createElement("p"); intro.className = "oo-router-note";
-  intro.textContent = "What each provider's own API lists as available today. This is a different artefact from the OpenRouter Providers view, which describes endpoint-level serving for OpenRouter models only.";
+  intro.textContent = "Catalogue sources declared by this API, alongside the package's provider registry. Missing API coverage says what this page could check; it does not establish what a provider publishes. The OpenRouter Providers view describes endpoint-level serving for OpenRouter models only.";
   content.appendChild(intro);
-  for (const [slug, label, served, sourceId] of CATALOGUE_PROVIDERS) {
+  for (const provider of catalogueProvidersFor(view.manifest)) {
+    const { id: slug, displayName: label, sourceId } = provider;
     const key = `catalogue:${slug}`;
-    if (!served) {
-      content.appendChild(renderUnavailable({ document, title: label, reason: `No source publishes this catalogue. The public API rejects it as an unknown provider, so nothing is shown in its place and no figure is inferred. Measured ${CATALOGUE_SERVED_AS_OF}; if the API starts serving it, this panel is what goes stale.`, code: "provider not served · HTTP 400 INVALID_QUERY" }));
+    const availability = catalogueAvailability(view, provider);
+    if (availability.state === "not_declared" || availability.state === "not_checked") {
+      content.appendChild(renderUnavailable({ document, title: label, reason: availability.note, code: availability.state }));
       continue;
     }
     if (datasetState(view, key) !== "ready") { content.appendChild(renderDatasetGap(document, view, key, label)); continue; }
@@ -859,15 +881,16 @@ export function renderCatalogues(view) {
     // A cursor means this is one page, not the catalogue. Reporting the page as a
     // total is exactly the denominator error this dashboard exists to avoid.
     const paged = Boolean(response?.cursor);
-    const parts = [paged ? `${summary.total} shown (first page; the source pages this catalogue)` : `${summary.total} listed`, `${summary.textCount} text-capable`];
+    const parts = [paged ? `${summary.total} shown (first page; the source pages this catalogue)` : `${summary.total} listed`];
+    if (!summary.noModalityPublished) parts.push(`${summary.textCount} text-capable`);
     if (summary.otherCount) parts.push(`${summary.otherCount} other modality (${summary.otherKinds.join(", ")})`);
-    if (summary.unknownCount) parts.push(`${summary.unknownCount} modality not published`);
+    if (summary.unknownCount) parts.push(`${summary.unknownCount} modality ${catalogueFieldLabel(provider, "outputModalities")}`);
     if (summary.disappeared) parts.push(`${summary.disappeared} disappeared`);
     counts.textContent = parts.join(" · ");
     region.appendChild(counts);
-    if (summary.unpublished.length) {
+    if (summary.absentFields.length) {
       const gap = document.createElement("p"); gap.className = "oo-region-meta oo-catalogue-unpublished";
-      gap.textContent = `Not published by this source for any model: ${summary.unpublished.join(", ")}. Blank cells below are unpublished, not zero.`;
+      gap.textContent = `No value in these returned rows: ${summary.absentFields.join(", ")}. These gaps are unknown here, not zero or proof that the provider publishes nothing.`;
       region.appendChild(gap);
     }
     region.appendChild(renderRankTable({
@@ -879,7 +902,7 @@ export function renderCatalogues(view) {
         { label: "Context", value: (row) => row.contextLength === null ? "—" : compactIntegerString(row.contextLength), exact: (row) => row.contextLength },
         { label: "Prompt $/tok", value: (row) => exact(row.pricing?.promptUsdPerToken) },
         { label: "Completion $/tok", value: (row) => exact(row.pricing?.completionUsdPerToken) },
-        { label: "Modality", value: (row) => Array.isArray(row.outputModalities) && row.outputModalities.length ? row.outputModalities.join(", ") : "not published" },
+        { label: "Modality", value: (row) => Array.isArray(row.outputModalities) && row.outputModalities.length ? row.outputModalities.join(", ") : catalogueFieldLabel(provider, "outputModalities") },
         { label: "Free", value: (row) => row.isFree === null ? "—" : row.isFree ? "yes" : "no" },
         { label: "Seen", value: (row) => String(row.lastConfirmedAt).slice(0, 10) }
       ]
@@ -887,7 +910,7 @@ export function renderCatalogues(view) {
     if (summary.shownAreNotTextCapable) {
       const note = document.createElement("p"); note.className = "oo-region-meta oo-catalogue-unpublished";
       note.textContent = summary.noModalityPublished
-        ? "This source publishes no output modalities, so these models are listed without a text-capable claim being made about them."
+        ? "No output modality is present in these rows, so they are listed without a text-capable claim."
         : "No model here declares text output. Every listed model is shown with the modality its source does declare.";
       region.appendChild(note);
     }
@@ -981,9 +1004,7 @@ export async function bootOpenDashboard({ fetchImpl = globalThis.fetch.bind(glob
       }
       renderGithub(view, state);
     } else if (route === "catalogues") {
-      const requests = CATALOGUE_PROVIDERS.filter(([, , served]) => served)
-        .map(([slug]) => ({ key: `catalogue:${slug}`, path: ENDPOINTS.liveModels(slug), kind: "liveModels", optional: true }));
-      renderCatalogues(await client.loadView(requests));
+      renderCatalogues(await loadCatalogues(client));
     } else if (route === "matrix") {
       renderMatrix(await client.loadView(MATRIX_REQUESTS));
     } else {

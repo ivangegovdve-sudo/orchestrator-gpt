@@ -4,7 +4,9 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>MCP server — Open Dashboard</title>
-  <meta name="description" content="Open Dashboard MCP: twelve read-only tools for benchmark observations, app-model evidence, source health, model economics, free models and GitHub movement.">
+  <!-- package:meta:begin generated, do not edit -->
+<meta name="description" content="open-dashboard-mcp 0.8.0: 12 read-only tools and 9 registered providers. OpenRouter · Groq · Cerebras · Sail · QwenCloud · DeepInfra · Novita · SambaNova · Chutes.">
+<!-- package:meta:end -->
   <meta name="theme-color" content="#07070b">
   <link rel="icon" href="/web/shared/favicon.svg?v=20260807a" type="image/svg+xml">
   <script defer src="/web/shared/feedback.js?v=20260807a"></script>
@@ -65,6 +67,7 @@
     @media (max-width: 860px) { .mcp-signal-grid, .mcp-install-grid, .mcp-freshness-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .mcp-signal:nth-child(2) { border-right: 0; } .mcp-signal:nth-child(-n+2) { border-bottom: 1px solid var(--forest-line); } .mcp-signal:nth-child(3) { border-right: 1px solid var(--forest-line); } .mcp-tool { grid-template-columns: 1fr; gap: 6px; } }
     @media (max-width: 640px) { .mcp-page { width: min(calc(100% - 18px), 1180px); } .mcp-signal-grid, .mcp-install-grid, .mcp-tool-grid, .mcp-freshness-grid, .mcp-boundary-grid, .mcp-fact-grid, .mcp-link-list { grid-template-columns: 1fr; } .mcp-signal { min-height: 0; border-right: 0; border-bottom: 1px solid var(--forest-line); } .mcp-signal:last-child { border-bottom: 0; } .mcp-signal:nth-child(3) { border-right: 0; } .mcp-callout { display: block; } .mcp-callout a { display: inline-block; margin-top: 13px; } .mcp-card { padding: 14px; } }
   </style>
+<link rel="stylesheet" href="/web/open-dashboard/package-facts.css">
 </head>
 <body data-forest-page="open-dashboard" data-open-dashboard-route="mcp" data-forest-scene-owner="route">
   <nav class="oo-topbar" aria-label="Open Dashboard navigation">
@@ -72,17 +75,13 @@
     <div class="oo-destinations"><a href="/web/open-dashboard/index.html">Overview</a><a href="/web/open-dashboard/openrouter/index.html">OpenRouter</a><a href="/web/open-dashboard/matrix/index.html">Matrix</a><a href="/web/open-dashboard/github/index.html">GitHub</a><a href="/web/open-dashboard/catalogues/index.html">Catalogues</a></div>
   </nav>
   <main class="oo-page mcp-page" id="oo-main">
-    <header class="oo-header mcp-hero">
-      <div><p class="forest-kicker">npm package · twelve read-only tools · checked 2026-09-06</p><h1>Open Dashboard MCP</h1></div>
-      <p>Twelve read-only tools for benchmark observations, app-model evidence, model economics, source health, provider availability and GitHub movement in one evidence-shaped interface.</p>
-    </header>
+    <!-- package:hero:begin generated, do not edit -->
+<header class="oo-header mcp-hero"><div><p class="forest-kicker">npm package · open-dashboard-mcp 0.8.0 · <span data-package-tool-count>12</span> read-only tools</p><h1>Open Dashboard MCP</h1></div><p>12 read-only tools for model evidence, source health and GitHub movement. Provider coverage comes from the package registry.</p></header>
+<!-- package:hero:end -->
 
-    <div class="mcp-signal-grid" aria-label="MCP package facts">
-      <div class="mcp-signal"><strong>12</strong><span>read-only tools</span></div>
-      <div class="mcp-signal"><strong>4</strong><span>provider registry</span></div>
-      <div class="mcp-signal"><strong>20+</strong><span>required Node version</span></div>
-      <div class="mcp-signal"><strong>0</strong><span>keys needed by default</span></div>
-    </div>
+    <!-- package:facts:begin generated, do not edit -->
+<div class="mcp-signal-grid" aria-label="MCP package facts"><div class="mcp-signal"><strong data-package-tool-count>12</strong><span>read-only tools</span></div><div class="mcp-signal"><strong data-package-provider-count>9</strong><span>provider registry</span></div><div class="mcp-signal"><strong>&gt;=20</strong><span>required Node version</span></div><div class="mcp-signal"><strong>0.8.0</strong><span>package version</span></div></div>
+<!-- package:facts:end -->
 
     <div class="mcp-callout">
       <p>Install it once, then let <code>npx</code> resolve the published package when the server starts. Every answer carries its own provenance and freshness state.</p>
@@ -91,7 +90,7 @@
 
     <section class="mcp-section" id="install">
       <h2>Install in your client</h2>
-      <p class="mcp-section-lede">Node 20 or newer. The public dashboard data needs no API key. Key inventory is opt-in and is the only tool that touches configured credentials.</p>
+      <p class="mcp-section-lede">Use the Node version required by the package above. The public dashboard data needs no API key. Key inventory is opt-in and is the only tool that touches configured credentials.</p>
       <div class="mcp-install-grid">
         <article class="mcp-card">
           <span class="mcp-badge">Claude Code</span>
@@ -120,39 +119,41 @@
     <section class="mcp-section" id="tools">
       <h2>What it can answer</h2>
       <p class="mcp-section-lede">The tool list is bounded, read-only and explicit about unknowns. A missing field is not silently converted into a favorable ranking.</p>
-      <div class="mcp-tool-grid">
-        <article class="mcp-card mcp-tool"><h3><code>dashboard_benchmarks</code></h3><p>Read published Artificial Analysis, Design Arena and OpenRouter benchmark observations with exact provenance; upstream failures stay explicit.</p></article>
-        <article class="mcp-card mcp-tool"><h3><code>dashboard_source_health</code></h3><p>Report source freshness, collector failures and available public routes.</p></article>
-        <article class="mcp-card mcp-tool"><h3><code>dashboard_model_economics</code></h3><p>Compare OpenRouter, Groq, Cerebras and Sail on exact prices, discounts, context, modality, tools, performance, availability and retirement risk. Sail prices only count when its pinned document verifies.</p></article>
-        <article class="mcp-card mcp-tool"><h3><code>dashboard_resolve_model</code></h3><p>Return a bounded fallback list that satisfies every explicit provider, capability and lifecycle constraint.</p></article>
-        <article class="mcp-card mcp-tool"><h3><code>dashboard_model_status</code></h3><p>Diagnose an exact model id, separating last seen from the latest complete check that could have observed its absence.</p></article>
-        <article class="mcp-card mcp-tool"><h3><code>dashboard_free_models</code></h3><p>Find currently listed, genuinely free models. Rate-limited free routing and unknown prices are kept separate.</p></article>
-        <article class="mcp-card mcp-tool"><h3><code>dashboard_whats_changed</code></h3><p>Surface appearances, disappearances, deprecations, price movement and models that stopped being free. The result is partial when the archive cannot establish full coverage.</p></article>
-        <article class="mcp-card mcp-tool"><h3><code>dashboard_usage_leaders</code></h3><p>Rank public model usage while keeping rolling app totals, latest app-model evidence and the producer-selected matrix as separate sections.</p></article>
-        <article class="mcp-card mcp-tool"><h3><code>dashboard_matrix</code></h3><p>Read the published app-model matrix while preserving approval-pending, collection-disabled, unavailable and observed states.</p></article>
-        <article class="mcp-card mcp-tool"><h3><code>dashboard_github_movers</code></h3><p>Return category-scoped project-family momentum for exact 7-, 30- or 90-day baselines.</p></article>
-        <article class="mcp-card mcp-tool"><h3><code>dashboard_github_trending</code></h3><p>List GitHub trending repositories with collection time, source path and a six-hour stale flag.</p></article>
-        <article class="mcp-card mcp-tool"><h3><code>dashboard_key_inventory</code></h3><p>Opt-in liveness and spend visibility for configured provider keys. It returns secret names only; values are never returned, logged or modified.</p></article>
-      </div>
+      <!-- package:tools:begin generated, do not edit -->
+<div class="mcp-tool-grid"><article class="mcp-card mcp-tool" data-package-tool="dashboard_benchmarks"><h3><code>dashboard_benchmarks</code></h3><p>Dashboard benchmark observations</p></article>
+<article class="mcp-card mcp-tool" data-package-tool="dashboard_free_models"><h3><code>dashboard_free_models</code></h3><p>Dashboard usable free models</p></article>
+<article class="mcp-card mcp-tool" data-package-tool="dashboard_github_movers"><h3><code>dashboard_github_movers</code></h3><p>Dashboard public GitHub momentum movers</p></article>
+<article class="mcp-card mcp-tool" data-package-tool="dashboard_github_trending"><h3><code>dashboard_github_trending</code></h3><p>GitHub trending repositories</p></article>
+<article class="mcp-card mcp-tool" data-package-tool="dashboard_key_inventory"><h3><code>dashboard_key_inventory</code></h3><p>Open Dashboard key inventory</p></article>
+<article class="mcp-card mcp-tool" data-package-tool="dashboard_matrix"><h3><code>dashboard_matrix</code></h3><p>Dashboard app-model matrix</p></article>
+<article class="mcp-card mcp-tool" data-package-tool="dashboard_model_economics"><h3><code>dashboard_model_economics</code></h3><p>Open Dashboard model economics</p></article>
+<article class="mcp-card mcp-tool" data-package-tool="dashboard_model_status"><h3><code>dashboard_model_status</code></h3><p>Dashboard model status</p></article>
+<article class="mcp-card mcp-tool" data-package-tool="dashboard_resolve_model"><h3><code>dashboard_resolve_model</code></h3><p>Dashboard resolve model</p></article>
+<article class="mcp-card mcp-tool" data-package-tool="dashboard_source_health"><h3><code>dashboard_source_health</code></h3><p>Dashboard source health</p></article>
+<article class="mcp-card mcp-tool" data-package-tool="dashboard_usage_leaders"><h3><code>dashboard_usage_leaders</code></h3><p>Dashboard public ecosystem usage leaders</p></article>
+<article class="mcp-card mcp-tool" data-package-tool="dashboard_whats_changed"><h3><code>dashboard_whats_changed</code></h3><p>Dashboard changes</p></article></div>
+<!-- package:tools:end -->
     </section>
 
-    <section class="mcp-section" id="coverage">
-      <h2>Current provider shape</h2>
-      <p class="mcp-section-lede">The registry intentionally preserves asymmetry. “Not published” means the provider did not give the field to the source; it never means zero or free.</p>
-      <div class="mcp-table-scroll">
-        <table class="mcp-table">
-          <caption>Prepared package README snapshot checked 2026-09-06. OpenRouter, Groq and Cerebras rows remain source-dated; Sail is measured from its pinned document.</caption>
-          <thead><tr><th scope="col">Provider</th><th scope="col">Catalogue</th><th scope="col">Pricing</th><th scope="col">Context / modality</th><th scope="col">Lifecycle / spend</th></tr></thead>
-          <tbody>
-            <tr><th scope="row">OpenRouter</th><td>560+</td><td>Most models</td><td>Yes / yes</td><td>Yes / billing API</td></tr>
-            <tr><th scope="row">Groq</th><td>13</td><td>Some models</td><td>Yes / yes</td><td>No / no billing API</td></tr>
-            <tr><th scope="row">Cerebras</th><td>2</td><td class="mcp-muted">Not published</td><td class="mcp-muted">No / no</td><td class="mcp-muted">No / no billing API</td></tr>
-            <tr><th scope="row">Sail</th><td>10</td><td>SHA-256-pinned document</td><td class="mcp-muted">No / no</td><td class="mcp-muted">No / no billing API</td></tr>
-          </tbody>
-        </table>
-      </div>
-      <p class="mcp-inline-note">Sail’s catalogue publishes model ids, not programmatic prices. The server parses <code>pricing.md</code> only when its digest matches the pin, and carries the completion window (<code>asap</code>, <code>balanced</code> or <code>flex</code>) with each price.</p>
-    </section>
+    <!-- package:providers:begin generated, do not edit -->
+<section class="package-coverage" id="package-coverage" aria-labelledby="package-coverage-heading">
+<h2 id="package-coverage-heading">Package publication declarations</h2>
+<p>“Not published” means the package registry declares that the provider does not publish this field. “Unknown” means the package has not established it. Neither means zero or free.</p>
+<div class="package-table-scroll" role="region" aria-label="Provider publication states" tabindex="0"><table class="package-provider-table">
+<caption>Generated from open-dashboard-mcp 0.8.0: <span data-package-provider-count>9</span> providers. These are package declarations, not a fresh provider probe. Field-level observation dates are not supplied by the registry.</caption>
+<thead><tr><th scope="col">Provider</th><th scope="col">Sources</th><th scope="col">Pricing</th><th scope="col">Context</th><th scope="col">Modality</th><th scope="col">Lifecycle</th><th scope="col">Spend visibility</th></tr></thead>
+<tbody><tr data-provider-id="openrouter"><th scope="row">OpenRouter</th><td><a href="https://openrouter.ai/api/v1/models">Catalogue source</a><br><a href="https://openrouter.ai/docs/api/api-reference/models/get-models">Documentation</a></td><td data-field="pricing" data-publication="partial">Published for some models</td><td data-field="contextLength" data-publication="always">Published for all models</td><td data-field="outputModalities" data-publication="always">Published for all models</td><td data-field="lifecycle" data-publication="always">Published for all models</td><td data-field="spendVisibility" data-publication="api">Billing API</td></tr>
+<tr data-provider-id="groq"><th scope="row">Groq</th><td><a href="https://api.groq.com/openai/v1/models">Catalogue source</a><br><a href="https://console.groq.com/docs/api-reference#models-list">Documentation</a></td><td data-field="pricing" data-publication="partial">Published for some models</td><td data-field="contextLength" data-publication="always">Published for all models</td><td data-field="outputModalities" data-publication="always">Published for all models</td><td data-field="lifecycle" data-publication="never">Not published</td><td data-field="spendVisibility" data-publication="no_billing_api">No billing API</td></tr>
+<tr data-provider-id="cerebras"><th scope="row">Cerebras</th><td><a href="https://api.cerebras.ai/v1/models">Catalogue source</a><br><a href="https://inference-docs.cerebras.ai/api-reference/models">Documentation</a></td><td data-field="pricing" data-publication="never">Not published</td><td data-field="contextLength" data-publication="never">Not published</td><td data-field="outputModalities" data-publication="never">Not published</td><td data-field="lifecycle" data-publication="never">Not published</td><td data-field="spendVisibility" data-publication="no_billing_api">No billing API</td></tr>
+<tr data-provider-id="sail"><th scope="row">Sail</th><td><a href="https://api.sailresearch.com/v1/models">Catalogue source</a><br><a href="https://docs.sailresearch.com/pricing.md">Documentation</a></td><td data-field="pricing" data-publication="never">Not published</td><td data-field="contextLength" data-publication="never">Not published</td><td data-field="outputModalities" data-publication="never">Not published</td><td data-field="lifecycle" data-publication="never">Not published</td><td data-field="spendVisibility" data-publication="no_billing_api">No billing API</td></tr>
+<tr data-provider-id="qwencloud"><th scope="row">QwenCloud</th><td><a href="https://dashscope-intl.aliyuncs.com/compatible-mode/v1/models">Catalogue source</a><br><a href="https://www.alibabacloud.com/help/en/model-studio/compatibility-of-openai-with-dashscope">Documentation</a></td><td data-field="pricing" data-publication="never">Not published</td><td data-field="contextLength" data-publication="never">Not published</td><td data-field="outputModalities" data-publication="never">Not published</td><td data-field="lifecycle" data-publication="never">Not published</td><td data-field="spendVisibility" data-publication="no_billing_api">No billing API</td></tr>
+<tr data-provider-id="deepinfra"><th scope="row">DeepInfra</th><td><a href="https://api.deepinfra.com/models/list">Catalogue source</a><br><a href="https://deepinfra.com/models">Documentation</a></td><td data-field="pricing" data-publication="always">Published for all models</td><td data-field="contextLength" data-publication="partial">Published for some models</td><td data-field="outputModalities" data-publication="never">Not published</td><td data-field="lifecycle" data-publication="partial">Published for some models</td><td data-field="spendVisibility" data-publication="no_billing_api">No billing API</td></tr>
+<tr data-provider-id="novita"><th scope="row">Novita</th><td><a href="https://api.novita.ai/v3/openai/models">Catalogue source</a><br><a href="https://novita.ai/docs/api-reference/model-apis-llm-list-models">Documentation</a></td><td data-field="pricing" data-publication="partial">Published for some models</td><td data-field="contextLength" data-publication="always">Published for all models</td><td data-field="outputModalities" data-publication="always">Published for all models</td><td data-field="lifecycle" data-publication="never">Not published</td><td data-field="spendVisibility" data-publication="no_billing_api">No billing API</td></tr>
+<tr data-provider-id="sambanova"><th scope="row">SambaNova</th><td><a href="https://api.sambanova.ai/v1/models">Catalogue source</a><br><a href="https://docs.sambanova.ai/cloud/api-reference/endpoints/models">Documentation</a></td><td data-field="pricing" data-publication="always">Published for all models</td><td data-field="contextLength" data-publication="always">Published for all models</td><td data-field="outputModalities" data-publication="never">Not published</td><td data-field="lifecycle" data-publication="never">Not published</td><td data-field="spendVisibility" data-publication="no_billing_api">No billing API</td></tr>
+<tr data-provider-id="chutes"><th scope="row">Chutes</th><td><a href="https://llm.chutes.ai/v1/models">Catalogue source</a><br><a href="https://chutes.ai/app/api">Documentation</a></td><td data-field="pricing" data-publication="always">Published for all models</td><td data-field="contextLength" data-publication="always">Published for all models</td><td data-field="outputModalities" data-publication="always">Published for all models</td><td data-field="lifecycle" data-publication="never">Not published</td><td data-field="spendVisibility" data-publication="no_billing_api">No billing API</td></tr></tbody></table></div>
+<p class="package-coverage-note">Catalogue availability in the dashboard is measured separately below or in <a href="/web/open-dashboard/catalogues/index.html">Catalogues</a>. An unavailable source does not establish that a provider publishes nothing. Provider-specific documents and pricing windows can add evidence beyond these catalogue declarations.</p>
+</section>
+<!-- package:providers:end -->
 
     <section class="mcp-section" id="freshness">
       <h2>Freshness is part of the answer</h2>

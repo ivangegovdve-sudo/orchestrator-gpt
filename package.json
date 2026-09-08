@@ -8,6 +8,14 @@
   "scripts": {
     "build": "node build-vercel-static.cjs",
     "vercel-build": "npm run build",
-    "refresh-roster": "node scripts/refresh-free-roster.mjs"
+    "refresh-roster": "node scripts/refresh-free-roster.mjs",
+    "generate:mcp-pages": "node scripts/generate-mcp-pages.mjs",
+    "check:mcp-pages": "node scripts/generate-mcp-pages.mjs --check --check-published"
+  },
+  "dependencies": {
+    "open-dashboard-mcp": "0.8.0"
+  },
+  "devDependencies": {
+    "tsx": "4.23.12"
   }
 }

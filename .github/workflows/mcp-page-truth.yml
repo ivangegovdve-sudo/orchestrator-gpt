@@ -1,0 +1,29 @@
+name: MCP page truth
+on:
+  pull_request:
+  push:
+    branches: [main]
+  schedule:
+    - cron: '43 6 * * *'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  package-pages:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --ignore-scripts
+      # Check first: a build must not hide a hand edit by regenerating it in CI.
+      - run: npm run check:mcp-pages
+      - run: node --test scratch/tests/mcp-page-registry.test.mjs scratch/tests/catalogue-provider-registry.test.js
+      - run: npm run build
+      - name: Build must leave the generated sources unchanged
+        run: git diff --exit-code -- web/open-dashboard/mcp/index.html web/open-dashboard/catalogues/index.html web/open-dashboard/package-facts.mjs
