@@ -47,7 +47,7 @@ jobs:
           MCP_PACKAGE_ROOT: ${{ github.workspace }}/.mcp-package-source
       # Check first: a build must not hide a hand edit by regenerating it in CI.
       - run: npm run check:mcp-pages
-      - run: node --test scratch/tests/mcp-page-registry.test.mjs scratch/tests/catalogue-provider-registry.test.js
+      - run: node --test scratch/tests/mcp-page-registry.test.mjs scratch/tests/catalogue-provider-registry.test.js scratch/tests/mcp-release-promotion.test.mjs
         env:
           MCP_PACKAGE_ROOT: ${{ github.workspace }}/.mcp-package-source
       - run: npm run build

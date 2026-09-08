@@ -3,7 +3,7 @@
   "channel": "release_candidate",
   "source": {
     "repository": "ivangegovdve-sudo/openrouter-dashboard-mcp",
-    "commit": "4d020ef157e3e0eabf035224c5d36e4dcd9019c3",
+    "commit": "0b4d953f0f5ef16a81ac4ce3e9308569f2887550",
     "factsSha256": "c73bf5314e5d2aab64435e62f2b2a2edc0cab10dad8b45a2ac6d8013ae8652e6"
   },
   "facts": {

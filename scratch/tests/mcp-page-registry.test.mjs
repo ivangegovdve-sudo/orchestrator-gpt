@@ -94,14 +94,19 @@ test('candidate manifest matches an immutable package commit and independently r
 });
 
 test('candidate labels are separate from the installed npm version and installation pins', async () => {
-  const { loadPackageFacts } = await import('../../scripts/generate-mcp-pages.mjs');
-  const facts = await loadPackageFacts();
+  const { readReleaseManifest } = await import('../../scripts/generate-mcp-pages.mjs');
+  const release = await readReleaseManifest();
   const installed = JSON.parse(await readFile(require.resolve('open-dashboard-mcp/package.json'), 'utf8'));
   const html = await readFile(resolve(root, 'web/open-dashboard/mcp/index.html'), 'utf8');
-  assert.ok(html.includes(installed.version === facts.version ? 'Published release:' : 'Source release candidate:'));
+  assert.ok(html.includes(release.channel === 'published' ? 'Published release:' : 'Source release candidate:'));
   assert.ok(html.includes('Source commit (repository access required)'));
   assert.ok(html.includes(`data-installed-package-version>${installed.version}</span>`));
   assert.ok(html.includes(`open-dashboard-mcp@${installed.version}`));
+  const catalogue = await readFile(resolve(root, 'web/open-dashboard/catalogues/index.html'), 'utf8');
+  assert.ok(catalogue.includes('<!-- package:banner:begin generated, do not edit -->'));
+  const banner = catalogue.match(/<a class="oo-mcp-banner"[\s\S]*?<\/a>/)?.[0];
+  assert.ok(banner?.includes(`open-dashboard-mcp@${installed.version}`));
+  assert.doesNotMatch(banner, /same published data/i);
 });
 
 test('matching a version string cannot promote different package facts as published', async () => {

@@ -49,10 +49,29 @@ export const factsDigest = facts => createHash('sha256').update(JSON.stringify(f
 export function assertInstalledReleaseFacts(sourceFacts, installedFacts) {
   if (installedFacts.version === sourceFacts.version && factsDigest(installedFacts) !== factsDigest(sourceFacts)) throw Error('Installed npm artifact differs from the pinned source release despite matching versions.');
 }
-export async function readReleaseManifest({ siteRoot = root } = {}) {
-  const manifest = JSON.parse(await readFile(resolve(siteRoot, 'web/open-dashboard/package-release.json'), 'utf8'));
-  if (manifest.schemaVersion !== 1 || manifest.channel !== 'release_candidate' || manifest.source?.repository !== 'ivangegovdve-sudo/openrouter-dashboard-mcp' || !/^[a-f0-9]{40}$/.test(manifest.source?.commit || '') || !/^[a-f0-9]{64}$/.test(manifest.source?.factsSha256 || '') || manifest.facts?.name !== 'open-dashboard-mcp' || manifest.source.factsSha256 !== factsDigest(manifest.facts)) throw Error('Invalid or altered package source release manifest.');
+export function validateReleaseManifest(manifest) {
+  if (manifest.schemaVersion !== 1 || !['release_candidate', 'published'].includes(manifest.channel) || manifest.source?.repository !== 'ivangegovdve-sudo/openrouter-dashboard-mcp' || !/^[a-f0-9]{40}$/.test(manifest.source?.commit || '') || !/^[a-f0-9]{64}$/.test(manifest.source?.factsSha256 || '') || manifest.facts?.name !== 'open-dashboard-mcp' || manifest.source.factsSha256 !== factsDigest(manifest.facts)) throw Error('Invalid or altered package source release manifest.');
   return manifest;
+}
+export async function readReleaseManifest({ siteRoot = root } = {}) {
+  return validateReleaseManifest(JSON.parse(await readFile(resolve(siteRoot, 'web/open-dashboard/package-release.json'), 'utf8')));
+}
+
+export function publishedReleaseManifest(release, installedFacts) {
+  validateReleaseManifest(release);
+  if (installedFacts.version !== release.facts.version) throw Error('Published promotion requires the installed npm artifact to match the pinned source version.');
+  assertInstalledReleaseFacts(release.facts, installedFacts);
+  return { ...release, channel: 'published' };
+}
+
+/** Explicit promotion after publication; no source, dependency or registry substitution. */
+export async function promotePublishedManifest() {
+  const release = await assertSourceManifest();
+  const installedFacts = await loadInstalledPackageFacts();
+  const published = publishedReleaseManifest(release, installedFacts);
+  await assertPublishedVersion(installedFacts.version);
+  await writeFile(resolve(root, 'web/open-dashboard/package-release.json'), JSON.stringify(published, null, 2) + '\n');
+  return published;
 }
 
 export async function loadPackageFacts({ packageRoot = process.env.MCP_PACKAGE_ROOT } = {}) {
@@ -106,10 +125,12 @@ export function providerTable(facts, { published = false } = {}) {
 <p class="package-coverage-note">Catalogue availability in the dashboard is measured separately below or in <a href="/web/open-dashboard/catalogues/index.html">Catalogues</a>. An unavailable source does not establish that a provider publishes nothing. Provider-specific documents and pricing windows can add evidence beyond these catalogue declarations.</p>
 </section>`;
 }
-export function generatedBlocks(facts, page, { installedVersion, source } = {}) {
+export function generatedBlocks(facts, page, { installedVersion, source, channel = 'release_candidate' } = {}) {
   const names = facts.providers.map(p => p.displayName).join(' · ');
   const label = `${escape(facts.name)} ${escape(facts.version)}`;
-  const published = installedVersion === facts.version;
+  if (!['release_candidate', 'published'].includes(channel)) throw Error('Unsupported release channel.');
+  const published = channel === 'published';
+  if (published && installedVersion !== facts.version) throw Error('Published page version differs from installed npm.');
   const releaseLabel = published ? 'Published release' : 'Release candidate';
   const blocks = {
     meta: `<meta name="description" content="${escape(page === 'mcp' ? `${facts.name} ${facts.version} ${releaseLabel.toLowerCase()}: ${facts.tools.length} read-only tools and ${facts.providers.length} registered providers. ${names}.` : `${releaseLabel} publication declarations and live catalogue evidence for ${names}. Unmeasured fields stay unknown.`)}">`,
@@ -118,6 +139,7 @@ export function generatedBlocks(facts, page, { installedVersion, source } = {}) 
       : `<header class="oo-header"><div><p class="forest-kicker">${escape(names)}</p><h1>Provider catalogues</h1></div><p>${label} ${releaseLabel.toLowerCase()} declarations and live dashboard measurements have different sources. Missing measurements stay unknown.</p></header>`,
     providers: providerTable(facts, { published }),
   };
+  if (page === 'catalogues') blocks.banner = `<a class="oo-mcp-banner" href="/web/open-dashboard/mcp/index.html"><span class="oo-mcp-banner-tag">MCP server</span><span class="oo-mcp-banner-text">${releaseLabel} ${escape(facts.version)}: <span data-package-provider-count>${facts.providers.length}</span> providers · <span data-package-tool-count>${facts.tools.length}</span> tools. Published npm ${escape(installedVersion)}: <code>npx -y open-dashboard-mcp@${escape(installedVersion)}</code></span><span class="oo-mcp-banner-go" aria-hidden="true">Setup and tools &rarr;</span></a>`;
   if (source) blocks.release = `<aside class="package-release-note"><p><strong>Source release candidate: ${escape(facts.version)}.</strong> <span data-package-provider-count>${facts.providers.length}</span> registered providers and <span data-package-tool-count>${facts.tools.length}</span> read-only tools. Provider and tool facts below describe this candidate. <strong>Published npm package: <span data-installed-package-version>${escape(installedVersion)}</span>.</strong> Install commands use that published version.</p><p><a href="https://github.com/${escape(source.repository)}/commit/${escape(source.commit)}">Source commit (repository access required)</a> · <a href="/web/open-dashboard/package-release.json">Generated release manifest and integrity digest</a></p></aside>`;
   if (source && published) blocks.release = `<aside class="package-release-note"><p><strong>Published release: <span data-installed-package-version>${escape(installedVersion)}</span>.</strong> <span data-package-provider-count>${facts.providers.length}</span> registered providers and <span data-package-tool-count>${facts.tools.length}</span> read-only tools. Installed npm facts match the pinned source release.</p><p><a href="https://github.com/${escape(source.repository)}/commit/${escape(source.commit)}">Source commit (repository access required)</a> · <a href="/web/open-dashboard/package-release.json">Generated source manifest and integrity digest</a></p></aside>`;
   if (page === 'mcp') {
@@ -144,8 +166,9 @@ export async function generate({ check = false, siteRoot = root, facts } = {}) {
   if (factsDigest(facts) !== release.source.factsSha256) throw Error('Generated package facts disagree with the pinned source release; commit and repin before rendering.');
   if (process.env.MCP_PACKAGE_ROOT) await assertSourceManifest({ facts });
   const installedManifest = JSON.parse(await readFile(require.resolve('open-dashboard-mcp/package.json'), 'utf8'));
-  if (installedManifest.version === facts.version) assertInstalledReleaseFacts(facts, await loadInstalledPackageFacts());
-  const presentation = { installedVersion: installedManifest.version, source: release.source };
+  if (release.channel === 'published') publishedReleaseManifest(release, await loadInstalledPackageFacts());
+  else if (installedManifest.version === facts.version) assertInstalledReleaseFacts(facts, await loadInstalledPackageFacts());
+  const presentation = { installedVersion: installedManifest.version, source: release.source, channel: release.channel };
   for (const page of ['mcp', 'catalogues']) {
     const path = resolve(siteRoot, `web/open-dashboard/${page}/index.html`);
     const actual = (await readFile(path, 'utf8')).replaceAll('\r\n', '\n');
@@ -167,8 +190,10 @@ export async function assertPublishedVersion(version, fetchImpl = fetch) {
 }
 async function main() {
   const args = process.argv.slice(2);
-  if (args.some(arg => !['--check', '--check-published', '--check-source', '--pin-source'].includes(arg))) throw Error('Use --check, --check-published, --check-source or --pin-source.');
+  if (args.some(arg => !['--check', '--check-published', '--check-source', '--pin-source', '--promote-published'].includes(arg))) throw Error('Use --check, --check-published, --check-source, --pin-source or --promote-published.');
+  if (args.includes('--promote-published') && (args.includes('--check') || args.includes('--pin-source'))) throw Error('Published promotion is an explicit write operation; do not combine it with --check or --pin-source.');
   if (args.includes('--pin-source')) await pinSourceManifest();
+  if (args.includes('--promote-published')) await promotePublishedManifest();
   const facts = await loadPackageFacts();
   if (args.includes('--check-source') || (args.includes('--check-published') && process.env.MCP_PACKAGE_ROOT)) await assertSourceManifest({ facts });
   if (args.includes('--check-published')) await assertPublishedVersion((await loadInstalledPackageFacts()).version);
