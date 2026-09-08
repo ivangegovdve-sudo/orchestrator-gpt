@@ -232,7 +232,7 @@ const validators = {
   liveModels(raw, name) {
     const row = openRecord(raw, ["provider", "id", "displayName", "ownedBy", "contextLength", "pricing", "isFree", "freeKind", "providerActive", "reasoningEfforts", "outputModalities", "performance", "availability", "firstSeenAt", "lastSeenAt", "lastConfirmedAt", "disappearedAt", "absenceStreak", "missingFields"], name);
     nonEmptyString(row.provider, `${name}.provider`); nonEmptyString(row.id, `${name}.id`);
-    nullableString(row.displayName, `${name}.displayName`); nonEmptyString(row.ownedBy, `${name}.ownedBy`);
+    nullableString(row.displayName, `${name}.displayName`); nullableString(row.ownedBy, `${name}.ownedBy`);
     if (row.contextLength !== null) integerString(row.contextLength, `${name}.contextLength`);
     const pricing = openRecord(row.pricing, ["promptUsdPerToken", "completionUsdPerToken"], `${name}.pricing`);
     for (const key of ["promptUsdPerToken", "completionUsdPerToken"]) if (pricing[key] !== null) decimalString(pricing[key], `${name}.pricing.${key}`);

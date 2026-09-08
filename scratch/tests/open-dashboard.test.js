@@ -28,7 +28,7 @@ test("canonical routes remain isolated and landing motion uses the crown, roots,
   assert.doesNotMatch(entry, /^import .*forest-three\/tiles\.js/m);
 });
 
-test("dedicated matrix route is linked between OpenRouter and GitHub and MCP copy is current", () => {
+test("dedicated matrix route is linked between OpenRouter and GitHub and MCP tool links remain discoverable", () => {
   const matrix = read("matrix", "index.html");
   const openRouterPosition = matrix.indexOf("/web/open-dashboard/openrouter/index.html");
   const matrixPosition = matrix.indexOf("/web/open-dashboard/matrix/index.html");
@@ -38,8 +38,8 @@ test("dedicated matrix route is linked between OpenRouter and GitHub and MCP cop
   assert.match(matrix, /latest-complete/);
 
   const mcp = read("mcp", "index.html");
-  assert.match(mcp, /v0\.6\.1/);
-  assert.match(mcp, /<div class="mcp-signal"><strong>10<\/strong><span>read-only tools/);
+  // Version, full tool set and counts are pinned to the actual package by
+  // mcp-page-registry.test.mjs. A remembered release/count is another drift copy.
   assert.match(mcp, /dashboard_github_trending/);
   assert.match(mcp, /dashboard_whats_changed/);
   assert.doesNotMatch(mcp, /All nine tools/);

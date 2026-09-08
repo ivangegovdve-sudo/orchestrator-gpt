@@ -15,6 +15,7 @@ import {
   validateProviders,
   validatePublicError
 } from "./open-dashboard-schema.js";
+import { PACKAGE_FACTS } from "./package-facts.mjs";
 
 export const GITHUB_CATEGORIES = Object.freeze([
   ["ai-harnesses", "AI harnesses and coding agents"],
@@ -27,24 +28,36 @@ export const GITHUB_CATEGORIES = Object.freeze([
   ["ai-orchestration", "General AI orchestration"]
 ]);
 
-// Measured against the live API on 2026-09-03. `served: false` means no source
-// publishes that catalogue -- /live-models rejects it with HTTP 400 INVALID_QUERY
-// -- so the page renders a named gap instead of quietly showing three providers
-// when four were asked for.
-// [slug, label, served, sourceId]. The sourceId is carried explicitly because
-// every /live-models response lists ALL THREE ingest sources in its provenance
-// regardless of which provider was requested -- so provenance[0] would label the
-// OpenRouter panel with the Cerebras source.
-// This roster is a DEPLOYMENT-TIME SNAPSHOT of what the API served when it was
-// written, not a live probe. The date is rendered next to any "not served"
-// claim so a stale claim is visible rather than quietly authoritative.
-export const CATALOGUE_SERVED_AS_OF = "2026-09-03";
-export const CATALOGUE_PROVIDERS = Object.freeze([
-  ["openrouter", "OpenRouter", true, "models_current"],
-  ["groq", "Groq", true, "groq_models_current"],
-  ["cerebras", "Cerebras", true, "cerebras_models_current"],
-  ["sail", "Sail", false, null]
-]);
+// Package identity and deployed catalogue availability are different facts.
+// Keep every package provider visible, but choose requests only after the API's
+// own manifest declares the corresponding catalogue source.
+export const CATALOGUE_PROVIDERS = Object.freeze(PACKAGE_FACTS.providers.map(provider =>
+  Object.freeze([provider.id, provider.displayName])));
+
+export function catalogueProvidersFor(manifest) {
+  const declarations = Array.isArray(manifest?.sources) ? manifest.sources : null;
+  const sourceByProvider = new Map();
+  for (const source of declarations ?? []) {
+    const match = /^([a-z][a-z0-9_-]*)_models_current$/.exec(source.sourceId);
+    const id = source.sourceId === "models_current" ? "openrouter" : match?.[1];
+    if (id) sourceByProvider.set(id, source.sourceId);
+  }
+  const descriptors = new Map(PACKAGE_FACTS.providers.map(provider => [provider.id, provider]));
+  for (const id of sourceByProvider.keys()) if (!descriptors.has(id)) descriptors.set(id, {
+    id, displayName: id,
+    publishes: Object.fromEntries(Object.keys(PACKAGE_FACTS.providers[0]?.publishes ?? {}).map(field => [field, "unknown"]))
+  });
+  return Object.freeze([...descriptors.values()].map(provider => Object.freeze({
+    ...provider,
+    sourceId: sourceByProvider.get(provider.id) ?? null,
+    declared: declarations === null ? null : sourceByProvider.has(provider.id)
+  })));
+}
+
+export function catalogueRequestsFor(manifest) {
+  return Object.freeze(catalogueProvidersFor(manifest).filter(provider => provider.declared === true)
+    .map(provider => Object.freeze({ key: `catalogue:${provider.id}`, path: ENDPOINTS.liveModels(provider.id), kind: "liveModels", sourceId: provider.sourceId, optional: true })));
+}
 
 export const ENDPOINTS = Object.freeze({
   manifest: "/manifest",
@@ -65,10 +78,9 @@ export const ENDPOINTS = Object.freeze({
     return `/github/repositories?category=${encodeURIComponent(category)}&limit=${encodeURIComponent(String(limit))}`;
   },
   liveModels(provider, cursor = null) {
-    // `served: false` providers have no URL to build. Checking membership alone
-    // let ENDPOINTS.liveModels("sail") through, which would have requested a
-    // provider the API rejects with HTTP 400.
-    if (!CATALOGUE_PROVIDERS.some(([slug, , served]) => slug === provider && served)) throw new TypeError("provider must be a served catalogue provider");
+    // Catalogue callers select provider ids from the live manifest. A new
+    // deployed provider must not need a second, hand-maintained membership list.
+    if (typeof provider !== "string" || !/^[a-z][a-z0-9_-]{0,63}$/.test(provider)) throw new TypeError("provider must be a catalogue identifier");
     // 200 is MAX_COLLECTION_ROWS in the schema; asking for more makes the client
     // reject its own valid response. Groq and Cerebras fit well inside it; the
     // OpenRouter catalogue does not, and the view labels that page as a slice

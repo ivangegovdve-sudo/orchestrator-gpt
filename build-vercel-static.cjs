@@ -1,8 +1,15 @@
 const fs = require("fs");
 const path = require("path");
+const { execFileSync } = require("node:child_process");
 
 const root = __dirname;
 const outDir = path.join(root, "vercel-public");
+
+// The package owns provider declarations and tool registrations. Generate both
+// pages before copying them; CI checks committed blocks before this can repair drift.
+execFileSync(process.execPath, [path.join(root, "scripts/generate-mcp-pages.mjs"), "--check-published"], {
+  cwd: root, stdio: "inherit", timeout: 30_000,
+});
 
 function copyFile(from, to) {
   if (!fs.existsSync(from)) return;
