@@ -8,6 +8,14 @@ This release must land the site before npm publication. The site keeps its exact
 
 `web/open-dashboard/package-release.json` records the candidate facts, the immutable package Git commit, its repository, and SHA-256 of `JSON.stringify(facts)`. GitHub Actions checks out that exact commit, installs its lockfile, re-derives registry and tool facts, checks the digest, and compares the actual source registry and actual tools/list with HTML. A digest alone is not source verification; that independent checkout is required by the workflow.
 
+## Private package source access
+
+The package repository is private. The site's default `GITHUB_TOKEN` cannot read it. This workflow requires an Actions secret named `MCP_PACKAGE_READ_TOKEN`, granting **Contents: read** access to `ivangegovdve-sudo/openrouter-dashboard-mcp`. Prefer a fine-grained credential restricted to that repository; no write scope is needed. The token is supplied only to the package checkout, with `persist-credentials: false`. The preflight exposes only whether configuration exists, never its value.
+
+Provisioning or granting this access requires Ivan's approval. The code change does not create a credential, configure a secret or alter repository visibility. Until approved access is configured, CI fails before package-checkout retries with an actionable message. It must not substitute the vendored manifest for independent source verification.
+
+Fork pull requests do not receive repository secrets, so they cannot complete this private-source guard. After review, run the guard from an approved same-repository branch. Do not change to `pull_request_target` or grant secrets to fork code to bypass this boundary. The public generated manifest remains readable; opening the exact source commit requires access to the package repository.
+
 ## Updating the candidate
 
 In the package checkout, run tests and `npm run docs:check`, then commit source. Do not publish npm. In the site checkout:

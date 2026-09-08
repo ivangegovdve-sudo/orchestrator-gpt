@@ -24,10 +24,19 @@ jobs:
       - name: Read immutable package source pin
         id: package-source
         run: node --input-type=module -e "import {readReleaseManifest} from './scripts/generate-mcp-pages.mjs'; import {appendFileSync} from 'node:fs'; const release = await readReleaseManifest(); appendFileSync(process.env.GITHUB_OUTPUT, 'commit=' + release.source.commit + '\n');"
+      - name: Require approved read access to the private package repository
+        env:
+          PACKAGE_READ_ACCESS_CONFIGURED: ${{ secrets.MCP_PACKAGE_READ_TOKEN != '' }}
+        run: |
+          if [ "$PACKAGE_READ_ACCESS_CONFIGURED" != "true" ]; then
+            echo "::error::Independent package verification requires the MCP_PACKAGE_READ_TOKEN Actions secret, with read-only Contents access to ivangegovdve-sudo/openrouter-dashboard-mcp. Provisioning requires Ivan's approval. Fork pull requests cannot receive this secret; run this guard on an approved same-repository branch. No source-check fallback is permitted."
+            exit 1
+          fi
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
           repository: ivangegovdve-sudo/openrouter-dashboard-mcp
           ref: ${{ steps.package-source.outputs.commit }}
+          token: ${{ secrets.MCP_PACKAGE_READ_TOKEN }}
           path: .mcp-package-source
           persist-credentials: false
       - run: npm ci --ignore-scripts

@@ -99,6 +99,7 @@ test('candidate labels are separate from the installed npm version and installat
   const installed = JSON.parse(await readFile(require.resolve('open-dashboard-mcp/package.json'), 'utf8'));
   const html = await readFile(resolve(root, 'web/open-dashboard/mcp/index.html'), 'utf8');
   assert.ok(html.includes(installed.version === facts.version ? 'Published release:' : 'Source release candidate:'));
+  assert.ok(html.includes('Source commit (repository access required)'));
   assert.ok(html.includes(`data-installed-package-version>${installed.version}</span>`));
   assert.ok(html.includes(`open-dashboard-mcp@${installed.version}`));
 });
