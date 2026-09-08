@@ -279,7 +279,7 @@ export function dismissMatrixEvidence({ restoreFocus = lastInspectorTrigger } = 
 function showMatrixEvidence({ appId, modelId, cell, model, trigger }) {
   const { document, inspector } = context(); lastInspectorTrigger = trigger || null;
   const close = document.createElement("button"); close.type = "button"; close.className = "oo-inspector-close"; close.textContent = "Close details"; close.addEventListener("click", () => dismissMatrixEvidence());
-  const heading = document.createElement("h2"); heading.id = "oo-inspector-title"; heading.textContent = "App/model evidence"; const identity = document.createElement("p"); identity.textContent = `${appId} → ${modelId}`; const detail = document.createElement("p"); detail.textContent = model.state === "observed" ? `${model.exact} observed tokens · rank ${model.rank} · ${cell.period.start}` : `Unknown: ${model.reason}`; inspector.replaceChildren(close, heading, identity, detail);
+  const heading = document.createElement("h2"); heading.id = "oo-inspector-title"; heading.textContent = "App/model evidence"; const identity = document.createElement("p"); identity.textContent = `${appId} → ${modelId}`; const detail = document.createElement("p"); detail.textContent = model.state === "observed" ? `${model.exact} observed tokens · rank ${model.rank} · ${cell.period.start}` : model.state === "not_observed" ? "Checked during this window; no observed usage." : `Unknown: ${model.reason}`; inspector.replaceChildren(close, heading, identity, detail);
   if (model.evidenceUrl) { const link = document.createElement("a"); link.href = model.evidenceUrl; link.target = "_blank"; link.rel = "noopener noreferrer"; link.textContent = "Open source evidence"; inspector.appendChild(link); }
   const modal = matchMedia("(max-width: 720px)").matches; inspector.setAttribute("role", "dialog"); inspector.setAttribute("aria-modal", String(modal)); inspector.setAttribute("aria-labelledby", heading.id); inspector.hidden = false;
   inspector.onkeydown = (event) => {
@@ -467,7 +467,7 @@ export function renderMatrix(view) {
   const legend = document.createElement("div");
   legend.className = "oo-matrix-legend";
   legend.setAttribute("aria-label", "Matrix legend");
-  for (const [label, note, className] of [["Observed", "exact daily tokens", "is-observed"], ["?", "unknown in the source", "is-unknown"], ["—", "cell not returned", "is-missing"]]) {
+  for (const [label, note, className] of [["Observed", "exact daily tokens", "is-observed"], ["0", "checked and absent", "is-not-observed"], ["?", "not collected or not published", "is-unknown"], ["·", "cell not returned", "is-missing"]]) {
     const item = document.createElement("span");
     item.className = "oo-matrix-legend-item";
     const swatch = document.createElement("b");
@@ -486,7 +486,7 @@ export function renderMatrix(view) {
   content.appendChild(matrix);
   const note = document.createElement("p");
   note.className = "oo-matrix-footnote";
-  note.textContent = "Select any observed cell for its exact value and source evidence. Keyboard users can move through the grid with the arrow keys, Home, and End.";
+  note.textContent = "The flow is observed relationships only. Use the evidence grid for every cell state and exact source evidence; keyboard users can move through it with the arrow keys, Home, and End.";
   content.appendChild(note);
   root.appendChild(content);
   root.setAttribute("aria-busy", "false");
