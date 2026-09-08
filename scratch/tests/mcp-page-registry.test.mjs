@@ -160,3 +160,18 @@ test('provider quotes, caveat units and their absence states retain their source
   assert.match(none, /Caveats: Not found in checked sources/);
   assert.doesNotMatch(none, /Not published/);
 });
+
+test('provider source links use native package evidence instead of an invented API', async () => {
+  const { loadPackageFacts, providerTable } = await import('../../scripts/generate-mcp-pages.mjs');
+  const facts = await loadPackageFacts();
+  const html = providerTable(facts);
+  const sail = html.match(/<tr\b[^>]*data-provider-id="sail"[^>]*>([\s\S]*?)<\/tr>/)?.[1];
+  assert.ok(sail);
+  assert.match(sail, /SHA-256-pinned package document/);
+  assert.match(sail, /https:\/\/docs\.sailresearch\.com\/pricing\.md/);
+  assert.doesNotMatch(sail, /https:\/\/api\.sailresearch\.com\/v1\/models[^<]*Catalogue source/);
+  const cerebras = html.match(/<tr\b[^>]*data-provider-id="cerebras"[^>]*>([\s\S]*?)<\/tr>/)?.[1];
+  assert.ok(cerebras);
+  assert.match(cerebras, /API source/);
+  assert.match(cerebras, /Pricing page/);
+});
