@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>MCP server — Open Dashboard</title>
-  <meta name="description" content="Open Dashboard MCP: twelve read-only tools for benchmark observations, app-model evidence, source health, model economics, free models and GitHub movement.">
+<meta name="description" content="Open Dashboard MCP 1.0: sixteen read-only tools with conditioned price sets, speed evidence, source health, model economics and GitHub movement.">
   <meta name="theme-color" content="#07070b">
   <link rel="icon" href="/web/shared/favicon.svg?v=20260807a" type="image/svg+xml">
   <script defer src="/web/shared/feedback.js?v=20260807a"></script>
@@ -73,19 +73,19 @@
   </nav>
   <main class="oo-page mcp-page" id="oo-main">
     <header class="oo-header mcp-hero">
-      <div><p class="forest-kicker">npm package · twelve read-only tools · checked 2026-09-06</p><h1>Open Dashboard MCP</h1></div>
-      <p>Twelve read-only tools for benchmark observations, app-model evidence, model economics, source health, provider availability and GitHub movement in one evidence-shaped interface.</p>
+      <div><p class="forest-kicker">npm package · 1.0.0 · sixteen read-only tools · checked 2026-09-08</p><h1>Open Dashboard MCP</h1></div>
+      <p>Sixteen read-only tools for conditioned price sets, speed evidence, benchmark observations, model economics, source health, provider availability and GitHub movement in one evidence-shaped interface.</p>
     </header>
 
     <div class="mcp-signal-grid" aria-label="MCP package facts">
-      <div class="mcp-signal"><strong>12</strong><span>read-only tools</span></div>
-      <div class="mcp-signal"><strong>4</strong><span>provider registry</span></div>
+      <div class="mcp-signal"><strong>16</strong><span>read-only tools</span></div>
+      <div class="mcp-signal"><strong>12</strong><span>provider registry</span></div>
       <div class="mcp-signal"><strong>20+</strong><span>required Node version</span></div>
       <div class="mcp-signal"><strong>0</strong><span>keys needed by default</span></div>
     </div>
 
     <div class="mcp-callout">
-      <p>Install it once, then let <code>npx</code> resolve the published package when the server starts. Every answer carries its own provenance and freshness state.</p>
+      <p>Install it once, then let <code>npx</code> resolve the published package when the server starts. Every price point carries its source, read date, condition and provenance; the contract tool announces future removals.</p>
       <a href="/web/open-dashboard/matrix/index.html">Open the matrix &rarr;</a>
     </div>
 
@@ -123,7 +123,9 @@
       <div class="mcp-tool-grid">
         <article class="mcp-card mcp-tool"><h3><code>dashboard_benchmarks</code></h3><p>Read published Artificial Analysis, Design Arena and OpenRouter benchmark observations with exact provenance; upstream failures stay explicit.</p></article>
         <article class="mcp-card mcp-tool"><h3><code>dashboard_source_health</code></h3><p>Report source freshness, collector failures and available public routes.</p></article>
-        <article class="mcp-card mcp-tool"><h3><code>dashboard_model_economics</code></h3><p>Compare OpenRouter, Groq, Cerebras and Sail on exact prices, discounts, context, modality, tools, performance, availability and retirement risk. Sail prices only count when its pinned document verifies.</p></article>
+        <article class="mcp-card mcp-tool"><h3><code>dashboard_model_economics</code></h3><p>Compare OpenRouter, Groq, Cerebras and Sail on exact price points, discounts, context, modality, tools, performance, availability and retirement risk. Conditions stay attached to every point.</p></article>
+        <article class="mcp-card mcp-tool"><h3><code>dashboard_catalogue</code></h3><p>List all acquired provider identities, including unpriced rows, with exact native price points, source populations and explicit acquisition gaps.</p></article>
+        <article class="mcp-card mcp-tool"><h3><code>dashboard_price_comparison</code></h3><p>Compare exact matching price points across Crazyrouter and OpenRouter, refusing incompatible units or conditions instead of inventing a conversion.</p></article>
         <article class="mcp-card mcp-tool"><h3><code>dashboard_resolve_model</code></h3><p>Return a bounded fallback list that satisfies every explicit provider, capability and lifecycle constraint.</p></article>
         <article class="mcp-card mcp-tool"><h3><code>dashboard_model_status</code></h3><p>Diagnose an exact model id, separating last seen from the latest complete check that could have observed its absence.</p></article>
         <article class="mcp-card mcp-tool"><h3><code>dashboard_free_models</code></h3><p>Find currently listed, genuinely free models. Rate-limited free routing and unknown prices are kept separate.</p></article>
@@ -133,6 +135,8 @@
         <article class="mcp-card mcp-tool"><h3><code>dashboard_github_movers</code></h3><p>Return category-scoped project-family momentum for exact 7-, 30- or 90-day baselines.</p></article>
         <article class="mcp-card mcp-tool"><h3><code>dashboard_github_trending</code></h3><p>List GitHub trending repositories with collection time, source path and a six-hour stale flag.</p></article>
         <article class="mcp-card mcp-tool"><h3><code>dashboard_key_inventory</code></h3><p>Opt-in liveness and spend visibility for configured provider keys. It returns secret names only; values are never returned, logged or modified.</p></article>
+        <article class="mcp-card mcp-tool"><h3><code>dashboard_contract</code></h3><p>Return the 1.0 schema version, installed package version and deprecations, including replacements or an explicit reason when a capability is going away.</p></article>
+        <article class="mcp-card mcp-tool"><h3><code>dashboard_speed</code></h3><p>Show attributed published speed claims and the four-run streaming probe protocol: discard the first run, then publish TTFT and sustained tokens per second as median plus range.</p></article>
       </div>
     </section>
 
@@ -141,17 +145,52 @@
       <p class="mcp-section-lede">The registry intentionally preserves asymmetry. “Not published” means the provider did not give the field to the source; it never means zero or free.</p>
       <div class="mcp-table-scroll">
         <table class="mcp-table">
-          <caption>Prepared package README snapshot checked 2026-09-06. OpenRouter, Groq and Cerebras rows remain source-dated; Sail is measured from its pinned document.</caption>
+          <caption>Package 1.0.0 contract snapshot checked 2026-09-08. A scalar is no longer a price: each point names its unit, condition, source date and provenance.</caption>
           <thead><tr><th scope="col">Provider</th><th scope="col">Catalogue</th><th scope="col">Pricing</th><th scope="col">Context / modality</th><th scope="col">Lifecycle / spend</th></tr></thead>
           <tbody>
             <tr><th scope="row">OpenRouter</th><td>560+</td><td>Most models</td><td>Yes / yes</td><td>Yes / billing API</td></tr>
             <tr><th scope="row">Groq</th><td>13</td><td>Some models</td><td>Yes / yes</td><td>No / no billing API</td></tr>
-            <tr><th scope="row">Cerebras</th><td>2</td><td class="mcp-muted">Not published</td><td class="mcp-muted">No / no</td><td class="mcp-muted">No / no billing API</td></tr>
-            <tr><th scope="row">Sail</th><td>10</td><td>SHA-256-pinned document</td><td class="mcp-muted">No / no</td><td class="mcp-muted">No / no billing API</td></tr>
+            <tr><th scope="row">Cerebras</th><td>3</td><td>Published on pricing page</td><td class="mcp-muted">No / no</td><td class="mcp-muted">No / no billing API</td></tr>
+            <tr><th scope="row">Sail</th><td>12 models · 24 price rows</td><td>SHA-256-pinned document</td><td class="mcp-muted">No / no</td><td class="mcp-muted">No / unknown spend</td></tr>
+            <tr><th scope="row">QwenCloud</th><td>255 archived identities</td><td>Native token and media points</td><td>Partial / partial</td><td class="mcp-muted">No lifecycle / no billing API</td></tr>
+            <tr><th scope="row">DeepInfra</th><td>372 archived identities</td><td>Token and native media axes</td><td>Partial / unknown</td><td>Retirement dates / no billing API</td></tr>
+            <tr><th scope="row">Novita</th><td>Archived catalogue</td><td>Tiered points retained</td><td>Yes / yes</td><td class="mcp-muted">No lifecycle / no billing API</td></tr>
+            <tr><th scope="row">SambaNova</th><td>7 archived identities</td><td>Published token points</td><td class="mcp-muted">No / no</td><td class="mcp-muted">No lifecycle / no billing API</td></tr>
+            <tr><th scope="row">Chutes</th><td>495 archived identities</td><td>Token points; compute retained</td><td>Yes / yes</td><td class="mcp-muted">No lifecycle / no billing API</td></tr>
+            <tr><th scope="row">WaveSpeedAI</th><td>Public media catalogue</td><td>Formula-qualified media points</td><td class="mcp-muted">No / partial</td><td class="mcp-muted">No lifecycle / unknown spend</td></tr>
+            <tr><th scope="row">fal</th><td>Public or key-visible catalogue</td><td>Unit-qualified media points</td><td class="mcp-muted">No / partial</td><td class="mcp-muted">No lifecycle / unknown spend</td></tr>
+            <tr><th scope="row">Crazyrouter</th><td>Key-visible or public identities</td><td>Per-model derived discounts</td><td class="mcp-muted">No / partial</td><td class="mcp-muted">No lifecycle / unknown spend</td></tr>
           </tbody>
         </table>
       </div>
-      <p class="mcp-inline-note">Sail’s catalogue publishes model ids, not programmatic prices. The server parses <code>pricing.md</code> only when its digest matches the pin, and carries the completion window (<code>asap</code>, <code>balanced</code> or <code>flex</code>) with each price.</p>
+      <p class="mcp-inline-note">Sail’s catalogue publishes model ids, not programmatic prices. The server parses <code>pricing.md</code> only when its digest matches the pin, and carries the completion window (<code>ASAP</code>, <code>Balanced</code> or <code>Flex</code>) with each input, cached and output point.</p>
+    </section>
+
+    <section class="mcp-section" id="price-sets">
+      <h2>A model has a set of prices</h2>
+      <p class="mcp-section-lede">The 1.0 contract removes the old scalar pricing fields. A point is an exact decimal amount, one of the measured billing units, a discriminated condition or <code>null</code>, a URL plus read date, and one of <code>published</code>, <code>derived</code>, <code>parsed_from_prose</code> or <code>unknown</code>.</p>
+      <div class="mcp-fact-grid">
+        <article class="mcp-card"><span class="mcp-badge">Conditions</span><h3>Never flatten the qualifier</h3><p>Sail uses <code>latency_window</code>; Crazyrouter uses <code>time_band</code> with Asia/Shanghai hours and <code>tier</code>; fal GPU SKUs use <code>rate_class</code> for list versus as-low-as.</p></article>
+        <article class="mcp-card"><span class="mcp-badge">Comparison</span><h3>Compatible or refused</h3><p>Comparisons show both sides and every compatible condition. Per-image versus per-second, or mismatched windows, is refused rather than coerced.</p></article>
+        <article class="mcp-card"><span class="mcp-badge">Normalisation</span><h3>Assumptions travel with numbers</h3><p>Derived figures have <code>value</code>, <code>unit</code>, <code>assumption</code> and <code>derived_from</code>. Without an assumption, the native unit remains visible.</p></article>
+      </div>
+    </section>
+
+    <section class="mcp-section" id="speed">
+      <h2>Speed is evidence too</h2>
+      <p class="mcp-section-lede">The speed surface keeps published claims apart from our measurements. Its probe fixes the prompt and <code>max_tokens=700</code>, streams four runs, discards run one, and reports TTFT plus sustained TPS as median and range for the remaining three from one named vantage point.</p>
+      <p class="mcp-inline-note">Cerebras’ approximately 3,000 tokens/s and Groq’s 8,000 tokens/s are published claims, not measurements. The retained Cerebras real-call record is 867 / 1,022 / 1,108 tokens/s across three runs dated 2026-08-28; its exact time, vantage point and prompt hash were not retained, so those fields remain unknown. An unknown measurement stays unknown; a published ceiling is never presented as a caller quota.</p>
+    </section>
+
+    <section class="mcp-section" id="contract">
+      <h2>Contract changes announce themselves</h2>
+      <p class="mcp-section-lede"><code>dashboard_contract</code> returns <code>schema_version</code>, <code>package_version</code> and <code>deprecations[]</code>. Each notice names the field being retired, <code>removed_in</code>, <code>replaced_by</code> or a plain reason, and <code>since</code>. A known removal without a reliable release date is <code>unknown</code>, never a guess.</p>
+      <p class="mcp-inline-note">Version 1.0 is the first release with this mechanism, so it could not preannounce its own 0.9-to-1.0 removals. That retrospective exception is stated once in the release notes; future removals are announced before the release that removes them.</p>
+    </section>
+
+    <section class="mcp-section" id="selection">
+      <h2>Choose at install time</h2>
+      <p class="mcp-section-lede">Set <code>OPEN_DASHBOARD_TOOLS</code> and <code>OPEN_DASHBOARD_PROVIDERS</code> before the server starts. Deselected tools are absent from <code>tools/list</code>; deselected providers are absent from provider-bearing responses, rather than appearing as empty catalogues.</p>
     </section>
 
     <section class="mcp-section" id="freshness">
@@ -171,7 +210,7 @@
       <div class="mcp-fact-grid">
         <article class="mcp-card"><span class="mcp-badge">Discounts</span><h3>Endpoint fact, not model fact</h3><p>Measured 2026-08-19: 0 of 550 OpenRouter model rows exposed a discount, while 272 of 272 provider endpoints did. No expiry is published, so <code>expiresAt</code> stays <code>null</code>.</p></article>
         <article class="mcp-card"><span class="mcp-badge">Change detection</span><h3>Empty is not all-clear</h3><p><code>dashboard_whats_changed</code> compares the two latest archived runs. Price movement and “stopped being free” stay in their own bucket, and successful coverage remains <code>partial</code> when the span cannot be established.</p></article>
-        <article class="mcp-card"><span class="mcp-badge">Sail</span><h3>The document is the evidence</h3><p>Sail prices come from a SHA-256-pinned <code>pricing.md</code>, not an API. If the digest moves, prices go quiet until the pin is reconciled; <code>asap</code>, <code>balanced</code> and <code>flex</code> remain distinct windows.</p></article>
+        <article class="mcp-card"><span class="mcp-badge">Sail</span><h3>The document is the evidence</h3><p>Sail prices come from a SHA-256-pinned <code>pricing.md</code>, not an API. If the digest moves, prices go quiet until the pin is reconciled; <code>ASAP</code>, <code>Balanced</code> and <code>Flex</code> remain distinct conditions.</p></article>
       </div>
     </section>
 
@@ -196,7 +235,7 @@
       <div class="mcp-boundary-grid">
         <article class="mcp-card"><h3>Automated switching</h3><p>Deliberately outside the server. The intended writer is the agent or your own deployment configuration.</p></article>
         <article class="mcp-card"><h3>Task-quality fitness</h3><p>Structural constraints are available; actual “good enough for this task” quality is not modelled.</p></article>
-        <article class="mcp-card"><h3>Long price history</h3><p>Change detection compares the two most recent archived runs. A longer, fully dated history remains future work.</p></article>
+        <article class="mcp-card"><h3>Migration notice</h3><p>Version 1.0 introduces deprecation notices. It could not pre-announce its own 0.9 to 1.0 removals; that retrospective fact is stated once in the release notes. Future removals are announced before the release that removes them.</p></article>
       </div>
     </section>
 
