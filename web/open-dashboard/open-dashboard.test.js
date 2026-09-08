@@ -5,7 +5,7 @@ import test from "node:test";
 import { buildSourceRows, classifySourceState, datasetStatusLabel, installDeferredLoader, summarizeSourceRows } from "./open-dashboard.js";
 import { isSyntheticEvidenceRecord } from "./open-dashboard-api.js";
 import * as charts from "./open-dashboard-charts.js";
-import { validateOpenRouterCollection } from "./open-dashboard-schema.js";
+import { validateManifest, validateOpenRouterCollection } from "./open-dashboard-schema.js";
 
 test("does not mount an unexplained relationship canvas on the overview page", async () => {
   const html = await readFile(new URL("./index.html", import.meta.url), "utf8");
@@ -97,6 +97,82 @@ test("surfaces named reviewed-alias drift on the public source rail", () => {
   assert.match(row.statusNote, /reviewed app registry stale/);
   assert.match(row.statusNote, /Zazen/);
   assert.match(row.statusNote, /Former App/);
+});
+
+// The manifest caps each app list at 10 while the counts are the full census.
+// Requiring count === list.length made a drift of MORE THAN TEN unrepresentable:
+// a longer list is rejected by the cap, and a capped list carrying the true
+// count was rejected by the equality -- so either payload failed the WHOLE
+// manifest and blanked the page. Same shape as the app-model-matrix outage on
+// 2026-09-08, where a capped diagnostic annex failed the product it annotated.
+test("a capped drift list does not fail the whole manifest", () => {
+  const twelve = Array.from({ length: 10 }, (_, index) => ({
+    appId: String(index + 1),
+    appName: `App ${index + 1}`,
+    rank: index + 1,
+  }));
+  const drifted = source({
+    sourceId: "apps_ranked",
+    aliasRegistryDrift: {
+      status: "registry_stale",
+      checkedAt: "2026-09-08T00:00:00.000Z",
+      rankingAsOf: "2026-09-07T00:00:00.000Z",
+      registryPublishedAt: "2026-07-15T00:00:00.000Z",
+      uncovered: twelve,
+      dropped: [],
+      uncoveredCount: 12,
+      droppedCount: 0,
+      errorCode: null,
+    },
+  });
+  const view = { mode: "live", snapshotStale: false, manifest: { sources: [drifted] }, responses: {}, errors: {} };
+  const row = buildSourceRows(view, { now: new Date("2026-09-04T06:02:00.000Z") })[0];
+  assert.equal(row.state, "registry-stale");
+  // And it must not pass off ten names as twelve.
+  assert.match(row.statusNote, /12 uncovered/);
+  assert.match(row.statusNote, /showing 10 of 12/);
+});
+
+// This is the one that discriminates. The display test above passes either way,
+// because buildSourceRows takes an already-parsed view and never reaches the
+// validator -- it passed against the OLD code too, which mutation testing caught.
+const manifest = (drift) => ({
+  schemaVersion: "2.0",
+  publishedAt: "2026-09-08T00:00:00.000Z",
+  routes: ["/api/public/v2/manifest"],
+  sources: [source({ sourceId: "apps_ranked", aliasRegistryDrift: drift })],
+  provenance: [],
+  window: { start: "2026-09-08", end: "2026-09-08", timezone: "UTC", inclusive: true, basis: "observed" },
+});
+
+const drift = (overrides) => ({
+  status: "registry_stale",
+  checkedAt: "2026-09-08T00:00:00.000Z",
+  rankingAsOf: null,
+  registryPublishedAt: null,
+  uncovered: [],
+  dropped: [],
+  uncoveredCount: 0,
+  droppedCount: 0,
+  errorCode: null,
+  ...overrides,
+});
+
+const apps = (count) =>
+  Array.from({ length: count }, (_, index) => ({
+    appId: String(index + 1),
+    appName: `App ${index + 1}`,
+    rank: index + 1,
+  }));
+
+test("validateManifest accepts a capped list beside a larger census", () => {
+  const parsed = validateManifest(manifest(drift({ uncovered: apps(10), uncoveredCount: 12 })));
+  assert.equal(parsed.sources[0].aliasRegistryDrift.uncoveredCount, 12);
+  assert.equal(parsed.sources[0].aliasRegistryDrift.uncovered.length, 10);
+});
+
+test("a count below the list length is still incoherent and still fails", () => {
+  assert.throws(() => validateManifest(manifest(drift({ uncovered: apps(2), uncoveredCount: 1 }))));
 });
 
 test("keeps observed, checked-absent, unknown, and missing matrix states distinct", () => {

@@ -106,8 +106,16 @@ function sourceStatusNote(source, state, now = new Date()) {
   const details = [];
   const drift = source.aliasRegistryDrift;
   if (drift?.status === "registry_stale") {
-    const uncovered = drift.uncovered.map((app) => app.appName).join(", ") || "none";
-    const dropped = drift.dropped.map((app) => app.appName).join(", ") || "none";
+    // The lists are capped at 10 by the manifest contract while the counts are
+    // the full census, so naming ten apps beside a count of twelve would present
+    // a SAMPLE AS A CENSUS. Say which it is.
+    const namedApps = (apps, total) => {
+      if (!apps.length) return "none";
+      const names = apps.map((app) => app.appName).join(", ");
+      return total > apps.length ? `showing ${apps.length} of ${total}: ${names}` : names;
+    };
+    const uncovered = namedApps(drift.uncovered, drift.uncoveredCount);
+    const dropped = namedApps(drift.dropped, drift.droppedCount);
     details.push(`reviewed app registry stale · ${drift.uncoveredCount} uncovered (${uncovered}) · ${drift.droppedCount} dropped (${dropped})`);
   } else if (drift?.status === "collection_failed") details.push("current ranking collection failed; registry comparison is not current");
   else if (drift?.status === "collection_running") details.push("current ranking collection is running");
