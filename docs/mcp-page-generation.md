@@ -32,7 +32,7 @@ npm ci --ignore-scripts
 $env:MCP_PACKAGE_ROOT = 'D:\path\to\openrouter-dashboard-mcp'
 node scripts/generate-mcp-pages.mjs --pin-source
 node scripts/generate-mcp-pages.mjs --check-source --check
-node --test scratch/tests/mcp-page-registry.test.mjs scratch/tests/catalogue-provider-registry.test.js scratch/tests/mcp-release-promotion.test.mjs scratch/tests/mcp-workflow-boundary.test.mjs
+node --test scratch/tests/mcp-page-registry.test.mjs scratch/tests/catalogue-provider-registry.test.js scratch/tests/mcp-release-promotion.test.mjs scratch/tests/mcp-provider-presentation.test.mjs scratch/tests/mcp-workflow-boundary.test.mjs
 Remove-Item Env:MCP_PACKAGE_ROOT
 npm run check:mcp-pages
 npm run build
@@ -73,5 +73,7 @@ Provider-row count/set comparison and generated-output comparison must fail. Res
 ## Reading the data honestly
 
 Publication flags describe the named connector: `always` means all collected models, `partial` some, `never` no published value in this connector, and `unknown` not established. Missing sampled values do not establish provider-wide absence. Pitches retain quotation, attribution, URL and observation date. Caveats retain kind, exact decimal value, units, scope, URL and date; a published quota is not a benchmark measurement. An absent caveat preserves `not_researched`, `not_found_in_checked_sources`, or explicit source-supported `not_published`.
+
+Optional `providerKind` labels distinguish multi-provider aggregators, media generation platforms and model providers using the package declaration. A missing kind stays unspecified; a role does not establish authenticated access or account-specific price coverage.
 
 Catalogue runtime identities come from generated descriptors. The live dashboard manifest determines which endpoints can be requested. A candidate provider absent from that manifest is not declared by this API; this says nothing about what the provider publishes. Pending reads, failures, unavailable manifests and missing sampled fields remain distinct. Partial pages stay labelled as slices; this site does not claim a full live catalogue census.

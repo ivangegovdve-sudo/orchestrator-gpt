@@ -3,8 +3,8 @@
   "channel": "release_candidate",
   "source": {
     "repository": "ivangegovdve-sudo/openrouter-dashboard-mcp",
-    "commit": "0b4d953f0f5ef16a81ac4ce3e9308569f2887550",
-    "factsSha256": "c73bf5314e5d2aab64435e62f2b2a2edc0cab10dad8b45a2ac6d8013ae8652e6"
+    "commit": "34913a4dc53c1286f9dd6ed3f09ef621658970dd",
+    "factsSha256": "00640c67221f1d001c4a7e067febfc41cdd0ab55731e1dfa643152abc7ca60dc"
   },
   "facts": {
     "name": "open-dashboard-mcp",
@@ -47,6 +47,7 @@
           "scope": "Provider-owned platform marketing copy; quoted as a provider claim, not endorsed as a comparison result."
         },
         "displayName": "OpenRouter",
+        "providerKind": "aggregator",
         "catalogueUrl": "https://openrouter.ai/api/v1/models",
         "citationUrl": "https://openrouter.ai/docs/api/api-reference/models/get-models",
         "publishes": {
@@ -440,6 +441,7 @@
           "scope": "Provider-owned platform marketing copy; quoted as a provider claim, not endorsed as a comparison result."
         },
         "displayName": "WaveSpeedAI",
+        "providerKind": "media",
         "catalogueUrl": "https://wavespeed.ai/api/models",
         "citationUrl": "https://wavespeed.ai/",
         "publishes": {
@@ -480,6 +482,7 @@
           "scope": "Provider-owned platform marketing copy; quoted as a provider claim, not endorsed as a comparison result."
         },
         "displayName": "fal",
+        "providerKind": "media",
         "catalogueUrl": "https://api.fal.ai/v1/models",
         "citationUrl": "https://fal.ai/docs/documentation",
         "publishes": {
@@ -493,7 +496,48 @@
           "lifecycle": "never"
         },
         "spendVisibility": "unknown",
-        "comparabilityNote": "fal's public model catalogue supplies media identities and categories. Its pricing API requires authentication; the media collector quotes only prices verified from supported public source shapes, retains unpriced models and identifies price coverage separately from catalogue coverage. Missing comparable rates are not evidence of free access. Account spend is not read by this integration."
+        "comparabilityNote": "fal is a media generation platform. With FAL_API_KEY, the collector reads its full key-visible catalogue and bounded authenticated pricing batches; account-specific rates can apply. Without a key it reads the public catalogue and summary pricing table. Every acquired identity is retained. Only explicit supported output units become USD/image or USD/video-second; compute time, unobserved batches and unsupported prices remain unavailable with distinct reasons. Catalogue coverage and price coverage are reported separately. Account spend is not read by this integration."
+      },
+      {
+        "id": "crazyrouter",
+        "caveatResearch": {
+          "status": "not_found_in_checked_sources",
+          "checkedSources": [
+            "https://crazyrouter.com/tools/"
+          ],
+          "observedAt": "2026-09-08",
+          "scope": "No numeric operating limit was established from this checked platform page. This limited check does not establish that the provider publishes none elsewhere."
+        },
+        "pitch": {
+          "text": "Same OpenAI-style workflow. More models. Lower pricing. Easier experimentation.",
+          "attribution": "Crazyrouter",
+          "sourceUrl": "https://crazyrouter.com/tools/",
+          "observedAt": "2026-09-08"
+        },
+        "pitchResearch": {
+          "status": "published",
+          "checkedSources": [
+            "https://crazyrouter.com/tools/"
+          ],
+          "observedAt": "2026-09-08",
+          "scope": "Provider-owned platform marketing copy; quoted as a provider claim, not endorsed as a comparison result."
+        },
+        "displayName": "Crazyrouter",
+        "providerKind": "aggregator",
+        "catalogueUrl": "https://api.crazyrouter.com/v1/models",
+        "citationUrl": "https://docs.crazyrouter.com/en/chat/openai/models",
+        "publishes": {
+          "pricing": "partial",
+          "contextLength": "unknown",
+          "outputModalities": "partial",
+          "reasoningEfforts": "unknown",
+          "activeFlag": "unknown",
+          "discounts": "partial",
+          "discountExpiry": "unknown",
+          "lifecycle": "unknown"
+        },
+        "spendVisibility": "unknown",
+        "comparabilityNote": "Crazyrouter is a multi-provider aggregator. With CRAZYROUTER_API_KEY the catalogue contains every model visible to that key; without it only public pricing identities are observed and the platform denominator is unknown. The separate comparison tool joins exact model aliases using explicit native author evidence to OpenRouter quotes and available dated direct-provider references. Public default-group rates do not establish the caller's billing group or settled charges. Tiered or unsupported native billing remains unpriced for comparison. The vendor's dated discount claim is assessed against collected comparable quotes rather than assumed true; immutable model snapshot equivalence and account spend are not established."
       }
     ],
     "tools": [
@@ -581,6 +625,16 @@
         "name": "dashboard_model_status",
         "title": "Dashboard model status",
         "description": "Diagnose an exact model id across providers. lastSeenAt is the last complete provider listing that contained the model; lastConfirmedAt is the latest complete provider listing whether or not it contained the model. A later lastConfirmedAt is positive evidence of absence.",
+        "annotations": {
+          "readOnlyHint": true,
+          "destructiveHint": false,
+          "openWorldHint": true
+        }
+      },
+      {
+        "name": "dashboard_price_comparison",
+        "title": "Shared-model aggregator price comparison",
+        "description": "Compare exact Crazyrouter model aliases with OpenRouter public input/output token quotes and available dated direct-provider references. Native author evidence establishes alias matching, not identical immutable snapshots. Retains unpriced and unmatched identities with source populations and filter/pagination counts. Exact decimal savings assess the attributed, dated Crazyrouter discount claim where a direct reference is available; contradictions remain visible. Public default-group quotes are not measured account charges. Optional modelIds selects up to 20 Crazyrouter IDs; offset/limit paginate all acquired identities. Read-only metadata calls; no inference, account mutation or spend reading.",
         "annotations": {
           "readOnlyHint": true,
           "destructiveHint": false,

@@ -10,6 +10,7 @@ const require = createRequire(import.meta.url);
 const escape = value => String(value).replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;').replaceAll("'", '&#39;');
 const publication = Object.freeze({ always: 'Published for all collected models', partial: 'Published for some collected models', never: 'Not published in this connector', unknown: 'Unknown — not established by this package' });
 const billing = Object.freeze({ api: 'Billing API', no_billing_api: 'No billing API', unknown: 'Unknown — not established by this package' });
+const providerKinds = Object.freeze({ aggregator: 'Multi-provider aggregator', media: 'Media generation platform', model_provider: 'Model provider' });
 
 export async function loadInstalledPackageFacts({ packageRoot } = {}) {
   const sourceMode = Boolean(packageRoot);
@@ -113,8 +114,14 @@ export function providerEvidence(p) {
   return pitch + caveats;
 }
 
+function providerRole(p) {
+  if (p.providerKind === undefined) return '';
+  if (!Object.hasOwn(providerKinds, p.providerKind)) throw Error('Unsupported package provider kind.');
+  return `<br><small data-provider-kind="${p.providerKind}">${providerKinds[p.providerKind]}</small>`;
+}
+
 export function providerTable(facts, { published = false } = {}) {
-  const rows = facts.providers.map(p => `<tr data-provider-id="${escape(p.id)}"><th scope="row">${escape(p.displayName)}</th><td class="package-provider-evidence">${providerEvidence(p)}</td><td><a href="${escape(p.catalogueUrl)}">Catalogue source</a><br><a href="${escape(p.citationUrl)}">Documentation</a></td>${['pricing', 'contextLength', 'outputModalities', 'lifecycle'].map(field => `<td data-field="${field}" data-publication="${p.publishes[field]}">${publication[p.publishes[field]]}</td>`).join('')}<td data-field="spendVisibility" data-publication="${p.spendVisibility}">${billing[p.spendVisibility]}</td></tr>`).join('\n');
+  const rows = facts.providers.map(p => `<tr data-provider-id="${escape(p.id)}"><th scope="row">${escape(p.displayName)}${providerRole(p)}</th><td class="package-provider-evidence">${providerEvidence(p)}</td><td><a href="${escape(p.catalogueUrl)}">Catalogue source</a><br><a href="${escape(p.citationUrl)}">Documentation</a></td>${['pricing', 'contextLength', 'outputModalities', 'lifecycle'].map(field => `<td data-field="${field}" data-publication="${p.publishes[field]}">${publication[p.publishes[field]]}</td>`).join('')}<td data-field="spendVisibility" data-publication="${p.spendVisibility}">${billing[p.spendVisibility]}</td></tr>`).join('\n');
   return `<section class="package-coverage" id="package-coverage" aria-labelledby="package-coverage-heading">
 <h2 id="package-coverage-heading">Package publication declarations</h2>
 <p>Publication flags describe the registry's named catalogue connector. “Not published in this connector” does not establish provider-wide absence. “Unknown” means the package has not established it. Neither means zero or free.</p>

@@ -26,7 +26,7 @@ jobs:
           echo 'Independent private-source verification: NOT RUN. This job checks the committed manifest and generated pages only; it is not a source-verification or publication gate.' >> "$GITHUB_STEP_SUMMARY"
       # Check first: a build must not hide a hand edit by regenerating it in CI.
       - run: npm run check:mcp-pages
-      - run: node --test scratch/tests/catalogue-provider-registry.test.js scratch/tests/mcp-release-promotion.test.mjs scratch/tests/mcp-workflow-boundary.test.mjs
+      - run: node --test scratch/tests/catalogue-provider-registry.test.js scratch/tests/mcp-release-promotion.test.mjs scratch/tests/mcp-provider-presentation.test.mjs scratch/tests/mcp-workflow-boundary.test.mjs
       - run: npm run build
       - name: Build must leave the generated sources unchanged
         run: git diff --exit-code -- web/open-dashboard/mcp/index.html web/open-dashboard/catalogues/index.html web/open-dashboard/package-facts.mjs web/open-dashboard/package-release.json
@@ -74,7 +74,7 @@ jobs:
         env:
           MCP_PACKAGE_ROOT: ${{ github.workspace }}/.mcp-package-source
       - run: npm run check:mcp-pages
-      - run: node --test scratch/tests/mcp-page-registry.test.mjs scratch/tests/catalogue-provider-registry.test.js scratch/tests/mcp-release-promotion.test.mjs scratch/tests/mcp-workflow-boundary.test.mjs
+      - run: node --test scratch/tests/mcp-page-registry.test.mjs scratch/tests/catalogue-provider-registry.test.js scratch/tests/mcp-release-promotion.test.mjs scratch/tests/mcp-provider-presentation.test.mjs scratch/tests/mcp-workflow-boundary.test.mjs
         env:
           MCP_PACKAGE_ROOT: ${{ github.workspace }}/.mcp-package-source
       - run: npm run build

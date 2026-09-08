@@ -32,6 +32,8 @@ for (const page of pages) {
       for (const field of ['pricing', 'contextLength', 'outputModalities', 'lifecycle']) {
         assert.ok(row.includes(`data-field="${field}" data-publication="${PROVIDER_REGISTRY[id].publishes[field]}"`), `${id}.${field} must preserve its registry state`);
       }
+      const kind = row.match(/data-provider-kind="([^"]+)"/)?.[1];
+      assert.equal(kind, PROVIDER_REGISTRY[id].providerKind, `${id} must preserve its optional source provider kind`);
     }
   });
 }
