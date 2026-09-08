@@ -398,7 +398,14 @@ const validateAliasRegistryDrift = (raw, name) => {
   if (!Array.isArray(row.uncovered) || row.uncovered.length > 10 || !Array.isArray(row.dropped) || row.dropped.length > 10) fail("invalid_manifest", `${name} app lists are invalid`);
   const uncovered = row.uncovered.map((app, index) => { const value = strictRecord(app, ["appId", "appName", "rank"], `${name}.uncovered[${index}]`); integerString(value.appId, `${name}.uncovered[${index}].appId`); string(value.appName, `${name}.uncovered[${index}].appName`); if (!Number.isInteger(value.rank) || value.rank < 1) fail("invalid_manifest", `${name}.uncovered[${index}].rank is invalid`); return Object.freeze({ ...value }); });
   const dropped = row.dropped.map((app, index) => { const value = strictRecord(app, ["appId", "appName"], `${name}.dropped[${index}]`); integerString(value.appId, `${name}.dropped[${index}].appId`); string(value.appName, `${name}.dropped[${index}].appName`); return Object.freeze({ ...value }); });
-  if (![row.uncoveredCount, row.droppedCount].every((value) => Number.isInteger(value) && value >= 0) || row.uncoveredCount !== uncovered.length || row.droppedCount !== dropped.length) fail("invalid_manifest", `${name} counts are invalid`);
+  // THE COUNT IS A CENSUS; THE LIST IS A SAMPLE CAPPED AT 10. Requiring them to
+  // be equal made a drift of more than ten apps unrepresentable: a longer list
+  // is rejected by the cap above, and a capped list carrying the true count was
+  // rejected here -- so EITHER payload failed the whole manifest and blanked the
+  // page. Exactly the defect that took /api/public/v2/app-model-matrix down on
+  // 2026-09-08, where a capped diagnostic annex failed the product it annotated.
+  // A count BELOW the list length is still incoherent and still fails.
+  if (![row.uncoveredCount, row.droppedCount].every((value) => Number.isInteger(value) && value >= 0) || row.uncoveredCount < uncovered.length || row.droppedCount < dropped.length) fail("invalid_manifest", `${name} counts are invalid`);
   if (row.errorCode !== null) string(row.errorCode, `${name}.errorCode`);
   return Object.freeze({ ...row, uncovered: Object.freeze(uncovered), dropped: Object.freeze(dropped) });
 };
