@@ -55,6 +55,28 @@ test("distinguishes approval pending from disabled collection", () => {
   assert.equal(datasetStatusLabel(view, "matrix"), "Approval pending");
 });
 
+test("surfaces named reviewed-alias drift on the public source rail", () => {
+  const drifted = source({
+    sourceId: "apps_ranked",
+    aliasRegistryDrift: {
+      status: "registry_stale",
+      checkedAt: "2026-09-08T00:00:00.000Z",
+      rankingAsOf: "2026-09-07T00:00:00.000Z",
+      registryPublishedAt: "2026-07-15T00:00:00.000Z",
+      uncovered: [{ appId: "4", appName: "Zazen", rank: 4 }],
+      dropped: [{ appId: "9", appName: "Former App" }],
+      uncoveredCount: 1,
+      droppedCount: 1,
+      errorCode: null,
+    },
+  });
+  const view = { mode: "live", snapshotStale: false, manifest: { sources: [drifted] }, responses: {}, errors: {} };
+  const row = buildSourceRows(view)[0];
+  assert.match(row.statusNote, /reviewed app registry stale/);
+  assert.match(row.statusNote, /Zazen/);
+  assert.match(row.statusNote, /Former App/);
+});
+
 test("accepts a public OpenRouter benchmark row", () => {
   const response = validateOpenRouterCollection({
     schemaVersion: "2.0",
