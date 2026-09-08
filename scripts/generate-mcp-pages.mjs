@@ -120,8 +120,17 @@ function providerRole(p) {
   return `<br><small data-provider-kind="${p.providerKind}">${providerKinds[p.providerKind]}</small>`;
 }
 
+function providerSources(p) {
+  const labels = { api: 'API source', pricing_page: 'Pricing page', pinned_document: 'SHA-256-pinned package document' };
+  const sources = p.catalogueEvidence?.sources ?? [];
+  const catalogue = sources.length
+    ? sources.map(source => `<a href="${escape(source.url)}">${labels[source.kind] || 'Package source'}</a>`).join('<br>')
+    : `<a href="${escape(p.catalogueUrl)}">Catalogue source</a>`;
+  return `${catalogue}<br><a href="${escape(p.citationUrl)}">Documentation</a>`;
+}
+
 export function providerTable(facts, { published = false } = {}) {
-  const rows = facts.providers.map(p => `<tr data-provider-id="${escape(p.id)}"><th scope="row">${escape(p.displayName)}${providerRole(p)}</th><td class="package-provider-evidence">${providerEvidence(p)}</td><td><a href="${escape(p.catalogueUrl)}">Catalogue source</a><br><a href="${escape(p.citationUrl)}">Documentation</a></td>${['pricing', 'contextLength', 'outputModalities', 'lifecycle'].map(field => `<td data-field="${field}" data-publication="${p.publishes[field]}">${publication[p.publishes[field]]}</td>`).join('')}<td data-field="spendVisibility" data-publication="${p.spendVisibility}">${billing[p.spendVisibility]}</td></tr>`).join('\n');
+  const rows = facts.providers.map(p => `<tr data-provider-id="${escape(p.id)}"><th scope="row">${escape(p.displayName)}${providerRole(p)}</th><td class="package-provider-evidence">${providerEvidence(p)}</td><td>${providerSources(p)}</td>${['pricing', 'contextLength', 'outputModalities', 'lifecycle'].map(field => `<td data-field="${field}" data-publication="${p.publishes[field]}">${publication[p.publishes[field]]}</td>`).join('')}<td data-field="spendVisibility" data-publication="${p.spendVisibility}">${billing[p.spendVisibility]}</td></tr>`).join('\n');
   return `<section class="package-coverage" id="package-coverage" aria-labelledby="package-coverage-heading">
 <h2 id="package-coverage-heading">Package publication declarations</h2>
 <p>Publication flags describe the registry's named catalogue connector. “Not published in this connector” does not establish provider-wide absence. “Unknown” means the package has not established it. Neither means zero or free.</p>
