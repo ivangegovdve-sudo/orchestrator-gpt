@@ -128,6 +128,29 @@ test("the page's 1.0 content only uses vocabulary the package actually defines",
     }
   }
 
+  // EVERY VOCABULARY-BEARING VALUE, not a selected few. The first version of this test
+  // checked condition kinds, provenance, token basis and speed fields and stopped there,
+  // so priceSet.example.unit, measuredParity.metric, withheldClaims[].state and
+  // threeStates[].state could all drift to terms the package does not define while it
+  // stayed green. Reviewer-caught as a coverage gap; a guard with holes in it is how the
+  // page drifted in the first place.
+  assert.ok(c.priceUnits.includes(content.priceSet.example.unit),
+    `the price-set example uses unit ${content.priceSet.example.unit}, which the package does not define`);
+
+  const stateVocabulary = new Set([...c.speedStates, "not_published"]);
+  for (const s of content.threeStates) {
+    assert.ok(stateVocabulary.has(s.state), `three-states names ${s.state}, which the package does not define`);
+  }
+  for (const w of content.speed.withheldClaims) {
+    assert.ok(c.speedStates.includes(w.state), `withheld claim for ${w.provider} reports ${w.state}, not a speed state`);
+  }
+  assert.ok(
+    content.speed.measuredParity.metric === "TTFT" || c.speedFields.includes(content.speed.measuredParity.metric),
+    `measuredParity.metric ${content.speed.measuredParity.metric} is neither TTFT nor a speed field`,
+  );
+  assert.ok(c.tokenBasis.includes(content.speed.measuredParity.tokenBasis),
+    "the parity measurement names a token basis the package does not define");
+
   // The three states must stay distinguishable by their rendered glyph, which is the
   // matrixCellModel defect generalised: two states sharing a glyph are one state.
   const glyphs = content.threeStates.map((s) => s.glyph);
