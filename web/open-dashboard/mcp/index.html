@@ -199,6 +199,12 @@
       <p class="mcp-section-lede">Set <code>OPEN_DASHBOARD_TOOLS</code> and <code>OPEN_DASHBOARD_PROVIDERS</code> before the server starts. Deselected tools are absent from <code>tools/list</code>; deselected providers are absent from provider-bearing responses, rather than appearing as empty catalogues.</p>
     </section>
 
+    <!-- Rendered from /web/open-dashboard/mcp-1.0-content.json by mcp-1.0-render.mjs.
+         The data is READ, not restated here: a later interactive pass consumes the same
+         JSON rather than scraping this markup, and the agreement test checks every term
+         in it against the package's generated facts. -->
+    <div id="mcp-1-0-contract"></div>
+
     <section class="mcp-section" id="freshness">
       <h2>Freshness is part of the answer</h2>
       <p class="mcp-section-lede">The server reads the public zero-credential API at query time. The default host is a hobby-tier deployment with no uptime guarantee, so failure and age are returned as structured state.</p>
@@ -258,5 +264,6 @@
   </main>
   <script type="module" data-forest-runtime="motion" src="/web/shared/forest-runtime-boot.mjs?v=20260807a"></script>
   <script src="/web/shared/design-history.js?v=20260807a"></script>
+  <script type="module" src="/web/open-dashboard/mcp/mcp-1.0-render.mjs?v=20260909a"></script>
 </body>
 </html>

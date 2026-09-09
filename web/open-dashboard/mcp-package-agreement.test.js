@@ -90,3 +90,47 @@ test("the package facts the page is checked against are the version being descri
   const html = await readFile(pageUrl, "utf8");
   assert.ok(html.includes(facts.version), `the page must name the version it documents (${facts.version})`);
 });
+
+test("the page's 1.0 content only uses vocabulary the package actually defines", async () => {
+  // mcp-1.0-content.json is the substrate the page renders and the next task reads. It is
+  // hand-authored, so it is exactly the kind of file that drifts from the package while
+  // still looking authoritative -- which is the defect this whole release is about. Every
+  // term it uses is checked against package-facts.json, which is generated from the zod
+  // schemas.
+  const facts = JSON.parse(await readFile(factsUrl, "utf8"));
+  const content = JSON.parse(await readFile(new URL("./mcp-1.0-content.json", import.meta.url), "utf8"));
+  const c = facts.contract;
+
+  assert.equal(content.packageVersion, facts.version, "the content must name the package version it describes");
+
+  for (const entry of content.conditionKinds) {
+    assert.ok(c.conditionKinds.includes(entry.kind), `condition kind ${entry.kind} is not in the package`);
+  }
+  assert.deepEqual(
+    content.conditionKinds.map((k) => k.kind).sort(),
+    [...c.conditionKinds].sort(),
+    "the page must cover every condition kind the package defines, and invent none",
+  );
+
+  assert.deepEqual([...content.provenance.values].sort(), [...c.provenance].sort());
+  assert.deepEqual([...content.speed.tokenBasis.values].sort(), [...c.tokenBasis].sort());
+  for (const field of content.speed.requiredFields) {
+    assert.ok(c.speedFields.includes(field), `speed field ${field} is not emitted by the package`);
+  }
+
+  // A kind with no producer must say so rather than carrying a fabricated instance.
+  for (const entry of content.conditionKinds) {
+    if (entry.emitted === false) {
+      assert.equal(entry.instance, null, `${entry.kind} claims an instance while declaring itself unemitted`);
+      assert.ok(entry.note, `${entry.kind} is unemitted and must explain that, not just omit it`);
+    } else {
+      assert.ok(entry.instance && entry.instance.provider, `${entry.kind} claims to be emitted but names no real instance`);
+    }
+  }
+
+  // The three states must stay distinguishable by their rendered glyph, which is the
+  // matrixCellModel defect generalised: two states sharing a glyph are one state.
+  const glyphs = content.threeStates.map((s) => s.glyph);
+  assert.equal(new Set(glyphs).size, glyphs.length, "two states share a glyph, so a reader cannot tell them apart");
+  assert.ok(!glyphs.some((g) => /^\d+$/.test(g)), "no state may render as a bare number");
+});
