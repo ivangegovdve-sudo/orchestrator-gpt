@@ -90,14 +90,18 @@ test("matrix evidence keeps all three states legible without colour", async ({ p
   await page.emulateMedia({ forcedColors: "active" });
   await page.goto("/web/open-dashboard/matrix/index.html");
   await expect(page.locator("#oo-matrix-field .oo-matrix-state-summary")).toContainText("2");
-  await expect(page.locator("#oo-matrix-field .oo-matrix-state-item.is-not-observed")).toContainText("checked and absent");
+  await expect(page.locator("#oo-matrix-field .oo-matrix-state-item.is-not-observed")).toContainText("checked, no usage recorded");
   await expect(page.locator("#oo-matrix-field .oo-matrix-state-item.is-unknown")).toContainText("not collected or not published");
   await expect(page.locator("#oo-matrix-field .oo-matrix-cell.is-observed")).toHaveCount(2);
   await expect(page.locator("#oo-matrix-field .oo-matrix-cell.is-not-observed")).toHaveCount(97);
   await expect(page.locator("#oo-matrix-field .oo-matrix-cell.is-unknown")).toHaveCount(1);
   await expect(page.locator("#oo-matrix-field .oo-matrix-cell.is-unknown.is-not-published .oo-matrix-control")).toHaveText("N/P");
   await expect(page.locator("#oo-matrix-field .oo-matrix-state-item.is-unknown .oo-matrix-state-detail")).toHaveText("(1 not published)");
-  await expect(page.locator("#oo-matrix-field .oo-matrix-cell.is-not-observed .oo-matrix-control").first()).toHaveText("0");
+  // WAS toHaveText("0"). A cell the API declares `state: "unknown", reason: "not_observed"`
+  // rendered as the digit zero, indistinguishable at a glance from the observed zero this
+  // same spec checks two lines up. It is "N/O" now -- the sibling of the "N/P" asserted
+  // above -- so no cell in this matrix shows a number unless a number was observed.
+  await expect(page.locator("#oo-matrix-field .oo-matrix-cell.is-not-observed .oo-matrix-control").first()).toHaveText("N/O");
   await expect(page.locator("#oo-matrix-field .oo-matrix-cell.is-not-observed .oo-matrix-control").first()).toHaveAttribute("aria-label", /checked and no observed usage/);
   await expect(page.locator("#oo-matrix-field .oo-unmapped-summary")).toHaveText("138 unresolved observations · largest 1 shown");
 });

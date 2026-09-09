@@ -9,5 +9,8 @@
     "build": "node build-vercel-static.cjs",
     "vercel-build": "npm run build",
     "refresh-roster": "node scripts/refresh-free-roster.mjs"
+  },
+  "devDependencies": {
+    "open-dashboard-mcp": "1.0.0"
   }
 }

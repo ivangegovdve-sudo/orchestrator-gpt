@@ -19,6 +19,7 @@ tmp/
 temp/
 .cache/
 vercel-public/
+scratch/tests/.open-dashboard-results/
 .DS_Store
 .codex/config.toml
 

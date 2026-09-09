@@ -187,7 +187,11 @@ test("keeps observed, checked-absent, unknown, and missing matrix states distinc
   assert.deepEqual(charts.matrixStateCounts({ appIds: ["1", "2"], modelIds: ["a", "b"], cells }), { observed: 1, notObserved: 1, unknown: 1, notPublished: 1, missing: 1 });
   assert.equal(charts.matrixCellModel(cells[0]).state, "observed");
   assert.equal(charts.matrixCellModel(cells[1]).state, "not_observed");
-  assert.equal(charts.matrixCellModel(cells[1]).label, "0");
+  // This asserted label "0" -- in a test whose name is "keeps ... states distinct" -- for a
+  // cell the API declares unknown. It is an en dash now, so the state a reader SEES
+  // differs from an observed zero rather than only its CSS class differing.
+  assert.equal(charts.matrixCellModel(cells[1]).label, "N/O");
+  assert.notEqual(charts.matrixCellModel(cells[1]).label, charts.matrixCellModel(cells[0]).label);
   assert.equal(charts.matrixCellModel(cells[2]).state, "unknown");
   assert.equal(charts.matrixCellModel(cells[2]).variant, "not_published");
   assert.equal(charts.matrixCellModel(cells[2]).label, "N/P");

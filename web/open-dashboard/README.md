@@ -2,6 +2,8 @@
 
 This route-local static subsite consumes the public Open Dashboard v2 API. The SD Forest homepage exposes it through a truthfully labeled `Public snapshot` portal; the subsite has no browser credentials and treats semantic tables and SVG as the quantitative authority. The optional Three.js relationship canopy is loaded only after capability, visibility and user-preference gates.
 
+The MCP route documents `open-dashboard-mcp` 1.0.0: sixteen read-only tools, twelve registered providers, conditioned exact price points, separate published/measured/unknown speed evidence, and the `dashboard_contract` deprecation endpoint. Version 1.0 is the first release with deprecation notices, so its 0.9-to-1.0 migration notice is necessarily retrospective; future removals are announced before removal.
+
 Canonical routes:
 
 - `/web/open-dashboard/index.html`
