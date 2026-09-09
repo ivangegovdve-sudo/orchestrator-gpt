@@ -234,7 +234,8 @@ test("matrix cell model distinguishes observed zero from unknown", async () => {
   // was made green by lowering it to match. What separates the two states must be the
   // glyph a reader actually sees, not only the CSS class and the aria-label.
   const notObserved = charts.matrixCellModel({ state: "unknown", reason: "not_observed" });
-  assert.deepEqual(notObserved, { state: "not_observed", label: "–", exact: null, rank: null, reason: "not_observed", evidenceUrl: null });
+  assert.deepEqual(notObserved, { state: "not_observed", label: "N/O", exact: null, rank: null, reason: "not_observed", evidenceUrl: null });
+  assert.match(notObserved.label, /^[A-Z]\/[A-Z]$/, "the label is a reason code, not a quantity");
   assert.notEqual(notObserved.label, "0", "an unobserved cell must not render as the digit zero");
   assert.notEqual(notObserved.label, charts.matrixCellModel({ state: "observed", totalTokens: "0", rankWithinPeriod: 1, evidenceUrl: "https://openrouter.ai/" }).label,
     "a measured zero and an unmeasured cell must not look the same");
