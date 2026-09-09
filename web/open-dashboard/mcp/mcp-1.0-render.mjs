@@ -23,7 +23,26 @@ function card(badge, heading) {
   return article;
 }
 
+/**
+ * Returns the section to render into.
+ *
+ * If the page already has a section with this id, DETAIL IS APPENDED TO IT rather than a
+ * rival section being created. The first version of this file created its own
+ * `price-sets` and `speed` sections while the static page already had both, which
+ * duplicated the content and made two elements answer to the same id -- ambiguous for
+ * fragment links and for every querySelector on the page. Reviewer-caught.
+ *
+ * `mounted` is set so a caller can tell an appended section from a new one and skip
+ * re-adding a heading the page already shows.
+ */
 function section(id, title, lede) {
+  const existing = document.getElementById(id);
+  if (existing) {
+    existing.append(el("hr", "mcp-contract-rule"));
+    if (lede) existing.append(el("p", "mcp-section-lede", lede));
+    existing.mounted = true;
+    return existing;
+  }
   const s = el("section", "mcp-section");
   s.id = id;
   s.append(el("h2", null, title));
@@ -198,14 +217,12 @@ async function render() {
       "The 1.0 contract detail could not be loaded, so it is not shown. That is a failure to read the data, not an absence of the contract."));
     return;
   }
-  mount.append(
-    priceSetSection(data),
-    conditionSection(data),
-    provenanceSection(data),
-    comparisonSection(data),
-    speedSection(data),
-    statesSection(data),
-  );
+  for (const build of [priceSetSection, conditionSection, provenanceSection, comparisonSection, speedSection, statesSection]) {
+    const node = build(data);
+    // A section that was appended into an existing one is already in the document; adding
+    // it again would move it into the mount and duplicate nothing but confusion.
+    if (!node.mounted) mount.append(node);
+  }
 }
 
 if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", render, { once: true });

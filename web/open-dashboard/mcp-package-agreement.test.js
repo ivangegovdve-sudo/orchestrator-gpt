@@ -134,3 +134,39 @@ test("the page's 1.0 content only uses vocabulary the package actually defines",
   assert.equal(new Set(glyphs).size, glyphs.length, "two states share a glyph, so a reader cannot tell them apart");
   assert.ok(!glyphs.some((g) => /^\d+$/.test(g)), "no state may render as a bare number");
 });
+
+test("package-facts.json is the SHIPPED package's vocabulary, not a copy that drifted", async () => {
+  // THE GUARD WAS COUPLED TO THE WRONG ARTIFACT and the review said so. Every other test
+  // in this file checks the page against package-facts.json -- a file committed into THIS
+  // repo. Nothing tied it back to the package, so a stale or hand-edited copy would keep
+  // all of them green while the published package documented different fields entirely.
+  // A check aimed at the wrong layer, which is the defect this whole page is about.
+  //
+  // open-dashboard-mcp is now a devDependency and ships build/contract-vocabulary.json,
+  // generated from its own zod schemas. That file is the authority; package-facts.json
+  // must agree with it exactly.
+  //
+  // This deliberately HARD-FAILS when the package is not installed. Skipping would restore
+  // precisely the vacuum it exists to close.
+  let shipped;
+  try {
+    shipped = (await import("open-dashboard-mcp/contract-vocabulary.json", { with: { type: "json" } })).default;
+  } catch (error) {
+    assert.fail(
+      "open-dashboard-mcp is not installed, so the page's facts cannot be checked against the real package. " +
+      "Run `npm install`. Never soften this to a skip: an unverifiable guard is worse than none. " + String(error),
+    );
+  }
+
+  const facts = JSON.parse(await readFile(factsUrl, "utf8"));
+  assert.equal(facts.name, shipped.name);
+  assert.equal(facts.version, shipped.version,
+    `package-facts.json describes ${facts.version} but the installed package is ${shipped.version}; regenerate it`);
+  assert.deepEqual(facts.contract, shipped.contract,
+    "package-facts.json disagrees with the vocabulary the package actually ships");
+  assert.deepEqual(
+    facts.tools.map((t) => t.name).sort(),
+    [...shipped.tools].sort(),
+    "the tool list in package-facts.json is not the tool list the package registers",
+  );
+});
