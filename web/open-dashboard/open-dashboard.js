@@ -475,7 +475,7 @@ export function renderMatrix(view) {
   const legend = document.createElement("div");
   legend.className = "oo-matrix-legend";
   legend.setAttribute("aria-label", "Matrix legend");
-  for (const [label, note, className] of [["Observed", "exact daily tokens", "is-observed"], ["0", "checked and absent", "is-not-observed"], ["?", "unknown, reason not published or not collected", "is-unknown"], ["N/P", "unknown: not published", "is-not-published"], ["·", "cell not returned", "is-missing"]]) {
+  for (const [label, note, className] of [["Observed", "exact daily tokens", "is-observed"], ["–", "checked, no usage recorded", "is-not-observed"], ["?", "unknown, reason not published or not collected", "is-unknown"], ["N/P", "unknown: not published", "is-not-published"], ["·", "cell not returned", "is-missing"]]) {
     const item = document.createElement("span");
     item.className = "oo-matrix-legend-item";
     const swatch = document.createElement("b");

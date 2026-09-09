@@ -49,7 +49,13 @@ export function renderRankTable({ document, title, rows, columns, sourceLabel, a
 export function barWidthBasisPoints(value, maximum) { const max = BigInt(maximum); return max === 0n ? 0n : BigInt(value) * 10000n / max; }
 export function matrixCellModel(cell) {
   if (cell.state === "observed") return Object.freeze({ state: "observed", label: compactIntegerString(cell.totalTokens), exact: cell.totalTokens, rank: cell.rankWithinPeriod, reason: null, evidenceUrl: cell.evidenceUrl });
-  if (cell.reason === "not_observed") return Object.freeze({ state: "not_observed", label: "0", exact: null, rank: null, reason: cell.reason, evidenceUrl: null });
+  // LABEL "0" WAS A MEASUREMENT NOBODY TOOK. The API declares this cell
+  // `state: "unknown", reason: "not_observed"` (see open-dashboard-schema.js), and the
+  // matrix rendered it as the digit 0 -- pixel-identical to an observed zero one column
+  // over, which is a real reading of a real API response. The dotted CSS and the
+  // aria-label distinguished them; the glyph a sighted reader actually sees did not.
+  // An en dash carries the same "nothing here" sense without asserting a count.
+  if (cell.reason === "not_observed") return Object.freeze({ state: "not_observed", label: "–", exact: null, rank: null, reason: cell.reason, evidenceUrl: null });
   return Object.freeze({ state: "unknown", variant: cell.reason === "not_published" ? "not_published" : "unknown", label: cell.reason === "not_published" ? "N/P" : "?", exact: null, rank: null, reason: cell.reason, evidenceUrl: null });
 }
 
