@@ -15,6 +15,7 @@ import {
   filterModels,
   tokenPoints,
   exactComparisons,
+  observedCells,
   readState,
   stateQuery,
   keyOf,
@@ -22,7 +23,19 @@ import {
   DIRECT_PROVIDER_IDS,
   loadRoutingProviders,
   loadModelEndpoints,
+  modelFilterSummary,
+  clearModelFilters,
 } from "./explorer-data.js";
+import {
+  modelBreakdown,
+  appBreakdown,
+  renderBreakdown,
+  renderHistoryStacks,
+  rankHistoryData,
+  renderRankHistory,
+} from "./chart-variants.js";
+import { loadOverviewSupplemental } from "./overview-data.js";
+import { renderOverview } from "./overview.js";
 import {
   normalizeMediaCatalogue,
   mediaPriceSeries,
@@ -71,7 +84,12 @@ let evidence = null,
   evidencePromise = null;
 const endpointCache = new Map();
 let endpointTimer;
-let state = readState(location.search),
+function initialState() {
+  const result = readState(location.search);
+  if (!location.search || location.search === "?") result.view = "overview";
+  return result;
+}
+let state = initialState(),
   models = [],
   filtered = [],
   matrix = null,
@@ -83,6 +101,7 @@ let state = readState(location.search),
   loaded = false,
   resizeTimer,
   toastTimer;
+let supplemental = null;
 const mediaMode = () =>
   ["video", "image", "audio", "unknown"].includes(state.modality);
 function toast(message) {
@@ -92,7 +111,9 @@ function toast(message) {
   toastTimer = setTimeout(() => ($("toast").hidden = true), 3200);
 }
 function persist() {
-  const query = stateQuery(state);
+  const params = new URLSearchParams(stateQuery(state));
+  params.set("view", state.view);
+  const query = params.toString();
   window.history.replaceState(
     null,
     "",
@@ -343,6 +364,17 @@ function renderEndpointComparison(model) {
   }, 180);
 }
 function syncControls() {
+  for (const o of $("context").querySelectorAll("[data-custom]")) o.remove();
+  if (
+    ![...$("context").options].some((o) => Number(o.value) === state.context)
+  ) {
+    const custom = option(
+      state.context,
+      `${state.context.toLocaleString()} tokens`,
+    );
+    custom.dataset.custom = "true";
+    $("context").append(custom);
+  }
   for (const id of ["provider", "modality", "x", "y", "scale", "context"])
     $(id).value = state[id];
   for (const id of ["free", "tools", "inactive"]) $(id).checked = state[id];
@@ -352,31 +384,109 @@ function syncControls() {
   $("flow-app").value = state.app;
   $("flow-model").value = state.flowModel;
   $("flow-weight").value = state.weight;
+  $("model-chart").value = state.modelChart;
+  $("model-group").value = state.modelGroup;
+}
+function showFilterSummary() {
+  const chips = modelFilterSummary(state);
+  $("active-filters").replaceChildren();
+  for (const item of chips) {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "filter-chip";
+    button.textContent = `${item.label} ×`;
+    button.setAttribute("aria-label", `Remove filter: ${item.label}`);
+    button.onclick = () => {
+      state[item.key] =
+        item.key === "modality" ? "all" : DEFAULT_STATE[item.key];
+      state.selected = "";
+      syncControls();
+      render();
+    };
+    $("active-filters").append(button);
+  }
+  $("filter-results").textContent =
+    `${filtered.length.toLocaleString()} matching of ${models.length.toLocaleString()} catalogue entries${state.inactive ? "" : " · current listings only"}`;
+  const counts = new Map();
+  for (const model of filterModels(models, { ...state, provider: "all" }))
+    counts.set(model.provider, (counts.get(model.provider) || 0) + 1);
+  for (const o of $("provider").options)
+    o.textContent =
+      o.value === "all"
+        ? "All providers"
+        : `${PROVIDERS[o.value] || o.value} (${(counts.get(o.value) || 0).toLocaleString()})`;
+  $("clear-filters").hidden = chips.length === 0;
+  const count = chips.filter((c) => c.advanced).length;
+  $("more-filters").textContent =
+    `${$("extra-filters").hidden ? "More filters +" : "Fewer filters −"}${count ? ` (${count} active)` : ""}`;
+}
+function updateOverview() {
+  renderOverview($("overview-panel"), {
+    models,
+    apps,
+    matrix,
+    history,
+    metadata,
+    evidence,
+    supplemental,
+    onNavigate: (patch) => {
+      if (patch.openLimits) {
+        openLimits();
+        return;
+      }
+      state = {
+        ...(patch.view === "models"
+          ? { ...clearModelFilters(state), inactive: true }
+          : state),
+        selected: "",
+        ...patch,
+      };
+      if (patch.view === "history") {
+        state.historyModel = "all";
+        state.historyScope = "";
+      }
+      syncControls();
+      render();
+      document
+        .querySelector(`[data-view="${state.view}"]`)
+        ?.focus({ preventScroll: true });
+      $("explore").scrollIntoView({ behavior: "smooth", block: "start" });
+    },
+  });
 }
 function render() {
   if (!loaded) return;
+  syncControls();
   filtered = filterModels(models, state);
   $("model-controls").hidden = state.view !== "models";
-  $("alternate-controls").hidden = state.view === "models";
+  $("alternate-controls").hidden =
+    state.view === "models" || state.view === "overview";
+  $("overview-panel").hidden = state.view !== "overview";
+  $("model-panel").hidden = state.view === "overview";
   for (const b of document.querySelectorAll("[data-view]")) {
     b.setAttribute("aria-selected", String(b.dataset.view === state.view));
     b.tabIndex = b.dataset.view === state.view ? 0 : -1;
   }
-  $("model-panel").setAttribute(
-    "aria-labelledby",
-    ["benchmarks", "changes"].includes(state.view)
-      ? "chart-title"
-      : `tab-${state.view}`,
-  );
-  $("evidence-view").value = ["benchmarks", "changes"].includes(state.view)
-    ? state.view
-    : "";
+  $("model-panel").setAttribute("aria-labelledby", `tab-${state.view}`);
+  if (state.view === "overview") {
+    updateOverview();
+    persist();
+    return;
+  }
   $("inspect-model").closest("label").hidden = state.view !== "models";
   if (state.view === "models") {
-    $("text-axes").hidden = mediaMode();
-    $("media-axes").hidden = !mediaMode();
+    showFilterSummary();
+    const prices = state.modelChart === "prices";
+    $("text-axes").hidden = !prices || mediaMode();
+    $("media-axes").hidden = !prices || !mediaMode();
+    $("scale-control").hidden = !prices;
+    $("model-group-control").hidden = !["bars", "donut"].includes(
+      state.modelChart,
+    );
     $("workload-controls").hidden =
-      mediaMode() || !(state.x === "workload" || state.y === "workload");
+      !prices ||
+      mediaMode() ||
+      !(state.x === "workload" || state.y === "workload");
     const units = [...(MEDIA_UNITS[state.modality] || []), "catalogue"];
     $("media-unit").replaceChildren(
       ...units.map((u) =>
@@ -391,6 +501,8 @@ function render() {
     if (!units.includes(state.unit))
       state.unit = state.modality === "audio" ? "catalogue" : units[0];
     $("media-unit").value = state.unit;
+    $("scale-control").hidden =
+      !prices || (mediaMode() && state.unit === "catalogue");
     const chooser = $("inspect-model");
     chooser.replaceChildren(
       option("", "Select a model"),
@@ -422,7 +534,7 @@ function render() {
     } else {
       $("inspector").innerHTML =
         '<p class="eyebrow">Keep exploring</p><h3>No models match this combination.</h3><p>Widen the filters to see more of the landscape.</p><button id="clear-empty" class="button primary">Reset filters</button>';
-      $("clear-empty").onclick = reset;
+      $("clear-empty").onclick = clearFilters;
     }
   } else renderAlternateControls();
   renderMainChart();
@@ -430,10 +542,45 @@ function render() {
 }
 function renderMainChart() {
   if (!loaded) return;
+  if (state.view === "overview") return;
   $("chart-legend").replaceChildren();
   if (state.view === "models") {
     let rows = [];
-    if (mediaMode()) {
+    if (["bars", "donut", "catalogue"].includes(state.modelChart)) {
+      const catalogue = state.modelChart === "catalogue";
+      if (catalogue && filtered.length <= 1500) {
+        catalogueMap($("chart"), filtered, {
+          onSelect: selectModel,
+          selected: state.selected,
+        });
+      } else {
+        const groupBy = catalogue ? "provider" : state.modelGroup;
+        renderBreakdown($("chart"), modelBreakdown(filtered, { groupBy }), {
+          variant: state.modelChart === "donut" ? "donut" : "bars",
+          onSelect: (group) => {
+            if (groupBy === "provider" && group.id && !group.isOther) {
+              state.provider = group.id;
+              state.modelChart = "catalogue";
+              syncControls();
+              render();
+            }
+          },
+        });
+      }
+      $("chart-title").textContent = catalogue
+        ? "Every matching model has a place"
+        : "How the catalogue is composed";
+      $("chart-subtitle").textContent =
+        catalogue && filtered.length > 1500
+          ? "Grouped by provider for readability · select a provider to open its model map"
+          : "Provider-specific catalogue entries · unknown prices stay included";
+      $("plot-summary").textContent =
+        `${filtered.length.toLocaleString()} matching entries represented. Counts describe this catalogue, not market share, quality or usage. One underlying model can have entries at several providers.`;
+      $("chart-hint").textContent = catalogue
+        ? "Select a provider or model"
+        : "Exact counts and shares stay visible";
+      return;
+    } else if (mediaMode()) {
       if (state.unit === "catalogue") {
         catalogueMap($("chart"), filtered, {
           onSelect: selectModel,
@@ -490,6 +637,9 @@ function renderMainChart() {
       $("plot-summary").textContent =
         `${rows.length.toLocaleString()} entries with comparable token quotes plotted · ${filtered.length.toLocaleString()} entries match. ${filtered.length - rows.length} lack these dimensions or use other output units. ${state.scale === "symlog" ? "Log + zero keeps zero prices visible." : "Linear axes start at zero."}`;
     }
+    $("filter-results").textContent =
+      `${filtered.length.toLocaleString()} matching of ${models.length.toLocaleString()} catalogue entries${mediaMode() && state.unit === "catalogue" ? " · all matching entries mapped" : ` · ${rows.length.toLocaleString()} ${mediaMode() ? "rates" : "points"} in price view`}${state.inactive ? "" : " · current listings only"}`;
+    $("chart-hint").textContent = "Click or tap to inspect";
     const providers = [
       ...new Set((rows.length ? rows : filtered).map((m) => m.provider)),
     ];
@@ -504,25 +654,67 @@ function renderMainChart() {
       $("chart-legend").append(item);
     }
   } else if (state.view === "apps") {
-    appBars($("chart"), apps, { onSelect: inspectApp });
+    if (state.appChart === "flow") {
+      flow($("chart"), matrix, {
+        app: state.app,
+        model: state.flowModel,
+        weight: state.weight,
+        onInspect: inspectFlow,
+      });
+    } else
+      renderBreakdown($("chart"), appBreakdown(apps), {
+        variant: state.appChart,
+        onSelect: (group) => inspectApp(apps.find((a) => a.appId === group.id)),
+      });
     $("chart-title").textContent = "Where people put their models to work";
     $("chart-subtitle").textContent =
-      "OpenRouter public apps · rolling 30-day token totals";
+      state.appChart === "flow"
+        ? `App–model relationships · ${matrix?.status === "available" ? dateLabel(matrix.resolvedPeriod.start) : "common date unavailable"}`
+        : "OpenRouter public apps · rolling 30-day token totals";
     $("plot-summary").textContent =
-      `Top ${apps.length} published apps. These rolling totals have their own window; the connection chart below uses one shared day.`;
-    if (apps.length)
-      inspectApp(
-        apps.find((a) => a.appId === $("usage-app")?.value) || apps[0],
-      );
+      state.appChart === "flow"
+        ? `${observedCells(matrix).filter((c) => (state.app === "all" || c.appId === state.app) && (state.flowModel === "all" || c.modelId === state.flowModel)).length} of ${matrix?.coverage?.observedCells ?? 0} observed links in this selection; missing links are unobserved, not zero. Bar and pie views use rolling app totals from a separate window.`
+        : `Shares of the ${apps.length} returned apps, not every OpenRouter app. Exact totals and the denominator remain visible in both charts.`;
+    if (state.appChart === "flow")
+      $("inspector").innerHTML =
+        '<p class="eyebrow">Observed relationships</p><h3>Follow a connection.</h3><p>Select a link to inspect its exact daily token count. App and model filters narrow this shared day.</p><p>Bar and pie charts compare app totals over a separate, rolling 30-day window.</p>';
+    else if (apps.length)
+      inspectApp(apps.find((a) => a.appId === state.usageApp) || apps[0]);
     else
       $("inspector").innerHTML =
         '<p class="eyebrow">App usage</p><h3>No published app totals available.</h3><p>Other explorer views and the setup guide remain available.</p>';
   } else if (state.view === "history") {
+    if (state.historyDataset !== "modelUsage") {
+      const days = history?.data?.[state.historyDataset] || [];
+      const view = renderRankHistory($("chart"), days, {
+        chosen: state.historyModel,
+        scope: state.historyScope,
+        onSelect: inspectRank,
+      });
+      $("chart-title").textContent =
+        state.historyDataset === "appRanks"
+          ? "How app rankings move"
+          : "Follow projects in their category";
+      $("chart-subtitle").textContent =
+        `Published rank · #1 at the top${view.scope ? ` · ${view.scope.replaceAll("-", " ")}` : ""}`;
+      $("plot-summary").textContent =
+        `${view.availableSeries} observed series in this scope · ${days.length} published days. Gaps remain visible; rank is not an absolute usage count.`;
+      $("inspector").innerHTML =
+        '<p class="eyebrow">Published rank history</p><h3>Track a position over time.</h3><p>Select a point to see its rank and observation date. Each GitHub category has its own ranking; categories are kept separate.</p>';
+      return;
+    }
     const days = history?.data?.modelUsage || [];
-    const legends = historyChart($("chart"), days, {
-      chosen: state.historyModel,
-      onSelect: inspectHistory,
-    });
+    const legends =
+      state.historyChart === "bars"
+        ? (renderHistoryStacks($("chart"), days, {
+            chosen: state.historyModel,
+            onSelect: inspectHistory,
+          }),
+          [])
+        : historyChart($("chart"), days, {
+            chosen: state.historyModel,
+            onSelect: inspectHistory,
+          });
     for (const item of legends) {
       const el = document.createElement("span");
       el.className = "legend-item";
@@ -533,7 +725,7 @@ function renderMainChart() {
     $("chart-subtitle").textContent =
       "OpenRouter observed daily model tokens · UTC";
     $("plot-summary").textContent =
-      `${days.length} published daily observations. The overview shows the five most consistently observed series; use the selector for any collected model. Missing days stay gaps.`;
+      `${days.length} published daily observations. ${state.historyChart === "bars" ? "Stacked bars show reported daily totals, with other models and the published remainder grouped as Other." : "Lines show the five most consistently observed series; select any collected model above."} Missing or incomplete days stay gaps.`;
     if (!days.length)
       $("inspector").innerHTML =
         '<p class="eyebrow">Usage history</p><h3>No daily observations available.</h3><p>Other explorer views and the setup guide remain available.</p>';
@@ -547,12 +739,33 @@ function renderAlternateControls() {
   const box = $("alternate-controls");
   box.replaceChildren();
   if (state.view === "apps") {
+    chartControl("App chart type", "appChart", [
+      ["flow", "Connections"],
+      ["bars", "Bar chart"],
+      ["donut", "Pie / donut chart"],
+    ]);
+    if (state.appChart === "flow") {
+      chartControl("App", "app", [
+        ["all", "All published apps"],
+        ...(matrix?.apps || []).map((a) => [a.appId, a.appName]),
+      ]);
+      chartControl("Model", "flowModel", [
+        ["all", "All published models"],
+        ...(matrix?.models || []).map((m) => [m.modelId, m.modelName]),
+      ]);
+      chartControl("Link weight", "weight", [
+        ["tokens", "Daily tokens · √ scale"],
+        ["equal", "Equal width"],
+      ]);
+      return;
+    }
     const label = document.createElement("label");
     label.className = "control";
     label.textContent = "Inspect app ";
     const s = document.createElement("select");
     s.id = "usage-app";
     s.append(...apps.map((a) => option(a.appId, a.appName)));
+    if (apps.some((a) => a.appId === state.usageApp)) s.value = state.usageApp;
     s.onchange = () => inspectApp(apps.find((a) => a.appId === s.value));
     label.append(s);
     box.append(label);
@@ -562,14 +775,40 @@ function renderAlternateControls() {
     a.textContent = "Trace app–model connections below ↓";
     box.append(a);
   } else if (state.view === "history") {
+    chartControl("History dataset", "historyDataset", [
+      ["modelUsage", "Model tokens"],
+      ["appRanks", "App ranks"],
+      ["githubRanks", "GitHub project ranks"],
+    ]);
+    if (state.historyDataset === "modelUsage")
+      chartControl("History chart type", "historyChart", [
+        ["lines", "Line chart"],
+        ["bars", "Stacked bars"],
+      ]);
+    const days = history?.data?.[state.historyDataset] || [];
+    if (state.historyDataset === "githubRanks") {
+      const ranked = rankHistoryData(days, { scope: state.historyScope });
+      state.historyScope = ranked.scope;
+      chartControl(
+        "Project category",
+        "historyScope",
+        ranked.scopes.map((s) => [s.id, s.label]),
+      );
+    }
     const label = document.createElement("label");
     label.className = "control";
-    label.textContent = "Model ";
+    label.textContent =
+      state.historyDataset === "modelUsage" ? "Model " : "Ranked entity ";
     const select = document.createElement("select");
     const map = new Map(
-      (history?.data?.modelUsage || [])
+      days
         .flatMap((d) => d.rows)
-        .filter((r) => !r.remainder)
+        .filter(
+          (r) =>
+            !r.remainder &&
+            (state.historyDataset !== "githubRanks" ||
+              (r.scope ?? "") === state.historyScope),
+        )
         .map((r) => [r.id, r.label]),
     );
     if (state.historyModel !== "all" && !map.has(state.historyModel))
@@ -588,12 +827,35 @@ function renderAlternateControls() {
     box.append(label);
     const note = document.createElement("span");
     note.className = "filter-note";
-    note.textContent = "Published 30-day history · exact source IDs";
+    note.textContent =
+      "Requested 90-day window · available published days only";
     box.append(note);
   } else renderEvidenceControls();
 }
+function chartControl(label, key, options) {
+  const wrapper = document.createElement("label");
+  wrapper.className = "control";
+  const title = document.createElement("span");
+  title.textContent = label;
+  const select = document.createElement("select");
+  select.setAttribute("aria-label", label);
+  select.append(...options.map(([id, name]) => option(id, name)));
+  select.value = state[key];
+  select.onchange = () => {
+    state[key] = select.value;
+    if (["historyDataset", "historyScope"].includes(key))
+      state.historyModel = "all";
+    render();
+    if (["app", "flowModel", "weight"].includes(key)) renderFlow();
+  };
+  wrapper.append(title, select);
+  $("alternate-controls").append(wrapper);
+}
 function inspectApp(app) {
   if (!app) return;
+  state.usageApp = app.appId;
+  if ($("usage-app")) $("usage-app").value = app.appId;
+  persist();
   $("inspector").innerHTML =
     `<p class="eyebrow">Public app usage</p><h3>${escape(app.appName)}</h3><div class="metric-pair"><div><span>Tokens / 30 days</span><strong>${compact(Number(app.totalTokens))}</strong></div><div><span>Requests / 30 days</span><strong>${compact(Number(app.totalRequests))}</strong></div></div>${detailsList(
       [
@@ -605,6 +867,16 @@ function inspectApp(app) {
     )}<p>These are public OpenRouter observations. They do not measure all usage of this app across every provider.</p><a class="button primary" href="#connections">See app–model connections ↓</a>`;
 }
 function inspectHistory(p) {
+  if (p.isOther) {
+    $("inspector").innerHTML =
+      `<p class="eyebrow">Grouped daily observations</p><h3>${escape(p.label)}</h3>${detailsList(
+        [
+          ["Date (UTC)", dateLabel(p.date.toISOString())],
+          ["Exact grouped tokens", BigInt(p.value).toLocaleString()],
+        ],
+      )}<p>This is a sum of published values. It has no single model ID.</p><ul class="history-members">${(p.members || []).map((member) => `<li>${escape(member.isRemainder ? "Published source remainder" : member.label || member.id)}: ${BigInt(member.value).toLocaleString()} tokens</li>`).join("")}</ul>`;
+    return;
+  }
   $("inspector").innerHTML =
     `<p class="eyebrow">One day in the landscape</p><h3>${escape(p.label)}</h3><p class="model-id"><code>${escape(p.id)}</code></p><div class="metric-pair"><div><span>Daily tokens</span><strong>${compact(Number(p.value))}</strong></div></div>${detailsList(
       [
@@ -613,6 +885,16 @@ function inspectHistory(p) {
         ["Observation", "Complete published day"],
       ],
     )}<small>Source series identities are preserved. A date suffix or variant is not silently joined to a different catalogue ID.</small>`;
+}
+function inspectRank(p) {
+  $("inspector").innerHTML =
+    `<p class="eyebrow">Published rank observation</p><h3>${escape(p.label)}</h3><div class="model-id"><code>${escape(p.id)}</code></div>${detailsList(
+      [
+        ["Rank", `#${p.rank}`],
+        ["Date (UTC)", dateLabel(p.date.toISOString())],
+        ["Ranking scope", p.scope || "OpenRouter apps"],
+      ],
+    )}<p>Ranks are compared within the same published scope. Missing dates are not interpolated.</p>`;
 }
 function renderFlow() {
   if (matrix?.status === "available")
@@ -636,6 +918,7 @@ function inspectFlow(cell) {
     state[isApp ? "app" : "flowModel"] = isApp ? cell.appId : cell.modelId;
     syncControls();
     renderFlow();
+    if (state.view === "apps" && state.appChart === "flow") render();
     el.textContent = `Showing observed connections for ${isApp ? cell.appName : cell.modelName}. Use “All” in the filters to restore the full view.`;
     persist();
     return;
@@ -643,6 +926,15 @@ function inspectFlow(cell) {
   const app = matrix.apps.find((a) => a.appId === cell.appId),
     model = matrix.models.find((m) => m.modelId === cell.modelId);
   el.innerHTML = `<strong>${escape(app?.appName)} → ${escape(model?.modelName)}</strong> · ${BigInt(cell.totalTokens).toLocaleString()} tokens on ${dateLabel(cell.period.start)}. ${link(cell.evidenceUrl, "Source evidence", "text-link")}`;
+  if (state.view === "apps" && state.appChart === "flow")
+    $("inspector").innerHTML =
+      `<p class="eyebrow">Observed connection</p><h3>${escape(app?.appName)} → ${escape(model?.modelName)}</h3>${detailsList(
+        [
+          ["Daily tokens", BigInt(cell.totalTokens).toLocaleString()],
+          ["Observed day", dateLabel(cell.period.start)],
+          ["Scope", "OpenRouter public observations"],
+        ],
+      )}${link(cell.evidenceUrl, "Source evidence")}<p>Missing connections are unobserved, not zero usage.</p>`;
 }
 function sourceCard(title, description, url) {
   return `<div class="source-item"><strong>${escape(title)}</strong><p>${escape(description)}</p>${link(url, "Source", "text-link")}</div>`;
@@ -772,10 +1064,24 @@ function prepareLimits() {
 }
 function reset() {
   clearChartZoom($("chart"));
-  state = { ...DEFAULT_STATE };
+  for (const key of [
+    "x",
+    "y",
+    "scale",
+    "modelChart",
+    "modelGroup",
+    "inputTokens",
+    "outputTokens",
+    "unit",
+  ])
+    state[key] = DEFAULT_STATE[key];
   syncControls();
   render();
-  renderFlow();
+}
+function clearFilters() {
+  state = clearModelFilters(state);
+  syncControls();
+  render();
 }
 for (const id of [
   "provider",
@@ -796,12 +1102,15 @@ for (const id of [
         : $(id).value;
     render();
   });
-$("evidence-view").onchange = () => {
-  if ($("evidence-view").value) {
-    state.view = $("evidence-view").value;
+$("clear-filters").onclick = clearFilters;
+for (const [id, key] of [
+  ["model-chart", "modelChart"],
+  ["model-group", "modelGroup"],
+])
+  $(id).onchange = () => {
+    state[key] = $(id).value;
     render();
-  }
-};
+  };
 $("search").addEventListener("input", () => {
   state.q = $("search").value;
   render();
@@ -825,7 +1134,7 @@ $("more-filters").onclick = () => {
   const open = $("extra-filters").hidden;
   $("extra-filters").hidden = !open;
   $("more-filters").setAttribute("aria-expanded", String(open));
-  $("more-filters").textContent = open ? "Fewer filters −" : "More filters +";
+  showFilterSummary();
 };
 $("reset-view").onclick = reset;
 $("share-view").onclick = async () => {
@@ -866,10 +1175,11 @@ for (const [id, key] of [
   $(id).onchange = () => {
     state[key] = $(id).value;
     renderFlow();
+    if (state.view === "apps" && state.appChart === "flow") render();
     persist();
   };
 window.addEventListener("popstate", () => {
-  state = readState(location.search);
+  state = initialState();
   syncControls();
   render();
   renderFlow();
@@ -885,6 +1195,12 @@ new ResizeObserver(() => {
 }).observe($("chart"));
 prepareLimits();
 syncControls();
+$("overview-panel").hidden = state.view !== "overview";
+$("model-panel").hidden = state.view === "overview";
+for (const tab of document.querySelectorAll("[data-view]")) {
+  tab.setAttribute("aria-selected", String(tab.dataset.view === state.view));
+  tab.tabIndex = tab.dataset.view === state.view ? 0 : -1;
+}
 
 async function boot() {
   const jobs = {
@@ -906,8 +1222,8 @@ async function boot() {
           "/app-model-matrix?appLimit=10&modelLimit=10&window=latest-complete",
         ),
       ),
-    apps: () => request("/apps?limit=10&period=30d&sort=popular"),
-    history: () => request("/history?window=30d&limit=10"),
+    apps: () => request("/apps?limit=25&period=30d&sort=popular"),
+    history: () => request("/history?window=90d&limit=25"),
   };
   const keys = Object.keys(jobs);
   const results = await Promise.allSettled(keys.map((k) => jobs[k]()));
@@ -968,6 +1284,22 @@ async function boot() {
   render();
   renderFlow();
   renderSources();
+  loadOverviewSupplemental()
+    .then((result) => {
+      supplemental = result;
+      if (state.view === "overview") updateOverview();
+    })
+    .catch((error) => {
+      supplemental = {
+        loaded: true,
+        frontiers: [],
+        trending: null,
+        momentum: { categories: [] },
+        errors: [{ message: error.message }],
+      };
+      if (state.view === "overview") updateOverview();
+    });
+  ensureEvidence();
   if (!models.length && state.view === "models") {
     emptyChart(
       $("chart"),
@@ -1074,38 +1406,47 @@ function renderEvidenceView() {
     );
     $("inspector").innerHTML =
       '<p class="eyebrow">Source evidence</p><h3>Compare with context.</h3><p>Scores keep their original evaluation group, variant and source date.</p>';
-    if (!evidencePromise)
-      evidencePromise = loadEvidence()
-        .then((result) => {
-          evidence = result;
-          renderSources();
-          for (const source of result.sources)
-            $("sources").innerHTML += sourceCard(
-              source.label,
-              `Published ${dateLabel(source.sourceAsOf || source.fetchedAt)}. ${source.hasMore ? "Coverage is partial." : "All returned pages loaded."}`,
-              source.url,
-            );
-          if (["benchmarks", "changes"].includes(state.view)) {
-            renderEvidenceControls();
-            renderEvidenceView();
-            persist();
-          }
-        })
-        .catch(() => {
-          evidence = {
-            benchmarks: null,
-            changes: null,
-            deprecations: null,
-            sources: [],
-            errors: [{ message: "Evidence sources unavailable" }],
-          };
-          if (["benchmarks", "changes"].includes(state.view)) {
-            renderEvidenceControls();
-            renderEvidenceView();
-          }
-        });
+    ensureEvidence();
     return;
   }
+  drawEvidence();
+}
+function ensureEvidence() {
+  if (!evidencePromise)
+    evidencePromise = loadEvidence()
+      .then((result) => {
+        evidence = result;
+        renderSources();
+        for (const source of result.sources)
+          $("sources").innerHTML += sourceCard(
+            source.label,
+            `Published ${dateLabel(source.sourceAsOf || source.fetchedAt)}. ${source.hasMore ? "Coverage is partial." : "All returned pages loaded."}`,
+            source.url,
+          );
+        if (state.view === "overview") updateOverview();
+        if (["benchmarks", "changes"].includes(state.view)) {
+          renderEvidenceControls();
+          renderEvidenceView();
+          persist();
+        }
+      })
+      .catch(() => {
+        evidence = {
+          benchmarks: null,
+          changes: null,
+          deprecations: null,
+          sources: [],
+          errors: [{ message: "Evidence sources unavailable" }],
+        };
+        if (state.view === "overview") updateOverview();
+        if (["benchmarks", "changes"].includes(state.view)) {
+          renderEvidenceControls();
+          renderEvidenceView();
+        }
+      });
+  return evidencePromise;
+}
+function drawEvidence() {
   if (state.view === "benchmarks") {
     const view = renderBenchmarks($("chart"), evidence.benchmarks, {
       ...evidenceOptions(),

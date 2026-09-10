@@ -8,16 +8,16 @@ import {
 } from "./explorer-data.js";
 const palette = [
   "#397e72",
-  "#c48460",
-  "#7ca198",
-  "#a79b62",
+  "#b87c5a",
+  "#71928b",
+  "#988e59",
   "#718bae",
-  "#b091aa",
+  "#a1859b",
   "#678548",
-  "#ceab6b",
+  "#a28653",
   "#8d779d",
-  "#8baba7",
-  "#d49b89",
+  "#77928f",
+  "#b18271",
   "#647c75",
 ];
 const providerKeys = Object.keys(PROVIDERS);
@@ -171,6 +171,24 @@ function ticks(max, kind, d3) {
     (v) => v <= max && (v === 0 || v >= max / 5000),
   );
   return result.length > 7 ? result.filter((v, i) => i % 2 === 0) : result;
+}
+function readableTicks(values, scale, format, horizontal = true) {
+  const result = [];
+  for (const value of values) {
+    const previous = result.at(-1);
+    const gap = horizontal
+      ? (String(format(value)).length +
+          String(format(previous ?? value)).length) *
+          3.7 +
+        12
+      : 26;
+    if (
+      previous === undefined ||
+      Math.abs(scale(value) - scale(previous)) >= gap
+    )
+      result.push(value);
+  }
+  return result;
 }
 function activate(selection, fn) {
   selection
@@ -401,7 +419,7 @@ export function scatter(
         ? "Use arrow keys to move between visible prices and Enter to inspect."
         : "Use arrow keys to move between visible models and Enter to inspect. Zoom controls enlarge the plot; Control and scroll also zoom.",
     );
-  const m = { l: media ? 78 : 52, r: 19, t: 28, b: 51 },
+  const m = { l: media ? 106 : 70, r: 22, t: 28, b: 58 },
     bounds = [m.l, m.t, w - m.r, h - m.b],
     maxX = d3.max(rows, (d) => d.px),
     maxY = d3.max(rows, (d) => d.py);
@@ -465,7 +483,14 @@ export function scatter(
       .tickFormat(state.x === "context" && !media ? compact : money);
     if (initial) {
       const values = ticks(maxX, state.scale);
-      if (values) xAxis.tickValues(values);
+      if (values)
+        xAxis.tickValues(
+          readableTicks(
+            values,
+            sx,
+            state.x === "context" && !media ? compact : money,
+          ),
+        );
     }
     gx.call(xAxis);
     const yAxis = d3
@@ -482,10 +507,18 @@ export function scatter(
       );
     if (initial && !media) {
       const values = ticks(maxY, state.scale);
-      if (values) yAxis.tickValues(values);
+      if (values)
+        yAxis.tickValues(
+          readableTicks(
+            values,
+            sy,
+            state.y === "context" ? compact : money,
+            false,
+          ),
+        );
     }
     gy.call(yAxis);
-    if (media) gy.selectAll("text").attr("font-size", 8);
+    if (media) gy.selectAll("text").attr("font-size", 12);
     grid
       .call(
         d3
@@ -722,10 +755,10 @@ export function flow(
       .attr("x", isApp ? -13 : 13)
       .attr("y", 4)
       .attr("text-anchor", isApp ? "end" : "start")
-      .style("font-size", mobile ? "9px" : "11px")
+      .style("font-size", "12px")
       .text((d) => {
         const name = isApp ? d.appName : d.modelName,
-          max = mobile ? (isApp ? 15 : 19) : 29;
+          max = mobile ? (isApp ? 12 : 15) : 29;
         return name.length > max ? name.slice(0, max - 1) + "…" : name;
       });
     groups.append("title").text((d) => (isApp ? d.appName : d.modelName));
@@ -911,15 +944,13 @@ export function historyChart(node, days, { chosen = "all", onSelect }) {
       .attr("d", line),
   );
   const observed = series.flatMap((s, i) =>
-    s.points
-      .filter(defined)
-      .map((p) => ({
-        ...p,
-        label: s.label,
-        id: s.id,
-        key: JSON.stringify([s.id, p.date.toISOString()]),
-        color: palette[i],
-      })),
+    s.points.filter(defined).map((p) => ({
+      ...p,
+      label: s.label,
+      id: s.id,
+      key: JSON.stringify([s.id, p.date.toISOString()]),
+      color: palette[i],
+    })),
   );
   const points = svg
     .append("g")

@@ -80,13 +80,16 @@
           <p class="eyebrow">
             <span class="status-dot"></span> A clearer view of the AI landscape
           </p>
-          <h1>Make sense of<br />your AI options.</h1>
+          <h1>
+            Make sense of<br />
+            your AI options.
+          </h1>
           <p class="hero-description">
-            Explore model prices, capabilities and public usage.<br />Connect
-            the same knowledge to your agent with MCP.
+            Explore model prices, capabilities and public usage.<br />
+            Connect the same knowledge to your agent with MCP.
           </p>
           <div class="hero-actions">
-            <a class="button primary" href="#explore">Explore the models ↓</a
+            <a class="button primary" href="#explore">Explore the data ↓</a
             ><a class="text-link" href="#how-it-works"
               >Meet Open Dashboard ↗</a
             >
@@ -113,15 +116,24 @@
         <div class="section-heading">
           <div>
             <p class="eyebrow">A little exploration goes a long way</p>
-            <h2>Find your next model.</h2>
+            <h2>See the whole landscape.</h2>
           </div>
           <p>
-            See the trade-offs. Follow your curiosity. <br />Select a point to
-            get the details.
+            Explore the coverage, then compare your options.<br />
+            Every chart keeps its source and scope in view.
           </p>
         </div>
         <div class="explorer-card">
           <div class="view-tabs" role="tablist" aria-label="Explore data">
+            <button
+              id="tab-overview"
+              role="tab"
+              aria-selected="false"
+              aria-controls="overview-panel"
+              data-view="overview"
+            >
+              Overview
+            </button>
             <button
               id="tab-models"
               role="tab"
@@ -146,20 +158,48 @@
               data-view="history"
             >
               Usage over time</button
-            ><label class="more-views"
-              ><span class="sr-only">More data views</span
-              ><select id="evidence-view" aria-label="More data views">
-                <option value="">More views</option>
-                <option value="benchmarks">Benchmark evidence</option>
-                <option value="changes">Changes & lifecycle</option>
-              </select></label
-            ><span class="live-status" id="data-status" role="status"
+            ><button
+              id="tab-benchmarks"
+              role="tab"
+              aria-selected="false"
+              aria-controls="model-panel"
+              data-view="benchmarks"
+            >
+              Benchmarks</button
+            ><button
+              id="tab-changes"
+              role="tab"
+              aria-selected="false"
+              aria-controls="model-panel"
+              data-view="changes"
+            >
+              Changes & lifecycle
+            </button>
+          </div>
+          <div class="explorer-status">
+            <span class="live-status" id="data-status" role="status"
               >Loading data</span
             >
+          </div>
+          <div
+            id="overview-panel"
+            role="tabpanel"
+            aria-labelledby="tab-overview"
+            hidden
+          >
+            <p class="loading-overview">Loading the public data overview…</p>
           </div>
           <div id="model-panel" role="tabpanel" aria-labelledby="tab-models">
             <div id="model-controls">
               <div class="filter-bar">
+                <label class="search-control"
+                  ><span>Search models</span
+                  ><input
+                    id="search"
+                    type="search"
+                    placeholder="Name or exact model ID…"
+                    autocomplete="off"
+                /></label>
                 <label class="control"
                   ><span>Provider</span
                   ><select id="provider">
@@ -185,15 +225,18 @@
                   aria-expanded="false"
                   aria-controls="extra-filters"
                 >
-                  More filters +</button
-                ><label class="search-control"
-                  ><span class="sr-only">Search model names or IDs</span
-                  ><input
-                    id="search"
-                    type="search"
-                    placeholder="Find a model…"
-                    autocomplete="off"
-                /></label>
+                  More filters +
+                </button>
+              </div>
+              <div class="filter-summary">
+                <p id="filter-results" role="status"></p>
+                <div
+                  id="active-filters"
+                  aria-label="Active model filters"
+                ></div>
+                <button id="clear-filters" class="subtle-button" type="button">
+                  Clear filters
+                </button>
               </div>
               <div id="extra-filters" class="extra-filters" hidden>
                 <label class="control"
@@ -219,6 +262,22 @@
                 </p>
               </div>
               <div class="axis-bar">
+                <label
+                  >Chart
+                  <select id="model-chart" aria-label="Model chart type">
+                    <option value="prices">Price comparison</option>
+                    <option value="catalogue">Catalogue map</option>
+                    <option value="bars">Bar chart</option>
+                    <option value="donut">Pie / donut chart</option>
+                  </select></label
+                >
+                <label id="model-group-control" hidden
+                  >Group by
+                  <select id="model-group">
+                    <option value="provider">Provider</option>
+                    <option value="modality">Output combination</option>
+                  </select></label
+                >
                 <div id="text-axes">
                   <label
                     >X
@@ -247,14 +306,14 @@
                     ></select
                   ></label>
                 </div>
-                <label
+                <label id="scale-control"
                   >Scale
                   <select id="scale">
                     <option value="symlog">Log + zero</option>
                     <option value="linear">Linear</option>
                   </select></label
                 ><button id="reset-view" class="subtle-button" type="button">
-                  ↺ Reset</button
+                  ↺ Reset chart</button
                 ><button id="share-view" class="subtle-button" type="button">
                   Copy this view ↗
                 </button>
@@ -338,9 +397,12 @@
             <div class="disclosure-strip">
               <span class="disclosure-icon" aria-hidden="true">i</span>
               <div>
-                <strong>Free comes with a few details.</strong> OpenRouter: 20
-                requests/minute; 50/day, or 1,000/day after $10 in lifetime
-                credit purchases. Groq: model-specific request and token limits.
+                <strong>Free comes with a few details.</strong>
+                <p>
+                  <b>OpenRouter:</b> <b>20 requests/minute</b>; <b>50/day</b>,
+                  or <b>1,000/day</b> after $10 in lifetime credit purchases.
+                </p>
+                <p><b>Groq:</b> model-specific request and token limits.</p>
                 <button class="inline-button" id="open-limits" type="button">
                   Understand the limits ↗
                 </button>
@@ -365,8 +427,8 @@
             <h2>See the models behind the apps.</h2>
           </div>
           <p>
-            Real public usage, connected.<br />Trace a model to the tools that
-            use it.
+            Real public usage, connected.<br />
+            Trace a model to the tools that use it.
           </p>
         </div>
         <div class="connections-card">
@@ -405,7 +467,10 @@
       <section id="how-it-works" class="connection-cta section-anchor">
         <div class="page-width">
           <p class="eyebrow">From exploring to doing</p>
-          <h2>All this information. <br />One conversation.</h2>
+          <h2>
+            All this information. <br />
+            One conversation.
+          </h2>
           <p>
             Your agent can look up model IDs, compare prices and check<br
               class="desktop-break"
@@ -428,8 +493,8 @@
           <p class="eyebrow">There’s more in the ecosystem</p>
           <h3>Find the tools to build with.</h3>
           <p>
-            Explore AI projects on GitHub. Pick the projects you need<br />and
-            install each one from its own repository.
+            Explore AI projects on GitHub. Pick the projects you need<br />
+            and install each one from its own repository.
           </p>
           <a class="text-link" href="./github/">Explore the projects ↗</a>
         </div>
@@ -437,8 +502,8 @@
           <p class="eyebrow">A small part of a larger forest</p>
           <h3>Made in SD Forest.</h3>
           <p>
-            A home for useful tools and curious experiments.<br />Take a look
-            around whenever you like.
+            A home for useful tools and curious experiments.<br />
+            Take a look around whenever you like.
           </p>
           <a class="text-link" href="/">Visit SD Forest ↗</a>
         </div>
