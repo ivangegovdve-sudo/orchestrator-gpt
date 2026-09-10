@@ -1,198 +1,460 @@
 <!doctype html>
-<html lang="en" class="forest-skin">
-<head>
-<meta charset="utf-8">
-<link rel="icon" href="/web/shared/favicon.svg?v=20260807a" type="image/svg+xml">
-<script defer src="/web/shared/feedback.js?v=20260807a"></script>
-<script type="module" src="/web/shared/forest-navigation.mjs?v=20260807a"></script>
-<link rel="preload" href="/web/shared/forest-design.css?v=20260807a" as="style">
-<link rel="preload" href="/web/vendor/fonts/cormorant-garamond-normal-600-latin.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="preload" href="/web/vendor/fonts/alegreya-normal-400-900-latin.woff2" as="font" type="font/woff2" crossorigin>
-<script type="speculationrules">
-{
-  "prerender": [
-    {
-      "source": "document",
-      "where": {
-        "and": [
-          {
-            "href_matches": "/web/*"
-          },
-          {
-            "or": [
-              {
-                "href_matches": "/web/ai-research/*"
-              },
-              {
-                "href_matches": "/web/c2c-dolphin/*"
-              },
-              {
-                "href_matches": "/web/c2c-self/*"
-              },
-              {
-                "href_matches": "/web/calendar/*"
-              },
-              {
-                "href_matches": "/web/council/"
-              },
-              {
-                "href_matches": "/web/council/index.html"
-              },
-              {
-                "href_matches": "/web/hypertrophyos/*"
-              },
-              {
-                "href_matches": "/web/kids/*"
-              },
-              {
-                "href_matches": "/web/kids-movie-library/*"
-              },
-              {
-                "href_matches": "/web/library/"
-              },
-              {
-                "href_matches": "/web/library/index.html"
-              },
-              {
-                "href_matches": "/web/library/general/*"
-              },
-              {
-                "href_matches": "/web/library/glossary/*"
-              },
-              {
-                "href_matches": "/web/library/memory/*"
-              },
-              {
-                "href_matches": "/web/library/platform/*"
-              },
-              {
-                "href_matches": "/web/library/rag.html"
-              },
-              {
-                "href_matches": "/web/library/repos/*"
-              },
-              {
-                "href_matches": "/web/life-in-time/*"
-              },
-              {
-                "href_matches": "/web/m-popova/*"
-              },
-              {
-                "href_matches": "/web/math-mania/*"
-              },
-              {
-                "href_matches": "/web/mendeleev-bg/*"
-              },
-              {
-                "href_matches": "/web/morning-news/*"
-              },
-              {
-                "href_matches": "/web/upload/*"
-              },
-              {
-                "href_matches": "/web/vfx-portfolio/*"
-              }
-            ]
-          },
-          {
-            "not": {
-              "or": [
-                {
-                  "href_matches": "/web/ai-init/*"
-                },
-                {
-                  "href_matches": "/web/avatar-playground/*"
-                },
-                {
-                  "href_matches": "/web/chloe-pwa/*"
-                },
-                {
-                  "href_matches": "/web/council/byok/*"
-                },
-                {
-                  "href_matches": "/web/council/inner/*"
-                },
-                {
-                  "href_matches": "/web/council/tinylm/*"
-                },
-                {
-                  "href_matches": "/web/evolution/*"
-                },
-                {
-                  "href_matches": "/web/library/chloe/*"
-                },
-                {
-                  "href_matches": "/web/llm-db/*"
-                },
-                {
-                  "href_matches": "/web/manifesto-newborn/*"
-                },
-                {
-                  "href_matches": "/web/math-forest/*"
-                },
-                {
-                  "href_matches": "/web/open-dashboard/*"
-                },
-                {
-                  "href_matches": "/web/power-law-odyssey/*"
-                },
-                {
-                  "href_matches": "/web/replicator-void/*"
-                },
-                {
-                  "href_matches": "/web/tinylm/*"
-                },
-                {
-                  "href_matches": "/web/womens-health-os/*"
-                }
-              ]
-            }
-          }
-        ]
-      },
-      "eagerness": "moderate"
-    }
-  ]
-}
-</script>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Source-backed model, app, and GitHub ecosystem intelligence inside SD Forest.">
-  <meta name="theme-color" content="#07070b">
-  <title>Open Dashboard — SD Forest</title>
-  <link rel="stylesheet" href="/web/shared/forest-shell.css?v=20260807a">
-  <link rel="stylesheet" href="/web/shared/forest-design.css?v=20260807a">
-  <link rel="stylesheet" href="/web/open-dashboard/open-dashboard.css?v=20260904a">
-  <link rel="stylesheet" href="/web/shared/design-history.css?v=20260807a">
-</head>
-<body data-forest-page="open-dashboard" data-open-dashboard-route="overview" data-forest-scene-owner="route">
-  <nav class="oo-topbar" aria-label="Open Dashboard navigation">
-    <a class="forest-back" href="/">Back to Forest HUB</a>
-    <div class="oo-destinations">
-      <a aria-current="page" href="/web/open-dashboard/index.html">Overview</a>
-      <a href="/web/open-dashboard/openrouter/index.html">OpenRouter</a>
-      <a href="/web/open-dashboard/matrix/index.html">Matrix</a>
-      <a href="/web/open-dashboard/github/index.html">GitHub</a><a href="/web/open-dashboard/catalogues/index.html">Catalogues</a>
-    </div>
-    <button id="oo-source-status" class="oo-source-toggle" type="button" aria-expanded="false" aria-controls="oo-source-panel">Sources · loading</button>
-  </nav>
-  <main class="oo-page" id="oo-main">
-    <a class="oo-mcp-banner" href="/web/open-dashboard/mcp/index.html">
-      <span class="oo-mcp-banner-tag">MCP server</span>
-      <span class="oo-mcp-banner-text">The same published data, read-only, inside your agent
-        &mdash; <code>npx -y open-dashboard-mcp</code></span>
-      <span class="oo-mcp-banner-go" aria-hidden="true">Setup and tools &rarr;</span>
-    </a>
-    <header class="oo-header">
-      <div><p class="forest-kicker">Published evidence · bounded public API</p><h1>Open Dashboard</h1></div>
-      <p>Models, public apps, app-to-model usage and verified GitHub ecosystems in one compact, time-aware field.</p>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Open Dashboard — Find your next AI model</title>
+    <meta
+      name="description"
+      content="Explore AI model prices, free tiers and the models behind popular apps. Connect Open Dashboard to Hermes, Codex, Claude Code or your own MCP agent."
+    />
+    <meta name="theme-color" content="#f6f5ef" />
+    <link rel="icon" href="./assets/tree-evergreen.svg" type="image/svg+xml" />
+    <link
+      rel="preload"
+      href="./assets/manrope.ttf"
+      as="font"
+      type="font/ttf"
+      crossorigin
+    />
+    <link rel="stylesheet" href="./explorer.css" />
+    <script src="./theme.js"></script>
+    <script defer src="./vendor/d3.v7.min.js"></script>
+    <script type="module" src="./explorer.js"></script>
+  </head>
+  <body class="od-page">
+    <a class="skip-link" href="#explore">Skip to explorer</a>
+    <header class="site-header">
+      <a class="wordmark" href="/web/open-dashboard/"
+        ><img
+          src="./assets/tree-evergreen.svg"
+          alt=""
+          width="27"
+          height="27" />Open Dashboard<span class="wordmark-dot"></span
+      ></a>
+      <nav aria-label="Main navigation">
+        <a href="#explore">Explore</a><a href="#how-it-works">How it works</a
+        ><a href="./github/">Projects</a>
+      </nav>
+      <div class="header-actions">
+        <a class="forest-link" href="/">SD Forest ↗</a
+        ><button
+          class="theme-toggle"
+          data-theme-toggle
+          aria-label="Switch to dark mode"
+          type="button"
+        >
+          ◐ <span>Dark mode</span></button
+        ><a class="button primary small" href="./mcp/">Connect your agent ↗</a>
+      </div>
     </header>
-    <section id="oo-source-panel" class="oo-source-panel" aria-label="Source status" hidden></section>
-    <section id="oo-view-root" class="oo-view-root" aria-live="polite" aria-busy="true"><p class="oo-loading">Loading validated public data…</p></section>
-    <aside id="oo-inspector" class="oo-inspector" tabindex="-1" hidden aria-label="Selected item details"></aside>
-    <noscript><p class="oo-unavailable">JavaScript is required for the data views. The destinations above remain direct links.</p></noscript>
-  </main>
-<script type="module" data-forest-runtime="motion" src="/web/shared/forest-runtime-boot.mjs?v=20260807a"></script>
-  <script type="module" src="/web/open-dashboard/open-dashboard.js?v=20260904a"></script>
-  <script src="/web/shared/design-history.js?v=20260807a"></script>
-</body>
+    <main>
+      <section class="hero page-width">
+        <div class="hero-copy">
+          <p class="eyebrow">
+            <span class="status-dot"></span> A clearer view of the AI landscape
+          </p>
+          <h1>Make sense of<br />your AI options.</h1>
+          <p class="hero-description">
+            Explore model prices, capabilities and public usage.<br />Connect
+            the same knowledge to your agent with MCP.
+          </p>
+          <div class="hero-actions">
+            <a class="button primary" href="#explore">Explore the models ↓</a
+            ><a class="text-link" href="#how-it-works"
+              >Meet Open Dashboard ↗</a
+            >
+          </div>
+          <p class="hero-footnote">
+            Open source package. Public data. Your choice of agent.
+          </p>
+        </div>
+        <div class="hero-landscape" aria-hidden="true">
+          <div class="landscape-caption">
+            <span>Less tab switching.</span><strong>More possibility.</strong>
+          </div>
+        </div>
+      </section>
+      <div class="proof-strip page-width" aria-label="Catalogue coverage">
+        <span><strong id="model-count">—</strong> model entries</span
+        ><span><strong id="provider-count">—</strong> catalogue sources</span
+        ><span><strong>16</strong> optional MCP tools</span
+        ><span class="proof-note" id="coverage-note"
+          >Checking published catalogues…</span
+        >
+      </div>
+      <section id="explore" class="explore-section page-width section-anchor">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">A little exploration goes a long way</p>
+            <h2>Find your next model.</h2>
+          </div>
+          <p>
+            See the trade-offs. Follow your curiosity. <br />Select a point to
+            get the details.
+          </p>
+        </div>
+        <div class="explorer-card">
+          <div class="view-tabs" role="tablist" aria-label="Explore data">
+            <button
+              id="tab-models"
+              role="tab"
+              aria-selected="true"
+              aria-controls="model-panel"
+              data-view="models"
+            >
+              Model landscape</button
+            ><button
+              id="tab-apps"
+              role="tab"
+              aria-selected="false"
+              aria-controls="model-panel"
+              data-view="apps"
+            >
+              Apps & models</button
+            ><button
+              id="tab-history"
+              role="tab"
+              aria-selected="false"
+              aria-controls="model-panel"
+              data-view="history"
+            >
+              Usage over time</button
+            ><label class="more-views"
+              ><span class="sr-only">More data views</span
+              ><select id="evidence-view" aria-label="More data views">
+                <option value="">More views</option>
+                <option value="benchmarks">Benchmark evidence</option>
+                <option value="changes">Changes & lifecycle</option>
+              </select></label
+            ><span class="live-status" id="data-status" role="status"
+              >Loading data</span
+            >
+          </div>
+          <div id="model-panel" role="tabpanel" aria-labelledby="tab-models">
+            <div id="model-controls">
+              <div class="filter-bar">
+                <label class="control"
+                  ><span>Provider</span
+                  ><select id="provider">
+                    <option value="all">All providers</option>
+                  </select></label
+                ><label class="control"
+                  ><span>Output</span
+                  ><select id="modality">
+                    <option value="text">Text models</option>
+                    <option value="video">Video models</option>
+                    <option value="image">Image models</option>
+                    <option value="audio">Audio models</option>
+                    <option value="all">All modalities</option>
+                  </select></label
+                ><label class="toggle-filter"
+                  ><input id="free" type="checkbox" /><span
+                    >Free offers only</span
+                  ></label
+                ><button
+                  class="filter-button"
+                  id="more-filters"
+                  type="button"
+                  aria-expanded="false"
+                  aria-controls="extra-filters"
+                >
+                  More filters +</button
+                ><label class="search-control"
+                  ><span class="sr-only">Search model names or IDs</span
+                  ><input
+                    id="search"
+                    type="search"
+                    placeholder="Find a model…"
+                    autocomplete="off"
+                /></label>
+              </div>
+              <div id="extra-filters" class="extra-filters" hidden>
+                <label class="control"
+                  ><span>Minimum context</span
+                  ><select id="context">
+                    <option value="0">Any context</option>
+                    <option value="32000">32K tokens</option>
+                    <option value="128000">128K tokens</option>
+                    <option value="1000000">1M tokens</option>
+                  </select></label
+                ><label class="toggle-filter"
+                  ><input id="tools" type="checkbox" /><span
+                    >Confirmed tool calling</span
+                  ></label
+                ><label class="toggle-filter"
+                  ><input id="inactive" type="checkbox" /><span
+                    >Include inactive / disappeared</span
+                  ></label
+                >
+                <p>
+                  Unknown capabilities stay unknown. Tool support is checked
+                  against exact OpenRouter IDs.
+                </p>
+              </div>
+              <div class="axis-bar">
+                <div id="text-axes">
+                  <label
+                    >X
+                    <select id="x" aria-label="Horizontal axis">
+                      <option value="input">Input price / 1M tokens</option>
+                      <option value="output">Output price / 1M tokens</option>
+                      <option value="context">Context window (tokens)</option>
+                      <option value="workload">Example workload cost</option>
+                    </select></label
+                  ><label
+                    >Y
+                    <select id="y" aria-label="Vertical axis">
+                      <option value="output">Output price / 1M tokens</option>
+                      <option value="input">Input price / 1M tokens</option>
+                      <option value="context">Context window (tokens)</option>
+                      <option value="workload">Example workload cost</option>
+                    </select></label
+                  >
+                </div>
+                <div id="media-axes" hidden>
+                  <label
+                    >Price unit
+                    <select
+                      id="media-unit"
+                      aria-label="Media price unit"
+                    ></select
+                  ></label>
+                </div>
+                <label
+                  >Scale
+                  <select id="scale">
+                    <option value="symlog">Log + zero</option>
+                    <option value="linear">Linear</option>
+                  </select></label
+                ><button id="reset-view" class="subtle-button" type="button">
+                  ↺ Reset</button
+                ><button id="share-view" class="subtle-button" type="button">
+                  Copy this view ↗
+                </button>
+              </div>
+              <div class="workload-controls" id="workload-controls" hidden>
+                <label
+                  >Input tokens
+                  <input
+                    type="number"
+                    id="input-tokens"
+                    min="0"
+                    max="1000000000"
+                    value="1000000"
+                    step="1000" /></label
+                ><label
+                  >Output tokens
+                  <input
+                    type="number"
+                    id="output-tokens"
+                    min="0"
+                    max="1000000000"
+                    value="250000"
+                    step="1000" /></label
+                ><span
+                  >Illustrative API cost; excludes other fees and
+                  discounts.</span
+                >
+              </div>
+            </div>
+            <div id="alternate-controls" class="filter-bar" hidden></div>
+            <div class="chart-layout">
+              <div class="chart-main">
+                <div class="plot-heading">
+                  <div>
+                    <h3 id="chart-title">A landscape of possibilities</h3>
+                    <p id="chart-subtitle">
+                      Published token prices · USD per million tokens
+                    </p>
+                  </div>
+                  <span class="chart-hint" id="chart-hint"
+                    >Click or tap to inspect</span
+                  >
+                </div>
+                <div
+                  id="chart"
+                  class="main-chart"
+                  aria-label="Interactive model price chart"
+                ></div>
+                <div id="chart-legend" class="chart-legend"></div>
+                <div class="chart-footer">
+                  <p id="plot-summary" role="status">
+                    Loading published model data…
+                  </p>
+                  <label class="inspect-select"
+                    ><span>Inspect</span
+                    ><select
+                      id="inspect-model"
+                      aria-label="Select a model to inspect"
+                    >
+                      <option value="">Select a model</option>
+                    </select></label
+                  >
+                </div>
+              </div>
+              <aside
+                id="inspector"
+                class="inspector"
+                aria-label="Selected model details"
+              >
+                <p class="eyebrow">Find your fit</p>
+                <h3>Every point has a story.</h3>
+                <p>
+                  Select a model to see its exact ID, published prices,
+                  capabilities and source date.
+                </p>
+                <div class="inspector-empty">
+                  <span>Explore</span><span>Compare</span><span>Connect</span>
+                </div>
+              </aside>
+            </div>
+            <div class="disclosure-strip">
+              <span class="disclosure-icon" aria-hidden="true">i</span>
+              <div>
+                <strong>Free comes with a few details.</strong> OpenRouter: 20
+                requests/minute; 50/day, or 1,000/day after $10 in lifetime
+                credit purchases. Groq: model-specific request and token limits.
+                <button class="inline-button" id="open-limits" type="button">
+                  Understand the limits ↗
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <details class="source-details">
+          <summary>
+            Where this data comes from <span id="source-summary"></span>
+          </summary>
+          <div id="sources" class="source-grid"></div>
+        </details>
+      </section>
+      <section
+        id="connections"
+        class="page-width connections-section section-anchor"
+      >
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Follow the connections</p>
+            <h2>See the models behind the apps.</h2>
+          </div>
+          <p>
+            Real public usage, connected.<br />Trace a model to the tools that
+            use it.
+          </p>
+        </div>
+        <div class="connections-card">
+          <div class="flow-controls">
+            <label class="control"
+              ><span>App</span
+              ><select id="flow-app">
+                <option value="all">All published apps</option>
+              </select></label
+            ><label class="control"
+              ><span>Model</span
+              ><select id="flow-model">
+                <option value="all">All published models</option>
+              </select></label
+            ><label class="control"
+              ><span>Link weight</span
+              ><select id="flow-weight">
+                <option value="tokens">Daily tokens · √ scale</option>
+                <option value="equal">Equal width</option>
+              </select></label
+            ><span id="flow-period" class="flow-period"
+              >Checking common observation date…</span
+            >
+          </div>
+          <div id="flow-chart" class="flow-chart"></div>
+          <p id="flow-inspection" class="flow-inspection" role="status">
+            Select an app, model or connection to inspect its evidence.
+          </p>
+          <p class="chart-note">
+            OpenRouter public observations only. Link width uses a square-root
+            scale of observed tokens for one shared day. Missing links mean “not
+            observed”, not zero usage or lack of compatibility.
+          </p>
+        </div>
+      </section>
+      <section id="how-it-works" class="connection-cta section-anchor">
+        <div class="page-width">
+          <p class="eyebrow">From exploring to doing</p>
+          <h2>All this information.<br />One conversation.</h2>
+          <p>
+            Your agent can look up model IDs, compare prices and check<br
+              class="desktop-break"
+            />
+            what changed. Connect the tools you need, and keep exploring.
+          </p>
+          <a class="button primary" href="./mcp/">Connect your agent ↗</a>
+          <div class="client-row">
+            <span>Hermes</span><span>Codex</span><span>Claude Code</span
+            ><span>Cursor</span><span>Any compatible MCP client</span>
+          </div>
+          <p class="cta-caption">
+            Read-only intelligence. Model inference still uses your chosen
+            provider.
+          </p>
+        </div>
+      </section>
+      <section class="page-width lower-links">
+        <div>
+          <p class="eyebrow">There’s more in the ecosystem</p>
+          <h3>Find the tools to build with.</h3>
+          <p>
+            Explore AI projects on GitHub. Pick the projects you need<br />and
+            install each one from its own repository.
+          </p>
+          <a class="text-link" href="./github/">Explore the projects ↗</a>
+        </div>
+        <div>
+          <p class="eyebrow">A small part of a larger forest</p>
+          <h3>Made in SD Forest.</h3>
+          <p>
+            A home for useful tools and curious experiments.<br />Take a look
+            around whenever you like.
+          </p>
+          <a class="text-link" href="/">Visit SD Forest ↗</a>
+        </div>
+      </section>
+    </main>
+    <footer class="site-footer page-width">
+      <a class="wordmark" href="/web/open-dashboard/"
+        >Open Dashboard<span class="wordmark-dot"></span></a
+      ><span>Find clarity. Keep your curiosity.</span
+      ><a
+        href="https://www.npmjs.com/package/open-dashboard-mcp"
+        target="_blank"
+        rel="noopener noreferrer"
+        >npm package ↗</a
+      ><a href="./mcp/">Setup & tools</a>
+    </footer>
+    <dialog
+      id="limits-dialog"
+      class="limits-dialog"
+      aria-labelledby="limits-title"
+    >
+      <div class="dialog-heading">
+        <h2 id="limits-title">What “free” means here</h2>
+        <button
+          class="icon-button"
+          id="close-limits"
+          aria-label="Close free-tier details"
+        >
+          ×
+        </button>
+      </div>
+      <div id="limits-content"></div>
+    </dialog>
+    <div id="toast" class="toast" role="status" hidden></div>
+    <noscript
+      ><p class="page-width">
+        Enable JavaScript to explore the charts. You can still
+        <a href="./mcp/">read the setup guide</a> or
+        <a href="https://www.npmjs.com/package/open-dashboard-mcp"
+          >visit the npm package</a
+        >.
+      </p></noscript
+    >
+  </body>
 </html>

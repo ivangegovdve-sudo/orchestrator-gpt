@@ -1,0 +1,231 @@
+import {
+  CLIENTS,
+  PACKAGE_VERSION,
+  PRESETS,
+  TOOLS,
+  createSetup,
+  matchingPreset,
+  toolsFromQuery,
+} from "./setup-data.js";
+import { initShell } from "./shell.js";
+
+const STORAGE_KEY = "open-dashboard-setup-v1";
+const escape = (value) =>
+  String(value).replace(
+    /[&<>"']/g,
+    (character) =>
+      ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[
+        character
+      ],
+  );
+
+export function mountSetup(root = document) {
+  const wizard = root.querySelector("[data-setup]");
+  if (!wizard) return;
+  let state = {
+    step: 0,
+    clientId: "hermes",
+    platform: "unix",
+    toolIds: [...PRESETS[0].tools],
+  };
+  try {
+    const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || "null");
+    if (saved) {
+      createSetup(saved);
+      state = {
+        ...state,
+        clientId: saved.clientId,
+        platform: saved.platform,
+        toolIds: saved.toolIds,
+      };
+    }
+  } catch {
+    /* Unavailable or outdated local preferences do not block setup. */
+  }
+  const query = new URLSearchParams(location.search);
+  if (CLIENTS.some((client) => client.id === query.get("client")))
+    state.clientId = query.get("client");
+  const linkedPreset = PRESETS.find(
+    (preset) => preset.id === query.get("preset"),
+  );
+  if (linkedPreset) state.toolIds = [...linkedPreset.tools];
+  const linkedTools =
+    query.getAll("tools").length === 1
+      ? toolsFromQuery(query.get("tools"))
+      : null;
+  if (linkedTools) state.toolIds = linkedTools;
+
+  wizard.querySelector("[data-clients]").innerHTML = CLIENTS.map(
+    (client) =>
+      `<label class="setup-client"><input type="radio" name="client" value="${client.id}"${state.clientId === client.id ? " checked" : ""}><span><strong>${escape(client.name)}</strong><small>${escape(client.detail)}</small></span></label>`,
+  ).join("");
+  wizard.querySelector("[data-presets]").innerHTML = PRESETS.map(
+    (preset) =>
+      `<button class="setup-preset" type="button" data-preset="${preset.id}" aria-pressed="false"><strong>${escape(preset.name)}</strong><span>${escape(preset.description)}</span><small>${preset.tools.length} tools</small></button>`,
+  ).join("");
+  wizard.querySelector("[data-tools]").innerHTML = [
+    ...new Set(TOOLS.map((tool) => tool.group)),
+  ]
+    .map(
+      (group) =>
+        `<fieldset class="setup-tool-group"><legend>${escape(group)}</legend>${TOOLS.filter(
+          (tool) => tool.group === group,
+        )
+          .map(
+            (tool) =>
+              `<label class="setup-tool"><input type="checkbox" name="tool" value="${tool.id}"><span><strong>${escape(tool.name)}</strong><small>${escape(tool.description)}</small></span></label>`,
+          )
+          .join("")}</fieldset>`,
+    )
+    .join("");
+  wizard.querySelector(`[name="platform"][value="${state.platform}"]`).checked =
+    true;
+
+  function persist() {
+    try {
+      localStorage.setItem(
+        STORAGE_KEY,
+        JSON.stringify({
+          clientId: state.clientId,
+          platform: state.platform,
+          toolIds: state.toolIds,
+        }),
+      );
+    } catch {
+      /* Preferences are optional. */
+    }
+  }
+
+  function updateSelection() {
+    const preset = matchingPreset(state.toolIds);
+    for (const input of wizard.querySelectorAll('[name="tool"]'))
+      input.checked = state.toolIds.includes(input.value);
+    for (const button of wizard.querySelectorAll("[data-preset]"))
+      button.setAttribute(
+        "aria-pressed",
+        String(button.dataset.preset === preset),
+      );
+    const count = state.toolIds.length;
+    wizard.querySelector("[data-selection-count]").textContent =
+      `${count} of ${TOOLS.length} tools selected`;
+    wizard.querySelector("[data-context-note]").textContent = count
+      ? `Your assistant will see these ${count} tools. The remaining ${TOOLS.length - count} are not exposed by the server.`
+      : "Select at least one tool to create your setup.";
+    wizard.querySelector('[data-next="2"]').disabled = count === 0;
+    wizard.querySelector('[data-step-link="2"]').disabled = count === 0;
+    wizard.querySelector("[data-key-note]").hidden = !state.toolIds.includes(
+      "dashboard_key_inventory",
+    );
+    persist();
+  }
+
+  function updateOutput() {
+    const setup = createSetup(state);
+    wizard.querySelector("[data-output-title]").textContent =
+      setup.client.id === "generic"
+        ? "Connect your agent"
+        : `Connect to ${setup.client.name}`;
+    wizard.querySelector("[data-output-summary]").textContent =
+      `${setup.tools.length} selected tools · ${setup.format} · version ${PACKAGE_VERSION}`;
+    wizard.querySelector("[data-output-instruction]").textContent =
+      setup.instruction;
+    wizard.querySelector("[data-output-location]").textContent =
+      setup.client.location;
+    wizard.querySelector("[data-output-code]").textContent = setup.content;
+    const download = wizard.querySelector("[data-download-setup]");
+    download.href = `data:text/plain;charset=utf-8,${encodeURIComponent(setup.content)}`;
+    download.download = setup.filename;
+    wizard.querySelector("[data-output-verification]").textContent =
+      setup.verification;
+    wizard.querySelector("[data-first-prompt]").textContent = setup.prompt;
+    wizard.querySelector("[data-client-docs]").href = setup.sourceUrl;
+    wizard.querySelector("[data-client-docs]").textContent =
+      `${setup.client.name} setup guide`;
+    wizard.querySelector("[data-selected-names]").textContent = TOOLS.filter(
+      (tool) => setup.tools.includes(tool.id),
+    )
+      .map((tool) => tool.name)
+      .join(" · ");
+    wizard.querySelector("[data-copy-status]").textContent = "";
+  }
+
+  function showStep(step, focus = true) {
+    if (step === 2 && state.toolIds.length === 0) return;
+    state.step = step;
+    if (step === 2) updateOutput();
+    for (const panel of wizard.querySelectorAll("[data-step]"))
+      panel.hidden = Number(panel.dataset.step) !== step;
+    for (const button of wizard.querySelectorAll("[data-step-link]")) {
+      if (Number(button.dataset.stepLink) === step)
+        button.setAttribute("aria-current", "step");
+      else button.removeAttribute("aria-current");
+      button.disabled =
+        Number(button.dataset.stepLink) === 2 && state.toolIds.length === 0;
+    }
+    if (focus)
+      wizard
+        .querySelector(`[data-step="${step}"] h2`)
+        .focus({ preventScroll: true });
+  }
+
+  async function copyText(text, label) {
+    const status = wizard.querySelector("[data-copy-status]");
+    try {
+      await navigator.clipboard.writeText(text);
+      status.textContent = `${label} copied.`;
+    } catch {
+      status.textContent =
+        "Clipboard access is unavailable. Select the text to copy it, or download the setup file.";
+      const target = wizard.querySelector(
+        label === "Question" ? "[data-first-prompt]" : "[data-output-code]",
+      );
+      const range = document.createRange();
+      range.selectNodeContents(target);
+      const selection = window.getSelection();
+      selection.removeAllRanges();
+      selection.addRange(range);
+    }
+  }
+
+  wizard.addEventListener("change", (event) => {
+    if (event.target.name === "client") state.clientId = event.target.value;
+    if (event.target.name === "platform") state.platform = event.target.value;
+    if (event.target.name === "tool")
+      state.toolIds = [...wizard.querySelectorAll('[name="tool"]:checked')].map(
+        (input) => input.value,
+      );
+    updateSelection();
+  });
+  wizard.addEventListener("click", (event) => {
+    const button = event.target.closest("button, a[data-download-setup]");
+    if (!button) return;
+    if (button.hasAttribute("data-next")) showStep(Number(button.dataset.next));
+    if (button.hasAttribute("data-step-link"))
+      showStep(Number(button.dataset.stepLink));
+    if (button.hasAttribute("data-preset")) {
+      state.toolIds = [
+        ...PRESETS.find((preset) => preset.id === button.dataset.preset).tools,
+      ];
+      updateSelection();
+    }
+    if (button.hasAttribute("data-clear-tools")) {
+      state.toolIds = [];
+      updateSelection();
+    }
+    if (button.hasAttribute("data-copy-setup"))
+      copyText(createSetup(state).content, "Setup");
+    if (button.hasAttribute("data-copy-prompt"))
+      copyText(createSetup(state).prompt, "Question");
+    if (button.hasAttribute("data-download-setup")) {
+      wizard.querySelector("[data-copy-status]").textContent =
+        "Setup file prepared for download. Merge it with your existing settings.";
+    }
+  });
+  updateSelection();
+  showStep(0, false);
+}
+
+if (typeof document !== "undefined") {
+  initShell();
+  mountSetup();
+}

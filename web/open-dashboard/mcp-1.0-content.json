@@ -1,6 +1,6 @@
 {
   "$comment": "STRUCTURED DATA, NOT PROSE IN MARKUP. The page renders this; it does not restate it. Every field name used here must exist in package-facts.json, which is generated from the package's own zod schemas -- mcp-package-agreement.test.js enforces that. A later interactive pass should read THIS file rather than re-deriving anything from HTML.",
-  "packageVersion": "1.0.0",
+  "packageVersion": "1.0.2",
 
   "priceSet": {
     "claim": "A model does not have a price. It has a set of price points, each valid only under one stated condition.",
