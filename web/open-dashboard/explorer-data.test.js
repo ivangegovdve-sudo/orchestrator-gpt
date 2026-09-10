@@ -16,7 +16,205 @@ import {
   request,
   API_BASE,
   consecutiveHistoryDays,
+  nativeTokenPair,
+  providerCoverage,
+  normalizeModelEndpoints,
+  loadModelEndpoints,
 } from "./explorer-data.js";
+
+test("native catalogue merge retains text and unknown identities, exact token rates and explicit capabilities", () => {
+  const price = (unit, amount, condition = null) => ({
+    unit,
+    amount,
+    condition,
+  });
+  const items = [
+    {
+      provider: "deepinfra",
+      id: "vendor/model",
+      displayName: "Native model",
+      mediaKind: "text",
+      outputModalities: ["text"],
+      pricePoints: [
+        price("token_in", "0.000001"),
+        price("token_out", "0.000002"),
+      ],
+      metadata: { contextLength: 262144, tools: true, capabilities: ["tools"] },
+      fetchedAt: "2026-09-10T00:00:00Z",
+    },
+    {
+      provider: "sail",
+      id: "vendor/unclassified",
+      mediaKind: "unknown",
+      outputModalities: [],
+      pricePoints: [],
+      fetchedAt: "2026-09-10T00:00:00Z",
+    },
+  ];
+  const models = mergeMedia([], items);
+  assert.equal(models.length, 2);
+  assert.equal(models[0].kind, "catalogue");
+  assert.equal(models[0].input, 1);
+  assert.equal(models[0].output, 2);
+  assert.equal(models[0].tools, true);
+  assert.equal(models[0].context, 262144);
+  assert.deepEqual(models[1].modalities, []);
+  assert.equal(models[1].input, null);
+  assert.equal(models[1].freeOffer, null);
+  assert.equal(
+    filterModels(models, { ...DEFAULT_STATE, modality: "unknown" }).length,
+    1,
+  );
+  assert.equal(
+    nativeTokenPair([
+      price("token_in", "1", { name: "A" }),
+      price("token_out", "2", { name: "B" }),
+    ]),
+    null,
+  );
+  assert.equal(
+    nativeTokenPair([
+      price("token_in", "1"),
+      price("token_in", "2"),
+      price("token_out", "2"),
+    ]),
+    null,
+  );
+});
+
+test("provider coverage keeps missing adapters and partial document verification explicit", () => {
+  const snapshot = {
+    registry: {
+      providers: [
+        { id: "sail", displayName: "Sail" },
+        { id: "cerebras", displayName: "Cerebras" },
+      ],
+    },
+    providers: [
+      {
+        provider: "sail",
+        catalogueModels: 1,
+        status: "partial",
+        pricingStatus: "document_verification_failed",
+        population: { completeness: "unknown" },
+      },
+    ],
+  };
+  const rows = providerCoverage(
+    [{ provider: "sail", modalities: [], input: null, output: null }],
+    snapshot,
+    { data: [] },
+    { data: [] },
+  );
+  assert.equal(rows[0].verification, "document_verification_failed");
+  assert.equal(rows[0].status, "partial");
+  assert.equal(rows[1].status, "unavailable");
+  assert.equal(rows[1].population, "unknown");
+  const staleRun = providerCoverage(
+    [],
+    { registry: { providers: [{ id: "cerebras" }] } },
+    {
+      data: [
+        {
+          sourceId: "cerebras_models_current",
+          publishedRunId: "old",
+          lastAttemptRunId: "new",
+          lastAttemptStatus: "failed",
+          lastAttemptPopulationCompleteness: "partial",
+        },
+      ],
+    },
+    { data: [] },
+  );
+  assert.equal(
+    staleRun[0].population,
+    "unknown",
+    "failed newer attempt cannot label the published run coverage",
+  );
+});
+
+test("endpoint quotes keep exact model/route identity and normalize each token leg once", () => {
+  const model = {
+    id: "vendor/model",
+    provider: "openrouter",
+    kind: "catalogue",
+    modalities: ["text"],
+  };
+  const row = {
+    model_id: model.id,
+    name: "Provider | vendor/model",
+    provider_name: "Provider",
+    tag: "provider/fp8",
+    quantization: "fp8",
+    context_length: 128000,
+    pricing: { prompt: "0.000001", completion: "0.000002", discount: "0.5" },
+    supported_parameters: ["tools"],
+    status: -2,
+  };
+  const result = normalizeModelEndpoints(
+    {
+      data: {
+        id: model.id,
+        endpoints: [
+          row,
+          {
+            ...row,
+            name: "Unknown price route",
+            tag: "provider/bf16",
+            pricing: { prompt: null, completion: "0" },
+          },
+        ],
+      },
+    },
+    model,
+    "2026-09-10T00:00:00Z",
+  );
+  assert.equal(result.rows.length, 2);
+  assert.equal(result.providerCount, 1);
+  assert.equal(result.rows[0].input, 1);
+  assert.equal(result.rows[0].output, 2);
+  assert.equal(result.rows[0].tools, true);
+  assert.equal(result.rows[0].status, -2);
+  assert.equal(result.rows[1].input, null);
+  assert.equal(result.rows[1].output, 0);
+  assert.throws(
+    () =>
+      normalizeModelEndpoints(
+        { data: { id: "different/id", endpoints: [row] } },
+        model,
+      ),
+    /identity/,
+  );
+  const media = normalizeModelEndpoints(
+    { data: { id: model.id, endpoints: [row] } },
+    { ...model, modalities: ["video"] },
+  );
+  assert.equal(media.rows[0].input, null);
+  assert.equal(media.rows[0].output, null);
+  assert.equal(
+    normalizeModelEndpoints(
+      { data: { id: model.id, endpoints: [{ ...row, context_length: 0 }] } },
+      model,
+    ).rows[0].context,
+    null,
+  );
+  assert.deepEqual(
+    normalizeModelEndpoints({ data: { id: model.id, endpoints: [] } }, model)
+      .rows,
+    [],
+  );
+});
+
+test("on-demand endpoint read rejects other providers and traversal identities before fetch", async () => {
+  await assert.rejects(
+    loadModelEndpoints({ provider: "groq", id: "vendor/model" }),
+    /exact OpenRouter/,
+  );
+  await assert.rejects(
+    loadModelEndpoints({ provider: "openrouter", id: "vendor/../model" }),
+    /exact OpenRouter/,
+  );
+});
 
 const raw = (overrides = {}) => ({
   provider: "openrouter",

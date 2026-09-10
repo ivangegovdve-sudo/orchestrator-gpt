@@ -49,7 +49,23 @@ export const AXES = {
   context: "Context window · tokens",
   workload: "Example workload · USD",
 };
-const MODALITIES = ["text", "video", "image", "audio", "all"];
+const MODALITIES = ["text", "video", "image", "audio", "unknown", "all"];
+export const DIRECT_PROVIDER_IDS = Object.freeze(
+  Object.keys(PROVIDERS).filter((id) => id !== "wavespeedai"),
+);
+const PROVIDER_SOURCE = {
+  groq: "https://console.groq.com/docs/models",
+  cerebras: "https://inference-docs.cerebras.ai/api-reference/models",
+  sail: "https://docs.sailresearch.com/pricing.md",
+  qwencloud: "https://www.alibabacloud.com/help/en/model-studio/models",
+  deepinfra: "https://deepinfra.com/models",
+  novita: "https://novita.ai/docs/api-reference/model-apis-llm-list-models",
+  sambanova: "https://docs.sambanova.ai/cloud/api-reference/endpoints/models",
+  chutes: "https://chutes.ai/app/api",
+  wavespeed: "https://wavespeed.ai/api/models",
+  fal: "https://api.fal.ai/v1/models",
+  crazyrouter: "https://crazyrouter.com/api/pricing",
+};
 export const keyOf = (provider, id) => `${provider}:${id}`;
 export function finite(value) {
   if (
@@ -207,6 +223,15 @@ const textOnly = (model) =>
   Array.isArray(model?.modalities) &&
   model.modalities.length === 1 &&
   model.modalities[0] === "text";
+// A positive, explicitly per-token pair can be compared without inventing an
+// output modality. These entries remain outside the explicit Text-only filter.
+const tokenComparable = (model) =>
+  model.kind !== "media" &&
+  (textOnly(model) ||
+    (!model.modalities?.length &&
+      finite(model.input) !== null &&
+      finite(model.output) !== null &&
+      (model.input > 0 || model.output > 0)));
 export function normalizeModels(collection, details = { data: [] }) {
   const detailMap = new Map(
     (Array.isArray(details?.data) ? details.data : [])
@@ -250,12 +275,16 @@ export function normalizeModels(collection, details = { data: [] }) {
         ...row,
         key: keyOf(row.provider, row.id),
         name: row.displayName || detail?.name || row.id,
-        context: finite(row.contextLength),
+        context: finite(row.contextLength) ?? finite(detail?.contextLength),
         input: input === null ? null : finite(input * 1e6),
         output: output === null ? null : finite(output * 1e6),
         modalities,
-        tools: Array.isArray(detail?.supportedParameters)
-          ? detail.supportedParameters.includes("tools")
+        tools: Array.isArray(
+          detail?.supportedParameters ?? row.supportedParameters,
+        )
+          ? (detail?.supportedParameters ?? row.supportedParameters).includes(
+              "tools",
+            )
           : null,
         detail,
         freeOffer: zeroText
@@ -269,10 +298,216 @@ export function normalizeModels(collection, details = { data: [] }) {
         sourceUrl:
           row.provider === "openrouter"
             ? `https://openrouter.ai/${row.id}`
-            : null,
+            : (PROVIDER_SOURCE[row.provider] ?? null),
         sourceAt: row.lastConfirmedAt ?? row.lastSeenAt ?? null,
       };
     });
+}
+export function nativeTokenPair(points = []) {
+  const inputs = points.filter(
+      (p) => p.unit === "token_in" && finite(p.amount) !== null,
+    ),
+    outputs = points.filter(
+      (p) => p.unit === "token_out" && finite(p.amount) !== null,
+    );
+  if (
+    inputs.length !== 1 ||
+    outputs.length !== 1 ||
+    JSON.stringify(inputs[0].condition) !== JSON.stringify(outputs[0].condition)
+  )
+    return null;
+  const input = finite(Number(inputs[0].amount) * 1e6),
+    output = finite(Number(outputs[0].amount) * 1e6);
+  return input === null || output === null
+    ? null
+    : { input, output, condition: inputs[0].condition ?? null };
+}
+/** Coverage separates registered adapters, acquired catalogue rows and router routes. */
+export function providerCoverage(models, snapshot, sourceStatus, live) {
+  const registry = Array.isArray(snapshot?.registry?.providers)
+    ? snapshot.registry.providers
+    : DIRECT_PROVIDER_IDS.map((id) => ({
+        id,
+        displayName: PROVIDERS[id],
+        citationUrl: PROVIDER_SOURCE[id],
+      }));
+  const allIds = [
+    ...new Set([
+      ...registry.map((p) => p.id),
+      ...models.map((m) => m.provider),
+    ]),
+  ];
+  return allIds.map((id) => {
+    const descriptor = registry.find((p) => p.id === id),
+      native = snapshot?.providers?.find((p) => p.provider === id);
+    const sourceId =
+      id === "openrouter" ? "models_current" : `${id}_models_current`;
+    const source = sourceStatus?.data?.find((p) => p.sourceId === sourceId);
+    const entries = models.filter((m) => m.provider === id),
+      archiveCount = live
+        ? live.data.filter((m) => m.provider === id).length
+        : null;
+    return {
+      id,
+      label: descriptor?.displayName || PROVIDERS[id] || id,
+      models: entries.length,
+      archiveCount,
+      nativeCount:
+        native?.catalogueModels ?? native?.population?.retained ?? null,
+      pricedModels: entries.filter(
+        (m) =>
+          m.pricePoints?.length ||
+          (finite(m.input) !== null &&
+            finite(m.output) !== null &&
+            tokenComparable(m)),
+      ).length,
+      sourceAt: native?.observedAt || source?.lastSuccessAt || null,
+      sourceUrl:
+        native?.sourceUrl ||
+        source?.citationUrl ||
+        descriptor?.citationUrl ||
+        null,
+      status: entries.length
+        ? native?.status === "partial"
+          ? "partial"
+          : "observed"
+        : "unavailable",
+      scope:
+        native?.populationScope ||
+        (source ? "published_model_catalogue" : "not_acquired"),
+      population:
+        native?.population?.completeness ||
+        (source?.lastAttemptRunId === source?.publishedRunId &&
+        source?.lastAttemptStatus === "published"
+          ? source?.lastAttemptPopulationCompleteness
+          : null) ||
+        "unknown",
+      note:
+        native?.pricingCoverage ||
+        descriptor?.comparabilityNote ||
+        "Source-specific coverage has not been established.",
+      verification: native?.pricingStatus || null,
+      stale: source?.stale ?? null,
+    };
+  });
+}
+
+async function openRouterJson(url) {
+  const response = await fetch(url, {
+    credentials: "omit",
+    redirect: "error",
+    signal: AbortSignal.timeout(12000),
+  });
+  if (!response.ok)
+    throw new Error(`OpenRouter public source returned ${response.status}`);
+  const text = await response.text();
+  if (text.length > 2 * 1024 * 1024)
+    throw new Error("OpenRouter public response exceeded the size limit");
+  return JSON.parse(text);
+}
+export async function loadRoutingProviders() {
+  const sourceUrl = "https://openrouter.ai/api/v1/providers",
+    payload = await openRouterJson(sourceUrl);
+  if (!Array.isArray(payload?.data) || payload.data.length > 1000)
+    throw new Error("OpenRouter provider directory format changed");
+  const seen = new Set(),
+    data = [];
+  for (const row of payload.data) {
+    if (
+      typeof row?.slug !== "string" ||
+      !row.slug ||
+      typeof row.name !== "string" ||
+      seen.has(row.slug)
+    )
+      continue;
+    seen.add(row.slug);
+    data.push({ id: row.slug, name: row.name });
+  }
+  if (!data.length)
+    throw new Error("OpenRouter provider directory is unavailable");
+  return { data, sourceUrl, fetchedAt: new Date().toISOString() };
+}
+export function normalizeModelEndpoints(
+  payload,
+  model,
+  sourceAt = new Date().toISOString(),
+) {
+  if (
+    payload?.data?.id !== model.id ||
+    !Array.isArray(payload.data.endpoints) ||
+    payload.data.endpoints.length > 500
+  )
+    throw new Error("Exact model endpoint identity or format did not match");
+  const sourceUrl = `https://openrouter.ai/${model.id}/providers`,
+    seen = new Set();
+  const textPricing = textOnly(model) && model.kind !== "media";
+  const rows = [];
+  for (const row of payload.data.endpoints) {
+    if (
+      row?.model_id !== model.id ||
+      typeof row.provider_name !== "string" ||
+      typeof row.name !== "string"
+    )
+      continue;
+    const key = JSON.stringify([
+      model.id,
+      row.provider_name,
+      row.name,
+      row.tag ?? null,
+    ]);
+    if (seen.has(key)) continue;
+    seen.add(key);
+    const prompt = finite(row.pricing?.prompt),
+      completion = finite(row.pricing?.completion);
+    rows.push({
+      key,
+      modelId: model.id,
+      provider: row.provider_name,
+      name: row.name,
+      tag: typeof row.tag === "string" ? row.tag : null,
+      input: textPricing && prompt !== null ? finite(prompt * 1e6) : null,
+      output:
+        textPricing && completion !== null ? finite(completion * 1e6) : null,
+      context:
+        finite(row.context_length) > 0 ? finite(row.context_length) : null,
+      quantization:
+        typeof row.quantization === "string" ? row.quantization : null,
+      tools: Array.isArray(row.supported_parameters)
+        ? row.supported_parameters.includes("tools")
+        : null,
+      supportedParameters: Array.isArray(row.supported_parameters)
+        ? row.supported_parameters
+            .filter((v) => typeof v === "string")
+            .slice(0, 100)
+        : [],
+      sourceUrl,
+      sourceAt,
+      status: typeof row.status === "number" ? row.status : null,
+    });
+  }
+  return {
+    modelId: model.id,
+    rows,
+    sourceUrl,
+    sourceAt,
+    providerCount: new Set(rows.map((r) => r.provider)).size,
+    textPricing,
+  };
+}
+export async function loadModelEndpoints(model) {
+  if (
+    model.provider !== "openrouter" ||
+    typeof model.id !== "string" ||
+    model.id.split("/").some((part) => !part || part === "." || part === "..")
+  )
+    throw new Error("A valid exact OpenRouter model ID is required");
+  const path = model.id.split("/").map(encodeURIComponent).join("/");
+  return normalizeModelEndpoints(
+    await openRouterJson(
+      `https://openrouter.ai/api/v1/models/${path}/endpoints`,
+    ),
+    model,
+  );
 }
 export function mergeMedia(models, media) {
   const result = new Map(models.map((m) => [m.key, m]));
@@ -284,25 +519,39 @@ export function mergeMedia(models, media) {
       ...(existing?.modalities ?? []),
       ...modalitySet(m.outputModalities),
     ]);
+    const isMedia =
+      modalities.some((value) => ["image", "video", "audio"].includes(value)) ||
+      ["image", "video", "audio"].includes(m.mediaKind);
+    const nativePair = !isMedia ? nativeTokenPair(m.pricePoints) : null;
+    const nativeMeta = m.metadata ?? {};
     result.set(key, {
       ...existing,
       ...m,
       key,
       name: m.displayName || existing?.name || m.id,
       modalities,
-      kind: "media",
-      mediaKind: m.mediaKind,
-      context: existing?.context ?? null,
-      input: existing?.input ?? null,
-      output: existing?.output ?? null,
-      tools: existing?.tools ?? null,
+      kind: isMedia ? "media" : "catalogue",
+      nativeCatalogue: true,
+      context: finite(nativeMeta.contextLength) ?? existing?.context ?? null,
+      input: nativePair?.input ?? existing?.input ?? null,
+      output: nativePair?.output ?? existing?.output ?? null,
+      priceCondition: nativePair?.condition ?? null,
+      tools: nativeMeta.tools === true ? true : (existing?.tools ?? null),
+      capabilities: Array.isArray(nativeMeta.capabilities)
+        ? nativeMeta.capabilities
+        : [],
       zeroText: false,
       freeOffer: quota?.kind === "free_plan_quota" ? "free_plan" : null,
       quota,
       catalogueSourceAt: existing?.sourceAt ?? null,
       sourceAt: m.fetchedAt ?? null,
       availability: existing?.availability ?? "listed",
-      providerActive: existing?.providerActive ?? null,
+      providerActive:
+        existing?.providerActive ??
+        (nativeMeta.retirementAt &&
+        Date.parse(nativeMeta.retirementAt) <= Date.parse(m.fetchedAt)
+          ? false
+          : null),
     });
   }
   return [...result.values()];
@@ -312,7 +561,10 @@ export function filterModels(models, s) {
   return models.filter(
     (m) =>
       (s.provider === "all" || m.provider === s.provider) &&
-      (s.modality === "all" || m.modalities.includes(s.modality)) &&
+      (s.modality === "all" ||
+        (s.modality === "unknown"
+          ? !m.modalities.length
+          : m.modalities.includes(s.modality))) &&
       (!s.free || ["zero_price", "free_plan"].includes(m.freeOffer)) &&
       (!s.tools || m.tools === true) &&
       (!s.context || (m.context !== null && m.context >= s.context)) &&
@@ -334,12 +586,12 @@ export function metric(m, axis, s = DEFAULT_STATE) {
 }
 export function tokenPoints(models, s) {
   return models
-    .filter((m) => m.kind !== "media" && textOnly(m))
+    .filter(tokenComparable)
     .map((m) => ({ ...m, px: metric(m, s.x, s), py: metric(m, s.y, s) }))
     .filter((m) => m.px !== null && m.py !== null);
 }
 export function exactComparisons(selected, models) {
-  if (!textOnly(selected) || selected.kind === "media") return [];
+  if (!tokenComparable(selected)) return [];
   return models
     .filter(
       (m) =>
@@ -349,7 +601,7 @@ export function exactComparisons(selected, models) {
         finite(m.output) !== null &&
         m.providerActive !== false &&
         m.availability !== "disappeared" &&
-        textOnly(m),
+        tokenComparable(m),
     )
     .sort((a, b) => a.input / 2 + a.output / 2 - (b.input / 2 + b.output / 2));
 }

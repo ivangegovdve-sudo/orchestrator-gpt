@@ -18,6 +18,10 @@ import {
   readState,
   stateQuery,
   keyOf,
+  providerCoverage,
+  DIRECT_PROVIDER_IDS,
+  loadRoutingProviders,
+  loadModelEndpoints,
 } from "./explorer-data.js";
 import {
   normalizeMediaCatalogue,
@@ -65,6 +69,8 @@ const $ = (id) => document.getElementById(id),
     );
 let evidence = null,
   evidencePromise = null;
+const endpointCache = new Map();
+let endpointTimer;
 let state = readState(location.search),
   models = [],
   filtered = [],
@@ -77,7 +83,8 @@ let state = readState(location.search),
   loaded = false,
   resizeTimer,
   toastTimer;
-const mediaMode = () => ["video", "image", "audio"].includes(state.modality);
+const mediaMode = () =>
+  ["video", "image", "audio", "unknown"].includes(state.modality);
 function toast(message) {
   $("toast").textContent = message;
   $("toast").hidden = false;
@@ -142,7 +149,13 @@ function renderInspector(m) {
         : null;
   const media =
     m.kind === "media" ||
-    !(m.modalities.length === 1 && m.modalities[0] === "text");
+    (!(m.modalities.length === 1 && m.modalities[0] === "text") &&
+      !(
+        m.modalities.length === 0 &&
+        m.input !== null &&
+        m.output !== null &&
+        (m.input > 0 || m.output > 0)
+      ));
   const nativePrices = m.pricePoints || [];
   let prices = media
     ? `<div class="native-prices">${nativePrices.length ? nativePrices.map((p) => `<div class="native-price"><strong>${money(Number(p.amount))}</strong><span> / ${escape(p.unit.replaceAll("_", " "))}</span><small>${escape(formatCondition(p.condition))}</small></div>`).join("") : "<p>Native output price not established. Zero or missing token fields do not price media generation.</p>"}</div>`
@@ -195,6 +208,19 @@ function renderInspector(m) {
       );
   };
   $("selected-limits")?.addEventListener("click", openLimits);
+  if (m.nativeCatalogue) {
+    const note = document.createElement("small");
+    note.textContent = m.priceCondition
+      ? `The plotted token quote requires ${formatCondition(m.priceCondition)}.`
+      : m.pricingNote ||
+        "Native source rates retain their original billing conditions.";
+    $("inspector").append(note);
+    if (m.capabilities?.length) {
+      const p = document.createElement("small");
+      p.textContent = `Published capabilities: ${m.capabilities.join(", ")}.`;
+      $("inspector").append(p);
+    }
+  }
   if (!media) {
     const comparison = exactComparisons(m, models);
     if (comparison.length > 1) {
@@ -203,6 +229,118 @@ function renderInspector(m) {
         `<div class="provider-compare"><h4>The same exact model ID</h4><p class="filter-note">Input + output price for 1M tokens each</p>${comparison.map((c) => `<div class="compare-row"><span>${escape(PROVIDERS[c.provider] || c.provider)}</span><span>${money(c.input + c.output)}</span><div class="compare-bar"><i style="width:${max ? (100 * (c.input + c.output)) / max : 0}%"></i></div></div>`).join("")}<small>Exact provider IDs only. Endpoint conditions can differ; matching names alone are not treated as equivalent.</small></div>`;
     }
   }
+  if (m.provider === "openrouter") renderEndpointComparison(m);
+}
+
+function renderEndpointComparison(model) {
+  const container = document.createElement("div");
+  container.className = "provider-compare";
+  container.id = "endpoint-comparison";
+  container.innerHTML =
+    '<h4>Providers for this exact model</h4><p class="filter-note" role="status">Loading published OpenRouter routes…</p>';
+  $("model-comparison").append(container);
+  clearTimeout(endpointTimer);
+  endpointTimer = setTimeout(async () => {
+    if (!endpointCache.has(model.id)) {
+      if (endpointCache.size >= 40)
+        endpointCache.delete(endpointCache.keys().next().value);
+      endpointCache.set(
+        model.id,
+        loadModelEndpoints(model).catch((error) => {
+          endpointCache.delete(model.id);
+          throw error;
+        }),
+      );
+    }
+    try {
+      const result = await endpointCache.get(model.id);
+      if (state.selected !== model.key || !container.isConnected) return;
+      if (!result.rows.length) {
+        container.innerHTML = `<h4>Provider routes</h4><p>No endpoint observations were returned for this exact model. This does not establish that the model is unavailable.</p>${link(result.sourceUrl, "Check provider routes")}`;
+        return;
+      }
+      const rows = result.rows
+        .slice()
+        .sort(
+          (a, b) =>
+            (a.input !== null && a.output !== null
+              ? a.input + a.output
+              : Infinity) -
+            (b.input !== null && b.output !== null
+              ? b.input + b.output
+              : Infinity),
+        );
+      const priced = rows.filter((r) => r.input !== null && r.output !== null),
+        maximum = Math.max(0, ...priced.map((r) => r.input + r.output));
+      container.innerHTML = `<h4>${rows.length} ${rows.length === 1 ? "route" : "routes"} · ${result.providerCount} ${result.providerCount === 1 ? "provider" : "providers"}</h4><p class="filter-note">${result.textPricing ? "Input + output price for 1M tokens each." : "Token fields do not establish media output prices."} Exact OpenRouter model ID; quantization and endpoint conditions may differ.</p><label class="control">Inspect route <select id="endpoint-select" aria-label="Inspect provider route"></select></label><div class="endpoint-route-list"></div><div class="endpoint-detail" aria-live="polite"></div>${link(result.sourceUrl, "Open all provider routes")}<small>OpenRouter routes are distinct from direct catalogue adapters. Read ${dateLabel(result.sourceAt)}; other charges and account conditions may apply.</small>`;
+      const picker = container.querySelector("select"),
+        list = container.querySelector(".endpoint-route-list"),
+        detail = container.querySelector(".endpoint-detail");
+      const inspect = (route) => {
+        picker.value = route.key;
+        for (const button of list.children)
+          button.setAttribute(
+            "aria-pressed",
+            String(button.dataset.route === route.key),
+          );
+        detail.innerHTML = detailsList([
+          ["Provider", route.provider],
+          ["Route", route.tag || route.name],
+          ["Input / 1M tokens", money(route.input)],
+          ["Output / 1M tokens", money(route.output)],
+          [
+            "Context",
+            route.context === null
+              ? "Not reported"
+              : compact(route.context) + " tokens",
+          ],
+          ["Quantization", route.quantization || "Not reported"],
+          [
+            "Tool calling",
+            route.tools === null
+              ? "Not reported"
+              : route.tools
+                ? "Published support"
+                : "Not listed",
+          ],
+          [
+            "Source status code",
+            route.status === null ? "Not reported" : String(route.status),
+          ],
+        ]);
+        if (route.supportedParameters.length) {
+          const p = document.createElement("small");
+          p.textContent = `Parameters: ${route.supportedParameters.join(", ")}.`;
+          detail.append(p);
+        }
+      };
+      for (const route of rows) {
+        picker.append(
+          option(
+            route.key,
+            `${route.provider} · ${route.tag || route.quantization || route.name}`,
+          ),
+        );
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "compare-row endpoint-route";
+        button.dataset.route = route.key;
+        const sum =
+          route.input !== null && route.output !== null
+            ? route.input + route.output
+            : null;
+        button.innerHTML = `<span>${escape(route.provider)}${route.quantization ? " · " + escape(route.quantization) : ""}</span><span>${sum === null ? "Price unknown" : money(sum)}</span>${sum !== null ? `<span class="compare-bar"><i style="width:${maximum ? (sum / maximum) * 100 : 0}%"></i></span>` : ""}`;
+        button.onclick = () => inspect(route);
+        list.append(button);
+      }
+      picker.onchange = () =>
+        inspect(rows.find((r) => r.key === picker.value) || rows[0]);
+      inspect(rows[0]);
+    } catch {
+      if (state.selected === model.key && container.isConnected)
+        container.innerHTML = `<h4>Provider routes are unavailable</h4><p>The endpoint source could not be read. Missing route prices are not zero.</p>${link(`https://openrouter.ai/${model.id}/providers`, "Check provider routes")}`;
+    }
+  }, 180);
 }
 function syncControls() {
   for (const id of ["provider", "modality", "x", "y", "scale", "context"])
@@ -301,7 +439,10 @@ function renderMainChart() {
           onSelect: selectModel,
           selected: state.selected,
         });
-        $("chart-title").textContent = `The ${state.modality} model landscape`;
+        $("chart-title").textContent =
+          state.modality === "unknown"
+            ? "The unclassified model landscape"
+            : `The ${state.modality} model landscape`;
         $("chart-subtitle").textContent =
           "One dot per catalogue entry · grouped by provider";
         $("plot-summary").textContent =
@@ -347,7 +488,7 @@ function renderMainChart() {
           ? "Illustrative API cost · adjust your input and output above"
           : "Published token prices · USD per million tokens";
       $("plot-summary").textContent =
-        `${rows.length.toLocaleString()} comparable text entries plotted · ${filtered.length.toLocaleString()} entries match. ${filtered.length - rows.length} lack these dimensions or use other output units. ${state.scale === "symlog" ? "Log + zero keeps free prices visible." : "Linear axes start at zero."}`;
+        `${rows.length.toLocaleString()} entries with comparable token quotes plotted · ${filtered.length.toLocaleString()} entries match. ${filtered.length - rows.length} lack these dimensions or use other output units. ${state.scale === "symlog" ? "Log + zero keeps zero prices visible." : "Linear axes start at zero."}`;
     }
     const providers = [
       ...new Set((rows.length ? rows : filtered).map((m) => m.provider)),
@@ -355,9 +496,10 @@ function renderMainChart() {
     for (const p of providers) {
       const item = document.createElement("span");
       item.className = "legend-item";
-      const count = state.unit === "catalogue" && mediaMode()
-        ? ` · ${filtered.filter((model) => model.provider === p).length}`
-        : "";
+      const count =
+        state.unit === "catalogue" && mediaMode()
+          ? ` · ${filtered.filter((model) => model.provider === p).length}`
+          : "";
       item.innerHTML = `<span class="legend-dot" style="--dot:${colorFor(p)}"></span>${escape(PROVIDERS[p] || p)}${count}`;
       $("chart-legend").append(item);
     }
@@ -515,7 +657,7 @@ function renderSources() {
     ),
   ];
   $("source-summary").textContent =
-    `Published catalogues + dated media snapshot · ${failures.length ? "some sources unavailable" : "view source coverage"}`;
+    `Direct catalogues, documented IDs and OpenRouter routes · ${failures.length ? "some sources unavailable" : "view coverage by provider"}`;
   $("sources").innerHTML =
     sourceCard(
       "Model catalogues",
@@ -523,8 +665,8 @@ function renderSources() {
       `${API_BASE}/live-models?limit=500`,
     ) +
     sourceCard(
-      "Native media catalogues",
-      `${metadata.media ? metadata.media.models.length.toLocaleString() + " media entries" : "Media source unavailable; entry count unknown"} · snapshot ${dateLabel(metadata.media?.fetchedAt)}. Price coverage is partial. IDs remain provider-specific; quotes retain units and conditions.`,
+      "Full native catalogues",
+      `${metadata.media ? metadata.media.models.length.toLocaleString() + " acquired native records" : "Native source unavailable; entry count unknown"} · snapshot ${dateLabel(metadata.media?.fetchedAt)}. Text, media, other and unclassified entries are retained. Price coverage is partial; exact IDs, billing units and conditions remain separate.`,
       metadata.media?.providers?.[0]?.sourceUrl,
     ) +
     sourceCard(
@@ -546,9 +688,48 @@ function renderSources() {
     ) +
     sourceCard(
       "MCP package",
-      "open-dashboard-mcp 1.0.2 · 16 selectable tools, 12 provider adapters. Adapter coverage differs from public website snapshot coverage.",
+      "open-dashboard-mcp 1.0.2 · 16 selectable tools, 12 direct provider adapters. This is not a count of the inference providers behind OpenRouter. Sail's current documented IDs are shown, with pricing withheld because the published MCP's document verification no longer matches.",
       "https://www.npmjs.com/package/open-dashboard-mcp",
     );
+  const routing = metadata.routingProviders,
+    archive = metadata.endpointArchive;
+  $("sources").innerHTML += sourceCard(
+    "OpenRouter routing providers",
+    `${routing ? routing.data.length + " providers listed in the public routing directory" : "Routing directory unavailable; total unknown"}. ${archive ? archive.data.length + " archived endpoints across " + new Set(archive.data.map((r) => r.provider)).size + " provider names and " + new Set(archive.data.map((r) => r.modelId)).size + " exact model IDs. " + (archive.hasMore ? "This archive reached the page bound." : "The archive is a collected slice, not every model route.") : "Endpoint archive unavailable."} Select an OpenRouter model to read its current exact endpoint list on demand.`,
+    routing?.sourceUrl || "https://openrouter.ai/api/v1/providers",
+  );
+  for (const provider of providerCoverage(
+    models,
+    metadata.media,
+    metadata.sourceStatus,
+    metadata.live,
+  )) {
+    const archiveCount =
+      provider.archiveCount === null
+        ? "archive count unknown"
+        : `${provider.archiveCount} published archive entries`;
+    const nativeCount =
+      provider.nativeCount === null
+        ? "no native supplement acquired"
+        : `${provider.nativeCount} native/document entries`;
+    const status =
+      provider.status === "unavailable"
+        ? "No entries acquired; this does not establish an empty provider catalogue."
+        : `${provider.models} distinct entries in this explorer; ${provider.pricedModels} have usable published rates here. ${archiveCount}; ${nativeCount}.`;
+    const special =
+      provider.verification === "document_verification_failed"
+        ? " Sail pricing verification failed: the current document differs from MCP 1.0.2. Documented model IDs remain available; quotes are withheld."
+        : provider.scope === "public_pricing_rows_only"
+          ? " Public pricing identities only; account-visible model inventory is unknown."
+          : provider.id === "chutes"
+            ? " Model IDs and deployment UUIDs are separate identities."
+            : "";
+    $("sources").innerHTML += sourceCard(
+      `${provider.label} · ${provider.status}`,
+      `${status} Population coverage: ${provider.population.replaceAll("_", " ")}. Observed ${dateLabel(provider.sourceAt)}.${provider.stale === true ? " Published source is stale." : ""}${special}`,
+      provider.sourceUrl,
+    );
+  }
   for (const error of failures)
     $("sources").innerHTML += sourceCard(error.name, error.message, null);
 }
@@ -707,8 +888,11 @@ syncControls();
 
 async function boot() {
   const jobs = {
-    live: () => loadCollection("/live-models?limit=500", 12),
-    details: () => loadCollection("/models?limit=100&rank_source=none", 15),
+    live: () => loadCollection("/live-models?limit=500", 40),
+    details: () => loadCollection("/models?limit=100&rank_source=none", 64),
+    sourceStatus: () => request("/source-status"),
+    endpointArchive: () => loadCollection("/providers?limit=100", 64),
+    routingProviders: () => loadRoutingProviders(),
     media: async () => {
       const r = await fetch("./media-catalogue.json", {
         signal: AbortSignal.timeout(15000),
@@ -757,8 +941,11 @@ async function boot() {
       }
     } catch {}
   }
-  const providers = [...new Set(models.map((m) => m.provider))].sort();
+  const providers = [
+    ...new Set([...DIRECT_PROVIDER_IDS, ...models.map((m) => m.provider)]),
+  ].sort();
   $("provider").append(...providers.map((p) => option(p, PROVIDERS[p] || p)));
+  $("modality").append(option("unknown", "Unclassified output"));
   if (state.provider !== "all" && !providers.includes(state.provider))
     state.provider = "all";
   if (matrix?.status === "available") {
@@ -772,7 +959,7 @@ async function boot() {
   $("model-count").textContent = models.length.toLocaleString();
   $("provider-count").textContent = providers.length;
   $("coverage-note").textContent =
-    "Provider-specific entries · coverage varies by source";
+    `${DIRECT_PROVIDER_IDS.length} direct adapters · ${metadata.routingProviders?.data.length ?? "Unknown"} OpenRouter routing providers. See source coverage below.`;
   $("data-status").textContent = failures.length
     ? "Some sources unavailable"
     : "Published data · sources below";

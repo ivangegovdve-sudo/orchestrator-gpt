@@ -17,6 +17,69 @@ import {
 } from "./provider-limits.js";
 import shipped from "open-dashboard-mcp/contract-vocabulary.json" with { type: "json" };
 import { Client, InMemoryTransport } from "@modelcontextprotocol/client";
+import { restoreSetupPreferences } from "./setup.js";
+
+test("partial saved preferences cannot replace missing fields with undefined", () => {
+  const empty = restoreSetupPreferences({});
+  assert.equal(empty.clientId, "hermes");
+  assert.equal(empty.platform, "unix");
+  assert.ok(empty.toolIds.length > 0);
+  assert.doesNotThrow(() => createSetup(empty));
+
+  const partial = restoreSetupPreferences({ clientId: "codex" });
+  assert.equal(partial.clientId, "codex");
+  assert.equal(partial.platform, "unix");
+  assert.deepEqual(partial.toolIds, empty.toolIds);
+  assert.doesNotThrow(() => createSetup(partial));
+});
+
+test("saved preferences retain valid choices and discard only unsupported fields", () => {
+  const tools = ["dashboard_github_trending", "dashboard_github_movers"];
+  for (const client of CLIENTS) {
+    const restored = restoreSetupPreferences({
+      clientId: client.id,
+      platform: "windows",
+      toolIds: tools,
+      step: 2,
+    });
+    assert.equal(restored.clientId, client.id);
+    assert.equal(restored.platform, "windows");
+    assert.deepEqual(new Set(restored.toolIds), new Set(tools));
+    assert.equal(restored.step, 0);
+    assert.notEqual(restored.toolIds, tools);
+    assert.equal(createSetup(restored).server.command, "cmd");
+  }
+  assert.deepEqual(
+    restoreSetupPreferences({ clientId: "codex", toolIds: [] }).toolIds,
+    [],
+  );
+  const duplicate = restoreSetupPreferences({ toolIds: [tools[0], tools[0]] });
+  assert.deepEqual(duplicate.toolIds, [tools[0]]);
+
+  const unsupported = restoreSetupPreferences({
+    clientId: "unknown",
+    platform: "windows",
+    toolIds: ["dashboard_benchmarks", "unknown_tool"],
+  });
+  assert.equal(unsupported.clientId, "hermes");
+  assert.equal(unsupported.platform, "windows");
+  assert.doesNotThrow(() => createSetup(unsupported));
+  assert.equal(
+    restoreSetupPreferences({ clientId: "codex", platform: null }).clientId,
+    "codex",
+  );
+  for (const invalid of [null, undefined, [], "codex", 1, true]) {
+    assert.doesNotThrow(() => createSetup(restoreSetupPreferences(invalid)));
+  }
+  for (const invalidTools of [null, {}, "dashboard_benchmarks", [1]]) {
+    const restored = restoreSetupPreferences({
+      clientId: "cursor",
+      toolIds: invalidTools,
+    });
+    assert.equal(restored.clientId, "cursor");
+    assert.doesNotThrow(() => createSetup(restored));
+  }
+});
 
 test("the shipped server advertises exactly each generated preset without fetching data", async () => {
   const packageUrl = new URL(

@@ -11,7 +11,7 @@ export function initShell() {
     });
     document
       .querySelector('meta[name="theme-color"]')
-      ?.setAttribute("content", dark ? "#12201c" : "#f6f5ef");
+      ?.setAttribute("content", dark ? "#0c1311" : "#f6f5ef");
   };
   if (!document.documentElement.dataset.theme) {
     try {

@@ -5,6 +5,7 @@ import {
   TOOLS,
   createSetup,
   matchingPreset,
+  normalizeTools,
   toolsFromQuery,
 } from "./setup-data.js";
 import { initShell } from "./shell.js";
@@ -19,28 +20,36 @@ const escape = (value) =>
       ],
   );
 
-export function mountSetup(root = document) {
-  const wizard = root.querySelector("[data-setup]");
-  if (!wizard) return;
-  let state = {
+export function restoreSetupPreferences(saved) {
+  const state = {
     step: 0,
     clientId: "hermes",
     platform: "unix",
     toolIds: [...PRESETS[0].tools],
   };
+  if (!saved || typeof saved !== "object" || Array.isArray(saved)) return state;
+  if (CLIENTS.some((client) => client.id === saved.clientId))
+    state.clientId = saved.clientId;
+  if (["unix", "windows"].includes(saved.platform))
+    state.platform = saved.platform;
   try {
-    const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || "null");
-    if (saved) {
-      createSetup(saved);
-      state = {
-        ...state,
-        clientId: saved.clientId,
-        platform: saved.platform,
-        toolIds: saved.toolIds,
-      };
-    }
+    state.toolIds = normalizeTools(saved.toolIds);
   } catch {
-    /* Unavailable or outdated local preferences do not block setup. */
+    /* Missing or outdated tools keep the default selection. */
+  }
+  return state;
+}
+
+export function mountSetup(root = document) {
+  const wizard = root.querySelector("[data-setup]");
+  if (!wizard) return;
+  let state = restoreSetupPreferences();
+  try {
+    state = restoreSetupPreferences(
+      JSON.parse(localStorage.getItem(STORAGE_KEY) || "null"),
+    );
+  } catch {
+    /* Unavailable or malformed local preferences do not block setup. */
   }
   const query = new URLSearchParams(location.search);
   if (CLIENTS.some((client) => client.id === query.get("client")))

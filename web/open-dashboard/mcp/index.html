@@ -62,10 +62,10 @@
     <main id="main" class="setup-page">
       <header class="setup-intro">
         <p class="setup-eyebrow">Open Dashboard for your agent</p>
-        <h1>Good decisions.<br /><em>Right in your conversation.</em></h1>
+        <h1>Connect <em>your agent.</em></h1>
         <p>
-          Give your assistant model IDs, pricing evidence and a view of the apps
-          people use. Pick the tools you need, connect once, and ask naturally.
+          Bring model IDs, pricing and app insights into your conversation.
+          Choose your agent, then only the tools you need.
         </p>
         <div class="setup-facts">
           <span>Read-only tools</span><span>Node.js 20+</span
@@ -122,19 +122,6 @@
                 Windows</label
               >
             </fieldset>
-            <details class="setup-detail setup-compatibility">
-              <summary>Using Claude Cowork or a web-only agent?</summary>
-              <p>
-                This package runs locally over stdio. The configurations here
-                are for agents that can start a local MCP server. Cowork uses
-                remote connectors; Open Dashboard does not currently ship a
-                hosted connector for it.
-                <a
-                  href="https://support.claude.com/en/articles/11725091-when-to-use-desktop-and-web-connectors"
-                  >See Claude’s compatibility guide ↗</a
-                >
-              </p>
-            </details>
             <div class="setup-step-actions">
               <span>Made for the agent you already use.</span
               ><button
@@ -144,6 +131,57 @@
               >
                 Choose your tools <span aria-hidden="true">→</span>
               </button>
+            </div>
+            <div class="setup-compatibility-guides">
+              <details class="setup-detail setup-compatibility">
+                <summary>Codex compatibility &amp; help</summary>
+                <p>
+                  This local stdio setup works with Codex in the desktop app,
+                  CLI or IDE. They share MCP settings when running on the same
+                  host. Add the generated entry to ~/.codex/config.toml there,
+                  then restart the connection or open a new session.
+                </p>
+                <p>
+                  Install Node.js 20+ where Codex runs. Check node --version and
+                  npx --version in that environment. If a command is missing,
+                  add Node/npm to that host’s PATH and restart Codex. Choose
+                  Native Windows for cmd /c npx; choose WSL when Codex runs
+                  inside Linux, with Node and the config file inside WSL.
+                </p>
+                <p>
+                  Web and hosted cloud sessions do not inherit this local setup.
+                  Open Dashboard does not currently provide a hosted connector.
+                  Use codex mcp list to check the saved entry and /mcp in the
+                  local app or CLI to check available tools.
+                </p>
+                <p>
+                  <a
+                    href="https://learn.chatgpt.com/docs/extend/mcp?surface=cli"
+                    >Official Codex MCP guide ↗</a
+                  >
+                  ·
+                  <a href="https://learn.chatgpt.com/docs/windows/wsl"
+                    >Codex in WSL ↗</a
+                  >
+                </p>
+              </details>
+              <details class="setup-detail setup-compatibility">
+                <summary>Claude compatibility &amp; help</summary>
+                <p>
+                  Choose Claude Code for its terminal setup, or Claude Desktop
+                  for a local Desktop Chat connection. This package runs locally
+                  over stdio, so the agent must be able to start a local MCP
+                  server.
+                </p>
+                <p>
+                  Claude Cowork and web connectors use remote servers. Open
+                  Dashboard does not currently ship a hosted connector for them.
+                  <a
+                    href="https://support.claude.com/en/articles/11725091-when-to-use-desktop-and-web-connectors"
+                    >Official Claude compatibility guide ↗</a
+                  >
+                </p>
+              </details>
             </div>
           </section>
           <section

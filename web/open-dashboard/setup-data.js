@@ -321,9 +321,9 @@ export function createSetup({
     result.filename = "open-dashboard-codex.toml";
     result.content = `[mcp_servers.open-dashboard]\ncommand = ${JSON.stringify(server.command)}\nargs = ${JSON.stringify(server.args)}\n\n[mcp_servers.open-dashboard.env]\nOPEN_DASHBOARD_TOOLS = ${JSON.stringify(server.env.OPEN_DASHBOARD_TOOLS)}\n`;
     result.instruction =
-      "Add this entry to ~/.codex/config.toml, preserving your existing settings. Reopen your Codex session after saving.";
+      "Add this entry to ~/.codex/config.toml on the host where Codex runs (inside WSL if applicable). Preserve your existing settings, then reopen your Codex session.";
     result.verification =
-      "Use codex mcp list, or /mcp in the CLI, to check the connection. Then ask the question below.";
+      "Use codex mcp list to confirm the saved entry, then /mcp in the local app or CLI to check that its tools are available. Then ask the question below.";
   } else if (clientId === "claude-code") {
     result.filename = "open-dashboard-claude-code.txt";
     result.content = `claude mcp add --transport stdio --scope user --env OPEN_DASHBOARD_TOOLS=${server.env.OPEN_DASHBOARD_TOOLS} open-dashboard -- ${server.command} ${server.args.join(" ")}`;
