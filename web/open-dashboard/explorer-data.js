@@ -28,13 +28,20 @@ export const DEFAULT_STATE = Object.freeze({
   y: "output",
   scale: "symlog",
   view: "models",
+  modelChart: "prices",
+  modelGroup: "provider",
+  appChart: "flow",
+  historyChart: "lines",
+  historyDataset: "modelUsage",
   unit: "video_second",
   inputTokens: 1000000,
   outputTokens: 250000,
   selected: "",
   app: "all",
+  usageApp: "",
   flowModel: "all",
   historyModel: "all",
+  historyScope: "",
   weight: "tokens",
   benchSource: "artificial-analysis",
   benchMetric: "codingIndex",
@@ -50,6 +57,13 @@ export const AXES = {
   workload: "Example workload · USD",
 };
 const MODALITIES = ["text", "video", "image", "audio", "unknown", "all"];
+const CHART_CHOICES = {
+  modelChart: ["prices", "catalogue", "bars", "donut"],
+  modelGroup: ["provider", "modality"],
+  appChart: ["flow", "bars", "donut"],
+  historyChart: ["lines", "bars"],
+  historyDataset: ["modelUsage", "appRanks", "githubRanks"],
+};
 export const DIRECT_PROVIDER_IDS = Object.freeze(
   Object.keys(PROVIDERS).filter((id) => id !== "wavespeedai"),
 );
@@ -123,8 +137,10 @@ export function readState(search = "") {
     "q",
     "selected",
     "app",
+    "usageApp",
     "flowModel",
     "historyModel",
+    "historyScope",
     "unit",
     "benchSource",
     "benchMetric",
@@ -139,11 +155,13 @@ export function readState(search = "") {
     if (Object.hasOwn(AXES, q.get(k))) s[k] = q.get(k);
   if (MODALITIES.includes(q.get("modality"))) s.modality = q.get("modality");
   if (
-    ["models", "apps", "history", "benchmarks", "changes"].includes(
+    ["overview", "models", "apps", "history", "benchmarks", "changes"].includes(
       q.get("view"),
     )
   )
     s.view = q.get("view");
+  for (const [key, choices] of Object.entries(CHART_CHOICES))
+    if (choices.includes(q.get(key))) s[key] = q.get(key);
   if (["linear", "symlog"].includes(q.get("scale"))) s.scale = q.get("scale");
   if (["equal", "tokens"].includes(q.get("weight"))) s.weight = q.get("weight");
   for (const k of ["context", "inputTokens", "outputTokens"])
@@ -160,6 +178,49 @@ export function stateQuery(s) {
         typeof s[key] === "boolean" ? (s[key] ? "1" : "0") : String(s[key]),
       );
   return q.toString();
+}
+export function modelFilterSummary(s = DEFAULT_STATE) {
+  const state = { ...DEFAULT_STATE, ...s };
+  const summary = [];
+  const add = (key, label, advanced = false) =>
+    summary.push({ key, label, advanced });
+  if (state.provider !== "all")
+    add("provider", `Provider: ${PROVIDERS[state.provider] || state.provider}`);
+  if (state.modality !== "all") {
+    const outputs = {
+      text: "Text output",
+      video: "Video output",
+      image: "Image output",
+      audio: "Audio output",
+      unknown: "Output not reported",
+    };
+    add("modality", outputs[state.modality] || `Output: ${state.modality}`);
+  }
+  if (state.free) add("free", "Free offers only");
+  if (finite(state.context) > 0)
+    add(
+      "context",
+      `Context ≥ ${Number(state.context).toLocaleString("en")} tokens`,
+      true,
+    );
+  if (state.tools) add("tools", "Confirmed tool calling", true);
+  if (state.inactive) add("inactive", "Including inactive models", true);
+  if (state.q.trim()) add("q", `Search: “${state.q.trim()}”`);
+  return summary;
+}
+export function clearModelFilters(s = DEFAULT_STATE) {
+  return {
+    ...DEFAULT_STATE,
+    ...s,
+    provider: "all",
+    modality: "all",
+    free: false,
+    tools: false,
+    inactive: false,
+    context: 0,
+    q: "",
+    selected: "",
+  };
 }
 export async function request(path) {
   const location = globalThis.location;

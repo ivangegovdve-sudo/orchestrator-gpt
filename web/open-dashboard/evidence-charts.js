@@ -519,7 +519,7 @@ function activate(selection, onInspect, label) {
 function styleAxis(axis) {
   axis
     .selectAll("text")
-    .style("font-size", "10px")
+    .style("font-size", "12px")
     .attr("fill", "var(--muted)");
   axis.selectAll("path,line").attr("stroke", "var(--line)");
 }
@@ -543,7 +543,7 @@ export function renderBenchmarks(node, collection, options = {}) {
   );
   if (!chart) return view;
   const { d3, svg, width, height } = chart,
-    margin = { left: 58, right: 25, top: 20, bottom: 66 };
+    margin = { left: 66, right: 25, top: 28, bottom: 72 };
   const innerWidth = width - margin.left - margin.right,
     innerHeight = height - margin.top - margin.bottom;
   const x = d3
@@ -589,14 +589,14 @@ export function renderBenchmarks(node, collection, options = {}) {
     .attr("x", margin.left)
     .attr("y", height - 22)
     .attr("fill", "var(--muted)")
-    .style("font-size", "10px")
+    .style("font-size", "12px")
     .text(view.xLabel);
   svg
     .append("text")
     .attr("x", margin.left)
-    .attr("y", 11)
+    .attr("y", 16)
     .attr("fill", "var(--muted)")
-    .style("font-size", "10px")
+    .style("font-size", "12px")
     .text(view.yLabel);
   const symbols = plot
     .selectAll("circle.evidence-point")
@@ -651,7 +651,7 @@ export function renderChanges(node, data, options = {}) {
   );
   if (!chart) return view;
   const { d3, svg, width } = chart,
-    margin = { top: 30, right: 24, bottom: 46, left: width < 500 ? 108 : 185 };
+    margin = { top: 30, right: 24, bottom: 50, left: width < 500 ? 116 : 195 };
   const timestamps = view.points.map((row) => new Date(row.date));
   if (view.anchor) timestamps.push(new Date(view.anchor));
   let [start, end] = d3.extent(timestamps);
@@ -691,10 +691,10 @@ export function renderChanges(node, data, options = {}) {
     .attr("y", 4)
     .attr("text-anchor", "end")
     .attr("fill", "var(--muted)")
-    .style("font-size", "10px")
+    .style("font-size", "12px")
     .text((row) => {
       const label = row.name.split("/").at(-1);
-      const cap = width < 500 ? 16 : 28;
+      const cap = width < 500 ? 14 : 26;
       return label.length > cap ? `${label.slice(0, cap - 1)}…` : label;
     })
     .append("title")

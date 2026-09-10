@@ -20,6 +20,8 @@ import {
   providerCoverage,
   normalizeModelEndpoints,
   loadModelEndpoints,
+  modelFilterSummary,
+  clearModelFilters,
 } from "./explorer-data.js";
 
 test("native catalogue merge retains text and unknown identities, exact token rates and explicit capabilities", () => {
@@ -482,6 +484,7 @@ test("URL state round-trips exact model IDs and rejects invalid numeric or axis 
     selected: "openrouter:vendor/model:free",
     q: "tools & video",
     view: "apps",
+    usageApp: "2627404",
     context: 128000,
     free: true,
   });
@@ -501,6 +504,158 @@ test("URL state round-trips exact model IDs and rejects invalid numeric or axis 
   const history = state({ view: "history", historyModel: "vendor/model:free" });
   assert.deepEqual(readState(stateQuery(history)), history);
   assert.equal(readState("").historyModel, "all");
+});
+
+test("shared chart choices round-trip without changing existing model links", () => {
+  for (const [key, values] of Object.entries({
+    modelChart: ["prices", "catalogue", "bars", "donut"],
+    modelGroup: ["provider", "modality"],
+    appChart: ["flow", "bars", "donut"],
+    historyChart: ["lines", "bars"],
+    historyDataset: ["modelUsage", "appRanks", "githubRanks"],
+  })) {
+    for (const value of values) {
+      const chosen = state({ [key]: value });
+      assert.equal(readState(stateQuery(chosen))[key], value);
+    }
+    for (const invalid of ["unknown", "__proto__", "", "<script>"])
+      assert.equal(
+        readState(`?${key}=${encodeURIComponent(invalid)}`)[key],
+        values[0],
+      );
+  }
+  assert.equal(readState("?view=overview").view, "overview");
+  assert.equal(
+    readState(stateQuery(state({ view: "overview" }))).view,
+    "overview",
+  );
+  assert.equal(readState("?provider=groq&free=1").view, "models");
+  assert.equal(readState("").view, "models");
+  assert.equal(
+    readState("?provider=new-source-adapter").provider,
+    "new-source-adapter",
+  );
+  const scopedHistory = state({
+    view: "history",
+    historyDataset: "githubRanks",
+    historyScope: "developer tools & agents",
+    historyModel: "owner/project",
+  });
+  assert.deepEqual(readState(stateQuery(scopedHistory)), scopedHistory);
+  assert.equal(
+    readState("?historyScope=" + "x".repeat(300)).historyScope.length,
+    240,
+  );
+});
+
+test("filter summaries expose baseline output and exact custom context from a shared link", () => {
+  assert.deepEqual(modelFilterSummary(DEFAULT_STATE), [
+    { key: "modality", label: "Text output", advanced: false },
+  ]);
+  const custom = readState(
+    "?context=50000&provider=groq&tools=1&free=1&inactive=1&q=fast%20model",
+  );
+  const summary = modelFilterSummary(custom);
+  assert.equal(
+    summary.find((item) => item.key === "provider").label,
+    "Provider: Groq",
+  );
+  assert.equal(
+    summary.find((item) => item.key === "context").label,
+    "Context ≥ 50,000 tokens",
+  );
+  assert.equal(
+    summary.find((item) => item.key === "inactive").label,
+    "Including inactive models",
+  );
+  assert.deepEqual(
+    summary
+      .filter((item) => item.advanced)
+      .map((item) => item.key)
+      .sort(),
+    ["context", "inactive", "tools"],
+  );
+  assert.ok(summary.some((item) => item.key === "free"));
+  assert.ok(
+    summary.some(
+      (item) => item.key === "q" && item.label.includes("fast model"),
+    ),
+  );
+  assert.equal(readState(stateQuery(custom)).context, 50000);
+  const models = [
+    normalized({ id: "at-threshold", contextLength: 50000 }),
+    normalized({ id: "below-threshold", contextLength: 49999 }),
+    normalized({ id: "unreported", contextLength: null }),
+  ];
+  assert.deepEqual(
+    filterModels(models, readState("?context=50000")).map((model) => model.id),
+    ["at-threshold"],
+  );
+  assert.deepEqual(modelFilterSummary(state({ modality: "all", q: "  " })), []);
+  assert.match(
+    modelFilterSummary(state({ modality: "unknown" }))[0].label,
+    /not reported/i,
+  );
+});
+
+test("clearing model filters reveals all output types while preserving chart and other-view choices", () => {
+  const before = state({
+    view: "overview",
+    provider: "groq",
+    modality: "video",
+    free: true,
+    tools: true,
+    inactive: true,
+    context: 50000,
+    q: "specific model",
+    selected: "groq:specific-model",
+    modelChart: "donut",
+    modelGroup: "modality",
+    appChart: "bars",
+    historyChart: "bars",
+    historyDataset: "githubRanks",
+    historyScope: "developer-tools",
+    x: "context",
+    y: "workload",
+    scale: "linear",
+    unit: "video_second",
+    inputTokens: 12345,
+    outputTokens: 456,
+    app: "app-id",
+    flowModel: "vendor/model",
+    historyModel: "another/model",
+    benchMetric: "intelligenceIndex",
+    changeKind: "prices",
+  });
+  const original = { ...before };
+  const cleared = clearModelFilters(before);
+  assert.deepEqual(modelFilterSummary(cleared), []);
+  assert.deepEqual(cleared, {
+    ...before,
+    provider: "all",
+    modality: "all",
+    free: false,
+    tools: false,
+    inactive: false,
+    context: 0,
+    q: "",
+    selected: "",
+  });
+  assert.deepEqual(
+    before,
+    original,
+    "Clearing must return a new state without mutating the current one.",
+  );
+  assert.deepEqual(readState(stateQuery(cleared)), cleared);
+  const models = [
+    normalized({ id: "text" }),
+    normalized({ id: "video", outputModalities: ["video"] }),
+    normalized({ id: "retired", availability: "disappeared" }),
+  ];
+  assert.deepEqual(
+    filterModels(models, cleared).map((model) => model.id),
+    ["text", "video"],
+  );
 });
 
 test("unreported source facts remain unknown and catalog presence does not override inactivity", () => {

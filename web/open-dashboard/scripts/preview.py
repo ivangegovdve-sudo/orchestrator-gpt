@@ -11,7 +11,7 @@ import re
 ROOT = Path(__file__).resolve().parents[3]
 PREFIX = '/__open_dashboard_api/'
 UPSTREAM = 'https://openrouter-github-dashboard.vercel.app/api/public/v2/'
-ALLOWED = re.compile(r'^(live-models|models|providers|apps|history|benchmarks|price-changes|deprecations|source-status|app-model-matrix|github/(repositories|rankings))$')
+ALLOWED = re.compile(r'^(live-models|models|providers|apps|history|benchmarks|price-changes|deprecations|source-status|app-model-matrix|free-frontiers|github/(repositories|rankings|trending))$')
 
 class Preview(SimpleHTTPRequestHandler):
     def __init__(self, *args, **kwargs):
