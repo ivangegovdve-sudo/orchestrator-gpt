@@ -7,10 +7,10 @@
   },
   "scripts": {
     "build": "node build-vercel-static.cjs",
-    "vercel-build": "npm run build",
+    "vercel-build": "node scripts/refresh-open-dashboard-for-build.mjs && npm run build",
     "refresh-roster": "node scripts/refresh-free-roster.mjs"
   },
   "devDependencies": {
-    "open-dashboard-mcp": "1.0.0"
+    "open-dashboard-mcp": "1.0.2"
   }
 }

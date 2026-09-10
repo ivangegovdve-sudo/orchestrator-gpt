@@ -2,6 +2,6 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "node --test open-dashboard.test.js"
+    "test": "node --test open-dashboard.test.js explorer-data.test.js evidence-charts.test.js setup.test.js mcp-package-agreement.test.js scripts/refresh-media.test.mjs github/projects.test.js"
   }
 }
