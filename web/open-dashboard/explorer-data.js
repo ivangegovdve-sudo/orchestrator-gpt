@@ -110,6 +110,35 @@ export const money = (value) =>
         maximumFractionDigits:
           value > 0 && value < 0.01 ? 6 : value < 1 ? 4 : 2,
       }).format(value);
+
+/**
+ * Identify a price that sits far outside its comparable distribution.
+ *
+ * The three-IQR Tukey fence is deliberately robust to a small number of
+ * expensive models. Zero prices are excluded from the distribution because
+ * free offers are a separate condition, not a paid-price baseline.
+ */
+export function isPriceOutlier(value, peerValues, multiplier = 3) {
+  const candidate = finite(value);
+  if (candidate === null || candidate <= 0 || !Array.isArray(peerValues))
+    return false;
+  const values = peerValues
+    .map((item) => finite(item))
+    .filter((item) => item !== null && item > 0)
+    .sort((a, b) => a - b);
+  if (values.length < 8 || !Number.isFinite(multiplier) || multiplier < 0)
+    return false;
+  const quantile = (fraction) => {
+    const index = (values.length - 1) * fraction,
+      lower = Math.floor(index),
+      upper = Math.ceil(index);
+    return values[lower] + (values[upper] - values[lower]) * (index - lower);
+  };
+  const q1 = quantile(0.25),
+    q3 = quantile(0.75),
+    spread = q3 - q1;
+  return candidate < q1 - multiplier * spread || candidate > q3 + multiplier * spread;
+}
 export const dateLabel = (value) =>
   !value || !Number.isFinite(Date.parse(value))
     ? "Date not reported"
