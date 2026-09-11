@@ -417,7 +417,7 @@ export function scatter(
     .text(
       media
         ? "Use arrow keys to move between visible prices and Enter to inspect."
-        : "Use arrow keys to move between visible models and Enter to inspect. Zoom controls enlarge the plot; Control and scroll also zoom.",
+        : "Use arrow keys to move between visible models and Enter to inspect. Hold Control while scrolling to zoom the plot.",
     );
   const m = { l: media ? 106 : 70, r: 22, t: 28, b: 58 },
     bounds = [m.l, m.t, w - m.r, h - m.b],
@@ -604,26 +604,6 @@ export function scatter(
         d3.zoomIdentity.translate(transform.x, transform.y).scale(transform.k),
       );
     }
-    const controls = document.createElement("div");
-    controls.className = "plot-zoom";
-    for (const [label, factor] of [
-      ["Zoom in", 1.7],
-      ["Zoom out", 1 / 1.7],
-      ["Reset zoom", 0],
-    ]) {
-      const b = document.createElement("button");
-      b.type = "button";
-      b.setAttribute("aria-label", label);
-      b.title = label;
-      b.textContent = factor === 0 ? "↺" : factor > 1 ? "+" : "−";
-      b.addEventListener("click", () =>
-        factor === 0
-          ? svg.call(zoom.transform, d3.zoomIdentity)
-          : svg.call(zoom.scaleBy, factor),
-      );
-      controls.append(b);
-    }
-    node.append(controls);
   }
   navigation = rovingMarks(marks, {
     node,
