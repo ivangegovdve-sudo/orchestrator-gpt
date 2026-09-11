@@ -86,7 +86,10 @@ const endpointCache = new Map();
 let endpointTimer;
 function initialState() {
   const result = readState(location.search);
-  if (!location.search || location.search === "?") result.view = "overview";
+  // A clean visit should get straight to the useful, interactive explorer.
+  // The overview remains available as a tab and explicit `view=overview` links
+  // continue to open it for people who want the source-backed tour first.
+  if (!location.search || location.search === "?") result.view = "models";
   return result;
 }
 let state = initialState(),

@@ -1672,21 +1672,6 @@ h1 {
     animation: none !important;
   }
 }
-.plot-zoom {
-  position: absolute;
-  right: 13px;
-  top: 9px;
-  display: flex;
-  gap: 3px;
-}
-.plot-zoom button {
-  min-height: 28px;
-  width: 28px;
-  padding: 0;
-  font-size: 14px;
-  background: var(--surface);
-  color: var(--muted);
-}
 .native-prices {
   margin: 18px 0;
 }
