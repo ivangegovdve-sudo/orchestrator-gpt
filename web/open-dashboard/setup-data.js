@@ -2,6 +2,27 @@ export const PACKAGE_VERSION = "1.0.2";
 export const PACKAGE_SPEC = `open-dashboard-mcp@${PACKAGE_VERSION}`;
 export const SETUP_CHECKED_AT = "2026-09-10";
 export const NPM_URL = "https://www.npmjs.com/package/open-dashboard-mcp";
+export const NPM_DOWNLOAD_FACTS = Object.freeze({
+  downloads: 807,
+  start: "2026-09-03",
+  end: "2026-09-09",
+  checkedAt: "2026-09-11",
+  sourceUrl:
+    "https://api.npmjs.org/downloads/point/last-week/open-dashboard-mcp",
+});
+export const MCP_EXCHANGE_FACTS = Object.freeze({
+  checkedOn: "2026-09-11",
+  observedAt: "2026-09-11T06:46:37.750Z",
+  tool: "dashboard_price_comparison",
+  providers: ["Crazyrouter", "OpenRouter"],
+  crazyrouterModelId: "gpt-5-nano",
+  openrouterModelId: "openai/gpt-5-nano",
+  crazyrouterInput: "0.0000000325",
+  openrouterInput: "0.00000005",
+  crazyrouterOutput: "0.00000026",
+  openrouterOutput: "0.0000004",
+  savingsPercent: "35",
+});
 
 export const TOOLS = [
   {

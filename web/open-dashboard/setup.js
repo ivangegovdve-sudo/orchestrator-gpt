@@ -1,6 +1,7 @@
 import {
   CLIENTS,
   PACKAGE_VERSION,
+  PACKAGE_SPEC,
   PRESETS,
   TOOLS,
   createSetup,
@@ -194,6 +195,31 @@ export function mountSetup(root = document) {
       selection.removeAllRanges();
       selection.addRange(range);
     }
+  }
+
+  const installButton = root.querySelector("[data-copy-install]");
+  if (installButton) {
+    const installCommand =
+      root.querySelector("[data-install-command]")?.textContent.trim() ||
+      `npx -y ${PACKAGE_SPEC}`;
+    installButton.addEventListener("click", async () => {
+      const status = root.querySelector("[data-install-status]");
+      try {
+        await navigator.clipboard.writeText(installCommand);
+        if (status) status.textContent = "Install line copied.";
+      } catch {
+        if (status)
+          status.textContent =
+            "Clipboard access is unavailable. Select the install line to copy it.";
+        const target = root.querySelector("[data-install-command]");
+        if (!target) return;
+        const range = document.createRange();
+        range.selectNodeContents(target);
+        const selection = window.getSelection();
+        selection.removeAllRanges();
+        selection.addRange(range);
+      }
+    });
   }
 
   wizard.addEventListener("change", (event) => {
