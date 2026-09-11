@@ -3,6 +3,7 @@ import { readFile } from "node:fs/promises";
 import test from "node:test";
 import {
   CLIENTS,
+  CLIENT_VERIFICATION_FACTS,
   MCP_EXCHANGE_FACTS,
   NPM_DOWNLOAD_FACTS,
   OPENCLAW_CONFIG_FACTS,
@@ -141,7 +142,12 @@ test("the MCP entry page exposes sourced proof and the direct install path", asy
   assert.match(page, /OpenClaw/);
   assert.match(page, /OpenClaw compatibility/);
   assert.match(page, /docs\.openclaw\.ai\/cli\/mcp/);
+  assert.match(page, /docs\/help\/environment\.md/);
+  assert.ok(page.includes("openclaw@2026.9.4"));
+  assert.ok(page.includes("No live"));
   assert.ok(page.includes("%USERPROFILE%\\.openclaw\\openclaw.json"));
+  assert.match(page, /Verdict: Crazyrouter is cheaper on both token legs/);
+  assert.match(page, /<strong>807 npm downloads<\/strong>/);
   assert.match(page, new RegExp(`npx -y ${PACKAGE_SPEC.replace(/[.*+?^${}()|[\\]\\\\]/g, "\\\\$&")}`));
   assert.match(page, new RegExp(`${NPM_DOWNLOAD_FACTS.downloads} npm downloads`));
   assert.match(page, /3–9 September 2026/);
@@ -165,7 +171,9 @@ test("OpenClaw uses its documented JSON5 mcp.servers shape and keeps the tool al
     env: { OPEN_DASHBOARD_TOOLS: selectedTools.join(",") },
   });
   assert.match(unix.instruction, /mcp\.servers/);
-  assert.match(unix.verification, /OpenClaw 2026\.9\.4/);
+  assert.match(unix.verification, /openclaw@2026\.9\.4/);
+  assert.match(unix.verification, /11 September 2026/);
+  assert.match(unix.verification, /No live mcp probe has been run/);
 
   const windows = createSetup({
     clientId: "openclaw",
@@ -179,6 +187,29 @@ test("OpenClaw uses its documented JSON5 mcp.servers shape and keeps the tool al
     args: ["/c", "npx", "-y", PACKAGE_SPEC],
     env: { OPEN_DASHBOARD_TOOLS: selectedTools.join(",") },
   });
+});
+
+test("every agent entry states its verification scope and generated output repeats it", () => {
+  assert.deepEqual(
+    CLIENTS.map((client) => client.id).sort(),
+    Object.keys(CLIENT_VERIFICATION_FACTS).sort(),
+  );
+  for (const client of CLIENTS) {
+    assert.ok(client.verification.summary, `${client.id} needs a verification summary`);
+    assert.ok(client.verification.detail, `${client.id} needs a verification detail`);
+    const setup = createSetup({
+      clientId: client.id,
+      toolIds: ["dashboard_catalogue"],
+    });
+    assert.match(
+      setup.verification,
+      new RegExp(client.verification.detail.replace(/[.*+?^${}()|[\\]\\\\]/g, "\\\\$&")),
+      `${client.id} output must carry its verification detail`,
+    );
+  }
+  assert.match(CLIENT_VERIFICATION_FACTS.openclaw.detail, /No live mcp probe/);
+  assert.match(CLIENT_VERIFICATION_FACTS.hermes.detail, /Live probe passed/);
+  assert.match(CLIENT_VERIFICATION_FACTS.codex.detail, /codex-cli 0\.153\.4/);
 });
 
 test("each preset exposes only its selected tools, including a two-tool GitHub setup", () => {

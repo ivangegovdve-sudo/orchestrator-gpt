@@ -90,8 +90,8 @@
           </button>
           <p class="setup-install-status" role="status" aria-live="polite" data-install-status></p>
           <p class="setup-download-note">
-            <strong>807 npm downloads</strong> in the latest complete weekly
-            window, 3–9 September 2026 (checked 11 September 2026).
+            <strong>807 npm downloads</strong>
+            <span>Latest complete weekly window: 3–9 September 2026 (checked 11 September 2026).</span>
             <a href="https://api.npmjs.org/downloads/point/last-week/open-dashboard-mcp">Verify on npm ↗</a>
           </p>
         </section>
@@ -107,6 +107,10 @@
           <div class="setup-proof-turn setup-proof-agent">
             <span>Agent</span>
             <div>
+              <p class="setup-proof-verdict">
+                <strong>Verdict: Crazyrouter is cheaper on both token legs.</strong>
+                <span>Reported savings: 35%.</span>
+              </p>
               <p>
                 The comparison returned <code>gpt-5-nano</code> for Crazyrouter
                 and <code>openai/gpt-5-nano</code> for OpenRouter.
@@ -254,10 +258,12 @@
                   that file instead.
                 </p>
                 <p>
-                  The generated entry was accepted by OpenClaw 2026.9.4 with
+                  Config check: <code>openclaw@2026.9.4</code> · 11 September
+                  2026. The generated entry was accepted with
                   <code>openclaw mcp set</code> and reported as
                   <code>transport: "stdio"</code> by
-                  <code>openclaw mcp status --json</code>. Run
+                  <code>openclaw mcp status --json</code>. No live
+                  <code>openclaw mcp probe</code> has been run here. Run
                   <code>openclaw mcp probe open-dashboard</code> after saving
                   to test the live connection on your machine.
                 </p>
@@ -269,6 +275,11 @@
                   <a
                     href="https://github.com/openclaw/openclaw/blob/main/docs/gateway/configuration.md"
                     >Config path source ↗</a
+                  >
+                  ·
+                  <a
+                    href="https://github.com/openclaw/openclaw/blob/main/docs/help/environment.md"
+                    >Environment path source ↗</a
                   >
                 </p>
               </details>

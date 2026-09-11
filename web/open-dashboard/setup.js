@@ -67,7 +67,7 @@ export function mountSetup(root = document) {
 
   wizard.querySelector("[data-clients]").innerHTML = CLIENTS.map(
     (client) =>
-      `<label class="setup-client"><input type="radio" name="client" value="${client.id}"${state.clientId === client.id ? " checked" : ""}><span><strong>${escape(client.name)}</strong><small>${escape(client.detail)}</small></span></label>`,
+      `<label class="setup-client"><input type="radio" name="client" value="${client.id}"${state.clientId === client.id ? " checked" : ""}><span><strong>${escape(client.name)}</strong><small>${escape(client.detail)}<span class="setup-client-verification${client.verification.level === "unverified" ? " is-unverified" : ""}">${escape(client.verification.summary)}</span></small></span></label>`,
   ).join("");
   wizard.querySelector("[data-presets]").innerHTML = PRESETS.map(
     (preset) =>

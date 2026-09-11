@@ -4,12 +4,58 @@ export const SETUP_CHECKED_AT = "2026-09-10";
 export const NPM_URL = "https://www.npmjs.com/package/open-dashboard-mcp";
 export const OPENCLAW_CONFIG_FACTS = Object.freeze({
   version: "2026.9.4",
+  packageSpec: "openclaw@2026.9.4",
   checkedAt: "2026-09-11",
+  checkedLabel: "11 September 2026",
   docsUrl: "https://docs.openclaw.ai/cli/mcp",
   configDocsUrl:
     "https://github.com/openclaw/openclaw/blob/main/docs/gateway/configuration.md",
   configPath: "~/.openclaw/openclaw.json",
   windowsConfigPath: "%USERPROFILE%\\.openclaw\\openclaw.json",
+});
+export const CLIENT_VERIFICATION_FACTS = Object.freeze({
+  hermes: Object.freeze({
+    level: "live",
+    summary: "live probe passed · hermes-agent 0.16.0 · 11 Sep 2026",
+    detail:
+      "Live probe passed against hermes-agent 0.16.0 on 11 September 2026 with a generated two-tool stdio entry; Hermes connected and discovered the selected Open Dashboard tools.",
+  }),
+  openclaw: Object.freeze({
+    level: "config",
+    summary: "config verified · openclaw@2026.9.4 · 11 Sep 2026",
+    detail:
+      "Config shape verified against openclaw@2026.9.4 on 11 September 2026 with mcp set and mcp status --json. No live mcp probe has been run here.",
+  }),
+  codex: Object.freeze({
+    level: "config",
+    summary: "config verified · codex-cli 0.153.4 · 11 Sep 2026",
+    detail:
+      "Config verified against codex-cli 0.153.4 on 11 September 2026 with codex mcp add and codex mcp list --json. No Codex chat session was run here.",
+  }),
+  "claude-code": Object.freeze({
+    level: "unverified",
+    summary: "not exercised · version not recorded",
+    detail:
+      "Not exercised against a real Claude Code install here; no version was recorded.",
+  }),
+  "claude-desktop": Object.freeze({
+    level: "unverified",
+    summary: "not exercised · version not recorded",
+    detail:
+      "Not exercised against a real Claude Desktop install here; no version was recorded.",
+  }),
+  cursor: Object.freeze({
+    level: "unverified",
+    summary: "not exercised · version not recorded",
+    detail:
+      "Not exercised against a real Cursor install here; no version was recorded.",
+  }),
+  generic: Object.freeze({
+    level: "unverified",
+    summary: "not exercised · version not recorded",
+    detail:
+      "No named client install was available to exercise this generic shape; no version was recorded.",
+  }),
 });
 export const NPM_DOWNLOAD_FACTS = Object.freeze({
   downloads: 807,
@@ -216,6 +262,7 @@ export const CLIENTS = [
     id: "hermes",
     name: "Hermes Agent",
     detail: "Local agent · YAML",
+    verification: CLIENT_VERIFICATION_FACTS.hermes,
     docs: "https://hermes-agent.nousresearch.com/docs/user-guide/features/mcp",
     location: "~/.hermes/config.yaml",
     format: "YAML",
@@ -223,7 +270,8 @@ export const CLIENTS = [
   {
     id: "openclaw",
     name: "OpenClaw",
-    detail: "Gateway · JSON5 · config verified",
+    detail: "Gateway · JSON5",
+    verification: CLIENT_VERIFICATION_FACTS.openclaw,
     docs: OPENCLAW_CONFIG_FACTS.docsUrl,
     location: OPENCLAW_CONFIG_FACTS.configPath,
     format: "JSON5",
@@ -232,6 +280,7 @@ export const CLIENTS = [
     id: "codex",
     name: "Codex",
     detail: "App, CLI or IDE · TOML",
+    verification: CLIENT_VERIFICATION_FACTS.codex,
     docs: "https://learn.chatgpt.com/docs/extend/mcp?surface=cli",
     location: "~/.codex/config.toml",
     format: "TOML",
@@ -240,6 +289,7 @@ export const CLIENTS = [
     id: "claude-code",
     name: "Claude Code",
     detail: "Terminal · one command",
+    verification: CLIENT_VERIFICATION_FACTS["claude-code"],
     docs: "https://code.claude.com/docs/en/mcp",
     location: "Your terminal",
     format: "Command",
@@ -248,6 +298,7 @@ export const CLIENTS = [
     id: "claude-desktop",
     name: "Claude Desktop",
     detail: "Desktop Chat · JSON",
+    verification: CLIENT_VERIFICATION_FACTS["claude-desktop"],
     docs: "https://modelcontextprotocol.io/docs/develop/connect-local-servers",
     location: "claude_desktop_config.json",
     format: "JSON",
@@ -256,6 +307,7 @@ export const CLIENTS = [
     id: "cursor",
     name: "Cursor",
     detail: "Editor · JSON",
+    verification: CLIENT_VERIFICATION_FACTS.cursor,
     docs: "https://cursor.com/docs/mcp",
     location: "~/.cursor/mcp.json",
     format: "JSON",
@@ -264,6 +316,7 @@ export const CLIENTS = [
     id: "generic",
     name: "Another agent",
     detail: "Any client with local stdio MCP",
+    verification: CLIENT_VERIFICATION_FACTS.generic,
     docs: "https://modelcontextprotocol.io/docs/develop/connect-local-servers",
     location: "Your client’s local MCP settings",
     format: "JSON",
@@ -360,21 +413,21 @@ export function createSetup({
     result.instruction =
       "Merge this entry into mcp_servers in ~/.hermes/config.yaml. Keep your other settings and servers, then start a new Hermes chat.";
     result.verification =
-      "Start hermes chat and ask the question below. Hermes discovers the selected tools when it connects.";
+      `${client.verification.detail} Start a new Hermes session and ask the question below.`;
   } else if (clientId === "codex") {
     result.filename = "open-dashboard-codex.toml";
     result.content = `[mcp_servers.open-dashboard]\ncommand = ${JSON.stringify(server.command)}\nargs = ${JSON.stringify(server.args)}\n\n[mcp_servers.open-dashboard.env]\nOPEN_DASHBOARD_TOOLS = ${JSON.stringify(server.env.OPEN_DASHBOARD_TOOLS)}\n`;
     result.instruction =
       "Add this entry to ~/.codex/config.toml on the host where Codex runs (inside WSL if applicable). Preserve your existing settings, then reopen your Codex session.";
     result.verification =
-      "Use codex mcp list to confirm the saved entry, then /mcp in the local app or CLI to check that its tools are available. Then ask the question below.";
+      `${client.verification.detail} Use /mcp in the local app or CLI to check that its tools are available, then ask the question below.`;
   } else if (clientId === "claude-code") {
     result.filename = "open-dashboard-claude-code.txt";
     result.content = `claude mcp add --transport stdio --scope user --env OPEN_DASHBOARD_TOOLS=${server.env.OPEN_DASHBOARD_TOOLS} open-dashboard -- ${server.command} ${server.args.join(" ")}`;
     result.instruction =
       "Run this command in your terminal. It adds Open Dashboard for your user across projects. If that name is already configured, update its existing entry instead.";
     result.verification =
-      "Open Claude Code, run /mcp, and check that Open Dashboard is connected. Then ask the question below.";
+      `${client.verification.detail} Open Claude Code, run /mcp, and check that Open Dashboard is connected. Then ask the question below.`;
   } else if (clientId === "openclaw") {
     result.filename = "open-dashboard-openclaw.json5";
     result.content =
@@ -390,7 +443,7 @@ export function createSetup({
         2,
       ) + "\n";
     result.instruction = `Merge this entry into mcp.servers in ${result.location}. OpenClaw reads JSON5, so preserve your other root keys and servers. Then run openclaw mcp status --verbose to confirm the saved entry.`;
-    result.verification = `Config shape verified with OpenClaw ${OPENCLAW_CONFIG_FACTS.version} using mcp set and mcp status --json; it reported a configured stdio server. Run openclaw mcp probe open-dashboard to test the live connection on this machine.`;
+    result.verification = `${client.verification.detail} The status command reported a configured stdio server. Run openclaw mcp probe open-dashboard to test the live connection on this machine.`;
   } else {
     result.content =
       JSON.stringify(
@@ -409,17 +462,17 @@ export function createSetup({
       result.instruction =
         "Merge this entry into ~/.cursor/mcp.json for all projects, or .cursor/mcp.json for one project. Preserve your existing mcpServers entries.";
       result.verification =
-        "Open Customize in Cursor and check that Open Dashboard is enabled and its tools are available. Then ask the question below.";
+        `${client.verification.detail} Open Customize in Cursor and check that Open Dashboard is enabled and its tools are available. Then ask the question below.`;
     } else if (clientId === "claude-desktop") {
       result.instruction =
         "In Claude Desktop, open Settings → Developer → Edit Config. Merge this into claude_desktop_config.json, preserving your other mcpServers. Quit and reopen the app.";
       result.verification =
-        "In a Desktop Chat, open the connectors menu and check Open Dashboard’s tools. This local setup is not a hosted Cowork connector.";
+        `${client.verification.detail} In a Desktop Chat, open the connectors menu and check Open Dashboard’s tools. This local setup is not a hosted Cowork connector.`;
     } else {
       result.instruction =
         "Choose a local stdio MCP server in your agent’s settings. Enter the command, arguments and environment below. This common JSON shape may need adapting to your client.";
       result.verification =
-        "Use your client’s MCP connection or tools panel to confirm the selected tools are available, then ask the question below.";
+        `${client.verification.detail} Use your client’s MCP connection or tools panel to confirm the selected tools are available, then ask the question below.`;
     }
   }
   return result;
