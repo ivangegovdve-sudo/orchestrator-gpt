@@ -6,13 +6,13 @@ export const PROVIDERS = {
   groq: "Groq",
   cerebras: "Cerebras",
   sail: "Sail",
+  nous: "Nous Research",
   qwencloud: "QwenCloud",
   deepinfra: "DeepInfra",
   novita: "Novita",
   sambanova: "SambaNova",
   chutes: "Chutes",
-  wavespeed: "WaveSpeed",
-  wavespeedai: "WaveSpeed",
+  wavespeed: "WaveSpeedAI",
   fal: "fal",
   crazyrouter: "Crazyrouter",
 };
@@ -65,12 +65,13 @@ const CHART_CHOICES = {
   historyDataset: ["modelUsage", "appRanks", "githubRanks"],
 };
 export const DIRECT_PROVIDER_IDS = Object.freeze(
-  Object.keys(PROVIDERS).filter((id) => id !== "wavespeedai"),
+  Object.keys(PROVIDERS),
 );
 const PROVIDER_SOURCE = {
   groq: "https://console.groq.com/docs/models",
   cerebras: "https://inference-docs.cerebras.ai/api-reference/models",
   sail: "https://docs.sailresearch.com/pricing.md",
+  nous: "https://nousresearch.com/",
   qwencloud: "https://www.alibabacloud.com/help/en/model-studio/models",
   deepinfra: "https://deepinfra.com/models",
   novita: "https://novita.ai/docs/api-reference/model-apis-llm-list-models",

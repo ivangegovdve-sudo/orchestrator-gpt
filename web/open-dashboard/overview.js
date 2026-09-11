@@ -647,7 +647,7 @@ function renderHealth(sectionNode, health) {
 function renderMethods(node, onNavigate) {
   const tools = section(
     "Explore here. Let your agent do the follow-through.",
-    "16 tools · enable only what you need",
+    "17 tools · enable only what you need",
     "overview-tools",
   );
   const groups = el("div", "overview-tool-groups");
