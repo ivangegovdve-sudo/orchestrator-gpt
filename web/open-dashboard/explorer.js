@@ -733,11 +733,35 @@ function renderGenerationEvidence() {
   const rows = Array.isArray(metadata.generationCosts?.data)
     ? metadata.generationCosts.data
     : [];
-  if (!rows.length) {
-    container.innerHTML = "<p>No measured generation observation is available. Unknown and blocked are not zero.</p>";
-    return;
+  const summaries = Array.isArray(metadata.generationCosts?.summaries)
+    ? metadata.generationCosts.summaries
+    : [];
+  const policies = Array.isArray(metadata.generationCosts?.policies)
+    ? metadata.generationCosts.policies
+    : [];
+  const sections = [];
+  if (summaries.length) {
+    sections.push(`<div class="generation-summaries"><h3>Measured ranges, never a representative single cost</h3>${summaries.map((summary) => {
+      const evidence = summary.measurementState === "MEASURED_RANGE"
+        ? `Range $${summary.rangeUsd.min}–$${summary.rangeUsd.max} · ${summary.provenance} · n=${summary.n} · ${summary.upstreamProviderCount} routed upstream providers`
+        : `INSUFFICIENT EVIDENCE · n=${summary.n} · ${summary.upstreamProviderCount} routed upstream provider${summary.upstreamProviderCount === "1" ? "" : "s"}`;
+      return `<article class="source-item generation-summary"><strong>${escape(summary.provider)} · ${escape(summary.model)}</strong><p class="generation-cost"><span>${escape(evidence)}</span></p>${detailsList([
+        ["Upstream providers", summary.upstreamProviders.join(", ")],
+        ["Workload", `${summary.workload.name} · ${summary.workload.inputTokens ?? "UNKNOWN"} input / ${summary.workload.outputTokens ?? "UNKNOWN"} output`],
+        ["Vantage point", summary.vantagePoint],
+        ["Evidence gate", `minimum n=${summary.minimumN}; minimum distinct upstream providers=${summary.minimumDistinctUpstreamProviders}`],
+        ["Cost provenance", `${summary.provenance} · ${dateLabel(summary.provenanceDate)}`],
+        ["Latest observation", dateLabel(summary.observedAt)],
+      ])}<p>${escape(summary.note)}</p></article>`;
+    }).join("")}</div>`);
   }
-  container.innerHTML = rows.map((row) => {
+  if (policies.length) {
+    sections.push(`<div class="generation-policies"><h3>Cost cells that cannot be measured</h3>${policies.map((policy) => `<article class="source-item generation-policy"><strong>${escape(policy.provider)} · ${escape(policy.state)}</strong><p class="generation-cost"><span>Per-generation cost: BLOCKED</span></p><p><strong>Why:</strong> ${escape(policy.reason)}</p><p>${escape(policy.note)}</p><p>Evidence date: ${escape(dateLabel(policy.provenanceDate))}</p></article>`).join("")}</div>`);
+  }
+  if (!rows.length) {
+    sections.push("<p>No measured generation observation is available. Unknown and blocked are not zero.</p>");
+  } else {
+    sections.push(`<div class="generation-observations"><h3>Individual measured observations</h3>${rows.map((row) => {
     const latency = row.latency || {};
     const cost = row.costUsd === null
       ? `${row.costState} · ${row.provenance}`
@@ -757,7 +781,9 @@ function renderGenerationEvidence() {
       ["Latency", latencyText],
       ["Latency context", `${latency.workload?.name ?? "UNKNOWN"} · ${latency.vantagePoint ?? "UNKNOWN"} · n=${latency.n ?? "UNKNOWN"} · ${latency.percentileMethod ?? "UNKNOWN"} · ${dateLabel(latency.observedAt)}`],
     ])}<p>${escape(row.note)}</p>${link(row.sourceUrl, "Read provider response source", "text-link")}</article>`;
-  }).join("");
+    }).join("")}</div>`);
+  }
+  container.innerHTML = sections.join("");
 }
 function openLimits() {
   $("limits-dialog").showModal();
