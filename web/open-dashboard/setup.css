@@ -39,7 +39,7 @@
   top: 12px;
 }
 .setup-intro {
-  max-width: 760px;
+  max-width: 980px;
   margin-bottom: 22px;
 }
 .setup-eyebrow,
@@ -65,10 +65,15 @@
   font-style: normal;
 }
 .setup-intro > p:not(.setup-eyebrow) {
-  max-width: 740px;
+  max-width: 900px;
   margin: 0;
   color: var(--muted, #657778);
   font-size: 13px;
+}
+.setup-intro .setup-intro-description {
+  color: var(--ink, #0a302f);
+  font-size: 15px;
+  line-height: 1.55;
 }
 .setup-intro .setup-eyebrow {
   margin: 0;
@@ -94,6 +99,139 @@
 }
 .setup-facts a {
   color: inherit;
+}
+.setup-quick-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 0.78fr) minmax(0, 1.22fr);
+  gap: 16px;
+  margin: 0 0 26px;
+}
+.setup-install-card,
+.setup-proof {
+  min-width: 0;
+  padding: 18px 20px;
+  border: 1px solid var(--line, #d9e1dd);
+  border-radius: 10px;
+  background: var(--surface, #fffefb);
+}
+.setup-install-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 13px 16px;
+}
+.setup-install-card .setup-eyebrow {
+  margin: 0 0 7px;
+  font-size: 9px;
+}
+.setup-install-card code {
+  display: block;
+  color: var(--ink, #0a302f);
+  overflow-wrap: anywhere;
+  font:
+    650 13px/1.5 ui-monospace,
+    Consolas,
+    monospace;
+}
+.setup-install-card p:not(.setup-eyebrow):not(.setup-download-note):not(.setup-install-status) {
+  margin: 8px 0 0;
+  color: var(--muted, #657778);
+  font-size: 11px;
+  line-height: 1.55;
+}
+.setup-copy-button {
+  align-self: start;
+  min-height: 35px;
+  padding: 8px 10px;
+  border: 1px solid var(--line, #d9e1dd);
+  border-radius: 5px;
+  background: transparent;
+  color: var(--accent, #14796b);
+  font-size: 11px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.setup-copy-button:hover {
+  border-color: var(--accent, #14796b);
+}
+.setup-install-status {
+  grid-column: 1 / -1;
+  min-height: 15px;
+  margin: -4px 0 0;
+  color: var(--accent, #14796b);
+  font-size: 10px;
+}
+.setup-download-note {
+  grid-column: 1 / -1;
+  margin: 0 !important;
+  padding-top: 10px;
+  border-top: 1px solid var(--line, #d9e1dd);
+  color: var(--ink, #0a302f) !important;
+  font-size: 11px;
+  line-height: 1.55;
+}
+.setup-download-note strong {
+  color: var(--accent, #14796b);
+  font-weight: 700;
+}
+.setup-download-note a {
+  margin-left: 4px;
+  white-space: nowrap;
+}
+.setup-proof-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+.setup-proof-head .setup-eyebrow {
+  margin: 0;
+  font-size: 9px;
+}
+.setup-proof-meta {
+  color: var(--muted, #657778);
+  font-size: 10px;
+  text-align: right;
+}
+.setup-proof-turn {
+  display: grid;
+  grid-template-columns: 43px minmax(0, 1fr);
+  gap: 10px;
+  margin-top: 12px;
+}
+.setup-proof-turn > span {
+  color: var(--accent, #14796b);
+  font-size: 9px;
+  font-weight: 750;
+  letter-spacing: 0.12em;
+  line-height: 1.6;
+  text-transform: uppercase;
+}
+.setup-proof-turn p {
+  margin: 0;
+  color: var(--ink, #0a302f);
+  font-size: 11px;
+  line-height: 1.55;
+}
+.setup-proof-turn p + p {
+  margin-top: 6px;
+}
+.setup-proof-turn code,
+.setup-proof-source code {
+  color: var(--ink, #0a302f);
+  font-size: 10px;
+  overflow-wrap: anywhere;
+}
+.setup-proof-source {
+  margin: 12px 0 0;
+  padding-top: 10px;
+  border-top: 1px solid var(--line, #d9e1dd);
+  color: var(--muted, #657778);
+  font-size: 10px;
+  line-height: 1.55;
+}
+.setup-proof-source a {
+  white-space: nowrap;
 }
 .setup-layout {
   display: grid;
@@ -780,6 +918,10 @@
   }
 }
 @media (max-width: 800px) {
+  .setup-quick-grid {
+    grid-template-columns: minmax(0, 1fr);
+    margin-bottom: 20px;
+  }
   .setup-layout {
     grid-template-columns: minmax(0, 1fr);
   }
@@ -801,12 +943,33 @@
   .setup-intro h1 {
     font-size: 32px;
   }
+  .setup-intro .setup-intro-description {
+    font-size: 14px;
+  }
   .setup-intro > p:not(.setup-eyebrow) {
     font-size: 12px;
   }
   .setup-facts {
     font-size: 10px;
     gap: 10px 14px;
+  }
+  .setup-install-card,
+  .setup-proof {
+    padding: 16px;
+  }
+  .setup-install-card {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .setup-copy-button {
+    justify-self: start;
+  }
+  .setup-proof-head {
+    display: block;
+  }
+  .setup-proof-meta {
+    display: block;
+    margin-top: 5px;
+    text-align: left;
   }
   .setup-steps {
     padding: 0 9px;

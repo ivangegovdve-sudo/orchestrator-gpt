@@ -1,7 +1,10 @@
 import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
 import test from "node:test";
 import {
   CLIENTS,
+  MCP_EXCHANGE_FACTS,
+  NPM_DOWNLOAD_FACTS,
   PRESETS,
   TOOLS,
   PACKAGE_SPEC,
@@ -127,6 +130,22 @@ test("selectable tools and version match the actual published package vocabulary
     [...shipped.tools].sort(),
   );
   assert.equal(new Set(TOOLS.map((tool) => tool.id)).size, 16);
+});
+
+test("the MCP entry page exposes sourced proof and the direct install path", async () => {
+  const page = await readFile(new URL("./mcp/index.html", import.meta.url), "utf8");
+  assert.match(page, /Agents guess at model names and prices/);
+  assert.match(page, /12\s+providers/);
+  assert.match(page, /text, image, video and audio/);
+  assert.match(page, new RegExp(`npx -y ${PACKAGE_SPEC.replace(/[.*+?^${}()|[\\]\\\\]/g, "\\\\$&")}`));
+  assert.match(page, new RegExp(`${NPM_DOWNLOAD_FACTS.downloads} npm downloads`));
+  assert.match(page, /3–9 September 2026/);
+  assert.match(page, new RegExp(MCP_EXCHANGE_FACTS.tool));
+  assert.match(page, new RegExp(MCP_EXCHANGE_FACTS.crazyrouterModelId));
+  assert.match(page, new RegExp(MCP_EXCHANGE_FACTS.openrouterModelId.replace("/", "\\/")));
+  assert.match(page, new RegExp(MCP_EXCHANGE_FACTS.crazyrouterInput));
+  assert.match(page, new RegExp(MCP_EXCHANGE_FACTS.openrouterOutput));
+  assert.doesNotMatch(page, /Public usage and project trends|app insights/);
 });
 
 test("each preset exposes only its selected tools, including a two-tool GitHub setup", () => {

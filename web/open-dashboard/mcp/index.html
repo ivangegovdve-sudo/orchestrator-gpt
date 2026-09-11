@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta
       name="description"
-      content="Connect Open Dashboard to Hermes, Codex, Claude or Cursor. Choose only the MCP tools you need for model discovery, prices, app usage and GitHub projects."
+      content="Give agents exact model IDs and observed token and media prices across 12 providers and text, image, video and audio models. Connect Open Dashboard to Hermes, Codex, Claude or Cursor."
     />
     <meta name="theme-color" content="#faf9f6" />
     <title>Connect your agent — Open Dashboard</title>
@@ -63,9 +63,10 @@
       <header class="setup-intro">
         <p class="setup-eyebrow">Open Dashboard for your agent</p>
         <h1>Connect <em>your agent.</em></h1>
-        <p>
-          Bring model IDs, pricing and app insights into your conversation.
-          Choose your agent, then only the tools you need.
+        <p class="setup-intro-description">
+          Agents guess at model names and prices. Open Dashboard gives yours
+          exact IDs and observed prices with their conditions across 12
+          providers, covering text, image, video and audio models.
         </p>
         <div class="setup-facts">
           <span>Read-only tools</span><span>Node.js 20+</span
@@ -74,6 +75,65 @@
           >
         </div>
       </header>
+      <div class="setup-quick-grid">
+        <section class="setup-install-card" aria-labelledby="quick-install-title">
+          <div>
+            <p class="setup-eyebrow" id="quick-install-title">Quick install</p>
+            <code data-install-command>npx -y open-dashboard-mcp@1.0.2</code>
+            <p>
+              Already know your MCP client? Run this line. The wizard below
+              tailors its settings and tool allowlist.
+            </p>
+          </div>
+          <button type="button" class="setup-copy-button" data-copy-install>
+            Copy install line <span aria-hidden="true">⧉</span>
+          </button>
+          <p class="setup-install-status" role="status" aria-live="polite" data-install-status></p>
+          <p class="setup-download-note">
+            <strong>807 npm downloads</strong> in the latest complete weekly
+            window, 3–9 September 2026 (checked 11 September 2026).
+            <a href="https://api.npmjs.org/downloads/point/last-week/open-dashboard-mcp">Verify on npm ↗</a>
+          </p>
+        </section>
+        <article class="setup-proof" aria-labelledby="proof-title">
+          <div class="setup-proof-head">
+            <p class="setup-eyebrow" id="proof-title">A real exchange · 11 September 2026</p>
+            <span class="setup-proof-meta">Providers touched: Crazyrouter · OpenRouter</span>
+          </div>
+          <div class="setup-proof-turn">
+            <span>User</span>
+            <p>Is <code>GPT-5 Nano</code> cheaper through Crazyrouter or OpenRouter?</p>
+          </div>
+          <div class="setup-proof-turn setup-proof-agent">
+            <span>Agent</span>
+            <div>
+              <p>
+                The comparison returned <code>gpt-5-nano</code> for Crazyrouter
+                and <code>openai/gpt-5-nano</code> for OpenRouter.
+              </p>
+              <p>
+                <code>token_in</code>: Crazyrouter <code>0.0000000325</code> ·
+                OpenRouter <code>0.00000005</code>;
+                <code>token_out</code>: Crazyrouter <code>0.00000026</code> ·
+                OpenRouter <code>0.0000004</code>.
+              </p>
+              <p>
+                Crazyrouter is returned as cheaper on both legs:
+                <code>direction: "cheaper"</code> and
+                <code>savingsPercent.value: "35"</code>.
+              </p>
+            </div>
+          </div>
+          <p class="setup-proof-source">
+            Captured from <code>dashboard_price_comparison</code>. Crazyrouter
+            is marked <code>provenance: "derived"</code> from its discount
+            badge; OpenRouter is marked <code>provenance: "published"</code>.
+            <a href="https://crazyrouter.com/api/pricing">Crazyrouter source ↗</a>
+            ·
+            <a href="https://openrouter.ai/api/v1/models?output_modalities=all">OpenRouter source ↗</a>
+          </p>
+        </article>
+      </div>
       <div class="setup-layout">
         <section
           class="setup-wizard"
@@ -345,8 +405,9 @@
           </p>
           <ul class="setup-benefits">
             <li>Exact provider and model IDs</li>
-            <li>Prices with units and conditions</li>
-            <li>Public usage and project trends</li>
+            <li>Token and media prices for text, image, video and audio</li>
+            <li>Public usage: model leaders, app totals and app × model links</li>
+            <li>GitHub project trends with repository links and collection dates</li>
             <li>Only the tools you enable</li>
           </ul>
           <p class="setup-aside-note">
