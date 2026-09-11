@@ -1,6 +1,6 @@
 # Open Dashboard
 
-The public explorer for `open-dashboard-mcp` 1.0.2, hosted as a static subsite of SD Forest. The site helps people explore model prices, catalogue identities, public usage and GitHub projects before connecting selected MCP tools to an agent.
+The public explorer for `open-dashboard-mcp` 1.1.0, hosted as a static subsite of SD Forest. The site helps people explore model prices, catalogue identities, public usage and GitHub projects before connecting selected MCP tools to an agent.
 
 ## Pages
 

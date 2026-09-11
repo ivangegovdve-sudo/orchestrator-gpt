@@ -65,7 +65,7 @@ function momentum(category, data = []) {
   };
 }
 
-test("overview's 16 discovery entries and package evidence match the installed contract", () => {
+test("overview's 17 discovery entries and package evidence match the installed contract", () => {
   const facts = JSON.parse(
     fs.readFileSync(new URL("./package-facts.json", import.meta.url), "utf8"),
   );
@@ -73,7 +73,7 @@ test("overview's 16 discovery entries and package evidence match the installed c
     MCP_COVERAGE.map((row) => row.id).sort(),
     facts.tools.map((row) => row.name).sort(),
   );
-  assert.equal(MCP_COVERAGE.length, 16);
+  assert.equal(MCP_COVERAGE.length, 17);
   assert.equal(
     MCP_COVERAGE.find((row) => row.id === "dashboard_key_inventory")
       .agentWorkflow,

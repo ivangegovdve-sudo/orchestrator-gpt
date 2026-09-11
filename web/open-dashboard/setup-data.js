@@ -1,4 +1,4 @@
-export const PACKAGE_VERSION = "1.0.2";
+export const PACKAGE_VERSION = "1.1.0";
 export const PACKAGE_SPEC = `open-dashboard-mcp@${PACKAGE_VERSION}`;
 export const SETUP_CHECKED_AT = "2026-09-10";
 export const NPM_URL = "https://www.npmjs.com/package/open-dashboard-mcp";
@@ -56,14 +56,6 @@ export const CLIENT_VERIFICATION_FACTS = Object.freeze({
     detail:
       "No named client install was available to exercise this generic shape; no version was recorded.",
   }),
-});
-export const NPM_DOWNLOAD_FACTS = Object.freeze({
-  downloads: 807,
-  start: "2026-09-03",
-  end: "2026-09-09",
-  checkedAt: "2026-09-11",
-  sourceUrl:
-    "https://api.npmjs.org/downloads/point/last-week/open-dashboard-mcp",
 });
 export const MCP_EXCHANGE_FACTS = Object.freeze({
   checkedOn: "2026-09-11",
@@ -158,11 +150,12 @@ export const TOOLS = [
   },
   {
     id: "dashboard_github_trending",
-    name: "Trending projects",
+    name: "Trending GitHub repos",
     group: "Usage and projects",
-    description: "Discover GitHub projects from the public trending board.",
+    description:
+      "Read the daily trending GitHub repository slice with collection freshness.",
     prompt:
-      "Use Open Dashboard to find today’s trending AI projects on GitHub. Include repository links and the collection date.",
+      "Use Open Dashboard to find daily trending GitHub repos. Include repository links, collection time and any staleness warning.",
   },
   {
     id: "dashboard_github_movers",
@@ -179,6 +172,15 @@ export const TOOLS = [
     description: "Read published benchmark observations and their sources.",
     prompt:
       "Use Open Dashboard to show available coding benchmark evidence. Name the benchmark, its source and collection date.",
+  },
+  {
+    id: "dashboard_generation_costs",
+    name: "Measured generation costs",
+    group: "Checks and diagnostics",
+    description:
+      "Show provider-reported per-generation costs; catalogue rates are never substituted.",
+    prompt:
+      "Use Open Dashboard to show provider-reported generation costs. Include routed provider, token counts, workload, vantage point, timestamp and provenance; keep unavailable costs non-numeric.",
   },
   {
     id: "dashboard_speed",

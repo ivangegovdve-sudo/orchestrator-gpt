@@ -1,6 +1,6 @@
 {
   "name": "open-dashboard-mcp",
-  "version": "1.0.2",
+  "version": "1.1.0",
   "node": ">=20",
   "providers": [
     {
@@ -196,6 +196,47 @@
       },
       "spendVisibility": "unknown",
       "comparabilityNote": "Sail publishes prices and context information in public documents. This MCP quotes prices only after checking its pinned pricing document and carries the chosen completion window; it does not yet collect the documented context values. The billing routes at https://docs.sailresearch.com/usage-endpoints.md are documented but not probed or read by this integration, so spend visibility is unknown here."
+    },
+    {
+      "id": "nous",
+      "caveatResearch": {
+        "status": "not_found_in_checked_sources",
+        "checkedSources": [
+          "https://nousresearch.com/"
+        ],
+        "observedAt": "2026-09-11",
+        "scope": "No numeric operating limit was established from this checked platform page. This limited check does not establish that the provider publishes none elsewhere."
+      },
+      "pitch": {
+        "text": "Published API rate: $0.072/M",
+        "attribution": "Nous Research published pricing claim",
+        "sourceUrl": "https://nousresearch.com/",
+        "observedAt": "2026-09-11"
+      },
+      "pitchResearch": {
+        "status": "published",
+        "checkedSources": [
+          "https://nousresearch.com/"
+        ],
+        "observedAt": "2026-09-11",
+        "scope": "Provider-owned platform marketing copy; quoted as a provider claim, not endorsed as a comparison result."
+      },
+      "displayName": "Nous Research",
+      "providerKind": "model_provider",
+      "catalogueUrl": "https://nousresearch.com/",
+      "citationUrl": "https://nousresearch.com/",
+      "publishes": {
+        "pricing": "partial",
+        "contextLength": "unknown",
+        "outputModalities": "unknown",
+        "reasoningEfforts": "unknown",
+        "activeFlag": "unknown",
+        "discounts": "unknown",
+        "discountExpiry": "unknown",
+        "lifecycle": "unknown"
+      },
+      "spendVisibility": "unknown",
+      "comparabilityNote": "Nous Research is registered as a named provider, but its published rate is not verifiable here: 15 checked paths across three hosts returned 404 and no balance, credits, usage, or per-generation cost endpoint was found. Generation cost is BLOCKED, not zero."
     },
     {
       "id": "qwencloud",
@@ -574,6 +615,16 @@
       }
     },
     {
+      "name": "dashboard_generation_costs",
+      "title": "Measured generation costs",
+      "description": "Show provider-reported per-generation costs with routed upstream provider, token counts, workload, vantage point, timestamp and provenance. Catalogue rates are never substituted for a missing cost; LAG is not zero.",
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "openWorldHint": true
+      }
+    },
+    {
       "name": "dashboard_github_movers",
       "title": "Dashboard public GitHub momentum movers",
       "description": "Return bounded public GitHub momentum leaders as separate category-scoped project-family slices for 7, 30, or 90 days. Rank movement uses only an exact matching baseline publication; canonical repository metadata, history, and enrichment remain explicitly repository-scoped auxiliary evidence.",
@@ -616,7 +667,7 @@
     {
       "name": "dashboard_model_economics",
       "title": "Open Dashboard model economics",
-      "description": "Compare live models across OpenRouter, Groq and Cerebras on the facts a router decides with: input and output price per token and per million tokens, published discounts, context length, output modality, tool and reasoning support, measured throughput and latency, availability, and retirement risk. Cheapest priced first. Models whose provider publishes no price are reported as cost-unknown and listed after the ranked rows rather than dropped, and every null is explained as a fact about the provider that withheld it.",
+      "description": "Compare live models across OpenRouter, Groq and Cerebras using published input/output rates, discounts, context, modality, tool and reasoning support, separately measured performance, availability, retirement risk, and any recorded per-generation cost evidence. Lowest published rates are listed first; catalogue rates are not the price paid for an aggregator-routed generation. Models without a published rate remain cost-unknown rather than being treated as free.",
       "annotations": {
         "readOnlyHint": true,
         "destructiveHint": false,
@@ -752,7 +803,11 @@
       "discardedRuns",
       "retainedRuns",
       "ttft_ms",
+      "round_trip_ms",
       "sustained_tps",
+      "workload",
+      "sampleSize",
+      "percentileMethod",
       "token_basis",
       "attribution",
       "sourceUrl",
