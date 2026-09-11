@@ -12,9 +12,9 @@ export const PROVIDERS = {
   sambanova: "SambaNova",
   chutes: "Chutes",
   wavespeed: "WaveSpeed",
-  wavespeedai: "WaveSpeed",
   fal: "fal",
   crazyrouter: "Crazyrouter",
+  nous: "Nous Research",
 };
 export const DEFAULT_STATE = Object.freeze({
   provider: "all",
@@ -47,16 +47,16 @@ export const AXES = {
   input: "Input price · USD / 1M tokens",
   output: "Output price · USD / 1M tokens",
   context: "Context window · tokens",
-  workload: "Example workload · USD",
 };
 const MODALITIES = ["text", "video", "image", "audio", "unknown", "all"];
 export const DIRECT_PROVIDER_IDS = Object.freeze(
-  Object.keys(PROVIDERS).filter((id) => id !== "wavespeedai"),
+  Object.keys(PROVIDERS),
 );
 const PROVIDER_SOURCE = {
   groq: "https://console.groq.com/docs/models",
   cerebras: "https://inference-docs.cerebras.ai/api-reference/models",
   sail: "https://docs.sailresearch.com/pricing.md",
+  nous: "https://nousresearch.com/",
   qwencloud: "https://www.alibabacloud.com/help/en/model-studio/models",
   deepinfra: "https://deepinfra.com/models",
   novita: "https://novita.ai/docs/api-reference/model-apis-llm-list-models",
@@ -163,11 +163,14 @@ export function stateQuery(s) {
 }
 export async function request(path) {
   const location = globalThis.location;
+  const override = location?.search
+    ? new URLSearchParams(location.search).get("apiBase")
+    : null;
   const base =
-    ["127.0.0.1", "localhost"].includes(location?.hostname) &&
+    override || (["127.0.0.1", "localhost"].includes(location?.hostname) &&
     location?.port === "4174"
       ? "/__open_dashboard_api"
-      : API_BASE;
+      : API_BASE);
   const response = await fetch(`${base}${path}`, {
     signal: AbortSignal.timeout(20000),
     credentials: "omit",
@@ -575,14 +578,7 @@ export function filterModels(models, s) {
 }
 export function metric(m, axis, s = DEFAULT_STATE) {
   if (!Object.hasOwn(AXES, axis)) return null;
-  if (axis !== "workload") return finite(m[axis]);
-  const input = finite(m.input),
-    output = finite(m.output),
-    inputTokens = finite(s.inputTokens),
-    outputTokens = finite(s.outputTokens);
-  return [input, output, inputTokens, outputTokens].includes(null)
-    ? null
-    : finite((input * inputTokens + output * outputTokens) / 1e6);
+  return finite(m[axis]);
 }
 export function tokenPoints(models, s) {
   return models

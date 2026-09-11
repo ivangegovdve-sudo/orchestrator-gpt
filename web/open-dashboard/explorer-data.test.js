@@ -413,13 +413,17 @@ test("dimensions preserve missing prices and reject non-finite computed coordina
   );
   assert.equal(metric(normalized(), "name"), null);
   assert.equal(
-    metric(
-      normalized(),
-      "workload",
-      state({ inputTokens: 0, outputTokens: 0 }),
-    ),
-    0,
+    metric(normalized(), "workload", state({ inputTokens: 0, outputTokens: 0 })),
+    null,
   );
+});
+
+test("catalogue arithmetic is not exposed as generation cost and the provider list has no WaveSpeed duplicate", async () => {
+  const data = await import("./explorer-data.js");
+  assert.equal(Object.hasOwn(data.PROVIDERS, "wavespeedai"), false);
+  assert.equal(data.DIRECT_PROVIDER_IDS.includes("wavespeedai"), false);
+  assert.equal(data.PROVIDERS.nous, "Nous Research");
+  assert.equal(data.metric(normalized(), "workload"), null);
 });
 
 test("same-ID comparisons retain provider identity and require text-compatible comparable prices", () => {

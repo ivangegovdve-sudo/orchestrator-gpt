@@ -347,8 +347,6 @@ function syncControls() {
     $(id).value = state[id];
   for (const id of ["free", "tools", "inactive"]) $(id).checked = state[id];
   $("search").value = state.q;
-  $("input-tokens").value = state.inputTokens;
-  $("output-tokens").value = state.outputTokens;
   $("flow-app").value = state.app;
   $("flow-model").value = state.flowModel;
   $("flow-weight").value = state.weight;
@@ -375,8 +373,6 @@ function render() {
   if (state.view === "models") {
     $("text-axes").hidden = mediaMode();
     $("media-axes").hidden = !mediaMode();
-    $("workload-controls").hidden =
-      mediaMode() || !(state.x === "workload" || state.y === "workload");
     const units = [...(MEDIA_UNITS[state.modality] || []), "catalogue"];
     $("media-unit").replaceChildren(
       ...units.map((u) =>
@@ -484,9 +480,7 @@ function renderMainChart() {
       });
       $("chart-title").textContent = "A landscape of possibilities";
       $("chart-subtitle").textContent =
-        state.x === "workload" || state.y === "workload"
-          ? "Illustrative API cost · adjust your input and output above"
-          : "Published token prices · USD per million tokens";
+        "Published token rates · USD per million tokens; not the price paid for a routed generation";
       $("plot-summary").textContent =
         `${rows.length.toLocaleString()} entries with comparable token quotes plotted · ${filtered.length.toLocaleString()} entries match. ${filtered.length - rows.length} lack these dimensions or use other output units. ${state.scale === "symlog" ? "Log + zero keeps zero prices visible." : "Linear axes start at zero."}`;
     }
@@ -688,7 +682,7 @@ function renderSources() {
     ) +
     sourceCard(
       "MCP package",
-      "open-dashboard-mcp 1.0.2 · 16 selectable tools, 12 direct provider adapters. This is not a count of the inference providers behind OpenRouter. Sail's current documented IDs are shown, with pricing withheld because the published MCP's document verification no longer matches.",
+      "open-dashboard-mcp 1.1.0 candidate · 17 selectable tools, 13 named provider records. Catalogue rates are published rate-card evidence, not the price paid for an aggregator-routed generation. Measured generation evidence is shown separately.",
       "https://www.npmjs.com/package/open-dashboard-mcp",
     );
   const routing = metadata.routingProviders,
@@ -718,7 +712,7 @@ function renderSources() {
         : `${provider.models} distinct entries in this explorer; ${provider.pricedModels} have usable published rates here. ${archiveCount}; ${nativeCount}.`;
     const special =
       provider.verification === "document_verification_failed"
-        ? " Sail pricing verification failed: the current document differs from MCP 1.0.2. Documented model IDs remain available; quotes are withheld."
+        ? " Sail pricing verification failed: the current document differs from the MCP 1.1.0 candidate. Documented model IDs remain available; quotes are withheld."
         : provider.scope === "public_pricing_rows_only"
           ? " Public pricing identities only; account-visible model inventory is unknown."
           : provider.id === "chutes"
@@ -732,6 +726,38 @@ function renderSources() {
   }
   for (const error of failures)
     $("sources").innerHTML += sourceCard(error.name, error.message, null);
+}
+
+function renderGenerationEvidence() {
+  const container = $("generation-evidence-content");
+  const rows = Array.isArray(metadata.generationCosts?.data)
+    ? metadata.generationCosts.data
+    : [];
+  if (!rows.length) {
+    container.innerHTML = "<p>No measured generation observation is available. Unknown and blocked are not zero.</p>";
+    return;
+  }
+  container.innerHTML = rows.map((row) => {
+    const latency = row.latency || {};
+    const cost = row.costUsd === null
+      ? `${row.costState} · ${row.provenance}`
+      : `$${row.costUsd} · ${row.costState} · ${row.provenance}`;
+    const latencyText = [
+      `TTFT ${latency.ttftMs ?? "UNKNOWN"} ms`,
+      `round trip ${latency.roundTripMs ?? "UNKNOWN"} ms`,
+      `sustained ${latency.sustainedThroughputTps ?? "UNKNOWN"} tokens/s`,
+    ].join(" · ");
+    return `<article class="source-item generation-observation"><strong>${escape(row.provider)} → ${escape(row.upstreamProvider)} · ${escape(row.model)}</strong><p class="generation-cost"><span>${escape(cost)}</span></p>${detailsList([
+      ["Observed", dateLabel(row.observedAt)],
+      ["Cost evidence date", dateLabel(row.provenanceDate)],
+      ["Tokens", `${row.tokenCounts.input} in · ${row.tokenCounts.output} out · ${row.tokenCounts.total} total`],
+      ["Workload", `${row.workload.name} · budget ${row.workload.inputTokens ?? "UNKNOWN"} in / ${row.workload.maxOutputTokens ?? "UNKNOWN"} max out`],
+      ["Vantage point", row.vantagePoint],
+      ["Authoritative field", row.authoritativeField ?? "NONE"],
+      ["Latency", latencyText],
+      ["Latency context", `${latency.workload?.name ?? "UNKNOWN"} · ${latency.vantagePoint ?? "UNKNOWN"} · n=${latency.n ?? "UNKNOWN"} · ${latency.percentileMethod ?? "UNKNOWN"} · ${dateLabel(latency.observedAt)}`],
+    ])}<p>${escape(row.note)}</p>${link(row.sourceUrl, "Read provider response source", "text-link")}</article>`;
+  }).join("");
 }
 function openLimits() {
   $("limits-dialog").showModal();
@@ -812,15 +838,6 @@ $("media-unit").onchange = () => {
 };
 $("inspect-model").onchange = () =>
   selectModel(filtered.find((m) => m.key === $("inspect-model").value));
-for (const [id, key] of [
-  ["input-tokens", "inputTokens"],
-  ["output-tokens", "outputTokens"],
-])
-  $(id).onchange = () => {
-    state[key] = Math.max(0, Math.min(1e9, Number($(id).value) || 0));
-    $(id).value = state[key];
-    render();
-  };
 $("more-filters").onclick = () => {
   const open = $("extra-filters").hidden;
   $("extra-filters").hidden = !open;
@@ -908,6 +925,7 @@ async function boot() {
       ),
     apps: () => request("/apps?limit=10&period=30d&sort=popular"),
     history: () => request("/history?window=30d&limit=10"),
+    generationCosts: () => request("/generation-costs?limit=100"),
   };
   const keys = Object.keys(jobs);
   const results = await Promise.allSettled(keys.map((k) => jobs[k]()));
@@ -926,6 +944,7 @@ async function boot() {
   matrix = metadata.matrix;
   apps = metadata.apps?.data || [];
   history = metadata.history;
+  renderGenerationEvidence();
   if (matrix?.status !== "available") {
     try {
       const [r, m] = await Promise.all([

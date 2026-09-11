@@ -226,7 +226,6 @@
                       <option value="input">Input price / 1M tokens</option>
                       <option value="output">Output price / 1M tokens</option>
                       <option value="context">Context window (tokens)</option>
-                      <option value="workload">Example workload cost</option>
                     </select></label
                   ><label
                     >Y
@@ -234,7 +233,6 @@
                       <option value="output">Output price / 1M tokens</option>
                       <option value="input">Input price / 1M tokens</option>
                       <option value="context">Context window (tokens)</option>
-                      <option value="workload">Example workload cost</option>
                     </select></label
                   >
                 </div>
@@ -258,30 +256,6 @@
                 ><button id="share-view" class="subtle-button" type="button">
                   Copy this view ↗
                 </button>
-              </div>
-              <div class="workload-controls" id="workload-controls" hidden>
-                <label
-                  >Input tokens
-                  <input
-                    type="number"
-                    id="input-tokens"
-                    min="0"
-                    max="1000000000"
-                    value="1000000"
-                    step="1000" /></label
-                ><label
-                  >Output tokens
-                  <input
-                    type="number"
-                    id="output-tokens"
-                    min="0"
-                    max="1000000000"
-                    value="250000"
-                    step="1000" /></label
-                ><span
-                  >Illustrative API cost; excludes other fees and
-                  discounts.</span
-                >
               </div>
             </div>
             <div id="alternate-controls" class="filter-bar" hidden></div>
@@ -354,6 +328,18 @@
           </summary>
           <div id="sources" class="source-grid"></div>
         </details>
+      </section>
+      <section id="generation-evidence" class="page-width section-anchor">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Real billable evidence</p>
+            <h2>Measured generations, not catalogue arithmetic.</h2>
+          </div>
+          <p>Provider-reported per-generation cost is shown with its provenance and observation context.</p>
+        </div>
+        <div id="generation-evidence-content" class="source-grid" role="status">
+          Loading measured generation evidence…
+        </div>
       </section>
       <section
         id="connections"
