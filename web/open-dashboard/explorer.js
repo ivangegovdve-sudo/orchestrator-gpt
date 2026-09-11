@@ -6,6 +6,7 @@ import {
   AXES,
   compact,
   money,
+  isPriceOutlier,
   dateLabel,
   safeUrl,
   request,
@@ -156,6 +157,32 @@ function formatCondition(condition) {
     )
     .join(" · ");
 }
+function priceOutlierNote(model, media) {
+  if (media) {
+    const peersByUnit = new Map();
+    for (const candidate of models) {
+      for (const point of candidate.pricePoints || []) {
+        if (typeof point?.unit !== "string") continue;
+        const peers = peersByUnit.get(point.unit) || [];
+        peers.push(point.amount);
+        peersByUnit.set(point.unit, peers);
+      }
+    }
+    if (
+      (model.pricePoints || []).some((point) =>
+        isPriceOutlier(point?.amount, peersByUnit.get(point?.unit) || []),
+      )
+    )
+      return '<p class="price-outlier-note">Observed outlier · published price is far outside the comparable catalogue range.</p>';
+    return "";
+  }
+  const inputPeers = models.map((candidate) => candidate.input),
+    outputPeers = models.map((candidate) => candidate.output);
+  return isPriceOutlier(model.input, inputPeers) ||
+    isPriceOutlier(model.output, outputPeers)
+    ? '<p class="price-outlier-note">Observed outlier · published price is far outside the comparable catalogue range.</p>'
+    : "";
+}
 function renderInspector(m) {
   if (!m) return;
   const available =
@@ -184,6 +211,7 @@ function renderInspector(m) {
   let prices = media
     ? `<div class="native-prices">${nativePrices.length ? nativePrices.map((p) => `<div class="native-price"><strong>${money(Number(p.amount))}</strong><span> / ${escape(p.unit.replaceAll("_", " "))}</span><small>${escape(formatCondition(p.condition))}</small></div>`).join("") : "<p>Native output price not established. Zero or missing token fields do not price media generation.</p>"}</div>`
     : `<div class="metric-pair"><div><span>Input / 1M tokens</span><strong>${money(m.input)}</strong></div><div><span>Output / 1M tokens</span><strong>${money(m.output)}</strong></div></div>`;
+  const outlierNote = priceOutlierNote(m, media);
   let quotaText = "";
   if (quota?.kind === "free_variant_quota")
     quotaText =
@@ -206,7 +234,7 @@ function renderInspector(m) {
       ". Organization-wide limits; paid API prices above are separate.";
   }
   $("inspector").innerHTML =
-    `<p class="eyebrow">${escape(PROVIDERS[m.provider] || m.provider)} · ${media ? "Model evidence" : "Find your fit"}</p><h3>${escape(m.name)}</h3><div class="model-id"><code>${escape(m.id)}</code><button type="button" id="copy-model-id" aria-label="Copy exact model ID">Copy</button></div>${prices}${detailsList(
+    `<p class="eyebrow">${escape(PROVIDERS[m.provider] || m.provider)} · ${media ? "Model evidence" : "Find your fit"}</p><h3>${escape(m.name)}</h3><div class="model-id"><code>${escape(m.id)}</code><button type="button" id="copy-model-id" aria-label="Copy exact model ID">Copy</button></div>${prices}${outlierNote}${detailsList(
       [
         ["Output", m.modalities.join(", ") || "Not reported"],
         [

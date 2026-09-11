@@ -740,6 +740,12 @@ h1 {
   font-weight: 600;
   margin-top: 5px;
 }
+.price-outlier-note {
+  color: var(--ink);
+  font-size: 12px;
+  line-height: 1.5;
+  margin: -7px 0 19px;
+}
 .detail-list {
   margin: 0;
   padding: 0;

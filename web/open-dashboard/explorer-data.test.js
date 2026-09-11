@@ -22,7 +22,19 @@ import {
   loadModelEndpoints,
   modelFilterSummary,
   clearModelFilters,
+  isPriceOutlier,
 } from "./explorer-data.js";
+
+test("price outlier detection uses a robust distribution rule", () => {
+  const ordinary = [
+    0.08, 0.12, 0.15, 0.2, 0.28, 0.35, 0.45, 0.6, 0.8, 1, 1.2, 1.6,
+  ];
+  assert.equal(isPriceOutlier(1.6, ordinary), false);
+  assert.equal(isPriceOutlier(150, ordinary), true);
+  assert.equal(isPriceOutlier(600, ordinary), true);
+  assert.equal(isPriceOutlier(0, ordinary), false);
+  assert.equal(isPriceOutlier(150, ordinary.slice(0, 7)), false);
+});
 
 test("native catalogue merge retains text and unknown identities, exact token rates and explicit capabilities", () => {
   const price = (unit, amount, condition = null) => ({
