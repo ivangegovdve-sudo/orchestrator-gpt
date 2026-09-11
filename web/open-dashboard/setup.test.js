@@ -5,6 +5,7 @@ import {
   CLIENTS,
   MCP_EXCHANGE_FACTS,
   NPM_DOWNLOAD_FACTS,
+  OPENCLAW_CONFIG_FACTS,
   PRESETS,
   TOOLS,
   PACKAGE_SPEC,
@@ -137,6 +138,10 @@ test("the MCP entry page exposes sourced proof and the direct install path", asy
   assert.match(page, /Agents guess at model names and prices/);
   assert.match(page, /12\s+providers/);
   assert.match(page, /text, image, video and audio/);
+  assert.match(page, /OpenClaw/);
+  assert.match(page, /OpenClaw compatibility/);
+  assert.match(page, /docs\.openclaw\.ai\/cli\/mcp/);
+  assert.ok(page.includes("%USERPROFILE%\\.openclaw\\openclaw.json"));
   assert.match(page, new RegExp(`npx -y ${PACKAGE_SPEC.replace(/[.*+?^${}()|[\\]\\\\]/g, "\\\\$&")}`));
   assert.match(page, new RegExp(`${NPM_DOWNLOAD_FACTS.downloads} npm downloads`));
   assert.match(page, /3–9 September 2026/);
@@ -146,6 +151,34 @@ test("the MCP entry page exposes sourced proof and the direct install path", asy
   assert.match(page, new RegExp(MCP_EXCHANGE_FACTS.crazyrouterInput));
   assert.match(page, new RegExp(MCP_EXCHANGE_FACTS.openrouterOutput));
   assert.doesNotMatch(page, /Public usage and project trends|app insights/);
+});
+
+test("OpenClaw uses its documented JSON5 mcp.servers shape and keeps the tool allowlist", () => {
+  const selectedTools = ["dashboard_catalogue", "dashboard_matrix"];
+  const unix = createSetup({ clientId: "openclaw", toolIds: selectedTools });
+  const unixConfig = JSON.parse(unix.content);
+  assert.equal(unix.format, "JSON5");
+  assert.equal(unix.location, OPENCLAW_CONFIG_FACTS.configPath);
+  assert.deepEqual(unixConfig.mcp.servers["open-dashboard"], {
+    command: "npx",
+    args: ["-y", PACKAGE_SPEC],
+    env: { OPEN_DASHBOARD_TOOLS: selectedTools.join(",") },
+  });
+  assert.match(unix.instruction, /mcp\.servers/);
+  assert.match(unix.verification, /OpenClaw 2026\.9\.4/);
+
+  const windows = createSetup({
+    clientId: "openclaw",
+    platform: "windows",
+    toolIds: selectedTools,
+  });
+  const windowsConfig = JSON.parse(windows.content);
+  assert.equal(windows.location, OPENCLAW_CONFIG_FACTS.windowsConfigPath);
+  assert.deepEqual(windowsConfig.mcp.servers["open-dashboard"], {
+    command: "cmd",
+    args: ["/c", "npx", "-y", PACKAGE_SPEC],
+    env: { OPEN_DASHBOARD_TOOLS: selectedTools.join(",") },
+  });
 });
 
 test("each preset exposes only its selected tools, including a two-tool GitHub setup", () => {

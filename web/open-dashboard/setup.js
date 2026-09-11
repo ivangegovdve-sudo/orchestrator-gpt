@@ -139,8 +139,7 @@ export function mountSetup(root = document) {
       `${setup.tools.length} selected tools · ${setup.format} · version ${PACKAGE_VERSION}`;
     wizard.querySelector("[data-output-instruction]").textContent =
       setup.instruction;
-    wizard.querySelector("[data-output-location]").textContent =
-      setup.client.location;
+    wizard.querySelector("[data-output-location]").textContent = setup.location;
     wizard.querySelector("[data-output-code]").textContent = setup.content;
     const download = wizard.querySelector("[data-download-setup]");
     download.href = `data:text/plain;charset=utf-8,${encodeURIComponent(setup.content)}`;

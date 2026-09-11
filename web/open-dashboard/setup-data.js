@@ -2,6 +2,15 @@ export const PACKAGE_VERSION = "1.0.2";
 export const PACKAGE_SPEC = `open-dashboard-mcp@${PACKAGE_VERSION}`;
 export const SETUP_CHECKED_AT = "2026-09-10";
 export const NPM_URL = "https://www.npmjs.com/package/open-dashboard-mcp";
+export const OPENCLAW_CONFIG_FACTS = Object.freeze({
+  version: "2026.9.4",
+  checkedAt: "2026-09-11",
+  docsUrl: "https://docs.openclaw.ai/cli/mcp",
+  configDocsUrl:
+    "https://github.com/openclaw/openclaw/blob/main/docs/gateway/configuration.md",
+  configPath: "~/.openclaw/openclaw.json",
+  windowsConfigPath: "%USERPROFILE%\\.openclaw\\openclaw.json",
+});
 export const NPM_DOWNLOAD_FACTS = Object.freeze({
   downloads: 807,
   start: "2026-09-03",
@@ -212,6 +221,14 @@ export const CLIENTS = [
     format: "YAML",
   },
   {
+    id: "openclaw",
+    name: "OpenClaw",
+    detail: "Gateway · JSON5 · config verified",
+    docs: OPENCLAW_CONFIG_FACTS.docsUrl,
+    location: OPENCLAW_CONFIG_FACTS.configPath,
+    format: "JSON5",
+  },
+  {
     id: "codex",
     name: "Codex",
     detail: "App, CLI or IDE · TOML",
@@ -326,6 +343,12 @@ export function createSetup({
     format: client.format,
     prompt: firstPrompt(tools),
     sourceUrl: client.docs,
+    location:
+      clientId === "openclaw"
+        ? windows
+          ? OPENCLAW_CONFIG_FACTS.windowsConfigPath
+          : OPENCLAW_CONFIG_FACTS.configPath
+        : client.location,
     filename: "open-dashboard-mcp.json",
     content: "",
     instruction: "",
@@ -352,6 +375,22 @@ export function createSetup({
       "Run this command in your terminal. It adds Open Dashboard for your user across projects. If that name is already configured, update its existing entry instead.";
     result.verification =
       "Open Claude Code, run /mcp, and check that Open Dashboard is connected. Then ask the question below.";
+  } else if (clientId === "openclaw") {
+    result.filename = "open-dashboard-openclaw.json5";
+    result.content =
+      JSON.stringify(
+        {
+          mcp: {
+            servers: {
+              "open-dashboard": server,
+            },
+          },
+        },
+        null,
+        2,
+      ) + "\n";
+    result.instruction = `Merge this entry into mcp.servers in ${result.location}. OpenClaw reads JSON5, so preserve your other root keys and servers. Then run openclaw mcp status --verbose to confirm the saved entry.`;
+    result.verification = `Config shape verified with OpenClaw ${OPENCLAW_CONFIG_FACTS.version} using mcp set and mcp status --json; it reported a configured stdio server. Run openclaw mcp probe open-dashboard to test the live connection on this machine.`;
   } else {
     result.content =
       JSON.stringify(
