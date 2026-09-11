@@ -10,6 +10,10 @@ import {
   toolsFromQuery,
 } from "./setup-data.js";
 import { initShell } from "./shell.js";
+import {
+  formatNpmDownloadRange,
+  readNpmDownloadState,
+} from "./npm-downloads.js";
 
 const STORAGE_KEY = "open-dashboard-setup-v1";
 const escape = (value) =>
@@ -39,6 +43,32 @@ export function restoreSetupPreferences(saved) {
     /* Missing or outdated tools keep the default selection. */
   }
   return state;
+}
+
+export function mountNpmDownloads(root = document, fetchImpl = globalThis.fetch) {
+  const container = root.querySelector("[data-npm-downloads]");
+  if (!container) return;
+  const value = container.querySelector("[data-npm-downloads-value]");
+  const note = container.querySelector("[data-npm-downloads-note]");
+  if (!value || !note) return;
+
+  container.dataset.npmDownloadsState = "loading";
+  value.textContent = "Checking npm downloads…";
+  note.textContent = "Reading the latest complete weekly window from npm.";
+
+  return readNpmDownloadState(fetchImpl).then((state) => {
+    container.dataset.npmDownloadsState = state.status;
+    if (state.status === "available") {
+      value.textContent = `${state.facts.downloads.toLocaleString("en-US")} npm downloads`;
+      note.textContent = `Latest complete weekly window: ${formatNpmDownloadRange(state.facts)} (read live from npm).`;
+    } else if (state.status === "unavailable") {
+      value.textContent = "NPM downloads unavailable";
+      note.textContent = "The public downloads service did not return a usable weekly result.";
+    } else {
+      value.textContent = "NPM downloads could not be read";
+      note.textContent = "The public downloads response was unavailable or malformed.";
+    }
+  });
 }
 
 export function mountSetup(root = document) {
@@ -262,4 +292,5 @@ export function mountSetup(root = document) {
 if (typeof document !== "undefined") {
   initShell();
   mountSetup();
+  mountNpmDownloads();
 }

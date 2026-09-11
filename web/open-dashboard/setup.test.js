@@ -5,7 +5,6 @@ import {
   CLIENTS,
   CLIENT_VERIFICATION_FACTS,
   MCP_EXCHANGE_FACTS,
-  NPM_DOWNLOAD_FACTS,
   OPENCLAW_CONFIG_FACTS,
   PRESETS,
   TOOLS,
@@ -131,13 +130,13 @@ test("selectable tools and version match the actual published package vocabulary
     TOOLS.map((tool) => tool.id).sort(),
     [...shipped.tools].sort(),
   );
-  assert.equal(new Set(TOOLS.map((tool) => tool.id)).size, 16);
+  assert.equal(new Set(TOOLS.map((tool) => tool.id)).size, 17);
 });
 
 test("the MCP entry page exposes sourced proof and the direct install path", async () => {
   const page = await readFile(new URL("./mcp/index.html", import.meta.url), "utf8");
   assert.match(page, /Agents guess at model names and prices/);
-  assert.match(page, /12\s+providers/);
+  assert.match(page, /13\s+providers/);
   assert.match(page, /text, image, video and audio/);
   assert.match(page, /OpenClaw/);
   assert.match(page, /OpenClaw compatibility/);
@@ -147,10 +146,9 @@ test("the MCP entry page exposes sourced proof and the direct install path", asy
   assert.ok(page.includes("No live"));
   assert.ok(page.includes("%USERPROFILE%\\.openclaw\\openclaw.json"));
   assert.match(page, /Verdict: Crazyrouter is cheaper on both token legs/);
-  assert.match(page, /<strong>807 npm downloads<\/strong>/);
+  assert.match(page, /data-npm-downloads-value>Checking npm downloads/);
   assert.match(page, new RegExp(`npx -y ${PACKAGE_SPEC.replace(/[.*+?^${}()|[\\]\\\\]/g, "\\\\$&")}`));
-  assert.match(page, new RegExp(`${NPM_DOWNLOAD_FACTS.downloads} npm downloads`));
-  assert.match(page, /3–9 September 2026/);
+  assert.match(page, /data-npm-downloads-note>Reading the latest complete weekly window from npm/);
   assert.match(page, new RegExp(MCP_EXCHANGE_FACTS.tool));
   assert.match(page, new RegExp(MCP_EXCHANGE_FACTS.crazyrouterModelId));
   assert.match(page, new RegExp(MCP_EXCHANGE_FACTS.openrouterModelId.replace("/", "\\/")));
@@ -318,7 +316,7 @@ test("explorer deep links enable their exact capability and reject an invalid se
     "dashboard_benchmarks,,dashboard_contract",
     "dashboard_benchmarks,unknown_tool",
     "dashboard_benchmarks;echo injected",
-    Array(17).fill("dashboard_benchmarks").join(","),
+    Array(18).fill("dashboard_benchmarks").join(","),
     "x".repeat(1025),
   ]) {
     assert.equal(
@@ -329,7 +327,7 @@ test("explorer deep links enable their exact capability and reject an invalid se
   }
   assert.equal(
     toolsFromQuery(TOOLS.map((tool) => tool.id).join(",")).length,
-    16,
+    17,
   );
 });
 

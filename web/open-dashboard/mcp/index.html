@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta
       name="description"
-      content="Give agents exact model IDs and observed token and media prices across 12 providers and text, image, video and audio models. Connect Open Dashboard to Hermes, OpenClaw, Codex, Claude or Cursor."
+      content="Give agents exact model IDs and provider-published prices with units, conditions and source dates across 13 providers, covering text, image, video and audio models where sources publish them. Connect Open Dashboard to Hermes, OpenClaw, Codex, Claude or Cursor."
     />
     <meta name="theme-color" content="#faf9f6" />
     <title>Connect your agent — Open Dashboard</title>
@@ -65,13 +65,14 @@
         <h1>Connect <em>your agent.</em></h1>
         <p class="setup-intro-description">
           Agents guess at model names and prices. Open Dashboard gives yours
-          exact IDs and observed prices with their conditions across 12
-          providers, covering text, image, video and audio models.
+          exact IDs and provider-published prices with visible units, conditions
+          and source dates across 13 providers, covering text, image, video and
+          audio models where sources publish them.
         </p>
         <div class="setup-facts">
           <span>Read-only tools</span><span>Node.js 20+</span
           ><a href="https://www.npmjs.com/package/open-dashboard-mcp"
-            >MCP version 1.0.2 ↗</a
+            >MCP version 1.1.0 ↗</a
           >
         </div>
       </header>
@@ -79,7 +80,7 @@
         <section class="setup-install-card" aria-labelledby="quick-install-title">
           <div>
             <p class="setup-eyebrow" id="quick-install-title">Quick install</p>
-            <code data-install-command>npx -y open-dashboard-mcp@1.0.2</code>
+            <code data-install-command>npx -y open-dashboard-mcp@1.1.0</code>
             <p>
               Already know your MCP client? Run this line. The wizard below
               tailors its settings and tool allowlist.
@@ -89,9 +90,9 @@
             Copy install line <span aria-hidden="true">⧉</span>
           </button>
           <p class="setup-install-status" role="status" aria-live="polite" data-install-status></p>
-          <p class="setup-download-note">
-            <strong>807 npm downloads</strong>
-            <span>Latest complete weekly window: 3–9 September 2026 (checked 11 September 2026).</span>
+          <p class="setup-download-note" data-npm-downloads aria-live="polite">
+            <strong data-npm-downloads-value>Checking npm downloads…</strong>
+            <span data-npm-downloads-note>Reading the latest complete weekly window from npm.</span>
             <a href="https://api.npmjs.org/downloads/point/last-week/open-dashboard-mcp">Verify on npm ↗</a>
           </p>
         </section>
@@ -484,7 +485,7 @@
             Open Dashboard entry in your agent’s settings. Restart the
             connection so it discovers the new selection. The
             <code>OPEN_DASHBOARD_TOOLS</code> setting controls which tools the
-            server exposes. Omitting it exposes all 16.
+            server exposes. Omitting it exposes all 17.
           </p>
         </details>
         <details class="setup-detail">
@@ -498,9 +499,9 @@
           </p>
         </details>
         <details class="setup-detail setup-reference">
-          <summary>All 16 tools <span>Technical reference</span></summary>
+          <summary>All 17 tools <span>Technical reference</span></summary>
           <p>
-            The names below are verified against the published package. Your
+            The names below are verified against the package contract. Your
             configuration can enable any subset.
           </p>
           <dl>
@@ -556,6 +557,10 @@
             <div>
               <dt><code>dashboard_benchmarks</code></dt>
               <dd>Published benchmark observations and source evidence.</dd>
+            </div>
+            <div>
+              <dt><code>dashboard_generation_costs</code></dt>
+              <dd>Measured per-generation costs when the provider reports them.</dd>
             </div>
             <div>
               <dt><code>dashboard_speed</code></dt>

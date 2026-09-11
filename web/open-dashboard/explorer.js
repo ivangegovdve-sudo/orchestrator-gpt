@@ -1011,7 +1011,7 @@ function renderSources() {
     ) +
     sourceCard(
       "MCP package",
-      "open-dashboard-mcp 1.0.2 · 16 selectable tools, 12 direct provider adapters. This is not a count of the inference providers behind OpenRouter. Sail's current documented IDs are shown, with pricing withheld because the published MCP's document verification no longer matches.",
+      "open-dashboard-mcp 1.1.0 · 17 selectable tools, 13 direct provider adapters. This is not a count of the inference providers behind OpenRouter. Provider-published catalogue prices keep their units and conditions; measured generation cost is a separate fact and may be unavailable.",
       "https://www.npmjs.com/package/open-dashboard-mcp",
     );
   const routing = metadata.routingProviders,
@@ -1041,7 +1041,7 @@ function renderSources() {
         : `${provider.models} distinct entries in this explorer; ${provider.pricedModels} have usable published rates here. ${archiveCount}; ${nativeCount}.`;
     const special =
       provider.verification === "document_verification_failed"
-        ? " Sail pricing verification failed: the current document differs from MCP 1.0.2. Documented model IDs remain available; quotes are withheld."
+        ? " Sail pricing verification failed: the current document differs from the pinned verification. Documented model IDs remain available; quotes are withheld."
         : provider.scope === "public_pricing_rows_only"
           ? " Public pricing identities only; account-visible model inventory is unknown."
           : provider.id === "chutes"
