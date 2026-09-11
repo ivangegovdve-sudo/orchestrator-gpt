@@ -163,6 +163,10 @@
 }
 .setup-download-note {
   grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr) auto;
+  align-items: baseline;
+  gap: 4px 12px;
   margin: 0 !important;
   padding-top: 10px;
   border-top: 1px solid var(--line, #d9e1dd);
@@ -171,11 +175,17 @@
   line-height: 1.55;
 }
 .setup-download-note strong {
-  color: var(--accent, #14796b);
-  font-weight: 700;
+  color: var(--ink, #0a302f);
+  font-size: 17px;
+  font-weight: 750;
+  letter-spacing: -0.03em;
+  white-space: nowrap;
+}
+.setup-download-note span {
+  color: var(--muted, #657778);
+  font-size: 11px;
 }
 .setup-download-note a {
-  margin-left: 4px;
   white-space: nowrap;
 }
 .setup-proof-head {
@@ -215,6 +225,23 @@
 }
 .setup-proof-turn p + p {
   margin-top: 6px;
+}
+.setup-proof-verdict {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 8px;
+  margin-bottom: 7px !important;
+  color: var(--ink, #0a302f) !important;
+  font-size: 13px !important;
+}
+.setup-proof-verdict strong {
+  color: var(--accent, #14796b);
+  font-weight: 750;
+}
+.setup-proof-verdict span {
+  color: var(--muted, #657778);
+  font-size: 11px;
 }
 .setup-proof-turn code,
 .setup-proof-source code {
@@ -379,6 +406,16 @@
   font-size: 11px;
   line-height: 1.5;
   margin-top: 5px;
+}
+.setup-client-verification {
+  display: block;
+  margin-top: 4px;
+  color: var(--accent, #14796b);
+  font-size: 10px;
+  line-height: 1.4;
+}
+.setup-client-verification.is-unverified {
+  color: var(--muted, #657778);
 }
 .setup-platform {
   display: flex;
@@ -959,6 +996,20 @@
   }
   .setup-install-card {
     grid-template-columns: minmax(0, 1fr);
+  }
+  .setup-download-note {
+    display: block;
+  }
+  .setup-download-note strong,
+  .setup-download-note span,
+  .setup-download-note a {
+    display: block;
+  }
+  .setup-download-note strong {
+    margin-bottom: 2px;
+  }
+  .setup-download-note a {
+    margin-top: 4px;
   }
   .setup-copy-button {
     justify-self: start;
