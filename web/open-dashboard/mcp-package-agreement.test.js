@@ -25,6 +25,8 @@ const pageUrl = new URL("./mcp/index.html", import.meta.url);
  */
 const NOT_A_FIELD = new Set([
   "npx", "null", "pricing.md", "api.sailresearch.com",
+  // OpenClaw configuration vocabulary, documented by OpenClaw rather than this package
+  "mcp.servers", "OPENCLAW_CONFIG_PATH",
   // status/state values the page quotes, not field names
   "partial", "approval_incomplete", "collection_disabled",
   // cache metadata the site itself owns

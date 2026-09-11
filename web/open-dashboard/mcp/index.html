@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta
       name="description"
-      content="Give agents exact model IDs and observed token and media prices across 12 providers and text, image, video and audio models. Connect Open Dashboard to Hermes, Codex, Claude or Cursor."
+      content="Give agents exact model IDs and observed token and media prices across 12 providers and text, image, video and audio models. Connect Open Dashboard to Hermes, OpenClaw, Codex, Claude or Cursor."
     />
     <meta name="theme-color" content="#faf9f6" />
     <title>Connect your agent — Open Dashboard</title>
@@ -239,6 +239,36 @@
                   <a
                     href="https://support.claude.com/en/articles/11725091-when-to-use-desktop-and-web-connectors"
                     >Official Claude compatibility guide ↗</a
+                  >
+                </p>
+              </details>
+              <details class="setup-detail setup-compatibility">
+                <summary>OpenClaw compatibility &amp; help</summary>
+                <p>
+                  OpenClaw stores saved MCP servers under
+                  <code>mcp.servers</code> in its JSON5 config. With the
+                  default home, use <code>~/.openclaw/openclaw.json</code> on
+                  macOS, Linux or WSL, and
+                  <code>%USERPROFILE%\.openclaw\openclaw.json</code> on native
+                  Windows. If <code>OPENCLAW_CONFIG_PATH</code> is set, use
+                  that file instead.
+                </p>
+                <p>
+                  The generated entry was accepted by OpenClaw 2026.9.4 with
+                  <code>openclaw mcp set</code> and reported as
+                  <code>transport: "stdio"</code> by
+                  <code>openclaw mcp status --json</code>. Run
+                  <code>openclaw mcp probe open-dashboard</code> after saving
+                  to test the live connection on your machine.
+                </p>
+                <p>
+                  <a href="https://docs.openclaw.ai/cli/mcp"
+                    >Official OpenClaw MCP guide ↗</a
+                  >
+                  ·
+                  <a
+                    href="https://github.com/openclaw/openclaw/blob/main/docs/gateway/configuration.md"
+                    >Config path source ↗</a
                   >
                 </p>
               </details>
