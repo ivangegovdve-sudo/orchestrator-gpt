@@ -10,13 +10,29 @@ const read = (...parts) => fs.readFileSync(path.join(ROUTE, ...parts), "utf8");
 const readFixture = (name) => JSON.parse(fs.readFileSync(path.join(__dirname, "fixtures", name), "utf8"));
 const importRoute = (file) => import(pathToFileURL(path.join(ROUTE, file)).href + `?t=${Date.now()}-${Math.random()}`);
 
-test("canonical routes remain isolated and landing motion uses the crown, roots, and route slams", () => {
-  for (const [file, route] of [["index.html", "overview"], ["openrouter/index.html", "openrouter"], ["matrix/index.html", "matrix"], ["github/index.html", "github"], ["catalogues/index.html", "catalogues"]]) {
+test("canonical routes use the current explorer architecture and landing motion", () => {
+  const landing = read("index.html");
+  assert.match(landing, /href="\.\/explorer\.css"/);
+  assert.match(landing, /src="\.\/explorer\.js"/);
+  assert.match(landing, /src="\.\/setup\.js"/);
+  assert.match(landing, /id="explore"/);
+  assert.doesNotMatch(landing, /open-dashboard\.js|id="oo-view-root"|forest-three\.js/);
+
+  const projects = read("github", "index.html");
+  assert.match(projects, /href="\.\.\/explorer\.css"/);
+  assert.match(projects, /src="\.\.\/shell\.js"/);
+  assert.match(projects, /src="\.\/projects\.js"/);
+  assert.doesNotMatch(projects, /forest-three\.js/);
+
+  for (const [file, destination] of [
+    ["openrouter/index.html", /[?]view=apps/],
+    ["matrix/index.html", /#connections/],
+    ["catalogues/index.html", /#explore/],
+  ]) {
     const html = read(...file.split("/"));
-    assert.match(html, new RegExp(`data-open-dashboard-route="${route}"`));
-    assert.match(html, /href="\/web\/open-dashboard\/open-dashboard\.css(?:\?[^\"]*)?"/);
-    assert.match(html, /src="\/web\/open-dashboard\/open-dashboard\.js\?v=20260904a"/);
-    assert.match(html, /id="oo-view-root"/);
+    assert.match(html, /href="\.\.\/explorer\.css"/);
+    assert.match(html, destination);
+    assert.match(html, /location\.replace\(next\.href\)/);
     assert.doesNotMatch(html, /forest-three\.js/);
   }
 
@@ -28,24 +44,23 @@ test("canonical routes remain isolated and landing motion uses the crown, roots,
   assert.doesNotMatch(entry, /^import .*forest-three\/tiles\.js/m);
 });
 
-test("dedicated matrix route is linked between OpenRouter and GitHub and MCP copy is current", () => {
+test("legacy matrix route redirects to connections and MCP copy derives current package facts", () => {
   const matrix = read("matrix", "index.html");
-  const openRouterPosition = matrix.indexOf("/web/open-dashboard/openrouter/index.html");
-  const matrixPosition = matrix.indexOf("/web/open-dashboard/matrix/index.html");
-  const githubPosition = matrix.indexOf("/web/open-dashboard/github/index.html");
-  assert.ok(openRouterPosition < matrixPosition && matrixPosition < githubPosition);
-  assert.match(matrix, /data-open-dashboard-route="matrix"/);
-  assert.match(matrix, /latest-complete/);
+  assert.match(matrix, /href="\/web\/open-dashboard\/#connections"/);
+  assert.match(matrix, /next\.hash = "connections"/);
+  assert.match(matrix, /location\.replace\(next\.href\)/);
 
   const mcp = read("mcp", "index.html");
-  assert.match(mcp, /1\.0\.0/);
-  assert.match(mcp, /<div class="mcp-signal"><strong>16<\/strong><span>read-only tools/);
+  assert.match(mcp, /data-package-version/);
+  assert.match(mcp, /data-package-tool-count/);
+  assert.match(mcp, /data-package-provider-count/);
+  assert.match(mcp, /data-npm-releases/);
   assert.match(mcp, /dashboard_github_trending/);
   assert.match(mcp, /dashboard_whats_changed/);
   assert.match(mcp, /dashboard_contract/);
   assert.match(mcp, /dashboard_speed/);
-  assert.match(mcp, /price-sets/);
-  assert.match(mcp, /deprecations/);
+  assert.match(mcp, /dashboard_price_comparison/);
+  assert.match(mcp, /dashboard_source_health/);
   assert.doesNotMatch(mcp, /v0\.6\.1|All nine tools/);
 });
 
