@@ -14,6 +14,10 @@ import {
   formatNpmDownloadAge,
   readNpmDownloadState,
 } from "./npm-downloads.js";
+import {
+  formatNpmReleaseAge,
+  readNpmReleaseState,
+} from "./npm-releases.js";
 
 const STORAGE_KEY = "open-dashboard-setup-v1";
 const PACKAGE_FACTS_URL = new URL("./package-facts.json", import.meta.url);
@@ -74,6 +78,38 @@ export function mountNpmDownloads(
       note.textContent = state.status === "unavailable"
         ? "The public downloads service did not return a usable weekly result; no cached number is shown."
         : "The public downloads response was unavailable or malformed; no cached number is shown.";
+    }
+  });
+}
+
+export function mountNpmReleases(
+  root = document,
+  fetchImpl = globalThis.fetch,
+  options = {},
+) {
+  const container = root.querySelector("[data-npm-releases]");
+  if (!container) return;
+  const value = container.querySelector("[data-npm-releases-value]");
+  const note = container.querySelector("[data-npm-releases-note]");
+  if (!value || !note) return;
+
+  container.dataset.npmReleasesState = "loading";
+  value.textContent = "Checking npm releases…";
+  note.textContent = "Reading published package versions from npm.";
+
+  return readNpmReleaseState(fetchImpl, options).then((state) => {
+    container.dataset.npmReleasesState = state.status;
+    if (state.source) container.dataset.npmReleasesSource = state.source;
+    else delete container.dataset.npmReleasesSource;
+    if (state.status === "available") {
+      value.textContent = `Published on npm: ${state.facts.published.join(" · ")}`;
+      const source = state.source === "cache" ? "this browser session" : "npm";
+      note.textContent = `Current npm release: ${state.facts.latest}. Registry checked ${formatNpmReleaseAge(state.ageMs)} ago from ${source}.`;
+    } else {
+      value.textContent = "UNAVAILABLE";
+      note.textContent = state.status === "unavailable"
+        ? "The npm registry did not return the published release list; no release claim is shown."
+        : "The npm registry release response was unavailable or malformed; no release claim is shown.";
     }
   });
 }
@@ -358,4 +394,5 @@ if (typeof document !== "undefined") {
     mountSetup();
   }
   mountNpmDownloads();
+  mountNpmReleases();
 }
