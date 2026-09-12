@@ -1322,7 +1322,9 @@ async function boot() {
     if (!matrix.modelIds.includes(state.flowModel)) state.flowModel = "all";
   }
   $("model-count").textContent = models.length.toLocaleString();
-  $("provider-count").textContent = providers.length;
+  $("provider-count").textContent = Array.isArray(metadata.packageFacts?.providers)
+    ? metadata.packageFacts.providers.length.toLocaleString()
+    : "Unknown";
   $("tool-count").textContent = Array.isArray(metadata.packageFacts?.tools)
     ? metadata.packageFacts.tools.length.toLocaleString()
     : "Unknown";

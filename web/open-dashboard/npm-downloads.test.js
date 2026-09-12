@@ -223,11 +223,12 @@ test("the download mount renders live success and named failure states", async (
   assert.equal(available.container.dataset.npmDownloadsState, "available");
   assert.equal(available.value.textContent, "12 npm downloads");
   assert.match(available.note.textContent, /3–9 September 2026/);
+  assert.match(available.note.textContent, /read less than a minute ago from npm/);
 
   const unavailable = downloadRoot();
   await mountNpmDownloads(unavailable, async () => ({ ok: false, status: 503 }));
   assert.equal(unavailable.container.dataset.npmDownloadsState, "unavailable");
-  assert.equal(unavailable.value.textContent, "NPM downloads unavailable");
+  assert.equal(unavailable.value.textContent, "UNAVAILABLE");
 
   const malformed = downloadRoot();
   await mountNpmDownloads(malformed, async () => ({
@@ -235,7 +236,7 @@ test("the download mount renders live success and named failure states", async (
     json: async () => ({ package: "open-dashboard-mcp", downloads: "12" }),
   }));
   assert.equal(malformed.container.dataset.npmDownloadsState, "error");
-  assert.equal(malformed.value.textContent, "NPM downloads could not be read");
+  assert.equal(malformed.value.textContent, "UNAVAILABLE");
 });
 
 test("the download mount labels a cached value with its age", async () => {
@@ -263,5 +264,5 @@ test("the download mount labels a cached value with its age", async () => {
     { storage, now: NOW + NPM_DOWNLOAD_CACHE_TTL_MS + 1 },
   );
   assert.equal(unavailable.container.dataset.npmDownloadsState, "unavailable");
-  assert.equal(unavailable.value.textContent, "NPM downloads unavailable");
+  assert.equal(unavailable.value.textContent, "UNAVAILABLE");
 });

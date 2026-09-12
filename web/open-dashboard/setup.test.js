@@ -142,6 +142,7 @@ test("the MCP entry page exposes sourced proof and the direct install path", asy
   const page = await readFile(new URL("./mcp/index.html", import.meta.url), "utf8");
   assert.match(page, /Agents guess at model names and prices/);
   assert.match(page, /data-package-provider-count/);
+  assert.match(page, /data-package-tool-count/);
   assert.match(page, /data-package-version/);
   assert.match(page, /data-package-node-requirement/);
   assert.doesNotMatch(page, /13\s+providers/);
