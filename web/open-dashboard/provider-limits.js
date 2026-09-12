@@ -114,7 +114,7 @@ export function getFreeTierOffer(provider, modelId) {
   ) {
     return {
       kind: "free_variant_quota",
-      requestsPerMinute: 20,
+      requestsPerMinute: OPENROUTER_FREE_LIMITS.requestsPerMinute,
       dailyTiers: OPENROUTER_FREE_LIMITS.tiers,
       scope: OPENROUTER_FREE_LIMITS.scope,
       checkedAt: LIMITS_CHECKED_AT,
