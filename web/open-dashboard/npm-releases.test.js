@@ -136,11 +136,11 @@ function releaseRoot() {
   };
 }
 
-test("the release mount visibly names both published releases and current state", async () => {
+test("the release mount visibly names only the current published release", async () => {
   const root = releaseRoot();
   await mountNpmReleases(root, async () => registryResponse());
   assert.equal(root.container.dataset.npmReleasesState, "available");
-  assert.equal(root.value.textContent, "Published on npm: 1.1.2 · 1.1.3");
+  assert.equal(root.value.textContent, "Published on npm: 1.1.3");
   assert.match(root.note.textContent, /Current npm release: 1\.1\.3/);
 
   const unavailable = releaseRoot();

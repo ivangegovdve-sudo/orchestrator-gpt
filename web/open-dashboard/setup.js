@@ -102,7 +102,7 @@ export function mountNpmReleases(
     if (state.source) container.dataset.npmReleasesSource = state.source;
     else delete container.dataset.npmReleasesSource;
     if (state.status === "available") {
-      value.textContent = `Published on npm: ${state.facts.published.join(" · ")}`;
+      value.textContent = `Published on npm: ${state.facts.latest}`;
       const source = state.source === "cache" ? "this browser session" : "npm";
       note.textContent = `Current npm release: ${state.facts.latest}. Registry checked ${formatNpmReleaseAge(state.ageMs)} ago from ${source}.`;
     } else {
