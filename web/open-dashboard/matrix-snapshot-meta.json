@@ -1,0 +1,15 @@
+{
+  "kind": "archived_published_history",
+  "capturedAt": "2026-09-10T16:19:05.658977Z",
+  "observedDate": "2026-09-09",
+  "renderedBy": {
+    "service": "readAppModelMatrix",
+    "repository": "ivangegovdve-sudo/openrouter-github-dashboard",
+    "baseCommit": "0016dbc42835b2b9ade7c0031cee92fe3f012e69",
+    "repairCommit": "48a1c82b1cb0fdb24b5a32e19dd4418d1668c3ee"
+  },
+  "source": "Successful published archive runs with publication events and current-watermark rollback ceiling",
+  "migrationPending": "0015_app_model_published_history.sql",
+  "liveApiResponse": false,
+  "usage": "Display as an archived September 9 view; prefer any successful live matrix response. Do not describe its captured freshness flags as current freshness."
+}

@@ -1,0 +1,1846 @@
+{
+  "schemaVersion": "2.0",
+  "status": "available",
+  "watermark": "0a8b8a30-6bf0-4dc1-a1a1-30e33a971cc0+1bde90c7-03d9-411d-8cae-83930cd701df+3549f835-2cfe-4480-9209-9eb92503256d+4a203cf2-e44d-4cd6-bfb9-cb8a7993901d+50b1559e-833f-443a-bcf9-d445217c29fe+5c2ed240-5911-47bd-974e-15527ab99aad+5df67b74-5880-4acb-93ea-a4c37e3fdd2d+67fd8f15-fb65-4c73-a199-323ed59f2847+a3eb00b0-0d56-4ad4-9016-c83550cb195d+a83e8f25-16f4-45bc-abe3-269ac83cd0ac+b29d5f21-cf0c-4759-b76e-156745ace419+d1acc9e5-fa9d-4579-b86b-8c70171ab821+d7420570-d508-463e-80fe-fc305df2eb22+de251ec2-6f45-4b56-88db-b750af3e6399",
+  "lastSuccessAt": "2026-09-09T06:13:48.680Z",
+  "stale": false,
+  "staleAfterSeconds": 172800,
+  "completeness": {
+    "acquisitionComplete": false,
+    "populationCompleteness": "partial_or_unknown",
+    "missingFields": [
+      "ambiguous_model:190604:anthropic/claude-4.6-sonnet-20260217",
+      "ambiguous_model:190604:anthropic/claude-5-fable-20260609",
+      "ambiguous_model:190604:anthropic/claude-opus-5-20260723",
+      "ambiguous_model:190604:anthropic/claude-sonnet-5-20260630",
+      "ambiguous_model:190604:deepseek/deepseek-v4-flash-20260731",
+      "ambiguous_model:190604:minimax/minimax-m3-20260531",
+      "ambiguous_model:190604:moonshotai/kimi-k3-20260715",
+      "ambiguous_model:190604:nvidia/nemotron-3-ultra-550b-a55b-20260604",
+      "ambiguous_model:190604:nvidia/nemotron-3.5-lightning-20260807",
+      "ambiguous_model:190604:openai/gpt-5.6-luna-20260709",
+      "ambiguous_model:190604:poolside/laguna-s-2.1-20260720",
+      "ambiguous_model:190604:z-ai/glm-5.3-flash-20260826",
+      "ambiguous_model:2262242:deepseek/deepseek-v4-flash-20260731",
+      "ambiguous_model:2262242:inclusionai/ling-3.0-flash-fin-20260827",
+      "ambiguous_model:2262242:minimax/minimax-m2.7-20260318",
+      "ambiguous_model:2262242:minimax/minimax-m3-20260531",
+      "ambiguous_model:2262242:moonshotai/kimi-k3-20260715",
+      "ambiguous_model:2262242:nvidia/nemotron-3-super-120b-a12b-20230311",
+      "ambiguous_model:2262242:nvidia/nemotron-3-ultra-550b-a55b-20260604",
+      "ambiguous_model:2262242:nvidia/nemotron-3.5-lightning-20260807",
+      "ambiguous_model:2262242:openai/gpt-5.6-luna-20260709",
+      "ambiguous_model:2262242:poolside/laguna-s-2.1-20260720",
+      "ambiguous_model:2262242:poolside/laguna-xs-2.1-20260625",
+      "ambiguous_model:2262242:z-ai/glm-5.2-20260616",
+      "ambiguous_model:2262242:z-ai/glm-5.3-flash-20260826",
+      "ambiguous_model:2627404:anthropic/claude-4.6-sonnet-20260217",
+      "ambiguous_model:2627404:anthropic/claude-4.8-opus-20260528",
+      "ambiguous_model:2627404:anthropic/claude-5-fable-20260609",
+      "ambiguous_model:2627404:anthropic/claude-opus-5-20260723",
+      "ambiguous_model:2627404:anthropic/claude-sonnet-5-20260630",
+      "ambiguous_model:2627404:deepseek/deepseek-v4-flash-20260731",
+      "ambiguous_model:2627404:google/gemini-3.8-flash-20260902",
+      "ambiguous_model:2627404:minimax/minimax-m2.7-20260318",
+      "ambiguous_model:2627404:minimax/minimax-m3-20260531",
+      "ambiguous_model:2627404:moonshotai/kimi-k3-20260715",
+      "ambiguous_model:2627404:nvidia/nemotron-3-ultra-550b-a55b-20260604",
+      "ambiguous_model:2627404:openai/gpt-5.6-luna-20260709",
+      "ambiguous_model:2627404:openai/gpt-5.6-luna-pro-20260709",
+      "ambiguous_model:2627404:openai/gpt-5.6-sol-20260709",
+      "ambiguous_model:2627404:z-ai/glm-5.2-20260616",
+      "ambiguous_model:2627404:z-ai/glm-5.3-20260816",
+      "ambiguous_model:2627404:z-ai/glm-5.3-flash-20260826",
+      "ambiguous_model:2668297:deepseek/deepseek-v4-flash-20260731",
+      "ambiguous_model:2668297:deepseek/deepseek-v4-pro-20260813",
+      "ambiguous_model:2668297:google/gemini-3.7-flash-20260813",
+      "ambiguous_model:2668297:google/gemini-3.8-flash-20260902",
+      "ambiguous_model:2668297:minimax/minimax-m3-20260531",
+      "ambiguous_model:2668297:moonshotai/kimi-k3-20260715",
+      "ambiguous_model:2668297:openai/gpt-5.5-20260423",
+      "ambiguous_model:2668297:openai/gpt-5.6-luna-20260709",
+      "ambiguous_model:2668297:openai/gpt-5.6-luna-pro-20260709",
+      "ambiguous_model:2668297:openai/gpt-5.6-sol-20260709",
+      "ambiguous_model:2668297:openai/gpt-5.6-sol-pro-20260709",
+      "ambiguous_model:2668297:openai/gpt-5.6-terra-20260709",
+      "ambiguous_model:2668297:openai/gpt-6-astra-20260903",
+      "ambiguous_model:2668297:z-ai/glm-5.3-20260816",
+      "ambiguous_model:2668297:z-ai/glm-5.3-flash-20260826",
+      "ambiguous_model:2725608:anthropic/claude-4.6-opus-20260205",
+      "ambiguous_model:2725608:anthropic/claude-4.6-sonnet-20260217",
+      "ambiguous_model:2725608:anthropic/claude-opus-5-20260723",
+      "ambiguous_model:2725608:anthropic/claude-sonnet-5-20260630",
+      "ambiguous_model:2725608:deepseek/deepseek-v4-flash-20260731",
+      "ambiguous_model:2725608:google/gemini-3.7-flash-20260813",
+      "ambiguous_model:2725608:minimax/minimax-m2.7-20260318",
+      "ambiguous_model:2725608:minimax/minimax-m3-20260531",
+      "ambiguous_model:2725608:moonshotai/kimi-k3-20260715",
+      "ambiguous_model:2725608:nvidia/nemotron-3-super-120b-a12b-20230311",
+      "ambiguous_model:2725608:nvidia/nemotron-3-ultra-550b-a55b-20260604",
+      "ambiguous_model:2725608:openai/gpt-5.6-luna-20260709",
+      "ambiguous_model:2725608:z-ai/glm-5.2-20260616",
+      "ambiguous_model:2725608:z-ai/glm-5.3-20260816",
+      "ambiguous_model:2725608:z-ai/glm-5.3-flash-20260826",
+      "ambiguous_model:2853275:anthropic/claude-opus-5-20260723",
+      "ambiguous_model:2853275:anthropic/claude-sonnet-5-20260630",
+      "ambiguous_model:2853275:deepseek/deepseek-v4-flash-20260731",
+      "ambiguous_model:2853275:deepseek/deepseek-v4-pro-20260813",
+      "ambiguous_model:2853275:google/gemini-3.7-flash-20260813",
+      "ambiguous_model:2853275:google/gemini-3.8-flash-20260902",
+      "ambiguous_model:2853275:minimax/minimax-m3-20260531",
+      "ambiguous_model:2853275:moonshotai/kimi-k3-20260715",
+      "ambiguous_model:2853275:nvidia/nemotron-3-ultra-550b-a55b-20260604",
+      "ambiguous_model:2853275:openai/gpt-5.6-luna-20260709",
+      "ambiguous_model:2853275:openai/gpt-5.6-sol-20260709",
+      "ambiguous_model:2853275:z-ai/glm-5.2-20260616",
+      "ambiguous_model:2853275:z-ai/glm-5.3-20260816",
+      "ambiguous_model:2853275:z-ai/glm-5.3-flash-20260826",
+      "ambiguous_model:3067167:anthropic/claude-sonnet-5-20260630",
+      "ambiguous_model:3067167:deepseek/deepseek-v4-flash-20260731",
+      "ambiguous_model:3067167:deepseek/deepseek-v4-pro-20260813",
+      "ambiguous_model:3067167:google/gemini-3.7-flash-20260813",
+      "ambiguous_model:3067167:minimax/minimax-m3-20260531",
+      "ambiguous_model:3067167:nvidia/nemotron-3-super-120b-a12b-20230311",
+      "ambiguous_model:3067167:nvidia/nemotron-3-ultra-550b-a55b-20260604",
+      "ambiguous_model:3067167:openai/gpt-5.6-luna-20260709",
+      "ambiguous_model:3067167:openai/gpt-5.6-luna-pro-20260709",
+      "ambiguous_model:3067167:openai/gpt-5.6-sol-20260709",
+      "ambiguous_model:3067167:poolside/laguna-s-2.1-20260720",
+      "ambiguous_model:3067167:z-ai/glm-5.2-20260616",
+      "ambiguous_model:3067167:z-ai/glm-5.3-20260816",
+      "ambiguous_model:3067167:z-ai/glm-5.3-flash-20260826",
+      "ambiguous_model:3682314:anthropic/claude-opus-5-20260723",
+      "ambiguous_model:3682314:deepseek/deepseek-v4-flash-20260731",
+      "ambiguous_model:3682314:deepseek/deepseek-v4-pro-20260813",
+      "ambiguous_model:3682314:google/gemini-3.7-flash-20260813",
+      "ambiguous_model:3682314:google/gemini-3.8-flash-20260902",
+      "ambiguous_model:3682314:minimax/minimax-m3-20260531",
+      "ambiguous_model:3682314:moonshotai/kimi-k3-20260715",
+      "ambiguous_model:3682314:nvidia/nemotron-3-ultra-550b-a55b-20260604",
+      "ambiguous_model:3682314:openai/gpt-5.6-luna-20260709",
+      "ambiguous_model:3682314:openai/gpt-5.6-luna-pro-20260709",
+      "ambiguous_model:3682314:openai/gpt-5.6-sol-20260709",
+      "ambiguous_model:3682314:openai/gpt-5.6-terra-20260709",
+      "ambiguous_model:3682314:poolside/laguna-s-2.1-20260720",
+      "ambiguous_model:3682314:z-ai/glm-5.2-20260616",
+      "ambiguous_model:3682314:z-ai/glm-5.3-20260816",
+      "ambiguous_model:3682314:z-ai/glm-5.3-flash-20260826",
+      "ambiguous_model:4137556:anthropic/claude-4.6-opus-20260205",
+      "ambiguous_model:4137556:anthropic/claude-4.6-sonnet-20260217",
+      "ambiguous_model:4137556:anthropic/claude-5-fable-20260609",
+      "ambiguous_model:4137556:anthropic/claude-opus-5-20260723",
+      "ambiguous_model:4137556:anthropic/claude-sonnet-5-20260630",
+      "ambiguous_model:4137556:deepseek/deepseek-v4-flash-20260731",
+      "ambiguous_model:4137556:google/gemini-3.1-flash-lite-20260507",
+      "ambiguous_model:4137556:google/gemini-3.1-pro-preview-20260219",
+      "ambiguous_model:4137556:google/gemini-3.5-flash-lite-20260721",
+      "ambiguous_model:4137556:google/gemini-3.8-flash-20260902",
+      "ambiguous_model:4137556:openai/gpt-5.6-luna-20260709",
+      "ambiguous_model:4137556:openai/gpt-5.6-sol-20260709",
+      "ambiguous_model:4137556:z-ai/glm-5.3-flash-20260826",
+      "ambiguous_model:4706207:deepseek/deepseek-v4-flash-20260731",
+      "ambiguous_model:4706207:deepseek/deepseek-v4-flash-vision-exp-20260821",
+      "ambiguous_model:4706207:deepseek/deepseek-v4-pro-20260813",
+      "ambiguous_model:4706207:google/gemini-3.7-flash-20260813",
+      "ambiguous_model:4706207:minimax/minimax-m3-20260531",
+      "ambiguous_model:4706207:moonshotai/kimi-k3-20260715",
+      "ambiguous_model:4706207:nvidia/nemotron-3-ultra-550b-a55b-20260604",
+      "ambiguous_model:4706207:openai/gpt-5.6-luna-20260709",
+      "ambiguous_model:4706207:openai/gpt-5.6-sol-20260709",
+      "ambiguous_model:4706207:poolside/laguna-s-2.1-20260720",
+      "ambiguous_model:4706207:thinkingmachines/inkling-20260715",
+      "ambiguous_model:4706207:thinkingmachines/inkling-small-20260730",
+      "ambiguous_model:4706207:z-ai/glm-5.2-20260616",
+      "ambiguous_model:4706207:z-ai/glm-5.3-20260816",
+      "ambiguous_model:4706207:z-ai/glm-5.3-flash-20260826"
+    ]
+  },
+  "resolvedPeriod": {
+    "start": "2026-09-09",
+    "end": "2026-09-09",
+    "unit": "day",
+    "inclusive": true
+  },
+  "apps": [
+    {
+      "appId": "3067167",
+      "appName": "Hermes Agent"
+    },
+    {
+      "appId": "2627404",
+      "appName": "Claude Code"
+    },
+    {
+      "appId": "2262242",
+      "appName": "Kilo Code"
+    },
+    {
+      "appId": "4137556",
+      "appName": "Zazen (Freebuff fork)"
+    },
+    {
+      "appId": "190604",
+      "appName": "Cline"
+    },
+    {
+      "appId": "2853275",
+      "appName": "pi"
+    },
+    {
+      "appId": "3682314",
+      "appName": "omp"
+    },
+    {
+      "appId": "2725608",
+      "appName": "OpenClaw"
+    },
+    {
+      "appId": "4706207",
+      "appName": "DeepSeek Harness"
+    },
+    {
+      "appId": "2668297",
+      "appName": "Codex"
+    }
+  ],
+  "models": [
+    {
+      "modelId": "tencent/hy4-preview",
+      "modelName": "Tencent: Hy4 preview"
+    },
+    {
+      "modelId": "openai/gpt-5.6-luna",
+      "modelName": "OpenAI: GPT-5.6 Luna"
+    },
+    {
+      "modelId": "deepseek/deepseek-v4-flash-0731",
+      "modelName": "DeepSeek: DeepSeek V4 Flash 0731"
+    },
+    {
+      "modelId": "z-ai/glm-5.3-flash",
+      "modelName": "Z.ai: GLM 5.3 Flash"
+    },
+    {
+      "modelId": "deepseek/deepseek-v4-flash",
+      "modelName": "DeepSeek: DeepSeek V4 Flash 0423"
+    },
+    {
+      "modelId": "tencent/hy3",
+      "modelName": "Tencent: Hy3"
+    },
+    {
+      "modelId": "nvidia/nemotron-3-ultra-550b-a55b:free",
+      "modelName": "NVIDIA: Nemotron 3 Ultra (free)"
+    },
+    {
+      "modelId": "xiaomi/mimo-v2.5",
+      "modelName": "Xiaomi: MiMo-V2.5"
+    },
+    {
+      "modelId": "z-ai/glm-5.3",
+      "modelName": "Z.ai: GLM 5.3"
+    },
+    {
+      "modelId": "z-ai/glm-5.2",
+      "modelName": "Z.ai: GLM 5.2"
+    }
+  ],
+  "appIds": [
+    "3067167",
+    "2627404",
+    "2262242",
+    "4137556",
+    "190604",
+    "2853275",
+    "3682314",
+    "2725608",
+    "4706207",
+    "2668297"
+  ],
+  "modelIds": [
+    "tencent/hy4-preview",
+    "openai/gpt-5.6-luna",
+    "deepseek/deepseek-v4-flash-0731",
+    "z-ai/glm-5.3-flash",
+    "deepseek/deepseek-v4-flash",
+    "tencent/hy3",
+    "nvidia/nemotron-3-ultra-550b-a55b:free",
+    "xiaomi/mimo-v2.5",
+    "z-ai/glm-5.3",
+    "z-ai/glm-5.2"
+  ],
+  "cells": [
+    {
+      "state": "unknown",
+      "appId": "3067167",
+      "modelId": "tencent/hy4-preview",
+      "reason": "not_observed"
+    },
+    {
+      "state": "unknown",
+      "appId": "3067167",
+      "modelId": "openai/gpt-5.6-luna",
+      "reason": "not_observed"
+    },
+    {
+      "state": "unknown",
+      "appId": "3067167",
+      "modelId": "deepseek/deepseek-v4-flash-0731",
+      "reason": "not_observed"
+    },
+    {
+      "state": "unknown",
+      "appId": "3067167",
+      "modelId": "z-ai/glm-5.3-flash",
+      "reason": "not_observed"
+    },
+    {
+      "state": "observed",
+      "appId": "3067167",
+      "modelId": "deepseek/deepseek-v4-flash",
+      "totalTokens": "5944179537839",
+      "rankWithinPeriod": 2,
+      "period": {
+        "start": "2026-09-09",
+        "end": "2026-09-09",
+        "unit": "day",
+        "inclusive": true
+      },
+      "metricSemantics": "observed_daily_total_tokens",
+      "evidenceUrl": "https://openrouter.ai/apps/hermes-agent"
+    },
+    {
+      "state": "observed",
+      "appId": "3067167",
+      "modelId": "tencent/hy3",
+      "totalTokens": "4372222953379",
+      "rankWithinPeriod": 4,
+      "period": {
+        "start": "2026-09-09",
+        "end": "2026-09-09",
+        "unit": "day",
+        "inclusive": true
+      },
+      "metricSemantics": "observed_daily_total_tokens",
+      "evidenceUrl": "https://openrouter.ai/apps/hermes-agent"
+    },
+    {
+      "state": "unknown",
+      "appId": "3067167",
+      "modelId": "nvidia/nemotron-3-ultra-550b-a55b:free",
+      "reason": "not_observed"
+    },
+    {
+      "state": "unknown",
+      "appId": "3067167",
+      "modelId": "xiaomi/mimo-v2.5",
+      "reason": "not_observed"
+    },
+    {
+      "state": "unknown",
+      "appId": "3067167",
+      "modelId": "z-ai/glm-5.3",
+      "reason": "not_observed"
+    },
+    {
+      "state": "unknown",
+      "appId": "3067167",
+      "modelId": "z-ai/glm-5.2",
+      "reason": "not_observed"
+    },
+    {
+      "state": "observed",
+      "appId": "2627404",
+      "modelId": "tencent/hy4-preview",
+      "totalTokens": "449476656740",
+      "rankWithinPeriod": 9,
+      "period": {
+        "start": "2026-09-09",
+        "end": "2026-09-09",
+        "unit": "day",
+        "inclusive": true
+      },
+      "metricSemantics": "observed_daily_total_tokens",
+      "evidenceUrl": "https://openrouter.ai/apps/claude-code"
+    },
+    {
+      "state": "unknown",
+      "appId": "2627404",
+      "modelId": "openai/gpt-5.6-luna",
+      "reason": "not_observed"
+    },
+    {
+      "state": "unknown",
+      "appId": "2627404",
+      "modelId": "deepseek/deepseek-v4-flash-0731",
+      "reason": "not_observed"
+    },
+    {
+      "state": "unknown",
+      "appId": "2627404",
+      "modelId": "z-ai/glm-5.3-flash",
+      "reason": "not_observed"
+    },
+    {
+      "state": "observed",
+      "appId": "2627404",
+      "modelId": "deepseek/deepseek-v4-flash",
+      "totalTokens": "196116684825",
+      "rankWithinPeriod": 13,
+      "period": {
+        "start": "2026-09-09",
+        "end": "2026-09-09",
+        "unit": "day",
+        "inclusive": true
+      },
+      "metricSemantics": "observed_daily_total_tokens",
+      "evidenceUrl": "https://openrouter.ai/apps/claude-code"
+    },
+    {
+      "state": "unknown",
+      "appId": "2627404",
+      "modelId": "tencent/hy3",
+      "reason": "not_observed"
+    },
+    {
+      "state": "unknown",
+      "appId": "2627404",
+      "modelId": "nvidia/nemotron-3-ultra-550b-a55b:free",
+      "reason": "not_observed"
+    },
+    {
+      "state": "unknown",
+      "appId": "2627404",
+      "modelId": "xiaomi/mimo-v2.5",
+      "reason": "not_observed"
+    },
+    {
+      "state": "unknown",
+      "appId": "2627404",
+      "modelId": "z-ai/glm-5.3",
+      "reason": "not_observed"
+    },
+    {
+      "state": "unknown",
+      "appId": "2627404",
+      "modelId": "z-ai/glm-5.2",
+      "reason": "not_observed"
+    },
+    {
+      "state": "unknown",
+      "appId": "2262242",
+      "modelId": "tencent/hy4-preview",
+      "reason": "not_observed"
+    },
+    {
+      "state": "unknown",
+      "appId": "2262242",
+      "modelId": "openai/gpt-5.6-luna",
+      "reason": "not_observed"
+    },
+    {
+      "state": "unknown",
+      "appId": "2262242",
+      "modelId": "deepseek/deepseek-v4-flash-0731",
+      "reason": "not_observed"
+    },
+    {
+      "state": "unknown",
+      "appId": "2262242",
+      "modelId": "z-ai/glm-5.3-flash",
+      "reason": "not_observed"
+    },
+    {
+      "state": "observed",
+      "appId": "2262242",
+      "modelId": "deepseek/deepseek-v4-flash",
+      "totalTokens": "70804134420",
+      "rankWithinPeriod": 19,
+      "period": {
+        "start": "2026-09-09",
+        "end": "2026-09-09",
+        "unit": "day",
+        "inclusive": true
+      },
+      "metricSemantics": "observed_daily_total_tokens",
+      "evidenceUrl": "https://openrouter.ai/apps/kilo-code"
+    },
+    {
+      "state": "observed",
+      "appId": "2262242",
+      "modelId": "tencent/hy3",
+      "totalTokens": "1518077066717",
+      "rankWithinPeriod": 2,
+      "period": {
+        "start": "2026-09-09",
+        "end": "2026-09-09",
+        "unit": "day",
+        "inclusive": true
+      },
+      "metricSemantics": "observed_daily_total_tokens",
+      "evidenceUrl": "https://openrouter.ai/apps/kilo-code"
+    },
+    {
+      "state": "unknown",
+      "appId": "2262242",
+      "modelId": "nvidia/nemotron-3-ultra-550b-a55b:free",
+      "reason": "not_observed"
+    },
+    {
+      "state": "unknown",
+      "appId": "2262242",
+      "modelId": "xiaomi/mimo-v2.5",
+      "reason": "not_observed"
+    },
+    {
+      "state": "unknown",
+      "appId": "2262242",
+      "modelId": "z-ai/glm-5.3",
+      "reason": "not_observed"
+    },
+    {
+      "state": "unknown",
+      "appId": "2262242",
+      "modelId": "z-ai/glm-5.2",
+      "reason": "not_observed"
+    },
+    {
+      "state": "unknown",
+      "appId": "4137556",
+      "modelId": "tencent/hy4-preview",
+      "reason": "not_observed"
+    },
+    {
+      "state": "unknown",
+      "appId": "4137556",
+      "modelId": "openai/gpt-5.6-luna",
+      "reason": "not_observed"
+    },
+    {
+      "state": "unknown",
+      "appId": "4137556",
+      "modelId": "deepseek/deepseek-v4-flash-0731",
+      "reason": "not_observed"
+    },
+    {
+      "state": "unknown",
+      "appId": "4137556",
+      "modelId": "z-ai/glm-5.3-flash",
+      "reason": "not_observed"
+    },
+    {
+      "state": "observed",
+      "appId": "4137556",
+      "modelId": "deepseek/deepseek-v4-flash",
+      "totalTokens": "23295682396",
+      "rankWithinPeriod": 7,
+      "period": {
+        "start": "2026-09-09",
+        "end": "2026-09-09",
+        "unit": "day",
+        "inclusive": true
+      },
+      "metricSemantics": "observed_daily_total_tokens",
+      "evidenceUrl": "https://openrouter.ai/apps/url/https%3A%2F%2Ffreebuff.com%2F"
+    },
+    {
+      "state": "unknown",
+      "appId": "4137556",
+      "modelId": "tencent/hy3",
+      "reason": "not_observed"
+    },
+    {
+      "state": "unknown",
+      "appId": "4137556",
+      "modelId": "nvidia/nemotron-3-ultra-550b-a55b:free",
+      "reason": "not_observed"
+    },
+    {
+      "state": "observed",
+      "appId": "4137556",
+      "modelId": "xiaomi/mimo-v2.5",
+      "totalTokens": "7954771651410",
+      "rankWithinPeriod": 1,
+      "period": {
+        "start": "2026-09-09",
+        "end": "2026-09-09",
+        "unit": "day",
+        "inclusive": true
+      },
+      "metricSemantics": "observed_daily_total_tokens",
+      "evidenceUrl": "https://openrouter.ai/apps/url/https%3A%2F%2Ffreebuff.com%2F"
+    },
+    {
+      "state": "unknown",
+      "appId": "4137556",
+      "modelId": "z-ai/glm-5.3",
+      "reason": "not_observed"
+    },
+    {
+      "state": "unknown",
+      "appId": "4137556",
+      "modelId": "z-ai/glm-5.2",
+      "reason": "not_observed"
+    },
+    {
+      "state": "unknown",
+      "appId": "190604",
+      "modelId": "tencent/hy4-preview",
+      "reason": "not_observed"
+    },
+    {
+      "state": "unknown",
+      "appId": "190604",
+      "modelId": "openai/gpt-5.6-luna",
+      "reason": "not_observed"
+    },
+    {
+      "state": "unknown",
+      "appId": "190604",
+      "modelId": "deepseek/deepseek-v4-flash-0731",
+      "reason": "not_observed"
+    },
+    {
+      "state": "unknown",
+      "appId": "190604",
+      "modelId": "z-ai/glm-5.3-flash",
+      "reason": "not_observed"
+    },
+    {
+      "state": "observed",
+      "appId": "190604",
+      "modelId": "deepseek/deepseek-v4-flash",
+      "totalTokens": "530523925749",
+      "rankWithinPeriod": 5,
+      "period": {
+        "start": "2026-09-09",
+        "end": "2026-09-09",
+        "unit": "day",
+        "inclusive": true
+      },
+      "metricSemantics": "observed_daily_total_tokens",
+      "evidenceUrl": "https://openrouter.ai/apps/cline"
+    },
+    {
+      "state": "unknown",
+      "appId": "190604",
+      "modelId": "tencent/hy3",
+      "reason": "not_observed"
+    },
+    {
+      "state": "unknown",
+      "appId": "190604",
+      "modelId": "nvidia/nemotron-3-ultra-550b-a55b:free",
+      "reason": "not_observed"
+    },
+    {
+      "state": "observed",
+      "appId": "190604",
+      "modelId": "xiaomi/mimo-v2.5",
+      "totalTokens": "125542433550",
+      "rankWithinPeriod": 7,
+      "period": {
+        "start": "2026-09-09",
+        "end": "2026-09-09",
+        "unit": "day",
+        "inclusive": true
+      },
+      "metricSemantics": "observed_daily_total_tokens",
+      "evidenceUrl": "https://openrouter.ai/apps/cline"
+    },
+    {
+      "state": "unknown",
+      "appId": "190604",
+      "modelId": "z-ai/glm-5.3",
+      "reason": "not_observed"
+    },
+    {
+      "state": "unknown",
+      "appId": "190604",
+      "modelId": "z-ai/glm-5.2",
+      "reason": "not_observed"
+    },
+    {
+      "state": "unknown",
+      "appId": "2853275",
+      "modelId": "tencent/hy4-preview",
+      "reason": "not_observed"
+    },
+    {
+      "state": "unknown",
+      "appId": "2853275",
+      "modelId": "openai/gpt-5.6-luna",
+      "reason": "not_observed"
+    },
+    {
+      "state": "unknown",
+      "appId": "2853275",
+      "modelId": "deepseek/deepseek-v4-flash-0731",
+      "reason": "not_observed"
+    },
+    {
+      "state": "unknown",
+      "appId": "2853275",
+      "modelId": "z-ai/glm-5.3-flash",
+      "reason": "not_observed"
+    },
+    {
+      "state": "observed",
+      "appId": "2853275",
+      "modelId": "deepseek/deepseek-v4-flash",
+      "totalTokens": "269878562681",
+      "rankWithinPeriod": 7,
+      "period": {
+        "start": "2026-09-09",
+        "end": "2026-09-09",
+        "unit": "day",
+        "inclusive": true
+      },
+      "metricSemantics": "observed_daily_total_tokens",
+      "evidenceUrl": "https://openrouter.ai/apps/pi"
+    },
+    {
+      "state": "unknown",
+      "appId": "2853275",
+      "modelId": "tencent/hy3",
+      "reason": "not_observed"
+    },
+    {
+      "state": "unknown",
+      "appId": "2853275",
+      "modelId": "nvidia/nemotron-3-ultra-550b-a55b:free",
+      "reason": "not_observed"
+    },
+    {
+      "state": "unknown",
+      "appId": "2853275",
+      "modelId": "xiaomi/mimo-v2.5",
+      "reason": "not_observed"
+    },
+    {
+      "state": "unknown",
+      "appId": "2853275",
+      "modelId": "z-ai/glm-5.3",
+      "reason": "not_observed"
+    },
+    {
+      "state": "unknown",
+      "appId": "2853275",
+      "modelId": "z-ai/glm-5.2",
+      "reason": "not_observed"
+    },
+    {
+      "state": "unknown",
+      "appId": "3682314",
+      "modelId": "tencent/hy4-preview",
+      "reason": "not_observed"
+    },
+    {
+      "state": "unknown",
+      "appId": "3682314",
+      "modelId": "openai/gpt-5.6-luna",
+      "reason": "not_observed"
+    },
+    {
+      "state": "unknown",
+      "appId": "3682314",
+      "modelId": "deepseek/deepseek-v4-flash-0731",
+      "reason": "not_observed"
+    },
+    {
+      "state": "unknown",
+      "appId": "3682314",
+      "modelId": "z-ai/glm-5.3-flash",
+      "reason": "not_observed"
+    },
+    {
+      "state": "observed",
+      "appId": "3682314",
+      "modelId": "deepseek/deepseek-v4-flash",
+      "totalTokens": "40515888156",
+      "rankWithinPeriod": 15,
+      "period": {
+        "start": "2026-09-09",
+        "end": "2026-09-09",
+        "unit": "day",
+        "inclusive": true
+      },
+      "metricSemantics": "observed_daily_total_tokens",
+      "evidenceUrl": "https://openrouter.ai/apps/url/https%3A%2F%2Fomp.sh%2F"
+    },
+    {
+      "state": "unknown",
+      "appId": "3682314",
+      "modelId": "tencent/hy3",
+      "reason": "not_observed"
+    },
+    {
+      "state": "unknown",
+      "appId": "3682314",
+      "modelId": "nvidia/nemotron-3-ultra-550b-a55b:free",
+      "reason": "not_observed"
+    },
+    {
+      "state": "unknown",
+      "appId": "3682314",
+      "modelId": "xiaomi/mimo-v2.5",
+      "reason": "not_observed"
+    },
+    {
+      "state": "unknown",
+      "appId": "3682314",
+      "modelId": "z-ai/glm-5.3",
+      "reason": "not_observed"
+    },
+    {
+      "state": "unknown",
+      "appId": "3682314",
+      "modelId": "z-ai/glm-5.2",
+      "reason": "not_observed"
+    },
+    {
+      "state": "unknown",
+      "appId": "2725608",
+      "modelId": "tencent/hy4-preview",
+      "reason": "not_observed"
+    },
+    {
+      "state": "unknown",
+      "appId": "2725608",
+      "modelId": "openai/gpt-5.6-luna",
+      "reason": "not_observed"
+    },
+    {
+      "state": "unknown",
+      "appId": "2725608",
+      "modelId": "deepseek/deepseek-v4-flash-0731",
+      "reason": "not_observed"
+    },
+    {
+      "state": "unknown",
+      "appId": "2725608",
+      "modelId": "z-ai/glm-5.3-flash",
+      "reason": "not_observed"
+    },
+    {
+      "state": "observed",
+      "appId": "2725608",
+      "modelId": "deepseek/deepseek-v4-flash",
+      "totalTokens": "498382896079",
+      "rankWithinPeriod": 2,
+      "period": {
+        "start": "2026-09-09",
+        "end": "2026-09-09",
+        "unit": "day",
+        "inclusive": true
+      },
+      "metricSemantics": "observed_daily_total_tokens",
+      "evidenceUrl": "https://openrouter.ai/apps/openclaw"
+    },
+    {
+      "state": "unknown",
+      "appId": "2725608",
+      "modelId": "tencent/hy3",
+      "reason": "not_observed"
+    },
+    {
+      "state": "unknown",
+      "appId": "2725608",
+      "modelId": "nvidia/nemotron-3-ultra-550b-a55b:free",
+      "reason": "not_observed"
+    },
+    {
+      "state": "unknown",
+      "appId": "2725608",
+      "modelId": "xiaomi/mimo-v2.5",
+      "reason": "not_observed"
+    },
+    {
+      "state": "unknown",
+      "appId": "2725608",
+      "modelId": "z-ai/glm-5.3",
+      "reason": "not_observed"
+    },
+    {
+      "state": "unknown",
+      "appId": "2725608",
+      "modelId": "z-ai/glm-5.2",
+      "reason": "not_observed"
+    },
+    {
+      "state": "unknown",
+      "appId": "4706207",
+      "modelId": "tencent/hy4-preview",
+      "reason": "not_observed"
+    },
+    {
+      "state": "unknown",
+      "appId": "4706207",
+      "modelId": "openai/gpt-5.6-luna",
+      "reason": "not_observed"
+    },
+    {
+      "state": "unknown",
+      "appId": "4706207",
+      "modelId": "deepseek/deepseek-v4-flash-0731",
+      "reason": "not_observed"
+    },
+    {
+      "state": "unknown",
+      "appId": "4706207",
+      "modelId": "z-ai/glm-5.3-flash",
+      "reason": "not_observed"
+    },
+    {
+      "state": "observed",
+      "appId": "4706207",
+      "modelId": "deepseek/deepseek-v4-flash",
+      "totalTokens": "217072381425",
+      "rankWithinPeriod": 5,
+      "period": {
+        "start": "2026-09-09",
+        "end": "2026-09-09",
+        "unit": "day",
+        "inclusive": true
+      },
+      "metricSemantics": "observed_daily_total_tokens",
+      "evidenceUrl": "https://openrouter.ai/apps/url/https%3A%2F%2Fgithub.com%2Fdeepseek-ai%2Fdeepseek-harness"
+    },
+    {
+      "state": "unknown",
+      "appId": "4706207",
+      "modelId": "tencent/hy3",
+      "reason": "not_observed"
+    },
+    {
+      "state": "unknown",
+      "appId": "4706207",
+      "modelId": "nvidia/nemotron-3-ultra-550b-a55b:free",
+      "reason": "not_observed"
+    },
+    {
+      "state": "unknown",
+      "appId": "4706207",
+      "modelId": "xiaomi/mimo-v2.5",
+      "reason": "not_observed"
+    },
+    {
+      "state": "unknown",
+      "appId": "4706207",
+      "modelId": "z-ai/glm-5.3",
+      "reason": "not_observed"
+    },
+    {
+      "state": "unknown",
+      "appId": "4706207",
+      "modelId": "z-ai/glm-5.2",
+      "reason": "not_observed"
+    },
+    {
+      "state": "unknown",
+      "appId": "2668297",
+      "modelId": "tencent/hy4-preview",
+      "reason": "not_observed"
+    },
+    {
+      "state": "unknown",
+      "appId": "2668297",
+      "modelId": "openai/gpt-5.6-luna",
+      "reason": "not_observed"
+    },
+    {
+      "state": "unknown",
+      "appId": "2668297",
+      "modelId": "deepseek/deepseek-v4-flash-0731",
+      "reason": "not_observed"
+    },
+    {
+      "state": "unknown",
+      "appId": "2668297",
+      "modelId": "z-ai/glm-5.3-flash",
+      "reason": "not_observed"
+    },
+    {
+      "state": "observed",
+      "appId": "2668297",
+      "modelId": "deepseek/deepseek-v4-flash",
+      "totalTokens": "10575155475",
+      "rankWithinPeriod": 18,
+      "period": {
+        "start": "2026-09-09",
+        "end": "2026-09-09",
+        "unit": "day",
+        "inclusive": true
+      },
+      "metricSemantics": "observed_daily_total_tokens",
+      "evidenceUrl": "https://openrouter.ai/apps/codex"
+    },
+    {
+      "state": "unknown",
+      "appId": "2668297",
+      "modelId": "tencent/hy3",
+      "reason": "not_observed"
+    },
+    {
+      "state": "unknown",
+      "appId": "2668297",
+      "modelId": "nvidia/nemotron-3-ultra-550b-a55b:free",
+      "reason": "not_observed"
+    },
+    {
+      "state": "unknown",
+      "appId": "2668297",
+      "modelId": "xiaomi/mimo-v2.5",
+      "reason": "not_observed"
+    },
+    {
+      "state": "unknown",
+      "appId": "2668297",
+      "modelId": "z-ai/glm-5.3",
+      "reason": "not_observed"
+    },
+    {
+      "state": "unknown",
+      "appId": "2668297",
+      "modelId": "z-ai/glm-5.2",
+      "reason": "not_observed"
+    }
+  ],
+  "missingAliases": [],
+  "unmappedModels": [
+    {
+      "appId": "3067167",
+      "sourcePermaslug": "deepseek/deepseek-v4-flash-20260731",
+      "totalTokens": "9477777466019",
+      "rankWithinPeriod": 1,
+      "reason": "ambiguous_model"
+    },
+    {
+      "appId": "190604",
+      "sourcePermaslug": "deepseek/deepseek-v4-flash-20260731",
+      "totalTokens": "4009563007731",
+      "rankWithinPeriod": 1,
+      "reason": "ambiguous_model"
+    },
+    {
+      "appId": "2627404",
+      "sourcePermaslug": "z-ai/glm-5.2-20260616",
+      "totalTokens": "3347290374371",
+      "rankWithinPeriod": 1,
+      "reason": "ambiguous_model"
+    },
+    {
+      "appId": "3067167",
+      "sourcePermaslug": "z-ai/glm-5.3-flash-20260826",
+      "totalTokens": "3110900586547",
+      "rankWithinPeriod": 5,
+      "reason": "ambiguous_model"
+    },
+    {
+      "appId": "2627404",
+      "sourcePermaslug": "z-ai/glm-5.3-flash-20260826",
+      "totalTokens": "2978957948142",
+      "rankWithinPeriod": 2,
+      "reason": "ambiguous_model"
+    },
+    {
+      "appId": "2262242",
+      "sourcePermaslug": "poolside/laguna-s-2.1-20260720",
+      "totalTokens": "2276081698836",
+      "rankWithinPeriod": 1,
+      "reason": "ambiguous_model"
+    },
+    {
+      "appId": "3067167",
+      "sourcePermaslug": "minimax/minimax-m3-20260531",
+      "totalTokens": "1892870487711",
+      "rankWithinPeriod": 7,
+      "reason": "ambiguous_model"
+    },
+    {
+      "appId": "190604",
+      "sourcePermaslug": "z-ai/glm-5.3-flash-20260826",
+      "totalTokens": "1840220139156",
+      "rankWithinPeriod": 2,
+      "reason": "ambiguous_model"
+    },
+    {
+      "appId": "3067167",
+      "sourcePermaslug": "poolside/laguna-s-2.1-20260720",
+      "totalTokens": "1507953831936",
+      "rankWithinPeriod": 10,
+      "reason": "ambiguous_model"
+    },
+    {
+      "appId": "2668297",
+      "sourcePermaslug": "openai/gpt-5.6-sol-20260709",
+      "totalTokens": "1412381855564",
+      "rankWithinPeriod": 1,
+      "reason": "ambiguous_model"
+    },
+    {
+      "appId": "3067167",
+      "sourcePermaslug": "nvidia/nemotron-3-ultra-550b-a55b-20260604",
+      "totalTokens": "1376795485354",
+      "rankWithinPeriod": 11,
+      "reason": "ambiguous_model"
+    },
+    {
+      "appId": "3067167",
+      "sourcePermaslug": "openai/gpt-5.6-luna-20260709",
+      "totalTokens": "1374826082446",
+      "rankWithinPeriod": 12,
+      "reason": "ambiguous_model"
+    },
+    {
+      "appId": "2853275",
+      "sourcePermaslug": "deepseek/deepseek-v4-flash-20260731",
+      "totalTokens": "1178664470238",
+      "rankWithinPeriod": 1,
+      "reason": "ambiguous_model"
+    },
+    {
+      "appId": "2262242",
+      "sourcePermaslug": "nvidia/nemotron-3-ultra-550b-a55b-20260604",
+      "totalTokens": "1168400126398",
+      "rankWithinPeriod": 3,
+      "reason": "ambiguous_model"
+    },
+    {
+      "appId": "2262242",
+      "sourcePermaslug": "minimax/minimax-m3-20260531",
+      "totalTokens": "1162021837000",
+      "rankWithinPeriod": 4,
+      "reason": "ambiguous_model"
+    },
+    {
+      "appId": "2627404",
+      "sourcePermaslug": "anthropic/claude-opus-5-20260723",
+      "totalTokens": "1112663787878",
+      "rankWithinPeriod": 4,
+      "reason": "ambiguous_model"
+    },
+    {
+      "appId": "3067167",
+      "sourcePermaslug": "z-ai/glm-5.2-20260616",
+      "totalTokens": "1034370397542",
+      "rankWithinPeriod": 13,
+      "reason": "ambiguous_model"
+    },
+    {
+      "appId": "2668297",
+      "sourcePermaslug": "openai/gpt-5.6-luna-20260709",
+      "totalTokens": "968101145553",
+      "rankWithinPeriod": 2,
+      "reason": "ambiguous_model"
+    },
+    {
+      "appId": "3682314",
+      "sourcePermaslug": "z-ai/glm-5.3-flash-20260826",
+      "totalTokens": "845514833376",
+      "rankWithinPeriod": 2,
+      "reason": "ambiguous_model"
+    },
+    {
+      "appId": "2627404",
+      "sourcePermaslug": "minimax/minimax-m3-20260531",
+      "totalTokens": "784278312755",
+      "rankWithinPeriod": 5,
+      "reason": "ambiguous_model"
+    },
+    {
+      "appId": "2627404",
+      "sourcePermaslug": "anthropic/claude-sonnet-5-20260630",
+      "totalTokens": "770308326830",
+      "rankWithinPeriod": 6,
+      "reason": "ambiguous_model"
+    },
+    {
+      "appId": "4137556",
+      "sourcePermaslug": "openai/gpt-5.6-luna-20260709",
+      "totalTokens": "759712176328",
+      "rankWithinPeriod": 2,
+      "reason": "ambiguous_model"
+    },
+    {
+      "appId": "3682314",
+      "sourcePermaslug": "deepseek/deepseek-v4-flash-20260731",
+      "totalTokens": "738827371973",
+      "rankWithinPeriod": 3,
+      "reason": "ambiguous_model"
+    },
+    {
+      "appId": "3067167",
+      "sourcePermaslug": "google/gemini-3.7-flash-20260813",
+      "totalTokens": "693373453758",
+      "rankWithinPeriod": 14,
+      "reason": "ambiguous_model"
+    },
+    {
+      "appId": "3067167",
+      "sourcePermaslug": "deepseek/deepseek-v4-pro-20260813",
+      "totalTokens": "685771918568",
+      "rankWithinPeriod": 15,
+      "reason": "ambiguous_model"
+    },
+    {
+      "appId": "4706207",
+      "sourcePermaslug": "deepseek/deepseek-v4-flash-20260731",
+      "totalTokens": "648286183086",
+      "rankWithinPeriod": 2,
+      "reason": "ambiguous_model"
+    },
+    {
+      "appId": "3067167",
+      "sourcePermaslug": "nvidia/nemotron-3-super-120b-a12b-20230311",
+      "totalTokens": "628368351061",
+      "rankWithinPeriod": 16,
+      "reason": "ambiguous_model"
+    },
+    {
+      "appId": "2853275",
+      "sourcePermaslug": "z-ai/glm-5.3-flash-20260826",
+      "totalTokens": "618379313604",
+      "rankWithinPeriod": 3,
+      "reason": "ambiguous_model"
+    },
+    {
+      "appId": "3067167",
+      "sourcePermaslug": "anthropic/claude-sonnet-5-20260630",
+      "totalTokens": "607981699606",
+      "rankWithinPeriod": 17,
+      "reason": "ambiguous_model"
+    },
+    {
+      "appId": "2725608",
+      "sourcePermaslug": "deepseek/deepseek-v4-flash-20260731",
+      "totalTokens": "597914656486",
+      "rankWithinPeriod": 1,
+      "reason": "ambiguous_model"
+    },
+    {
+      "appId": "190604",
+      "sourcePermaslug": "poolside/laguna-s-2.1-20260720",
+      "totalTokens": "574265058499",
+      "rankWithinPeriod": 4,
+      "reason": "ambiguous_model"
+    },
+    {
+      "appId": "2627404",
+      "sourcePermaslug": "deepseek/deepseek-v4-flash-20260731",
+      "totalTokens": "513298041392",
+      "rankWithinPeriod": 7,
+      "reason": "ambiguous_model"
+    },
+    {
+      "appId": "4706207",
+      "sourcePermaslug": "z-ai/glm-5.3-flash-20260826",
+      "totalTokens": "504602830024",
+      "rankWithinPeriod": 3,
+      "reason": "ambiguous_model"
+    },
+    {
+      "appId": "2262242",
+      "sourcePermaslug": "deepseek/deepseek-v4-flash-20260731",
+      "totalTokens": "477179544531",
+      "rankWithinPeriod": 6,
+      "reason": "ambiguous_model"
+    },
+    {
+      "appId": "2627404",
+      "sourcePermaslug": "google/gemini-3.8-flash-20260902",
+      "totalTokens": "470988063430",
+      "rankWithinPeriod": 8,
+      "reason": "ambiguous_model"
+    },
+    {
+      "appId": "3067167",
+      "sourcePermaslug": "openai/gpt-5.6-sol-20260709",
+      "totalTokens": "466298451797",
+      "rankWithinPeriod": 18,
+      "reason": "ambiguous_model"
+    },
+    {
+      "appId": "3067167",
+      "sourcePermaslug": "openai/gpt-5.6-luna-pro-20260709",
+      "totalTokens": "465449241563",
+      "rankWithinPeriod": 19,
+      "reason": "ambiguous_model"
+    },
+    {
+      "appId": "3067167",
+      "sourcePermaslug": "z-ai/glm-5.3-20260816",
+      "totalTokens": "461147984664",
+      "rankWithinPeriod": 20,
+      "reason": "ambiguous_model"
+    },
+    {
+      "appId": "2725608",
+      "sourcePermaslug": "minimax/minimax-m3-20260531",
+      "totalTokens": "415474534236",
+      "rankWithinPeriod": 3,
+      "reason": "ambiguous_model"
+    },
+    {
+      "appId": "2853275",
+      "sourcePermaslug": "openai/gpt-5.6-luna-20260709",
+      "totalTokens": "404991432037",
+      "rankWithinPeriod": 4,
+      "reason": "ambiguous_model"
+    },
+    {
+      "appId": "2262242",
+      "sourcePermaslug": "nvidia/nemotron-3-super-120b-a12b-20230311",
+      "totalTokens": "354270767663",
+      "rankWithinPeriod": 7,
+      "reason": "ambiguous_model"
+    },
+    {
+      "appId": "2627404",
+      "sourcePermaslug": "z-ai/glm-5.3-20260816",
+      "totalTokens": "349191543349",
+      "rankWithinPeriod": 10,
+      "reason": "ambiguous_model"
+    },
+    {
+      "appId": "2627404",
+      "sourcePermaslug": "anthropic/claude-4.8-opus-20260528",
+      "totalTokens": "322709864357",
+      "rankWithinPeriod": 11,
+      "reason": "ambiguous_model"
+    },
+    {
+      "appId": "2627404",
+      "sourcePermaslug": "moonshotai/kimi-k3-20260715",
+      "totalTokens": "305665356278",
+      "rankWithinPeriod": 12,
+      "reason": "ambiguous_model"
+    },
+    {
+      "appId": "2853275",
+      "sourcePermaslug": "openai/gpt-5.6-sol-20260709",
+      "totalTokens": "299075114146",
+      "rankWithinPeriod": 5,
+      "reason": "ambiguous_model"
+    },
+    {
+      "appId": "2725608",
+      "sourcePermaslug": "openai/gpt-5.6-luna-20260709",
+      "totalTokens": "294193259371",
+      "rankWithinPeriod": 4,
+      "reason": "ambiguous_model"
+    },
+    {
+      "appId": "2853275",
+      "sourcePermaslug": "moonshotai/kimi-k3-20260715",
+      "totalTokens": "274417008774",
+      "rankWithinPeriod": 6,
+      "reason": "ambiguous_model"
+    },
+    {
+      "appId": "3682314",
+      "sourcePermaslug": "minimax/minimax-m3-20260531",
+      "totalTokens": "255812756016",
+      "rankWithinPeriod": 4,
+      "reason": "ambiguous_model"
+    },
+    {
+      "appId": "4706207",
+      "sourcePermaslug": "minimax/minimax-m3-20260531",
+      "totalTokens": "242524250323",
+      "rankWithinPeriod": 4,
+      "reason": "ambiguous_model"
+    },
+    {
+      "appId": "4137556",
+      "sourcePermaslug": "z-ai/glm-5.3-flash-20260826",
+      "totalTokens": "223177535109",
+      "rankWithinPeriod": 4,
+      "reason": "ambiguous_model"
+    },
+    {
+      "appId": "2262242",
+      "sourcePermaslug": "z-ai/glm-5.3-flash-20260826",
+      "totalTokens": "217164799350",
+      "rankWithinPeriod": 10,
+      "reason": "ambiguous_model"
+    },
+    {
+      "appId": "2853275",
+      "sourcePermaslug": "z-ai/glm-5.2-20260616",
+      "totalTokens": "206252620459",
+      "rankWithinPeriod": 8,
+      "reason": "ambiguous_model"
+    },
+    {
+      "appId": "2627404",
+      "sourcePermaslug": "anthropic/claude-5-fable-20260609",
+      "totalTokens": "194864893988",
+      "rankWithinPeriod": 14,
+      "reason": "ambiguous_model"
+    },
+    {
+      "appId": "2853275",
+      "sourcePermaslug": "z-ai/glm-5.3-20260816",
+      "totalTokens": "194848287150",
+      "rankWithinPeriod": 9,
+      "reason": "ambiguous_model"
+    },
+    {
+      "appId": "3682314",
+      "sourcePermaslug": "openai/gpt-5.6-luna-20260709",
+      "totalTokens": "194042945248",
+      "rankWithinPeriod": 6,
+      "reason": "ambiguous_model"
+    },
+    {
+      "appId": "2725608",
+      "sourcePermaslug": "nvidia/nemotron-3-super-120b-a12b-20230311",
+      "totalTokens": "190190349088",
+      "rankWithinPeriod": 6,
+      "reason": "ambiguous_model"
+    },
+    {
+      "appId": "3682314",
+      "sourcePermaslug": "z-ai/glm-5.3-20260816",
+      "totalTokens": "189524725908",
+      "rankWithinPeriod": 7,
+      "reason": "ambiguous_model"
+    },
+    {
+      "appId": "2853275",
+      "sourcePermaslug": "deepseek/deepseek-v4-pro-20260813",
+      "totalTokens": "179918541729",
+      "rankWithinPeriod": 10,
+      "reason": "ambiguous_model"
+    },
+    {
+      "appId": "2725608",
+      "sourcePermaslug": "z-ai/glm-5.3-flash-20260826",
+      "totalTokens": "170991845154",
+      "rankWithinPeriod": 8,
+      "reason": "ambiguous_model"
+    },
+    {
+      "appId": "2725608",
+      "sourcePermaslug": "z-ai/glm-5.2-20260616",
+      "totalTokens": "169289390826",
+      "rankWithinPeriod": 9,
+      "reason": "ambiguous_model"
+    },
+    {
+      "appId": "2262242",
+      "sourcePermaslug": "nvidia/nemotron-3.5-lightning-20260807",
+      "totalTokens": "154135475842",
+      "rankWithinPeriod": 11,
+      "reason": "ambiguous_model"
+    },
+    {
+      "appId": "2853275",
+      "sourcePermaslug": "google/gemini-3.7-flash-20260813",
+      "totalTokens": "146156412845",
+      "rankWithinPeriod": 12,
+      "reason": "ambiguous_model"
+    },
+    {
+      "appId": "2627404",
+      "sourcePermaslug": "openai/gpt-5.6-luna-20260709",
+      "totalTokens": "140502288795",
+      "rankWithinPeriod": 15,
+      "reason": "ambiguous_model"
+    },
+    {
+      "appId": "190604",
+      "sourcePermaslug": "moonshotai/kimi-k3-20260715",
+      "totalTokens": "137654260374",
+      "rankWithinPeriod": 6,
+      "reason": "ambiguous_model"
+    },
+    {
+      "appId": "2627404",
+      "sourcePermaslug": "nvidia/nemotron-3-ultra-550b-a55b-20260604",
+      "totalTokens": "132163833257",
+      "rankWithinPeriod": 16,
+      "reason": "ambiguous_model"
+    },
+    {
+      "appId": "2262242",
+      "sourcePermaslug": "minimax/minimax-m2.7-20260318",
+      "totalTokens": "131155599921",
+      "rankWithinPeriod": 12,
+      "reason": "ambiguous_model"
+    },
+    {
+      "appId": "2627404",
+      "sourcePermaslug": "openai/gpt-5.6-sol-20260709",
+      "totalTokens": "129143080165",
+      "rankWithinPeriod": 17,
+      "reason": "ambiguous_model"
+    },
+    {
+      "appId": "2262242",
+      "sourcePermaslug": "inclusionai/ling-3.0-flash-fin-20260827",
+      "totalTokens": "125192642793",
+      "rankWithinPeriod": 13,
+      "reason": "ambiguous_model"
+    },
+    {
+      "appId": "2725608",
+      "sourcePermaslug": "anthropic/claude-sonnet-5-20260630",
+      "totalTokens": "122268125915",
+      "rankWithinPeriod": 10,
+      "reason": "ambiguous_model"
+    },
+    {
+      "appId": "2627404",
+      "sourcePermaslug": "minimax/minimax-m2.7-20260318",
+      "totalTokens": "118966071559",
+      "rankWithinPeriod": 18,
+      "reason": "ambiguous_model"
+    },
+    {
+      "appId": "2627404",
+      "sourcePermaslug": "anthropic/claude-4.6-sonnet-20260217",
+      "totalTokens": "115256751216",
+      "rankWithinPeriod": 19,
+      "reason": "ambiguous_model"
+    },
+    {
+      "appId": "2853275",
+      "sourcePermaslug": "minimax/minimax-m3-20260531",
+      "totalTokens": "112883879565",
+      "rankWithinPeriod": 14,
+      "reason": "ambiguous_model"
+    },
+    {
+      "appId": "3682314",
+      "sourcePermaslug": "deepseek/deepseek-v4-pro-20260813",
+      "totalTokens": "112675750706",
+      "rankWithinPeriod": 8,
+      "reason": "ambiguous_model"
+    },
+    {
+      "appId": "2627404",
+      "sourcePermaslug": "openai/gpt-5.6-luna-pro-20260709",
+      "totalTokens": "108092724999",
+      "rankWithinPeriod": 20,
+      "reason": "ambiguous_model"
+    },
+    {
+      "appId": "2725608",
+      "sourcePermaslug": "google/gemini-3.7-flash-20260813",
+      "totalTokens": "104146947344",
+      "rankWithinPeriod": 11,
+      "reason": "ambiguous_model"
+    },
+    {
+      "appId": "3682314",
+      "sourcePermaslug": "openai/gpt-5.6-sol-20260709",
+      "totalTokens": "102677632546",
+      "rankWithinPeriod": 9,
+      "reason": "ambiguous_model"
+    },
+    {
+      "appId": "2262242",
+      "sourcePermaslug": "poolside/laguna-xs-2.1-20260625",
+      "totalTokens": "101083203628",
+      "rankWithinPeriod": 15,
+      "reason": "ambiguous_model"
+    },
+    {
+      "appId": "190604",
+      "sourcePermaslug": "anthropic/claude-sonnet-5-20260630",
+      "totalTokens": "99256872499",
+      "rankWithinPeriod": 9,
+      "reason": "ambiguous_model"
+    },
+    {
+      "appId": "2725608",
+      "sourcePermaslug": "nvidia/nemotron-3-ultra-550b-a55b-20260604",
+      "totalTokens": "98217555021",
+      "rankWithinPeriod": 12,
+      "reason": "ambiguous_model"
+    },
+    {
+      "appId": "3682314",
+      "sourcePermaslug": "moonshotai/kimi-k3-20260715",
+      "totalTokens": "97990707563",
+      "rankWithinPeriod": 10,
+      "reason": "ambiguous_model"
+    },
+    {
+      "appId": "3682314",
+      "sourcePermaslug": "google/gemini-3.7-flash-20260813",
+      "totalTokens": "89689374552",
+      "rankWithinPeriod": 11,
+      "reason": "ambiguous_model"
+    },
+    {
+      "appId": "2853275",
+      "sourcePermaslug": "google/gemini-3.8-flash-20260902",
+      "totalTokens": "89123316666",
+      "rankWithinPeriod": 15,
+      "reason": "ambiguous_model"
+    },
+    {
+      "appId": "2853275",
+      "sourcePermaslug": "anthropic/claude-opus-5-20260723",
+      "totalTokens": "88648859207",
+      "rankWithinPeriod": 16,
+      "reason": "ambiguous_model"
+    },
+    {
+      "appId": "2668297",
+      "sourcePermaslug": "openai/gpt-5.6-terra-20260709",
+      "totalTokens": "88481256003",
+      "rankWithinPeriod": 4,
+      "reason": "ambiguous_model"
+    },
+    {
+      "appId": "190604",
+      "sourcePermaslug": "anthropic/claude-opus-5-20260723",
+      "totalTokens": "80946629403",
+      "rankWithinPeriod": 10,
+      "reason": "ambiguous_model"
+    },
+    {
+      "appId": "2725608",
+      "sourcePermaslug": "anthropic/claude-4.6-sonnet-20260217",
+      "totalTokens": "79774383373",
+      "rankWithinPeriod": 14,
+      "reason": "ambiguous_model"
+    },
+    {
+      "appId": "2262242",
+      "sourcePermaslug": "openai/gpt-5.6-luna-20260709",
+      "totalTokens": "79098441984",
+      "rankWithinPeriod": 16,
+      "reason": "ambiguous_model"
+    },
+    {
+      "appId": "3682314",
+      "sourcePermaslug": "z-ai/glm-5.2-20260616",
+      "totalTokens": "76253004745",
+      "rankWithinPeriod": 12,
+      "reason": "ambiguous_model"
+    },
+    {
+      "appId": "2262242",
+      "sourcePermaslug": "moonshotai/kimi-k3-20260715",
+      "totalTokens": "74523760158",
+      "rankWithinPeriod": 18,
+      "reason": "ambiguous_model"
+    },
+    {
+      "appId": "2725608",
+      "sourcePermaslug": "anthropic/claude-opus-5-20260723",
+      "totalTokens": "74363850012",
+      "rankWithinPeriod": 15,
+      "reason": "ambiguous_model"
+    },
+    {
+      "appId": "2725608",
+      "sourcePermaslug": "moonshotai/kimi-k3-20260715",
+      "totalTokens": "73707318009",
+      "rankWithinPeriod": 16,
+      "reason": "ambiguous_model"
+    },
+    {
+      "appId": "190604",
+      "sourcePermaslug": "nvidia/nemotron-3.5-lightning-20260807",
+      "totalTokens": "72781802971",
+      "rankWithinPeriod": 12,
+      "reason": "ambiguous_model"
+    },
+    {
+      "appId": "2668297",
+      "sourcePermaslug": "openai/gpt-6-astra-20260903",
+      "totalTokens": "71324135097",
+      "rankWithinPeriod": 5,
+      "reason": "ambiguous_model"
+    },
+    {
+      "appId": "2853275",
+      "sourcePermaslug": "anthropic/claude-sonnet-5-20260630",
+      "totalTokens": "70791389115",
+      "rankWithinPeriod": 17,
+      "reason": "ambiguous_model"
+    },
+    {
+      "appId": "4706207",
+      "sourcePermaslug": "deepseek/deepseek-v4-pro-20260813",
+      "totalTokens": "68854289378",
+      "rankWithinPeriod": 7,
+      "reason": "ambiguous_model"
+    },
+    {
+      "appId": "3682314",
+      "sourcePermaslug": "google/gemini-3.8-flash-20260902",
+      "totalTokens": "65431749840",
+      "rankWithinPeriod": 13,
+      "reason": "ambiguous_model"
+    },
+    {
+      "appId": "2262242",
+      "sourcePermaslug": "z-ai/glm-5.2-20260616",
+      "totalTokens": "63160332411",
+      "rankWithinPeriod": 20,
+      "reason": "ambiguous_model"
+    },
+    {
+      "appId": "190604",
+      "sourcePermaslug": "minimax/minimax-m3-20260531",
+      "totalTokens": "62936208540",
+      "rankWithinPeriod": 13,
+      "reason": "ambiguous_model"
+    },
+    {
+      "appId": "2668297",
+      "sourcePermaslug": "google/gemini-3.7-flash-20260813",
+      "totalTokens": "60625624545",
+      "rankWithinPeriod": 6,
+      "reason": "ambiguous_model"
+    },
+    {
+      "appId": "3682314",
+      "sourcePermaslug": "anthropic/claude-opus-5-20260723",
+      "totalTokens": "60333409799",
+      "rankWithinPeriod": 14,
+      "reason": "ambiguous_model"
+    }
+  ],
+  "coverage": {
+    "observedCells": 15,
+    "possibleCells": 100,
+    "unmappedObservations": 144,
+    "populationCompleteness": "partial_or_unknown"
+  },
+  "provenance": [
+    {
+      "sourceId": "apps_ranked",
+      "sourceTier": "stable",
+      "runId": "de251ec2-6f45-4b56-88db-b750af3e6399",
+      "fetchedAt": "2026-09-09T06:13:18.381Z",
+      "sourceAsOf": "2026-09-09T06:13:18.318Z",
+      "transformVersion": "or-app-rankings-v1",
+      "citation": "https://openrouter.ai/docs/api/api-reference/datasets/get-app-rankings"
+    },
+    {
+      "sourceId": "models_current",
+      "sourceTier": "stable",
+      "runId": "5c2ed240-5911-47bd-974e-15527ab99aad",
+      "fetchedAt": "2026-09-09T06:10:56.521Z",
+      "sourceAsOf": null,
+      "transformVersion": "or-models-current-v1",
+      "citation": "https://openrouter.ai/docs/api/api-reference/models/get-models"
+    },
+    {
+      "sourceId": "models_top_weekly",
+      "sourceTier": "stable",
+      "runId": "a3eb00b0-0d56-4ad4-9016-c83550cb195d",
+      "fetchedAt": "2026-09-09T06:11:32.688Z",
+      "sourceAsOf": null,
+      "transformVersion": "or-models-weekly-v1",
+      "citation": "https://openrouter.ai/docs/api/api-reference/models/get-models"
+    },
+    {
+      "sourceId": "openrouter.app-aliases.v1",
+      "sourceTier": "best_effort",
+      "runId": "67fd8f15-fb65-4c73-a199-323ed59f2847",
+      "fetchedAt": "2026-09-07T22:11:57.884Z",
+      "sourceAsOf": "2026-09-07T20:50:19.923Z",
+      "transformVersion": "openrouter-app-alias-v1",
+      "citation": "https://openrouter.ai/apps"
+    },
+    {
+      "sourceId": "openrouter.app-models.190604",
+      "sourceTier": "best_effort",
+      "runId": "a83e8f25-16f4-45bc-abe3-269ac83cd0ac",
+      "fetchedAt": "2026-09-09T06:13:38.849Z",
+      "sourceAsOf": "2026-09-09T00:00:00.000Z",
+      "transformVersion": "openrouter-app-model-daily-v1",
+      "citation": "https://openrouter.ai/apps/cline"
+    },
+    {
+      "sourceId": "openrouter.app-models.2262242",
+      "sourceTier": "best_effort",
+      "runId": "0a8b8a30-6bf0-4dc1-a1a1-30e33a971cc0",
+      "fetchedAt": "2026-09-09T06:13:35.459Z",
+      "sourceAsOf": "2026-09-09T00:00:00.000Z",
+      "transformVersion": "openrouter-app-model-daily-v1",
+      "citation": "https://openrouter.ai/apps/kilo-code"
+    },
+    {
+      "sourceId": "openrouter.app-models.2627404",
+      "sourceTier": "best_effort",
+      "runId": "3549f835-2cfe-4480-9209-9eb92503256d",
+      "fetchedAt": "2026-09-09T06:13:33.786Z",
+      "sourceAsOf": "2026-09-09T00:00:00.000Z",
+      "transformVersion": "openrouter-app-model-daily-v1",
+      "citation": "https://openrouter.ai/apps/claude-code"
+    },
+    {
+      "sourceId": "openrouter.app-models.2668297",
+      "sourceTier": "best_effort",
+      "runId": "5df67b74-5880-4acb-93ea-a4c37e3fdd2d",
+      "fetchedAt": "2026-09-09T06:13:48.014Z",
+      "sourceAsOf": "2026-09-09T00:00:00.000Z",
+      "transformVersion": "openrouter-app-model-daily-v1",
+      "citation": "https://openrouter.ai/apps/codex"
+    },
+    {
+      "sourceId": "openrouter.app-models.2725608",
+      "sourceTier": "best_effort",
+      "runId": "d1acc9e5-fa9d-4579-b86b-8c70171ab821",
+      "fetchedAt": "2026-09-09T06:13:44.655Z",
+      "sourceAsOf": "2026-09-09T00:00:00.000Z",
+      "transformVersion": "openrouter-app-model-daily-v1",
+      "citation": "https://openrouter.ai/apps/openclaw"
+    },
+    {
+      "sourceId": "openrouter.app-models.2853275",
+      "sourceTier": "best_effort",
+      "runId": "50b1559e-833f-443a-bcf9-d445217c29fe",
+      "fetchedAt": "2026-09-09T06:13:40.639Z",
+      "sourceAsOf": "2026-09-09T00:00:00.000Z",
+      "transformVersion": "openrouter-app-model-daily-v1",
+      "citation": "https://openrouter.ai/apps/pi"
+    },
+    {
+      "sourceId": "openrouter.app-models.3067167",
+      "sourceTier": "best_effort",
+      "runId": "4a203cf2-e44d-4cd6-bfb9-cb8a7993901d",
+      "fetchedAt": "2026-09-09T06:13:31.790Z",
+      "sourceAsOf": "2026-09-09T00:00:00.000Z",
+      "transformVersion": "openrouter-app-model-daily-v1",
+      "citation": "https://openrouter.ai/apps/hermes-agent"
+    },
+    {
+      "sourceId": "openrouter.app-models.3682314",
+      "sourceTier": "best_effort",
+      "runId": "d7420570-d508-463e-80fe-fc305df2eb22",
+      "fetchedAt": "2026-09-09T06:13:42.527Z",
+      "sourceAsOf": "2026-09-09T00:00:00.000Z",
+      "transformVersion": "openrouter-app-model-daily-v1",
+      "citation": "https://openrouter.ai/apps/url/https%3A%2F%2Fomp.sh%2F"
+    },
+    {
+      "sourceId": "openrouter.app-models.4137556",
+      "sourceTier": "best_effort",
+      "runId": "1bde90c7-03d9-411d-8cae-83930cd701df",
+      "fetchedAt": "2026-09-09T06:13:37.339Z",
+      "sourceAsOf": "2026-09-09T00:00:00.000Z",
+      "transformVersion": "openrouter-app-model-daily-v1",
+      "citation": "https://openrouter.ai/apps/url/https%3A%2F%2Ffreebuff.com%2F"
+    },
+    {
+      "sourceId": "openrouter.app-models.4706207",
+      "sourceTier": "best_effort",
+      "runId": "b29d5f21-cf0c-4759-b76e-156745ace419",
+      "fetchedAt": "2026-09-09T06:13:46.302Z",
+      "sourceAsOf": "2026-09-09T00:00:00.000Z",
+      "transformVersion": "openrouter-app-model-daily-v1",
+      "citation": "https://openrouter.ai/apps/url/https%3A%2F%2Fgithub.com%2Fdeepseek-ai%2Fdeepseek-harness"
+    }
+  ]
+}
