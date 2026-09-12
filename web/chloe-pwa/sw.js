@@ -1,5 +1,6 @@
 /* Chloé PWA — service worker (shell cache for installability) */
-const CACHE = 'chloe-pwa-v3';
+const CACHE_PREFIX = 'chloe-pwa-';
+const CACHE = CACHE_PREFIX + 'v3';
 const SHELL = ['./', './manifest.json', './icon.svg'];
 
 self.addEventListener('install', e => {
@@ -10,8 +11,15 @@ self.addEventListener('install', e => {
 
 self.addEventListener('activate', e => {
   e.waitUntil(
+    /* Only our own caches. Cache Storage is origin-wide and sdforest.site now
+     * serves a second PWA (web/rubiks-teacher/), so `k !== CACHE` meant this
+     * worker deleted Cubeflow's shell every time Chloé activated -- and
+     * Cubeflow's worker, which had the same line, deleted this one's. Two
+     * workers each deleting "everything that is not mine" never settle; they
+     * take turns, and neither app is reliably offline. */
     caches.keys().then(keys =>
-      Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)))
+      Promise.all(keys.filter(k => k.startsWith(CACHE_PREFIX) && k !== CACHE)
+                      .map(k => caches.delete(k)))
     ).then(() => self.clients.claim())
   );
 });
