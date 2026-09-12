@@ -23,6 +23,7 @@ async function routeApi(page, options = {}) {
     }
     if (relative.startsWith("/app-model-matrix") && options.matrixUnavailable) body = { schemaVersion: "2.0", status: "unavailable", reason: "collection_disabled", lastSuccessAt: null, stale: false, staleAfterSeconds: 172800, completeness: { acquisitionComplete: false, populationCompleteness: "partial_or_unknown", missingFields: ["collection_disabled"] }, provenance: [], appIds: bundle.responses[canonical("/apps?limit=10&period=30d&sort=popular")].data.map((row) => row.appId), modelIds: bundle.responses[canonical("/models?limit=10&rank_source=top-weekly")].data.map((row) => row.id), cells: [] };
     if (relative.startsWith("/app-model-matrix") && options.malformedMatrix) body = { ...body, cells: [...body.cells.slice(0, -1), body.cells[0]] };
+    if (relative.startsWith("/app-model-matrix") && options.threeStates) { body = structuredClone(body); body.cells = body.cells.map((cell, index) => index < 2 ? cell : ({ state: "unknown", appId: cell.appId, modelId: cell.modelId, reason: index === 2 ? "not_published" : "not_observed" })); body.coverage.observedCells = 2; body.coverage.possibleCells = body.appIds.length * body.modelIds.length; body.coverage.unmappedObservations = 138; body.unmappedModels = [{ appId: body.appIds[0], sourcePermaslug: "vendor/unresolved", totalTokens: "123456789", rankWithinPeriod: 1, reason: "ambiguous_model" }]; }
     if (relative.startsWith("/models?") && options.requiredUnavailable) { await route.fulfill({ status: 503, contentType: "application/json", body: JSON.stringify({ schemaVersion: "2.0", error: { code: "SOURCE_UNAVAILABLE", message: "Models unavailable", correlationId: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa", retryable: true } }) }); return; }
     if ((relative.startsWith("/providers") || relative.startsWith("/free-frontiers")) && options.gatedUnavailable) { await route.fulfill({ status: 503, contentType: "application/json", body: JSON.stringify({ schemaVersion: "2.0", error: { code: "SOURCE_UNAVAILABLE", message: "Source data is unavailable", correlationId: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa", retryable: true } }) }); return; }
     if (!body) { await route.fulfill({ status: 404, contentType: "application/json", body: JSON.stringify({ schemaVersion: "2.0", error: { code: "NOT_FOUND", message: "Not found", correlationId: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa", retryable: false } }) }); return; }
@@ -69,6 +70,9 @@ test("dedicated matrix route keeps the full grid readable and preserves unavaila
   await expect(page.locator(".oo-destinations a").nth(2)).toHaveAttribute("aria-current", "page");
   await expect(page.locator("#oo-matrix-field .oo-matrix tbody tr")).toHaveCount(10);
   await expect(page.locator("#oo-matrix-field .oo-matrix-control")).toHaveCount(100);
+  await expect(page.locator("#oo-matrix-field .oo-app-model-flow")).toBeVisible();
+  await expect(page.locator("#oo-matrix-field .oo-flow-title")).toHaveText("Observed relationships only");
+  await expect(page.locator("#oo-matrix-field")).not.toContainText("Relationship request failed");
   await expect(page.locator("#oo-matrix-route-intro")).toContainText("bounded relationship");
   await expect(page.locator(".oo-matrix-legend")).toContainText("exact daily tokens");
   await expect(page.locator(".oo-snapshot-notice")).toContainText("never mixed");
@@ -79,6 +83,27 @@ test("dedicated matrix route keeps the full grid readable and preserves unavaila
   await page.goto("/web/open-dashboard/matrix/index.html");
   await expect(page.locator("#oo-matrix-field")).toContainText("collection_disabled");
   await expect(page.locator("#oo-matrix-field .oo-matrix")).toHaveCount(0);
+});
+
+test("matrix evidence keeps all three states legible without colour", async ({ page }) => {
+  await routeApi(page, { threeStates: true });
+  await page.emulateMedia({ forcedColors: "active" });
+  await page.goto("/web/open-dashboard/matrix/index.html");
+  await expect(page.locator("#oo-matrix-field .oo-matrix-state-summary")).toContainText("2");
+  await expect(page.locator("#oo-matrix-field .oo-matrix-state-item.is-not-observed")).toContainText("checked, no usage recorded");
+  await expect(page.locator("#oo-matrix-field .oo-matrix-state-item.is-unknown")).toContainText("not collected or not published");
+  await expect(page.locator("#oo-matrix-field .oo-matrix-cell.is-observed")).toHaveCount(2);
+  await expect(page.locator("#oo-matrix-field .oo-matrix-cell.is-not-observed")).toHaveCount(97);
+  await expect(page.locator("#oo-matrix-field .oo-matrix-cell.is-unknown")).toHaveCount(1);
+  await expect(page.locator("#oo-matrix-field .oo-matrix-cell.is-unknown.is-not-published .oo-matrix-control")).toHaveText("N/P");
+  await expect(page.locator("#oo-matrix-field .oo-matrix-state-item.is-unknown .oo-matrix-state-detail")).toHaveText("(1 not published)");
+  // WAS toHaveText("0"). A cell the API declares `state: "unknown", reason: "not_observed"`
+  // rendered as the digit zero, indistinguishable at a glance from the observed zero this
+  // same spec checks two lines up. It is "N/O" now -- the sibling of the "N/P" asserted
+  // above -- so no cell in this matrix shows a number unless a number was observed.
+  await expect(page.locator("#oo-matrix-field .oo-matrix-cell.is-not-observed .oo-matrix-control").first()).toHaveText("N/O");
+  await expect(page.locator("#oo-matrix-field .oo-matrix-cell.is-not-observed .oo-matrix-control").first()).toHaveAttribute("aria-label", /checked and no observed usage/);
+  await expect(page.locator("#oo-matrix-field .oo-unmapped-summary")).toHaveText("138 unresolved observations · largest 1 shown");
 });
 
 test("GitHub exposes eight categories and transparent adoption metadata", async ({ page }, testInfo) => {

@@ -1,0 +1,141 @@
+{
+  "$comment": "STRUCTURED DATA, NOT PROSE IN MARKUP. The page renders this; it does not restate it. Every field name used here must exist in package-facts.json, which is generated from the package's own zod schemas -- mcp-package-agreement.test.js enforces that. A later interactive pass should read THIS file rather than re-deriving anything from HTML.",
+  "packageVersion": "1.1.3",
+
+  "priceSet": {
+    "claim": "A model does not have a price. It has a set of price points, each valid only under one stated condition.",
+    "why": "A scalar price forces a choice nobody recorded: which of a model's several real prices is the price. The set keeps all of them and makes the condition part of the value.",
+    "example": {
+      "provider": "sail",
+      "model": "Gemma 4 31B IT",
+      "unit": "token_in",
+      "sourceUrl": "https://docs.sailresearch.com/pricing",
+      "points": [
+        { "condition": "ASAP", "amountPerMillion": "0.40" },
+        { "condition": "Balanced", "amountPerMillion": "0.20" },
+        { "condition": "Flex", "amountPerMillion": "0.06" }
+      ],
+      "spread": "6.67x",
+      "reading": "One model, one unit, one source page, three prices. Quoting any single one of these as the model's price is wrong by up to 6.67x, and which one was quoted would not be recoverable."
+    }
+  },
+
+  "conditionKinds": [
+    {
+      "kind": "latency_window",
+      "meaning": "How fast you asked to be served.",
+      "emitted": true,
+      "instance": { "provider": "sail", "detail": "ASAP / Balanced / Flex on one model: 0.40 against 0.06 per million input tokens" }
+    },
+    {
+      "kind": "time_band",
+      "meaning": "What time of day it is where the provider bills.",
+      "emitted": true,
+      "instance": { "provider": "crazyrouter", "detail": "peak and off_peak bands carrying an explicit Asia/Shanghai timezone and their hour ranges" }
+    },
+    {
+      "kind": "rate_class",
+      "meaning": "Whether a figure is the list rate or a floor a vendor advertises.",
+      "emitted": true,
+      "instance": { "provider": "fal", "detail": "GPU SKUs distinguish list from as_low_as" }
+    },
+    {
+      "kind": "price_scope",
+      "meaning": "Whose price this is: what your authenticated account is charged, versus the public list rate.",
+      "emitted": true,
+      "addedIn": "1.0.0",
+      "instance": { "provider": "fal", "detail": "authenticated_account on every price read from the authenticated pricing endpoint" },
+      "note": "Added because account-scoped prices previously carried condition null, which asserts that no condition applies. Two prices under different scopes then compared as though they were the same quantity."
+    },
+    {
+      "kind": "tier",
+      "meaning": "A volume threshold above which a different rate applies.",
+      "emitted": false,
+      "instance": null,
+      "note": "Declared in the schema and currently emitted by no connector. Listed because the contract accepts it, not because any price in this release carries one. Saying so is cheaper than letting a reader assume coverage that does not exist."
+    }
+  ],
+
+  "provenance": {
+    "values": ["published", "derived", "parsed_from_prose", "unknown"],
+    "rule": "Every price point records where it was read and when. A price whose read time cannot be established is not emitted at all.",
+    "derivedExample": {
+      "provider": "crazyrouter",
+      "provenance": "derived",
+      "detail": "Some Crazyrouter figures are not independently set. They are another provider's published rate card multiplied by a per-model discount badge.",
+      "factor": "0.65",
+      "derivedFrom": "https://developers.openai.com/api/docs/models/gpt-4o",
+      "sourceText": "Crazyrouter model discount badge: 0.65",
+      "consequence": "These are excluded from competition comparisons. Comparing a derived price against the card it was derived from measures the multiplication, not the market. No global discount is inferred: the factor is per model."
+    }
+  },
+
+  "comparison": {
+    "rule": "A comparison returns every compatible pair or it refuses. Two points compare only under the same unit AND the same condition.",
+    "statusesByLayer": { "primitive": "refused", "toolResponse": "not_comparable" },
+    "refusedExample": {
+      "left": { "id": "fal:x:image:account", "amount": "0.03", "unit": "image", "condition": "price_scope authenticated_account" },
+      "right": { "id": "fal:x:image", "amount": "0.03", "unit": "image", "condition": "none" },
+      "outcome": "refused",
+      "reason": "Price conditions do not align; every conditional point must have an explicitly comparable condition on both sides",
+      "reading": "Identical numbers, identical units, and still refused. One is what this account pays and the other is a public list rate. Calling them equal would be a wrong answer, not a rougher one."
+    },
+    "zeroBaseline": "A zero baseline refuses rather than reporting 0%, for every spelling of zero including 0.0 and 0.00."
+  },
+
+  "speed": {
+    "rule": "A latency without an origin is wrong rather than incomplete, and a token rate without a stated basis is not publishable.",
+    "requiredFields": ["vantagePoint", "token_basis", "observedAt", "state"],
+    "vantagePoint": {
+      "why": "Latency is a property of a provider AND of where it was measured from.",
+      "measurement": {
+        "endpoint": "api.sailresearch.com",
+        "insideProviderNetworkMs": 56,
+        "fromSofiaMs": 1006,
+        "ratio": "18x",
+        "observedOn": "2026-09-08"
+      },
+      "reading": "Same endpoint, same minute. A figure published without naming its vantage point flatters whoever is nearest the benchmarking host."
+    },
+    "tokenBasis": {
+      "values": ["visible_output", "billed_total", "unknown"],
+      "why": "A reasoning model emits tokens that never reach content, so a visible-output rate and a billed rate differ by multiples. gpt-oss emits roughly two thirds of its tokens as reasoning."
+    },
+    "measuredParity": {
+      "model": "gpt-oss-120b",
+      "metric": "TTFT",
+      "tokenBasis": "visible_output",
+      "vantagePoint": "Sofia public internet",
+      "observations": [
+        { "provider": "cerebras", "seconds": "0.319" },
+        { "provider": "groq", "seconds": "0.335" }
+      ],
+      "reading": "A 5% gap, with Groq's best run ahead. A surface that can only express advantage will manufacture one, so parity is reported as parity."
+    },
+    "withheldClaims": [
+      {
+        "provider": "groq",
+        "model": "gpt-oss-120b",
+        "state": "unknown",
+        "wasPublishedAs": "8000 tokens/second",
+        "actually": "8000 tokens per MINUTE, a free-plan organization quota, not a throughput",
+        "detail": "Withdrawn in 1.0.0. The provider registry stored the same figure correctly as unit tokens/minute with the scope text 'this is not tokens per second or an inference-speed ceiling', while the speed tool published it as a rate. A 60x overstatement attributed to a named vendor, contradicted inside the same repository."
+      },
+      {
+        "provider": "cerebras",
+        "model": "gpt-oss-120b",
+        "state": "unknown",
+        "wasPublishedAs": "3000 tokens/second",
+        "actually": "unsupported by the page it cited",
+        "detail": "https://www.cerebras.ai/pricing, re-read 2026-09-09, carries only a general 'up to 30x faster than GPU systems' claim and no per-model rate."
+      }
+    ]
+  },
+
+  "threeStates": [
+    { "state": "published", "glyph": "value", "means": "The provider publishes this and we read it.", "carries": "an amount, a unit, a condition, a source URL and a read time" },
+    { "state": "not_published", "glyph": "N/P", "means": "The provider states that it does not publish this.", "carries": "no amount, and the provider's own statement" },
+    { "state": "unknown", "glyph": "?", "means": "We could not establish it. Not the same as absent.", "carries": "no amount, and the reason it is unknown" }
+  ],
+  "threeStatesNote": "These must stay visually distinct. Rendering an unknown as 0 was a real defect in this project's own matrix view: a declared unknown displayed as the digit zero, indistinguishable from an observed zero one column over. Fixed by giving it a reason code rather than a number."
+}

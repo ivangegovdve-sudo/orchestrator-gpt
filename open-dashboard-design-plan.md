@@ -1,0 +1,11 @@
+# Open Dashboard implementation
+
+The selected Open Field design becomes the real static Open Dashboard subsite: a light forest canvas, matching dark theme, a useful explorer before an independent setup page. Generated forest artwork stays decorative; every chart mark comes from published observations.
+
+The first chart compares text prices and context, with provider, output modality, free offer, capability and search filters; URL state preserves a view. Media has native unit price comparisons instead of interpreting token zeros as free. A selected model exposes its exact identifier, dates, source and account-specific free-tier disclosures. Curved app–model links show observed daily tokens for one aligned day, with unknown relationships omitted and explained. A separate history view retains the source's actual daily windows. GitHub discovery stays secondary.
+
+D3 owns scales, SVG geometry and pointer selection; small native modules own state and semantic controls. At most three charts coexist, with the primary plot capped at 1,500 visible marks and an explicit count. Above that bound the user refines the scope; the app never silently samples. Labels and focus controls remain DOM/SVG. The responsive layout recomputes axes and label budgets at container width, with 44px controls, tap inspection and a keyboard model selector. This avoids the GPU and accessibility overhead of a 3D scene for two-dimensional comparisons.
+
+Shared source metadata remains attached to records. Missing prices are null, exact decimal/integer source values are preserved for inspection, and same-name aliases are never joined speculatively. Free variants, quota-based free plans, catalog listing and operational availability are distinct concepts. Live fetch failure remains explicit. Media snapshots are timestamped and have a repeatable read-only refresh command.
+
+Validation covers normalization, unit compatibility, filter/share state, matching identities, matrix time alignment and client configuration generation. Browser review includes light/dark desktop and narrow mobile, actual filter/selection/copy flows and a comparison with the approved image. Production publication is a separate final step after the implementation is reviewable.

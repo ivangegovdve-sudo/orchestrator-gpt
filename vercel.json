@@ -110,22 +110,22 @@
     },
     {
       "source": "/series",
-      "destination": "https://morning-news-anchor-platform.vercel.app/series",
+      "destination": "https://thedrop.sdforest.site/series",
       "permanent": false
     },
     {
       "source": "/series/",
-      "destination": "https://morning-news-anchor-platform.vercel.app/series",
+      "destination": "https://thedrop.sdforest.site/series",
       "permanent": false
     },
     {
       "source": "/series/dependency-map/",
-      "destination": "https://morning-news-anchor-platform.vercel.app/series/dependency-map",
+      "destination": "https://thedrop.sdforest.site/series/dependency-map",
       "permanent": false
     },
     {
       "source": "/series/dependency-map",
-      "destination": "https://morning-news-anchor-platform.vercel.app/series/dependency-map",
+      "destination": "https://thedrop.sdforest.site/series/dependency-map",
       "permanent": false
     }
   ],

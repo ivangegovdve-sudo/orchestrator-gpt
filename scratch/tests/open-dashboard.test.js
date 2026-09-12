@@ -38,11 +38,15 @@ test("dedicated matrix route is linked between OpenRouter and GitHub and MCP cop
   assert.match(matrix, /latest-complete/);
 
   const mcp = read("mcp", "index.html");
-  assert.match(mcp, /v0\.6\.1/);
-  assert.match(mcp, /<div class="mcp-signal"><strong>10<\/strong><span>read-only tools/);
+  assert.match(mcp, /1\.0\.0/);
+  assert.match(mcp, /<div class="mcp-signal"><strong>16<\/strong><span>read-only tools/);
   assert.match(mcp, /dashboard_github_trending/);
   assert.match(mcp, /dashboard_whats_changed/);
-  assert.doesNotMatch(mcp, /All nine tools/);
+  assert.match(mcp, /dashboard_contract/);
+  assert.match(mcp, /dashboard_speed/);
+  assert.match(mcp, /price-sets/);
+  assert.match(mcp, /deprecations/);
+  assert.doesNotMatch(mcp, /v0\.6\.1|All nine tools/);
 });
 
 test("SD Forest homepage exposes one truthful animated Open Dashboard portal", () => {
@@ -223,7 +227,19 @@ test("public validation bounds untrusted text and collection cardinality", async
 test("matrix cell model distinguishes observed zero from unknown", async () => {
   const charts = await importRoute("open-dashboard-charts.js");
   assert.deepEqual(charts.matrixCellModel({ state: "observed", totalTokens: "0", rankWithinPeriod: 1, evidenceUrl: "https://openrouter.ai/" }), { state: "observed", label: "0", exact: "0", rank: 1, reason: null, evidenceUrl: "https://openrouter.ai/" });
-  assert.deepEqual(charts.matrixCellModel({ state: "unknown", reason: "not_observed" }), { state: "unknown", label: "?", exact: null, rank: null, reason: "not_observed", evidenceUrl: null });
+  // THE TEST NAME PROMISED THIS AND THE ASSERTION STOPPED CHECKING IT. The label was "0",
+  // pixel-identical to the observed zero asserted on the line above, for a cell the API
+  // declares `state: "unknown", reason: "not_observed"`. This assertion had been rewritten
+  // to agree with that rendering rather than question it -- the test on main was red and
+  // was made green by lowering it to match. What separates the two states must be the
+  // glyph a reader actually sees, not only the CSS class and the aria-label.
+  const notObserved = charts.matrixCellModel({ state: "unknown", reason: "not_observed" });
+  assert.deepEqual(notObserved, { state: "not_observed", label: "N/O", exact: null, rank: null, reason: "not_observed", evidenceUrl: null });
+  assert.match(notObserved.label, /^[A-Z]\/[A-Z]$/, "the label is a reason code, not a quantity");
+  assert.notEqual(notObserved.label, "0", "an unobserved cell must not render as the digit zero");
+  assert.notEqual(notObserved.label, charts.matrixCellModel({ state: "observed", totalTokens: "0", rankWithinPeriod: 1, evidenceUrl: "https://openrouter.ai/" }).label,
+    "a measured zero and an unmeasured cell must not look the same");
+  assert.equal(notObserved.exact, null, "and it carries no exact value, because none was observed");
   assert.equal(charts.validIsoTime("2026-02-29"), false);
   assert.equal(charts.validIsoTime("2026-02-29T00:00:00Z"), false);
   assert.equal(charts.validIsoTime("not-a-date"), false);
