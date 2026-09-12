@@ -9,6 +9,7 @@ import {
   PRESETS,
   TOOLS,
   PACKAGE_SPEC,
+  PACKAGE_VERSION,
   createSetup,
   firstPrompt,
   matchingPreset,
@@ -125,7 +126,11 @@ test("the shipped server advertises exactly each generated preset without fetchi
 });
 
 test("selectable tools and version match the actual published package vocabulary", () => {
-  assert.equal(PACKAGE_SPEC, `open-dashboard-mcp@${shipped.version}`);
+  assert.equal(PACKAGE_VERSION, shipped.version);
+  // Unpinned on purpose: npx must resolve the current release, matching the README.
+  // A version here would reintroduce the staleness this package exists to detect.
+  assert.equal(PACKAGE_SPEC, "open-dashboard-mcp");
+  assert.doesNotMatch(PACKAGE_SPEC, /@/, "the install spec must never name a version");
   assert.deepEqual(
     TOOLS.map((tool) => tool.id).sort(),
     [...shipped.tools].sort(),

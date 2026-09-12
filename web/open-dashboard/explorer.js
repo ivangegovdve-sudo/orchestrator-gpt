@@ -1011,7 +1011,7 @@ function renderSources() {
     ) +
     sourceCard(
       "MCP package",
-      "open-dashboard-mcp 1.1.0 · 17 selectable tools, 13 direct provider adapters. This is not a count of the inference providers behind OpenRouter. Provider-published catalogue prices keep their units and conditions; measured generation cost is a separate fact and may be unavailable.",
+      "open-dashboard-mcp 1.1.3 · 17 selectable tools, 13 direct provider adapters. This is not a count of the inference providers behind OpenRouter. Provider-published catalogue prices keep their units and conditions; measured generation cost is a separate fact and may be unavailable.",
       "https://www.npmjs.com/package/open-dashboard-mcp",
     );
   const routing = metadata.routingProviders,

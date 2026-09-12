@@ -1,5 +1,5 @@
-export const PACKAGE_VERSION = "1.1.0";
-export const PACKAGE_SPEC = `open-dashboard-mcp@${PACKAGE_VERSION}`;
+export const PACKAGE_VERSION = "1.1.3";
+export const PACKAGE_SPEC = "open-dashboard-mcp";
 export const SETUP_CHECKED_AT = "2026-09-10";
 export const NPM_URL = "https://www.npmjs.com/package/open-dashboard-mcp";
 export const OPENCLAW_CONFIG_FACTS = Object.freeze({
