@@ -31,6 +31,14 @@ const el = (tag, className, text) => {
   return node;
 };
 const note = (text) => el("p", "overview-note", text);
+export const packageToolLabel = (packageFacts) =>
+  Array.isArray(packageFacts?.tools)
+    ? `${packageFacts.tools.length.toLocaleString()} tools · enable only what you need`
+    : "Tool count unavailable · enable only what you need";
+export const packageVersionLabel = (packageFacts) =>
+  typeof packageFacts?.version === "string" && packageFacts.version
+    ? `Published package ${packageFacts.version}`
+    : "Published package version unavailable";
 const urlLink = (href, text, className = "text-link") => {
   const link = el("a", className, text);
   link.href = href;
@@ -644,10 +652,10 @@ function renderHealth(sectionNode, health) {
     );
 }
 
-function renderMethods(node, onNavigate) {
+function renderMethods(node, onNavigate, packageFacts) {
   const tools = section(
     "Explore here. Let your agent do the follow-through.",
-    "17 tools · enable only what you need",
+    packageToolLabel(packageFacts),
     "overview-tools",
   );
   const groups = el("div", "overview-tool-groups");
@@ -687,7 +695,7 @@ function renderMethods(node, onNavigate) {
   node.append(tools);
   const methods = section(
     "Know what the evidence means.",
-    `Published package ${PACKAGE_EVIDENCE.version}`,
+    packageVersionLabel(packageFacts),
     "overview-methods",
   );
   const grid = el("div", "overview-grid"),
@@ -1053,6 +1061,6 @@ export function renderOverview(
   );
   renderHealth(health, summary.health);
   node.append(health);
-  renderMethods(node, onNavigate);
+  renderMethods(node, onNavigate, metadata.packageFacts);
   return summary;
 }

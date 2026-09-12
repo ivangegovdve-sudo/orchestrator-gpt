@@ -213,9 +213,22 @@ function renderInspector(m) {
     : `<div class="metric-pair"><div><span>Input / 1M tokens</span><strong>${money(m.input)}</strong></div><div><span>Output / 1M tokens</span><strong>${money(m.output)}</strong></div></div>`;
   const outlierNote = priceOutlierNote(m, media);
   let quotaText = "";
-  if (quota?.kind === "free_variant_quota")
+  if (quota?.kind === "free_variant_quota") {
+    const requestsPerMinute = Number.isFinite(Number(quota.requestsPerMinute))
+      ? `${Number(quota.requestsPerMinute).toLocaleString()} requests/minute`
+      : "requests/minute unavailable";
+    const dailyTiers = Array.isArray(quota.dailyTiers)
+      ? quota.dailyTiers
+          .filter((tier) => tier && Number.isFinite(Number(tier.requestsPerDay)))
+          .map(
+            (tier) =>
+              `${escape(tier.label)}: ${Number(tier.requestsPerDay).toLocaleString()}/day`,
+          )
+          .join("; ")
+      : "";
     quotaText =
-      "<strong>OpenRouter free limits</strong>20 requests/minute. 50/day below $10 in lifetime purchases; 1,000/day at $10 or more. Quota exhaustion does not switch this model to paid inference.";
+      `<strong>OpenRouter free limits</strong>${requestsPerMinute}. ${dailyTiers || "Daily tiers unavailable"}. Policy checked ${dateLabel(quota.checkedAt)}. Quota exhaustion does not switch this model to paid inference.`;
+  }
   if (quota?.kind === "free_plan_quota") {
     const units = {
       requestsPerMinute: "requests/min",
@@ -1062,8 +1075,22 @@ function openLimits() {
   $("limits-dialog").showModal();
 }
 function prepareLimits() {
+  const maximumDaily = Math.max(
+    0,
+    ...OR.tiers.map((tier) => Number(tier.requestsPerDay) || 0),
+  );
+  const dailyTiers = OR.tiers
+    .map((tier) => {
+      const requestsPerDay = Number(tier.requestsPerDay);
+      const width =
+        maximumDaily > 0 && Number.isFinite(requestsPerDay)
+          ? Math.round((requestsPerDay / maximumDaily) * 100)
+          : 0;
+      return `<div><span>${escape(tier.label)}</span><i style="width:${width}%"></i><strong>${Number.isFinite(requestsPerDay) ? requestsPerDay.toLocaleString() : "Unavailable"} / day</strong></div>`;
+    })
+    .join("");
   $("limits-content").innerHTML =
-    `<h3>OpenRouter free variants</h3><p>Both tiers allow up to <strong>20 requests per minute</strong>, shared across the account’s free-model requests.</p><div class="quota-bars"><div><span>Under $10 purchased</span><i style="width:5%"></i><strong>50 / day</strong></div><div><span>$10 or more purchased</span><i style="width:100%"></i><strong>1,000 / day</strong></div></div><p>${escape(OR.qualification)}</p><p>${escape(OR.note)}</p>${link(OR.sourceUrl, "Read OpenRouter limits", "text-link")}<h3>Groq Free Plan</h3><p>${escape(GROQ.note)}</p><label class="control">Check a model <select id="groq-limit-model"></select></label><div id="groq-quota-detail" class="quota-note"></div><p>${link(GROQ.sourceUrl, "Published Groq limits", "text-link")} · ${link(GROQ.accountUrl, "Your organization limits", "text-link")}</p><small>Policies checked ${OR.checkedAt}. This explorer cannot see your balance or remaining quota, and does not forecast when a provider will change pricing.</small>`;
+    `<h3>OpenRouter free variants</h3><p>Both tiers allow up to <strong>${Number(OR.requestsPerMinute).toLocaleString()} requests per minute</strong>, shared across the account’s free-model requests.</p><div class="quota-bars">${dailyTiers}</div><p>${escape(OR.qualification)}</p><p>${escape(OR.note)}</p>${link(OR.sourceUrl, "Read OpenRouter limits", "text-link")}<h3>Groq Free Plan</h3><p>${escape(GROQ.note)}</p><label class="control">Check a model <select id="groq-limit-model"></select></label><div id="groq-quota-detail" class="quota-note"></div><p>${link(GROQ.sourceUrl, "Published Groq limits", "text-link")} · ${link(GROQ.accountUrl, "Your organization limits", "text-link")}</p><small>Policies checked ${OR.checkedAt}. This explorer cannot see your balance or remaining quota, and does not forecast when a provider will change pricing.</small>`;
   const s = $("groq-limit-model");
   s.append(...Object.keys(GROQ.models).map((id) => option(id, id)));
   const show = () => {

@@ -15,6 +15,7 @@ import {
   sourceSummary,
   summarizeOverview,
 } from "./overview-data.js";
+import { packageToolLabel, packageVersionLabel } from "./overview.js";
 
 const envelope = (data) => ({
   data,
@@ -26,6 +27,25 @@ const envelope = (data) => ({
   },
   window: { end: "2026-09-10" },
   provenance: [],
+});
+
+test("overview package labels derive current counts and version from loaded facts", () => {
+  assert.equal(
+    packageToolLabel({ tools: Array.from({ length: 17 }) }),
+    "17 tools · enable only what you need",
+  );
+  assert.equal(
+    packageToolLabel(null),
+    "Tool count unavailable · enable only what you need",
+  );
+  assert.equal(
+    packageVersionLabel({ version: "1.1.3" }),
+    "Published package 1.1.3",
+  );
+  assert.equal(
+    packageVersionLabel({}),
+    "Published package version unavailable",
+  );
 });
 function frontier(id, members = []) {
   const view = FRONTIER_VIEWS.find((row) => row.id === id);
