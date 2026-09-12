@@ -67,16 +67,13 @@ export function mountNpmDownloads(
     else delete container.dataset.npmDownloadsSource;
     if (state.status === "available") {
       value.textContent = `${state.facts.downloads.toLocaleString("en-US")} npm downloads`;
-      note.textContent =
-        state.source === "cache"
-          ? `Latest complete weekly window: ${formatNpmDownloadRange(state.facts)} (read ${formatNpmDownloadAge(state.ageMs)} ago from this browser session).`
-          : `Latest complete weekly window: ${formatNpmDownloadRange(state.facts)} (read live from npm).`;
-    } else if (state.status === "unavailable") {
-      value.textContent = "NPM downloads unavailable";
-      note.textContent = "The public downloads service did not return a usable weekly result.";
+      const source = state.source === "cache" ? "this browser session" : "npm";
+      note.textContent = `Latest complete weekly window: ${formatNpmDownloadRange(state.facts)} (read ${formatNpmDownloadAge(state.ageMs)} ago from ${source}).`;
     } else {
-      value.textContent = "NPM downloads could not be read";
-      note.textContent = "The public downloads response was unavailable or malformed.";
+      value.textContent = "UNAVAILABLE";
+      note.textContent = state.status === "unavailable"
+        ? "The public downloads service did not return a usable weekly result; no cached number is shown."
+        : "The public downloads response was unavailable or malformed; no cached number is shown.";
     }
   });
 }
@@ -106,6 +103,9 @@ function applyPackageFacts(root, facts) {
   const nodeRequirement = formatNodeRequirement(facts.node);
   root.querySelectorAll("[data-package-provider-count]").forEach((element) => {
     element.textContent = `${facts.providers.length} providers`;
+  });
+  root.querySelectorAll("[data-package-tool-count]").forEach((element) => {
+    element.textContent = `${facts.tools.length} tools`;
   });
   root.querySelectorAll("[data-package-version]").forEach((element) => {
     element.textContent = `MCP version ${facts.version}`;
