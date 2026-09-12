@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta
       name="description"
-      content="Give agents exact model IDs and provider-published prices with units, conditions and source dates across 13 providers, covering text, image, video and audio models where sources publish them. Connect Open Dashboard to Hermes, OpenClaw, Codex, Claude or Cursor."
+      content="Give agents exact model IDs and provider-published prices with units, conditions and source dates across provider catalogues, covering text, image, video and audio models where sources publish them. Connect Open Dashboard to Hermes, OpenClaw, Codex, Claude or Cursor."
     />
     <meta name="theme-color" content="#faf9f6" />
     <title>Connect your agent — Open Dashboard</title>
@@ -66,13 +66,14 @@
         <p class="setup-intro-description">
           Agents guess at model names and prices. Open Dashboard gives yours
           exact IDs and provider-published prices with visible units, conditions
-          and source dates across 13 providers, covering text, image, video and
+          and source dates across
+          <span data-package-provider-count>the package's provider catalogues</span>, covering text, image, video and
           audio models where sources publish them.
         </p>
         <div class="setup-facts">
-          <span>Read-only tools</span><span>Node.js 20+</span
+          <span>Read-only tools</span><span data-package-node-requirement>Node.js requirement</span
           ><a href="https://www.npmjs.com/package/open-dashboard-mcp"
-            >MCP version 1.1.3 ↗</a
+            ><span data-package-version>MCP version unavailable</span> ↗</a
           >
         </div>
       </header>
@@ -98,7 +99,7 @@
         </section>
         <article class="setup-proof" aria-labelledby="proof-title">
           <div class="setup-proof-head">
-            <p class="setup-eyebrow" id="proof-title">A real exchange · 11 September 2026</p>
+            <p class="setup-eyebrow" id="proof-title">A real exchange · observed 11 September 2026</p>
             <span class="setup-proof-meta">Providers touched: Crazyrouter · OpenRouter</span>
           </div>
           <div class="setup-proof-turn">
@@ -207,7 +208,7 @@
                   then restart the connection or open a new session.
                 </p>
                 <p>
-                  Install Node.js 20+ where Codex runs. Check node --version and
+                  Install Node.js <span data-package-node-version>as required by the package</span> where Codex runs. Check node --version and
                   npx --version in that environment. If a command is missing,
                   add Node/npm to that host’s PATH and restart Codex. Choose
                   Native Windows for cmd /c npx; choose WSL when Codex runs
@@ -466,9 +467,10 @@
           <summary>What do I need before connecting?</summary>
           <p>
             Install
-            <a href="https://nodejs.org/en/download">Node.js 20 or newer</a>
+            <a href="https://nodejs.org/en/download">Node.js</a>
+            <span data-package-node-version>as required by the package</span>
             with npm, and use an agent that supports local MCP servers. Your
-            agent starts the pinned npm package through npx. Public model
+            agent starts the npm package through npx. Public model
             discovery and public usage tools do not need your provider keys;
             some provider sources and optional account tools need additional
             configuration. Check the
@@ -485,7 +487,7 @@
             Open Dashboard entry in your agent’s settings. Restart the
             connection so it discovers the new selection. The
             <code>OPEN_DASHBOARD_TOOLS</code> setting controls which tools the
-            server exposes. Omitting it exposes all 17.
+            server exposes. Omitting it exposes all available tools.
           </p>
         </details>
         <details class="setup-detail">
@@ -499,7 +501,7 @@
           </p>
         </details>
         <details class="setup-detail setup-reference">
-          <summary>All 17 tools <span>Technical reference</span></summary>
+          <summary>All available tools <span>Technical reference</span></summary>
           <p>
             The names below are verified against the package contract. Your
             configuration can enable any subset.

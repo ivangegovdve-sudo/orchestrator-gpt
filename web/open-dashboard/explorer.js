@@ -1011,7 +1011,9 @@ function renderSources() {
     ) +
     sourceCard(
       "MCP package",
-      "open-dashboard-mcp 1.1.3 · 17 selectable tools, 13 direct provider adapters. This is not a count of the inference providers behind OpenRouter. Provider-published catalogue prices keep their units and conditions; measured generation cost is a separate fact and may be unavailable.",
+      metadata.packageFacts
+        ? `${metadata.packageFacts.name} ${metadata.packageFacts.version} · ${metadata.packageFacts.tools.length} selectable tools, ${metadata.packageFacts.providers.length} direct provider adapters. This is not a count of the inference providers behind OpenRouter. Provider-published catalogue prices keep their units and conditions; measured generation cost is a separate fact and may be unavailable.`
+        : "Package facts unavailable; version and package counts are unknown. This is not a count of the inference providers behind OpenRouter. Provider-published catalogue prices keep their units and conditions; measured generation cost is a separate fact and may be unavailable.",
       "https://www.npmjs.com/package/open-dashboard-mcp",
     );
   const routing = metadata.routingProviders,
@@ -1240,6 +1242,22 @@ async function boot() {
     sourceStatus: () => request("/source-status"),
     endpointArchive: () => loadCollection("/providers?limit=100", 64),
     routingProviders: () => loadRoutingProviders(),
+    packageFacts: async () => {
+      const r = await fetch("./package-facts.json", {
+        cache: "no-store",
+        signal: AbortSignal.timeout(15000),
+      });
+      if (!r.ok) throw new Error("Package facts unavailable");
+      const facts = await r.json();
+      if (
+        facts?.name !== "open-dashboard-mcp" ||
+        typeof facts.version !== "string" ||
+        !Array.isArray(facts.providers) ||
+        !Array.isArray(facts.tools)
+      )
+        throw new Error("Package facts did not match the expected shape");
+      return facts;
+    },
     media: async () => {
       const r = await fetch("./media-catalogue.json", {
         signal: AbortSignal.timeout(15000),
@@ -1305,8 +1323,11 @@ async function boot() {
   }
   $("model-count").textContent = models.length.toLocaleString();
   $("provider-count").textContent = providers.length;
+  $("tool-count").textContent = Array.isArray(metadata.packageFacts?.tools)
+    ? metadata.packageFacts.tools.length.toLocaleString()
+    : "Unknown";
   $("coverage-note").textContent =
-    `${DIRECT_PROVIDER_IDS.length} direct adapters · ${metadata.routingProviders?.data.length ?? "Unknown"} OpenRouter routing providers. See source coverage below.`;
+    `${metadata.packageFacts?.providers?.length ?? "Unknown"} direct adapters · ${metadata.routingProviders?.data.length ?? "Unknown"} OpenRouter routing providers. See source coverage below.`;
   $("data-status").textContent = failures.length
     ? "Some sources unavailable"
     : "Published data · sources below";

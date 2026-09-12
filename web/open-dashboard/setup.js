@@ -1,6 +1,5 @@
 import {
   CLIENTS,
-  PACKAGE_VERSION,
   PACKAGE_SPEC,
   PRESETS,
   TOOLS,
@@ -12,10 +11,12 @@ import {
 import { initShell } from "./shell.js";
 import {
   formatNpmDownloadRange,
+  formatNpmDownloadAge,
   readNpmDownloadState,
 } from "./npm-downloads.js";
 
 const STORAGE_KEY = "open-dashboard-setup-v1";
+const PACKAGE_FACTS_URL = new URL("./package-facts.json", import.meta.url);
 const escape = (value) =>
   String(value).replace(
     /[&<>"']/g,
@@ -45,7 +46,11 @@ export function restoreSetupPreferences(saved) {
   return state;
 }
 
-export function mountNpmDownloads(root = document, fetchImpl = globalThis.fetch) {
+export function mountNpmDownloads(
+  root = document,
+  fetchImpl = globalThis.fetch,
+  options = {},
+) {
   const container = root.querySelector("[data-npm-downloads]");
   if (!container) return;
   const value = container.querySelector("[data-npm-downloads-value]");
@@ -56,11 +61,16 @@ export function mountNpmDownloads(root = document, fetchImpl = globalThis.fetch)
   value.textContent = "Checking npm downloads…";
   note.textContent = "Reading the latest complete weekly window from npm.";
 
-  return readNpmDownloadState(fetchImpl).then((state) => {
+  return readNpmDownloadState(fetchImpl, options).then((state) => {
     container.dataset.npmDownloadsState = state.status;
+    if (state.source) container.dataset.npmDownloadsSource = state.source;
+    else delete container.dataset.npmDownloadsSource;
     if (state.status === "available") {
       value.textContent = `${state.facts.downloads.toLocaleString("en-US")} npm downloads`;
-      note.textContent = `Latest complete weekly window: ${formatNpmDownloadRange(state.facts)} (read live from npm).`;
+      note.textContent =
+        state.source === "cache"
+          ? `Latest complete weekly window: ${formatNpmDownloadRange(state.facts)} (read ${formatNpmDownloadAge(state.ageMs)} ago from this browser session).`
+          : `Latest complete weekly window: ${formatNpmDownloadRange(state.facts)} (read live from npm).`;
     } else if (state.status === "unavailable") {
       value.textContent = "NPM downloads unavailable";
       note.textContent = "The public downloads service did not return a usable weekly result.";
@@ -71,9 +81,47 @@ export function mountNpmDownloads(root = document, fetchImpl = globalThis.fetch)
   });
 }
 
+async function readPackageFacts(fetchImpl = globalThis.fetch) {
+  if (typeof fetchImpl !== "function") throw new Error("Package facts fetch is unavailable");
+  const response = await fetchImpl(PACKAGE_FACTS_URL, { cache: "no-store" });
+  const facts = response?.ok ? await response.json() : null;
+  if (
+    !facts ||
+    facts.name !== PACKAGE_SPEC ||
+    typeof facts.version !== "string" ||
+    typeof facts.node !== "string" ||
+    !Array.isArray(facts.providers) ||
+    !Array.isArray(facts.tools)
+  )
+    throw new Error("Package facts did not match the expected shape");
+  return facts;
+}
+
+function formatNodeRequirement(requirement) {
+  const match = requirement.match(/^>=\s*(\d+(?:\.\d+)?)/);
+  return match ? `${match[1]} or newer` : requirement;
+}
+
+function applyPackageFacts(root, facts) {
+  const nodeRequirement = formatNodeRequirement(facts.node);
+  root.querySelectorAll("[data-package-provider-count]").forEach((element) => {
+    element.textContent = `${facts.providers.length} providers`;
+  });
+  root.querySelectorAll("[data-package-version]").forEach((element) => {
+    element.textContent = `MCP version ${facts.version}`;
+  });
+  root.querySelectorAll("[data-package-node-requirement]").forEach((element) => {
+    element.textContent = `Node.js ${nodeRequirement}`;
+  });
+  root.querySelectorAll("[data-package-node-version]").forEach((element) => {
+    element.textContent = nodeRequirement;
+  });
+}
+
 export function mountSetup(root = document) {
   const wizard = root.querySelector("[data-setup]");
   if (!wizard) return;
+  let packageFacts = null;
   let state = restoreSetupPreferences();
   try {
     state = restoreSetupPreferences(
@@ -146,10 +194,15 @@ export function mountSetup(root = document) {
         String(button.dataset.preset === preset),
       );
     const count = state.toolIds.length;
+    const totalTools = packageFacts?.tools.length;
     wizard.querySelector("[data-selection-count]").textContent =
-      `${count} of ${TOOLS.length} tools selected`;
+      totalTools === undefined
+        ? `${count} tools selected`
+        : `${count} of ${totalTools} tools selected`;
     wizard.querySelector("[data-context-note]").textContent = count
-      ? `Your assistant will see these ${count} tools. The remaining ${TOOLS.length - count} are not exposed by the server.`
+      ? totalTools === undefined
+        ? `Your assistant will see these ${count} selected tools.`
+        : `Your assistant will see these ${count} tools. The remaining ${totalTools - count} are not exposed by the server.`
       : "Select at least one tool to create your setup.";
     wizard.querySelector('[data-next="2"]').disabled = count === 0;
     wizard.querySelector('[data-step-link="2"]').disabled = count === 0;
@@ -166,7 +219,7 @@ export function mountSetup(root = document) {
         ? "Connect your agent"
         : `Connect to ${setup.client.name}`;
     wizard.querySelector("[data-output-summary]").textContent =
-      `${setup.tools.length} selected tools · ${setup.format} · version ${PACKAGE_VERSION}`;
+      `${setup.tools.length} selected tools · ${setup.format} · ${packageFacts ? `version ${packageFacts.version}` : "package version unavailable"}`;
     wizard.querySelector("[data-output-instruction]").textContent =
       setup.instruction;
     wizard.querySelector("[data-output-location]").textContent = setup.location;
@@ -287,10 +340,22 @@ export function mountSetup(root = document) {
   });
   updateSelection();
   showStep(0, false);
+  readPackageFacts()
+    .then((facts) => {
+      packageFacts = facts;
+      applyPackageFacts(root, facts);
+      updateSelection();
+      if (state.step === 2) updateOutput();
+    })
+    .catch(() => {
+      /* The setup remains usable, but it does not invent package facts. */
+    });
 }
 
 if (typeof document !== "undefined") {
-  initShell();
-  mountSetup();
+  if (document.querySelector("[data-setup]")) {
+    initShell();
+    mountSetup();
+  }
   mountNpmDownloads();
 }

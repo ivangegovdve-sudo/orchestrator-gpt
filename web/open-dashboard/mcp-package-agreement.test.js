@@ -90,7 +90,17 @@ test("the package facts the page is checked against are the version being descri
   assert.equal(facts.name, "open-dashboard-mcp");
   assert.match(facts.version, /^\d+\.\d+\.\d+$/);
   const html = await readFile(pageUrl, "utf8");
-  assert.ok(html.includes(facts.version), `the page must name the version it documents (${facts.version})`);
+  assert.match(html, /data-package-version/);
+  assert.match(
+    await readFile(new URL("./setup.js", import.meta.url), "utf8"),
+    /data-package-version[\s\S]*facts\.version/,
+    "the page must fill its version label from package-facts.json",
+  );
+  assert.doesNotMatch(
+    html,
+    new RegExp(`MCP version ${facts.version.replaceAll(".", "\\.")}`),
+    "the HTML must not freeze the package version before package facts load",
+  );
 });
 
 test("the page's 1.0 content only uses vocabulary the package actually defines", async () => {

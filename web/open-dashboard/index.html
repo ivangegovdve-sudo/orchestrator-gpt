@@ -47,6 +47,7 @@
     <script src="./theme.js"></script>
     <script defer src="./vendor/d3.v7.min.js"></script>
     <script type="module" src="./explorer.js"></script>
+    <script type="module" src="./setup.js"></script>
   </head>
   <body class="od-page">
     <a class="skip-link" href="#explore">Skip to explorer</a>
@@ -107,7 +108,12 @@
       <div class="proof-strip page-width" aria-label="Catalogue coverage">
         <span><strong id="model-count">—</strong> model entries</span
         ><span><strong id="provider-count">—</strong> catalogue sources</span
-        ><span><strong>17</strong> optional MCP tools</span
+        ><span><strong id="tool-count">—</strong> optional MCP tools</span
+        ><span class="proof-note npm-download-note" data-npm-downloads aria-live="polite">
+          <strong data-npm-downloads-value>Checking npm downloads…</strong>
+          <span data-npm-downloads-note>Reading the latest complete weekly window from npm.</span>
+          <a href="https://api.npmjs.org/downloads/point/last-week/open-dashboard-mcp">Verify on npm ↗</a>
+        </span
         ><span class="proof-note" id="coverage-note"
           >Checking published catalogues…</span
         >
@@ -399,8 +405,7 @@
               <div>
                 <strong>Free comes with a few details.</strong>
                 <p>
-                  <b>OpenRouter:</b> <b>20 requests/minute</b>; <b>50/day</b>,
-                  or <b>1,000/day</b> after $10 in lifetime credit purchases.
+                  Provider limits are shown with their source and checked date.
                 </p>
                 <p><b>Groq:</b> model-specific request and token limits.</p>
                 <button class="inline-button" id="open-limits" type="button">
