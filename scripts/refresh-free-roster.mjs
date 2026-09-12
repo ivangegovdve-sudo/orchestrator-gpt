@@ -87,10 +87,10 @@ export const TIERS = ["proposer", "critic", "synthesis"];
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 // ── Gate 1: the MCP catalogue ────────────────────────────────────────────────
-// Spoken to over stdio JSON-RPC rather than through an SDK. This repo ships no
-// dependencies and has no lockfile — `npm ci` would fail outright — so pulling
-// @modelcontextprotocol/client in for one call would be a real cost. The stdio framing
-// is newline-delimited JSON-RPC 2.0 and fits in the function below.
+// Spoken to over stdio JSON-RPC rather than through an SDK. The exact MCP release and
+// integrity are pinned in package.json/package-lock.json, while this deliberately small
+// client avoids adding @modelcontextprotocol/client merely for one call. The stdio
+// framing is newline-delimited JSON-RPC 2.0 and fits in the function below.
 export function mcpClient(command, args, { env = {}, timeoutMs = 60_000 } = {}) {
   const child = spawn(command, args, {
     stdio: ["pipe", "pipe", "pipe"],

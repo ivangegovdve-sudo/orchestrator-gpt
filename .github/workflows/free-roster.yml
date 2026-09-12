@@ -120,9 +120,10 @@ jobs:
         with:
           node-version: '22'
 
-      # The repo has no dependencies and no lockfile — `npm ci` would fail outright. The
-      # MCP arrives through `npx -y` at run time instead, which is exactly why this job
-      # holds no write permission and emits only a candidate list.
+      # The exact MCP release and integrity are recorded in package.json/package-lock.json,
+      # but this untrusted catalogue job deliberately does not install the repository.
+      # It executes that exact release through `npx -y`, holds no write permission, and
+      # emits only a candidate list.
       - name: Ask the MCP for free-model candidates
         run: node scripts/refresh-free-roster.mjs --emit-candidates candidates.json
 
