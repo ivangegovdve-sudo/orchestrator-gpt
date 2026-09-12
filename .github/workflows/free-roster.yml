@@ -10,7 +10,8 @@
 #
 # WHY TWO JOBS
 # ------------
-# The generator runs `npx -y open-dashboard-mcp@0.4.0`, which downloads and executes code
+# The generator runs the exact `open-dashboard-mcp` version pinned in `package.json`,
+# which downloads and executes code
 # from npm at run time. That is the price of tracking the MCP's published version rather
 # than vendoring a copy that would itself go stale — but it means the generator step must
 # be treated as running untrusted code.

@@ -57,7 +57,7 @@ const ROSTER_PATH = path.join(HERE, "..", "web", "council", "free-roster.json");
 
 export const RELAY = "https://chloe.blumenkraft.cloud/council/relay";
 export const OPENROUTER_CATALOGUE = "https://openrouter.ai/api/v1/models";
-export const MCP_PACKAGE = "open-dashboard-mcp@0.4.0";
+export const MCP_PACKAGE = "open-dashboard-mcp@1.1.4";
 
 // A model must have answered at least once inside this window to keep its seat.
 export const VERIFY_WINDOW_DAYS = 7;
@@ -245,6 +245,7 @@ export async function probeModel(model, { fetchImpl = globalThis.fetch, relay = 
     const decoder = new TextDecoder();
     let text = "";
     let buffer = "";
+    let nonEventText = "";
     let terminated = false;
     for (;;) {
       const chunk = await reader.read();
@@ -254,13 +255,32 @@ export async function probeModel(model, { fetchImpl = globalThis.fetch, relay = 
       buffer = lines.pop() || "";
       for (const rawLine of lines) {
         const line = rawLine.trim();
-        if (!line.startsWith("data:")) continue;
+        if (!line.startsWith("data:")) {
+          if (nonEventText.length < 4096) nonEventText += `${rawLine}\n`;
+          continue;
+        }
         const payload = line.slice(5).trim();
         if (payload === "[DONE]") { terminated = true; continue; }
         try { text += JSON.parse(payload).choices?.[0]?.delta?.content ?? ""; } catch { /* partial frame */ }
       }
     }
+    if (buffer && nonEventText.length < 4096) nonEventText += buffer;
     const chars = text.trim().length;
+    if (chars === 0 && nonEventText.trim().startsWith("{")) {
+      try {
+        const detail = JSON.parse(nonEventText);
+        if (detail?.error) {
+          return {
+            ok: false,
+            reason: "relay-refused",
+            detail: String(detail.error.message ?? "").slice(0, 200),
+            ms: Date.now() - startedAt,
+          };
+        }
+      } catch {
+        // Not JSON after all; retain the normal empty-stream classification below.
+      }
+    }
     // Non-empty content is the whole test. `poolside/laguna-s-2.1:free` terminates
     // cleanly with zero characters when it spends its budget on reasoning — a clean
     // stream is not an answer.

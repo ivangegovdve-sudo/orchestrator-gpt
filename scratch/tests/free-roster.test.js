@@ -14,6 +14,7 @@ const path = require('node:path');
 const ROOT = path.resolve(__dirname, '../..');
 const ROSTER_PATH = path.join(ROOT, 'web/council/free-roster.json');
 const COUNCIL_JS = path.join(ROOT, 'web/council/council.js');
+const PACKAGE_JSON = path.join(ROOT, 'package.json');
 
 const importGenerator = () => import(
   require('node:url').pathToFileURL(path.join(ROOT, 'scripts/refresh-free-roster.mjs')).href
@@ -24,6 +25,15 @@ const catalogueOf = (entries) => new Map(entries.map((entry) => [
   entry.id,
   { pricing: { prompt: entry.prompt ?? '0', completion: entry.completion ?? '0' } },
 ]));
+
+test('the unattended roster uses the repository exact MCP release', async () => {
+  const { MCP_PACKAGE } = await importGenerator();
+  const packageJson = JSON.parse(fs.readFileSync(PACKAGE_JSON, 'utf8'));
+  const version = packageJson.devDependencies?.['open-dashboard-mcp'];
+
+  assert.match(version, /^\d+\.\d+\.\d+$/, 'the security boundary must not float on a range');
+  assert.equal(MCP_PACKAGE, `open-dashboard-mcp@${version}`);
+});
 
 // ── The free-only invariant ──────────────────────────────────────────────────
 
@@ -119,6 +129,19 @@ test('probeModel rejects a JSON error body served under HTTP 200', async () => {
   assert.equal(result.ok, false);
   assert.equal(result.reason, 'relay-refused');
   assert.match(result.detail, /Rate limit/);
+});
+
+test('probeModel detects a JSON refusal mislabeled as an event stream', async () => {
+  const { probeModel } = await importGenerator();
+  const result = await probeModel('a/one:free', {
+    fetchImpl: async () => streamResponse(
+      '{"error":{"message":"Rate limit exceeded","code":429}}',
+    ),
+  });
+
+  assert.equal(result.ok, false);
+  assert.equal(result.reason, 'relay-refused');
+  assert.match(result.detail, /Rate limit exceeded/);
 });
 
 test('probeModel reports a non-OK status rather than treating it as a pass', async () => {
