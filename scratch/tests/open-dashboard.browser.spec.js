@@ -211,6 +211,71 @@ test("changes panel distinguishes failed sources from successful empty", async (
   );
 });
 
+test("changes panel keeps failed plus successful-empty sources partial", async ({ page }, testInfo) => {
+  const failures = watchErrors(page);
+  await routeApi(page, {
+    changeState: "empty",
+    priceChangeState: "failed",
+  });
+  await page.goto("/web/open-dashboard/index.html?view=changes");
+
+  await expect(page.locator("#chart-title")).toHaveText(
+    "Know what is changing.",
+  );
+  await expect(page.locator("#chart-subtitle")).toContainText(
+    "partial source coverage",
+  );
+  await expect(page.locator("#plot-summary")).toContainText(
+    "1 source request failed",
+  );
+  await expect(page.locator("#inspector")).toContainText(
+    "Partial source coverage.",
+  );
+  await expect(page.locator("#inspector")).toContainText(
+    "OpenRouter price comparison: Request failed",
+  );
+  await expect(page.locator("#inspector")).toContainText(
+    "OpenRouter lifecycle observations: Request succeeded with empty results",
+  );
+  await expect(page.locator("#inspector")).toContainText(
+    "published 0 rows",
+  );
+  await page.locator("#chart").scrollIntoViewIfNeeded();
+  await page.screenshot({
+    path: testInfo.outputPath("changes-partial-empty.png"),
+    fullPage: false,
+  });
+  expect(failures).toEqual([]);
+});
+
+test("changes panel keeps a filtered successful source partial", async ({ page }) => {
+  const failures = watchErrors(page);
+  await routeApi(page, {
+    priceChangeState: "failed",
+    lifecycleEvidence: true,
+  });
+  await page.goto(
+    "/web/open-dashboard/index.html?view=changes&changeKind=prices",
+  );
+
+  await expect(page.locator("#chart-title")).toHaveText(
+    "Know what is changing.",
+  );
+  await expect(page.locator("#chart-subtitle")).toContainText(
+    "partial source coverage",
+  );
+  await expect(page.locator("#plot-summary")).toContainText(
+    "0 dated events in view",
+  );
+  await expect(page.locator("#plot-summary")).toContainText(
+    "1 source request failed",
+  );
+  await expect(page.locator("#inspector")).toContainText(
+    "OpenRouter lifecycle observations: Request succeeded with 1 published row",
+  );
+  expect(failures).toEqual([]);
+});
+
 test("every explorer data view exposes source and collection-time provenance", async ({ page }, testInfo) => {
   await routeApi(page);
   for (const view of ["models", "apps", "history", "benchmarks", "changes"]) {

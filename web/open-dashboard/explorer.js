@@ -1740,11 +1740,10 @@ function drawEvidence() {
     const failedDatasets = changeDatasets.filter(
       (dataset) => dataset.state === "failed",
     );
-    const changePreview = changeView(evidence, {
-      kind: state.changeKind,
-      range: state.changeRange,
-    });
-    if (failedDatasets.length && !changePreview.points.length) {
+    const allDatasetsFailed =
+      changeDatasets.length > 0 &&
+      failedDatasets.length === changeDatasets.length;
+    if (allDatasetsFailed) {
       const heading =
         failedDatasets.length === 1
           ? "A change evidence request failed."
@@ -1784,11 +1783,24 @@ function drawEvidence() {
         ? ` ${failedDatasets.length} source request${failedDatasets.length === 1 ? "" : "s"} failed: ${failedDatasets.map((dataset) => dataset.message).join("; ")}`
         : "");
     if (view.points.length) inspectEvidence(view.points[0]);
+    else if (changeDatasets.every((dataset) => dataset.state === "empty"))
+      $("inspector").innerHTML =
+        '<p class="eyebrow">Change evidence</p><h3>Requests succeeded with empty results.</h3><p>The sources published 0 rows. This is not a request failure.</p>';
+    else if (failedDatasets.length)
+      $("inspector").innerHTML =
+        '<p class="eyebrow">Change evidence</p><h3>Partial source coverage.</h3>' +
+        changeDatasets
+          .map((dataset) => {
+            if (dataset.state === "failed")
+              return `<p><strong>${escape(dataset.label)}:</strong> Request failed; ${escape(dataset.message)}</p>`;
+            if (dataset.state === "empty")
+              return `<p><strong>${escape(dataset.label)}:</strong> Request succeeded with empty results; the source published 0 rows.</p>`;
+            return `<p><strong>${escape(dataset.label)}:</strong> Request succeeded with ${dataset.rowCount} published row${dataset.rowCount === 1 ? "" : "s"}; no dated events from this source are visible in this slice.</p>`;
+          })
+          .join("");
     else
       $("inspector").innerHTML =
-        changeDatasets.every((dataset) => dataset.state === "empty")
-          ? '<p class="eyebrow">Change evidence</p><h3>Requests succeeded with empty results.</h3><p>The sources published 0 rows. This is not a request failure.</p>'
-          : '<p class="eyebrow">Change evidence</p><h3>No dated events in this slice.</h3><p>The price source compares two published runs. It does not establish an all-time history of prices or guarantee that a model will stay free.</p>';
+        '<p class="eyebrow">Change evidence</p><h3>No dated events in this slice.</h3><p>The price source compares two published runs. It does not establish an all-time history of prices or guarantee that a model will stay free.</p>';
   }
 }
 function inspectEvidence(p) {

@@ -9,6 +9,11 @@ on:
       - "package.json"
       - "package-lock.json"
       - "build-vercel-static.cjs"
+      - "scratch/tests/open-dashboard.browser.spec.js"
+      - "scratch/tests/open-dashboard.playwright.config.js"
+      - "scratch/tests/open-dashboard-static-server.mjs"
+      - "scratch/tests/package.json"
+      - "scratch/tests/package-lock.json"
       - ".github/workflows/open-dashboard-tests.yml"
   push:
     branches: [main]
@@ -19,6 +24,11 @@ on:
       - "package.json"
       - "package-lock.json"
       - "build-vercel-static.cjs"
+      - "scratch/tests/open-dashboard.browser.spec.js"
+      - "scratch/tests/open-dashboard.playwright.config.js"
+      - "scratch/tests/open-dashboard-static-server.mjs"
+      - "scratch/tests/package.json"
+      - "scratch/tests/package-lock.json"
       - ".github/workflows/open-dashboard-tests.yml"
 
 permissions:
@@ -36,7 +46,16 @@ jobs:
         with:
           node-version: "22"
           cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            scratch/tests/package-lock.json
       - run: npm ci --ignore-scripts
+      - run: npm ci --prefix scratch/tests --ignore-scripts
       - run: npm --prefix web/open-dashboard test
       - run: node scripts/refresh-open-dashboard-package-facts.mjs --check
       - run: npm run build
+      - name: Changes-view browser contract
+        run: >
+          npm exec --prefix scratch/tests -- playwright test
+          --config scratch/tests/open-dashboard.playwright.config.js
+          --grep "changes panel"
