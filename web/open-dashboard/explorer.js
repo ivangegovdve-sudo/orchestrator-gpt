@@ -138,6 +138,111 @@ function link(url, label, className = "source-link") {
     ? `<a class="${className}" href="${escape(u)}" target="_blank" rel="noopener noreferrer">${escape(label)} ↗</a>`
     : "";
 }
+const validTimestamp = (value) =>
+  typeof value === "string" && Number.isFinite(Date.parse(value))
+    ? value
+    : null;
+function collectionTimestamp(collection) {
+  const pages = Array.isArray(collection?.pages)
+    ? collection.pages
+    : collection
+      ? [collection]
+      : [];
+  const timestamps = pages
+    .flatMap((page) =>
+      Array.isArray(page?.provenance) ? page.provenance : [],
+    )
+    .map(
+      (row) =>
+        validTimestamp(row?.fetchedAt) || validTimestamp(row?.sourceAsOf),
+    )
+    .filter(Boolean)
+    .sort((a, b) => Date.parse(a) - Date.parse(b));
+  return timestamps.at(-1) ?? null;
+}
+function plotProvenanceRows() {
+  if (state.view === "models") {
+    const providers = providerCoverage(
+      filtered,
+      metadata.media,
+      metadata.sourceStatus,
+      metadata.live,
+    ).filter((provider) => provider.models > 0);
+    return providers.map((provider) => ({
+      label: provider.label,
+      url:
+        provider.sourceUrl ||
+        `${API_BASE}/live-models?provider=${encodeURIComponent(provider.id)}&limit=500`,
+      at: validTimestamp(provider.sourceAt),
+    }));
+  }
+  if (state.view === "apps") {
+    if (state.appChart === "flow")
+      return [
+        {
+          label: "App–model observations",
+          url:
+            observedCells(matrix)[0]?.evidenceUrl ||
+            `${API_BASE}/app-model-matrix?appLimit=10&modelLimit=10&window=latest-complete`,
+          at:
+            collectionTimestamp(matrix) ||
+            validTimestamp(matrix?.resolvedPeriod?.start),
+        },
+      ];
+    return [
+      {
+        label: "OpenRouter public apps",
+        url: `${API_BASE}/apps?limit=25&period=30d&sort=popular`,
+        at:
+          collectionTimestamp(metadata.apps) ||
+          validTimestamp(metadata.apps?.window?.end),
+      },
+    ];
+  }
+  if (state.view === "history")
+    return [
+      {
+        label: "Published history",
+        url: `${API_BASE}/history?window=90d&limit=25`,
+        at:
+          collectionTimestamp(history) || validTimestamp(history?.window?.end),
+      },
+    ];
+  const ids = state.view === "benchmarks" ? ["benchmarks"] : ["changes", "deprecations"];
+  return ids.map((id) => {
+    const descriptor = EVIDENCE_DATASETS.find((item) => item.id === id);
+    const source = evidence?.sources?.find((item) => item.id === id);
+    return {
+      label: source?.label || descriptor?.label || id,
+      url: source?.url || `${API_BASE}${descriptor?.path || ""}`,
+      at:
+        validTimestamp(source?.fetchedAt) ||
+        validTimestamp(source?.sourceAsOf),
+    };
+  });
+}
+function renderPlotProvenance() {
+  const container = $("plot-provenance");
+  if (!container) return;
+  const rows = plotProvenanceRows();
+  const complete =
+    rows.length > 0 &&
+    rows.every((row) => safeUrl(row.url) && validTimestamp(row.at));
+  container.dataset.provenanceState = complete ? "complete" : "partial";
+  container.innerHTML =
+    `<strong>Source and collection time</strong>` +
+    (rows.length
+      ? rows
+          .map((row) => {
+            const source =
+              link(row.url, row.label, "text-link") ||
+              `<span>${escape(row.label)} · source URL not published</span>`;
+            const timestamp = validTimestamp(row.at);
+            return `<span class="plot-provenance-item">Source: ${source} · ${timestamp ? `Collected <time datetime="${escape(timestamp)}">${escape(dateLabel(timestamp))}</time>` : "collection timestamp not published"}</span>`;
+          })
+          .join("")
+      : '<span class="plot-provenance-item">Source and collection timestamp are not published for this empty view.</span>');
+}
 function detailsList(items) {
   return `<dl class="detail-list">${items.map(([k, v]) => `<div><dt>${escape(k)}</dt><dd>${escape(v)}</dd></div>`).join("")}</dl>`;
 }
@@ -591,6 +696,7 @@ function renderMainChart() {
   if (!loaded) return;
   if (state.view === "overview") return;
   $("chart-legend").replaceChildren();
+  renderPlotProvenance();
   if (state.view === "models") {
     let rows = [];
     if (["bars", "donut", "catalogue"].includes(state.modelChart)) {
@@ -910,18 +1016,21 @@ function inspectApp(app) {
         ["Observed tokens", BigInt(app.totalTokens).toLocaleString()],
         ["Observed requests", BigInt(app.totalRequests).toLocaleString()],
         ["Window", "Rolling 30 days"],
+        ["Source collected", dateLabel(collectionTimestamp(metadata.apps))],
       ],
-    )}<p>These are public OpenRouter observations. They do not measure all usage of this app across every provider.</p><a class="button primary" href="#connections">See app–model connections ↓</a>`;
+    )}<p>These are public OpenRouter observations. They do not measure all usage of this app across every provider.</p>${link(`${API_BASE}/apps?limit=25&period=30d&sort=popular`, "Source evidence")}<a class="button primary" href="#connections">See app–model connections ↓</a>`;
 }
 function inspectHistory(p) {
+  const collectedAt = collectionTimestamp(history);
   if (p.isOther) {
     $("inspector").innerHTML =
       `<p class="eyebrow">Grouped daily observations</p><h3>${escape(p.label)}</h3>${detailsList(
         [
           ["Date (UTC)", dateLabel(p.date.toISOString())],
           ["Exact grouped tokens", BigInt(p.value).toLocaleString()],
+          ["Source collected", dateLabel(collectedAt)],
         ],
-      )}<p>This is a sum of published values. It has no single model ID.</p><ul class="history-members">${(p.members || []).map((member) => `<li>${escape(member.isRemainder ? "Published source remainder" : member.label || member.id)}: ${BigInt(member.value).toLocaleString()} tokens</li>`).join("")}</ul>`;
+      )}<p>This is a sum of published values. It has no single model ID.</p><ul class="history-members">${(p.members || []).map((member) => `<li>${escape(member.isRemainder ? "Published source remainder" : member.label || member.id)}: ${BigInt(member.value).toLocaleString()} tokens</li>`).join("")}</ul>${link(`${API_BASE}/history?window=90d&limit=25`, "Source evidence")}`;
     return;
   }
   $("inspector").innerHTML =
@@ -930,8 +1039,9 @@ function inspectHistory(p) {
         ["Date (UTC)", dateLabel(p.date.toISOString())],
         ["Exact token count", BigInt(p.value).toLocaleString()],
         ["Observation", "Complete published day"],
+        ["Source collected", dateLabel(collectedAt)],
       ],
-    )}<small>Source series identities are preserved. A date suffix or variant is not silently joined to a different catalogue ID.</small>`;
+    )}<small>Source series identities are preserved. A date suffix or variant is not silently joined to a different catalogue ID.</small>${link(`${API_BASE}/history?window=90d&limit=25`, "Source evidence")}`;
 }
 function inspectRank(p) {
   $("inspector").innerHTML =
@@ -940,8 +1050,9 @@ function inspectRank(p) {
         ["Rank", `#${p.rank}`],
         ["Date (UTC)", dateLabel(p.date.toISOString())],
         ["Ranking scope", p.scope || "OpenRouter apps"],
+        ["Source collected", dateLabel(collectionTimestamp(history))],
       ],
-    )}<p>Ranks are compared within the same published scope. Missing dates are not interpolated.</p>`;
+    )}<p>Ranks are compared within the same published scope. Missing dates are not interpolated.</p>${link(`${API_BASE}/history?window=90d&limit=25`, "Source evidence")}`;
 }
 function renderFlow() {
   if (matrix?.status === "available")
@@ -979,6 +1090,7 @@ function inspectFlow(cell) {
         [
           ["Daily tokens", BigInt(cell.totalTokens).toLocaleString()],
           ["Observed day", dateLabel(cell.period.start)],
+          ["Source collected", dateLabel(collectionTimestamp(matrix))],
           ["Scope", "OpenRouter public observations"],
         ],
       )}${link(cell.evidenceUrl, "Source evidence")}<p>Missing connections are unobserved, not zero usage.</p>`;
@@ -1530,6 +1642,7 @@ function renderEvidenceControls() {
   }
 }
 function renderEvidenceView() {
+  renderPlotProvenance();
   if (!evidence) {
     emptyChart(
       $("chart"),

@@ -8,11 +8,33 @@ const canonical = (input) => {
   const sorted = new URLSearchParams(Array.from(url.searchParams.entries()).sort(([a,av],[b,bv]) => a === b ? av.localeCompare(bv) : a.localeCompare(b)));
   return url.pathname + (sorted.size ? `?${sorted}` : "");
 };
+const currentFixtureAliases = new Map([
+  [canonical("/live-models?limit=500"), canonical("/models?limit=10&rank_source=top-weekly")],
+  [canonical("/models?limit=100&rank_source=none"), canonical("/models?limit=10&rank_source=top-weekly")],
+  [canonical("/apps?limit=25&period=30d&sort=popular"), canonical("/apps?limit=10&period=30d&sort=popular")],
+  [canonical("/history?window=90d&limit=25"), canonical("/history?window=90d&limit=10")],
+  [canonical("/benchmarks?limit=100"), canonical("/benchmarks?limit=50")],
+  [canonical("/deprecations?limit=200"), canonical("/deprecations?limit=50")],
+]);
 async function routeApi(page, options = {}) {
   const handler = async (route) => {
     if (options.offline) { await route.abort("failed"); return; }
     const url = new URL(route.request().url()); const relative = url.pathname.replace(/^.*(?:\/api\/public\/v2|\/__open_dashboard_api)/, "") + url.search;
-    let body = relative.startsWith("/manifest") ? bundle.manifest : bundle.responses[canonical(relative)];
+    const fixtureKey = canonical(relative);
+    let body = relative.startsWith("/manifest")
+      ? bundle.manifest
+      : bundle.responses[fixtureKey] || bundle.responses[currentFixtureAliases.get(fixtureKey)];
+    if (relative.startsWith("/price-changes?")) {
+      body = {
+        schemaVersion: "2.0",
+        status: "available",
+        data: [],
+        cursor: null,
+        window: { start: "2026-07-09", end: "2026-07-15", timezone: "UTC", inclusive: true, basis: "source_meta" },
+        completeness: { acquisitionComplete: true, populationCompleteness: "complete", missingFields: [] },
+        provenance: [{ sourceId: "prices_current", sourceTier: "stable", runId: "66666666-6666-4666-8666-666666666666", fetchedAt: "2026-07-15T10:00:00.000Z", sourceAsOf: "2026-07-15T00:00:00.000Z", transformVersion: "deterministic-preview-snapshot-v1", citation: "Deterministic browser fixture" }],
+      };
+    }
     if (relative.startsWith("/benchmarks") && options.benchmarkState === "failed") {
       await route.fulfill({ status: 503, contentType: "application/json", body: JSON.stringify({ schemaVersion: "2.0", error: { code: "BENCHMARK_SOURCE_FAILED", message: "Benchmark source failed", correlationId: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa", retryable: true } }) });
       return;
@@ -112,6 +134,43 @@ test("evidence panels distinguish not requested, failed, and successful empty", 
   await expect(empty).not.toContainText("Request failed");
   await empty.scrollIntoViewIfNeeded();
   await page.screenshot({ path: testInfo.outputPath("evidence-succeeded-empty.png"), fullPage: false });
+});
+
+test("every explorer data view exposes source and collection-time provenance", async ({ page }, testInfo) => {
+  await routeApi(page);
+  for (const view of ["models", "apps", "history", "benchmarks", "changes"]) {
+    await page.goto(`/web/open-dashboard/index.html?view=${view}`);
+    await expect(page.locator("#data-status")).not.toContainText("Loading");
+    const provenance = page.locator("#plot-provenance");
+    await expect(provenance).toBeVisible();
+    await expect(provenance).toHaveAttribute(
+      "data-provenance-state",
+      /^(complete|partial)$/,
+    );
+    await expect(provenance).toContainText("Source");
+    await expect(provenance.locator("a").first()).toBeVisible();
+    await expect(provenance.locator("time").first()).toBeVisible();
+    await expect(provenance.locator("time").first()).toHaveAttribute(
+      "datetime",
+      /^\d{4}-\d{2}-\d{2}/,
+    );
+    if (view === "models")
+      await provenance.screenshot({ path: testInfo.outputPath("model-provenance.png") });
+    if (view === "apps") {
+      const linkMark = page.locator("#chart .flow-link").nth(1);
+      await linkMark.focus();
+      await linkMark.press("Enter");
+      await expect(page.locator("#inspector")).toContainText("Source collected");
+      await expect(page.locator("#inspector a", { hasText: "Source evidence" })).toBeVisible();
+    }
+    if (view === "history") {
+      const historyMark = page.locator("#chart .data-point").first();
+      await historyMark.focus();
+      await historyMark.press("Enter");
+      await expect(page.locator("#inspector")).toContainText("Source collected");
+      await expect(page.locator("#inspector a", { hasText: "Source evidence" })).toBeVisible();
+    }
+  }
 });
 
 test("OpenRouter exposes nine compact sections plus app, provider and Pareto evidence", async ({ page }, testInfo) => {

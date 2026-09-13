@@ -657,6 +657,27 @@ h1 {
   padding: 11px 0;
   min-height: 57px;
 }
+
+.plot-provenance {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem 1rem;
+  align-items: baseline;
+  padding: 0.75rem 0;
+  border-top: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 0.78rem;
+}
+
+.plot-provenance > strong {
+  color: var(--ink);
+}
+
+.plot-provenance-item {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+}
 .chart-footer p {
   font-size: 12px;
   line-height: 1.65;
