@@ -222,6 +222,49 @@ button {
   gap: 19px;
   margin-left: auto;
 }
+.oo-mcp-banner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 18px;
+  padding: 10px 13px;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: var(--surface-soft);
+  color: var(--muted);
+  box-shadow: var(--shadow);
+}
+.oo-mcp-banner:hover {
+  border-color: var(--accent);
+  color: var(--ink);
+}
+.oo-mcp-banner-tag {
+  flex: 0 0 auto;
+  padding: 4px 8px;
+  border: 1px solid var(--accent);
+  border-radius: 999px;
+  color: var(--accent);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.09em;
+  line-height: 1;
+  text-transform: uppercase;
+}
+.oo-mcp-banner-text {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: 12px;
+}
+.oo-mcp-banner-text code {
+  color: var(--ink);
+  font-weight: 750;
+}
+.oo-mcp-banner-go {
+  flex: 0 0 auto;
+  color: var(--accent);
+  font-size: 11px;
+  font-weight: 750;
+}
 .forest-link {
   font-size: 12px;
   color: var(--muted);
@@ -1369,6 +1412,13 @@ h1 {
     gap: 12px;
   }
   .header-actions > .button {
+    display: none;
+  }
+  .oo-mcp-banner {
+    align-items: flex-start;
+    margin-top: 12px;
+  }
+  .oo-mcp-banner-go {
     display: none;
   }
   .theme-toggle {
