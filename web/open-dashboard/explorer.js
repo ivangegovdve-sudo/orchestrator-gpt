@@ -1729,6 +1729,46 @@ function drawEvidence() {
           ? '<p class="eyebrow">Benchmark evidence</p><h3>Request succeeded with empty results.</h3><p>The source published 0 rows. This is not a request failure.</p>'
           : `<p class="eyebrow">Benchmark evidence</p><h3>No comparable score and price in this view.</h3><p>${escape(view.emptyReason || "Choose another metric or evaluation group.")} Missing scores are not zero.</p>`;
   } else {
+    const changeDatasets = ["changes", "deprecations"].map((id) => {
+      const descriptor = EVIDENCE_DATASETS.find((item) => item.id === id);
+      return {
+        id,
+        label: descriptor?.label || id,
+        ...evidenceDatasetState(evidence, id, { requested: true }),
+      };
+    });
+    const failedDatasets = changeDatasets.filter(
+      (dataset) => dataset.state === "failed",
+    );
+    const changePreview = changeView(evidence, {
+      kind: state.changeKind,
+      range: state.changeRange,
+    });
+    if (failedDatasets.length && !changePreview.points.length) {
+      const heading =
+        failedDatasets.length === 1
+          ? "A change evidence request failed."
+          : "Change evidence requests failed.";
+      emptyChart(
+        $("chart"),
+        heading,
+        "Nothing is shown in place of the unavailable sources.",
+      );
+      $("chart-title").textContent = "Change evidence is unavailable";
+      $("chart-subtitle").textContent =
+        `${failedDatasets.length} public source request${failedDatasets.length === 1 ? "" : "s"} failed`;
+      $("plot-summary").textContent =
+        "No failed change request is being presented as an empty dataset.";
+      $("inspector").innerHTML =
+        `<p class="eyebrow">Change evidence</p><h3>${heading}</h3>` +
+        failedDatasets
+          .map(
+            (dataset) =>
+              `<p><strong>${escape(dataset.label)}:</strong> ${escape(dataset.message)}</p>`,
+          )
+          .join("");
+      return;
+    }
     const view = renderChanges($("chart"), evidence, {
       kind: state.changeKind,
       range: state.changeRange,
@@ -1736,13 +1776,19 @@ function drawEvidence() {
     });
     $("chart-title").textContent = "Know what is changing.";
     $("chart-subtitle").textContent =
-      "Observed price comparisons and published model lifecycle dates";
+      "Observed price comparisons and published model lifecycle dates" +
+      (failedDatasets.length ? " · partial source coverage" : "");
     $("plot-summary").textContent =
-      `${view.points.length} dated events in view · ${view.outsideRange} later dates outside this range. These observations do not predict future billing.`;
+      `${view.points.length} dated events in view · ${view.outsideRange} later dates outside this range. These observations do not predict future billing.` +
+      (failedDatasets.length
+        ? ` ${failedDatasets.length} source request${failedDatasets.length === 1 ? "" : "s"} failed: ${failedDatasets.map((dataset) => dataset.message).join("; ")}`
+        : "");
     if (view.points.length) inspectEvidence(view.points[0]);
     else
       $("inspector").innerHTML =
-        '<p class="eyebrow">Change evidence</p><h3>No dated events in this slice.</h3><p>The price source compares two published runs. It does not establish an all-time history of prices or guarantee that a model will stay free.</p>';
+        changeDatasets.every((dataset) => dataset.state === "empty")
+          ? '<p class="eyebrow">Change evidence</p><h3>Requests succeeded with empty results.</h3><p>The sources published 0 rows. This is not a request failure.</p>'
+          : '<p class="eyebrow">Change evidence</p><h3>No dated events in this slice.</h3><p>The price source compares two published runs. It does not establish an all-time history of prices or guarantee that a model will stay free.</p>';
   }
 }
 function inspectEvidence(p) {

@@ -44,6 +44,36 @@ async function routeApi(page, options = {}) {
       body.data = [];
       body.cursor = null;
     }
+    if (
+      (relative.startsWith("/price-changes?") ||
+        relative.startsWith("/deprecations?")) &&
+      (options.changeState === "failed" ||
+        (relative.startsWith("/price-changes?") &&
+          options.priceChangeState === "failed"))
+    ) {
+      const source = relative.startsWith("/price-changes?")
+        ? "Price changes"
+        : "Lifecycle";
+      await route.fulfill({
+        status: 503,
+        contentType: "application/json",
+        body: JSON.stringify({
+          schemaVersion: "2.0",
+          error: {
+            code: "EVIDENCE_SOURCE_FAILED",
+            message: `${source} source failed`,
+            correlationId: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+            retryable: true,
+          },
+        }),
+      });
+      return;
+    }
+    if (relative.startsWith("/deprecations?") && options.changeState === "empty") {
+      body = structuredClone(body);
+      body.data = [];
+      body.cursor = null;
+    }
     if (relative.startsWith("/history?") && options.eligibleHistory && body?.status === "available") {
       body = structuredClone(body); body.window.end = "2026-07-16";
       for (const series of Object.values(body.data)) { const latest = structuredClone(series.at(-1)); latest.date = "2026-07-16"; series.push(latest); }
@@ -134,6 +164,51 @@ test("evidence panels distinguish not requested, failed, and successful empty", 
   await expect(empty).not.toContainText("Request failed");
   await empty.scrollIntoViewIfNeeded();
   await page.screenshot({ path: testInfo.outputPath("evidence-succeeded-empty.png"), fullPage: false });
+});
+
+test("changes panel distinguishes failed sources from successful empty", async ({ page }) => {
+  await routeApi(page, { changeState: "failed" });
+  await page.goto("/web/open-dashboard/index.html?view=changes");
+  await expect(page.locator("#chart")).toContainText(
+    "Change evidence requests failed.",
+  );
+  await expect(page.locator("#inspector")).toContainText(
+    "OpenRouter price comparison",
+  );
+  await expect(page.locator("#inspector")).toContainText(
+    "OpenRouter lifecycle observations",
+  );
+  await expect(page.locator("#inspector")).not.toContainText(
+    "No dated events in this slice",
+  );
+
+  await page.unrouteAll();
+  await routeApi(page, { changeState: "empty" });
+  await page.goto("/web/open-dashboard/index.html?view=changes");
+  await expect(page.locator("#inspector")).toContainText(
+    "Requests succeeded with empty results.",
+  );
+  await expect(page.locator("#inspector")).toContainText(
+    "The sources published 0 rows.",
+  );
+  await expect(page.locator("#inspector")).not.toContainText("Request failed");
+
+  await page.unrouteAll();
+  await routeApi(page, {
+    priceChangeState: "failed",
+    lifecycleEvidence: true,
+  });
+  await page.goto("/web/open-dashboard/index.html?view=changes");
+  await expect(page.locator("#chart-subtitle")).toContainText(
+    "partial source coverage",
+  );
+  await expect(page.locator("#plot-summary")).toContainText(
+    "1 source request failed",
+  );
+  await expect(page.locator("#inspector")).toContainText("example/model");
+  await expect(page.locator("#inspector")).not.toContainText(
+    "Requests succeeded with empty results",
+  );
 });
 
 test("every explorer data view exposes source and collection-time provenance", async ({ page }, testInfo) => {
