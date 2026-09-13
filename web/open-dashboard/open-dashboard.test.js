@@ -12,6 +12,38 @@ test("does not mount an unexplained relationship canvas on the overview page", a
   assert.doesNotMatch(html, /id="oo-network-region"/);
 });
 
+test("keeps the MCP install banner above every dashboard data surface", async () => {
+  const [explorer, projects, styles] = await Promise.all([
+    readFile(new URL("./index.html", import.meta.url), "utf8"),
+    readFile(new URL("./github/index.html", import.meta.url), "utf8"),
+    readFile(new URL("./explorer.css", import.meta.url), "utf8"),
+  ]);
+
+  for (const [name, html, surfaceMarker] of [
+    ["model explorer", explorer, 'role="tablist"'],
+    ["project explorer", projects, 'id="projects-explorer"'],
+  ]) {
+    const banner = html.match(
+      /<a class="oo-mcp-banner[^>]*"[\s\S]*?<\/a>/,
+    )?.[0];
+    assert.ok(banner, `${name} must keep the MCP server visible above its data surface`);
+    assert.match(banner, /MCP server/);
+    assert.match(banner, /<code>npx -y open-dashboard-mcp<\/code>/);
+    assert.match(banner, /href="[^\"]*\/mcp\//);
+    assert.ok(
+      html.indexOf(banner) < html.indexOf(surfaceMarker),
+      `${name} banner must precede the interactive data surface`,
+    );
+  }
+
+  assert.match(styles, /\.oo-mcp-banner\s*\{/);
+  assert.doesNotMatch(
+    explorer.match(/<div class="view-tabs"[\s\S]*?<\/div>/)?.[0] ?? "",
+    /MCP server|Connect your agent/i,
+    "MCP belongs in the persistent banner, not in the data tabs",
+  );
+});
+
 const source = (overrides = {}) => ({
   sourceId: "models_current",
   sourceTier: "stable",
