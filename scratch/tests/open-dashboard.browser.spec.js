@@ -9,10 +9,19 @@ const canonical = (input) => {
   return url.pathname + (sorted.size ? `?${sorted}` : "");
 };
 async function routeApi(page, options = {}) {
-  await page.route("https://openrouter-github-dashboard.vercel.app/api/public/v2/**", async (route) => {
+  const handler = async (route) => {
     if (options.offline) { await route.abort("failed"); return; }
-    const url = new URL(route.request().url()); const relative = url.pathname.replace("/api/public/v2", "") + url.search;
+    const url = new URL(route.request().url()); const relative = url.pathname.replace(/^.*(?:\/api\/public\/v2|\/__open_dashboard_api)/, "") + url.search;
     let body = relative.startsWith("/manifest") ? bundle.manifest : bundle.responses[canonical(relative)];
+    if (relative.startsWith("/benchmarks") && options.benchmarkState === "failed") {
+      await route.fulfill({ status: 503, contentType: "application/json", body: JSON.stringify({ schemaVersion: "2.0", error: { code: "BENCHMARK_SOURCE_FAILED", message: "Benchmark source failed", correlationId: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa", retryable: true } }) });
+      return;
+    }
+    if (relative.startsWith("/benchmarks") && options.benchmarkState === "empty") {
+      body = structuredClone(bundle.responses[canonical("/benchmarks?limit=50")]);
+      body.data = [];
+      body.cursor = null;
+    }
     if (relative.startsWith("/history?") && options.eligibleHistory && body?.status === "available") {
       body = structuredClone(body); body.window.end = "2026-07-16";
       for (const series of Object.values(body.data)) { const latest = structuredClone(series.at(-1)); latest.date = "2026-07-16"; series.push(latest); }
@@ -28,7 +37,9 @@ async function routeApi(page, options = {}) {
     if ((relative.startsWith("/providers") || relative.startsWith("/free-frontiers")) && options.gatedUnavailable) { await route.fulfill({ status: 503, contentType: "application/json", body: JSON.stringify({ schemaVersion: "2.0", error: { code: "SOURCE_UNAVAILABLE", message: "Source data is unavailable", correlationId: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa", retryable: true } }) }); return; }
     if (!body) { await route.fulfill({ status: 404, contentType: "application/json", body: JSON.stringify({ schemaVersion: "2.0", error: { code: "NOT_FOUND", message: "Not found", correlationId: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa", retryable: false } }) }); return; }
     await route.fulfill({ status: 200, contentType: "application/json", headers: { "Access-Control-Allow-Origin": "http://127.0.0.1:4174", "Access-Control-Expose-Headers": "ETag", ETag: '"snapshot-v2"' }, body: JSON.stringify(body) });
-  });
+  };
+  await page.route("https://openrouter-github-dashboard.vercel.app/api/public/v2/**", handler);
+  await page.route("**/__open_dashboard_api/**", handler);
 }
 
 const watchErrors = (page) => {
@@ -53,6 +64,54 @@ test("source badge reports optional degradation, malformed matrix, and required 
   await routeApi(page, { matrixUnavailable: true }); await page.goto("/web/open-dashboard/index.html"); await expect(page.locator("#oo-source-status")).toContainText("partial"); await expect(page.locator("#oo-source-status")).not.toContainText("complete");
   await page.unrouteAll(); await routeApi(page, { malformedMatrix: true }); await page.goto("/web/open-dashboard/index.html"); await expect(page.locator("#oo-source-status")).toContainText("partial"); await expect(page.locator("#oo-matrix-field")).toContainText("Relationship request failed");
   await page.unrouteAll(); await routeApi(page, { requiredUnavailable: true }); await page.goto("/web/open-dashboard/index.html"); await expect(page.locator("#oo-source-status")).toContainText("unavailable");
+});
+
+test("evidence panels distinguish not requested, failed, and successful empty", async ({ page }, testInfo) => {
+  await page.setViewportSize({ width: 1440, height: 360 });
+  const evidenceRequests = [];
+  page.on("request", (request) => {
+    if (/\/(?:benchmarks|price-changes|deprecations)(?:\?|$)/.test(request.url())) evidenceRequests.push(request.url());
+  });
+  await routeApi(page);
+  await page.goto("/web/open-dashboard/index.html?view=models");
+  await expect(page.locator("#data-status")).not.toContainText("Loading");
+  await page.locator("details.source-details > summary").scrollIntoViewIfNeeded();
+  await page.locator("details.source-details > summary").click();
+  const pending = page.locator("#sources .source-item").filter({ hasText: "Published benchmark observations · not requested" });
+  await expect(pending).toBeVisible();
+  await expect(pending).toContainText("Not requested yet");
+  await expect(pending).not.toContainText("Request failed");
+  expect(evidenceRequests).toEqual([]);
+  await pending.scrollIntoViewIfNeeded();
+  await page.screenshot({ path: testInfo.outputPath("evidence-not-requested.png"), fullPage: false });
+
+  await page.unrouteAll();
+  await routeApi(page, { benchmarkState: "failed" });
+  await page.goto("/web/open-dashboard/index.html?view=benchmarks");
+  await expect(page.locator("#chart")).toContainText("Benchmark request failed.");
+  await expect(page.locator("#chart")).toContainText("Nothing is shown in its place.");
+  await page.locator("details.source-details > summary").scrollIntoViewIfNeeded();
+  await page.locator("details.source-details > summary").click();
+  const failed = page.locator("#sources .source-item").filter({ hasText: "Published benchmark observations · failed" });
+  await expect(failed).toBeVisible();
+  await expect(failed).toContainText("Request failed; nothing is shown in its place.");
+  await expect(failed).toContainText("Data source returned 503");
+  await failed.scrollIntoViewIfNeeded();
+  await page.screenshot({ path: testInfo.outputPath("evidence-failed.png"), fullPage: false });
+
+  await page.unrouteAll();
+  await routeApi(page, { benchmarkState: "empty" });
+  await page.goto("/web/open-dashboard/index.html?view=benchmarks");
+  await expect(page.locator("#inspector")).toContainText("Request succeeded with empty results.");
+  await expect(page.locator("#inspector")).toContainText("The source published 0 rows.");
+  await page.locator("details.source-details > summary").scrollIntoViewIfNeeded();
+  await page.locator("details.source-details > summary").click();
+  const empty = page.locator("#sources .source-item").filter({ hasText: "Published benchmark observations · succeeded with empty results" });
+  await expect(empty).toBeVisible();
+  await expect(empty).toContainText("Request succeeded and published 0 rows.");
+  await expect(empty).not.toContainText("Request failed");
+  await empty.scrollIntoViewIfNeeded();
+  await page.screenshot({ path: testInfo.outputPath("evidence-succeeded-empty.png"), fullPage: false });
 });
 
 test("OpenRouter exposes nine compact sections plus app, provider and Pareto evidence", async ({ page }, testInfo) => {

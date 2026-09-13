@@ -57,7 +57,9 @@ import {
   clearChartZoom,
 } from "./explorer-charts.js";
 import {
+  EVIDENCE_DATASETS,
   loadEvidence,
+  evidenceDatasetState,
   benchmarkView,
   changeView,
   renderBenchmarks,
@@ -514,6 +516,7 @@ function render() {
   $("model-panel").setAttribute("aria-labelledby", `tab-${state.view}`);
   if (state.view === "overview") {
     updateOverview();
+    ensureEvidence();
     persist();
     return;
   }
@@ -983,6 +986,45 @@ function inspectFlow(cell) {
 function sourceCard(title, description, url) {
   return `<div class="source-item"><strong>${escape(title)}</strong><p>${escape(description)}</p>${link(url, "Source", "text-link")}</div>`;
 }
+function evidenceSourceCards() {
+  return EVIDENCE_DATASETS.map((descriptor) => {
+    const result = evidenceDatasetState(evidence, descriptor.id, {
+      requested: evidencePromise !== null,
+    });
+    const source = evidence?.sources?.find(
+      (candidate) => candidate.id === descriptor.id,
+    );
+    if (result.state === "not-requested")
+      return sourceCard(
+        `${descriptor.label} · not requested`,
+        "Not requested yet. Open Overview, Benchmarks, or Changes & lifecycle to request this source.",
+        `${API_BASE}${descriptor.path}`,
+      );
+    if (result.state === "pending")
+      return sourceCard(
+        `${descriptor.label} · request in progress`,
+        "The request has started; no result is claimed yet.",
+        `${API_BASE}${descriptor.path}`,
+      );
+    if (result.state === "failed")
+      return sourceCard(
+        `${descriptor.label} · failed`,
+        `Request failed; nothing is shown in its place. ${result.message}`,
+        `${API_BASE}${descriptor.path}`,
+      );
+    if (result.state === "empty")
+      return sourceCard(
+        `${descriptor.label} · succeeded with empty results`,
+        `Request succeeded and published 0 rows. This is not a request failure. Source date ${dateLabel(source?.sourceAsOf || source?.fetchedAt)}.`,
+        source?.url || `${API_BASE}${descriptor.path}`,
+      );
+    return sourceCard(
+      source?.label || descriptor.label,
+      `${result.rowCount.toLocaleString()} published rows · ${dateLabel(source?.sourceAsOf || source?.fetchedAt)}. ${source?.hasMore ? "Coverage is partial." : "All returned pages loaded."}`,
+      source?.url || `${API_BASE}${descriptor.path}`,
+    );
+  }).join("");
+}
 function renderSources() {
   const live = metadata.live;
   const dates = [
@@ -992,8 +1034,17 @@ function renderSources() {
         .map((p) => dateLabel(p.sourceAsOf || p.fetchedAt)),
     ),
   ];
+  const evidenceFailures = evidence?.errors?.length ?? 0;
+  const sourceState =
+    failures.length || evidenceFailures
+      ? "some sources unavailable"
+      : evidencePromise === null
+        ? "optional evidence not requested"
+        : evidence === null
+          ? "optional evidence loading"
+          : "view coverage by provider";
   $("source-summary").textContent =
-    `Direct catalogues, documented IDs and OpenRouter routes · ${failures.length ? "some sources unavailable" : "view coverage by provider"}`;
+    `Direct catalogues, documented IDs and OpenRouter routes · ${sourceState}`;
   $("sources").innerHTML =
     sourceCard(
       "Model catalogues",
@@ -1070,6 +1121,7 @@ function renderSources() {
   }
   for (const error of failures)
     $("sources").innerHTML += sourceCard(error.name, error.message, null);
+  $("sources").innerHTML += evidenceSourceCards();
 }
 function openLimits() {
   $("limits-dialog").showModal();
@@ -1380,7 +1432,6 @@ async function boot() {
       };
       if (state.view === "overview") updateOverview();
     });
-  ensureEvidence();
   if (!models.length && state.view === "models") {
     emptyChart(
       $("chart"),
@@ -1493,17 +1544,11 @@ function renderEvidenceView() {
   drawEvidence();
 }
 function ensureEvidence() {
-  if (!evidencePromise)
+  if (!evidencePromise) {
     evidencePromise = loadEvidence()
       .then((result) => {
         evidence = result;
         renderSources();
-        for (const source of result.sources)
-          $("sources").innerHTML += sourceCard(
-            source.label,
-            `Published ${dateLabel(source.sourceAsOf || source.fetchedAt)}. ${source.hasMore ? "Coverage is partial." : "All returned pages loaded."}`,
-            source.url,
-          );
         if (state.view === "overview") updateOverview();
         if (["benchmarks", "changes"].includes(state.view)) {
           renderEvidenceControls();
@@ -1511,24 +1556,50 @@ function ensureEvidence() {
           persist();
         }
       })
-      .catch(() => {
+      .catch((error) => {
         evidence = {
           benchmarks: null,
           changes: null,
           deprecations: null,
           sources: [],
-          errors: [{ message: "Evidence sources unavailable" }],
+          errors: EVIDENCE_DATASETS.map((descriptor) => ({
+            id: descriptor.id,
+            message:
+              error instanceof Error
+                ? error.message
+                : "Evidence sources unavailable",
+          })),
         };
+        renderSources();
         if (state.view === "overview") updateOverview();
         if (["benchmarks", "changes"].includes(state.view)) {
           renderEvidenceControls();
           renderEvidenceView();
         }
       });
+    renderSources();
+  }
   return evidencePromise;
 }
 function drawEvidence() {
   if (state.view === "benchmarks") {
+    const dataset = evidenceDatasetState(evidence, "benchmarks", {
+      requested: true,
+    });
+    if (dataset.state === "failed") {
+      emptyChart(
+        $("chart"),
+        "Benchmark request failed.",
+        `Nothing is shown in its place. ${dataset.message}`,
+      );
+      $("chart-title").textContent = "Benchmark evidence is unavailable";
+      $("chart-subtitle").textContent = "The public request failed";
+      $("plot-summary").textContent =
+        "No benchmark result is being presented as an empty dataset.";
+      $("inspector").innerHTML =
+        `<p class="eyebrow">Benchmark evidence</p><h3>Request failed.</h3><p>Nothing is shown in its place. ${escape(dataset.message)}</p>`;
+      return;
+    }
     const view = renderBenchmarks($("chart"), evidence.benchmarks, {
       ...evidenceOptions(),
       onInspect: inspectEvidence,
@@ -1541,7 +1612,9 @@ function drawEvidence() {
     if (view.points.length) inspectEvidence(view.points[0]);
     else
       $("inspector").innerHTML =
-        '<p class="eyebrow">Benchmark evidence</p><h3>No comparable score and price in this view.</h3><p>Choose another metric or evaluation group. Missing scores are not zero.</p>';
+        dataset.state === "empty"
+          ? '<p class="eyebrow">Benchmark evidence</p><h3>Request succeeded with empty results.</h3><p>The source published 0 rows. This is not a request failure.</p>'
+          : `<p class="eyebrow">Benchmark evidence</p><h3>No comparable score and price in this view.</h3><p>${escape(view.emptyReason || "Choose another metric or evaluation group.")} Missing scores are not zero.</p>`;
   } else {
     const view = renderChanges($("chart"), evidence, {
       kind: state.changeKind,

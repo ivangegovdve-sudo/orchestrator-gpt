@@ -1,6 +1,11 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { benchmarkView, changeView, loadEvidence } from "./evidence-charts.js";
+import {
+  benchmarkView,
+  changeView,
+  evidenceDatasetState,
+  loadEvidence,
+} from "./evidence-charts.js";
 
 const collection = (data, extra = {}) => ({
   data,
@@ -226,5 +231,43 @@ test("one failed source does not discard other evidence or masquerade as an empt
   assert.deepEqual(
     evidence.sources.map((row) => row.id),
     ["benchmarks", "deprecations"],
+  );
+});
+
+test("evidence state keeps not-requested, failed, and successful-empty distinct", () => {
+  assert.equal(
+    evidenceDatasetState(null, "benchmarks", { requested: false }).state,
+    "not-requested",
+  );
+  assert.equal(
+    evidenceDatasetState(null, "benchmarks", { requested: true }).state,
+    "pending",
+  );
+  assert.deepEqual(
+    evidenceDatasetState(
+      {
+        benchmarks: null,
+        errors: [{ id: "benchmarks", message: "Upstream timed out" }],
+      },
+      "benchmarks",
+      { requested: true },
+    ),
+    { state: "failed", rowCount: null, message: "Upstream timed out" },
+  );
+  assert.deepEqual(
+    evidenceDatasetState(
+      { benchmarks: collection([]), errors: [] },
+      "benchmarks",
+      { requested: true },
+    ),
+    { state: "empty", rowCount: 0, message: null },
+  );
+  assert.deepEqual(
+    evidenceDatasetState(
+      { benchmarks: collection([{ source: "example" }]), errors: [] },
+      "benchmarks",
+      { requested: true },
+    ),
+    { state: "ready", rowCount: 1, message: null },
   );
 });

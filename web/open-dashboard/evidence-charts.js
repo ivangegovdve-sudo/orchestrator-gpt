@@ -49,7 +49,7 @@ export const CHANGE_RANGES = Object.freeze([
   { id: "year", label: "Up to one year ahead of source snapshot" },
   { id: "all", label: "All published dates" },
 ]);
-const DATASETS = [
+export const EVIDENCE_DATASETS = Object.freeze([
   {
     id: "benchmarks",
     path: "/benchmarks?limit=100",
@@ -68,7 +68,8 @@ const DATASETS = [
     label: "OpenRouter lifecycle observations",
     pages: 10,
   },
-];
+].map((dataset) => Object.freeze(dataset)));
+const DATASETS = EVIDENCE_DATASETS;
 const validStamp = (value) =>
   typeof value === "string" && Number.isFinite(Date.parse(value))
     ? value
@@ -84,6 +85,41 @@ const scoreNumber = (value) =>
   typeof value === "number" && Number.isFinite(value) ? value : null;
 const rowsOf = (collection) =>
   Array.isArray(collection?.data) ? collection.data : [];
+
+export function evidenceDatasetState(
+  evidence,
+  id,
+  { requested = false } = {},
+) {
+  if (!requested)
+    return { state: "not-requested", rowCount: null, message: null };
+  if (!evidence) return { state: "pending", rowCount: null, message: null };
+  const failure = Array.isArray(evidence.errors)
+    ? evidence.errors.find((error) => error?.id === id)
+    : null;
+  if (failure)
+    return {
+      state: "failed",
+      rowCount: null,
+      message:
+        typeof failure.message === "string" && failure.message
+          ? failure.message
+          : "This public source is unavailable.",
+    };
+  const collection = evidence[id];
+  if (!collection)
+    return {
+      state: "failed",
+      rowCount: null,
+      message: "The request completed without a readable result.",
+    };
+  const rowCount = rowsOf(collection).length;
+  return {
+    state: rowCount === 0 ? "empty" : "ready",
+    rowCount,
+    message: null,
+  };
+}
 const latest = (values) =>
   values.filter(Boolean).sort((a, b) => Date.parse(b) - Date.parse(a))[0] ??
   null;
