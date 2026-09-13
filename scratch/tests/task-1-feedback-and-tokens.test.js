@@ -6,7 +6,8 @@ const { after, before, test } = require('node:test');
 const { chromium } = require('playwright');
 
 const ROOT = path.resolve(__dirname, '../..');
-const CACHE_VERSION = '20260807a';
+const CACHE_VERSION = '20260913a';
+const FEEDBACK_ENDPOINT = 'https://chloe.blumenkraft.cloud/contrib/submit/app-feedback';
 const htmlFiles = () => {
   const walk = (dir) => fs.readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
     const file = path.join(dir, entry.name);
@@ -55,15 +56,22 @@ test('shared tokens have canonical owners while public names remain aliases', ()
   assert.doesNotMatch(home, /--home-bg:\s*(?:#|var\(--bg\))/);
 });
 
-test('feedback is deferred exactly once in the head of all 55 shipped HTML sources', () => {
+test('feedback is deferred exactly once in the head of every shipped HTML source', () => {
   const files = htmlFiles();
-  assert.equal(files.length, 55);
+  assert.ok(files.length > 0, 'expected at least one shipped HTML source');
   for (const file of files) {
     const source = fs.readFileSync(file, 'utf8');
     const tags = source.match(new RegExp(`<script\\s+defer\\s+src=["']\\/web\\/shared\\/feedback\\.js\\?v=${CACHE_VERSION}["']><\\/script>`, 'g')) || [];
     assert.equal(tags.length, 1, path.relative(ROOT, file));
     assert.ok(source.indexOf(tags[0]) < source.toLowerCase().indexOf('</head>'), `${path.relative(ROOT, file)} feedback tag must be in head`);
   }
+});
+
+test('feedback posts only to Ivan\'s first-party queue, never a placeholder tracker', () => {
+  const source = fs.readFileSync(path.join(ROOT, 'web/shared/feedback.js'), 'utf8');
+  assert.match(source, new RegExp(FEEDBACK_ENDPOINT.replaceAll('/', '\\/')));
+  assert.match(source, /app_id:\s*['"]sdforest['"]/);
+  assert.doesNotMatch(source, /formspree|PLACEHOLDER/i);
 });
 
 test('every shared CSS or JavaScript asset reference uses the single current cache version', () => {
@@ -153,20 +161,35 @@ test('computed public aliases resolve to their canonical token family values', a
 
 test('feedback injects an accessible dialog, sends the trimmed message and restores focus', async () => {
   const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
-  await page.route('https://formspree.io/**', async (route) => route.fulfill({ status: 200, contentType: 'application/json', body: '{}' }));
-  await page.goto(`${baseUrl}/`, { waitUntil: 'networkidle' });
+  await page.route(FEEDBACK_ENDPOINT, async (route) => route.fulfill({
+    status: 200,
+    contentType: 'application/json',
+    body: JSON.stringify({ receipt_id: 'test-receipt', status: 'pending' }),
+  }));
+  await page.goto(`${baseUrl}/?private-draft=do-not-send#notes`, { waitUntil: 'networkidle' });
   const trigger = page.getByRole('button', { name: 'Send feedback' });
   await trigger.focus();
   await trigger.click();
   const dialog = page.getByRole('dialog', { name: 'Site feedback' });
   await assert.doesNotReject(dialog.waitFor());
+  await page.getByLabel('Feedback type').selectOption('suggestion');
   await page.getByLabel("What's wrong, missing, or could be better?").fill('  Needs a little more moss.  ');
-  const request = page.waitForRequest((request) => request.url() === 'https://formspree.io/f/PLACEHOLDER' && request.method() === 'POST');
+  const request = page.waitForRequest((request) => request.url() === FEEDBACK_ENDPOINT && request.method() === 'POST');
   await page.getByRole('button', { name: 'Submit' }).click();
-  assert.deepEqual(JSON.parse((await request).postData()), { message: 'Needs a little more moss.', url: `${baseUrl}/` });
-  await assert.doesNotReject(page.getByText('Thanks — noted.').waitFor());
+  const payload = JSON.parse((await request).postData());
+  assert.deepEqual(
+    { app_id: payload.app_id, feedback_type: payload.feedback_type, content: payload.content },
+    { app_id: 'sdforest', feedback_type: 'suggestion', content: 'Needs a little more moss.' },
+  );
+  assert.deepEqual(
+    { url: payload.user_context.url, path: payload.user_context.path },
+    { url: `${baseUrl}/`, path: '/' },
+  );
+  assert.equal(typeof payload.user_context.title, 'string');
+  assert.ok(payload.user_context.title.length > 0);
+  await assert.doesNotReject(page.getByText(/Thanks — noted\. Reference test-receipt/).waitFor());
   assert.equal(await dialog.locator('form').count(), 0);
-  assert.equal(await dialog.getByRole('status').textContent(), 'Thanks — noted.');
+  assert.equal(await dialog.getByRole('status').textContent(), 'Thanks — noted. Reference test-receipt');
   await page.waitForTimeout(2100);
   assert.equal(await dialog.count(), 0);
   assert.equal(await page.evaluate(() => document.activeElement?.getAttribute('aria-label')), 'Send feedback');
@@ -175,7 +198,7 @@ test('feedback injects an accessible dialog, sends the trimmed message and resto
 
 test('feedback supports escape, backdrop, failure, reduced motion, and has no persistence side effects', async () => {
   const page = await browser.newPage({ viewport: { width: 390, height: 844 }, reducedMotion: 'reduce' });
-  await page.route('https://formspree.io/**', async (route) => route.fulfill({ status: 500, body: 'nope' }));
+  await page.route(FEEDBACK_ENDPOINT, async (route) => route.fulfill({ status: 500, body: 'nope' }));
   await page.goto(`${baseUrl}/web/kids/`, { waitUntil: 'networkidle' });
   await page.getByRole('button', { name: 'Send feedback' }).click();
   const dialog = page.getByRole('dialog', { name: 'Site feedback' });

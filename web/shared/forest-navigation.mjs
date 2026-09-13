@@ -1,7 +1,7 @@
 import {
   FOREST_TRAIL_ROUTE_IDS,
   ROUTE_INVENTORY,
-} from './route-inventory.mjs?v=20260807a';
+} from './route-inventory.mjs?v=20260913a';
 
 const ROUTE_BY_ID = new Map(ROUTE_INVENTORY.map((route) => [route.id, route]));
 const REDIRECT_PATHS = new Set([

@@ -5,7 +5,7 @@ const { pathToFileURL } = require('node:url');
 const { test } = require('node:test');
 
 const ROOT = path.resolve(__dirname, '../..');
-const CACHE_VERSION = '20260807a';
+const CACHE_VERSION = '20260913a';
 
 const walkHtml = (directory) => fs.readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
   const file = path.join(directory, entry.name);
