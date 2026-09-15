@@ -346,18 +346,34 @@ export const CATALOG_FINDINGS = deepFreeze([
     'Page descriptions and paper-count badges are not claim-level evidence review.', { costToReverse: 'high' })),
 ]);
 
-// This projection is deliberately empty until at least one project has a reviewed
-// update date and readiness. An empty result is preferable to fabricated facts.
-export const PUBLIC_CARD_PROJECTS = deepFreeze(PROJECT_CATALOG.filter((record) =>
-  !record.provisional && record.id && record.publicName &&
-  POOL_NAMES.includes(record.pool) && PROJECT_STATUSES.includes(record.status) &&
-  Array.isArray(record.metrics) &&
-  /^\d{4}-\d{2}-\d{2}$/.test(record.lastMeaningfullyUpdated) &&
-  record.updateProvenance?.source && record.updateProvenance.semanticReviewRequired === false &&
-  record.readiness?.review === 'verified' && record.evidenceLevel &&
-  record.visibility?.access === 'public' && record.visibility.publicSurface === 'project' &&
-  !['unlisted', 'excluded'].includes(record.visibility.navigation),
-));
+const isRecord = (value) => value !== null && typeof value === 'object' && !Array.isArray(value);
+const hasText = (value) => typeof value === 'string' && value.trim().length > 0;
+
+function isIsoDate(value) {
+  if (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+  const date = new Date(value);
+  return Number.isFinite(date.getTime()) && date.toISOString().slice(0, 10) === value;
+}
+
+/** Pure card boundary, also usable with review fixtures before real data is ready. */
+export function isPublicCardProject(record) {
+  if (!isRecord(record)) return false;
+  const { updateProvenance, readiness, evidenceLevel, visibility } = record;
+  return record.provisional === false && hasText(record.id) && hasText(record.publicName) &&
+    POOL_NAMES.includes(record.pool) && PROJECT_STATUSES.includes(record.status) &&
+    Array.isArray(record.metrics) && isIsoDate(record.lastMeaningfullyUpdated) &&
+    isRecord(updateProvenance) && hasText(updateProvenance.source) && updateProvenance.semanticReviewRequired === false &&
+    isRecord(readiness) && readiness.review === 'verified' &&
+    typeof readiness.entryEnabled === 'boolean' && hasText(readiness.presentation) &&
+    isRecord(evidenceLevel) && hasText(evidenceLevel.level) && evidenceLevel.review === 'verified' &&
+    Array.isArray(evidenceLevel.sources) && evidenceLevel.sources.length > 0 && evidenceLevel.sources.every(hasText) &&
+    isRecord(visibility) && visibility.access === 'public' && visibility.publicSurface === 'project' &&
+    hasText(visibility.navigation) && !['unlisted', 'excluded'].includes(visibility.navigation) &&
+    hasText(visibility.search) && hasText(visibility.indexing);
+}
+
+// Real records remain excluded until their update, readiness and evidence are reviewed.
+export const PUBLIC_CARD_PROJECTS = deepFreeze(PROJECT_CATALOG.filter(isPublicCardProject));
 
 /** A detached, deeply frozen, JSON-safe value; never a presentation instruction. */
 export function getCatalogSnapshot() {
