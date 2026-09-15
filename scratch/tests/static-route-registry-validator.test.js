@@ -191,6 +191,22 @@ test('a redirect-only wildcard family agrees with the expanded destination at it
 });
 
 for (const suffix of [':path*', ':path*/']) {
+  test(`wildcard /${suffix} rejects a network-path destination in place of a local path`, async () => {
+    const { validateRouteRegistry } = await registryModule;
+    const rule = { source: `/legacy/${suffix}`, destination: `//current/${suffix}`, permanent: true };
+    const issues = validateRouteRegistry(validateInput({
+      routes: [route('legacy', 'legacy', '/legacy/child/', {
+        delivery: 'redirect', source: 'legacy/child/index.html', destination: '/current/child/',
+        expectedVercelRedirects: [rule],
+      })],
+      routeOwners: [owner('legacy', ['/legacy/child/'], [rule.source])],
+      discoveredHtmlRoutes: [{ route: '/legacy/child/', source: 'legacy/child/index.html' }],
+      vercelRedirects: [rule],
+    }));
+
+    assert.equal(issueWithCode(issues, 'REDIRECT_CONFLICT').route, '/legacy/child/');
+  });
+
   for (const [label, routePath, destination, htmlSource] of [
     ['empty root', '/web/open-overview/', '/web/open-dashboard/', 'web/open-overview/index.html'],
     ['child', '/web/open-overview/github/', '/web/open-dashboard/github/', 'web/open-overview/github/index.html'],

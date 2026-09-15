@@ -300,7 +300,8 @@ function expandRedirectDestination(destination, parameters) {
 }
 
 function normalizeLocalDestination(destination) {
-  if (typeof destination !== 'string' || !destination.startsWith('/')) return destination;
+  // Network-path URLs carry an authority and must not collapse into local paths.
+  if (typeof destination !== 'string' || !destination.startsWith('/') || destination.startsWith('//')) return destination;
   const suffixIndex = destination.search(/[?#]/);
   const pathname = suffixIndex === -1 ? destination : destination.slice(0, suffixIndex);
   const suffix = suffixIndex === -1 ? '' : destination.slice(suffixIndex);
