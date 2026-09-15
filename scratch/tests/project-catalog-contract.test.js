@@ -132,6 +132,90 @@ test('public cards require complete approved facts and never promote provisional
   assertDeepFrozen(PUBLIC_CARD_PROJECTS);
 });
 
+// Synthetic contract data, deliberately unrelated to the factual catalog.
+function approvedCard() {
+  return {
+    id: 'fixture-project', publicName: 'Fixture project', pool: 'TinkerBox', status: 'Experimental',
+    provisional: false, metrics: [{ name: 'Examples', value: 2, unit: 'examples' }],
+    lastMeaningfullyUpdated: '2024-02-29',
+    updateProvenance: { source: 'fixtures/reviewed-change.md', semanticReviewRequired: false },
+    readiness: { entryEnabled: true, presentation: 'active', review: 'verified' },
+    evidenceLevel: { level: 'demonstration', review: 'verified', sources: ['fixtures/evidence.md'] },
+    visibility: { navigation: 'manual', search: 'included', indexing: 'index', access: 'public', publicSurface: 'project' },
+  };
+}
+
+test('card eligibility admits a complete reviewed fixture without changing its data', async () => {
+  const { isPublicCardProject } = await catalog();
+  const record = approvedCard();
+  const original = structuredClone(record);
+  assert.equal(isPublicCardProject(record), true);
+  assert.deepEqual([record].filter(isPublicCardProject), [original]);
+  assert.deepEqual(record, original);
+  assert.equal(Object.isFrozen(record), false, 'eligibility is a pure check');
+  assert.equal(isPublicCardProject({ ...record, metrics: [] }), true, 'metrics may honestly be absent');
+  assert.equal(isPublicCardProject({ ...record, readiness: { ...record.readiness, entryEnabled: false, presentation: 'coming-soon' } }), true,
+    'a reviewed disabled entry is still a complete card');
+});
+
+test('card eligibility rejects each independently missing required field', async () => {
+  const { isPublicCardProject } = await catalog();
+  const requiredPaths = [
+    ['id'], ['publicName'], ['pool'], ['status'], ['provisional'], ['metrics'],
+    ['lastMeaningfullyUpdated'], ['updateProvenance'], ['updateProvenance', 'source'],
+    ['updateProvenance', 'semanticReviewRequired'], ['readiness'], ['readiness', 'review'],
+    ['readiness', 'entryEnabled'], ['readiness', 'presentation'], ['evidenceLevel'],
+    ['evidenceLevel', 'level'], ['evidenceLevel', 'review'], ['evidenceLevel', 'sources'],
+    ['visibility'], ['visibility', 'navigation'], ['visibility', 'search'],
+    ['visibility', 'indexing'], ['visibility', 'access'], ['visibility', 'publicSurface'],
+  ];
+  for (const keys of requiredPaths) {
+    const record = approvedCard();
+    const container = keys.length === 1 ? record : record[keys[0]];
+    delete container[keys.at(-1)];
+    assert.equal(isPublicCardProject(record), false, `missing ${keys.join('.')}`);
+    assert.deepEqual([record].filter(isPublicCardProject), [], `excluded ${keys.join('.')}`);
+  }
+});
+
+test('card eligibility rejects malformed or unapproved dates, evidence, readiness and visibility', async () => {
+  const { isPublicCardProject } = await catalog();
+  const nearMisses = [
+    ['id', ''], ['id', 1], ['publicName', ' '], ['pool', 'Eighth Pool'], ['status', 'Coming Soon'],
+    ['provisional', true], ['provisional', null], ['metrics', 'Live'],
+    ['lastMeaningfullyUpdated', null], ['lastMeaningfullyUpdated', '2026-9-15'],
+    ['lastMeaningfullyUpdated', '2026-02-29'], ['lastMeaningfullyUpdated', '2026-04-31'],
+    ['lastMeaningfullyUpdated', '2026-13-01'], ['lastMeaningfullyUpdated', '2026-09-15T00:00:00Z'],
+    ['updateProvenance', null], ['updateProvenance', []], ['updateProvenance', {}],
+    ['updateProvenance.source', ' '], ['updateProvenance.semanticReviewRequired', true],
+    ['readiness', null], ['readiness', []], ['readiness', 'verified'],
+    ['readiness.review', 'pending'], ['readiness.entryEnabled', 'yes'], ['readiness.presentation', ''],
+    ['evidenceLevel', null], ['evidenceLevel', []], ['evidenceLevel', 'verified'],
+    ['evidenceLevel', {}], ['evidenceLevel.level', ''], ['evidenceLevel.review', 'pending'],
+    ['evidenceLevel.sources', []], ['evidenceLevel.sources', ['']], ['evidenceLevel.sources', 'source.md'],
+    ['visibility', null], ['visibility', []], ['visibility', 'public'],
+    ['visibility.navigation', 'unlisted'], ['visibility.navigation', 'excluded'], ['visibility.navigation', ''],
+    ['visibility.search', null], ['visibility.indexing', ''],
+    ['visibility.access', 'internal'], ['visibility.publicSurface', 'documentation-only'],
+  ];
+  for (const [key, value] of nearMisses) {
+    const record = approvedCard();
+    const keys = key.split('.');
+    const container = keys.length === 1 ? record : record[keys[0]];
+    container[keys.at(-1)] = value;
+    assert.equal(isPublicCardProject(record), false, `${key} = ${JSON.stringify(value)}`);
+  }
+  for (const record of [null, undefined, [], 'project']) {
+    assert.equal(isPublicCardProject(record), false, 'malformed record');
+  }
+});
+
+test('the factual public-card projection uses the tested eligibility boundary', async () => {
+  const { PROJECT_CATALOG, PUBLIC_CARD_PROJECTS, isPublicCardProject } = await catalog();
+  assert.deepEqual(PUBLIC_CARD_PROJECTS, PROJECT_CATALOG.filter(isPublicCardProject));
+  assert.equal(PUBLIC_CARD_PROJECTS.length, 0, 'fixtures do not fabricate factual readiness');
+});
+
 test('missing classifications, lifecycle and dates stay discoverable as actionable findings', async () => {
   const { PROJECT_CATALOG, CATALOG_FINDINGS, PUBLIC_CARD_PROJECTS } = await catalog();
   assert.ok(CATALOG_FINDINGS.length > 0);
