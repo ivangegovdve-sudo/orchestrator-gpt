@@ -1,3 +1,5 @@
+> Superseded by SDFOREST-MASTER-PLAN.md on 2026-09-15.
+
 # SD Forest — Master Plan for Site Development
 
 ## 1. Core Vision
