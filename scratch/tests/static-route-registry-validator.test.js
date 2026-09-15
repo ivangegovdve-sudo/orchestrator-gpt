@@ -190,6 +190,61 @@ test('a redirect-only wildcard family agrees with the expanded destination at it
   assert.equal(issueWithCode(issues, 'REDIRECT_CONFLICT').route, '/legacy/');
 });
 
+for (const suffix of [':path*', ':path*/']) {
+  for (const [label, routePath, destination, htmlSource] of [
+    ['empty root', '/web/open-overview/', '/web/open-dashboard/', 'web/open-overview/index.html'],
+    ['child', '/web/open-overview/github/', '/web/open-dashboard/github/', 'web/open-overview/github/index.html'],
+    ['nested child', '/web/open-overview/github/repos/', '/web/open-dashboard/github/repos/', 'web/open-overview/github/repos/index.html'],
+  ]) {
+    const rule = {
+      source: `/web/open-overview/${suffix}`,
+      destination: `/web/open-dashboard/${suffix}`,
+      permanent: true,
+    };
+    const input = validateInput({
+      routes: [route('open-overview', 'open-overview', routePath, {
+        delivery: 'redirect', source: null, destination, expectedVercelRedirects: [rule],
+      })],
+      routeOwners: [owner('open-overview', [routePath], [rule.source])],
+      vercelRedirects: [rule],
+    });
+
+    test(`wildcard /${suffix} expands the ${label} destination`, async () => {
+      const { validateRouteRegistry } = await registryModule;
+      assert.deepEqual(validateRouteRegistry(input), []);
+    });
+
+    test(`wildcard /${suffix} rejects an incorrect ${label} destination`, async () => {
+      const { validateRouteRegistry } = await registryModule;
+      const wrongRule = { ...rule, destination: `/wrong/${suffix}` };
+      const issues = validateRouteRegistry({
+        ...input,
+        routes: [{ ...input.routes[0], expectedVercelRedirects: [wrongRule] }],
+        vercelRedirects: [wrongRule],
+      });
+      assert.equal(issueWithCode(issues, 'REDIRECT_CONFLICT').route, routePath);
+    });
+
+    test(`wildcard /${suffix} rejects a source-less declaration over copied ${label} HTML`, async () => {
+      const { validateRouteRegistry } = await registryModule;
+      const issues = validateRouteRegistry({
+        ...input,
+        discoveredHtmlRoutes: [{ route: routePath, source: htmlSource }],
+      });
+      assert.equal(issueWithCode(issues, 'REDIRECT_CONFLICT').route, routePath);
+    });
+
+    test(`wildcard /${suffix} accepts matching copied ${label} redirect-shell evidence`, async () => {
+      const { validateRouteRegistry } = await registryModule;
+      assert.deepEqual(validateRouteRegistry({
+        ...input,
+        routes: [{ ...input.routes[0], source: htmlSource }],
+        discoveredHtmlRoutes: [{ route: routePath, source: htmlSource }],
+      }), []);
+    });
+  }
+}
+
 test('redirect-only exemptions still require the declared owner, delivery, destination, and expected rule', async () => {
   const { validateRouteRegistry } = await registryModule;
   const rule = { source: '/legacy/', destination: '/current/', permanent: true };
