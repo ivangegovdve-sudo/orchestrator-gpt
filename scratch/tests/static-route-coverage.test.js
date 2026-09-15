@@ -173,7 +173,7 @@ test('the CLI resolves its repository root independently of the caller and is si
   assert.equal(result.stderr, '');
 });
 
-test('the CLI exits one and writes only issue messages when a configured redirect is unregistered', async () => {
+async function withCliFixture(check) {
   const fixture = fs.mkdtempSync(path.join(os.tmpdir(), 'sdforest-route-cli-'));
   try {
     for (const source of ['scripts/validate-static-routes.mjs', 'scripts/static-route-registry.mjs', 'scripts/static-build-inputs.cjs', 'web/shared/project-catalog.mjs']) {
@@ -187,16 +187,54 @@ test('the CLI exits one and writes only issue messages when a configured redirec
       fs.mkdirSync(path.dirname(target), { recursive: true });
       fs.writeFileSync(target, '<!doctype html>');
     }
-    fs.writeFileSync(path.join(fixture, 'vercel.json'), JSON.stringify({ redirects: [
-      ...vercelRedirects, { source: '/unregistered/', destination: '/elsewhere/', permanent: true },
-    ] }));
-    const result = spawnSync(process.execPath, [path.join(fixture, 'scripts/validate-static-routes.mjs')], {
+    fs.writeFileSync(path.join(fixture, 'vercel.json'), JSON.stringify({ redirects: vercelRedirects }));
+    const run = () => spawnSync(process.execPath, [path.join(fixture, 'scripts/validate-static-routes.mjs')], {
       cwd: os.tmpdir(), encoding: 'utf8',
     });
-    assert.equal(result.status, 1);
-    assert.equal(result.stdout, '');
-    assert.equal(result.stderr.trim(), 'VERCEL_REDIRECT_UNREGISTERED: /unregistered/ to /elsewhere/ is not registered');
+    await check(fixture, run);
   } finally {
     fs.rmSync(fixture, { recursive: true, force: true });
   }
+}
+
+test('the CLI exits one and writes only issue messages when a configured redirect is unregistered', async () => {
+  await withCliFixture((fixture, run) => {
+    fs.writeFileSync(path.join(fixture, 'vercel.json'), JSON.stringify({ redirects: [
+      ...vercelRedirects, { source: '/unregistered/', destination: '/elsewhere/', permanent: true },
+    ] }));
+    const result = run();
+    assert.equal(result.status, 1);
+    assert.equal(result.stdout, '');
+    assert.equal(result.stderr.trim(), 'VERCEL_REDIRECT_UNREGISTERED: /unregistered/ to /elsewhere/ is not registered');
+  });
+});
+
+for (const source of ['public/unowned.html', 'config/unowned.html', 'data/presets/unowned.html']) {
+  test(`the CLI rejects unregistered copied HTML at ${source}`, async () => {
+    await withCliFixture((fixture, run) => {
+      const target = path.join(fixture, source);
+      fs.mkdirSync(path.dirname(target), { recursive: true });
+      fs.writeFileSync(target, '<!doctype html>');
+      const result = run();
+      assert.equal(result.status, 1);
+      assert.equal(result.stdout, '');
+      assert.equal(result.stderr.trim(), `COPIED_HTML_UNREGISTERED: /${source} copied from ${source} is not registered`);
+    });
+  });
+}
+
+test('the CLI reports all declared host redirects when configuration omits them', async () => {
+  const { routes } = await actualInput();
+  const expected = routes.flatMap((entry) => entry.expectedVercelRedirects || []);
+  await withCliFixture((fixture, run) => {
+    fs.writeFileSync(path.join(fixture, 'vercel.json'), JSON.stringify({}));
+    const result = run();
+    assert.equal(result.status, 1);
+    assert.equal(result.stdout, '');
+    const messages = result.stderr.trim().split(/\r?\n/);
+    assert.equal(messages.length, 27);
+    assert.deepEqual(messages.sort(), expected.map(({ source, destination }) =>
+      `VERCEL_REDIRECT_MISSING: ${source} to ${destination} is not configured`,
+    ).sort());
+  });
 });
