@@ -149,6 +149,60 @@ test('accepts an intentional HTML redirect shell when owner, destination, and ru
   assert.deepEqual(issues, []);
 });
 
+test('does not exempt a redirect shell whose registry entry omits its source', async () => {
+  const { validateRouteRegistry } = await registryModule;
+  const vercelRule = { source: '/legacy/', destination: '/current/', permanent: true };
+  const issues = validateRouteRegistry(validateInput({
+    routes: [route('legacy-shell', 'legacy', '/legacy/', {
+      delivery: 'redirect',
+      destination: '/current/',
+      expectedVercelRedirects: [vercelRule],
+    })],
+    routeOwners: [owner('legacy', ['/legacy/'], ['/legacy/'])],
+    discoveredHtmlRoutes: [{ route: '/legacy/', source: 'web/legacy/index.html' }],
+    vercelRedirects: [vercelRule],
+  }));
+
+  assert.equal(issueWithCode(issues, 'REDIRECT_CONFLICT').route, '/legacy/');
+});
+
+test('does not exempt a redirect shell whose declared source is absent', async () => {
+  const { validateRouteRegistry } = await registryModule;
+  const vercelRule = { source: '/legacy/', destination: '/current/', permanent: true };
+  const issues = validateRouteRegistry(validateInput({
+    routes: [route('legacy-shell', 'legacy', '/legacy/', {
+      delivery: 'redirect',
+      source: 'web/legacy/index.html',
+      destination: '/current/',
+      expectedVercelRedirects: [vercelRule],
+    })],
+    routeOwners: [owner('legacy', ['/legacy/'], ['/legacy/'])],
+    vercelRedirects: [vercelRule],
+  }));
+
+  assert.equal(issueWithCode(issues, 'REDIRECT_CONFLICT').route, '/legacy/');
+  assert.equal(issueWithCode(issues, 'SOURCE_FILE_MISSING').route, '/legacy/');
+});
+
+test('does not exempt a redirect shell whose source resolves to another route', async () => {
+  const { validateRouteRegistry } = await registryModule;
+  const vercelRule = { source: '/legacy/', destination: '/current/', permanent: true };
+  const issues = validateRouteRegistry(validateInput({
+    routes: [route('legacy-shell', 'legacy', '/legacy/', {
+      delivery: 'redirect',
+      source: 'web/current/index.html',
+      destination: '/current/',
+      expectedVercelRedirects: [vercelRule],
+    })],
+    routeOwners: [owner('legacy', ['/legacy/'], ['/legacy/'])],
+    discoveredHtmlRoutes: [{ route: '/current/', source: 'web/current/index.html' }],
+    vercelRedirects: [vercelRule],
+  }));
+
+  assert.equal(issueWithCode(issues, 'REDIRECT_CONFLICT').route, '/legacy/');
+  assert.equal(issues.some(({ code }) => code === 'SOURCE_FILE_MISSING'), false);
+});
+
 test('does not exempt a redirect shell when its configured destination disagrees', async () => {
   const { validateRouteRegistry } = await registryModule;
   const expectedRule = { source: '/legacy/', destination: '/current/', permanent: true };

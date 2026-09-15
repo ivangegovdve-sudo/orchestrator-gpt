@@ -124,8 +124,14 @@ function redirectMatchesRoute(source, routePath) {
   return candidates.some((candidate) => expression.test(candidate));
 }
 
-function redirectIsIntentional(entry, owner, routePath, redirect) {
+function redirectIsIntentional(entry, owner, routePath, redirect, discoveredHtmlRoutes) {
+  const source = entry.source && normalizeSource(entry.source);
+  const hasMatchingHtmlShell = Boolean(source) && discoveredHtmlRoutes.some((discovered) =>
+    discovered.source === source && discovered.route === routePath,
+  );
+
   return REDIRECT_DELIVERIES.has(entry.delivery) &&
+    hasMatchingHtmlShell &&
     ownerOwnsRoute(owner, routePath) &&
     owner.redirectSources?.includes(redirect.source) &&
     entry.destination === redirect.destination &&
@@ -241,7 +247,7 @@ export function validateRouteRegistry(input = {}) {
     for (const { entry, route } of paths) {
       if (!redirectMatchesRoute(redirect.source, route)) continue;
       const owner = ownersById.get(entry.ownerId);
-      if (redirectIsIntentional(entry, owner, route, redirect)) continue;
+      if (redirectIsIntentional(entry, owner, route, redirect, discoveredHtmlRoutes)) continue;
 
       issues.push({
         code: 'REDIRECT_CONFLICT',
