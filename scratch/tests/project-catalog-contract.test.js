@@ -1,0 +1,257 @@
+'use strict';
+
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const path = require('node:path');
+const { pathToFileURL } = require('node:url');
+const { test } = require('node:test');
+
+const ROOT = path.resolve(__dirname, '../..');
+const catalog = () => import(pathToFileURL(path.join(ROOT, 'web/shared/project-catalog.mjs')).href);
+const readers = () => import(pathToFileURL(path.join(ROOT, 'web/shared/project-catalog-source.mjs')).href);
+
+function assertDeepFrozen(value) {
+  if (value && typeof value === 'object') {
+    assert.equal(Object.isFrozen(value), true);
+    Object.values(value).forEach(assertDeepFrozen);
+  }
+}
+
+test('catalog uses the approved closed vocabularies and freezes nested data', async () => {
+  const { POOL_NAMES, PROJECT_STATUSES, PROJECT_CATALOG, ROUTE_OWNERS, CATALOG_FINDINGS } = await catalog();
+  assert.deepEqual(POOL_NAMES, [
+    'GrowingApp', 'AI-d kit', 'TinkerBox', 'Health',
+    'Design Gallery', 'Artificial Self', 'My Story',
+  ]);
+  assert.deepEqual(PROJECT_STATUSES, ['Live', 'Research', 'Experimental', 'In development']);
+  [POOL_NAMES, PROJECT_STATUSES, PROJECT_CATALOG, ROUTE_OWNERS, CATALOG_FINDINGS].forEach(assertDeepFrozen);
+  assert.equal(new Set(PROJECT_CATALOG.map(({ id }) => id)).size, PROJECT_CATALOG.length);
+  for (const project of PROJECT_CATALOG) {
+    assert.ok(project.pool === null || POOL_NAMES.includes(project.pool), project.id);
+    assert.ok(project.status === null || PROJECT_STATUSES.includes(project.status), project.id);
+  }
+});
+
+test('settled project identities survive conflicting legacy labels', async () => {
+  const { PROJECT_CATALOG } = await catalog();
+  const expected = [
+    ['morning-news', 'The Drop', 'AI-d kit', null],
+    ['mendeleev', 'Mendeleev', 'GrowingApp', 'Live'],
+    ['replicator-void', 'Replicator Void', 'Design Gallery', 'In development'],
+    ['c2c-dolphin', 'C2C Dolphin', 'Artificial Self', 'Research'],
+    ['c2c-self', 'C2C Self', 'Artificial Self', 'Research'],
+    ['lobester-gym', 'Lobester Gym', null, null],
+    ['womens-health-os', 'Women’s Health OS', null, null],
+  ];
+  for (const [id, publicName, pool, status] of expected) {
+    const record = PROJECT_CATALOG.find((project) => project.id === id);
+    assert.ok(record, id);
+    assert.deepEqual([record.publicName, record.pool, record.status], [publicName, pool, status]);
+  }
+});
+
+test('Fleet and the Math companions each retain one owner with both experiences', async () => {
+  const { PROJECT_CATALOG, ROUTE_OWNERS, PUBLIC_CARD_PROJECTS } = await catalog();
+  assert.equal(ROUTE_OWNERS.filter((record) => record.id === 'fleet-board').length, 1);
+  assert.equal(ROUTE_OWNERS.some((record) => record.id === 'fleet'), false);
+  assert.equal(ROUTE_OWNERS.some((record) => record.id === 'board'), false);
+  const fleet = ROUTE_OWNERS.find((record) => record.id === 'fleet-board');
+  assert.deepEqual(fleet.routes, ['/web/fleet/', '/web/board/']);
+  assert.equal(fleet.publicName, 'Fleet / Fleet Board');
+  assert.equal(fleet.status, 'Live');
+  assert.equal(fleet.visibility.navigation, 'unlisted');
+  assert.equal(fleet.visibility.access, 'internal');
+  assert.equal(PUBLIC_CARD_PROJECTS.some(({ id }) => id === 'fleet-board'), false);
+  const math = ROUTE_OWNERS.filter(({ routes }) => routes.includes('/web/math-forest/') || routes.includes('/web/math-mania/'));
+  assert.equal(math.length, 1);
+  assert.deepEqual(math[0].routes, ['/web/math-forest/', '/web/math-mania/']);
+  assert.equal(math[0].publicName, 'Math Forest / Math Mania');
+  assert.equal(PROJECT_CATALOG.find(({ id }) => id === math[0].projectId).pool, 'GrowingApp');
+});
+
+test('owners account for every copied HTML page independently of navigation', async () => {
+  const { PROJECT_CATALOG, ROUTE_OWNERS } = await catalog();
+  const files = ['index.html'];
+  for (const directory of ['web', 'calendar', 'movies', 'frontend']) {
+    for (const relative of fs.readdirSync(path.join(ROOT, directory), { recursive: true })) {
+      if (relative.endsWith('.html')) files.push(`${directory}/${relative.replaceAll('\\', '/')}`);
+    }
+  }
+  assert.equal(files.length, 68, 'the inspected static HTML boundary is preserved');
+  assert.equal(new Set(ROUTE_OWNERS.map(({ id }) => id)).size, ROUTE_OWNERS.length);
+  for (const file of files) {
+    const route = `/${file}`.replace(/index\.html$/, '');
+    assert.equal(ROUTE_OWNERS.filter(({ routes }) => routes.includes(route)).length, 1, route);
+  }
+  for (const owner of ROUTE_OWNERS) {
+    assert.ok(PROJECT_CATALOG.some(({ id }) => id === owner.projectId), owner.id);
+    for (const field of ['navigation', 'search', 'indexing', 'access']) {
+      assert.ok(Object.hasOwn(owner.visibility, field), `${owner.id}: ${field}`);
+    }
+  }
+});
+
+test('legacy redirect owners cover every configured source without merging the AI_INIT embed', async () => {
+  const { ROUTE_OWNERS } = await catalog();
+  const { redirects } = JSON.parse(fs.readFileSync(path.join(ROOT, 'vercel.json'), 'utf8'));
+  for (const { source } of redirects) {
+    assert.equal(ROUTE_OWNERS.filter(({ redirectSources }) => redirectSources.includes(source)).length, 1, source);
+  }
+  const embed = ROUTE_OWNERS.find(({ routes }) => routes.includes('/web/ai-init/embed/'));
+  const parent = ROUTE_OWNERS.find(({ routes }) => routes.includes('/web/ai-init/'));
+  assert.notEqual(embed.id, parent.id);
+  assert.equal(embed.role, 'embed');
+  assert.equal(parent.role, 'legacy');
+});
+
+test('public cards require complete approved facts and never promote provisional records', async () => {
+  const { POOL_NAMES, PROJECT_STATUSES, PROJECT_CATALOG, PUBLIC_CARD_PROJECTS } = await catalog();
+  for (const project of PUBLIC_CARD_PROJECTS) {
+    assert.equal(typeof project.id, 'string');
+    assert.ok(project.publicName);
+    assert.ok(POOL_NAMES.includes(project.pool));
+    assert.ok(PROJECT_STATUSES.includes(project.status));
+    assert.ok(Array.isArray(project.metrics));
+    assert.notEqual(project.metrics, project.status);
+    assert.match(project.lastMeaningfullyUpdated, /^\d{4}-\d{2}-\d{2}$/);
+    assert.ok(Number.isFinite(Date.parse(project.lastMeaningfullyUpdated)));
+    assert.ok(project.updateProvenance.source);
+    assert.equal(project.updateProvenance.semanticReviewRequired, false);
+    for (const field of ['readiness', 'evidenceLevel', 'visibility']) {
+      assert.equal(typeof project[field], 'object');
+      assert.notEqual(project[field], null);
+    }
+    assert.equal(project.provisional, false);
+    assert.equal(project.readiness.review, 'verified');
+    assert.equal(project.visibility.access, 'public');
+    assert.equal(project.visibility.publicSurface, 'project');
+  }
+  for (const project of PROJECT_CATALOG.filter(({ provisional }) => provisional)) {
+    assert.equal(PUBLIC_CARD_PROJECTS.some(({ id }) => id === project.id), false, project.id);
+  }
+  assertDeepFrozen(PUBLIC_CARD_PROJECTS);
+});
+
+test('missing classifications, lifecycle and dates stay discoverable as actionable findings', async () => {
+  const { PROJECT_CATALOG, CATALOG_FINDINGS, PUBLIC_CARD_PROJECTS } = await catalog();
+  assert.ok(CATALOG_FINDINGS.length > 0);
+  assert.equal(new Set(CATALOG_FINDINGS.map(({ findingId }) => findingId)).size, CATALOG_FINDINGS.length);
+  for (const finding of CATALOG_FINDINGS) {
+    assert.ok(finding.findingId);
+    assert.ok(finding.field);
+    assert.ok(finding.question);
+    assert.ok(Array.isArray(finding.options) && finding.options.length >= 2);
+    assert.ok(finding.costToReverse);
+    assert.ok(finding.sources.length > 0);
+  }
+  for (const project of PROJECT_CATALOG) {
+    for (const field of ['status', 'lastMeaningfullyUpdated']) {
+      if (project[field] === null) {
+        assert.ok(CATALOG_FINDINGS.some((finding) => finding.projectId === project.id && finding.field === field), `${project.id}: ${field}`);
+      }
+    }
+    if (project.pool === null && project.classification === 'unresolved') {
+      assert.ok(CATALOG_FINDINGS.some((finding) => finding.projectId === project.id && finding.field === 'pool'), project.id);
+    }
+  }
+  for (const id of ['dyslexia', 'audiobook']) {
+    const project = PROJECT_CATALOG.find((record) => record.id === id);
+    assert.equal(project.pool, 'Health');
+    assert.equal(project.status, null);
+    assert.equal(project.lastMeaningfullyUpdated, null);
+    assert.equal(PUBLIC_CARD_PROJECTS.some((record) => record.id === id), false);
+    assert.ok(CATALOG_FINDINGS.some((finding) => finding.projectId === id && finding.field === 'routeEvidence' && finding.pool === 'Health'));
+  }
+  const requiredFindings = [
+    ['kids-movie-library', 'identity'], ['hypertrophyos', 'identity'],
+    ['library', 'visibility'], ['upload', 'disposition'],
+    ['lobester-gym', 'pool'], ['womens-health-os', 'pool'],
+    ['c2c-dolphin', 'evidenceLevel'], ['c2c-self', 'evidenceLevel'],
+  ];
+  for (const [projectId, field] of requiredFindings) {
+    assert.ok(CATALOG_FINDINGS.some((finding) => finding.projectId === projectId && finding.field === field), `${projectId}: ${field}`);
+  }
+});
+
+test('study badges and bulk navigation history cannot masquerade as meaningful updates', async () => {
+  const { PROJECT_CATALOG, CATALOG_FINDINGS } = await catalog();
+  for (const id of ['c2c-dolphin', 'c2c-self', 'mendeleev', 'replicator-void']) {
+    const record = PROJECT_CATALOG.find((project) => project.id === id);
+    assert.equal(record.lastMeaningfullyUpdated, null, id);
+    const finding = CATALOG_FINDINGS.find((entry) => entry.projectId === id && entry.field === 'lastMeaningfullyUpdated');
+    assert.equal(finding.semanticReviewRequired, true);
+    assert.ok(finding.reason);
+  }
+});
+
+test('snapshots are JSON-safe independent immutable values', async () => {
+  const { PROJECT_CATALOG, getCatalogSnapshot } = await catalog();
+  const first = getCatalogSnapshot();
+  const second = getCatalogSnapshot();
+  assert.deepEqual(JSON.parse(JSON.stringify(first)), first);
+  assert.deepEqual(first, second);
+  assert.notEqual(first, second);
+  assert.notEqual(first.projects, PROJECT_CATALOG);
+  assert.notEqual(first.projects[0], PROJECT_CATALOG[0]);
+  assertDeepFrozen(first);
+  assert.throws(() => { first.projects[0].visibility.access = 'changed'; }, TypeError);
+  assert.deepEqual(second.projects, PROJECT_CATALOG);
+});
+
+test('reader accepts a sync static source and isolates all nested returned state', async () => {
+  const { PROJECT_CATALOG } = await catalog();
+  const { createCatalogReader, moduleCatalogReader } = await readers();
+  const reader = createCatalogReader({ readAll: () => PROJECT_CATALOG });
+  const pending = reader.list();
+  assert.ok(pending instanceof Promise);
+  const all = await pending;
+  assert.deepEqual(all, PROJECT_CATALOG);
+  assert.notEqual(all, PROJECT_CATALOG);
+  const getPending = reader.get('morning-news');
+  assert.ok(getPending instanceof Promise);
+  const project = await getPending;
+  assert.equal(project.publicName, 'The Drop');
+  assert.notEqual(project, PROJECT_CATALOG.find(({ id }) => id === 'morning-news'));
+  assertDeepFrozen(all);
+  assertDeepFrozen(project);
+  assert.throws(() => project.metrics.push({ value: 999 }), TypeError);
+  assert.equal(await reader.get('does-not-exist'), null);
+  assert.deepEqual(await moduleCatalogReader.list(), PROJECT_CATALOG);
+  assert.deepEqual(await moduleCatalogReader.get('morning-news'), project);
+});
+
+test('reader awaits async sources and never freezes or aliases their mutable state', async () => {
+  const { createCatalogReader } = await readers();
+  const source = {
+    records: [{ id: 'sample', metrics: [{ name: 'count', value: 2 }], visibility: { access: 'public' } }],
+    async readAll() { return this.records; },
+  };
+  const reader = createCatalogReader(source);
+  const first = await reader.list();
+  const one = await reader.get('sample');
+  assert.equal(Object.isFrozen(source.records), false);
+  assert.equal(Object.isFrozen(source.records[0].metrics[0]), false);
+  source.records[0].metrics[0].value = 3;
+  assert.equal(first[0].metrics[0].value, 2);
+  assert.equal(one.metrics[0].value, 2);
+  assert.equal((await reader.get('sample')).metrics[0].value, 3);
+  assert.notEqual(first[0].metrics, one.metrics);
+  assertDeepFrozen(first);
+  assertDeepFrozen(one);
+});
+
+test('reader rejects invalid source contracts and propagates source failures', async () => {
+  const { createCatalogReader } = await readers();
+  for (const source of [undefined, null, [], {}, { readAll: 1 }, () => []]) {
+    assert.throws(() => createCatalogReader(source), TypeError);
+  }
+  for (const readAll of [() => null, async () => ({ projects: [] })]) {
+    const reader = createCatalogReader({ readAll });
+    await assert.rejects(reader.list(), TypeError);
+    await assert.rejects(reader.get('sample'), TypeError);
+  }
+  const failure = new Error('source unavailable');
+  const reader = createCatalogReader({ readAll: () => { throw failure; } });
+  await assert.rejects(reader.list(), (error) => error === failure);
+  await assert.rejects(reader.get('sample'), (error) => error === failure);
+});
