@@ -1,5 +1,5 @@
-// The single ownership registry for deployable project directories.  Route
-// presentations (Forest Trails, landing cards, and redirects) derive from it.
+// Navigation compatibility map for Forest Trails and existing runtime imports.
+// Homepage cards are manually curated; deployment ownership is validated separately.
 export const ROUTE_INVENTORY = Object.freeze([
   { id: 'avatar-playground', href: '/web/avatar-playground/', state: 'main-atlas', parent: 'ai-research', placement: 'Machine Grove', prefetch: true, prerender: false, label: 'Avatar Playground', trailId: 'machine', connectionIds: ['ai-research', 'vfx-portfolio', 'replicator-void'] },
   { id: 'c2c-dolphin', href: '/web/c2c-dolphin/', state: 'main-atlas', parent: 'ai-research', placement: 'Machine Grove', prefetch: true, prerender: false, label: 'AI Conversation', trailId: 'machine', connectionIds: ['ai-research', 'c2c-self', 'council'] },
