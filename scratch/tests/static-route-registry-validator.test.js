@@ -3,6 +3,9 @@ const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
 const test = require('node:test');
+const { pathToFileURL } = require('node:url');
+
+const ROOT = path.resolve(__dirname, '../..');
 
 const registryModule = import('../../scripts/static-route-registry.mjs');
 
@@ -191,6 +194,22 @@ test('a redirect-only wildcard family agrees with the expanded destination at it
 });
 
 for (const suffix of [':path*', ':path*/']) {
+  test(`wildcard /${suffix} rejects slash-backslash authority in place of a local destination`, async () => {
+    const { validateRouteRegistry } = await registryModule;
+    const rule = { source: `/legacy/${suffix}`, destination: `/\\current/${suffix}`, permanent: true };
+    const issues = validateRouteRegistry(validateInput({
+      routes: [route('legacy', 'legacy', '/legacy/child/', {
+        delivery: 'redirect', source: 'legacy/child/index.html', destination: '/current/child/',
+        expectedVercelRedirects: [rule],
+      })],
+      routeOwners: [owner('legacy', ['/legacy/child/'], [rule.source])],
+      discoveredHtmlRoutes: [{ route: '/legacy/child/', source: 'legacy/child/index.html' }],
+      vercelRedirects: [rule],
+    }));
+
+    assert.equal(issueWithCode(issues, 'REDIRECT_CONFLICT').route, '/legacy/child/');
+  });
+
   test(`wildcard /${suffix} rejects a network-path destination in place of a local path`, async () => {
     const { validateRouteRegistry } = await registryModule;
     const rule = { source: `/legacy/${suffix}`, destination: `//current/${suffix}`, permanent: true };
@@ -260,6 +279,68 @@ for (const suffix of [':path*', ':path*/']) {
     });
   }
 }
+
+for (const [label, source, routePath, htmlSource, target, destination] of [
+  ['named parameter', '/web/:project/index.html', '/web/old/', 'web/old/index.html', '/current/:project/index.html', '/current/old/'],
+  ['empty repeated parameter', '/web/old/:path*/index.html', '/web/old/', 'web/old/index.html', '/current/:path*/index.html', '/current/'],
+  ['nested repeated parameter', '/web/old/:path*/index.html', '/web/old/child/nested/', 'web/old/child/nested/index.html', '/current/:path*/index.html', '/current/child/nested/'],
+]) {
+  const rule = { source, destination: target, permanent: true };
+  const entry = route('old', 'old', routePath, {
+    delivery: 'redirect', source: htmlSource, destination, expectedVercelRedirects: [rule],
+  });
+  const input = validateInput({
+    routes: [entry],
+    routeOwners: [owner('old', [routePath], [rule.source])],
+    discoveredHtmlRoutes: [{ route: routePath, source: htmlSource }],
+    vercelRedirects: [rule],
+  });
+
+  test(`${label} ending in /index.html rejects a wrong destination for copied HTML`, async () => {
+    const { validateRouteRegistry } = await registryModule;
+    const wrongRule = { ...rule, destination: '/wrong/' };
+    const issues = validateRouteRegistry({
+      ...input,
+      routes: [{ ...entry, expectedVercelRedirects: [wrongRule] }],
+      vercelRedirects: [wrongRule],
+    });
+    assert.equal(issueWithCode(issues, 'REDIRECT_CONFLICT').route, routePath);
+  });
+
+  test(`${label} ending in /index.html detects copied page shadowing`, async () => {
+    const { validateRouteRegistry } = await registryModule;
+    const issues = validateRouteRegistry({ ...input, routes: [{ ...entry, delivery: 'page' }] });
+    assert.equal(issueWithCode(issues, 'REDIRECT_CONFLICT').route, routePath);
+  });
+
+  test(`${label} ending in /index.html requires the copied shell source`, async () => {
+    const { validateRouteRegistry } = await registryModule;
+    const issues = validateRouteRegistry({ ...input, routes: [{ ...entry, source: null }] });
+    assert.equal(issueWithCode(issues, 'REDIRECT_CONFLICT').route, routePath);
+  });
+
+  test(`${label} ending in /index.html accepts matching copied shell evidence`, async () => {
+    const { validateRouteRegistry } = await registryModule;
+    assert.deepEqual(validateRouteRegistry(input), []);
+  });
+}
+
+test('every matching alias is checked when wildcard captures change the destination query', async () => {
+  const { validateRouteRegistry } = await registryModule;
+  const rule = { source: '/legacy/:path*', destination: '/current/?alias=:path*', permanent: true };
+  const issues = validateRouteRegistry(validateInput({
+    routes: [route('legacy', 'legacy', '/legacy/', {
+      delivery: 'redirect', source: 'legacy/index.html', destination: '/current/?alias=',
+      expectedVercelRedirects: [rule],
+    })],
+    routeOwners: [owner('legacy', ['/legacy/'], [rule.source])],
+    discoveredHtmlRoutes: [{ route: '/legacy/', source: 'legacy/index.html' }],
+    vercelRedirects: [rule],
+  }));
+
+  // /legacy passes with an empty capture; /legacy/index.html changes ?alias=.
+  assert.equal(issueWithCode(issues, 'REDIRECT_CONFLICT').route, '/legacy/');
+});
 
 test('redirect-only exemptions still require the declared owner, delivery, destination, and expected rule', async () => {
   const { validateRouteRegistry } = await registryModule;
@@ -391,8 +472,26 @@ test('reports a configured redirect absent from the registry using its own code'
   assert.equal(issue.route, '/legacy/');
 });
 
-test('discovers root and copied-directory HTML while retaining named HTML routes', async () => {
-  const { discoverCopiedHtmlRoutes } = await registryModule;
+test('reports each missing expected redirect even when another directory alias remains configured', async () => {
+  const { validateRouteRegistry } = await registryModule;
+  const rules = ['/legacy', '/legacy/'].map((source) => ({ source, destination: '/current/', permanent: true }));
+  const issues = validateRouteRegistry(validateInput({
+    routes: [route('legacy', 'legacy', '/legacy/', {
+      delivery: 'redirect', source: null, destination: '/current/', expectedVercelRedirects: rules,
+    })],
+    routeOwners: [owner('legacy', ['/legacy/'], rules.map(({ source }) => source))],
+    vercelRedirects: [rules[0]],
+  }));
+
+  assert.deepEqual(issues, [{
+    code: 'VERCEL_REDIRECT_MISSING',
+    message: 'VERCEL_REDIRECT_MISSING: /legacy/ to /current/ is not configured',
+    route: '/legacy/', ownerId: 'legacy',
+  }]);
+});
+
+test('discovers all copied input families and reports each unregistered HTML route', async () => {
+  const { discoverCopiedHtmlRoutes, validateRouteRegistry } = await registryModule;
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'sdforest-static-routes-'));
 
   try {
@@ -403,7 +502,11 @@ test('discovers root and copied-directory HTML while retaining named HTML routes
       'calendar/calendario.html',
       'movies/index.html',
       'frontend/index.html',
-      'public/ignored.html',
+      'public/unowned.html',
+      'config/unowned.html',
+      'data/presets/nested/unowned.html',
+      'docs/ignored.html',
+      'data/uncopied.html',
     ]) {
       const file = path.join(root, ...relativePath.split('/'));
       fs.mkdirSync(path.dirname(file), { recursive: true });
@@ -416,13 +519,55 @@ test('discovers root and copied-directory HTML while retaining named HTML routes
 
     assert.deepEqual(discovered, [
       { route: '/calendar/calendario.html', source: 'calendar/calendario.html' },
+      { route: '/config/unowned.html', source: 'config/unowned.html' },
+      { route: '/data/presets/nested/unowned.html', source: 'data/presets/nested/unowned.html' },
       { route: '/frontend/', source: 'frontend/index.html' },
       { route: '/', source: 'index.html' },
       { route: '/movies/', source: 'movies/index.html' },
+      { route: '/public/unowned.html', source: 'public/unowned.html' },
       { route: '/web/alpha/', source: 'web/alpha/index.html' },
       { route: '/web/named.html', source: 'web/named.html' },
     ]);
+    const issues = validateRouteRegistry(validateInput({ discoveredHtmlRoutes: discovered }));
+    assert.equal(issues.length, 9);
+    for (const routePath of ['/public/unowned.html', '/config/unowned.html', '/data/presets/nested/unowned.html']) {
+      assert.ok(issues.some(({ code, route }) => code === 'COPIED_HTML_UNREGISTERED' && route === routePath), routePath);
+    }
   } finally {
     fs.rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test('discovery follows additional individual files and directories declared only by the build manifest', async () => {
+  const fixture = fs.mkdtempSync(path.join(os.tmpdir(), 'sdforest-manifest-'));
+  try {
+    for (const source of ['scripts/static-route-registry.mjs', 'web/shared/project-catalog.mjs']) {
+      const target = path.join(fixture, source);
+      fs.mkdirSync(path.dirname(target), { recursive: true });
+      fs.copyFileSync(path.join(ROOT, source), target);
+    }
+    fs.writeFileSync(path.join(fixture, 'scripts/static-build-inputs.cjs'), `module.exports = {
+      STATIC_COPY_FILES: ['extra.html', 'missing.html', 'resume.json'],
+      STATIC_COPY_DIRECTORIES: ['additional'],
+      STATIC_DATA_COPIES: { files: ['single.html', 'missing.html'], directories: ['more'] },
+    };`);
+    for (const source of ['extra.html', 'additional/index.html', 'data/single.html', 'data/more/index.html', 'web/ignored.html', 'data/ignored.html']) {
+      const target = path.join(fixture, source);
+      fs.mkdirSync(path.dirname(target), { recursive: true });
+      fs.writeFileSync(target, '<!doctype html>');
+    }
+    const { discoverCopiedHtmlRoutes, validateRouteRegistry } = await import(pathToFileURL(path.join(fixture, 'scripts/static-route-registry.mjs')).href);
+    const discovered = discoverCopiedHtmlRoutes(fixture).sort((left, right) => left.source.localeCompare(right.source));
+    assert.deepEqual(discovered, [
+      { route: '/additional/', source: 'additional/index.html' },
+      { route: '/data/more/', source: 'data/more/index.html' },
+      { route: '/data/single.html', source: 'data/single.html' },
+      { route: '/extra.html', source: 'extra.html' },
+    ]);
+    const issues = validateRouteRegistry(validateInput({ discoveredHtmlRoutes: discovered }));
+    assert.equal(issues.length, 4);
+    assert.ok(issues.every(({ code }) => code === 'COPIED_HTML_UNREGISTERED'));
+  } finally {
+    fs.rmSync(fixture, { recursive: true, force: true });
   }
 });

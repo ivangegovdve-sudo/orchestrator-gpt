@@ -5,6 +5,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { pathToFileURL } = require('node:url');
 const { test } = require('node:test');
+const { STATIC_COPY_FILES, STATIC_COPY_DIRECTORIES, STATIC_DATA_COPIES } = require('../../scripts/static-build-inputs.cjs');
 
 const ROOT = path.resolve(__dirname, '../..');
 const catalog = () => import(pathToFileURL(path.join(ROOT, 'web/shared/project-catalog.mjs')).href);
@@ -71,10 +72,14 @@ test('Fleet and the Math companions each retain one owner with both experiences'
 
 test('owners account for every copied HTML page independently of navigation', async () => {
   const { PROJECT_CATALOG, ROUTE_OWNERS } = await catalog();
-  const files = ['index.html'];
-  for (const directory of ['web', 'calendar', 'movies', 'frontend']) {
+  const files = [...STATIC_COPY_FILES, ...STATIC_DATA_COPIES.files.map((file) => `data/${file}`)]
+    .filter((file) => file.toLowerCase().endsWith('.html') && fs.existsSync(path.join(ROOT, file)));
+  for (const directory of [...STATIC_COPY_DIRECTORIES, ...STATIC_DATA_COPIES.directories.map((dir) => `data/${dir}`)]) {
+    if (!fs.existsSync(path.join(ROOT, directory))) continue;
     for (const relative of fs.readdirSync(path.join(ROOT, directory), { recursive: true })) {
-      if (relative.endsWith('.html')) files.push(`${directory}/${relative.replaceAll('\\', '/')}`);
+      if (relative.toLowerCase().endsWith('.html') && fs.statSync(path.join(ROOT, directory, relative)).isFile()) {
+        files.push(`${directory}/${relative.replaceAll('\\', '/')}`);
+      }
     }
   }
   assert.equal(files.length, 68, 'the inspected static HTML boundary is preserved');

@@ -8,9 +8,9 @@ const require = createRequire(import.meta.url);
 const {
   STATIC_COPY_FILES,
   STATIC_COPY_DIRECTORIES,
+  STATIC_DATA_COPIES,
 } = require('./static-build-inputs.cjs');
 
-const HTML_COPY_DIRECTORIES = new Set(['web', 'calendar', 'movies', 'frontend']);
 const REDIRECT_DELIVERIES = new Set(['redirect', 'external-redirect']);
 
 const PUBLIC = { navigation: 'manual', search: 'unreviewed', indexing: 'unspecified', access: 'public' };
@@ -216,7 +216,8 @@ export function discoverCopiedHtmlRoutes(root) {
   const absoluteRoot = path.resolve(root);
   const discovered = [];
 
-  for (const relativeFile of STATIC_COPY_FILES) {
+  const files = [...STATIC_COPY_FILES, ...STATIC_DATA_COPIES.files.map((file) => path.join('data', file))];
+  for (const relativeFile of files) {
     if (!relativeFile.toLowerCase().endsWith('.html')) continue;
     const source = normalizeSource(relativeFile);
     if (fs.existsSync(path.join(absoluteRoot, ...source.split('/')))) {
@@ -224,8 +225,8 @@ export function discoverCopiedHtmlRoutes(root) {
     }
   }
 
-  for (const relativeDirectory of STATIC_COPY_DIRECTORIES) {
-    if (!HTML_COPY_DIRECTORIES.has(relativeDirectory)) continue;
+  const directories = [...STATIC_COPY_DIRECTORIES, ...STATIC_DATA_COPIES.directories.map((dir) => path.join('data', dir))];
+  for (const relativeDirectory of directories) {
     walkHtmlFiles(path.join(absoluteRoot, relativeDirectory), absoluteRoot, discovered);
   }
 
@@ -273,20 +274,28 @@ function wildcardRedirectExpression(source) {
   return new RegExp(`^${expression}$`);
 }
 
-function matchRedirectRoute(source, routePath) {
+function routeAliases(routePath, discoveredHtmlRoutes) {
+  const aliases = new Set(routePath === '/' ? ['/'] : [routePath, routePath.replace(/\/$/, '')]);
+  // Ownership normalizes directory index URLs, but host rules see the concrete
+  // request URL. Keep every copied source URL alongside its directory aliases.
+  for (const discovered of discoveredHtmlRoutes) {
+    if (discovered.route === routePath && discovered.source) aliases.add(`/${discovered.source}`);
+  }
+  return [...aliases];
+}
+
+function matchRedirectRoutes(source, routePath, aliases) {
   if (!source.includes(':')) {
-    return normalizeRoutePath(source) === routePath ? {} : null;
+    return normalizeRoutePath(source) === routePath ? [{}] : [];
   }
 
   const expression = wildcardRedirectExpression(source);
-  const candidates = routePath === '/'
-    ? ['/']
-    : [routePath, routePath.replace(/\/$/, '')];
-  for (const candidate of candidates) {
+  const matches = [];
+  for (const candidate of aliases) {
     const match = expression.exec(candidate);
-    if (match) return match.groups;
+    if (match) matches.push(match.groups);
   }
-  return null;
+  return matches;
 }
 
 function expandRedirectDestination(destination, parameters) {
@@ -300,8 +309,10 @@ function expandRedirectDestination(destination, parameters) {
 }
 
 function normalizeLocalDestination(destination) {
-  // Network-path URLs carry an authority and must not collapse into local paths.
-  if (typeof destination !== 'string' || !destination.startsWith('/') || destination.startsWith('//')) return destination;
+  // URL backslashes can introduce a network authority just like literal //.
+  // Only normalize unambiguous local URLs; never treat URL text as a file path.
+  if (typeof destination !== 'string' || !destination.startsWith('/') ||
+    destination.startsWith('//') || destination.includes('\\')) return destination;
   const suffixIndex = destination.search(/[?#]/);
   const pathname = suffixIndex === -1 ? destination : destination.slice(0, suffixIndex);
   const suffix = suffixIndex === -1 ? '' : destination.slice(suffixIndex);
@@ -428,9 +439,21 @@ export function validateRouteRegistry(input = {}) {
     }
   }
 
-  const expectedRedirects = routes.flatMap((entry) => entry.expectedVercelRedirects || []);
+  const expectedRedirects = routes.flatMap((entry) =>
+    (entry.expectedVercelRedirects || []).map((rule) => ({ entry, rule })),
+  );
+  for (const { entry, rule } of expectedRedirects) {
+    if (!vercelRedirects.some((redirect) => redirectRulesEqual(rule, redirect))) {
+      issues.push({
+        code: 'VERCEL_REDIRECT_MISSING',
+        message: `VERCEL_REDIRECT_MISSING: ${rule.source} to ${rule.destination} is not configured`,
+        route: rule.source,
+        ownerId: entry.ownerId,
+      });
+    }
+  }
   for (const redirect of vercelRedirects) {
-    if (!expectedRedirects.some((expected) => redirectRulesEqual(expected, redirect))) {
+    if (!expectedRedirects.some(({ rule }) => redirectRulesEqual(rule, redirect))) {
       issues.push({
         code: 'VERCEL_REDIRECT_UNREGISTERED',
         message: `VERCEL_REDIRECT_UNREGISTERED: ${redirect.source} to ${redirect.destination} is not registered`,
@@ -439,10 +462,12 @@ export function validateRouteRegistry(input = {}) {
     }
 
     for (const { entry, route } of paths) {
-      const parameters = matchRedirectRoute(redirect.source, route);
-      if (parameters === null) continue;
+      const matches = matchRedirectRoutes(redirect.source, route, routeAliases(route, discoveredHtmlRoutes));
+      if (!matches.length) continue;
       const owner = ownersById.get(entry.ownerId);
-      if (redirectIsIntentional(entry, owner, route, redirect, discoveredHtmlRoutes, parameters)) continue;
+      if (matches.every((parameters) =>
+        redirectIsIntentional(entry, owner, route, redirect, discoveredHtmlRoutes, parameters),
+      )) continue;
 
       issues.push({
         code: 'REDIRECT_CONFLICT',
