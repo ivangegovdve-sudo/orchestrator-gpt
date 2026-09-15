@@ -4,6 +4,16 @@
   "framework": null,
   "redirects": [
     {
+      "source": "/web/morning-news",
+      "destination": "https://thedrop.sdforest.site",
+      "permanent": true
+    },
+    {
+      "source": "/web/morning-news/",
+      "destination": "https://thedrop.sdforest.site",
+      "permanent": true
+    },
+    {
       "source": "/web/ai-init",
       "destination": "/web/library/glossary/",
       "permanent": true
