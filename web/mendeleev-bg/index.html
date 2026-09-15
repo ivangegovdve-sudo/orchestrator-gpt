@@ -242,6 +242,29 @@ h1{text-align:center;padding:16px 10px 2px;font-family:var(--forest-display, "Co
 .cbtn.active{background:rgba(0,212,255,.22);border-color:#00d4ff;color:#00d4ff;box-shadow:0 0 8px rgba(0,212,255,.3)}
 .cbtn.reset{border-color:rgba(255,100,100,.3);color:#ff8888}
 
+/* ── Periodic trend lens ─────────────────── */
+.trend-bar{display:grid;gap:8px;padding:12px 20px 14px;border-bottom:1px solid rgba(0,212,255,.1);background:rgba(0,212,255,.025)}
+.trend-intro{display:grid;gap:4px;text-align:center}
+.trend-title{font-family:var(--forest-sans, "Alegreya Sans", sans-serif);font-size:.78em;letter-spacing:2px;text-transform:uppercase;color:#9be8ff}
+.trend-explainer{font-size:.86em;line-height:1.55;color:#b8e4f4;max-width:760px;margin:0 auto}
+.trend-actions{display:flex;flex-wrap:wrap;gap:6px;justify-content:center}
+.trend-btn{background:rgba(255,200,100,.05);border:1px solid rgba(255,200,100,.25);color:#ffe090;padding:7px 12px;font-size:.78em;cursor:pointer;transition:color var(--duration-fast) var(--ease-out),background-color var(--duration-fast) var(--ease-out),border-color var(--duration-fast) var(--ease-out);border-radius:5px}
+.trend-btn.active{background:rgba(255,200,100,.18);border-color:#ffe090;color:#fff1b5;box-shadow:0 0 10px rgba(255,200,100,.2)}
+.trend-scale{display:flex;justify-content:center;gap:5px;flex-wrap:wrap}
+.trend-band{display:inline-flex;align-items:center;gap:4px;font-size:.68em;color:#c5eaf5}
+.trend-band::before{content:'';width:12px;height:12px;border:1px solid currentColor;background:var(--band-color);border-radius:2px}
+.trend-source{font-size:.67em;line-height:1.4;text-align:center;color:#83aebb;opacity:.85;margin:0}
+.trend-on .el{opacity:1;filter:none}
+.trend-on .el.trend-level-1{background:rgba(0,212,255,.06)}
+.trend-on .el.trend-level-2{background:rgba(0,212,255,.16)}
+.trend-on .el.trend-level-3{background:rgba(255,200,100,.16)}
+.trend-on .el.trend-level-4{background:rgba(255,160,70,.24)}
+.trend-on .el.trend-level-5{background:rgba(255,95,80,.34);box-shadow:0 0 10px rgba(255,120,80,.25)}
+.trend-reading{padding:10px 12px;margin-bottom:16px;background:rgba(255,200,100,.06);border:1px solid rgba(255,200,100,.28);border-left:3px solid #ffe090;border-radius:5px}
+.trend-reading p{font-size:.84em;line-height:1.65;color:#e8d9a0;margin:0 0 6px}
+.trend-reading .trend-reading-band{display:inline-flex;padding:3px 8px;border:1px solid #ffe090;color:#fff1b5;border-radius:4px;font-size:.73em}
+.trend-reading .trend-reading-source{font-size:.67em;color:#b9a978;opacity:.8;margin-top:7px;margin-bottom:0}
+
 /* ── Table ───────────────────────────────── */
 .pt-wrap{display:flex;justify-content:center;overflow-x:auto;padding:0 10px}
 .pt-grid{display:grid;grid-template-columns:repeat(18,50px);grid-template-rows:repeat(10,50px);gap:2px;padding:10px}
@@ -403,6 +426,11 @@ h1{text-align:center;padding:16px 10px 2px;font-family:var(--forest-display, "Co
   .compound-bar label{text-align:left}
   .compound-actions{flex-wrap:nowrap;justify-content:flex-start;overflow-x:auto;overscroll-behavior-inline:contain;scroll-snap-type:x proximity;padding:2px 0 8px;scrollbar-width:thin}
   .cbtn{min-height:44px;padding-inline:13px;scroll-snap-align:start}
+  .trend-bar{padding-inline:10px}
+  .trend-intro{text-align:left}
+  .trend-actions{justify-content:flex-start;flex-wrap:nowrap;overflow-x:auto;padding:2px 0 6px;scrollbar-width:thin}
+  .trend-btn{min-height:44px;white-space:nowrap;scroll-snap-align:start}
+  .trend-scale{justify-content:flex-start}
   .pt-wrap{justify-content:flex-start;padding-inline:0;scrollbar-gutter:stable}
   .pt-grid{padding-inline:10px}
   .overlay{align-items:flex-start}
@@ -425,7 +453,7 @@ h1{text-align:center;padding:16px 10px 2px;font-family:var(--forest-display, "Co
   <div style="flex: 1;"></div>
   <button id="langBtn" onclick="toggleLanguage()">EN</button>
 </div>
-<div class="subtitle">Кликни на символа за елемент · Кликни на числото за обяснение · За деца от 8 до 10 години</div>
+<div class="subtitle">Кликни на символа за елемент · Кликни на числото за обяснение · За деца около 11 години</div>
 
 <div class="control-header" style="margin-bottom: 8px;">
   <input type="text" id="searchInput" aria-label="Търси елемент / Search element" placeholder="🔍 Търси елемент (напр. Водород, Li, 1)..." oninput="handleSearch()" />
@@ -433,6 +461,17 @@ h1{text-align:center;padding:16px 10px 2px;font-family:var(--forest-display, "Co
 
 <!-- Compound bar -->
 <div class="compound-bar" id="compoundBar"></div>
+
+<!-- Periodic trend lens -->
+<section class="trend-bar" id="trendBar" aria-labelledby="trendTitle">
+  <div class="trend-intro">
+    <div class="trend-title" id="trendTitle">🔎 Виж невидимата закономерност</div>
+    <p class="trend-explainer" id="trendExplainer" aria-live="polite">Избери леща, за да видиш как мястото на елемента превежда невидимия свят на атомите.</p>
+  </div>
+  <div class="trend-actions" id="trendActions" role="group" aria-labelledby="trendTitle"></div>
+  <div class="trend-scale" id="trendScale" aria-label="Легенда за силата на тенденцията"></div>
+  <p class="trend-source" id="trendSource"></p>
+</section>
 
 <!-- Legend Container -->
 <div class="legend" id="legendContainer"></div>
@@ -690,7 +729,7 @@ const RECIPES = {
 const TRANSLATIONS = {
   bg: {
     title: '⚗ ПЕРИОДИЧНА ТАБЛИЦА ⚗',
-    subtitle: 'Кликни на символа за елемент · Кликни на числото за обяснение · За деца от 8 до 10 години',
+    subtitle: 'Кликни на символа за елемент · Кликни на числото за обяснение · За деца около 11 години',
     compoundsLabel: 'Маркирай елементите в:',
     searchPlaceholder: '🔍 Търси елемент (напр. Водород, Li, 1)...',
     clearBtn: '✕ Изчисти',
@@ -712,11 +751,18 @@ const TRANSLATIONS = {
     uText: 'u',
     atomicNumLabel: 'Атомен номер',
     atomicMassLabel: 'Атомна маса',
-    configText: 'Електронни слоеве:'
+    configText: 'Електронни слоеве:',
+    trendTitle: '🔎 Виж невидимата закономерност',
+    trendHint: 'Избери леща, за да видиш как мястото на елемента превежда невидимия свят на атомите.',
+    trendScaleLabel: 'Легенда за силата на тенденцията',
+    trendSourceLabel: 'Бележка за модела',
+    trendReadingTitle: 'Какво показва лещата',
+    trendLoading: 'Зареждаме лещите за закономерности…',
+    trendError: 'Лещите за закономерности не са достъпни в момента.'
   },
   en: {
     title: '⚗ PERIODIC TABLE ⚗',
-    subtitle: 'Click element symbol for details · Click number for explanation · For kids aged 8-10',
+    subtitle: 'Click element symbol for details · Click number for explanation · For learners around age 11',
     compoundsLabel: 'Highlight elements in:',
     searchPlaceholder: '🔍 Search element (e.g. Hydrogen, Li, 1)...',
     clearBtn: '✕ Clear',
@@ -738,11 +784,20 @@ const TRANSLATIONS = {
     uText: 'u',
     atomicNumLabel: 'Atomic Number',
     atomicMassLabel: 'Atomic Mass',
-    configText: 'Electron shells:'
+    configText: 'Electron shells:',
+    trendTitle: '🔎 See the hidden pattern',
+    trendHint: 'Choose a lens to see how an element’s place translates the invisible world of atoms.',
+    trendScaleLabel: 'Trend strength legend',
+    trendSourceLabel: 'Model note',
+    trendReadingTitle: 'What this lens shows',
+    trendLoading: 'Loading the pattern lenses…',
+    trendError: 'The pattern lenses are not available right now.'
   }
 };
 
 let currentLang = 'bg';
+let TREND_DATA = [];
+let activeTrendId = null;
 let activeCompound = null;   // currently highlighted compound key (declared so
                              // renderCompounds() can read it during init without
                              // throwing a ReferenceError)
@@ -1632,6 +1687,94 @@ function clearAllFilters() {
   document.getElementById('searchInput').value = '';
   document.getElementById('ptGrid').classList.remove('search-on');
   document.querySelectorAll('.el').forEach(el => el.classList.remove('search-match'));
+  activeTrendId = null;
+  buildGrid();
+  renderTrends();
+}
+
+// ── Periodic trend lens ────────────────────────────────────────────────────
+function getActiveTrend() {
+  return TREND_DATA.find(trend => trend.id === activeTrendId) || null;
+}
+
+function getTrendLevel(num) {
+  const trend = getActiveTrend();
+  return trend ? trend.values[String(num)] : null;
+}
+
+function renderTrends() {
+  const title = document.getElementById('trendTitle');
+  const explainer = document.getElementById('trendExplainer');
+  const actions = document.getElementById('trendActions');
+  const scale = document.getElementById('trendScale');
+  const source = document.getElementById('trendSource');
+  const t = TRANSLATIONS[currentLang];
+  const active = getActiveTrend();
+
+  title.textContent = t.trendTitle;
+  if (!TREND_DATA.length) {
+    explainer.textContent = t.trendLoading;
+    actions.innerHTML = '';
+    scale.innerHTML = '';
+    source.textContent = '';
+    return;
+  }
+
+  actions.innerHTML = TREND_DATA.map(trend => {
+    const copy = trend[currentLang];
+    const pressed = activeTrendId === trend.id;
+    return `<button type="button" class="trend-btn${pressed ? ' active' : ''}" data-trend-id="${trend.id}" aria-pressed="${pressed}" onclick="selectTrend('${trend.id}')">${copy.label}</button>`;
+  }).join('');
+
+  if (!active) {
+    explainer.textContent = t.trendHint;
+    scale.innerHTML = '';
+    source.textContent = '';
+    return;
+  }
+
+  const copy = active[currentLang];
+  const bands = active.bands[currentLang];
+  const colors = ['#00d4ff', '#4dd7e8', '#ffe090', '#ffad66', '#ff7866'];
+  explainer.textContent = `${copy.explanation} ${copy.bridge}`;
+  scale.setAttribute('aria-label', t.trendScaleLabel);
+  scale.innerHTML = bands.map((band, index) => `<span class="trend-band" style="--band-color:${colors[index]}">${band}</span>`).join('');
+  source.textContent = `${t.trendSourceLabel}: ${active.source[currentLang]}`;
+}
+
+function selectTrend(id) {
+  if (!TREND_DATA.some(trend => trend.id === id)) return;
+  if (activeTrendId === id) {
+    activeTrendId = null;
+  } else {
+    clearCompound();
+    clearLegendFilter();
+    document.getElementById('searchInput').value = '';
+    document.getElementById('ptGrid').classList.remove('search-on');
+    document.querySelectorAll('.el').forEach(el => el.classList.remove('search-match'));
+    activeTrendId = id;
+  }
+  buildGrid();
+  renderTrends();
+  if (currentOpenElementNum) openModal(currentOpenElementNum);
+}
+
+async function loadTrends() {
+  try {
+    const response = await fetch('data/trends.json', { cache: 'no-store' });
+    if (!response.ok) throw new Error(`Trend data request failed: ${response.status}`);
+    const data = await response.json();
+    if (!Array.isArray(data) || data.some(trend => !trend.id || !trend.bg || !trend.en || !trend.values)) {
+      throw new Error('Trend data shape is invalid');
+    }
+    TREND_DATA = data;
+    renderTrends();
+  } catch (error) {
+    document.getElementById('trendExplainer').textContent = TRANSLATIONS[currentLang].trendError;
+    document.getElementById('trendActions').innerHTML = '';
+    document.getElementById('trendScale').innerHTML = '';
+    document.getElementById('trendSource').textContent = '';
+  }
 }
 
 // ── Real-Time Glowing Search Bar ──────────────────────────────────────────
@@ -1681,6 +1824,10 @@ function buildGrid(){
   const g=document.getElementById('ptGrid');
   g.innerHTML = '';
   const t=TRANSLATIONS[currentLang];
+  const trend = getActiveTrend();
+  g.classList.toggle('trend-on', Boolean(trend));
+  if (trend) g.dataset.trendId = trend.id;
+  else delete g.dataset.trendId;
   const cells={};
   GRID.forEach(([n,sym,bg,lat,mass,cat,row,col])=>{cells[`${row}_${col}`]={n,sym,bg,lat,mass,cat};});
   
@@ -1696,7 +1843,12 @@ function buildGrid(){
         const d=cells[k];
         div.className=`el ${d.cat}`;
         div.dataset.num=d.n;
-        
+        const trendLevel = trend && getTrendLevel(d.n);
+        if (trendLevel) {
+          div.dataset.trendLevel = trendLevel;
+          div.classList.add(`trend-level-${trendLevel}`);
+        }
+
         const name = currentLang === 'bg' ? d.bg : d.lat;
         const colVal = CAT_COLORS[d.cat]||'#00d4ff';
         
@@ -1771,6 +1923,7 @@ function toggleLanguage() {
   buildGrid();
   renderLegend();
   renderCompounds();
+  renderTrends();
   
   // Keep active compound highlight going
   if (activeCompound) {
@@ -1884,16 +2037,26 @@ function openModal(num){
 
   const dyk=d.dyk||{t:'Интересен елемент! / Interesting element!',art:'atom'};
   const bohrSvg = getBohrModelSVG(n, col);
+  const activeTrend = getActiveTrend();
+  const activeTrendLevel = activeTrend && activeTrend.values[String(n)];
+  const trendMarkup = activeTrend && activeTrendLevel ? `
+    <div class="trend-reading">
+      <div class="stitle">${t.trendReadingTitle}: ${activeTrend[currentLang].label}</div>
+      <p>${activeTrend[currentLang].bridge}</p>
+      <span class="trend-reading-band trend-level-${activeTrendLevel}">${activeTrend.bands[currentLang][activeTrendLevel - 1]}</span>
+      <p class="trend-reading-source">${t.trendSourceLabel}: ${activeTrend.source[currentLang]}</p>
+    </div>` : '';
   
   let content=`
     <div class="dyk">
       <div class="dyk-ttl">${t.dykTitle}</div>
       <div style="width:100%; display:flex; justify-content:center; margin:10px 0;">
         <div style="width:320px; height:180px;">${bohrSvg}</div>
-      </div>
-      <div class="dyk-text">${glossify(dyk.t)}</div>
-    </div>
-    <div class="sec"><div class="stitle">${t.historyTitle}</div><div class="stext">${glossify(d.disc)}</div></div>`;
+       </div>
+       <div class="dyk-text">${glossify(dyk.t)}</div>
+     </div>
+     ${trendMarkup}
+     <div class="sec"><div class="stitle">${t.historyTitle}</div><div class="stext">${glossify(d.disc)}</div></div>`;
 
   if(d.facts&&d.facts.length){
     content+=`<div class="sec"><div class="stitle">${t.factsTitle}</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:5px">`;
@@ -1951,6 +2114,8 @@ function closeModal(){
 buildGrid();
 renderLegend();
 renderCompounds();
+renderTrends();
+loadTrends();
 
 document.getElementById('overlay').addEventListener('click',e=>{if(e.target===e.currentTarget)closeModal();});
 document.addEventListener('keydown',e=>{
