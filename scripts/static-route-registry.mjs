@@ -259,28 +259,55 @@ function wildcardRedirectExpression(source) {
   let cursor = 0;
 
   for (const match of source.matchAll(tokenPattern)) {
-    expression += escapeRegularExpression(source.slice(cursor, match.index));
+    const optionalSlash = Boolean(match[1]) && source[match.index - 1] === '/';
+    expression += escapeRegularExpression(source.slice(cursor, match.index - (optionalSlash ? 1 : 0)));
     const name = match[0].replace(/^:/, '').replace(/\*$/, '');
-    expression += `(?<${name}>${match[1] ? '.*' : '[^/]+'})`;
+    // A repeated path parameter owns its preceding delimiter. With zero
+    // segments, /legacy/:path*/ matches /legacy/ without requiring two slashes.
+    expression += optionalSlash
+      ? `(?:/(?<${name}>[^/]+(?:/[^/]+)*))?`
+      : `(?<${name}>${match[1] ? '.*' : '[^/]+'})`;
     cursor = match.index + match[0].length;
   }
   expression += escapeRegularExpression(source.slice(cursor));
   return new RegExp(`^${expression}$`);
 }
 
-function redirectMatchesRoute(source, routePath) {
+function matchRedirectRoute(source, routePath) {
   if (!source.includes(':')) {
-    return normalizeRoutePath(source) === routePath;
+    return normalizeRoutePath(source) === routePath ? {} : null;
   }
 
   const expression = wildcardRedirectExpression(source);
   const candidates = routePath === '/'
     ? ['/']
     : [routePath, routePath.replace(/\/$/, '')];
-  return candidates.some((candidate) => expression.test(candidate));
+  for (const candidate of candidates) {
+    const match = expression.exec(candidate);
+    if (match) return match.groups;
+  }
+  return null;
 }
 
-function redirectIsIntentional(entry, owner, routePath, redirect, discoveredHtmlRoutes) {
+function expandRedirectDestination(destination, parameters) {
+  return destination.replace(/(\/?):([A-Za-z0-9_]+)(\*)?/g, (token, prefix, name, repeated) => {
+    if (!Object.hasOwn(parameters, name)) return token;
+    const value = parameters[name];
+    // Omitted repeated parameters also omit their delimiter in the destination.
+    if (value === undefined) return repeated ? '' : token;
+    return `${prefix}${value}`;
+  });
+}
+
+function normalizeLocalDestination(destination) {
+  if (typeof destination !== 'string' || !destination.startsWith('/')) return destination;
+  const suffixIndex = destination.search(/[?#]/);
+  const pathname = suffixIndex === -1 ? destination : destination.slice(0, suffixIndex);
+  const suffix = suffixIndex === -1 ? '' : destination.slice(suffixIndex);
+  return `${normalizeRoutePath(pathname)}${suffix}`;
+}
+
+function redirectIsIntentional(entry, owner, routePath, redirect, discoveredHtmlRoutes, parameters) {
   const source = entry.source && normalizeSource(entry.source);
   const hasMatchingHtmlShell = Boolean(source) && discoveredHtmlRoutes.some((discovered) =>
     discovered.source === source && discovered.route === routePath,
@@ -289,18 +316,18 @@ function redirectIsIntentional(entry, owner, routePath, redirect, discoveredHtml
   // Missing, mismatched, or omitted sources for actual HTML shells still fail.
   const isRedirectOnly = !source && !discoveredHtmlRoutes.some(({ route }) => route === routePath);
 
-  let destination = redirect.destination;
-  if (redirect.source.includes(':')) {
-    const expression = wildcardRedirectExpression(redirect.source);
-    const match = expression.exec(routePath) || expression.exec(routePath.replace(/\/$/, ''));
-    destination = destination.replace(/:([A-Za-z0-9_]+)\*?/g, (token, name) => match?.groups?.[name] ?? token);
-  }
+  const destination = expandRedirectDestination(redirect.destination, parameters);
+  // Registry paths represent both directory URL variants. Apply the same
+  // normalization to expanded local targets, retaining query/fragment identity.
+  const destinationAgrees = redirect.source.includes(':')
+    ? normalizeLocalDestination(entry.destination) === normalizeLocalDestination(destination)
+    : entry.destination === destination;
 
   return REDIRECT_DELIVERIES.has(entry.delivery) &&
     (hasMatchingHtmlShell || isRedirectOnly) &&
     ownerOwnsRoute(owner, routePath) &&
     owner.redirectSources?.includes(redirect.source) &&
-    entry.destination === destination &&
+    destinationAgrees &&
     entry.expectedVercelRedirects?.some((expected) => redirectRulesEqual(expected, redirect));
 }
 
@@ -411,9 +438,10 @@ export function validateRouteRegistry(input = {}) {
     }
 
     for (const { entry, route } of paths) {
-      if (!redirectMatchesRoute(redirect.source, route)) continue;
+      const parameters = matchRedirectRoute(redirect.source, route);
+      if (parameters === null) continue;
       const owner = ownersById.get(entry.ownerId);
-      if (redirectIsIntentional(entry, owner, route, redirect, discoveredHtmlRoutes)) continue;
+      if (redirectIsIntentional(entry, owner, route, redirect, discoveredHtmlRoutes, parameters)) continue;
 
       issues.push({
         code: 'REDIRECT_CONFLICT',
