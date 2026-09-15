@@ -149,6 +149,68 @@ test('accepts an intentional HTML redirect shell when owner, destination, and ru
   assert.deepEqual(issues, []);
 });
 
+test('accepts a declared redirect-only route when no copied HTML occupies its path', async () => {
+  const { validateRouteRegistry } = await registryModule;
+  const vercelRule = { source: '/legacy/', destination: '/current/', permanent: true };
+  const issues = validateRouteRegistry(validateInput({
+    routes: [route('legacy-host-rule', 'legacy', '/legacy/', {
+      delivery: 'redirect',
+      source: null,
+      destination: '/current/',
+      expectedVercelRedirects: [vercelRule],
+    })],
+    routeOwners: [owner('legacy', ['/legacy/'], ['/legacy/'])],
+    vercelRedirects: [vercelRule],
+  }));
+
+  assert.deepEqual(issues, []);
+});
+
+test('a redirect-only wildcard family agrees with the expanded destination at its registered root', async () => {
+  const { validateRouteRegistry } = await registryModule;
+  const rules = [
+    { source: '/legacy/', destination: '/current/', permanent: true },
+    { source: '/legacy/:path*', destination: '/current/:path*', permanent: true },
+  ];
+  const input = validateInput({
+    routes: [route('legacy-host-rules', 'legacy', '/legacy/', {
+      delivery: 'redirect', source: null, destination: '/current/', expectedVercelRedirects: rules,
+    })],
+    routeOwners: [owner('legacy', ['/legacy/'], rules.map(({ source }) => source))],
+    vercelRedirects: rules,
+  });
+
+  assert.deepEqual(validateRouteRegistry(input), []);
+  const wrongTarget = { source: '/legacy/:path*', destination: '/wrong/:path*', permanent: true };
+  const issues = validateRouteRegistry({
+    ...input,
+    routes: [{ ...input.routes[0], expectedVercelRedirects: [rules[0], wrongTarget] }],
+    vercelRedirects: [rules[0], wrongTarget],
+  });
+  assert.equal(issueWithCode(issues, 'REDIRECT_CONFLICT').route, '/legacy/');
+});
+
+test('redirect-only exemptions still require the declared owner, delivery, destination, and expected rule', async () => {
+  const { validateRouteRegistry } = await registryModule;
+  const rule = { source: '/legacy/', destination: '/current/', permanent: true };
+  const entry = route('legacy-host-rule', 'legacy', '/legacy/', {
+    delivery: 'redirect', source: null, destination: '/current/', expectedVercelRedirects: [rule],
+  });
+  const declaredOwner = owner('legacy', ['/legacy/'], [rule.source]);
+  for (const overrides of [
+    { routes: [{ ...entry, delivery: 'page' }] },
+    { routes: [{ ...entry, destination: '/wrong/' }] },
+    { routes: [{ ...entry, expectedVercelRedirects: [] }] },
+    { routeOwners: [{ ...declaredOwner, redirectSources: [] }] },
+    { routeOwners: [] },
+  ]) {
+    const issues = validateRouteRegistry(validateInput({
+      routes: [entry], routeOwners: [declaredOwner], vercelRedirects: [rule], ...overrides,
+    }));
+    assert.equal(issueWithCode(issues, 'REDIRECT_CONFLICT').route, '/legacy/');
+  }
+});
+
 test('does not exempt a redirect shell whose registry entry omits its source', async () => {
   const { validateRouteRegistry } = await registryModule;
   const vercelRule = { source: '/legacy/', destination: '/current/', permanent: true };

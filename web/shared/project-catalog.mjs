@@ -218,7 +218,7 @@ function owner(id, routes, options = {}) {
 export const ROUTE_OWNERS = deepFreeze([
   owner('forest-hub', ['/'], { role: 'site' }),
   owner('morning-news', ['/web/morning-news/', '/series/', '/series/dependency-map/'], {
-    redirectSources: ['/series', '/series/', '/series/dependency-map/', '/series/dependency-map'],
+    redirectSources: ['/web/morning-news', '/web/morning-news/', '/series', '/series/', '/series/dependency-map/', '/series/dependency-map'],
   }),
   owner('mendeleev', ['/web/mendeleev-bg/']),
   owner('math-forest', ['/web/math-forest/', '/web/math-mania/']),
@@ -328,7 +328,7 @@ export const CATALOG_FINDINGS = deepFreeze([
     'The destination and compatibility behavior are open; no replacement pool or public runtime is approved.', { costToReverse: 'high' }),
   finding('ai-init', 'disposition', 'What final search/glossary experience should the AI_INIT compatibility path expose?',
     ['Retain the configured glossary destination as compatibility', 'Integrate with the future AI-d kit search after its contract is approved'],
-    'The current HTML shim and Vercel destination disagree; embed ownership stays separate.', { sources: ['web/ai-init/index.html', 'vercel.json', PLAN] }),
+    'The configured glossary handoff is retained; the final search experience remains undecided and embed ownership stays separate.', { sources: ['web/ai-init/index.html', 'vercel.json', PLAN] }),
   finding('gallery', 'attribution', 'How does Found Work relate to the planned owned-work Design Gallery?',
     ['Keep an explicitly credited reference shelf', 'Make a separate credited exhibit within the reviewed gallery'],
     'Found Work embeds third-party work; the earlier museum implementation and its ownership need verification.'),
