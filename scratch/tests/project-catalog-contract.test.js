@@ -19,13 +19,20 @@ function assertDeepFrozen(value) {
 }
 
 test('catalog uses the approved closed vocabularies and freezes nested data', async () => {
-  const { POOL_NAMES, PROJECT_STATUSES, PROJECT_CATALOG, ROUTE_OWNERS, CATALOG_FINDINGS } = await catalog();
+  const { POOL_NAMES, PROJECT_STATUSES, PROJECT_CATALOG, ROUTE_OWNERS, CATALOG_FINDINGS,
+    POOL_CATALOG, CATALOG_ENTITIES, CATALOG_NON_PROJECTS, DESIGN_GALLERY_SUBCATEGORIES } = await catalog();
   assert.deepEqual(POOL_NAMES, [
     'GrowingApp', 'AI-d kit', 'TinkerBox', 'Health',
     'Design Gallery', 'Artificial Self', 'My Story',
   ]);
   assert.deepEqual(PROJECT_STATUSES, ['Live', 'Research', 'Experimental', 'In development']);
-  [POOL_NAMES, PROJECT_STATUSES, PROJECT_CATALOG, ROUTE_OWNERS, CATALOG_FINDINGS].forEach(assertDeepFrozen);
+  [POOL_NAMES, PROJECT_STATUSES, PROJECT_CATALOG, ROUTE_OWNERS, CATALOG_FINDINGS,
+    POOL_CATALOG, CATALOG_ENTITIES, CATALOG_NON_PROJECTS, DESIGN_GALLERY_SUBCATEGORIES].forEach(assertDeepFrozen);
+  assert.equal(new Set(CATALOG_ENTITIES.map(({ id }) => id)).size, CATALOG_ENTITIES.length);
+  assert.deepEqual(CATALOG_ENTITIES.filter(({ kind }) => kind === 'project'), PROJECT_CATALOG);
+  assert.equal(CATALOG_NON_PROJECTS.some(({ kind }) => kind === 'project'), false);
+  assert.equal(PROJECT_CATALOG.some(({ id }) => id === 'web-design-gallery'), false);
+  assert.equal(CATALOG_NON_PROJECTS.find(({ id }) => id === 'web-design-gallery').catalogEntityId, 'web-design');
   assert.equal(new Set(PROJECT_CATALOG.map(({ id }) => id)).size, PROJECT_CATALOG.length);
   for (const project of PROJECT_CATALOG) {
     assert.ok(project.pool === null || POOL_NAMES.includes(project.pool), project.id);
@@ -36,13 +43,13 @@ test('catalog uses the approved closed vocabularies and freezes nested data', as
 test('settled project identities survive conflicting legacy labels', async () => {
   const { PROJECT_CATALOG } = await catalog();
   const expected = [
-    ['morning-news', 'The Drop', 'AI-d kit', null],
+    ['morning-news', 'The Drop', 'AI-d kit', 'Live'],
     ['mendeleev', 'Mendeleev', 'GrowingApp', 'Live'],
     ['replicator-void', 'Replicator Void', 'Design Gallery', 'In development'],
     ['c2c-dolphin', 'C2C Dolphin', 'Artificial Self', 'Research'],
     ['c2c-self', 'C2C Self', 'Artificial Self', 'Research'],
-    ['lobester-gym', 'Lobester Gym', null, null],
-    ['womens-health-os', 'Women’s Health OS', null, null],
+    ['lobester-gym', 'Lobester Gym', 'GrowingApp', 'In development'],
+    ['womens-health-os', 'Women’s Health OS', 'Health', 'In development'],
   ];
   for (const [id, publicName, pool, status] of expected) {
     const record = PROJECT_CATALOG.find((project) => project.id === id);
@@ -66,12 +73,12 @@ test('Fleet and the Math companions each retain one owner with both experiences'
   const math = ROUTE_OWNERS.filter(({ routes }) => routes.includes('/web/math-forest/') || routes.includes('/web/math-mania/'));
   assert.equal(math.length, 1);
   assert.deepEqual(math[0].routes, ['/web/math-forest/', '/web/math-mania/']);
-  assert.equal(math[0].publicName, 'Math Forest / Math Mania');
+  assert.equal(math[0].publicName, 'Math Mania / Forest Math');
   assert.equal(PROJECT_CATALOG.find(({ id }) => id === math[0].projectId).pool, 'GrowingApp');
 });
 
 test('owners account for every copied HTML page independently of navigation', async () => {
-  const { PROJECT_CATALOG, ROUTE_OWNERS } = await catalog();
+  const { CATALOG_ENTITIES, PROJECT_CATALOG, ROUTE_OWNERS } = await catalog();
   const files = [...STATIC_COPY_FILES, ...STATIC_DATA_COPIES.files.map((file) => `data/${file}`)]
     .filter((file) => file.toLowerCase().endsWith('.html') && fs.existsSync(path.join(ROOT, file)));
   for (const directory of [...STATIC_COPY_DIRECTORIES, ...STATIC_DATA_COPIES.directories.map((dir) => `data/${dir}`)]) {
@@ -89,7 +96,13 @@ test('owners account for every copied HTML page independently of navigation', as
     assert.equal(ROUTE_OWNERS.filter(({ routes }) => routes.includes(route)).length, 1, route);
   }
   for (const owner of ROUTE_OWNERS) {
-    assert.ok(PROJECT_CATALOG.some(({ id }) => id === owner.projectId), owner.id);
+    const entity = CATALOG_ENTITIES.find(({ id }) => id === owner.catalogEntityId);
+    assert.ok(entity, owner.id);
+    if (entity.kind === 'project') {
+      assert.ok(PROJECT_CATALOG.some(({ id }) => id === owner.projectId), owner.id);
+    } else {
+      assert.equal(Object.hasOwn(owner, 'projectId'), false, `${owner.id} is not a project`);
+    }
     for (const field of ['navigation', 'search', 'indexing', 'access']) {
       assert.ok(Object.hasOwn(owner.visibility, field), `${owner.id}: ${field}`);
     }
@@ -246,19 +259,80 @@ test('missing classifications, lifecycle and dates stay discoverable as actionab
   for (const id of ['dyslexia', 'audiobook']) {
     const project = PROJECT_CATALOG.find((record) => record.id === id);
     assert.equal(project.pool, 'Health');
-    assert.equal(project.status, null);
+    assert.equal(project.status, 'Live');
     assert.equal(project.lastMeaningfullyUpdated, null);
     assert.equal(PUBLIC_CARD_PROJECTS.some((record) => record.id === id), false);
     assert.ok(CATALOG_FINDINGS.some((finding) => finding.projectId === id && finding.field === 'routeEvidence' && finding.pool === 'Health'));
   }
   const requiredFindings = [
     ['kids-movie-library', 'identity'], ['hypertrophyos', 'identity'],
-    ['library', 'visibility'], ['upload', 'disposition'],
-    ['lobester-gym', 'pool'], ['womens-health-os', 'pool'],
+    ['library', 'visibility'], ['upload', 'accessEnforcement'],
+    ['upload', 'pool'], ['upload', 'status'], ['hypertrophyos', 'pool'], ['hypertrophyos', 'status'],
     ['c2c-dolphin', 'evidenceLevel'], ['c2c-self', 'evidenceLevel'],
   ];
   for (const [projectId, field] of requiredFindings) {
     assert.ok(CATALOG_FINDINGS.some((finding) => finding.projectId === projectId && finding.field === field), `${projectId}: ${field}`);
+  }
+});
+
+test('absorbed and non-project routes resolve to their surviving catalog entities', async () => {
+  const { ROUTE_OWNERS, CATALOG_ENTITIES } = await catalog();
+  const expected = [
+    ['forest-hub', 'forest-hub', 'site-control'], ['vfx-portfolio', 'vfx-portfolio', 'site-control'],
+    ['ai-init', 'library', 'project'], ['ai-init-embed', 'library', 'project'], ['llm-db', 'library', 'project'],
+    ['voice-playground', 'avatar-playground', 'project'], ['evolution', 'website-history', 'category'],
+    ['kids', 'kids', 'retired-hub'], ['gallery', 'gallery', 'legacy-reference'],
+  ];
+  for (const [ownerId, entityId, kind] of expected) {
+    const owner = ROUTE_OWNERS.find(({ id }) => id === ownerId);
+    assert.equal(owner.catalogEntityId, entityId, ownerId);
+    assert.equal(CATALOG_ENTITIES.find(({ id }) => id === entityId).kind, kind, ownerId);
+  }
+});
+
+test('pool listings retain assigned projects independently of card readiness and isolate returned state', async () => {
+  const { PROJECT_CATALOG, POOL_LISTING_PROJECTS, PUBLIC_CARD_PROJECTS, getPoolProjects } = await catalog();
+  assert.deepEqual(POOL_LISTING_PROJECTS, PROJECT_CATALOG.filter(({ classification }) => classification === 'assigned'));
+  const growing = getPoolProjects('GrowingApp');
+  assert.ok(growing.some(({ id, status }) => id === 'lobester-gym' && status === 'In development'));
+  assert.ok(growing.some(({ lastMeaningfullyUpdated }) => lastMeaningfullyUpdated === null));
+  assert.ok(getPoolProjects('TinkerBox').some(({ id, visibility }) => id === 'fleet-board' && visibility.access === 'internal'));
+  assert.equal(PUBLIC_CARD_PROJECTS.length, 0);
+  assert.notEqual(growing[0], PROJECT_CATALOG.find(({ id }) => id === growing[0].id));
+  assertDeepFrozen(POOL_LISTING_PROJECTS);
+  assertDeepFrozen(growing);
+  assert.throws(() => { growing[0].routeBindings[0].route = '/invented/'; }, TypeError);
+  assert.deepEqual(getPoolProjects('Eighth Pool'), []);
+});
+
+test('open questions are ordered and unresolved page facts remain honest', async () => {
+  const { PROJECT_CATALOG, CATALOG_FINDINGS } = await catalog();
+  assert.deepEqual(CATALOG_FINDINGS.slice(0, 3).map(({ question }) => question), [
+    'Artificial Self / AI Research pool-vs-project naming',
+    'Public round-table council crossover membership',
+    'C2C research publication/rederivation',
+  ]);
+  for (const finding of CATALOG_FINDINGS.slice(0, 3)) {
+    assert.equal(finding.status, '[OPEN]');
+    assert.equal(finding.costToReverse, 'high');
+  }
+  for (const id of ['hypertrophyos', 'upload']) {
+    const project = PROJECT_CATALOG.find((record) => record.id === id);
+    assert.equal(project.pool, null);
+    assert.equal(project.status, null);
+  }
+  const upload = PROJECT_CATALOG.find(({ id }) => id === 'upload');
+  assert.equal(upload.disposition, 'kept');
+  assert.equal(upload.repair, 'repair-needed');
+  assert.equal(upload.visibility.navigation, 'unlisted');
+  assert.equal(upload.visibility.access, 'private');
+  assert.equal(upload.visibility.accessGate, 'required');
+  assert.equal(upload.visibility.enforcement, 'unverified');
+  assert.equal(upload.readiness.entryEnabled, false);
+  for (const id of ['c2c-dolphin', 'c2c-self']) {
+    const project = PROJECT_CATALOG.find((record) => record.id === id);
+    assert.equal(project.evidenceLevel, 'rederivation-required');
+    assert.equal(project.evidence.review, 'rederivation-required');
   }
 });
 

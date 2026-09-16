@@ -22,6 +22,19 @@ export const PROJECT_STATUSES = Object.freeze([
 
 const PLAN = 'docs/superpowers/plans/2026-09-15-sdforest-catalog-registry.md';
 const MASTER = 'SDFOREST-MASTER-PLAN.md (PR #569)';
+const SETTLED = '.superpowers/sdd/2026-09-16-sdforest-settled-structure/task-2-brief.md';
+export const POOL_CATALOG = deepFreeze([
+  ['growingapp', 'GrowingApp', 'Learning, family tools, and growing together.'],
+  ['ai-d-kit', 'AI-d kit', 'Tools for finding, understanding, and working with AI.'],
+  ['tinkerbox', 'TinkerBox', 'Playgrounds, practical experiments, and personal tools.'],
+  ['health', 'Health', 'Health, reading, movement, and wellbeing projects.'],
+  ['design-gallery', 'Design Gallery', 'Game design, web design, and website history.'],
+  ['artificial-self', 'Artificial Self', 'AI research and conversation archives.'],
+  ['my-story', 'My Story', 'Personal stories, reflections, and creative work.'],
+].map(([id, publicName, summary]) => ({
+  id, kind: 'pool', publicName, summary, state: 'Live', entryEnabled: true,
+  route: `/web/pools/${id}/`, sources: [SETTLED],
+})));
 const publicShell = {
   navigation: 'manual', search: 'unreviewed', indexing: 'unspecified',
   access: 'public', publicSurface: 'project',
@@ -30,16 +43,48 @@ const internalDocumentation = {
   navigation: 'unlisted', search: 'excluded', indexing: 'noindex',
   access: 'internal', publicSurface: 'documentation-only',
 };
+const unpublishedDocumentation = { ...internalDocumentation, documentation: 'unpublished' };
 const compatibility = {
   navigation: 'unlisted', search: 'excluded', indexing: 'noindex',
   access: 'public', publicSurface: 'compatibility',
 };
-const outside = { ...publicShell, publicSurface: 'portfolio' };
+
+export const DESIGN_GALLERY_SUBCATEGORIES = deepFreeze([
+  { id: 'game-design', name: 'Game Design', material: [] },
+  { id: 'web-design', name: 'Web Design', aliases: ['Web Design Gallery'], material: [] },
+  { id: 'website-history', name: 'Website History', state: 'Live', material: ['Evolution'] },
+].map((category) => ({
+  ...category, kind: 'category', publicName: category.name, pool: 'Design Gallery',
+  disposition: 'Design Gallery subcategory', visibility: publicShell, sources: [SETTLED],
+})));
+
+export const CATALOG_NON_PROJECTS = deepFreeze([
+  ...DESIGN_GALLERY_SUBCATEGORIES,
+  ...[
+    ['open-design', 'Open Design', 'external-reference', 'External/non-Ivan work; outside pools.', null],
+    ['repo-shelf', 'repo-shelf', 'browsing-mode', 'Explore Repos browsing mode.', 'explore'],
+    ['voice-playground', 'Voice Playground', 'absorbed', 'Absorbed into Avatar Playground.', 'avatar-playground'],
+    ['ai-init', 'AI_INIT Glossary', 'merged', 'Merged into Library; compatibility and embed routes retained.', 'library'],
+    ['multiply-magic-studio', 'Multiply Magic', 'absorbed', 'Absorbed into Math Mania / Forest Math.', 'math-forest'],
+    ['evolution', 'Evolution', 'historical-material', 'Website History material.', 'website-history'],
+    ['web-design-gallery', 'Web Design Gallery', 'category-alias', 'Reconciled into the Web Design subcategory; not a project.', 'web-design'],
+    ['gallery', 'Found Work', 'legacy-reference', 'Retired public destination; internal-reference legacy route.', null],
+    ['kids', 'Kids Corner', 'retired-hub', 'Retired legacy hub.', null],
+    ['forest-hub', 'Site Home', 'site-control', 'Site home control outside pools.', null],
+    ['vfx-portfolio', 'Portfolio', 'site-control', 'Site-level Portfolio control outside pools.', null],
+  ].map(([id, name, kind, disposition, catalogEntityId]) => ({
+    id, name, publicName: name, kind, disposition, catalogEntityId, pool: null,
+    visibility: kind === 'site-control'
+      ? { ...publicShell, publicSurface: 'site-control' }
+      : { ...compatibility, publicSurface: 'reference-only' },
+    sources: [SETTLED],
+  })),
+]);
 
 function project(id, publicName, facts) {
-  const sources = facts.sources || [MASTER];
+  const sources = [...new Set([...(facts.sources || [MASTER]), SETTLED])];
   return {
-    id, publicName, pool: null, classification: 'unresolved', outsidePoolRole: null,
+    id, kind: 'project', publicName, pool: null, classification: 'unresolved', outsidePoolRole: null,
     status: null, metrics: [], lastMeaningfullyUpdated: null, updateProvenance: null,
     provisional: true,
     readiness: {
@@ -53,23 +98,19 @@ function project(id, publicName, facts) {
   };
 }
 
-// Null pool + classification distinguishes a pending decision from a settled
-// outside-pool role. Neither case adds a pool to the seven-value vocabulary.
-export const PROJECT_CATALOG = deepFreeze([
-  project('forest-hub', 'SD Forest', {
-    classification: 'outside-pools', outsidePoolRole: 'site',
-    visibility: { ...publicShell, publicSurface: 'site' }, sources: ['index.html', MASTER],
-  }),
+// Null pool + unresolved classification retains an unsettled project decision.
+// Site controls and reconciled legacy references live outside this collection.
+const projectRecords = [
   project('morning-news', 'The Drop', {
-    pool: 'AI-d kit', classification: 'assigned', visibility: publicShell,
+    pool: 'AI-d kit', classification: 'assigned', status: 'Live', visibility: publicShell,
     canonicalUrl: 'https://thedrop.sdforest.site', sources: ['web/morning-news/index.html', PLAN],
   }),
   project('mendeleev', 'Mendeleev', {
     pool: 'GrowingApp', classification: 'assigned', status: 'Live', visibility: publicShell,
     sources: ['web/mendeleev-bg/index.html', PLAN],
   }),
-  project('math-forest', 'Math Forest / Math Mania', {
-    pool: 'GrowingApp', classification: 'assigned', visibility: publicShell,
+  project('math-forest', 'Math Mania / Forest Math', {
+    pool: 'GrowingApp', classification: 'assigned', status: 'Live', visibility: publicShell,
     relationships: [
       { type: 'companion', name: 'Math Forest', route: '/web/math-forest/' },
       { type: 'companion', name: 'Math Mania', route: '/web/math-mania/' },
@@ -84,132 +125,115 @@ export const PROJECT_CATALOG = deepFreeze([
   }),
   project('c2c-dolphin', 'C2C Dolphin', {
     pool: 'Artificial Self', classification: 'assigned', status: 'Research', visibility: publicShell,
-    evidenceLevel: { level: 'archive-unverified', review: 'rederivation-required', sources: ['web/c2c-dolphin/index.html', MASTER] },
+    aliases: ['AI Conversation'],
+    displayDiscrepancy: { deployedName: 'AI Conversation', canonicalName: 'C2C Dolphin' },
+    evidenceLevel: 'rederivation-required',
+    evidence: { level: 'archive-unverified', review: 'rederivation-required', sources: ['web/c2c-dolphin/index.html', MASTER] },
     sources: ['web/c2c-dolphin/index.html', PLAN],
   }),
   project('c2c-self', 'C2C Self', {
     pool: 'Artificial Self', classification: 'assigned', status: 'Research', visibility: publicShell,
-    evidenceLevel: { level: 'archive-unverified', review: 'rederivation-required', sources: ['web/c2c-self/index.html', MASTER] },
+    relationship: { type: 'self-mirror-control', projectId: 'c2c-dolphin', modelConfiguration: 'identical-model', description: 'Identical-model self-mirror control of C2C Dolphin.' },
+    evidenceLevel: 'rederivation-required',
+    evidence: { level: 'archive-unverified', review: 'rederivation-required', sources: ['web/c2c-self/index.html', MASTER] },
     sources: ['web/c2c-self/index.html', PLAN],
   }),
   project('fleet-board', 'Fleet / Fleet Board', {
-    classification: 'outside-pools', outsidePoolRole: 'internal', status: 'Live',
-    visibility: internalDocumentation, sources: ['web/fleet/index.html', 'web/board/index.html', PLAN],
+    pool: 'TinkerBox', classification: 'assigned', status: 'Live',
+    documentation: { status: 'In development', publication: 'unpublished' },
+    visibility: unpublishedDocumentation, sources: ['web/fleet/index.html', 'web/board/index.html', PLAN],
   }),
   project('ai-research', 'AI Research', {
     pool: 'Artificial Self', classification: 'assigned', visibility: publicShell,
     sources: ['web/ai-research/index.html', MASTER],
   }),
   project('library', 'Library', {
-    pool: 'AI-d kit', classification: 'assigned',
+    pool: 'AI-d kit', classification: 'assigned', status: 'Live',
     visibility: { ...publicShell, access: 'mixed', publicSurface: 'public-reference-only' },
     relationships: [{ type: 'folds-into', pool: 'AI-d kit', role: 'search' }],
     sources: ['web/library/index.html', 'web/library/rag.html', MASTER],
   }),
-  project('ai-init', 'AI_INIT Glossary', {
-    pool: 'AI-d kit', classification: 'assigned', visibility: publicShell,
-    relationships: [{ type: 'reference-companion', projectId: 'library' }],
-    sources: ['web/ai-init/index.html', 'web/ai-init/embed/index.html', 'web/library/glossary/index.html', MASTER],
-  }),
-  project('evolution', 'Evolution', {
-    pool: 'Design Gallery', classification: 'assigned', category: 'Web Design', visibility: publicShell,
-    sources: ['web/evolution/index.html', MASTER],
-  }),
   project('chair-or-ladder', 'Chair or a Ladder', {
-    pool: 'My Story', classification: 'assigned', visibility: publicShell,
+    pool: 'My Story', classification: 'assigned', status: 'Live', visibility: publicShell,
     relationships: [{ type: 'optional-tree-context' }], sources: ['web/chair-or-ladder/index.html', MASTER],
   }),
   project('life-in-time', 'Life in Time', {
-    pool: 'My Story', classification: 'assigned', visibility: publicShell,
+    pool: 'My Story', classification: 'assigned', status: 'Live', visibility: publicShell,
     relationships: [{ type: 'optional-tree-context' }], sources: ['web/life-in-time/index.html', MASTER],
   }),
   project('power-law-odyssey', 'Power Law Odyssey', {
-    pool: 'My Story', classification: 'assigned', visibility: publicShell,
+    pool: 'My Story', classification: 'assigned', status: 'In development', visibility: publicShell,
     relationships: [{ type: 'optional-tree-context' }], sources: ['web/power-law-odyssey/index.html', MASTER],
   }),
   project('we-are-the-training-data', 'We Are The Training Data', {
-    pool: 'My Story', classification: 'assigned',
+    pool: 'My Story', classification: 'assigned', status: 'In development',
     visibility: { ...publicShell, navigation: 'unlisted', search: 'excluded', indexing: 'noindex' },
     relationships: [{ type: 'optional-tree-context', role: 'default-narrated-poem' }],
     sources: ['web/we-are-the-training-data/index.html', MASTER],
   }),
   project('manifesto-newborn', 'Manifesto for a Newborn', {
-    pool: 'GrowingApp', classification: 'assigned', visibility: publicShell,
+    pool: 'GrowingApp', classification: 'assigned', status: 'Live', visibility: publicShell,
     relationships: [{ type: 'optional-introduction', pool: 'GrowingApp' }, { type: 'reference', pool: 'My Story' }],
     sources: ['web/manifesto-newborn/index.html', MASTER],
   }),
-  project('vfx-portfolio', 'VFX Portfolio', {
-    classification: 'outside-pools', outsidePoolRole: 'portfolio', visibility: outside,
-    sources: ['web/vfx-portfolio/index.html', MASTER],
-  }),
   project('dyslexia', 'Dyslexia Reading Platform', {
-    pool: 'Health', classification: 'assigned', visibility: publicShell, sources: ['index.html', PLAN],
+    pool: 'Health', classification: 'assigned', status: 'Live', visibility: publicShell, sources: ['index.html', PLAN],
   }),
   project('audiobook', 'Audiobook Studio', {
-    pool: 'Health', classification: 'assigned', visibility: publicShell, sources: ['index.html', PLAN],
+    pool: 'Health', classification: 'assigned', status: 'Live', visibility: publicShell, sources: ['index.html', PLAN],
   }),
-  // The task authority explicitly leaves these pools open despite older matrix labels.
-  project('lobester-gym', 'Lobester Gym', { visibility: publicShell, sources: ['web/lobester-gym/index.html', PLAN] }),
-  project('womens-health-os', 'Women’s Health OS', { visibility: publicShell, sources: ['web/womens-health-os/index.html', PLAN] }),
+  project('lobester-gym', 'Lobester Gym', { pool: 'GrowingApp', classification: 'assigned', status: 'In development', visibility: publicShell, sources: ['web/lobester-gym/index.html', SETTLED] }),
+  project('womens-health-os', 'Women’s Health OS', { pool: 'Health', classification: 'assigned', status: 'In development', aliases: ['Women’s Health'], visibility: publicShell, sources: ['web/womens-health-os/index.html', SETTLED] }),
   project('hypertrophyos', 'Hyper Trophy OS', { visibility: publicShell, sources: ['web/hypertrophyos/index.html', PLAN] }),
   project('gym-scholar', 'Gym Scholar', {
-    pool: 'Health', classification: 'assigned', visibility: publicShell, sources: [MASTER],
+    pool: 'Health', classification: 'assigned', status: 'Live', visibility: publicShell, sources: [MASTER],
   }),
-  project('avatar-playground', 'Avatar Playground', { visibility: publicShell, sources: ['web/avatar-playground/index.html', MASTER] }),
-  project('calendar', 'Calendar Generator', { visibility: publicShell, sources: ['web/calendar/index.html', MASTER] }),
-  project('council', 'Councils', { visibility: publicShell, sources: ['web/council/index.html', MASTER] }),
+  project('avatar-playground', 'Avatar Playground', { pool: 'TinkerBox', classification: 'assigned', status: 'Live', aliases: ['Voice Playground'], visibility: publicShell, sources: ['web/avatar-playground/index.html', MASTER] }),
+  project('calendar', 'Calendar Generator', { pool: 'TinkerBox', classification: 'assigned', status: 'In development', visibility: publicShell, sources: ['web/calendar/index.html', MASTER] }),
+  project('council', 'Public round-table council', { pool: 'AI-d kit', classification: 'assigned', status: 'Live', aliases: ['Councils'], visibility: publicShell, sources: ['web/council/index.html', MASTER] }),
   project('explore', 'Explore Repos', {
-    visibility: publicShell,
+    pool: 'AI-d kit', classification: 'assigned', status: 'Live', visibility: publicShell,
+    modes: ['solution', 'category', 'shelf', 'graphified', 'capability-cards', 'index-search'],
     relationships: [{ type: 'incorporates', route: '/web/code-search/' }, { type: 'incorporates', route: '/web/repos/' }],
     sources: ['web/explore/index.html', 'web/code-search/index.html', 'web/repos/index.html', MASTER],
   }),
-  project('gallery', 'Found Work', {
-    visibility: publicShell, attribution: 'Third-party work credited to its authors; not an owned-work gallery.',
-    sources: ['web/gallery/index.html', MASTER],
-  }),
-  project('kids', 'Kids Corner', { visibility: publicShell, sources: ['web/kids/index.html', MASTER] }),
-  project('kids-movie-library', 'Kids Movie Library', {
-    visibility: publicShell,
+  project('kids-movie-library', 'Kids Library', {
+    pool: 'GrowingApp', classification: 'assigned', status: 'In development', visibility: publicShell,
+    sections: [{ id: 'movies', name: 'Movies' }, { id: 'books', name: 'Books' }],
     sources: ['movies/index.html', 'web/kids-movie-library/index.html', PLAN],
   }),
   project('m-popova', 'Poetry Space', {
-    visibility: publicShell, attribution: 'Poetry by Maria Popova.', sources: ['web/m-popova/index.html', MASTER],
+    pool: 'Design Gallery', classification: 'assigned', status: 'Live', visibility: publicShell, attribution: 'Poetry by Maria Popova.', sources: ['web/m-popova/index.html', MASTER],
   }),
-  project('open-dashboard', 'Open Dashboard', { visibility: publicShell, sources: ['web/open-dashboard/index.html', MASTER] }),
-  project('rubiks-teacher', 'Rubik’s Teacher', { visibility: publicShell, sources: ['web/rubiks-teacher/index.html', MASTER] }),
-  project('voice-playground', 'Voice Playground', {
-    visibility: { ...publicShell, access: 'mixed' }, sources: ['web/voice-playground/index.html', MASTER],
-  }),
-  project('chloe-pwa', 'Chloé PWA', { visibility: internalDocumentation, sources: ['web/chloe-pwa/index.html', MASTER] }),
-  project('chloe-desktop', 'Chloé desktop', { visibility: internalDocumentation, sources: [MASTER] }),
+  project('open-dashboard', 'Open Dashboard', { pool: 'AI-d kit', classification: 'assigned', status: 'Live', visibility: publicShell, sources: ['web/open-dashboard/index.html', MASTER] }),
+  project('rubiks-teacher', 'Rubik’s Teacher', { pool: 'GrowingApp', classification: 'assigned', status: 'Live', visibility: publicShell, sources: ['web/rubiks-teacher/index.html', MASTER] }),
+  project('chloe-pwa', 'Chloé PWA', { pool: 'TinkerBox', classification: 'assigned', status: 'In development', visibility: unpublishedDocumentation, sources: ['web/chloe-pwa/index.html', MASTER] }),
+  project('chloe-desktop', 'Chloé desktop', { pool: 'TinkerBox', classification: 'assigned', status: 'In development', visibility: unpublishedDocumentation, sources: [MASTER] }),
   project('upload', 'Knowledge Ingest', {
-    classification: 'outside-pools', outsidePoolRole: 'disposition-pending',
-    visibility: { ...internalDocumentation, indexing: 'unspecified' }, sources: ['web/upload/index.html', PLAN],
+    disposition: 'kept', repair: 'repair-needed',
+    visibility: { ...internalDocumentation, access: 'private', accessGate: 'required', enforcement: 'unverified' },
+    readiness: { entryEnabled: false, presentation: 'repair-needed', review: 'pending', reason: 'Kept; repair and access enforcement verification required.' },
+    sources: ['web/upload/index.html', SETTLED],
   }),
-  project('item-icon-generator', 'Runware Item Icon Generator', { visibility: publicShell, sources: ['frontend/index.html', MASTER] }),
-  project('flowform', 'FlowForm', { visibility: publicShell, canonicalUrl: 'https://flowform.sdforest.site', sources: ['index.html', MASTER] }),
-  project('multiply-magic-studio', 'Multiply Magic Studio', { visibility: publicShell, sources: ['index.html', MASTER] }),
-  project('web-design-gallery', 'Web Design Gallery', {
-    pool: 'Design Gallery', classification: 'assigned', visibility: publicShell,
-    sources: ['index.html', MASTER],
+  project('item-icon-generator', 'Item Icon Generator', { pool: 'TinkerBox', classification: 'assigned', status: 'In development', aliases: ['Runware Item Icon Generator'], visibility: publicShell, sources: ['frontend/index.html', MASTER] }),
+  project('flowform', 'FlowForm', { pool: 'Health', classification: 'assigned', status: 'In development', visibility: publicShell, canonicalUrl: 'https://flowform.sdforest.site', sources: ['index.html', MASTER] }),
+  project('velune', 'Velune', {
+    pool: 'TinkerBox', classification: 'assigned', status: 'Live', visibility: publicShell,
+    attribution: { type: 'fork', names: ['nikhilvishwakarma00'], changeDescription: 'Ivan’s audio-only YouTube path with no video.' },
   }),
-  project('repo-shelf', 'repo-shelf', {
-    visibility: { ...publicShell, publicSurface: 'companion' },
-    relationships: [{ type: 'secondary-view', projectId: 'explore' }], sources: [MASTER],
-  }),
-  ...['Open Design', 'Velune', 'AnyCloudLLM'].map((publicName) => project(
-    { 'Open Design': 'open-design', Velune: 'velune', AnyCloudLLM: 'anycloudllm' }[publicName],
-    publicName,
-    { classification: 'outside-pools', outsidePoolRole: 'excluded', visibility: { navigation: 'excluded', search: 'excluded', indexing: 'unspecified', access: null, publicSurface: 'none' }, sources: [MASTER] },
-  )),
-]);
+  project('anycloudllm', 'AnyCloudLLM', { pool: 'AI-d kit', classification: 'assigned', status: 'In development', visibility: publicShell }),
+];
 
 function owner(id, routes, options = {}) {
-  const record = PROJECT_CATALOG.find((entry) => entry.id === (options.projectId || id));
+  const { projectId, catalogEntityId, ...metadata } = options;
+  const target = catalogEntityId || projectId || id;
+  const record = [...projectRecords, ...CATALOG_NON_PROJECTS, ...POOL_CATALOG].find((entry) => entry.id === target);
+  if (!record) throw new Error(`Unknown catalog entity for route owner ${id}: ${target}`);
   return {
-    id, projectId: record.id, publicName: record.publicName, status: record.status,
-    role: 'project', routes, redirectSources: [], visibility: record.visibility,
-    ...options,
+    id, catalogEntityId: record.id, ...(record.kind === 'project' ? { projectId: record.id } : {}),
+    publicName: record.publicName, status: record.status ?? null,
+    role: record.kind, routes, redirectSources: [], visibility: record.visibility,
+    ...metadata,
   };
 }
 
@@ -232,10 +256,10 @@ export const ROUTE_OWNERS = deepFreeze([
   owner('library-repos', ['/web/library/repos/'], { projectId: 'library', role: 'child', visibility: { ...internalDocumentation, indexing: 'unspecified' } }),
   owner('library-memory', ['/web/library/general/', '/web/library/memory/'], { projectId: 'library', role: 'internal', visibility: { ...internalDocumentation, indexing: 'unspecified' } }),
   owner('library-chloe', ['/web/library/chloe/'], { projectId: 'library', role: 'internal', visibility: { ...internalDocumentation, indexing: 'unspecified' } }),
-  owner('ai-init', ['/web/ai-init/'], { role: 'legacy', visibility: compatibility, redirectSources: ['/web/ai-init', '/web/ai-init/'] }),
-  owner('ai-init-embed', ['/web/ai-init/embed/'], { projectId: 'ai-init', role: 'embed', visibility: { ...publicShell, navigation: 'unlisted' } }),
+  owner('ai-init', ['/web/ai-init/'], { catalogEntityId: 'library', role: 'legacy', visibility: compatibility, redirectSources: ['/web/ai-init', '/web/ai-init/'] }),
+  owner('ai-init-embed', ['/web/ai-init/embed/'], { catalogEntityId: 'library', role: 'embed', visibility: { ...publicShell, navigation: 'unlisted' } }),
   owner('llm-db', ['/web/llm-db/'], { projectId: 'library', role: 'legacy', visibility: compatibility, redirectSources: ['/web/llm-db/', '/web/llm-db/:path*/', '/web/llm-db/:path*'] }),
-  owner('evolution', ['/web/evolution/']),
+  owner('evolution', ['/web/evolution/'], { catalogEntityId: 'website-history', role: 'historical-material' }),
   owner('chair-or-ladder', ['/web/chair-or-ladder/'], { role: 'context' }),
   owner('life-in-time', ['/web/life-in-time/'], { role: 'context' }),
   owner('power-law-odyssey', ['/web/power-law-odyssey/'], { role: 'context' }),
@@ -275,16 +299,43 @@ export const ROUTE_OWNERS = deepFreeze([
     ],
   }),
   owner('rubiks-teacher', ['/web/rubiks-teacher/']),
-  owner('voice-playground', ['/web/voice-playground/']),
+  owner('voice-playground', ['/web/voice-playground/'], { catalogEntityId: 'avatar-playground', role: 'absorbed', visibility: { ...publicShell, access: 'mixed' } }),
   owner('chloe-pwa', ['/web/chloe-pwa/'], { role: 'internal' }),
   owner('upload', ['/web/upload/'], { role: 'internal' }),
   owner('item-icon-generator', ['/frontend/']),
 ]);
 
+// Bind every project explicitly. Shared pool fragments are catalog entries, not
+// claims that a standalone application route exists or has passed flow review.
+export const PROJECT_CATALOG = deepFreeze(projectRecords.map((record) => {
+  const routes = ROUTE_OWNERS.filter(({ catalogEntityId }) => catalogEntityId === record.id)
+    .flatMap(({ routes }) => routes).map((route) => ({ type: 'local', route }));
+  if (record.canonicalUrl) routes.unshift({ type: 'external', url: record.canonicalUrl });
+  if (routes.length === 0) {
+    const pool = POOL_CATALOG.find(({ publicName }) => publicName === record.pool);
+    if (!pool) throw new Error(`Project ${record.id} has neither a route nor a settled pool binding.`);
+    routes.push({ type: 'shared-pool-tab', route: `${pool.route}#${record.id}` });
+  }
+  return { ...record, routeBindings: routes };
+}));
+
+export const CATALOG_ENTITIES = deepFreeze([
+  ...PROJECT_CATALOG, ...POOL_CATALOG, ...CATALOG_NON_PROJECTS,
+]);
+
+// Membership projection deliberately retains In development, internal/unlisted,
+// and unverified-date records. Consumers must honor each record's visibility.
+export const POOL_LISTING_PROJECTS = deepFreeze(PROJECT_CATALOG.filter(({ pool }) => POOL_NAMES.includes(pool)));
+
+/** Detached immutable membership data; this does not certify public-card readiness. */
+export function getPoolProjects(poolName) {
+  return deepFreeze(JSON.parse(JSON.stringify(POOL_LISTING_PROJECTS.filter(({ pool }) => pool === poolName))));
+}
+
 function finding(projectId, field, question, options, reason, extra = {}) {
   const record = PROJECT_CATALOG.find(({ id }) => id === projectId);
   return {
-    findingId: `${projectId}.${field}`, projectId, pool: record.pool, field,
+    findingId: `${projectId}.${field}`, projectId, pool: record.pool, field, status: '[OPEN]',
     question, options, reason, costToReverse: 'medium', sources: record.sources,
     ...extra,
   };
@@ -298,6 +349,15 @@ const dateReasons = {
 };
 
 export const CATALOG_FINDINGS = deepFreeze([
+  finding('ai-research', 'displayNaming', 'Artificial Self / AI Research pool-vs-project naming',
+    ['Keep Artificial Self as the pool and AI Research as its project', 'Rename the pool display label to AI Research and choose a distinct project display label'],
+    'Canonical membership remains Artificial Self until the pool/project naming decision is settled.', { costToReverse: 'high' }),
+  finding('council', 'crossover', 'Public round-table council crossover membership',
+    ['Keep AI-d kit membership and add contextual cross-links from relevant pools', 'Introduce a reviewed crossover display model while retaining a single primary AI-d kit membership'],
+    'Crossovers affect navigation, ownership, and future catalog consumers; no second membership is approved.', { costToReverse: 'high' }),
+  finding('c2c-dolphin', 'publication', 'C2C research publication/rederivation',
+    ['Publish the preserved archives with interpretations explicitly unverified', 'Rederive measurements and review claims before publishing research conclusions'],
+    'The self-mirror control relationship is settled; archive conclusions still require rederivation.', { costToReverse: 'high' }),
   ...PROJECT_CATALOG.flatMap((record) => [
     ...(record.classification === 'unresolved' ? [finding(record.id, 'pool',
       `What approved pool or outside-pool role belongs to ${record.publicName}?`,
@@ -323,15 +383,9 @@ export const CATALOG_FINDINGS = deepFreeze([
   finding('library', 'visibility', 'Which Library sources are public, and which personal surfaces require an internal boundary?',
     ['Integrate only verified public references into AI-d kit search', 'Keep personal memory and repository workspaces separately authorized'],
     'Library links public references and personal surfaces; password UI and noindex do not establish enforced access.', { costToReverse: 'high' }),
-  finding('upload', 'disposition', 'Should Knowledge Ingest retire its functionality or redirect, and to which authorized destination?',
-    ['Retire functionality while preserving the compatibility route', 'Redirect after an authorized destination is chosen'],
-    'The destination and compatibility behavior are open; no replacement pool or public runtime is approved.', { costToReverse: 'high' }),
-  finding('ai-init', 'disposition', 'What final search/glossary experience should the AI_INIT compatibility path expose?',
-    ['Retain the configured glossary destination as compatibility', 'Integrate with the future AI-d kit search after its contract is approved'],
-    'The configured glossary handoff is retained; the final search experience remains undecided and embed ownership stays separate.', { sources: ['web/ai-init/index.html', 'vercel.json', PLAN] }),
-  finding('gallery', 'attribution', 'How does Found Work relate to the planned owned-work Design Gallery?',
-    ['Keep an explicitly credited reference shelf', 'Make a separate credited exhibit within the reviewed gallery'],
-    'Found Work embeds third-party work; the earlier museum implementation and its ownership need verification.'),
+  finding('upload', 'accessEnforcement', 'Which verified access gate will protect the kept Knowledge Ingest tool?',
+    ['Repair the existing private workflow behind verified authentication', 'Keep entry disabled until a verified internal access gate is available'],
+    'Kept and repair-needed are settled; private/unlisted catalog metadata does not enforce access.', { costToReverse: 'high' }),
   ...['dyslexia', 'audiobook'].map((id) => finding(id, 'routeEvidence',
     `What verified public route and fallback support ${PROJECT_CATALOG.find((record) => record.id === id).publicName}?`,
     ['Verify the existing public handoff and independent fallback', 'Keep the candidate unpromoted until route and service evidence exist'],
@@ -378,7 +432,9 @@ export const PUBLIC_CARD_PROJECTS = deepFreeze(PROJECT_CATALOG.filter(isPublicCa
 /** A detached, deeply frozen, JSON-safe value; never a presentation instruction. */
 export function getCatalogSnapshot() {
   return deepFreeze(JSON.parse(JSON.stringify({
-    pools: POOL_NAMES, statuses: PROJECT_STATUSES, projects: PROJECT_CATALOG,
+    pools: POOL_NAMES, poolCatalog: POOL_CATALOG, statuses: PROJECT_STATUSES, projects: PROJECT_CATALOG,
+    entities: CATALOG_ENTITIES, nonProjects: CATALOG_NON_PROJECTS,
+    designGallerySubcategories: DESIGN_GALLERY_SUBCATEGORIES, poolListingProjects: POOL_LISTING_PROJECTS,
     publicCardProjects: PUBLIC_CARD_PROJECTS, routeOwners: ROUTE_OWNERS, findings: CATALOG_FINDINGS,
   })));
 }
