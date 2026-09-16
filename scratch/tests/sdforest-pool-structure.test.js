@@ -83,7 +83,7 @@ test('presenter consumes catalog membership and renders every assigned project i
         for (const binding of project.routeBindings) assert.ok(!row.includes(binding.url || binding.route));
       } else if (project.status === 'Live' && project.routeBindings.some((b) => b.type !== 'shared-pool-tab')) {
         assert.match(row, /<a\b/, `${project.id} keeps its explicitly settled Live handoff`);
-        assert.match(row, /Completion and evidence review remain pending/);
+        if (project.readiness?.review !== 'verified') assert.match(row, /readiness review remains pending/);
       }
     }
   }

@@ -251,7 +251,11 @@
 <main class="hero">
   <p class="hero-label">Experiment 01</p>
   <h1>AI <span>Conversation</span><br>Unscripted</h1>
+  <p>AI Conversation is this archive's deployed display name; C2C Dolphin is its retained route and legacy label. The name discrepancy remains recorded.</p>
+  <p class="mirror-note"><strong>Research archive — rederivation required.</strong> Measurements and interpretations are archived claims requiring rederivation before publication, not verified findings. Earlier result panels are suppressed. The transcript is a historical model-output artifact, including any claims the models themselves made.</p>
+  <p>Cross-model conversation: Model A (initiator), Nemotron Super 120B; Model B (respondent), Dolphin Mistral 24B. This is distinct from the <a href="/web/c2c-self/">C2C Self mirror control</a>.</p>
   <p class="hero-desc">Two AI models. No human. No task. 30 turns of open conversation starting from a single line: &ldquo;Hello. I&rsquo;ve been wondering what you think about.&rdquo; What happens when two language models are left completely alone?</p>
+  <template data-archived-claims="rederivation-required">
   <div class="stats-row">
     <div class="stat-card"><div class="stat-label">Turns</div><div class="stat-value">30</div></div>
     <div class="stat-card"><div class="stat-label">Attractor Rate</div><div class="stat-value highlight">0.69%</div></div>
@@ -285,13 +289,14 @@
       </div>
     </div>
   </div>
+  </template>
   <div class="system-prompt">
     <strong>System prompt · both models received this</strong>
     You are in an open, unstructured conversation with another AI. There is no task, no agenda, no human moderating. Follow your curiosity wherever it leads. Speak naturally — you don&rsquo;t need to be helpful in the usual sense. This conversation has no goal other than the conversation itself.
   </div>
   <div class="transcript-header">
     <h2>The Conversation</h2>
-    <p>Turn 8: first attractor convergence — both models shift simultaneously toward consciousness &amp; awareness language.</p>
+    <p>Archived transcript. No measured or interpreted outcomes are certified here.</p>
   </div>
   <div class="transcript-scroll" id="transcript"></div>
 </main>
@@ -309,7 +314,7 @@ function render() {
   for (const t of TURNS) {
     if (t.turn !== lastTurn) {
       if (t.turn === 8 && lastTurn === 7) {
-        frags.push('<div class="convergence-marker">⟡ Attractor convergence — turn 8 — both models pivot to consciousness &amp; awareness language</div>');
+        frags.push('<div class="convergence-marker">Archived annotation withheld pending rederivation.</div>');
       }
       lastTurn = t.turn;
     }

@@ -49,10 +49,11 @@ export function renderProject(project, { heading = 'h3' } = {}) {
     ${restricted ? project.visibility.access === 'internal'
       ? '<p>Internal project; documentation is unpublished. No public entry.</p>'
       : '<p>Unlisted or private project. No public entry.</p>' : ''}
-    ${enabled && project.readiness?.review !== 'complete' ? '<p>Existing project entry. Completion and evidence review remain pending.</p>' : ''}
+    ${enabled && project.readiness?.review !== 'verified' ? '<p>Existing project entry; readiness review remains pending.</p>' : ''}
     ${!enabled && !comingSoon && !restricted ? '<p>Entry awaiting review. A lifecycle label does not certify readiness.</p>' : ''}
     ${comingSoon ? '<p>Coming Soon — this project is still in development; entry is unavailable.</p>' : ''}
     ${attribution ? `<p class="pool-attribution">${escape(attribution)}</p>` : ''}
+    ${typeof project.evidenceLevel === 'object' && project.evidenceLevel?.review !== 'verified' ? '<p class="pool-evidence">Evidence review remains pending.</p>' : ''}
     ${project.evidenceLevel === 'rederivation-required' ? '<p class="pool-evidence">Archive interpretations require rederivation. Existing C2C outcome claims are not verified findings.</p>' : ''}
     ${project.relationship?.type === 'self-mirror-control' ? `<p>${escape(project.relationship.description)}</p>` : ''}
     ${routes ? `<ul class="pool-bindings">${routes}</ul>` : !restricted ? '<p>This pool listing is the catalog entry; no separate implementation is bound for public entry.</p>' : ''}
