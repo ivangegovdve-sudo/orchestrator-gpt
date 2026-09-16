@@ -105,24 +105,18 @@ test('route ownership validates delivery and visibility without requiring page-s
   }
 });
 
-test('manually authored landing portals retain direct C2C destinations', () => {
+test('manually authored landing links enter all seven canonical pools', () => {
   const home = read('index.html');
-  assert.match(home, /data-project="c2c-dolphin"[^>]*data-href="\/web\/c2c-dolphin\/"/);
-  assert.match(home, /data-project="c2c-self"[^>]*data-href="\/web\/c2c-self\/"/);
+  const links = [...home.matchAll(/data-pool-link="([^"]+)" href="([^"]+)"/g)];
+  const ids = ['growingapp', 'ai-d-kit', 'tinkerbox', 'health', 'design-gallery', 'artificial-self', 'my-story'];
+  assert.deepEqual(links.map((match) => match[1]), ids);
+  assert.deepEqual(links.map((match) => match[2]), ids.map((id) => `/web/pools/${id}/`));
 });
 
-test('homepage cards retain their manual order and Poetry and Calendar entries independently of catalog enumeration', () => {
+test('homepage pool order is manual and independent of catalog enumeration', () => {
   const home = read('index.html');
-  const cards = [...home.matchAll(/<(?:a|article)\b[^>]*\bdata-project="([^"]+)"[^>]*>/g)];
-  assert.deepEqual(cards.map((match) => match[1]), [
-    'chair-ladder', 'morning-news', 'reader', 'audiobook', 'manifesto', 'we-are-the-training-data', 'voice', 'poetry',
-    'vfx', 'kids', 'power', 'void', 'gallery', 'found', 'flowform', 'lobester', 'multiply', 'math',
-    'time', 'rubiks', 'library', 'avatar', 'council', 'mendeleev', 'explore', 'calendar',
-    'health', 'open-dashboard', 'muscle', 'c2c-dolphin', 'tinylm', 'c2c-self',
-  ], 'the authored card order is a curation decision');
-  for (const destination of ['/web/m-popova/', '/web/calendar/']) {
-    assert.equal(cards.filter(([tag]) => tag.includes(`data-href="${destination}"`)).length, 1, destination);
-  }
+  assert.equal((home.match(/data-pool-link="/g) || []).length, 7);
+  assert.doesNotMatch(home, /data-project="/);
   assert.doesNotMatch(home, /static-route-registry|ROUTE_REGISTRY|project-catalog|ROUTE_INVENTORY/);
 });
 
