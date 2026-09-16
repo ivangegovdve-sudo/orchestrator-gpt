@@ -786,6 +786,13 @@ export function renderHarnessRoster(view) {
 }
 
 export function catalogueAvailability(view, provider) {
+  if (provider.catalogueMode === "package_source") {
+    const source = provider.packageSource;
+    return Object.freeze({
+      state: "package_source",
+      note: `This page does not carry ${provider.displayName}'s catalogue; the package reads its SHA-256-pinned pricing document at ${source?.url || "the package source"} (read ${source?.observedAt || "an undated observation"}).`,
+    });
+  }
   if (provider.declared === null) return Object.freeze({ state: "not_checked", note: "Catalogue availability was not checked because the API source declarations are unavailable." });
   if (!provider.declared) return Object.freeze({ state: "not_declared", note: "This API does not declare a catalogue source for this provider. Its publication capabilities were not checked here." });
   const state = datasetState(view, `catalogue:${provider.id}`);
@@ -794,6 +801,89 @@ export function catalogueAvailability(view, provider) {
 
 export function catalogueFieldLabel(provider, field) {
   return provider?.publishes?.[field] === "never" ? "not published (package registry)" : "unknown in this response";
+}
+
+const catalogueFieldNames = Object.freeze({
+  contextLength: "context length",
+  pricingPrompt: "prompt price",
+  pricingCompletion: "completion price",
+  outputModalities: "output modality",
+  isFree: "free status",
+  providerActive: "active status",
+  performance: "performance",
+});
+
+const catalogueApiSource = (provider) => provider?.catalogueEvidence?.sources?.find(source => source.kind === "api") ?? null;
+const nativeModelEvidence = (provider, row) => provider?.catalogueEvidence?.models?.find(model => model.modelId === row?.id) ?? null;
+
+/**
+ * A catalogue cell is a small, typed observation. It must not collapse a native
+ * price, an explicit provider absence, and a field missing from our API row into
+ * the same em dash.
+ */
+export function catalogueCellEvidence(provider, row, field = "pricingPrompt") {
+  const native = nativeModelEvidence(provider, row);
+  const nativePrice = field === "pricingPrompt" ? native?.promptUsdPerMillion : field === "pricingCompletion" ? native?.completionUsdPerMillion : null;
+  if (native?.status === "priced" && nativePrice !== null && nativePrice !== undefined) {
+    return Object.freeze({ state: "priced", label: `${native.precision === "approximate" ? "~" : ""}$${nativePrice}/M`, sourceUrl: native.sourceUrl, observedAt: native.observedAt, reason: null });
+  }
+  if ((field === "pricingPrompt" || field === "pricingCompletion") && native?.status === "not_published") {
+    return Object.freeze({ state: "not_published", label: "not published (preview)", sourceUrl: native.sourceUrl, observedAt: native.observedAt, reason: native.reason });
+  }
+
+  const apiValue = field === "contextLength" ? row?.contextLength
+    : field === "pricingPrompt" ? row?.pricing?.promptUsdPerToken
+      : field === "pricingCompletion" ? row?.pricing?.completionUsdPerToken
+        : field === "outputModalities" ? row?.outputModalities
+          : field === "isFree" ? row?.isFree
+            : field === "providerActive" ? row?.providerActive
+              : field === "performance" ? row?.performance : undefined;
+  const present = field === "outputModalities" ? Array.isArray(apiValue) && apiValue.length > 0 : apiValue !== null && apiValue !== undefined;
+  if (present) {
+    const label = field === "contextLength" ? compactIntegerString(apiValue)
+      : field === "pricingPrompt" || field === "pricingCompletion" ? `$${apiValue}/tok`
+        : field === "outputModalities" ? apiValue.join(", ")
+          : field === "isFree" || field === "providerActive" ? (apiValue ? "yes" : "no")
+            : String(apiValue);
+    const source = catalogueApiSource(provider);
+    return Object.freeze({ state: "observed", label, sourceUrl: source?.url ?? null, observedAt: source?.observedAt ?? null, reason: null });
+  }
+
+  const source = catalogueApiSource(provider);
+  if (source) {
+    return Object.freeze({ state: "not_carried", label: "not in API", sourceUrl: source.url, observedAt: source.observedAt, reason: `The API response carries no ${catalogueFieldNames[field] || field}.` });
+  }
+  return Object.freeze({ state: "unknown", label: "unknown", sourceUrl: null, observedAt: null, reason: `No ${catalogueFieldNames[field] || field} value was returned for this row.` });
+}
+
+function renderCatalogueCell(document, evidence) {
+  const cell = document.createElement("span");
+  cell.className = `oo-catalogue-cell oo-catalogue-cell-${evidence.state}`;
+  cell.textContent = evidence.label;
+  const details = [evidence.reason, evidence.sourceUrl ? `source ${evidence.sourceUrl}` : null, evidence.observedAt ? `read ${evidence.observedAt}` : null].filter(Boolean).join("; ");
+  if (details) {
+    cell.title = details;
+    cell.setAttribute("aria-label", `${evidence.label}; ${details}`);
+  }
+  return cell;
+}
+
+function appendCatalogueSourceNote(document, region, provider) {
+  const sources = provider.catalogueEvidence?.sources ?? [];
+  if (!sources.length) return;
+  const note = document.createElement("p");
+  note.className = "oo-region-meta oo-catalogue-source-note";
+  note.append("Package source evidence: ");
+  sources.forEach((source, index) => {
+    if (index) note.append(" · ");
+    const link = document.createElement("a");
+    link.href = source.url;
+    link.target = "_blank";
+    link.rel = "noopener noreferrer";
+    link.textContent = `${source.kind.replaceAll("_", " ")} (read ${source.observedAt})`;
+    note.appendChild(link);
+  });
+  region.appendChild(note);
 }
 
 export async function loadCatalogues(client) {
@@ -826,7 +916,7 @@ export function renderProviderRail(view) {
     // dash. Both reviewers caught this rail printing 0 for states that are not
     // counts at all.
     const availability = catalogueAvailability(view, provider);
-    if (availability.state === "not_declared" || availability.state === "not_checked") {
+    if (availability.state === "package_source" || availability.state === "not_declared" || availability.state === "not_checked") {
       count.textContent = "—";
       p.textContent = availability.note;
     } else if (datasetState(view, key) === "ready") {
@@ -836,7 +926,7 @@ export function renderProviderRail(view) {
       // source that publishes no modalities -- that is a claim its data cannot
       // support. Cerebras is exactly that case.
       p.textContent = summary.noModalityPublished
-        ? `modality ${catalogueFieldLabel(provider, "outputModalities")}`
+        ? "No output modality in the returned API rows"
         : `${summary.textCount} text-capable`;
     } else if (datasetState(view, key) === "failed") {
       count.textContent = "—";
@@ -866,7 +956,7 @@ export function renderCatalogues(view) {
     const { id: slug, displayName: label, sourceId } = provider;
     const key = `catalogue:${slug}`;
     const availability = catalogueAvailability(view, provider);
-    if (availability.state === "not_declared" || availability.state === "not_checked") {
+    if (availability.state === "package_source" || availability.state === "not_declared" || availability.state === "not_checked") {
       content.appendChild(renderUnavailable({ document, title: label, reason: availability.note, code: availability.state }));
       continue;
     }
@@ -884,7 +974,7 @@ export function renderCatalogues(view) {
     const parts = [paged ? `${summary.total} shown (first page; the source pages this catalogue)` : `${summary.total} listed`];
     if (!summary.noModalityPublished) parts.push(`${summary.textCount} text-capable`);
     if (summary.otherCount) parts.push(`${summary.otherCount} other modality (${summary.otherKinds.join(", ")})`);
-    if (summary.unknownCount) parts.push(`${summary.unknownCount} modality ${catalogueFieldLabel(provider, "outputModalities")}`);
+    if (summary.unknownCount) parts.push(`${summary.unknownCount} modality not in API response`);
     if (summary.disappeared) parts.push(`${summary.disappeared} disappeared`);
     counts.textContent = parts.join(" · ");
     region.appendChild(counts);
@@ -893,24 +983,25 @@ export function renderCatalogues(view) {
       gap.textContent = `No value in these returned rows: ${summary.absentFields.join(", ")}. These gaps are unknown here, not zero or proof that the provider publishes nothing.`;
       region.appendChild(gap);
     }
+    appendCatalogueSourceNote(document, region, provider);
     region.appendChild(renderRankTable({
       document, title: `${label} catalogue`, rows: summary.shown.slice(0, 25),
       sourceLabel: `${label} catalogue · ${provenance ? provenance.sourceId : `${sourceId} (not named in this response)`}`,
       asOf: provenance?.fetchedAt ?? null,
       columns: [
         { label: "Model", value: (row) => row.id },
-        { label: "Context", value: (row) => row.contextLength === null ? "—" : compactIntegerString(row.contextLength), exact: (row) => row.contextLength },
-        { label: "Prompt $/tok", value: (row) => exact(row.pricing?.promptUsdPerToken) },
-        { label: "Completion $/tok", value: (row) => exact(row.pricing?.completionUsdPerToken) },
-        { label: "Modality", value: (row) => Array.isArray(row.outputModalities) && row.outputModalities.length ? row.outputModalities.join(", ") : catalogueFieldLabel(provider, "outputModalities") },
-        { label: "Free", value: (row) => row.isFree === null ? "—" : row.isFree ? "yes" : "no" },
+        { label: "Context", render: (row) => renderCatalogueCell(document, catalogueCellEvidence(provider, row, "contextLength")) },
+        { label: "Prompt price", render: (row) => renderCatalogueCell(document, catalogueCellEvidence(provider, row, "pricingPrompt")) },
+        { label: "Completion price", render: (row) => renderCatalogueCell(document, catalogueCellEvidence(provider, row, "pricingCompletion")) },
+        { label: "Modality", render: (row) => renderCatalogueCell(document, catalogueCellEvidence(provider, row, "outputModalities")) },
+        { label: "Free", render: (row) => renderCatalogueCell(document, catalogueCellEvidence(provider, row, "isFree")) },
         { label: "Seen", value: (row) => String(row.lastConfirmedAt).slice(0, 10) }
       ]
     }));
     if (summary.shownAreNotTextCapable) {
       const note = document.createElement("p"); note.className = "oo-region-meta oo-catalogue-unpublished";
       note.textContent = summary.noModalityPublished
-        ? "No output modality is present in these rows, so they are listed without a text-capable claim."
+        ? "No output modality is present in these returned API rows, so they are listed without a text-capable claim."
         : "No model here declares text output. Every listed model is shown with the modality its source does declare.";
       region.appendChild(note);
     }

@@ -12,3 +12,12 @@
 .package-provider-table a { color: var(--oo-cyan); }
 .package-provider-table [data-publication="unknown"] { font-style: italic; }
 .package-coverage .package-coverage-note { color: var(--forest-muted); font-size: 13px; }
+.package-provider-evidence { min-width: 300px; max-width: 440px; }
+.package-provider-evidence blockquote { margin: 0 0 7px; }
+.package-provider-evidence cite { display: block; font-style: normal; }
+.package-provider-evidence small { color: var(--forest-muted); }
+.package-provider-evidence ul { padding-left: 16px; }
+.package-provider-evidence p { margin: 8px 0; }
+.package-release-note { margin: 18px 0; padding: 14px 18px; border: 1px solid var(--forest-line); background: rgba(8, 15, 12, .76); color: var(--forest-soft); }
+.package-release-note p { max-width: 90ch; line-height: 1.6; }
+.package-release-note a { color: var(--oo-cyan); }
