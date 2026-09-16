@@ -26,6 +26,10 @@ const MAX_CHARS = 500;
 // this file. The ids name providers and a self-hosted service, and two of them
 // are a clone of a specific person's voice — so "hume" in a network tab is the
 // same leak as "Hume Octave 2 (Chloé voice)" in a label, just quieter.
+//
+// `chloe` marks the engines that are clones of Chloé's voice. The Avatar
+// Playground offers those and only those, because Chloé is never given another
+// voice in her place. The flag says whose voice, never which provider.
 const ENGINES = [
   {
     slug: "standard",
@@ -42,6 +46,7 @@ const ENGINES = [
     blurb: "Premium and slower. Capped at 20,000 characters per job.",
     requiresKey: true,
     default: false,
+    chloe: true,
   },
   {
     slug: "natural-b",
@@ -50,6 +55,7 @@ const ENGINES = [
     blurb: "Premium with no length limit, from a metered monthly allowance.",
     requiresKey: true,
     default: false,
+    chloe: true,
   },
   {
     slug: "natural-c",
@@ -71,6 +77,7 @@ function publicEngine(entry, available) {
     blurb: entry.blurb,
     requiresKey: entry.requiresKey,
     default: entry.default,
+    chloe: entry.chloe === true,
     available,
   };
 }
