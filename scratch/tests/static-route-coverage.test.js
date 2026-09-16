@@ -259,9 +259,15 @@ test('the CLI reports all declared host redirects when configuration omits them'
     assert.equal(result.status, 1);
     assert.equal(result.stdout, '');
     const messages = result.stderr.trim().split(/\r?\n/);
-    assert.equal(messages.length, 27);
-    assert.deepEqual(messages.sort(), expected.map(({ source, destination }) =>
-      `VERCEL_REDIRECT_MISSING: ${source} to ${destination} is not configured`,
-    ).sort());
+    assert.equal(messages.length, 31);
+    assert.deepEqual(messages.sort(), [
+      ...expected.map(({ source, destination }) =>
+        `VERCEL_REDIRECT_MISSING: ${source} to ${destination} is not configured`,
+      ),
+      'PROJECT_ROUTE_BINDING_INVALID: catalog project council binding 4: local route /web/tinylm/ has no copied HTML or configured host redirect evidence',
+      'PROJECT_ROUTE_BINDING_INVALID: catalog project morning-news binding 2: local route /series/ has no copied HTML or configured host redirect evidence',
+      'PROJECT_ROUTE_BINDING_INVALID: catalog project morning-news binding 3: local route /series/dependency-map/ has no copied HTML or configured host redirect evidence',
+      'PROJECT_ROUTE_BINDING_INVALID: catalog project open-dashboard binding 6: local route /web/open-overview/ has no copied HTML or configured host redirect evidence',
+    ].sort());
   });
 });

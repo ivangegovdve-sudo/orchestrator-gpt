@@ -150,7 +150,14 @@ for (const [binding, reason] of [
 test('accepts direct, external, and shared pool bindings without deploying fragments separately', async () => {
   const { validateRouteRegistry } = await registryModule;
   const input = validateInput({
-    routes: [route('local', 'local', '/local/'), route('pool', 'pool', '/pool/')],
+    routes: [
+      route('local', 'local', '/local/', { source: 'local/index.html' }),
+      route('pool', 'pool', '/pool/', { source: 'pool/index.html' }),
+    ],
+    discoveredHtmlRoutes: [
+      { route: '/local/', source: 'local/index.html' },
+      { route: '/pool/', source: 'pool/index.html' },
+    ],
     routeOwners: [owner('local', ['/local/']), owner('pool', ['/pool/'])],
     catalogEntities: [
       { id: 'local', kind: 'project', routeBindings: [{ type: 'local', route: '/local/index.html#entry' }] },
@@ -179,6 +186,52 @@ test('a registered path without a valid owner cannot satisfy a project binding',
     assert.equal(issueWithCode(issues, 'CATALOG_PROJECT_ROUTE_MISSING').catalogEntityId, 'project');
     assert.equal(issueWithCode(issues, 'PROJECT_ROUTE_BINDING_INVALID').message,
       'PROJECT_ROUTE_BINDING_INVALID: catalog project project binding 0: local route /target/ is not registered with a valid catalog owner');
+  }
+});
+
+for (const type of ['local', 'shared-pool-tab']) {
+  test(`${type} bindings reject page declarations without matching copied HTML evidence`, async () => {
+    const { validateRouteRegistry } = await registryModule;
+    for (const [source, discoveredHtmlRoutes] of [
+      [undefined, []],
+      [undefined, [{ route: '/target/', source: 'target/index.html' }]],
+      ['target/index.html', []],
+      ['elsewhere/index.html', [{ route: '/elsewhere/', source: 'elsewhere/index.html' }]],
+    ]) {
+      const issues = validateRouteRegistry(validateInput({
+        routes: [route('target', 'target', '/target/', { source })],
+        routeOwners: [owner('target', ['/target/'])], discoveredHtmlRoutes,
+        catalogEntities: [
+          { id: 'target', kind: 'pool' },
+          { id: 'project', kind: 'project', routeBindings: [{ type, route: '/target/#entry' }] },
+        ],
+      }));
+      assert.equal(issueWithCode(issues, 'CATALOG_PROJECT_ROUTE_MISSING').catalogEntityId, 'project');
+      assert.equal(issueWithCode(issues, 'PROJECT_ROUTE_BINDING_INVALID').message,
+        `PROJECT_ROUTE_BINDING_INVALID: catalog project project binding 0: ${type} route /target/ has no copied HTML or configured host redirect evidence`);
+    }
+  });
+}
+
+test('project bindings accept source-less host redirects only with matching configured rules', async () => {
+  const { validateRouteRegistry } = await registryModule;
+  for (const [delivery, destination] of [['redirect', '/current/'], ['external-redirect', 'https://example.com/']]) {
+    const rule = { source: '/legacy/:path*', destination, permanent: true };
+    const input = validateInput({
+      routes: [route('legacy', 'legacy', '/legacy/', {
+        delivery, source: null, destination, expectedVercelRedirects: [rule],
+      })],
+      routeOwners: [owner('legacy', ['/legacy/'], [rule.source])],
+      catalogEntities: [{ id: 'legacy', kind: 'project', routeBindings: [{ type: 'local', route: '/legacy/' }] }],
+      vercelRedirects: [rule],
+    });
+    assert.deepEqual(validateRouteRegistry(input), []);
+    for (const vercelRedirects of [[], [{ ...rule, destination: '/wrong/' }]]) {
+      const issues = validateRouteRegistry({ ...input, vercelRedirects });
+      assert.equal(issueWithCode(issues, 'CATALOG_PROJECT_ROUTE_MISSING').catalogEntityId, 'legacy');
+      assert.equal(issueWithCode(issues, 'PROJECT_ROUTE_BINDING_INVALID').message,
+        'PROJECT_ROUTE_BINDING_INVALID: catalog project legacy binding 0: local route /legacy/ has no copied HTML or configured host redirect evidence');
+    }
   }
 });
 

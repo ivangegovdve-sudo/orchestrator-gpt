@@ -369,7 +369,22 @@ function sortIssues(issues) {
   );
 }
 
-function projectBindingProblem(binding, validCatalogPaths) {
+function routeHasDeploymentEvidence(entry, owner, route, discoveredHtmlRoutes, vercelRedirects) {
+  if (entry.source) {
+    return discoveredHtmlRoutes.some((discovered) =>
+      discovered.route === route && discovered.source === normalizeSource(entry.source),
+    );
+  }
+  if (!REDIRECT_DELIVERIES.has(entry.delivery)) return false;
+  return vercelRedirects.some((redirect) => {
+    const matches = matchRedirectRoutes(redirect.source, route, routeAliases(route, discoveredHtmlRoutes));
+    return matches.length > 0 && matches.every((parameters) =>
+      redirectIsIntentional(entry, owner, route, redirect, discoveredHtmlRoutes, parameters),
+    );
+  });
+}
+
+function projectBindingProblem(binding, validCatalogPaths, deployedCatalogPaths) {
   if (!['local', 'external', 'shared-pool-tab'].includes(binding?.type)) {
     return 'type must be local, external, or shared-pool-tab';
   }
@@ -391,8 +406,11 @@ function projectBindingProblem(binding, validCatalogPaths) {
   }
   // A fragment identifies a project within a deployed page, never a new route.
   const route = normalizeRoutePath(binding.route);
-  return validCatalogPaths.has(route) ? null
-    : `${binding.type} route ${route} is not registered with a valid catalog owner`;
+  if (!validCatalogPaths.has(route)) {
+    return `${binding.type} route ${route} is not registered with a valid catalog owner`;
+  }
+  return deployedCatalogPaths.has(route) ? null
+    : `${binding.type} route ${route} has no copied HTML or configured host redirect evidence`;
 }
 
 export function validateRouteRegistry(input = {}) {
@@ -447,11 +465,16 @@ export function validateRouteRegistry(input = {}) {
     const owner = ownersById.get(entry.ownerId);
     return ownerOwnsRoute(owner, route) && entitiesById.has(owner.catalogEntityId);
   }).map(({ route }) => route));
+  const deployedCatalogPaths = new Set(paths.filter(({ entry, route }) =>
+    validCatalogPaths.has(route) && routeHasDeploymentEvidence(
+      entry, ownersById.get(entry.ownerId), route, discoveredHtmlRoutes, vercelRedirects,
+    ),
+  ).map(({ route }) => route));
   for (const project of catalogEntities.filter(({ kind }) => kind === 'project')) {
     const bindings = Array.isArray(project.routeBindings) ? project.routeBindings : [];
     let validBindings = 0;
     bindings.forEach((binding, bindingIndex) => {
-      const problem = projectBindingProblem(binding, validCatalogPaths);
+      const problem = projectBindingProblem(binding, validCatalogPaths, deployedCatalogPaths);
       if (!problem) {
         validBindings += 1;
         return;
