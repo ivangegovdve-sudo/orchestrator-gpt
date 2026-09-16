@@ -32,7 +32,7 @@ async function routeFor(routePath) {
 
 test('every HTML route copied by the build has exactly one explicit source and owner', async () => {
   const { routes, discoveredHtmlRoutes } = await actualInput();
-  assert.equal(discoveredHtmlRoutes.length, 68, 'current copied HTML boundary');
+  assert.equal(discoveredHtmlRoutes.length, 75, 'current copied HTML boundary');
   assert.equal(routes.filter(({ source }) => source).length, discoveredHtmlRoutes.length);
   for (const discovered of discoveredHtmlRoutes) {
     const entry = await routeFor(discovered.route);
@@ -46,6 +46,33 @@ test('every HTML route copied by the build has exactly one explicit source and o
     for (const dimension of ['navigation', 'search', 'indexing', 'access']) {
       assert.equal(typeof entry.visibility[dimension], 'string', `${entry.id}: ${dimension}`);
     }
+  }
+});
+
+test('seven canonical pool pages have explicit public pool owners and sources', async () => {
+  const { ROUTE_OWNERS, CATALOG_ENTITIES } = await catalogModule;
+  const expectedPools = ['growingapp', 'ai-d-kit', 'tinkerbox', 'health', 'design-gallery', 'artificial-self', 'my-story'];
+  for (const id of expectedPools) {
+    const routePath = `/web/pools/${id}/`;
+    const entry = await routeFor(routePath);
+    assert.equal(entry.id, `pool-${id}`);
+    assert.equal(entry.ownerId, `pool-${id}`);
+    assert.deepEqual(entry.paths, [routePath]);
+    assert.equal(entry.source, `web/pools/${id}/index.html`);
+    assert.equal(entry.delivery, 'page');
+    const owners = ROUTE_OWNERS.filter(({ routes }) => routes.includes(routePath));
+    assert.equal(owners.length, 1);
+    const [owner] = owners;
+    assert.equal(owner.id, entry.ownerId);
+    assert.equal(owner.catalogEntityId, id);
+    assert.equal(CATALOG_ENTITIES.find((entity) => entity.id === id).kind, 'pool');
+    assert.equal(owner.role, 'pool');
+    assert.equal(Object.hasOwn(owner, 'projectId'), false);
+    assert.deepEqual(owner.routes, [routePath]);
+    assert.deepEqual(owner.redirectSources, []);
+    const publicVisibility = { navigation: 'manual', search: 'unreviewed', indexing: 'unspecified', access: 'public' };
+    assert.deepEqual(entry.visibility, publicVisibility);
+    assert.deepEqual(owner.visibility, { ...publicVisibility, publicSurface: 'pool' });
   }
 });
 

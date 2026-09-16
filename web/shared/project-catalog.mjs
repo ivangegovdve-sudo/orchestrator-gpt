@@ -243,6 +243,13 @@ function owner(id, routes, options = {}) {
 // declarations for validation; route delivery/host rules live in the registry.
 export const ROUTE_OWNERS = deepFreeze([
   owner('forest-hub', ['/'], { role: 'site' }),
+  owner('pool-growingapp', ['/web/pools/growingapp/'], { catalogEntityId: 'growingapp', visibility: { ...publicShell, publicSurface: 'pool' } }),
+  owner('pool-ai-d-kit', ['/web/pools/ai-d-kit/'], { catalogEntityId: 'ai-d-kit', visibility: { ...publicShell, publicSurface: 'pool' } }),
+  owner('pool-tinkerbox', ['/web/pools/tinkerbox/'], { catalogEntityId: 'tinkerbox', visibility: { ...publicShell, publicSurface: 'pool' } }),
+  owner('pool-health', ['/web/pools/health/'], { catalogEntityId: 'health', visibility: { ...publicShell, publicSurface: 'pool' } }),
+  owner('pool-design-gallery', ['/web/pools/design-gallery/'], { catalogEntityId: 'design-gallery', visibility: { ...publicShell, publicSurface: 'pool' } }),
+  owner('pool-artificial-self', ['/web/pools/artificial-self/'], { catalogEntityId: 'artificial-self', visibility: { ...publicShell, publicSurface: 'pool' } }),
+  owner('pool-my-story', ['/web/pools/my-story/'], { catalogEntityId: 'my-story', visibility: { ...publicShell, publicSurface: 'pool' } }),
   owner('morning-news', ['/web/morning-news/', '/series/', '/series/dependency-map/'], {
     redirectSources: ['/web/morning-news', '/web/morning-news/', '/series', '/series/', '/series/dependency-map/', '/series/dependency-map'],
   }),

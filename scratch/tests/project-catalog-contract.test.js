@@ -89,7 +89,7 @@ test('owners account for every copied HTML page independently of navigation', as
       }
     }
   }
-  assert.equal(files.length, 68, 'the inspected static HTML boundary is preserved');
+  assert.equal(files.length, 75, 'the inspected static HTML boundary includes seven canonical pool pages');
   assert.equal(new Set(ROUTE_OWNERS.map(({ id }) => id)).size, ROUTE_OWNERS.length);
   for (const file of files) {
     const route = `/${file}`.replace(/index\.html$/, '');

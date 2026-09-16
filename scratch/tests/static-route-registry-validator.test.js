@@ -28,13 +28,14 @@ function route(id, ownerId, routePath, overrides = {}) {
 }
 
 function owner(id, routes, redirectSources = []) {
-  return { id, routes, redirectSources };
+  return { id, catalogEntityId: id, routes, redirectSources };
 }
 
 function validateInput(overrides = {}) {
   return {
     routes: [],
     routeOwners: [],
+    catalogEntities: (overrides.routeOwners || []).map(({ catalogEntityId }) => ({ id: catalogEntityId, kind: 'pool' })),
     discoveredHtmlRoutes: [],
     vercelRedirects: [],
     ...overrides,
@@ -64,7 +65,7 @@ test('reports a route whose declared owner does not own that path', async () => 
   }));
 
   const issue = issueWithCode(issues, 'ROUTE_OWNER_MISSING');
-  assert.match(issue.message, /^ROUTE_OWNER_MISSING: \/orphan\/ has no catalog owner/);
+  assert.equal(issue.message, 'ROUTE_OWNER_MISSING: /orphan/ has no catalog owner');
   assert.equal(issue.route, '/orphan/');
   assert.equal(issue.ownerId, 'missing-owner');
 });
@@ -81,6 +82,106 @@ test('reports a catalog owner whose declared route is absent from the registry',
   assert.equal(issue.ownerId, 'lonely');
 });
 
+test('reports an owner referencing an absent catalog entity separately from missing ownership', async () => {
+  const { validateRouteRegistry } = await registryModule;
+  const issues = validateRouteRegistry(validateInput({
+    routes: [route('orphan', 'orphan-owner', '/orphan/')],
+    routeOwners: [{ ...owner('orphan-owner', ['/orphan/']), catalogEntityId: 'absent-entity' }],
+    catalogEntities: [],
+  }));
+  assert.deepEqual(issues, [{
+    code: 'ROUTE_CATALOG_ENTITY_MISSING',
+    message: 'ROUTE_CATALOG_ENTITY_MISSING: catalog owner orphan-owner references missing catalog entity absent-entity',
+    ownerId: 'orphan-owner', catalogEntityId: 'absent-entity',
+  }]);
+});
+
+test('checks entity references even for an owner with no declared paths', async () => {
+  const { validateRouteRegistry } = await registryModule;
+  const issues = validateRouteRegistry(validateInput({
+    routeOwners: [owner('empty-owner', [])], catalogEntities: [],
+  }));
+  assert.equal(issueWithCode(issues, 'ROUTE_CATALOG_ENTITY_MISSING').message,
+    'ROUTE_CATALOG_ENTITY_MISSING: catalog owner empty-owner references missing catalog entity empty-owner');
+});
+
+for (const routeBindings of [undefined, [], null, {}]) {
+  test(`a catalog project with ${JSON.stringify(routeBindings)} bindings has no valid route`, async () => {
+    const { validateRouteRegistry } = await registryModule;
+    assert.deepEqual(validateRouteRegistry(validateInput({
+      catalogEntities: [{ id: 'unbound-project', kind: 'project', routeBindings }],
+    })), [{
+      code: 'CATALOG_PROJECT_ROUTE_MISSING',
+      message: 'CATALOG_PROJECT_ROUTE_MISSING: catalog project unbound-project has no explicit valid route binding',
+      catalogEntityId: 'unbound-project',
+    }]);
+  });
+}
+
+for (const [binding, reason] of [
+  [null, 'type must be local, external, or shared-pool-tab'],
+  [{ type: 'invented', route: '/target/' }, 'type must be local, external, or shared-pool-tab'],
+  [{ type: 'local', route: '/missing/#section' }, 'local route /missing/ is not registered with a valid catalog owner'],
+  [{ type: 'shared-pool-tab', route: '/missing/#section' }, 'shared-pool-tab route /missing/ is not registered with a valid catalog owner'],
+  ...['#section', 'target/', '//example.com/path', '/\\example.com/path', '', 42].map((route) => [
+    { type: 'local', route }, 'local route must be an absolute local path',
+  ]),
+  ...['http://example.com/', 'https://', 'https:example.com', 'https:///example.com/', '//example.com/', 'https://exa mple.com/', 'https://example.com/ white', 'https://example.com/\u0000', 'https://example.com\\evil', 'https://user:pass@example.com/', null].map((url) => [
+    { type: 'external', url }, 'external URL must be well-formed HTTPS without credentials',
+  ]),
+]) {
+  test(`rejects invalid project binding ${JSON.stringify(binding)}`, async () => {
+    const { validateRouteRegistry } = await registryModule;
+    const issues = validateRouteRegistry(validateInput({
+      catalogEntities: [{ id: 'invalid-project', kind: 'project', routeBindings: [binding] }],
+    }));
+    assert.deepEqual(issues, [{
+      code: 'CATALOG_PROJECT_ROUTE_MISSING',
+      message: 'CATALOG_PROJECT_ROUTE_MISSING: catalog project invalid-project has no explicit valid route binding',
+      catalogEntityId: 'invalid-project',
+    }, {
+      code: 'PROJECT_ROUTE_BINDING_INVALID',
+      message: `PROJECT_ROUTE_BINDING_INVALID: catalog project invalid-project binding 0: ${reason}`,
+      catalogEntityId: 'invalid-project', bindingIndex: 0,
+    }]);
+  });
+}
+
+test('accepts direct, external, and shared pool bindings without deploying fragments separately', async () => {
+  const { validateRouteRegistry } = await registryModule;
+  const input = validateInput({
+    routes: [route('local', 'local', '/local/'), route('pool', 'pool', '/pool/')],
+    routeOwners: [owner('local', ['/local/']), owner('pool', ['/pool/'])],
+    catalogEntities: [
+      { id: 'local', kind: 'project', routeBindings: [{ type: 'local', route: '/local/index.html#entry' }] },
+      { id: 'external', kind: 'project', routeBindings: [{ type: 'external', url: 'https://example.com/app?view=1#entry' }] },
+      { id: 'shared-one', kind: 'project', routeBindings: [{ type: 'shared-pool-tab', route: '/pool/#one' }] },
+      { id: 'shared-two', kind: 'project', routeBindings: [{ type: 'shared-pool-tab', route: '/pool/#two' }] },
+      { id: 'pool', kind: 'pool' },
+    ],
+  });
+  assert.deepEqual(validateRouteRegistry(input), []);
+  const mixed = structuredClone(input);
+  mixed.catalogEntities[0].routeBindings.push({ type: 'external', url: 'http://example.com/' });
+  const issues = validateRouteRegistry(mixed);
+  assert.equal(issues.length, 1, 'a valid binding does not hide another invalid binding');
+  assert.equal(issues[0].code, 'PROJECT_ROUTE_BINDING_INVALID');
+  assert.equal(issues[0].bindingIndex, 1);
+});
+
+test('a registered path without a valid owner cannot satisfy a project binding', async () => {
+  const { validateRouteRegistry } = await registryModule;
+  for (const routeOwners of [[], [owner('dangling', ['/other/'])], [owner('dangling', ['/target/'])]]) {
+    const issues = validateRouteRegistry(validateInput({
+      routes: [route('target', 'dangling', '/target/')], routeOwners,
+      catalogEntities: [{ id: 'project', kind: 'project', routeBindings: [{ type: 'local', route: '/target/' }] }],
+    }));
+    assert.equal(issueWithCode(issues, 'CATALOG_PROJECT_ROUTE_MISSING').catalogEntityId, 'project');
+    assert.equal(issueWithCode(issues, 'PROJECT_ROUTE_BINDING_INVALID').message,
+      'PROJECT_ROUTE_BINDING_INVALID: catalog project project binding 0: local route /target/ is not registered with a valid catalog owner');
+  }
+});
+
 test('reports duplicate normalized paths with both owners', async () => {
   const { validateRouteRegistry } = await registryModule;
   const issues = validateRouteRegistry(validateInput({
@@ -92,7 +193,7 @@ test('reports duplicate normalized paths with both owners', async () => {
   }));
 
   const issue = issueWithCode(issues, 'ROUTE_DUPLICATE');
-  assert.match(issue.message, /^ROUTE_DUPLICATE: \/same\/ is owned by first and second/);
+  assert.equal(issue.message, 'ROUTE_DUPLICATE: /same/ is owned by first and second');
   assert.equal(issue.route, '/same/');
 });
 
@@ -105,7 +206,7 @@ test('reports an exact redirect that shadows a page route', async () => {
   }));
 
   const issue = issueWithCode(issues, 'REDIRECT_CONFLICT');
-  assert.match(issue.message, /^REDIRECT_CONFLICT: redirect \/same\/ shadows page route owned by page-owner/);
+  assert.equal(issue.message, 'REDIRECT_CONFLICT: redirect /same/ shadows page route owned by page-owner');
   assert.equal(issue.route, '/same/');
   assert.equal(issue.ownerId, 'page-owner');
 });

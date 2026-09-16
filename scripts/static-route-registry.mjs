@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { createRequire } from 'node:module';
 
-import { ROUTE_OWNERS } from '../web/shared/project-catalog.mjs';
+import { CATALOG_ENTITIES, ROUTE_OWNERS } from '../web/shared/project-catalog.mjs';
 
 const require = createRequire(import.meta.url);
 const {
@@ -41,6 +41,13 @@ function redirect(source, destination, permanent = true) {
 // descriptive metadata, not an access-control mechanism or a readiness claim.
 export const ROUTE_REGISTRY = deepFreeze([
   route('forest-hub', 'forest-hub', '/', 'page', 'index.html', PUBLIC),
+  route('pool-growingapp', 'pool-growingapp', '/web/pools/growingapp/', 'page', 'web/pools/growingapp/index.html', PUBLIC),
+  route('pool-ai-d-kit', 'pool-ai-d-kit', '/web/pools/ai-d-kit/', 'page', 'web/pools/ai-d-kit/index.html', PUBLIC),
+  route('pool-tinkerbox', 'pool-tinkerbox', '/web/pools/tinkerbox/', 'page', 'web/pools/tinkerbox/index.html', PUBLIC),
+  route('pool-health', 'pool-health', '/web/pools/health/', 'page', 'web/pools/health/index.html', PUBLIC),
+  route('pool-design-gallery', 'pool-design-gallery', '/web/pools/design-gallery/', 'page', 'web/pools/design-gallery/index.html', PUBLIC),
+  route('pool-artificial-self', 'pool-artificial-self', '/web/pools/artificial-self/', 'page', 'web/pools/artificial-self/index.html', PUBLIC),
+  route('pool-my-story', 'pool-my-story', '/web/pools/my-story/', 'page', 'web/pools/my-story/index.html', PUBLIC),
   route('ai-init-embed', 'ai-init-embed', '/web/ai-init/embed/', 'embed', 'web/ai-init/embed/index.html', { ...PUBLIC, navigation: 'unlisted' }),
   route('ai-init', 'ai-init', '/web/ai-init/', 'redirect', 'web/ai-init/index.html', NOINDEX, {
     destination: '/web/library/glossary/',
@@ -362,14 +369,42 @@ function sortIssues(issues) {
   );
 }
 
+function projectBindingProblem(binding, validCatalogPaths) {
+  if (!['local', 'external', 'shared-pool-tab'].includes(binding?.type)) {
+    return 'type must be local, external, or shared-pool-tab';
+  }
+  if (binding.type === 'external') {
+    const problem = 'external URL must be well-formed HTTPS without credentials';
+    // Reject malformed authority/control text before URL can silently repair it.
+    if (typeof binding.url !== 'string' || !/^https:\/\/[^/?#]/i.test(binding.url) ||
+      /[\s\u0000-\u001f\u007f\\]/.test(binding.url)) return problem;
+    try {
+      const url = new URL(binding.url);
+      return url.protocol === 'https:' && url.hostname && !url.username && !url.password ? null : problem;
+    } catch {
+      return problem;
+    }
+  }
+  if (typeof binding.route !== 'string' || !binding.route.startsWith('/') ||
+    binding.route.startsWith('//') || /[\s\\]/.test(binding.route)) {
+    return `${binding.type} route must be an absolute local path`;
+  }
+  // A fragment identifies a project within a deployed page, never a new route.
+  const route = normalizeRoutePath(binding.route);
+  return validCatalogPaths.has(route) ? null
+    : `${binding.type} route ${route} is not registered with a valid catalog owner`;
+}
+
 export function validateRouteRegistry(input = {}) {
   const routes = input.routes || ROUTE_REGISTRY;
   const routeOwners = input.routeOwners || ROUTE_OWNERS;
+  const catalogEntities = input.catalogEntities || CATALOG_ENTITIES;
   const discoveredHtmlRoutes = (input.discoveredHtmlRoutes || []).map(discoveredRecord);
   const vercelRedirects = input.vercelRedirects || [];
   const issues = [];
   const paths = registryPaths(routes);
   const ownersById = new Map(routeOwners.map((owner) => [owner.id, owner]));
+  const entitiesById = new Map(catalogEntities.map((entity) => [entity.id, entity]));
 
   for (const { entry, route } of paths) {
     const owner = ownersById.get(entry.ownerId);
@@ -384,6 +419,14 @@ export function validateRouteRegistry(input = {}) {
   }
 
   for (const owner of routeOwners) {
+    if (!entitiesById.has(owner.catalogEntityId)) {
+      issues.push({
+        code: 'ROUTE_CATALOG_ENTITY_MISSING',
+        message: `ROUTE_CATALOG_ENTITY_MISSING: catalog owner ${owner.id} references missing catalog entity ${owner.catalogEntityId}`,
+        ownerId: owner.id,
+        catalogEntityId: owner.catalogEntityId,
+      });
+    }
     for (const declaredRoute of owner.routes || []) {
       const route = normalizeRoutePath(declaredRoute);
       const isRegistered = paths.some(({ entry, route: candidate }) =>
@@ -397,6 +440,35 @@ export function validateRouteRegistry(input = {}) {
           ownerId: owner.id,
         });
       }
+    }
+  }
+
+  const validCatalogPaths = new Set(paths.filter(({ entry, route }) => {
+    const owner = ownersById.get(entry.ownerId);
+    return ownerOwnsRoute(owner, route) && entitiesById.has(owner.catalogEntityId);
+  }).map(({ route }) => route));
+  for (const project of catalogEntities.filter(({ kind }) => kind === 'project')) {
+    const bindings = Array.isArray(project.routeBindings) ? project.routeBindings : [];
+    let validBindings = 0;
+    bindings.forEach((binding, bindingIndex) => {
+      const problem = projectBindingProblem(binding, validCatalogPaths);
+      if (!problem) {
+        validBindings += 1;
+        return;
+      }
+      issues.push({
+        code: 'PROJECT_ROUTE_BINDING_INVALID',
+        message: `PROJECT_ROUTE_BINDING_INVALID: catalog project ${project.id} binding ${bindingIndex}: ${problem}`,
+        catalogEntityId: project.id,
+        bindingIndex,
+      });
+    });
+    if (validBindings === 0) {
+      issues.push({
+        code: 'CATALOG_PROJECT_ROUTE_MISSING',
+        message: `CATALOG_PROJECT_ROUTE_MISSING: catalog project ${project.id} has no explicit valid route binding`,
+        catalogEntityId: project.id,
+      });
     }
   }
 
