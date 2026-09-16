@@ -264,6 +264,27 @@ h1{text-align:center;padding:16px 10px 2px;font-family:var(--forest-display, "Co
 .trend-reading p{font-size:.84em;line-height:1.65;color:#e8d9a0;margin:0 0 6px}
 .trend-reading .trend-reading-band{display:inline-flex;padding:3px 8px;border:1px solid #ffe090;color:#fff1b5;border-radius:4px;font-size:.73em}
 .trend-reading .trend-reading-source{font-size:.67em;color:#b9a978;opacity:.8;margin-top:7px;margin-bottom:0}
+.prediction-card{display:grid;gap:9px;padding:14px 16px;margin:2px auto 4px;max-width:760px;background:linear-gradient(135deg,rgba(255,200,100,.11),rgba(0,212,255,.06));border:1px solid rgba(255,224,144,.42);border-radius:8px;box-shadow:0 0 18px rgba(255,200,100,.08)}
+.prediction-kicker{font-family:var(--forest-sans, "Alegreya Sans", sans-serif);font-size:.7em;letter-spacing:2px;text-transform:uppercase;color:#ffe090}
+.prediction-question{font-family:var(--forest-sans, "Alegreya Sans", sans-serif);font-size:1.08em;line-height:1.45;color:#fff5d0;margin:0}
+.prediction-choices{display:flex;flex-wrap:wrap;gap:8px}
+.prediction-choice{flex:1 1 180px;min-height:44px;padding:9px 12px;background:rgba(7,7,11,.38);border:1px solid rgba(255,224,144,.35);border-radius:6px;color:#ffeab0;font:inherit;cursor:pointer;text-align:left;transition:background-color var(--duration-fast) var(--ease-out),border-color var(--duration-fast) var(--ease-out),transform var(--duration-fast) var(--ease-out)}
+.prediction-choice:hover,.prediction-choice[aria-pressed="true"]{background:rgba(255,200,100,.2);border-color:#ffe090;color:#fff8df}
+.prediction-choice[aria-pressed="true"]{box-shadow:0 0 12px rgba(255,200,100,.16);transform:translateY(-1px)}
+.prediction-choice:disabled{cursor:default;opacity:.7;transform:none}
+.prediction-actions{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.prediction-commit,.prediction-next{min-height:44px;padding:8px 13px;border-radius:5px;font:inherit;font-size:.8em;cursor:pointer}
+.prediction-commit{background:#ffe090;border:1px solid #fff1b5;color:#27200e;font-weight:bold}
+.prediction-commit:disabled{cursor:not-allowed;opacity:.45}
+.prediction-next{background:rgba(0,212,255,.08);border:1px solid rgba(0,212,255,.35);color:#9be8ff}
+.prediction-reveal{display:grid;gap:5px;padding:10px 12px;background:rgba(0,212,255,.08);border-left:3px solid #00d4ff;border-radius:4px;color:#d8f6ff}
+.prediction-reveal[hidden]{display:none}
+.prediction-result{font-family:var(--forest-sans, "Alegreya Sans", sans-serif);font-size:1.02em;color:#fff1b5}
+.prediction-explanation,.prediction-bridge,.prediction-source{font-size:.82em;line-height:1.55;margin:0}
+.prediction-bridge{color:#a9e5f3}
+.prediction-source{font-size:.68em;color:#83aebb;opacity:.85}
+.prediction-focus{outline:2px solid #fff1b5;outline-offset:2px;animation:prediction-pulse 1.8s ease-out 1}
+@keyframes prediction-pulse{0%{box-shadow:0 0 0 rgba(255,224,144,0)}35%{box-shadow:0 0 22px rgba(255,224,144,.65)}100%{box-shadow:0 0 0 rgba(255,224,144,0)}}
 
 /* ── Table ───────────────────────────────── */
 .pt-wrap{display:flex;justify-content:center;overflow-x:auto;padding:0 10px}
@@ -431,6 +452,9 @@ h1{text-align:center;padding:16px 10px 2px;font-family:var(--forest-display, "Co
   .trend-actions{justify-content:flex-start;flex-wrap:nowrap;overflow-x:auto;padding:2px 0 6px;scrollbar-width:thin}
   .trend-btn{min-height:44px;white-space:nowrap;scroll-snap-align:start}
   .trend-scale{justify-content:flex-start}
+  .prediction-card{margin-inline:0;padding-inline:12px}
+  .prediction-actions{align-items:stretch}
+  .prediction-commit,.prediction-next{flex:1 1 160px}
   .pt-wrap{justify-content:flex-start;padding-inline:0;scrollbar-gutter:stable}
   .pt-grid{padding-inline:10px}
   .overlay{align-items:flex-start}
@@ -468,6 +492,21 @@ h1{text-align:center;padding:16px 10px 2px;font-family:var(--forest-display, "Co
     <div class="trend-title" id="trendTitle">🔎 Виж невидимата закономерност</div>
     <p class="trend-explainer" id="trendExplainer" aria-live="polite">Избери леща, за да видиш как мястото на елемента превежда невидимия свят на атомите.</p>
   </div>
+  <section class="prediction-card" id="predictionCard" aria-labelledby="predictionTitle">
+    <div class="prediction-kicker" id="predictionTitle">🎯 Първо познай</div>
+    <p class="prediction-question" id="predictionQuestion">Зареждаме въпроса…</p>
+    <div class="prediction-choices" id="predictionChoices" role="group" aria-labelledby="predictionTitle"></div>
+    <div class="prediction-actions">
+      <button type="button" class="prediction-commit" id="predictionCommit" disabled onclick="commitPrediction()">Заключи отговора</button>
+      <button type="button" class="prediction-next" id="predictionNext" hidden onclick="nextPrediction()">Следващата изненада →</button>
+    </div>
+    <div class="prediction-reveal" id="predictionReveal" aria-live="polite" hidden>
+      <div class="prediction-result" id="predictionResult"></div>
+      <p class="prediction-explanation" id="predictionExplanation"></p>
+      <p class="prediction-bridge" id="predictionBridge"></p>
+      <p class="prediction-source" id="predictionSource"></p>
+    </div>
+  </section>
   <div class="trend-actions" id="trendActions" role="group" aria-labelledby="trendTitle"></div>
   <div class="trend-scale" id="trendScale" aria-label="Легенда за силата на тенденцията"></div>
   <p class="trend-source" id="trendSource"></p>
@@ -758,7 +797,10 @@ const TRANSLATIONS = {
     trendSourceLabel: 'Бележка за модела',
     trendReadingTitle: 'Какво показва лещата',
     trendLoading: 'Зареждаме лещите за закономерности…',
-    trendError: 'Лещите за закономерности не са достъпни в момента.'
+    trendError: 'Лещите за закономерности не са достъпни в момента.',
+    predictionLoading: 'Зареждаме въпроса…',
+    predictionError: 'Въпросите за предвиждане не са достъпни в момента.',
+    predictionSourceLabel: 'Основа на обяснението'
   },
   en: {
     title: '⚗ PERIODIC TABLE ⚗',
@@ -791,13 +833,20 @@ const TRANSLATIONS = {
     trendSourceLabel: 'Model note',
     trendReadingTitle: 'What this lens shows',
     trendLoading: 'Loading the pattern lenses…',
-    trendError: 'The pattern lenses are not available right now.'
+    trendError: 'The pattern lenses are not available right now.',
+    predictionLoading: 'Loading the question…',
+    predictionError: 'The prediction questions are not available right now.',
+    predictionSourceLabel: 'Explanation basis'
   }
 };
 
 let currentLang = 'bg';
 let TREND_DATA = [];
+let PREDICTION_DATA = [];
 let activeTrendId = null;
+let activePredictionIndex = 0;
+let selectedPredictionElement = null;
+let predictionSubmitted = false;
 let activeCompound = null;   // currently highlighted compound key (declared so
                              // renderCompounds() can read it during init without
                              // throwing a ReferenceError)
@@ -1688,8 +1737,11 @@ function clearAllFilters() {
   document.getElementById('ptGrid').classList.remove('search-on');
   document.querySelectorAll('.el').forEach(el => el.classList.remove('search-match'));
   activeTrendId = null;
+  selectedPredictionElement = null;
+  predictionSubmitted = false;
   buildGrid();
   renderTrends();
+  renderPrediction();
 }
 
 // ── Periodic trend lens ────────────────────────────────────────────────────
@@ -1700,6 +1752,91 @@ function getActiveTrend() {
 function getTrendLevel(num) {
   const trend = getActiveTrend();
   return trend ? trend.values[String(num)] : null;
+}
+
+function getActivePrediction() {
+  return PREDICTION_DATA[activePredictionIndex] || null;
+}
+
+function renderPrediction() {
+  const title = document.getElementById('predictionTitle');
+  const question = document.getElementById('predictionQuestion');
+  const choices = document.getElementById('predictionChoices');
+  const commit = document.getElementById('predictionCommit');
+  const next = document.getElementById('predictionNext');
+  const reveal = document.getElementById('predictionReveal');
+  const result = document.getElementById('predictionResult');
+  const explanation = document.getElementById('predictionExplanation');
+  const bridge = document.getElementById('predictionBridge');
+  const source = document.getElementById('predictionSource');
+  const t = TRANSLATIONS[currentLang];
+  const prediction = getActivePrediction();
+
+  if (!prediction) {
+    title.textContent = '🎯 ' + t.predictionLoading;
+    question.textContent = t.predictionLoading;
+    choices.innerHTML = '';
+    commit.textContent = currentLang === 'bg' ? 'Заключи отговора' : 'Lock in my answer';
+    commit.disabled = true;
+    next.hidden = true;
+    reveal.hidden = true;
+    return;
+  }
+
+  const copy = prediction[currentLang];
+  const trend = TREND_DATA.find((item) => item.id === prediction.trendId);
+  title.textContent = '🎯 ' + copy.title;
+  question.textContent = copy.question;
+  choices.setAttribute('aria-label', copy.question);
+  choices.innerHTML = prediction.elements.map((element) => {
+    const selected = selectedPredictionElement === element;
+    return `<button type="button" class="prediction-choice" data-prediction-choice="${element}" aria-pressed="${selected}" ${predictionSubmitted ? 'disabled' : ''} onclick="choosePrediction(${element})">${copy.choices[String(element)]}</button>`;
+  }).join('');
+  commit.textContent = copy.commit;
+  commit.disabled = selectedPredictionElement === null || predictionSubmitted;
+  next.textContent = copy.next;
+  next.hidden = !predictionSubmitted;
+  reveal.hidden = !predictionSubmitted;
+  if (!predictionSubmitted) return;
+
+  const gotIt = selectedPredictionElement === prediction.correct;
+  result.textContent = gotIt ? copy.correct : copy.incorrect;
+  explanation.textContent = copy.explanation;
+  bridge.textContent = copy.bridge;
+  source.textContent = trend ? `${t.predictionSourceLabel}: ${trend.source[currentLang]}` : '';
+}
+
+function choosePrediction(element) {
+  if (predictionSubmitted) return;
+  const prediction = getActivePrediction();
+  if (!prediction || !prediction.elements.includes(element)) return;
+  selectedPredictionElement = element;
+  renderPrediction();
+}
+
+function commitPrediction() {
+  const prediction = getActivePrediction();
+  if (!prediction || selectedPredictionElement === null || predictionSubmitted) return;
+  predictionSubmitted = true;
+  if (activeTrendId !== prediction.trendId) {
+    selectTrend(prediction.trendId);
+  } else {
+    buildGrid();
+    renderTrends();
+  }
+  renderPrediction();
+  document.getElementById('predictionReveal').scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+}
+
+function nextPrediction() {
+  if (!PREDICTION_DATA.length || !predictionSubmitted) return;
+  activePredictionIndex = (activePredictionIndex + 1) % PREDICTION_DATA.length;
+  selectedPredictionElement = null;
+  predictionSubmitted = false;
+  activeTrendId = null;
+  buildGrid();
+  renderTrends();
+  renderPrediction();
 }
 
 function renderTrends() {
@@ -1761,19 +1898,36 @@ function selectTrend(id) {
 
 async function loadTrends() {
   try {
-    const response = await fetch('data/trends.json', { cache: 'no-store' });
+    const [response, predictionResponse] = await Promise.all([
+      fetch('data/trends.json', { cache: 'no-store' }),
+      fetch('data/predictions.json', { cache: 'no-store' })
+    ]);
     if (!response.ok) throw new Error(`Trend data request failed: ${response.status}`);
+    if (!predictionResponse.ok) throw new Error(`Prediction data request failed: ${predictionResponse.status}`);
     const data = await response.json();
+    const predictions = await predictionResponse.json();
     if (!Array.isArray(data) || data.some(trend => !trend.id || !trend.bg || !trend.en || !trend.values)) {
       throw new Error('Trend data shape is invalid');
     }
+    if (!Array.isArray(predictions) || predictions.some(prediction =>
+      !prediction.id || !prediction.trendId || !Array.isArray(prediction.elements) ||
+      prediction.elements.length !== 2 || !prediction.elements.includes(prediction.correct) ||
+      !prediction.bg || !prediction.en
+    )) {
+      throw new Error('Prediction data shape is invalid');
+    }
     TREND_DATA = data;
+    PREDICTION_DATA = predictions;
     renderTrends();
+    renderPrediction();
   } catch (error) {
     document.getElementById('trendExplainer').textContent = TRANSLATIONS[currentLang].trendError;
     document.getElementById('trendActions').innerHTML = '';
     document.getElementById('trendScale').innerHTML = '';
     document.getElementById('trendSource').textContent = '';
+    document.getElementById('predictionQuestion').textContent = TRANSLATIONS[currentLang].predictionError;
+    document.getElementById('predictionChoices').innerHTML = '';
+    document.getElementById('predictionCommit').disabled = true;
   }
 }
 
@@ -1825,6 +1979,7 @@ function buildGrid(){
   g.innerHTML = '';
   const t=TRANSLATIONS[currentLang];
   const trend = getActiveTrend();
+  const prediction = getActivePrediction();
   g.classList.toggle('trend-on', Boolean(trend));
   if (trend) g.dataset.trendId = trend.id;
   else delete g.dataset.trendId;
@@ -1847,6 +2002,9 @@ function buildGrid(){
         if (trendLevel) {
           div.dataset.trendLevel = trendLevel;
           div.classList.add(`trend-level-${trendLevel}`);
+        }
+        if (predictionSubmitted && prediction && prediction.elements.includes(d.n)) {
+          div.classList.add('prediction-focus');
         }
 
         const name = currentLang === 'bg' ? d.bg : d.lat;
@@ -1924,6 +2082,7 @@ function toggleLanguage() {
   renderLegend();
   renderCompounds();
   renderTrends();
+  renderPrediction();
   
   // Keep active compound highlight going
   if (activeCompound) {
@@ -2115,6 +2274,7 @@ buildGrid();
 renderLegend();
 renderCompounds();
 renderTrends();
+renderPrediction();
 loadTrends();
 
 document.getElementById('overlay').addEventListener('click',e=>{if(e.target===e.currentTarget)closeModal();});
