@@ -23,12 +23,10 @@ test("only live declared catalogue sources are fetched, including new providers"
   assert.deepEqual(api.catalogueRequestsFor(null), []);
 });
 
-test("a formerly absent provider becomes fetchable when the live API declares it", async () => {
+test("a package-backed document provider is never fetched through the live-model API", async () => {
   const api = await load("open-dashboard-api.js");
   assert.deepEqual(api.catalogueRequestsFor(manifest([])), []);
-  const [request] = api.catalogueRequestsFor(manifest(["sail"]));
-  assert.equal(request.sourceId, "sail_models_current");
-  assert.equal(new URL(request.path, "https://example.test").searchParams.get("provider"), "sail");
+  assert.deepEqual(api.catalogueRequestsFor(manifest(["sail"])), []);
 });
 
 test("unknown source declarations remain visible without invented publication claims", async () => {
@@ -51,9 +49,29 @@ test("catalogue missing, failed and pending states describe the check rather tha
   assert.equal(app.catalogueAvailability(view, openrouter).state, "pending");
   assert.equal(app.catalogueAvailability({ ...view, errors: { "catalogue:openrouter": { code: "timeout" } } }, openrouter).state, "failed");
   const missing = app.catalogueAvailability(view, sail);
-  assert.equal(missing.state, "not_declared");
-  assert.doesNotMatch(missing.note, /no source publishes|HTTP 400|not published/i);
+  assert.equal(missing.state, "package_source");
+  assert.match(missing.note, /page does not carry Sail.*pinned pricing document/i);
+  assert.doesNotMatch(missing.note, /no source publishes|HTTP 400|provider.*reject/i);
   assert.equal(app.catalogueAvailability({ ...view, manifest: null }, api.catalogueProvidersFor(null)[0]).state, "not_checked");
+});
+
+test("native package evidence distinguishes Cerebras prices, preview absence and API gaps", async () => {
+  const app = await load("open-dashboard.js");
+  const api = await load("open-dashboard-api.js");
+  const providers = api.catalogueProvidersFor(manifest(["cerebras", "sail"]));
+  const cerebras = providers.find((provider) => provider.id === "cerebras");
+  const priced = app.catalogueCellEvidence(cerebras, { id: "gpt-oss-120b", pricing: { promptUsdPerToken: null, completionUsdPerToken: null }, contextLength: null, outputModalities: null, isFree: null, providerActive: null });
+  assert.deepEqual(priced, { state: "priced", label: "~$0.35/M", sourceUrl: "https://www.cerebras.ai/pricing", observedAt: "2026-09-08", reason: null });
+  const preview = app.catalogueCellEvidence(cerebras, { id: "gemma-4-31b", pricing: { promptUsdPerToken: null, completionUsdPerToken: null }, contextLength: null, outputModalities: null, isFree: null, providerActive: null });
+  assert.equal(preview.state, "not_published");
+  assert.equal(preview.label, "not published (preview)");
+  assert.match(preview.reason, /preview models/i);
+  const apiGap = app.catalogueCellEvidence(cerebras, { id: "gpt-oss-120b", pricing: { promptUsdPerToken: null, completionUsdPerToken: null }, contextLength: null, outputModalities: null, isFree: null, providerActive: null }, "contextLength");
+  assert.equal(apiGap.state, "not_carried");
+  assert.equal(apiGap.label, "not in API");
+  const failed = app.catalogueAvailability({ manifest: manifest(["cerebras"]), responses: {}, errors: { "catalogue:cerebras": { code: "http_error", details: { status: 503 } } } }, cerebras);
+  assert.equal(failed.state, "failed");
+  assert.match(failed.note, /provider publication is unknown/i);
 });
 
 test("null sampled fields never become claims that a provider publishes nothing", async () => {

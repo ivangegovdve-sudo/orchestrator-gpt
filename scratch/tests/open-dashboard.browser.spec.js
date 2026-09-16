@@ -13,6 +13,29 @@ async function routeApi(page, options = {}) {
     if (options.offline) { await route.abort("failed"); return; }
     const url = new URL(route.request().url()); const relative = url.pathname.replace("/api/public/v2", "") + url.search;
     let body = relative.startsWith("/manifest") ? bundle.manifest : bundle.responses[canonical(relative)];
+    if (options.catalogues && relative.startsWith("/manifest")) {
+      const sourceTemplate = bundle.manifest.sources[0];
+      body = { ...structuredClone(bundle.manifest), sources: [
+        ...bundle.manifest.sources.filter((source) => source.sourceId !== "cerebras_models_current"),
+        { ...structuredClone(sourceTemplate), sourceId: "cerebras_models_current", citationUrl: "https://api.cerebras.ai/v1/models" },
+      ] };
+    }
+    if (options.catalogues && relative.startsWith("/live-models?limit=200&provider=cerebras")) {
+      const manifestSource = { ...structuredClone(bundle.manifest.sources[0]), sourceId: "cerebras_models_current", citationUrl: "https://api.cerebras.ai/v1/models" };
+      if (options.cerebrasFailure) {
+        await route.fulfill({ status: 503, contentType: "application/json", body: JSON.stringify({ schemaVersion: "2.0", error: { code: "SOURCE_UNAVAILABLE", message: "Cerebras catalogue unavailable", correlationId: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa", retryable: true } }) }); return;
+      }
+      body = {
+        schemaVersion: "2.0",
+        data: ["gemma-4-31b", "gpt-oss-120b", "qwen-3.8-27b"].map((id) => ({ provider: "cerebras", id, displayName: null, ownedBy: "Cerebras", contextLength: null, pricing: { promptUsdPerToken: null, completionUsdPerToken: null }, isFree: null, freeKind: "paid_or_unknown", providerActive: null, reasoningEfforts: null, outputModalities: null, performance: null, availability: "available", firstSeenAt: "2026-08-24T13:06:44.709Z", lastSeenAt: "2026-09-08T20:00:00.000Z", lastConfirmedAt: "2026-09-08T20:00:00.000Z", disappearedAt: null, absenceStreak: "0", missingFields: ["pricing", "context_length", "active", "reasoning", "output_modalities"] })),
+        cursor: null,
+        window: { start: null, end: null, timezone: "UTC", inclusive: null, basis: "observed" },
+        completeness: { acquisitionComplete: true, populationCompleteness: "full", missingFields: [] },
+        stale: false,
+        rank: null,
+        provenance: [{ sourceId: manifestSource.sourceId, sourceTier: manifestSource.sourceTier, runId: manifestSource.publishedRunId, fetchedAt: "2026-09-08T20:00:00.000Z", sourceAsOf: null, transformVersion: manifestSource.transformVersion, citation: manifestSource.citationUrl }],
+      };
+    }
     if (relative.startsWith("/history?") && options.eligibleHistory && body?.status === "available") {
       body = structuredClone(body); body.window.end = "2026-07-16";
       for (const series of Object.values(body.data)) { const latest = structuredClone(series.at(-1)); latest.date = "2026-07-16"; series.push(latest); }
@@ -30,6 +53,37 @@ async function routeApi(page, options = {}) {
     await route.fulfill({ status: 200, contentType: "application/json", headers: { "Access-Control-Allow-Origin": "http://127.0.0.1:4174", "Access-Control-Expose-Headers": "ETag", ETag: '"snapshot-v2"' }, body: JSON.stringify(body) });
   });
 }
+
+test("catalogues keeps native Cerebras pricing, preview absence, API gaps and package-backed Sail distinct", async ({ page }) => {
+  await routeApi(page, { catalogues: true });
+  await page.goto("/web/open-dashboard/catalogues/index.html");
+  const table = page.getByRole("table", { name: "Cerebras catalogue" });
+  await expect(table).toBeVisible();
+  const gpt = table.locator("tbody tr").filter({ hasText: "gpt-oss-120b" });
+  await expect(gpt.locator("td").nth(0)).toHaveText("not in API");
+  await expect(gpt.locator("td").nth(1)).toHaveText("~$0.35/M");
+  await expect(gpt.locator("td").nth(2)).toHaveText("~$0.75/M");
+  await expect(gpt.locator("td").nth(3)).toHaveText("not in API");
+  await expect(gpt.locator("td").nth(0).locator("span")).toHaveAttribute("aria-label", /API response carries no context length/);
+  const gemma = table.locator("tbody tr").filter({ hasText: "gemma-4-31b" });
+  await expect(gemma.locator("td").nth(1)).toHaveText("not published (preview)");
+  await expect(page.locator(".oo-catalogue-source-note a[href='https://www.cerebras.ai/pricing']")).toHaveAttribute("href", "https://www.cerebras.ai/pricing");
+  await expect(page.locator("#oo-catalogue-content")).toContainText("read 2026-09-08");
+  const sail = page.locator("#oo-catalogue-content .oo-unavailable").filter({ hasText: "Sail" });
+  await expect(sail).toContainText("page does not carry Sail");
+  await expect(sail).toContainText("pinned pricing document");
+  await expect(sail).not.toContainText("HTTP 400");
+});
+
+test("a Cerebras request failure is visibly different from native absence", async ({ page }) => {
+  await routeApi(page, { catalogues: true, cerebrasFailure: true });
+  await page.goto("/web/open-dashboard/catalogues/index.html");
+  const cerebras = page.locator("#oo-catalogue-content .oo-unavailable").filter({ hasText: "Cerebras" });
+  await expect(cerebras).toContainText("This request failed; nothing is shown in its place.");
+  await expect(cerebras).toContainText("SOURCE_UNAVAILABLE · HTTP 503");
+  await expect(cerebras).not.toContainText("~$0.35/M");
+  await expect(page.locator("#oo-catalogue-content")).not.toContainText("HTTP 400");
+});
 
 const watchErrors = (page) => {
   const failures = [];

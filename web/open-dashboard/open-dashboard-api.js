@@ -47,15 +47,21 @@ export function catalogueProvidersFor(manifest) {
     id, displayName: id,
     publishes: Object.fromEntries(Object.keys(PACKAGE_FACTS.providers[0]?.publishes ?? {}).map(field => [field, "unknown"]))
   });
-  return Object.freeze([...descriptors.values()].map(provider => Object.freeze({
-    ...provider,
-    sourceId: sourceByProvider.get(provider.id) ?? null,
-    declared: declarations === null ? null : sourceByProvider.has(provider.id)
-  })));
+  return Object.freeze([...descriptors.values()].map(provider => {
+    const evidenceSources = provider.catalogueEvidence?.sources ?? [];
+    const packageSource = evidenceSources.find(source => source.kind === "pinned_document") ?? null;
+    return Object.freeze({
+      ...provider,
+      sourceId: sourceByProvider.get(provider.id) ?? null,
+      declared: declarations === null ? null : sourceByProvider.has(provider.id),
+      catalogueMode: packageSource ? "package_source" : "api",
+      packageSource,
+    });
+  }));
 }
 
 export function catalogueRequestsFor(manifest) {
-  return Object.freeze(catalogueProvidersFor(manifest).filter(provider => provider.declared === true)
+  return Object.freeze(catalogueProvidersFor(manifest).filter(provider => provider.declared === true && provider.catalogueMode === "api")
     .map(provider => Object.freeze({ key: `catalogue:${provider.id}`, path: ENDPOINTS.liveModels(provider.id), kind: "liveModels", sourceId: provider.sourceId, optional: true })));
 }
 
