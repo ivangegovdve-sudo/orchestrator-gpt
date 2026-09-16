@@ -305,6 +305,24 @@ test('pool listings retain assigned projects independently of card readiness and
   assert.deepEqual(getPoolProjects('Eighth Pool'), []);
 });
 
+test('Health reading projects retain distinct observed implementations and their shared pool tabs', async () => {
+  const { PROJECT_CATALOG, PUBLIC_CARD_PROJECTS, getPoolProjects } = await catalog();
+  const expected = [
+    ['dyslexia', 'https://chloe.blumenkraft.cloud/dyslexia/'],
+    ['audiobook', 'https://chloe.blumenkraft.cloud/audiobook/'],
+  ];
+  for (const [id, url] of expected) {
+    const project = PROJECT_CATALOG.find((record) => record.id === id);
+    assert.deepEqual(project.routeBindings.filter(({ type }) => type === 'external').map((binding) => binding.url), [url]);
+    assert.ok(project.routeBindings.some((binding) => binding.type === 'shared-pool-tab'
+      && binding.route === `/web/pools/health/#${id}`), `${id} keeps its pool-tab entry`);
+    assert.deepEqual(getPoolProjects('Health').find((record) => record.id === id).routeBindings, project.routeBindings);
+    assert.equal(project.lastMeaningfullyUpdated, null);
+    assert.equal(project.readiness.review, 'pending');
+    assert.equal(PUBLIC_CARD_PROJECTS.some((record) => record.id === id), false);
+  }
+});
+
 test('open questions are ordered and unresolved page facts remain honest', async () => {
   const { PROJECT_CATALOG, CATALOG_FINDINGS } = await catalog();
   assert.deepEqual(CATALOG_FINDINGS.slice(0, 3).map(({ question }) => question), [

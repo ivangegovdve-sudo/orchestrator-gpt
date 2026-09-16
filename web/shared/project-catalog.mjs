@@ -178,9 +178,11 @@ const projectRecords = [
   }),
   project('dyslexia', 'Dyslexia Reading Platform', {
     pool: 'Health', classification: 'assigned', status: 'Live', visibility: publicShell, sources: ['index.html', PLAN],
+    implementationUrl: 'https://chloe.blumenkraft.cloud/dyslexia/',
   }),
   project('audiobook', 'Audiobook Studio', {
     pool: 'Health', classification: 'assigned', status: 'Live', visibility: publicShell, sources: ['index.html', PLAN],
+    implementationUrl: 'https://chloe.blumenkraft.cloud/audiobook/',
   }),
   project('lobester-gym', 'Lobester Gym', { pool: 'GrowingApp', classification: 'assigned', status: 'In development', visibility: publicShell, sources: ['web/lobester-gym/index.html', SETTLED] }),
   project('womens-health-os', 'Women’s Health OS', { pool: 'Health', classification: 'assigned', status: 'In development', aliases: ['Women’s Health'], visibility: publicShell, sources: ['web/womens-health-os/index.html', SETTLED] }),
@@ -316,6 +318,8 @@ export const PROJECT_CATALOG = deepFreeze(projectRecords.map((record) => {
     if (!pool) throw new Error(`Project ${record.id} has neither a route nor a settled pool binding.`);
     routes.push({ type: 'shared-pool-tab', route: `${pool.route}#${record.id}` });
   }
+  // An observed implementation augments the pool entry without certifying its flow.
+  if (record.implementationUrl) routes.push({ type: 'external', url: record.implementationUrl });
   return { ...record, routeBindings: routes };
 }));
 
