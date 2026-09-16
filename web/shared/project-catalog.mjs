@@ -121,7 +121,7 @@ const projectRecords = [
   project('math-forest', 'Math Mania / Forest Math', {
     pool: 'GrowingApp', classification: 'assigned', status: 'Live', visibility: publicShell,
     relationships: [
-      { type: 'companion', name: 'Math Forest', route: '/web/math-forest/' },
+      { type: 'companion', name: 'Math Forest', route: '/web/math-forest/', presentationNote: 'Math Forest currently shows a rebuild placeholder.' },
       { type: 'companion', name: 'Math Mania', route: '/web/math-mania/' },
     ],
     sources: ['web/math-forest/index.html', 'web/math-mania/index.html', MASTER],

@@ -15,6 +15,15 @@ async function inventory() {
   return import(`${pathToFileURL(path.join(ROOT, 'web/shared/route-inventory.mjs')).href}?v=20260807a`);
 }
 
+test('the public Forest Trails consumer does not advertise private Knowledge Ingest', async () => {
+  const [{ ROUTE_INVENTORY }, { FOREST_ROUTES, getForestTrailContext }] = await Promise.all([
+    inventory(), import('../../web/shared/forest-trails.mjs'),
+  ]);
+  assert.ok(ROUTE_INVENTORY.some(({ id, href }) => id === 'upload' && href === '/web/upload/'));
+  assert.ok(!FOREST_ROUTES.some(({ id, path }) => id === 'upload' || path === '/web/upload/'));
+  assert.equal(getForestTrailContext('/web/upload/'), null);
+});
+
 test('actual copied HTML routes have one registry entry and catalog owner independently of navigation', async () => {
   const [{ ROUTE_REGISTRY, discoverCopiedHtmlRoutes }, { ROUTE_OWNERS }] = await Promise.all([
     registryModule, catalogModule,

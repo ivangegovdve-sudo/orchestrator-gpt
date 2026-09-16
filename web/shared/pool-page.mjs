@@ -30,15 +30,18 @@ export function renderProject(project, { heading = 'h3' } = {}) {
     (binding.type === 'external' && /^https:\/\//.test(binding.url))
     || (binding.type === 'local' && /^\/(?!\/)/.test(binding.route)));
   // A shared-pool-tab binding identifies this row, never a standalone service.
-  // Only the first local entry is a project handoff. Additional owned paths may
-  // be compatibility shims or internal subroutes, not public navigation choices.
+  // Explicit companions can expose multiple handoffs within one project. Other
+  // owned paths may be compatibility shims and stay out of public navigation.
+  const companions = (project.relationships || []).filter((relationship) => relationship.type === 'companion');
   const destinations = bindings.filter((binding) => binding.type === 'external'
-    || binding === bindings.find((entry) => entry.type === 'local'));
+    || binding === bindings.find((entry) => entry.type === 'local')
+    || companions.some((companion) => companion.route === binding.route));
   const routes = destinations.map((binding) => {
     const external = binding.type === 'external';
     const destination = external ? binding.url : binding.route;
+    const companion = !external && companions.find((entry) => entry.route === destination);
     if (!enabled) return `<li>Existing ${external ? 'external implementation' : 'page'}: <span>${escape(destination)}</span> (entry unavailable pending review)</li>`;
-    return `<li><a href="${escape(destination)}"${external ? ' target="_blank" rel="noopener"' : ''}>${escape(destination)}${external ? ' — External; opens in a new tab' : ' — Open existing page'}</a></li>`;
+    return `<li><a href="${escape(destination)}"${external ? ' target="_blank" rel="noopener"' : ''}>${escape(companion?.name || destination)}${external ? ' — External; opens in a new tab' : ' — Open existing page'}</a>${companion?.presentationNote ? ` <span>${escape(companion.presentationNote)}</span>` : ''}</li>`;
   }).join('');
   const metrics = (project.metrics || []).map(({ name, value, unit }) => `${name}: ${value}${unit ? ` ${unit}` : ''}`).join('; ');
   return `<article class="pool-project" data-project-id="${escape(project.id)}"${enabled ? '' : ' aria-disabled="true"'}>

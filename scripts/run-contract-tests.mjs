@@ -1,6 +1,7 @@
 import { spawnSync } from 'node:child_process';
 
-// Dependency-free foundation contracts only; browser/Playwright lanes run separately.
+// Run source contracts before the build-backed foundation suite. Separate stages
+// prevent builders from racing on vercel-public; browser lanes run separately.
 const files = [
   'scratch/tests/route-inventory-contract.test.js',
   'scratch/tests/project-catalog-contract.test.js',
@@ -11,6 +12,12 @@ const files = [
   'scratch/tests/static-route-coverage.test.js',
 ];
 
-const result = spawnSync(process.execPath, ['--test', ...files], { stdio: 'inherit' });
-if (result.error) console.error(result.error.message);
-process.exit(result.status ?? 1);
+for (const [name, stageFiles] of [
+  ['Source contracts', files],
+  ['Build-backed foundation', ['scratch/tests/sdforest-foundation.test.js']],
+]) {
+  console.log(`\n${name}`);
+  const result = spawnSync(process.execPath, ['--test', ...stageFiles], { stdio: 'inherit' });
+  if (result.error) console.error(result.error.message);
+  if (result.status !== 0) process.exit(result.status ?? 1);
+}

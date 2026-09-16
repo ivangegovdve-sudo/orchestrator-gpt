@@ -384,7 +384,7 @@ function routeHasDeploymentEvidence(entry, owner, route, discoveredHtmlRoutes, v
   });
 }
 
-function projectBindingProblem(binding, validCatalogPaths, deployedCatalogPaths) {
+function projectBindingProblem(binding, project, catalogTargetsByPath) {
   if (!['local', 'external', 'shared-pool-tab'].includes(binding?.type)) {
     return 'type must be local, external, or shared-pool-tab';
   }
@@ -406,11 +406,29 @@ function projectBindingProblem(binding, validCatalogPaths, deployedCatalogPaths)
   }
   // A fragment identifies a project within a deployed page, never a new route.
   const route = normalizeRoutePath(binding.route);
-  if (!validCatalogPaths.has(route)) {
+  const targets = catalogTargetsByPath.get(route) || [];
+  if (targets.length === 0) {
     return `${binding.type} route ${route} is not registered with a valid catalog owner`;
   }
-  return deployedCatalogPaths.has(route) ? null
-    : `${binding.type} route ${route} has no copied HTML or configured host redirect evidence`;
+  const deployedTargets = targets.filter(({ deployed }) => deployed);
+  if (deployedTargets.length === 0) {
+    return `${binding.type} route ${route} has no copied HTML or configured host redirect evidence`;
+  }
+  if (binding.type === 'local') {
+    // Companion and absorbed routes already declare their canonical project via
+    // catalogEntityId. A display relationship alone cannot claim another owner.
+    return deployedTargets.some(({ entity }) => entity.kind === 'project' && entity.id === project.id)
+      ? null : `local route ${route} does not belong to catalog project ${project.id}`;
+  }
+  const pools = deployedTargets.filter(({ entity }) => entity.kind === 'pool'
+    && typeof entity.route === 'string' && normalizeRoutePath(entity.route) === route);
+  if (pools.length === 0) return `shared-pool-tab route ${route} is not a pool route`;
+  if (typeof project.pool !== 'string' || !pools.some(({ entity }) => entity.publicName === project.pool)) {
+    return `shared-pool-tab route ${route} does not match project pool ${project.pool}`;
+  }
+  // Pool renderers declare project.id as the actual row/tab fragment.
+  return new URL(binding.route, 'https://catalog.invalid').hash === `#${project.id}` ? null
+    : `shared-pool-tab route ${route} must use project fragment #${project.id}`;
 }
 
 export function validateRouteRegistry(input = {}) {
@@ -461,20 +479,22 @@ export function validateRouteRegistry(input = {}) {
     }
   }
 
-  const validCatalogPaths = new Set(paths.filter(({ entry, route }) => {
+  const catalogTargetsByPath = new Map();
+  for (const { entry, route } of paths) {
     const owner = ownersById.get(entry.ownerId);
-    return ownerOwnsRoute(owner, route) && entitiesById.has(owner.catalogEntityId);
-  }).map(({ route }) => route));
-  const deployedCatalogPaths = new Set(paths.filter(({ entry, route }) =>
-    validCatalogPaths.has(route) && routeHasDeploymentEvidence(
-      entry, ownersById.get(entry.ownerId), route, discoveredHtmlRoutes, vercelRedirects,
-    ),
-  ).map(({ route }) => route));
+    if (!ownerOwnsRoute(owner, route) || !entitiesById.has(owner.catalogEntityId)) continue;
+    const targets = catalogTargetsByPath.get(route) || [];
+    targets.push({
+      entity: entitiesById.get(owner.catalogEntityId),
+      deployed: routeHasDeploymentEvidence(entry, owner, route, discoveredHtmlRoutes, vercelRedirects),
+    });
+    catalogTargetsByPath.set(route, targets);
+  }
   for (const project of catalogEntities.filter(({ kind }) => kind === 'project')) {
     const bindings = Array.isArray(project.routeBindings) ? project.routeBindings : [];
     let validBindings = 0;
     bindings.forEach((binding, bindingIndex) => {
-      const problem = projectBindingProblem(binding, validCatalogPaths, deployedCatalogPaths);
+      const problem = projectBindingProblem(binding, project, catalogTargetsByPath);
       if (!problem) {
         validBindings += 1;
         return;

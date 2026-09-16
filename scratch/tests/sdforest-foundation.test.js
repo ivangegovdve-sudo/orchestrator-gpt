@@ -54,7 +54,7 @@ test('Forest HUB built styles publish the canonical design tokens', () => {
   assert.match(foundation, /--accent:\s*var\(--theme-ui-accent\)/);
 });
 
-test('Kids Corner links exactly the two approved existing sub-apps', () => {
+test('the retired kids hub preserves exactly two approved legacy destinations', () => {
   const kids = built('web/kids/index.html');
   const hrefs = [...kids.matchAll(/class="kid-card[^"]*" href="([^"]+)"/g)]
     .map((match) => match[1])
@@ -62,7 +62,8 @@ test('Kids Corner links exactly the two approved existing sub-apps', () => {
 
   assert.deepEqual(hrefs, ['/web/kids-movie-library/', '/web/math-mania/']);
   assert.match(kids, /Math Mania/);
-  assert.match(kids, /Kids Movie Library/);
+  assert.match(kids, /Kids Library — legacy movie section/);
+  assert.match(kids, /Kids Corner — retired legacy hub/);
 });
 
 test('Library is canonical and llm-db has deployment and static redirect coverage', () => {

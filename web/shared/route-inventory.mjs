@@ -37,7 +37,7 @@ export const ROUTE_INVENTORY = Object.freeze([
 ]);
 
 export const FOREST_TRAIL_ROUTE_IDS = Object.freeze([
-  'morning-news', 'upload', 'library', 'open-dashboard', 'explore', 'council', 'ai-research',
+  'morning-news', 'library', 'open-dashboard', 'explore', 'council', 'ai-research',
   'c2c-dolphin', 'c2c-self', 'avatar-playground', 'life-in-time',
   'womens-health-os', 'hypertrophyos', 'calendar', 'kids', 'math-mania',
   'kids-movie-library', 'math-forest', 'mendeleev-bg', 'vfx-portfolio',

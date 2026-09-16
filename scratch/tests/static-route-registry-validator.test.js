@@ -162,9 +162,9 @@ test('accepts direct, external, and shared pool bindings without deploying fragm
     catalogEntities: [
       { id: 'local', kind: 'project', routeBindings: [{ type: 'local', route: '/local/index.html#entry' }] },
       { id: 'external', kind: 'project', routeBindings: [{ type: 'external', url: 'https://example.com/app?view=1#entry' }] },
-      { id: 'shared-one', kind: 'project', routeBindings: [{ type: 'shared-pool-tab', route: '/pool/#one' }] },
-      { id: 'shared-two', kind: 'project', routeBindings: [{ type: 'shared-pool-tab', route: '/pool/#two' }] },
-      { id: 'pool', kind: 'pool' },
+      { id: 'shared-one', kind: 'project', pool: 'Health', routeBindings: [{ type: 'shared-pool-tab', route: '/pool/#shared-one' }] },
+      { id: 'shared-two', kind: 'project', pool: 'Health', routeBindings: [{ type: 'shared-pool-tab', route: '/pool/#shared-two' }] },
+      { id: 'pool', kind: 'pool', publicName: 'Health', route: '/pool/' },
     ],
   });
   assert.deepEqual(validateRouteRegistry(input), []);
@@ -175,6 +175,34 @@ test('accepts direct, external, and shared pool bindings without deploying fragm
   assert.equal(issues[0].code, 'PROJECT_ROUTE_BINDING_INVALID');
   assert.equal(issues[0].bindingIndex, 1);
 });
+
+for (const [binding, reason] of [
+  [{ type: 'local', route: '/other/' }, 'local route /other/ does not belong to catalog project project'],
+  [{ type: 'shared-pool-tab', route: '/other/#project' }, 'shared-pool-tab route /other/ is not a pool route'],
+  [{ type: 'shared-pool-tab', route: '/wrong-pool/#project' }, 'shared-pool-tab route /wrong-pool/ does not match project pool Health'],
+  [{ type: 'shared-pool-tab', route: '/pool/#missing-project' }, 'shared-pool-tab route /pool/ must use project fragment #project'],
+  [{ type: 'shared-pool-tab', route: '/pool/' }, 'shared-pool-tab route /pool/ must use project fragment #project'],
+]) {
+  test(`rejects a deployed but mismatched project target ${binding.route}`, async () => {
+    const { validateRouteRegistry } = await registryModule;
+    const targets = ['other', 'pool', 'wrong-pool'];
+    const issues = validateRouteRegistry(validateInput({
+      routes: targets.map((id) => route(id, id, `/${id}/`, { source: `${id}/index.html` })),
+      routeOwners: targets.map((id) => owner(id, [`/${id}/`])),
+      discoveredHtmlRoutes: targets.map((id) => ({ route: `/${id}/`, source: `${id}/index.html` })),
+      catalogEntities: [
+        { id: 'project', kind: 'project', pool: 'Health', routeBindings: [binding] },
+        { id: 'other', kind: 'project', routeBindings: [{ type: 'local', route: '/other/' }] },
+        { id: 'pool', kind: 'pool', publicName: 'Health', route: '/pool/' },
+        { id: 'wrong-pool', kind: 'pool', publicName: 'GrowingApp', route: '/wrong-pool/' },
+      ],
+    }));
+    assert.equal(issueWithCode(issues, 'PROJECT_ROUTE_BINDING_INVALID').message,
+      `PROJECT_ROUTE_BINDING_INVALID: catalog project project binding 0: ${reason}`);
+    assert.equal(issueWithCode(issues, 'CATALOG_PROJECT_ROUTE_MISSING').catalogEntityId, 'project');
+    assert.equal(issues.length, 2);
+  });
+}
 
 test('a registered path without a valid owner cannot satisfy a project binding', async () => {
   const { validateRouteRegistry } = await registryModule;

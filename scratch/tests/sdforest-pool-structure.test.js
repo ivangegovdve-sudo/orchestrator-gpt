@@ -13,6 +13,20 @@ const pools = [
 const presenter = import('../../web/shared/pool-page.mjs');
 const catalog = import('../../web/shared/project-catalog.mjs');
 
+test('one combined Math row exposes only its two named approved companions', async () => {
+  const [{ renderProject }, { getPoolProjects }] = await Promise.all([presenter, catalog]);
+  const project = getPoolProjects('GrowingApp').find((p) => p.id === 'math-forest');
+  const html = renderProject({ ...project, routeBindings: [...project.routeBindings,
+    { type: 'local', route: '/compatibility-only/' }] });
+  assert.equal((html.match(/data-project-id="math-forest"/g) || []).length, 1);
+  assert.deepEqual([...html.matchAll(/href="([^"]+)"/g)].map((m) => m[1]), ['/web/math-forest/', '/web/math-mania/']);
+  assert.match(html, />Math Forest —/);
+  assert.match(html, />Math Mania —/);
+  assert.match(html, /Math Forest[^<]*rebuild placeholder/i);
+  assert.match(html, /Status: Live/);
+  assert.doesNotMatch(html, /compatibility-only/);
+});
+
 test('exactly seven static shells have independent accessible descriptions and all-pools navigation', () => {
   assert.deepEqual(fs.readdirSync(path.join(ROOT, 'web/pools')).sort(), pools.map(([id]) => id).sort());
   for (const [id, name] of pools) {
