@@ -1,0 +1,80 @@
+{
+  "source": {
+    "name": "Harvester pipeline monitor",
+    "path": "/opt/fleet/harvester/state.json",
+    "description": "Writes per-cycle telemetry used by this dashboard"
+  },
+  "collected_at": "2026-09-03T05:52:10Z",
+  "pipeline_window_cycles": 9,
+  "pipelines": [
+    {
+      "name": "work_discovery",
+      "display_name": "Work discovery",
+      "eligible": 25,
+      "capacity_free": 6,
+      "dispatched_last_cycles": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "last_successful_dispatch_at": "2026-08-25T11:15:00Z",
+      "failing_step": "dependency_verdict",
+      "last_error": {
+        "at": "2026-09-03T05:50:00Z",
+        "message": "dependency service returned empty verdict payload while 25 items stayed eligible"
+      },
+      "status": "ok"
+    },
+    {
+      "name": "intent_dispatch",
+      "display_name": "Intent dispatch",
+      "eligible": 7,
+      "capacity_free": 2,
+      "dispatched_last_cycles": [
+        2,
+        1,
+        3,
+        2,
+        4,
+        1,
+        2,
+        3,
+        1
+      ],
+      "last_successful_dispatch_at": "2026-09-03T05:45:00Z",
+      "failing_step": null,
+      "last_error": null,
+      "status": "ok"
+    },
+    {
+      "name": "budget_reconciliation",
+      "display_name": "Budget reconciliation",
+      "eligible": 0,
+      "capacity_free": 8,
+      "dispatched_last_cycles": [
+        1,
+        1,
+        0,
+        1,
+        2,
+        0,
+        1,
+        0,
+        0
+      ],
+      "last_successful_dispatch_at": "2026-09-03T04:58:00Z",
+      "failing_step": "ledger_sync",
+      "last_error": {
+        "at": "2026-09-03T04:58:00Z",
+        "message": "source copy divergence while reconciling, defaulting to last known row"
+      },
+      "status": "degraded"
+    }
+  ]
+}

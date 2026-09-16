@@ -1,0 +1,24 @@
+{
+  "copy_id": "copy-kvm2",
+  "source": "kvm2:/srv/fleet/intents.jsonl",
+  "entry_count": 3687,
+  "collected_at": "2026-09-03T01:55:00Z",
+  "entries": [
+    {
+      "id": "INT-1001",
+      "statement": "Reconcile 24 unmatched candidate rows from tavily sync"
+    },
+    {
+      "id": "INT-1002",
+      "statement": "Backfill missing dispatch metadata for cycle 2026-09-03T00:15:00Z"
+    },
+    {
+      "id": "INT-3001",
+      "statement": "Inspect dependency verifier timeout on source 'hn-firehose'"
+    },
+    {
+      "id": "INT-3002",
+      "statement": "Investigate why fallback paid scrape is being hit for every third item"
+    }
+  ]
+}

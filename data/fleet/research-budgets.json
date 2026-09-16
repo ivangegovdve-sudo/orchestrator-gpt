@@ -1,0 +1,46 @@
+{
+  "source": {
+    "name": "Research budget ledger",
+    "path": "/opt/fleet/research/budget-ledger.json",
+    "description": "Declared allowance + measured usage for metered research ingress"
+  },
+  "collected_at": "2026-09-03T05:50:00Z",
+  "period": {
+    "start": "2026-09-03T00:00:00Z",
+    "end": "2026-10-03T00:00:00Z",
+    "cadence": "monthly"
+  },
+  "sources": [
+    {
+      "id": "tavily-web",
+      "name": "Tavily web search",
+      "declared_allowance": 1000,
+      "declared_cadence": "per day",
+      "actual_consumption": 41,
+      "period_remaining_allowance": 959,
+      "period_spent": "still tracking",
+      "notes": "Collector shows high eligible items but dispatch branch appears idle"
+    },
+    {
+      "id": "scrape-fallback-rag",
+      "name": "Scrape (paid fallback)",
+      "declared_allowance": 150,
+      "declared_cadence": "per day",
+      "actual_consumption": 178,
+      "fallback_hits": 37,
+      "period_remaining_allowance": -28,
+      "period_spent": "fallback used more than expected",
+      "notes": "Fallback should rarely fire; it is currently being hit on every major batch"
+    },
+    {
+      "id": "arxiv-rss",
+      "name": "arXiv RSS ingestion",
+      "declared_allowance": null,
+      "declared_cadence": "explicitly unlimited",
+      "actual_consumption": 640,
+      "period_remaining_allowance": null,
+      "period_spent": "running",
+      "notes": "No cap configured and no hidden rate limit currently applied"
+    }
+  ]
+}

@@ -1,864 +1,1019 @@
 <!doctype html>
 <html lang="en" class="forest-skin">
 <head>
-<meta charset="UTF-8">
-<link rel="icon" href="/web/shared/favicon.svg?v=20260807a" type="image/svg+xml">
-<script defer src="/web/shared/feedback.js?v=20260807a"></script>
-<script type="module" src="/web/shared/forest-navigation.mjs?v=20260807a"></script>
-<link rel="preload" href="/web/shared/forest-design.css?v=20260807a" as="style">
-<link rel="preload" href="/web/vendor/fonts/cormorant-garamond-normal-600-latin.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="preload" href="/web/vendor/fonts/alegreya-normal-400-900-latin.woff2" as="font" type="font/woff2" crossorigin>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="robots" content="noindex, nofollow">
-<title>Fleet Operations — SD Forest</title>
-<link rel="stylesheet" href="/web/shared/forest-design.css?v=20260807a">
-<style>
-*{box-sizing:border-box;margin:0;padding:0}
-:root{
-  --status-online:#22c55e;
-  --status-warn:#f59e0b;
-  --status-error:#ef4444;
-  --host-kvm2:#8b5cf6;
-  --mono:ui-monospace,"JetBrains Mono","Cascadia Code","Fira Code",Consolas,monospace;
-}
-body{
-  background:var(--bg);
-  color:var(--text-primary);
-  font-family:var(--forest-sans,"Alegreya Sans","Segoe UI",system-ui,sans-serif);
-  min-height:100vh;
-  overflow-x:hidden;
-  background-image:
-    radial-gradient(circle at 0% 0%,color-mix(in srgb,var(--accent) 9%,transparent),transparent 42%),
-    radial-gradient(circle at 100% 100%,color-mix(in srgb,var(--accent-green) 4%,transparent),transparent 38%);
-  background-attachment:fixed;
-  line-height:1.5;
-}
+  <meta charset="UTF-8">
+  <link rel="icon" href="/web/shared/favicon.svg?v=20260807a" type="image/svg+xml">
+  <script defer src="/web/shared/feedback.js?v=20260807a"></script>
+  <script type="module" src="/web/shared/forest-navigation.mjs?v=20260807a"></script>
+  <link rel="preload" href="/web/shared/forest-design.css?v=20260807a" as="style">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Fleet Dashboard — SD Forest</title>
+  <link rel="stylesheet" href="/web/shared/forest-design.css?v=20260807a">
+  <style>
+    *{box-sizing:border-box}
+    :root{
+      --ok:#22c55e;
+      --warn:#f59e0b;
+      --err:#ef4444;
+      --mono:ui-monospace,"JetBrains Mono","Cascadia Code","Fira Code",Consolas,monospace;
+    }
+    body{
+      background:var(--bg);
+      color:var(--text-primary);
+      font-family:var(--forest-sans,"Alegreya Sans","Segoe UI",system-ui,sans-serif);
+      min-height:100vh;
+      line-height:1.45;
+    }
+    .wrap{
+      max-width:1220px;
+      margin:0 auto;
+      padding:24px 18px 90px;
+    }
+    .fleet-nav{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      padding:12px 20px;
+      border-bottom:1px solid var(--border);
+      background:rgba(7,7,11,.8);
+      backdrop-filter:blur(10px);
+      position:sticky;
+      top:0;
+      z-index:40;
+      flex-wrap:wrap;
+    }
+    .forest-back{
+      font-size:.84rem;
+      color:var(--text-muted);
+      text-decoration:none;
+      min-height:28px;
+      display:inline-flex;
+      align-items:center;
+    }
+    .fleet-nav-right{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+    .fleet-ts{
+      font-family:var(--mono);
+      color:var(--text-muted);
+      font-size:.72rem;
+    }
+    .fleet-ts.stale{color:var(--warn);}
+    .btn{
+      font-size:.8rem;
+      font-family:var(--forest-sans,"Alegreya Sans",sans-serif);
+      font-weight:700;
+      border-radius:7px;
+      background:rgba(79,70,229,.08);
+      border:1px solid rgba(79,70,229,.25);
+      color:var(--accent);
+      padding:5px 10px;
+      cursor:pointer;
+    }
+    h1{
+      font-family:var(--forest-display,"Cormorant Garamond",Georgia,serif);
+      font-size:clamp(2rem,6vw,3.2rem);
+      line-height:1.04;
+      margin-bottom:6px;
+    }
+    .sub{
+      color:var(--text-muted);
+      font-size:.82rem;
+      max-width:78ch;
+    }
+    .header{
+      margin-bottom:18px;
+    }
+    .panel{
+      background:var(--surface);
+      border:1px solid var(--border);
+      border-radius:var(--radius);
+      padding:16px 16px 14px;
+      margin-bottom:16px;
+    }
+    .panel-title{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      margin-bottom:10px;
+    }
+    .panel-title h2{
+      font-size:1.22rem;
+      font-family:var(--forest-display,"Cormorant Garamond",Georgia,serif);
+      margin:0;
+    }
+    .provenance{
+      font-size:.68rem;
+      color:var(--text-muted);
+      font-family:var(--mono);
+      margin-bottom:8px;
+    }
+    .stale{opacity:.84;border-left-color:var(--warn)!important;}
+    .state-ok{border-left:3px solid var(--ok);}
+    .state-warn{border-left:3px solid var(--warn);}
+    .state-bad{border-left:3px solid var(--err);}
+    .state-unknown{border-left:3px solid var(--border);}
 
-/* ── Sticky nav ── */
-.fleet-nav{
-  display:flex;align-items:center;justify-content:space-between;gap:12px;
-  padding:12px 20px;
-  border-bottom:1px solid var(--border);
-  background:rgba(7,7,11,.8);
-  backdrop-filter:blur(10px);
-  position:sticky;top:0;z-index:50;
-  flex-wrap:wrap;
-}
-.forest-back{
-  font-family:var(--forest-sans,"Alegreya Sans",sans-serif);
-  font-size:.85rem;color:var(--text-muted);text-decoration:none;
-  transition:color .15s;min-height:28px;display:inline-flex;align-items:center;
-}
-.forest-back:hover,.forest-back:focus-visible{color:var(--text-primary)}
-.fleet-nav-right{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
-.fleet-host{
-  font-family:var(--mono);font-size:.72rem;
-  color:var(--text-muted);
-  padding:3px 9px;border:1px solid var(--border);border-radius:4px;
-  background:var(--surface);
-}
-.fleet-ts{font-size:.72rem;color:var(--text-muted);font-family:var(--mono)}
-.btn-refresh{
-  font-size:.78rem;font-weight:700;letter-spacing:.3px;
-  font-family:var(--forest-sans,"Alegreya Sans",sans-serif);
-  background:none;border:1px solid var(--border);border-radius:var(--radius);
-  color:var(--text-muted);padding:4px 11px;cursor:pointer;
-  transition:color .15s,border-color .15s;
-  display:inline-flex;align-items:center;gap:5px;
-}
-.btn-refresh:hover,.btn-refresh:focus-visible{color:var(--text-primary);border-color:rgba(255,255,255,.22)}
-.btn-refresh .icon{display:inline-block;transition:transform .3s}
-.btn-refresh.spinning .icon{animation:spin .8s linear infinite}
-@keyframes spin{to{transform:rotate(360deg)}}
+    .status-grid{
+      display:grid;
+      grid-template-columns:repeat(auto-fill,minmax(188px,1fr));
+      gap:10px;
+      margin-bottom:8px;
+    }
+    .status{
+      background:rgba(255,255,255,.02);
+      border:1px solid var(--border);
+      border-radius:7px;
+      padding:11px 10px;
+    }
+    .status .value{
+      font-size:1.4rem;
+      line-height:1.1;
+      font-weight:700;
+      font-family:var(--mono);
+      margin-bottom:2px;
+    }
+    .status .label{
+      color:var(--text-muted);
+      font-size:.66rem;
+      text-transform:uppercase;
+      letter-spacing:.08em;
+      font-weight:700;
+    }
+    .status.ok .value{color:var(--ok);}
+    .status.warn .value{color:var(--warn);}
+    .status.err .value{color:var(--err);}
 
-/* ── Wrap ── */
-.wrap{max-width:1200px;margin:0 auto;padding:32px 20px 96px}
+    .agents-grid{
+      display:grid;
+      grid-template-columns:repeat(auto-fill,minmax(230px,1fr));
+      gap:10px;
+    }
+    .agent-card{
+      border:1px solid var(--border);
+      border-radius:7px;
+      padding:12px;
+      background:rgba(255,255,255,.02);
+    }
+    .agent-card .name{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:8px;
+      margin-bottom:6px;
+      font-size:1.16rem;
+      font-family:var(--forest-display,"Cormorant Garamond",Georgia,serif);
+    }
+    .agent-meta{
+      font-family:var(--mono);
+      color:var(--text-muted);
+      font-size:.66rem;
+      margin-bottom:6px;
+    }
+    .agent-meta .mono{
+      color:var(--text-primary);
+    }
+    .agent-note{
+      font-size:.72rem;
+      color:var(--warn);
+      margin-top:7px;
+      padding:7px 8px;
+      border:1px dashed rgba(245,158,11,.4);
+      border-radius:6px;
+      background:rgba(245,158,11,.08);
+    }
+    .state-dot{
+      width:10px;
+      height:10px;
+      border-radius:999px;
+      display:inline-block;
+      vertical-align:middle;
+      margin-right:6px;
+    }
+    .state-dot.ok{background:var(--ok);}
+    .state-dot.warn{background:var(--warn);}
+    .state-dot.err{background:var(--err);}
+    .state-dot.unknown{background:rgba(255,255,255,.25);}
 
-/* ── Header ── */
-.fleet-header{margin-bottom:30px}
-h1{
-  font-family:var(--forest-display,"Cormorant Garamond",Georgia,serif);
-  font-size:clamp(2rem,5.5vw,3.1rem);font-weight:650;
-  color:var(--text-primary);letter-spacing:.01em;line-height:1.08;
-}
-.fleet-header .sub{
-  margin-top:8px;font-size:.8rem;color:var(--text-muted);
-  font-family:var(--mono);letter-spacing:.02em;
-}
+    .stuck-banner{
+      margin:0 0 12px;
+      border-radius:10px;
+      border:1px dashed var(--warn);
+      background:rgba(245,158,11,.1);
+      color:var(--warn);
+      padding:12px;
+      font-weight:700;
+    }
+    .pipelines{
+      display:grid;
+      grid-template-columns:repeat(auto-fill,minmax(260px,1fr));
+      gap:10px;
+    }
+    .pipeline{
+      border:1px solid var(--border);
+      border-radius:10px;
+      padding:12px;
+      background:rgba(255,255,255,.02);
+    }
+    .pipeline h3{
+      font-size:1rem;
+      margin:0 0 6px;
+    }
+    .pipeline .row{
+      display:grid;
+      grid-template-columns:1fr auto;
+      gap:6px;
+      font-size:.74rem;
+      margin-bottom:3px;
+    }
+    .pipeline .k{color:var(--text-muted);}
+    .pipelines-bars{
+      display:flex;
+      gap:4px;
+      margin-top:10px;
+      align-items:flex-end;
+      height:56px;
+    }
+    .pipelines-bars .bar{
+      flex:1;
+      background:rgba(79,70,229,.3);
+      min-height:4px;
+      border-radius:3px 3px 0 0;
+    }
+    .pipeline .reason{
+      margin-top:8px;
+      padding:7px 8px;
+      background:rgba(239,68,68,.08);
+      border:1px solid rgba(239,68,68,.3);
+      border-radius:6px;
+      color:var(--err);
+      font-size:.72rem;
+    }
 
-/* ── Metrics ── */
-.metrics-row{
-  display:flex;flex-wrap:wrap;gap:10px;margin-bottom:36px;
-}
-.metric{
-  flex:1 1 130px;
-  padding:14px 16px 12px;
-  background:var(--surface);
-  border:1px solid var(--border);
-  border-radius:var(--radius);
-  position:relative;overflow:hidden;
-}
-.metric-val{
-  font-family:var(--forest-sans,"Alegreya Sans",sans-serif);
-  font-size:1.9rem;font-weight:700;
-  font-variant-numeric:tabular-nums;
-  color:var(--text-primary);line-height:1;
-  display:block;margin-bottom:4px;
-}
-.metric-lbl{
-  font-size:.63rem;font-weight:700;letter-spacing:1.5px;
-  text-transform:uppercase;color:var(--text-muted);
-}
-.metric.m-online .metric-val{color:var(--status-online)}
-.metric.m-warn .metric-val{color:var(--status-warn)}
-.metric.m-error .metric-val{color:var(--status-error)}
-.metric::after{
-  content:'';position:absolute;bottom:0;left:0;right:0;height:2px;
-  background:var(--border);
-}
-.metric.m-online::after{background:var(--status-online);opacity:.5}
-.metric.m-warn::after{background:var(--status-warn);opacity:.6}
-.metric.m-error::after{background:var(--status-error);opacity:.5}
+    .intent-head{
+      display:flex;
+      flex-wrap:wrap;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      margin-bottom:8px;
+    }
+    .intent-note{
+      font-size:.72rem;
+      color:var(--text-muted);
+      margin-bottom:10px;
+    }
+    table{
+      width:100%;
+      border-collapse:collapse;
+      min-width:640px;
+    }
+    th,td{
+      border:1px solid var(--border);
+      text-align:left;
+      vertical-align:top;
+      padding:8px 9px;
+      font-size:.75rem;
+    }
+    th{
+      color:var(--text-muted);
+      font-size:.7rem;
+      font-weight:700;
+      text-transform:uppercase;
+      letter-spacing:.06em;
+      background:rgba(255,255,255,.02);
+    }
+    .intent-table-wrap{
+      overflow:auto;
+      border:1px solid var(--border);
+      border-radius:8px;
+      margin-bottom:10px;
+    }
+    .btn-small{
+      font-size:.64rem;
+      padding:5px 8px;
+      border-radius:5px;
+      background:rgba(79,70,229,.11);
+      color:var(--accent);
+      border:1px solid rgba(79,70,229,.3);
+      cursor:pointer;
+    }
+    .btn-small:disabled{
+      opacity:.45;
+      cursor:not-allowed;
+    }
+    .tag{
+      font-family:var(--mono);
+      display:inline-block;
+      border:1px solid var(--border);
+      border-radius:4px;
+      padding:2px 7px;
+      margin-right:6px;
+      margin-bottom:4px;
+      font-size:.65rem;
+      color:var(--text-muted);
+      text-transform:uppercase;
+      letter-spacing:.05em;
+      border-color:rgba(255,255,255,.2);
+    }
+    .ok-tag{color:var(--ok);border-color:rgba(34,197,94,.35);background:rgba(34,197,94,.08);}
+    .warn-tag{color:var(--warn);border-color:rgba(245,158,11,.35);background:rgba(245,158,11,.08);}
+    .err-tag{color:var(--err);border-color:rgba(239,68,68,.35);background:rgba(239,68,68,.08);}
 
-/* ── Section label ── */
-.section-lbl{
-  font-size:.65rem;font-weight:700;letter-spacing:1.7px;text-transform:uppercase;
-  color:var(--text-muted);margin-bottom:14px;
-  display:flex;align-items:center;gap:10px;
-}
-.section-lbl::after{content:'';flex:1;height:1px;background:var(--border)}
+    .budget-table{
+      width:100%;
+      border-collapse:collapse;
+    }
+    .budget-table td,.budget-table th{
+      padding:9px 10px;
+      text-align:left;
+    }
 
-/* ── Agent grid ── */
-.agents-grid{
-  display:grid;
-  grid-template-columns:repeat(auto-fill,minmax(318px,1fr));
-  gap:12px;margin-bottom:36px;
-}
+    .voice-grid{
+      display:grid;
+      grid-template-columns:1fr 1fr 1fr;
+      gap:10px;
+    }
+    .voice-card{
+      border:1px solid var(--border);
+      border-radius:8px;
+      padding:12px;
+      background:rgba(255,255,255,.02);
+    }
+    .voice-card h3{
+      margin-bottom:8px;
+      font-size:1rem;
+    }
+    .voice-bad{
+      border-left:3px solid var(--err);
+      background:rgba(239,68,68,.08);
+    }
+    .wake-rows{
+      display:grid;
+      grid-template-columns:1fr;
+      gap:5px;
+      max-height:250px;
+      overflow:auto;
+      padding-right:4px;
+    }
+    .wake-row{
+      border:1px solid var(--border);
+      border-radius:5px;
+      padding:6px 7px;
+      font-size:.68rem;
+    }
+    .confidence-dist{
+      display:flex;
+      gap:4px;
+      align-items:flex-end;
+      margin-top:8px;
+      height:74px;
+      width:100%;
+    }
+    .confidence-dist .slot{
+      flex:1;
+      background:rgba(79,70,229,.28);
+      border-radius:4px 4px 0 0;
+      min-height:6px;
+      display:flex;
+      flex-direction:column-reverse;
+      justify-content:flex-start;
+      font-size:.6rem;
+      color:var(--text-muted);
+      text-align:center;
+    }
+    .confidence-dist .slot span{
+      display:block;
+      line-height:1.2;
+      margin-bottom:2px;
+      color:var(--text-muted);
+      font-size:.6rem;
+    }
 
-/* ── Agent card ── */
-.agent-card{
-  background:var(--surface);
-  border:1px solid var(--border);
-  border-radius:var(--radius);
-  overflow:hidden;
-  transition:border-color .2s;
-}
-.agent-card:hover{border-color:rgba(255,255,255,.15)}
-
-/* The signature: a 2 px living strip at card top.
-   For online agents it breathes (opacity pulse), encoding liveness.
-   For warn it burns amber, static. For unknown it's grey. */
-.agent-strip{
-  height:2px;width:100%;background:var(--border);
-}
-.agent-strip.s-online{
-  background:var(--status-online);
-  box-shadow:0 0 10px rgba(34,197,94,.55);
-  animation:breathe 3.5s ease-in-out infinite;
-}
-.agent-strip.s-warn{
-  background:var(--status-warn);
-  box-shadow:0 0 8px rgba(245,158,11,.45);
-}
-@keyframes breathe{0%,100%{opacity:1}50%{opacity:.4}}
-
-.agent-body{padding:14px 16px 12px}
-
-.agent-head{
-  display:flex;align-items:flex-start;justify-content:space-between;
-  margin-bottom:9px;gap:8px;
-}
-.agent-name{
-  font-family:var(--forest-display,"Cormorant Garamond",Georgia,serif);
-  font-size:1.4rem;font-weight:650;color:var(--text-primary);
-  letter-spacing:.02em;
-}
-.host-badge{
-  font-family:var(--mono);font-size:.6rem;font-weight:700;
-  padding:3px 7px;border-radius:3px;flex-shrink:0;
-  background:rgba(79,70,229,.16);border:1px solid rgba(79,70,229,.28);
-  color:var(--accent);text-transform:uppercase;letter-spacing:.8px;
-}
-.host-badge.kvm2{
-  background:rgba(139,92,246,.16);border-color:rgba(139,92,246,.28);
-  color:var(--host-kvm2);
-}
-
-.agent-port{
-  font-family:var(--mono);font-size:.75rem;color:var(--text-muted);margin-bottom:6px;
-}
-.port-num{color:var(--text-primary);font-weight:700}
-
-.agent-discord{
-  font-size:.76rem;color:var(--text-muted);margin-bottom:8px;
-  display:flex;align-items:center;gap:6px;
-}
-.dstatus{width:7px;height:7px;border-radius:50%;flex-shrink:0;background:var(--status-online)}
-.dstatus.warn{background:var(--status-warn)}
-.dstatus.na{background:rgba(255,255,255,.15)}
-
-.chip-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}
-.chip{
-  font-family:var(--forest-sans,"Alegreya Sans",sans-serif);
-  font-size:.66rem;font-weight:700;
-  padding:2px 7px;border-radius:3px;
-  border:1px solid var(--border);color:var(--text-muted);
-  background:rgba(255,255,255,.02);
-}
-.chip.skill{color:var(--accent);border-color:rgba(79,70,229,.28)}
-
-.agent-model{
-  font-family:var(--mono);font-size:.7rem;color:var(--text-muted);
-  margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
-}
-.agent-model strong{color:var(--text-primary);font-weight:600}
-
-.agent-lastseen{
-  font-family:var(--mono);font-size:.68rem;color:var(--text-muted);
-  margin-bottom:10px;
-}
-.agent-lastseen strong{color:var(--text-primary)}
-
-.agent-note{
-  font-size:.73rem;color:var(--status-warn);line-height:1.55;
-  background:rgba(245,158,11,.05);border:1px solid rgba(245,158,11,.14);
-  border-radius:4px;padding:7px 10px;margin-bottom:10px;
-}
-
-/* Skills disclosure */
-details.skills-disc{margin-bottom:10px}
-details.skills-disc summary{
-  list-style:none;cursor:pointer;
-  display:flex;align-items:center;justify-content:space-between;
-  padding:7px 10px;
-  background:rgba(255,255,255,.025);
-  border:1px solid var(--border);border-radius:4px;
-  font-family:var(--forest-sans,"Alegreya Sans",sans-serif);
-  font-size:.73rem;color:var(--text-muted);
-  user-select:none;transition:color .15s,border-color .15s;
-}
-details.skills-disc summary::-webkit-details-marker{display:none}
-details.skills-disc summary:hover{color:var(--text-primary);border-color:rgba(255,255,255,.18)}
-.arr{font-size:.6rem;transition:transform .2s}
-details.skills-disc[open] summary{border-radius:4px 4px 0 0;border-bottom-color:transparent}
-details.skills-disc[open] .arr{transform:rotate(90deg)}
-.skills-body{
-  border:1px solid var(--border);border-top:none;
-  border-radius:0 0 4px 4px;padding:10px;
-}
-.skill-cat{margin-bottom:8px}
-.skill-cat:last-child{margin-bottom:0}
-.skill-cat-name{
-  font-size:.61rem;font-weight:700;letter-spacing:1.2px;
-  text-transform:uppercase;color:var(--text-muted);margin-bottom:5px;
-}
-.skill-tags{display:flex;flex-wrap:wrap;gap:4px}
-.skill-tag{
-  font-family:var(--mono);font-size:.65rem;
-  padding:2px 6px;border-radius:3px;
-  border:1px solid var(--border);color:var(--text-muted);
-  background:rgba(255,255,255,.018);
-}
-
-/* Action row */
-.agent-actions{display:flex;gap:6px}
-.btn-curl{
-  flex:1;
-  font-family:var(--mono);font-size:.68rem;
-  background:rgba(79,70,229,.08);border:1px solid rgba(79,70,229,.22);
-  border-radius:4px;color:var(--accent);
-  padding:7px 10px;cursor:pointer;
-  transition:background .15s,border-color .15s;
-  text-align:left;
-}
-.btn-curl:hover,.btn-curl:focus-visible{background:rgba(79,70,229,.16);border-color:rgba(79,70,229,.38)}
-.btn-curl.copied{
-  background:rgba(34,197,94,.1);border-color:rgba(34,197,94,.28);
-  color:var(--status-online);
-}
-
-/* ── Soul-server panel ── */
-.soul-panel{
-  background:var(--surface);
-  border:1px solid var(--border);
-  border-left:3px solid var(--accent);
-  border-radius:var(--radius);
-  padding:18px 20px;margin-bottom:36px;
-}
-.soul-panel h2{
-  font-family:var(--forest-display,"Cormorant Garamond",Georgia,serif);
-  font-size:1.3rem;font-weight:650;color:var(--text-primary);
-  margin-bottom:4px;
-}
-.soul-meta{
-  font-family:var(--mono);font-size:.72rem;color:var(--text-muted);
-  margin-bottom:14px;
-}
-.soul-chain{
-  display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-bottom:12px;
-}
-.chain-lbl{
-  font-size:.63rem;font-weight:700;letter-spacing:1.3px;
-  text-transform:uppercase;color:var(--text-muted);margin-right:2px;
-}
-.chain-node{
-  font-family:var(--mono);font-size:.7rem;
-  padding:3px 9px;border-radius:3px;
-  border:1px solid var(--border);color:var(--text-muted);
-}
-.chain-node.warn{
-  border-color:rgba(245,158,11,.38);color:var(--status-warn);
-  background:rgba(245,158,11,.05);
-}
-.chain-arrow{color:var(--border);font-size:.72rem;user-select:none}
-
-.soul-endpoints{
-  display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px;
-}
-.ep-badge{
-  font-family:var(--mono);font-size:.7rem;
-  padding:4px 10px;border-radius:4px;
-  border:1px solid var(--border);color:var(--text-muted);
-  background:rgba(255,255,255,.02);
-}
-.ep-badge.green{border-color:rgba(34,197,94,.28);color:var(--status-online)}
-
-.soul-curls{display:flex;flex-wrap:wrap;gap:8px}
-.btn-soul{
-  font-family:var(--mono);font-size:.68rem;
-  background:rgba(79,70,229,.08);border:1px solid rgba(79,70,229,.22);
-  border-radius:4px;color:var(--accent);
-  padding:7px 12px;cursor:pointer;
-  transition:background .15s,border-color .15s;
-}
-.btn-soul:hover,.btn-soul:focus-visible{background:rgba(79,70,229,.16)}
-.btn-soul.copied{
-  background:rgba(34,197,94,.1);border-color:rgba(34,197,94,.25);
-  color:var(--status-online);
-}
-
-/* ── Buddy watch ── */
-.buddy-grid{
-  display:grid;
-  grid-template-columns:repeat(auto-fill,minmax(210px,1fr));
-  gap:8px;margin-bottom:36px;
-}
-.buddy-pair{
-  background:var(--surface);border:1px solid var(--border);
-  border-radius:var(--radius);
-  padding:11px 13px;
-  display:flex;align-items:center;gap:7px;
-  font-size:.8rem;
-}
-.buddy-watcher{color:var(--text-primary);font-weight:700}
-.buddy-arrow{color:var(--text-muted);font-size:.72rem;flex-shrink:0}
-.buddy-target{color:var(--text-muted);font-size:.76rem}
-.buddy-check{
-  margin-left:auto;flex-shrink:0;
-  font-family:var(--mono);font-size:.62rem;
-  color:var(--text-muted);
-  background:rgba(255,255,255,.03);
-  border:1px solid var(--border);
-  border-radius:3px;padding:1px 5px;
-}
-
-/* ── Action items ── */
-.action-list{
-  display:flex;flex-direction:column;gap:6px;margin-bottom:48px;
-}
-.action-item{
-  background:var(--surface);border:1px solid var(--border);
-  border-radius:var(--radius);
-  padding:11px 14px;
-  display:flex;align-items:flex-start;gap:12px;
-}
-.prio{
-  font-family:var(--mono);font-size:.62rem;font-weight:700;
-  padding:2px 7px;border-radius:3px;border:1px solid;
-  white-space:nowrap;flex-shrink:0;margin-top:2px;
-  text-transform:uppercase;letter-spacing:.6px;
-}
-.prio.high{color:var(--status-error);border-color:rgba(239,68,68,.28);background:rgba(239,68,68,.05)}
-.prio.med{color:var(--status-warn);border-color:rgba(245,158,11,.28);background:rgba(245,158,11,.05)}
-.prio.low{color:var(--accent);border-color:rgba(79,70,229,.28);background:rgba(79,70,229,.05)}
-.action-text{
-  font-family:var(--forest-sans,"Alegreya Sans",sans-serif);
-  font-size:.82rem;color:var(--text-primary);line-height:1.55;
-}
-.action-detail{
-  display:block;font-family:var(--mono);font-size:.68rem;
-  color:var(--text-muted);margin-top:3px;
-}
-
-/* ── Responsive ── */
-@media(max-width:620px){
-  .agents-grid{grid-template-columns:1fr}
-  .buddy-grid{grid-template-columns:1fr}
-  .metrics-row{gap:8px}
-  .metric{flex:1 1 110px;padding:12px 14px}
-  .metric-val{font-size:1.6rem}
-  .soul-panel{padding:14px}
-  .fleet-ts{display:none}
-}
-@media(prefers-reduced-motion:reduce){
-  .agent-strip.s-online{animation:none}
-  .btn-refresh.spinning .icon{animation:none}
-}
-/* ── Live data ── */
-.latency-badge{font-family:var(--mono);font-size:.65rem;color:var(--text-muted);opacity:.7}
-.fleet-ts.stale{color:var(--status-warn)}
-.soul-status{
-  font-family:var(--mono);font-size:.65rem;display:none;
-  padding:2px 7px;border-radius:3px;border:1px solid var(--border);
-  color:var(--text-muted);background:rgba(255,255,255,.02);
-  vertical-align:middle;margin-left:8px;
-}
-.soul-status.ok{border-color:rgba(34,197,94,.28);color:var(--status-online)}
-/* ── Signals ── */
-.signals-row{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:36px}
-.signal-card{
-  flex:1 1 200px;background:var(--surface);border:1px solid var(--border);
-  border-radius:var(--radius);padding:14px 16px 12px;
-  position:relative;overflow:hidden;
-}
-.signal-card a{color:var(--accent);text-decoration:none}
-.signal-card a:hover{text-decoration:underline}
-.signal-val{
-  font-family:var(--forest-sans,"Alegreya Sans",sans-serif);
-  font-size:1.5rem;font-weight:700;font-variant-numeric:tabular-nums;
-  color:var(--text-primary);line-height:1;display:block;margin-bottom:4px;
-}
-.signal-lbl{
-  font-size:.63rem;font-weight:700;letter-spacing:1.5px;
-  text-transform:uppercase;color:var(--text-muted);display:block;margin-bottom:6px;
-}
-.signal-sub{font-family:var(--mono);font-size:.67rem;color:var(--text-muted);line-height:1.55}
-.signal-card::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px;background:var(--border)}
-</style>
+    .hour-bars{
+      height:110px;
+      border:1px dashed var(--border);
+      border-radius:6px;
+      margin-top:8px;
+      display:flex;
+      gap:3px;
+      align-items:flex-end;
+      padding:6px;
+    }
+    .hour-bars .hbar{
+      flex:1;
+      background:rgba(14,165,233,.35);
+      border-radius:3px 3px 0 0;
+      min-width:4px;
+      min-height:4px;
+    }
+    .list-empty{
+      color:var(--text-muted);
+      border:1px dashed var(--border);
+      border-radius:7px;
+      padding:12px;
+      background:rgba(255,255,255,.02);
+      font-size:.8rem;
+    }
+    .muted{
+      color:var(--text-muted);
+      font-size:.74rem;
+    }
+    @media(max-width:900px){
+      .voice-grid{grid-template-columns:1fr;}
+    }
+  </style>
 </head>
 <body>
-
-<nav class="fleet-nav" aria-label="Fleet navigation">
-  <a class="forest-back" href="/">Back to Forest HUB</a>
-  <div class="fleet-nav-right">
-    <span class="fleet-host">144.24.59.30</span>
-    <span class="fleet-ts" id="fleet-ts" aria-live="polite">Fetching live data…</span>
-    <button class="btn-refresh" id="btn-refresh" aria-label="Refresh status">
-      <span class="icon" aria-hidden="true">↻</span> Refresh
-    </button>
-  </div>
-</nav>
-
-<div class="wrap">
-
-  <header class="fleet-header">
-    <h1>Fleet Operations</h1>
-    <p class="sub">oracle:144.24.59.30 · soul-server :8654 · 6 hermes agents · /opt/fleet-skills nightly sync</p>
-  </header>
-
-  <div class="metrics-row" role="list" aria-label="Fleet metrics">
-    <div class="metric m-online" role="listitem">
-      <span class="metric-val" id="m-online">5</span>
-      <span class="metric-lbl">Online</span>
+  <nav class="fleet-nav" aria-label="Fleet navigation">
+    <a class="forest-back" href="/">Back to Forest HUB</a>
+    <div class="fleet-nav-right">
+      <span class="fleet-ts" id="fleet-ts" aria-live="polite">loading dashboard…</span>
+      <button class="btn" id="btn-refresh" type="button">Refresh</button>
     </div>
-    <div class="metric m-warn" role="listitem">
-      <span class="metric-val" id="m-warn">1</span>
-      <span class="metric-lbl">Warning</span>
-    </div>
-    <div class="metric" role="listitem">
-      <span class="metric-val">669</span>
-      <span class="metric-lbl">Oracle Skills</span>
-    </div>
-    <div class="metric m-error" role="listitem">
-      <span class="metric-val">0</span>
-      <span class="metric-lbl">MCP Wired</span>
-    </div>
-    <div class="metric" role="listitem">
-      <span class="metric-val">6</span>
-      <span class="metric-lbl">Fleet-common</span>
-    </div>
-  </div>
+  </nav>
 
-  <section aria-labelledby="signals-lbl">
-    <div class="section-lbl"><span id="signals-lbl">Signals</span></div>
-    <div class="signals-row">
-      <div class="signal-card">
-        <span class="signal-lbl">API Spend Today</span>
-        <span class="signal-val">—</span>
-        <span class="signal-sub">Personal billing API not yet wired.<br>See <a href="https://openrouter.ai/activity" target="_blank" rel="noopener">openrouter.ai/activity</a></span>
+  <main class="wrap">
+    <header class="header">
+      <h1>Fleet Dashboard</h1>
+      <p class="sub">Four-agent control-plane for Iris, Sheriff, Anderson, Chloe. Every panel is explicit on normal, degraded, and empty states.</p>
+    </header>
+
+    <section class="panel state-ok">
+      <div class="panel-title">
+        <h2>1) Agent health</h2>
+        <span class="tag">Canonical: Iris/Sheriff/Anderson/Chloe</span>
       </div>
-      <div class="signal-card">
-        <span class="signal-lbl">Top Model (Platform)</span>
-        <span class="signal-val" id="sig-top-model">—</span>
-        <span class="signal-sub" id="sig-top-sub">Platform-wide OpenRouter data</span>
+      <p id="agent-provenance" class="provenance">Provenance: pending</p>
+      <div id="agent-stats" class="status-grid"></div>
+      <div id="agents-grid" class="agents-grid"></div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-title">
+        <h2>2) Pipeline execution (stuck detector)</h2>
+        <span class="tag" id="pipeline-status-badge">detector: pending</span>
       </div>
-      <div class="signal-card">
-        <span class="signal-lbl">Analytics Dashboard</span>
-        <span class="signal-val" style="font-size:.9rem;margin-bottom:8px">↗</span>
-        <span class="signal-sub"><a href="https://github.com/ivangegovdve-sudo/openrouter-github-dashboard" target="_blank" rel="noopener">openrouter-github-dashboard</a><br>Models · Apps · GitHub rankings</span>
+      <p id="pipeline-provenance" class="provenance">Provenance: pending</p>
+      <div id="stuck-banner" class="stuck-banner" hidden></div>
+      <div id="pipeline-cards" class="pipelines"></div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-title">
+        <h2>3) Intent ledger (writeable)</h2>
       </div>
-    </div>
-  </section>
+      <p id="intent-provenance" class="provenance">Provenance: pending</p>
+      <p id="intent-summary" class="intent-note"></p>
+      <p id="intent-diff" class="intent-note"></p>
 
-  <section aria-labelledby="agents-lbl">
-    <div class="section-lbl"><span id="agents-lbl">Agents</span></div>
-    <div class="agents-grid" id="agents-grid"></div>
-  </section>
-
-  <section aria-labelledby="soul-lbl">
-    <div class="section-lbl"><span id="soul-lbl">Soul Server</span></div>
-    <div class="soul-panel">
-      <h2>soul-server <span id="soul-status-badge" class="soul-status"></span></h2>
-      <div class="soul-meta">Oracle :8654 · FastAPI · AUTO_CHAIN LLM routing · /opt/soul-server/brain.py</div>
-      <div class="soul-chain" role="list" aria-label="AUTO_CHAIN">
-        <span class="chain-lbl">AUTO_CHAIN</span>
-        <span class="chain-node" role="listitem">groq</span>
-        <span class="chain-arrow" aria-hidden="true">→</span>
-        <span class="chain-node" role="listitem">cerebras-gemma</span>
-        <span class="chain-arrow" aria-hidden="true">→</span>
-        <span class="chain-node warn" role="listitem" title="⚠️ OpenAI paid per-token — should be removed from AUTO_CHAIN">luna ⚠️</span>
-        <span class="chain-arrow" aria-hidden="true">→</span>
-        <span class="chain-node" role="listitem">or-gemini-flash</span>
+      <div class="intent-head">
+        <div id="actor-wrap">
+          <label class="muted" for="actor-name">Agent</label><br>
+          <input id="actor-name" class="btn" style="font-family:var(--mono);padding:5px 8px;" value="Sheriff">
+        </div>
+        <div class="muted">Rows include all non-closed intents for this run. Claim then close to drain the ledger.</div>
       </div>
-      <div class="soul-endpoints" aria-label="Endpoints">
-        <span class="ep-badge green">/health</span>
-        <span class="ep-badge">/delegate</span>
-        <span class="ep-badge">/chat</span>
-        <span class="ep-badge">/send_telegram</span>
-        <span class="ep-badge">/agents</span>
+      <div id="intent-empty" class="list-empty" hidden></div>
+      <div class="intent-table-wrap">
+        <table id="intent-table" aria-label="Open and claimed intents">
+          <thead>
+            <tr>
+              <th style="width:85px">Status</th>
+              <th>Intent</th>
+              <th style="width:145px">Claimed by</th>
+              <th style="width:160px">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="intent-body"></tbody>
+        </table>
       </div>
-      <div class="soul-curls" id="soul-curls"></div>
-    </div>
-  </section>
+    </section>
 
-  <section aria-labelledby="buddy-lbl">
-    <div class="section-lbl"><span id="buddy-lbl">Buddy Watch</span></div>
-    <div class="buddy-grid" id="buddy-grid"></div>
-  </section>
-
-  <section aria-labelledby="actions-lbl">
-    <div class="section-lbl"><span id="actions-lbl">Action Items</span></div>
-    <div class="action-list" id="action-list"></div>
-  </section>
-
-</div>
-
-<script>
-// ── Data (hardcoded from 2026-08-10 audit) ──
-// TODO: fetch from /api/fleet/status when live endpoint is available
-
-const ORACLE = '144.24.59.30';
-const KVM2   = '187.127.86.176';
-
-const AGENTS = [
-  {
-    id:'iris', name:'Iris', port:8644, host:'oracle', ip:ORACLE,
-    unit:'iris-hermes',
-    discord:'Iris#9449', dStatus:'online',
-    skills:98, status:'online', lastSeen:'Aug 10 12:04 UTC',
-    model:'gemini-2.5-flash', provider:'OpenRouter',
-    tools:['terminal','skills','tavily-search','curl','arXiv CLI'],
-    cats:[
-      {name:'research',  tags:['arXiv-fetch','hacker-news','web-search','fact-check','summarize']},
-      {name:'media',     tags:['youtube-transcript','hn-ingest','arxiv-ingest']},
-      {name:'ops',       tags:['fleet-delegate','fleet-notify','fleet-status','jules-dispatch']},
-      {name:'common',    tags:['gcp-secret-read','github-repo']},
-    ],
-  },
-  {
-    id:'artist', name:'Artist', port:8652, host:'oracle', ip:ORACLE,
-    unit:'artist-hermes',
-    discord:'Artist#2322', dStatus:'online',
-    skills:99, status:'online', lastSeen:'Aug 10 12:42 UTC',
-    model:'free tool-use model', provider:'OpenRouter',
-    tools:['terminal','skills','FFmpeg','ImageMagick','Blender CLI'],
-    cats:[
-      {name:'media',    tags:['ffmpeg-pipeline','imagemagick','blender-cli','audio-process']},
-      {name:'creation', tags:['image-gen','video-edit','clip-extract','subtitle-burn']},
-      {name:'ops',      tags:['fleet-delegate','fleet-notify','jules-dispatch']},
-      {name:'common',   tags:['fleet-status','gcp-secret-read','github-repo']},
-    ],
-  },
-  {
-    id:'sheriff', name:'Sheriff', port:8650, host:'oracle', ip:ORACLE,
-    unit:'sheriff-hermes',
-    discord:'Sheriff#7783', dStatus:'online',
-    skills:141, status:'online', lastSeen:'Aug 10 11:29 UTC',
-    model:'free tool-use model', provider:'OpenRouter',
-    tools:['terminal','skills'],
-    cats:[
-      {name:'ops',          tags:['fleet-delegate','fleet-notify','fleet-status','jules-dispatch']},
-      {name:'security',     tags:['threat-model','code-review','red-team','access-audit']},
-      {name:'moderation',   tags:['content-check','flag-issue','escalate','log-incident']},
-      {name:'common',       tags:['gcp-secret-read','github-repo']},
-    ],
-  },
-  {
-    id:'banker', name:'Banker', port:8646, host:'oracle', ip:ORACLE,
-    unit:'hermes-banker',
-    discord:'Banker#2665', dStatus:'online',
-    skills:129, status:'online', lastSeen:'Aug 10 11:29 UTC',
-    model:'gpt-5.6-terra', provider:'openai-codex',
-    tools:['terminal','skills','HTTP provider APIs','GCP SM reads'],
-    cats:[
-      {name:'finance',  tags:['payment-api','token-balance','cost-tracker','quota-check']},
-      {name:'secrets',  tags:['gcp-secret-read','secret-rotate','key-inventory']},
-      {name:'ops',      tags:['fleet-delegate','fleet-notify','jules-dispatch']},
-      {name:'common',   tags:['fleet-status','github-repo']},
-    ],
-  },
-  {
-    id:'librarian', name:'Librarian', port:8701, host:'oracle', ip:ORACLE,
-    unit:'hermes-forest',
-    discord:'⚠️ no journal signal', dStatus:'warn',
-    skills:202, status:'warn', lastSeen:'unknown (service active)',
-    model:'gpt-5.6-terra', provider:'openai-codex',
-    tools:['terminal','skills','persistent memory'],
-    note:'Service active. Discord journal suppressed — hermes-forest runs without -v flag.',
-    cats:[
-      {name:'knowledge',  tags:['rag-query','semantic-search','chunk-fetch','memory-read']},
-      {name:'library',    tags:['glossary','platform-docs','model-db','session-search']},
-      {name:'ingestion',  tags:['doc-ingest','summarize','chunk','embed-queue']},
-      {name:'common',     tags:['fleet-status','gcp-secret-read','github-repo']},
-    ],
-  },
-  {
-    id:'anderson', name:'Anderson', port:8648, host:'kvm2', ip:KVM2,
-    unit:'anderson-hermes',
-    discord:'N/A', dStatus:'na',
-    skills:null, status:'online', lastSeen:'KVM2 187.127.86.176',
-    model:'nemotron-3-super-120b-a12b:free', provider:'OpenRouter',
-    tools:['terminal','file','web','code_execution','memory','skills','delegation'],
-    note:'On KVM2. OpenCode v1.18.13 installed and auth-configured — not yet wired as hermes MCP tool.',
-    cats:[
-      {name:'code',       tags:['code-execution','file-ops','opencode','git-ops']},
-      {name:'delegation', tags:['fleet-delegate','jules-dispatch','task-route']},
-      {name:'web',        tags:['web-fetch','web-search','scrape']},
-      {name:'common',     tags:['fleet-status','gcp-secret-read','github-repo','memory-read']},
-    ],
-  },
-];
-
-const SOUL_CURLS = [
-  {label:'⬡ /health', cmd:`curl -s http://${ORACLE}:8654/health`},
-  {label:'⬡ delegate to Iris', cmd:`curl -s -X POST http://${ORACLE}:8654/delegate -H 'Content-Type: application/json' -d '{"to": "iris", "message": "ping"}'`},
-  {label:'⬡ /agents', cmd:`curl -s http://${ORACLE}:8654/agents`},
-];
-
-const BUDDIES = [
-  {watcher:'Sheriff', target:'Banker :8646',     check:'HTTP'},
-  {watcher:'Banker',  target:'Sheriff :8650',     check:'HTTP'},
-  {watcher:'Sheriff', target:'Artist :8652',      check:'HTTP'},
-  {watcher:'Chloe',   target:'Librarian :8701',   check:'HTTP'},
-  {watcher:'Iris',    target:'Anderson (NATS)',    check:'NATS'},
-  {watcher:'Anderson',target:'Iris :8644 (tailnet)',check:'HTTP'},
-];
-
-const ACTIONS = [
-  {prio:'high', text:'Remove luna from AUTO_CHAIN — OpenAI paid per-token, entered automatically on groq+cerebras fail', detail:'/opt/soul-server/brain.py L218 → AUTO_CHAIN = ["groq", "cerebras-gemma", "or-gemini-flash"]'},
-  {prio:'high', text:'Wire proxy dict to YouTubeTranscriptApi() — transcripts silently return description-only fallback on Oracle/KVM2', detail:'/opt/fleet-skills/_all/media/youtube-content/scripts/fetch_transcript.py'},
-  {prio:'med',  text:'Add cavemem nightly cron — 2,277 CLI transcripts + 607 dispatch JSONLs not auto-ingested', detail:'scripts/cavemem_cli_ingest.py --scan · scripts/cavemem_dispatch_ingest.py --scan'},
-  {prio:'med',  text:'Wire Anderson\'s OpenCode v1.18.13 as a hermes MCP tool or plugin', detail:'KVM2 /usr/local/bin/opencode · auth.json present · needs mcp_config.json'},
-  {prio:'med',  text:'Create MCP config for Oracle fleet agents (iris/artist/sheriff/banker/librarian) if MCP tooling desired', detail:'No mcp_config.json found in any agent home dir — terminal + skills is current tool surface'},
-  {prio:'low',  text:'Add -v flag to hermes-forest unit so Librarian\'s Discord events reach the journal', detail:'Unit: hermes-forest · service active · Discord connectivity unverifiable via journal'},
-  {prio:'low',  text:'Document RAG tailnet-only bind — port :8704 is bound to 100.109.5.44, not localhost', detail:'238,193 chunks indexed · agents must call http://100.109.5.44:8704/ not http://localhost:8704/'},
-];
-
-// ── Utilities ──
-
-function esc(s){
-  return String(s)
-    .replace(/&/g,'&amp;')
-    .replace(/</g,'&lt;')
-    .replace(/>/g,'&gt;')
-    .replace(/"/g,'&quot;');
-}
-
-function copyText(btn, text){
-  const orig = btn.textContent;
-  navigator.clipboard.writeText(text).catch(() => {
-    const ta = Object.assign(document.createElement('textarea'),{value:text,style:'position:fixed;opacity:0'});
-    document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);
-  });
-  btn.classList.add('copied');
-  btn.textContent = '✓ copied';
-  setTimeout(() => {btn.classList.remove('copied');btn.textContent = orig;}, 1800);
-}
-
-// ── Render agents ──
-
-function renderAgents(){
-  const grid = document.getElementById('agents-grid');
-  grid.innerHTML = AGENTS.map(a => {
-    const toolsShown = a.tools.slice(0,3);
-    const toolsExtra = a.tools.length > 3 ? a.tools.length - 3 : 0;
-    const skillLabel = a.skills !== null ? `${a.skills} skills` : 'synced nightly';
-
-    const discord = a.dStatus === 'na'
-      ? `<div class="agent-discord"><span class="dstatus na"></span><span>Discord N/A</span></div>`
-      : `<div class="agent-discord"><span class="dstatus ${a.dStatus}"></span><span>${esc(a.discord)}</span></div>`;
-
-    const note = a.note
-      ? `<div class="agent-note">${esc(a.note)}</div>`
-      : '';
-
-    const cats = a.cats.map(c => `
-      <div class="skill-cat">
-        <div class="skill-cat-name">${esc(c.name)}</div>
-        <div class="skill-tags">${c.tags.map(t => `<span class="skill-tag">${esc(t)}</span>`).join('')}</div>
-      </div>`).join('');
-
-    const curlCmd = `curl -s http://${esc(a.ip)}:${a.port}/health`;
-
-    return `
-<div class="agent-card" data-agent="${a.id}" data-status="${a.status}">
-  <div class="agent-strip s-${a.status}" role="presentation"></div>
-  <div class="agent-body">
-    <div class="agent-head">
-      <span class="agent-name">${esc(a.name)}</span>
-      <span class="host-badge ${a.host === 'kvm2' ? 'kvm2' : ''}">${esc(a.host)}</span>
-    </div>
-    <div class="agent-port">:<span class="port-num">${a.port}</span> · ${esc(a.unit)}<span class="latency-badge" id="lat-${a.id}"></span></div>
-    ${discord}
-    <div class="chip-row">
-      <span class="chip skill">${esc(skillLabel)}</span>
-      ${toolsShown.map(t => `<span class="chip">${esc(t)}</span>`).join('')}
-      ${toolsExtra ? `<span class="chip">+${toolsExtra}</span>` : ''}
-    </div>
-    <div class="agent-model">Model: <strong>${esc(a.model)}</strong></div>
-    <div class="agent-model" style="margin-bottom:10px">Provider: <strong>${esc(a.provider)}</strong></div>
-    <div class="agent-lastseen">Last seen: <strong>${esc(a.lastSeen)}</strong></div>
-    ${note}
-    <details class="skills-disc">
-      <summary><span>Browse ${esc(skillLabel)}</span><span class="arr">▶</span></summary>
-      <div class="skills-body">${cats}</div>
-    </details>
-    <div class="agent-actions">
-      <button class="btn-curl" data-cmd="${esc(curlCmd)}">⬡ copy /health curl</button>
-    </div>
-  </div>
-</div>`;
-  }).join('');
-
-  grid.querySelectorAll('.btn-curl').forEach(btn => {
-    btn.addEventListener('click', () => copyText(btn, btn.dataset.cmd));
-  });
-}
-
-// ── Render soul-server curl buttons ──
-
-function renderSoulCurls(){
-  const el = document.getElementById('soul-curls');
-  el.innerHTML = SOUL_CURLS.map((c,i) =>
-    `<button class="btn-soul" data-idx="${i}">${esc(c.label)}</button>`
-  ).join('');
-  el.querySelectorAll('.btn-soul').forEach(btn => {
-    btn.addEventListener('click', () => copyText(btn, SOUL_CURLS[+btn.dataset.idx].cmd));
-  });
-}
-
-// ── Render buddy watch ──
-
-function renderBuddies(){
-  const el = document.getElementById('buddy-grid');
-  el.innerHTML = BUDDIES.map(b => `
-    <div class="buddy-pair">
-      <span class="buddy-watcher">${esc(b.watcher)}</span>
-      <span class="buddy-arrow" aria-hidden="true">→</span>
-      <span class="buddy-target">${esc(b.target)}</span>
-      <span class="buddy-check">${esc(b.check)}</span>
-    </div>`).join('');
-}
-
-// ── Render action items ──
-
-function renderActions(){
-  const el = document.getElementById('action-list');
-  el.innerHTML = ACTIONS.map(a => `
-    <div class="action-item">
-      <span class="prio ${a.prio}" aria-label="Priority: ${a.prio}">${a.prio.toUpperCase()}</span>
-      <div class="action-text">
-        ${esc(a.text)}
-        <span class="action-detail">${esc(a.detail)}</span>
+    <section class="panel">
+      <div class="panel-title">
+        <h2>4) Research budgets (declared vs actual)</h2>
       </div>
-    </div>`).join('');
-}
+      <p id="budget-provenance" class="provenance">Provenance: pending</p>
+      <div id="budget-summary" class="status-grid"></div>
+      <div class="intent-table-wrap">
+        <table class="budget-table" aria-label="Research source budgets">
+          <thead>
+            <tr>
+              <th>Source</th>
+              <th>Declared</th>
+              <th>Actual</th>
+              <th>Cadence / period remaining</th>
+              <th>Flags</th>
+              <th>Finding</th>
+            </tr>
+          </thead>
+          <tbody id="budget-body"></tbody>
+        </table>
+      </div>
+    </section>
 
-// ── Live fleet status ──
+    <section class="panel">
+      <div class="panel-title">
+        <h2>5) Voice surfaces</h2>
+      </div>
+      <p id="voice-provenance" class="provenance">Provenance: pending</p>
+      <div class="voice-grid">
+        <div class="voice-card state-ok">
+          <h3>Avatar animation</h3>
+          <div id="avatar-state" class="muted">State pending</div>
+          <p id="avatar-detail" class="muted"></p>
+        </div>
+        <div class="voice-card state-ok">
+          <h3>VAD status</h3>
+          <div id="vad-status" class="muted">Status pending</div>
+          <p id="vad-detail" class="muted"></p>
+        </div>
+        <div class="voice-card">
+          <h3>Wake-word activity</h3>
+          <div id="wake-overview" class="muted">No wake-word data yet.</div>
+          <p id="wake-balance" class="muted"></p>
+          <div class="confidence-dist" id="confidence-dist"></div>
+          <p class="muted" style="margin-top:8px;">Events in last 30 days by confidence</p>
+          <div class="hour-bars" id="wake-hour-bars" aria-label="wake-word events last 24h"></div>
+          <p id="wake-flag" class="muted" style="margin-top:8px;"></p>
+          <div id="wake-list" class="wake-rows" style="margin-top:8px;"></div>
+        </div>
+      </div>
+    </section>
+  </main>
 
-const pad = n => String(n).padStart(2, '0');
+  <script>
+    const REFRESH_INTERVAL_MS = 60000;
+    const N_CYCLES_LABEL = 9;
+    let dashboard = null;
+    let intents = null;
 
-function fmtUtc(iso) {
-  const d = new Date(iso);
-  return `${d.getUTCFullYear()}-${pad(d.getUTCMonth()+1)}-${pad(d.getUTCDate())} ${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())} UTC`;
-}
+    const canonical = ["iris", "sheriff", "anderson", "chloe"];
 
-function applyFleetStatus(data) {
-  let onlineCount = 0, warnCount = 0;
-  for (const agent of data.agents) {
-    const card = document.querySelector(`[data-agent="${agent.name}"]`);
-    if (!card) continue;
-    const s = agent.status === 'online' ? 'online' : 'error';
-    card.querySelector('.agent-strip').className = `agent-strip s-${s}`;
-    card.dataset.status = s;
-    const lat = document.getElementById(`lat-${agent.name}`);
-    if (lat) lat.textContent = ` · ${agent.latency_ms}ms`;
-    if (s === 'online') onlineCount++;
-    else warnCount++;
-  }
-  const mO = document.getElementById('m-online');
-  const mW = document.getElementById('m-warn');
-  if (mO) mO.textContent = String(onlineCount);
-  if (mW) mW.textContent = String(warnCount);
-  if (data.soul_server) {
-    const badge = document.getElementById('soul-status-badge');
-    if (badge) {
-      const ok = data.soul_server.status === 'online';
-      badge.textContent = ok
-        ? `online · ${data.soul_server.latency_ms}ms`
-        : `offline · ${data.soul_server.latency_ms}ms`;
-      badge.className = `soul-status${ok ? ' ok' : ''}`;
-      badge.style.display = '';
+    const stateClass = {
+      ok: "ok",
+      degraded: "warn",
+      warn: "warn",
+      stuck: "err",
+      over: "err",
+      under: "warn",
+      unlimited: "ok",
+      unknown: "unknown",
+    };
+
+    function escapeHtml(value) {
+      return String(value ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
     }
-  }
-}
 
-async function fetchFleetStatus() {
-  const ts  = document.getElementById('fleet-ts');
-  const btn = document.getElementById('btn-refresh');
-  btn.classList.add('spinning');
-  btn.disabled = true;
-  try {
-    const res = await fetch('/api/fleet/status');
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const data = await res.json();
-    applyFleetStatus(data);
-    ts.textContent = `Updated ${fmtUtc(data.updated_at)}`;
-    ts.classList.remove('stale');
-  } catch (_) {
-    // Keep hardcoded data; mark as stale
-    const cur = ts.textContent;
-    ts.textContent = cur.includes('stale') ? cur : 'Audited 2026-08-10 · stale';
-    ts.classList.add('stale');
-  } finally {
-    btn.classList.remove('spinning');
-    btn.disabled = false;
-  }
-}
+    function ageText(ts) {
+      if (!ts) return "unknown";
+      const ms = Date.now() - Date.parse(ts);
+      if (!Number.isFinite(ms) || ms < 0) return "invalid timestamp";
+      const mins = Math.floor(ms / 60000);
+      if (mins < 60) return `${mins}m`;
+      const hrs = Math.floor(mins / 60);
+      const rem = mins % 60;
+      return `${hrs}h ${rem}m`;
+    }
 
-// ── Init ──
-renderAgents();
-renderSoulCurls();
-renderBuddies();
-renderActions();
+    function stateFromTime(isStale) {
+      return isStale ? "stale" : "fresh";
+    }
 
-document.getElementById('btn-refresh').addEventListener('click', () => {
-  if (document.getElementById('btn-refresh').disabled) return;
-  fetchFleetStatus();
-});
+    function setFreshness(el, fresh) {
+      if (!el) return;
+      if (!fresh) return;
+      if (fresh.is_stale) {
+        el.classList.add("stale");
+        el.textContent = `${el.textContent} · stale (${fresh.age_text || "age unknown"})`;
+      }
+    }
 
-fetchFleetStatus();
-</script>
+    function endpoint(url, options = {}) {
+      return fetch(url, {
+        ...options,
+        headers: {
+          "Content-Type": "application/json",
+          ...(options.headers || {}),
+        },
+      });
+    }
 
+    async function fetchJson(url, options = {}) {
+      const response = await endpoint(url, options);
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(payload.error || `HTTP ${response.status}`);
+      }
+      return payload;
+    }
+
+    function setTimestamp() {
+      const ts = document.getElementById("fleet-ts");
+      const updated = dashboard && dashboard.generated_at ? dashboard.generated_at : new Date().toISOString();
+      ts.textContent = `last render ${updated}`;
+      ts.title = `Rendered ${updated}`;
+      ts.className = "fleet-ts";
+      if (dashboard && dashboard.freshness && dashboard.freshness.voice && dashboard.freshness.voice.is_stale) {
+        ts.classList.add("stale");
+      }
+    }
+
+    function renderAgentPanel() {
+      const panel = document.getElementById("agent-stats");
+      const grid = document.getElementById("agents-grid");
+      const prov = document.getElementById("agent-provenance");
+      const health = dashboard.fleet_agents || [];
+      const unknownCount = health.filter((item) => item.status !== "online").length;
+      const onlineCount = health.filter((item) => item.status === "online").length;
+      const hasError = dashboard.upstream_fleet_health && !dashboard.upstream_fleet_health.ok;
+
+      panel.innerHTML = `
+        <div class="status ${onlineCount > 0 ? "ok" : "err"}">
+          <div class="value">${onlineCount}</div>
+          <div class="label">Online</div>
+        </div>
+        <div class="status ${unknownCount > 0 ? "warn" : "ok"}">
+          <div class="value">${unknownCount}</div>
+          <div class="label">Not reporting</div>
+        </div>
+        <div class="status ${hasError ? "err" : "ok"}">
+          <div class="value">${dashboard.upstream_fleet_health && dashboard.upstream_fleet_health.ok ? "healthy" : "down"}</div>
+          <div class="label">Fleet health source</div>
+        </div>
+      `;
+      grid.innerHTML = "";
+      for (const item of health) {
+        const row = document.createElement("article");
+        row.className = `agent-card state-${item.status === "online" ? "ok" : "warn"}`;
+        row.innerHTML = `
+          <div class="name">
+            <span><span class="state-dot ${item.status === "online" ? "ok" : "warn"}"></span>${escapeHtml(item.name)}</span>
+            <span class="tag">${escapeHtml(item.source || "fleet-health")}</span>
+          </div>
+          <div class="agent-meta">Status: <span class="mono">${escapeHtml(item.status_text || item.status)}</span></div>
+          <div class="agent-meta">Model: <span class="mono">${escapeHtml(item.model || "unknown")}</span></div>
+          <div class="agent-meta">Provider: <span class="mono">${escapeHtml(item.provider || "unknown")}</span></div>
+          <div class="agent-meta">Last seen / latency: <span class="mono">${escapeHtml(item.last_seen || "unreported")} / ${escapeHtml(item.latency_ms ?? "n/a")}</span></div>
+          <div class="agent-meta">Port: <span class="mono">${escapeHtml(item.port || "n/a")}</span></div>
+        `;
+        grid.appendChild(row);
+      }
+      const extra = canonical.filter((name) => !health.some((agent) => agent.name === name));
+      if (extra.length > 0) {
+        const missing = document.createElement("div");
+        missing.className = "agent-note";
+        missing.textContent = `Canonical source mismatch: missing from upstream payload: ${extra.join(", ")}. Rendering as explicit not-reported state.`;
+        grid.appendChild(missing);
+      }
+
+      if (prov) {
+        prov.textContent = `Provenance: upstream ${dashboard.provenance && dashboard.provenance.agents ? dashboard.provenance.agents : "unavailable"}; generated ${dashboard.generated_at || "unknown"}.`;
+      }
+      setFreshness(prov, dashboard.freshness && dashboard.freshness.agents);
+    }
+
+    function renderPipelines() {
+      const list = document.getElementById("pipeline-cards");
+      const badge = document.getElementById("pipeline-status-badge");
+      const prov = document.getElementById("pipeline-provenance");
+      const alert = document.getElementById("stuck-banner");
+      const pipelines = dashboard.pipelines || [];
+      const stuck = pipelines.filter((item) => item.is_stuck);
+      const source = dashboard.budgets ? dashboard.budgets : {};
+      const provTxt = dashboard.provenance && dashboard.provenance.pipelines ? dashboard.provenance.pipelines : {};
+      const pipelineSource = provTxt && (provTxt.name || provTxt.path) ? `${provTxt.name || "local"} ${provTxt.path ? `(${provTxt.path})` : ""}` : "local data source";
+
+      badge.textContent = stuck.length > 0 ? `detector: ${stuck.length} stuck` : `detector: ${pipelines.length ? "clear" : "no data"}`;
+      list.innerHTML = "";
+      if (stuck.length > 0) {
+        alert.hidden = false;
+        alert.textContent = `Stuck state detected: ${stuck.length} pipeline(s) have eligible>0, capacity>0, and no dispatches in last ${dashboard.pipeline_window_cycles || N_CYCLES_LABEL} cycles.`;
+      } else {
+        alert.hidden = true;
+      }
+
+      if (pipelines.length === 0) {
+        list.innerHTML = `<div class="list-empty">No pipeline state available. Source missing or unreadable.</div>`;
+      }
+
+      for (const pipeline of pipelines) {
+        const card = document.createElement("article");
+        card.className = `pipeline state-${pipeline.effective_health || "unknown"}`;
+        const cycles = Array.isArray(pipeline.dispatched_last_n_cycles) ? pipeline.dispatched_last_n_cycles : null;
+        const history = Array.isArray(pipeline.dispatched_last_cycles) ? pipeline.dispatched_last_cycles : [];
+        const maxCycle = Math.max(...history, 1);
+        card.innerHTML = `
+          <h3>${escapeHtml(pipeline.display_name || pipeline.name)}</h3>
+          <div class="row"><span class="k">Eligible</span><span>${escapeHtml(pipeline.eligible)}</span></div>
+          <div class="row"><span class="k">Capacity free</span><span>${escapeHtml(pipeline.capacity_free)}</span></div>
+          <div class="row"><span class="k">Dispatched (last ${pipelineWindowText()})</span><span>${escapeHtml(pipeline.dispatched_last_n_cycles)}</span></div>
+          <div class="row"><span class="k">Last successful dispatch</span><span>${escapeHtml(pipeline.time_since_last_successful_dispatch || "never")}</span></div>
+          <div class="row"><span class="k">Source</span><span>${escapeHtml(pipeline.source)}</span></div>
+          <div class="pipelines-bars" aria-label="dispatch history">${history.map((value) => `<span class="bar" style="height:${Math.max(4, Math.round((Number(value) / maxCycle) * 48))}px"></span>`).join("")}</div>
+        `;
+        if (pipeline.is_stuck) {
+          const reason = pipeline.failing_step
+            ? `failing step: ${pipeline.failing_step}; ${pipeline.last_error ? pipeline.last_error.message || "no error detail" : "no last error"}`
+            : "stuck condition met; failing step unknown";
+          const reasonNode = document.createElement("div");
+          reasonNode.className = "reason";
+          reasonNode.textContent = reason;
+          card.appendChild(reasonNode);
+        }
+        if (pipeline.effective_health === "degraded") {
+          const note = document.createElement("div");
+          note.className = "reason";
+          note.style.borderColor = "rgba(245,158,11,.3)";
+          note.style.color = "rgba(245,158,11,1)";
+          note.style.background = "rgba(245,158,11,.08)";
+          note.textContent = pipeline.notes || "degraded state from source data";
+          card.appendChild(note);
+        }
+        list.appendChild(card);
+      }
+
+      if (prov) {
+        prov.textContent = `Provenance: ${pipelineSource}; collected ${dashboard.freshness && dashboard.freshness.pipelines && dashboard.freshness.pipelines.collected_at ? dashboard.freshness.pipelines.collected_at : "unknown"} (age ${dashboard.freshness && dashboard.freshness.pipelines ? dashboard.freshness.pipelines.age_text : "unknown"}).`;
+      }
+      setFreshness(prov, dashboard.freshness && dashboard.freshness.pipelines);
+      if (stuck.length > 0) {
+        badge.className = "tag err-tag";
+      } else if (dashboard.pipeline_stuck_count === 0) {
+        badge.className = "tag ok-tag";
+      } else {
+        badge.className = "tag warn-tag";
+      }
+    }
+
+    function pipelineWindowText() {
+      return dashboard.pipeline_window_cycles || N_CYCLES_LABEL;
+    }
+
+    function renderIntentPanel() {
+      const prov = document.getElementById("intent-provenance");
+      const summary = document.getElementById("intent-summary");
+      const diff = document.getElementById("intent-diff");
+      const body = document.getElementById("intent-body");
+      const empty = document.getElementById("intent-empty");
+      const queue = Array.isArray(intents.open_queue) ? intents.open_queue : [];
+      const rows = [...queue];
+
+      prov.textContent = `Canonical source: ${intents.canonical.source}; captured ${intents.canonical.captured_at || "unknown"}.`;
+      summary.textContent = `Total entries observed across three copies: ${intents.stats.total_observed_entries}. Canonical count: ${intents.stats.total_entries} entries. Open: ${intents.stats.open_count}; claimed: ${intents.stats.claimed_count}; closed: ${intents.stats.closed_count}. Selected because: ${intents.canonical.reason || "operator-defined authority"}.`;
+      const copyBits = intents.comparison.map((c) => `${c.copy_id}: has only in copy ${c.only_in_this_copy.join(", ") || "none"}`).join(" | ");
+      diff.textContent = `Other copies: ${copyBits}`;
+
+      body.innerHTML = "";
+      if (rows.length === 0) {
+        empty.hidden = false;
+        empty.textContent = "Queue is empty under this canonical source. This is a good stop condition only if all expected work is already complete.";
+      } else {
+        empty.hidden = true;
+      }
+
+      for (const item of rows) {
+        const tr = document.createElement("tr");
+        const canClaim = item.status === "open";
+        const canClose = item.status === "open" || item.status === "claimed";
+        tr.innerHTML = `
+          <td>${escapeHtml(item.status)}</td>
+          <td title="${escapeHtml(item.statement)}">${escapeHtml(item.statement).slice(0, 130)}${item.statement && item.statement.length > 130 ? "…" : ""}<br><span class="muted">ID ${escapeHtml(item.id)}</span></td>
+          <td>${escapeHtml(item.claimed_by || "—")}</td>
+          <td>
+            <button class="btn-small" data-action="claim" data-id="${escapeHtml(item.id)}" ${canClaim ? "" : "disabled"}>Claim</button>
+            <button class="btn-small" data-action="close" data-id="${escapeHtml(item.id)}" ${canClose ? "" : "disabled"}>Close</button>
+          </td>
+        `;
+        body.appendChild(tr);
+      }
+      document.querySelectorAll('[data-action="claim"], [data-action="close"]').forEach((button) => {
+        button.addEventListener("click", (event) => {
+          const action = event.currentTarget.dataset.action;
+          const id = event.currentTarget.dataset.id;
+          runIntentAction(action, id).catch((error) => {
+            showInlineError(error.message);
+          });
+        });
+      });
+    }
+
+    function renderBudgets() {
+      const prov = document.getElementById("budget-provenance");
+      const summary = document.getElementById("budget-summary");
+      const rows = document.getElementById("budget-body");
+      const source = dashboard.budgets || {};
+      const bodies = source.rows || [];
+      const period = source.period || {};
+      const over = dashboard.budgets_summary ? dashboard.budgets_summary.over_consuming : [];
+      const under = dashboard.budgets_summary ? dashboard.budgets_summary.under_consumed : [];
+      const unlimited = dashboard.budgets_summary ? dashboard.budgets_summary.unlimited : [];
+      summary.innerHTML = `
+        <div class="status ${over.length ? "warn" : "ok"}">
+          <div class="value">${over.length}</div><div class="label">Over-consuming</div>
+        </div>
+        <div class="status ${under.length ? "warn" : "ok"}">
+          <div class="value">${under.length}</div><div class="label">Under-consumed findings</div>
+        </div>
+        <div class="status ${unlimited.length ? "ok" : "warn"}">
+          <div class="value">${unlimited.length}</div><div class="label">Explicit unlimited</div>
+        </div>
+      `;
+
+      rows.innerHTML = "";
+      for (const row of bodies) {
+        const state = row.state || {};
+        const allowanceLabel = row.declared_allowance === null ? "unlimited" : row.declared_allowance.toLocaleString();
+        const allowed = row.period_remaining_allowance;
+        const allowanceRemaining = state.state === "unlimited" ? "unbounded" : `${allowed === null ? "n/a" : String(allowed)} remaining`;
+        const flags = [];
+        if (state.state === "over") flags.push("over-consumption");
+        if (state.state === "under") flags.push("under-consumption");
+        if (state.state === "unlimited") flags.push("declared-unlimited");
+        if (state.finding) flags.push(state.finding);
+
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${escapeHtml(row.name)}</td>
+          <td>${escapeHtml(allowanceLabel)} · ${escapeHtml(row.declared_cadence)}</td>
+          <td>${escapeHtml(row.actual_consumption)}<br><span class="muted">fallback hits: ${escapeHtml(row.fallback_hits || 0)}</span></td>
+          <td>${escapeHtml(allowanceRemaining)} / ${escapeHtml(period?.cadence || "period")}<br><span class="muted">Window: ${escapeHtml(period?.start || "n/a")} → ${escapeHtml(period?.end || "n/a")}</span></td>
+          <td>${flags.map((tag) => `<span class="tag ${(state.state || "unknown") === "unlimited" ? "ok-tag" : (state.state === "over" ? "err-tag" : (state.state === "under" ? "warn-tag" : "tag"))}">${escapeHtml(tag)}</span>`).join(" ")}</td>
+          <td>${escapeHtml(state.finding || "none")}</td>
+        `;
+        rows.appendChild(tr);
+      }
+
+      prov.textContent = `Declared allowances from ${dashboard.provenance && dashboard.provenance.budgets ? `${dashboard.provenance.budgets.name || "budget-ledger"}` : "local budget source"}, collected ${dashboard.freshness && dashboard.freshness.budgets ? dashboard.freshness.budgets.collected_at : "unknown"} (${dashboard.freshness && dashboard.freshness.budgets ? dashboard.freshness.budgets.age_text : "unknown"}).`;
+      setFreshness(prov, dashboard.freshness && dashboard.freshness.budgets);
+    }
+
+    function renderVoice() {
+      const prov = document.getElementById("voice-provenance");
+      const avatarState = document.getElementById("avatar-state");
+      const avatarDetail = document.getElementById("avatar-detail");
+      const vadStatus = document.getElementById("vad-status");
+      const vadDetail = document.getElementById("vad-detail");
+      const wakeOverview = document.getElementById("wake-overview");
+      const wakeBalance = document.getElementById("wake-balance");
+      const wakeDist = document.getElementById("confidence-dist");
+      const wakeFlags = document.getElementById("wake-flag");
+      const wakeList = document.getElementById("wake-list");
+      const hourBars = document.getElementById("wake-hour-bars");
+
+      const v = dashboard.voice || {};
+      const voiceFreshness = dashboard.freshness ? dashboard.freshness.voice : null;
+      const avatar = v.avatar || {};
+      const vad = v.vad || {};
+      const wake = v.wake_word || {};
+      const events = Array.isArray(v.last_30_days_events) ? v.last_30_days_events : [];
+      const abnormal = v.wake_word_abnormality || {};
+
+      avatarState.textContent = `State: ${avatar.state || "unknown"}`;
+      avatarDetail.textContent = avatar.details || "No details";
+      vadStatus.textContent = `VAD: ${vad.status || "unknown"}${vad.last_sample ? ` / last sample ${vad.last_sample.is_voice_detected ? "voice" : "no voice"}` : ""}`;
+      vadDetail.textContent = `Last sample: ${vad.last_sample ? `${vad.last_sample.level} @ ${vad.last_sample.updated_at}` : "n/a"}`;
+
+      const falseCount = Array.isArray(events) ? events.filter((e) => e.true_trigger === false).length : 0;
+      const trueCount = Array.isArray(events) ? events.filter((e) => e.true_trigger === true).length : 0;
+      wakeOverview.textContent = `30d events: ${events.length} (${falseCount} false, ${trueCount} true), false-trigger minute budget consumed ${wake.false_trigger_minutes_consumed || 0} / ${wake.monthly_allowance_minutes || "unlimited"} minutes`;
+
+      if (wake.monthly_allowance_minutes && wake.false_trigger_minutes_consumed !== undefined) {
+        const remaining = Math.max(0, wake.monthly_allowance_minutes - wake.false_trigger_minutes_consumed);
+        wakeBalance.textContent = `Remaining allowance: ${remaining} minutes this month.`;
+      }
+
+      wakeFlags.textContent = abnormal.is_abnormal ? `ALERT: ${abnormal.reason || "wake-word frequency abnormal"}` : "Wake-word false-trigger frequency is within normal envelope.";
+      if (abnormal.is_abnormal) {
+        wakeFlags.closest(".voice-card")?.classList.add("voice-bad");
+      }
+
+      wakeDist.innerHTML = "";
+      for (const slot of v.wake_word_distribution || []) {
+        const bar = document.createElement("div");
+        bar.className = "slot";
+        bar.style.height = `${Math.round(slot.normalized * 64)}px`;
+        bar.style.background = slot.label ? `linear-gradient(transparent, ${slot.count > 0 ? "rgba(79,70,229,.42)" : "rgba(255,255,255,.16)"})` : "rgba(255,255,255,.16)";
+        bar.innerHTML = `<span>${slot.count}</span>`;
+        bar.title = `${slot.label}: ${slot.count}`;
+        wakeDist.appendChild(bar);
+      }
+
+      hourBars.innerHTML = "";
+      const hist = Array.isArray(v.wake_word_hourly_count_last_24h) ? v.wake_word_hourly_count_last_24h : [];
+      const max = Math.max(1, ...hist.map((value) => value || 0));
+      for (const count of hist) {
+        const bar = document.createElement("span");
+        bar.className = "hbar";
+        bar.style.height = `${Math.max(4, Math.round((count / max) * 100))}px`;
+        bar.title = `${count} events`;
+        hourBars.appendChild(bar);
+      }
+
+      wakeList.innerHTML = "";
+      if (events.length === 0) {
+        wakeList.innerHTML = `<div class="wake-row">No wake-word events in the sample window.</div>`;
+      } else {
+        const ordered = [...events].sort((a, b) => (Date.parse(b.ts) || 0) - (Date.parse(a.ts) || 0));
+        for (const event of ordered.slice(0, 10)) {
+          const row = document.createElement("div");
+          row.className = "wake-row";
+          row.textContent = `${event.ts} · confidence ${event.confidence ?? "n/a"} · ${event.true_trigger ? "true trigger" : "false trigger"} · ${event.duration_minutes}m`;
+          wakeList.appendChild(row);
+        }
+      }
+
+      prov.textContent = `Voice telemetry from ${dashboard.provenance && dashboard.provenance.voice ? dashboard.provenance.voice.name || dashboard.provenance.voice.path || "remote host" : "remote host"}; collected ${dashboard.freshness && dashboard.freshness.voice ? dashboard.freshness.voice.collected_at : "unknown"} (${dashboard.freshness && dashboard.freshness.voice ? dashboard.freshness.voice.age_text : "unknown"}).`;
+      setFreshness(prov, voiceFreshness);
+    }
+
+    async function runIntentAction(action, id) {
+      const actor = document.getElementById("actor-name").value || "fleet-operator";
+      const payload = await fetchJson("/api/fleet/intents", {
+        method: "POST",
+        body: JSON.stringify({ action, intent_id: id, actor }),
+      });
+      intents = payload;
+      await refreshData();
+      return payload;
+    }
+
+    function showInlineError(message) {
+      const row = document.createElement("div");
+      row.className = "agent-note";
+      row.textContent = `Action failed: ${message}`;
+      document.body.appendChild(row);
+      setTimeout(() => row.remove(), 3200);
+    }
+
+    async function refreshData() {
+      const refreshBtn = document.getElementById("btn-refresh");
+      refreshBtn.disabled = true;
+      refreshBtn.textContent = "Loading…";
+      try {
+        [dashboard, intents] = await Promise.all([
+          fetchJson("/api/fleet/dashboard"),
+          fetchJson("/api/fleet/intents"),
+        ]);
+        setTimestamp();
+        renderAgentPanel();
+        renderPipelines();
+        renderIntentPanel();
+        renderBudgets();
+        renderVoice();
+      } catch (error) {
+        const ts = document.getElementById("fleet-ts");
+        ts.textContent = `Failed to load dashboard data: ${error.message}`;
+        ts.classList.add("stale");
+        if (dashboard === null || intents === null) {
+          dashboard = dashboard || {};
+          intents = intents || { canonical: { source: "n/a" }, stats: { total_entries: 0, open_count: 0, claimed_count: 0, closed_count: 0 }, open_queue: [], comparison: [] };
+          renderFallback();
+        }
+      } finally {
+        refreshBtn.textContent = "Refresh";
+        refreshBtn.disabled = false;
+      }
+    }
+
+    function renderFallback() {
+      const sections = [
+        "agent-provenance",
+        "pipeline-provenance",
+        "intent-provenance",
+        "budget-provenance",
+        "voice-provenance",
+      ];
+      for (const id of sections) {
+        const el = document.getElementById(id);
+        if (!el) continue;
+        el.classList.add("state-warn");
+        el.textContent = `${el.textContent || "provenance pending"} · fallback mode active; data may be stale`;
+      }
+      document.getElementById("agent-stats").innerHTML = `<div class="status err"><div class="value">0</div><div class="label">Data unavailable</div></div>`;
+      document.getElementById("agents-grid").innerHTML = `<div class="list-empty">No fleet health data loaded.</div>`;
+      document.getElementById("pipeline-cards").innerHTML = `<div class="list-empty">No pipeline data loaded.</div>`;
+      document.getElementById("intent-body").innerHTML = `<tr><td colspan="4">No intent state loaded.</td></tr>`;
+      document.getElementById("budget-body").innerHTML = `<tr><td colspan="5">No budget state loaded.</td></tr>`;
+      document.getElementById("wake-list").innerHTML = `<div class="wake-row">No voice data loaded.</div>`;
+    }
+
+    document.getElementById("btn-refresh").addEventListener("click", () => {
+      refreshData();
+    });
+    refreshData();
+    setInterval(refreshData, REFRESH_INTERVAL_MS);
+  </script>
 </body>
 </html>
