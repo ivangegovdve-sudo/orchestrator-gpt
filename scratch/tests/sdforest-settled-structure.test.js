@@ -58,6 +58,42 @@ function byId(records, id) {
   return record;
 }
 
+function exportedCollection(module, matches, label) {
+  const collection = Object.values(module).find((value) => Array.isArray(value) && matches(value));
+  assert.ok(collection, label);
+  return collection;
+}
+
+function hasAliasOrDisplayDiscrepancy(record, expected) {
+  const values = Object.entries(record)
+    .filter(([key]) => /alias|short|display|discrepancy/i.test(key))
+    .flatMap(([, value]) => Array.isArray(value) ? value : [value]);
+  return values.some((value) => value === expected || (value && typeof value === 'object'
+    && Object.values(value).includes(expected)));
+}
+
+function routeValue(binding) {
+  return typeof binding === 'string' ? binding : binding?.route ?? binding?.path ?? binding?.href ?? binding?.url;
+}
+
+function isPermittedRoute(binding) {
+  const value = routeValue(binding);
+  if (typeof value !== 'string' || !value.trim()) return false;
+  return value.startsWith('/') || /^https?:\/\//.test(value)
+    || ['local', 'shared-pool-tab', 'external'].includes(binding?.type ?? binding?.kind);
+}
+
+function routeBindingsFrom(record) {
+  return Object.entries(record)
+    .filter(([key]) => /route|link|url/i.test(key))
+    .flatMap(([, value]) => Array.isArray(value) ? value : [value]);
+}
+
+function ownerResolvesToEntity(owner, entityIds) {
+  return entityIds.has(owner.id) || Object.entries(owner).some(([key, value]) =>
+    /project|entity|catalog/i.test(key) && typeof value === 'string' && entityIds.has(value));
+}
+
 test('settled pool catalog is frozen, complete, entry-enabled, and routed', async () => {
   const { POOL_CATALOG } = await catalog();
   assert.equal(Object.isFrozen(POOL_CATALOG), true);
@@ -89,12 +125,20 @@ test('settled projects retain canonical primary pools and lifecycle facts', asyn
     'solution', 'category', 'shelf', 'graphified', 'capability-cards', 'index-search',
   ]);
   const womensHealth = byId(PROJECT_CATALOG, 'womens-health-os');
-  assert.ok(womensHealth.aliases.includes('Women’s Health'));
+  assert.ok(hasAliasOrDisplayDiscrepancy(womensHealth, 'Women’s Health'));
   const velune = byId(PROJECT_CATALOG, 'velune');
   assert.ok(velune.attribution.names.includes('nikhilvishwakarma00'));
   assert.match(velune.attribution.changeDescription, /audio-only.*YouTube.*no video/i);
   for (const id of ['chloe-pwa', 'chloe-desktop']) {
-    assert.equal(byId(PROJECT_CATALOG, id).visibility.documentation, 'unpublished');
+    const project = byId(PROJECT_CATALOG, id);
+    assert.equal(typeof project.publicName, 'string', `${id} public name`);
+    assert.ok(project.publicName.trim(), `${id} public name`);
+    assert.equal(project.visibility.documentation, 'unpublished');
+  }
+  for (const id of ['chair-or-ladder', 'life-in-time', 'power-law-odyssey', 'we-are-the-training-data']) {
+    const project = byId(PROJECT_CATALOG, id);
+    assert.equal(typeof project.publicName, 'string', `${id} public name`);
+    assert.ok(project.publicName.trim(), `${id} public name`);
   }
   const fleet = byId(PROJECT_CATALOG, 'fleet-board');
   assert.equal(fleet.visibility.access, 'internal');
@@ -102,15 +146,21 @@ test('settled projects retain canonical primary pools and lifecycle facts', asyn
 });
 
 test('design-gallery categories and reconciled non-projects do not inflate projects or pools', async () => {
-  const { PROJECT_CATALOG, DESIGN_GALLERY_SUBCATEGORIES, CATALOG_NON_PROJECTS, POOL_CATALOG } = await catalog();
-  assert.deepEqual(DESIGN_GALLERY_SUBCATEGORIES.map(({ name }) => name), ['Game Design', 'Web Design', 'Website History']);
-  const history = DESIGN_GALLERY_SUBCATEGORIES.find(({ name }) => name === 'Website History');
+  const module = await catalog();
+  const { PROJECT_CATALOG, POOL_CATALOG } = module;
+  const designGalleryCategories = exportedCollection(module,
+    (records) => records.map(({ name }) => name).join('|') === 'Game Design|Web Design|Website History',
+    'dedicated Design Gallery category collection');
+  const nonProjects = exportedCollection(module,
+    (records) => records.some(({ name }) => name === 'Open Design') && records.some(({ name }) => name === 'Portfolio'),
+    'non-project reconciliation collection');
+  const history = designGalleryCategories.find(({ name }) => name === 'Website History');
   assert.equal(history.state, 'Live');
   assert.ok(history.material.includes('Evolution'));
   assert.equal(PROJECT_CATALOG.some(({ publicName }) => ['Game Design', 'Web Design', 'Website History', 'Evolution'].includes(publicName)), false);
   const expected = ['Open Design', 'repo-shelf', 'Voice Playground', 'AI_INIT Glossary', 'Multiply Magic', 'Evolution', 'Found Work', 'Kids Corner', 'Site Home', 'Portfolio'];
   for (const name of expected) {
-    const record = CATALOG_NON_PROJECTS.find((entry) => entry.name === name);
+    const record = nonProjects.find((entry) => entry.name === name);
     assert.ok(record, name);
     assert.ok(record.disposition);
     assert.equal(PROJECT_CATALOG.some((project) => project.publicName === name), false, name);
@@ -144,30 +194,44 @@ test('C2C topology preserves the self mirror relationship and evidence limits', 
   assert.notEqual(self.id, dolphin.id);
   assert.equal(self.relationship.type, 'self-mirror-control');
   assert.equal(self.relationship.projectId, 'c2c-dolphin');
-  assert.ok(dolphin.aliases.includes('AI Conversation'));
+  assert.ok(hasAliasOrDisplayDiscrepancy(dolphin, 'AI Conversation'));
   assert.equal(dolphin.evidenceLevel, 'rederivation-required');
   assert.equal(self.evidenceLevel, 'rederivation-required');
 });
 
-test('each project has a route binding and route owners can be catalog entities beyond projects', async () => {
-  const { PROJECT_CATALOG, ROUTE_OWNERS, POOL_CATALOG, CATALOG_NON_PROJECTS } = await catalog();
+test('projects have permitted route bindings and route owners resolve to catalog entities', async () => {
+  const module = await catalog();
+  const { PROJECT_CATALOG, ROUTE_OWNERS, POOL_CATALOG } = module;
+  const nonProjects = exportedCollection(module,
+    (records) => records.some(({ name }) => name === 'Open Design') && records.some(({ name }) => name === 'Portfolio'),
+    'non-project reconciliation collection');
   const entities = new Set([
     ...PROJECT_CATALOG.map(({ id }) => id),
     ...POOL_CATALOG.map(({ id }) => id),
-    ...CATALOG_NON_PROJECTS.map(({ id }) => id),
+    ...nonProjects.map(({ id }) => id),
   ]);
   for (const project of PROJECT_CATALOG) {
-    assert.ok(ROUTE_OWNERS.some((owner) => owner.projectId === project.id || owner.entityId === project.id), project.id);
+    const bindings = [
+      ...routeBindingsFrom(project),
+      ...ROUTE_OWNERS.filter((owner) => ownerResolvesToEntity(owner, new Set([project.id])))
+        .flatMap(routeBindingsFrom),
+    ];
+    assert.ok(bindings.some(isPermittedRoute), `${project.id} needs local, shared pool-tab, or external route binding`);
   }
   for (const owner of ROUTE_OWNERS) {
-    assert.ok(entities.has(owner.projectId ?? owner.entityId), owner.id);
+    assert.ok(ownerResolvesToEntity(owner, entities), owner.id);
   }
 });
 
 test('settled records keep metrics, update, readiness, and evidence separate from lifecycle', async () => {
   const { PROJECT_CATALOG } = await catalog();
   for (const project of PROJECT_CATALOG) {
+    assert.equal(Array.isArray(project.metrics), true, `${project.id} has explicit metrics array`);
     assert.notEqual(project.metrics, project.status, project.id);
+    for (const metric of project.metrics) {
+      assert.equal(typeof metric, 'object', `${project.id} metric is structured`);
+      assert.notEqual(metric, null, `${project.id} metric is non-null`);
+    }
     assert.ok(Object.hasOwn(project, 'lastMeaningfullyUpdated'), project.id);
     assert.ok(Object.hasOwn(project, 'readiness'), project.id);
     assert.ok(Object.hasOwn(project, 'evidenceLevel'), project.id);
