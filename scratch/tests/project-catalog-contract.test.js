@@ -325,12 +325,12 @@ test('Health reading projects retain distinct observed implementations and their
 
 test('open questions are ordered and unresolved page facts remain honest', async () => {
   const { PROJECT_CATALOG, CATALOG_FINDINGS } = await catalog();
-  assert.deepEqual(CATALOG_FINDINGS.slice(0, 3).map(({ question }) => question), [
+  const open = CATALOG_FINDINGS.filter(({ status }) => status === '[OPEN]');
+  assert.deepEqual(open.map(({ question }) => question), [
     'Artificial Self / AI Research pool-vs-project naming',
     'Public round-table council crossover membership',
-    'C2C research publication/rederivation',
   ]);
-  for (const finding of CATALOG_FINDINGS.slice(0, 3)) {
+  for (const finding of open) {
     assert.equal(finding.status, '[OPEN]');
     assert.equal(finding.costToReverse, 'high');
   }

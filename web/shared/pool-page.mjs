@@ -22,7 +22,7 @@ export function projectPresentation(project) {
 
 export function renderProject(project, { heading = 'h3' } = {}) {
   const { restricted, comingSoon, enabled, update } = projectPresentation(project);
-  const status = project.status || 'Status awaiting decision';
+  const status = project.status || 'awaiting reconciliation';
   const attribution = typeof project.attribution === 'string' ? project.attribution
     : project.attribution?.type === 'fork'
       ? `Fork of work by ${project.attribution.names.join(', ')}. ${project.attribution.changeDescription}` : '';
@@ -53,11 +53,18 @@ export function renderProject(project, { heading = 'h3' } = {}) {
     ${!enabled && !comingSoon && !restricted ? '<p>Entry awaiting review. A lifecycle label does not certify readiness.</p>' : ''}
     ${comingSoon ? '<p>Coming Soon — this project is still in development; entry is unavailable.</p>' : ''}
     ${attribution ? `<p class="pool-attribution">${escape(attribution)}</p>` : ''}
+    ${project.displayDiscrepancy ? `<p class="pool-title-discrepancy">Observed deployed title: ${escape(project.displayDiscrepancy.deployedName)}. Catalog/archive label: ${escape(project.displayDiscrepancy.canonicalName)}.</p>` : ''}
     ${typeof project.evidenceLevel === 'object' && project.evidenceLevel?.review !== 'verified' ? '<p class="pool-evidence">Evidence review remains pending.</p>' : ''}
     ${project.evidenceLevel === 'rederivation-required' ? '<p class="pool-evidence">Archive interpretations require rederivation. Existing C2C outcome claims are not verified findings.</p>' : ''}
     ${project.relationship?.type === 'self-mirror-control' ? `<p>${escape(project.relationship.description)}</p>` : ''}
     ${routes ? `<ul class="pool-bindings">${routes}</ul>` : !restricted ? '<p>This pool listing is the catalog entry; no separate implementation is bound for public entry.</p>' : ''}
   </article>`;
+}
+
+export function renderPoolContext(pool) {
+  if (pool.pageMode !== 'narrative-first') return '';
+  return `<p>${escape(pool.narrative.intent)}</p><p>${escape(pool.narrative.availability)}</p>
+    ${(pool.relatedLinks || []).map((link) => `<p><a href="${escape(link.route)}">${escape(link.publicName)}</a> — ${escape(link.attribution)}.</p>`).join('')}`;
 }
 
 export function renderPoolProjects(poolId) {
@@ -111,6 +118,8 @@ export function enhanceHealthTabs(root, location = globalThis.location) {
 export function mountPoolPage(root) {
   const pool = POOL_CATALOG.find(({ id }) => id === root.dataset.poolId);
   if (!pool) return;
+  const context = root.querySelector('[data-pool-context]');
+  if (context) context.innerHTML = renderPoolContext(pool);
   const listing = root.querySelector('[data-pool-projects]');
   const fragment = root.ownerDocument.createDocumentFragment();
   for (const project of getPoolProjects(pool.publicName)) {

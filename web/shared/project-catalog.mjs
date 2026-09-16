@@ -1,6 +1,5 @@
 // Factual catalog boundary, independent of homepage curation and Forest Trails.
-// Authority: docs/superpowers/plans/2026-09-15-sdforest-catalog-registry.md
-// and the settled decisions in SDFOREST-MASTER-PLAN.md (PR #569).
+// Current interview authority: docs/sdforest-settled-structure.md.
 // Source observations establish page existence, not deployed flow/evidence quality.
 
 function deepFreeze(value) {
@@ -20,9 +19,10 @@ export const PROJECT_STATUSES = Object.freeze([
   'Live', 'Research', 'Experimental', 'In development',
 ]);
 
-const PLAN = 'docs/superpowers/plans/2026-09-15-sdforest-catalog-registry.md';
-const MASTER = 'SDFOREST-MASTER-PLAN.md (PR #569)';
-const SETTLED = '.superpowers/sdd/2026-09-16-sdforest-settled-structure/task-2-brief.md';
+const SETTLED = 'docs/sdforest-settled-structure.md';
+// Compatibility names for source references now all resolve to tracked authority.
+const PLAN = SETTLED;
+const MASTER = SETTLED;
 export const POOL_CATALOG = deepFreeze([
   ['growingapp', 'GrowingApp', 'Learning, family tools, and growing together.'],
   ['ai-d-kit', 'AI-d kit', 'Tools for finding, understanding, and working with AI.'],
@@ -34,6 +34,15 @@ export const POOL_CATALOG = deepFreeze([
 ].map(([id, publicName, summary]) => ({
   id, kind: 'pool', publicName, summary, state: 'Live', entryEnabled: true,
   route: `/web/pools/${id}/`, sources: [SETTLED],
+  ...(id === 'my-story' ? {
+    pageMode: 'narrative-first',
+    narrative: {
+      state: 'content-required',
+      intent: 'A short personal narrative carries this page, with timeline fragments and selected project or evidence windows.',
+      availability: 'The personal narrative has not yet been provided for this page.',
+    },
+    relatedLinks: [{ projectId: 'manifesto-newborn', publicName: 'Manifesto for a Newborn', route: '/web/manifesto-newborn/', attribution: 'Ivan-authored content' }],
+  } : {}),
 })));
 const publicShell = {
   navigation: 'manual', search: 'unreviewed', indexing: 'unspecified',
@@ -52,7 +61,7 @@ const compatibility = {
 export const DESIGN_GALLERY_SUBCATEGORIES = deepFreeze([
   { id: 'game-design', name: 'Game Design', material: [] },
   { id: 'web-design', name: 'Web Design', aliases: ['Web Design Gallery'], material: [] },
-  { id: 'website-history', name: 'Website History', state: 'Live', material: ['Evolution'] },
+  { id: 'website-history', name: 'Website History', state: 'Live', material: ['Evolution', 'Poetry Space'] },
 ].map((category) => ({
   ...category, kind: 'category', publicName: category.name, pool: 'Design Gallery',
   disposition: 'Design Gallery subcategory', visibility: publicShell, sources: [SETTLED],
@@ -98,7 +107,7 @@ function project(id, publicName, facts) {
   };
 }
 
-// Null pool + unresolved classification retains an unsettled project decision.
+// Null pool + unresolved classification retains a required reconciliation gap.
 // Site controls and reconciled legacy references live outside this collection.
 const projectRecords = [
   project('morning-news', 'The Drop', {
@@ -133,7 +142,7 @@ const projectRecords = [
   }),
   project('c2c-self', 'C2C Self', {
     pool: 'Artificial Self', classification: 'assigned', status: 'Research', visibility: publicShell,
-    relationship: { type: 'self-mirror-control', projectId: 'c2c-dolphin', modelConfiguration: 'identical-model', description: 'Identical-model self-mirror control of C2C Dolphin.' },
+    relationship: { type: 'self-mirror-control', projectId: 'c2c-dolphin', modelConfiguration: 'identical-model', controlRole: 'structural-interpretation', description: 'A distinct identical-model self-mirror experiment; its control role relative to C2C Dolphin is a structural interpretation.' },
     evidenceLevel: 'rederivation-required',
     evidence: { level: 'archive-unverified', review: 'rederivation-required', sources: ['web/c2c-self/index.html', MASTER] },
     sources: ['web/c2c-self/index.html', PLAN],
@@ -155,10 +164,12 @@ const projectRecords = [
   }),
   project('chair-or-ladder', 'Chair or a Ladder', {
     pool: 'My Story', classification: 'assigned', status: 'Live', visibility: publicShell,
+    requiredWork: [{ type: 'recording', description: 'Ivan must make a proper recording for speech-to-speech with Chloé’s voice.' }],
     relationships: [{ type: 'optional-tree-context' }], sources: ['web/chair-or-ladder/index.html', MASTER],
   }),
   project('life-in-time', 'Life in Time', {
     pool: 'My Story', classification: 'assigned', status: 'Live', visibility: publicShell,
+    requiredWork: [{ type: 'redesign', description: 'Needs a complete redesign.' }],
     relationships: [{ type: 'optional-tree-context' }], sources: ['web/life-in-time/index.html', MASTER],
   }),
   project('power-law-odyssey', 'Power Law Odyssey', {
@@ -179,12 +190,14 @@ const projectRecords = [
   project('dyslexia', 'Dyslexia Reading Platform', {
     pool: 'Health', classification: 'assigned', status: 'Live', visibility: publicShell, sources: ['index.html', PLAN],
     implementationUrl: 'https://chloe.blumenkraft.cloud/dyslexia/',
+    unification: { direction: 'one-platform', projectIds: ['dyslexia', 'audiobook'], currentPresentation: 'separate-tabs-and-implementations', state: 'not-yet-merged' },
   }),
   project('audiobook', 'Audiobook Studio', {
     pool: 'Health', classification: 'assigned', status: 'Live', visibility: publicShell, sources: ['index.html', PLAN],
     implementationUrl: 'https://chloe.blumenkraft.cloud/audiobook/',
+    unification: { direction: 'one-platform', projectIds: ['dyslexia', 'audiobook'], currentPresentation: 'separate-tabs-and-implementations', state: 'not-yet-merged' },
   }),
-  project('lobester-gym', 'Lobester Gym', { pool: 'GrowingApp', classification: 'assigned', status: 'In development', visibility: publicShell, sources: ['web/lobester-gym/index.html', SETTLED] }),
+  project('lobester-gym', 'Lobester Gym', { pool: 'GrowingApp', classification: 'assigned', status: 'In development', identity: { purpose: 'ADHD brain-exercise app', distinctFrom: 'gym-scholar' }, visibility: publicShell, sources: ['web/lobester-gym/index.html', SETTLED] }),
   project('womens-health-os', 'Women’s Health OS', { pool: 'Health', classification: 'assigned', status: 'In development', aliases: ['Women’s Health'], visibility: publicShell, sources: ['web/womens-health-os/index.html', SETTLED] }),
   project('hypertrophyos', 'Hyper Trophy OS', { visibility: publicShell, sources: ['web/hypertrophyos/index.html', PLAN] }),
   project('gym-scholar', 'Gym Scholar', {
@@ -346,7 +359,8 @@ export function getPoolProjects(poolName) {
 function finding(projectId, field, question, options, reason, extra = {}) {
   const record = PROJECT_CATALOG.find(({ id }) => id === projectId);
   return {
-    findingId: `${projectId}.${field}`, projectId, pool: record.pool, field, status: '[OPEN]',
+    findingId: `${projectId}.${field}`, projectId, pool: record.pool, field, status: 'required',
+    kind: ['lastMeaningfullyUpdated', 'evidenceLevel', 'routeEvidence', 'accessEnforcement'].includes(field) ? 'evidence-required' : 'reconciliation-required',
     question, options, reason, costToReverse: 'medium', sources: record.sources,
     ...extra,
   };
@@ -359,16 +373,27 @@ const dateReasons = {
   'replicator-void': 'The 2026-09-03 Open Dashboard rename only changes navigation references; it is not verified evidence of a simulation update.',
 };
 
-export const CATALOG_FINDINGS = deepFreeze([
+export const CATALOG_OPEN_QUESTIONS = deepFreeze([
   finding('ai-research', 'displayNaming', 'Artificial Self / AI Research pool-vs-project naming',
-    ['Keep Artificial Self as the pool and AI Research as its project', 'Rename the pool display label to AI Research and choose a distinct project display label'],
-    'Canonical membership remains Artificial Self until the pool/project naming decision is settled.', { costToReverse: 'high' }),
+    ['Artificial Self names the pool; AI Research names the research project', 'AI Research names the pool; Artificial Self names the research project'],
+    'The existing seven-pool identifier remains in use without settling display naming. Reversal changes catalog labels, navigation copy and references; changing route identifiers later also requires redirects.', { status: '[OPEN]', kind: 'product-decision', costToReverse: 'high' }),
   finding('council', 'crossover', 'Public round-table council crossover membership',
-    ['Keep AI-d kit membership and add contextual cross-links from relevant pools', 'Introduce a reviewed crossover display model while retaining a single primary AI-d kit membership'],
-    'Crossovers affect navigation, ownership, and future catalog consumers; no second membership is approved.', { costToReverse: 'high' }),
-  finding('c2c-dolphin', 'publication', 'C2C research publication/rederivation',
-    ['Publish the preserved archives with interpretations explicitly unverified', 'Rederive measurements and review claims before publishing research conclusions'],
-    'The self-mirror control relationship is settled; archive conclusions still require rederivation.', { costToReverse: 'high' }),
+    ['Keep council only in AI-d kit', 'Allow council to appear in AI-d kit and Artificial Self'],
+    'The current scalar pool field allows one primary membership. Multiple memberships require a schema change and migration of validators, selectors, ownership and presentation rules; no second membership is implemented.', { status: '[OPEN]', kind: 'product-decision', costToReverse: 'high' }),
+]);
+
+export const CATALOG_RESOLUTIONS = deepFreeze([{
+  resolutionId: 'c2c-self.identity', projectId: 'c2c-self', status: 'resolved',
+  question: 'Is C2C Self another name for C2C Dolphin or a different experiment?',
+  outcome: 'C2C Self is an identical-model self-mirror experiment, distinct from cross-model C2C Dolphin.',
+  evidence: 'Separate pages identify identical model A/B mirror instances versus two different models, respectively. Both routes were added in the same historical commit.',
+  history: { commit: 'edef7874d4e2a84f32bc2abc0fbc43a06c66f83b', date: '2026-08-03' },
+  interpretation: 'Calling the self-mirror experiment a control is a structural interpretation, not a verified experimental outcome.',
+  limit: 'No research outcomes are validated by this identity resolution. Profiles, partner effects, archetype convergence and any Qwen initiator effect require artifact-backed rederivation.',
+  sources: [SETTLED, 'web/c2c-self/index.html', 'web/c2c-dolphin/index.html'],
+}]);
+
+export const CATALOG_REQUIREMENTS = deepFreeze([
   ...PROJECT_CATALOG.flatMap((record) => [
     ...(record.classification === 'unresolved' ? [finding(record.id, 'pool',
       `What approved pool or outside-pool role belongs to ${record.publicName}?`,
@@ -403,13 +428,16 @@ export const CATALOG_FINDINGS = deepFreeze([
     'Only a homepage handoff is observed here; no copied local application or verified end-to-end route is established.')),
   ...['c2c-dolphin', 'c2c-self'].map((id) => finding(id, 'evidenceLevel',
     'Which published C2C measurements and interpretations survive rederivation?',
-    ['Rederive and review reproducible findings', 'Retain the transcript archive with unverified interpretations identified'],
-    'Research status and preserved transcripts do not validate the published measurements.', { costToReverse: 'high' })),
+    ['Recover experiment artifacts and rederive the measurements', 'Keep conclusions withheld while the required rederivation is incomplete'],
+    'Rederivation is mandatory before publishing research findings; preserved transcripts and identity evidence do not validate measurements.', { costToReverse: 'high' })),
   ...['lobester-gym', 'womens-health-os', 'dyslexia', 'hypertrophyos'].map((id) => finding(id, 'evidenceLevel',
     `What peer-reviewed evidence supports the precise claims made by ${PROJECT_CATALOG.find((record) => record.id === id).publicName}?`,
     ['Review ingested evidence against a defined claim scope', 'Narrow or withhold unsupported claims while review remains open'],
     'Page descriptions and paper-count badges are not claim-level evidence review.', { costToReverse: 'high' })),
 ]);
+
+// Compatibility aggregate; kind/status distinguish decisions from required work.
+export const CATALOG_FINDINGS = deepFreeze([...CATALOG_OPEN_QUESTIONS, ...CATALOG_REQUIREMENTS]);
 
 const isRecord = (value) => value !== null && typeof value === 'object' && !Array.isArray(value);
 const hasText = (value) => typeof value === 'string' && value.trim().length > 0;
@@ -447,5 +475,6 @@ export function getCatalogSnapshot() {
     entities: CATALOG_ENTITIES, nonProjects: CATALOG_NON_PROJECTS,
     designGallerySubcategories: DESIGN_GALLERY_SUBCATEGORIES, poolListingProjects: POOL_LISTING_PROJECTS,
     publicCardProjects: PUBLIC_CARD_PROJECTS, routeOwners: ROUTE_OWNERS, findings: CATALOG_FINDINGS,
+    openQuestions: CATALOG_OPEN_QUESTIONS, requirements: CATALOG_REQUIREMENTS, resolutions: CATALOG_RESOLUTIONS,
   })));
 }

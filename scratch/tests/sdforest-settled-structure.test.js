@@ -173,7 +173,6 @@ test('open catalog findings remain explicit and do not resolve product questions
   const required = [
     'Artificial Self / AI Research pool-vs-project naming',
     'Public round-table council crossover membership',
-    'C2C research publication/rederivation',
   ];
   for (const question of required) {
     const finding = CATALOG_FINDINGS.find((entry) => entry.question === question);
@@ -182,9 +181,69 @@ test('open catalog findings remain explicit and do not resolve product questions
     assert.ok(Array.isArray(finding.options) && finding.options.length >= 2);
     assert.ok(finding.costToReverse);
   }
+  assert.equal(CATALOG_FINDINGS.filter(({ status }) => status === '[OPEN]').length, 2);
   assert.equal(byId(PROJECT_CATALOG, 'council').pool, 'AI-d kit');
   assert.equal(Object.hasOwn(byId(PROJECT_CATALOG, 'council'), 'pools'), false);
   assert.equal(POOL_CATALOG.length, 7);
+});
+
+test('catalog authority is portable and required evidence work is distinct from product decisions', async () => {
+  const fs = require('node:fs');
+  const { execFileSync } = require('node:child_process');
+  const module = await catalog();
+  const authority = 'docs/sdforest-settled-structure.md';
+  assert.ok(fs.existsSync(path.join(ROOT, authority)));
+  for (const entity of module.CATALOG_ENTITIES) {
+    assert.ok(entity.sources.includes(authority), entity.id);
+    for (const source of entity.sources) {
+      assert.ok(fs.existsSync(path.join(ROOT, source)), `${entity.id}: ${source}`);
+      assert.ok(execFileSync('git', ['ls-files', '--', source], { cwd: ROOT, encoding: 'utf8' }).trim(), source);
+    }
+  }
+  assert.equal(module.CATALOG_OPEN_QUESTIONS.length, 2);
+  assert.ok(module.CATALOG_REQUIREMENTS.length > 0);
+  assert.ok(module.CATALOG_REQUIREMENTS.every(({ status, kind }) => status !== '[OPEN]' && ['evidence-required', 'reconciliation-required'].includes(kind)));
+  const resolution = module.CATALOG_RESOLUTIONS.find(({ projectId }) => projectId === 'c2c-self');
+  assert.equal(resolution.status, 'resolved');
+  assert.match(resolution.outcome, /identical-model.*distinct.*cross-model/i);
+  assert.match(resolution.limit, /no research outcomes.*validated/i);
+  assert.ok(resolution.sources.includes('web/c2c-self/index.html'));
+  assert.ok(resolution.sources.includes('web/c2c-dolphin/index.html'));
+  assert.equal(resolution.history.commit, 'edef7874d4e2a84f32bc2abc0fbc43a06c66f83b');
+});
+
+test('catalog preserves settled unfinished work, shared Health direction, and history material', async () => {
+  const module = await catalog();
+  const by = (id) => byId(module.PROJECT_CATALOG, id);
+  assert.equal(by('lobester-gym').identity.purpose, 'ADHD brain-exercise app');
+  assert.equal(by('lobester-gym').identity.distinctFrom, 'gym-scholar');
+  assert.match(JSON.stringify(by('chair-or-ladder').requiredWork), /Ivan.*recording.*speech-to-speech.*Chloé/);
+  assert.match(JSON.stringify(by('life-in-time').requiredWork), /complete redesign/i);
+  for (const id of ['dyslexia', 'audiobook']) {
+    assert.equal(by(id).unification.direction, 'one-platform');
+    assert.equal(by(id).unification.currentPresentation, 'separate-tabs-and-implementations');
+    assert.deepEqual(by(id).unification.projectIds, ['dyslexia', 'audiobook']);
+  }
+  assert.deepEqual(module.DESIGN_GALLERY_SUBCATEGORIES.find(({ id }) => id === 'website-history').material, ['Evolution', 'Poetry Space']);
+});
+
+test('My Story preserves narrative intent and Ivan-authored Manifesto in static and rendered context', async () => {
+  const fs = require('node:fs');
+  const { POOL_CATALOG, PROJECT_CATALOG } = await catalog();
+  const presenter = await import(pathToFileURL(path.join(ROOT, 'web/shared/pool-page.mjs')).href);
+  const pool = byId(POOL_CATALOG, 'my-story');
+  assert.equal(pool.pageMode, 'narrative-first');
+  assert.equal(pool.relatedLinks[0].projectId, 'manifesto-newborn');
+  for (const content of [fs.readFileSync(path.join(ROOT, 'web/pools/my-story/index.html'), 'utf8'), presenter.renderPoolContext(pool)]) {
+    assert.match(content, /short personal narrative/i);
+    assert.match(content, /timeline fragments.*project.*evidence/i);
+    assert.match(content, /href="\/web\/manifesto-newborn\/"/);
+    assert.match(content, /Ivan-authored/);
+    assert.match(content, /not yet.*provided/i);
+  }
+  const dolphin = presenter.renderProject(byId(PROJECT_CATALOG, 'c2c-dolphin'));
+  assert.match(dolphin, /Observed deployed title: AI Conversation/);
+  assert.match(dolphin, /Catalog\/archive label: C2C Dolphin/);
 });
 
 test('C2C topology preserves the self mirror relationship and evidence limits', async () => {
