@@ -1,0 +1,177 @@
+'use strict';
+
+const assert = require('node:assert/strict');
+const path = require('node:path');
+const { pathToFileURL } = require('node:url');
+const { test } = require('node:test');
+
+const ROOT = path.resolve(__dirname, '../..');
+// Keep an isolated ESM import, matching the existing catalog contract test.
+const catalog = () => import(pathToFileURL(path.join(ROOT, 'web/shared/project-catalog.mjs')).href);
+
+const POOL_EXPECTATIONS = [
+  ['growingapp', 'GrowingApp', '/web/pools/growingapp/'],
+  ['ai-d-kit', 'AI-d kit', '/web/pools/ai-d-kit/'],
+  ['tinkerbox', 'TinkerBox', '/web/pools/tinkerbox/'],
+  ['health', 'Health', '/web/pools/health/'],
+  ['design-gallery', 'Design Gallery', '/web/pools/design-gallery/'],
+  ['artificial-self', 'Artificial Self', '/web/pools/artificial-self/'],
+  ['my-story', 'My Story', '/web/pools/my-story/'],
+];
+
+const PROJECT_EXPECTATIONS = [
+  ['rubiks-teacher', 'Rubik’s Teacher', 'GrowingApp', 'Live'],
+  ['mendeleev', 'Mendeleev', 'GrowingApp', 'Live'],
+  ['manifesto-newborn', 'Manifesto for a Newborn', 'GrowingApp', 'Live'],
+  ['math-forest', 'Math Mania / Forest Math', 'GrowingApp', 'Live'],
+  ['lobester-gym', 'Lobester Gym', 'GrowingApp', 'In development'],
+  ['kids-movie-library', 'Kids Library', 'GrowingApp', 'In development'],
+  ['morning-news', 'The Drop', 'AI-d kit', 'Live'],
+  ['open-dashboard', 'Open Dashboard', 'AI-d kit', 'Live'],
+  ['council', 'Public round-table council', 'AI-d kit', 'Live'],
+  ['library', 'Library', 'AI-d kit', 'Live'],
+  ['explore', 'Explore Repos', 'AI-d kit', 'Live'],
+  ['anycloudllm', 'AnyCloudLLM', 'AI-d kit', 'In development'],
+  ['gym-scholar', 'Gym Scholar', 'Health', 'Live'],
+  ['dyslexia', 'Dyslexia Reading Platform', 'Health', 'Live'],
+  ['audiobook', 'Audiobook Studio', 'Health', 'Live'],
+  ['flowform', 'FlowForm', 'Health', 'In development'],
+  ['womens-health-os', 'Women’s Health OS', 'Health', 'In development'],
+  ['avatar-playground', 'Avatar Playground', 'TinkerBox', 'Live'],
+  ['velune', 'Velune', 'TinkerBox', 'Live'],
+  ['item-icon-generator', 'Item Icon Generator', 'TinkerBox', 'In development'],
+  ['calendar', 'Calendar Generator', 'TinkerBox', 'In development'],
+  ['chloe-pwa', null, 'TinkerBox', 'In development'],
+  ['chloe-desktop', null, 'TinkerBox', 'In development'],
+  ['fleet-board', 'Fleet / Fleet Board', 'TinkerBox', 'Live'],
+  ['m-popova', 'Poetry Space', 'Design Gallery', 'Live'],
+  ['replicator-void', 'Replicator Void', 'Design Gallery', 'In development'],
+  ['chair-or-ladder', null, 'My Story', 'Live'],
+  ['life-in-time', null, 'My Story', 'Live'],
+  ['power-law-odyssey', null, 'My Story', 'In development'],
+  ['we-are-the-training-data', null, 'My Story', 'In development'],
+];
+
+function byId(records, id) {
+  const record = records.find((entry) => entry.id === id);
+  assert.ok(record, id);
+  return record;
+}
+
+test('settled pool catalog is frozen, complete, entry-enabled, and routed', async () => {
+  const { POOL_CATALOG } = await catalog();
+  assert.equal(Object.isFrozen(POOL_CATALOG), true);
+  assert.equal(POOL_CATALOG.length, 7);
+  assert.deepEqual(POOL_CATALOG.map(({ id, publicName, route }) => [id, publicName, route]), POOL_EXPECTATIONS);
+  for (const pool of POOL_CATALOG) {
+    assert.match(pool.id, /^[a-z0-9-]+$/);
+    assert.equal(pool.state, 'Live');
+    assert.equal(pool.entryEnabled, true);
+    assert.equal(typeof pool.summary, 'string');
+    assert.ok(pool.summary.trim());
+    assert.equal(Object.isFrozen(pool), true);
+  }
+});
+
+test('settled projects retain canonical primary pools and lifecycle facts', async () => {
+  const { PROJECT_CATALOG } = await catalog();
+  for (const [id, publicName, pool, status] of PROJECT_EXPECTATIONS) {
+    const project = byId(PROJECT_CATALOG, id);
+    if (publicName !== null) assert.equal(project.publicName, publicName, id);
+    assert.equal(project.pool, pool, id);
+    assert.equal(project.status, status, id);
+    assert.equal(Array.isArray(project.pool), false, `${id} has scalar pool`);
+  }
+  const kids = byId(PROJECT_CATALOG, 'kids-movie-library');
+  assert.deepEqual(kids.sections.map(({ id }) => id), ['movies', 'books']);
+  assert.equal(kids.sections.some(({ id }) => id === 'games'), false);
+  assert.deepEqual(byId(PROJECT_CATALOG, 'explore').modes, [
+    'solution', 'category', 'shelf', 'graphified', 'capability-cards', 'index-search',
+  ]);
+  const womensHealth = byId(PROJECT_CATALOG, 'womens-health-os');
+  assert.ok(womensHealth.aliases.includes('Women’s Health'));
+  const velune = byId(PROJECT_CATALOG, 'velune');
+  assert.ok(velune.attribution.names.includes('nikhilvishwakarma00'));
+  assert.match(velune.attribution.changeDescription, /audio-only.*YouTube.*no video/i);
+  for (const id of ['chloe-pwa', 'chloe-desktop']) {
+    assert.equal(byId(PROJECT_CATALOG, id).visibility.documentation, 'unpublished');
+  }
+  const fleet = byId(PROJECT_CATALOG, 'fleet-board');
+  assert.equal(fleet.visibility.access, 'internal');
+  assert.equal(fleet.visibility.navigation, 'unlisted');
+});
+
+test('design-gallery categories and reconciled non-projects do not inflate projects or pools', async () => {
+  const { PROJECT_CATALOG, DESIGN_GALLERY_SUBCATEGORIES, CATALOG_NON_PROJECTS, POOL_CATALOG } = await catalog();
+  assert.deepEqual(DESIGN_GALLERY_SUBCATEGORIES.map(({ name }) => name), ['Game Design', 'Web Design', 'Website History']);
+  const history = DESIGN_GALLERY_SUBCATEGORIES.find(({ name }) => name === 'Website History');
+  assert.equal(history.state, 'Live');
+  assert.ok(history.material.includes('Evolution'));
+  assert.equal(PROJECT_CATALOG.some(({ publicName }) => ['Game Design', 'Web Design', 'Website History', 'Evolution'].includes(publicName)), false);
+  const expected = ['Open Design', 'repo-shelf', 'Voice Playground', 'AI_INIT Glossary', 'Multiply Magic', 'Evolution', 'Found Work', 'Kids Corner', 'Site Home', 'Portfolio'];
+  for (const name of expected) {
+    const record = CATALOG_NON_PROJECTS.find((entry) => entry.name === name);
+    assert.ok(record, name);
+    assert.ok(record.disposition);
+    assert.equal(PROJECT_CATALOG.some((project) => project.publicName === name), false, name);
+  }
+  assert.equal(POOL_CATALOG.some(({ publicName }) => ['AI Research', 'Kids Corner'].includes(publicName)), false);
+});
+
+test('open catalog findings remain explicit and do not resolve product questions', async () => {
+  const { CATALOG_FINDINGS, PROJECT_CATALOG, POOL_CATALOG } = await catalog();
+  const required = [
+    'Artificial Self / AI Research pool-vs-project naming',
+    'Public round-table council crossover membership',
+    'C2C research publication/rederivation',
+  ];
+  for (const question of required) {
+    const finding = CATALOG_FINDINGS.find((entry) => entry.question === question);
+    assert.ok(finding, question);
+    assert.match(finding.status, /^\[OPEN\]/);
+    assert.ok(Array.isArray(finding.options) && finding.options.length >= 2);
+    assert.ok(finding.costToReverse);
+  }
+  assert.equal(byId(PROJECT_CATALOG, 'council').pool, 'AI-d kit');
+  assert.equal(Object.hasOwn(byId(PROJECT_CATALOG, 'council'), 'pools'), false);
+  assert.equal(POOL_CATALOG.length, 7);
+});
+
+test('C2C topology preserves the self mirror relationship and evidence limits', async () => {
+  const { PROJECT_CATALOG } = await catalog();
+  const self = byId(PROJECT_CATALOG, 'c2c-self');
+  const dolphin = byId(PROJECT_CATALOG, 'c2c-dolphin');
+  assert.notEqual(self.id, dolphin.id);
+  assert.equal(self.relationship.type, 'self-mirror-control');
+  assert.equal(self.relationship.projectId, 'c2c-dolphin');
+  assert.ok(dolphin.aliases.includes('AI Conversation'));
+  assert.equal(dolphin.evidenceLevel, 'rederivation-required');
+  assert.equal(self.evidenceLevel, 'rederivation-required');
+});
+
+test('each project has a route binding and route owners can be catalog entities beyond projects', async () => {
+  const { PROJECT_CATALOG, ROUTE_OWNERS, POOL_CATALOG, CATALOG_NON_PROJECTS } = await catalog();
+  const entities = new Set([
+    ...PROJECT_CATALOG.map(({ id }) => id),
+    ...POOL_CATALOG.map(({ id }) => id),
+    ...CATALOG_NON_PROJECTS.map(({ id }) => id),
+  ]);
+  for (const project of PROJECT_CATALOG) {
+    assert.ok(ROUTE_OWNERS.some((owner) => owner.projectId === project.id || owner.entityId === project.id), project.id);
+  }
+  for (const owner of ROUTE_OWNERS) {
+    assert.ok(entities.has(owner.projectId ?? owner.entityId), owner.id);
+  }
+});
+
+test('settled records keep metrics, update, readiness, and evidence separate from lifecycle', async () => {
+  const { PROJECT_CATALOG } = await catalog();
+  for (const project of PROJECT_CATALOG) {
+    assert.notEqual(project.metrics, project.status, project.id);
+    assert.ok(Object.hasOwn(project, 'lastMeaningfullyUpdated'), project.id);
+    assert.ok(Object.hasOwn(project, 'readiness'), project.id);
+    assert.ok(Object.hasOwn(project, 'evidenceLevel'), project.id);
+  }
+  assert.equal(byId(PROJECT_CATALOG, 'dyslexia').lastMeaningfullyUpdated, null);
+  assert.equal(byId(PROJECT_CATALOG, 'audiobook').lastMeaningfullyUpdated, null);
+});

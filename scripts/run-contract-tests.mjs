@@ -4,6 +4,7 @@ import { spawnSync } from 'node:child_process';
 const files = [
   'scratch/tests/route-inventory-contract.test.js',
   'scratch/tests/project-catalog-contract.test.js',
+  'scratch/tests/sdforest-settled-structure.test.js',
   'scratch/tests/static-route-registry-validator.test.js',
   'scratch/tests/static-route-coverage.test.js',
 ];
