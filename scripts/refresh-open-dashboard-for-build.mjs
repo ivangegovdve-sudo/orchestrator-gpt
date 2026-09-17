@@ -10,19 +10,32 @@ const snapshotUrl = new URL(
 );
 const previousBytes = await readFile(snapshotUrl);
 const previous = JSON.parse(previousBytes);
+const nousSnapshotUrl = new URL(
+  "../web/open-dashboard/nous-catalogue.json",
+  import.meta.url,
+);
+const previousNousBytes = await readFile(nousSnapshotUrl).catch(() => null);
+
+function runScript(script, timeout = 90000, env = process.env) {
+  return spawnSync(process.execPath, [script], {
+    cwd: root,
+    timeout,
+    maxBuffer: 1024 * 1024,
+    encoding: "utf8",
+    windowsHide: true,
+    env,
+  });
+}
+
+// Package facts come from a real in-memory MCP handshake (tools/list), so a
+// deployment cannot silently describe a different installed contract.
+const factsResult = runScript("scripts/refresh-open-dashboard-package-facts.mjs");
+if (factsResult.error || factsResult.status !== 0)
+  throw new Error("The installed open-dashboard-mcp contract could not be verified.");
+console.log(factsResult.stdout.trim());
 
 try {
-  const result = spawnSync(
-    process.execPath,
-    ["web/open-dashboard/scripts/refresh-media.mjs"],
-    {
-      cwd: root,
-      timeout: 90000,
-      maxBuffer: 1024 * 1024,
-      encoding: "utf8",
-      windowsHide: true,
-    },
-  );
+  const result = runScript("web/open-dashboard/scripts/refresh-media.mjs");
   if (result.error || result.status !== 0)
     throw new Error("The public catalogue refresh did not complete.");
   const current = JSON.parse(await readFile(snapshotUrl, "utf8"));
@@ -52,4 +65,20 @@ try {
   console.warn(
     `Open Dashboard: ${error.message} Using the checked-in snapshot from ${previous.fetchedAt}; its original source dates remain visible.`,
   );
+}
+
+// Nous is an authenticated, read-only supplement. Keep the dated checked-in
+// snapshot for builds that do not have a key; never make a deployment depend on
+// a secret being present and never print a failed response body.
+if (process.env.NOUS_API_KEY?.trim()) {
+  const result = runScript("web/open-dashboard/scripts/refresh-nous-catalogue.mjs");
+  if (result.error || result.status !== 0) {
+    if (previousNousBytes)
+      await writeFile(nousSnapshotUrl, previousNousBytes);
+    console.warn(
+      "Open Dashboard: Nous catalogue refresh unavailable; retaining the checked-in authenticated snapshot.",
+    );
+  } else {
+    console.log(result.stdout.trim());
+  }
 }

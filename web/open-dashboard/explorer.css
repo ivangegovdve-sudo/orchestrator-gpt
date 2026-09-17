@@ -2020,6 +2020,124 @@ h1 {
   text-decoration: underline;
   text-underline-offset: 3px;
 }
+.provider-pair-control {
+  display: grid;
+  grid-template-columns: minmax(180px, 0.8fr) minmax(0, 1fr);
+  gap: 10px 18px;
+  align-items: center;
+  padding: 11px 22px;
+  border-bottom: 1px solid var(--line);
+  background: color-mix(in srgb, var(--accent-soft) 44%, var(--surface));
+}
+.provider-pair-heading {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.provider-pair-heading strong {
+  font-size: var(--text-control);
+  color: var(--ink);
+}
+.provider-pair-heading span {
+  color: var(--muted);
+  font-size: var(--text-caption);
+  line-height: 1.4;
+}
+.provider-pair-fields {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  min-width: 0;
+}
+.provider-pair-fields label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  color: var(--muted);
+  font-size: var(--text-caption);
+}
+.provider-pair-fields select {
+  min-width: 0;
+  width: 150px;
+  min-height: 34px;
+  font-size: var(--text-caption);
+}
+.provider-pair-fields .pair-vs {
+  color: var(--accent);
+  font-size: var(--text-control);
+  font-weight: 750;
+}
+.provider-pair-fields .subtle-button {
+  margin-left: auto;
+  white-space: nowrap;
+}
+.pair-comparison {
+  border-top: 1px solid var(--line);
+  margin-top: 12px;
+  padding-top: 12px;
+}
+.pair-comparison-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  color: var(--muted);
+  font-size: var(--text-caption);
+}
+.pair-comparison-heading strong {
+  color: var(--ink);
+  font-size: var(--text-control);
+}
+.pair-comparison-empty {
+  font-size: var(--text-control);
+  margin: 9px 0 0;
+}
+.pair-comparison-table {
+  border-collapse: collapse;
+  width: 100%;
+  margin-top: 9px;
+  font-size: var(--text-caption);
+}
+.pair-comparison-table caption {
+  text-align: left;
+  color: var(--muted);
+  margin-bottom: 5px;
+}
+.pair-comparison-table th,
+.pair-comparison-table td {
+  border-bottom: 1px solid var(--line);
+  padding: 6px 8px 6px 0;
+  text-align: left;
+  vertical-align: top;
+}
+.pair-comparison-table th {
+  color: var(--ink);
+  font-weight: 650;
+}
+.pair-comparison-table code {
+  overflow-wrap: anywhere;
+}
+.pair-axis path,
+.pair-axis line {
+  stroke: var(--line);
+}
+.pair-axis text,
+.pair-value,
+.pair-legend text {
+  fill: var(--muted);
+  font-size: 11px;
+}
+.pair-bar {
+  cursor: pointer;
+  opacity: 0.84;
+}
+.pair-bar:hover,
+.pair-bar:focus {
+  opacity: 1;
+  outline: none;
+}
 .extra-filters {
   gap: 12px 20px;
   padding: 12px 22px;
@@ -2316,6 +2434,33 @@ h1 {
   .extra-filters,
   .axis-bar {
     padding-inline: 15px;
+  }
+  .provider-pair-control {
+    grid-template-columns: 1fr;
+    padding-inline: 15px;
+  }
+  .provider-pair-fields {
+    flex-wrap: wrap;
+  }
+  .provider-pair-fields label {
+    flex: 1 1 140px;
+  }
+  .provider-pair-fields select {
+    width: auto;
+    flex: 1;
+  }
+  .provider-pair-fields .subtle-button {
+    margin-left: 0;
+  }
+  .pair-comparison-heading {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 3px;
+  }
+  .pair-comparison-table {
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
   }
   .axis-bar > div {
     flex-basis: 100%;

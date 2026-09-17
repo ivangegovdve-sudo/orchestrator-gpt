@@ -3,7 +3,7 @@ import { formatNpmDownloadAge } from "./npm-downloads.js";
 export const NPM_RELEASES_URL = "https://registry.npmjs.org/open-dashboard-mcp";
 export const NPM_RELEASE_CACHE_KEY = "open-dashboard-mcp:npm-releases:v1";
 export const NPM_RELEASE_CACHE_TTL_MS = 6 * 60 * 60 * 1000;
-export const NPM_RELEASE_TO_SHOW = "1.1.2";
+export const NPM_RELEASE_TO_SHOW = "1.1.4";
 
 const NPM_PACKAGE = "open-dashboard-mcp";
 const NPM_RELEASE_CACHE_VERSION = 1;
@@ -19,7 +19,7 @@ function normalizeReleaseFacts(value) {
     value.package !== NPM_PACKAGE ||
     !validVersion(value.latest) ||
     !Array.isArray(value.published) ||
-    value.published.length < 2 ||
+    value.published.length < 1 ||
     value.published.some((version) => !validVersion(version)) ||
     !value.published.includes(NPM_RELEASE_TO_SHOW) ||
     !value.published.includes(value.latest) ||

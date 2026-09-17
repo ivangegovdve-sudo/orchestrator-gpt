@@ -13,7 +13,9 @@ import {
   loadCollection,
   normalizeModels,
   mergeMedia,
+  combineNativeSnapshots,
   filterModels,
+  compareProviders,
   tokenPoints,
   exactComparisons,
   observedCells,
@@ -26,6 +28,7 @@ import {
   loadModelEndpoints,
   modelFilterSummary,
   clearModelFilters,
+  parseProviderPair,
 } from "./explorer-data.js";
 import {
   modelBreakdown,
@@ -54,6 +57,7 @@ import {
   emptyChart,
   colorFor,
   catalogueMap,
+  providerCompareChart,
   clearChartZoom,
 } from "./explorer-charts.js";
 import {
@@ -103,6 +107,7 @@ let state = initialState(),
   metadata = {},
   failures = [],
   loaded = false,
+  providerOptions = [...DIRECT_PROVIDER_IDS],
   resizeTimer,
   toastTimer;
 let supplemental = null;
@@ -430,6 +435,37 @@ function syncControls() {
   $("flow-weight").value = state.weight;
   $("model-chart").value = state.modelChart;
   $("model-group").value = state.modelGroup;
+  syncProviderPairControls();
+}
+function syncProviderPairControls() {
+  const first = $("compare-a"),
+    second = $("compare-b");
+  if (!first || !second) return;
+  const current = parseProviderPair(state.compare),
+    draft = current.length === 2
+      ? current
+      : [first.value, second.value].filter((value) => value),
+    options = [...new Set(providerOptions)].sort((a, b) =>
+      (PROVIDERS[a] || a).localeCompare(PROVIDERS[b] || b),
+    );
+  for (const select of [first, second]) {
+    const value = select.value;
+    select.replaceChildren(
+      option("", "Choose a provider"),
+      ...options.map((id) => option(id, PROVIDERS[id] || id)),
+    );
+    if (draft.includes(value)) select.value = value;
+  }
+  if (current.length === 2) {
+    first.value = current[0];
+    second.value = current[1];
+    $("compare-help").textContent =
+      `${PROVIDERS[current[0]] || current[0]} ↔ ${PROVIDERS[current[1]] || current[1]} · exact IDs stay separate`;
+    $("clear-compare").hidden = false;
+  } else {
+    $("compare-help").textContent = "Choose two providers to compare their catalogues side by side.";
+    $("clear-compare").hidden = true;
+  }
 }
 function showFilterSummary() {
   const chips = modelFilterSummary(state);
@@ -443,6 +479,11 @@ function showFilterSummary() {
     button.onclick = () => {
       state[item.key] =
         item.key === "modality" ? "all" : DEFAULT_STATE[item.key];
+      if (item.key === "compare") {
+        $("compare-a").value = "";
+        $("compare-b").value = "";
+        state.modelChart = DEFAULT_STATE.modelChart;
+      }
       state.selected = "";
       syncControls();
       render();
@@ -452,7 +493,11 @@ function showFilterSummary() {
   $("filter-results").textContent =
     `${filtered.length.toLocaleString()} matching of ${models.length.toLocaleString()} catalogue entries${state.inactive ? "" : " · current listings only"}`;
   const counts = new Map();
-  for (const model of filterModels(models, { ...state, provider: "all" }))
+  for (const model of filterModels(models, {
+    ...state,
+    provider: "all",
+    compare: "",
+  }))
     counts.set(model.provider, (counts.get(model.provider) || 0) + 1);
   for (const o of $("provider").options)
     o.textContent =
@@ -584,15 +629,83 @@ function render() {
   renderMainChart();
   persist();
 }
+function renderProviderPairDetails(comparison) {
+  const container = $("pair-comparison");
+  if (!container) return;
+  const pair = comparison?.providers || [];
+  if (pair.length !== 2) {
+    container.hidden = true;
+    container.replaceChildren();
+    return;
+  }
+  const [first, second] = pair,
+    shared = comparison.sharedPrices || [],
+    heading = document.createElement("div");
+  container.hidden = false;
+  container.replaceChildren();
+  heading.className = "pair-comparison-heading";
+  heading.innerHTML = `<strong>${escape(PROVIDERS[first] || first)} ↔ ${escape(PROVIDERS[second] || second)}</strong><span>${comparison.counts[first].toLocaleString()} and ${comparison.counts[second].toLocaleString()} catalogue entries · ${comparison.sharedIds.length.toLocaleString()} exact IDs in both</span>`;
+  container.append(heading);
+  if (!shared.length) {
+    const empty = document.createElement("p");
+    empty.className = "pair-comparison-empty";
+    empty.textContent =
+      "No exact model IDs currently publish comparable token prices in both catalogues. Nothing is silently alias-matched.";
+    container.append(empty);
+    return;
+  }
+  const table = document.createElement("table");
+  table.className = "pair-comparison-table";
+  table.innerHTML = `<caption>Exact shared IDs with published token prices</caption><thead><tr><th scope="col">Model ID</th><th scope="col">${escape(PROVIDERS[first] || first)} input / output</th><th scope="col">${escape(PROVIDERS[second] || second)} input / output</th></tr></thead>`;
+  const body = document.createElement("tbody");
+  for (const row of shared) {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `<th scope="row"><code>${escape(row.id)}</code></th><td>${money(row.first.input)} / ${money(row.first.output)}</td><td>${money(row.second.input)} / ${money(row.second.output)}</td>`;
+    body.append(tr);
+  }
+  table.append(body);
+  container.append(table);
+}
 function renderMainChart() {
   if (!loaded) return;
   if (state.view === "overview") return;
   $("chart-legend").replaceChildren();
+  renderProviderPairDetails(null);
   if (state.view === "models") {
     let rows = [];
+    if (state.modelChart === "compare") {
+      const comparison = compareProviders(filtered, state.compare);
+      providerCompareChart($("chart"), comparison, {
+        onSelect: (provider) => {
+          state.provider = provider;
+          state.compare = "";
+          state.modelChart = "catalogue";
+          syncControls();
+          render();
+        },
+      });
+      renderProviderPairDetails(comparison);
+      const pair = comparison.providers;
+      $("chart-title").textContent =
+        pair.length === 2
+          ? `${PROVIDERS[pair[0]] || pair[0]} ↔ ${PROVIDERS[pair[1]] || pair[1]}`
+          : "Compare two provider catalogues";
+      $("chart-subtitle").textContent =
+        pair.length === 2
+          ? "Side-by-side catalogue coverage · exact IDs only"
+          : "Choose two providers above to make the comparison explicit";
+      $("plot-summary").textContent =
+        pair.length === 2
+          ? `${comparison.counts[pair[0]].toLocaleString()} ${PROVIDERS[pair[0]] || pair[0]} entries and ${comparison.counts[pair[1]].toLocaleString()} ${PROVIDERS[pair[1]] || pair[1]} entries match the current filters. ${comparison.pricedCounts[pair[0]].toLocaleString()} and ${comparison.pricedCounts[pair[1]].toLocaleString()} have both token legs. Shared IDs are joined exactly, never by alias.`
+          : "Select two distinct providers to compare catalogue size, price coverage and exact shared IDs.";
+      $("chart-hint").textContent = "Select a provider bar to inspect its catalogue";
+      $("filter-results").textContent =
+        `${filtered.length.toLocaleString()} matching of ${models.length.toLocaleString()} catalogue entries · two-provider scope`;
+      return;
+    }
     if (["bars", "donut", "catalogue"].includes(state.modelChart)) {
       const catalogue = state.modelChart === "catalogue";
-      if (catalogue && filtered.length <= 1500) {
+      if (catalogue && filtered.length <= 10000) {
         catalogueMap($("chart"), filtered, {
           onSelect: selectModel,
           selected: state.selected,
@@ -615,7 +728,7 @@ function renderMainChart() {
         ? "Every matching model has a place"
         : "How the catalogue is composed";
       $("chart-subtitle").textContent =
-        catalogue && filtered.length > 1500
+        catalogue && filtered.length > 10000
           ? "Grouped by provider for readability · select a provider to open its model map"
           : "Provider-specific catalogue entries · unknown prices stay included";
       $("plot-summary").textContent =
@@ -985,6 +1098,7 @@ function sourceCard(title, description, url) {
 }
 function renderSources() {
   const live = metadata.live;
+  const native = metadata.native || metadata.media;
   const dates = [
     ...new Set(
       (live?.pages || [])
@@ -1001,9 +1115,16 @@ function renderSources() {
       `${API_BASE}/live-models?limit=500`,
     ) +
     sourceCard(
-      "Full native catalogues",
-      `${metadata.media ? metadata.media.models.length.toLocaleString() + " acquired native records" : "Native source unavailable; entry count unknown"} · snapshot ${dateLabel(metadata.media?.fetchedAt)}. Text, media, other and unclassified entries are retained. Price coverage is partial; exact IDs, billing units and conditions remain separate.`,
-      metadata.media?.providers?.[0]?.sourceUrl,
+      "MCP-backed native catalogues",
+      `${native ? native.models.length.toLocaleString() + " acquired native records" : "Native source unavailable; entry count unknown"} · snapshot ${dateLabel(native?.fetchedAt)}. Text, image, video, audio, other and unclassified entries are retained. Price coverage is partial; exact IDs, billing units and conditions remain separate.`,
+      native?.providers?.[0]?.sourceUrl,
+    ) +
+    sourceCard(
+      "Nous Research catalogue",
+      metadata.nous
+        ? `${metadata.nous.models.length.toLocaleString()} authenticated catalogue identities captured ${dateLabel(metadata.nous.fetchedAt)}; ${metadata.nous.population?.freeTokenPairs ?? 0} publish zero input/output token rates. Catalogue access is read-only here: inference returned HTTP 401 and was not exercised.`
+        : "Authenticated Nous catalogue snapshot unavailable; no Nous inference claim is made.",
+      metadata.nous?.sourceUrl || "https://nousresearch.com/",
     ) +
     sourceCard(
       "App–model observations",
@@ -1038,7 +1159,7 @@ function renderSources() {
   );
   for (const provider of providerCoverage(
     models,
-    metadata.media,
+    native,
     metadata.sourceStatus,
     metadata.live,
   )) {
@@ -1140,6 +1261,8 @@ function reset() {
 }
 function clearFilters() {
   state = clearModelFilters(state);
+  $("compare-a").value = "";
+  $("compare-b").value = "";
   syncControls();
   render();
 }
@@ -1155,6 +1278,15 @@ for (const id of [
   "inactive",
 ])
   $(id).addEventListener("change", () => {
+    if (id === "provider" && state.compare) {
+      state.compare = "";
+      state.modelChart =
+        state.modelChart === "compare"
+          ? DEFAULT_STATE.modelChart
+          : state.modelChart;
+      $("compare-a").value = "";
+      $("compare-b").value = "";
+    }
     state[id] = ["free", "tools", "inactive"].includes(id)
       ? $(id).checked
       : id === "context"
@@ -1163,6 +1295,40 @@ for (const id of [
     render();
   });
 $("clear-filters").onclick = clearFilters;
+function updateProviderPair() {
+  const first = $("compare-a").value,
+    second = $("compare-b").value;
+  if (first && second && first === second) {
+    $("compare-b").value = "";
+    state.compare = "";
+    state.modelChart = DEFAULT_STATE.modelChart;
+    $("compare-help").textContent = "Choose two different providers to compare.";
+    render();
+    return;
+  }
+  if (first && second) {
+    state.compare = `${first},${second}`;
+    state.provider = "all";
+    state.selected = "";
+    state.modelChart = "compare";
+  } else {
+    if (state.compare) state.modelChart = DEFAULT_STATE.modelChart;
+    state.compare = "";
+    state.selected = "";
+  }
+  render();
+}
+$("compare-a").onchange = updateProviderPair;
+$("compare-b").onchange = updateProviderPair;
+$("clear-compare").onclick = () => {
+  state.compare = "";
+  state.selected = "";
+  state.modelChart = DEFAULT_STATE.modelChart;
+  $("compare-a").value = "";
+  $("compare-b").value = "";
+  syncControls();
+  render();
+};
 for (const [id, key] of [
   ["model-chart", "modelChart"],
   ["model-group", "modelGroup"],
@@ -1292,6 +1458,20 @@ async function boot() {
       if (!r.ok) throw new Error("Media snapshot unavailable");
       return r.json();
     },
+    nous: async () => {
+      const r = await fetch("./nous-catalogue.json", {
+        signal: AbortSignal.timeout(15000),
+      });
+      if (!r.ok) throw new Error("Nous catalogue snapshot unavailable");
+      const snapshot = await r.json();
+      if (
+        snapshot?.provider !== "nous" ||
+        !Array.isArray(snapshot.models) ||
+        !Array.isArray(snapshot.providers)
+      )
+        throw new Error("Nous catalogue snapshot did not match the expected shape");
+      return snapshot;
+    },
     matrix: async () =>
       validateAppModelMatrix(
         await request(
@@ -1308,12 +1488,13 @@ async function boot() {
       ? (metadata[keys[i]] = r.value)
       : failures.push({ name: keys[i], message: r.reason.message }),
   );
+  metadata.native = combineNativeSnapshots(metadata.media, metadata.nous);
   models = mergeMedia(
     normalizeModels(
       metadata.live || { data: [] },
       metadata.details || { data: [] },
     ),
-    normalizeMediaCatalogue(metadata.media),
+    normalizeMediaCatalogue(metadata.native),
   );
   matrix = metadata.matrix;
   apps = metadata.apps?.data || [];
@@ -1336,6 +1517,7 @@ async function boot() {
   const providers = [
     ...new Set([...DIRECT_PROVIDER_IDS, ...models.map((m) => m.provider)]),
   ].sort();
+  providerOptions = providers;
   $("provider").append(...providers.map((p) => option(p, PROVIDERS[p] || p)));
   $("modality").append(option("unknown", "Unclassified output"));
   if (state.provider !== "all" && !providers.includes(state.provider))

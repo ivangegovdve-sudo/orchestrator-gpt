@@ -219,11 +219,11 @@
                 ><label class="control"
                   ><span>Output</span
                   ><select id="modality">
+                    <option value="all">All modalities</option>
                     <option value="text">Text models</option>
                     <option value="video">Video models</option>
                     <option value="image">Image models</option>
                     <option value="audio">Audio models</option>
-                    <option value="all">All modalities</option>
                   </select></label
                 ><label class="toggle-filter"
                   ><input id="free" type="checkbox" /><span
@@ -238,6 +238,38 @@
                 >
                   More filters +
                 </button>
+              </div>
+              <div
+                id="provider-pair-control"
+                class="provider-pair-control"
+                aria-label="Compare two providers"
+              >
+                <div class="provider-pair-heading">
+                  <strong>Compare two providers</strong>
+                  <span id="compare-help"
+                    >Choose two providers to compare their catalogues side by
+                    side.</span
+                  >
+                </div>
+                <div class="provider-pair-fields">
+                  <label
+                    ><span>First</span><select id="compare-a">
+                      <option value="">Choose a provider</option>
+                    </select></label
+                  ><span class="pair-vs" aria-hidden="true">↔</span
+                  ><label
+                    ><span>Second</span><select id="compare-b">
+                      <option value="">Choose a provider</option>
+                    </select></label
+                  ><button
+                    id="clear-compare"
+                    class="subtle-button"
+                    type="button"
+                    hidden
+                  >
+                    Clear comparison
+                  </button>
+                </div>
               </div>
               <div class="filter-summary">
                 <p id="filter-results" role="status"></p>
@@ -280,6 +312,7 @@
                     <option value="catalogue">Catalogue map</option>
                     <option value="bars">Bar chart</option>
                     <option value="donut">Pie / donut chart</option>
+                    <option value="compare">Two-provider comparison</option>
                   </select></label
                 >
                 <label id="model-group-control" hidden
@@ -374,6 +407,7 @@
                   aria-label="Interactive model price chart"
                 ></div>
                 <div id="chart-legend" class="chart-legend"></div>
+                <div id="pair-comparison" class="pair-comparison" hidden></div>
                 <div class="chart-footer">
                   <p id="plot-summary" role="status">
                     Loading published model data…
