@@ -10,6 +10,11 @@ const snapshotUrl = new URL(
 );
 const previousBytes = await readFile(snapshotUrl);
 const previous = JSON.parse(previousBytes);
+const publicSnapshotUrl = new URL(
+  "../web/open-dashboard/public-catalogue.json",
+  import.meta.url,
+);
+const previousPublicBytes = await readFile(publicSnapshotUrl).catch(() => null);
 const nousSnapshotUrl = new URL(
   "../web/open-dashboard/nous-catalogue.json",
   import.meta.url,
@@ -33,6 +38,19 @@ const factsResult = runScript("scripts/refresh-open-dashboard-package-facts.mjs"
 if (factsResult.error || factsResult.status !== 0)
   throw new Error("The installed open-dashboard-mcp contract could not be verified.");
 console.log(factsResult.stdout.trim());
+
+try {
+  const result = runScript("web/open-dashboard/scripts/refresh-public-catalogue.mjs");
+  if (result.error || result.status !== 0)
+    throw new Error("The public catalogue snapshot did not complete.");
+  console.log(result.stdout.trim());
+} catch (error) {
+  if (previousPublicBytes)
+    await writeFile(publicSnapshotUrl, previousPublicBytes);
+  console.warn(
+    `Open Dashboard: ${error.message} Using the checked-in public catalogue snapshot.`,
+  );
+}
 
 try {
   const result = runScript("web/open-dashboard/scripts/refresh-media.mjs");

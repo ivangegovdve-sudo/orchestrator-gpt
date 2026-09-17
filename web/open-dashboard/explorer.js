@@ -1107,11 +1107,14 @@ function renderSources() {
     ),
   ];
   $("source-summary").textContent =
-    `Direct catalogues, documented IDs and OpenRouter routes · ${failures.length ? "some sources unavailable" : "view coverage by provider"}`;
+    `Direct catalogues, documented IDs and OpenRouter routes · ${live?.snapshot ? "dated build snapshot" : failures.length ? "some sources unavailable" : "view coverage by provider"}`;
+  const catalogueDescription = live
+    ? `${live.data.length.toLocaleString()} ${live.snapshot ? "captured snapshot entries" : "archived entries"}. ${live.hasMore ? "Page limit reached; coverage is partial." : "All returned pages loaded."}${live.snapshot ? " The browser live route was unavailable here, so this dated build snapshot keeps the catalogue visible." : ""} Source dates: ${dates.join(", ")}. Listing is not a live inference check.`
+    : "Catalogue unavailable; count and coverage unknown. Listing is not a live inference check.";
   $("sources").innerHTML =
     sourceCard(
       "Model catalogues",
-      `${live ? live.data.length.toLocaleString() + " archived entries. " + (live.hasMore ? "Page limit reached; coverage is partial." : "All returned pages loaded.") : "Catalogue unavailable; count and coverage unknown."} Source dates: ${dates.join(", ")}. Listing is not a live inference check.`,
+      catalogueDescription,
       `${API_BASE}/live-models?limit=500`,
     ) +
     sourceCard(
@@ -1435,6 +1438,21 @@ async function boot() {
     sourceStatus: () => request("/source-status"),
     endpointArchive: () => loadCollection("/providers?limit=100", 64),
     routingProviders: () => loadRoutingProviders(),
+    publicCatalogue: async () => {
+      const r = await fetch("./public-catalogue.json", {
+        cache: "no-store",
+        signal: AbortSignal.timeout(15000),
+      });
+      if (!r.ok) throw new Error("Public catalogue snapshot unavailable");
+      const snapshot = await r.json();
+      if (
+        snapshot?.snapshot !== true ||
+        !Array.isArray(snapshot.data) ||
+        !Array.isArray(snapshot.pages)
+      )
+        throw new Error("Public catalogue snapshot did not match the expected shape");
+      return snapshot;
+    },
     packageFacts: async () => {
       const r = await fetch("./package-facts.json", {
         cache: "no-store",
@@ -1488,6 +1506,16 @@ async function boot() {
       ? (metadata[keys[i]] = r.value)
       : failures.push({ name: keys[i], message: r.reason.message }),
   );
+  if (
+    (!metadata.live?.data?.length || metadata.live.hasMore === true) &&
+    metadata.publicCatalogue?.data?.length
+  ) {
+    metadata.live = {
+      ...metadata.publicCatalogue,
+      snapshot: true,
+    };
+    failures = failures.filter((failure) => failure.name !== "live");
+  }
   metadata.native = combineNativeSnapshots(metadata.media, metadata.nous);
   models = mergeMedia(
     normalizeModels(
@@ -1541,7 +1569,9 @@ async function boot() {
     `${metadata.packageFacts?.providers?.length ?? "Unknown"} direct adapters · ${metadata.routingProviders?.data.length ?? "Unknown"} OpenRouter routing providers. See source coverage below.`;
   $("data-status").textContent = failures.length
     ? "Some sources unavailable"
-    : "Published data · sources below";
+    : metadata.live?.snapshot
+      ? "Published snapshot · sources below"
+      : "Published data · sources below";
   loaded = true;
   syncControls();
   render();
