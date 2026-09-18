@@ -1111,6 +1111,12 @@ function renderSources() {
   const catalogueDescription = live
     ? `${live.data.length.toLocaleString()} ${live.snapshot ? "captured snapshot entries" : "archived entries"}. ${live.hasMore ? "Page limit reached; coverage is partial." : "All returned pages loaded."}${live.snapshot ? " The browser live route was unavailable here, so this dated build snapshot keeps the catalogue visible." : ""} Source dates: ${dates.join(", ")}. Listing is not a live inference check.`
     : "Catalogue unavailable; count and coverage unknown. Listing is not a live inference check.";
+  const nousInference = metadata.nous?.inference;
+  const nousInferenceDescription = nousInference
+    ? nousInference.status === "verified"
+      ? `Nous Portal inference smoke test passed ${dateLabel(nousInference.checkedAt)} on ${nousInference.model || "a recorded model"}; the Hermes API server key is a separate credential.`
+      : `Inference status: ${nousInference.status}. ${nousInference.reason || "No generation result is included in this snapshot."}`
+    : "Inference status is unverified; no Nous generation claim is made.";
   $("sources").innerHTML =
     sourceCard(
       "Model catalogues",
@@ -1125,8 +1131,8 @@ function renderSources() {
     sourceCard(
       "Nous Research catalogue",
       metadata.nous
-        ? `${metadata.nous.models.length.toLocaleString()} authenticated catalogue identities captured ${dateLabel(metadata.nous.fetchedAt)}; ${metadata.nous.population?.freeTokenPairs ?? 0} publish zero input/output token rates. Catalogue access is read-only here: inference returned HTTP 401 and was not exercised.`
-        : "Authenticated Nous catalogue snapshot unavailable; no Nous inference claim is made.",
+        ? `${metadata.nous.models.length.toLocaleString()} catalogue identities captured ${dateLabel(metadata.nous.fetchedAt)}; ${metadata.nous.population?.freeTokenPairs ?? 0} publish zero input/output token rates. ${nousInferenceDescription}`
+        : "Nous catalogue snapshot unavailable; no Nous inference claim is made.",
       metadata.nous?.sourceUrl || "https://nousresearch.com/",
     ) +
     sourceCard(

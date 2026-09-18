@@ -1,27 +1,30 @@
 /**
- * Refresh the authenticated Nous Research catalogue supplement.
+ * Refresh the Nous Research catalogue supplement.
  *
- * The key is supplied only through NOUS_API_KEY at refresh time. The resulting
- * public snapshot contains catalogue rows and their published rates, never the
- * credential or the vault path. A successful catalogue read does not imply that
- * inference is funded or available; the snapshot records that distinction.
+ * A Nous Portal key is optional and, when supplied, is read only through
+ * NOUS_PORTAL_API_KEY. The endpoint is readable without it, so a catalogue
+ * response is never treated as proof of inference access. The resulting public
+ * snapshot contains catalogue rows and their published rates, never the
+ * credential or the vault path.
  */
 import { readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-const apiKey = process.env.NOUS_API_KEY?.trim();
-if (!apiKey) throw new Error("NOUS_API_KEY is required for the Nous refresh.");
+const apiKey = process.env.NOUS_PORTAL_API_KEY?.trim() || "";
+if (apiKey && !apiKey.startsWith("sk-nous-"))
+  throw new Error("NOUS_PORTAL_API_KEY must be a Nous Portal key.");
 
 const sourceUrl = "https://inference-api.nousresearch.com/v1/models";
 const observedAt = new Date().toISOString();
+const headers = {
+  Accept: "application/json",
+  "User-Agent": "open-dashboard-site/1.1.4",
+};
+if (apiKey) headers.Authorization = `Bearer ${apiKey}`;
 const response = await fetch(sourceUrl, {
   method: "GET",
-  headers: {
-    Authorization: `Bearer ${apiKey}`,
-    Accept: "application/json",
-    "User-Agent": "open-dashboard-site/1.1.4",
-  },
+  headers,
   redirect: "error",
   signal: AbortSignal.timeout(30000),
 });
@@ -96,9 +99,9 @@ const models = payload.data
       },
       pricePoints,
       pricingState: pricePoints.length ? "published" : "unknown",
-      pricingNote: `Catalogue read authenticated on ${new Date(observedAt).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" })}; no inference call has been exercised through Nous Research.`,
+      pricingNote: `Catalogue rows observed on ${new Date(observedAt).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" })}; rates are provider-published and no generation cost is inferred.`,
       sourceNotes: [
-        "Nous Research /v1/models catalogue. Token rates are provider-published; inference remains unexercised in this snapshot.",
+        "Nous Research /v1/models catalogue. Token rates are provider-published; inference status is recorded separately.",
       ],
       sourceUrl,
       fetchedAt: observedAt,
@@ -110,6 +113,24 @@ const freeTokenPairs = models.filter((model) => {
   const amounts = new Map(model.pricePoints.map((point) => [point.unit, point.amount]));
   return amounts.get("token_in") === "0" && amounts.get("token_out") === "0";
 });
+const outputPath = path.resolve(
+  path.dirname(fileURLToPath(import.meta.url)),
+  "../nous-catalogue.json",
+);
+const previous = await readFile(outputPath, "utf8").catch(() => null);
+let previousSnapshot = null;
+if (previous) {
+  try {
+    previousSnapshot = JSON.parse(previous);
+  } catch {}
+}
+const inference = previousSnapshot?.inference?.status
+  ? previousSnapshot.inference
+  : {
+      status: "unverified",
+      reason:
+        "No Nous inference result is included in this catalogue refresh. The Hermes API server key is a separate credential from a Nous Portal API key.",
+    };
 const snapshot = {
   schemaVersion: 1,
   collector: "open-dashboard-mcp@1.1.4 + Nous Research catalogue",
@@ -117,12 +138,8 @@ const snapshot = {
   displayName: "Nous Research",
   sourceUrl,
   fetchedAt: observedAt,
-  status: "catalogue_authenticated_inference_blocked",
-  inference: {
-    status: "blocked",
-    reason:
-      "The available account returned HTTP 401 for inference; no generation was attempted for this site snapshot.",
-  },
+  status: `catalogue_observed_inference_${inference.status}`,
+  inference,
   providers: [
     {
       provider: "nous",
@@ -139,8 +156,8 @@ const snapshot = {
       pricingStatus: "published_catalogue",
       pricingCoverage:
         "Token input/output rates are retained when the catalogue publishes them; no generation cost is inferred.",
-      populationScope: "authenticated_model_catalogue",
-      error: "Inference is blocked; catalogue access is read-only.",
+      populationScope: apiKey ? "portal_key_request" : "public_model_catalogue",
+      error: "Inference status is tracked separately; catalogue access is read-only.",
     },
   ],
   population: {
@@ -155,18 +172,15 @@ const snapshot = {
     ).length,
   },
   notes: [
-    "Read-only model catalogue; authentication proves catalogue access, not inference access.",
+    "Read-only model catalogue; the /v1/models response is not evidence of inference access.",
+    apiKey
+      ? "A Nous Portal key was supplied for this read; it is not the Hermes API server key."
+      : "No Nous Portal key was supplied for this read; the catalogue endpoint is publicly readable.",
     "No API key or secret name is included in this public snapshot.",
   ],
   models,
 };
-
-const outputPath = path.resolve(
-  path.dirname(fileURLToPath(import.meta.url)),
-  "../nous-catalogue.json",
-);
-const previous = await readFile(outputPath, "utf8").catch(() => null);
-if (previous && previous.includes(apiKey))
+if (apiKey && previous && previous.includes(apiKey))
   throw new Error("NOUS_CREDENTIAL_REFLECTION");
 await writeFile(outputPath, JSON.stringify(snapshot, null, 2) + "\n", "utf8");
 console.log(

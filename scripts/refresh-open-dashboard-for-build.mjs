@@ -85,16 +85,16 @@ try {
   );
 }
 
-// Nous is an authenticated, read-only supplement. Keep the dated checked-in
-// snapshot for builds that do not have a key; never make a deployment depend on
-// a secret being present and never print a failed response body.
-if (process.env.NOUS_API_KEY?.trim()) {
+// Nous is a read-only catalogue supplement. A Portal key is optional because
+// /v1/models is publicly readable; never treat a Hermes API_SERVER_KEY as a
+// Nous credential and never make a deployment depend on a secret being present.
+if (process.env.NOUS_PORTAL_API_KEY?.trim()) {
   const result = runScript("web/open-dashboard/scripts/refresh-nous-catalogue.mjs");
   if (result.error || result.status !== 0) {
     if (previousNousBytes)
       await writeFile(nousSnapshotUrl, previousNousBytes);
     console.warn(
-      "Open Dashboard: Nous catalogue refresh unavailable; retaining the checked-in authenticated snapshot.",
+      "Open Dashboard: Nous catalogue refresh unavailable; retaining the checked-in snapshot.",
     );
   } else {
     console.log(result.stdout.trim());
