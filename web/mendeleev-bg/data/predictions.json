@@ -1,0 +1,104 @@
+[
+  {
+    "id": "atomic-size-across-period",
+    "trendId": "atomic-size",
+    "elements": [11, 17],
+    "correct": 11,
+    "bg": {
+      "title": "Първо познай",
+      "question": "Кой атом заема повече място: натрий (Na) или хлор (Cl)?",
+      "choices": {
+        "11": "Натрий (Na)",
+        "17": "Хлор (Cl)"
+      },
+      "commit": "Заключи отговора",
+      "correct": "Познахте! Натрият е по-големият атом.",
+      "incorrect": "Не беше очевидно — много хора очакват хлорът да е по-голям.",
+      "explanation": "В един и същи ред новите протони дърпат електроните към ядрото. Затова атомът се свива, докато вървиш надясно.",
+      "bridge": "От символите и местата им виждаш как невидимото ядро променя размера на атома.",
+      "next": "Следващата изненада →"
+    },
+    "en": {
+      "title": "Predict first",
+      "question": "Which atom takes up more space: sodium (Na) or chlorine (Cl)?",
+      "choices": {
+        "11": "Sodium (Na)",
+        "17": "Chlorine (Cl)"
+      },
+      "commit": "Lock in my answer",
+      "correct": "You got it! Sodium is the larger atom.",
+      "incorrect": "That was not obvious — many people expect chlorine to be larger.",
+      "explanation": "Across one row, new protons pull the electrons closer to the nucleus. So the atom shrinks as you move right.",
+      "bridge": "From the symbols and their places, you can see how the invisible nucleus changes an atom's size.",
+      "next": "Next surprise →"
+    }
+  },
+  {
+    "id": "electron-hold-down-group",
+    "trendId": "ionization-energy",
+    "elements": [3, 19],
+    "correct": 3,
+    "bg": {
+      "title": "Първо познай",
+      "question": "Кой атом държи външния си електрон по-силно: литий (Li) или калий (K)?",
+      "choices": {
+        "3": "Литий (Li)",
+        "19": "Калий (K)"
+      },
+      "commit": "Заключи отговора",
+      "correct": "Познахте! Литият държи външния си електрон по-силно.",
+      "incorrect": "Не беше очевидно — калият има повече протони, но това не е цялата история.",
+      "explanation": "При движение надолу се добавят електронни слоеве. Външният електрон е по-далеч и вътрешните слоеве пречат на силното привличане.",
+      "bridge": "Мястото в символичната таблица става видимо като невидима сила, която държи електрона.",
+      "next": "Следващата изненада →"
+    },
+    "en": {
+      "title": "Predict first",
+      "question": "Which atom holds its outer electron more strongly: lithium (Li) or potassium (K)?",
+      "choices": {
+        "3": "Lithium (Li)",
+        "19": "Potassium (K)"
+      },
+      "commit": "Lock in my answer",
+      "correct": "You got it! Lithium holds its outer electron more strongly.",
+      "incorrect": "That was not obvious — potassium has more protons, but that is not the whole story.",
+      "explanation": "Moving down adds electron shells. The outer electron is farther away, and inner shells get in the way of the strong pull.",
+      "bridge": "The place in the symbolic table becomes visible as an invisible force holding the electron.",
+      "next": "Next surprise →"
+    }
+  },
+  {
+    "id": "shared-pull-down-group",
+    "trendId": "electronegativity",
+    "elements": [9, 17],
+    "correct": 9,
+    "bg": {
+      "title": "Първо познай",
+      "question": "Кой атом дърпа споделените електрони по-силно: флуор (F) или хлор (Cl)?",
+      "choices": {
+        "9": "Флуор (F)",
+        "17": "Хлор (Cl)"
+      },
+      "commit": "Заключи отговора",
+      "correct": "Познахте! Флуорът дърпа споделените електрони по-силно.",
+      "incorrect": "Не беше очевидно — хлорът има повече протони, но флуорът е по-близо до тях.",
+      "explanation": "Надолу по колоната се добавят слоеве и споделените електрони са по-далеч от ядрото. Затова привличането отслабва.",
+      "bridge": "Символичната позиция превежда невидимото дърпане в химичната връзка.",
+      "next": "Следващата изненада →"
+    },
+    "en": {
+      "title": "Predict first",
+      "question": "Which atom pulls shared electrons more strongly: fluorine (F) or chlorine (Cl)?",
+      "choices": {
+        "9": "Fluorine (F)",
+        "17": "Chlorine (Cl)"
+      },
+      "commit": "Lock in my answer",
+      "correct": "You got it! Fluorine pulls shared electrons more strongly.",
+      "incorrect": "That was not obvious — chlorine has more protons, but fluorine is closer to them.",
+      "explanation": "Down the column, shells are added and shared electrons are farther from the nucleus. So the pull gets weaker.",
+      "bridge": "The symbolic position translates the invisible tug inside a chemical bond.",
+      "next": "Next surprise →"
+    }
+  }
+]
