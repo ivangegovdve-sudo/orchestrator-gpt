@@ -15,7 +15,7 @@ assert.equal(build.status, 0, build.stderr || build.stdout);
 const built = (relativePath) =>
   fs.readFileSync(path.join(ROOT, 'vercel-public', relativePath), 'utf8');
 
-test('Forest HUB built artifact exposes the required foundation portals and title crown', () => {
+test('Forest HUB built artifact exposes seven live pool entries and the title crown', () => {
   const home = built('index.html');
 
   assert.match(home, />Forest HUB</);
@@ -24,12 +24,12 @@ test('Forest HUB built artifact exposes the required foundation portals and titl
     1,
     'the built title must contain exactly one crown element',
   );
-  assert.equal((home.match(/data-project="kids"/g) || []).length, 1);
-  assert.equal((home.match(/data-project="library"/g) || []).length, 1);
-  assert.equal((home.match(/data-project="morning-news"/g) || []).length, 1);
-  assert.match(home, /data-project="kids"[^>]+data-href="\/web\/kids\/"/);
-  assert.match(home, /data-project="library"[^>]+data-href="\/web\/library\/"/);
-  assert.match(home, /data-project="morning-news"[^>]+data-href="\/web\/morning-news\/"/);
+  const ids = ['growingapp', 'ai-d-kit', 'tinkerbox', 'health', 'design-gallery', 'artificial-self', 'my-story'];
+  const links = [...home.matchAll(/data-pool-link="([^"]+)" href="([^"]+)"/g)];
+  assert.deepEqual(links.map((match) => match[1]), ids);
+  assert.deepEqual(links.map((match) => match[2]), ids.map((id) => `/web/pools/${id}/`));
+  assert.equal((home.match(/>Live pool</g) || []).length, 7);
+  assert.doesNotMatch(home, /Kids Corner|data-project="/);
   assert.doesNotMatch(home, /Lovable experience/);
   assert.doesNotMatch(home, /voice[ -]?2[ -]?voice|voice[- ]to[- ]voice|\bv2v\b/i);
 });
@@ -54,7 +54,7 @@ test('Forest HUB built styles publish the canonical design tokens', () => {
   assert.match(foundation, /--accent:\s*var\(--theme-ui-accent\)/);
 });
 
-test('Kids Corner links exactly the two approved existing sub-apps', () => {
+test('the retired kids hub preserves exactly two approved legacy destinations', () => {
   const kids = built('web/kids/index.html');
   const hrefs = [...kids.matchAll(/class="kid-card[^"]*" href="([^"]+)"/g)]
     .map((match) => match[1])
@@ -62,7 +62,8 @@ test('Kids Corner links exactly the two approved existing sub-apps', () => {
 
   assert.deepEqual(hrefs, ['/web/kids-movie-library/', '/web/math-mania/']);
   assert.match(kids, /Math Mania/);
-  assert.match(kids, /Kids Movie Library/);
+  assert.match(kids, /Kids Library — legacy movie section/);
+  assert.match(kids, /Kids Corner — retired legacy hub/);
 });
 
 test('Library is canonical and llm-db has deployment and static redirect coverage', () => {
@@ -76,6 +77,16 @@ test('Library is canonical and llm-db has deployment and static redirect coverag
   assert.match(moved, /url=\/web\/library\//);
   assert.match(moved, /location\.replace\(["']\/web\/library\/["']\)/);
   assert.deepEqual(vercel.redirects, [
+    {
+      source: '/web/morning-news',
+      destination: 'https://thedrop.sdforest.site',
+      permanent: true,
+    },
+    {
+      source: '/web/morning-news/',
+      destination: 'https://thedrop.sdforest.site',
+      permanent: true,
+    },
     {
       source: '/web/ai-init',
       destination: '/web/library/glossary/',

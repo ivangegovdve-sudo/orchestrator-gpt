@@ -1,143 +1,139 @@
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
+const { spawnSync } = require('node:child_process');
 const { pathToFileURL } = require('node:url');
 const { test } = require('node:test');
+const vm = require('node:vm');
 
 const ROOT = path.resolve(__dirname, '../..');
 const read = (relativePath) => fs.readFileSync(path.join(ROOT, relativePath), 'utf8');
-const projectDirectories = [
-  'avatar-playground', 'c2c-dolphin', 'c2c-self', 'council', 'hypertrophyos', 'kids',
-  'library', 'life-in-time', 'manifesto-newborn', 'mendeleev-bg', 'morning-news', 'm-popova',
-  'open-dashboard', 'power-law-odyssey', 'replicator-void', 'vfx-portfolio', 'womens-health-os',
-  'math-forest', 'ai-research', 'calendar', 'chloe-pwa', 'evolution', 'kids-movie-library',
-  'math-mania', 'upload', 'explore', 'ai-init', 'llm-db', 'tinylm',
-];
+const registryModule = import('../../scripts/static-route-registry.mjs');
+const catalogModule = import('../../web/shared/project-catalog.mjs');
 
 async function inventory() {
   return import(`${pathToFileURL(path.join(ROOT, 'web/shared/route-inventory.mjs')).href}?v=20260807a`);
 }
 
-test('route inventory owns every project directory exactly once with machine-readable delivery controls', async () => {
-  const { ROUTE_INVENTORY } = await inventory();
-  assert.equal(ROUTE_INVENTORY.length, projectDirectories.length);
-  assert.deepEqual(
-    [...ROUTE_INVENTORY.map((entry) => entry.id)].sort(),
-    [...projectDirectories].sort(),
-  );
-
-  for (const entry of ROUTE_INVENTORY) {
-    assert.deepEqual(
-      Object.keys(entry).filter((key) => ['id', 'href', 'state', 'parent', 'placement', 'prefetch', 'prerender'].includes(key)).sort(),
-      ['href', 'id', 'parent', 'placement', 'prefetch', 'prerender', 'state'],
-      `${entry.id} exposes the inventory contract`,
-    );
-    assert.match(entry.href, /^\/web\/[a-z0-9-]+\/$/);
-    assert.equal(typeof entry.prefetch, 'boolean');
-    assert.equal(typeof entry.prerender, 'boolean');
-  }
-
-  assert.deepEqual(
-    Object.fromEntries(ROUTE_INVENTORY.map(({ id, state }) => [id, state])),
-    {
-      'avatar-playground': 'main-atlas', 'c2c-dolphin': 'main-atlas', 'c2c-self': 'main-atlas',
-      council: 'main-atlas', hypertrophyos: 'main-atlas', kids: 'main-atlas', library: 'main-atlas',
-      'life-in-time': 'main-atlas', 'manifesto-newborn': 'main-atlas', 'mendeleev-bg': 'main-atlas',
-      'morning-news': 'main-atlas', 'm-popova': 'main-atlas', 'open-dashboard': 'main-atlas',
-      'power-law-odyssey': 'main-atlas', 'replicator-void': 'main-atlas', 'vfx-portfolio': 'main-atlas',
-      'womens-health-os': 'main-atlas', 'math-forest': 'greenhouse', 'ai-research': 'hub-trail',
-      calendar: 'hub-trail', 'chloe-pwa': 'hub-trail', evolution: 'hub-trail',
-      'kids-movie-library': 'hub-trail', 'math-mania': 'hub-trail', upload: 'hub-trail',
-      explore: 'hub-trail',
-      'ai-init': 'redirect', 'llm-db': 'redirect', tinylm: 'redirect',
-    },
-  );
+test('the public Forest Trails consumer does not advertise private Knowledge Ingest', async () => {
+  const [{ ROUTE_INVENTORY }, { FOREST_ROUTES, getForestTrailContext }] = await Promise.all([
+    inventory(), import('../../web/shared/forest-trails.mjs'),
+  ]);
+  assert.ok(ROUTE_INVENTORY.some(({ id, href }) => id === 'upload' && href === '/web/upload/'));
+  assert.ok(!FOREST_ROUTES.some(({ id, path }) => id === 'upload' || path === '/web/upload/'));
+  assert.equal(getForestTrailContext('/web/upload/'), null);
 });
 
-test('Forest Trails consumes and re-exports the canonical route inventory', async () => {
-  const [{ ROUTE_INVENTORY }, trails] = await Promise.all([
+test('actual copied HTML routes have one registry entry and catalog owner independently of navigation', async () => {
+  const [{ ROUTE_REGISTRY, discoverCopiedHtmlRoutes }, { ROUTE_OWNERS }] = await Promise.all([
+    registryModule, catalogModule,
+  ]);
+  const discovered = discoverCopiedHtmlRoutes(ROOT);
+  assert.equal(discovered.length, 75, 'the current build copies 75 HTML routes');
+  for (const { route, source } of discovered) {
+    const entries = ROUTE_REGISTRY.filter(({ paths }) => paths.includes(route));
+    const owners = ROUTE_OWNERS.filter(({ routes }) => routes.includes(route));
+    assert.equal(entries.length, 1, `${route} has one registry entry`);
+    assert.equal(owners.length, 1, `${route} has one catalog owner`);
+    assert.equal(entries[0].source, source, route);
+    assert.equal(entries[0].ownerId, owners[0].id, route);
+  }
+});
+
+test('Forest Trails uses the navigation compatibility map and only its declared trail IDs', async () => {
+  const [{ ROUTE_INVENTORY, FOREST_TRAIL_ROUTE_IDS }, trails] = await Promise.all([
     inventory(),
     import(pathToFileURL(path.join(ROOT, 'web/shared/forest-trails.mjs')).href),
   ]);
   assert.equal(trails.ROUTE_INVENTORY, ROUTE_INVENTORY);
-  assert.ok(trails.FOREST_ROUTES.some(({ id }) => id === 'chloe-pwa'));
-  const chloe = trails.FOREST_ROUTES.find(({ id }) => id === 'chloe-pwa');
-  assert.equal(chloe.label, 'Private client — token required');
-  assert.equal(chloe.path, '/web/chloe-pwa/');
-  const trailIds = new Set(trails.FOREST_ROUTES.map(({ id }) => id));
-  for (const entry of ROUTE_INVENTORY.filter(({ state }) => state !== 'redirect')) {
-    assert.ok(trailIds.has(entry.id), `${entry.id} is represented by Forest Trails`);
+  assert.equal(new Set(ROUTE_INVENTORY.map(({ id }) => id)).size, ROUTE_INVENTORY.length);
+  assert.equal(new Set(FOREST_TRAIL_ROUTE_IDS).size, FOREST_TRAIL_ROUTE_IDS.length);
+  assert.deepEqual(trails.FOREST_ROUTES.map(({ id }) => id), ['forest-hub', ...FOREST_TRAIL_ROUTE_IDS]);
+  for (const id of FOREST_TRAIL_ROUTE_IDS) {
+    const entry = ROUTE_INVENTORY.find((route) => route.id === id);
+    assert.ok(entry, `${id} has navigation metadata`);
+    assert.equal(trails.getForestTrailContext(entry.href)?.current.id, id);
   }
+  assert.equal(trails.getForestTrailContext('/web/chloe-pwa/'), null, 'internal Chloé is not a trail card');
+  const introduction = read('web/shared/route-inventory.mjs').split(/\r?\n/).slice(0, 2).join(' ');
+  assert.match(introduction, /navigation compatibility map/i, 'navigation must not claim deployment ownership');
 });
 
-test('only exact AI_INIT parent routes redirect while embeds, glossary assets, and Library imports remain reachable', () => {
-  const redirect = read('web/ai-init/index.html');
-  assert.ok(redirect.split(/\r?\n/).length < 100, 'AI_INIT redirect stays minimal');
-  assert.doesNotMatch(redirect, /glossary-(?:data|search)|home-search-input|library-tree/i);
-  assert.match(redirect, /http-equiv="refresh"[^>]*\/web\/library\//i);
-  assert.match(redirect, /rel="canonical" href="\/web\/library\//i);
-  assert.match(redirect, /name="robots" content="noindex"/i);
-  assert.match(redirect, /class="forest-back" href="\/"/i);
-  assert.match(redirect, /href="\/web\/library\/"/i);
-  assert.match(redirect, /location\.replace\("\/web\/library\/"\)/);
+test('AI_INIT exact parent redirects and its shim target the glossary while embeds and assets remain reachable', () => {
+  const redirects = JSON.parse(read('vercel.json')).redirects;
+  assert.deepEqual(redirects.filter(({ source }) => source.startsWith('/web/ai-init')), [
+    { source: '/web/ai-init', destination: '/web/library/glossary/', permanent: true },
+    { source: '/web/ai-init/', destination: '/web/library/glossary/', permanent: true },
+  ]);
+  const shim = read('web/ai-init/index.html');
+  assert.ok(shim.split(/\r?\n/).length < 100, 'AI_INIT redirect stays minimal');
+  assert.doesNotMatch(shim, /glossary-(?:data|search)|home-search-input|library-tree/i);
+  assert.equal(shim.match(/<meta\b[^>]*http-equiv="refresh"[^>]*content="([^"]+)"/i)?.[1], '0; url=/web/library/glossary/');
+  assert.equal(shim.match(/<link\b[^>]*rel="canonical"[^>]*href="([^"]+)"/i)?.[1], '/web/library/glossary/');
+  assert.match(shim, /name="robots" content="noindex"/i);
+  assert.match(shim, /<a\b[^>]*href="\/web\/library\/glossary\/"/i);
+  const replaced = [];
+  for (const [, attributes, script] of shim.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/gi)) {
+    if (!/\bsrc=/.test(attributes)) vm.runInNewContext(script, { location: { replace: (url) => replaced.push(url) } });
+  }
+  assert.deepEqual(replaced, ['/web/library/glossary/']);
   for (const asset of ['web/ai-init/embed/index.html', 'web/ai-init/glossary-data.js', 'web/ai-init/glossary-search.js']) {
     assert.ok(fs.statSync(path.join(ROOT, asset)).size > 0, `${asset} remains available`);
   }
   assert.match(read('web/library/index.html'), /src="\/web\/ai-init\/glossary-data\.js/);
 });
 
-test('AI_INIT Vercel redirects cover only exact parent paths', () => {
-  const redirects = JSON.parse(read('vercel.json')).redirects;
-  const aiInit = redirects.filter(({ source }) => source.startsWith('/web/ai-init'));
-  assert.deepEqual(aiInit, [
-    { source: '/web/ai-init', destination: '/web/library/', permanent: true },
-    { source: '/web/ai-init/', destination: '/web/library/', permanent: true },
+test('route ownership validates delivery and visibility without requiring page-specific back-link markup', async () => {
+  const [{ ROUTE_REGISTRY, discoverCopiedHtmlRoutes, validateRouteRegistry }, { ROUTE_OWNERS }] = await Promise.all([
+    registryModule, catalogModule,
   ]);
-});
-
-test('canonical project pages retain explicit forest-back ownership links', async () => {
-  const { ROUTE_INVENTORY } = await inventory();
-  const kidsChildren = new Set(['kids-movie-library', 'math-mania']);
-  for (const entry of ROUTE_INVENTORY.filter(({ state }) => state !== 'redirect')) {
-    const source = read(`web/${entry.id}/index.html`);
-    assert.match(
-      source,
-      /<link rel="stylesheet" href="\/web\/shared\/forest-shell\.css\?v=20260807a">/,
-      `${entry.id} loads the shared forest-back styling`,
+  assert.deepEqual(validateRouteRegistry({
+    routes: ROUTE_REGISTRY,
+    routeOwners: ROUTE_OWNERS,
+    discoveredHtmlRoutes: discoverCopiedHtmlRoutes(ROOT),
+    vercelRedirects: JSON.parse(read('vercel.json')).redirects,
+  }), []);
+  for (const [routePath, ownerId, delivery, navigation, access] of [
+    ['/web/hypertrophyos/', 'hypertrophyos', 'page', 'manual', 'public'],
+    ['/web/chloe-pwa/', 'chloe-pwa', 'page', 'unlisted', 'internal'],
+    ['/web/fleet/', 'fleet-board', 'page', 'unlisted', 'internal'],
+    ['/web/board/', 'fleet-board', 'page', 'unlisted', 'internal'],
+    ['/web/ai-init/embed/', 'ai-init-embed', 'embed', 'unlisted', 'public'],
+    ['/web/morning-news/', 'morning-news', 'external-redirect', 'unlisted', 'public'],
+  ]) {
+    const entry = ROUTE_REGISTRY.find(({ paths }) => paths.includes(routePath));
+    assert.ok(entry, routePath);
+    assert.deepEqual(
+      [entry.ownerId, entry.delivery, entry.visibility.navigation, entry.visibility.access],
+      [ownerId, delivery, navigation, access],
+      routePath,
     );
-    const expectedHref = kidsChildren.has(entry.id) ? '/web/kids/' : '/';
-    const expectedLabel = kidsChildren.has(entry.id) ? '← Kids Corner' : '← SDForest';
-    assert.match(
-      source,
-      new RegExp(`<a\\b[^>]*class="[^"]*forest-back[^"]*"[^>]*href="${expectedHref.replace('/', '\\/')}"[^>]*>${expectedLabel}`),
-      `${entry.id} exposes its canonical parent return`,
-    );
+    for (const dimension of ['search', 'indexing']) {
+      assert.equal(typeof entry.visibility[dimension], 'string', `${routePath}: ${dimension}`);
+    }
   }
 });
 
-test('landing portals restore direct C2C destinations', () => {
+test('manually authored landing links enter all seven canonical pools', () => {
   const home = read('index.html');
-  assert.match(home, /data-project="c2c-dolphin"[^>]*data-href="\/web\/c2c-dolphin\/"/);
-  assert.match(home, /data-project="c2c-self"[^>]*data-href="\/web\/c2c-self\/"/);
+  const links = [...home.matchAll(/data-pool-link="([^"]+)" href="([^"]+)"/g)];
+  const ids = ['growingapp', 'ai-d-kit', 'tinkerbox', 'health', 'design-gallery', 'artificial-self', 'my-story'];
+  assert.deepEqual(links.map((match) => match[1]), ids);
+  assert.deepEqual(links.map((match) => match[2]), ids.map((id) => `/web/pools/${id}/`));
 });
 
-test('Poetry remains one main-atlas portal while Calendar remains trail-only', async () => {
-  const { ROUTE_INVENTORY } = await inventory();
-  const poetry = ROUTE_INVENTORY.find(({ id }) => id === 'm-popova');
-  const calendar = ROUTE_INVENTORY.find(({ id }) => id === 'calendar');
-  assert.equal(poetry.state, 'main-atlas');
-  assert.equal(calendar.state, 'hub-trail');
-
+test('homepage pool order is manual and independent of catalog enumeration', () => {
   const home = read('index.html');
-  const projectGrid = home.match(/<div class="project-grid" data-project-grid>[\s\S]*?<\/section>/)?.[0] || '';
-  assert.equal(
-    (projectGrid.match(/data-href="\/web\/m-popova\/"/g) || []).length,
-    1,
-    'Poetry has exactly one landing portal',
-  );
-  assert.equal(
-    (projectGrid.match(/data-href="\/web\/calendar\/"/g) || []).length,
-    0,
-    'Calendar has no landing portal',
-  );
+  assert.equal((home.match(/data-pool-link="/g) || []).length, 7);
+  assert.doesNotMatch(home, /data-project="/);
+  assert.doesNotMatch(home, /static-route-registry|ROUTE_REGISTRY|project-catalog|ROUTE_INVENTORY/);
+});
+
+test('the static-route validator exits zero and npm exposes the dependency-free foundation runner', () => {
+  const result = spawnSync(process.execPath, ['scripts/validate-static-routes.mjs'], { cwd: ROOT, encoding: 'utf8' });
+  assert.equal(result.status, 0, result.stderr || result.error?.message);
+  assert.equal(result.stdout, '');
+  assert.equal(result.stderr, '');
+  assert.equal(JSON.parse(read('package.json')).scripts.test, 'node scripts/run-contract-tests.mjs');
+  assert.ok(fs.existsSync(path.join(ROOT, 'scripts/run-contract-tests.mjs')), 'the npm runner exists');
 });

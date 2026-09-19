@@ -1,0 +1,197 @@
+const { test } = require('node:test');
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const path = require('node:path');
+
+const ROOT = path.resolve(__dirname, '../..');
+const read = (file) => fs.readFileSync(path.join(ROOT, file), 'utf8');
+const pools = [
+  ['growingapp', 'GrowingApp'], ['ai-d-kit', 'AI-d kit'], ['tinkerbox', 'TinkerBox'],
+  ['health', 'Health'], ['design-gallery', 'Design Gallery'],
+  ['artificial-self', 'Artificial Self'], ['my-story', 'My Story'],
+];
+const presenter = import('../../web/shared/pool-page.mjs');
+const catalog = import('../../web/shared/project-catalog.mjs');
+
+test('one combined Math row exposes only its two named approved companions', async () => {
+  const [{ renderProject }, { getPoolProjects }] = await Promise.all([presenter, catalog]);
+  const project = getPoolProjects('GrowingApp').find((p) => p.id === 'math-forest');
+  const html = renderProject({ ...project, routeBindings: [...project.routeBindings,
+    { type: 'local', route: '/compatibility-only/' }] });
+  assert.equal((html.match(/data-project-id="math-forest"/g) || []).length, 1);
+  assert.deepEqual([...html.matchAll(/href="([^"]+)"/g)].map((m) => m[1]), ['/web/math-forest/', '/web/math-mania/']);
+  assert.match(html, />Math Forest —/);
+  assert.match(html, />Math Mania —/);
+  assert.match(html, /Math Forest[^<]*rebuild placeholder/i);
+  assert.match(html, /Status: Live/);
+  assert.doesNotMatch(html, /compatibility-only/);
+});
+
+test('exactly seven static shells have independent accessible descriptions and all-pools navigation', () => {
+  assert.deepEqual(fs.readdirSync(path.join(ROOT, 'web/pools')).sort(), pools.map(([id]) => id).sort());
+  for (const [id, name] of pools) {
+    const html = read(`web/pools/${id}/index.html`);
+    assert.ok(html.includes(`<title>${name}</title>`));
+    assert.ok(html.includes(`<h1>${name}</h1>`));
+    assert.match(html, new RegExp(`<main data-pool-id="${id}">`));
+    assert.match(html, /<html lang="en">/);
+    assert.match(html, /name="viewport"/);
+    assert.match(html, /<a href="\/">Back to SD Forest<\/a>/);
+    assert.match(html, /<p>Live pool<\/p>\s*<p>[^<]{20,}<\/p>/);
+    assert.match(html, /<noscript><p>Project details load from the shared catalog/);
+    assert.match(html, /<section aria-labelledby="projects-title">/);
+    assert.match(html, /<div data-pool-projects>/);
+    assert.match(html, /type="module" src="\/web\/shared\/pool-page.mjs"/);
+    const nav = html.match(/<nav aria-label="All pools">([\s\S]*?)<\/nav>/)?.[1];
+    assert.ok(nav);
+    assert.deepEqual([...nav.matchAll(/href="([^\"]+)"/g)].map((m) => m[1]), pools.map(([key]) => `/web/pools/${key}/`));
+    assert.equal((nav.match(/aria-current="page"/g) || []).length, 1);
+    assert.doesNotMatch(html, /forest-(?:trails|navigation|runtime|motion)|reveal|ROUTE_REGISTRY|forest-skin/);
+  }
+});
+
+test('home manually authors only seven live pool links in canonical order and a separate Portfolio control', () => {
+  const home = read('index.html');
+  const directory = home.match(/<nav aria-label="Seven pools" data-pool-directory>([\s\S]*?)<\/nav>/)?.[1];
+  assert.ok(directory);
+  const links = [...directory.matchAll(/<a\b[^>]*data-pool-link="([^"]+)"[^>]*href="([^"]+)"[^>]*>([\s\S]*?)<\/a>/g)];
+  assert.deepEqual(links.map((m) => m[1]), pools.map(([id]) => id));
+  links.forEach((link, index) => {
+    assert.equal(link[2], `/web/pools/${pools[index][0]}/`);
+    assert.ok(link[3].includes(`>${pools[index][1]}</span>`));
+    assert.match(link[3], />Live pool</);
+    assert.doesNotMatch(link[0], /disabled|tabindex|target=/);
+  });
+  assert.equal((home.match(/href="\/web\/pools\//g) || []).length, 7);
+  assert.doesNotMatch(home, /project-catalog|ROUTE_REGISTRY|ROUTE_INVENTORY|static-route-registry/);
+  assert.doesNotMatch(home, /data-(?:index-project|directory-section|index-section|project)="/);
+  assert.doesNotMatch(home, /Kids Corner|Found Work|Voice Playground|Multiply Magic|Web Design Gallery|VFX Portfolio|Published research/);
+  assert.doesNotMatch(directory, /AI Research|Evolution|Writing & Media|Projects & Play|Research & Experiments/);
+  assert.match(home, /<nav[^>]*aria-label="Site controls">\s*<a data-site-control="portfolio" href="https:\/\/vfxportfolio.lovable.app" target="_blank" rel="noopener">Portfolio — opens in a new tab<\/a>/);
+  assert.doesNotMatch(directory, /portfolio/i);
+});
+
+test('presenter consumes catalog membership and renders every assigned project including Coming Soon rows', async () => {
+  const [{ renderPoolProjects }, { getPoolProjects }] = await Promise.all([presenter, catalog]);
+  assert.match(read('web/shared/pool-page.mjs'), /import \{ POOL_CATALOG, getPoolProjects \} from '\.\/project-catalog\.mjs'/);
+  assert.doesNotMatch(read('web/shared/pool-page.mjs'), /PUBLIC_CARD_PROJECTS|ROUTE_REGISTRY|ROUTE_INVENTORY|forest-(?:trails|navigation|runtime|motion)/);
+  for (const [id, name] of pools) {
+    const projects = getPoolProjects(name);
+    const html = renderPoolProjects(id);
+    assert.deepEqual([...html.matchAll(/data-project-id="([^"]+)"/g)].map((m) => m[1]), projects.map((p) => p.id));
+    for (const project of projects) {
+      const row = html.match(new RegExp(`<div id="${project.id}"[\\s\\S]*?<\\/article>`))?.[0];
+      assert.ok(row, `${project.id} has its stable fragment target`);
+      assert.match(row, /Last meaningful update: awaiting verified date/);
+      assert.match(row, /class="pool-metrics">Metrics: none published/);
+      if (project.status === 'In development') {
+        assert.match(row, /Status: In development — Coming Soon/);
+        assert.match(row, /aria-disabled="true"/);
+        assert.doesNotMatch(row, /<a\b|<button\b|tabindex=/);
+      }
+      if (project.visibility?.access === 'internal') {
+        assert.match(row, /Internal project; documentation is unpublished/);
+        assert.doesNotMatch(row, /href=|\/web\/fleet\/|\/web\/board\/|\/web\/chloe-pwa\//);
+      }
+      if (project.visibility?.navigation === 'unlisted') {
+        for (const binding of project.routeBindings) assert.ok(!row.includes(binding.url || binding.route));
+      } else if (project.status === 'Live' && project.routeBindings.some((b) => b.type !== 'shared-pool-tab')) {
+        assert.match(row, /<a\b/, `${project.id} keeps its explicitly settled Live handoff`);
+        if (project.readiness?.review !== 'verified') assert.match(row, /readiness review remains pending/);
+      }
+    }
+  }
+});
+
+test('Health retains two separate progressively enhanced tabs and their distinct bound implementations', async () => {
+  const [{ renderProject }, { getPoolProjects }] = await Promise.all([presenter, catalog]);
+  const html = read('web/pools/health/index.html');
+  assert.match(html, /role="tablist"[^>]*data-health-tabs hidden/);
+  const tabs = [...html.matchAll(/<button type="button" role="tab" id="tab-([^"]+)" aria-controls="([^"]+)"[^>]*>([^<]+)<\/button>/g)];
+  assert.deepEqual(tabs.map((m) => [m[1], m[2], m[3]]), [
+    ['dyslexia', 'dyslexia', 'Dyslexia Reading Platform'], ['audiobook', 'audiobook', 'Audiobook Studio'],
+  ]);
+  for (const id of ['dyslexia', 'audiobook']) {
+    assert.match(html, new RegExp(`<section id="${id}" data-health-project="${id}"[^>]*>`));
+    assert.doesNotMatch(html.match(new RegExp(`<section id="${id}"[^>]*>`))[0], /hidden/);
+    const project = getPoolProjects('Health').find((p) => p.id === id);
+    const url = `https://chloe.blumenkraft.cloud/${id}/`;
+    assert.ok(project.routeBindings.some((b) => b.type === 'external' && b.url === url));
+    assert.ok(project.routeBindings.some((b) => b.route === `/web/pools/health/#${id}`));
+    assert.ok(renderProject(project).includes(url));
+    assert.ok(renderProject(project).includes(`href="${url}" target="_blank" rel="noopener"`));
+  }
+  assert.doesNotMatch(read('web/shared/pool-page.mjs'), /https:\/\/chloe\./, 'implementation URLs come from the catalog');
+});
+
+test('Health tabs support arrow, Home, End, click and catalog fragment selection', async () => {
+  const { enhanceHealthTabs } = await presenter;
+  const makeNode = (id, controls) => ({
+    id, hidden: false, attributes: controls ? { 'aria-controls': controls } : {}, listeners: {},
+    getAttribute(key) { return this.attributes[key]; },
+    setAttribute(key, value) { this.attributes[key] = value; },
+    addEventListener(key, fn) { this.listeners[key] = fn; },
+    focus() { this.focused = true; },
+  });
+  const tabs = [makeNode('tab-dyslexia', 'dyslexia'), makeNode('tab-audiobook', 'audiobook')];
+  const panels = [makeNode('dyslexia'), makeNode('audiobook')];
+  const tablist = { hidden: true, querySelectorAll: () => tabs };
+  const root = { querySelector: (selector) => selector === '[data-health-tabs]' ? tablist : panels.find((p) => `#${p.id}` === selector) };
+  enhanceHealthTabs(root, { hash: '#audiobook' });
+  assert.equal(tablist.hidden, false);
+  assert.deepEqual(panels.map((p) => p.hidden), [true, false]);
+  const key = (index, value) => tabs[index].listeners.keydown({ key: value, preventDefault() {} });
+  key(1, 'ArrowRight');
+  assert.deepEqual(tabs.map((t) => t.attributes['aria-selected']), ['true', 'false']);
+  assert.equal(tabs[0].focused, true);
+  key(0, 'End');
+  assert.deepEqual(tabs.map((t) => t.tabIndex), [-1, 0]);
+  key(1, 'Home');
+  key(0, 'ArrowLeft');
+  assert.deepEqual(panels.map((p) => p.hidden), [true, false]);
+  tabs[0].listeners.click();
+  assert.deepEqual(panels.map((p) => p.hidden), [false, true]);
+  panels.forEach((p, i) => {
+    assert.equal(p.attributes.role, 'tabpanel');
+    assert.equal(p.attributes['aria-labelledby'], tabs[i].id);
+    assert.equal(p.tabIndex, 0);
+  });
+});
+
+test('Design Gallery categories are not projects, and naming and archive uncertainty remain explicit', async () => {
+  const [{ renderPoolProjects }, { DESIGN_GALLERY_SUBCATEGORIES }] = await Promise.all([presenter, catalog]);
+  const design = read('web/pools/design-gallery/index.html');
+  assert.deepEqual([...design.matchAll(/data-category-id="([^"]+)"/g)].map((m) => m[1]), DESIGN_GALLERY_SUBCATEGORIES.map((c) => c.id));
+  assert.match(design, /Website History<\/strong> — Live category\. Poetry Space is an example; Evolution is Website History material/);
+  assert.doesNotMatch(renderPoolProjects('design-gallery'), /data-project-id="(?:evolution|web-design-gallery|game-design|web-design|website-history)"/);
+  const research = read('web/pools/artificial-self/index.html');
+  assert.match(research, /Artificial Self \/ AI Research naming question remains open/);
+  assert.match(research, /Archive interpretations require rederivation/);
+  assert.equal((renderPoolProjects('artificial-self').match(/Existing C2C outcome claims are not verified findings/g) || []).length, 2);
+  assert.match(renderPoolProjects('tinkerbox'), /Fork of work by nikhilvishwakarma00\. Ivan’s audio-only YouTube path with no video\./);
+});
+
+test('route bindings, readiness, metrics and verified dates remain independent in the presenter', async () => {
+  const [{ renderProject }, { getPoolProjects }] = await Promise.all([presenter, catalog]);
+  const project = getPoolProjects('Health').find((p) => p.id === 'dyslexia');
+  assert.match(renderProject(project), /<a\b/, 'settled Live public implementations are usable despite pending generic readiness');
+  const enabled = { ...project, readiness: { entryEnabled: true }, metrics: [{ name: 'Examples', value: 2, unit: 'examples' }] };
+  const rendered = renderProject(enabled);
+  assert.match(rendered, /Status: Live/);
+  assert.match(rendered, /Metrics: Examples: 2 examples/);
+  assert.match(rendered, /target="_blank" rel="noopener">[^<]+ — External; opens in a new tab/);
+  assert.equal((rendered.match(/<a\b/g) || []).length, 1, 'shared pool fragments are not service URLs');
+  assert.doesNotMatch(renderProject({ ...enabled, routeBindings: [] }), /<a\b/);
+  assert.doesNotMatch(renderProject({ ...enabled, routeBindings: [{ type: 'external', url: 'javascript:alert(1)' }] }), /href=/);
+  assert.match(renderProject({ ...enabled, publicName: '<script>unsafe</script>' }), /&lt;script&gt;unsafe&lt;\/script&gt;/);
+  const dated = { ...enabled, lastMeaningfullyUpdated: '2026-09-15', updateProvenance: { source: 'review.md', semanticReviewRequired: false } };
+  assert.match(renderProject(dated), /Last meaningful update: 2026-09-15/);
+  assert.match(renderProject({ ...dated, updateProvenance: null }), /Last meaningful update: awaiting verified date/);
+  assert.match(renderProject({ ...dated, lastMeaningfullyUpdated: '2026-02-30' }), /Last meaningful update: awaiting verified date/);
+  assert.doesNotMatch(renderProject({ ...enabled, status: 'In development' }), /<a\b/);
+  assert.doesNotMatch(renderProject({ ...enabled, visibility: { access: 'internal' } }), /<a\b|chloe.blumenkraft.cloud/);
+  assert.doesNotMatch(renderProject({ ...enabled, visibility: { access: 'public', navigation: 'unlisted' } }), /<a\b|chloe.blumenkraft.cloud/);
+  assert.doesNotMatch(renderProject({ ...enabled, routeBindings: [
+    { type: 'local', route: '/public/' }, { type: 'local', route: '/internal-subroute/' },
+  ] }), /internal-subroute/, 'owned subroutes do not automatically become public navigation');
+});
