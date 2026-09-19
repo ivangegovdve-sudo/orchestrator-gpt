@@ -10,19 +10,50 @@ const snapshotUrl = new URL(
 );
 const previousBytes = await readFile(snapshotUrl);
 const previous = JSON.parse(previousBytes);
+const publicSnapshotUrl = new URL(
+  "../web/open-dashboard/public-catalogue.json",
+  import.meta.url,
+);
+const previousPublicBytes = await readFile(publicSnapshotUrl).catch(() => null);
+const nousSnapshotUrl = new URL(
+  "../web/open-dashboard/nous-catalogue.json",
+  import.meta.url,
+);
+const previousNousBytes = await readFile(nousSnapshotUrl).catch(() => null);
+
+function runScript(script, timeout = 90000, env = process.env) {
+  return spawnSync(process.execPath, [script], {
+    cwd: root,
+    timeout,
+    maxBuffer: 1024 * 1024,
+    encoding: "utf8",
+    windowsHide: true,
+    env,
+  });
+}
+
+// Package facts come from a real in-memory MCP handshake (tools/list), so a
+// deployment cannot silently describe a different installed contract.
+const factsResult = runScript("scripts/refresh-open-dashboard-package-facts.mjs");
+if (factsResult.error || factsResult.status !== 0)
+  throw new Error("The installed open-dashboard-mcp contract could not be verified.");
+console.log(factsResult.stdout.trim());
 
 try {
-  const result = spawnSync(
-    process.execPath,
-    ["web/open-dashboard/scripts/refresh-media.mjs"],
-    {
-      cwd: root,
-      timeout: 90000,
-      maxBuffer: 1024 * 1024,
-      encoding: "utf8",
-      windowsHide: true,
-    },
+  const result = runScript("web/open-dashboard/scripts/refresh-public-catalogue.mjs");
+  if (result.error || result.status !== 0)
+    throw new Error("The public catalogue snapshot did not complete.");
+  console.log(result.stdout.trim());
+} catch (error) {
+  if (previousPublicBytes)
+    await writeFile(publicSnapshotUrl, previousPublicBytes);
+  console.warn(
+    `Open Dashboard: ${error.message} Using the checked-in public catalogue snapshot.`,
   );
+}
+
+try {
+  const result = runScript("web/open-dashboard/scripts/refresh-media.mjs");
   if (result.error || result.status !== 0)
     throw new Error("The public catalogue refresh did not complete.");
   const current = JSON.parse(await readFile(snapshotUrl, "utf8"));
@@ -52,4 +83,20 @@ try {
   console.warn(
     `Open Dashboard: ${error.message} Using the checked-in snapshot from ${previous.fetchedAt}; its original source dates remain visible.`,
   );
+}
+
+// Nous is a read-only catalogue supplement. A Portal key is optional because
+// /v1/models is publicly readable; never treat a Hermes API_SERVER_KEY as a
+// Nous credential and never make a deployment depend on a secret being present.
+if (process.env.NOUS_PORTAL_API_KEY?.trim()) {
+  const result = runScript("web/open-dashboard/scripts/refresh-nous-catalogue.mjs");
+  if (result.error || result.status !== 0) {
+    if (previousNousBytes)
+      await writeFile(nousSnapshotUrl, previousNousBytes);
+    console.warn(
+      "Open Dashboard: Nous catalogue refresh unavailable; retaining the checked-in snapshot.",
+    );
+  } else {
+    console.log(result.stdout.trim());
+  }
 }

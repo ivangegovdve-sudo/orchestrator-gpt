@@ -18,7 +18,9 @@ export const PROVIDERS = {
 };
 export const DEFAULT_STATE = Object.freeze({
   provider: "all",
-  modality: "text",
+  // The first view is the complete catalogue map. Visitors can narrow to a
+  // modality after seeing the size and shape of the whole data set.
+  modality: "all",
   free: false,
   tools: false,
   inactive: false,
@@ -28,7 +30,7 @@ export const DEFAULT_STATE = Object.freeze({
   y: "output",
   scale: "symlog",
   view: "models",
-  modelChart: "prices",
+  modelChart: "catalogue",
   modelGroup: "provider",
   appChart: "flow",
   historyChart: "lines",
@@ -37,6 +39,9 @@ export const DEFAULT_STATE = Object.freeze({
   inputTokens: 1000000,
   outputTokens: 250000,
   selected: "",
+  // A comma-separated pair keeps shared links stable while allowing the UI to
+  // treat the two providers as one explicit comparison scope.
+  compare: "",
   app: "all",
   usageApp: "",
   flowModel: "all",
@@ -58,7 +63,7 @@ export const AXES = {
 };
 const MODALITIES = ["text", "video", "image", "audio", "unknown", "all"];
 const CHART_CHOICES = {
-  modelChart: ["prices", "catalogue", "bars", "donut"],
+  modelChart: ["prices", "catalogue", "bars", "donut", "compare"],
   modelGroup: ["provider", "modality"],
   appChart: ["flow", "bars", "donut"],
   historyChart: ["lines", "bars"],
@@ -67,6 +72,17 @@ const CHART_CHOICES = {
 export const DIRECT_PROVIDER_IDS = Object.freeze(
   Object.keys(PROVIDERS),
 );
+
+/** Return exactly two known provider ids, preserving the user's order. */
+export function parseProviderPair(value) {
+  if (Array.isArray(value)) value = value.join(",");
+  if (typeof value !== "string") return [];
+  const ids = [...new Set(value
+    .split(",")
+    .map((item) => item.trim().toLowerCase())
+    .filter((item) => Object.hasOwn(PROVIDERS, item)))];
+  return ids.length === 2 ? ids : [];
+}
 const PROVIDER_SOURCE = {
   groq: "https://console.groq.com/docs/models",
   cerebras: "https://inference-docs.cerebras.ai/api-reference/models",
@@ -184,6 +200,13 @@ export function readState(search = "") {
   for (const k of ["x", "y"])
     if (Object.hasOwn(AXES, q.get(k))) s[k] = q.get(k);
   if (MODALITIES.includes(q.get("modality"))) s.modality = q.get("modality");
+  const pair = parseProviderPair(q.get("compare"));
+  if (pair.length === 2) {
+    s.compare = pair.join(",");
+    // Pair scope is the provider filter. Keeping both values in the URL would
+    // make a shared link appear narrower than the comparison it describes.
+    s.provider = "all";
+  }
   if (
     ["overview", "models", "apps", "history", "benchmarks", "changes"].includes(
       q.get("view"),
@@ -214,7 +237,13 @@ export function modelFilterSummary(s = DEFAULT_STATE) {
   const summary = [];
   const add = (key, label, advanced = false) =>
     summary.push({ key, label, advanced });
-  if (state.provider !== "all")
+  const pair = parseProviderPair(state.compare);
+  if (pair.length === 2)
+    add(
+      "compare",
+      `Compare: ${PROVIDERS[pair[0]] || pair[0]} ↔ ${PROVIDERS[pair[1]] || pair[1]}`,
+    );
+  else if (state.provider !== "all")
     add("provider", `Provider: ${PROVIDERS[state.provider] || state.provider}`);
   if (state.modality !== "all") {
     const outputs = {
@@ -250,6 +279,7 @@ export function clearModelFilters(s = DEFAULT_STATE) {
     context: 0,
     q: "",
     selected: "",
+    compare: "",
   };
 }
 export async function request(path) {
@@ -615,6 +645,19 @@ export function mergeMedia(models, media) {
       ["image", "video", "audio"].includes(m.mediaKind);
     const nativePair = !isMedia ? nativeTokenPair(m.pricePoints) : null;
     const nativeMeta = m.metadata ?? {};
+    const nativeZeroText =
+      !isMedia &&
+      modalities.length === 1 &&
+      modalities[0] === "text" &&
+      nativePair?.input === 0 &&
+      nativePair?.output === 0 &&
+      Array.isArray(m.pricePoints) &&
+      m.pricePoints.length > 0 &&
+      m.pricePoints.every(
+        (point) =>
+          ["token_in", "token_out"].includes(point?.unit) &&
+          finite(point?.amount) === 0,
+      );
     result.set(key, {
       ...existing,
       ...m,
@@ -631,8 +674,13 @@ export function mergeMedia(models, media) {
       capabilities: Array.isArray(nativeMeta.capabilities)
         ? nativeMeta.capabilities
         : [],
-      zeroText: false,
-      freeOffer: quota?.kind === "free_plan_quota" ? "free_plan" : null,
+      zeroText: nativeZeroText,
+      freeOffer:
+        nativeZeroText || quota?.kind === "free_plan_quota"
+          ? nativeZeroText
+            ? "zero_price"
+            : "free_plan"
+          : null,
       quota,
       catalogueSourceAt: existing?.sourceAt ?? null,
       sourceAt: m.fetchedAt ?? null,
@@ -647,11 +695,55 @@ export function mergeMedia(models, media) {
   }
   return [...result.values()];
 }
+
+/** Merge dated native snapshots by provider/id while preserving their reports. */
+export function combineNativeSnapshots(...snapshots) {
+  const usable = snapshots.filter((snapshot) => snapshot && typeof snapshot === "object");
+  const modelMap = new Map();
+  const providerMap = new Map();
+  for (const snapshot of usable) {
+    for (const model of Array.isArray(snapshot.models) ? snapshot.models : []) {
+      if (!model || typeof model.provider !== "string" || typeof model.id !== "string")
+        continue;
+      const key = keyOf(model.provider, model.id);
+      if (!modelMap.has(key)) modelMap.set(key, model);
+    }
+    for (const provider of Array.isArray(snapshot.providers) ? snapshot.providers : []) {
+      if (provider?.provider && !providerMap.has(provider.provider))
+        providerMap.set(provider.provider, provider);
+    }
+  }
+  const fetchedAt = usable
+    .map((snapshot) => snapshot.fetchedAt)
+    .filter((value) => typeof value === "string" && Number.isFinite(Date.parse(value)))
+    .sort()
+    .at(-1) ?? null;
+  const registry = usable.find((snapshot) => Array.isArray(snapshot.registry?.providers))?.registry;
+  return {
+    schemaVersion: 2,
+    collector: usable.map((snapshot) => snapshot.collector).filter(Boolean).join(" + "),
+    fetchedAt,
+    ...(registry ? { registry } : {}),
+    providers: [...providerMap.values()],
+    population: {
+      sourceModelsReceived: [...modelMap.values()].length,
+      catalogueModels: [...modelMap.values()].length,
+      mediaModels: [...modelMap.values()].filter((model) => ["image", "video", "audio"].includes(model.mediaKind)).length,
+      modelsWithPricePoints: [...modelMap.values()].filter((model) => Array.isArray(model.pricePoints) && model.pricePoints.length).length,
+      completeness: usable.every((snapshot) => snapshot.population?.completeness === "full") ? "full" : "partial_or_unknown",
+    },
+    notes: usable.flatMap((snapshot) => Array.isArray(snapshot.notes) ? snapshot.notes : []),
+    models: [...modelMap.values()],
+  };
+}
 export function filterModels(models, s) {
   const q = s.q.toLowerCase().trim();
+  const pair = parseProviderPair(s.compare);
   return models.filter(
     (m) =>
-      (s.provider === "all" || m.provider === s.provider) &&
+      (pair.length === 2
+        ? pair.includes(m.provider)
+        : s.provider === "all" || m.provider === s.provider) &&
       (s.modality === "all" ||
         (s.modality === "unknown"
           ? !m.modalities.length
@@ -663,6 +755,95 @@ export function filterModels(models, s) {
         (m.providerActive !== false && m.availability !== "disappeared")) &&
       (!q || `${m.id} ${m.name} ${m.provider}`.toLowerCase().includes(q)),
   );
+}
+
+/**
+ * Compare two provider slices without aliasing model names. Shared rows are
+ * joined on the exact provider catalogue id, then their published token legs
+ * are kept side by side for the table below the chart.
+ */
+export function compareProviders(models, value) {
+  const providers = parseProviderPair(value);
+  const byProvider = new Map(
+    providers.map((provider) => [
+      provider,
+      models.filter((model) => model.provider === provider),
+    ]),
+  );
+  const counts = Object.fromEntries(
+    providers.map((provider) => [provider, byProvider.get(provider).length]),
+  );
+  const pricedCounts = Object.fromEntries(
+    providers.map((provider) => [
+      provider,
+      byProvider
+        .get(provider)
+        .filter(
+          (model) =>
+            finite(model.input) !== null &&
+            finite(model.output) !== null &&
+            tokenComparable(model),
+        ).length,
+    ]),
+  );
+  if (providers.length !== 2)
+    return {
+      providers,
+      counts,
+      pricedCounts,
+      sharedIds: [],
+      sharedPrices: [],
+      uniqueCounts: counts,
+    };
+  const [first, second] = providers,
+    secondById = new Map(
+      byProvider
+        .get(second)
+        .filter((model) => typeof model.id === "string")
+        .map((model) => [model.id, model]),
+    ),
+    sharedIds = [],
+    sharedPrices = [];
+  for (const left of byProvider.get(first)) {
+    const right = secondById.get(left.id);
+    if (!right) continue;
+    sharedIds.push(left.id);
+    if (
+      tokenComparable(left) &&
+      tokenComparable(right) &&
+      finite(left.input) !== null &&
+      finite(left.output) !== null &&
+      finite(right.input) !== null &&
+      finite(right.output) !== null
+    )
+      sharedPrices.push({
+        id: left.id,
+        first: {
+          name: left.name || left.id,
+          input: left.input,
+          output: left.output,
+        },
+        second: {
+          name: right.name || right.id,
+          input: right.input,
+          output: right.output,
+        },
+      });
+  }
+  const uniqueCounts = Object.fromEntries(
+    providers.map((provider) => [
+      provider,
+      counts[provider] - sharedIds.length,
+    ]),
+  );
+  return {
+    providers,
+    counts,
+    pricedCounts,
+    sharedIds: sharedIds.sort((a, b) => a.localeCompare(b)),
+    sharedPrices: sharedPrices.sort((a, b) => a.id.localeCompare(b.id)),
+    uniqueCounts,
+  };
 }
 export function metric(m, axis, s = DEFAULT_STATE) {
   if (!Object.hasOwn(AXES, axis)) return null;

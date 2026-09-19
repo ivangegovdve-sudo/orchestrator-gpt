@@ -77,7 +77,7 @@ export const MCP_COVERAGE = Object.freeze(
   })),
 );
 
-// Reviewed against the installed 1.1.3 contract and speed tool.
+// Reviewed against the installed 1.1.4 contract and speed tool.
 // These package facts have their own version; the page load is not a new probe.
 export const PACKAGE_EVIDENCE = Object.freeze({
   version: PACKAGE_VERSION,
@@ -634,7 +634,7 @@ export function summarizeOverview({
   const cells = observedCells(matrix);
   return {
     catalogue: {
-      available: !!metadata.live || !!metadata.media || entries.length > 0,
+      available: !!metadata.live || !!metadata.native || !!metadata.media || entries.length > 0,
       entries: entries.length,
       providers: new Set(entries.map((model) => model.provider)).size,
       partitions,
@@ -645,7 +645,7 @@ export function summarizeOverview({
       freePlans: entries.filter((model) => model.freeOffer === "free_plan")
         .length,
       source: sourceSummary(metadata.live),
-      nativeAt: stamp(metadata.media?.fetchedAt),
+      nativeAt: stamp((metadata.native || metadata.media)?.fetchedAt),
     },
     apps: {
       available: !!metadata.apps || apps.length > 0,
