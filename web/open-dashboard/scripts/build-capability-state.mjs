@@ -6,6 +6,7 @@
 import { readFile, writeFile } from "node:fs/promises";
 const snapshotPath = new URL("../public-catalogue.json", import.meta.url);
 const targetPath = new URL("../capability-state.json", import.meta.url);
+const measurementManifestPath = new URL("../measurement-manifest.json", import.meta.url);
 const sourceEndpoint = "https://openrouter-github-dashboard.vercel.app/api/public/v2/live-models";
 
 const observedAtFor = (row, fallback) =>
@@ -90,6 +91,7 @@ const generatedAt = typeof snapshot.fetchedAt === "string"
   ? snapshot.fetchedAt
   : new Date().toISOString();
 const packageFacts = JSON.parse(await readFile(new URL("../package-facts.json", import.meta.url), "utf8").catch(() => "{}"));
+const measurement = JSON.parse(await readFile(measurementManifestPath, "utf8"));
 const pages = Array.isArray(snapshot.pages) ? snapshot.pages : [];
 const sourceStale = pages.some((page) => page?.stale === true);
 const rows = snapshot.data
@@ -215,6 +217,7 @@ const state = {
     sampleSize: 0,
     note: "No inference workload was run by this read; measured charges, reachability, latency, and functionality stay explicit UNKNOWN values.",
   },
+  measurement,
   providers: providerIds.map((id) => {
     const count = rows.filter((row) => row.provider === id).length;
     return {

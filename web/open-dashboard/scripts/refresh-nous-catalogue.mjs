@@ -124,13 +124,15 @@ if (previous) {
     previousSnapshot = JSON.parse(previous);
   } catch {}
 }
-const inference = previousSnapshot?.inference?.status
-  ? previousSnapshot.inference
-  : {
-      status: "unverified",
-      reason:
-        "No Nous inference result is included in this catalogue refresh. The Hermes API server key is a separate credential from a Nous Portal API key.",
-    };
+// A catalogue read never inherits an older inference claim. The public
+// snapshot must stay honest when a Portal credential is revoked or when the
+// only available credential belongs to the separate Hermes API surface.
+const inference = {
+  status: "unverified",
+  checkedAt: null,
+  reason:
+    "No Nous inference result is included in this catalogue refresh. The Hermes API server key is a separate credential from a Nous Portal API key.",
+};
 const snapshot = {
   schemaVersion: 1,
   collector: "open-dashboard-mcp@1.1.4 + Nous Research catalogue",

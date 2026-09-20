@@ -1753,6 +1753,9 @@ h1 {
   .state-query-grid {
     grid-template-columns: 1fr;
   }
+  .state-measurement-card {
+    grid-template-columns: 1fr;
+  }
   .state-ledger-heading {
     align-items: start;
     flex-direction: column;
@@ -2174,6 +2177,63 @@ h1 {
   font-size: 13px;
   line-height: 1.5;
   margin-bottom: 10px;
+}
+.state-measurement-card {
+  background: color-mix(in srgb, var(--accent-soft) 48%, var(--surface));
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  display: grid;
+  gap: 12px 18px;
+  grid-template-columns: minmax(0, 1.35fr) minmax(220px, .65fr);
+  margin: 0 0 22px;
+  padding: 14px 16px;
+}
+.state-measurement-card h4 {
+  font-size: 17px;
+  margin-bottom: 6px;
+}
+.state-measurement-card h4 span {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 600;
+  margin-left: 5px;
+}
+.state-measurement-card p {
+  font-size: 12px;
+  line-height: 1.5;
+  margin: 0;
+}
+.state-measurement-cost {
+  margin-top: 8px !important;
+}
+.state-measurement-foot {
+  border-top: 1px solid var(--line);
+  grid-column: 1 / -1;
+  padding-top: 9px;
+}
+.state-vantage-list {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+.state-vantage {
+  align-items: center;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  display: flex;
+  gap: 8px;
+  justify-content: space-between;
+  padding: 7px 9px;
+}
+.state-vantage strong {
+  font-size: 11px;
+}
+.state-vantage small {
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 750;
+  letter-spacing: .05em;
 }
 .state-query-meta {
   display: grid;
