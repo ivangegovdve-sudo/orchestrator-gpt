@@ -162,7 +162,7 @@ test('Design Gallery categories are not projects, and archive uncertainty remain
   const [{ renderPoolProjects }, { DESIGN_GALLERY_SUBCATEGORIES }] = await Promise.all([presenter, catalog]);
   const design = read('web/pools/design-gallery/index.html');
   assert.deepEqual([...design.matchAll(/data-category-id="([^"]+)"/g)].map((m) => m[1]), DESIGN_GALLERY_SUBCATEGORIES.map((c) => c.id));
-  assert.match(design, /Website History<\/strong> — Live category\. Poetry Space is an example; Evolution is Website History material/);
+  assert.match(design, /Website History<\/strong> — Live category\. Poetry Space is an example; Evolution is Website History material\. <a href="\/web\/evolution\/">View the history exhibit<\/a>/);
   assert.doesNotMatch(renderPoolProjects('design-gallery'), /data-project-id="(?:evolution|web-design-gallery|game-design|web-design|website-history)"/);
   const research = read('web/pools/artificial-self/index.html');
   assert.match(research, /AI Research is the research part of this pool/);
