@@ -208,7 +208,7 @@ export function readState(search = "") {
     s.provider = "all";
   }
   if (
-    ["overview", "models", "apps", "history", "benchmarks", "changes"].includes(
+    ["overview", "models", "apps", "history", "benchmarks", "changes", "state"].includes(
       q.get("view"),
     )
   )
