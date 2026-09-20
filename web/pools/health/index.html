@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Health, reading, movement, and wellbeing projects.">
+  <title>Health</title>
+  <link rel="icon" href="/web/shared/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/web/shared/pool-page.css">
+  <script type="module" src="/web/shared/pool-page.mjs"></script>
+</head>
+<body class="pool-page">
+  <header><a href="/">Back to SD Forest</a></header>
+  <main data-pool-id="health">
+    <h1>Health</h1>
+    <p>Live pool</p>
+    <p>Health, reading, movement, and wellbeing projects.</p>
+    <section aria-labelledby="health-tools-title">
+      <h2 id="health-tools-title">Reading and listening tools</h2>
+      <p>Two separate implementations: reading accessibility and audiobook production. Select a tab when scripting is available; both sections remain readable without it.</p>
+      <div role="tablist" aria-label="Health reading and listening tools" data-health-tabs hidden>
+        <button type="button" role="tab" id="tab-dyslexia" aria-controls="dyslexia" aria-selected="true">Dyslexia Reading Platform</button>
+        <button type="button" role="tab" id="tab-audiobook" aria-controls="audiobook" aria-selected="false" tabindex="-1">Audiobook Studio</button>
+      </div>
+      <section id="dyslexia" data-health-project="dyslexia" aria-label="Dyslexia Reading Platform">
+        <div data-project-details><h3>Dyslexia Reading Platform</h3><p>A separate reading environment with accessibility controls. Its existing implementation is identified by the shared catalog.</p></div>
+      </section>
+      <section id="audiobook" data-health-project="audiobook" aria-label="Audiobook Studio">
+        <div data-project-details><h3>Audiobook Studio</h3><p>A separate audiobook production tool. Its existing implementation is identified by the shared catalog.</p></div>
+      </section>
+    </section>
+
+    <section aria-labelledby="projects-title">
+      <h2 id="projects-title">Projects in Health</h2>
+      <p>This listing includes work at different stages. Project status, metrics, update dates, and entry readiness are separate facts.</p>
+      <noscript><p>Project details load from the shared catalog when JavaScript is available. The pool description and all-pools navigation remain available here.</p></noscript>
+      <div data-pool-projects><p>Project details load from the shared catalog. If they do not appear, you can still explore the other pools below.</p></div>
+    </section>
+  </main>
+  <footer>
+    <nav aria-label="All pools">
+      <ul>
+        <li><a href="/web/pools/growingapp/">GrowingApp</a></li>
+        <li><a href="/web/pools/ai-d-kit/">AI-d kit</a></li>
+        <li><a href="/web/pools/tinkerbox/">TinkerBox</a></li>
+        <li><a href="/web/pools/health/" aria-current="page">Health</a></li>
+        <li><a href="/web/pools/design-gallery/">Design Gallery</a></li>
+        <li><a href="/web/pools/artificial-self/">Artificial Self</a></li>
+        <li><a href="/web/pools/my-story/">My Story</a></li>
+      </ul>
+    </nav>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,20 @@
+/* Plain, static pool listings. No entrance or motion treatment. */
+body.pool-page { margin: 0; background: #f6f4ee; color: #202a24; font: 1.05rem/1.6 system-ui, sans-serif; }
+.pool-page main, .pool-page > header, .pool-page > footer { max-width: 58rem; margin: auto; padding: 1.5rem; }
+.pool-page h1 { font-size: clamp(2rem, 6vw, 3rem); line-height: 1.15; }
+.pool-page h2 { line-height: 1.3; }
+.pool-page a { color: #225b40; text-underline-offset: .2em; }
+.pool-page :focus-visible { outline: 3px solid #695400; outline-offset: 4px; }
+.pool-page [hidden] { display: none !important; }
+.pool-page .pool-project { border-top: 1px solid #b9c5ba; padding-block: 1rem; }
+.pool-page .pool-project p { margin-block: .45rem; }
+.pool-page .pool-status { font-weight: 650; }
+.pool-page .pool-bindings { overflow-wrap: anywhere; }
+.pool-page .pool-categories { padding-left: 1.5rem; }
+.pool-page .pool-categories li { margin-block: .7rem; }
+.pool-page [role="tablist"] { display: flex; gap: .6rem; flex-wrap: wrap; margin-block: 1rem; }
+.pool-page [role="tab"] { padding: .8rem 1rem; border: 1px solid #536b58; border-radius: .3rem; background: #fff; color: #202a24; font: inherit; cursor: pointer; }
+.pool-page [role="tab"][aria-selected="true"] { background: #225b40; color: #fff; }
+.pool-page [role="tabpanel"] { padding: .5rem; }
+.pool-page nav ul { display: flex; flex-wrap: wrap; gap: .75rem 1.5rem; padding: 0; list-style: none; }
+.pool-page nav [aria-current="page"] { font-weight: 700; }

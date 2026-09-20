@@ -1,5 +1,10 @@
 const fs = require("fs");
 const path = require("path");
+const {
+  STATIC_COPY_FILES,
+  STATIC_COPY_DIRECTORIES,
+  STATIC_DATA_COPIES,
+} = require("./scripts/static-build-inputs.cjs");
 
 const root = __dirname;
 const outDir = path.join(root, "vercel-public");
@@ -34,23 +39,15 @@ if (!process.env.VERCEL) {
 }
 fs.mkdirSync(outDir, { recursive: true });
 
-[
-  "index.html",
-  "resume.json",
-].forEach((file) => copyFile(path.join(root, file), path.join(outDir, file)));
+STATIC_COPY_FILES.forEach((file) => copyFile(path.join(root, file), path.join(outDir, file)));
 
-[
-  "web",
-  "calendar",
-  "movies",
-  "frontend",
-  "public",
-  "config",
-].forEach((dir) => copyDir(path.join(root, dir), path.join(outDir, dir)));
+STATIC_COPY_DIRECTORIES.forEach((dir) => copyDir(path.join(root, dir), path.join(outDir, dir)));
 
-copyDir(path.join(root, "data", "presets"), path.join(outDir, "data", "presets"));
-[
-  "sd_inventory_curated.json",
-].forEach((file) => copyFile(path.join(root, "data", file), path.join(outDir, "data", file)));
+STATIC_DATA_COPIES.directories.forEach((dir) => (
+  copyDir(path.join(root, "data", dir), path.join(outDir, "data", dir))
+));
+STATIC_DATA_COPIES.files.forEach((file) => (
+  copyFile(path.join(root, "data", file), path.join(outDir, "data", file))
+));
 
 console.log(`Static Forest HUB build written to ${outDir}`);

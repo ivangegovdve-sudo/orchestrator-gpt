@@ -6,6 +6,7 @@
     "node": "22.x"
   },
   "scripts": {
+    "test": "node scripts/run-contract-tests.mjs",
     "build": "node build-vercel-static.cjs",
     "vercel-build": "node scripts/refresh-open-dashboard-for-build.mjs && npm run build",
     "refresh-roster": "node scripts/refresh-free-roster.mjs"
