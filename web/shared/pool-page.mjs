@@ -103,6 +103,26 @@ export function renderPoolContext(pool) {
     ${(pool.relatedLinks || []).map((link) => `<p><a href="${escape(link.route)}">${escape(link.publicName)}</a> — ${escape(link.attribution)}.</p>`).join('')}`;
 }
 
+/**
+ * Render the factual pool overview from the shared catalog. Static shells keep
+ * only a generic no-script fallback; this is the runtime source of truth for
+ * the pool name, lifecycle state, summary and assigned-project count.
+ */
+export function renderPoolOverview(poolId) {
+  const pool = POOL_CATALOG.find(({ id }) => id === poolId);
+  if (!pool) return '';
+  const projects = getPoolProjects(pool.publicName);
+  const readinessCounts = projects.reduce((counts, project) => {
+    counts[projectReadiness(project).state] += 1;
+    return counts;
+  }, { Shipped: 0, 'In progress': 0, UNKNOWN: 0 });
+  return `<p class="pool-state" data-pool-state="${escape(pool.state)}">${escape(pool.state)} pool</p>
+    <p class="pool-name">Catalog: <span>${escape(pool.publicName)}</span></p>
+    <p class="pool-summary">${escape(pool.summary)}</p>
+    <p class="pool-catalog-count">Catalog: ${projects.length} project${projects.length === 1 ? '' : 's'} assigned to this pool.</p>
+    <p class="pool-readiness-summary" data-readiness-summary="Shipped:${readinessCounts.Shipped};In progress:${readinessCounts['In progress']};UNKNOWN:${readinessCounts.UNKNOWN}">Readiness: Shipped: ${readinessCounts.Shipped} · In progress: ${readinessCounts['In progress']} · UNKNOWN: ${readinessCounts.UNKNOWN}</p>`;
+}
+
 export function renderPoolProjects(poolId) {
   const pool = POOL_CATALOG.find(({ id }) => id === poolId);
   if (!pool) return '';
@@ -154,6 +174,8 @@ export function enhanceHealthTabs(root, location = globalThis.location) {
 export function mountPoolPage(root) {
   const pool = POOL_CATALOG.find(({ id }) => id === root.dataset.poolId);
   if (!pool) return;
+  const overview = root.querySelector('[data-pool-overview-content]');
+  if (overview) overview.innerHTML = renderPoolOverview(pool.id);
   const context = root.querySelector('[data-pool-context]');
   if (context) context.innerHTML = renderPoolContext(pool);
   const listing = root.querySelector('[data-pool-projects]');
@@ -178,3 +200,4 @@ if (typeof document !== 'undefined') {
   const root = document.querySelector('main[data-pool-id]');
   if (root) mountPoolPage(root);
 }
+

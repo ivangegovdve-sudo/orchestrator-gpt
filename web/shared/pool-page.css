@@ -13,6 +13,7 @@ body.pool-page { margin: 0; background: #f6f4ee; color: #202a24; font: 1.05rem/1
 .pool-page .pool-readiness[data-readiness-state="Shipped"] { color: #225b40; font-weight: 650; }
 .pool-page .pool-readiness[data-readiness-state="In progress"] { color: #765b00; font-weight: 650; }
 .pool-page .pool-readiness[data-readiness-state="UNKNOWN"] { color: #6a4b4b; font-weight: 650; }
+.pool-page .pool-readiness-summary { border-left: .3rem solid #6a4b4b; padding-left: .7rem; font-weight: 650; }
 .pool-page .pool-bindings { overflow-wrap: anywhere; }
 .pool-page .pool-categories { padding-left: 1.5rem; }
 .pool-page .pool-categories li { margin-block: .7rem; }
@@ -22,3 +23,4 @@ body.pool-page { margin: 0; background: #f6f4ee; color: #202a24; font: 1.05rem/1
 .pool-page [role="tabpanel"] { padding: .5rem; }
 .pool-page nav ul { display: flex; flex-wrap: wrap; gap: .75rem 1.5rem; padding: 0; list-style: none; }
 .pool-page nav [aria-current="page"] { font-weight: 700; }
+

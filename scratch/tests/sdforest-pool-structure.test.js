@@ -37,7 +37,9 @@ test('exactly seven static shells have independent accessible descriptions and a
     assert.match(html, /<html lang="en">/);
     assert.match(html, /name="viewport"/);
     assert.match(html, /<a href="\/">Back to SD Forest<\/a>/);
-    assert.match(html, /<p>Live pool<\/p>\s*<p>[^<]{20,}<\/p>/);
+    assert.match(html, /<section[^>]+data-pool-overview[^>]*>/);
+    assert.match(html, /<div[^>]+data-pool-overview-content[^>]*>/);
+    assert.match(html, /<noscript><p>This pool overview is catalog-backed/);
     assert.match(html, /<noscript><p>Project details load from the shared catalog/);
     assert.match(html, /<section aria-labelledby="projects-title">/);
     assert.match(html, /<div data-pool-projects>/);
@@ -174,6 +176,60 @@ test('Design Gallery categories are not projects, and archive uncertainty remain
   assert.match(renderPoolProjects('tinkerbox'), /Fork of work by nikhilvishwakarma00\. Ivan’s audio-only YouTube path with no video\./);
 });
 
+test('pool overview is rendered from the catalog for every pool', async () => {
+  const [{ renderPoolOverview }, { POOL_CATALOG, getPoolProjects }] = await Promise.all([presenter, catalog]);
+  for (const pool of POOL_CATALOG) {
+    const html = renderPoolOverview(pool.id);
+    assert.match(html, new RegExp(`data-pool-state="Live"`));
+    assert.match(html, new RegExp(`>${pool.publicName}<`));
+    assert.match(html, new RegExp(pool.summary.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
+    assert.match(html, new RegExp(`Catalog: ${getPoolProjects(pool.publicName).length} project`));
+  }
+});
+
+test('pool overview exposes catalog-derived readiness counts without changing lifecycle status', async () => {
+  const [{ renderPoolOverview, projectReadiness }, { POOL_CATALOG, getPoolProjects }] = await Promise.all([presenter, catalog]);
+  for (const pool of POOL_CATALOG) {
+    const counts = getPoolProjects(pool.publicName).reduce((acc, project) => {
+      acc[projectReadiness(project).state] += 1;
+      return acc;
+    }, { Shipped: 0, 'In progress': 0, UNKNOWN: 0 });
+    const html = renderPoolOverview(pool.id);
+    assert.match(html, /data-readiness-summary/);
+    assert.match(html, new RegExp(`Shipped: ${counts.Shipped}`));
+    assert.match(html, new RegExp(`In progress: ${counts['In progress']}`));
+    assert.match(html, new RegExp(`UNKNOWN: ${counts.UNKNOWN}`));
+  }
+});
+
+test('Evolution carries the settled Website History arc without flattening unfinished work', () => {
+  const evolution = read('web/evolution/index.html');
+  assert.match(evolution, /data-history-arc/);
+  assert.match(evolution, /fear/i);
+  assert.match(evolution, /infatuation[\s\S]*finishing nothing/i);
+  assert.match(evolution, /over-delegation[\s\S]*mess still being untangled/i);
+  assert.match(evolution, /real inconvenience[\s\S]*not from an idea/i);
+  assert.match(evolution, /unfinished[\s\S]*abandoned[\s\S]*point/i);
+});
+
+test('current route copy reflects settled naming while retained legacy labels stay scoped', () => {
+  const c2cSelf = read('web/c2c-self/index.html');
+  assert.match(c2cSelf, /Artificial Self is the pool/);
+  assert.doesNotMatch(c2cSelf, /pool\/project naming decision remains under review/i);
+
+  const math = read('web/math-mania/index.html');
+  assert.doesNotMatch(math, /Kids Corner/);
+  assert.equal((math.match(/href="\/web\/pools\/growingapp\//g) || []).length, 3);
+  assert.match(math, /GrowingApp/);
+
+  const kidsLibrary = read('web/kids-movie-library/index.html');
+  assert.doesNotMatch(kidsLibrary, /Kids Corner/);
+  assert.equal((kidsLibrary.match(/href="\/web\/pools\/growingapp\//g) || []).length, 2);
+
+  const avatar = read('web/avatar-playground/index.html');
+  assert.match(avatar, /Voice Playground \(legacy\)/i);
+});
+
 test('settled pool page contracts are explicit without choosing deferred visual treatments', () => {
   const growing = read('web/pools/growingapp/index.html');
   assert.match(growing, /Manifesto for a Newborn/);
@@ -237,3 +293,4 @@ test('readiness surface has explicit shipped, in-progress and UNKNOWN states', a
   const rederivation = { ...shipped, status: 'Research', evidenceLevel: 'rederivation-required' };
   assert.deepEqual(projectReadiness(rederivation), { state: 'In progress', reason: 'Research rederivation remains required.' });
 });
+

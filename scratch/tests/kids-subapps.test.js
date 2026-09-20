@@ -85,7 +85,7 @@ test('Math Mania remains an operable, contained portal on mobile', async () => {
   const frame = page.locator('iframe[title="Math Mania Lovable app"]');
   assert.equal(await frame.count(), 1);
   assert.equal(await frame.getAttribute('src'), 'https://forest-math-plus.lovable.app');
-  assert.equal(await page.locator('a[href="/web/kids/"]').count() >= 2, true);
+  assert.equal(await page.locator('a[href="/web/pools/growingapp/"]').count() >= 2, true);
   const state = await page.evaluate(() => ({
     bodyWidth: document.body.scrollWidth,
     viewportWidth: document.documentElement.clientWidth,
@@ -217,3 +217,4 @@ test('Movie Library caps its token-driven card stagger at 800ms and skips it for
   assert.deepEqual(reduced, { animationName: 'none', transitionDuration: '0s', inlineStep: '' });
   await context.close();
 });
+
