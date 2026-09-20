@@ -57,6 +57,7 @@ export function renderProject(project, { heading = 'h3' } = {}) {
     ${comingSoon ? '<p>Coming Soon — this project is still in development; entry is unavailable.</p>' : ''}
     ${attribution ? `<p class="pool-attribution">${escape(attribution)}</p>` : ''}
     ${project.displayDiscrepancy ? `<p class="pool-title-discrepancy">Observed deployed title: ${escape(project.displayDiscrepancy.deployedName)}. Catalog/archive label: ${escape(project.displayDiscrepancy.canonicalName)}.</p>` : ''}
+    ${project.pools?.length > 1 ? `<p class="pool-membership">Shared pool member: ${escape(project.pools.join(' · '))}.</p>` : ''}
     ${typeof project.evidenceLevel === 'object' && project.evidenceLevel?.review !== 'verified' ? '<p class="pool-evidence">Evidence review remains pending.</p>' : ''}
     ${project.evidenceLevel === 'rederivation-required' ? '<p class="pool-evidence">Archive interpretations require rederivation. Existing C2C outcome claims are not verified findings.</p>' : ''}
     ${project.relationship?.type === 'self-mirror-control' ? `<p>${escape(project.relationship.description)}</p>` : ''}

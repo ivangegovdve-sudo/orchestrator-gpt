@@ -158,16 +158,19 @@ test('Health tabs support arrow, Home, End, click and catalog fragment selection
   });
 });
 
-test('Design Gallery categories are not projects, and naming and archive uncertainty remain explicit', async () => {
+test('Design Gallery categories are not projects, and archive uncertainty remains explicit', async () => {
   const [{ renderPoolProjects }, { DESIGN_GALLERY_SUBCATEGORIES }] = await Promise.all([presenter, catalog]);
   const design = read('web/pools/design-gallery/index.html');
   assert.deepEqual([...design.matchAll(/data-category-id="([^"]+)"/g)].map((m) => m[1]), DESIGN_GALLERY_SUBCATEGORIES.map((c) => c.id));
   assert.match(design, /Website History<\/strong> — Live category\. Poetry Space is an example; Evolution is Website History material/);
   assert.doesNotMatch(renderPoolProjects('design-gallery'), /data-project-id="(?:evolution|web-design-gallery|game-design|web-design|website-history)"/);
   const research = read('web/pools/artificial-self/index.html');
-  assert.match(research, /Artificial Self \/ AI Research naming question remains open/);
+  assert.match(research, /AI Research is the research part of this pool/);
+  assert.doesNotMatch(research, /naming question remains open/);
   assert.match(research, /Archive interpretations require rederivation/);
   assert.equal((renderPoolProjects('artificial-self').match(/Existing C2C outcome claims are not verified findings/g) || []).length, 2);
+  assert.match(renderPoolProjects('ai-d-kit'), /data-project-id="council"/);
+  assert.match(renderPoolProjects('tinkerbox'), /data-project-id="council"/);
   assert.match(renderPoolProjects('tinkerbox'), /Fork of work by nikhilvishwakarma00\. Ivan’s audio-only YouTube path with no video\./);
 });
 

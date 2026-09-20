@@ -92,8 +92,10 @@ export const CATALOG_NON_PROJECTS = deepFreeze([
 
 function project(id, publicName, facts) {
   const sources = [...new Set([...(facts.sources || [MASTER]), SETTLED])];
+  const pools = facts.pools ?? (facts.pool ? [facts.pool] : []);
   return {
     id, kind: 'project', publicName, pool: null, classification: 'unresolved', outsidePoolRole: null,
+    pools,
     status: null, metrics: [], lastMeaningfullyUpdated: null, updateProvenance: null,
     provisional: true,
     readiness: {
@@ -153,7 +155,7 @@ const projectRecords = [
     visibility: unpublishedDocumentation, sources: ['web/fleet/index.html', 'web/board/index.html', PLAN],
   }),
   project('ai-research', 'AI Research', {
-    pool: 'Artificial Self', classification: 'assigned', visibility: publicShell,
+    pool: 'Artificial Self', pools: ['Artificial Self'], classification: 'assigned', contentRole: 'research', status: 'Research', visibility: publicShell,
     sources: ['web/ai-research/index.html', MASTER],
   }),
   project('library', 'Library', {
@@ -205,7 +207,12 @@ const projectRecords = [
   }),
   project('avatar-playground', 'Avatar Playground', { pool: 'TinkerBox', classification: 'assigned', status: 'Live', aliases: ['Voice Playground'], visibility: publicShell, sources: ['web/avatar-playground/index.html', MASTER] }),
   project('calendar', 'Calendar Generator', { pool: 'TinkerBox', classification: 'assigned', status: 'In development', visibility: publicShell, sources: ['web/calendar/index.html', MASTER] }),
-  project('council', 'Public round-table council', { pool: 'AI-d kit', classification: 'assigned', status: 'Live', aliases: ['Councils'], visibility: publicShell, sources: ['web/council/index.html', MASTER] }),
+  project('council', 'Public round-table council', {
+    pool: 'AI-d kit', pools: ['AI-d kit', 'TinkerBox'], classification: 'assigned', status: 'Live',
+    aliases: ['Councils'], contentRole: 'council', visibility: publicShell,
+    membershipNote: 'Shared member of AI-d kit and TinkerBox by settled decision on 2026-09-20.',
+    sources: ['web/council/index.html', MASTER],
+  }),
   project('explore', 'Explore Repos', {
     pool: 'AI-d kit', classification: 'assigned', status: 'Live', visibility: publicShell,
     modes: ['solution', 'category', 'shelf', 'graphified', 'capability-cards', 'index-search'],
@@ -349,11 +356,12 @@ export const CATALOG_ENTITIES = deepFreeze([
 
 // Membership projection deliberately retains In development, internal/unlisted,
 // and unverified-date records. Consumers must honor each record's visibility.
-export const POOL_LISTING_PROJECTS = deepFreeze(PROJECT_CATALOG.filter(({ pool }) => POOL_NAMES.includes(pool)));
+export const POOL_LISTING_PROJECTS = deepFreeze(PROJECT_CATALOG.filter(({ pools }) =>
+  Array.isArray(pools) && pools.some((pool) => POOL_NAMES.includes(pool))));
 
 /** Detached immutable membership data; this does not certify public-card readiness. */
 export function getPoolProjects(poolName) {
-  return deepFreeze(JSON.parse(JSON.stringify(POOL_LISTING_PROJECTS.filter(({ pool }) => pool === poolName))));
+  return deepFreeze(JSON.parse(JSON.stringify(POOL_LISTING_PROJECTS.filter(({ pools }) => pools.includes(poolName)))));
 }
 
 function finding(projectId, field, question, options, reason, extra = {}) {
@@ -373,25 +381,36 @@ const dateReasons = {
   'replicator-void': 'The 2026-09-03 Open Dashboard rename only changes navigation references; it is not verified evidence of a simulation update.',
 };
 
-export const CATALOG_OPEN_QUESTIONS = deepFreeze([
-  finding('ai-research', 'displayNaming', 'Artificial Self / AI Research pool-vs-project naming',
-    ['Artificial Self names the pool; AI Research names the research project', 'AI Research names the pool; Artificial Self names the research project'],
-    'The existing seven-pool identifier remains in use without settling display naming. Reversal changes catalog labels, navigation copy and references; changing route identifiers later also requires redirects.', { status: '[OPEN]', kind: 'product-decision', costToReverse: 'high' }),
-  finding('council', 'crossover', 'Public round-table council crossover membership',
-    ['Keep council only in AI-d kit', 'Allow council to appear in AI-d kit and Artificial Self'],
-    'The current scalar pool field allows one primary membership. Multiple memberships require a schema change and migration of validators, selectors, ownership and presentation rules; no second membership is implemented.', { status: '[OPEN]', kind: 'product-decision', costToReverse: 'high' }),
-]);
+export const CATALOG_OPEN_QUESTIONS = deepFreeze([]);
 
-export const CATALOG_RESOLUTIONS = deepFreeze([{
-  resolutionId: 'c2c-self.identity', projectId: 'c2c-self', status: 'resolved',
-  question: 'Is C2C Self another name for C2C Dolphin or a different experiment?',
-  outcome: 'C2C Self is an identical-model self-mirror experiment, distinct from cross-model C2C Dolphin.',
-  evidence: 'Separate pages identify identical model A/B mirror instances versus two different models, respectively. Both routes were added in the same historical commit.',
-  history: { commit: 'edef7874d4e2a84f32bc2abc0fbc43a06c66f83b', date: '2026-08-03' },
-  interpretation: 'Calling the self-mirror experiment a control is a structural interpretation, not a verified experimental outcome.',
-  limit: 'No research outcomes are validated by this identity resolution. Profiles, partner effects, archetype convergence and any Qwen initiator effect require artifact-backed rederivation.',
-  sources: [SETTLED, 'web/c2c-self/index.html', 'web/c2c-dolphin/index.html'],
-}]);
+export const CATALOG_RESOLUTIONS = deepFreeze([
+  {
+    resolutionId: 'ai-research.naming', projectId: 'ai-research', status: 'resolved',
+    question: 'Which name belongs to the pool and which belongs to its research section?',
+    outcome: 'Artificial Self is the pool. AI Research is the research part of that pool, separate from its experiment/archive material.',
+    evidence: 'Settled decision recorded on 2026-09-20.',
+    history: { date: '2026-09-20' },
+    sources: [SETTLED],
+  },
+  {
+    resolutionId: 'council.crossover', projectId: 'council', status: 'resolved',
+    question: 'Should the public round-table council appear in more than one pool?',
+    outcome: 'Yes. The public round-table council appears in both AI-d kit and TinkerBox.',
+    evidence: 'Settled decision recorded on 2026-09-20.',
+    history: { date: '2026-09-20' },
+    sources: [SETTLED, 'web/council/index.html'],
+  },
+  {
+    resolutionId: 'c2c-self.identity', projectId: 'c2c-self', status: 'resolved',
+    question: 'Is C2C Self another name for C2C Dolphin or a different experiment?',
+    outcome: 'C2C Self is an identical-model self-mirror experiment, distinct from cross-model C2C Dolphin.',
+    evidence: 'Separate pages identify identical model A/B mirror instances versus two different models, respectively. Both routes were added in the same historical commit.',
+    history: { commit: 'edef7874d4e2a84f32bc2abc0fbc43a06c66f83b', date: '2026-08-03' },
+    interpretation: 'Calling the self-mirror experiment a control is a structural interpretation, not a verified experimental outcome.',
+    limit: 'No research outcomes are validated by this identity resolution. Profiles, partner effects, archetype convergence and any Qwen initiator effect require artifact-backed rederivation.',
+    sources: [SETTLED, 'web/c2c-self/index.html', 'web/c2c-dolphin/index.html'],
+  },
+]);
 
 export const CATALOG_REQUIREMENTS = deepFreeze([
   ...PROJECT_CATALOG.flatMap((record) => [
@@ -453,7 +472,8 @@ export function isPublicCardProject(record) {
   if (!isRecord(record)) return false;
   const { updateProvenance, readiness, evidenceLevel, visibility } = record;
   return record.provisional === false && hasText(record.id) && hasText(record.publicName) &&
-    POOL_NAMES.includes(record.pool) && PROJECT_STATUSES.includes(record.status) &&
+    POOL_NAMES.includes(record.pool) && Array.isArray(record.pools) && record.pools.length > 0 &&
+    record.pools.every((pool) => POOL_NAMES.includes(pool)) && PROJECT_STATUSES.includes(record.status) &&
     Array.isArray(record.metrics) && isIsoDate(record.lastMeaningfullyUpdated) &&
     isRecord(updateProvenance) && hasText(updateProvenance.source) && updateProvenance.semanticReviewRequired === false &&
     isRecord(readiness) && readiness.review === 'verified' &&

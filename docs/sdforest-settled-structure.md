@@ -1,10 +1,10 @@
-# SD Forest settled structure — 2026-09-16
+# SD Forest settled structure — 2026-09-20
 
-This tracked implementation record preserves Ivan's current interview and carried decisions. It does not settle choices beyond that interview and is not a replacement master plan. The previously cited master-plan and ignored task files are unavailable as tracked authority in this checkout. No master-plan file is archived, deleted or replaced by this record.
+This tracked implementation record is the catalog and route implementation supplement to `SDFOREST-MASTER-PLAN.md`. It preserves Ivan's current interview and carried decisions; the master plan remains the rebuild execution document. The old plan is archived at `docs/archive/sd-forest-master-plan.md`.
 
 ## DECIDED: pools and lifecycle
 
-All seven pools are Live, enterable and explain their purpose even without a live project. Live does not mean finished or evidence-verified. Canonical pool spellings are GrowingApp, AI-d kit, TinkerBox, Health, Design Gallery, Artificial Self and My Story. AI Research is not an eighth pool. The naming question below remains unresolved; the existing Artificial Self identifier is retained pending that decision.
+All seven pools are Live, enterable and explain their purpose even without a live project. Live does not mean finished or evidence-verified. Canonical pool spellings are GrowingApp, AI-d kit, TinkerBox, Health, Design Gallery, Artificial Self and My Story. AI Research is not an eighth pool: Artificial Self is the pool, and AI Research is its research part.
 
 The project lifecycle vocabulary is Live / Research / Experimental / In development. Metrics, readiness, claim evidence and last meaningful update are separate fields. Meaningful-update dates require actual provenance; missing dates must not become build dates. A public link does not certify readiness or claim evidence. Health, development and science claims require proportional peer-reviewed evidence, including Lobester Gym's claims. C2C conclusions must be rederived before publishing findings.
 
@@ -13,11 +13,11 @@ The project lifecycle vocabulary is Live / Research / Experimental / In developm
 | GrowingApp | Rubik's Teacher; Mendeleev; Manifesto for a Newborn; Math Mania / Forest Math | Lobester Gym; Kids Library |
 | AI-d kit | Open Dashboard; Public round-table council; The Drop; Library (unfinished); Explore Repos (incomplete) | AnyCloudLLM |
 | Health | Gym Scholar; Dyslexia Reading Platform; Audiobook Studio | FlowForm; Women's Health OS (short label Women's Health) |
-| TinkerBox | Avatar Playground; Velune; Fleet / Fleet Board (internal and unlisted) | Item Icon Generator; Calendar Generator; Chloé PWA; Chloé Desktop |
+| TinkerBox | Avatar Playground; Velune; Public round-table council; Fleet / Fleet Board (internal and unlisted) | Item Icon Generator; Calendar Generator; Chloé PWA; Chloé Desktop |
 | Design Gallery | Poetry Space | Replicator Void |
 | My Story | Chair or a Ladder (unfinished); Life in Time (unfinished) | Power Law Odyssey; We Are The Training Data |
 
-Artificial Self contains the AI-conversation research project, whose pool/project display naming remains open. Its lifecycle was not provided. C2C Dolphin and C2C Self retain Research archive classifications from the carried placement decision; this is not validation of their conclusions.
+Artificial Self contains AI Research as its research part, alongside experiment/archive material. C2C Dolphin and C2C Self retain Research archive classifications from the carried placement decision; this is not validation of their conclusions. The public round-table council is a shared member of AI-d kit and TinkerBox.
 
 ## DECIDED: identities, structure and boundaries
 
@@ -40,17 +40,17 @@ Question: is C2C Self another name for C2C Dolphin, or a different-model variant
 
 Outcome: C2C Self is a separate identical-model self-mirror experiment. C2C Dolphin is a cross-model conversation. `web/c2c-self/index.html` identifies the same model in Instance A and Instance B (Mirror); `web/c2c-dolphin/index.html` identifies distinct Model A/Model B participants. Git commit `edef7874d4e2a84f32bc2abc0fbc43a06c66f83b` (2026-08-03) contains their separately added routes. Calling the self-mirror experiment a control relative to Dolphin is a structural interpretation.
 
-The observed public/deployed title is **AI Conversation**, while the catalog/archive label is **C2C Dolphin**. Preserve both labels and the discrepancy; it does not decide the pool/project naming question.
+The observed public/deployed title is **AI Conversation**, while the catalog/archive label is **C2C Dolphin**. Preserve both labels and the discrepancy; it does not alter the settled Artificial Self pool name.
 
 This resolves identity only. No research outcomes are validated. The supplied experiment-script locations were unavailable on this machine; the scripts, four completed transcripts, psycholinguistic profiles, partner-effect result and archetype convergence have not been rederived here. Rendered conclusions are evidence of what old pages claimed, not verified findings. A Qwen/Chinese-model initiator effect is not established by the available route/history evidence. Artifact recovery and rederivation are required before publishing research findings.
 
-## [OPEN] product decisions, highest reversal cost first
+## DECIDED on 2026-09-20
 
-1. **Artificial Self / AI Research naming.** Option A: Artificial Self is the pool and AI Research is the project. Option B: AI Research is the pool and Artificial Self is the project. Neither has been chosen. Changing this later costs catalog, public copy and navigation migrations; changing route identifiers would additionally require redirects and inbound-link migration. No eighth pool is created.
-2. **Council crossover membership.** Option A: council appears only in AI-d kit. Option B: council also appears in Artificial Self. The current scalar primary-pool field forbids a second membership. Supporting crossovers later costs a schema/consumer migration, validator changes, and agreed ownership, ordering and presentation rules. No second membership is implemented.
+- **Artificial Self is the pool.** **AI Research** is the research part of that pool, not a separate pool and not the experiment/archive part.
+- **The public round-table council is shared.** It appears in both **AI-d kit** and **TinkerBox**. The catalog retains AI-d kit as its primary route owner and records both pool memberships for listings and presentation.
 
 ## Required reconciliation and evidence work
 
-These are missing facts or required work, not additional optional product decisions. Keep them visible without assigning plausible values: Hyper Trophy OS identity/pool/lifecycle; Knowledge Ingest pool/lifecycle and verified gate repair; AI Research lifecycle; meaningful-update dates and readiness/evidence reviews; Kids Library's two existing implementation/content/state boundaries; Library public versus personal source boundaries; existing Health handoffs and independent hosting fallback; and C2C artifact recovery/rederivation. Gym Scholar and Velune have catalog/pool entries but no verified standalone handoff in this checkout. Future evidence may expose a decision requiring Ivan; absence of evidence is not permission to make that decision now.
+These are missing facts or required work, not additional optional product decisions. Keep them visible without assigning plausible values: Hyper Trophy OS identity/pool/lifecycle; Knowledge Ingest pool/lifecycle and verified gate repair; meaningful-update dates and readiness/evidence reviews; Kids Library's two existing implementation/content/state boundaries; Library public versus personal source boundaries; existing Health handoffs and independent hosting fallback; and C2C artifact recovery/rederivation. Gym Scholar and Velune have catalog/pool entries but no verified standalone handoff in this checkout. Future evidence may expose a decision requiring Ivan; absence of evidence is not permission to make that decision now.
 
 The shared catalog is currently a frozen module behind a reader/snapshot boundary. This implementation keeps storage replaceable; it does not settle long-term storage architecture. The catalog distinguishes product decisions, evidence/reconciliation requirements and resolved investigations so future consumers cannot treat all missing information as an open product choice.

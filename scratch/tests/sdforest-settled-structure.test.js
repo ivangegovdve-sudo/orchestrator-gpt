@@ -109,14 +109,15 @@ test('settled pool catalog is frozen, complete, entry-enabled, and routed', asyn
   }
 });
 
-test('settled projects retain canonical primary pools and lifecycle facts', async () => {
+test('settled projects retain canonical pools and lifecycle facts', async () => {
   const { PROJECT_CATALOG } = await catalog();
   for (const [id, publicName, pool, status] of PROJECT_EXPECTATIONS) {
     const project = byId(PROJECT_CATALOG, id);
     if (publicName !== null) assert.equal(project.publicName, publicName, id);
     assert.equal(project.pool, pool, id);
     assert.equal(project.status, status, id);
-    assert.equal(Array.isArray(project.pool), false, `${id} has scalar pool`);
+    assert.ok(Array.isArray(project.pools), `${id} has pool memberships`);
+    assert.ok(project.pools.includes(pool), `${id} includes its primary pool`);
   }
   const kids = byId(PROJECT_CATALOG, 'kids-movie-library');
   assert.deepEqual(kids.sections.map(({ id }) => id), ['movies', 'books']);
@@ -168,22 +169,23 @@ test('design-gallery categories and reconciled non-projects do not inflate proje
   assert.equal(POOL_CATALOG.some(({ publicName }) => ['AI Research', 'Kids Corner'].includes(publicName)), false);
 });
 
-test('open catalog findings remain explicit and do not resolve product questions', async () => {
-  const { CATALOG_FINDINGS, PROJECT_CATALOG, POOL_CATALOG } = await catalog();
-  const required = [
-    'Artificial Self / AI Research pool-vs-project naming',
-    'Public round-table council crossover membership',
-  ];
-  for (const question of required) {
-    const finding = CATALOG_FINDINGS.find((entry) => entry.question === question);
-    assert.ok(finding, question);
-    assert.match(finding.status, /^\[OPEN\]/);
-    assert.ok(Array.isArray(finding.options) && finding.options.length >= 2);
-    assert.ok(finding.costToReverse);
+test('settled Artificial Self naming and council crossover are resolved', async () => {
+  const { CATALOG_FINDINGS, CATALOG_OPEN_QUESTIONS, CATALOG_RESOLUTIONS, PROJECT_CATALOG, POOL_CATALOG, getPoolProjects } = await catalog();
+  assert.equal(CATALOG_OPEN_QUESTIONS.length, 0);
+  assert.equal(CATALOG_FINDINGS.some(({ status }) => status === '[OPEN]'), false);
+  const artificialSelf = byId(PROJECT_CATALOG, 'ai-research');
+  assert.equal(artificialSelf.pool, 'Artificial Self');
+  assert.deepEqual(artificialSelf.pools, ['Artificial Self']);
+  assert.equal(artificialSelf.status, 'Research');
+  assert.equal(artificialSelf.contentRole, 'research');
+  const council = byId(PROJECT_CATALOG, 'council');
+  assert.equal(council.pool, 'AI-d kit');
+  assert.deepEqual(council.pools, ['AI-d kit', 'TinkerBox']);
+  assert.ok(getPoolProjects('AI-d kit').some(({ id }) => id === 'council'));
+  assert.ok(getPoolProjects('TinkerBox').some(({ id }) => id === 'council'));
+  for (const resolutionId of ['ai-research.naming', 'council.crossover']) {
+    assert.equal(CATALOG_RESOLUTIONS.find(({ resolutionId: id }) => id === resolutionId)?.status, 'resolved');
   }
-  assert.equal(CATALOG_FINDINGS.filter(({ status }) => status === '[OPEN]').length, 2);
-  assert.equal(byId(PROJECT_CATALOG, 'council').pool, 'AI-d kit');
-  assert.equal(Object.hasOwn(byId(PROJECT_CATALOG, 'council'), 'pools'), false);
   assert.equal(POOL_CATALOG.length, 7);
 });
 
@@ -200,7 +202,7 @@ test('catalog authority is portable and required evidence work is distinct from 
       assert.ok(execFileSync('git', ['ls-files', '--', source], { cwd: ROOT, encoding: 'utf8' }).trim(), source);
     }
   }
-  assert.equal(module.CATALOG_OPEN_QUESTIONS.length, 2);
+  assert.equal(module.CATALOG_OPEN_QUESTIONS.length, 0);
   assert.ok(module.CATALOG_REQUIREMENTS.length > 0);
   assert.ok(module.CATALOG_REQUIREMENTS.every(({ status, kind }) => status !== '[OPEN]' && ['evidence-required', 'reconciliation-required'].includes(kind)));
   const resolution = module.CATALOG_RESOLUTIONS.find(({ projectId }) => projectId === 'c2c-self');

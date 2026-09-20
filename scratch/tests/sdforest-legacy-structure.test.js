@@ -39,11 +39,12 @@ test('C2C archives retain distinct topology and suppress unverified public measu
   assert.match(publicMarkup(read('web/c2c-self/index.html')), /distinct from C2C Dolphin/i);
 });
 
-test('AI Research remains an archive index with naming and crossover decisions open', () => {
+test('AI Research is the settled research part of the Artificial Self pool', () => {
   const html = publicMarkup(read('web/ai-research/index.html'));
-  assert.match(html, /archive index/i);
-  assert.match(html, /naming review/i);
-  assert.match(html, /\[OPEN\][\s\S]*Artificial Self[\s\S]*AI Research/);
+  assert.match(html, /research archive/i);
+  assert.match(html, /Artificial Self is the pool[\s\S]*AI Research is the research part/i);
+  assert.doesNotMatch(html, /naming review|\[OPEN\]/i);
+  assert.match(html, /council[\s\S]*AI-d kit[\s\S]*TinkerBox/i);
   assert.match(html, /seven pools/i);
   assert.match(html, /rederivation/i);
   assert.doesNotMatch(html, /converge to The Poet|psychometric profiling|The mirror speaks with one voice/);
