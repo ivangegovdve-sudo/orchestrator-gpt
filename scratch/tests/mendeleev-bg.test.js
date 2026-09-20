@@ -134,3 +134,144 @@ test('Bulgarian element detail is readable and contained on mobile', async () =>
   await page.locator('#overlay').waitFor({ state: 'hidden' });
   await page.close();
 });
+
+test('trend content is external bilingual data with qualitative provenance', () => {
+  const trendsPath = path.join(repoRoot, 'web/mendeleev-bg/data/trends.json');
+  assert.equal(fs.existsSync(trendsPath), true, 'trend content should live in data/trends.json');
+  assert.match(html, /fetch\('data\/trends\.json'/);
+  assert.doesNotMatch(html, /atomic-size|ionization-energy|electronegativity/);
+
+  const trends = JSON.parse(fs.readFileSync(trendsPath, 'utf8'));
+  assert.ok(Array.isArray(trends) && trends.length >= 3);
+  for (const trend of trends) {
+    assert.ok(trend.id);
+    assert.ok(trend.bg?.label && trend.en?.label);
+    assert.ok(trend.bg?.explanation && trend.en?.explanation);
+    assert.ok(trend.source?.bg && trend.source?.en);
+    assert.equal(Object.keys(trend.values).length, 118);
+    assert.ok(Object.values(trend.values).every((level) => Number.isInteger(level) && level >= 1 && level <= 5));
+  }
+});
+
+test('trend lens maps the symbolic table to a qualitative submicroscopic reading', async () => {
+  const page = await browser.newPage({ viewport: { width: 1024, height: 900 } });
+  await page.goto(`${baseUrl}/web/mendeleev-bg/?trend-lens`, { waitUntil: 'networkidle' });
+
+  assert.equal(await page.locator('#trendBar').count(), 1);
+  assert.ok(await page.locator('.trend-btn').count() >= 3);
+
+  const firstTrend = page.locator('.trend-btn').first();
+  await firstTrend.click();
+  assert.equal(await firstTrend.getAttribute('aria-pressed'), 'true');
+  assert.ok(await page.locator('#ptGrid.trend-on').count() === 1);
+  assert.ok(await page.locator('.el[data-trend-level]').count() >= 118);
+  assert.match(await page.locator('#trendExplainer').textContent(), /модел|Модел/);
+
+  await page.locator('.el[data-num="1"] .sym-wrap').click();
+  await page.locator('#overlay.on').waitFor({ state: 'visible' });
+  assert.ok(await page.locator('.trend-reading').count() === 1);
+  assert.match(await page.locator('.trend-reading').textContent(), /ниско|средно|високо/i);
+  await page.close();
+});
+
+test('trend lens remains active and translates its explanation to English', async () => {
+  const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
+  await page.goto(`${baseUrl}/web/mendeleev-bg/?trend-language`, { waitUntil: 'networkidle' });
+
+  await page.locator('.trend-btn').nth(1).click();
+  await page.locator('#langBtn').click();
+  assert.match(await page.locator('#trendExplainer').textContent(), /pattern|electron|pull/i);
+  assert.equal(await page.locator('.trend-btn[aria-pressed="true"]').count(), 1);
+  assert.equal(await page.locator('#ptGrid.trend-on').count(), 1);
+  assert.equal(await page.locator('#ptGrid').getAttribute('data-trend-id'), await page.locator('.trend-btn[aria-pressed="true"]').getAttribute('data-trend-id'));
+  assert.ok(await page.locator('.trend-btn').first().evaluate((button) => button.getBoundingClientRect().height >= 44));
+  const dimensions = await page.evaluate(() => ({
+    viewport: document.documentElement.clientWidth,
+    body: document.body.scrollWidth,
+  }));
+  assert.equal(dimensions.body, dimensions.viewport);
+  await page.close();
+});
+
+test('prediction examples are bilingual, sourced through data, and exactly three prove the format', () => {
+  const predictionsPath = path.join(repoRoot, 'web/mendeleev-bg/data/predictions.json');
+  assert.equal(fs.existsSync(predictionsPath), true, 'prediction content should live beside trends.json');
+  assert.match(html, /fetch\('data\/predictions\.json'/);
+
+  const trends = JSON.parse(fs.readFileSync(path.join(repoRoot, 'web/mendeleev-bg/data/trends.json'), 'utf8'));
+  const trendIds = new Set(trends.map((trend) => trend.id));
+  const predictions = JSON.parse(fs.readFileSync(predictionsPath, 'utf8'));
+  assert.equal(predictions.length, 3, 'three worked examples should prove the authoring format');
+
+  for (const prediction of predictions) {
+    assert.ok(prediction.id);
+    assert.ok(trendIds.has(prediction.trendId));
+    assert.equal(prediction.elements.length, 2);
+    assert.notEqual(prediction.elements[0], prediction.elements[1]);
+    assert.ok(prediction.elements.includes(prediction.correct));
+    for (const language of ['bg', 'en']) {
+      const copy = prediction[language];
+      assert.ok(copy?.title && copy.question && copy.commit && copy.next);
+      assert.ok(copy.choices?.[String(prediction.elements[0])] && copy.choices?.[String(prediction.elements[1])]);
+      assert.ok(copy.correct && copy.incorrect && copy.explanation && copy.bridge);
+    }
+  }
+
+  assert.doesNotMatch(html, /atomic-size-across-period|electron-hold-down-group|shared-pull-down-group/);
+});
+
+test('prediction requires a committed choice before revealing a trend explanation', async () => {
+  const page = await browser.newPage({ viewport: { width: 1024, height: 900 } });
+  await page.goto(`${baseUrl}/web/mendeleev-bg/?prediction-reveal`, { waitUntil: 'networkidle' });
+
+  assert.equal(await page.locator('#predictionCard').count(), 1);
+  assert.equal(await page.locator('#predictionReveal').isVisible(), false);
+  assert.equal(await page.locator('#predictionCommit').isDisabled(), true);
+  assert.equal(await page.locator('#ptGrid.trend-on').count(), 0);
+
+  const wrongChoice = page.locator('[data-prediction-choice]').nth(1);
+  await wrongChoice.click();
+  assert.equal(await wrongChoice.getAttribute('aria-pressed'), 'true');
+  assert.equal(await page.locator('#predictionCommit').isDisabled(), false);
+  assert.equal(await page.locator('#predictionReveal').isVisible(), false);
+  assert.equal(await page.locator('#ptGrid.trend-on').count(), 0);
+
+  await page.locator('#predictionCommit').click();
+  assert.equal(await page.locator('#predictionReveal').isVisible(), true);
+  assert.match(await page.locator('#predictionResult').textContent(), /Не беше очевидно|not obvious/i);
+  assert.match(await page.locator('#predictionExplanation').textContent(), /свива|space|shrink/i);
+  assert.equal(await page.locator('#ptGrid.trend-on').count(), 1);
+  assert.equal(await page.locator('#ptGrid .prediction-focus').count(), 2);
+  await page.close();
+});
+
+test('prediction copy remains first-class in English and accepts an extra authored record', async () => {
+  const predictionsPath = path.join(repoRoot, 'web/mendeleev-bg/data/predictions.json');
+  const predictions = JSON.parse(fs.readFileSync(predictionsPath, 'utf8'));
+  const fourth = {
+    ...predictions[0],
+    id: 'authored-fourth-example',
+    bg: { ...predictions[0].bg, question: 'Авторски четвърти въпрос' },
+    en: { ...predictions[0].en, question: 'A fourth authored question' },
+  };
+  const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
+  await page.route('**/data/predictions.json', (route) => route.fulfill({
+    contentType: 'application/json',
+    body: JSON.stringify([...predictions, fourth]),
+  }));
+  await page.goto(`${baseUrl}/web/mendeleev-bg/?prediction-language`, { waitUntil: 'networkidle' });
+
+  await page.locator('#langBtn').click();
+  assert.match(await page.locator('#predictionQuestion').textContent(), /Which|larger|bigger/i);
+  assert.match(await page.locator('#predictionCommit').textContent(), /Reveal|answer|commit/i);
+
+  for (let index = 0; index < 3; index += 1) {
+    await page.locator('[data-prediction-choice]').first().click();
+    await page.locator('#predictionCommit').click();
+    await page.locator('#predictionNext').click();
+  }
+
+  assert.match(await page.locator('#predictionQuestion').textContent(), /A fourth authored question/);
+  assert.equal(await page.locator('#predictionReveal').isVisible(), false);
+  await page.close();
+});
