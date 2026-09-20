@@ -100,3 +100,11 @@ if (process.env.NOUS_PORTAL_API_KEY?.trim()) {
     console.log(result.stdout.trim());
   }
 }
+
+// Keep the Jev capability export tied to the same dated live-model snapshot as
+// the explorer. The export is explicit about UNKNOWN cost/functionality fields;
+// it never derives paid cost from the catalogue rate card.
+const capabilityResult = runScript("web/open-dashboard/scripts/build-capability-state.mjs");
+if (capabilityResult.error || capabilityResult.status !== 0)
+  throw new Error("The capability state export did not complete.");
+console.log(capabilityResult.stdout.trim());
