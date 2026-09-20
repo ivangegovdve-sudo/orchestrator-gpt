@@ -21,6 +21,7 @@ const palette = [
   "#647c75",
 ];
 const providerKeys = Object.keys(PROVIDERS);
+const MAX_CATALOGUE_MARKS = 10000;
 export const colorFor = (id) =>
   palette[Math.max(0, providerKeys.indexOf(id)) % palette.length];
 export function clearChartZoom(node) {
@@ -46,11 +47,11 @@ export function catalogueMap(node, models, { onSelect, selected = null }) {
     );
     return;
   }
-  if (models.length > 1500) {
+  if (models.length > MAX_CATALOGUE_MARKS) {
     emptyChart(
       node,
       "Choose a smaller part of the catalogue.",
-      `${models.length} entries match. Select a provider to explore up to 1,500 individual entries.`,
+      `${models.length} entries match. Select a provider to explore up to ${MAX_CATALOGUE_MARKS.toLocaleString()} individual entries.`,
     );
     return;
   }
@@ -133,6 +134,138 @@ export function catalogueMap(node, models, { onSelect, selected = null }) {
       (d) =>
         `${PROVIDERS[d.data.provider] || d.data.provider} · ${d.leaves().length}`,
     );
+}
+
+/** A compact, directly comparable summary for the explicit two-provider mode. */
+export function providerCompareChart(node, comparison, { onSelect } = {}) {
+  const providers = comparison?.providers || [];
+  if (providers.length !== 2) {
+    emptyChart(
+      node,
+      "Choose two providers to compare.",
+      "The chart keeps the current modality, free, capability and search filters, then compares only the two selected catalogues.",
+    );
+    return;
+  }
+  const { d3, w, h, svg } = base(node, 360, "Two-provider catalogue comparison"),
+    [first, second] = providers,
+    metrics = [
+      { key: "counts", label: "Catalogue entries" },
+      { key: "pricedCounts", label: "Comparable token prices" },
+      {
+        key: "shared",
+        label: "Exact IDs in both",
+        values: [comparison.sharedIds.length, comparison.sharedIds.length],
+      },
+    ],
+    values = metrics.flatMap((metric) =>
+      metric.values || [comparison[metric.key][first], comparison[metric.key][second]],
+    ),
+    max = Math.max(1, d3.max(values) || 1),
+    margin = { top: 42, right: 24, bottom: 54, left: 154 },
+    chartWidth = w - margin.left - margin.right,
+    y = d3
+      .scaleBand()
+      .domain(metrics.map((metric) => metric.label))
+      .range([margin.top, h - margin.bottom])
+      .padding(0.34),
+    x = d3.scaleLinear().domain([0, max]).range([0, chartWidth]),
+    rowHeight = y.bandwidth() / 2 - 3;
+  svg
+    .append("desc")
+    .text(
+      "Catalogue size, comparable token price coverage and exact shared model IDs are shown side by side for two selected providers.",
+    );
+  svg
+    .append("g")
+    .attr("class", "pair-axis")
+    .attr("transform", `translate(${margin.left},${h - margin.bottom})`)
+    .call(d3.axisBottom(x).ticks(5).tickSizeOuter(0).tickFormat(compact));
+  svg
+    .append("g")
+    .attr("class", "pair-axis")
+    .attr("transform", `translate(${margin.left},0)`)
+    .call(d3.axisLeft(y).tickSize(0))
+    .selectAll("text")
+    .attr("font-size", 12)
+    .attr("dx", -8);
+  const groups = svg
+    .append("g")
+    .selectAll("g")
+    .data(metrics)
+    .join("g")
+    .attr("transform", (metric) => `translate(${margin.left},${y(metric.label)})`);
+  for (const [index, provider] of providers.entries()) {
+    groups
+      .append("rect")
+      .attr("class", "pair-bar")
+      .attr("x", 0)
+      .attr("y", index === 0 ? 0 : rowHeight + 6)
+      .attr("width", (metric) => {
+        const value = metric.values
+          ? metric.values[index]
+          : comparison[metric.key][provider];
+        return x(value);
+      })
+      .attr("height", rowHeight)
+      .attr("rx", 4)
+      .attr("fill", colorFor(provider))
+      .attr("role", "button")
+      .attr("tabindex", 0)
+      .attr("aria-label", (metric) => {
+        const value = metric.values
+          ? metric.values[index]
+          : comparison[metric.key][provider];
+        return `${PROVIDERS[provider] || provider}, ${metric.label}: ${value.toLocaleString()}`;
+      })
+      .on("click", () => onSelect?.(provider))
+      .on("keydown", (event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          onSelect?.(provider);
+        }
+      })
+      .append("title")
+      .text((metric) => {
+        const value = metric.values
+          ? metric.values[index]
+          : comparison[metric.key][provider];
+        return `${PROVIDERS[provider] || provider} · ${metric.label}: ${value.toLocaleString()}`;
+      });
+    groups
+      .append("text")
+      .attr("class", "pair-value")
+      .attr("x", (metric) => {
+        const value = metric.values
+          ? metric.values[index]
+          : comparison[metric.key][provider];
+        return Math.min(chartWidth - 2, x(value) + 7);
+      })
+      .attr("y", (metric) => (index === 0 ? 0 : rowHeight + 6) + rowHeight / 2 + 4)
+      .text((metric) => {
+        const value = metric.values
+          ? metric.values[index]
+          : comparison[metric.key][provider];
+        return value.toLocaleString();
+      });
+  }
+  svg
+    .append("g")
+    .attr("class", "pair-legend")
+    .selectAll("text")
+    .data(providers)
+    .join("text")
+    .attr("x", (provider, index) => margin.left + index * 150)
+    .attr("y", 22)
+    .attr("fill", (provider) => colorFor(provider))
+    .text((provider) => `● ${PROVIDERS[provider] || provider}`);
+  svg
+    .append("text")
+    .attr("class", "axis-title")
+    .attr("x", margin.left + chartWidth / 2)
+    .attr("y", h - 12)
+    .attr("text-anchor", "middle")
+    .text("Entries in the current filtered catalogue");
 }
 function base(node, height, label = "Interactive data chart") {
   const focused = document.activeElement,

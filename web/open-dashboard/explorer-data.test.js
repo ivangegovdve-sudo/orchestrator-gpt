@@ -23,6 +23,9 @@ import {
   modelFilterSummary,
   clearModelFilters,
   isPriceOutlier,
+  parseProviderPair,
+  compareProviders,
+  combineNativeSnapshots,
 } from "./explorer-data.js";
 
 test("price outlier detection uses a robust distribution rule", () => {
@@ -94,6 +97,65 @@ test("native catalogue merge retains text and unknown identities, exact token ra
     ]),
     null,
   );
+});
+
+test("native zero token pairs become an explicit free price offer", () => {
+  const [model] = mergeMedia([], [
+    {
+      provider: "nous",
+      id: "free/text",
+      mediaKind: "text",
+      outputModalities: ["text"],
+      pricePoints: [
+        { unit: "token_in", amount: "0.0000000000", condition: null },
+        { unit: "token_out", amount: "0.0000000000", condition: null },
+      ],
+    },
+  ]);
+  assert.equal(model.zeroText, true);
+  assert.equal(model.freeOffer, "zero_price");
+  assert.equal(filterModels([model], state({ free: true })).length, 1);
+});
+
+test("provider comparison keeps exact identities and reports both catalogue slices", () => {
+  assert.deepEqual(parseProviderPair("groq,openrouter,groq"), ["groq", "openrouter"]);
+  assert.deepEqual(parseProviderPair("groq,unknown"), []);
+  const rows = [
+    { provider: "groq", id: "shared", name: "Shared", input: 1, output: 2, kind: "catalogue", modalities: ["text"] },
+    { provider: "openrouter", id: "shared", name: "Shared", input: 3, output: 4, kind: "catalogue", modalities: ["text"] },
+    { provider: "groq", id: "only-groq", input: 5, output: 6, kind: "catalogue", modalities: ["text"] },
+  ];
+  const comparison = compareProviders(rows, "groq,openrouter");
+  assert.deepEqual(comparison.counts, { groq: 2, openrouter: 1 });
+  assert.deepEqual(comparison.pricedCounts, { groq: 2, openrouter: 1 });
+  assert.deepEqual(comparison.sharedIds, ["shared"]);
+  assert.equal(comparison.sharedPrices[0].second.output, 4);
+  assert.deepEqual(
+    filterModels(rows, state({ compare: "groq,openrouter", modality: "all" })).map((row) => row.id),
+    ["shared", "shared", "only-groq"],
+  );
+});
+
+test("native snapshots merge by provider and exact model id without dropping reports", () => {
+  const combined = combineNativeSnapshots(
+    {
+      collector: "one",
+      fetchedAt: "2026-09-10T00:00:00Z",
+      providers: [{ provider: "groq", status: "available" }],
+      models: [{ provider: "groq", id: "a" }],
+      population: { completeness: "full" },
+    },
+    {
+      collector: "two",
+      fetchedAt: "2026-09-11T00:00:00Z",
+      providers: [{ provider: "nous", status: "partial" }],
+      models: [{ provider: "nous", id: "b" }],
+      population: { completeness: "full" },
+    },
+  );
+  assert.equal(combined.models.length, 2);
+  assert.deepEqual(combined.providers.map((row) => row.provider), ["groq", "nous"]);
+  assert.equal(combined.fetchedAt, "2026-09-11T00:00:00Z");
 });
 
 test("provider coverage keeps missing adapters and partial document verification explicit", () => {
@@ -518,9 +580,18 @@ test("URL state round-trips exact model IDs and rejects invalid numeric or axis 
   assert.equal(readState("").historyModel, "all");
 });
 
+test("provider comparison state round-trips as a pair and overrides a single provider", () => {
+  const linked = readState("?provider=groq&compare=openrouter%2Cgroq&modelChart=compare");
+  assert.equal(linked.provider, "all");
+  assert.equal(linked.compare, "openrouter,groq");
+  assert.equal(linked.modelChart, "compare");
+  assert.deepEqual(readState(stateQuery(linked)), linked);
+  assert.equal(readState("?compare=openrouter%2Cunknown").compare, "");
+});
+
 test("shared chart choices round-trip without changing existing model links", () => {
   for (const [key, values] of Object.entries({
-    modelChart: ["prices", "catalogue", "bars", "donut"],
+    modelChart: ["prices", "catalogue", "bars", "donut", "compare"],
     modelGroup: ["provider", "modality"],
     appChart: ["flow", "bars", "donut"],
     historyChart: ["lines", "bars"],
@@ -533,7 +604,7 @@ test("shared chart choices round-trip without changing existing model links", ()
     for (const invalid of ["unknown", "__proto__", "", "<script>"])
       assert.equal(
         readState(`?${key}=${encodeURIComponent(invalid)}`)[key],
-        values[0],
+        DEFAULT_STATE[key],
       );
   }
   assert.equal(readState("?view=overview").view, "overview");
@@ -561,9 +632,11 @@ test("shared chart choices round-trip without changing existing model links", ()
 });
 
 test("filter summaries expose baseline output and exact custom context from a shared link", () => {
-  assert.deepEqual(modelFilterSummary(DEFAULT_STATE), [
-    { key: "modality", label: "Text output", advanced: false },
-  ]);
+  assert.deepEqual(modelFilterSummary(DEFAULT_STATE), []);
+  assert.equal(
+    modelFilterSummary(state({ compare: "openrouter,groq" }))[0].label,
+    "Compare: OpenRouter ↔ Groq",
+  );
   const custom = readState(
     "?context=50000&provider=groq&tools=1&free=1&inactive=1&q=fast%20model",
   );
@@ -621,6 +694,7 @@ test("clearing model filters reveals all output types while preserving chart and
     context: 50000,
     q: "specific model",
     selected: "groq:specific-model",
+    compare: "openrouter,groq",
     modelChart: "donut",
     modelGroup: "modality",
     appChart: "bars",
@@ -652,6 +726,7 @@ test("clearing model filters reveals all output types while preserving chart and
     context: 0,
     q: "",
     selected: "",
+    compare: "",
   });
   assert.deepEqual(
     before,
