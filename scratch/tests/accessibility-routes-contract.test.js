@@ -16,19 +16,13 @@ async function loadForestTrails() {
   return import(pathToFileURL(path.join(repoRoot, 'web/shared/forest-trails.mjs')).href);
 }
 
-test('Knowledge Ingest resolves as a connected Signals & Systems trail', async () => {
+test('private Knowledge Ingest stays out of the public Signals & Systems trail', async () => {
   const trails = await loadForestTrails();
   const context = trails.getForestTrailContext('/web/upload/index.html?source=trail');
 
-  assert.equal(context.current.label, 'Knowledge Ingest');
-  assert.equal(context.current.path, '/web/upload/');
-  assert.equal(context.trail.label, 'Signals & Systems');
-  assert.ok(context.next.length >= 2);
-
   const routeIds = new Set(trails.FOREST_ROUTES.map(({ id }) => id));
-  for (const connectionId of context.current.connectionIds) {
-    assert.ok(routeIds.has(connectionId), `upload connection ${connectionId} must resolve`);
-  }
+  assert.equal(context, null);
+  assert.equal(routeIds.has('upload'), false);
 });
 
 test('Mendeleev search and element-cell actions expose keyboard-native names', () => {
@@ -102,3 +96,4 @@ test('Kids Corner keeps card emoji decorative for assistive technology', () => {
   assert.equal(icons.length, 2);
   for (const icon of icons) assert.match(icon, /\baria-hidden="true"/);
 });
+

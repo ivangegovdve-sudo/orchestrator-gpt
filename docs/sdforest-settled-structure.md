@@ -56,3 +56,14 @@ These are missing facts or required work, not additional optional product decisi
 The shared catalog is currently a frozen module behind a reader/snapshot boundary. This implementation keeps storage replaceable; it does not settle long-term storage architecture. The catalog distinguishes product decisions, evidence/reconciliation requirements and resolved investigations so future consumers cannot treat all missing information as an open product choice.
 
 Pool cards now expose a separate readiness projection: **Shipped** requires an enabled entry plus verified readiness and evidence reviews; explicit development, repair, or research rederivation work is **In progress**; every other unverified case is **UNKNOWN**. This projection does not alter the four-value lifecycle status and never treats a lifecycle label alone as completion evidence.
+
+The seven pool pages now render their factual overview from `web/shared/project-catalog.mjs`: canonical pool name, Live state, settled summary, assigned-project count and the separate Shipped / In progress / UNKNOWN readiness counts. Their static shells retain only a generic no-script fallback; page copy that describes a pool is not a second hand-authored catalog.
+
+The Design Gallery's Website History exhibit now states the settled arc directly: fear, then infatuation and finishing nothing, then over-delegation and a mess still being untangled. It keeps the real-inconvenience origin of projects and the unfinished/abandoned work visible rather than presenting a success-only portfolio.
+
+## Current-copy drift sweep
+
+The retained C2C Self route no longer presents Artificial Self's pool name as an unresolved decision: it now states that Artificial Self is the pool, AI Research is its research part, and C2C Self is the identical-model control distinct from C2C Dolphin. Math Mania and the retained Kids Library movie section now point back to GrowingApp; the `/web/kids/` route remains available as a retained legacy route and was not deleted. Avatar Playground labels its retained Voice Playground link as legacy because Voice Playground is absorbed into Avatar Playground.
+
+Historical catalog dispositions, archived plan findings and retained compatibility routes may still contain retired names. They are intentionally scoped as history or compatibility evidence, not current homepage taxonomy, and are covered by the route-preservation rules.
+
