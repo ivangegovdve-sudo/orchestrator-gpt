@@ -47,11 +47,27 @@ function pricePoints(row, observedAt) {
   return points.length ? points : null;
 }
 
-function selection(missingFields) {
+function selection(missingFields, ineligible = []) {
+  const missing = [...new Set(missingFields)];
+  const blocked = [...new Set(ineligible)];
+  if (blocked.length) {
+    return {
+      state: "ineligible",
+      reason: blocked.join(", "),
+      missingFields: missing,
+    };
+  }
+  if (!missing.length) {
+    return {
+      state: "eligible",
+      reason: "All required evidence is current.",
+      missingFields: [],
+    };
+  }
   return {
     state: "unknown",
     reason: "Required evidence is missing or expired.",
-    missingFields: [...new Set(missingFields)],
+    missingFields: missing,
   };
 }
 function compareDecimal(left, right) {
@@ -146,7 +162,7 @@ const rows = snapshot.data
         },
       },
       selection: {
-        publicCouncil: selection(publicMissing),
+        publicCouncil: selection(publicMissing, measuredFree ? ["free_model"] : []),
         innerObserver: selection(functionalMissing),
       },
     };
