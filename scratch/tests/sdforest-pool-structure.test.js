@@ -174,6 +174,22 @@ test('Design Gallery categories are not projects, and archive uncertainty remain
   assert.match(renderPoolProjects('tinkerbox'), /Fork of work by nikhilvishwakarma00\. Ivan’s audio-only YouTube path with no video\./);
 });
 
+test('settled pool page contracts are explicit without choosing deferred visual treatments', () => {
+  const growing = read('web/pools/growingapp/index.html');
+  assert.match(growing, /Manifesto for a Newborn/);
+  assert.match(growing, /optional entry|never a gate/i);
+  assert.match(growing, /href="\/web\/manifesto-newborn\/"/);
+
+  const aid = read('web/pools/ai-d-kit/index.html');
+  assert.match(aid, /search-first/i);
+  assert.match(aid, /unified search|glossary/i);
+  assert.match(aid, /guided mode/i);
+
+  const health = read('web/pools/health/index.html');
+  assert.match(health, /project-first/i);
+  assert.match(health, /evidence lives inside each project/i);
+});
+
 test('route bindings, readiness, metrics and verified dates remain independent in the presenter', async () => {
   const [{ renderProject }, { getPoolProjects }] = await Promise.all([presenter, catalog]);
   const project = getPoolProjects('Health').find((p) => p.id === 'dyslexia');
