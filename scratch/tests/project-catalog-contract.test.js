@@ -153,7 +153,7 @@ test('public cards require complete approved facts and never promote provisional
 // Synthetic contract data, deliberately unrelated to the factual catalog.
 function approvedCard() {
   return {
-    id: 'fixture-project', publicName: 'Fixture project', pool: 'TinkerBox', status: 'Experimental',
+    id: 'fixture-project', publicName: 'Fixture project', pool: 'TinkerBox', pools: ['TinkerBox'], status: 'Experimental',
     provisional: false, metrics: [{ name: 'Examples', value: 2, unit: 'examples' }],
     lastMeaningfullyUpdated: '2024-02-29',
     updateProvenance: { source: 'fixtures/reviewed-change.md', semanticReviewRequired: false },
@@ -179,7 +179,7 @@ test('card eligibility admits a complete reviewed fixture without changing its d
 test('card eligibility rejects each independently missing required field', async () => {
   const { isPublicCardProject } = await catalog();
   const requiredPaths = [
-    ['id'], ['publicName'], ['pool'], ['status'], ['provisional'], ['metrics'],
+    ['id'], ['publicName'], ['pool'], ['pools'], ['status'], ['provisional'], ['metrics'],
     ['lastMeaningfullyUpdated'], ['updateProvenance'], ['updateProvenance', 'source'],
     ['updateProvenance', 'semanticReviewRequired'], ['readiness'], ['readiness', 'review'],
     ['readiness', 'entryEnabled'], ['readiness', 'presentation'], ['evidenceLevel'],
@@ -323,17 +323,15 @@ test('Health reading projects retain distinct observed implementations and their
   }
 });
 
-test('open questions are ordered and unresolved page facts remain honest', async () => {
+test('resolved naming and crossover decisions stay out of open findings', async () => {
   const { PROJECT_CATALOG, CATALOG_FINDINGS } = await catalog();
   const open = CATALOG_FINDINGS.filter(({ status }) => status === '[OPEN]');
-  assert.deepEqual(open.map(({ question }) => question), [
-    'Artificial Self / AI Research pool-vs-project naming',
-    'Public round-table council crossover membership',
-  ]);
-  for (const finding of open) {
-    assert.equal(finding.status, '[OPEN]');
-    assert.equal(finding.costToReverse, 'high');
-  }
+  assert.equal(open.some(({ question }) => /Artificial Self \/ AI Research pool-vs-project naming/i.test(question)), false);
+  assert.equal(open.some(({ question }) => /Public round-table council crossover membership/i.test(question)), false);
+  assert.equal(open.length, 0, 'the catalog has no unresolved product decisions after the settled amendment');
+  const research = PROJECT_CATALOG.find(({ id }) => id === 'ai-research');
+  assert.deepEqual(research.pools, ['Artificial Self']);
+  assert.deepEqual(PROJECT_CATALOG.find(({ id }) => id === 'council').pools, ['AI-d kit', 'TinkerBox']);
   for (const id of ['hypertrophyos', 'upload']) {
     const project = PROJECT_CATALOG.find((record) => record.id === id);
     assert.equal(project.pool, null);

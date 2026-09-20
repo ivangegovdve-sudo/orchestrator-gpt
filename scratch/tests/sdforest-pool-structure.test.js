@@ -158,17 +158,36 @@ test('Health tabs support arrow, Home, End, click and catalog fragment selection
   });
 });
 
-test('Design Gallery categories are not projects, and naming and archive uncertainty remain explicit', async () => {
+test('Design Gallery categories are not projects, and archive uncertainty remains explicit', async () => {
   const [{ renderPoolProjects }, { DESIGN_GALLERY_SUBCATEGORIES }] = await Promise.all([presenter, catalog]);
   const design = read('web/pools/design-gallery/index.html');
   assert.deepEqual([...design.matchAll(/data-category-id="([^"]+)"/g)].map((m) => m[1]), DESIGN_GALLERY_SUBCATEGORIES.map((c) => c.id));
-  assert.match(design, /Website History<\/strong> — Live category\. Poetry Space is an example; Evolution is Website History material/);
+  assert.match(design, /Website History<\/strong> — Live category\. Poetry Space is an example; Evolution is Website History material\. <a href="\/web\/evolution\/">View the history exhibit<\/a>/);
   assert.doesNotMatch(renderPoolProjects('design-gallery'), /data-project-id="(?:evolution|web-design-gallery|game-design|web-design|website-history)"/);
   const research = read('web/pools/artificial-self/index.html');
-  assert.match(research, /Artificial Self \/ AI Research naming question remains open/);
+  assert.match(research, /AI Research is the research part of this pool/);
+  assert.doesNotMatch(research, /naming question remains open/);
   assert.match(research, /Archive interpretations require rederivation/);
   assert.equal((renderPoolProjects('artificial-self').match(/Existing C2C outcome claims are not verified findings/g) || []).length, 2);
+  assert.match(renderPoolProjects('ai-d-kit'), /data-project-id="council"/);
+  assert.match(renderPoolProjects('tinkerbox'), /data-project-id="council"/);
   assert.match(renderPoolProjects('tinkerbox'), /Fork of work by nikhilvishwakarma00\. Ivan’s audio-only YouTube path with no video\./);
+});
+
+test('settled pool page contracts are explicit without choosing deferred visual treatments', () => {
+  const growing = read('web/pools/growingapp/index.html');
+  assert.match(growing, /Manifesto for a Newborn/);
+  assert.match(growing, /optional entry|never a gate/i);
+  assert.match(growing, /href="\/web\/manifesto-newborn\/"/);
+
+  const aid = read('web/pools/ai-d-kit/index.html');
+  assert.match(aid, /search-first/i);
+  assert.match(aid, /unified search|glossary/i);
+  assert.match(aid, /guided mode/i);
+
+  const health = read('web/pools/health/index.html');
+  assert.match(health, /project-first/i);
+  assert.match(health, /evidence lives inside each project/i);
 });
 
 test('route bindings, readiness, metrics and verified dates remain independent in the presenter', async () => {
@@ -194,4 +213,27 @@ test('route bindings, readiness, metrics and verified dates remain independent i
   assert.doesNotMatch(renderProject({ ...enabled, routeBindings: [
     { type: 'local', route: '/public/' }, { type: 'local', route: '/internal-subroute/' },
   ] }), /internal-subroute/, 'owned subroutes do not automatically become public navigation');
+});
+
+test('readiness surface has explicit shipped, in-progress and UNKNOWN states', async () => {
+  const { projectReadiness, renderProject } = await presenter;
+  const shipped = {
+    id: 'fixture', publicName: 'Fixture', pool: 'TinkerBox', pools: ['TinkerBox'], status: 'Live',
+    readiness: { entryEnabled: true, presentation: 'active', review: 'verified' },
+    evidenceLevel: { level: 'demonstration', review: 'verified', sources: ['review.md'] },
+    visibility: { access: 'public', navigation: 'listed' }, routeBindings: [{ type: 'local', route: '/fixture/' }],
+  };
+  assert.deepEqual(projectReadiness(shipped), { state: 'Shipped', reason: 'Entry, readiness and evidence reviews are verified.' });
+  assert.match(renderProject(shipped), /data-readiness-state="Shipped">Readiness: Shipped/);
+
+  const inProgress = { ...shipped, status: 'In development', readiness: { entryEnabled: false, presentation: 'pending-review', review: 'pending', reason: 'Implementation work remains.' } };
+  assert.deepEqual(projectReadiness(inProgress), { state: 'In progress', reason: 'Implementation work remains.' });
+  assert.match(renderProject(inProgress), /data-readiness-state="In progress">Readiness: In progress/);
+
+  const unknown = { ...shipped, readiness: { entryEnabled: true, presentation: 'active', review: 'pending' } };
+  assert.deepEqual(projectReadiness(unknown), { state: 'UNKNOWN', reason: 'Completion evidence is not verified.' });
+  assert.match(renderProject(unknown), /data-readiness-state="UNKNOWN">Readiness: UNKNOWN/);
+
+  const rederivation = { ...shipped, status: 'Research', evidenceLevel: 'rederivation-required' };
+  assert.deepEqual(projectReadiness(rederivation), { state: 'In progress', reason: 'Research rederivation remains required.' });
 });
