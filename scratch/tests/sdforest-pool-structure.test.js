@@ -198,3 +198,26 @@ test('route bindings, readiness, metrics and verified dates remain independent i
     { type: 'local', route: '/public/' }, { type: 'local', route: '/internal-subroute/' },
   ] }), /internal-subroute/, 'owned subroutes do not automatically become public navigation');
 });
+
+test('readiness surface has explicit shipped, in-progress and UNKNOWN states', async () => {
+  const { projectReadiness, renderProject } = await presenter;
+  const shipped = {
+    id: 'fixture', publicName: 'Fixture', pool: 'TinkerBox', pools: ['TinkerBox'], status: 'Live',
+    readiness: { entryEnabled: true, presentation: 'active', review: 'verified' },
+    evidenceLevel: { level: 'demonstration', review: 'verified', sources: ['review.md'] },
+    visibility: { access: 'public', navigation: 'listed' }, routeBindings: [{ type: 'local', route: '/fixture/' }],
+  };
+  assert.deepEqual(projectReadiness(shipped), { state: 'Shipped', reason: 'Entry, readiness and evidence reviews are verified.' });
+  assert.match(renderProject(shipped), /data-readiness-state="Shipped">Readiness: Shipped/);
+
+  const inProgress = { ...shipped, status: 'In development', readiness: { entryEnabled: false, presentation: 'pending-review', review: 'pending', reason: 'Implementation work remains.' } };
+  assert.deepEqual(projectReadiness(inProgress), { state: 'In progress', reason: 'Implementation work remains.' });
+  assert.match(renderProject(inProgress), /data-readiness-state="In progress">Readiness: In progress/);
+
+  const unknown = { ...shipped, readiness: { entryEnabled: true, presentation: 'active', review: 'pending' } };
+  assert.deepEqual(projectReadiness(unknown), { state: 'UNKNOWN', reason: 'Completion evidence is not verified.' });
+  assert.match(renderProject(unknown), /data-readiness-state="UNKNOWN">Readiness: UNKNOWN/);
+
+  const rederivation = { ...shipped, status: 'Research', evidenceLevel: 'rederivation-required' };
+  assert.deepEqual(projectReadiness(rederivation), { state: 'In progress', reason: 'Research rederivation remains required.' });
+});

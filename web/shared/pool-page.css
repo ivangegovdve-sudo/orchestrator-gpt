@@ -9,6 +9,10 @@ body.pool-page { margin: 0; background: #f6f4ee; color: #202a24; font: 1.05rem/1
 .pool-page .pool-project { border-top: 1px solid #b9c5ba; padding-block: 1rem; }
 .pool-page .pool-project p { margin-block: .45rem; }
 .pool-page .pool-status { font-weight: 650; }
+.pool-page .pool-readiness { font-size: .95em; }
+.pool-page .pool-readiness[data-readiness-state="Shipped"] { color: #225b40; font-weight: 650; }
+.pool-page .pool-readiness[data-readiness-state="In progress"] { color: #765b00; font-weight: 650; }
+.pool-page .pool-readiness[data-readiness-state="UNKNOWN"] { color: #6a4b4b; font-weight: 650; }
 .pool-page .pool-bindings { overflow-wrap: anywhere; }
 .pool-page .pool-categories { padding-left: 1.5rem; }
 .pool-page .pool-categories li { margin-block: .7rem; }

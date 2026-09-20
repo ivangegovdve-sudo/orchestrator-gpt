@@ -20,8 +20,39 @@ export function projectPresentation(project) {
     ? project.lastMeaningfullyUpdated : 'awaiting verified date' };
 }
 
+/**
+ * Readiness is a presentation projection, not a second lifecycle vocabulary.
+ * Only explicit implementation/evidence work can say In progress; all other
+ * unverified records fail closed to UNKNOWN rather than looking finished.
+ */
+export function projectReadiness(project) {
+  const readiness = project?.readiness || {};
+  const evidenceLevel = project?.evidenceLevel;
+  const evidenceReview = evidenceLevel && typeof evidenceLevel === 'object'
+    ? evidenceLevel.review : project?.evidence?.review;
+  const restricted = project?.visibility?.access === 'internal' || project?.visibility?.access === 'private'
+    || project?.visibility?.navigation === 'unlisted';
+  const explicitProgress = project?.status === 'In development'
+    || ['coming-soon', 'repair-needed'].includes(readiness.presentation)
+    || evidenceLevel === 'rederivation-required' || evidenceReview === 'rederivation-required';
+  if (explicitProgress) {
+    return {
+      state: 'In progress',
+      reason: evidenceLevel === 'rederivation-required' || evidenceReview === 'rederivation-required'
+        ? 'Research rederivation remains required.'
+        : readiness.reason || 'Implementation work remains.',
+    };
+  }
+  if (readiness.entryEnabled === true && readiness.review === 'verified'
+    && evidenceReview === 'verified' && !restricted) {
+    return { state: 'Shipped', reason: 'Entry, readiness and evidence reviews are verified.' };
+  }
+  return { state: 'UNKNOWN', reason: 'Completion evidence is not verified.' };
+}
+
 export function renderProject(project, { heading = 'h3' } = {}) {
   const { restricted, comingSoon, enabled, update } = projectPresentation(project);
+  const readiness = projectReadiness(project);
   const status = project.status || 'awaiting reconciliation';
   const attribution = typeof project.attribution === 'string' ? project.attribution
     : project.attribution?.type === 'fork'
@@ -47,6 +78,7 @@ export function renderProject(project, { heading = 'h3' } = {}) {
   return `<article class="pool-project" data-project-id="${escape(project.id)}"${enabled ? '' : ' aria-disabled="true"'}>
     <${heading}>${escape(project.publicName)}</${heading}>
     <p class="pool-status">Status: ${escape(status)}${comingSoon ? ' — Coming Soon' : ''}</p>
+    <p class="pool-readiness" data-readiness-state="${escape(readiness.state)}">Readiness: ${escape(readiness.state)} — ${escape(readiness.reason)}</p>
     <p class="pool-metrics">Metrics: ${escape(metrics || 'none published')}</p>
     <p class="pool-update">Last meaningful update: ${escape(update)}</p>
     ${restricted ? project.visibility.access === 'internal'
