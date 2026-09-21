@@ -1,4 +1,5 @@
 const assert = require('node:assert/strict');
+const crypto = require('node:crypto');
 const fs = require('node:fs');
 const path = require('node:path');
 const test = require('node:test');
@@ -10,14 +11,39 @@ function read(relativePath) {
   return fs.readFileSync(path.join(ROOT, relativePath), 'utf8');
 }
 
+function readBuffer(relativePath) {
+  return fs.readFileSync(path.join(ROOT, relativePath));
+}
+
 test('AI-d kit subpages are published from observed boundaries', () => {
   const troubleshooting = read('web/pools/ai-d-kit/troubleshooting/index.html');
+  const troubleshootingSource = read('web/pools/ai-d-kit/troubleshooting/TROUBLESHOOTING.md');
   const promotions = read('web/pools/ai-d-kit/free-stuff-in-promotions/index.html');
 
-  assert.match(troubleshooting, /AnyCloudLLM .* not published/i);
-  assert.match(troubleshooting, /Open Dashboard/);
-  assert.match(troubleshooting, /Explore Repos/);
-  assert.match(troubleshooting, /The Drop/);
+  assert.match(troubleshooting, /data-source-repository="ivangegovdve-sudo\/hermes-agent"/);
+  assert.match(troubleshooting, /data-source-branch="docs\/ivan-troubleshooting-20260921"/);
+  assert.match(troubleshooting, /data-source-snapshot="e19037333c1f1e410c52ee4ef09d7484018fdf50"/);
+  assert.match(troubleshooting, /data-source-formatting-repair="89f0d1b50cba8ff6d067ef284e4fec79c0764f79"/);
+  assert.match(troubleshooting, /data-source-blob="c7d630ce8832df253d07f8b4309e76bf64acc45a"/);
+  assert.match(troubleshooting, /data-part-count="14"/);
+  assert.match(troubleshooting, /data-entry-count="108"/);
+  assert.equal((troubleshooting.match(/class="troubleshooting-entry"/g) || []).length, 108);
+  for (const field of ['symptom', 'cause', 'cost', 'check']) {
+    assert.ok(troubleshooting.includes(`data-field="${field}"`), `renders ${field} fields`);
+  }
+  assert.match(troubleshooting, /six months from/);
+  assert.doesNotMatch(troubleshooting, /AnyCloudLLM — Troubleshooting/);
+  const sourceBytes = readBuffer('web/pools/ai-d-kit/troubleshooting/TROUBLESHOOTING.md');
+  const gitBlob = Buffer.concat([Buffer.from(`blob ${sourceBytes.length}\0`), sourceBytes]);
+  assert.equal(
+    crypto.createHash('sha1').update(gitBlob).digest('hex'),
+    'c7d630ce8832df253d07f8b4309e76bf64acc45a',
+  );
+  assert.equal((troubleshootingSource.match(/^## Part \d+\b/gm) || []).length, 14);
+  assert.equal((troubleshootingSource.match(/^### /gm) || []).length, 108);
+  for (const field of ['Symptom', 'Cause', 'Cost', 'Check']) {
+    assert.match(troubleshootingSource, new RegExp(`^\\*\\*${field}\\*\\*`, 'm'));
+  }
   assert.match(promotions, /data-endpoint="https:\/\/ifugbkvmdpqzjgjqmfxh\.supabase\.co\/functions\/v1\/ai-kit-promotions"/);
   assert.match(promotions, /Time-boxed promotions/);
   assert.match(promotions, /Standing free tiers/);
