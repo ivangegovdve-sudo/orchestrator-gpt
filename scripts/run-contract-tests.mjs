@@ -11,6 +11,7 @@ const files = [
   'scratch/tests/static-route-registry-validator.test.js',
   'scratch/tests/static-route-coverage.test.js',
   'scratch/tests/prose-drift.test.js',
+  'scratch/tests/rubiks-teacher-contract.test.js',
 ];
 
 for (const [name, stageFiles] of [
@@ -22,3 +23,4 @@ for (const [name, stageFiles] of [
   if (result.error) console.error(result.error.message);
   if (result.status !== 0) process.exit(result.status ?? 1);
 }
+
