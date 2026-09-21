@@ -1,0 +1,14 @@
+.narrative-spine {
+  margin: 2rem auto;
+  padding: 1rem 1.25rem;
+  border-block: 1px solid rgba(112, 141, 121, .45);
+  color: var(--forest-muted, #5e6b62);
+  font: 500 .8rem/1.5 var(--forest-sans, system-ui, sans-serif);
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+.narrative-spine p { margin: 0 0 .55rem; font-weight: 700; }
+.narrative-spine ul { display: flex; flex-wrap: wrap; gap: .55rem 1.2rem; margin: 0; padding: 0; list-style: none; }
+.narrative-spine a,
+.narrative-spine [aria-current="page"] { color: inherit; text-underline-offset: .2em; }
+.narrative-spine [aria-current="page"] { font-weight: 800; }

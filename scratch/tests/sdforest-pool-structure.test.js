@@ -13,6 +13,7 @@ const pools = [
 const presenter = import('../../web/shared/pool-page.mjs');
 const catalog = import('../../web/shared/project-catalog.mjs');
 const projectContext = import('../../web/shared/project-page-context.mjs');
+const narrativeSpine = import('../../web/shared/narrative-spine.mjs');
 
 test('one combined Math row exposes only its two named approved companions', async () => {
   const [{ renderProject }, { getPoolProjects }] = await Promise.all([presenter, catalog]);
@@ -248,6 +249,30 @@ test('Rubik’s Teacher mounts a catalog-backed project context before its app s
   assert.match(context, /Status: Live/);
   assert.match(context, /Readiness: UNKNOWN/);
   assert.match(context, /lazy lesson bundles/);
+});
+
+test('the narrative spine links My Story, Manifesto and Website History without inventing an order', async () => {
+  const [{ renderNarrativeSpine }, { NARRATIVE_SPINE }] = await Promise.all([narrativeSpine, catalog]);
+  assert.deepEqual(NARRATIVE_SPINE.map(({ id }) => id), ['my-story', 'manifesto-newborn', 'website-history']);
+  for (const entry of NARRATIVE_SPINE) {
+    const html = renderNarrativeSpine(entry.id);
+    assert.match(html, /data-narrative-spine/);
+    assert.match(html, /Walk the story/);
+    for (const link of NARRATIVE_SPINE) {
+      assert.match(html, new RegExp(link.route.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
+      assert.match(html, new RegExp(link.publicName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
+    }
+    assert.match(html, new RegExp(`data-narrative-spine-current="${entry.id}"`));
+  }
+  for (const [file, id] of [
+    ['web/pools/my-story/index.html', 'my-story'],
+    ['web/manifesto-newborn/index.html', 'manifesto-newborn'],
+    ['web/evolution/index.html', 'website-history'],
+  ]) {
+    const html = read(file);
+    assert.match(html, new RegExp(`data-narrative-spine-root[^>]+data-narrative-spine-id="${id}"`));
+    assert.match(html, /src="\/web\/shared\/narrative-spine\.mjs"/);
+  }
 });
 
 test('Evolution carries the settled Website History arc without flattening unfinished work', () => {

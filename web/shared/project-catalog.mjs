@@ -419,6 +419,15 @@ export const CATALOG_ENTITIES = deepFreeze([
   ...PROJECT_CATALOG, ...POOL_CATALOG, ...CATALOG_NON_PROJECTS,
 ]);
 
+// The story surfaces are deliberately a set of traversable peers, not a
+// newly-decided linear sequence. Each entry resolves to a catalog entity while
+// the shared presenter supplies the links on all three pages.
+export const NARRATIVE_SPINE = deepFreeze([
+  { id: 'my-story', catalogEntityId: 'my-story', publicName: 'My Story', route: '/web/pools/my-story/' },
+  { id: 'manifesto-newborn', catalogEntityId: 'manifesto-newborn', publicName: 'Manifesto for a Newborn', route: '/web/manifesto-newborn/' },
+  { id: 'website-history', catalogEntityId: 'evolution', publicName: 'Website History', route: '/web/evolution/' },
+]);
+
 // Membership projection deliberately retains In development, internal/unlisted,
 // and unverified-date records, but excludes records explicitly removed from all
 // public surfaces. Their catalog records and route bindings remain authoritative.
