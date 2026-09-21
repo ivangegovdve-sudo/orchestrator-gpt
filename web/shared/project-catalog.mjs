@@ -284,7 +284,14 @@ const projectRecords = [
     pool: 'Design Gallery', classification: 'assigned', status: 'Live', visibility: publicShell, attribution: 'Poetry by Maria Popova.', sources: ['web/m-popova/index.html', MASTER],
   }),
   project('open-dashboard', 'Open Dashboard', { pool: 'AI-d kit', classification: 'assigned', status: 'Live', visibility: publicShell, sources: ['web/open-dashboard/index.html', MASTER] }),
-  project('rubiks-teacher', 'Rubik’s Teacher', { pool: 'GrowingApp', classification: 'assigned', status: 'Live', visibility: publicShell, sources: ['web/rubiks-teacher/index.html', MASTER] }),
+  project('rubiks-teacher', 'Rubik’s Teacher', {
+    pool: 'GrowingApp', classification: 'assigned', status: 'Live', visibility: publicShell,
+    projectPage: {
+      problem: 'Cubeflow scans, validates, solves, and teaches every Rubik’s Cube turn.',
+      nextOrStopped: 'Independent review must settle PWA installability without breaking Chloé’s offline shell; the lazy lesson bundles still need to be included in the first offline path.',
+    },
+    sources: ['web/rubiks-teacher/index.html', MASTER],
+  }),
   project('chloe-pwa', 'Chloé PWA', { pool: 'TinkerBox', classification: 'assigned', status: 'In development', visibility: unpublishedDocumentation, sources: ['web/chloe-pwa/index.html', MASTER] }),
   project('chloe-desktop', 'Chloé desktop', { pool: 'TinkerBox', classification: 'assigned', status: 'In development', visibility: unpublishedDocumentation, sources: [MASTER] }),
   project('upload', 'Knowledge Ingest', {

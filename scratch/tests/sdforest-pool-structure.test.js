@@ -12,6 +12,7 @@ const pools = [
 ];
 const presenter = import('../../web/shared/pool-page.mjs');
 const catalog = import('../../web/shared/project-catalog.mjs');
+const projectContext = import('../../web/shared/project-page-context.mjs');
 
 test('one combined Math row exposes only its two named approved companions', async () => {
   const [{ renderProject }, { getPoolProjects }] = await Promise.all([presenter, catalog]);
@@ -228,6 +229,25 @@ test('every pool overview carries a catalog-backed visitor guide and reality spl
       assert.match(html, new RegExp(`data-pool-reality-project="${project.id}"`));
     }
   }
+});
+
+test('Rubik’s Teacher mounts a catalog-backed project context before its app shell', async () => {
+  const [{ renderProjectContext }, { PROJECT_CATALOG }] = await Promise.all([projectContext, catalog]);
+  const project = PROJECT_CATALOG.find(({ id }) => id === 'rubiks-teacher');
+  assert.ok(project?.projectPage);
+  const html = read('web/rubiks-teacher/index.html');
+  assert.match(html, /data-project-context-root/);
+  assert.match(html, /data-project-id="rubiks-teacher"/);
+  assert.match(html, /src="\/web\/shared\/project-page-context\.mjs"/);
+  const context = renderProjectContext(project);
+  assert.match(context, /data-project-context/);
+  assert.match(context, /What problem it addresses/);
+  assert.match(context, /What state it is in/);
+  assert.match(context, /What comes next/);
+  assert.match(context, new RegExp(project.projectPage.problem.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
+  assert.match(context, /Status: Live/);
+  assert.match(context, /Readiness: UNKNOWN/);
+  assert.match(context, /lazy lesson bundles/);
 });
 
 test('Evolution carries the settled Website History arc without flattening unfinished work', () => {
