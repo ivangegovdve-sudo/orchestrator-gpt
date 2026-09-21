@@ -82,4 +82,3 @@ test('project readiness uses verified vocabulary independently of evidence', asy
   assert.doesNotMatch(evidencePending, /readiness review remains pending/i);
   assert.match(evidencePending, /Evidence review remains pending/);
 });
-
