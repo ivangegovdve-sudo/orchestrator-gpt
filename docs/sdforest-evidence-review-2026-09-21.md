@@ -6,10 +6,10 @@ This review continues from the merged PR #597 baseline (`8d4ee682c55152b6fec8efa
 
 The only transcript artifacts available in this checkout are the inline `TURNS` arrays in `web/c2c-self/index.html` and `web/c2c-dolphin/index.html`. Each contains 60 messages across 30 numbered turns, with 30 messages from A and 30 from B. The two pages, their renderers, and their history are separate: commit `edef7874d4e2a84f32bc2abc0fbc43a06c66f83b` added both files, C2C Self labels the speakers `Instance A` and `Instance B (Mirror)`, and Dolphin labels the participants `Nemotron Super 120B` and `Dolphin Mistral 24B`. The deployed Dolphin page calls itself `AI Conversation`; that display/canonical discrepancy remains recorded.
 
-The transcript check used a simple, explicitly descriptive comparison: lowercase letter-token sets (three or more letters), a small common-word stop list, same-turn exact-string comparison, and per-turn Jaccard overlap. It was not a preregistered convergence test and it does not establish a psychological or scientific outcome.
+The transcript check used a simple, explicitly descriptive comparison: lowercase letter-token sets (three or more letters), same-turn exact-string comparison, and per-turn Jaccard overlap. The exploratory run's small common-word stop list and analysis script were not preserved in this checkout, so its numerical overlap scores are not reproducible and are not treated as findings here. This was not a preregistered convergence test and it does not establish a psychological or scientific outcome.
 
-- C2C Self has nine same-turn A/B exact-string pairs (turn 20 and turns 22–29); its highest token-set overlap is 1.00 at turn 20. Both speakers' frequent terms include `bone`, `hum`, `even`, `vibration`, `sound`, `breath`, and `air`.
-- C2C Dolphin has no same-turn exact-string pairs; its highest token-set overlap under the same descriptive measure is approximately 0.192 at turn 20, with different dominant vocabularies (for example `markers`/`anthropomorphism` versus `agency`/`ladder`).
+- C2C Self has nine same-turn A/B exact-string pairs (turn 20 and turns 22–29). Both speakers' frequent terms include `bone`, `hum`, `even`, `vibration`, `sound`, `breath`, and `air`.
+- C2C Dolphin has no same-turn exact-string pairs, with different dominant vocabularies (for example `markers`/`anthropomorphism` versus `agency`/`ladder`). A prior exploratory run reported an approximately 0.192 token-set overlap at turn 20, but the missing stop list/script means that number remains suppressed rather than re-published.
 
 These observations support the distinction between a same-model mirror transcript and a cross-model transcript. They do not validate the historical outcome panels. The existing pages keep those panels inside `data-archived-claims="rederivation-required"` templates, and the regression suite verifies that the old public claim markers do not render.
 
@@ -32,7 +32,7 @@ The catalog currently has 35 project records. All 35 have `lastMeaningfullyUpdat
 The following access/visibility drift is real and remains explicitly unresolved rather than silently corrected:
 
 - **Knowledge Ingest**: catalog says private, unlisted, excluded, `noindex`, access-gated, and enforcement unverified. Its registry entry says internal but `indexing: unspecified`; the HTML has an auth/password gate and no robots meta tag. The route remains present and unlisted.
-- **Library private children** (`/web/library/repos/`, `/web/library/general/`, `/web/library/memory/`, `/web/library/chloe/`): catalog intent is internal documentation/noindex, while route entries and HTML pages say internal/unlisted but leave indexing unspecified and provide no robots meta tag. Password UI is not proof of enforcement.
+- **Library private children** (`/web/library/repos/`, `/web/library/general/`, `/web/library/memory/`, `/web/library/chloe/`): catalog intent is internal documentation/noindex, while route entries and HTML pages say internal/unlisted but leave indexing unspecified and provide no robots meta tag. The public `/web/library/` parent navigation currently links all four children, so they are publicly discoverable despite those labels; password UI is not proof of enforcement.
 - **Voice Playground compatibility route**: the non-project compatibility record is unlisted/noindex, but the alias route owner is `mixed`/manual/`indexing: unspecified`; its page is a legacy Avatar Playground surface with a password UI. This is metadata disagreement, not a route-removal instruction.
 - **AnyCloudLLM**: the project record is `publicShell` and has a shared AI-d kit pool binding even though the settled decision excludes it from all public surfaces until ready. There is no standalone copied route. The catalog and the settled visibility decision therefore disagree; this is not corrected here.
 - **Found Work**: the retained `/web/gallery/` route is still publicly routable in the registry while its page calls itself an internal-reference legacy surface. The catalog marks it a legacy reference; no route was removed.
@@ -52,7 +52,7 @@ Read-only verification at the current head:
 - The worker discovers the direct JS/CSS references from the shipped index and uses atomic `cache.addAll`; the entry-asset and fail-closed tests pass.
 - Ivan's three carried roster findings (`readExistingRoster`, the untrusted roster boundary, and strict zero-price validation) were retired as **inapplicable**, not fixed, on 2026-09-09 against `f06ff8c`/current. They reference files absent from this 10-file PWA patch and are not resurrected here. The old revert concern was also retired on evidence; the current patch deletes no files.
 
-One current PWA-specific finding remains: `entryAssets()` only discovers direct HTML JS/CSS references. The entry bundle dynamically imports the lazy lesson graph (`twisty-BsFTb9fe.js`, `puzzle-geometry-Df9IhaMl.js`, and related chunks), which is not in the install list. A first offline lesson/practice path can therefore receive the worker's 504 for those chunks. This is an independent review finding, not a rewrite or a resurrection of Ivan's retired roster findings. PR #445 has not been reviewed, merged, or modified by this task.
+One current PWA-specific finding remains: `entryAssets()` only discovers direct HTML JS/CSS references. The entry bundle dynamically imports the lazy lesson graph (`twisty-BsFTb9fe.js`, `puzzle-geometry-Df9IhaMl.js`, and related chunks), which is not in the install list. A first offline lesson/practice path can therefore receive the worker's 504 for those chunks. This is an independent review finding, not a rewrite or a resurrection of Ivan's retired roster findings. This task submitted no GitHub review for PR #445 and did not merge or modify it; the assessment above is read-only analysis.
 
 ## 4. Glossary warnings
 
@@ -75,7 +75,7 @@ No warning was mass-suppressed.
 - C2C transcript-label regression: included in the passing suite.
 - PR #445 targeted worker tests: **5 pass / 0 fail** at `c248be1c1189a3152804754951bebc6d6be67eab`.
 - Glossary regeneration: no tracked output diff.
-- No route was renamed or deleted; no deployment, merge, review, or hosting change occurred.
+- No route was renamed or deleted; no deployment, merge, submitted GitHub review, or hosting change occurred.
 - Visitor-visible production state is unchanged in this slice. Unsupported C2C outcome panels remain suppressed. The only repository change is an evidence report plus a regression guard for the already-settled C2C topology.
 
 No new product decision was encountered. The access/indexing alignment and meaningful-update dates remain explicit follow-ups rather than defaults.
