@@ -10,6 +10,7 @@ const files = [
   'scratch/tests/sdforest-legacy-structure.test.js',
   'scratch/tests/static-route-registry-validator.test.js',
   'scratch/tests/static-route-coverage.test.js',
+  'scratch/tests/prose-drift.test.js',
 ];
 
 for (const [name, stageFiles] of [
