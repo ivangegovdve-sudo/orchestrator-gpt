@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" class="forest-skin">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" href="/web/shared/favicon.svg?v=20260807a" type="image/svg+xml">
@@ -156,12 +156,18 @@
     }
     </script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#ffffff" />
+    <meta name="theme-color" content="#07070b" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta
       name="description"
       content="Cubeflow scans, validates, solves, and teaches every Rubik's Cube turn."
     />
+    <link rel="manifest" href="/web/rubiks-teacher/manifest.json" />
+    <link rel="apple-touch-icon" href="/web/rubiks-teacher/assets/icons/apple-touch-icon.png" />
     <title>Cubeflow — Rubik's Cube Teacher</title>
+    <script src="/web/rubiks-teacher/sw-register.js"></script>
+    <script src="/web/rubiks-teacher/unread-guard.js"></script>
     <script type="module" crossorigin src="/web/rubiks-teacher/assets/index-BOLL9lX0.js"></script>
     <!-- Shared design tokens. Every rule in forest-design.css is scoped to
          html.forest-skin, so loading it here supplies the sitewide token set
@@ -169,6 +175,8 @@
          Cubeflow bundle, which keeps its own light theme. -->
     <link rel="stylesheet" href="/web/shared/forest-design.css?v=20260807a">
     <link rel="stylesheet" crossorigin href="/web/rubiks-teacher/assets/index-C52SfukJ.css">
+    <link rel="stylesheet" href="/web/shared/project-page-context.css">
+    <link rel="stylesheet" href="/web/rubiks-teacher/forest-overrides.css?v=20260921a">
     <style>
       .sdforest-return {
         position: fixed;
@@ -199,7 +207,6 @@
         outline-offset: 3px;
       }
     </style>
-    <link rel="stylesheet" href="/web/shared/project-page-context.css">
   </head>
   <body>
     <a class="sdforest-return" href="/" aria-label="Back to SDForest">&larr; SDForest</a>
