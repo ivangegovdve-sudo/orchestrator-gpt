@@ -44,6 +44,8 @@ export const ROUTE_REGISTRY = deepFreeze([
   route('forest-hub', 'forest-hub', '/', 'page', 'index.html', PUBLIC),
   route('pool-growingapp', 'pool-growingapp', '/web/pools/growingapp/', 'page', 'web/pools/growingapp/index.html', PUBLIC),
   route('pool-ai-d-kit', 'pool-ai-d-kit', '/web/pools/ai-d-kit/', 'page', 'web/pools/ai-d-kit/index.html', PUBLIC),
+  route('ai-kit-troubleshooting', 'ai-kit-troubleshooting', '/web/pools/ai-d-kit/troubleshooting/', 'child', 'web/pools/ai-d-kit/troubleshooting/index.html', PUBLIC),
+  route('ai-kit-free-stuff-in-promotions', 'ai-kit-free-stuff-in-promotions', '/web/pools/ai-d-kit/free-stuff-in-promotions/', 'child', 'web/pools/ai-d-kit/free-stuff-in-promotions/index.html', PUBLIC),
   route('pool-tinkerbox', 'pool-tinkerbox', '/web/pools/tinkerbox/', 'page', 'web/pools/tinkerbox/index.html', PUBLIC),
   route('pool-health', 'pool-health', '/web/pools/health/', 'page', 'web/pools/health/index.html', PUBLIC),
   route('pool-design-gallery', 'pool-design-gallery', '/web/pools/design-gallery/', 'page', 'web/pools/design-gallery/index.html', PUBLIC),
