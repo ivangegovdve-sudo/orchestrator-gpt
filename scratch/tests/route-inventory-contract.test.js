@@ -29,7 +29,7 @@ test('actual copied HTML routes have one registry entry and catalog owner indepe
     registryModule, catalogModule,
   ]);
   const discovered = discoverCopiedHtmlRoutes(ROOT);
-  assert.equal(discovered.length, 75, 'the current build copies 75 HTML routes');
+  assert.equal(discovered.length, 77, 'the current build copies 77 HTML routes including the two AI-d kit subpages');
   for (const { route, source } of discovered) {
     const entries = ROUTE_REGISTRY.filter(({ paths }) => paths.includes(route));
     const owners = ROUTE_OWNERS.filter(({ routes }) => routes.includes(route));

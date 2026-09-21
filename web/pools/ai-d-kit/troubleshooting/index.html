@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Evidence-led troubleshooting notes for the public AI-d kit surfaces.">
+  <title>AI-d kit troubleshooting</title>
+  <link rel="icon" href="/web/shared/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/web/shared/forest-design.css?v=20260807a">
+  <link rel="stylesheet" href="/web/shared/forest-shell.css?v=20260807a">
+  <style>
+    .ai-kit-subpage { max-width: 980px; margin: 0 auto; padding: 7rem 1.5rem 5rem; }
+    .ai-kit-subpage h1 { font-size: clamp(2.5rem, 8vw, 5.5rem); margin: 0 0 1rem; }
+    .ai-kit-subpage .lede { max-width: 48rem; color: var(--text-muted, #b8b9c5); font-size: 1.2rem; line-height: 1.6; }
+    .subpage-nav { display: flex; flex-wrap: wrap; gap: .75rem; margin: 1.5rem 0 3rem; }
+    .subpage-nav a { border: 1px solid rgba(255,255,255,.18); border-radius: 999px; padding: .55rem .85rem; }
+    .note-grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(230px,1fr)); gap: 1rem; margin: 1rem 0 2.5rem; }
+    .note { border: 1px solid rgba(255,255,255,.12); border-radius: 1rem; padding: 1.15rem; background: rgba(255,255,255,.035); }
+    .note h2 { margin-top: 0; font-size: 1.2rem; }
+    .note p, .note li { line-height: 1.6; color: var(--text-muted, #b8b9c5); }
+    .source-note { border-left: 3px solid #e8b86b; padding: .75rem 1rem; background: rgba(232,184,107,.08); margin: 2rem 0; }
+    code { font-size: .9em; }
+  </style>
+</head>
+<body class="forest-skin">
+  <a class="forest-back" href="/web/pools/ai-d-kit/">← AI-d kit</a>
+  <main class="ai-kit-subpage">
+    <p class="forest-kicker">AI-d kit · field notes</p>
+    <h1>Troubleshooting</h1>
+    <p class="lede">Start with the surface that failed, then check the boundary it actually owns. These notes describe observed behavior in the public workbench; they do not turn a missing response into a claim that the underlying data is gone.</p>
+    <nav class="subpage-nav" aria-label="AI-d kit subpages">
+      <a href="/web/pools/ai-d-kit/">Pool overview</a>
+      <a href="/web/pools/ai-d-kit/free-stuff-in-promotions/">Free stuff in promotions</a>
+      <a href="/web/open-dashboard/">Open Dashboard</a>
+      <a href="/web/explore/">Explore Repos</a>
+    </nav>
+
+    <div class="source-note"><strong>Source boundary.</strong> A Drive document titled <em>AnyCloudLLM — Troubleshooting</em> was found, but AnyCloudLLM is excluded from every public surface until ready. It is not published here. The notes below are grounded in the current public AI-d kit routes and their checked-in behavior.</div>
+
+    <section aria-labelledby="start-title">
+      <h2 id="start-title">Choose the surface first</h2>
+      <div class="note-grid">
+        <article class="note"><h2>Open Dashboard</h2><p>The explorer reads public catalogue data and keeps source dates and unavailable states distinct. If a chart says its source is unavailable, do not read that as “no models”; check the displayed source note and the dated snapshot label.</p><p><a href="/web/open-dashboard/">Open Dashboard ↗</a></p></article>
+        <article class="note"><h2>Explore Repos</h2><p>The page loads <code>repos-data.json</code>. A failed fetch renders “Could not load the index” and “Index unavailable”; an empty result is a filter result, not a failed index.</p><p><a href="/web/explore/">Explore Repos ↗</a></p></article>
+        <article class="note"><h2>Library</h2><p>The public Library combines the checked-in glossary and platform index. Its personal and workspace children have their own access boundaries; a noindex tag is not proof that a password gate is enforced.</p><p><a href="/web/library/">Library ↗</a></p></article>
+      </div>
+    </section>
+
+    <section aria-labelledby="runtime-title">
+      <h2 id="runtime-title">Runtime notes</h2>
+      <div class="note-grid">
+        <article class="note"><h2>Public Council</h2><p>The public council has two stateless modes: local TinyLLM through Ollama, and a free-model OpenRouter relay. Free-tier queues vary; the runtime falls through its verified free roster and stops honestly if every free model is unavailable. It does not switch to a paid model.</p></article>
+        <article class="note"><h2>Open Dashboard data</h2><p>Catalogue coverage, free-plan quotas, prices, source health, and app/model relationships are separate views. An unavailable source should stay visible as unavailable instead of being coerced into a zero or an empty success.</p></article>
+        <article class="note"><h2>The Drop</h2><p>The Drop is a standalone platform. The Forest handoff opens <code>https://thedrop.sdforest.site</code> in a separate tab. Its old Vercel host can return an authentication response by design; use the custom domain for the public publication.</p><p><a href="https://thedrop.sdforest.site" target="_blank" rel="noopener">Open The Drop ↗</a></p></article>
+      </div>
+    </section>
+
+    <section aria-labelledby="report-title">
+      <h2 id="report-title">What to include when reporting a failure</h2>
+      <ol>
+        <li>Copy the exact route and whether it opened in the same page or a new tab.</li>
+        <li>Record the visible state: loading, unavailable, empty result, authentication boundary, or a server status.</li>
+        <li>Keep the source date or source link shown by the page. Do not substitute a guessed “latest” value.</li>
+        <li>Say whether the problem is in the Forest shell, a public companion, or an external service. Those are different owners.</li>
+      </ol>
+    </section>
+  </main>
+</body>
+</html>

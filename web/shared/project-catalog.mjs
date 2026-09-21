@@ -330,6 +330,8 @@ export const ROUTE_OWNERS = deepFreeze([
   owner('forest-hub', ['/'], { role: 'site' }),
   owner('pool-growingapp', ['/web/pools/growingapp/'], { catalogEntityId: 'growingapp', visibility: { ...publicShell, publicSurface: 'pool' } }),
   owner('pool-ai-d-kit', ['/web/pools/ai-d-kit/'], { catalogEntityId: 'ai-d-kit', visibility: { ...publicShell, publicSurface: 'pool' } }),
+  owner('ai-kit-troubleshooting', ['/web/pools/ai-d-kit/troubleshooting/'], { catalogEntityId: 'ai-d-kit', role: 'subpage', visibility: publicShell }),
+  owner('ai-kit-free-stuff-in-promotions', ['/web/pools/ai-d-kit/free-stuff-in-promotions/'], { catalogEntityId: 'ai-d-kit', role: 'subpage', visibility: publicShell }),
   owner('pool-tinkerbox', ['/web/pools/tinkerbox/'], { catalogEntityId: 'tinkerbox', visibility: { ...publicShell, publicSurface: 'pool' } }),
   owner('pool-health', ['/web/pools/health/'], { catalogEntityId: 'health', visibility: { ...publicShell, publicSurface: 'pool' } }),
   owner('pool-design-gallery', ['/web/pools/design-gallery/'], { catalogEntityId: 'design-gallery', visibility: { ...publicShell, publicSurface: 'pool' } }),
