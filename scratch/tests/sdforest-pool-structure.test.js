@@ -251,6 +251,27 @@ test('Rubik’s Teacher mounts a catalog-backed project context before its app s
   assert.match(context, /lazy lesson bundles/);
 });
 
+test('the public council mounts catalog-backed context without changing its two-mode surface', async () => {
+  const [{ renderProjectContext }, { PROJECT_CATALOG }] = await Promise.all([projectContext, catalog]);
+  const project = PROJECT_CATALOG.find(({ id }) => id === 'council');
+  assert.ok(project?.projectPage);
+  const html = read('web/council/index.html');
+  assert.match(html, /data-project-context-root/);
+  assert.match(html, /data-project-id="council"/);
+  assert.match(html, /href="\/web\/shared\/project-page-context\.css\?v=20260807a"/);
+  assert.match(html, /src="\/web\/shared\/project-page-context\.mjs\?v=20260807a"/);
+  const context = renderProjectContext(project);
+  assert.match(context, /Public round-table council/);
+  assert.match(context, /What problem it addresses/);
+  assert.match(context, /What state it is in/);
+  assert.match(context, /What comes next/);
+  assert.match(context, /Status: Live/);
+  assert.match(context, /Readiness: UNKNOWN/);
+  assert.match(context, /stateless boundary/);
+  assert.equal((html.match(/data-council-mode=/g) || []).length, 2);
+  assert.equal((html.match(/data-council-workspace=/g) || []).length, 2);
+});
+
 test('the narrative spine links My Story, Manifesto and Website History without inventing an order', async () => {
   const [{ renderNarrativeSpine }, { NARRATIVE_SPINE }] = await Promise.all([narrativeSpine, catalog]);
   assert.deepEqual(NARRATIVE_SPINE.map(({ id }) => id), ['my-story', 'manifesto-newborn', 'website-history']);

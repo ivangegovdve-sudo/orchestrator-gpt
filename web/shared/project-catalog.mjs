@@ -267,6 +267,10 @@ const projectRecords = [
     pool: 'AI-d kit', pools: ['AI-d kit', 'TinkerBox'], classification: 'assigned', status: 'Live',
     aliases: ['Councils'], contentRole: 'council', visibility: publicShell,
     membershipNote: 'Shared member of AI-d kit and TinkerBox by settled decision on 2026-09-20.',
+    projectPage: {
+      problem: 'A public model council lets a visitor put one question through named proposer, analyst, critic, observer, and synthesizer roles under local-Oracle or free-cloud conditions.',
+      nextOrStopped: 'Keep both public modes truthful as infrastructure changes: preserve the stateless boundary, show relay outages and free-tier limits, and never substitute paid models or invent a completed deliberation.',
+    },
     sources: ['web/council/index.html', MASTER],
   }),
   project('explore', 'Explore Repos', {
