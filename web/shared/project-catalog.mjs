@@ -55,7 +55,7 @@ const internalDocumentation = {
 const unpublishedDocumentation = { ...internalDocumentation, documentation: 'unpublished' };
 const compatibility = {
   navigation: 'unlisted', search: 'excluded', indexing: 'noindex',
-  access: 'public', publicSurface: 'compatibility',
+  access: 'public', publicSurface: 'excluded',
 };
 
 export const DESIGN_GALLERY_SUBCATEGORIES = deepFreeze([
@@ -85,7 +85,7 @@ export const CATALOG_NON_PROJECTS = deepFreeze([
     id, name, publicName: name, kind, disposition, catalogEntityId, pool: null,
     visibility: kind === 'site-control'
       ? { ...publicShell, publicSurface: 'site-control' }
-      : { ...compatibility, publicSurface: 'reference-only' },
+      : { ...compatibility, publicSurface: 'excluded' },
     sources: [SETTLED],
   })),
 ]);
@@ -243,7 +243,9 @@ const projectRecords = [
     pool: 'TinkerBox', classification: 'assigned', status: 'Live', visibility: publicShell,
     attribution: { type: 'fork', names: ['nikhilvishwakarma00'], changeDescription: 'Ivan’s audio-only YouTube path with no video.' },
   }),
-  project('anycloudllm', 'AnyCloudLLM', { pool: 'AI-d kit', classification: 'assigned', status: 'In development', visibility: publicShell }),
+  // Settled exclusion: retain the catalog record and pool relationship for
+  // reconciliation, but publish it on no public surface until ready.
+  project('anycloudllm', 'AnyCloudLLM', { pool: 'AI-d kit', classification: 'assigned', status: 'In development', visibility: compatibility }),
 ];
 
 function owner(id, routes, options = {}) {
@@ -282,9 +284,9 @@ export const ROUTE_OWNERS = deepFreeze([
   owner('ai-research', ['/web/ai-research/']),
   owner('library', ['/web/library/', '/web/library/glossary/', '/web/library/platform/'], { visibility: { ...publicShell, publicSurface: 'public-reference-only' } }),
   owner('library-workspace', ['/web/library/rag.html'], { projectId: 'library', role: 'child' }),
-  owner('library-repos', ['/web/library/repos/'], { projectId: 'library', role: 'child', visibility: { ...internalDocumentation, indexing: 'unspecified' } }),
-  owner('library-memory', ['/web/library/general/', '/web/library/memory/'], { projectId: 'library', role: 'internal', visibility: { ...internalDocumentation, indexing: 'unspecified' } }),
-  owner('library-chloe', ['/web/library/chloe/'], { projectId: 'library', role: 'internal', visibility: { ...internalDocumentation, indexing: 'unspecified' } }),
+  owner('library-repos', ['/web/library/repos/'], { projectId: 'library', role: 'child', visibility: internalDocumentation }),
+  owner('library-memory', ['/web/library/general/', '/web/library/memory/'], { projectId: 'library', role: 'internal', visibility: internalDocumentation }),
+  owner('library-chloe', ['/web/library/chloe/'], { projectId: 'library', role: 'internal', visibility: internalDocumentation }),
   owner('ai-init', ['/web/ai-init/'], { catalogEntityId: 'library', role: 'legacy', visibility: compatibility, redirectSources: ['/web/ai-init', '/web/ai-init/'] }),
   owner('ai-init-embed', ['/web/ai-init/embed/'], { catalogEntityId: 'library', role: 'embed', visibility: { ...publicShell, navigation: 'unlisted' } }),
   owner('llm-db', ['/web/llm-db/'], { projectId: 'library', role: 'legacy', visibility: compatibility, redirectSources: ['/web/llm-db/', '/web/llm-db/:path*/', '/web/llm-db/:path*'] }),
@@ -328,7 +330,7 @@ export const ROUTE_OWNERS = deepFreeze([
     ],
   }),
   owner('rubiks-teacher', ['/web/rubiks-teacher/']),
-  owner('voice-playground', ['/web/voice-playground/'], { catalogEntityId: 'avatar-playground', role: 'absorbed', visibility: { ...publicShell, access: 'mixed' } }),
+  owner('voice-playground', ['/web/voice-playground/'], { catalogEntityId: 'avatar-playground', role: 'absorbed', visibility: compatibility }),
   owner('chloe-pwa', ['/web/chloe-pwa/'], { role: 'internal' }),
   owner('upload', ['/web/upload/'], { role: 'internal' }),
   owner('item-icon-generator', ['/frontend/']),
@@ -355,9 +357,11 @@ export const CATALOG_ENTITIES = deepFreeze([
 ]);
 
 // Membership projection deliberately retains In development, internal/unlisted,
-// and unverified-date records. Consumers must honor each record's visibility.
-export const POOL_LISTING_PROJECTS = deepFreeze(PROJECT_CATALOG.filter(({ pools }) =>
-  Array.isArray(pools) && pools.some((pool) => POOL_NAMES.includes(pool))));
+// and unverified-date records, but excludes records explicitly removed from all
+// public surfaces. Their catalog records and route bindings remain authoritative.
+export const POOL_LISTING_PROJECTS = deepFreeze(PROJECT_CATALOG.filter(({ pools, visibility }) =>
+  visibility?.publicSurface !== 'excluded'
+    && Array.isArray(pools) && pools.some((pool) => POOL_NAMES.includes(pool))));
 
 /** Detached immutable membership data; this does not certify public-card readiness. */
 export function getPoolProjects(poolName) {

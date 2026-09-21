@@ -18,6 +18,7 @@ const UNLISTED = { navigation: 'unlisted', search: 'excluded', indexing: 'unspec
 const NOINDEX = { ...UNLISTED, indexing: 'noindex' };
 const INTERNAL = { ...UNLISTED, access: 'internal' };
 const INTERNAL_NOINDEX = { ...INTERNAL, indexing: 'noindex' };
+const PRIVATE_NOINDEX = { ...INTERNAL_NOINDEX, access: 'private' };
 const MIXED = { ...PUBLIC, access: 'mixed' };
 
 function deepFreeze(value) {
@@ -72,18 +73,18 @@ export const ROUTE_REGISTRY = deepFreeze([
   route('evolution', 'evolution', '/web/evolution/', 'page', 'web/evolution/index.html', PUBLIC),
   route('explore', 'explore', '/web/explore/', 'page', 'web/explore/index.html', PUBLIC),
   route('fleet-board-fleet', 'fleet-board', '/web/fleet/', 'page', 'web/fleet/index.html', INTERNAL_NOINDEX),
-  route('gallery', 'gallery', '/web/gallery/', 'page', 'web/gallery/index.html', PUBLIC),
+  route('gallery', 'gallery', '/web/gallery/', 'page', 'web/gallery/index.html', NOINDEX),
   route('hypertrophyos', 'hypertrophyos', '/web/hypertrophyos/', 'page', 'web/hypertrophyos/index.html', PUBLIC),
   route('kids', 'kids', '/web/kids/', 'page', 'web/kids/index.html', PUBLIC),
   route('kids-movie-library', 'kids-movie-library', '/web/kids-movie-library/', 'page', 'web/kids-movie-library/index.html', PUBLIC),
-  route('library-chloe', 'library-chloe', '/web/library/chloe/', 'child', 'web/library/chloe/index.html', INTERNAL),
-  route('library-general', 'library-memory', '/web/library/general/', 'child', 'web/library/general/index.html', INTERNAL),
+  route('library-chloe', 'library-chloe', '/web/library/chloe/', 'child', 'web/library/chloe/index.html', INTERNAL_NOINDEX),
+  route('library-general', 'library-memory', '/web/library/general/', 'child', 'web/library/general/index.html', INTERNAL_NOINDEX),
   route('library-glossary', 'library', '/web/library/glossary/', 'child', 'web/library/glossary/index.html', PUBLIC),
   route('library', 'library', '/web/library/', 'page', 'web/library/index.html', PUBLIC),
-  route('library-memory', 'library-memory', '/web/library/memory/', 'child', 'web/library/memory/index.html', INTERNAL),
+  route('library-memory', 'library-memory', '/web/library/memory/', 'child', 'web/library/memory/index.html', INTERNAL_NOINDEX),
   route('library-platform', 'library', '/web/library/platform/', 'child', 'web/library/platform/index.html', PUBLIC),
   route('library-workspace', 'library-workspace', '/web/library/rag.html', 'child', 'web/library/rag.html', MIXED),
-  route('library-repos', 'library-repos', '/web/library/repos/', 'child', 'web/library/repos/index.html', INTERNAL),
+  route('library-repos', 'library-repos', '/web/library/repos/', 'child', 'web/library/repos/index.html', INTERNAL_NOINDEX),
   route('life-in-time', 'life-in-time', '/web/life-in-time/', 'page', 'web/life-in-time/index.html', PUBLIC),
   route('llm-db', 'llm-db', '/web/llm-db/', 'redirect', 'web/llm-db/index.html', NOINDEX, {
     destination: '/web/library/',
@@ -125,9 +126,9 @@ export const ROUTE_REGISTRY = deepFreeze([
   route('replicator-void', 'replicator-void', '/web/replicator-void/', 'page', 'web/replicator-void/index.html', PUBLIC),
   route('repos', 'repos', '/web/repos/', 'page', 'web/repos/index.html', { ...PUBLIC, navigation: 'unlisted', indexing: 'noindex' }),
   route('rubiks-teacher', 'rubiks-teacher', '/web/rubiks-teacher/', 'page', 'web/rubiks-teacher/index.html', PUBLIC),
-  route('upload', 'upload', '/web/upload/', 'page', 'web/upload/index.html', INTERNAL),
+  route('upload', 'upload', '/web/upload/', 'page', 'web/upload/index.html', PRIVATE_NOINDEX),
   route('vfx-portfolio', 'vfx-portfolio', '/web/vfx-portfolio/', 'page', 'web/vfx-portfolio/index.html', PUBLIC),
-  route('voice-playground', 'voice-playground', '/web/voice-playground/', 'page', 'web/voice-playground/index.html', MIXED),
+  route('voice-playground', 'voice-playground', '/web/voice-playground/', 'page', 'web/voice-playground/index.html', NOINDEX),
   route('we-are-the-training-data', 'we-are-the-training-data', '/web/we-are-the-training-data/', 'page', 'web/we-are-the-training-data/index.html', NOINDEX),
   route('womens-health-os', 'womens-health-os', '/web/womens-health-os/', 'page', 'web/womens-health-os/index.html', PUBLIC),
   route('calendar-calendario', 'calendar', '/calendar/calendario.html', 'html-shim', 'calendar/calendario.html', UNLISTED, { destination: '/web/calendar/' }),

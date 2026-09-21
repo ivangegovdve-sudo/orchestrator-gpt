@@ -51,6 +51,7 @@ export function projectReadiness(project) {
 }
 
 export function renderProject(project, { heading = 'h3' } = {}) {
+  if (project.visibility?.publicSurface === 'excluded') return '';
   const { restricted, comingSoon, enabled, update } = projectPresentation(project);
   const readiness = projectReadiness(project);
   const status = project.status || 'awaiting reconciliation';

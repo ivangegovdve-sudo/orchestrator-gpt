@@ -292,7 +292,8 @@ test('absorbed and non-project routes resolve to their surviving catalog entitie
 
 test('pool listings retain assigned projects independently of card readiness and isolate returned state', async () => {
   const { PROJECT_CATALOG, POOL_LISTING_PROJECTS, PUBLIC_CARD_PROJECTS, getPoolProjects } = await catalog();
-  assert.deepEqual(POOL_LISTING_PROJECTS, PROJECT_CATALOG.filter(({ classification }) => classification === 'assigned'));
+  assert.deepEqual(POOL_LISTING_PROJECTS, PROJECT_CATALOG.filter(({ classification, visibility }) =>
+    classification === 'assigned' && visibility?.publicSurface !== 'excluded'));
   const growing = getPoolProjects('GrowingApp');
   assert.ok(growing.some(({ id, status }) => id === 'lobester-gym' && status === 'In development'));
   assert.ok(growing.some(({ lastMeaningfullyUpdated }) => lastMeaningfullyUpdated === null));
@@ -303,6 +304,29 @@ test('pool listings retain assigned projects independently of card readiness and
   assertDeepFrozen(growing);
   assert.throws(() => { growing[0].routeBindings[0].route = '/invented/'; }, TypeError);
   assert.deepEqual(getPoolProjects('Eighth Pool'), []);
+});
+
+test('settled exclusions stay in the catalog but never enter a public pool listing', async () => {
+  const { PROJECT_CATALOG, CATALOG_NON_PROJECTS, POOL_LISTING_PROJECTS, ROUTE_OWNERS, getPoolProjects } = await catalog();
+  const anyCloud = PROJECT_CATALOG.find(({ id }) => id === 'anycloudllm');
+  assert.ok(anyCloud);
+  assert.equal(anyCloud.publicName, 'AnyCloudLLM');
+  assert.equal(anyCloud.pool, 'AI-d kit');
+  assert.equal(anyCloud.status, 'In development');
+  assert.deepEqual(anyCloud.visibility, {
+    navigation: 'unlisted', search: 'excluded', indexing: 'noindex',
+    access: 'public', publicSurface: 'excluded',
+  });
+  assert.equal(POOL_LISTING_PROJECTS.some(({ id }) => id === 'anycloudllm'), false);
+  assert.equal(getPoolProjects('AI-d kit').some(({ id }) => id === 'anycloudllm'), false);
+  for (const id of ['voice-playground', 'gallery']) {
+    const record = CATALOG_NON_PROJECTS.find((entry) => entry.id === id);
+    assert.equal(record.visibility.publicSurface, 'excluded', id);
+    assert.equal(record.visibility.search, 'excluded', id);
+    assert.equal(record.visibility.indexing, 'noindex', id);
+  }
+  assert.equal(ROUTE_OWNERS.find(({ id }) => id === 'voice-playground').visibility.publicSurface, 'excluded');
+  assert.equal(ROUTE_OWNERS.find(({ id }) => id === 'gallery').visibility.publicSurface, 'excluded');
 });
 
 test('Health reading projects retain distinct observed implementations and their shared pool tabs', async () => {
