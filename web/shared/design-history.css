@@ -1,1 +1,645 @@
-/* ==================================================================    Design History — an additive, opt-in time machine.     A vertical tab on the left edge opens a drawer listing every design    era sdforest.site has lived through. Picking one re-tints the page    by writing the era's tokens as INLINE custom properties on <html>;    nothing is persisted, and "Back to current" removes them again.     This file styles only its own `.dh-*` namespace. It must never    restyle a single existing selector — the whole point is that the    site is untouched when the drawer is closed.    ================================================================== */  .dh-root {   --dh-panel: rgba(9, 13, 10, .94);   --dh-line: rgba(226, 235, 209, .14);   --dh-ink: #f2efe4;   --dh-dim: #8b9585;   --dh-gold: #e8b86b;   --dh-sans: "Alegreya Sans", "Gill Sans", "Segoe UI", system-ui, sans-serif;   --dh-serif: "Cormorant Garamond", "Iowan Old Style", Georgia, serif;   position: fixed;   inset: 0 auto 0 0;   width: 0;            /* a zero-width rail; every child sizes itself */   z-index: 900;   pointer-events: none;   /* The drawer must read in the site's *own* voice even while the page      behind it is wearing a historical palette, so it never inherits the      era tokens it is previewing. */   color: var(--dh-ink);   font-family: var(--dh-sans); }  .dh-root *, .dh-root *::before, .dh-root *::after { box-sizing: border-box; }  /* ---------------- The tab ---------------- */  .dh-tab {   pointer-events: auto;   position: absolute;   top: 50%;   left: 0;   transform: translateY(-50%);   display: flex;   align-items: center;   gap: 7px;   margin: 0;   padding: 13px 7px 13px 5px;   border: 1px solid var(--dh-line);   border-left: 0;   border-radius: 0 9px 9px 0;   background: var(--dh-panel);   color: var(--dh-dim);   font: 600 9.5px/1 var(--dh-sans);   letter-spacing: .22em;   text-transform: uppercase;   writing-mode: vertical-rl;   cursor: pointer;   backdrop-filter: blur(7px);   -webkit-backdrop-filter: blur(7px);   transition: color .25s ease, border-color .25s ease, padding-left .25s ease, background .25s ease; }  .dh-tab:hover, .dh-tab:focus-visible {   color: var(--dh-ink);   border-color: rgba(232, 184, 107, .4);   padding-left: 9px; }  .dh-tab:focus-visible { outline: 2px solid var(--dh-gold); outline-offset: 2px; }  .dh-tab .dh-rings {   writing-mode: horizontal-tb;   width: 11px;   height: 11px;   flex: 0 0 auto; } .dh-tab .dh-rings circle { fill: none; stroke: currentColor; stroke-width: 1.3; }  /* A quiet gold pip marks "you are previewing an old era". */ .dh-tab::after {   content: "";   writing-mode: horizontal-tb;   width: 4px;   height: 4px;   border-radius: 50%;   background: var(--dh-gold);   box-shadow: 0 0 7px var(--dh-gold);   opacity: 0;   transition: opacity .3s ease; } .dh-root.is-previewing .dh-tab { color: var(--dh-ink); border-color: rgba(232, 184, 107, .45); } .dh-root.is-previewing .dh-tab::after, .dh-tab.dh-previewing::after { opacity: 1; }  .dh-root.is-open .dh-tab:not(.dh-inline) { opacity: 0; pointer-events: none; }  /* ---------------- The inline trigger ----------------    Mounted into a page's footer (or a [data-design-history-slot]) rather    than floated at the left edge. It lives outside .dh-root, so it has to    carry its own palette. */  .dh-tab.dh-inline {   --dh-line: rgba(226, 235, 209, .14);   --dh-ink: #f2efe4;   --dh-dim: #8b9585;   --dh-gold: #e8b86b;   position: static;   top: auto;   left: auto;   transform: none;   display: inline-flex;   min-height: 34px;   padding: 8px 14px;   border: 1px solid var(--dh-line);   border-radius: 999px;   background: rgba(255, 255, 255, .03);   color: var(--dh-dim);   font: 600 9.5px/1 var(--dh-sans, "Alegreya Sans", "Segoe UI", system-ui, sans-serif);   letter-spacing: .18em;   writing-mode: horizontal-tb;   backdrop-filter: none;   -webkit-backdrop-filter: none;   transition: color .25s ease, border-color .25s ease, background .25s ease; }  .dh-tab.dh-inline:hover, .dh-tab.dh-inline:focus-visible {   padding-left: 14px;   /* the edge-tab nudge would jitter a pill */   color: var(--dh-ink);   border-color: rgba(232, 184, 107, .4);   background: rgba(232, 184, 107, .08); }  /* ---------------- The drawer ---------------- */  .dh-drawer {   pointer-events: auto;   position: absolute;   top: 0;   bottom: 0;   left: 0;   width: min(404px, 92vw);   /* wide enough for a legible 16:9 capture */   display: flex;   flex-direction: column;   border-right: 1px solid var(--dh-line);   background: var(--dh-panel);   backdrop-filter: blur(16px);   -webkit-backdrop-filter: blur(16px);   box-shadow: 28px 0 70px rgba(0, 0, 0, .5);   transform: translateX(-102%);   visibility: hidden;   transition: transform .42s cubic-bezier(.22, .8, .3, 1), visibility 0s linear .42s; }  .dh-root.is-open .dh-drawer {   transform: none;   visibility: visible;   transition: transform .42s cubic-bezier(.22, .8, .3, 1), visibility 0s; }  .dh-head {   flex: 0 0 auto;   display: flex;   align-items: flex-start;   justify-content: space-between;   gap: 12px;   padding: 20px 16px 14px 20px;   border-bottom: 1px solid var(--dh-line); }  .dh-title {   margin: 0;   font: 400 22px/1.1 var(--dh-serif);   letter-spacing: .01em; } .dh-title em { font-style: italic; color: var(--dh-gold); }  .dh-sub {   margin: 5px 0 0;   font: 500 9.5px/1.5 var(--dh-sans);   letter-spacing: .16em;   text-transform: uppercase;   color: var(--dh-dim); }  .dh-close {   flex: 0 0 auto;   width: 28px;   height: 28px;   margin: -2px -2px 0 0;   padding: 0;   display: grid;   place-items: center;   border: 1px solid var(--dh-line);   border-radius: 7px;   background: transparent;   color: var(--dh-dim);   font: 400 15px/1 var(--dh-sans);   cursor: pointer;   transition: color .2s ease, border-color .2s ease; } .dh-close:hover, .dh-close:focus-visible { color: var(--dh-ink); border-color: rgba(232, 184, 107, .45); } .dh-close:focus-visible { outline: 2px solid var(--dh-gold); outline-offset: 2px; }  /* ---------------- The timeline of page states ----------------    Six captures down a spine, newest last. This used to be a changelog —    numerals, prose and colour swatches — which told you what changed    without ever showing you the page. The capture is the content now;    provenance (the note, the commit) lives in the lightbox. */  .dh-list {   flex: 1 1 auto;   overflow-y: auto;   overscroll-behavior: contain;   margin: 0;   padding: 10px 10px 16px;   list-style: none; }  .dh-timeline { position: relative; }  /* The spine. Sits under the markers, inset to their centre line. */ .dh-timeline::before {   content: "";   position: absolute;   top: 14px;   bottom: 20px;   left: 17px;   width: 1px;   background: linear-gradient(     180deg,     transparent,     var(--dh-line) 6%,     var(--dh-line) 94%,     transparent   ); }  .dh-entry {   position: relative;   margin: 0 0 6px;   padding-left: 26px; }  /* Marker on the spine, tinted with that state's own accent. */ .dh-entry::before {   content: "";   position: absolute;   z-index: 1;   top: 20px;   left: 4px;   width: 7px;   height: 7px;   border-radius: 50%;   background: var(--dh-era-accent, var(--dh-gold));   box-shadow: 0 0 0 3px var(--dh-panel), 0 0 9px var(--dh-era-accent, var(--dh-gold)); }  .dh-era {   width: 100%;   display: block;   margin: 0;   padding: 8px;   border: 1px solid transparent;   border-radius: 11px;   background: transparent;   color: inherit;   font: inherit;   text-align: left;   cursor: pointer;   transition: background .22s ease, border-color .22s ease; } .dh-era:hover { background: rgba(255, 255, 255, .035); border-color: var(--dh-line); } .dh-era:focus-visible { outline: 2px solid var(--dh-gold); outline-offset: -2px; }  .dh-era[aria-pressed="true"] {   background: rgba(232, 184, 107, .075);   border-color: rgba(232, 184, 107, .34); }  /* ---- the capture slot: always 16:9, filled or pending ---- */  .dh-shot {   position: relative;   display: block;   aspect-ratio: 16 / 9;   width: 100%;   overflow: hidden;   border: 1px solid var(--dh-line);   border-radius: 8px;   background:     linear-gradient(135deg, rgba(255, 255, 255, .045), transparent 60%),     var(--dh-panel); }  /* Pinned rather than width/height:100% — a percentage height against a    parent whose height comes from aspect-ratio does not resolve reliably,    and the capture must fill its slot exactly. */ .dh-shot-img {   position: absolute;   inset: 0;   display: block;   width: 100%;   height: 100%;   object-fit: cover;   object-position: top center; }  .dh-shot.has-shot .dh-shot-pending { display: none; }  /* Placeholder: correctly sized and clearly labelled, so the timeline    reads as complete-but-uncaptured rather than broken. */ .dh-shot-pending {   position: absolute;   inset: 0;   display: flex;   flex-direction: column;   align-items: center;   justify-content: center;   gap: 6px;   background-image:     repeating-linear-gradient(       -45deg,       rgba(255, 255, 255, .028) 0 7px,       transparent 7px 14px     );   text-align: center; }  .dh-shot-numeral {   font: 400 22px/1 var(--dh-serif);   letter-spacing: .06em;   color: var(--dh-era-accent, var(--dh-gold));   opacity: .85; }  .dh-shot-note {   max-width: 22ch;   font: 500 8px/1.5 var(--dh-sans);   letter-spacing: .16em;   text-transform: uppercase;   color: var(--dh-dim); }  /* ---- the row's own label ---- */  .dh-era-top {   display: flex;   align-items: baseline;   gap: 8px;   margin-top: 9px; }  .dh-era-numeral {   flex: 0 0 auto;   min-width: 20px;   font: 500 10px/1 var(--dh-sans);   letter-spacing: .14em;   color: var(--dh-era-accent, var(--dh-gold)); }  .dh-era-name {   flex: 1 1 auto;   font: 400 15.5px/1.2 var(--dh-serif);   color: var(--dh-ink); }  .dh-era-dates {   display: block;   margin: 3px 0 0 28px;   font: 500 9px/1.4 var(--dh-sans);   letter-spacing: .13em;   text-transform: uppercase;   color: var(--dh-dim); }  /* ---- zoom affordance, sat over the capture's corner ---- */  .dh-zoom {   position: absolute;   top: 15px;   right: 15px;   width: 44px;   height: 44px;   display: grid;   place-items: center;   padding: 0;   border: 1px solid var(--dh-line);   border-radius: 7px;   background: rgba(9, 13, 10, .74);   backdrop-filter: blur(5px);   -webkit-backdrop-filter: blur(5px);   color: var(--dh-ink);   font: 400 12px/1 var(--dh-sans);   cursor: pointer;   opacity: 0;   transition: opacity .2s ease, border-color .2s ease; }  .dh-entry:hover .dh-zoom, .dh-zoom:focus-visible { opacity: 1; } .dh-zoom:hover { border-color: rgba(232, 184, 107, .5); } .dh-zoom:focus-visible { outline: 2px solid var(--dh-gold); outline-offset: 2px; }  /* Touch has no hover to reveal it. */ @media (hover: none) {   .dh-zoom { opacity: 1; } }  /* ---------------- Snapshot lightbox ---------------- */  .dh-lightbox {   pointer-events: auto;   position: fixed;   z-index: 2;   inset: 0;   display: grid;   place-items: center;   padding: 20px;   background: rgba(3, 5, 4, .78);   backdrop-filter: blur(9px);   -webkit-backdrop-filter: blur(9px); }  .dh-lightbox[hidden] { display: none; }  .dh-lightbox-panel {   position: relative;   width: min(920px, 100%);   max-height: 100%;   overflow: auto;   padding: 14px;   border: 1px solid var(--dh-line);   border-radius: 14px;   background: var(--dh-panel);   box-shadow: 0 30px 90px rgba(0, 0, 0, .6); }  .dh-lightbox-frame {   aspect-ratio: 16 / 9;   display: grid;   place-items: center;   overflow: hidden;   border: 1px solid var(--dh-line);   border-radius: 10px;   background: rgba(255, 255, 255, .02); }  .dh-lightbox-frame img {   display: block;   width: 100%;   height: 100%;   object-fit: contain; }  .dh-shot-pending--large {   position: static;   gap: 10px; }  .dh-shot-pending--large .dh-shot-numeral { font-size: 34px; } .dh-shot-pending--large .dh-shot-note { max-width: 40ch; text-transform: none; letter-spacing: .04em; font-size: 10.5px; } .dh-shot-pending--large code {   padding: 1px 5px;   border-radius: 3px;   background: rgba(255, 255, 255, .06);   font-family: "Cascadia Code", Consolas, monospace;   color: var(--dh-ink); }  .dh-lightbox-meta { margin: 13px 2px 2px; }  .dh-lightbox-title {   margin: 0;   font: 400 19px/1.2 var(--dh-serif);   color: var(--dh-ink); }  .dh-lightbox-dates {   margin: 5px 0 0;   font: 500 9px/1.4 var(--dh-sans);   letter-spacing: .16em;   text-transform: uppercase;   color: var(--dh-era-accent, var(--dh-gold)); }  .dh-lightbox-note {   margin: 9px 0 0;   max-width: 68ch;   font: 400 12.5px/1.55 var(--dh-sans);   color: #a9b3a2; }  .dh-lightbox-close {   position: absolute;   top: 20px;   right: 20px;   z-index: 1;   width: 44px;   height: 44px;   display: grid;   place-items: center;   padding: 0;   border: 1px solid var(--dh-line);   border-radius: 8px;   background: rgba(9, 13, 10, .8);   color: var(--dh-ink);   font: 400 14px/1 var(--dh-sans);   cursor: pointer; } .dh-lightbox-close:hover { border-color: rgba(232, 184, 107, .5); } .dh-lightbox-close:focus-visible { outline: 2px solid var(--dh-gold); outline-offset: 2px; }  .dh-current-pill {   margin-left: 8px;   padding: 2px 6px;   border-radius: 999px;   border: 1px solid rgba(143, 230, 174, .35);   font: 600 8px/1.4 var(--dh-sans);   letter-spacing: .14em;   text-transform: uppercase;   color: #8fe6ae;   white-space: nowrap; }  /* ---------------- Footer ---------------- */  .dh-foot {   flex: 0 0 auto;   display: grid;   gap: 8px;   padding: 12px 14px 15px;   border-top: 1px solid var(--dh-line); }  .dh-reset {   padding: 9px 12px;   border: 1px solid rgba(232, 184, 107, .4);   border-radius: 8px;   background: rgba(232, 184, 107, .08);   color: var(--dh-ink);   font: 600 10px/1 var(--dh-sans);   letter-spacing: .14em;   text-transform: uppercase;   cursor: pointer;   transition: background .2s ease, opacity .25s ease; } .dh-reset:hover { background: rgba(232, 184, 107, .16); } .dh-reset:focus-visible { outline: 2px solid var(--dh-gold); outline-offset: 2px; } .dh-reset[hidden] { display: none; }  /* WCAG 2.2 AA 2.5.8: at 9.5px/1.4 this measured 169x14, under the 24x24    minimum. padding-block grows the hit area to ~25px and the matching    negative margin keeps the drawer's grid rhythm exactly as it was. The    hover underline moves from border-bottom to text-decoration so it stays    on the baseline instead of drifting down to the new padding edge. */ .dh-archive {   justify-self: start;   color: var(--dh-dim);   font: 500 9.5px/1.4 var(--dh-sans);   letter-spacing: .13em;   text-transform: uppercase;   text-decoration: none;   padding-block: 6px;   margin-block: -6px;   text-underline-offset: 3px;   transition: color .2s ease, text-decoration-color .2s ease; } .dh-archive:hover, .dh-archive:focus-visible {   color: var(--dh-gold);   text-decoration: underline;   text-decoration-color: rgba(232, 184, 107, .5); }  .dh-hint {   margin: 0;   font: 400 10.5px/1.45 var(--dh-sans);   color: var(--dh-dim); }  /* ---------------- Preview banner ---------------- */  .dh-banner {   pointer-events: auto;   position: fixed;   left: 50%;   bottom: 18px;   transform: translate(-50%, 130%);   display: flex;   align-items: center;   gap: 12px;   padding: 8px 9px 8px 15px;   border: 1px solid rgba(232, 184, 107, .34);   border-radius: 999px;   background: var(--dh-panel);   backdrop-filter: blur(10px);   -webkit-backdrop-filter: blur(10px);   box-shadow: 0 16px 44px rgba(0, 0, 0, .5);   font: 500 11px/1 var(--dh-sans);   color: #a9b3a2;   white-space: nowrap;   max-width: 92vw;   overflow: hidden;   transition: transform .38s cubic-bezier(.22, .8, .3, 1); } .dh-root.is-previewing .dh-banner { transform: translate(-50%, 0); }  .dh-banner b { color: var(--dh-ink); font-weight: 600; }  .dh-banner button {   padding: 6px 11px;   border: 1px solid var(--dh-line);   border-radius: 999px;   background: transparent;   color: var(--dh-ink);   font: 600 9.5px/1 var(--dh-sans);   letter-spacing: .1em;   text-transform: uppercase;   cursor: pointer;   transition: border-color .2s ease, background .2s ease; } .dh-banner button:hover { border-color: rgba(232, 184, 107, .5); background: rgba(232, 184, 107, .1); } .dh-banner button:focus-visible { outline: 2px solid var(--dh-gold); outline-offset: 2px; }  /* ---------------- Small screens ---------------- */  @media (max-width: 640px) {   .dh-tab {     padding: 10px 6px 10px 4px;     font-size: 8.5px;     letter-spacing: .18em;   }   .dh-banner { font-size: 10px; gap: 9px; padding-left: 13px; } }  @media (prefers-reduced-motion: reduce) {   .dh-root .dh-tab,   .dh-root .dh-drawer,   .dh-root .dh-banner,   .dh-root .dh-era { transition: none; } }
+/* ==================================================================
+   Design History — an additive, opt-in time machine.
+
+   A vertical tab on the left edge opens a drawer listing every design
+   era sdforest.site has lived through. Picking one re-tints the page
+   by writing the era's tokens as INLINE custom properties on <html>;
+   nothing is persisted, and "Back to current" removes them again.
+
+   This file styles only its own `.dh-*` namespace. It must never
+   restyle a single existing selector — the whole point is that the
+   site is untouched when the drawer is closed.
+   ================================================================== */
+
+.dh-root {
+  --dh-panel: rgba(9, 13, 10, .94);
+  --dh-line: rgba(226, 235, 209, .14);
+  --dh-ink: #f2efe4;
+  --dh-dim: #8b9585;
+  --dh-gold: #e8b86b;
+  --dh-sans: "Alegreya Sans", "Gill Sans", "Segoe UI", system-ui, sans-serif;
+  --dh-serif: "Cormorant Garamond", "Iowan Old Style", Georgia, serif;
+  position: fixed;
+  inset: 0 auto 0 0;
+  width: 0;            /* a zero-width rail; every child sizes itself */
+  z-index: 900;
+  pointer-events: none;
+  /* The drawer must read in the site's *own* voice even while the page
+     behind it is wearing a historical palette, so it never inherits the
+     era tokens it is previewing. */
+  color: var(--dh-ink);
+  font-family: var(--dh-sans);
+}
+
+.dh-root *,
+.dh-root *::before,
+.dh-root *::after { box-sizing: border-box; }
+
+/* ---------------- The tab ---------------- */
+
+.dh-tab {
+  pointer-events: auto;
+  position: absolute;
+  top: 50%;
+  left: 0;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin: 0;
+  padding: 13px 7px 13px 5px;
+  border: 1px solid var(--dh-line);
+  border-left: 0;
+  border-radius: 0 9px 9px 0;
+  background: var(--dh-panel);
+  color: var(--dh-dim);
+  font: 600 9.5px/1 var(--dh-sans);
+  letter-spacing: .22em;
+  text-transform: uppercase;
+  writing-mode: vertical-rl;
+  cursor: pointer;
+  backdrop-filter: blur(7px);
+  -webkit-backdrop-filter: blur(7px);
+  transition: color .25s ease, border-color .25s ease, padding-left .25s ease, background .25s ease;
+}
+
+.dh-tab:hover,
+.dh-tab:focus-visible {
+  color: var(--dh-ink);
+  border-color: rgba(232, 184, 107, .4);
+  padding-left: 9px;
+}
+
+.dh-tab:focus-visible { outline: 2px solid var(--dh-gold); outline-offset: 2px; }
+
+.dh-tab .dh-rings {
+  writing-mode: horizontal-tb;
+  width: 11px;
+  height: 11px;
+  flex: 0 0 auto;
+}
+.dh-tab .dh-rings circle { fill: none; stroke: currentColor; stroke-width: 1.3; }
+
+/* A quiet gold pip marks "you are previewing an old era". */
+.dh-tab::after {
+  content: "";
+  writing-mode: horizontal-tb;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--dh-gold);
+  box-shadow: 0 0 7px var(--dh-gold);
+  opacity: 0;
+  transition: opacity .3s ease;
+}
+.dh-root.is-previewing .dh-tab { color: var(--dh-ink); border-color: rgba(232, 184, 107, .45); }
+.dh-root.is-previewing .dh-tab::after,
+.dh-tab.dh-previewing::after { opacity: 1; }
+
+.dh-root.is-open .dh-tab:not(.dh-inline) { opacity: 0; pointer-events: none; }
+
+/* ---------------- The inline trigger ----------------
+   Mounted into a page's footer (or a [data-design-history-slot]) rather
+   than floated at the left edge. It lives outside .dh-root, so it has to
+   carry its own palette. */
+
+.dh-tab.dh-inline {
+  --dh-line: rgba(226, 235, 209, .14);
+  --dh-ink: #f2efe4;
+  --dh-dim: #8b9585;
+  --dh-gold: #e8b86b;
+  position: static;
+  top: auto;
+  left: auto;
+  transform: none;
+  display: inline-flex;
+  min-height: 34px;
+  padding: 8px 14px;
+  border: 1px solid var(--dh-line);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, .03);
+  color: var(--dh-dim);
+  font: 600 9.5px/1 var(--dh-sans, "Alegreya Sans", "Segoe UI", system-ui, sans-serif);
+  letter-spacing: .18em;
+  writing-mode: horizontal-tb;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  transition: color .25s ease, border-color .25s ease, background .25s ease;
+}
+
+.dh-tab.dh-inline:hover,
+.dh-tab.dh-inline:focus-visible {
+  padding-left: 14px;   /* the edge-tab nudge would jitter a pill */
+  color: var(--dh-ink);
+  border-color: rgba(232, 184, 107, .4);
+  background: rgba(232, 184, 107, .08);
+}
+
+/* ---------------- The drawer ---------------- */
+
+.dh-drawer {
+  pointer-events: auto;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: min(404px, 92vw);   /* wide enough for a legible 16:9 capture */
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid var(--dh-line);
+  background: var(--dh-panel);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  box-shadow: 28px 0 70px rgba(0, 0, 0, .5);
+  transform: translateX(-102%);
+  visibility: hidden;
+  transition: transform .42s cubic-bezier(.22, .8, .3, 1), visibility 0s linear .42s;
+}
+
+.dh-root.is-open .dh-drawer {
+  transform: none;
+  visibility: visible;
+  transition: transform .42s cubic-bezier(.22, .8, .3, 1), visibility 0s;
+}
+
+.dh-head {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 20px 16px 14px 20px;
+  border-bottom: 1px solid var(--dh-line);
+}
+
+.dh-title {
+  margin: 0;
+  font: 400 22px/1.1 var(--dh-serif);
+  letter-spacing: .01em;
+}
+.dh-title em { font-style: italic; color: var(--dh-gold); }
+
+.dh-sub {
+  margin: 5px 0 0;
+  font: 500 9.5px/1.5 var(--dh-sans);
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--dh-dim);
+}
+
+.dh-close {
+  flex: 0 0 auto;
+  width: 28px;
+  height: 28px;
+  margin: -2px -2px 0 0;
+  padding: 0;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--dh-line);
+  border-radius: 7px;
+  background: transparent;
+  color: var(--dh-dim);
+  font: 400 15px/1 var(--dh-sans);
+  cursor: pointer;
+  transition: color .2s ease, border-color .2s ease;
+}
+.dh-close:hover, .dh-close:focus-visible { color: var(--dh-ink); border-color: rgba(232, 184, 107, .45); }
+.dh-close:focus-visible { outline: 2px solid var(--dh-gold); outline-offset: 2px; }
+
+/* ---------------- The timeline of page states ----------------
+   Six captures down a spine, newest last. This used to be a changelog —
+   numerals, prose and colour swatches — which told you what changed
+   without ever showing you the page. The capture is the content now;
+   provenance (the note, the commit) lives in the lightbox. */
+
+.dh-list {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  margin: 0;
+  padding: 10px 10px 16px;
+  list-style: none;
+}
+
+.dh-timeline { position: relative; }
+
+/* The spine. Sits under the markers, inset to their centre line. */
+.dh-timeline::before {
+  content: "";
+  position: absolute;
+  top: 14px;
+  bottom: 20px;
+  left: 17px;
+  width: 1px;
+  background: linear-gradient(
+    180deg,
+    transparent,
+    var(--dh-line) 6%,
+    var(--dh-line) 94%,
+    transparent
+  );
+}
+
+.dh-entry {
+  position: relative;
+  margin: 0 0 6px;
+  padding-left: 26px;
+}
+
+/* Marker on the spine, tinted with that state's own accent. */
+.dh-entry::before {
+  content: "";
+  position: absolute;
+  z-index: 1;
+  top: 20px;
+  left: 4px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--dh-era-accent, var(--dh-gold));
+  box-shadow: 0 0 0 3px var(--dh-panel), 0 0 9px var(--dh-era-accent, var(--dh-gold));
+}
+
+.dh-era {
+  width: 100%;
+  display: block;
+  margin: 0;
+  padding: 8px;
+  border: 1px solid transparent;
+  border-radius: 11px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: background .22s ease, border-color .22s ease;
+}
+.dh-era:hover { background: rgba(255, 255, 255, .035); border-color: var(--dh-line); }
+.dh-era:focus-visible { outline: 2px solid var(--dh-gold); outline-offset: -2px; }
+
+.dh-era[aria-pressed="true"] {
+  background: rgba(232, 184, 107, .075);
+  border-color: rgba(232, 184, 107, .34);
+}
+
+/* ---- the capture slot: always 16:9, filled or pending ---- */
+
+.dh-shot {
+  position: relative;
+  display: block;
+  aspect-ratio: 16 / 9;
+  width: 100%;
+  overflow: hidden;
+  border: 1px solid var(--dh-line);
+  border-radius: 8px;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, .045), transparent 60%),
+    var(--dh-panel);
+}
+
+/* Pinned rather than width/height:100% — a percentage height against a
+   parent whose height comes from aspect-ratio does not resolve reliably,
+   and the capture must fill its slot exactly. */
+.dh-shot-img {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top center;
+}
+
+.dh-shot.has-shot .dh-shot-pending { display: none; }
+
+/* Placeholder: correctly sized and clearly labelled, so the timeline
+   reads as complete-but-uncaptured rather than broken. */
+.dh-shot-pending {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background-image:
+    repeating-linear-gradient(
+      -45deg,
+      rgba(255, 255, 255, .028) 0 7px,
+      transparent 7px 14px
+    );
+  text-align: center;
+}
+
+.dh-shot-numeral {
+  font: 400 22px/1 var(--dh-serif);
+  letter-spacing: .06em;
+  color: var(--dh-era-accent, var(--dh-gold));
+  opacity: .85;
+}
+
+.dh-shot-note {
+  max-width: 22ch;
+  font: 500 8px/1.5 var(--dh-sans);
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--dh-dim);
+}
+
+/* ---- the row's own label ---- */
+
+.dh-era-top {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-top: 9px;
+}
+
+.dh-era-numeral {
+  flex: 0 0 auto;
+  min-width: 20px;
+  font: 500 10px/1 var(--dh-sans);
+  letter-spacing: .14em;
+  color: var(--dh-era-accent, var(--dh-gold));
+}
+
+.dh-era-name {
+  flex: 1 1 auto;
+  font: 400 15.5px/1.2 var(--dh-serif);
+  color: var(--dh-ink);
+}
+
+.dh-era-dates {
+  display: block;
+  margin: 3px 0 0 28px;
+  font: 500 9px/1.4 var(--dh-sans);
+  letter-spacing: .13em;
+  text-transform: uppercase;
+  color: var(--dh-dim);
+}
+
+/* ---- zoom affordance, sat over the capture's corner ---- */
+
+.dh-zoom {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 1px solid var(--dh-line);
+  border-radius: 7px;
+  background: rgba(9, 13, 10, .74);
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+  color: var(--dh-ink);
+  font: 400 12px/1 var(--dh-sans);
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity .2s ease, border-color .2s ease;
+}
+
+.dh-entry:hover .dh-zoom,
+.dh-zoom:focus-visible { opacity: 1; }
+.dh-zoom:hover { border-color: rgba(232, 184, 107, .5); }
+.dh-zoom:focus-visible { outline: 2px solid var(--dh-gold); outline-offset: 2px; }
+
+/* Touch has no hover to reveal it. */
+@media (hover: none) {
+  .dh-zoom { opacity: 1; }
+}
+
+/* ---------------- Snapshot lightbox ---------------- */
+
+.dh-lightbox {
+  pointer-events: auto;
+  position: fixed;
+  z-index: 2;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(3, 5, 4, .78);
+  backdrop-filter: blur(9px);
+  -webkit-backdrop-filter: blur(9px);
+}
+
+.dh-lightbox[hidden] { display: none; }
+
+.dh-lightbox-panel {
+  position: relative;
+  width: min(920px, 100%);
+  max-height: 100%;
+  overflow: auto;
+  padding: 14px;
+  border: 1px solid var(--dh-line);
+  border-radius: 14px;
+  background: var(--dh-panel);
+  box-shadow: 0 30px 90px rgba(0, 0, 0, .6);
+}
+
+.dh-lightbox-frame {
+  aspect-ratio: 16 / 9;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  border: 1px solid var(--dh-line);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, .02);
+}
+
+.dh-lightbox-frame img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.dh-shot-pending--large {
+  position: static;
+  gap: 10px;
+}
+
+.dh-shot-pending--large .dh-shot-numeral { font-size: 34px; }
+.dh-shot-pending--large .dh-shot-note { max-width: 40ch; text-transform: none; letter-spacing: .04em; font-size: 10.5px; }
+.dh-shot-pending--large code {
+  padding: 1px 5px;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, .06);
+  font-family: "Cascadia Code", Consolas, monospace;
+  color: var(--dh-ink);
+}
+
+.dh-lightbox-meta { margin: 13px 2px 2px; }
+
+.dh-lightbox-title {
+  margin: 0;
+  font: 400 19px/1.2 var(--dh-serif);
+  color: var(--dh-ink);
+}
+
+.dh-lightbox-dates {
+  margin: 5px 0 0;
+  font: 500 9px/1.4 var(--dh-sans);
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--dh-era-accent, var(--dh-gold));
+}
+
+.dh-lightbox-note {
+  margin: 9px 0 0;
+  max-width: 68ch;
+  font: 400 12.5px/1.55 var(--dh-sans);
+  color: #a9b3a2;
+}
+
+.dh-lightbox-close {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  z-index: 1;
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 1px solid var(--dh-line);
+  border-radius: 8px;
+  background: rgba(9, 13, 10, .8);
+  color: var(--dh-ink);
+  font: 400 14px/1 var(--dh-sans);
+  cursor: pointer;
+}
+.dh-lightbox-close:hover { border-color: rgba(232, 184, 107, .5); }
+.dh-lightbox-close:focus-visible { outline: 2px solid var(--dh-gold); outline-offset: 2px; }
+
+.dh-current-pill {
+  margin-left: 8px;
+  padding: 2px 6px;
+  border-radius: 999px;
+  border: 1px solid rgba(143, 230, 174, .35);
+  font: 600 8px/1.4 var(--dh-sans);
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: #8fe6ae;
+  white-space: nowrap;
+}
+
+/* ---------------- Footer ---------------- */
+
+.dh-foot {
+  flex: 0 0 auto;
+  display: grid;
+  gap: 8px;
+  padding: 12px 14px 15px;
+  border-top: 1px solid var(--dh-line);
+}
+
+.dh-reset {
+  padding: 9px 12px;
+  border: 1px solid rgba(232, 184, 107, .4);
+  border-radius: 8px;
+  background: rgba(232, 184, 107, .08);
+  color: var(--dh-ink);
+  font: 600 10px/1 var(--dh-sans);
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background .2s ease, opacity .25s ease;
+}
+.dh-reset:hover { background: rgba(232, 184, 107, .16); }
+.dh-reset:focus-visible { outline: 2px solid var(--dh-gold); outline-offset: 2px; }
+.dh-reset[hidden] { display: none; }
+
+/* WCAG 2.2 AA 2.5.8: at 9.5px/1.4 this measured 169x14, under the 24x24
+   minimum. padding-block grows the hit area to ~25px and the matching
+   negative margin keeps the drawer's grid rhythm exactly as it was. The
+   hover underline moves from border-bottom to text-decoration so it stays
+   on the baseline instead of drifting down to the new padding edge. */
+.dh-archive {
+  justify-self: start;
+  color: var(--dh-dim);
+  font: 500 9.5px/1.4 var(--dh-sans);
+  letter-spacing: .13em;
+  text-transform: uppercase;
+  text-decoration: none;
+  padding-block: 6px;
+  margin-block: -6px;
+  text-underline-offset: 3px;
+  transition: color .2s ease, text-decoration-color .2s ease;
+}
+.dh-archive:hover, .dh-archive:focus-visible {
+  color: var(--dh-gold);
+  text-decoration: underline;
+  text-decoration-color: rgba(232, 184, 107, .5);
+}
+
+.dh-hint {
+  margin: 0;
+  font: 400 10.5px/1.45 var(--dh-sans);
+  color: var(--dh-dim);
+}
+
+/* ---------------- Preview banner ---------------- */
+
+.dh-banner {
+  pointer-events: auto;
+  position: fixed;
+  left: 50%;
+  bottom: 18px;
+  transform: translate(-50%, 130%);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 9px 8px 15px;
+  border: 1px solid rgba(232, 184, 107, .34);
+  border-radius: 999px;
+  background: var(--dh-panel);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow: 0 16px 44px rgba(0, 0, 0, .5);
+  font: 500 11px/1 var(--dh-sans);
+  color: #a9b3a2;
+  white-space: nowrap;
+  max-width: 92vw;
+  overflow: hidden;
+  transition: transform .38s cubic-bezier(.22, .8, .3, 1);
+}
+.dh-root.is-previewing .dh-banner { transform: translate(-50%, 0); }
+
+.dh-banner b { color: var(--dh-ink); font-weight: 600; }
+
+.dh-banner button {
+  padding: 6px 11px;
+  border: 1px solid var(--dh-line);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--dh-ink);
+  font: 600 9.5px/1 var(--dh-sans);
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: border-color .2s ease, background .2s ease;
+}
+.dh-banner button:hover { border-color: rgba(232, 184, 107, .5); background: rgba(232, 184, 107, .1); }
+.dh-banner button:focus-visible { outline: 2px solid var(--dh-gold); outline-offset: 2px; }
+
+/* ---------------- Small screens ---------------- */
+
+@media (max-width: 640px) {
+  .dh-tab {
+    padding: 10px 6px 10px 4px;
+    font-size: 8.5px;
+    letter-spacing: .18em;
+  }
+  .dh-banner { font-size: 10px; gap: 9px; padding-left: 13px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dh-root .dh-tab,
+  .dh-root .dh-drawer,
+  .dh-root .dh-banner,
+  .dh-root .dh-era { transition: none; }
+}
