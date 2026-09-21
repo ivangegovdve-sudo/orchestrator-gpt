@@ -154,7 +154,10 @@ for (const viewport of [{ width: 375, height: 812 }, { width: 1440, height: 900 
       const historyControls = await page.locator('.dh-root a, .dh-root button')
         .evaluateAll((elements) => elements.filter((element) => {
           const style = getComputedStyle(element);
-          return !element.hidden && style.display !== 'none' && style.visibility !== 'hidden';
+          return !element.hidden
+            && style.display !== 'none'
+            && style.visibility !== 'hidden'
+            && element.getClientRects().length > 0;
         }).map((element) => {
           const rect = element.getBoundingClientRect();
           return {
@@ -176,7 +179,10 @@ for (const viewport of [{ width: 375, height: 812 }, { width: 1440, height: 900 
       const pageControls = await page.locator('body > a, main a, main button, main input, main select, main textarea')
         .evaluateAll((elements) => elements.filter((element) => {
           const style = getComputedStyle(element);
-          return !element.hidden && style.display !== 'none' && style.visibility !== 'hidden';
+          return !element.hidden
+            && style.display !== 'none'
+            && style.visibility !== 'hidden'
+            && element.getClientRects().length > 0;
         }).map((element) => {
           const rect = element.getBoundingClientRect();
           return {

@@ -384,8 +384,8 @@
   position: absolute;
   top: 15px;
   right: 15px;
-  width: 26px;
-  height: 26px;
+  width: 44px;
+  height: 44px;
   display: grid;
   place-items: center;
   padding: 0;
@@ -500,8 +500,8 @@
   top: 20px;
   right: 20px;
   z-index: 1;
-  width: 30px;
-  height: 30px;
+  width: 44px;
+  height: 44px;
   display: grid;
   place-items: center;
   padding: 0;
