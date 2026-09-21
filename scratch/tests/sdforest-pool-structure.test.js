@@ -202,6 +202,34 @@ test('pool overview exposes catalog-derived readiness counts without changing li
   }
 });
 
+test('every pool overview carries a catalog-backed visitor guide and reality split', async () => {
+  const [{ renderPoolOverview }, { POOL_CATALOG, getPoolProjects }] = await Promise.all([presenter, catalog]);
+  for (const pool of POOL_CATALOG) {
+    const guide = pool.visitorGuide;
+    assert.ok(guide, `${pool.publicName} has a visitor guide`);
+    assert.match(guide.purpose, /\S/);
+    assert.match(guide.why, /\S/);
+    assert.ok(Array.isArray(guide.startHere) && guide.startHere.length > 0);
+    const projects = getPoolProjects(pool.publicName);
+    for (const entry of guide.startHere) {
+      assert.ok(projects.some((project) => project.id === entry.projectId),
+        `${pool.publicName} first look ${entry.projectId} belongs to the pool`);
+      assert.match(entry.reason, /\S/);
+    }
+    const html = renderPoolOverview(pool.id);
+    assert.match(html, /data-pool-guide/);
+    assert.match(html, new RegExp(`data-pool-purpose="${guide.purpose.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}"`));
+    assert.match(html, /What this pool is for/);
+    assert.match(html, /Why it exists/);
+    assert.match(html, /Start here/);
+    assert.match(html, /What is real here/);
+    assert.match(html, /Still forming/);
+    for (const project of projects) {
+      assert.match(html, new RegExp(`data-pool-reality-project="${project.id}"`));
+    }
+  }
+});
+
 test('Evolution carries the settled Website History arc without flattening unfinished work', () => {
   const evolution = read('web/evolution/index.html');
   assert.match(evolution, /data-history-arc/);

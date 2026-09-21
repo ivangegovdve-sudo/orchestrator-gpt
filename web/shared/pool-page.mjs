@@ -117,9 +117,36 @@ export function renderPoolOverview(poolId) {
     counts[projectReadiness(project).state] += 1;
     return counts;
   }, { Shipped: 0, 'In progress': 0, UNKNOWN: 0 });
+  const currentProjects = projects.filter((project) =>
+    ['Live', 'Research', 'Experimental'].includes(project.status)
+    && project.visibility?.publicSurface !== 'excluded'
+    && project.visibility?.access !== 'internal'
+    && project.visibility?.navigation !== 'unlisted');
+  const formingProjects = projects.filter((project) => !currentProjects.includes(project));
+  const renderReality = (label, realityProjects) => `<section class="pool-reality" data-pool-reality="${label === 'What is real here' ? 'current' : 'forming'}">
+      <h4>${label}</h4>
+      <ul>${realityProjects.map((project) => `<li data-pool-reality-project="${escape(project.id)}"><strong>${escape(project.publicName)}</strong> — ${escape(project.status || 'status unresolved')}${project.visibility?.access === 'internal' ? '; internal' : ''}${project.visibility?.navigation === 'unlisted' ? '; unlisted' : ''}</li>`).join('') || '<li>None cataloged yet.</li>'}</ul>
+    </section>`;
+  const guide = pool.visitorGuide;
   return `<p class="pool-state" data-pool-state="${escape(pool.state)}">${escape(pool.state)} pool</p>
     <p class="pool-name">Catalog: <span>${escape(pool.publicName)}</span></p>
     <p class="pool-summary">${escape(pool.summary)}</p>
+    <section class="pool-guide" data-pool-guide data-pool-purpose="${escape(guide.purpose)}">
+      <h3>What this pool is for</h3>
+      <p>${escape(guide.purpose)}</p>
+      <h3>Why it exists</h3>
+      <p>${escape(guide.why)}</p>
+      <h3>Start here</h3>
+      <ul class="pool-start-here">${guide.startHere.map(({ projectId, reason }) => {
+        const project = projects.find(({ id }) => id === projectId);
+        return `<li><a href="#${escape(projectId)}">${escape(project?.publicName || projectId)}</a> — ${escape(reason)}</li>`;
+      }).join('')}</ul>
+      <p class="pool-reality-note">Catalog reality is shown below. Live is a lifecycle label, not a completion claim.</p>
+      <div class="pool-reality-grid">
+        ${renderReality('What is real here', currentProjects)}
+        ${renderReality('Still forming', formingProjects)}
+      </div>
+    </section>
     <p class="pool-catalog-count">Catalog: ${projects.length} project${projects.length === 1 ? '' : 's'} assigned to this pool.</p>
     <p class="pool-readiness-summary" data-readiness-summary="Shipped:${readinessCounts.Shipped};In progress:${readinessCounts['In progress']};UNKNOWN:${readinessCounts.UNKNOWN}">Readiness: Shipped: ${readinessCounts.Shipped} · In progress: ${readinessCounts['In progress']} · UNKNOWN: ${readinessCounts.UNKNOWN}</p>`;
 }
