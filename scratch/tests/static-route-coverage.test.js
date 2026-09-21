@@ -129,6 +129,28 @@ test('Fleet and Board share one internal owner while retaining both source pages
   }
 });
 
+test('private and legacy compatibility routes carry explicit noindex metadata', async () => {
+  const expected = [
+    ['/web/upload/', 'upload', 'private'],
+    ['/web/library/chloe/', 'library-chloe', 'internal'],
+    ['/web/library/general/', 'library-memory', 'internal'],
+    ['/web/library/memory/', 'library-memory', 'internal'],
+    ['/web/library/repos/', 'library-repos', 'internal'],
+    ['/web/voice-playground/', 'voice-playground', 'public'],
+    ['/web/gallery/', 'gallery', 'public'],
+  ];
+  for (const [routePath, ownerId, access] of expected) {
+    const entry = await routeFor(routePath);
+    assert.equal(entry.ownerId, ownerId, routePath);
+    assert.equal(entry.visibility.navigation, 'unlisted', routePath);
+    assert.equal(entry.visibility.search, 'excluded', routePath);
+    assert.equal(entry.visibility.indexing, 'noindex', routePath);
+    assert.equal(entry.visibility.access, access, routePath);
+    const html = read(entry.source);
+    assert.match(html, /<meta\s+name=["']robots["']\s+content=["']noindex,\s*nofollow["']/i, routePath);
+  }
+});
+
 test('AI_INIT redirects only its parent while its embed and companion assets stay distinct', async () => {
   const parent = await routeFor('/web/ai-init/');
   const embed = await routeFor('/web/ai-init/embed/');
