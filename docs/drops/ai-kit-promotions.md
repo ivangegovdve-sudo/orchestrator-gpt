@@ -43,6 +43,14 @@ deployment, and GitHub. They carry `last_verified_at` and a 30-day recheck
 cadence rather than an expiry. Fish Audio is not seeded until a reviewed mixed
 case is available.
 
+## Explicit open question
+
+**[OPEN] What recheck cadence should each standing tier use?** This slice seeds
+30 days as an operational value so stale verification can be exercised end to
+end; the value is stored per row and can be replaced without changing the route,
+read path, or data model. Cost to reverse later: low and data-only, but leaving
+the cadence unconfirmed risks showing a tier after its limits have changed.
+
 ## Manual Supabase changes
 
 The SQL migration in `docs/drops/migrations/20260921_ai_kit_promotions.sql` and
