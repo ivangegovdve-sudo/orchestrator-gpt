@@ -24,15 +24,71 @@ const SETTLED = 'docs/sdforest-settled-structure.md';
 const PLAN = SETTLED;
 const MASTER = SETTLED;
 export const POOL_CATALOG = deepFreeze([
-  ['growingapp', 'GrowingApp', 'Learning, family tools, and growing together.'],
-  ['ai-d-kit', 'AI-d kit', 'Tools for finding, understanding, and working with AI.'],
-  ['tinkerbox', 'TinkerBox', 'Playgrounds, practical experiments, and personal tools.'],
-  ['health', 'Health', 'Health, reading, movement, and wellbeing projects.'],
-  ['design-gallery', 'Design Gallery', 'Game design, web design, and website history.'],
-  ['artificial-self', 'Artificial Self', 'AI research and conversation archives.'],
-  ['my-story', 'My Story', 'Personal stories, reflections, and creative work.'],
-].map(([id, publicName, summary]) => ({
+  ['growingapp', 'GrowingApp', 'Learning, family tools, and growing together.', {
+    purpose: 'A playful family-and-learning workspace for practice, curiosity, and growing together.',
+    why: 'It gathers tools that turn everyday learning and family questions into something people can try.',
+    startHere: [
+      { projectId: 'rubiks-teacher', reason: 'A live practice tool for a focused first step.' },
+      { projectId: 'mendeleev', reason: 'A live science-learning entry.' },
+      { projectId: 'math-forest', reason: 'The two maths companions share one catalog entry.' },
+    ],
+  }],
+  ['ai-d-kit', 'AI-d kit', 'Tools for finding, understanding, and working with AI.', {
+    purpose: 'A search-first workbench for finding, understanding, and working with AI.',
+    why: 'It puts glossary, repositories, tools, and a live publication in one place so a visitor can begin with a blocker.',
+    startHere: [
+      { projectId: 'open-dashboard', reason: 'A live tool-oriented entry into the workbench.' },
+      { projectId: 'explore', reason: 'The repository search modes start with a solution.' },
+      { projectId: 'morning-news', reason: 'The Drop is the headline publication and remains a standalone platform.' },
+    ],
+  }],
+  ['tinkerbox', 'TinkerBox', 'Playgrounds, practical experiments, and personal tools.', {
+    purpose: 'A quiet workbench for useful personal tools, playgrounds, and experiments.',
+    why: 'It gives hands-on tools a home, including the public round-table council shared with AI-d kit.',
+    startHere: [
+      { projectId: 'avatar-playground', reason: 'A live playground for an immediate hands-on start.' },
+      { projectId: 'velune', reason: 'A live fork with its upstream credit and Ivan’s audio-only change.' },
+      { projectId: 'council', reason: 'The shared council is available here as a practical tool.' },
+    ],
+  }],
+  ['health', 'Health', 'Health, reading, movement, and wellbeing projects.', {
+    purpose: 'A precise clinic for movement, reading, listening, and wellbeing tools.',
+    why: 'It keeps projects first while evidence and scrutiny stay proportional to each project’s claims.',
+    startHere: [
+      { projectId: 'gym-scholar', reason: 'The most finished health entry leads the pool.' },
+      { projectId: 'dyslexia', reason: 'A live reading-accessibility implementation; its evidence belongs with the project.' },
+      { projectId: 'audiobook', reason: 'The companion live listening implementation remains visible beside reading.' },
+    ],
+  }],
+  ['design-gallery', 'Design Gallery', 'Game design, web design, and website history.', {
+    purpose: 'A museum-like gallery for game design, web design, and website history.',
+    why: 'It preserves finished exhibits and unfinished experiments as part of the work’s history, while animation and VFX remain in Portfolio.',
+    startHere: [
+      { projectId: 'm-popova', reason: 'A live exhibit gives the gallery an immediate first room.' },
+      { projectId: 'replicator-void', reason: 'A Coming Soon game-design piece shows where the gallery is still forming.' },
+    ],
+  }],
+  ['artificial-self', 'Artificial Self', 'AI research and conversation archives.', {
+    purpose: 'A speculative lab for AI research and model-conversation archives.',
+    why: 'It separates observed transcripts from claims that still require rederivation.',
+    startHere: [
+      { projectId: 'ai-research', reason: 'The research component names the pool’s scientific work.' },
+      { projectId: 'c2c-dolphin', reason: 'The cross-model archive is a research record, not a verified conclusion.' },
+      { projectId: 'c2c-self', reason: 'The distinct identical-model self-mirror archive keeps its evidence boundary visible.' },
+    ],
+  }],
+  ['my-story', 'My Story', 'Personal stories, reflections, and creative work.', {
+    purpose: 'A narrative-first path through personal work, its unfinished states, and the choices that produced it.',
+    why: 'It connects personal context and selected work without turning the story into a catalogue of successes.',
+    startHere: [
+      { projectId: 'chair-or-ladder', reason: 'A live but unfinished piece opens the personal arc.' },
+      { projectId: 'life-in-time', reason: 'A live piece whose complete redesign is part of the story.' },
+      { projectId: 'we-are-the-training-data', reason: 'The narrated word poem is the default introductory context entry.' },
+    ],
+  }],
+].map(([id, publicName, summary, visitorGuide]) => ({
   id, kind: 'pool', publicName, summary, state: 'Live', entryEnabled: true,
+  visitorGuide,
   route: `/web/pools/${id}/`, sources: [SETTLED],
   ...(id === 'my-story' ? {
     pageMode: 'narrative-first',
