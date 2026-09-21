@@ -39,6 +39,17 @@ test('C2C archives retain distinct topology and suppress unverified public measu
   assert.match(publicMarkup(read('web/c2c-self/index.html')), /distinct from C2C Dolphin/i);
 });
 
+test('C2C transcript renderers keep same-model and cross-model labels distinct', () => {
+  const self = read('web/c2c-self/index.html');
+  const dolphin = read('web/c2c-dolphin/index.html');
+  assert.match(self, /const label = t\.speaker === 'A' \? 'Instance A' : 'Instance B \(Mirror\)'/,
+    'C2C Self must label the transcript as two identical-model instances');
+  assert.doesNotMatch(self, /const label = t\.speaker === 'A' \? 'Nemotron Super' : 'Dolphin Mistral'/,
+    'C2C Self must not use the cross-model Dolphin label');
+  assert.match(dolphin, /const label = t\.speaker === 'A' \? 'Nemotron Super' : 'Dolphin Mistral'/,
+    'C2C Dolphin must retain its two named model participants');
+});
+
 test('AI Research is the settled research part of the Artificial Self pool', () => {
   const html = publicMarkup(read('web/ai-research/index.html'));
   assert.match(html, /research archive/i);
