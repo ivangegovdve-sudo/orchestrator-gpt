@@ -66,12 +66,11 @@ jobs:
             file "$f" | grep -q 'PNG image data' || exit 1
           done < <(find sdforest-qwen-layers -type f -name '*.png' -print0)
           sha256sum sdforest-qwen-layers/*/*.png > sdforest-qwen-layers/SHA256SUMS.txt
-          zip -r SD-Forest-Qwen-Layered-Originals.zip sdforest-qwen-layers
 
       - name: Upload package
         uses: actions/upload-artifact@v4
         with:
           name: SD-Forest-Qwen-Layered-Originals
-          path: SD-Forest-Qwen-Layered-Originals.zip
+          path: sdforest-qwen-layers/
           if-no-files-found: error
           retention-days: 7
