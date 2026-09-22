@@ -1,0 +1,75 @@
+name: Package SD Forest Qwen layers
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - ".github/workflows/fal-layer-transfer.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download original transparent PNG layers
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p sdforest-qwen-layers/{01-seed,02-sprout,03-young,04-leafy,05-sapling,06-mature}
+          urls=(
+            "01-seed/layer-01.png|https://v3b.fal.media/files/b/0aab6bc9/HswlB3iGOcjikj55cLC9g_TJKybqpu.png"
+            "01-seed/layer-02.png|https://v3b.fal.media/files/b/0aab6bc9/27J6w-ueevpDglRaFJNqS_48HnzWAH.png"
+            "01-seed/layer-03.png|https://v3b.fal.media/files/b/0aab6bc9/86Cd59vSowidVv3ONvS4g_0yq6FJIK.png"
+            "01-seed/layer-04.png|https://v3b.fal.media/files/b/0aab6bc9/MzaspMZfGrqmttA-upYIa_xPoyIhWS.png"
+            "01-seed/layer-05.png|https://v3b.fal.media/files/b/0aab6bc9/Ix-XTZn46C5NgCVrZ7jVa_I15Zt4Ve.png"
+            "01-seed/layer-06.png|https://v3b.fal.media/files/b/0aab6bc9/fBEm9IPHgukQMo2zAi-Fk_Kt3StF4M.png"
+            "02-sprout/layer-01.png|https://v3b.fal.media/files/b/0aab6bcf/N-usNwfn2RWrFaSCRGXlv_VGqMXGom.png"
+            "02-sprout/layer-02.png|https://v3b.fal.media/files/b/0aab6bcf/3EHv9OKMvqcOacz0Ua1pT_ON53HF1i.png"
+            "02-sprout/layer-03.png|https://v3b.fal.media/files/b/0aab6bcf/K0hW97ayxmG2KshXyLKSh_Qrl5LOgN.png"
+            "02-sprout/layer-04.png|https://v3b.fal.media/files/b/0aab6bcf/JYe65Ra1cV4xchPAFmhBG_HBaiv4cI.png"
+            "02-sprout/layer-05.png|https://v3b.fal.media/files/b/0aab6bcf/_NE3HQmqJX6VEEFNrm0cI_rh6Pdr7d.png"
+            "02-sprout/layer-06.png|https://v3b.fal.media/files/b/0aab6bcf/uAoCqGKah1AMj8J6_ulNz_XryxUjLD.png"
+            "03-young/layer-01.png|https://v3b.fal.media/files/b/0aab6bf4/9HFwlLWuofxquNTndb0Bg_GiRjUPqT.png"
+            "03-young/layer-02.png|https://v3b.fal.media/files/b/0aab6bf4/ymaLBNAXGJg9mUr6x_W9e_7LnpIgIm.png"
+            "03-young/layer-03.png|https://v3b.fal.media/files/b/0aab6bf4/abf73iJmhTOc2h9_raq4y_hafEQzuT.png"
+            "03-young/layer-04.png|https://v3b.fal.media/files/b/0aab6bf4/HbTAAfW2gxTte6HUOFi5M_QeeOXfmn.png"
+            "03-young/layer-05.png|https://v3b.fal.media/files/b/0aab6bf4/h54AzZqFJfpmc2N1C-PGD_vPJSB1Zg.png"
+            "03-young/layer-06.png|https://v3b.fal.media/files/b/0aab6bf4/7DWf8J5V3eQQNE8UWzKzj_SEG3nQ3v.png"
+            "04-leafy/layer-01.png|https://v3b.fal.media/files/b/0aab6bfa/iRfWcWjhimF8JvZplp8oN_bpSjWRVR.png"
+            "04-leafy/layer-02.png|https://v3b.fal.media/files/b/0aab6bfa/C8mexIxLpHZdQyat2dF57_jxDMvB8b.png"
+            "04-leafy/layer-03.png|https://v3b.fal.media/files/b/0aab6bfa/Lem5tj7N36vydrIx7zZdn_KpMzlfAs.png"
+            "04-leafy/layer-04.png|https://v3b.fal.media/files/b/0aab6bfa/fwgXqA_pZpTTsRCIojywF_qXXJh1qZ.png"
+            "04-leafy/layer-05.png|https://v3b.fal.media/files/b/0aab6bfa/V1sdoReSKoyKG9vHveOEB_4It95ATA.png"
+            "04-leafy/layer-06.png|https://v3b.fal.media/files/b/0aab6bfa/O7FRKS7iYnWeWQW_f2S_M_BBAJhB8J.png"
+            "05-sapling/layer-01.png|https://v3b.fal.media/files/b/0aab6bfe/7eb9JJfXb-w8DvTD5yt21_UCgr6WPw.png"
+            "05-sapling/layer-02.png|https://v3b.fal.media/files/b/0aab6bfe/mBKe7kaXFBdGhoOZIxo0e_VAErQAWs.png"
+            "05-sapling/layer-03.png|https://v3b.fal.media/files/b/0aab6bfe/vdtrBcaC-IAz0m9NSinJM_T6d1X6gZ.png"
+            "05-sapling/layer-04.png|https://v3b.fal.media/files/b/0aab6bfe/hABQfJ_-EbzqLKCFGg3aE_PESRUXxr.png"
+            "05-sapling/layer-05.png|https://v3b.fal.media/files/b/0aab6bfe/p3LSS0ZbuBd08u6Ccx_0F_eJdDRpMk.png"
+            "05-sapling/layer-06.png|https://v3b.fal.media/files/b/0aab6bfe/ppcGem_B7k1HnTYeeMx4N_G7ZVBH2Z.png"
+            "06-mature/layer-01.png|https://v3b.fal.media/files/b/0aab6bf6/wNMAWV32tKox0ytqlWcrQ_nENliUiO.png"
+            "06-mature/layer-02.png|https://v3b.fal.media/files/b/0aab6bf6/oTBPnWBiNDbUOTHQ8eIxq_gN7oXvu1.png"
+            "06-mature/layer-03.png|https://v3b.fal.media/files/b/0aab6bf6/22bpQkrS_BtatucXTRron_auY3NRq5.png"
+            "06-mature/layer-04.png|https://v3b.fal.media/files/b/0aab6bf6/jopea4qSrMivfyK00HzZ5_ZF4tQ6Ry.png"
+            "06-mature/layer-05.png|https://v3b.fal.media/files/b/0aab6bf6/7XPIcwcsX9b8r5BJCsEBG_f82AssFx.png"
+            "06-mature/layer-06.png|https://v3b.fal.media/files/b/0aab6bf6/ncc0uMKz-iSNrcI1G8IH2_DFCgMYUQ.png"
+          )
+          for item in "${urls[@]}"; do
+            path="${item%%|*}"
+            url="${item#*|}"
+            curl --fail --location --retry 3 --retry-all-errors --output "sdforest-qwen-layers/$path" "$url"
+          done
+          test "$(find sdforest-qwen-layers -type f -name '*.png' | wc -l)" -eq 36
+          find sdforest-qwen-layers -type f -name '*.png' -print0 | xargs -0 file | grep -vc 'PNG image data' | grep -qx 0
+          sha256sum sdforest-qwen-layers/*/*.png > sdforest-qwen-layers/SHA256SUMS.txt
+          zip -r SD-Forest-Qwen-Layered-Originals.zip sdforest-qwen-layers
+
+      - name: Upload package
+        uses: actions/upload-artifact@v4
+        with:
+          name: SD-Forest-Qwen-Layered-Originals
+          path: SD-Forest-Qwen-Layered-Originals.zip
+          if-no-files-found: error
+          retention-days: 7
