@@ -62,7 +62,9 @@ jobs:
             curl --fail --location --retry 3 --retry-all-errors --output "sdforest-qwen-layers/$path" "$url"
           done
           test "$(find sdforest-qwen-layers -type f -name '*.png' | wc -l)" -eq 36
-          while IFS= read -r -d '' f; do\n            file "$f" | grep -q 'PNG image data' || exit 1\n          done < <(find sdforest-qwen-layers -type f -name '*.png' -print0)
+          while IFS= read -r -d '' f; do
+            file "$f" | grep -q 'PNG image data' || exit 1
+          done < <(find sdforest-qwen-layers -type f -name '*.png' -print0)
           sha256sum sdforest-qwen-layers/*/*.png > sdforest-qwen-layers/SHA256SUMS.txt
           zip -r SD-Forest-Qwen-Layered-Originals.zip sdforest-qwen-layers
 
