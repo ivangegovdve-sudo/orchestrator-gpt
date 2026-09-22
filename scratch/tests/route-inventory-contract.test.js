@@ -122,9 +122,10 @@ test('manually authored landing links enter all seven canonical pools', () => {
   assert.deepEqual(links.map((match) => match[2]), ids.map((id) => `/web/pools/${id}/`));
 });
 
-test('homepage pool order is manual and independent of catalog enumeration', () => {
+test('homepage pool fallback stays complete while runtime order comes from the catalog', () => {
   const home = read('index.html');
   assert.equal((home.match(/data-pool-link="/g) || []).length, 7);
+  assert.match(home, /pool-directory\.mjs/);
   assert.doesNotMatch(home, /data-project="/);
   assert.doesNotMatch(home, /static-route-registry|ROUTE_REGISTRY|project-catalog|ROUTE_INVENTORY/);
 });

@@ -19,12 +19,19 @@ export const PROJECT_STATUSES = Object.freeze([
   'Live', 'Research', 'Experimental', 'In development',
 ]);
 
+// Ordering is data, not markup. A higher pool rank means that the pool has a
+// stronger combination of complete, working projects and visitor interest.
+// Project ranks are per-pool because the council is intentionally shared by
+// AI-d kit and TinkerBox. Ranks below FEATURED_RANK_MIN are still ordered, but
+// render in the dense list; null means an honest UNRANKED entry.
+export const FEATURED_RANK_MIN = 8;
+
 const SETTLED = 'docs/sdforest-settled-structure.md';
 // Compatibility names for source references now all resolve to tracked authority.
 const PLAN = SETTLED;
 const MASTER = SETTLED;
 export const POOL_CATALOG = deepFreeze([
-  ['growingapp', 'GrowingApp', 'Learning, family tools, and growing together.', {
+  ['growingapp', 'GrowingApp', 'Learning, family tools, and growing together.', 5, {
     purpose: 'A playful family-and-learning workspace for practice, curiosity, and growing together.',
     why: 'It gathers tools that turn everyday learning and family questions into something people can try.',
     startHere: [
@@ -33,7 +40,7 @@ export const POOL_CATALOG = deepFreeze([
       { projectId: 'math-forest', reason: 'The two maths companions share one catalog entry.' },
     ],
   }],
-  ['ai-d-kit', 'AI-d kit', 'Tools for finding, understanding, and working with AI.', {
+  ['ai-d-kit', 'AI-d kit', 'Tools for finding, understanding, and working with AI.', 6, {
     purpose: 'A search-first workbench for finding, understanding, and working with AI.',
     why: 'It puts glossary, repositories, tools, and a live publication in one place so a visitor can begin with a blocker.',
     startHere: [
@@ -42,7 +49,7 @@ export const POOL_CATALOG = deepFreeze([
       { projectId: 'morning-news', reason: 'The Drop is the headline publication and remains a standalone platform.' },
     ],
   }],
-  ['tinkerbox', 'TinkerBox', 'Playgrounds, practical experiments, and personal tools.', {
+  ['tinkerbox', 'TinkerBox', 'Playgrounds, practical experiments, and personal tools.', 4, {
     purpose: 'A quiet workbench for useful personal tools, playgrounds, and experiments.',
     why: 'It gives hands-on tools a home, including the public round-table council shared with AI-d kit.',
     startHere: [
@@ -51,7 +58,7 @@ export const POOL_CATALOG = deepFreeze([
       { projectId: 'council', reason: 'The shared council is available here as a practical tool.' },
     ],
   }],
-  ['health', 'Health', 'Health, reading, movement, and wellbeing projects.', {
+  ['health', 'Health', 'Health, reading, movement, and wellbeing projects.', 7, {
     purpose: 'A precise clinic for movement, reading, listening, and wellbeing tools.',
     why: 'It keeps projects first while evidence and scrutiny stay proportional to each project’s claims.',
     startHere: [
@@ -60,7 +67,7 @@ export const POOL_CATALOG = deepFreeze([
       { projectId: 'audiobook', reason: 'The companion live listening implementation remains visible beside reading.' },
     ],
   }],
-  ['design-gallery', 'Design Gallery', 'Game design, web design, and website history.', {
+  ['design-gallery', 'Design Gallery', 'Game design, web design, and website history.', 3, {
     purpose: 'A museum-like gallery for game design, web design, and website history.',
     why: 'It preserves finished exhibits and unfinished experiments as part of the work’s history, while animation and VFX remain in Portfolio.',
     startHere: [
@@ -68,7 +75,7 @@ export const POOL_CATALOG = deepFreeze([
       { projectId: 'replicator-void', reason: 'A Coming Soon game-design piece shows where the gallery is still forming.' },
     ],
   }],
-  ['artificial-self', 'Artificial Self', 'AI research and conversation archives.', {
+  ['artificial-self', 'Artificial Self', 'AI research and conversation archives.', 2, {
     purpose: 'A speculative lab for AI research and model-conversation archives.',
     why: 'It separates observed transcripts from claims that still require rederivation.',
     startHere: [
@@ -77,7 +84,7 @@ export const POOL_CATALOG = deepFreeze([
       { projectId: 'c2c-self', reason: 'The distinct identical-model self-mirror archive keeps its evidence boundary visible.' },
     ],
   }],
-  ['my-story', 'My Story', 'Personal stories, reflections, and creative work.', {
+  ['my-story', 'My Story', 'Personal stories, reflections, and creative work.', 1, {
     purpose: 'A narrative-first path through personal work, its unfinished states, and the choices that produced it.',
     why: 'It connects personal context and selected work without turning the story into a catalogue of successes.',
     startHere: [
@@ -86,8 +93,8 @@ export const POOL_CATALOG = deepFreeze([
       { projectId: 'we-are-the-training-data', reason: 'The narrated word poem is the default introductory context entry.' },
     ],
   }],
-].map(([id, publicName, summary, visitorGuide]) => ({
-  id, kind: 'pool', publicName, summary, state: 'Live', entryEnabled: true,
+].map(([id, publicName, summary, rank, visitorGuide]) => ({
+  id, kind: 'pool', publicName, summary, rank, state: 'Live', entryEnabled: true,
   visitorGuide,
   route: `/web/pools/${id}/`, sources: [SETTLED],
   ...(id === 'my-story' ? {
@@ -153,6 +160,7 @@ function project(id, publicName, facts) {
     id, kind: 'project', publicName, pool: null, classification: 'unresolved', outsidePoolRole: null,
     pools,
     status: null, metrics: [], lastMeaningfullyUpdated: null, updateProvenance: null,
+    rank: null,
     provisional: true,
     readiness: {
       entryEnabled: false, presentation: 'pending-review', review: 'pending',
@@ -169,15 +177,15 @@ function project(id, publicName, facts) {
 // Site controls and reconciled legacy references live outside this collection.
 const projectRecords = [
   project('morning-news', 'The Drop', {
-    pool: 'AI-d kit', classification: 'assigned', status: 'Live', visibility: publicShell,
+    pool: 'AI-d kit', classification: 'assigned', status: 'Live', rank: { 'AI-d kit': 10 }, visibility: publicShell,
     canonicalUrl: 'https://thedrop.sdforest.site', sources: ['web/morning-news/index.html', PLAN],
   }),
   project('mendeleev', 'Mendeleev', {
-    pool: 'GrowingApp', classification: 'assigned', status: 'Live', visibility: publicShell,
+    pool: 'GrowingApp', classification: 'assigned', status: 'Live', rank: { GrowingApp: 9 }, visibility: publicShell,
     sources: ['web/mendeleev-bg/index.html', PLAN],
   }),
   project('math-forest', 'Math Mania / Forest Math', {
-    pool: 'GrowingApp', classification: 'assigned', status: 'Live', visibility: publicShell,
+    pool: 'GrowingApp', classification: 'assigned', status: 'Live', rank: { GrowingApp: 8 }, visibility: publicShell,
     relationships: [
       { type: 'companion', name: 'Math Forest', route: '/web/math-forest/', presentationNote: 'Math Forest currently shows a rebuild placeholder.' },
       { type: 'companion', name: 'Math Mania', route: '/web/math-mania/' },
@@ -185,13 +193,13 @@ const projectRecords = [
     sources: ['web/math-forest/index.html', 'web/math-mania/index.html', MASTER],
   }),
   project('replicator-void', 'Replicator Void', {
-    pool: 'Design Gallery', classification: 'assigned', status: 'In development', visibility: publicShell,
+    pool: 'Design Gallery', classification: 'assigned', status: 'In development', rank: { 'Design Gallery': 7 }, visibility: publicShell,
     category: 'Game Design',
     readiness: { entryEnabled: false, presentation: 'coming-soon', review: 'pending', reason: 'Coming Soon placement is settled; runtime and evidence review remain open.' },
     sources: ['web/replicator-void/index.html', PLAN],
   }),
   project('c2c-dolphin', 'C2C Dolphin', {
-    pool: 'Artificial Self', classification: 'assigned', status: 'Research', visibility: publicShell,
+    pool: 'Artificial Self', classification: 'assigned', status: 'Research', rank: { 'Artificial Self': 8 }, visibility: publicShell,
     aliases: ['AI Conversation'],
     displayDiscrepancy: { deployedName: 'AI Conversation', canonicalName: 'C2C Dolphin' },
     evidenceLevel: 'rederivation-required',
@@ -199,7 +207,7 @@ const projectRecords = [
     sources: ['web/c2c-dolphin/index.html', PLAN],
   }),
   project('c2c-self', 'C2C Self', {
-    pool: 'Artificial Self', classification: 'assigned', status: 'Research', visibility: publicShell,
+    pool: 'Artificial Self', classification: 'assigned', status: 'Research', rank: { 'Artificial Self': 7 }, visibility: publicShell,
     relationship: { type: 'self-mirror-control', projectId: 'c2c-dolphin', modelConfiguration: 'identical-model', controlRole: 'structural-interpretation', description: 'A distinct identical-model self-mirror experiment; its control role relative to C2C Dolphin is a structural interpretation.' },
     evidenceLevel: 'rederivation-required',
     evidence: { level: 'archive-unverified', review: 'rederivation-required', sources: ['web/c2c-self/index.html', MASTER] },
@@ -207,103 +215,105 @@ const projectRecords = [
   }),
   project('fleet-board', 'Fleet / Fleet Board', {
     pool: 'TinkerBox', classification: 'assigned', status: 'Live',
+    rank: null,
     documentation: { status: 'In development', publication: 'unpublished' },
     visibility: unpublishedDocumentation, sources: ['web/fleet/index.html', 'web/board/index.html', PLAN],
   }),
   project('ai-research', 'AI Research', {
-    pool: 'Artificial Self', pools: ['Artificial Self'], classification: 'assigned', contentRole: 'research', status: 'Research', visibility: publicShell,
+    pool: 'Artificial Self', pools: ['Artificial Self'], classification: 'assigned', contentRole: 'research', status: 'Research', rank: { 'Artificial Self': 10 }, visibility: publicShell,
     sources: ['web/ai-research/index.html', MASTER],
   }),
   project('library', 'Library', {
-    pool: 'AI-d kit', classification: 'assigned', status: 'Live',
+    pool: 'AI-d kit', classification: 'assigned', status: 'Live', rank: { 'AI-d kit': 6 },
     visibility: { ...publicShell, access: 'mixed', publicSurface: 'public-reference-only' },
     relationships: [{ type: 'folds-into', pool: 'AI-d kit', role: 'search' }],
     sources: ['web/library/index.html', 'web/library/rag.html', MASTER],
   }),
   project('chair-or-ladder', 'Chair or a Ladder', {
-    pool: 'My Story', classification: 'assigned', status: 'Live', visibility: publicShell,
+    pool: 'My Story', classification: 'assigned', status: 'Live', rank: { 'My Story': 10 }, visibility: publicShell,
     requiredWork: [{ type: 'recording', description: 'Ivan must make a proper recording for speech-to-speech with Chloé’s voice.' }],
     relationships: [{ type: 'optional-tree-context' }], sources: ['web/chair-or-ladder/index.html', MASTER],
   }),
   project('life-in-time', 'Life in Time', {
-    pool: 'My Story', classification: 'assigned', status: 'Live', visibility: publicShell,
+    pool: 'My Story', classification: 'assigned', status: 'Live', rank: { 'My Story': 9 }, visibility: publicShell,
     requiredWork: [{ type: 'redesign', description: 'Needs a complete redesign.' }],
     relationships: [{ type: 'optional-tree-context' }], sources: ['web/life-in-time/index.html', MASTER],
   }),
   project('power-law-odyssey', 'Power Law Odyssey', {
-    pool: 'My Story', classification: 'assigned', status: 'In development', visibility: publicShell,
+    pool: 'My Story', classification: 'assigned', status: 'In development', rank: { 'My Story': 7 }, visibility: publicShell,
     relationships: [{ type: 'optional-tree-context' }], sources: ['web/power-law-odyssey/index.html', MASTER],
   }),
   project('we-are-the-training-data', 'We Are The Training Data', {
-    pool: 'My Story', classification: 'assigned', status: 'In development',
+    pool: 'My Story', classification: 'assigned', status: 'In development', rank: { 'My Story': 6 },
     visibility: { ...publicShell, navigation: 'unlisted', search: 'excluded', indexing: 'noindex' },
     relationships: [{ type: 'optional-tree-context', role: 'default-narrated-poem' }],
     sources: ['web/we-are-the-training-data/index.html', MASTER],
   }),
   project('manifesto-newborn', 'Manifesto for a Newborn', {
-    pool: 'GrowingApp', classification: 'assigned', status: 'Live', visibility: publicShell,
+    pool: 'GrowingApp', classification: 'assigned', status: 'Live', rank: { GrowingApp: 7 }, visibility: publicShell,
     relationships: [{ type: 'optional-introduction', pool: 'GrowingApp' }, { type: 'reference', pool: 'My Story' }],
     sources: ['web/manifesto-newborn/index.html', MASTER],
   }),
   project('dyslexia', 'Dyslexia Reading Platform', {
-    pool: 'Health', classification: 'assigned', status: 'Live', visibility: publicShell, sources: ['index.html', PLAN],
+    pool: 'Health', classification: 'assigned', status: 'Live', rank: { Health: 9 }, visibility: publicShell, sources: ['index.html', PLAN],
     implementationUrl: 'https://chloe.blumenkraft.cloud/dyslexia/',
     unification: { direction: 'one-platform', projectIds: ['dyslexia', 'audiobook'], currentPresentation: 'separate-tabs-and-implementations', state: 'not-yet-merged' },
   }),
   project('audiobook', 'Audiobook Studio', {
-    pool: 'Health', classification: 'assigned', status: 'Live', visibility: publicShell, sources: ['index.html', PLAN],
+    pool: 'Health', classification: 'assigned', status: 'Live', rank: { Health: 8 }, visibility: publicShell, sources: ['index.html', PLAN],
     implementationUrl: 'https://chloe.blumenkraft.cloud/audiobook/',
     unification: { direction: 'one-platform', projectIds: ['dyslexia', 'audiobook'], currentPresentation: 'separate-tabs-and-implementations', state: 'not-yet-merged' },
   }),
-  project('lobester-gym', 'Lobester Gym', { pool: 'GrowingApp', classification: 'assigned', status: 'In development', identity: { purpose: 'ADHD brain-exercise app', distinctFrom: 'gym-scholar' }, visibility: publicShell, sources: ['web/lobester-gym/index.html', SETTLED] }),
-  project('womens-health-os', 'Women’s Health OS', { pool: 'Health', classification: 'assigned', status: 'In development', aliases: ['Women’s Health'], visibility: publicShell, sources: ['web/womens-health-os/index.html', SETTLED] }),
+  project('lobester-gym', 'Lobester Gym', { pool: 'GrowingApp', classification: 'assigned', status: 'In development', rank: { GrowingApp: 6 }, identity: { purpose: 'ADHD brain-exercise app', distinctFrom: 'gym-scholar' }, visibility: publicShell, sources: ['web/lobester-gym/index.html', SETTLED] }),
+  project('womens-health-os', 'Women’s Health OS', { pool: 'Health', classification: 'assigned', status: 'In development', rank: { Health: 6 }, aliases: ['Women’s Health'], visibility: publicShell, sources: ['web/womens-health-os/index.html', SETTLED] }),
   project('hypertrophyos', 'Hyper Trophy OS', { visibility: publicShell, sources: ['web/hypertrophyos/index.html', PLAN] }),
   project('gym-scholar', 'Gym Scholar', {
-    pool: 'Health', classification: 'assigned', status: 'Live', visibility: publicShell, sources: [MASTER],
+    pool: 'Health', classification: 'assigned', status: 'Live', rank: { Health: 10 }, visibility: publicShell, sources: [MASTER],
   }),
-  project('avatar-playground', 'Avatar Playground', { pool: 'TinkerBox', classification: 'assigned', status: 'Live', aliases: ['Voice Playground'], visibility: publicShell, sources: ['web/avatar-playground/index.html', MASTER] }),
-  project('calendar', 'Calendar Generator', { pool: 'TinkerBox', classification: 'assigned', status: 'In development', visibility: publicShell, sources: ['web/calendar/index.html', MASTER] }),
+  project('avatar-playground', 'Avatar Playground', { pool: 'TinkerBox', classification: 'assigned', status: 'Live', rank: { TinkerBox: 10 }, aliases: ['Voice Playground'], visibility: publicShell, sources: ['web/avatar-playground/index.html', MASTER] }),
+  project('calendar', 'Calendar Generator', { pool: 'TinkerBox', classification: 'assigned', status: 'In development', rank: { TinkerBox: 7 }, visibility: publicShell, sources: ['web/calendar/index.html', MASTER] }),
   project('council', 'Public round-table council', {
     pool: 'AI-d kit', pools: ['AI-d kit', 'TinkerBox'], classification: 'assigned', status: 'Live',
+    rank: { 'AI-d kit': 7, TinkerBox: 8 },
     aliases: ['Councils'], contentRole: 'council', visibility: publicShell,
     membershipNote: 'Shared member of AI-d kit and TinkerBox by settled decision on 2026-09-20.',
     sources: ['web/council/index.html', MASTER],
   }),
   project('explore', 'Explore Repos', {
-    pool: 'AI-d kit', classification: 'assigned', status: 'Live', visibility: publicShell,
+    pool: 'AI-d kit', classification: 'assigned', status: 'Live', rank: { 'AI-d kit': 8 }, visibility: publicShell,
     modes: ['solution', 'category', 'shelf', 'graphified', 'capability-cards', 'index-search'],
     relationships: [{ type: 'incorporates', route: '/web/code-search/' }, { type: 'incorporates', route: '/web/repos/' }],
     sources: ['web/explore/index.html', 'web/code-search/index.html', 'web/repos/index.html', MASTER],
   }),
   project('kids-movie-library', 'Kids Library', {
-    pool: 'GrowingApp', classification: 'assigned', status: 'In development', visibility: publicShell,
+    pool: 'GrowingApp', classification: 'assigned', status: 'In development', rank: { GrowingApp: 4 }, visibility: publicShell,
     sections: [{ id: 'movies', name: 'Movies' }, { id: 'books', name: 'Books' }],
     sources: ['movies/index.html', 'web/kids-movie-library/index.html', PLAN],
   }),
   project('m-popova', 'Poetry Space', {
-    pool: 'Design Gallery', classification: 'assigned', status: 'Live', visibility: publicShell, attribution: 'Poetry by Maria Popova.', sources: ['web/m-popova/index.html', MASTER],
+    pool: 'Design Gallery', classification: 'assigned', status: 'Live', rank: { 'Design Gallery': 10 }, visibility: publicShell, attribution: 'Poetry by Maria Popova.', sources: ['web/m-popova/index.html', MASTER],
   }),
-  project('open-dashboard', 'Open Dashboard', { pool: 'AI-d kit', classification: 'assigned', status: 'Live', visibility: publicShell, sources: ['web/open-dashboard/index.html', MASTER] }),
+  project('open-dashboard', 'Open Dashboard', { pool: 'AI-d kit', classification: 'assigned', status: 'Live', rank: { 'AI-d kit': 9 }, visibility: publicShell, sources: ['web/open-dashboard/index.html', MASTER] }),
   project('rubiks-teacher', 'Rubik’s Teacher', {
-    pool: 'GrowingApp', classification: 'assigned', status: 'Live', visibility: publicShell,
+    pool: 'GrowingApp', classification: 'assigned', status: 'Live', rank: { GrowingApp: 10 }, visibility: publicShell,
     projectPage: {
       problem: 'Cubeflow scans, validates, solves, and teaches every Rubik’s Cube turn.',
       nextOrStopped: 'Independent review must settle PWA installability without breaking Chloé’s offline shell; the lazy lesson bundles still need to be included in the first offline path.',
     },
     sources: ['web/rubiks-teacher/index.html', MASTER],
   }),
-  project('chloe-pwa', 'Chloé PWA', { pool: 'TinkerBox', classification: 'assigned', status: 'In development', visibility: unpublishedDocumentation, sources: ['web/chloe-pwa/index.html', MASTER] }),
-  project('chloe-desktop', 'Chloé desktop', { pool: 'TinkerBox', classification: 'assigned', status: 'In development', visibility: unpublishedDocumentation, sources: [MASTER] }),
+  project('chloe-pwa', 'Chloé PWA', { pool: 'TinkerBox', classification: 'assigned', status: 'In development', rank: { TinkerBox: 4 }, visibility: unpublishedDocumentation, sources: ['web/chloe-pwa/index.html', MASTER] }),
+  project('chloe-desktop', 'Chloé desktop', { pool: 'TinkerBox', classification: 'assigned', status: 'In development', rank: null, visibility: unpublishedDocumentation, sources: [MASTER] }),
   project('upload', 'Knowledge Ingest', {
     disposition: 'kept', repair: 'repair-needed',
     visibility: { ...internalDocumentation, access: 'private', accessGate: 'required', enforcement: 'unverified' },
     readiness: { entryEnabled: false, presentation: 'repair-needed', review: 'pending', reason: 'Kept; repair and access enforcement verification required.' },
     sources: ['web/upload/index.html', SETTLED],
   }),
-  project('item-icon-generator', 'Item Icon Generator', { pool: 'TinkerBox', classification: 'assigned', status: 'In development', aliases: ['Runware Item Icon Generator'], visibility: publicShell, sources: ['frontend/index.html', MASTER] }),
-  project('flowform', 'FlowForm', { pool: 'Health', classification: 'assigned', status: 'In development', visibility: publicShell, canonicalUrl: 'https://flowform.sdforest.site', sources: ['index.html', MASTER] }),
+  project('item-icon-generator', 'Item Icon Generator', { pool: 'TinkerBox', classification: 'assigned', status: 'In development', rank: { TinkerBox: 6 }, aliases: ['Runware Item Icon Generator'], visibility: publicShell, sources: ['frontend/index.html', MASTER] }),
+  project('flowform', 'FlowForm', { pool: 'Health', classification: 'assigned', status: 'In development', rank: { Health: 7 }, visibility: publicShell, canonicalUrl: 'https://flowform.sdforest.site', sources: ['index.html', MASTER] }),
   project('velune', 'Velune', {
-    pool: 'TinkerBox', classification: 'assigned', status: 'Live', visibility: publicShell,
+    pool: 'TinkerBox', classification: 'assigned', status: 'Live', rank: { TinkerBox: 9 }, visibility: publicShell,
     attribution: { type: 'fork', names: ['nikhilvishwakarma00'], changeDescription: 'Ivan’s audio-only YouTube path with no video.' },
   }),
   // Settled exclusion: retain the catalog record and pool relationship for
@@ -437,9 +447,88 @@ export const POOL_LISTING_PROJECTS = deepFreeze(PROJECT_CATALOG.filter(({ pools,
   visibility?.publicSurface !== 'excluded'
     && Array.isArray(pools) && pools.some((pool) => POOL_NAMES.includes(pool))));
 
-/** Detached immutable membership data; this does not certify public-card readiness. */
+function orderingError(message) {
+  throw new Error(`SD Forest pool ordering contract: ${message}`);
+}
+
+/**
+ * Validate the rank boundary. This is deliberately callable by contract tests
+ * with a candidate data set so a stale rank reference fails loudly at build
+ * time instead of silently disappearing from a listing.
+ */
+export function validatePoolOrdering({ pools = POOL_CATALOG, projects = PROJECT_CATALOG } = {}) {
+  const poolNames = pools.map(({ publicName }) => publicName);
+  const knownPools = new Set(poolNames);
+  if (new Set(poolNames).size !== poolNames.length) orderingError('pool public names must be unique');
+  if (poolNames.length !== POOL_NAMES.length || POOL_NAMES.some((name) => !knownPools.has(name))) {
+    orderingError('pool catalog must cover exactly the seven canonical pools');
+  }
+  const poolIds = new Set(pools.map(({ id }) => id));
+  for (const pool of pools) {
+    if (!Number.isInteger(pool.rank) || pool.rank < 1) orderingError(`pool ${pool.id} needs a positive integer rank`);
+    if (poolIds.size !== pools.length) orderingError('pool ids must be unique');
+  }
+
+  const projectIds = new Set();
+  for (const project of projects) {
+    if (projectIds.has(project.id)) orderingError(`duplicate project id ${project.id}`);
+    projectIds.add(project.id);
+    if (!Object.prototype.hasOwnProperty.call(project, 'rank')) {
+      orderingError(`project ${project.id} is missing its explicit rank field`);
+    }
+    if (project.rank !== null && (typeof project.rank !== 'object' || Array.isArray(project.rank))) {
+      orderingError(`project ${project.id} rank must be an object keyed by pool or null`);
+    }
+    for (const [poolName, rank] of Object.entries(project.rank || {})) {
+      if (!knownPools.has(poolName)) orderingError(`project ${project.id} rank references unknown pool ${poolName}`);
+      if (!Array.isArray(project.pools) || !project.pools.includes(poolName)) {
+        orderingError(`project ${project.id} rank references ${poolName} but is not a member of that pool`);
+      }
+      if (!Number.isInteger(rank) || rank < 1) orderingError(`project ${project.id} rank for ${poolName} must be a positive integer`);
+    }
+  }
+  return true;
+}
+
+validatePoolOrdering();
+
+export function getOrderedPools() {
+  return deepFreeze(JSON.parse(JSON.stringify(POOL_CATALOG))
+    .sort((left, right) => right.rank - left.rank));
+}
+
+export function getProjectRank(project, poolName) {
+  const rank = project?.rank?.[poolName];
+  return Number.isInteger(rank) ? rank : null;
+}
+
+export function getProjectTier(project, poolName) {
+  const rank = getProjectRank(project, poolName);
+  if (rank === null) return 'unranked';
+  return rank >= FEATURED_RANK_MIN ? 'featured' : 'ranked';
+}
+
+/** Detached immutable membership data; ordering never certifies readiness. */
 export function getPoolProjects(poolName) {
-  return deepFreeze(JSON.parse(JSON.stringify(POOL_LISTING_PROJECTS.filter(({ pools }) => pools.includes(poolName)))));
+  const projects = POOL_LISTING_PROJECTS
+    .map((project, sourceIndex) => ({ project, sourceIndex }))
+    .filter(({ project }) => project.pools.includes(poolName))
+    .map(({ project, sourceIndex }) => ({
+      ...project,
+      poolRank: getProjectRank(project, poolName),
+      poolTier: getProjectTier(project, poolName),
+      sourceIndex,
+    }))
+    .sort((left, right) => {
+      const leftRank = left.poolRank;
+      const rightRank = right.poolRank;
+      if (leftRank === null && rightRank !== null) return 1;
+      if (leftRank !== null && rightRank === null) return -1;
+      if (leftRank !== null && rightRank !== null && leftRank !== rightRank) return rightRank - leftRank;
+      return left.sourceIndex - right.sourceIndex;
+    })
+    .map(({ sourceIndex, ...project }) => project);
+  return deepFreeze(JSON.parse(JSON.stringify(projects)));
 }
 
 function finding(projectId, field, question, options, reason, extra = {}) {

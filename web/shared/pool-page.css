@@ -1,42 +1,277 @@
-/* Plain, static pool listings. No entrance or motion treatment. */
-body.pool-page { margin: 0; background: #f6f4ee; color: #202a24; font: 1.05rem/1.6 system-ui, sans-serif; }
-.pool-page main, .pool-page > header, .pool-page > footer { max-width: 58rem; margin: auto; padding: 1.5rem; }
-.pool-page h1 { font-size: clamp(2rem, 6vw, 3rem); line-height: 1.15; }
-.pool-page h2 { line-height: 1.3; }
-.pool-page .pool-guide {
-  margin-block: 1.5rem;
-  padding: 1.25rem;
-  border: 1px solid #b7c8b8;
-  border-radius: .6rem;
-  background: #f6faf5;
-}
-.pool-page .pool-guide h3 { margin-block: 0 0 .45rem; }
-.pool-page .pool-guide h3:not(:first-child) { margin-top: 1.25rem; }
-.pool-page .pool-guide ul { padding-left: 1.25rem; }
-.pool-page .pool-start-here li { margin-block: .4rem; }
-.pool-page .pool-reality-note { font-size: .95rem; font-style: italic; }
-.pool-page .pool-reality-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr)); gap: 1rem; }
-.pool-page .pool-reality { padding: .85rem; border: 1px solid #cfdbcf; border-radius: .45rem; background: #fff; }
-.pool-page .pool-reality h4 { margin: 0 0 .5rem; }
-.pool-page .pool-reality li { margin-block: .35rem; }
-.pool-page a { color: #225b40; text-underline-offset: .2em; }
-.pool-page :focus-visible { outline: 3px solid #695400; outline-offset: 4px; }
-.pool-page [hidden] { display: none !important; }
-.pool-page .pool-project { border-top: 1px solid #b9c5ba; padding-block: 1rem; }
-.pool-page .pool-project p { margin-block: .45rem; }
-.pool-page .pool-status { font-weight: 650; }
-.pool-page .pool-readiness { font-size: .95em; }
-.pool-page .pool-readiness[data-readiness-state="Shipped"] { color: #225b40; font-weight: 650; }
-.pool-page .pool-readiness[data-readiness-state="In progress"] { color: #765b00; font-weight: 650; }
-.pool-page .pool-readiness[data-readiness-state="UNKNOWN"] { color: #6a4b4b; font-weight: 650; }
-.pool-page .pool-readiness-summary { border-left: .3rem solid #6a4b4b; padding-left: .7rem; font-weight: 650; }
-.pool-page .pool-bindings { overflow-wrap: anywhere; }
-.pool-page .pool-categories { padding-left: 1.5rem; }
-.pool-page .pool-categories li { margin-block: .7rem; }
-.pool-page [role="tablist"] { display: flex; gap: .6rem; flex-wrap: wrap; margin-block: 1rem; }
-.pool-page [role="tab"] { padding: .8rem 1rem; border: 1px solid #536b58; border-radius: .3rem; background: #fff; color: #202a24; font: inherit; cursor: pointer; }
-.pool-page [role="tab"][aria-selected="true"] { background: #225b40; color: #fff; }
-.pool-page [role="tabpanel"] { padding: .5rem; }
-.pool-page nav ul { display: flex; flex-wrap: wrap; gap: .75rem 1.5rem; padding: 0; list-style: none; }
-.pool-page nav [aria-current="page"] { font-weight: 700; }
+/*
+ * Pool shell — an extension of the homepage's dusk-forest system.
+ *
+ * The source of truth for the palette, typography, rhythm and motion tokens is
+ * forest-design.css. This file only composes those existing tokens around the
+ * catalog-backed pool content; it does not introduce a second design system.
+ */
 
+*, *::before, *::after { box-sizing: border-box; }
+
+body.pool-page {
+  --pool-accent: var(--forest-moss);
+  --pool-accent-2: var(--forest-amber);
+  --pool-enter-shift: 18px;
+  --pool-enter-tilt: 0deg;
+  --pool-enter-duration: var(--duration-hero);
+  margin: 0;
+  min-height: 100vh;
+  overflow-x: hidden;
+  background:
+    radial-gradient(ellipse 75% 36% at 50% -4%, color-mix(in srgb, var(--pool-accent) 13%, transparent), transparent 72%),
+    radial-gradient(ellipse 55% 32% at 94% 24%, color-mix(in srgb, var(--pool-accent-2) 9%, transparent), transparent 74%),
+    var(--home-bg);
+  color: var(--home-ink);
+  font: 1rem/1.55 var(--home-body);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* The shared WebGL/point-field motif uses the existing Forest runtime. A pool
+ * shell only adjusts its opacity; mode-specific geometry comes from
+ * forest-themes.mjs. */
+.pool-page .forest-scene { opacity: .5; mix-blend-mode: screen; }
+.pool-page .forest-scrim {
+  background:
+    linear-gradient(180deg, rgba(5, 8, 6, .05), rgba(5, 8, 6, .5)),
+    radial-gradient(circle at 50% 24%, transparent 0 25%, rgba(5, 8, 6, .42) 78%);
+}
+
+.pool-page > header {
+  position: relative;
+  z-index: 4;
+  width: min(1180px, calc(100% - 32px));
+  margin: 0 auto;
+  padding-top: 14px;
+}
+.pool-page > header a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 42px;
+  gap: .55rem;
+  padding: 0 .9rem;
+  border: 1px solid var(--forest-line);
+  border-radius: 999px;
+  background: rgba(5, 10, 7, .7);
+  color: var(--forest-soft);
+  font: 500 11px/1 var(--forest-sans);
+  letter-spacing: .16em;
+  text-decoration: none;
+  text-transform: uppercase;
+  backdrop-filter: blur(16px);
+  transition: color var(--duration-fast) var(--ease-out), border-color var(--duration-fast) var(--ease-out), background var(--duration-fast) var(--ease-out);
+}
+.pool-page > header a::before { content: "↙"; color: var(--pool-accent); font-size: 15px; transform: rotate(45deg); }
+.pool-page > header a:hover {
+  border-color: color-mix(in srgb, var(--pool-accent) 55%, transparent);
+  background: color-mix(in srgb, var(--pool-accent) 11%, rgba(5, 10, 7, .7));
+  color: var(--forest-ink);
+}
+
+.pool-page main {
+  position: relative;
+  z-index: 2;
+  width: min(1180px, calc(100% - 32px));
+  margin: 0 auto;
+  padding: clamp(18px, 3vw, 32px) 0 76px;
+}
+.pool-page main::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  top: 0;
+  left: 12%;
+  width: 76%;
+  height: 270px;
+  pointer-events: none;
+  background: radial-gradient(ellipse at 50% 0, color-mix(in srgb, var(--pool-accent) 12%, transparent), transparent 70%);
+  filter: blur(16px);
+  opacity: .75;
+}
+
+.pool-page h1 {
+  max-width: 14ch;
+  margin: 0 0 .65rem;
+  color: var(--forest-ink);
+  font: 600 clamp(3rem, 5vw, 5rem)/.94 var(--forest-display);
+  letter-spacing: .005em;
+  text-wrap: balance;
+  text-shadow: 0 10px 42px color-mix(in srgb, var(--pool-accent) 22%, transparent);
+  animation: pool-title-enter var(--pool-enter-duration) var(--ease-out) both;
+}
+@keyframes pool-title-enter {
+  from { opacity: 0; transform: translate3d(0, var(--pool-enter-shift), 0) rotate(var(--pool-enter-tilt)) scale(.97); filter: blur(8px); }
+  to { opacity: 1; transform: none; filter: none; }
+}
+
+.pool-page main > section { margin-block: .85rem; }
+.pool-page main > section > h2 {
+  margin: 0 0 .45rem;
+  color: var(--forest-ink);
+  font: 600 clamp(1.35rem, 2.4vw, 1.9rem)/1.1 var(--forest-display);
+}
+.pool-page main > section > p { margin-block: .25rem; color: var(--forest-soft); }
+
+/* Semantic label retained for no-script and assistive-technology readers;
+ * visual composition is led by the catalog summary rather than a form title. */
+.pool-page [data-pool-overview] > #pool-overview-title {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+.pool-page .pool-state {
+  display: inline-flex;
+  align-items: center;
+  gap: .55rem;
+  margin: 0 0 .15rem;
+  color: var(--pool-accent);
+  font: 500 11px/1 var(--forest-sans);
+  letter-spacing: .22em;
+  text-transform: uppercase;
+}
+.pool-page .pool-state::before { content: ""; width: 7px; height: 7px; border: 1px solid currentColor; border-radius: 50%; box-shadow: 0 0 14px currentColor; }
+
+/* The h1 already carries the public pool name; keep the catalog assertion in
+ * the DOM for contract tests and no-script readers without repeating it as a
+ * second visible title. */
+.pool-page .pool-name {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+}
+.pool-page .pool-summary { max-width: 44rem; margin: .25rem 0 1.15rem; color: var(--forest-soft); font-size: clamp(1.1rem, 2vw, 1.35rem); line-height: 1.35; }
+
+.pool-page .pool-guide {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: .9rem 1.6rem;
+  margin-block: .75rem .9rem;
+  padding: .8rem 0 .85rem;
+  border-block: 1px solid var(--forest-line);
+  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--pool-accent) 5%, transparent) 48%, transparent);
+}
+.pool-page .pool-guide-block { min-width: 0; }
+.pool-page .pool-guide h3,
+.pool-page .pool-reality h4 { margin: 0 0 .35rem; color: var(--pool-accent); font: 500 10px/1.2 var(--forest-sans); letter-spacing: .18em; text-transform: uppercase; }
+.pool-page .pool-guide p { margin: 0; color: var(--forest-soft); line-height: 1.45; }
+.pool-page .pool-guide ul { margin: 0; padding-left: 1.1rem; }
+.pool-page .pool-guide-block--start,
+.pool-page .pool-reality-note,
+.pool-page .pool-reality-grid { grid-column: 1 / -1; }
+.pool-page .pool-start-here { display: flex; flex-wrap: wrap; gap: .15rem 1.4rem; }
+.pool-page .pool-start-here li { flex: 1 1 15rem; margin-block: .1rem; line-height: 1.35; }
+.pool-page .pool-reality-note { margin: 0; color: var(--forest-muted); font-size: .82rem; font-style: italic; }
+.pool-page .pool-reality-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .8rem; }
+.pool-page .pool-reality { min-width: 0; padding: .55rem .75rem; border-left: 2px solid color-mix(in srgb, var(--pool-accent) 65%, transparent); background: rgba(255, 255, 255, .025); }
+.pool-page .pool-reality ul { display: flex; flex-wrap: wrap; gap: .1rem .9rem; margin: 0; padding-left: 1.1rem; color: var(--forest-soft); }
+.pool-page .pool-reality li { flex: 1 1 11rem; margin-block: 0; line-height: 1.35; }
+.pool-page .pool-state,
+.pool-page .pool-name,
+.pool-page .pool-summary,
+.pool-page .pool-catalog-count,
+.pool-page .pool-readiness-summary { margin-block: .2rem; }
+
+.pool-page a { color: var(--pool-accent-2); text-underline-offset: .2em; }
+.pool-page a:hover { color: var(--pool-accent); }
+.pool-page :focus-visible { outline: 3px solid var(--focus-ring); outline-offset: 4px; }
+.pool-page [hidden] { display: none !important; }
+.pool-page .pool-catalog-count { color: var(--forest-muted); font-size: .85rem; }
+.pool-page .pool-readiness-summary { display: inline-block; padding-left: .7rem; border-left: 2px solid var(--pool-accent); color: var(--forest-soft); font: 500 .83rem/1.3 var(--forest-sans); }
+
+.pool-page .pool-project-group { margin-block: 1.5rem 1.7rem; }
+.pool-page .pool-project-group > h3 { margin: 0 0 .5rem; color: var(--forest-muted); font: 500 10px/1 var(--forest-sans); letter-spacing: .22em; text-transform: uppercase; }
+.pool-page .pool-project-list--featured { display: grid; grid-template-columns: 1fr; gap: .5rem; }
+.pool-page .pool-project--featured {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  column-gap: .8rem;
+  row-gap: .1rem;
+  padding: .65rem .8rem;
+  border: 1px solid color-mix(in srgb, var(--pool-accent) 48%, var(--forest-line));
+  border-left: 3px solid var(--pool-accent);
+  border-radius: var(--radius);
+  background: linear-gradient(105deg, color-mix(in srgb, var(--pool-accent) 9%, var(--forest-surface)), rgba(255,255,255,.025));
+  box-shadow: 0 12px 40px color-mix(in srgb, var(--pool-accent) 8%, transparent);
+  font-size: .84rem;
+  line-height: 1.35;
+}
+.pool-page .pool-project--featured > h3 { flex: 0 1 14rem; margin: 0; color: var(--forest-ink); font: 600 1.3rem/1.1 var(--forest-display); }
+.pool-page .pool-project--featured > :not(h3) { flex: 0 1 auto; margin-block: 0; }
+.pool-page .pool-project--featured > .pool-tier { flex-basis: 12rem; }
+.pool-page .pool-project--featured > .pool-readiness { flex: 1 1 16rem; }
+.pool-page .pool-project--featured > .pool-bindings { flex: 1 1 100%; }
+.pool-page .pool-project-list--ranked,
+.pool-page .pool-project-list--unranked { display: grid; gap: 0; }
+.pool-page .pool-project--ranked,
+.pool-page .pool-project--unranked { display: grid; grid-template-columns: minmax(12rem, .8fr) minmax(0, 2fr); column-gap: 1rem; padding-block: .55rem; border-top: 1px solid var(--forest-line); }
+.pool-page .pool-project--ranked > h3,
+.pool-page .pool-project--unranked > h3 { grid-row: 1 / span 12; margin-block: 0; }
+.pool-page .pool-project--ranked > p,
+.pool-page .pool-project--unranked > p,
+.pool-page .pool-project--ranked > ul,
+.pool-page .pool-project--unranked > ul { grid-column: 2; }
+.pool-page .pool-project--unranked { opacity: .78; }
+.pool-page .pool-project { padding-block: .55rem; }
+.pool-page .pool-project p { margin-block: .18rem; color: var(--forest-soft); }
+.pool-page .pool-project h3 { color: var(--forest-ink); font-family: var(--forest-display); }
+.pool-page .pool-tier { margin-block: 0 .25rem !important; color: var(--pool-accent); font: 500 .68rem/1.2 var(--forest-sans); letter-spacing: .1em; text-transform: uppercase; }
+.pool-page .pool-status { color: var(--forest-ink) !important; font-weight: 600; }
+.pool-page .pool-readiness { font-size: .92em; }
+.pool-page .pool-readiness[data-readiness-state="Shipped"] { color: var(--forest-moss) !important; font-weight: 600; }
+.pool-page .pool-readiness[data-readiness-state="In progress"] { color: var(--forest-amber) !important; font-weight: 600; }
+.pool-page .pool-readiness[data-readiness-state="UNKNOWN"] { color: var(--forest-rose) !important; font-weight: 600; }
+.pool-page .pool-bindings { overflow-wrap: anywhere; }
+.pool-page .pool-categories { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .55rem 1rem; margin: 0; padding: 0; list-style: none; }
+.pool-page .pool-categories li { margin: 0; padding: .65rem .75rem; border-left: 2px solid color-mix(in srgb, var(--pool-accent) 62%, transparent); background: rgba(255,255,255,.025); color: var(--forest-soft); }
+.pool-page [role="tablist"] { display: flex; gap: .55rem; flex-wrap: wrap; margin-block: .8rem; }
+.pool-page [role="tab"] { padding: .55rem .8rem; border: 1px solid var(--forest-line); border-radius: 999px; background: rgba(255,255,255,.03); color: var(--forest-soft); font: 500 .78rem/1 var(--forest-sans); cursor: pointer; }
+.pool-page [role="tab"][aria-selected="true"] { border-color: color-mix(in srgb, var(--pool-accent) 65%, transparent); background: color-mix(in srgb, var(--pool-accent) 14%, transparent); color: var(--forest-ink); }
+.pool-page [role="tabpanel"] { padding: .5rem 0; }
+.pool-page nav ul { display: flex; flex-wrap: wrap; gap: .55rem 1.1rem; padding: 0; list-style: none; }
+.pool-page nav [aria-current="page"] { color: var(--pool-accent); font-weight: 700; }
+.pool-page .narrative-spine { margin-block: .6rem; padding-block: .5rem; }
+
+/* Existing Forest themes provide the per-pool accent pairing and geometry.
+ * These variables select those established theme colours. */
+main[data-pool-id="growingapp"] { --pool-accent: #ffd15a; --pool-accent-2: #ff8fb4; --pool-enter-shift: 22px; --pool-enter-tilt: -1deg; --pool-enter-duration: 720ms; }
+main[data-pool-id="ai-d-kit"] { --pool-accent: #73e9ff; --pool-accent-2: #a9b2ff; --pool-enter-shift: 14px; --pool-enter-tilt: .5deg; --pool-enter-duration: 620ms; }
+main[data-pool-id="tinkerbox"] { --pool-accent: #ac90ff; --pool-accent-2: #8fe6ae; --pool-enter-shift: 18px; --pool-enter-tilt: 1deg; --pool-enter-duration: 680ms; }
+main[data-pool-id="health"] { --pool-accent: #ff7fb0; --pool-accent-2: #60ecc1; --pool-enter-shift: 26px; --pool-enter-tilt: -1.5deg; --pool-enter-duration: 760ms; }
+main[data-pool-id="design-gallery"] { --pool-accent: #e084ff; --pool-accent-2: #eedcb8; --pool-enter-shift: 12px; --pool-enter-tilt: 1.5deg; --pool-enter-duration: 640ms; }
+main[data-pool-id="artificial-self"] { --pool-accent: #a78bfa; --pool-accent-2: #51ebff; --pool-enter-shift: 20px; --pool-enter-tilt: -.75deg; --pool-enter-duration: 700ms; }
+main[data-pool-id="my-story"] { --pool-accent: #7ee2ff; --pool-accent-2: #a9b2ff; --pool-enter-shift: 24px; --pool-enter-tilt: 1deg; --pool-enter-duration: 820ms; }
+
+@media (max-width: 42rem) {
+  .pool-page > header,
+  .pool-page main { width: min(100% - 24px, 1180px); }
+  .pool-page > header { padding-top: 10px; }
+  .pool-page main { padding-top: 16px; }
+  .pool-page h1 { font-size: clamp(2.8rem, 12vw, 4.2rem); }
+  .pool-page .pool-guide,
+  .pool-page .pool-reality-grid,
+  .pool-page .pool-categories { display: block; }
+  .pool-page .pool-guide-block,
+  .pool-page .pool-reality-note,
+  .pool-page .pool-reality-grid { margin-block: .75rem; }
+  .pool-page .pool-reality { margin-block: .5rem; }
+  .pool-page .pool-project-list--featured { grid-template-columns: 1fr; }
+  .pool-page .pool-project--featured { display: block; }
+  .pool-page .pool-project--ranked,
+  .pool-page .pool-project--unranked { display: block; }
+  .pool-page .pool-project--ranked > h3,
+  .pool-page .pool-project--unranked > h3 { margin-block: 0 .35rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pool-page h1 { animation: none; }
+  .pool-page .forest-scene { opacity: .26; }
+}

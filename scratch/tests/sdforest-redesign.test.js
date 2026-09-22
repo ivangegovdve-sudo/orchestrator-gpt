@@ -157,7 +157,9 @@ test('every live pool link resolves to a static page with a Forest return path',
     const page = read(relativePath);
     assert.match(page, /href="\/">Back to SD Forest/);
     assert.match(page, /data-pool-id="/);
-    assert.doesNotMatch(page, /forest-motion|forest-runtime|forest-trails|forest-navigation/);
+    assert.match(page, /data-forest-runtime="motion"/);
+    assert.match(page, /forest-runtime-boot\.mjs\?v=20260807a/);
+    assert.match(page, /data-forest-page="[^"]+"/);
   }
 });
 
