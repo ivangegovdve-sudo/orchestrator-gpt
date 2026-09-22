@@ -73,7 +73,8 @@ function onScroll() {
   if (!scrub || scrollFrame) return;
   scrollFrame = requestAnimationFrame(() => {
     scrollFrame = 0;
-    seek(-1 + scrollY / (innerHeight * 1.25) * 6);
+    const runway = parseFloat(getComputedStyle(stage.parentElement).paddingBottom) || innerHeight * 1.25;
+    seek(-1 + scrollY / runway * 6);
   });
 }
 function openStatic() {

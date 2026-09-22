@@ -21,14 +21,14 @@
 .resolve-title small { display:block; margin-top:12px; font:italic 400 clamp(14px,min(1.6vw,2.8vh),30px)/1.2 var(--theme-home-body); letter-spacing:.2em; background:linear-gradient(100deg,var(--focus-ring) 20%,var(--accent-green) 85%); color:transparent; background-clip:text; }
 .resolve-directory { position:absolute; inset:0; z-index:4; pointer-events:none; }
 .resolve-directory nav { position:absolute; inset:0; }
-.resolve-home .portal { --pool-accent:var(--focus-ring); --arrival-x:0px; --arrival-y:20px; --arrival-turn:0deg; --arrival-scale:1; position:absolute; display:flex; align-items:center; gap:22px; width:29vw; min-height:124px; padding:12px 16px; border:0; border-radius:var(--radius); color:var(--theme-home-ink); background:transparent; pointer-events:auto; isolation:isolate; }
+.resolve-home .portal { --pool-accent:var(--focus-ring); --arrival-x:0px; --arrival-y:20px; --arrival-turn:0deg; --arrival-scale:1; position:absolute; display:flex; align-items:center; gap:22px; width:min(29vw,calc(46.3vw - 58vh * 226 / 214 / 2 - 32px)); min-height:124px; padding:12px 16px; border:0; border-radius:var(--radius); color:var(--theme-home-ink); background:transparent; pointer-events:auto; isolation:isolate; }
 .resolve-home .portal:nth-child(-n+3) { left:3.7vw; flex-direction:row-reverse; text-align:right; }
 .resolve-home .portal:nth-child(n+4):nth-child(-n+6) { right:3.7vw; }
 .resolve-home .portal:nth-child(1),.resolve-home .portal:nth-child(4) { top:28vh; }
 .resolve-home .portal:nth-child(2),.resolve-home .portal:nth-child(5) { top:46.5vh; }
 .resolve-home .portal:nth-child(3),.resolve-home .portal:nth-child(6) { top:65vh; }
 .resolve-home .portal:nth-child(7) { left:50%; top:83.8vh; translate:-50% 0; width:34vw; min-height:112px; justify-content:center; text-align:left; }
-.resolve-home .portal-copy { display:block; }
+.resolve-home .portal-copy { display:block; min-width:0; overflow-wrap:anywhere; }
 .resolve-home .portal-name { display:block; font:500 clamp(26px,2.15vw,42px)/1.05 var(--theme-home-display); letter-spacing:-.02em; }
 .resolve-home .portal-meta { display:block; margin-top:8px; color:var(--theme-home-soft); font:400 clamp(15px,1.1vw,21px)/1.25 var(--theme-home-body); }
 .resolve-home .portal-tag { position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap; }
@@ -63,6 +63,8 @@
 .resolve-history button[aria-label="Send feedback"] { position:static !important; box-shadow:none !important; }
 .resolve-home .dh-root:not(.is-previewing) .dh-banner { visibility:hidden; }
 .resolve-home .dh-root { visibility:var(--resolve-utilities-visibility,visible); }
+html[data-resolve-state="resolving"] .resolve-home .dh-root,
+html[data-resolve-state="dissolving"] .resolve-home .dh-root { display:none; }
 .resolve-home .dh-launch { position:static; }
 .resolve-scroll-cue { position:absolute; bottom:32px; left:50%; translate:-50%; font-size:18px; letter-spacing:.06em; display:none; text-align:center; }
 .resolve-scroll-cue span { display:block; margin-top:8px; }
@@ -81,15 +83,26 @@ html[data-resolve-motion="scrub"] .resolve-scroll-cue { display:block; opacity:v
   .resolve-home .portal { gap:12px; padding:8px; }
   .resolve-home .portal-meta { font-size:15px; }
 }
+/* When the side gutters cannot hold readable entries, keep the same tree and flow below it. */
+@media (min-width:801px) and (max-aspect-ratio:3/2) {
+  .resolve-stage { height:auto; min-height:100vh; padding-bottom:28px; overflow-x:clip; overflow-y:visible; }
+  .resolve-directory { position:relative; inset:auto; padding:calc(83vh + 24px) 3.7vw 0; }
+  .resolve-directory nav { position:relative; inset:auto; display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px 24px; }
+  .resolve-home .portal:nth-child(n) { position:relative; top:auto; left:auto; right:auto; translate:none; width:100%; min-height:100px; flex-direction:row; text-align:left; justify-content:flex-start; }
+  .resolve-home .portal:nth-child(7) { grid-column:1 / -1; }
+  .resolve-controls { position:relative; left:auto; bottom:auto; margin:24px 3.7vw 0; }
+  .resolve-history { position:relative; right:auto; bottom:auto; margin:12px 3.7vw 0; }
+  html[data-resolve-motion="scrub"] .resolve-scroll { height:auto; padding-bottom:125vh; }
+}
 @media (max-width:800px) {
-  .resolve-stage { height:auto; min-height:100vh; padding-bottom:80px; overflow:hidden; }
+  .resolve-stage { height:auto; min-height:100svh; padding-bottom:80px; overflow-x:clip; overflow-y:visible; }
   .resolve-brand { top:16px; left:20px; font-size:10px; }
-  .resolve-title { top:3.5vh; font-size:clamp(32px,min(11vw,5.5vh),76px); }
+  .resolve-title { top:3.5svh; font-size:clamp(32px,min(11vw,5.5svh),76px); }
   .resolve-title small { margin-top:5px; font-size:16px; letter-spacing:.14em; }
   .resolve-tree { top:28vh; width:min(68vw,32vh); height:calc(min(68vw,32vh) * 214 / 226); }
-  .resolve-field { height:48vh; }
+  .resolve-field { height:48svh; }
   .resolve-field svg { opacity:.4; }
-  .resolve-directory { position:relative; inset:auto; padding-top:max(46vh,calc(28vh + min(68vw,32vh) * 214 / 226 / 2 + 24px)); margin:0 20px; }
+  .resolve-directory { position:relative; inset:auto; padding-top:max(46svh,calc(28vh + min(68vw,32vh) * 214 / 226 / 2 + 24px)); margin:0 20px; }
   .resolve-directory nav { position:relative; inset:auto; display:grid; gap:3px; }
   .resolve-home .portal:nth-child(n) { position:relative; top:auto; left:auto; right:auto; translate:none; width:100%; min-height:64px; padding:8px 4px; flex-direction:row; text-align:left; gap:16px; justify-content:flex-start; border-bottom:1px solid var(--border); border-radius:0; }
   .resolve-home .portal-name { font-size:26px; }
@@ -100,14 +113,18 @@ html[data-resolve-motion="scrub"] .resolve-scroll-cue { display:block; opacity:v
   .resolve-controls { position:relative; left:auto; bottom:auto; margin:24px 24px 0; font-size:12px; }
   .resolve-history { position:relative; right:auto; bottom:auto; margin:12px 24px 0; }
   .resolve-history .dh-launch { margin:0; }
-  html[data-resolve-motion="scrub"] .resolve-scroll { height:calc(225vh + 560px); }
-  html[data-resolve-motion="scrub"] .resolve-stage { height:calc(100vh + 560px); }
-  .resolve-scroll-cue { top:80vh; bottom:auto; }
+  html[data-resolve-motion="scrub"] .resolve-scroll { height:auto; padding-bottom:125svh; }
+  html[data-resolve-motion="scrub"] .resolve-stage { height:auto; min-height:calc(100svh + 560px); }
+  .resolve-scroll-cue { top:80svh; bottom:auto; }
   .resolve-existing-copy { font-size:16px; padding:24px; }
 }
 @media (max-width:800px) and (orientation:landscape) {
   .resolve-tree { top:40vh; }
-  .resolve-directory { padding-top:max(58vh,calc(40vh + min(68vw,32vh) * 214 / 226 / 2 + 24px)); }
+  .resolve-directory { padding-top:max(58svh,calc(40vh + min(68vw,32vh) * 214 / 226 / 2 + 24px)); }
+}
+@media (max-width:800px) and (max-height:480px) and (orientation:portrait) {
+  .resolve-title { top:0; font-size:26px; }
+  .resolve-title small { margin-top:0; font-size:14px; }
 }
 html:not([data-resolve-motion]) .resolve-home *, html:not([data-resolve-motion]) .resolve-home *::before, html:not([data-resolve-motion]) .resolve-home *::after { animation:none !important; }
 @media (prefers-reduced-motion:reduce) {
