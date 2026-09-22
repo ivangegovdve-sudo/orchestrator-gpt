@@ -78,3 +78,25 @@ test('normalization requires review for active publication but keeps expiry hist
   assert.deepEqual(result.archive.map(({ id }) => id), ['ended']);
   assert.deepEqual(result.unverified.map(({ id }) => id), ['unreviewed']);
 });
+
+test('promotion rows keep details behind an on-demand disclosure', async () => {
+  const { renderOffer } = await offers;
+  const html = renderOffer({
+    id: 'dense-row',
+    kind: 'time_boxed',
+    title: 'Ten dollars of credits',
+    provider: 'Example provider',
+    summary: 'Description is available after expanding the row.',
+    expires_at: '2026-09-30T00:00:00Z',
+    url: 'https://example.com/claim',
+  }, 'active');
+
+  assert.match(html, /class="offer-row offer-card offer-active"/);
+  assert.match(html, /<details class="offer-disclosure">/);
+  assert.match(html, /<summary class="offer-summary">/);
+  assert.match(html, /Example provider/);
+  assert.match(html, /Ten dollars of credits/);
+  assert.match(html, /Description is available after expanding/);
+  assert.match(html, /https:\/\/example\.com\/claim/);
+  assert.equal((html.match(/offer-description/g) || []).length, 1);
+});
