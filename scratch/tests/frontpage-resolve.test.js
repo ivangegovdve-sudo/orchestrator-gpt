@@ -4,7 +4,7 @@ const fs = require('node:fs');
 const http = require('node:http');
 const path = require('node:path');
 const { chromium } = require('playwright');
-const ROOT = path.resolve(__dirname, '../..');
+const ROOT = path.resolve(process.env.SDFOREST_TEST_ROOT || path.join(__dirname, '../..'));
 let server, browser, base;
 before(async () => {
   server = http.createServer((req, res) => {
@@ -30,6 +30,120 @@ async function pageAt(query, options = {}) {
 async function opacity(page, selector) {
   return page.locator(selector).evaluate(el=>Number(getComputedStyle(el).opacity));
 }
+
+// Observe actual scheduling/reads without replacing their browser behaviour.
+async function ambientPage(options = {}) {
+  const page = await browser.newPage({viewport:{width:1920,height:1080}, ...options});
+  await page.addInitScript(() => {
+    const pending = new Set();
+    const request = window.requestAnimationFrame.bind(window);
+    const cancel = window.cancelAnimationFrame.bind(window);
+    window.frameProbe = {max:0, calls:0, reads:0, pending:()=>pending.size};
+    window.requestAnimationFrame = callback => {
+      const id = request(time => { pending.delete(id); frameProbe.calls++; callback(time); });
+      pending.add(id); frameProbe.max = Math.max(frameProbe.max,pending.size); return id;
+    };
+    window.cancelAnimationFrame = id => { pending.delete(id); cancel(id); };
+    for (const name of ['getBoundingClientRect','getClientRects']) {
+      const original = Element.prototype[name];
+      Element.prototype[name] = function(...args) { frameProbe.reads++; return original.apply(this,args); };
+    }
+    const computed = window.getComputedStyle;
+    window.getComputedStyle = (...args) => { frameProbe.reads++; return computed(...args); };
+  });
+  await page.goto(base+'/?frame=opened',{waitUntil:'networkidle'});
+  return page;
+}
+
+test('ambient moves around a fixed tree and Pause motion freezes every decorative layer', async () => {
+  const page = await ambientPage();
+  const tree = await page.locator('.resolve-tree').boundingBox();
+  assert.equal(await page.locator('.resolve-ambient[aria-hidden="true"][inert]').count(),1);
+  const styles = () => page.locator('[data-wind-grass], [data-ambient-mote]').evaluateAll(es=>es.map(e=>e.getAttribute('style')));
+  const before = await styles();
+  await page.waitForTimeout(850);
+  assert.notDeepEqual(await styles(),before,'the opened scene must actually breathe');
+  assert.deepEqual(await page.locator('.resolve-tree').boundingBox(),tree);
+  await page.getByRole('button',{name:'Pause motion',exact:true}).click();
+  const held = await styles();
+  const calls = await page.evaluate(()=>frameProbe.calls);
+  await page.waitForTimeout(200);
+  assert.deepEqual(await styles(),held);
+  assert.equal(await page.evaluate(()=>frameProbe.calls),calls,'paused means no idle rAF loop');
+  assert.equal(await page.evaluate(()=>document.getAnimations().filter(a=>a.playState==='running').length),0);
+  await page.getByRole('button',{name:'Resume motion',exact:true}).click();
+  await page.waitForTimeout(850);
+  assert.notDeepEqual(await styles(),held);
+  assert.equal(await page.evaluate(()=>frameProbe.max),1,'feedback and scrub cannot own another rAF');
+  await page.close();
+});
+
+test('ambient does not measure layout at rest, obscure navigation, or run offscreen', async () => {
+  const page = await ambientPage({viewport:{width:390,height:844}});
+  await page.evaluate(()=>{frameProbe.reads=0;});
+  await page.waitForTimeout(200);
+  assert.equal(await page.evaluate(()=>frameProbe.reads),0);
+  assert.equal(await page.locator('[data-ambient-mote]:visible').count(),3);
+  assert.equal(await page.locator('.resolve-ambient').evaluate(e=>getComputedStyle(e).pointerEvents),'none');
+  await page.locator('[data-pool-link="health"]').click();
+  assert.equal(await page.getByRole('button',{name:'Enter Health',exact:true}).isVisible(),true);
+  await page.evaluate(()=>scrollTo(0,document.body.scrollHeight));
+  await page.waitForFunction(()=>frameProbe.pending()===0);
+  const calls = await page.evaluate(()=>frameProbe.calls);
+  await page.waitForTimeout(150);
+  assert.equal(await page.evaluate(()=>frameProbe.calls),calls);
+  await page.evaluate(()=>scrollTo(0,0));
+  await page.waitForFunction(count=>frameProbe.calls>count,calls);
+  await page.close();
+});
+
+test('reduced motion, zero strength and no JS keep composed ground without moving air', async () => {
+  for (const options of [{reducedMotion:'reduce'}, {javaScriptEnabled:false}]) {
+    const page = await pageAt('?frame=opened',options);
+    assert.ok(await page.locator('.ambient-ground').isVisible());
+    assert.equal(await opacity(page,'.resolve-ambient'),1);
+    assert.equal(await page.locator('[data-ambient-mote]').evaluateAll(es=>es.every(e=>getComputedStyle(e).opacity==='0')),true);
+    await page.close();
+  }
+  const page = await ambientPage();
+  await page.evaluate(()=>document.documentElement.style.setProperty('--ambient-strength','0'));
+  await page.waitForFunction(()=>frameProbe.pending()===0);
+  const before = await page.locator('[data-wind-grass]').evaluateAll(es=>es.map(e=>e.style.transform));
+  await page.waitForTimeout(200);
+  assert.deepEqual(await page.locator('[data-wind-grass]').evaluateAll(es=>es.map(e=>e.style.transform)),before);
+  await page.evaluate(()=>document.documentElement.style.setProperty('--ambient-strength','0.5'));
+  await page.waitForFunction(()=>frameProbe.pending()===1);
+  await page.close();
+});
+
+test('rewind suspends ambient and visibility changes resume without a catch-up jump', async () => {
+  const page = await ambientPage();
+  await page.evaluate(()=>window.sdforestResolve.seek(0));
+  assert.equal(await opacity(page,'.resolve-ambient'),0);
+  assert.equal(await page.evaluate(()=>frameProbe.pending()),0);
+  await page.evaluate(()=>window.sdforestResolve.seek(5));
+  await page.waitForTimeout(150);
+  // Supply the visibility boundary event; the native rAF scheduler stays real.
+  await page.evaluate(()=>{
+    Object.defineProperty(document,'hidden',{configurable:true,value:true});
+    document.dispatchEvent(new Event('visibilitychange'));
+  });
+  assert.equal(await page.evaluate(()=>frameProbe.pending()),0);
+  const before = await page.locator('[data-ambient-mote]').first().getAttribute('style');
+  const calls = await page.evaluate(()=>frameProbe.calls);
+  await page.waitForTimeout(250);
+  assert.equal(await page.evaluate(()=>frameProbe.calls),calls);
+  await page.evaluate(()=>{
+    delete document.hidden;
+    document.dispatchEvent(new Event('visibilitychange'));
+  });
+  await page.waitForFunction(count=>frameProbe.calls>count,calls);
+  // Inspect the first resumed sample, not an imagined elapsed hidden duration.
+  const after = await page.locator('[data-ambient-mote]').first().getAttribute('style');
+  const y = style => Number(style.match(/,\s*(-?[\d.]+)px,\s*0/)[1]);
+  assert.ok(Math.abs(y(after)-y(before)) < .3,'resume must hold ambient time');
+  await page.close();
+});
 test('resolve holds only the centred tree; opening never shifts or scales it', async () => {
   const page = await pageAt('?frame=resolve');
   const before = await page.locator('[data-title-crown]').boundingBox();

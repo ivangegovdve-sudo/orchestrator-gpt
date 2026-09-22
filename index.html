@@ -177,6 +177,22 @@
       <img src="/web/assets/sdforest-resolve/mist.png" alt="" width="864" height="480">
       <img src="/web/assets/sdforest-resolve/landscape.png" alt="" width="864" height="480">
     </div>
+    <div class="resolve-ambient" aria-hidden="true" inert>
+      <div class="ambient-ground">
+      <svg viewBox="0 0 240 54" focusable="false">
+        <path class="ambient-moss-shadow" d="M9 47Q25 40 49 43Q66 33 90 39Q111 34 132 39Q155 32 173 41Q203 37 229 48Q199 54 170 50Q147 54 120 50Q87 55 62 49Q30 53 9 47Z"/>
+        <path class="ambient-moss" d="M35 45Q42 38 54 42Q64 34 78 40Q84 35 99 41L118 44Q136 34 147 40Q159 35 167 42Q180 37 189 43Q202 40 210 46Q183 48 164 45Q138 49 117 46Q94 49 73 44Q54 48 35 45Z"/>
+      </svg>
+        <span data-wind-grass="1.7" class="ambient-grass ambient-grass-far"><svg viewBox="0 0 240 54" focusable="false"><path d="M51 45Q48 32 40 29M52 45Q52 34 57 32M60 44Q63 33 70 29M63 44Q64 38 61 35"/></svg></span>
+        <span data-wind-grass="0.4" class="ambient-grass"><svg viewBox="0 0 240 54" focusable="false"><path d="M87 44Q88 30 80 22M89 43Q92 32 99 28M98 44Q99 34 96 30M105 44Q105 37 109 34"/></svg></span>
+        <span data-wind-grass="0.6" class="ambient-grass"><svg viewBox="0 0 240 54" focusable="false"><path d="M141 44Q137 29 144 24M143 44Q147 33 155 30M150 44Q153 35 151 31M133 44Q130 36 125 33"/></svg></span>
+        <span data-wind-grass="2.3" class="ambient-grass ambient-grass-far"><svg viewBox="0 0 240 54" focusable="false"><path d="M177 45Q178 34 187 29M175 45Q172 37 169 34M188 46Q193 37 201 36M186 45Q186 39 182 36"/></svg></span>
+      </div>
+      <div class="ambient-air">
+        <i data-ambient-mote></i><i data-ambient-mote></i><i data-ambient-mote></i>
+        <i data-ambient-mote></i><i data-ambient-mote></i><i data-ambient-mote></i>
+      </div>
+    </div>
     <div class="resolve-field" data-arrival="field" aria-hidden="true">
       <svg viewBox="0 0 1920 1080" preserveAspectRatio="none" focusable="false">
         <ellipse cx="960" cy="580" rx="465" ry="387"/>
@@ -218,9 +234,10 @@
     </div>
     <nav class="resolve-controls" data-arrival="portfolio" aria-label="Site controls">
       <a data-site-control="portfolio" href="https://vfxportfolio.lovable.app" target="_blank" rel="noopener">Portfolio — opens in a new tab</a>
+      <button class="resolve-motion-toggle" type="button" hidden>Pause motion</button>
     </nav>
     <a class="resolve-scroll-cue" href="#atlas">Explore the pools<span aria-hidden="true">↓</span></a>
-    <div class="resolve-history" data-arrival="history" data-design-history-slot></div>
+    <div class="resolve-history" data-arrival="history" data-design-history-slot data-feedback-slot></div>
   </section>
 </main>
 <div class="resolve-existing-copy">

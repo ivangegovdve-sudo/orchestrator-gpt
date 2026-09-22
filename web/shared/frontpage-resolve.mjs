@@ -1,4 +1,5 @@
 // Terminal-sequence clock. It never grows, replaces, or moves the supplied tree.
+import { createAmbient } from './frontpage-ambient.mjs';
 const root = document.documentElement;
 const stage = document.querySelector('[data-resolve-stage]');
 const directory = document.querySelector('[data-pool-directory]');
@@ -13,8 +14,81 @@ const feedback = document.querySelector('button[aria-label="Send feedback"]');
 if (feedback) document.querySelector('.resolve-history').append(feedback);
 let selected = null;
 let current = 5;
-let scrollFrame = 0;
 let scrub = !reduced.matches && !frame && !location.hash && scrollY === 0;
+const ambient = createAmbient(stage);
+const motionButton = document.querySelector('.resolve-motion-toggle');
+const compact = matchMedia('(max-width:800px)');
+let frameId = 0;
+let dirtyScroll = false;
+let elapsed = 0;
+let lastStamp = null;
+let lastPaint = -Infinity;
+let onScreen = true;
+let paused = false;
+let running = false;
+let strength = .65;
+let runway = innerHeight * 1.25;
+let inlineStrength = root.style.getPropertyValue('--ambient-strength');
+
+function measureSettings() {
+  runway = parseFloat(getComputedStyle(stage.parentElement).paddingBottom) || innerHeight * 1.25;
+  const configured = Number.parseFloat(getComputedStyle(root).getPropertyValue('--ambient-strength'));
+  strength = Number.isFinite(configured) ? clamp(configured) : .65;
+  ambient.compact(compact.matches);
+}
+function canBreathe() {
+  return current >= 4.4 && !reduced.matches && !paused && !document.hidden && onScreen && strength > 0;
+}
+function syncMotion() {
+  const wasRunning = running;
+  running = canBreathe();
+  if (running && !wasRunning) lastPaint = -Infinity;
+  ambient.phase(running ? 'running' : reduced.matches || strength === 0 ? 'still' : paused ? 'paused' : 'waiting');
+  if (motionButton.disabled !== reduced.matches) motionButton.disabled = reduced.matches;
+  const label = reduced.matches ? 'Motion off' : paused ? 'Resume motion' : 'Pause motion';
+  if (motionButton.textContent !== label) motionButton.textContent = label;
+  if (reduced.matches || strength === 0) ambient.render(0,0);
+  if (!running) lastStamp = null;
+  if (document.hidden || (!running && !dirtyScroll)) {
+    if (frameId) cancelAnimationFrame(frameId);
+    frameId = 0;
+  } else if (!frameId) frameId = requestAnimationFrame(tick);
+}
+function tick(stamp) {
+  frameId = 0;
+  if (!dirtyScroll && running && stamp - lastPaint < 650) {
+    frameId = requestAnimationFrame(tick);
+    return;
+  }
+  if (dirtyScroll) {
+    dirtyScroll = false;
+    // The scroll track can change independently of viewport size. Read only on
+    // a dirty scrub, never in the ambient-only path.
+    runway = parseFloat(getComputedStyle(stage.parentElement).paddingBottom) || innerHeight * 1.25;
+    seek(-1 + scrollY / runway * 6);
+    ambient.reveal(current);
+    syncMotion();
+  }
+  if (running) {
+    // Hold time while paused/offscreen; a delayed frame cannot produce a gust jump.
+    if (lastStamp !== null) elapsed += Math.min((stamp - lastStamp) / 1000,.8);
+    lastStamp = stamp;
+    // Nine-second wind and <1.3px/sec motes need only ~1.5 visual samples/sec:
+    // even the nearest mote advances <0.9px. Scrubbing still runs at frame rate.
+    if (stamp - lastPaint >= 650) {
+      ambient.render(elapsed,strength);
+      lastPaint = stamp;
+    }
+    if (!frameId) frameId = requestAnimationFrame(tick);
+  } else {
+    syncMotion();
+  }
+}
+function sample(seconds) {
+  seek(seconds);
+  ambient.reveal(current);
+  syncMotion();
+}
 
 function expose(element, progress) {
   element.style.opacity = String(progress);
@@ -70,25 +144,36 @@ function seek(seconds) {
   positionEnter();
 }
 function onScroll() {
-  if (!scrub || scrollFrame) return;
-  scrollFrame = requestAnimationFrame(() => {
-    scrollFrame = 0;
-    const runway = parseFloat(getComputedStyle(stage.parentElement).paddingBottom) || innerHeight * 1.25;
-    seek(-1 + scrollY / runway * 6);
-  });
+  if (scrub) dirtyScroll = true;
+  syncMotion();
 }
 function openStatic() {
   scrub = false;
   root.dataset.resolveMotion = 'static';
-  seek(5);
+  sample(5);
 }
 root.dataset.resolveMotion = scrub ? 'scrub' : 'static';
-seek(reduced.matches ? 5 : frame === 'resolve' ? 0 : frame === 'hinge' ? -.5 : scrub ? -1 : 5);
-window.sdforestResolve = Object.freeze({ seek, open:openStatic, get time() { return current; } });
+measureSettings();
+motionButton.hidden = false;
+sample(reduced.matches ? 5 : frame === 'resolve' ? 0 : frame === 'hinge' ? -.5 : scrub ? -1 : 5);
+window.sdforestResolve = Object.freeze({ seek:sample, open:openStatic, get time() { return current; } });
 addEventListener('scroll',onScroll,{passive:true});
-addEventListener('resize',() => { if (scrub) onScroll(); positionEnter(); });
+addEventListener('resize',() => { measureSettings(); onScroll(); positionEnter(); });
 addEventListener('pageshow',event => { if (event.persisted || (!frame && scrollY > 0)) openStatic(); });
-reduced.addEventListener('change',event => { if (event.matches) openStatic(); });
+reduced.addEventListener('change',event => { if (event.matches) openStatic(); else syncMotion(); });
+document.addEventListener('visibilitychange',syncMotion);
+new IntersectionObserver(entries => {
+  onScreen = entries[0].isIntersecting;
+  syncMotion();
+}).observe(document.querySelector('.resolve-tree'));
+motionButton.addEventListener('click',() => { paused = !paused; syncMotion(); });
+new MutationObserver(() => {
+  const next = root.style.getPropertyValue('--ambient-strength');
+  if (next === inlineStrength) return;
+  inlineStrength = next;
+  measureSettings();
+  syncMotion();
+}).observe(root,{attributes:true,attributeFilter:['style']});
 document.querySelectorAll('a[href="#atlas"]').forEach(link => link.addEventListener('click',() => {
   openStatic();
   directory.querySelector('a').focus({preventScroll:true});
@@ -110,4 +195,4 @@ enter.addEventListener('click',() => { if (selected) location.assign(selected.hr
 document.addEventListener('keydown',event => { if (event.key === 'Escape') { const prior = selected; closeSelection(); prior?.focus(); } });
 document.addEventListener('click',event => { if (!event.target.closest('.resolve-directory')) closeSelection(); });
 // A separate directory module may reorder the native anchors; arrival order follows it.
-new MutationObserver(() => seek(current)).observe(directory,{childList:true});
+new MutationObserver(() => sample(current)).observe(directory,{childList:true});

@@ -1,4 +1,5 @@
 /* Front page only. Geometry is the video hand-off contract; see docs/frontpage-resolve.md. */
+:root { --ambient-strength:.65; }
 .resolve-home { margin:0; background:var(--theme-home-bg); color:var(--theme-home-ink); font-family:var(--theme-home-sans); }
 .resolve-home * { box-sizing:border-box; }
 .resolve-home a { color:inherit; text-decoration:none; }
@@ -33,8 +34,9 @@
 .resolve-home .portal-meta { display:block; margin-top:8px; color:var(--theme-home-soft); font:400 clamp(15px,1.1vw,21px)/1.25 var(--theme-home-body); }
 .resolve-home .portal-tag { position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap; }
 .pool-motif { display:grid; place-items:center; flex:0 0 clamp(60px,5.2vw,100px); height:clamp(60px,5.2vw,100px); border:1px solid color-mix(in srgb,var(--pool-accent) 60%,transparent); border-radius:50%; color:var(--pool-accent); position:relative; }
-.pool-motif::before { content:""; position:absolute; inset:7px; border:1px solid currentColor; border-radius:50%; opacity:.15; animation:resolve-breathe 5s ease-in-out infinite; }
-.pool-motif::after { content:""; position:absolute; inset:-6px; border-top:1px solid currentColor; border-radius:50%; opacity:.3; animation:resolve-orbit 18s linear infinite; }
+.pool-motif::before,.motif-breath { content:""; position:absolute; inset:7px; border:1px solid currentColor; border-radius:50%; opacity:.22; pointer-events:none; }
+.pool-motif::after,.motif-rim { content:""; position:absolute; inset:-6px; border-top:1px solid currentColor; border-radius:50%; opacity:.3; pointer-events:none; }
+.pool-motif:has(.motif-rim)::before,.pool-motif:has(.motif-rim)::after { display:none; }
 .pool-motif svg { width:62%; height:62%; fill:none; stroke:currentColor; stroke-width:1.2; stroke-linecap:round; stroke-linejoin:round; }
 .resolve-home .portal[data-pool-link="ai-d-kit"],.resolve-home .portal[data-pool-link="health"],.resolve-home .portal[data-pool-link="artificial-self"] { --pool-accent:var(--accent-green); }
 .resolve-home .portal[data-pool-link="growingapp"] { --arrival-y:30px; --arrival-scale:.94; }
@@ -46,19 +48,31 @@
 .resolve-home .portal[data-pool-link="my-story"] { --arrival-y:14px; }
 .resolve-home .portal:hover,.resolve-home .portal:focus-visible,.resolve-home .portal.is-selected { background:linear-gradient(110deg, rgb(79 70 229 / .07),rgb(34 197 94 / .035)); }
 .resolve-home .portal:hover .pool-motif,.resolve-home .portal:focus-visible .pool-motif,.resolve-home .portal.is-selected .pool-motif { box-shadow:0 0 34px color-mix(in srgb,var(--pool-accent) 13%,transparent); }
-.resolve-home .portal:hover .pool-motif::after,.resolve-home .portal:focus-visible .pool-motif::after { animation-duration:3s; opacity:.8; }
-.resolve-home .portal[data-pool-link="growingapp"]:hover svg { animation:resolve-sway 2s ease-in-out infinite; }
-.resolve-home .portal[data-pool-link="ai-d-kit"]:hover svg { animation:resolve-breathe 1.6s ease-in-out infinite; }
-.resolve-home .portal[data-pool-link="tinkerbox"]:hover svg { animation:resolve-sway 3s ease-in-out infinite; }
-.resolve-home .portal[data-pool-link="health"]:hover svg { animation:resolve-breathe 1s ease-in-out infinite; }
-.resolve-home .portal[data-pool-link="design-gallery"]:hover svg { animation:resolve-breathe 2.8s ease-in-out infinite; }
-.resolve-home .portal[data-pool-link="artificial-self"]:hover svg { animation:resolve-orbit 12s linear infinite; }
-.resolve-home .portal[data-pool-link="my-story"]:hover svg { animation:resolve-sway 5s ease-in-out infinite; }
+.resolve-home .portal:hover .pool-motif::after,.resolve-home .portal:focus-visible .pool-motif::after,
+.resolve-home .portal:hover .motif-rim,.resolve-home .portal:focus-visible .motif-rim { opacity:.8; }
 .resolve-home .portal.is-selected { outline:1px solid var(--pool-accent); outline-offset:2px; scale:1.025; padding-bottom:38px; }
 #pool-enter { position:absolute; z-index:8; pointer-events:auto; min-height:36px; min-width:88px; padding:6px 15px; border:1px solid var(--accent-green); border-radius:var(--radius); color:var(--text-primary); background:var(--surface); font:600 16px/1 var(--theme-home-sans); cursor:pointer; }
 .resolve-controls { position:absolute; left:2.5vw; bottom:28px; z-index:5; font-size:14px; letter-spacing:.04em; }
 .resolve-controls a { display:inline-flex; align-items:center; gap:12px; min-height:44px; border-bottom:1px solid var(--focus-ring); }
 .resolve-controls a::before { content:""; width:17px; height:17px; border:1px solid var(--focus-ring); background:linear-gradient(90deg,transparent 45%,var(--focus-ring) 45% 51%,transparent 51%),linear-gradient(transparent 45%,var(--focus-ring) 45% 51%,transparent 51%); }
+.resolve-controls { display:flex; flex-wrap:wrap; align-items:center; gap:8px 20px; }
+.resolve-motion-toggle { min-height:44px; padding:0; border:0; border-bottom:1px solid var(--border); background:none; color:var(--theme-home-soft); font:inherit; letter-spacing:inherit; cursor:pointer; }
+.resolve-motion-toggle:disabled { cursor:default; opacity:.65; }
+.resolve-ambient { position:absolute; inset:0; z-index:1; pointer-events:none; }
+.resolve-ambient * { pointer-events:none; }
+.ambient-ground { position:absolute; left:50vw; top:83vh; width:22vh; height:4.95vh; transform:translate(-50%,-100%); overflow:visible; }
+.ambient-ground svg { position:absolute; inset:0; width:100%; height:100%; }
+.ambient-moss-shadow { fill:#142a23; opacity:.55; }
+.ambient-moss { fill:#355747; opacity:.4; }
+.ambient-grass { position:absolute; inset:0; fill:none; stroke:#547b62; stroke-width:.9; stroke-linecap:round; opacity:.48; transform-origin:50% 85%; }
+.ambient-grass-far { opacity:.27; }
+.ambient-air { position:absolute; left:50vw; top:80vh; width:1px; height:1px; }
+[data-ambient-mote] { position:absolute; width:1.5px; height:1.5px; border-radius:50%; background:#b4c8ad; opacity:0; }
+[data-ambient-mote]:nth-child(3n) { width:2.5px; height:2.5px; filter:blur(.6px); }
+html[data-ambient-state="running"] .motif-breath { will-change:opacity; }
+html[data-ambient-state="running"] .motif-rim,
+html[data-ambient-state="running"] .ambient-grass { will-change:transform; }
+html[data-ambient-state="running"] [data-ambient-mote] { will-change:transform,opacity; }
 .resolve-history { position:absolute; right:2.5vw; bottom:28px; z-index:5; display:flex; gap:16px; align-items:center; }
 .resolve-history button[aria-label="Send feedback"] { position:static !important; box-shadow:none !important; }
 .resolve-home .dh-root:not(.is-previewing) .dh-banner { visibility:hidden; }
@@ -76,9 +90,6 @@ html[data-resolve-state="dissolving"] .resolve-home .dh-root { display:none; }
 html[data-resolve-motion="scrub"] .resolve-scroll { height:225vh; }
 html[data-resolve-motion="scrub"] .resolve-stage { position:sticky; top:0; }
 html[data-resolve-motion="scrub"] .resolve-scroll-cue { display:block; opacity:var(--resolve-cue,1); visibility:var(--resolve-cue-visibility,visible); }
-@keyframes resolve-breathe { 50% { opacity:.55; scale:.91; } }
-@keyframes resolve-orbit { to { rotate:360deg; } }
-@keyframes resolve-sway { 50% { rotate:7deg; } }
 @media (max-width:1000px) and (min-width:801px) {
   .resolve-home .portal { gap:12px; padding:8px; }
   .resolve-home .portal-meta { font-size:15px; }
@@ -101,6 +112,9 @@ html[data-resolve-motion="scrub"] .resolve-scroll-cue { display:block; opacity:v
   .resolve-title small { margin-top:5px; font-size:16px; letter-spacing:.14em; }
   .resolve-tree { top:28vh; width:min(68vw,32vh); height:calc(min(68vw,32vh) * 214 / 226); }
   .resolve-field { height:48svh; }
+  .ambient-ground { top:calc(28vh + min(68vw,32vh) * 214 / 226 / 2); width:min(26vw,13vh); height:calc(min(26vw,13vh) * 54 / 240); }
+  .ambient-air { top:calc(28vh + min(68vw,32vh) * 214 / 226 / 2 - 12px); }
+  [data-ambient-mote]:nth-child(n+4) { display:none; }
   .resolve-field svg { opacity:.4; }
   .resolve-directory { position:relative; inset:auto; padding-top:max(46svh,calc(28vh + min(68vw,32vh) * 214 / 226 / 2 + 24px)); margin:0 20px; }
   .resolve-directory nav { position:relative; inset:auto; display:grid; gap:3px; }
@@ -108,7 +122,7 @@ html[data-resolve-motion="scrub"] .resolve-scroll-cue { display:block; opacity:v
   .resolve-home .portal-name { font-size:26px; }
   .resolve-home .portal-meta { margin-top:3px; font-size:15px; }
   .pool-motif { flex-basis:44px; height:44px; }
-  .pool-motif::after { inset:-3px; }
+  .pool-motif::after,.motif-rim { inset:-3px; }
   .resolve-home .portal.is-selected { padding-bottom:46px; }
   .resolve-controls { position:relative; left:auto; bottom:auto; margin:24px 24px 0; font-size:12px; }
   .resolve-history { position:relative; right:auto; bottom:auto; margin:12px 24px 0; }
@@ -120,6 +134,8 @@ html[data-resolve-motion="scrub"] .resolve-scroll-cue { display:block; opacity:v
 }
 @media (max-width:800px) and (orientation:landscape) {
   .resolve-tree { top:40vh; }
+  .ambient-ground { top:calc(40vh + min(68vw,32vh) * 214 / 226 / 2); }
+  .ambient-air { top:calc(40vh + min(68vw,32vh) * 214 / 226 / 2 - 12px); }
   .resolve-directory { padding-top:max(58svh,calc(40vh + min(68vw,32vh) * 214 / 226 / 2 + 24px)); }
 }
 @media (max-width:800px) and (max-height:480px) and (orientation:portrait) {
