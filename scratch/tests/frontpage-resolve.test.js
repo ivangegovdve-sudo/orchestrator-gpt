@@ -142,3 +142,15 @@ test('short screens and portrait tablets keep the title clear of the tree', asyn
     await page.close();
   }
 });
+test('returning from a pool does not replay the terminal sequence', async () => {
+  const page = await pageAt('');
+  await page.evaluate(()=>scrollTo(0,innerHeight * 1.25));
+  await page.waitForFunction(()=>document.documentElement.dataset.resolveState === 'opened');
+  await page.locator('[data-pool-link="health"]').click();
+  await page.getByRole('button',{name:'Enter Health',exact:true}).click();
+  await page.waitForURL(base + '/web/pools/health/');
+  await page.goBack({waitUntil:'networkidle'});
+  assert.equal(await opacity(page,'.resolve-world'),0);
+  assert.equal(await opacity(page,'[data-pool-link="health"]'),1);
+  await page.close();
+});
