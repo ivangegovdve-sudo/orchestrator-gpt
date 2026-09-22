@@ -54,7 +54,7 @@ test('exactly seven static shells have independent accessible descriptions and a
   }
 });
 
-test('home manually authors only seven live pool links in canonical order and a separate Portfolio control', () => {
+test('home keeps seven live fallback links and loads the catalog-ranked directory', () => {
   const home = read('index.html');
   const directory = home.match(/<nav aria-label="Seven pools" data-pool-directory>([\s\S]*?)<\/nav>/)?.[1];
   assert.ok(directory);
@@ -67,6 +67,7 @@ test('home manually authors only seven live pool links in canonical order and a 
     assert.doesNotMatch(link[0], /disabled|tabindex|target=/);
   });
   assert.equal((home.match(/href="\/web\/pools\//g) || []).length, 7);
+  assert.match(home, /pool-directory\.mjs/);
   assert.doesNotMatch(home, /project-catalog|ROUTE_REGISTRY|ROUTE_INVENTORY|static-route-registry/);
   assert.doesNotMatch(home, /data-(?:index-project|directory-section|index-section|project)="/);
   assert.doesNotMatch(home, /Kids Corner|Found Work|Voice Playground|Multiply Magic|Web Design Gallery|VFX Portfolio|Published research/);
@@ -77,7 +78,7 @@ test('home manually authors only seven live pool links in canonical order and a 
 
 test('presenter consumes catalog membership and renders every assigned project including Coming Soon rows', async () => {
   const [{ renderPoolProjects }, { getPoolProjects }] = await Promise.all([presenter, catalog]);
-  assert.match(read('web/shared/pool-page.mjs'), /import \{ POOL_CATALOG, getPoolProjects \} from '\.\/project-catalog\.mjs'/);
+  assert.match(read('web/shared/pool-page.mjs'), /POOL_CATALOG[\s\S]*getPoolProjects[\s\S]*from '\.\/project-catalog\.mjs'/);
   assert.doesNotMatch(read('web/shared/pool-page.mjs'), /PUBLIC_CARD_PROJECTS|ROUTE_REGISTRY|ROUTE_INVENTORY|forest-(?:trails|navigation|runtime|motion)/);
   for (const [id, name] of pools) {
     const projects = getPoolProjects(name);

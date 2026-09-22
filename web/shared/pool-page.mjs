@@ -1,4 +1,10 @@
-import { POOL_CATALOG, getPoolProjects } from './project-catalog.mjs';
+import {
+  POOL_CATALOG,
+  getPoolProjects,
+  getProjectRank,
+  getProjectTier,
+} from './project-catalog.mjs';
+import { reorderPoolLinks } from './pool-directory.mjs';
 
 const escape = (value) => String(value ?? '').replace(/[&<>"']/g, (char) => ({
   '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
@@ -52,6 +58,9 @@ export function projectReadiness(project) {
 
 export function renderProject(project, { heading = 'h3' } = {}) {
   if (project.visibility?.publicSurface === 'excluded') return '';
+  const poolName = project.poolContext || project.pools?.[0] || project.pool;
+  const poolRank = Number.isInteger(project.poolRank) ? project.poolRank : getProjectRank(project, poolName);
+  const poolTier = project.poolTier || getProjectTier(project, poolName);
   const { restricted, comingSoon, enabled, update } = projectPresentation(project);
   const readiness = projectReadiness(project);
   const status = project.status || 'awaiting reconciliation';
@@ -76,8 +85,9 @@ export function renderProject(project, { heading = 'h3' } = {}) {
     return `<li><a href="${escape(destination)}"${external ? ' target="_blank" rel="noopener"' : ''}>${escape(companion?.name || destination)}${external ? ' — External; opens in a new tab' : ' — Open existing page'}</a>${companion?.presentationNote ? ` <span>${escape(companion.presentationNote)}</span>` : ''}</li>`;
   }).join('');
   const metrics = (project.metrics || []).map(({ name, value, unit }) => `${name}: ${value}${unit ? ` ${unit}` : ''}`).join('; ');
-  return `<article class="pool-project" data-project-id="${escape(project.id)}"${enabled ? '' : ' aria-disabled="true"'}>
+  return `<article class="pool-project pool-project--${escape(poolTier)}" data-project-id="${escape(project.id)}" data-pool-tier="${escape(poolTier)}" data-pool-rank="${poolRank ?? 'unranked'}"${enabled ? '' : ' aria-disabled="true"'}>
     <${heading}>${escape(project.publicName)}</${heading}>
+    <p class="pool-tier">Tier: ${escape(poolTier === 'featured' ? `Featured · rank ${poolRank}` : poolTier === 'ranked' ? `Ranked · rank ${poolRank}` : 'Unranked')}</p>
     <p class="pool-status">Status: ${escape(status)}${comingSoon ? ' — Coming Soon' : ''}</p>
     <p class="pool-readiness" data-readiness-state="${escape(readiness.state)}">Readiness: ${escape(readiness.state)} — ${escape(readiness.reason)}</p>
     <p class="pool-metrics">Metrics: ${escape(metrics || 'none published')}</p>
@@ -137,7 +147,13 @@ export function renderPoolOverview(poolId) {
       <h3>Why it exists</h3>
       <p>${escape(guide.why)}</p>
       <h3>Start here</h3>
-      <ul class="pool-start-here">${guide.startHere.map(({ projectId, reason }) => {
+      <ul class="pool-start-here">${[...guide.startHere].sort((left, right) => {
+        const leftProject = projects.find(({ id }) => id === left.projectId);
+        const rightProject = projects.find(({ id }) => id === right.projectId);
+        const leftRank = leftProject?.poolRank ?? -1;
+        const rightRank = rightProject?.poolRank ?? -1;
+        return rightRank - leftRank;
+      }).map(({ projectId, reason }) => {
         const project = projects.find(({ id }) => id === projectId);
         return `<li><a href="#${escape(projectId)}">${escape(project?.publicName || projectId)}</a> — ${escape(reason)}</li>`;
       }).join('')}</ul>
@@ -154,8 +170,26 @@ export function renderPoolOverview(poolId) {
 export function renderPoolProjects(poolId) {
   const pool = POOL_CATALOG.find(({ id }) => id === poolId);
   if (!pool) return '';
-  return getPoolProjects(pool.publicName).map((project) =>
-    `<div id="${escape(project.id)}" data-pool-project="${escape(project.id)}">${renderProject(project)}</div>`).join('\n');
+  return renderProjectGroups(getPoolProjects(pool.publicName));
+}
+
+const TIER_GROUPS = [
+  ['featured', 'Featured entries'],
+  ['ranked', 'Ranked entries'],
+  ['unranked', 'Unranked entries'],
+];
+
+export function renderProjectGroups(projects) {
+  return TIER_GROUPS.map(([tier, label]) => {
+    const entries = projects.filter((project) => project.poolTier === tier);
+    if (entries.length === 0) return '';
+    return `<section class="pool-project-group pool-project-group--${tier}" data-pool-tier-group="${tier}">
+      <h3>${label}</h3>
+      <div class="pool-project-list pool-project-list--${tier}">
+        ${entries.map((project) => `<div id="${escape(project.id)}" data-pool-project="${escape(project.id)}" data-pool-tier="${tier}" data-pool-rank="${project.poolRank ?? 'unranked'}">${renderProject(project)}</div>`).join('\n')}
+      </div>
+    </section>`;
+  }).join('\n');
 }
 
 export function enhanceHealthTabs(root, location = globalThis.location) {
@@ -202,25 +236,23 @@ export function enhanceHealthTabs(root, location = globalThis.location) {
 export function mountPoolPage(root) {
   const pool = POOL_CATALOG.find(({ id }) => id === root.dataset.poolId);
   if (!pool) return;
+  reorderPoolLinks(root.ownerDocument);
   const overview = root.querySelector('[data-pool-overview-content]');
   if (overview) overview.innerHTML = renderPoolOverview(pool.id);
   const context = root.querySelector('[data-pool-context]');
   if (context) context.innerHTML = renderPoolContext(pool);
   const listing = root.querySelector('[data-pool-projects]');
-  const fragment = root.ownerDocument.createDocumentFragment();
-  for (const project of getPoolProjects(pool.publicName)) {
+  const projects = getPoolProjects(pool.publicName);
+  const listingProjects = [];
+  for (const project of projects) {
     const tabPanel = root.querySelector(`[data-health-project="${project.id}"]`);
     if (tabPanel) {
       tabPanel.querySelector('[data-project-details]').innerHTML = renderProject(project);
     } else {
-      const row = root.ownerDocument.createElement('div');
-      row.id = project.id;
-      row.dataset.poolProject = project.id;
-      row.innerHTML = renderProject(project);
-      fragment.appendChild(row);
+      listingProjects.push(project);
     }
   }
-  listing.replaceChildren(fragment);
+  listing.innerHTML = renderProjectGroups(listingProjects);
   enhanceHealthTabs(root);
 }
 
