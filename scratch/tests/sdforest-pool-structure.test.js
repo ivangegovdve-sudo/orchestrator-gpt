@@ -36,7 +36,7 @@ test('exactly seven static shells have independent accessible descriptions and a
     assert.ok(html.includes(`<title>${name}</title>`));
     assert.ok(html.includes(`<h1>${name}</h1>`));
     assert.match(html, new RegExp(`<main data-pool-id="${id}">`));
-    assert.match(html, /<html lang="en">/);
+    assert.match(html, /<html lang="en" class="forest-skin forest-palette">/);
     assert.match(html, /name="viewport"/);
     assert.match(html, /<a href="\/">Back to SD Forest<\/a>/);
     assert.match(html, /<section[^>]+data-pool-overview[^>]*>/);
@@ -50,7 +50,12 @@ test('exactly seven static shells have independent accessible descriptions and a
     assert.ok(nav);
     assert.deepEqual([...nav.matchAll(/href="([^\"]+)"/g)].map((m) => m[1]), pools.map(([key]) => `/web/pools/${key}/`));
     assert.equal((nav.match(/aria-current="page"/g) || []).length, 1);
-    assert.doesNotMatch(html, /forest-(?:trails|navigation|runtime|motion)|reveal|ROUTE_REGISTRY|forest-skin/);
+    assert.match(html, /forest-design\.css/);
+    assert.match(html, /forest-shell\.css/);
+    assert.match(html, /<body class="pool-page" data-forest-page="[^"]+">/);
+    assert.match(html, /<canvas class="forest-scene" data-forest-scene data-mode="[^"]+"/);
+    assert.match(html, /data-forest-runtime="motion"[^>]+forest-runtime-boot\.mjs\?v=20260807a/);
+    assert.doesNotMatch(html, /forest-(?:trails|navigation)|reveal|ROUTE_REGISTRY/);
   }
 });
 

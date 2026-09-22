@@ -404,7 +404,7 @@ test('all shared Forest runtimes are activation-gated at their original document
     motionLoaders += loaders.filter((runtime) => runtime === 'motion').length;
   }
   assert.equal(threeLoaders, 1);
-  assert.equal(motionLoaders, 48);
+  assert.equal(motionLoaders, 55);
 });
 
 test('view transitions name only persistent Forest chrome and become static under reduced motion', () => {
