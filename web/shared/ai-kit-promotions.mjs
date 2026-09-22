@@ -129,7 +129,7 @@ function dateLabel(value) {
   return date ? date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' }) : 'date not verified';
 }
 
-function renderOffer(offer, state, stateLabel = state) {
+export function renderOffer(offer, state, stateLabel = state) {
   const url = safeUrl(offer.url);
   const title = escapeHtml(offer.title || 'Untitled offer');
   const summary = escapeHtml(offer.summary || 'No public description has been reviewed yet.');
@@ -141,7 +141,9 @@ function renderOffer(offer, state, stateLabel = state) {
   const reviewNote = offer.review_status === 'evidence_fixture'
     ? '<p class="offer-detail">Withdrawal evidence · not published as an active offer</p>'
     : '';
-  return `<article class="offer-card offer-${escapeHtml(state)}"><div class="offer-card-head"><span class="offer-state">${escapeHtml(stateLabel.toUpperCase())}</span><span>${provider}</span></div><h3>${title}</h3><p>${summary}</p><p class="offer-detail">${escapeHtml(detail)}</p>${reviewNote}<p class="offer-link">${link}</p></article>`;
+  const escapedStateLabel = escapeHtml(asText(stateLabel).toUpperCase());
+  const stateGlyph = state === 'active' ? '●' : state === 'expired' ? '×' : '?';
+  return `<article class="offer-row offer-card offer-${escapeHtml(state)}" data-offer-state="${escapeHtml(state)}"><details class="offer-disclosure"><summary class="offer-summary"><span class="offer-state" title="${escapedStateLabel}"><span class="offer-state-glyph" aria-hidden="true">${stateGlyph}</span><span class="offer-state-label">${escapedStateLabel}</span></span><span class="offer-provider">${provider}</span><span class="offer-title">${title}</span></summary><div class="offer-details"><p class="offer-description">${summary}</p><p class="offer-detail">${escapeHtml(detail)}</p>${reviewNote}<p class="offer-link">${link}</p></div></details></article>`;
 }
 
 /**
