@@ -15,6 +15,7 @@ export const PROVIDERS = {
   wavespeed: "WaveSpeedAI",
   fal: "fal",
   crazyrouter: "Crazyrouter",
+  higgsfield: "Higgsfield (web plans)",
 };
 export const DEFAULT_STATE = Object.freeze({
   provider: "all",
@@ -69,8 +70,11 @@ const CHART_CHOICES = {
   historyChart: ["lines", "bars"],
   historyDataset: ["modelUsage", "appRanks", "githubRanks"],
 };
+// Higgsfield is a web-plan credit source, not a direct MCP inference adapter.
+// Keep it in the provider label map so native rows are filterable without
+// inflating the package's direct-adapter count.
 export const DIRECT_PROVIDER_IDS = Object.freeze(
-  Object.keys(PROVIDERS),
+  Object.keys(PROVIDERS).filter((id) => id !== "higgsfield"),
 );
 
 /** Return exactly two known provider ids, preserving the user's order. */
@@ -96,6 +100,7 @@ const PROVIDER_SOURCE = {
   wavespeed: "https://wavespeed.ai/api/models",
   fal: "https://api.fal.ai/v1/models",
   crazyrouter: "https://crazyrouter.com/api/pricing",
+  higgsfield: "https://higgsfield.ai/pricing",
 };
 export const keyOf = (provider, id) => `${provider}:${id}`;
 export function finite(value) {

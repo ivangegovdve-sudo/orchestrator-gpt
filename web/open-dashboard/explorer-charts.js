@@ -6,6 +6,11 @@ import {
   observedCells,
   consecutiveHistoryDays,
 } from "./explorer-data.js";
+import {
+  formatMediaAmount,
+  formatMediaTick,
+  mediaUnitLabel,
+} from "./media-data.js";
 const palette = [
   "#397e72",
   "#b87c5a",
@@ -596,13 +601,13 @@ export function scatter(
       .attr(
         "aria-label",
         (d) =>
-          `${d.name}: ${media ? money(d.px) + " per " + unit : AXES[state.x] + ": " + (state.x === "context" ? compact(d.px) : money(d.px)) + ", " + AXES[state.y] + ": " + (state.y === "context" ? compact(d.py) : money(d.py))}`,
+          `${d.name}: ${media ? formatMediaAmount(d.px, unit) + " per " + mediaUnitLabel(unit) : AXES[state.x] + ": " + (state.x === "context" ? compact(d.px) : money(d.px)) + ", " + AXES[state.y] + ": " + (state.y === "context" ? compact(d.py) : money(d.py))}`,
       );
   marks
     .append("title")
     .text(
       (d) =>
-        `${d.name}\n${PROVIDERS[d.provider] || d.provider}\n${media ? money(d.px) + " / " + unit : AXES[state.x] + ": " + (state.x === "context" ? compact(d.px) : money(d.px)) + "\n" + AXES[state.y] + ": " + (state.y === "context" ? compact(d.py) : money(d.py))}`,
+        `${d.name}\n${PROVIDERS[d.provider] || d.provider}\n${media ? formatMediaAmount(d.px, unit) + " / " + mediaUnitLabel(unit) : AXES[state.x] + ": " + (state.x === "context" ? compact(d.px) : money(d.px)) + "\n" + AXES[state.y] + ": " + (state.y === "context" ? compact(d.py) : money(d.py))}`,
     );
   const labels = area.append("g");
   let coordinates = [],
@@ -613,7 +618,13 @@ export function scatter(
       .ticks(w < 450 ? 4 : 6)
       .tickSizeOuter(0)
       .tickPadding(9)
-      .tickFormat(state.x === "context" && !media ? compact : money);
+      .tickFormat(
+        media
+          ? (value) => formatMediaTick(value, unit)
+          : state.x === "context"
+            ? compact
+            : money,
+      );
     if (initial) {
       const values = ticks(maxX, state.scale);
       if (values)
@@ -621,7 +632,11 @@ export function scatter(
           readableTicks(
             values,
             sx,
-            state.x === "context" && !media ? compact : money,
+            media
+              ? (value) => formatMediaTick(value, unit)
+              : state.x === "context"
+                ? compact
+                : money,
           ),
         );
     }
@@ -696,7 +711,7 @@ export function scatter(
     .attr("text-anchor", "middle")
     .text(
       media
-        ? `Published price · USD / ${unit.replaceAll("_", " ")}`
+        ? `Published price · ${mediaUnitLabel(unit)}`
         : AXES[state.x],
     );
   if (!media)

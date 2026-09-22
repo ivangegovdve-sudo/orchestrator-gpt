@@ -25,6 +25,8 @@ node web/open-dashboard/scripts/refresh-media.mjs
 
 This command uses the pinned package collectors with fixed GET endpoints, no credentials and no inference calls. It preserves native units, conditions and source notes. Unknown media prices never become free models.
 
+The snapshot also reads Higgsfield's public comparison endpoint behind its [pricing page](https://higgsfield.ai/pricing). It retains the published video, image and lipsync rates as native `credit_video`, `credit_image` and `credit_audio` units, plus the localized web-plan prices and plan access returned by that comparison. Those credits are not converted into USD or EUR, and this source is explicitly web-only: Higgsfield says its unlimited and free generations are available on higgsfield.ai, not through MCP or CLI. It is a web-plan reference, not a direct MCP provider or an inference route.
+
 The app–model chart prefers a valid live matrix. When unavailable, it can show `matrix-snapshot.json`, clearly labeled as an archived September 9 view. The accompanying metadata identifies a September 10 read-only capture rendered through the repaired shared-history reader. Its captured freshness flag is not a claim about current freshness. This archive has 15 observed relationships out of 100 possible pairs and 144 unmapped observations.
 
 Backend repair is in the separate `openrouter-github-dashboard` repository, commit `48a1c82b1cb0fdb24b5a32e19dd4418d1668c3ee`. Its migration `0015_app_model_published_history.sql` must precede backend rollout. It also fixes unknown-price ordering and zero-token media classification. No production database changes are part of this frontend checkout.

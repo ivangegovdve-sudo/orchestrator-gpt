@@ -1,12 +1,16 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {
+  formatMediaAmount,
+  mediaUnitLabel,
   normalizeMediaCatalogue,
   mediaPricingStatus,
   mediaPriceSeries,
 } from "../media-data.js";
 import {
+  HIGGSFIELD_COMPARE_URL,
   isAllowedPublicSource,
+  parseHiggsfieldCompare,
   publicMetadataFetch,
   projectSnapshot,
   sailDocumentCatalogue,
@@ -158,9 +162,80 @@ test("refresh blocks authenticated, mutation, inference, and redirected source s
     /PUBLIC_METADATA_ONLY/,
   );
   await safeFetch("https://fal.ai/pricing");
-  assert.equal(calls.length, 1);
-  assert.equal(calls[0][1].redirect, "error");
-  assert.equal(calls[0][1].credentials, "omit");
+  await safeFetch(HIGGSFIELD_COMPARE_URL);
+  assert.equal(calls.length, 2);
+  assert.equal(calls[0][0], "https://fal.ai/pricing");
+  assert.equal(calls[1][0], HIGGSFIELD_COMPARE_URL);
+  assert.equal(calls[1][1].redirect, "error");
+  assert.equal(calls[1][1].credentials, "omit");
+});
+
+test("Higgsfield credit units stay distinct from currency formatting", () => {
+  assert.equal(formatMediaAmount("22", "credit_video"), "22 credits");
+  assert.equal(mediaUnitLabel("credit_video"), "Higgsfield credits / reference video");
+  assert.match(formatMediaAmount("0.07", "video_second"), /\$/);
+});
+
+test("Higgsfield comparison keeps native credit units, plan access and web-only scope", () => {
+  const result = parseHiggsfieldCompare(
+    {
+      country_code: "BG",
+      plans: [
+        {
+          name: "Starter",
+          plan_type: "starter",
+          billing_period: "monthly",
+          credits: 270,
+          final_price: 1900,
+          final_monthly_price: 1900,
+          currency: "eur",
+          discount: null,
+        },
+      ],
+      categories: [
+        {
+          slug: "video",
+          name: "Video",
+          features: [
+            {
+              name: "Seedance 2.0 720p",
+              detail: "~22 credits/5s",
+              values: { starter: { type: "string", value: "12 videos" } },
+            },
+            { name: "Concurrent Jobs", detail: "", values: {} },
+          ],
+        },
+        {
+          slug: "image",
+          name: "Image",
+          features: [
+            {
+              name: "Nano Banana Pro",
+              detail: "2 credit/image",
+              values: { starter: { type: "string", value: "75 images" } },
+            },
+          ],
+        },
+      ],
+    },
+    stamp,
+  );
+  assert.equal(result.models.length, 2);
+  const video = result.models.find((model) => model.displayName === "Seedance 2.0 720p");
+  const image = result.models.find((model) => model.displayName === "Nano Banana Pro");
+  assert.equal(video.provider, "higgsfield");
+  assert.equal(video.pricePoints[0].unit, "credit_video");
+  assert.equal(image.pricePoints[0].unit, "credit_image");
+  assert.equal(video.pricePoints[0].amount, "22");
+  assert.equal(video.pricePoints[0].condition.approximate, true);
+  assert.equal(video.pricePoints[0].condition.durationSeconds, 5);
+  assert.deepEqual(video.metadata.planAccess, { starter: "12 videos" });
+  assert.equal(result.provider.countryCode, "BG");
+  assert.equal(result.provider.plans[0].currency, "eur");
+  assert.equal(result.provider.population.listed, 3);
+  assert.equal(result.provider.population.retained, 2);
+  assert.equal(result.provider.population.excluded, 1);
+  assert.match(result.provider.requestParameters.priceCoverageRule, /not MCP\/CLI/);
 });
 
 test("snapshot keeps output reference notes and source dates while excluding raw payloads", () => {
