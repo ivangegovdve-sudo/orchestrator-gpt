@@ -1,0 +1,112 @@
+// Terminal-sequence clock. It never grows, replaces, or moves the supplied tree.
+const root = document.documentElement;
+const stage = document.querySelector('[data-resolve-stage]');
+const directory = document.querySelector('[data-pool-directory]');
+const enter = document.querySelector('#pool-enter');
+const reduced = matchMedia('(prefers-reduced-motion: reduce)');
+const frame = new URLSearchParams(location.search).get('frame');
+const clamp = value => Math.max(0, Math.min(1, value));
+const ease = value => { const p = clamp(value); return p * p * (3 - 2 * p); };
+const parts = [...document.querySelectorAll('[data-arrival]:not([data-pool-link])')];
+const timings = { field:[.05,.6], title:[.18,.95], brand:[.3,.9], portfolio:[3.65,4.2], history:[3.85,4.4] };
+const feedback = document.querySelector('button[aria-label="Send feedback"]');
+if (feedback) document.querySelector('.resolve-history').append(feedback);
+let selected = null;
+let current = 5;
+let scrollFrame = 0;
+let scrub = !reduced.matches && !frame && !location.hash && scrollY === 0;
+
+function expose(element, progress) {
+  element.style.opacity = String(progress);
+  element.style.visibility = progress === 0 ? 'hidden' : 'visible';
+  element.inert = progress < 1;
+}
+function closeSelection() {
+  selected?.classList.remove('is-selected');
+  selected?.removeAttribute('aria-describedby');
+  selected = null;
+  enter.hidden = true;
+}
+function positionEnter() {
+  if (!selected) return;
+  const parent = enter.offsetParent.getBoundingClientRect();
+  const target = selected.getBoundingClientRect();
+  enter.style.left = `${target.right - parent.left - enter.offsetWidth - 10}px`;
+  enter.style.top = `${target.bottom - parent.top - enter.offsetHeight - 4}px`;
+}
+function seek(seconds) {
+  if (!Number.isFinite(seconds)) return;
+  current = Math.min(5, Math.max(-1, seconds));
+  const world = 1 - ease(current + 1);
+  document.querySelector('.resolve-world').style.opacity = String(world);
+  const light = 1 - world;
+  document.querySelector('.resolve-tree').style.filter = `drop-shadow(0 0 ${30 * light}px rgb(34 197 94 / ${.08 * light}))`;
+  for (const element of parts) {
+    const [start,end] = timings[element.dataset.arrival];
+    const p = ease((current - start) / (end - start));
+    expose(element,p);
+  }
+  [...directory.querySelectorAll('[data-pool-link]')].forEach((element,index) => {
+    const start = .8 + index * .32;
+    const p = ease((current - start) / .72);
+    const style = getComputedStyle(element);
+    const x = parseFloat(style.getPropertyValue('--arrival-x')) || 0;
+    const y = parseFloat(style.getPropertyValue('--arrival-y')) || 0;
+    const turn = parseFloat(style.getPropertyValue('--arrival-turn')) || 0;
+    const scale = parseFloat(style.getPropertyValue('--arrival-scale')) || 1;
+    const blur = parseFloat(style.getPropertyValue('--arrival-blur')) || 0;
+    expose(element,p);
+    element.style.transform = `translate(${x * (1-p)}px,${y * (1-p)}px) rotate(${turn * (1-p)}deg) scale(${scale + (1-scale)*p})`;
+    element.style.filter = `blur(${blur * (1-p)}px)`;
+    if (element.dataset.poolLink === 'design-gallery') element.style.clipPath = p === 1 ? 'none' : `inset(0 ${100 * (1-p)}% 0 0)`;
+  });
+  const utilities = ease((current - 3.85) / .55);
+  root.style.setProperty('--resolve-utilities',utilities);
+  root.style.setProperty('--resolve-utilities-visibility',utilities === 1 ? 'visible' : 'hidden');
+  root.style.setProperty('--resolve-cue',world);
+  root.style.setProperty('--resolve-cue-visibility',world > 0 ? 'visible' : 'hidden');
+  root.dataset.resolveState = current >= 4.4 ? 'opened' : current < 0 ? 'dissolving' : 'resolving';
+  if (current < 4.4) closeSelection();
+  positionEnter();
+}
+function onScroll() {
+  if (!scrub || scrollFrame) return;
+  scrollFrame = requestAnimationFrame(() => {
+    scrollFrame = 0;
+    seek(-1 + scrollY / (innerHeight * 1.25) * 6);
+  });
+}
+function openStatic() {
+  scrub = false;
+  root.dataset.resolveMotion = 'static';
+  seek(5);
+}
+root.dataset.resolveMotion = scrub ? 'scrub' : 'static';
+seek(reduced.matches ? 5 : frame === 'resolve' ? 0 : frame === 'hinge' ? -.5 : scrub ? -1 : 5);
+window.sdforestResolve = Object.freeze({ seek, open:openStatic, get time() { return current; } });
+addEventListener('scroll',onScroll,{passive:true});
+addEventListener('resize',() => { if (scrub) onScroll(); positionEnter(); });
+addEventListener('pageshow',event => { if (event.persisted || (!frame && scrollY > 0)) openStatic(); });
+reduced.addEventListener('change',event => { if (event.matches) openStatic(); });
+document.querySelectorAll('a[href="#atlas"]').forEach(link => link.addEventListener('click',() => {
+  openStatic();
+  directory.querySelector('a').focus({preventScroll:true});
+}));
+directory.addEventListener('click',event => {
+  const link = event.target.closest('[data-pool-link]');
+  if (!link || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+  event.preventDefault();
+  closeSelection();
+  selected = link;
+  selected.classList.add('is-selected');
+  enter.textContent = 'Enter';
+  enter.setAttribute('aria-label',`Enter ${link.querySelector('.portal-name').textContent}`);
+  enter.hidden = false;
+  positionEnter();
+  if (event.detail === 0) enter.focus({preventScroll:true});
+});
+enter.addEventListener('click',() => { if (selected) location.assign(selected.href); });
+document.addEventListener('keydown',event => { if (event.key === 'Escape') { const prior = selected; closeSelection(); prior?.focus(); } });
+document.addEventListener('click',event => { if (!event.target.closest('.resolve-directory')) closeSelection(); });
+// A separate directory module may reorder the native anchors; arrival order follows it.
+new MutationObserver(() => seek(current)).observe(directory,{childList:true});
