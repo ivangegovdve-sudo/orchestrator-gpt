@@ -142,11 +142,9 @@ export function renderPoolOverview(poolId) {
     <p class="pool-name">Catalog: <span>${escape(pool.publicName)}</span></p>
     <p class="pool-summary">${escape(pool.summary)}</p>
     <section class="pool-guide" data-pool-guide data-pool-purpose="${escape(guide.purpose)}">
-      <h3>What this pool is for</h3>
-      <p>${escape(guide.purpose)}</p>
-      <h3>Why it exists</h3>
-      <p>${escape(guide.why)}</p>
-      <h3>Start here</h3>
+      <div class="pool-guide-block pool-guide-block--purpose"><h3>What this pool is for</h3><p>${escape(guide.purpose)}</p></div>
+      <div class="pool-guide-block pool-guide-block--why"><h3>Why it exists</h3><p>${escape(guide.why)}</p></div>
+      <div class="pool-guide-block pool-guide-block--start"><h3>Start here</h3>
       <ul class="pool-start-here">${[...guide.startHere].sort((left, right) => {
         const leftProject = projects.find(({ id }) => id === left.projectId);
         const rightProject = projects.find(({ id }) => id === right.projectId);
@@ -156,7 +154,7 @@ export function renderPoolOverview(poolId) {
       }).map(({ projectId, reason }) => {
         const project = projects.find(({ id }) => id === projectId);
         return `<li><a href="#${escape(projectId)}">${escape(project?.publicName || projectId)}</a> — ${escape(reason)}</li>`;
-      }).join('')}</ul>
+      }).join('')}</ul></div>
       <p class="pool-reality-note">Catalog reality is shown below. Live is a lifecycle label, not a completion claim.</p>
       <div class="pool-reality-grid">
         ${renderReality('What is real here', currentProjects)}
