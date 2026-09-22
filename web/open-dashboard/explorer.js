@@ -43,6 +43,8 @@ import { renderOverview } from "./overview.js";
 import {
   normalizeMediaCatalogue,
   mediaPriceSeries,
+  formatMediaAmount,
+  mediaUnitLabel,
   MEDIA_UNITS,
 } from "./media-data.js";
 import {
@@ -215,7 +217,7 @@ function renderInspector(m) {
       ));
   const nativePrices = m.pricePoints || [];
   let prices = media
-    ? `<div class="native-prices">${nativePrices.length ? nativePrices.map((p) => `<div class="native-price"><strong>${money(Number(p.amount))}</strong><span> / ${escape(p.unit.replaceAll("_", " "))}</span><small>${escape(formatCondition(p.condition))}</small></div>`).join("") : "<p>Native output price not established. Zero or missing token fields do not price media generation.</p>"}</div>`
+    ? `<div class="native-prices">${nativePrices.length ? nativePrices.map((p) => `<div class="native-price"><strong>${escape(formatMediaAmount(p.amount, p.unit))}</strong><span> / ${escape(mediaUnitLabel(p.unit))}</span><small>${escape(formatCondition(p.condition))}</small></div>`).join("") : "<p>Native output price not established. Zero or missing token fields do not price media generation.</p>"}</div>`
     : `<div class="metric-pair"><div><span>Input / 1M tokens</span><strong>${money(m.input)}</strong></div><div><span>Output / 1M tokens</span><strong>${money(m.output)}</strong></div></div>`;
   const outlierNote = priceOutlierNote(m, media);
   let quotaText = "";
@@ -584,7 +586,7 @@ function render() {
           u,
           u === "catalogue"
             ? "All entries · catalogue map"
-            : `USD / ${u.replaceAll("_", " ")}`,
+            : mediaUnitLabel(u),
         ),
       ),
     );
@@ -1174,9 +1176,36 @@ function inspectFlow(cell) {
 function sourceCard(title, description, url) {
   return `<div class="source-item"><strong>${escape(title)}</strong><p>${escape(description)}</p>${link(url, "Source", "text-link")}</div>`;
 }
+function higgsfieldPlanPrice(value, currency) {
+  const minor = Number(value);
+  if (!Number.isFinite(minor) || !currency) return "Not reported";
+  try {
+    return new Intl.NumberFormat("en", {
+      style: "currency",
+      currency: String(currency).toUpperCase(),
+      maximumFractionDigits: 2,
+    }).format(minor / 100);
+  } catch {
+    return "Not reported";
+  }
+}
+function higgsfieldPlanCard(provider) {
+  const plans = Array.isArray(provider?.plans) ? provider.plans : [];
+  if (!plans.length) return "";
+  const rows = plans
+    .map((plan) => {
+      const discount = plan.discount?.percentOff
+        ? `${plan.discount.percentOff}% off${plan.discount.duration === "forever" ? " ongoing" : " introductory"}`
+        : "—";
+      return `<tr><th scope="row">${escape(plan.name || "Unknown")}</th><td>${escape(plan.billingPeriod || "Unknown")}</td><td>${escape(plan.credits == null ? "Not reported" : Number(plan.credits).toLocaleString())}</td><td>${escape(higgsfieldPlanPrice(plan.priceMinor, plan.currency))}</td><td>${escape(higgsfieldPlanPrice(plan.monthlyPriceMinor, plan.currency))}</td><td>${escape(discount)}</td></tr>`;
+    })
+    .join("");
+  return `<details class="source-item higgsfield-plan-card"><summary><strong>Higgsfield plan prices</strong><span>${plans.length.toLocaleString()} published options</span></summary><p>Monthly comparison response observed ${dateLabel(provider.observedAt)}. Prices are the plan currency returned by Higgsfield; credits remain a separate native unit from generation rates.</p><div class="pair-comparison-table-wrap"><table class="pair-comparison-table"><caption>Higgsfield web plans</caption><thead><tr><th scope="col">Plan</th><th scope="col">Billing</th><th scope="col">Credits</th><th scope="col">Price</th><th scope="col">Monthly equivalent</th><th scope="col">Discount</th></tr></thead><tbody>${rows}</tbody></table></div>${link(provider.sourceUrl || "https://higgsfield.ai/pricing", "Open Higgsfield pricing", "text-link")}</details>`;
+}
 function renderSources() {
   const live = metadata.live;
   const native = metadata.native || metadata.media;
+  const higgsfield = native?.providers?.find((provider) => provider.provider === "higgsfield");
   const dates = [
     ...new Set(
       (live?.pages || [])
@@ -1206,6 +1235,14 @@ function renderSources() {
       `${native ? native.models.length.toLocaleString() + " acquired native records" : "Native source unavailable; entry count unknown"} · snapshot ${dateLabel(native?.fetchedAt)}. Text, image, video, audio, other and unclassified entries are retained. Price coverage is partial; exact IDs, billing units and conditions remain separate.`,
       native?.providers?.[0]?.sourceUrl,
     ) +
+    sourceCard(
+      "Higgsfield web-plan comparison",
+      higgsfield
+        ? `${Number(higgsfield.modelsWithPricePoints || 0).toLocaleString()} published credit rates across video, image and lipsync · ${Array.isArray(higgsfield.plans) ? higgsfield.plans.length.toLocaleString() : "Unknown"} plan options · ${higgsfield.countryCode ? `localized ${higgsfield.countryCode}` : "country not reported"}. Credits stay in Higgsfield's native unit; its page says unlimited and free generations are available on higgsfield.ai, not through MCP or CLI.`
+        : "Higgsfield web-plan comparison unavailable; no model credit rates are shown.",
+      higgsfield?.sourceUrl || "https://higgsfield.ai/pricing",
+    ) +
+    higgsfieldPlanCard(higgsfield) +
     sourceCard(
       "Nous Research catalogue",
       metadata.nous

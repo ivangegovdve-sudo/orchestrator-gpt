@@ -16,6 +16,9 @@ const directory = path.dirname(fileURLToPath(import.meta.url));
 const outputPath = path.resolve(directory, "../media-catalogue.json");
 const MAX_MODELS = 20000;
 const MAX_OUTPUT_BYTES = 8 * 1024 * 1024;
+export const HIGGSFIELD_PRICING_URL = "https://higgsfield.ai/pricing";
+export const HIGGSFIELD_COMPARE_URL =
+  "https://fnf-api-gw.higgsfield.ai/fnf/subscriptions/v2/compare?plan_set_key=ps_a3&billing_period=monthly&with_localization=true";
 const scalar = (value) =>
   typeof value === "string" ||
   typeof value === "number" ||
@@ -43,8 +46,225 @@ export function isAllowedPublicSource(value) {
       url.pathname === "/api/pricing") ||
     (url.origin === "https://api.chutes.ai" && url.pathname === "/chutes/") ||
     (url.origin === "https://docs.sailresearch.com" &&
-      url.pathname === "/pricing.md")
+      url.pathname === "/pricing.md") ||
+    (url.origin === "https://fnf-api-gw.higgsfield.ai" &&
+      url.pathname === "/fnf/subscriptions/v2/compare" &&
+      url.searchParams.get("plan_set_key") === "ps_a3" &&
+      url.searchParams.get("billing_period") === "monthly" &&
+      url.searchParams.get("with_localization") === "true")
   );
+}
+
+const HIGGSFIELD_CATEGORIES = new Map([
+  ["video", { mediaKind: "video", unit: "credit_video" }],
+  ["image", { mediaKind: "image", unit: "credit_image" }],
+  ["lipsync-studio", { mediaKind: "audio", unit: "credit_audio" }],
+]);
+const HIGGSFIELD_DETAIL =
+  /^([~≈])?\s*(\d+(?:\.\d+)?)\s+credits?\s*\/\s*(?:(\d+)\s*(s)|image)$/i;
+const HIGGSFIELD_SCALAR = (value) =>
+  typeof value === "string" || typeof value === "number" || typeof value === "boolean"
+    ? value
+    : null;
+
+function higgsfieldSlug(value) {
+  return String(value)
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 180);
+}
+
+function higgsfieldPlanValues(values) {
+  if (!values || typeof values !== "object" || Array.isArray(values)) return {};
+  return Object.fromEntries(
+    Object.entries(values)
+      .map(([plan, value]) => {
+        const raw = value && typeof value === "object" && !Array.isArray(value)
+          ? value.value
+          : value;
+        return [plan, HIGGSFIELD_SCALAR(raw)];
+      })
+      .filter(([, value]) => value !== null),
+  );
+}
+
+function higgsfieldFeaturePrice(category, feature) {
+  if (!category || !feature || typeof feature !== "object") return null;
+  const kind = HIGGSFIELD_CATEGORIES.get(category.slug);
+  const detail = typeof feature.detail === "string" ? feature.detail.trim() : "";
+  if (!kind || !detail) return null;
+  const match = detail.match(HIGGSFIELD_DETAIL);
+  if (!match) return null;
+  const amount = match[2];
+  const basisValue = match[3];
+  const basisUnit = match[4] ? "s" : "image";
+  const durationSeconds = basisUnit === "s" ? Number(basisValue) : null;
+  return {
+    provider: "higgsfield",
+    id: `${category.slug}/${higgsfieldSlug(feature.name)}`,
+    displayName: String(feature.name).trim(),
+    mediaKind: kind.mediaKind,
+    nativeType: "higgsfield-web-model",
+    outputModalities: [kind.mediaKind],
+    nativePricing: {
+      type: "web_plan_credits",
+      detail,
+    },
+    pricePoints: [
+      {
+        id: `higgsfield:${category.slug}:${higgsfieldSlug(feature.name)}`,
+        amount,
+        unit: kind.unit,
+        condition: {
+          basis: detail,
+          approximate: Boolean(match[1]),
+          ...(durationSeconds === null ? {} : { durationSeconds }),
+          ...(basisUnit === "image" ? { output: "image" } : {}),
+          planAccess: higgsfieldPlanValues(feature.values),
+        },
+        source: {
+          url: HIGGSFIELD_PRICING_URL,
+          readAt: null,
+        },
+        provenance: "published",
+        sourceText: detail,
+      },
+    ],
+    pricingState: "published",
+    pricingNote:
+      "Higgsfield publishes this as a web-plan credit rate. Credits are not converted to USD or EUR, and the web plans are not available through MCP or CLI.",
+    provenance: {
+      sourceUrl: HIGGSFIELD_PRICING_URL,
+      observedAt: null,
+      sourceIndex: null,
+    },
+    metadata: {
+      category: category.name ?? category.slug,
+      categorySlug: category.slug,
+      webOnly: true,
+      planAccess: higgsfieldPlanValues(feature.values),
+      publishedDetail: detail,
+    },
+  };
+}
+
+export function parseHiggsfieldCompare(payload, observedAt = new Date().toISOString()) {
+  if (!payload || typeof payload !== "object" || !Array.isArray(payload.categories))
+    throw new Error("HIGGSFIELD_COMPARISON_SHAPE_CHANGED");
+  const models = [];
+  let listed = 0;
+  let withoutGenerationPrice = 0;
+  for (const category of payload.categories) {
+    if (!category || typeof category !== "object" || !Array.isArray(category.features))
+      throw new Error("HIGGSFIELD_CATEGORY_SHAPE_CHANGED");
+    listed += category.features.length;
+    for (const feature of category.features) {
+      const model = higgsfieldFeaturePrice(category, feature);
+      if (!model) {
+        withoutGenerationPrice += 1;
+        continue;
+      }
+      model.provenance.observedAt = observedAt;
+      model.pricePoints[0].source.readAt = observedAt;
+      models.push(model);
+    }
+  }
+  if (!models.length || models.length > 500)
+    throw new Error("HIGGSFIELD_GENERATION_PRICE_POPULATION_CHANGED");
+  const plans = Array.isArray(payload.plans)
+    ? payload.plans
+        .filter((plan) => plan && typeof plan === "object")
+        .map((plan) => ({
+          name: typeof plan.name === "string" ? plan.name : null,
+          planType: typeof plan.plan_type === "string" ? plan.plan_type : null,
+          billingPeriod:
+            typeof plan.billing_period === "string" ? plan.billing_period : null,
+          credits: HIGGSFIELD_SCALAR(plan.credits),
+          priceMinor: HIGGSFIELD_SCALAR(plan.final_price),
+          monthlyPriceMinor: HIGGSFIELD_SCALAR(plan.final_monthly_price),
+          currency: typeof plan.currency === "string" ? plan.currency : null,
+          discount:
+            plan.discount && typeof plan.discount === "object"
+              ? {
+                  percentOff: HIGGSFIELD_SCALAR(plan.discount.percent_off),
+                  duration: HIGGSFIELD_SCALAR(plan.discount.duration),
+                  durationMonths: HIGGSFIELD_SCALAR(plan.discount.duration_months),
+                }
+              : null,
+        }))
+    : [];
+  if (!plans.length) throw new Error("HIGGSFIELD_PLAN_POPULATION_MISSING");
+  return {
+    models,
+    plans,
+    provider: {
+      provider: "higgsfield",
+      status: "available",
+      sourceUrl: HIGGSFIELD_PRICING_URL,
+      observedAt,
+      countryCode: HIGGSFIELD_SCALAR(payload.country_code),
+      population: {
+        listed,
+        received: listed,
+        retained: models.length,
+        excluded: withoutGenerationPrice,
+        exclusionRules: [
+          `${withoutGenerationPrice} comparison rows describe access, credits or concurrency rather than a per-generation model rate`,
+        ],
+        completeness: "full",
+      },
+      requestParameters: {
+        sourceApiUrl: HIGGSFIELD_COMPARE_URL,
+        planSetKey: "ps_a3",
+        billingPeriod: "monthly",
+        countryCode: HIGGSFIELD_SCALAR(payload.country_code),
+        populationScope: "higgsfield_web_plan_comparison",
+        pricingAcquisitionStatus: "available",
+        priceCoverageRule:
+          "Published native credit rates are retained for video, image and lipsync. No credit-to-currency conversion is made. Unlimited and plan access are web-only and are not MCP/CLI availability.",
+      },
+      plans,
+    },
+  };
+}
+
+async function collectHiggsfield(fetchImpl) {
+  const observedAt = new Date().toISOString();
+  try {
+    const response = await fetchImpl(HIGGSFIELD_COMPARE_URL, {
+      signal: AbortSignal.timeout(12000),
+    });
+    if (!response.ok) throw new Error(`HIGGSFIELD_HTTP_${response.status}`);
+    const payload = await response.json();
+    return parseHiggsfieldCompare(payload, observedAt);
+  } catch (error) {
+    return {
+      models: [],
+      plans: [],
+      provider: {
+        provider: "higgsfield",
+        status: "unavailable",
+        sourceUrl: HIGGSFIELD_PRICING_URL,
+        observedAt,
+        population: {
+          listed: null,
+          received: null,
+          retained: null,
+          excluded: null,
+          exclusionRules: [],
+          completeness: "unavailable",
+        },
+        requestParameters: {
+          sourceApiUrl: HIGGSFIELD_COMPARE_URL,
+          populationScope: "higgsfield_web_plan_comparison",
+        },
+        error: error instanceof Error ? error.message : "HIGGSFIELD_UNAVAILABLE",
+        plans: [],
+      },
+    };
+  }
 }
 
 export const SAIL_PINNED_DIGEST =
@@ -208,6 +428,10 @@ function sourceNotes(model) {
       "Chutes deployments retain their exact chute_id. A deployment name is not silently merged with a model ID from the separate LLM catalogue. Compute-time prices are not output-media prices.",
     );
   if (model.provider === "sail") notes.push(model.pricingNote);
+  if (model.provider === "higgsfield")
+    notes.push(
+      "Higgsfield's comparison is a web-plan credit schedule, not an MCP or CLI inference catalogue. Credit units and plan access are kept native; no currency conversion is made.",
+    );
   return [...new Set(notes)];
 }
 
@@ -237,6 +461,12 @@ function nativeBilling(model) {
     };
   if (model.provider === "fal")
     return { value: scalar(native.value), unit: scalar(native.unit) };
+  if (model.provider === "higgsfield")
+    return {
+      type: "web_plan_credits",
+      detail: text(native.detail),
+      currencyConversion: "withheld",
+    };
   return { type: model.nativeType, normalizedOutputRate: null };
 }
 
@@ -261,7 +491,8 @@ export function projectSnapshot(
         (["other", "unknown"].includes(model.mediaKind)
           ? []
           : [model.mediaKind]),
-      metadata: nativeMetadata.get(`${model.provider}:${model.id}`) ?? null,
+      metadata:
+        model.metadata ?? nativeMetadata.get(`${model.provider}:${model.id}`) ?? null,
       pricePoints: model.pricePoints.map((point) => ({
         ...point,
         ...(point.sourceText ? { sourceText: text(point.sourceText) } : {}),
@@ -317,6 +548,10 @@ export function projectSnapshot(
     documentDigest: report.requestParameters.documentDigest ?? null,
     expectedDocumentDigest:
       report.requestParameters.expectedDocumentDigest ?? null,
+    ...(Array.isArray(report.plans) ? { plans: report.plans } : {}),
+    ...(report.requestParameters.countryCode
+      ? { countryCode: report.requestParameters.countryCode }
+      : {}),
   }));
   const snapshot = {
     schemaVersion: 2,
@@ -335,6 +570,7 @@ export function projectSnapshot(
       })),
     },
     currency: "USD",
+    nativeCurrencies: ["USD", "EUR", "credits"],
     providers,
     population: {
       sourceModelsReceived: allModels.length,
@@ -345,7 +581,15 @@ export function projectSnapshot(
       modelsWithPricePoints: models.filter((model) => model.pricePoints.length)
         .length,
       outputPricesByUnit: Object.fromEntries(
-        ["image", "megapixel", "video_second", "video"].map((unit) => [
+        [
+          "image",
+          "megapixel",
+          "video_second",
+          "video",
+          "credit_image",
+          "credit_video",
+          "credit_audio",
+        ].map((unit) => [
           unit,
           models.filter((model) =>
             model.pricePoints.some((point) => point.unit === unit),
@@ -370,6 +614,7 @@ export function projectSnapshot(
       "This is a dated public catalogue snapshot, not an inference service or account-specific quote.",
       "Different native billing units and output parameters are not interchangeable. No alias-based cross-provider model join is made.",
       "Zero token prices and missing prices do not establish free media generation.",
+      "Higgsfield rows are a web-plan credit reference from its public comparison table. Higgsfield states that its unlimited and free generations are available on higgsfield.ai and not through MCP or CLI; credits are not converted to USD or EUR.",
     ],
     models,
   };
@@ -439,8 +684,9 @@ export async function refreshMediaCatalogue() {
     timeoutMs: 12000,
   });
   const sail = await collectSail(fetchImpl);
+  const higgsfield = await collectHiggsfield(fetchImpl);
   const snapshot = projectSnapshot(
-    [native, crazyrouter, sail],
+    [native, crazyrouter, sail, higgsfield],
     new Date().toISOString(),
     nativeMetadata,
   );
