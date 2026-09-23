@@ -1,6 +1,6 @@
 # SD Forest — front-page resolve contract
 
-2026-09-22 · BUTCHER · front page only. This is the terminal-sequence layout and timing contract for Ivan's animation, not a new tree or a completed seed-to-tree video.
+2026-09-23 · BUTCHER · front page only. Updated for the approved Grafted Workbench revision. This is the terminal-sequence layout and timing contract for Ivan's animation, not a new tree or a completed seed-to-tree video. Earlier review and ambient receipts below are historical; the current interaction and material layer are documented in [the workbench receipt](frontpage-workbench.md).
 
 ## The two frames
 
@@ -19,7 +19,12 @@ For a landscape phone <=800 px wide, the centre is **50vw, 40vh**, with the same
 
 The artwork-box `vh` values above are deliberately unchanged. Mobile **layout**, not artwork, uses `svh`: the stage minimum, scroll runway, title, field, cue and directory's baseline offset. The directory also retains a `vh`-based clearance calculation against the protected artwork. A toolbar change must not replace those artwork numbers with a different video contract.
 
-Side entries leave a 32px gutter outside that rectangle before their selection/arrival transforms. On desktop widths >800px with aspect ratio <=3:2, the side gutters are too narrow for readable entries: the same DOM flows into two columns **below** the unchanged tree (top = 83vh + 24px). Mobile uses one column below it. No new ordering source is introduced.
+Wide-desktop side entries use width `min(29vw,calc(47vw - 58vh * 226 / 214 / 2 - 24px))`, with a 2vw outside inset. At 1920×1080 this leaves 43.23px between each flank and the protected tree rectangle. Health and AI-d kit lead at 13vh; GrowingApp and Artificial Self sit at 40vh. TinkerBox, My Story and Design Gallery occupy the lower left, centre and right at `83vh + 12px`, width `min(29vw,39vh)`, aspect ratio 4:1. Selection never grows their desktop boxes. On desktop widths >800px with aspect ratio <=3:2, the same DOM flows into two columns **below** the unchanged tree (top = 83vh + 24px). Mobile uses one column below it. The existing catalog-sorted DOM order remains the arrival and keyboard order; CSS composition is not a new catalog ranking.
+
+On wide desktops 700–850px high, the lower entries additionally cap width at
+`calc(68vh - 264px)` to clear the 50px footer strip by 4px. Their type scales
+with viewport height. Lower-flank selection instructions sit above the control
+to avoid covering site utilities.
 
 ### Asset boundary
 
@@ -37,16 +42,16 @@ The following named sequence reflects the unchanged catalog ranks after #615: He
 |---|---|---|
 | Five background planes | −1.00 → 0.00 | Fade 1→0 together, revealing the existing dark field. The tree never fades or moves. |
 | Tree illumination | −1.00 → 0.00 | A restrained green edge glow reaches 30px / 8% opacity as the warm surrounding light leaves. Original tree pixels remain unchanged. |
-| Electric field, ellipses, connecting paths and nodes | 0.05 → 0.60 | Fade in; a fine continuation of the homepage's neural motif, behind the tree and controls. |
+| Distant indigo horizon | 0.05 → 0.60 | Fade in behind the tree and controls. The earlier orbit ellipses and connecting paths are removed. |
 | Forest HUB + existing subtitle | 0.18 → 0.95 | Fade in as one title plate. |
 | SDForest home control | 0.30 → 0.90 | Fade in at the upper-left edge. |
-| Health | 0.80 → 1.52 | Fade and scale 0.85→1; green pulse motif. Slot 1: upper left. |
-| AI-d kit | 1.12 → 1.84 | Fade and translate x −34px→0; green aid/star motif. Slot 2: middle left. |
-| GrowingApp | 1.44 → 2.16 | Fade, rise 30px and scale 0.94→1; indigo leaf motif. Slot 3: lower left. |
-| TinkerBox | 1.76 → 2.48 | Fade, translate (−12px,20px)→0 and rotate −6°→0; indigo construction motif. Slot 4: upper right. |
-| Design Gallery | 2.08 → 2.80 | Fade, x 26px→0 and horizontal reveal 0→100%; indigo nested exhibit frames. Slot 5: middle right. |
-| Artificial Self | 2.40 → 3.12 | Fade and blur 8px→0; green spiral motif. Slot 6: lower right. |
-| My Story | 2.72 → 3.44 | Fade and gentle 14px rise; indigo open-book motif. Slot 7: below the tree. No new story copy. |
+| Health | 0.80 → 1.52 | Fade and scale 0.85→1; glass ECG with aqua lettering. Upper left. |
+| AI-d kit | 1.12 → 1.84 | Fade and translate x +34px→0; green first-aid flag, white cross and purple lever. Upper right. |
+| GrowingApp | 1.44 → 2.16 | Fade, rise 30px and scale 0.94→1; seed/sapling/tree triptych. Below Health. |
+| TinkerBox | 1.76 → 2.48 | Fade, translate (−12px,20px)→0 and rotate −3°→0; locking compartment. Bottom left. |
+| Design Gallery | 2.08 → 2.80 | Fade, x 26px→0 and horizontal reveal 0→100%; compact exhibit shutters. Bottom right. |
+| Artificial Self | 2.40 → 3.12 | Fade and blur 8px→0; connected violet/teal neurons. Below AI-d kit. |
+| My Story | 2.72 → 3.44 | Fade and gentle 14px rise; earliest signal faintest, latest brightest, no terminal cap. Bottom centre. No new story copy. |
 | Ground and sparse air | 3.60 → 4.40 | Original moss/grass contact patch fades in at the fixed trunk base. The independent decorative layer is absent at the resolve frame. Ambient time starts only once arrivals finish. |
 | Portfolio + Pause motion controls | 3.65 → 4.20 | Fade in at the lower-left edge. Existing external-tab warning and destination retained. Pause motion is a native button; no-JS omits it. |
 | Design history + Feedback controls | 3.85 → 4.40 | Fade in together at the lower-right edge; existing behaviours retained. |
@@ -55,7 +60,7 @@ The slot positions above describe wide desktop. The compact-desktop and mobile f
 
 The early **Explore the pools** cue fades out with the background (−1→0); activating it opens the complete page immediately. A keyboard skip link is available on focus at every stage. Existing homepage paragraphs are retained verbatim after the stage and enter through normal document scrolling, not the video sequence. There are no other arriving layers, hidden project lists or invented destinations.
 
-Once entered, pool-ring opacity and rotation respond to the same low-frequency wind as the ground and air; the earlier independent 5-second breathing and 18-second orbit loops have been replaced. Hover/focus intensifies the ring and lets the internal mark respond with a small pulse or rotation. Reduced motion stops **all** motion. Selection scales an entry by 2.5% and increases bottom padding to 38px (46px on mobile) for its explicit **Enter** button. Flow rows therefore grow on selection; their height is not fixed and the containing stage must grow with them.
+Once opened, seven material mechanisms replace the repeated rings. Their idle responses sample the existing wind field; hover/focus and selection change the mechanism's pose. First press anywhere selects and animates; a second deliberate press on that same entry follows its existing link. No separate Enter button remains. Escape cancels. A double-click or held Enter key cannot confirm entry. Selection does not scale the anchor. Mobile rows grow only to make room for the visible selection instruction; the content-height stage keeps every control reachable. Reduced motion stops **all** motion and switches selection pose immediately. Details and measured costs are in [the workbench receipt](frontpage-workbench.md).
 
 ## Working page / animation connection
 
@@ -70,9 +75,13 @@ Mobile `.resolve-stage` is content-height with `overflow-x:clip; overflow-y:visi
 
 These are query views of the **same existing homepage**, not new routes. `window.sdforestResolve.seek(seconds)` is the handoff for an external scroll/video clock. `window.sdforestResolve.open()` supplies the complete static state and disables the local scroll sampler. An integrated video driver should call `open()` once to release that sampler, then `seek(t)` using the shared clock. It must honour reduced motion rather than reintroducing animation. This slice does **not** contain, replace, or claim to finish Ivan's six-stage animation.
 
-Reduced motion, an incoming fragment, restored navigation, and JavaScript disabled all get the opened composition. A no-JavaScript visitor follows ordinary native pool links; nothing is hidden awaiting an animation callback. With JavaScript, first click/tap selects, the separate Enter button navigates, keyboard selection focuses Enter, and Escape cancels selection and restores focus. This is not an OS double-click interaction.
+Reduced motion, an incoming fragment, restored navigation, and JavaScript disabled all get the opened composition. A no-JavaScript visitor follows ordinary native pool links; nothing is hidden awaiting an animation callback. With JavaScript, first click/tap or Enter selects; the next deliberate press on that same link navigates. Focus stays on the link, and Escape cancels selection. This is not an OS double-click interaction.
 
-## Rendered proof
+## Archived verification receipts — earlier #619 iterations
+
+The sections below preserve earlier test results and observations for discoverability. Their references to rings, a separate Enter button, 138px type, earlier fold counts and the old ambient baseline describe those earlier heads, **not** the current approved workbench. The current receipt, screenshots, costs and code/contract reconciliation are in [frontpage-workbench.md](frontpage-workbench.md).
+
+### Original rendered proof
 
 Browser plugin DOM inspection was available, but its screenshot call failed. Screenshots and interaction verification therefore used installed Playwright with actual Chrome. Both the generated layout study and the final browser render were opened with `view_image` in the same QA pass. Native study size 1672×941 was also checked, in addition to 1920×1080 and 390×844.
 

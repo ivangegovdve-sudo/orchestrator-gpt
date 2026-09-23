@@ -1,9 +1,10 @@
 // Terminal-sequence clock. It never grows, replaces, or moves the supplied tree.
 import { createAmbient } from './frontpage-ambient.mjs';
+import { createWorkbench } from './frontpage-workbench.mjs';
 const root = document.documentElement;
 const stage = document.querySelector('[data-resolve-stage]');
 const directory = document.querySelector('[data-pool-directory]');
-const enter = document.querySelector('#pool-enter');
+const status = document.querySelector('#workbench-status');
 const reduced = matchMedia('(prefers-reduced-motion: reduce)');
 const frame = new URLSearchParams(location.search).get('frame');
 const clamp = value => Math.max(0, Math.min(1, value));
@@ -23,18 +24,30 @@ let dirtyScroll = false;
 let elapsed = 0;
 let lastStamp = null;
 let lastPaint = -Infinity;
+const idleSampleMs = 900;
 let onScreen = true;
 let paused = false;
 let running = false;
 let strength = .65;
 let runway = innerHeight * 1.25;
 let inlineStrength = root.style.getPropertyValue('--ambient-strength');
+let interactionDirty = false;
+const workbench = createWorkbench(stage, invalidateWorkbench, () => elapsed);
+
+function invalidateWorkbench() {
+  interactionDirty = true;
+  syncMotion();
+}
+function canInteract() {
+  return current >= 4.4 && !reduced.matches && !paused && !document.hidden;
+}
 
 function measureSettings() {
   runway = parseFloat(getComputedStyle(stage.parentElement).paddingBottom) || innerHeight * 1.25;
   const configured = Number.parseFloat(getComputedStyle(root).getPropertyValue('--ambient-strength'));
   strength = Number.isFinite(configured) ? clamp(configured) : .65;
   ambient.compact(compact.matches);
+  workbench.resize();
 }
 function canBreathe() {
   return current >= 4.4 && !reduced.matches && !paused && !document.hidden && onScreen && strength > 0;
@@ -48,18 +61,19 @@ function syncMotion() {
   const label = reduced.matches ? 'Motion off' : paused ? 'Resume motion' : 'Pause motion';
   if (motionButton.textContent !== label) motionButton.textContent = label;
   if (reduced.matches || strength === 0) ambient.render(0,0);
-  if (!running) lastStamp = null;
-  if (document.hidden || (!running && !dirtyScroll)) {
+  if (!canInteract()) {
+    workbench.render(elapsed,0,false);
+    interactionDirty = false;
+  }
+  const interacting = canInteract() && (interactionDirty || workbench.busy());
+  if (!running && !interacting) lastStamp = null;
+  if (document.hidden || (!running && !dirtyScroll && !interacting)) {
     if (frameId) cancelAnimationFrame(frameId);
     frameId = 0;
   } else if (!frameId) frameId = requestAnimationFrame(tick);
 }
 function tick(stamp) {
   frameId = 0;
-  if (!dirtyScroll && running && stamp - lastPaint < 650) {
-    frameId = requestAnimationFrame(tick);
-    return;
-  }
   if (dirtyScroll) {
     dirtyScroll = false;
     // The scroll track can change independently of viewport size. Read only on
@@ -69,15 +83,21 @@ function tick(stamp) {
     ambient.reveal(current);
     syncMotion();
   }
-  if (running) {
+  const interacting = canInteract() && (interactionDirty || workbench.busy());
+  if (running || interacting) {
     // Hold time while paused/offscreen; a delayed frame cannot produce a gust jump.
     if (lastStamp !== null) elapsed += Math.min((stamp - lastStamp) / 1000,.8);
     lastStamp = stamp;
-    // Nine-second wind and <1.3px/sec motes need only ~1.5 visual samples/sec:
-    // even the nearest mote advances <0.9px. Scrubbing still runs at frame rate.
-    if (stamp - lastPaint >= 650) {
+    // Nine-second wind and <1.3px/sec motes need only ~1.1 visual samples/sec:
+    // even the nearest mote advances <1.2px. Input and scrub still run at frame rate.
+    if (running && stamp - lastPaint >= idleSampleMs) {
       ambient.render(elapsed,strength);
+      workbench.render(elapsed,strength,true);
+      interactionDirty = false;
       lastPaint = stamp;
+    } else if (interacting) {
+      workbench.render(elapsed,running ? strength : 0,true);
+      interactionDirty = false;
     }
     if (!frameId) frameId = requestAnimationFrame(tick);
   } else {
@@ -98,15 +118,10 @@ function expose(element, progress) {
 function closeSelection() {
   selected?.classList.remove('is-selected');
   selected?.removeAttribute('aria-describedby');
+  selected?.removeAttribute('data-armed');
   selected = null;
-  enter.hidden = true;
-}
-function positionEnter() {
-  if (!selected) return;
-  const parent = enter.offsetParent.getBoundingClientRect();
-  const target = selected.getBoundingClientRect();
-  enter.style.left = `${target.right - parent.left - enter.offsetWidth - 10}px`;
-  enter.style.top = `${target.bottom - parent.top - enter.offsetHeight - 4}px`;
+  status.textContent = '';
+  workbench.select(null);
 }
 function seek(seconds) {
   if (!Number.isFinite(seconds)) return;
@@ -141,7 +156,6 @@ function seek(seconds) {
   root.style.setProperty('--resolve-cue-visibility',world > 0 ? 'visible' : 'hidden');
   root.dataset.resolveState = current >= 4.4 ? 'opened' : current < 0 ? 'dissolving' : 'resolving';
   if (current < 4.4) closeSelection();
-  positionEnter();
 }
 function onScroll() {
   if (scrub) dirtyScroll = true;
@@ -158,7 +172,7 @@ motionButton.hidden = false;
 sample(reduced.matches ? 5 : frame === 'resolve' ? 0 : frame === 'hinge' ? -.5 : scrub ? -1 : 5);
 window.sdforestResolve = Object.freeze({ seek:sample, open:openStatic, get time() { return current; } });
 addEventListener('scroll',onScroll,{passive:true});
-addEventListener('resize',() => { measureSettings(); onScroll(); positionEnter(); });
+addEventListener('resize',() => { measureSettings(); onScroll(); });
 addEventListener('pageshow',event => { if (event.persisted || (!frame && scrollY > 0)) openStatic(); });
 reduced.addEventListener('change',event => { if (event.matches) openStatic(); else syncMotion(); });
 document.addEventListener('visibilitychange',syncMotion);
@@ -182,16 +196,18 @@ directory.addEventListener('click',event => {
   const link = event.target.closest('[data-pool-link]');
   if (!link || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
   event.preventDefault();
+  // A physical double-click is one selection gesture, never a shortcut into a pool.
+  if (event.detail > 1) return;
+  if (selected === link) { location.assign(link.href); return; }
   closeSelection();
   selected = link;
   selected.classList.add('is-selected');
-  enter.textContent = 'Enter';
-  enter.setAttribute('aria-label',`Enter ${link.querySelector('.portal-name').textContent}`);
-  enter.hidden = false;
-  positionEnter();
-  if (event.detail === 0) enter.focus({preventScroll:true});
+  selected.dataset.armed = 'true';
+  selected.setAttribute('aria-describedby','workbench-status');
+  status.textContent = `${link.querySelector('.portal-name').textContent} selected. Press again to open; Escape cancels.`;
+  workbench.select(link);
 });
-enter.addEventListener('click',() => { if (selected) location.assign(selected.href); });
+directory.addEventListener('keydown',event => { if (event.key === 'Enter' && event.repeat) event.preventDefault(); });
 document.addEventListener('keydown',event => { if (event.key === 'Escape') { const prior = selected; closeSelection(); prior?.focus(); } });
 document.addEventListener('click',event => { if (!event.target.closest('.resolve-directory')) closeSelection(); });
 // A separate directory module may reorder the native anchors; arrival order follows it.

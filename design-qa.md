@@ -1,3 +1,105 @@
+# SD Forest front-page workbench QA — 2026-09-23
+
+Scope: approved direction 2 and its approved visual/interaction revisions, PR
+#619. The earlier Open Dashboard report below is preserved unchanged.
+
+## Source and rendered comparison
+
+- Source visual truth: `docs/frontpage-proof/workbench-approved.png`, 1672×941.
+- Implementation: `docs/frontpage-proof/workbench-target.png`, 1672×941 CSS px,
+  DPR 1, opened state on the existing homepage. No image scaling for the main
+  comparison; both images are placed together at native size in
+  `docs/frontpage-proof/workbench-comparison.png` (3344×941).
+- Focused comparison: `docs/frontpage-proof/workbench-control-comparison.png`,
+  approved first-aid control left, rendered control right. Crops retain aspect
+  ratio and are fitted into equal 490×270 panels. It makes text, flag and lever
+  fidelity readable rather than judging from a tiny full-page view.
+- Other actual renders: desktop 1920×1080; mobile 390×844 landing and full
+  continuation; narrow 320×568; landscape 780×390; selected AI-d kit; reduced
+  motion; resolve-only frames. All are linked in `docs/frontpage-workbench.md`.
+- The source deliberately omits the tree and marks a shorter placeholder. The
+  accepted numbered tree contract overrides that placeholder; the real bitmap
+  is larger and must remain unchanged. This is not a pixel-identical redraw.
+
+## Comparison history and fixes
+
+1. [P2, corrected] The first render put leading controls at 23vh and the next
+   pair at 51vh, too low versus the source. Moved to 13vh / 40vh. Protected
+   central tree geometry did not move. Repeated combined comparison now shows
+   Health/AI-d kit leading, GrowingApp immediately below Health and Artificial
+   Self opposite it; three compact controls below the roots.
+2. [P2, corrected] Full-image black canvases looked pasted over the horizon.
+   Fixed the edge masks on the base art; small region textures animate only the
+   actual mechanism. Reopened combined and control comparisons: no hard black
+   rectangle around the frames. Wood and moss remain original raster artwork,
+   not handcrafted SVG/CSS substitutes.
+3. [P2, corrected] Health's name sat on the lower rim rather than inside the
+   glass. Moved the live label into the left glass with a dark readability
+   backing, leaving the ECG readable across the remaining glass. Latest
+   comparison contains the corrected placement.
+4. [P2, corrected] The initial phone capture had scrolled to Pause motion while
+   preparing the still frame. Corrected the capture procedure and recaptured
+   at scrollY=0; the landing now honestly shows 5/7 rows, not the footer.
+5. [P2, corrected] Input transitions initially referenced the last idle visual
+   sample, risking a snapped lever if that sample was stale. They now read the
+   sole controller clock; the regression requires >8 intermediate lever poses.
+6. [P2, corrected] At 1366×768 the lower flank hit areas overlapped footer
+   utilities by a few pixels. A failing geometry test exposed both entries.
+   Short-wide-desktop width/type caps now reserve the footer strip; instructions
+   for those flanks sit above, not over it. The 1366×768 and 1920×720 regression
+   passes, and dedicated short-desktop screenshots accompany the full evidence.
+
+## Required fidelity surfaces
+
+- **Fonts/typography:** existing self-hosted Cormorant Garamond and Alegreya are
+  reused; no new font dependency. Aqua Health, lavender AI-d kit, pale lime
+  GrowingApp, amber TinkerBox, violet gallery, violet/teal neurons and warm
+  italic My Story keep distinct readable names. Artificial Self uses lighter
+  tracking, TinkerBox a firmer Alegreya weight. No screenshot-baked labels.
+  Seven distinct foreground colours meet at least 7:1 against #0f0f15.
+- **Spacing/layout:** same 1672×941 comparison inspected, then 1920×1080 and
+  phone renders. The original wide wooded rails were cut rather than expanded
+  into foreground decoration. The larger fixed tree and compact lower controls
+  are deliberate contract constraints. All 7 entries fit on wide desktop;
+  mobile uses flexible text rows beside mechanism thumbnails, not unreadable
+  miniature desktop labels. The mock supplied no mobile design.
+- **Colours/tokens:** near-black field, indigo distance, green light and warm
+  bark preserve the selected dark-electric/warm-organic contrast. White on green
+  aid emblem follows the approved correction. No saturation change to the tree.
+- **Image quality:** original generated controls match each approved mechanism;
+  seven base images, 13 cropped regions and one horizon total 631,486 bytes.
+  Side-by-side detail confirms the lever and aid flag are recognizable at actual
+  desktop scale. The tree's ~226×214 meaningful pixels remain visibly soft at
+  desktop size; that protected source limitation is not disguised as new detail.
+- **Copy/content:** 7/7 existing pool names, 7/7 summaries and both existing
+  homepage paragraphs compare unchanged against a08512b. No narrative,
+  biography, personal-story or about copy added, changed or used as filler.
+  Only functional selected-state/accessibility instructions were introduced.
+
+## Interaction, responsive and failure QA
+
+Actual browser use: first AI-d kit press selected and depressed the purple
+lever without navigation; the second press opened `/web/pools/ai-d-kit/`.
+Automated browser checks cover every native link, keyboard focus/Enter/Escape,
+double-click and held-key protection, reduced-motion mid-scrub, back navigation,
+failed art, stalled/failed warm planes, long labels at 320px, enlarged text,
+landscape reachability, tree clearance during arrival/selection and zero
+per-frame geometry reads at rest. The loaded-page error/asset check found no
+runtime errors or failed responses. Reduced motion has no running animations;
+paused/offscreen documents stop their scheduler. No hidden control receives Tab.
+
+**Follow-up polish (P3, not a blocker):** Ivan's future higher-resolution tree
+render will improve central sharpness; do not fabricate detail or change its
+framing. Keep the mobile mechanism thumbnails subordinate to the readable text.
+
+Implementation checklist: source comparison complete; focused comparison
+complete; functional and narrow-layout checks complete; protected diff audited;
+rendered evidence committed with the same PR. No outstanding P0/P1/P2 finding.
+
+final result: passed
+
+---
+
 # Open Dashboard design QA
 
 Result: **passed for the approved redesign and requested refinements**. The user approved publication on September 10, 2026; the database repair and backend are now live. Frontend deployment evidence is recorded on its release pull request.

@@ -84,7 +84,7 @@ const percentile = (values, p) => [...values].sort((a,b)=>a-b)[Math.floor((value
     }
     if (out) {
       fs.mkdirSync(out,{recursive:true});
-      fs.writeFileSync(path.join(out,trace?'trace-summary.json':'cost-summary.json'),JSON.stringify({baseline,trace,results},null,2));
+      fs.writeFileSync(path.join(out,trace?'trace-summary.json':'cost-summary.json'),JSON.stringify({baseline:modes.includes('baseline')?baseline:'same-page paused',trace,results},null,2));
     }
   } finally { await browser.close(); }
 })().catch(error => { console.error(error);process.exitCode=1; });
