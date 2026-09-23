@@ -1,5 +1,10 @@
 # Approved Grafted Workbench implementation
 
+**Historical receipt for head ffa88071.** The following interaction remains in use,
+but its detached horizon/frames and title placement are superseded by the approved
+[embedded-forest revision](frontpage-embedded.md). Screenshots, measurements and
+costs below describe this earlier head, not the latest environment.
+
 BUTCHER · 2026-09-23 · orchestrator-gpt PR #619 · same branch, no merge.
 
 This replaces the repeated circular entry treatment, not the tree, pool pages,

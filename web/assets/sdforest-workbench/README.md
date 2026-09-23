@@ -1,5 +1,36 @@
 # Grafted Workbench artwork
 
+## Approved embedded environment — 2026-09-23
+
+The [corrected embedded mock](../../../docs/frontpage-proof/embedded-approved.png)
+supersedes the detached framing shown in the older workbench render. Four original
+generated layers extend the existing controls, with no baked-in text or new tree:
+
+| Deployed asset | Dimensions | Bytes | Purpose |
+|---|---|---:|---|
+| bark.webp | 1672×941 | 357,072 | Continuous moss/bark side frames and lower root ledge |
+| woodland.webp | 1672×941 | 77,884 | Distant indigo valley, behind the protected tree |
+| mist.webp | 1672×941 | 241,550 | Sparse translucent air, 0.12 base opacity |
+| ground.webp | 768×117 | 44,266 | Moss/soil contact patch at the fixed trunk base |
+
+Total added deployable artwork: **720,772 bytes**. The old horizon remains in git
+for discoverability but is no longer requested by this homepage. No CodePen asset,
+code or composition is used. Existing controls, region crops, fonts and all six
+warm-world/tree layers are unchanged. The mock is documentation, not a shipped
+replacement tree. Original transparent PNGs were inspected before compression;
+the ground canvas was cropped to x39/y354/w2092/h318 before resizing. WebP quality
+88, alpha quality 100, effort 6. Desktop bark brightness/saturation is 0.72/0.8;
+compact/mobile backing is darker for readable native text.
+
+| Original PNG | SHA-256 |
+|---|---|
+| Bark | `2f79e6d1c32397b884bf4040ddb84aad2949ebb4228746e5e18fc92c12fff2f5` |
+| Woodland | `1056d217874aa2e0a2c8aaa04f12ea8b343357efe7be5e2bc988de97ae2f38d6` |
+| Mist | `52aee74f26ec653e1c7621a52be002dfbe31c6ba8b17340fba7de76be6c24b5e` |
+| Ground | `df2fd10b464fbd6ededf26717d0a312d6d93d6e14537995e4c0daf8ed167cb92` |
+
+## Earlier mechanical artwork — retained unchanged
+
 Original generated control artwork, approved direction 2, BUTCHER, 2026-09-23.
 The source target is [the approved revision](../../../docs/frontpage-proof/workbench-approved.png).
 No CodePen code, scene, composition or asset was copied. The tree and all six

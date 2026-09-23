@@ -1,4 +1,60 @@
-# SD Forest front-page workbench QA — 2026-09-23
+# SD Forest embedded-forest QA — 2026-09-23
+
+Scope: the explicitly approved connected-bark mock and its two inset-title
+corrections, existing PR #619. The older reports below remain historical.
+
+## Matched comparison
+
+- Source: `docs/frontpage-proof/embedded-approved.png`, 1672×941.
+- Actual HTML: `embedded-target.png`, same viewport and opened state, DPR1.
+- Compared together in `embedded-comparison.png` at native scale, then both
+  inset titles in `embedded-title-comparison.png` (reference left, render right).
+- Checked desktop 1920×1080, 1672×941, 1366×768 and 1920×720; mobile 390×844,
+  320×568, 780×390, normal-flow continuation, selection, resolve and reduced motion.
+
+## Findings and corrections
+
+1. [P2, fixed] Opaque source margins made control frames look pasted on. The
+   artwork-only clipping now blends them into the continuous bark; native text
+   is outside that clip. New original bark, woodland, mist and ground layers
+   match the selected organic/electric direction without redrawing the tree.
+2. [P2, fixed] The two requested titles fell outside the lower insets. Native
+   nameplates and container-scaled type keep full text ranges inside. Enlarged
+   plate treatment preserves legibility rather than shrinking names excessively.
+3. [P2, fixed] Bright bark behind mobile rows hurt contrast, and an initial
+   permanent nav background leaked into resolve. A darker independent backing
+   follows the existing field arrival and reverse scrub; it is absent at t=0.
+4. [P2, fixed] Selected summaries and entry instructions overlapped on desktop.
+   A measured failing regression now passes for all seven at four wide sizes;
+   instructions and summaries have separate lines, with no idle-layout change.
+
+## Design and interaction gate
+
+Existing fonts, seven distinct readable name colours, main title, subtitle,
+copy and control mechanisms remain. The supplied reference is not flattened
+into a clickable picture: controls respond independently while bark connects
+them. The actual fixed tree is softer than the mock; its source-resolution
+limit and exact video framing take precedence over generated mock imagery.
+Lower controls keep their approved compact deployed dimensions/positions,
+so they sit slightly lower than in the concept. No second ordering system.
+
+Actual browser interaction selected AI-d kit on first press, visibly depressed
+the lever, and navigated only on the next press. Mobile scrolling reached
+Artificial Self, My Story and all footer controls. Reduced motion is still;
+failure states keep routes usable. Source and built browser checks 34/34 each,
+foundation 6/6. Full npm source contracts 191/192, only the untouched known
+Windows CRLF hash artifact. See `docs/frontpage-embedded.md` for measured costs,
+protected-diff audit and Sail feedback disposition, not an approval claim.
+
+P3 follow-up only: Ivan's higher-resolution tree render will improve central
+sharpness; physical-phone GPU/thermal testing remains unmeasured. No outstanding
+P0/P1/P2 visual finding in the tested viewports.
+
+final result: passed
+
+---
+
+# Historical SD Forest front-page workbench QA — 2026-09-23
 
 Scope: approved direction 2 and its approved visual/interaction revisions, PR
 #619. The earlier Open Dashboard report below is preserved unchanged.

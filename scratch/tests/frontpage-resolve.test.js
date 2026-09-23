@@ -62,6 +62,105 @@ async function opacity(page, selector) {
   return page.locator(selector).evaluate(el=>Number(getComputedStyle(el).opacity));
 }
 
+test('GrowingApp and Artificial Self titles stay inside their inset nameplates', async () => {
+  // The native nameplates sit in the lower control recess, not on the bark.
+  // Check both the actual text containment and the plate's artwork boundary.
+  for (const [width,height] of [[1920,1080],[1672,941],[1366,768],[1920,720]]) {
+    const page=await pageAt('?frame=opened',{viewport:{width,height}});
+    for (const [id,left,top,right,bottom] of [
+      ['growingapp',.21,.59,.79,.78],
+      ['artificial-self',.21,.59,.79,.78]
+    ]) {
+      const result=await page.locator(`[data-pool-link="${id}"]`).evaluate((e,bounds)=>{
+        const art=e.querySelector('.portal-art').getBoundingClientRect();
+        const range=document.createRange();range.selectNodeContents(e.querySelector('.portal-name'));
+        const text=range.getBoundingClientRect();
+        const plate=e.querySelector('.portal-copy').getBoundingClientRect();
+        const [left,top,right,bottom]=bounds;
+        return {fits:plate.left>=art.left+art.width*left-.5 && plate.right<=art.left+art.width*right+.5 &&
+          plate.top>=art.top+art.height*top-.5 && plate.bottom<=art.top+art.height*bottom+.5 &&
+          text.left>=plate.left && text.right<=plate.right && text.top>=plate.top && text.bottom<=plate.bottom,
+          text:text.toJSON(),plate:plate.toJSON(),art:art.toJSON()};
+      },[left,top,right,bottom]);
+      assert.ok(result.fits,`${id} at ${width}x${height}: ${JSON.stringify(result)}`);
+    }
+    await page.close();
+  }
+});
+
+test('selected instructions and existing summaries never share the same desktop line', async () => {
+  for(const [width,height] of [[1920,1080],[1672,941],[1366,768],[1920,720]]) {
+    const page=await pageAt('?frame=opened',{viewport:{width,height}});
+    for(const link of await page.locator('[data-pool-link]').all()) {
+      await link.click();
+      const result=await link.evaluate(e=>{
+        const box=e.getBoundingClientRect(),meta=e.querySelector('.portal-meta').getBoundingClientRect();
+        const css=getComputedStyle(e,'::after'),height=parseFloat(css.height);
+        const top=css.top==='auto' ? box.bottom-parseFloat(css.bottom)-height : box.top+parseFloat(css.top);
+        return {id:e.dataset.poolLink,top,bottom:top+height,meta:meta.toJSON()};
+      });
+      assert.ok(result.bottom+2<=result.meta.top || result.top>=result.meta.bottom+2,
+        `${width}x${height}: ${JSON.stringify(result)}`);
+      await page.keyboard.press('Escape');
+    }
+    await page.close();
+  }
+});
+
+test('connected bark and distant woodland open reversibly without intercepting any pool', async () => {
+  const page=await pageAt('?frame=resolve');
+  assert.equal(await page.locator('.workbench-bark').count(),1,'one connected bark environment, not separate floating frames');
+  assert.equal(await page.locator('.workbench-woodland').count(),1,'the tree needs a visible distant setting');
+  const tree=await page.locator('.resolve-tree').boundingBox();
+  for (const time of [5,0,5]) {
+    await page.evaluate(t=>window.sdforestResolve.seek(t),time);
+    assert.equal(await opacity(page,'.resolve-field'),time===0?0:1);
+    assert.deepEqual(await page.locator('.resolve-tree').boundingBox(),tree);
+  }
+  assert.equal(await page.locator('.workbench-bark,.workbench-woodland').evaluateAll(es=>es.every(e=>e.complete && e.naturalWidth>0)),true);
+  for(const link of await page.locator('[data-pool-link]').all()) {
+    assert.ok(await link.evaluate(e=>{
+      const b=e.getBoundingClientRect(),hit=document.elementFromPoint(b.left+b.width/2,b.top+b.height/2);
+      return hit===e||e.contains(hit);
+    }));
+  }
+  await page.close();
+});
+
+test('the environmental mist shares pause and reduced-motion with the existing single clock', async () => {
+  const page=await ambientPage();
+  assert.equal(await page.locator('.workbench-mist').count(),1);
+  const style=()=>page.locator('.workbench-mist').getAttribute('style');
+  const start=await style();
+  await page.waitForTimeout(1100);
+  assert.notEqual(await style(),start);
+  await page.getByRole('button',{name:'Pause motion',exact:true}).click();
+  const held=await style();
+  await page.waitForTimeout(1100);
+  assert.equal(await style(),held);
+  await page.emulateMedia({reducedMotion:'reduce'});
+  const still=await style();
+  await page.mouse.move(1800,700);await page.waitForTimeout(1100);
+  assert.equal(await style(),still);
+  assert.equal(await page.evaluate(()=>frameProbe.pending()),0);
+  assert.equal(await page.evaluate(()=>frameProbe.max),1);
+  await page.close();
+});
+
+test('mobile bark does not leak into the tree-only resolve frame', async () => {
+  const page=await pageAt('?frame=resolve',{viewport:{width:390,height:844}});
+  const background=await page.locator('[data-pool-directory]').evaluate(e=>getComputedStyle(e).backgroundImage);
+  assert.equal(background,'none','a permanent nav background escapes seek() and remains visible at t=0');
+  const layer=page.locator('.workbench-directory-bark');
+  assert.equal(await layer.count(),1);
+  assert.equal(await opacity(page,'.workbench-directory-bark'),0);
+  await page.evaluate(()=>window.sdforestResolve.seek(5));
+  assert.equal(await opacity(page,'.workbench-directory-bark'),1);
+  await page.evaluate(()=>window.sdforestResolve.seek(0));
+  assert.equal(await opacity(page,'.workbench-directory-bark'),0);
+  await page.close();
+});
+
 test('workbench leaders and compact lower entries respect the protected tree and approved hierarchy', async () => {
   const page=await pageAt('?frame=opened');
   const boxes=await page.locator('[data-pool-link]').evaluateAll(es=>Object.fromEntries(es.map(e=>[e.dataset.poolLink,e.getBoundingClientRect().toJSON()])));

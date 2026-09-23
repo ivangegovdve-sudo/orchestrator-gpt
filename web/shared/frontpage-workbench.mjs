@@ -47,6 +47,7 @@ export function createWorkbench(stage,invalidate,readClock) {
     node.update=update;return node;
   });
   const far=stage.querySelector('.workbench-horizon');
+  const mist=stage.querySelector('.workbench-mist');
   let moving=false, pointerX=0, pointerY=0, x=0, y=0;
   let viewport={width:innerWidth,height:innerHeight};
   stage.addEventListener('pointermove',event=>{
@@ -100,6 +101,10 @@ export function createWorkbench(stage,invalidate,readClock) {
       x=animate ? x+(targetX-x)*.18 : 0;y=animate ? y+(targetY-y)*.18 : 0;
       if(Math.abs(x-targetX)>.05 || Math.abs(y-targetY)>.05)moving=true;
       far.style.transform=`translate3d(${x+gust*.3}px,${y}px,0)`;
+      if(mist) {
+        mist.style.transform=`translate3d(${x*.4+gust*2.5}px,${y*.3}px,0)`;
+        mist.style.opacity=String(.12+gust*.018);
+      }
     }
   };
 }

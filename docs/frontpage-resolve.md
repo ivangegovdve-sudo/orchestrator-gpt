@@ -1,6 +1,6 @@
 # SD Forest — front-page resolve contract
 
-2026-09-23 · BUTCHER · front page only. Updated for the approved Grafted Workbench revision. This is the terminal-sequence layout and timing contract for Ivan's animation, not a new tree or a completed seed-to-tree video. Earlier review and ambient receipts below are historical; the current interaction and material layer are documented in [the workbench receipt](frontpage-workbench.md).
+2026-09-23 · BUTCHER · front page only. Updated for the approved embedded-forest revision. This is the terminal-sequence layout and timing contract for Ivan's animation, not a new tree or a completed seed-to-tree video. Earlier review and ambient receipts below are historical; the current environment and inset-title results are in [the embedded-forest receipt](frontpage-embedded.md). The unchanged mechanical interactions are documented in [the workbench receipt](frontpage-workbench.md).
 
 ## The two frames
 
@@ -42,7 +42,7 @@ The following named sequence reflects the unchanged catalog ranks after #615: He
 |---|---|---|
 | Five background planes | −1.00 → 0.00 | Fade 1→0 together, revealing the existing dark field. The tree never fades or moves. |
 | Tree illumination | −1.00 → 0.00 | A restrained green edge glow reaches 30px / 8% opacity as the warm surrounding light leaves. Original tree pixels remain unchanged. |
-| Distant indigo horizon | 0.05 → 0.60 | Fade in behind the tree and controls. The earlier orbit ellipses and connecting paths are removed. |
+| Distant woodland, subtle mist and connected bark | 0.05 → 0.60 | Fade in behind the tree and controls. The compact/mobile directory's dark bark backing follows this same interval. The earlier orbit ellipses and connecting paths remain removed. |
 | Forest HUB + existing subtitle | 0.18 → 0.95 | Fade in as one title plate. |
 | SDForest home control | 0.30 → 0.90 | Fade in at the upper-left edge. |
 | Health | 0.80 → 1.52 | Fade and scale 0.85→1; glass ECG with aqua lettering. Upper left. |
@@ -52,11 +52,11 @@ The following named sequence reflects the unchanged catalog ranks after #615: He
 | Design Gallery | 2.08 → 2.80 | Fade, x 26px→0 and horizontal reveal 0→100%; compact exhibit shutters. Bottom right. |
 | Artificial Self | 2.40 → 3.12 | Fade and blur 8px→0; connected violet/teal neurons. Below AI-d kit. |
 | My Story | 2.72 → 3.44 | Fade and gentle 14px rise; earliest signal faintest, latest brightest, no terminal cap. Bottom centre. No new story copy. |
-| Ground and sparse air | 3.60 → 4.40 | Original moss/grass contact patch fades in at the fixed trunk base. The independent decorative layer is absent at the resolve frame. Ambient time starts only once arrivals finish. |
+| Ground and sparse air | 3.60 → 4.40 | Original raster moss/soil contact patch and existing lagged grass fade in at the fixed trunk base. The independent decorative layer is absent at the resolve frame. Ambient time starts only once arrivals finish. |
 | Portfolio + Pause motion controls | 3.65 → 4.20 | Fade in at the lower-left edge. Existing external-tab warning and destination retained. Pause motion is a native button; no-JS omits it. |
 | Design history + Feedback controls | 3.85 → 4.40 | Fade in together at the lower-right edge; existing behaviours retained. |
 
-The slot positions above describe wide desktop. The compact-desktop and mobile flow layouts preserve the same DOM order and timing, not those flank coordinates.
+The slot positions above describe wide desktop. The compact-desktop and mobile flow layouts preserve the same DOM order and timing, not those flank coordinates. The new woodland is a separate dark-page asset, not a warm-world plane kept partly visible. At t=0 both environments and the mobile bark backing are absent; reversing the shared seek restores that exact tree-only frame. On wide desktops, selected-state instructions sit above flank controls; lower-flank summaries sit above those instructions. The centred lower instruction stays below its control. No wording or idle placement changed.
 
 The early **Explore the pools** cue fades out with the background (−1→0); activating it opens the complete page immediately. A keyboard skip link is available on focus at every stage. Existing homepage paragraphs are retained verbatim after the stage and enter through normal document scrolling, not the video sequence. There are no other arriving layers, hidden project lists or invented destinations.
 
