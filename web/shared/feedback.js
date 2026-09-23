@@ -113,7 +113,10 @@ const FORMSPREE_ENDPOINT = 'https://formspree.io/f/PLACEHOLDER';
 
   button.addEventListener('click', open);
   document.addEventListener('keydown', (event) => { if (event.key === 'Escape') close(); });
-  (document.body || document.documentElement).append(button);
+  const inlineSlot = document.querySelector('[data-feedback-slot]');
+  (inlineSlot || document.body || document.documentElement).append(button);
+  // A flow-mounted utility has no fixed-position collision to schedule.
+  if (inlineSlot) return;
   requestAnimationFrame(() => requestAnimationFrame(scheduleClearFixedControls));
   window.addEventListener('load', scheduleClearFixedControls, { once: true });
   window.addEventListener('resize', scheduleClearFixedControls);

@@ -1,0 +1,33 @@
+{
+  "provider": "SailResearch",
+  "model": "google/gemma-4-31B-it",
+  "published": false,
+  "diff_sha256": "663f49afefd4da68c0ff3580fa83add186e4b674c69604742ad5b25012a4df5c",
+  "substantive": true,
+  "answer": {
+    "assessment": "REQUEST_CHANGES",
+    "summary": "The changes to `index.html` and `web/shared/frontpage-resolve.css` introduce a regression where the new environmental layers (bark and woodland) are not properly hidden during the initial 'resolve' state (t=0), and the new `workbench-directory-bark` element is not integrated into the existing `seek()` logic, potentially leaking into the tree-only frame on mobile.",
+    "findings": [
+      {
+        "severity": "BLOCKER",
+        "location": "index.html:193",
+        "problem": "The `.resolve-field` container is marked as `inert` in the HTML, but the new children `.workbench-woodland`, `.workbench-mist`, and `.workbench-bark` are added inside it. While the container is inert, the `seek()` function in `frontpage-resolve.mjs` only toggles the opacity of the `.resolve-field` container. However, the CSS for `.workbench-bark` and `.workbench-horizon` (now `.workbench-woodland`) does not explicitly inherit a hidden state if the parent's opacity is 0 in all browser rendering engines, and more critically, the `workbench-directory-bark` added to the nav is not handled by the `expose()` logic in `seek()`, meaning it may remain visible or interactable depending on the `data-arrival` state."
+      },
+      {
+        "severity": "BLOCKER",
+        "location": "web/shared/frontpage-resolve.css:117",
+        "problem": "The `.workbench-directory-bark` is set to `display: block` in the mobile media query (`max-width: 800px`). The `seek()` function in `frontpage-resolve.mjs` iterates over `[data-arrival]:not([data-pool-link])` to set opacity and inertness. While `.workbench-directory-bark` has `data-arrival=\"field\"`, it is located inside the `nav` which is part of the `.resolve-directory`. The `seek()` logic for the directory specifically targets `[data-pool-link]` elements. This creates a discrepancy where the background bark in the directory may not synchronize its visibility with the rest of the 'field' arrival, violating the requirement that mobile tree-only resolve may not expose the new bark."
+      },
+      {
+        "severity": "MAJOR",
+        "location": "web/shared/frontpage-resolve.css:45",
+        "problem": "The `.portal-art` now has a global `clip-path: inset(...)`. This overrides the previous masking logic and may cause the artwork to be clipped unexpectedly on different aspect ratios, potentially cutting off the 'native inset titles' for GrowingApp and Artificial Self if the container size fluctuates, despite the provided tests."
+      },
+      {
+        "severity": "MINOR",
+        "location": "web/shared/frontpage-workbench.mjs:104",
+        "problem": "The `mist` element is accessed via `stage.querySelector('.workbench-mist')`. If the HTML fails to load or the element is missing, the `if(mist)` check prevents a crash, but the `far` element (horizon) is accessed without a null check (`far.style.transform`), creating an inconsistency in error resilience for the new environmental layers."
+      }
+    ]
+  }
+}

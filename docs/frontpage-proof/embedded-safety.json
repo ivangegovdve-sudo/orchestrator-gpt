@@ -1,0 +1,21 @@
+{
+  "baseline": "ffa88071c8547f8406f8cc42636cb819709e4686",
+  "treeCssRulesUnchanged": 3,
+  "treeMarkupUnchanged": true,
+  "namesAndSummariesUnchanged": 14,
+  "existingCopySectionUnchanged": true,
+  "seekAndSharedClockUnchanged": true,
+  "protectedPathsUnchanged": [
+    "web/pools",
+    "web/shared/project-catalog.mjs",
+    "web/shared/project-catalog-source.mjs",
+    "web/shared/pool-directory.mjs",
+    "web/shared/frontpage-resolve.mjs",
+    "web/shared/frontpage-ambient.mjs",
+    "web/assets/sdforest-resolve",
+    "vercel.json",
+    "scripts/static-route-registry.mjs",
+    "web/shared/route-inventory.mjs"
+  ],
+  "routesRenamedOrDeleted": 0
+}

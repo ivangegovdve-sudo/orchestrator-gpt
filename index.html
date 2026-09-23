@@ -5,7 +5,6 @@
 <meta charset="utf-8">
 <link rel="icon" href="/web/shared/favicon.svg?v=20260807a" type="image/svg+xml">
 <script defer src="/web/shared/feedback.js?v=20260807a"></script>
-<script type="module" src="/web/shared/forest-navigation.mjs?v=20260807a"></script>
 <link rel="preload" href="/web/shared/forest-design.css?v=20260807a" as="style">
 <link rel="preload" href="/web/vendor/fonts/cormorant-garamond-normal-500-latin.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="/web/vendor/fonts/alegreya-normal-400-900-latin.woff2" as="font" type="font/woff2" crossorigin>
@@ -164,468 +163,84 @@
   <meta property="og:type" content="website">
   <title>SDForest — projects in motion</title>
   <link rel="stylesheet" href="/web/shared/forest-design.css?v=20260807a">
-  <link rel="stylesheet" href="/web/shared/forest-home.css?v=20260807a">
   <link rel="stylesheet" href="/web/shared/design-history.css?v=20260807a">
-  <link rel="stylesheet" href="/web/shared/forest-sketch.css?v=20260807a">
+  <link rel="stylesheet" href="/web/shared/frontpage-resolve.css">
 </head>
-<body>
-  <!-- The forest-motion.js constellation canvas is gone from the landing
-       (Ivan 2026-07-24): the crown and the mycelium are the only living
-       geometry here. Subpages still load forest-motion.js themselves. -->
-  <div class="home-scrim" aria-hidden="true"></div>
-  <div class="forest-vignette" aria-hidden="true"></div>
-  <div class="forest-grain" aria-hidden="true"></div>
-
-  <nav class="home-nav" aria-label="SDForest">
-    <span class="home-brand">SDForest</span>
-    <span class="home-nav-status">A living project atlas</span>
-  </nav>
-
-  <svg width="0" height="0" aria-hidden="true" focusable="false" style="position:absolute">
-    <defs>
-      <symbol id="leaf" viewBox="0 0 24 28">
-        <path d="M11.4 27.5l.9-7.2-5.1 2.1 1.4-5.2-6.1-1.8 4.8-3.2-3.2-5.4 6.2 1.8L12.7.5l3.1 7.3 5.7-2.4-2.1 6.2 4.1 3.1-5.5 2.1 1.3 5.5-5.1-2.2-.9 7.4z"/>
-      </symbol>
-      <!-- The same leaf drawn by hand: an open, slightly wobbly outline
-           with a stem and a midrib, stroked rather than filled. This is
-           the resting state of the added crown leaves; #leaf above is the
-           geometric form they settle into on hover. -->
-      <symbol id="leaf-sketch" viewBox="0 0 24 28">
-        <path d="M12.1 27.3c-.4-2.6.1-5.1.5-7.3M12.6 20.1c-1.7.4-3.4 1-4.9 1.9.3-1.7.8-3.4 1.2-5.1-2-.4-4-1.1-5.8-1.9 1.5-1 3.1-2 4.6-3.1-1-1.7-2.2-3.4-3-5.2 2 .5 4.1 1.1 6.1 1.7.2-2.5.7-5.1 1.5-7.5 1 2.3 2 4.7 2.9 7.1 1.9-.7 3.8-1.5 5.6-2.3-.6 2-1.3 4-2 6 1.3 1 2.7 1.9 4 3-1.8.7-3.6 1.4-5.4 2 .4 1.8.8 3.6 1.2 5.4-1.7-.6-3.4-1.3-5-2.1"/>
-      </symbol>
-      <symbol id="icon-time" viewBox="0 0 48 48">
-        <circle class="icon-ring" cx="24" cy="24" r="19" stroke-dasharray="4 5"/>
-        <path class="icon-line" d="M24 8v16l10 6M14 15c-3 3-5 7-5 12m30-1c0 5-2 9-6 12"/>
-        <circle class="icon-fill" cx="24" cy="24" r="2.4"/>
-      </symbol>
-      <symbol id="icon-vfx" viewBox="0 0 48 48">
-        <path class="icon-ring" d="M7 13h34v22H7z" stroke-dasharray="5 4"/>
-        <path class="icon-line" d="M11 18h8l5 12 5-12h8M17 9v8m14-8v8M17 35v5m14-5v5"/>
-        <circle class="icon-fill" cx="24" cy="24" r="2"/>
-      </symbol>
-      <symbol id="icon-kids" viewBox="0 0 48 48">
-        <path class="icon-ring" d="M8 38h32M11 38V18l13-8 13 8v20" stroke-dasharray="6 4"/>
-        <path class="icon-line" d="M17 25h14v13H17zM13 17l11 7 11-7"/>
-        <circle class="icon-fill" cx="24" cy="31" r="2.4"/>
-      </symbol>
-      <symbol id="icon-rubiks" viewBox="0 0 48 48">
-        <path class="icon-ring" d="M24 5l17 10v18L24 43 7 33V15z" stroke-dasharray="5 4"/>
-        <path class="icon-line" d="M7 15l17 10 17-10M24 25v18M15.5 10l17 10M32.5 10l-17 10M12.7 18.4v10l8.5 5m14.1-15v10l-8.5 5"/>
-        <circle class="icon-fill" cx="24" cy="25" r="2.3"/>
-      </symbol>
-      <symbol id="icon-health" viewBox="0 0 48 48">
-        <circle class="icon-ring" cx="24" cy="24" r="18" stroke-dasharray="3 5"/>
-        <path class="icon-line" d="M13 25h7l3-9 4 17 3-8h6M24 7v5m0 24v5"/>
-        <circle class="icon-fill" cx="24" cy="24" r="2"/>
-      </symbol>
-      <symbol id="icon-council" viewBox="0 0 48 48">
-        <path class="icon-ring" d="M24 5l17 10v18L24 43 7 33V15z" stroke-dasharray="5 4"/>
-        <path class="icon-line" d="M14 19h12v9H14l-4 4V19zm12 4h8v8l4 4V23"/>
-        <circle class="icon-fill" cx="19" cy="23.5" r="1.6"/>
-      </symbol>
-      <symbol id="icon-tinylm" viewBox="0 0 48 48">
-        <circle class="icon-ring" cx="24" cy="24" r="18" stroke-dasharray="4 5"/>
-        <rect class="icon-line" x="18.5" y="18.5" width="11" height="11" rx="3"/>
-        <path class="icon-line" d="M24 12v6.5M24 29.5V36M12 24h6.5M29.5 24H36"/>
-        <circle class="icon-line" cx="24" cy="10" r="2"/>
-        <circle class="icon-line" cx="24" cy="38" r="2"/>
-        <circle class="icon-line" cx="10" cy="24" r="2"/>
-        <circle class="icon-line" cx="38" cy="24" r="2"/>
-        <circle class="icon-fill" cx="24" cy="24" r="2"/>
-      </symbol>
-      <symbol id="icon-library" viewBox="0 0 48 48">
-        <path class="icon-ring" d="M8 9h32v30H8z" stroke-dasharray="4 5"/>
-        <path class="icon-line" d="M12 13h9v22h-9zm12 4h5v18h-5zm8-6h5v24h-5M13 18h7m5 5h3m5-5h3"/>
-        <circle class="icon-fill" cx="16.5" cy="31" r="1.5"/>
-      </symbol>
-      <symbol id="icon-open-dashboard" viewBox="0 0 48 48">
-        <rect class="icon-ring" x="7" y="7" width="34" height="34" rx="7" stroke-dasharray="4 5"/>
-        <path class="icon-line" d="M15 15h6v6h-6zM27 15h6v6h-6zM15 27h6v6h-6zM27 27h6v6h-6zM18 21v6m12-6v6M21 18h6m-6 12h6"/>
-        <circle class="icon-fill" cx="24" cy="24" r="2.5" style="fill:var(--accent-secondary, #a9b2ff)"/>
-      </symbol>
-      <symbol id="icon-muscle" viewBox="0 0 48 48">
-        <circle class="icon-ring" cx="24" cy="24" r="19" stroke-dasharray="4 6"/>
-        <path class="icon-line" d="M10 30c4-8 8-4 11-13l5 4c5-1 10 3 12 8-5 7-19 10-28 1zM20 17l3-7 6 3-3 8"/>
-        <circle class="icon-fill" cx="31" cy="29" r="2"/>
-      </symbol>
-      <symbol id="icon-flowform" viewBox="0 0 48 48">
-        <circle class="icon-ring" cx="24" cy="24" r="19" stroke-dasharray="4 5"/>
-        <path class="icon-line" d="M9 31c6 0 6.5-10 15-10s9 10 15 10M14 38h20"/>
-        <circle class="icon-fill" cx="24" cy="15" r="2.4"/>
-      </symbol>
-      <symbol id="icon-reader" viewBox="0 0 48 48">
-        <circle class="icon-ring" cx="24" cy="24" r="19" stroke-dasharray="4 6"/>
-        <path class="icon-line" d="M12 15h10a3 3 0 013 3v16a3 3 0 00-3-3H12zM36 15H26a3 3 0 00-3 3v16a3 3 0 013-3h10z"/>
-        <path class="icon-line" d="M15 22h5M28 22h5M28 27h4"/>
-        <circle class="icon-fill" cx="18" cy="27" r="1.8"/>
-      </symbol>
-      <symbol id="icon-lobester" viewBox="0 0 48 48">
-        <circle class="icon-ring" cx="24" cy="24" r="19" stroke-dasharray="4 5"/>
-        <path class="icon-line" d="M24 11c-7 0-11 5-11 12s4 12 11 12m0-24c7 0 11 5 11 12s-4 12-11 12M24 11v24M17 19h4m-4 10h4m6-10h4m-4 10h4"/>
-        <circle class="icon-fill" cx="24" cy="23" r="2.2"/>
-      </symbol>
-      <symbol id="icon-poetry" viewBox="0 0 48 48">
-        <circle class="icon-ring" cx="24" cy="24" r="19" stroke-dasharray="4 6"/>
-        <path class="icon-line" d="M15 34c0-8 3-14 9-18M15 34h14M18 26h9M20 20h8"/>
-        <circle class="icon-fill" cx="30" cy="14" r="2.2"/>
-      </symbol>
-      <symbol id="icon-explore" viewBox="0 0 48 48">
-        <circle class="icon-ring" cx="24" cy="24" r="19" stroke-dasharray="4 5"/>
-        <circle class="icon-line" cx="21" cy="21" r="8"/>
-        <path class="icon-line" d="M27 27l8 8M13 21h4m2-4v4"/>
-        <circle class="icon-fill" cx="21" cy="21" r="2.2"/>
-      </symbol>
-      <symbol id="icon-calendar" viewBox="0 0 48 48">
-        <path class="icon-ring" d="M9 12h30v28H9z" stroke-dasharray="5 4"/>
-        <path class="icon-line" d="M9 20h30M17 8v8m14-8v8M16 27h5m6 0h5m-16 7h5m6 0h5"/>
-        <circle class="icon-fill" cx="18.5" cy="27" r="1.6"/>
-      </symbol>
-      <symbol id="icon-mendeleev" viewBox="0 0 48 48">
-        <path class="icon-ring" d="M7 10h34v28H7z" stroke-dasharray="4 5"/>
-        <path class="icon-line" d="M7 19h34M7 29h34M17 10v28m10-28v28m7-28v28"/>
-        <circle class="icon-fill" cx="12" cy="14.5" r="2"/>
-      </symbol>
-      <symbol id="icon-audiobook" viewBox="0 0 48 48">
-        <circle class="icon-ring" cx="24" cy="24" r="19" stroke-dasharray="4 6"/>
-        <path class="icon-line" d="M11 13h11v22H11zM22 13v22M26 19c2 1.5 3 3 3 5s-1 3.5-3 5M31 15c3.5 2 5.5 5 5.5 9s-2 7-5.5 9"/>
-        <circle class="icon-fill" cx="16" cy="35" r="2"/>
-      </symbol>
-      <symbol id="icon-chair-ladder" viewBox="0 0 48 48">
-        <path class="icon-ring" d="M5 41h38" stroke-dasharray="5 4"/>
-        <path class="icon-line" d="M9 11v20h13V22H9m2 9-2 10m11-10 2 10M29 8l-3 33M39 8l3 33M28 15h12m-13 8h14m-15 8h16"/>
-        <circle class="icon-fill" cx="34" cy="23" r="2"/>
-      </symbol>
-      <symbol id="icon-manifesto" viewBox="0 0 48 48">
-        <path class="icon-ring" d="M11 7h26v34H11z" stroke-dasharray="5 4"/>
-        <path class="icon-line" d="M16 16h16M16 22h13M16 28h15M16 34h8M31 8c4 7 1 13-5 17"/>
-        <circle class="icon-fill" cx="31" cy="12" r="2"/>
-      </symbol>
-      <symbol id="icon-power" viewBox="0 0 48 48">
-        <path class="icon-ring" d="M7 39h34M10 39V9" stroke-dasharray="5 4"/>
-        <path class="icon-line" d="M12 36c8 0 10-1 15-4 7-5 6-15 12-22M30 12h9v9"/>
-        <circle class="icon-fill" cx="27" cy="32" r="2.4"/>
-      </symbol>
-      <symbol id="icon-void" viewBox="0 0 48 48">
-        <circle class="icon-ring" cx="24" cy="24" r="19" stroke-dasharray="7 4"/>
-        <path class="icon-line" d="M24 12c8 2 12 7 10 14-2 8-9 12-17 8-7-4-8-13-2-18 4-4 11-3 14 1 3 5-1 11-7 10-5-1-6-7-2-10"/>
-        <circle class="icon-fill" cx="24" cy="24" r="2.3"/>
-      </symbol>
-      <symbol id="icon-multiply" viewBox="0 0 48 48">
-        <circle class="icon-ring" cx="24" cy="24" r="18" stroke-dasharray="5 5"/>
-        <path class="icon-line" d="M15 15l18 18m0-18L15 33M24 7v5m0 24v5M7 24h5m24 0h5"/>
-        <circle class="icon-fill" cx="24" cy="24" r="2.5"/>
-      </symbol>
-      <symbol id="icon-math" viewBox="0 0 48 48">
-        <path class="icon-ring" d="M24 5l18 10-4 22H10L6 15z" stroke-dasharray="4 5"/>
-        <path class="icon-line" d="M13 32c3-11 8-17 11-17s8 6 11 17M16 25h16M24 15V8"/>
-        <circle class="icon-fill" cx="24" cy="15" r="2"/>
-      </symbol>
-      <symbol id="icon-gallery" viewBox="0 0 48 48">
-        <circle class="icon-ring" cx="24" cy="24" r="18" stroke-dasharray="4 5"/>
-        <path class="icon-line" d="M24 6l9 15.6M42 24H24M33 39.6L24 24M15 39.6L24 24M6 24h18M15 8.4L24 24"/>
-        <circle class="icon-fill" cx="24" cy="24" r="2.5"/>
-      </symbol>
-      <symbol id="icon-found" viewBox="0 0 48 48">
-        <circle class="icon-ring" cx="24" cy="24" r="18" stroke-dasharray="4 5"/>
-        <path class="icon-line" d="M10 14h28v20H10z"/>
-        <path class="icon-line" d="M21 20.5l8 4.5-8 4.5z"/>
-        <circle class="icon-fill" cx="24" cy="38.5" r="2"/>
-      </symbol>
-      <symbol id="icon-avatar" viewBox="0 0 48 48">
-        <circle class="icon-ring" cx="24" cy="24" r="18" stroke-dasharray="5 4"/>
-        <path class="icon-line" d="M24 12a12 12 0 0110.4 18M24 36a12 12 0 01-10.4-18"/>
-        <circle class="icon-fill" cx="24" cy="24" r="2.4"/>
-        <circle class="icon-fill" cx="34.5" cy="30" r="1.5"/>
-        <circle class="icon-fill" cx="13.5" cy="18" r="1.5"/>
-      </symbol>
-      <symbol id="icon-voice" viewBox="0 0 48 48">
-        <circle class="icon-ring" cx="24" cy="24" r="19" stroke-dasharray="4 6"/>
-        <path class="icon-line" d="M24 12a4 4 0 014 4v9a4 4 0 01-8 0v-9a4 4 0 014-4zM16 24a8 8 0 0016 0M24 32v5m-4 0h8"/>
-        <path class="icon-line" d="M11 20v8M37 20v8"/>
-        <circle class="icon-fill" cx="24" cy="18" r="1.8"/>
-      </symbol>
-      <symbol id="icon-c2c" viewBox="0 0 48 48">
-        <circle class="icon-ring" cx="15" cy="24" r="10" stroke-dasharray="4 5"/>
-        <circle class="icon-ring" cx="33" cy="24" r="10" stroke-dasharray="4 5"/>
-        <path class="icon-line" d="M21 19l-5 5 5 5M27 19l5 5-5 5"/>
-        <circle class="icon-fill" cx="15" cy="24" r="2"/>
-        <circle class="icon-fill" cx="33" cy="24" r="2"/>
-      </symbol>
-      <symbol id="icon-c2c-self" viewBox="0 0 48 48">
-        <circle class="icon-ring" cx="24" cy="24" r="14" stroke-dasharray="4 5"/>
-        <circle class="icon-line" cx="24" cy="24" r="7"/>
-        <line class="icon-line" x1="24" y1="10" x2="24" y2="38"/>
-        <circle class="icon-fill" cx="24" cy="24" r="2.5"/>
-      </symbol>
-    </defs>
-  </svg>
-
-  <main>
-    <!-- ============ I. Title plate ============ -->
-    <section class="landing" data-landing aria-labelledby="forest-title">
-      <div class="landing-core">
-        <p class="landing-kicker">A living index by Ivan Gegov</p>
-        <h1 id="forest-title" class="landing-title">
-        <!-- The crown lives inside the h1, not in .landing-core, so it centres
-             on the wordmark at every width. Anchored to .landing-core it was
-             centred on a box whose height grows with the body copy, which
-             walked the canopy down onto the paragraph as the copy wrapped.
-             span rather than div: an h1 takes phrasing content. -->
-        <span class="title-crown forest-sigil" data-title-crown aria-hidden="true">
-          <span class="crown-wrap">
-            <!-- data-sketch with no .sketch-src of its own: the crown's
-                 trunk, canopy and branches are untouched. The host exists
-                 so its added leaf layer can follow the page-wide
-                 hand-drawn / geometric state, driven by hovering the
-                 hero (the crown itself is pointer-events:none). -->
-            <svg class="crown" viewBox="0 0 640 260" focusable="false"
-                 data-sketch data-sketch-trigger=".landing">
-              <path class="title-crown-trunk" d="M320 248C318 210 326 178 320 142M320 190C294 172 278 154 266 128M321 176C350 158 366 141 378 116"/>
-              <path class="title-crown-canopy" d="M111 148C73 129 79 83 119 72C121 31 173 17 204 45C225 6 281 6 306 38C340 3 397 15 409 54C448 32 497 58 493 96C537 99 550 146 516 169C531 207 490 235 455 219C432 249 386 248 363 219C337 246 293 245 269 216C235 240 188 221 184 184C151 196 115 181 111 148Z"/>
-              <g class="leaf-cluster" data-cluster="1" style="fill:#2d5a27">
-                <use href="#leaf" x="122" y="86" width="28" height="33"/><use href="#leaf" x="149" y="68" width="25" height="30"/><use href="#leaf" x="173" y="92" width="23" height="27"/>
-              </g>
-              <g class="leaf-cluster" data-cluster="2" style="fill:#4a7c59">
-                <use href="#leaf" x="209" y="46" width="30" height="35"/><use href="#leaf" x="238" y="64" width="24" height="29"/><use href="#leaf" x="264" y="38" width="27" height="32"/>
-              </g>
-              <g class="leaf-cluster" data-cluster="3" style="fill:#6aaa7e">
-                <use href="#leaf" x="304" y="37" width="29" height="34"/><use href="#leaf" x="336" y="52" width="24" height="29"/><use href="#leaf" x="364" y="34" width="27" height="32"/>
-              </g>
-              <g class="leaf-cluster" data-cluster="4" style="fill:#2d5a27">
-                <use href="#leaf" x="399" y="65" width="27" height="32"/><use href="#leaf" x="428" y="47" width="30" height="35"/><use href="#leaf" x="454" y="83" width="23" height="28"/>
-              </g>
-              <g class="leaf-cluster" data-cluster="5" style="fill:#4a7c59">
-                <use href="#leaf" x="179" y="128" width="24" height="29"/><use href="#leaf" x="211" y="110" width="28" height="33"/><use href="#leaf" x="244" y="137" width="22" height="26"/>
-              </g>
-              <g class="leaf-cluster" data-cluster="6" style="fill:#6aaa7e">
-                <use href="#leaf" x="371" y="123" width="24" height="29"/><use href="#leaf" x="404" y="105" width="28" height="33"/><use href="#leaf" x="438" y="132" width="22" height="26"/>
-              </g>
-              <path class="title-crown-branch" d="M320 143C286 119 260 91 242 63M320 142C353 119 382 91 397 59M286 116C250 111 222 101 199 83M355 116C392 108 421 94 444 75"/>
-              <!-- ADDED leaf layer (Ivan 2026-07-30): sits on top of the
-                   crown, which is otherwise unchanged. Each leaf is a
-                   pair — a hand-drawn outline at rest, the solid
-                   geometric leaf on hover — swaying on the same
-                   cluster-sway curve as the crown's own clusters so it
-                   reads as part of the living tree. -->
-              <g class="crown-leaf-layer" aria-hidden="true">
-                <g class="leaf-pair" style="--sway-dur:8.1s;animation-delay:-1.4s"><use class="leaf-sketch" href="#leaf-sketch" x="138" y="60" width="26" height="30"/><use class="leaf-geo" href="#leaf" x="138" y="60" width="26" height="30"/></g>
-                <g class="leaf-pair" style="--sway-dur:9.6s;animation-delay:-3.1s"><use class="leaf-sketch" href="#leaf-sketch" x="192" y="30" width="29" height="34"/><use class="leaf-geo" href="#leaf" x="192" y="30" width="29" height="34"/></g>
-                <g class="leaf-pair" style="--sway-dur:7.4s;animation-delay:-.6s"><use class="leaf-sketch" href="#leaf-sketch" x="252" y="18" width="24" height="28"/><use class="leaf-geo" href="#leaf" x="252" y="18" width="24" height="28"/></g>
-                <g class="leaf-pair" style="--sway-dur:10.2s;animation-delay:-4.4s"><use class="leaf-sketch" href="#leaf-sketch" x="292" y="14" width="27" height="32"/><use class="leaf-geo" href="#leaf" x="292" y="14" width="27" height="32"/></g>
-                <g class="leaf-pair" style="--sway-dur:8.8s;animation-delay:-2.2s"><use class="leaf-sketch" href="#leaf-sketch" x="344" y="20" width="25" height="29"/><use class="leaf-geo" href="#leaf" x="344" y="20" width="25" height="29"/></g>
-                <g class="leaf-pair" style="--sway-dur:7.9s;animation-delay:-5.1s"><use class="leaf-sketch" href="#leaf-sketch" x="396" y="34" width="28" height="33"/><use class="leaf-geo" href="#leaf" x="396" y="34" width="28" height="33"/></g>
-                <g class="leaf-pair" style="--sway-dur:9.1s;animation-delay:-.9s"><use class="leaf-sketch" href="#leaf-sketch" x="452" y="62" width="26" height="30"/><use class="leaf-geo" href="#leaf" x="452" y="62" width="26" height="30"/></g>
-                <g class="leaf-pair" style="--sway-dur:8.4s;animation-delay:-3.7s"><use class="leaf-sketch" href="#leaf-sketch" x="486" y="96" width="23" height="27"/><use class="leaf-geo" href="#leaf" x="486" y="96" width="23" height="27"/></g>
-                <g class="leaf-pair" style="--sway-dur:9.9s;animation-delay:-2.8s"><use class="leaf-sketch" href="#leaf-sketch" x="108" y="104" width="24" height="28"/><use class="leaf-geo" href="#leaf" x="108" y="104" width="24" height="28"/></g>
-                <g class="leaf-pair" style="--sway-dur:7.6s;animation-delay:-4.9s"><use class="leaf-sketch" href="#leaf-sketch" x="228" y="88" width="22" height="26"/><use class="leaf-geo" href="#leaf" x="228" y="88" width="22" height="26"/></g>
-                <g class="leaf-pair" style="--sway-dur:10.6s;animation-delay:-1.9s"><use class="leaf-sketch" href="#leaf-sketch" x="332" y="84" width="25" height="29"/><use class="leaf-geo" href="#leaf" x="332" y="84" width="25" height="29"/></g>
-                <g class="leaf-pair" style="--sway-dur:8.2s;animation-delay:-5.6s"><use class="leaf-sketch" href="#leaf-sketch" x="424" y="112" width="23" height="27"/><use class="leaf-geo" href="#leaf" x="424" y="112" width="23" height="27"/></g>
-              </g>
-            </svg>
-          </span>
-        </span>
-          <span class="title-word">Forest HUB</span>
-          <span class="title-sub">projects in <em>motion</em></span>
-        </h1>
-        <p class="landing-copy">SDForest is Ivan Gegov&rsquo;s living collection of writing, creative projects, practical web tools, and research experiments. It is for curious readers, makers, learners, and families&mdash;choose one of seven live pools below.</p>
-        <!-- The invite lives inside the core, not pinned to the section
-             floor: as a bottom-anchored text link it fell to the very
-             edge of the viewport and carried no weight at all. -->
-        <a class="scroll-invite" href="#atlas">Explore the pools</a>
-      </div>
-    </section>
-
-    <!-- ============ II. The seven pools ============ -->
-    <section class="atlas" id="atlas" aria-labelledby="atlas-title">
-      <header class="atlas-head">
-        <p class="atlas-kicker">The atlas</p>
-        <h2 id="atlas-title">Seven pools <em>to explore</em></h2>
-        <p>Every pool is live. Enter to learn what belongs there and see each project's own stage of development.</p>
-      </header>
-      <nav aria-label="Seven pools" data-pool-directory>
-        <div class="project-grid">
-          <a class="portal" style="grid-template-columns:1fr" data-pool-link="growingapp" href="/web/pools/growingapp/">
-            <span class="portal-copy"><span class="portal-name">GrowingApp</span><span class="portal-meta">Learning, family tools, and growing together</span></span><span class="portal-tag">Live pool</span>
-          </a>
-          <a class="portal" style="grid-template-columns:1fr" data-pool-link="ai-d-kit" href="/web/pools/ai-d-kit/">
-            <span class="portal-copy"><span class="portal-name">AI-d kit</span><span class="portal-meta">Tools for working with AI</span></span><span class="portal-tag">Live pool</span>
-          </a>
-          <a class="portal" style="grid-template-columns:1fr" data-pool-link="tinkerbox" href="/web/pools/tinkerbox/">
-            <span class="portal-copy"><span class="portal-name">TinkerBox</span><span class="portal-meta">Playgrounds and practical experiments</span></span><span class="portal-tag">Live pool</span>
-          </a>
-          <a class="portal" style="grid-template-columns:1fr" data-pool-link="health" href="/web/pools/health/">
-            <span class="portal-copy"><span class="portal-name">Health</span><span class="portal-meta">Health, reading, movement, and wellbeing</span></span><span class="portal-tag">Live pool</span>
-          </a>
-          <a class="portal" style="grid-template-columns:1fr" data-pool-link="design-gallery" href="/web/pools/design-gallery/">
-            <span class="portal-copy"><span class="portal-name">Design Gallery</span><span class="portal-meta">Game design, web design, and website history</span></span><span class="portal-tag">Live pool</span>
-          </a>
-          <a class="portal" style="grid-template-columns:1fr" data-pool-link="artificial-self" href="/web/pools/artificial-self/">
-            <span class="portal-copy"><span class="portal-name">Artificial Self</span><span class="portal-meta">AI research and conversation archives</span></span><span class="portal-tag">Live pool</span>
-          </a>
-          <a class="portal" style="grid-template-columns:1fr" data-pool-link="my-story" href="/web/pools/my-story/">
-            <span class="portal-copy"><span class="portal-name">My Story</span><span class="portal-meta">Stories, reflections, and creative work</span></span><span class="portal-tag">Live pool</span>
-          </a>
-        </div>
-      </nav>
-    </section>
-    <nav class="atlas-head" aria-label="Site controls">
-      <a data-site-control="portfolio" href="https://vfxportfolio.lovable.app" target="_blank" rel="noopener">Portfolio — opens in a new tab</a>
-    </nav>
-
-    <!-- ============ III. The animated walk ============ -->
-    <div class="routes" data-routes>
-      <!-- The taproot. Hand-drawn at rest (forest-sketch.js twins the
-           ghost path and draws it on once, with weight), settling to the
-           exact geometric rail as the walk scrolls into view. .rail-lit is
-           deliberately NOT twinned: its stroke-dasharray is the lit-
-           progress mechanism, not decoration. -->
-      <!-- amp is small because preserveAspectRatio="none" stretches one
-           user unit to ~14 screen px across the rail's width. -->
-      <svg class="root-rail" aria-hidden="true" viewBox="0 0 100 1600" preserveAspectRatio="none"
-           data-sketch data-sketch-amp="1.2" data-sketch-step="30" data-sketch-settle="view">
-        <path class="rail-ghost sketch-src" data-sketch-width="2.2" d="M50 0 C 57 70, 43 140, 50 210 S 58 350, 50 420 S 42 560, 50 630 S 58 770, 50 840 S 42 980, 50 1050 S 58 1190, 50 1260 S 43 1400, 50 1470 S 55 1560, 50 1600"/>
-        <path class="rail-lit" data-rail d="M50 0 C 57 70, 43 140, 50 210 S 58 350, 50 420 S 42 560, 50 630 S 58 770, 50 840 S 42 980, 50 1050 S 58 1190, 50 1260 S 43 1400, 50 1470 S 55 1560, 50 1600" pathLength="1"/>
-      </svg>
+<body class="resolve-home">
+<a class="resolve-skip" href="#atlas">Explore the pools</a>
+<main class="resolve-scroll">
+  <section class="resolve-stage" data-resolve-stage aria-labelledby="forest-title">
+    <div class="resolve-world" aria-hidden="true">
+      <img src="/web/assets/sdforest-resolve/world.png" alt="" width="864" height="480" fetchpriority="high">
+      <img src="/web/assets/sdforest-resolve/sky.png" alt="" width="864" height="480">
+      <img src="/web/assets/sdforest-resolve/sunset.png" alt="" width="864" height="480">
+      <img src="/web/assets/sdforest-resolve/mist.png" alt="" width="864" height="480">
+      <img src="/web/assets/sdforest-resolve/landscape.png" alt="" width="864" height="480">
     </div>
-  </main>
-
-  <svg class="sketch-rule sketch-rule--divider" viewBox="0 0 420 9" preserveAspectRatio="none" aria-hidden="true"
-       data-sketch data-sketch-amp="1.7" data-sketch-step="20" data-sketch-settle="view">
-    <path class="sketch-src" d="M3 4.5H417"/>
-  </svg>
-
-  <!-- design-history.js appends its trigger here as an inline badge
-       instead of floating a vertical tab against the left edge. -->
-  <footer class="home-footer" data-design-history-slot>
-    <p>SDForest is an evolving collection. Experimental and in-development work is labeled plainly; every live path should lead somewhere real.</p>
-  </footer>
-
-  <script type="module" data-forest-runtime="three" src="/web/shared/forest-runtime-boot.mjs?v=20260807a"></script>
-  <script type="module" src="/web/shared/forest-trails.mjs?v=20260807a"></script>
-  <script>
-    (() => {
-      const root = document.documentElement;
-
-      /* Build the slam sections from the atlas portals, so the
-         journey and the atlas can never drift apart. Runs before the
-         module driver boots; the sections are plain DOM it picks up. */
-      const routes = document.querySelector('[data-routes]');
-      const cards = [...document.querySelectorAll('[data-project-grid] .portal')];
-      const frag = document.createDocumentFragment();
-      cards.forEach((card, index) => {
-        const project = card.dataset.project;
-        const accent = card.style.getPropertyValue('--accent').trim() || '#8fe6ae';
-        const accent2 = card.style.getPropertyValue('--accent-secondary').trim();
-        const name = card.querySelector('.portal-name').textContent.trim();
-        const external = card.dataset.external === 'true';
-        const section = document.createElement('section');
-        section.className = 'slam';
-        section.id = `path-${project}`;
-        section.dataset.slam = '';
-        section.dataset.project = project;
-        section.style.setProperty('--accent', accent);
-        if (accent2) section.style.setProperty('--accent-secondary', accent2);
-        section.setAttribute('aria-label', name);
-        section.innerHTML = `
-          <div class="slam-stage">
-            <div class="slam-side slam-side-icon" aria-hidden="true">
-              <div class="slam-plate">
-                <span class="slam-icon"><svg viewBox="0 0 48 48"><use href="#icon-${project === 'c2c-dolphin' ? 'c2c' : project}"/></svg></span>
-                <span class="slam-no">${String(index + 1).padStart(2, '0')}</span>
-              </div>
-            </div>
-            <div class="slam-seam"><span class="seam-line"></span><span class="seam-ring"></span></div>
-            <div class="slam-side slam-side-panel">
-              <article class="slam-panel">
-                <span class="slam-status">${card.dataset.status}</span>
-                <h3 class="slam-name">${name}</h3>
-                <p class="slam-desc">${card.dataset.description}</p>
-                ${card.dataset.href
-                  ? `<a class="slam-open" href="${card.dataset.href}"${external ? ' target="_blank" rel="noopener"' : ''}>${external ? 'Open project' : 'Enter project'}</a>`
-                  : '<span class="slam-hint">Growing quietly — no public door yet.</span>'}
-              </article>
-            </div>
-          </div>`;
-        frag.appendChild(section);
-      });
-      routes.appendChild(frag);
-
-      /* Atlas portals retain their pointer-light treatment as native links. */
-      window.addEventListener('pointermove', (event) => {
-        const card = event.target.closest?.('.portal');
-        if (!card) return;
-        const bounds = card.getBoundingClientRect();
-        card.style.setProperty('--mx', `${event.clientX - bounds.left}px`);
-        card.style.setProperty('--my', `${event.clientY - bounds.top}px`);
-      }, { passive: true });
-
-      /* The invite now opens the walk itself — the crown section it used
-         to target is retired, and the first slam is the real threshold. */
-      /* One-shot leaf fall: the title crown sheds 6–10 lightweight SVG
-         instances as its hero clears the viewport. The source silhouette
-         stays in one inline symbol; every temporary leaf removes itself. */
-      const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
-      const hero = document.querySelector('[data-landing]');
-      const titleCrown = document.querySelector('[data-title-crown]');
-      const leafColors = ['#2d5a27', '#4a7c59', '#6aaa7e'];
-
-      const dropLeaves = () => {
-        if (reducedMotion.matches || !titleCrown) return;
-        const bounds = titleCrown.getBoundingClientRect();
-        const count = Math.floor(6 + Math.random() * 5);
-        const fragment = document.createDocumentFragment();
-
-        for (let index = 0; index < count; index += 1) {
-          const leaf = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-          const use = document.createElementNS('http://www.w3.org/2000/svg', 'use');
-          const size = 17 + Math.random() * 12;
-          const sourceY = bounds.top + Math.random() * Math.max(1, bounds.height * .56);
-          leaf.classList.add('falling-leaf');
-          leaf.setAttribute('viewBox', '0 0 24 28');
-          leaf.setAttribute('aria-hidden', 'true');
-          leaf.style.left = `${bounds.left + Math.random() * Math.max(1, bounds.width)}px`;
-          leaf.style.top = `${Math.max(-30, Math.min(innerHeight * .16, sourceY))}px`;
-          leaf.style.fill = leafColors[index % leafColors.length];
-          leaf.style.setProperty('--leaf-size', `${size.toFixed(1)}px`);
-          leaf.style.setProperty('--drift', `${(-30 + Math.random() * 60).toFixed(1)}px`);
-          leaf.style.setProperty(
-            '--leaf-duration-factor',
-            (.74 + Math.random() * .74).toFixed(3),
-          );
-          leaf.style.setProperty(
-            '--leaf-delay-factor',
-            (Math.random() * .933).toFixed(3),
-          );
-          use.setAttribute('href', '#leaf');
-          leaf.append(use);
-          leaf.addEventListener('animationend', () => {
-            leaf.style.willChange = '';
-            leaf.remove();
-          }, { once: true });
-          fragment.append(leaf);
-        }
-
-        document.body.append(fragment);
-      };
-
-      if (!reducedMotion.matches && hero && 'IntersectionObserver' in window) {
-        const leafObserver = new IntersectionObserver(([entry]) => {
-          if (entry.isIntersecting || entry.boundingClientRect.bottom > 0) return;
-          dropLeaves();
-          leafObserver.disconnect();
-        }, { threshold: 0 });
-        leafObserver.observe(hero);
-      }
-
-      /* Birth: one-shot title reveal once fonts are ready. */
-      const born = () => root.classList.add('is-born');
-      if (document.fonts?.ready) document.fonts.ready.then(born);
-      else setTimeout(born, 300);
-      setTimeout(born, 1400); // fonts.ready hanging must never hide the title
-    })();
-  </script>
-  <script src="/web/shared/forest-sketch.js?v=20260807a" defer></script>
-  <script type="module" src="/web/shared/pool-directory.mjs"></script>
-  <script src="/web/shared/design-history.js?v=20260807a"></script>
+    <div class="resolve-ambient" aria-hidden="true" inert>
+      <div class="ambient-ground">
+      <img class="ambient-ground-image" src="/web/assets/sdforest-workbench/ground.webp" alt="" width="768" height="117">
+        <span data-wind-grass="1.7" class="ambient-grass ambient-grass-far"><svg viewBox="0 0 240 54" focusable="false"><path d="M51 45Q48 32 40 29M52 45Q52 34 57 32M60 44Q63 33 70 29M63 44Q64 38 61 35"/></svg></span>
+        <span data-wind-grass="0.4" class="ambient-grass"><svg viewBox="0 0 240 54" focusable="false"><path d="M87 44Q88 30 80 22M89 43Q92 32 99 28M98 44Q99 34 96 30M105 44Q105 37 109 34"/></svg></span>
+        <span data-wind-grass="0.6" class="ambient-grass"><svg viewBox="0 0 240 54" focusable="false"><path d="M141 44Q137 29 144 24M143 44Q147 33 155 30M150 44Q153 35 151 31M133 44Q130 36 125 33"/></svg></span>
+        <span data-wind-grass="2.3" class="ambient-grass ambient-grass-far"><svg viewBox="0 0 240 54" focusable="false"><path d="M177 45Q178 34 187 29M175 45Q172 37 169 34M188 46Q193 37 201 36M186 45Q186 39 182 36"/></svg></span>
+      </div>
+      <div class="ambient-air">
+        <i data-ambient-mote></i><i data-ambient-mote></i><i data-ambient-mote></i>
+        <i data-ambient-mote></i><i data-ambient-mote></i><i data-ambient-mote></i>
+      </div>
+    </div>
+    <div class="resolve-field" data-arrival="field" aria-hidden="true" inert>
+      <img class="workbench-horizon workbench-woodland" src="/web/assets/sdforest-workbench/woodland.webp" alt="" width="1672" height="941">
+      <img class="workbench-mist" src="/web/assets/sdforest-workbench/mist.webp" alt="" width="1672" height="941">
+      <img class="workbench-bark" src="/web/assets/sdforest-workbench/bark.webp" alt="" width="1672" height="941">
+    </div>
+    <svg class="resolve-tree" data-title-crown viewBox="93 158 226 214" aria-hidden="true" focusable="false">
+      <image href="/web/assets/sdforest-resolve/tree.png" width="864" height="480"/>
+    </svg>
+    <a class="resolve-brand" data-arrival="brand" href="/" aria-label="SDForest home"><i aria-hidden="true"></i>SDForest</a>
+    <h1 class="resolve-title" id="forest-title" data-arrival="title"><span>Forest HUB</span><small>projects in motion</small></h1>
+    <div id="atlas" class="resolve-directory">
+      <nav aria-label="Seven pools" data-pool-directory>
+<span class="workbench-directory-bark" data-arrival="field" aria-hidden="true" inert></span>
+<a class="portal" data-arrival data-pool-link="growingapp" href="/web/pools/growingapp/">
+<span class="portal-art" aria-hidden="true"><img src="/web/assets/sdforest-workbench/growingapp.webp" alt="" width="1100" height="458"></span><span class="portal-copy"><span class="portal-name">GrowingApp</span><span class="portal-meta">Learning, family tools, and growing together</span></span><span class="portal-tag">Live pool</span>
+          </a>
+<a class="portal" data-arrival data-pool-link="ai-d-kit" href="/web/pools/ai-d-kit/">
+<span class="portal-art" aria-hidden="true"><img src="/web/assets/sdforest-workbench/ai-d-kit.webp" alt="" width="1100" height="458"></span><span class="portal-copy"><span class="portal-name">AI-d kit</span><span class="portal-meta">Tools for working with AI</span></span><span class="portal-tag">Live pool</span>
+          </a>
+<a class="portal" data-arrival data-pool-link="tinkerbox" href="/web/pools/tinkerbox/">
+<span class="portal-art" aria-hidden="true"><img src="/web/assets/sdforest-workbench/tinkerbox.webp" alt="" width="1100" height="275"></span><span class="portal-copy"><span class="portal-name">TinkerBox</span><span class="portal-meta">Playgrounds and practical experiments</span></span><span class="portal-tag">Live pool</span>
+          </a>
+<a class="portal" data-arrival data-pool-link="health" href="/web/pools/health/">
+<span class="portal-art" aria-hidden="true"><img src="/web/assets/sdforest-workbench/health.webp" alt="" width="1100" height="458"></span><span class="portal-copy"><span class="portal-name">Health</span><span class="portal-meta">Health, reading, movement, and wellbeing</span></span><span class="portal-tag">Live pool</span>
+          </a>
+<a class="portal" data-arrival data-pool-link="design-gallery" href="/web/pools/design-gallery/">
+<span class="portal-art" aria-hidden="true"><img src="/web/assets/sdforest-workbench/design-gallery.webp" alt="" width="1100" height="275"></span><span class="portal-copy"><span class="portal-name">Design Gallery</span><span class="portal-meta">Game design, web design, and website history</span></span><span class="portal-tag">Live pool</span>
+          </a>
+<a class="portal" data-arrival data-pool-link="artificial-self" href="/web/pools/artificial-self/">
+<span class="portal-art" aria-hidden="true"><img src="/web/assets/sdforest-workbench/artificial-self.webp" alt="" width="1100" height="458"></span><span class="portal-copy"><span class="portal-name">Artificial Self</span><span class="portal-meta">AI research and conversation archives</span></span><span class="portal-tag">Live pool</span>
+          </a>
+<a class="portal" data-arrival data-pool-link="my-story" href="/web/pools/my-story/">
+<span class="portal-art" aria-hidden="true"><img src="/web/assets/sdforest-workbench/my-story.webp" alt="" width="1100" height="275"></span><span class="portal-copy"><span class="portal-name">My Story</span><span class="portal-meta">Stories, reflections, and creative work</span></span><span class="portal-tag">Live pool</span>
+          </a>
+      </nav>
+      <p class="workbench-status" id="workbench-status" role="status" aria-live="polite"></p>
+    </div>
+    <nav class="resolve-controls" data-arrival="portfolio" aria-label="Site controls">
+      <a data-site-control="portfolio" href="https://vfxportfolio.lovable.app" target="_blank" rel="noopener">Portfolio — opens in a new tab</a>
+      <button class="resolve-motion-toggle" type="button" hidden>Pause motion</button>
+    </nav>
+    <a class="resolve-scroll-cue" href="#atlas">Explore the pools<span aria-hidden="true">↓</span></a>
+    <div class="resolve-history" data-arrival="history" data-design-history-slot data-feedback-slot></div>
+  </section>
+</main>
+<div class="resolve-existing-copy">
+<p class="landing-copy">SDForest is Ivan Gegov&rsquo;s living collection of writing, creative projects, practical web tools, and research experiments. It is for curious readers, makers, learners, and families&mdash;choose one of seven live pools below.</p>
+<p>SDForest is an evolving collection. Experimental and in-development work is labeled plainly; every live path should lead somewhere real.</p>
+</div>
+<script type="module" src="/web/shared/pool-directory.mjs"></script>
+<script type="module" src="/web/shared/frontpage-resolve.mjs"></script>
+<script defer src="/web/shared/design-history.js?v=20260807a"></script>
 </body>
 </html>

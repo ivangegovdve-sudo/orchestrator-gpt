@@ -1,0 +1,38 @@
+{
+  "baseline": "same-page paused",
+  "trace": false,
+  "results": [
+    {
+      "mode": "paused",
+      "seconds": 10.01476299999922,
+      "taskMsPer60HzFrame": 0.005417002878650683,
+      "scriptMsPer60HzFrame": 0,
+      "layoutCount": 0,
+      "recalcCount": 0
+    },
+    {
+      "mode": "ambient",
+      "seconds": 10.003467999998975,
+      "taskMsPer60HzFrame": 0.4853533461262799,
+      "scriptMsPer60HzFrame": 0.07877101554515034,
+      "layoutCount": 0,
+      "recalcCount": 11
+    },
+    {
+      "mode": "paused",
+      "seconds": 10.009030000001076,
+      "taskMsPer60HzFrame": 0.003456878438769364,
+      "scriptMsPer60HzFrame": 0,
+      "layoutCount": 0,
+      "recalcCount": 0
+    },
+    {
+      "mode": "ambient",
+      "seconds": 10.010270999999193,
+      "taskMsPer60HzFrame": 0.46101648996319594,
+      "scriptMsPer60HzFrame": 0.07025117834805772,
+      "layoutCount": 0,
+      "recalcCount": 11
+    }
+  ]
+}
