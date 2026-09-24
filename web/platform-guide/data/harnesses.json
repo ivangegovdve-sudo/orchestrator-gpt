@@ -1,0 +1,82 @@
+[
+  {
+    "name": "Vercel AI SDK",
+    "url": "https://sdk.vercel.ai/docs",
+    "note": "The standard if you're building in React/Next.js.",
+    "good": "Abstracts streaming perfectly. RSC integration is magic. Easy switching between providers.",
+    "bad": "Heavily ties you to Vercel's ecosystem and Next.js paradigms. Doing things outside their happy path (like custom memory management) is painful.",
+    "price": "Free (Open source).",
+    "last_verified": "2024-05-20",
+    "expiry": "2023-12-01"
+  },
+  {
+    "name": "LangChain (JS/Python)",
+    "url": "https://langchain.com",
+    "note": "The monolith everyone uses then complains about.",
+    "good": "Incredible amount of integrations. If a tool exists, LangChain has a loader for it.",
+    "bad": "Overly complex abstractions. You spend more time fighting LangChain classes than writing AI logic. Bloated.",
+    "price": "Free (Open source). LangSmith is paid.",
+    "last_verified": "2024-04-10",
+    "expiry": "2023-12-01"
+  },
+  {
+    "name": "LlamaIndex",
+    "url": "https://www.llamaindex.ai/",
+    "note": "Better than LangChain if your primary focus is RAG.",
+    "good": "Excellent data ingestion and indexing strategies. Actually understands how chunking should work.",
+    "bad": "Still suffers from heavy abstraction. Hard to debug when retrieval fails.",
+    "price": "Free (Open source).",
+    "last_verified": "2024-05-05",
+    "expiry": "2023-12-01"
+  },
+  {
+    "name": "LiteLLM",
+    "url": "https://litellm.ai/",
+    "note": "A lifesaver for standardizing API calls.",
+    "good": "Call 100+ LLMs using the OpenAI format. Simple proxy server setup. Great for cost tracking.",
+    "bad": "Sometimes lags behind provider-specific feature releases (like new tool calling formats).",
+    "price": "Free (Open source). Managed cloud is $20/mo.",
+    "last_verified": "2024-05-18",
+    "expiry": "2023-12-01"
+  },
+  {
+    "name": "Instructor",
+    "url": "https://github.com/jxnl/instructor",
+    "note": "The only right way to do structured outputs in Python.",
+    "good": "Uses Pydantic directly. No new abstractions to learn. Just works.",
+    "bad": "Python and JS versions have feature parity issues. Relies heavily on OpenAI's specific tool calling reliability.",
+    "price": "Free (Open source).",
+    "last_verified": "2024-05-21",
+    "expiry": "2023-12-01"
+  },
+  {
+    "name": "Semantic Kernel",
+    "url": "https://github.com/microsoft/semantic-kernel",
+    "note": "Microsoft's take on LangChain. Enterprise heavy.",
+    "good": "C# support is first-class. Integrates well with Azure.",
+    "bad": "Verbose. Documentation assumes you are building enterprise software with 10 layers of architecture.",
+    "price": "Free (Open source).",
+    "last_verified": "2023-11-20",
+    "expiry": "2023-12-01"
+  },
+  {
+    "name": "Braintrust",
+    "url": "https://www.braintrust.dev/",
+    "note": "Eval framework that actually makes sense.",
+    "good": "Focuses on code-based evals rather than UI clicking. Great TypeScript support.",
+    "bad": "Pricing scales aggressively with usage. Not a full execution harness, just evals/logging.",
+    "price": "UNKNOWN. Enterprise focus.",
+    "last_verified": "2024-03-15",
+    "expiry": "2023-12-01"
+  },
+  {
+    "name": "Haystack",
+    "url": "https://haystack.deepset.ai/",
+    "note": "A mature alternative to LangChain for search/RAG.",
+    "good": "Clearer pipeline architecture than LangChain. Good document stores.",
+    "bad": "Smaller community means fewer random integrations. Python only.",
+    "price": "Free (Open source).",
+    "last_verified": "2024-02-28",
+    "expiry": "2023-12-01"
+  }
+]

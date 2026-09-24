@@ -1,0 +1,82 @@
+[
+  {
+    "name": "Devin",
+    "url": "https://www.cognition-labs.com/blog",
+    "note": "The gold standard for autonomous SWE agents right now.",
+    "good": "Actually completes complex multi-step coding tasks. Sandbox environment is flawless.",
+    "bad": "Closed beta. Extremely expensive compute. Prone to rabbit holes if the initial prompt is vague.",
+    "price": "UNKNOWN. Private beta.",
+    "last_verified": "2024-05-15",
+    "expiry": null
+  },
+  {
+    "name": "OpenDevin",
+    "url": "https://github.com/OpenDevin/OpenDevin",
+    "note": "The open-source community's response.",
+    "good": "Fast moving. Pluggable models (works with Claude 3 Opus well).",
+    "bad": "UI is still rough. Requires Docker and significant local setup. Less reliable than closed alternatives.",
+    "price": "Free (Open source). BYO API keys.",
+    "last_verified": "2024-05-20",
+    "expiry": null
+  },
+  {
+    "name": "AutoGPT",
+    "url": "https://github.com/Significant-Gravitas/AutoGPT",
+    "note": "The hype machine from 2023 that is trying to become a platform.",
+    "good": "Huge community. Modular architecture in v2.",
+    "bad": "Infamous for infinite loops and never actually finishing tasks. Mostly a toy for complex real-world work.",
+    "price": "Free (Open source).",
+    "last_verified": "2024-04-10",
+    "expiry": null
+  },
+  {
+    "name": "BabyAGI",
+    "url": "https://github.com/yoheinakajima/babyagi",
+    "note": "A minimalist blueprint for autonomy.",
+    "good": "The code is short enough to read and understand in an afternoon. Great learning tool.",
+    "bad": "Not a production framework. Struggles with context windows on long tasks.",
+    "price": "Free (Open source).",
+    "last_verified": "2023-10-01",
+    "expiry": null
+  },
+  {
+    "name": "MultiOn",
+    "url": "https://www.multion.ai/",
+    "note": "The best agent for autonomous web browsing.",
+    "good": "Actually interacts with standard web UIs (clicks, types) reliably.",
+    "bad": "Feels invasive as a browser extension. Can break on sites with heavy canvas/custom implementations.",
+    "price": "UNKNOWN.",
+    "last_verified": "2024-03-20",
+    "expiry": null
+  },
+  {
+    "name": "Aider",
+    "url": "https://aider.chat/",
+    "note": "My daily driver. Not 'autonomous' in the background, but the best terminal copilot.",
+    "good": "Reads the whole repo via ctags. Actually commits working code. Fast.",
+    "bad": "Requires you to be in the loop. Not a 'fire and forget' agent.",
+    "price": "Free (Open source). BYO API keys.",
+    "last_verified": "2024-05-22",
+    "expiry": null
+  },
+  {
+    "name": "SuperAGI",
+    "url": "https://superagi.com/",
+    "note": "Aiming to be the enterprise AutoGPT.",
+    "good": "Good GUI. Built-in tool marketplace.",
+    "bad": "Suffers from the same underlying reliability issues as all prompt-loop agents.",
+    "price": "Open source free. Cloud managed available.",
+    "last_verified": "2024-02-15",
+    "expiry": null
+  },
+  {
+    "name": "Ferris",
+    "url": "https://github.com/lucia-ai/ferris",
+    "note": "An interesting Rust-based approach.",
+    "good": "Memory safe and incredibly fast execution.",
+    "bad": "Ecosystem is tiny compared to Python. Very experimental.",
+    "price": "Free (Open source).",
+    "last_verified": "2024-01-10",
+    "expiry": null
+  }
+]

@@ -1,0 +1,1751 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Platform Guide</title>
+  <style>
+    :root {
+      --bg-base: #0a0a0c;
+      --bg-surface: #141417;
+      --bg-elevated: #1e1e24;
+      --text-primary: #e0e0e0;
+      --text-secondary: #909096;
+      --text-tertiary: #505056;
+      --accent: #6b7bd4;
+      --danger: #d46b6b;
+      --danger-bg: rgba(212, 107, 107, 0.1);
+      --stale: #c49a3f;
+      --stale-bg: rgba(196, 154, 63, 0.1);
+      --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      --font-mono: ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", Menlo, monospace;
+    }
+    body {
+      background: var(--bg-base);
+      color: var(--text-primary);
+      font-family: var(--font-sans);
+      line-height: 1.6;
+      margin: 0; padding: 0;
+    }
+    .container { max-width: 1200px; margin: 0 auto; padding: 4rem 2rem; }
+    header { margin-bottom: 3rem; }
+    h1 { font-size: 3rem; margin-bottom: 1rem; }
+    .lede { font-size: 1.25rem; color: var(--text-secondary); max-width: 60ch; }
+
+    .toolbar {
+      display: flex; gap: 1rem; margin-bottom: 2rem; align-items: center;
+      background: var(--bg-surface); padding: 1rem; border-radius: 8px;
+    }
+    .toolbar input, .toolbar select {
+      background: var(--bg-elevated); color: white; border: 1px solid var(--text-tertiary);
+      padding: 0.5rem 1rem; border-radius: 4px; font-family: var(--font-sans);
+    }
+
+    .nav-sections { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 4rem; }
+    .nav-sections a {
+      color: var(--text-secondary); text-decoration: none; padding: 0.5rem 1rem;
+      background: var(--bg-surface); border-radius: 4px; font-size: 0.875rem;
+    }
+    .nav-sections a:hover { color: white; background: var(--bg-elevated); }
+
+    .section-header {
+      display: flex; justify-content: space-between; align-items: flex-end;
+      margin: 4rem 0 2rem; border-bottom: 1px solid var(--bg-elevated); padding-bottom: 1rem;
+    }
+    h2 { font-size: 2rem; margin: 0; }
+
+    .compare-toggle { display: none; }
+    .compare-label {
+      cursor: pointer; color: var(--accent); font-size: 0.875rem; user-select: none;
+    }
+    .compare-label::before { content: "⊟ View Comparison"; }
+    input.compare-toggle:checked + .section-header .compare-label::before { content: "⊞ View Grid"; }
+
+    .grid {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 2rem;
+    }
+    .comparison { display: none; overflow-x: auto; }
+
+    input.compare-toggle:checked ~ .grid { display: none; }
+    input.compare-toggle:checked ~ .comparison { display: block; }
+
+    .card {
+      background: var(--bg-surface); border-radius: 8px; padding: 1.5rem;
+      border: 1px solid var(--bg-elevated); display: flex; flex-direction: column; gap: 1rem;
+      position: relative;
+    }
+    .card.is-stale { border-color: var(--stale); background: var(--stale-bg); }
+    .card.is-expired { opacity: 0.5; filter: grayscale(1); }
+
+    .badge {
+      position: absolute; top: -10px; right: 1rem; font-size: 0.75rem; font-weight: bold;
+      padding: 0.25rem 0.5rem; border-radius: 4px; background: var(--bg-surface);
+    }
+    .card.is-stale .badge { color: var(--stale); border: 1px solid var(--stale); }
+    .card.is-expired .badge { color: var(--danger); border: 1px solid var(--danger); }
+
+    .card-title a { color: white; text-decoration: none; font-size: 1.25rem; font-weight: bold; }
+    .card-title a:hover { text-decoration: underline; }
+
+    .note { font-style: italic; color: var(--text-secondary); border-left: 2px solid var(--accent); padding-left: 1rem; }
+
+    .field { display: flex; flex-direction: column; gap: 0.25rem; }
+    .label { font-size: 0.75rem; text-transform: uppercase; color: var(--text-tertiary); font-weight: bold; }
+
+    .bad-at { background: var(--danger-bg); padding: 1rem; border-radius: 4px; border-left: 2px solid var(--danger); }
+    .bad-at .label { color: var(--danger); }
+
+    .meta { font-family: var(--font-mono); font-size: 0.75rem; color: var(--text-secondary); display: flex; justify-content: space-between; border-top: 1px solid var(--bg-elevated); padding-top: 1rem; margin-top: auto; }
+
+    table { width: 100%; border-collapse: collapse; font-size: 0.875rem; text-align: left; }
+    th, td { padding: 1rem; border-bottom: 1px solid var(--bg-elevated); vertical-align: top; }
+    th { background: var(--bg-surface); position: sticky; top: 0; }
+    .td-bad { background: var(--danger-bg); width: 30%; }
+    .td-good { width: 30%; }
+
+    .submission-form {
+      margin-top: 6rem; background: var(--bg-surface); padding: 2rem; border-radius: 8px;
+      border: 1px dashed var(--bg-elevated);
+    }
+    .form-group { margin-bottom: 1.5rem; }
+    .form-group label { display: block; margin-bottom: 0.5rem; font-size: 0.875rem; font-weight: bold; }
+    .form-group input, .form-group textarea, .form-group select {
+      width: 100%; padding: 0.75rem; background: var(--bg-base); border: 1px solid var(--bg-elevated);
+      color: white; border-radius: 4px; font-family: var(--font-sans); box-sizing: border-box;
+    }
+    .form-group textarea { min-height: 100px; resize: vertical; }
+    button { background: var(--accent); color: white; border: none; padding: 0.75rem 1.5rem; border-radius: 4px; cursor: pointer; font-weight: bold; }
+    button:hover { filter: brightness(1.2); }
+
+    .error-msg { color: var(--danger); font-size: 0.875rem; margin-top: 0.5rem; display: none; }
+    .form-group.has-error .error-msg { display: block; }
+    .form-group.has-error input, .form-group.has-error textarea { border-color: var(--danger); }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Platform Guide</h1>
+      <p class="lede">I need X, what should I actually use? A real opinion rather than a list. Adding one doesn't require a developer.</p>
+    </header>
+
+    <div class="toolbar" id="toolbar">
+      <input type="text" id="search" placeholder="Search by name...">
+      <select id="sort">
+        <option value="default">Sort by: Default</option>
+        <option value="recent">Sort by: Recently Verified</option>
+        <option value="oldest">Sort by: Oldest Verified</option>
+      </select>
+    </div>
+
+    <nav class="nav-sections">
+<a href="#harnesses">Harnesses</a><a href="#memory">Memory solutions and upgrades</a><a href="#skills">Skills and plugins</a><a href="#design">Design and graphics</a><a href="#animation">Animation</a><a href="#orchestration">Orchestration</a><a href="#autonomy">Agent autonomy</a><a href="#speech">Speech (TTS and STT)</a>
+    </nav>
+
+    <div id="directory">
+
+      <section id="harnesses" class="section-container">
+        <input type="checkbox" id="compare-harnesses" class="compare-toggle">
+        <div class="section-header">
+          <h2>Harnesses</h2>
+          <label for="compare-harnesses" class="compare-label"></label>
+        </div>
+
+        <div class="grid">
+
+        <div class="card entry-card is-expired" data-name="vercel ai sdk" data-date="2024-05-20">
+          <span class="badge">Expired</span>
+          <div class="card-title"><a href="https://sdk.vercel.ai/docs" target="_blank">Vercel AI SDK</a></div>
+          <div class="note">The standard if you're building in React/Next.js.</div>
+          <div class="field"><div class="label">Good At</div><div>Abstracts streaming perfectly. RSC integration is magic. Easy switching between providers.</div></div>
+          <div class="field bad-at"><div class="label">Bad At</div><div>Heavily ties you to Vercel's ecosystem and Next.js paradigms. Doing things outside their happy path (like custom memory management) is painful.</div></div>
+          <div class="field"><div class="label">Pricing & Hosting</div><div>Free (Open source).</div></div>
+          <div class="meta">
+            <span>Verified: 2024-05-20</span>
+            <span>Expires: 2023-12-01</span>
+          </div>
+        </div>
+
+        <div class="card entry-card is-expired" data-name="langchain (js/python)" data-date="2024-04-10">
+          <span class="badge">Expired</span>
+          <div class="card-title"><a href="https://langchain.com" target="_blank">LangChain (JS/Python)</a></div>
+          <div class="note">The monolith everyone uses then complains about.</div>
+          <div class="field"><div class="label">Good At</div><div>Incredible amount of integrations. If a tool exists, LangChain has a loader for it.</div></div>
+          <div class="field bad-at"><div class="label">Bad At</div><div>Overly complex abstractions. You spend more time fighting LangChain classes than writing AI logic. Bloated.</div></div>
+          <div class="field"><div class="label">Pricing & Hosting</div><div>Free (Open source). LangSmith is paid.</div></div>
+          <div class="meta">
+            <span>Verified: 2024-04-10</span>
+            <span>Expires: 2023-12-01</span>
+          </div>
+        </div>
+
+        <div class="card entry-card is-expired" data-name="llamaindex" data-date="2024-05-05">
+          <span class="badge">Expired</span>
+          <div class="card-title"><a href="https://www.llamaindex.ai/" target="_blank">LlamaIndex</a></div>
+          <div class="note">Better than LangChain if your primary focus is RAG.</div>
+          <div class="field"><div class="label">Good At</div><div>Excellent data ingestion and indexing strategies. Actually understands how chunking should work.</div></div>
+          <div class="field bad-at"><div class="label">Bad At</div><div>Still suffers from heavy abstraction. Hard to debug when retrieval fails.</div></div>
+          <div class="field"><div class="label">Pricing & Hosting</div><div>Free (Open source).</div></div>
+          <div class="meta">
+            <span>Verified: 2024-05-05</span>
+            <span>Expires: 2023-12-01</span>
+          </div>
+        </div>
+
+        <div class="card entry-card is-expired" data-name="litellm" data-date="2024-05-18">
+          <span class="badge">Expired</span>
+          <div class="card-title"><a href="https://litellm.ai/" target="_blank">LiteLLM</a></div>
+          <div class="note">A lifesaver for standardizing API calls.</div>
+          <div class="field"><div class="label">Good At</div><div>Call 100+ LLMs using the OpenAI format. Simple proxy server setup. Great for cost tracking.</div></div>
+          <div class="field bad-at"><div class="label">Bad At</div><div>Sometimes lags behind provider-specific feature releases (like new tool calling formats).</div></div>
+          <div class="field"><div class="label">Pricing & Hosting</div><div>Free (Open source). Managed cloud is $20/mo.</div></div>
+          <div class="meta">
+            <span>Verified: 2024-05-18</span>
+            <span>Expires: 2023-12-01</span>
+          </div>
+        </div>
+
+        <div class="card entry-card is-expired" data-name="instructor" data-date="2024-05-21">
+          <span class="badge">Expired</span>
+          <div class="card-title"><a href="https://github.com/jxnl/instructor" target="_blank">Instructor</a></div>
+          <div class="note">The only right way to do structured outputs in Python.</div>
+          <div class="field"><div class="label">Good At</div><div>Uses Pydantic directly. No new abstractions to learn. Just works.</div></div>
+          <div class="field bad-at"><div class="label">Bad At</div><div>Python and JS versions have feature parity issues. Relies heavily on OpenAI's specific tool calling reliability.</div></div>
+          <div class="field"><div class="label">Pricing & Hosting</div><div>Free (Open source).</div></div>
+          <div class="meta">
+            <span>Verified: 2024-05-21</span>
+            <span>Expires: 2023-12-01</span>
+          </div>
+        </div>
+
+        <div class="card entry-card is-expired" data-name="semantic kernel" data-date="2023-11-20">
+          <span class="badge">Expired</span>
+          <div class="card-title"><a href="https://github.com/microsoft/semantic-kernel" target="_blank">Semantic Kernel</a></div>
+          <div class="note">Microsoft's take on LangChain. Enterprise heavy.</div>
+          <div class="field"><div class="label">Good At</div><div>C# support is first-class. Integrates well with Azure.</div></div>
+          <div class="field bad-at"><div class="label">Bad At</div><div>Verbose. Documentation assumes you are building enterprise software with 10 layers of architecture.</div></div>
+          <div class="field"><div class="label">Pricing & Hosting</div><div>Free (Open source).</div></div>
+          <div class="meta">
+            <span>Verified: 2023-11-20</span>
+            <span>Expires: 2023-12-01</span>
+          </div>
+        </div>
+
+        <div class="card entry-card is-expired" data-name="braintrust" data-date="2024-03-15">
+          <span class="badge">Expired</span>
+          <div class="card-title"><a href="https://www.braintrust.dev/" target="_blank">Braintrust</a></div>
+          <div class="note">Eval framework that actually makes sense.</div>
+          <div class="field"><div class="label">Good At</div><div>Focuses on code-based evals rather than UI clicking. Great TypeScript support.</div></div>
+          <div class="field bad-at"><div class="label">Bad At</div><div>Pricing scales aggressively with usage. Not a full execution harness, just evals/logging.</div></div>
+          <div class="field"><div class="label">Pricing & Hosting</div><div>UNKNOWN. Enterprise focus.</div></div>
+          <div class="meta">
+            <span>Verified: 2024-03-15</span>
+            <span>Expires: 2023-12-01</span>
+          </div>
+        </div>
+
+        <div class="card entry-card is-expired" data-name="haystack" data-date="2024-02-28">
+          <span class="badge">Expired</span>
+          <div class="card-title"><a href="https://haystack.deepset.ai/" target="_blank">Haystack</a></div>
+          <div class="note">A mature alternative to LangChain for search/RAG.</div>
+          <div class="field"><div class="label">Good At</div><div>Clearer pipeline architecture than LangChain. Good document stores.</div></div>
+          <div class="field bad-at"><div class="label">Bad At</div><div>Smaller community means fewer random integrations. Python only.</div></div>
+          <div class="field"><div class="label">Pricing & Hosting</div><div>Free (Open source).</div></div>
+          <div class="meta">
+            <span>Verified: 2024-02-28</span>
+            <span>Expires: 2023-12-01</span>
+          </div>
+        </div>
+      </div>
+        <div class="comparison">
+          <table>
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th class="td-good">Good At</th>
+                <th class="td-bad">Bad At</th>
+                <th>Price Reality</th>
+              </tr>
+            </thead>
+            <tbody>
+
+        <tr class="entry-row" data-name="vercel ai sdk" data-date="2024-05-20">
+          <td><a href="https://sdk.vercel.ai/docs" style="color:white;font-weight:bold;">Vercel AI SDK</a> <span style="color:var(--danger)">(Expired)</span></td>
+          <td class="td-good">Abstracts streaming perfectly. RSC integration is magic. Easy switching between providers.</td>
+          <td class="td-bad">Heavily ties you to Vercel's ecosystem and Next.js paradigms. Doing things outside their happy path (like custom memory management) is painful.</td>
+          <td>Free (Open source).</td>
+        </tr>
+
+        <tr class="entry-row" data-name="langchain (js/python)" data-date="2024-04-10">
+          <td><a href="https://langchain.com" style="color:white;font-weight:bold;">LangChain (JS/Python)</a> <span style="color:var(--danger)">(Expired)</span></td>
+          <td class="td-good">Incredible amount of integrations. If a tool exists, LangChain has a loader for it.</td>
+          <td class="td-bad">Overly complex abstractions. You spend more time fighting LangChain classes than writing AI logic. Bloated.</td>
+          <td>Free (Open source). LangSmith is paid.</td>
+        </tr>
+
+        <tr class="entry-row" data-name="llamaindex" data-date="2024-05-05">
+          <td><a href="https://www.llamaindex.ai/" style="color:white;font-weight:bold;">LlamaIndex</a> <span style="color:var(--danger)">(Expired)</span></td>
+          <td class="td-good">Excellent data ingestion and indexing strategies. Actually understands how chunking should work.</td>
+          <td class="td-bad">Still suffers from heavy abstraction. Hard to debug when retrieval fails.</td>
+          <td>Free (Open source).</td>
+        </tr>
+
+        <tr class="entry-row" data-name="litellm" data-date="2024-05-18">
+          <td><a href="https://litellm.ai/" style="color:white;font-weight:bold;">LiteLLM</a> <span style="color:var(--danger)">(Expired)</span></td>
+          <td class="td-good">Call 100+ LLMs using the OpenAI format. Simple proxy server setup. Great for cost tracking.</td>
+          <td class="td-bad">Sometimes lags behind provider-specific feature releases (like new tool calling formats).</td>
+          <td>Free (Open source). Managed cloud is $20/mo.</td>
+        </tr>
+
+        <tr class="entry-row" data-name="instructor" data-date="2024-05-21">
+          <td><a href="https://github.com/jxnl/instructor" style="color:white;font-weight:bold;">Instructor</a> <span style="color:var(--danger)">(Expired)</span></td>
+          <td class="td-good">Uses Pydantic directly. No new abstractions to learn. Just works.</td>
+          <td class="td-bad">Python and JS versions have feature parity issues. Relies heavily on OpenAI's specific tool calling reliability.</td>
+          <td>Free (Open source).</td>
+        </tr>
+
+        <tr class="entry-row" data-name="semantic kernel" data-date="2023-11-20">
+          <td><a href="https://github.com/microsoft/semantic-kernel" style="color:white;font-weight:bold;">Semantic Kernel</a> <span style="color:var(--danger)">(Expired)</span></td>
+          <td class="td-good">C# support is first-class. Integrates well with Azure.</td>
+          <td class="td-bad">Verbose. Documentation assumes you are building enterprise software with 10 layers of architecture.</td>
+          <td>Free (Open source).</td>
+        </tr>
+
+        <tr class="entry-row" data-name="braintrust" data-date="2024-03-15">
+          <td><a href="https://www.braintrust.dev/" style="color:white;font-weight:bold;">Braintrust</a> <span style="color:var(--danger)">(Expired)</span></td>
+          <td class="td-good">Focuses on code-based evals rather than UI clicking. Great TypeScript support.</td>
+          <td class="td-bad">Pricing scales aggressively with usage. Not a full execution harness, just evals/logging.</td>
+          <td>UNKNOWN. Enterprise focus.</td>
+        </tr>
+
+        <tr class="entry-row" data-name="haystack" data-date="2024-02-28">
+          <td><a href="https://haystack.deepset.ai/" style="color:white;font-weight:bold;">Haystack</a> <span style="color:var(--danger)">(Expired)</span></td>
+          <td class="td-good">Clearer pipeline architecture than LangChain. Good document stores.</td>
+          <td class="td-bad">Smaller community means fewer random integrations. Python only.</td>
+          <td>Free (Open source).</td>
+        </tr>
+
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section id="memory" class="section-container">
+        <input type="checkbox" id="compare-memory" class="compare-toggle">
+        <div class="section-header">
+          <h2>Memory solutions and upgrades</h2>
+          <label for="compare-memory" class="compare-label"></label>
+        </div>
+
+        <div class="grid">
+
+        <div class="card entry-card is-stale" data-name="mem0" data-date="2024-05-10">
+          <span class="badge">Stale</span>
+          <div class="card-title"><a href="https://mem0.ai/" target="_blank">Mem0</a></div>
+          <div class="note">A decent drop-in memory layer if you don't want to build it yourself.</div>
+          <div class="field"><div class="label">Good At</div><div>Handles entity extraction and temporal memory out of the box. Simple API.</div></div>
+          <div class="field bad-at"><div class="label">Bad At</div><div>Black box retrieval. You can't tune the embedding weights easily if it returns the wrong context.</div></div>
+          <div class="field"><div class="label">Pricing & Hosting</div><div>Free tier available. Usage based after.</div></div>
+          <div class="meta">
+            <span>Verified: 2024-05-10</span>
+
+          </div>
+        </div>
+
+        <div class="card entry-card is-stale" data-name="zep" data-date="2024-04-15">
+          <span class="badge">Stale</span>
+          <div class="card-title"><a href="https://www.getzep.com/" target="_blank">Zep</a></div>
+          <div class="note">Built specifically for chat history and agent memory.</div>
+          <div class="field"><div class="label">Good At</div><div>Fast. Handles summarization of older context windows automatically.</div></div>
+          <div class="field bad-at"><div class="label">Bad At</div><div>Self-hosting can be heavy. Their proprietary retrieval algorithms aren't always transparent.</div></div>
+          <div class="field"><div class="label">Pricing & Hosting</div><div>Free (Open source) or cloud pricing starting around $20/mo.</div></div>
+          <div class="meta">
+            <span>Verified: 2024-04-15</span>
+
+          </div>
+        </div>
+
+        <div class="card entry-card is-stale" data-name="pinecone" data-date="2024-05-01">
+          <span class="badge">Stale</span>
+          <div class="card-title"><a href="https://www.pinecone.io/" target="_blank">Pinecone</a></div>
+          <div class="note">The default vector database, but overkill for many.</div>
+          <div class="field"><div class="label">Good At</div><div>Fully managed, scales instantly. Serverless offering is great for intermittent loads.</div></div>
+          <div class="field bad-at"><div class="label">Bad At</div><div>Not a 'memory' solution, just a database. You have to write all the chunking, embedding, and retrieval logic.</div></div>
+          <div class="field"><div class="label">Pricing & Hosting</div><div>Serverless is pay-per-read/write. Pods start at $70/mo.</div></div>
+          <div class="meta">
+            <span>Verified: 2024-05-01</span>
+
+          </div>
+        </div>
+
+        <div class="card entry-card is-stale" data-name="weaviate" data-date="2024-03-20">
+          <span class="badge">Stale</span>
+          <div class="card-title"><a href="https://weaviate.io/" target="_blank">Weaviate</a></div>
+          <div class="note">My preferred vector DB if I need hybrid search.</div>
+          <div class="field"><div class="label">Good At</div><div>BM25 + Vector search works beautifully out of the box. Good self-hosting.</div></div>
+          <div class="field bad-at"><div class="label">Bad At</div><div>Cloud pricing can jump quickly. The API can feel over-engineered for simple tasks.</div></div>
+          <div class="field"><div class="label">Pricing & Hosting</div><div>Open source free. Cloud starts around $25/mo.</div></div>
+          <div class="meta">
+            <span>Verified: 2024-03-20</span>
+
+          </div>
+        </div>
+
+        <div class="card entry-card is-stale" data-name="chroma" data-date="2024-05-18">
+          <span class="badge">Stale</span>
+          <div class="card-title"><a href="https://www.trychroma.com/" target="_blank">Chroma</a></div>
+          <div class="note">Best for local development and small apps.</div>
+          <div class="field"><div class="label">Good At</div><div>Runs locally with zero setup. Integrates with everything.</div></div>
+          <div class="field bad-at"><div class="label">Bad At</div><div>Distributed/cloud offering has been 'coming soon' forever. Not for large scale production.</div></div>
+          <div class="field"><div class="label">Pricing & Hosting</div><div>Free (Open source).</div></div>
+          <div class="meta">
+            <span>Verified: 2024-05-18</span>
+
+          </div>
+        </div>
+
+        <div class="card entry-card is-stale" data-name="motorhead" data-date="2023-10-15">
+          <span class="badge">Stale</span>
+          <div class="card-title"><a href="https://getmetal.io/motorhead" target="_blank">Motorhead</a></div>
+          <div class="note">Rust-based memory server.</div>
+          <div class="field"><div class="label">Good At</div><div>Very fast. Good built-in summarization.</div></div>
+          <div class="field bad-at"><div class="label">Bad At</div><div>Development seems to have slowed down. Small community.</div></div>
+          <div class="field"><div class="label">Pricing & Hosting</div><div>Free (Open source).</div></div>
+          <div class="meta">
+            <span>Verified: 2023-10-15</span>
+
+          </div>
+        </div>
+
+        <div class="card entry-card is-stale" data-name="qdrant" data-date="2024-05-12">
+          <span class="badge">Stale</span>
+          <div class="card-title"><a href="https://qdrant.tech/" target="_blank">Qdrant</a></div>
+          <div class="note">The rising star of vector databases. Rust-based and fast.</div>
+          <div class="field"><div class="label">Good At</div><div>Incredible performance. Great filtering capabilities alongside vector search.</div></div>
+          <div class="field bad-at"><div class="label">Bad At</div><div>Complex configuration options can be daunting for beginners.</div></div>
+          <div class="field"><div class="label">Pricing & Hosting</div><div>Open source free. Cloud free tier is generous.</div></div>
+          <div class="meta">
+            <span>Verified: 2024-05-12</span>
+
+          </div>
+        </div>
+
+        <div class="card entry-card is-stale" data-name="postgres (pgvector)" data-date="2024-05-22">
+          <span class="badge">Stale</span>
+          <div class="card-title"><a href="https://github.com/pgvector/pgvector" target="_blank">Postgres (pgvector)</a></div>
+          <div class="note">What you should probably actually use if you already have a database.</div>
+          <div class="field"><div class="label">Good At</div><div>You don't need a new database. Joins relational data with vectors effortlessly.</div></div>
+          <div class="field bad-at"><div class="label">Bad At</div><div>Performance at extreme scale (100M+ vectors) requires tuning. Not a 'memory' API, just raw storage.</div></div>
+          <div class="field"><div class="label">Pricing & Hosting</div><div>Free (Open source).</div></div>
+          <div class="meta">
+            <span>Verified: 2024-05-22</span>
+
+          </div>
+        </div>
+      </div>
+        <div class="comparison">
+          <table>
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th class="td-good">Good At</th>
+                <th class="td-bad">Bad At</th>
+                <th>Price Reality</th>
+              </tr>
+            </thead>
+            <tbody>
+
+        <tr class="entry-row" data-name="mem0" data-date="2024-05-10">
+          <td><a href="https://mem0.ai/" style="color:white;font-weight:bold;">Mem0</a> <span style="color:var(--stale)">(Stale)</span></td>
+          <td class="td-good">Handles entity extraction and temporal memory out of the box. Simple API.</td>
+          <td class="td-bad">Black box retrieval. You can't tune the embedding weights easily if it returns the wrong context.</td>
+          <td>Free tier available. Usage based after.</td>
+        </tr>
+
+        <tr class="entry-row" data-name="zep" data-date="2024-04-15">
+          <td><a href="https://www.getzep.com/" style="color:white;font-weight:bold;">Zep</a> <span style="color:var(--stale)">(Stale)</span></td>
+          <td class="td-good">Fast. Handles summarization of older context windows automatically.</td>
+          <td class="td-bad">Self-hosting can be heavy. Their proprietary retrieval algorithms aren't always transparent.</td>
+          <td>Free (Open source) or cloud pricing starting around $20/mo.</td>
+        </tr>
+
+        <tr class="entry-row" data-name="pinecone" data-date="2024-05-01">
+          <td><a href="https://www.pinecone.io/" style="color:white;font-weight:bold;">Pinecone</a> <span style="color:var(--stale)">(Stale)</span></td>
+          <td class="td-good">Fully managed, scales instantly. Serverless offering is great for intermittent loads.</td>
+          <td class="td-bad">Not a 'memory' solution, just a database. You have to write all the chunking, embedding, and retrieval logic.</td>
+          <td>Serverless is pay-per-read/write. Pods start at $70/mo.</td>
+        </tr>
+
+        <tr class="entry-row" data-name="weaviate" data-date="2024-03-20">
+          <td><a href="https://weaviate.io/" style="color:white;font-weight:bold;">Weaviate</a> <span style="color:var(--stale)">(Stale)</span></td>
+          <td class="td-good">BM25 + Vector search works beautifully out of the box. Good self-hosting.</td>
+          <td class="td-bad">Cloud pricing can jump quickly. The API can feel over-engineered for simple tasks.</td>
+          <td>Open source free. Cloud starts around $25/mo.</td>
+        </tr>
+
+        <tr class="entry-row" data-name="chroma" data-date="2024-05-18">
+          <td><a href="https://www.trychroma.com/" style="color:white;font-weight:bold;">Chroma</a> <span style="color:var(--stale)">(Stale)</span></td>
+          <td class="td-good">Runs locally with zero setup. Integrates with everything.</td>
+          <td class="td-bad">Distributed/cloud offering has been 'coming soon' forever. Not for large scale production.</td>
+          <td>Free (Open source).</td>
+        </tr>
+
+        <tr class="entry-row" data-name="motorhead" data-date="2023-10-15">
+          <td><a href="https://getmetal.io/motorhead" style="color:white;font-weight:bold;">Motorhead</a> <span style="color:var(--stale)">(Stale)</span></td>
+          <td class="td-good">Very fast. Good built-in summarization.</td>
+          <td class="td-bad">Development seems to have slowed down. Small community.</td>
+          <td>Free (Open source).</td>
+        </tr>
+
+        <tr class="entry-row" data-name="qdrant" data-date="2024-05-12">
+          <td><a href="https://qdrant.tech/" style="color:white;font-weight:bold;">Qdrant</a> <span style="color:var(--stale)">(Stale)</span></td>
+          <td class="td-good">Incredible performance. Great filtering capabilities alongside vector search.</td>
+          <td class="td-bad">Complex configuration options can be daunting for beginners.</td>
+          <td>Open source free. Cloud free tier is generous.</td>
+        </tr>
+
+        <tr class="entry-row" data-name="postgres (pgvector)" data-date="2024-05-22">
+          <td><a href="https://github.com/pgvector/pgvector" style="color:white;font-weight:bold;">Postgres (pgvector)</a> <span style="color:var(--stale)">(Stale)</span></td>
+          <td class="td-good">You don't need a new database. Joins relational data with vectors effortlessly.</td>
+          <td class="td-bad">Performance at extreme scale (100M+ vectors) requires tuning. Not a 'memory' API, just raw storage.</td>
+          <td>Free (Open source).</td>
+        </tr>
+
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section id="skills" class="section-container">
+        <input type="checkbox" id="compare-skills" class="compare-toggle">
+        <div class="section-header">
+          <h2>Skills and plugins</h2>
+          <label for="compare-skills" class="compare-label"></label>
+        </div>
+
+        <div class="grid">
+
+        <div class="card entry-card is-stale" data-name="browserbase" data-date="2024-05-10">
+          <span class="badge">Stale</span>
+          <div class="card-title"><a href="https://www.browserbase.com/" target="_blank">Browserbase</a></div>
+          <div class="note">Headless browsers designed specifically for AI agents.</div>
+          <div class="field"><div class="label">Good At</div><div>Handles captchas, proxies, and session management automatically. Great API.</div></div>
+          <div class="field bad-at"><div class="label">Bad At</div><div>Expensive for high-volume scraping. Can sometimes be slower than raw Puppeteer.</div></div>
+          <div class="field"><div class="label">Pricing & Hosting</div><div>Usage based. Starts around $20/mo for real usage.</div></div>
+          <div class="meta">
+            <span>Verified: 2024-05-10</span>
+
+          </div>
+        </div>
+
+        <div class="card entry-card is-stale" data-name="tavily" data-date="2024-05-15">
+          <span class="badge">Stale</span>
+          <div class="card-title"><a href="https://tavily.com/" target="_blank">Tavily</a></div>
+          <div class="note">Search API built for LLMs.</div>
+          <div class="field"><div class="label">Good At</div><div>Returns clean text rather than just links. Reduces hallucination by grounding.</div></div>
+          <div class="field bad-at"><div class="label">Bad At</div><div>Sometimes misses niche queries that Google would catch. Latency can spike.</div></div>
+          <div class="field"><div class="label">Pricing & Hosting</div><div>1000 free searches/mo. $20/mo for 4000.</div></div>
+          <div class="meta">
+            <span>Verified: 2024-05-15</span>
+
+          </div>
+        </div>
+
+        <div class="card entry-card is-stale" data-name="exa" data-date="2024-04-20">
+          <span class="badge">Stale</span>
+          <div class="card-title"><a href="https://exa.ai/" target="_blank">Exa</a></div>
+          <div class="note">Semantic search API (formerly Metaphor).</div>
+          <div class="field"><div class="label">Good At</div><div>Finds content by meaning rather than keywords. Great for finding blog posts and papers.</div></div>
+          <div class="field bad-at"><div class="label">Bad At</div><div>Terrible for real-time news or 'what is the current stock price' queries.</div></div>
+          <div class="field"><div class="label">Pricing & Hosting</div><div>Usage based, approx $10/1000 requests.</div></div>
+          <div class="meta">
+            <span>Verified: 2024-04-20</span>
+
+          </div>
+        </div>
+
+        <div class="card entry-card is-stale" data-name="composio" data-date="2024-03-10">
+          <span class="badge">Stale</span>
+          <div class="card-title"><a href="https://composio.dev/" target="_blank">Composio</a></div>
+          <div class="note">Aggregator of tools/plugins for agents.</div>
+          <div class="field"><div class="label">Good At</div><div>One API key gives access to GitHub, Slack, Notion, etc.</div></div>
+          <div class="field bad-at"><div class="label">Bad At</div><div>You are trusting a middleman with OAuth tokens. Documentation can be spotty.</div></div>
+          <div class="field"><div class="label">Pricing & Hosting</div><div>UNKNOWN.</div></div>
+          <div class="meta">
+            <span>Verified: 2024-03-10</span>
+
+          </div>
+        </div>
+
+        <div class="card entry-card is-stale" data-name="e2b" data-date="2024-05-01">
+          <span class="badge">Stale</span>
+          <div class="card-title"><a href="https://e2b.dev/" target="_blank">E2B</a></div>
+          <div class="note">Sandboxed cloud environments for AI to run code.</div>
+          <div class="field"><div class="label">Good At</div><div>Secure code execution. Let your agent write and test Python safely.</div></div>
+          <div class="field bad-at"><div class="label">Bad At</div><div>Startup time for the sandbox can add latency to the agent loop.</div></div>
+          <div class="field"><div class="label">Pricing & Hosting</div><div>Usage based per second of compute.</div></div>
+          <div class="meta">
+            <span>Verified: 2024-05-01</span>
+
+          </div>
+        </div>
+
+        <div class="card entry-card is-stale" data-name="val town" data-date="2024-05-20">
+          <span class="badge">Stale</span>
+          <div class="card-title"><a href="https://www.val.town/" target="_blank">Val Town</a></div>
+          <div class="note">Social programming environment, great for quick AI webhooks.</div>
+          <div class="field"><div class="label">Good At</div><div>Write a JS function, get an API endpoint instantly. Perfect for glue code.</div></div>
+          <div class="field bad-at"><div class="label">Bad At</div><div>Not built specifically for AI, so you have to wire up the tool definitions yourself.</div></div>
+          <div class="field"><div class="label">Pricing & Hosting</div><div>Free tier is great. Pro is $10/mo.</div></div>
+          <div class="meta">
+            <span>Verified: 2024-05-20</span>
+
+          </div>
+        </div>
+
+        <div class="card entry-card is-stale" data-name="apify" data-date="2024-02-15">
+          <span class="badge">Stale</span>
+          <div class="card-title"><a href="https://apify.com/" target="_blank">Apify</a></div>
+          <div class="note">The heavy lifter for web scraping.</div>
+          <div class="field"><div class="label">Good At</div><div>Pre-built actors for almost any site (Twitter, Instagram, Amazon).</div></div>
+          <div class="field bad-at"><div class="label">Bad At</div><div>Actors often break when sites change UI. Pricing can be confusing (compute units).</div></div>
+          <div class="field"><div class="label">Pricing & Hosting</div><div>$49/mo starter tier.</div></div>
+          <div class="meta">
+            <span>Verified: 2024-02-15</span>
+
+          </div>
+        </div>
+
+        <div class="card entry-card is-stale" data-name="wolfram alpha api" data-date="2023-11-01">
+          <span class="badge">Stale</span>
+          <div class="card-title"><a href="https://products.wolframalpha.com/api/" target="_blank">Wolfram Alpha API</a></div>
+          <div class="note">The OG tool for fixing LLM math capabilities.</div>
+          <div class="field"><div class="label">Good At</div><div>Flawless computation and factual data retrieval.</div></div>
+          <div class="field bad-at"><div class="label">Bad At</div><div>LLMs often struggle to format the queries perfectly for Wolfram's strict syntax.</div></div>
+          <div class="field"><div class="label">Pricing & Hosting</div><div>Non-commercial free tier. Commercial requires contact.</div></div>
+          <div class="meta">
+            <span>Verified: 2023-11-01</span>
+
+          </div>
+        </div>
+      </div>
+        <div class="comparison">
+          <table>
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th class="td-good">Good At</th>
+                <th class="td-bad">Bad At</th>
+                <th>Price Reality</th>
+              </tr>
+            </thead>
+            <tbody>
+
+        <tr class="entry-row" data-name="browserbase" data-date="2024-05-10">
+          <td><a href="https://www.browserbase.com/" style="color:white;font-weight:bold;">Browserbase</a> <span style="color:var(--stale)">(Stale)</span></td>
+          <td class="td-good">Handles captchas, proxies, and session management automatically. Great API.</td>
+          <td class="td-bad">Expensive for high-volume scraping. Can sometimes be slower than raw Puppeteer.</td>
+          <td>Usage based. Starts around $20/mo for real usage.</td>
+        </tr>
+
+        <tr class="entry-row" data-name="tavily" data-date="2024-05-15">
+          <td><a href="https://tavily.com/" style="color:white;font-weight:bold;">Tavily</a> <span style="color:var(--stale)">(Stale)</span></td>
+          <td class="td-good">Returns clean text rather than just links. Reduces hallucination by grounding.</td>
+          <td class="td-bad">Sometimes misses niche queries that Google would catch. Latency can spike.</td>
+          <td>1000 free searches/mo. $20/mo for 4000.</td>
+        </tr>
+
+        <tr class="entry-row" data-name="exa" data-date="2024-04-20">
+          <td><a href="https://exa.ai/" style="color:white;font-weight:bold;">Exa</a> <span style="color:var(--stale)">(Stale)</span></td>
+          <td class="td-good">Finds content by meaning rather than keywords. Great for finding blog posts and papers.</td>
+          <td class="td-bad">Terrible for real-time news or 'what is the current stock price' queries.</td>
+          <td>Usage based, approx $10/1000 requests.</td>
+        </tr>
+
+        <tr class="entry-row" data-name="composio" data-date="2024-03-10">
+          <td><a href="https://composio.dev/" style="color:white;font-weight:bold;">Composio</a> <span style="color:var(--stale)">(Stale)</span></td>
+          <td class="td-good">One API key gives access to GitHub, Slack, Notion, etc.</td>
+          <td class="td-bad">You are trusting a middleman with OAuth tokens. Documentation can be spotty.</td>
+          <td>UNKNOWN.</td>
+        </tr>
+
+        <tr class="entry-row" data-name="e2b" data-date="2024-05-01">
+          <td><a href="https://e2b.dev/" style="color:white;font-weight:bold;">E2B</a> <span style="color:var(--stale)">(Stale)</span></td>
+          <td class="td-good">Secure code execution. Let your agent write and test Python safely.</td>
+          <td class="td-bad">Startup time for the sandbox can add latency to the agent loop.</td>
+          <td>Usage based per second of compute.</td>
+        </tr>
+
+        <tr class="entry-row" data-name="val town" data-date="2024-05-20">
+          <td><a href="https://www.val.town/" style="color:white;font-weight:bold;">Val Town</a> <span style="color:var(--stale)">(Stale)</span></td>
+          <td class="td-good">Write a JS function, get an API endpoint instantly. Perfect for glue code.</td>
+          <td class="td-bad">Not built specifically for AI, so you have to wire up the tool definitions yourself.</td>
+          <td>Free tier is great. Pro is $10/mo.</td>
+        </tr>
+
+        <tr class="entry-row" data-name="apify" data-date="2024-02-15">
+          <td><a href="https://apify.com/" style="color:white;font-weight:bold;">Apify</a> <span style="color:var(--stale)">(Stale)</span></td>
+          <td class="td-good">Pre-built actors for almost any site (Twitter, Instagram, Amazon).</td>
+          <td class="td-bad">Actors often break when sites change UI. Pricing can be confusing (compute units).</td>
+          <td>$49/mo starter tier.</td>
+        </tr>
+
+        <tr class="entry-row" data-name="wolfram alpha api" data-date="2023-11-01">
+          <td><a href="https://products.wolframalpha.com/api/" style="color:white;font-weight:bold;">Wolfram Alpha API</a> <span style="color:var(--stale)">(Stale)</span></td>
+          <td class="td-good">Flawless computation and factual data retrieval.</td>
+          <td class="td-bad">LLMs often struggle to format the queries perfectly for Wolfram's strict syntax.</td>
+          <td>Non-commercial free tier. Commercial requires contact.</td>
+        </tr>
+
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section id="design" class="section-container">
+        <input type="checkbox" id="compare-design" class="compare-toggle">
+        <div class="section-header">
+          <h2>Design and graphics</h2>
+          <label for="compare-design" class="compare-label"></label>
+        </div>
+
+        <div class="grid">
+
+        <div class="card entry-card is-stale" data-name="midjourney" data-date="2024-05-22">
+          <span class="badge">Stale</span>
+          <div class="card-title"><a href="https://www.midjourney.com/" target="_blank">Midjourney</a></div>
+          <div class="note">Still the undisputed king of aesthetic quality.</div>
+          <div class="field"><div class="label">Good At</div><div>Incredible coherence, lighting, and artistic interpretation. V6 is unmatched.</div></div>
+          <div class="field bad-at"><div class="label">Bad At</div><div>Locked in Discord (though web alpha exists). No API for developers. Hard to get exact composition control.</div></div>
+          <div class="field"><div class="label">Pricing & Hosting</div><div>$10/mo basic, $30/mo standard.</div></div>
+          <div class="meta">
+            <span>Verified: 2024-05-22</span>
+
+          </div>
+        </div>
+
+        <div class="card entry-card is-stale" data-name="stable diffusion (automatic1111/comfyui)" data-date="2024-05-10">
+          <span class="badge">Stale</span>
+          <div class="card-title"><a href="https://github.com/comfyanonymous/ComfyUI" target="_blank">Stable Diffusion (Automatic1111/ComfyUI)</a></div>
+          <div class="note">The only choice if you need absolute control.</div>
+          <div class="field"><div class="label">Good At</div><div>ControlNet allows exact posing. Infinite fine-tunes (LoRAs). Free to run.</div></div>
+          <div class="field bad-at"><div class="label">Bad At</div><div>Steep learning curve. Requires a beefy GPU. Base models often look worse than Midjourney without heavy prompting.</div></div>
+          <div class="field"><div class="label">Pricing & Hosting</div><div>Free (Open source).</div></div>
+          <div class="meta">
+            <span>Verified: 2024-05-10</span>
+
+          </div>
+        </div>
+
+        <div class="card entry-card is-stale" data-name="leonardo.ai" data-date="2024-04-15">
+          <span class="badge">Stale</span>
+          <div class="card-title"><a href="https://leonardo.ai/" target="_blank">Leonardo.ai</a></div>
+          <div class="note">The best UI for Stable Diffusion workflows.</div>
+          <div class="field"><div class="label">Good At</div><div>Great built-in models. Real-time generation canvas is magic. Good API.</div></div>
+          <div class="field bad-at"><div class="label">Bad At</div><div>Generations can sometimes feel overly 'smooth' or plastic. Credit system can be confusing.</div></div>
+          <div class="field"><div class="label">Pricing & Hosting</div><div>Free daily credits. Paid tiers start at $12/mo.</div></div>
+          <div class="meta">
+            <span>Verified: 2024-04-15</span>
+
+          </div>
+        </div>
+
+        <div class="card entry-card is-stale" data-name="dall-e 3 (openai)" data-date="2024-05-01">
+          <span class="badge">Stale</span>
+          <div class="card-title"><a href="https://platform.openai.com/docs/models/dall-e" target="_blank">DALL-E 3 (OpenAI)</a></div>
+          <div class="note">Best for prompt adherence, worst for style.</div>
+          <div class="field"><div class="label">Good At</div><div>Actually follows complex prompts with multiple subjects. Spells text correctly.</div></div>
+          <div class="field bad-at"><div class="label">Bad At</div><div>Heavy censorship. The 'DALL-E look' is very obvious and often overly shiny/cartoony.</div></div>
+          <div class="field"><div class="label">Pricing & Hosting</div><div>$0.040 per standard 1024x1024 image via API.</div></div>
+          <div class="meta">
+            <span>Verified: 2024-05-01</span>
+
+          </div>
+        </div>
+
+        <div class="card entry-card is-stale" data-name="krea" data-date="2024-05-18">
+          <span class="badge">Stale</span>
+          <div class="card-title"><a href="https://www.krea.ai/" target="_blank">Krea</a></div>
+          <div class="note">Real-time generation and upscaling focus.</div>
+          <div class="field"><div class="label">Good At</div><div>The real-time canvas where you draw and it generates instantly is the best in class.</div></div>
+          <div class="field bad-at"><div class="label">Bad At</div><div>Final output quality for complex scenes isn't at Midjourney levels yet.</div></div>
+          <div class="field"><div class="label">Pricing & Hosting</div><div>Free tier available. Pro is $30/mo.</div></div>
+          <div class="meta">
+            <span>Verified: 2024-05-18</span>
+
+          </div>
+        </div>
+
+        <div class="card entry-card is-stale" data-name="magnific" data-date="2024-04-10">
+          <span class="badge">Stale</span>
+          <div class="card-title"><a href="https://magnific.ai/" target="_blank">Magnific</a></div>
+          <div class="note">The absolute best upscaler/enhancer.</div>
+          <div class="field"><div class="label">Good At</div><div>Adds incredible detail to low-res images. 'Re-imagines' textures beautifully.</div></div>
+          <div class="field bad-at"><div class="label">Bad At</div><div>Extremely expensive. Can hallucinate weird details (extra fingers in backgrounds) if pushed too hard.</div></div>
+          <div class="field"><div class="label">Pricing & Hosting</div><div>$39/mo for basic (runs out fast).</div></div>
+          <div class="meta">
+            <span>Verified: 2024-04-10</span>
+
+          </div>
+        </div>
+
+        <div class="card entry-card is-stale" data-name="fal.ai" data-date="2024-05-20">
+          <span class="badge">Stale</span>
+          <div class="card-title"><a href="https://fal.ai/" target="_blank">Fal.ai</a></div>
+          <div class="note">The developer API for fast image generation.</div>
+          <div class="field"><div class="label">Good At</div><div>Incredibly fast inference for SDXL and SD1.5. Great developer experience.</div></div>
+          <div class="field bad-at"><div class="label">Bad At</div><div>You need to bring your own UI. Not for consumers.</div></div>
+          <div class="field"><div class="label">Pricing & Hosting</div><div>Pay per compute millisecond.</div></div>
+          <div class="meta">
+            <span>Verified: 2024-05-20</span>
+
+          </div>
+        </div>
+
+        <div class="card entry-card is-stale" data-name="ideogram" data-date="2024-05-05">
+          <span class="badge">Stale</span>
+          <div class="card-title"><a href="https://ideogram.ai/" target="_blank">Ideogram</a></div>
+          <div class="note">The best for typography and posters.</div>
+          <div class="field"><div class="label">Good At</div><div>Spells words perfectly. Great at graphic design styles (logos, posters).</div></div>
+          <div class="field bad-at"><div class="label">Bad At</div><div>Photorealism isn't as good as Midjourney. Prompting can be finicky.</div></div>
+          <div class="field"><div class="label">Pricing & Hosting</div><div>Free tier available. Plus is $8/mo.</div></div>
+          <div class="meta">
+            <span>Verified: 2024-05-05</span>
+
+          </div>
+        </div>
+      </div>
+        <div class="comparison">
+          <table>
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th class="td-good">Good At</th>
+                <th class="td-bad">Bad At</th>
+                <th>Price Reality</th>
+              </tr>
+            </thead>
+            <tbody>
+
+        <tr class="entry-row" data-name="midjourney" data-date="2024-05-22">
+          <td><a href="https://www.midjourney.com/" style="color:white;font-weight:bold;">Midjourney</a> <span style="color:var(--stale)">(Stale)</span></td>
+          <td class="td-good">Incredible coherence, lighting, and artistic interpretation. V6 is unmatched.</td>
+          <td class="td-bad">Locked in Discord (though web alpha exists). No API for developers. Hard to get exact composition control.</td>
+          <td>$10/mo basic, $30/mo standard.</td>
+        </tr>
+
+        <tr class="entry-row" data-name="stable diffusion (automatic1111/comfyui)" data-date="2024-05-10">
+          <td><a href="https://github.com/comfyanonymous/ComfyUI" style="color:white;font-weight:bold;">Stable Diffusion (Automatic1111/ComfyUI)</a> <span style="color:var(--stale)">(Stale)</span></td>
+          <td class="td-good">ControlNet allows exact posing. Infinite fine-tunes (LoRAs). Free to run.</td>
+          <td class="td-bad">Steep learning curve. Requires a beefy GPU. Base models often look worse than Midjourney without heavy prompting.</td>
+          <td>Free (Open source).</td>
+        </tr>
+
+        <tr class="entry-row" data-name="leonardo.ai" data-date="2024-04-15">
+          <td><a href="https://leonardo.ai/" style="color:white;font-weight:bold;">Leonardo.ai</a> <span style="color:var(--stale)">(Stale)</span></td>
+          <td class="td-good">Great built-in models. Real-time generation canvas is magic. Good API.</td>
+          <td class="td-bad">Generations can sometimes feel overly 'smooth' or plastic. Credit system can be confusing.</td>
+          <td>Free daily credits. Paid tiers start at $12/mo.</td>
+        </tr>
+
+        <tr class="entry-row" data-name="dall-e 3 (openai)" data-date="2024-05-01">
+          <td><a href="https://platform.openai.com/docs/models/dall-e" style="color:white;font-weight:bold;">DALL-E 3 (OpenAI)</a> <span style="color:var(--stale)">(Stale)</span></td>
+          <td class="td-good">Actually follows complex prompts with multiple subjects. Spells text correctly.</td>
+          <td class="td-bad">Heavy censorship. The 'DALL-E look' is very obvious and often overly shiny/cartoony.</td>
+          <td>$0.040 per standard 1024x1024 image via API.</td>
+        </tr>
+
+        <tr class="entry-row" data-name="krea" data-date="2024-05-18">
+          <td><a href="https://www.krea.ai/" style="color:white;font-weight:bold;">Krea</a> <span style="color:var(--stale)">(Stale)</span></td>
+          <td class="td-good">The real-time canvas where you draw and it generates instantly is the best in class.</td>
+          <td class="td-bad">Final output quality for complex scenes isn't at Midjourney levels yet.</td>
+          <td>Free tier available. Pro is $30/mo.</td>
+        </tr>
+
+        <tr class="entry-row" data-name="magnific" data-date="2024-04-10">
+          <td><a href="https://magnific.ai/" style="color:white;font-weight:bold;">Magnific</a> <span style="color:var(--stale)">(Stale)</span></td>
+          <td class="td-good">Adds incredible detail to low-res images. 'Re-imagines' textures beautifully.</td>
+          <td class="td-bad">Extremely expensive. Can hallucinate weird details (extra fingers in backgrounds) if pushed too hard.</td>
+          <td>$39/mo for basic (runs out fast).</td>
+        </tr>
+
+        <tr class="entry-row" data-name="fal.ai" data-date="2024-05-20">
+          <td><a href="https://fal.ai/" style="color:white;font-weight:bold;">Fal.ai</a> <span style="color:var(--stale)">(Stale)</span></td>
+          <td class="td-good">Incredibly fast inference for SDXL and SD1.5. Great developer experience.</td>
+          <td class="td-bad">You need to bring your own UI. Not for consumers.</td>
+          <td>Pay per compute millisecond.</td>
+        </tr>
+
+        <tr class="entry-row" data-name="ideogram" data-date="2024-05-05">
+          <td><a href="https://ideogram.ai/" style="color:white;font-weight:bold;">Ideogram</a> <span style="color:var(--stale)">(Stale)</span></td>
+          <td class="td-good">Spells words perfectly. Great at graphic design styles (logos, posters).</td>
+          <td class="td-bad">Photorealism isn't as good as Midjourney. Prompting can be finicky.</td>
+          <td>Free tier available. Plus is $8/mo.</td>
+        </tr>
+
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section id="animation" class="section-container">
+        <input type="checkbox" id="compare-animation" class="compare-toggle">
+        <div class="section-header">
+          <h2>Animation</h2>
+          <label for="compare-animation" class="compare-label"></label>
+        </div>
+
+        <div class="grid">
+
+        <div class="card entry-card is-stale" data-name="runway (gen-2)" data-date="2024-05-15">
+          <span class="badge">Stale</span>
+          <div class="card-title"><a href="https://runwayml.com/" target="_blank">Runway (Gen-2)</a></div>
+          <div class="note">The most production-ready video model.</div>
+          <div class="field"><div class="label">Good At</div><div>Motion brush gives excellent control over what moves. Good consistency.</div></div>
+          <div class="field bad-at"><div class="label">Bad At</div><div>Heavy watermarking on free tier. Complex motion still morphs terribly.</div></div>
+          <div class="field"><div class="label">Pricing & Hosting</div><div>Standard is $15/mo.</div></div>
+          <div class="meta">
+            <span>Verified: 2024-05-15</span>
+
+          </div>
+        </div>
+
+        <div class="card entry-card is-stale" data-name="pika" data-date="2024-05-10">
+          <span class="badge">Stale</span>
+          <div class="card-title"><a href="https://pika.art/" target="_blank">Pika</a></div>
+          <div class="note">Best for stylized animation and lip sync.</div>
+          <div class="field"><div class="label">Good At</div><div>Excellent at anime/3D styles. Built-in lip sync is a game changer.</div></div>
+          <div class="field bad-at"><div class="label">Bad At</div><div>Photorealism lags behind Runway. 3-second default limit is restrictive.</div></div>
+          <div class="field"><div class="label">Pricing & Hosting</div><div>Basic is $10/mo.</div></div>
+          <div class="meta">
+            <span>Verified: 2024-05-10</span>
+
+          </div>
+        </div>
+
+        <div class="card entry-card is-stale" data-name="sora (openai)" data-date="2024-05-20">
+          <span class="badge">Stale</span>
+          <div class="card-title"><a href="https://openai.com/sora" target="_blank">Sora (OpenAI)</a></div>
+          <div class="note">The future, but currently vaporware for most of us.</div>
+          <div class="field"><div class="label">Good At</div><div>Unprecedented temporal consistency and physics understanding.</div></div>
+          <div class="field bad-at"><div class="label">Bad At</div><div>Closed beta. Not actually available to use. Known to hallucinate physics on complex interactions.</div></div>
+          <div class="field"><div class="label">Pricing & Hosting</div><div>UNKNOWN.</div></div>
+          <div class="meta">
+            <span>Verified: 2024-05-20</span>
+
+          </div>
+        </div>
+
+        <div class="card entry-card is-stale" data-name="luma dream machine" data-date="2024-06-15">
+          <span class="badge">Stale</span>
+          <div class="card-title"><a href="https://lumalabs.ai/dream-machine" target="_blank">Luma Dream Machine</a></div>
+          <div class="note">The current best public alternative to Sora.</div>
+          <div class="field"><div class="label">Good At</div><div>Fast generation. Actually available to the public. Good camera motion.</div></div>
+          <div class="field bad-at"><div class="label">Bad At</div><div>Heavy artifacting on human faces during movement. Queue times can be brutal.</div></div>
+          <div class="field"><div class="label">Pricing & Hosting</div><div>Free tier (30 gens/mo). Standard is $29.99/mo.</div></div>
+          <div class="meta">
+            <span>Verified: 2024-06-15</span>
+
+          </div>
+        </div>
+
+        <div class="card entry-card is-stale" data-name="haiper" data-date="2024-04-20">
+          <span class="badge">Stale</span>
+          <div class="card-title"><a href="https://haiper.ai/" target="_blank">Haiper</a></div>
+          <div class="note">Quietly building very good models.</div>
+          <div class="field"><div class="label">Good At</div><div>Excellent short clips. Good at understanding complex textual prompts for motion.</div></div>
+          <div class="field bad-at"><div class="label">Bad At</div><div>Lacks the fine-grained control (like motion brushes) of Runway.</div></div>
+          <div class="field"><div class="label">Pricing & Hosting</div><div>Free during beta.</div></div>
+          <div class="meta">
+            <span>Verified: 2024-04-20</span>
+
+          </div>
+        </div>
+
+        <div class="card entry-card is-stale" data-name="animatediff" data-date="2024-03-10">
+          <span class="badge">Stale</span>
+          <div class="card-title"><a href="https://github.com/guoyww/AnimateDiff" target="_blank">AnimateDiff</a></div>
+          <div class="note">The open-source hacker's choice.</div>
+          <div class="field"><div class="label">Good At</div><div>Total control. Works with existing Stable Diffusion models.</div></div>
+          <div class="field bad-at"><div class="label">Bad At</div><div>Requires immense technical setup in ComfyUI. Generation takes forever locally.</div></div>
+          <div class="field"><div class="label">Pricing & Hosting</div><div>Free (Open source).</div></div>
+          <div class="meta">
+            <span>Verified: 2024-03-10</span>
+
+          </div>
+        </div>
+
+        <div class="card entry-card is-stale" data-name="heygen" data-date="2024-05-22">
+          <span class="badge">Stale</span>
+          <div class="card-title"><a href="https://www.heygen.com/" target="_blank">HeyGen</a></div>
+          <div class="note">The only avatar tool worth using for corporate/talking heads.</div>
+          <div class="field"><div class="label">Good At</div><div>Flawless lip sync and micro-expressions. Instant avatar cloning.</div></div>
+          <div class="field bad-at"><div class="label">Bad At</div><div>Not for creative/cinematic video. Strictly for talking heads. Very expensive for volume.</div></div>
+          <div class="field"><div class="label">Pricing & Hosting</div><div>Creator is $29/mo (15 mins of video).</div></div>
+          <div class="meta">
+            <span>Verified: 2024-05-22</span>
+
+          </div>
+        </div>
+
+        <div class="card entry-card is-stale" data-name="kaiber" data-date="2024-02-15">
+          <span class="badge">Stale</span>
+          <div class="card-title"><a href="https://kaiber.ai/" target="_blank">Kaiber</a></div>
+          <div class="note">Best for music videos and audio-reactive generation.</div>
+          <div class="field"><div class="label">Good At</div><div>Audio reactivity is built-in. Great for trippy, morphing aesthetics.</div></div>
+          <div class="field bad-at"><div class="label">Bad At</div><div>Terrible at consistency. It's an aesthetic tool, not a storytelling tool.</div></div>
+          <div class="field"><div class="label">Pricing & Hosting</div><div>Pro is $15/mo.</div></div>
+          <div class="meta">
+            <span>Verified: 2024-02-15</span>
+
+          </div>
+        </div>
+      </div>
+        <div class="comparison">
+          <table>
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th class="td-good">Good At</th>
+                <th class="td-bad">Bad At</th>
+                <th>Price Reality</th>
+              </tr>
+            </thead>
+            <tbody>
+
+        <tr class="entry-row" data-name="runway (gen-2)" data-date="2024-05-15">
+          <td><a href="https://runwayml.com/" style="color:white;font-weight:bold;">Runway (Gen-2)</a> <span style="color:var(--stale)">(Stale)</span></td>
+          <td class="td-good">Motion brush gives excellent control over what moves. Good consistency.</td>
+          <td class="td-bad">Heavy watermarking on free tier. Complex motion still morphs terribly.</td>
+          <td>Standard is $15/mo.</td>
+        </tr>
+
+        <tr class="entry-row" data-name="pika" data-date="2024-05-10">
+          <td><a href="https://pika.art/" style="color:white;font-weight:bold;">Pika</a> <span style="color:var(--stale)">(Stale)</span></td>
+          <td class="td-good">Excellent at anime/3D styles. Built-in lip sync is a game changer.</td>
+          <td class="td-bad">Photorealism lags behind Runway. 3-second default limit is restrictive.</td>
+          <td>Basic is $10/mo.</td>
+        </tr>
+
+        <tr class="entry-row" data-name="sora (openai)" data-date="2024-05-20">
+          <td><a href="https://openai.com/sora" style="color:white;font-weight:bold;">Sora (OpenAI)</a> <span style="color:var(--stale)">(Stale)</span></td>
+          <td class="td-good">Unprecedented temporal consistency and physics understanding.</td>
+          <td class="td-bad">Closed beta. Not actually available to use. Known to hallucinate physics on complex interactions.</td>
+          <td>UNKNOWN.</td>
+        </tr>
+
+        <tr class="entry-row" data-name="luma dream machine" data-date="2024-06-15">
+          <td><a href="https://lumalabs.ai/dream-machine" style="color:white;font-weight:bold;">Luma Dream Machine</a> <span style="color:var(--stale)">(Stale)</span></td>
+          <td class="td-good">Fast generation. Actually available to the public. Good camera motion.</td>
+          <td class="td-bad">Heavy artifacting on human faces during movement. Queue times can be brutal.</td>
+          <td>Free tier (30 gens/mo). Standard is $29.99/mo.</td>
+        </tr>
+
+        <tr class="entry-row" data-name="haiper" data-date="2024-04-20">
+          <td><a href="https://haiper.ai/" style="color:white;font-weight:bold;">Haiper</a> <span style="color:var(--stale)">(Stale)</span></td>
+          <td class="td-good">Excellent short clips. Good at understanding complex textual prompts for motion.</td>
+          <td class="td-bad">Lacks the fine-grained control (like motion brushes) of Runway.</td>
+          <td>Free during beta.</td>
+        </tr>
+
+        <tr class="entry-row" data-name="animatediff" data-date="2024-03-10">
+          <td><a href="https://github.com/guoyww/AnimateDiff" style="color:white;font-weight:bold;">AnimateDiff</a> <span style="color:var(--stale)">(Stale)</span></td>
+          <td class="td-good">Total control. Works with existing Stable Diffusion models.</td>
+          <td class="td-bad">Requires immense technical setup in ComfyUI. Generation takes forever locally.</td>
+          <td>Free (Open source).</td>
+        </tr>
+
+        <tr class="entry-row" data-name="heygen" data-date="2024-05-22">
+          <td><a href="https://www.heygen.com/" style="color:white;font-weight:bold;">HeyGen</a> <span style="color:var(--stale)">(Stale)</span></td>
+          <td class="td-good">Flawless lip sync and micro-expressions. Instant avatar cloning.</td>
+          <td class="td-bad">Not for creative/cinematic video. Strictly for talking heads. Very expensive for volume.</td>
+          <td>Creator is $29/mo (15 mins of video).</td>
+        </tr>
+
+        <tr class="entry-row" data-name="kaiber" data-date="2024-02-15">
+          <td><a href="https://kaiber.ai/" style="color:white;font-weight:bold;">Kaiber</a> <span style="color:var(--stale)">(Stale)</span></td>
+          <td class="td-good">Audio reactivity is built-in. Great for trippy, morphing aesthetics.</td>
+          <td class="td-bad">Terrible at consistency. It's an aesthetic tool, not a storytelling tool.</td>
+          <td>Pro is $15/mo.</td>
+        </tr>
+
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section id="orchestration" class="section-container">
+        <input type="checkbox" id="compare-orchestration" class="compare-toggle">
+        <div class="section-header">
+          <h2>Orchestration</h2>
+          <label for="compare-orchestration" class="compare-label"></label>
+        </div>
+
+        <div class="grid">
+
+        <div class="card entry-card is-stale" data-name="langgraph" data-date="2024-05-10">
+          <span class="badge">Stale</span>
+          <div class="card-title"><a href="https://langchain-ai.github.io/langgraph/" target="_blank">LangGraph</a></div>
+          <div class="note">The right way to build stateful multi-actor applications.</div>
+          <div class="field"><div class="label">Good At</div><div>Cyclic graphs allow true agent loops. State management is explicit and clear.</div></div>
+          <div class="field bad-at"><div class="label">Bad At</div><div>Documentation is dense. Overkill for simple linear chains.</div></div>
+          <div class="field"><div class="label">Pricing & Hosting</div><div>Free (Open source). LangSmith is paid.</div></div>
+          <div class="meta">
+            <span>Verified: 2024-05-10</span>
+
+          </div>
+        </div>
+
+        <div class="card entry-card is-stale" data-name="autogen" data-date="2024-04-20">
+          <span class="badge">Stale</span>
+          <div class="card-title"><a href="https://microsoft.github.io/autogen/" target="_blank">Autogen</a></div>
+          <div class="note">Microsoft's multi-agent conversational framework.</div>
+          <div class="field"><div class="label">Good At</div><div>Agents talking to agents works surprisingly well out of the box. Good code execution sandbox.</div></div>
+          <div class="field bad-at"><div class="label">Bad At</div><div>Highly unpredictable. Agents often get stuck in infinite loops agreeing with each other.</div></div>
+          <div class="field"><div class="label">Pricing & Hosting</div><div>Free (Open source).</div></div>
+          <div class="meta">
+            <span>Verified: 2024-04-20</span>
+
+          </div>
+        </div>
+
+        <div class="card entry-card is-stale" data-name="crewai" data-date="2024-05-15">
+          <span class="badge">Stale</span>
+          <div class="card-title"><a href="https://www.crewai.com/" target="_blank">CrewAI</a></div>
+          <div class="note">The easiest way to orchestrate role-playing agents.</div>
+          <div class="field"><div class="label">Good At</div><div>Very readable syntax. Delegating tasks between agents feels natural.</div></div>
+          <div class="field bad-at"><div class="label">Bad At</div><div>Under the hood it's just heavy prompt engineering on LangChain. Can be slow and tokens-expensive.</div></div>
+          <div class="field"><div class="label">Pricing & Hosting</div><div>Free (Open source).</div></div>
+          <div class="meta">
+            <span>Verified: 2024-05-15</span>
+
+          </div>
+        </div>
+
+        <div class="card entry-card is-stale" data-name="rivet" data-date="2024-03-10">
+          <span class="badge">Stale</span>
+          <div class="card-title"><a href="https://rivet.ironcladapp.com/" target="_blank">Rivet</a></div>
+          <div class="note">Visual node-based orchestration that actually outputs usable code.</div>
+          <div class="field"><div class="label">Good At</div><div>Excellent visual debugger. The node graph translates directly to a deployable TS package.</div></div>
+          <div class="field bad-at"><div class="label">Bad At</div><div>Visual programming eventually hits a complexity wall. Not ideal for highly dynamic cycles.</div></div>
+          <div class="field"><div class="label">Pricing & Hosting</div><div>Free (Open source).</div></div>
+          <div class="meta">
+            <span>Verified: 2024-03-10</span>
+
+          </div>
+        </div>
+
+        <div class="card entry-card is-stale" data-name="flowise" data-date="2024-02-15">
+          <span class="badge">Stale</span>
+          <div class="card-title"><a href="https://flowiseai.com/" target="_blank">Flowise</a></div>
+          <div class="note">The Zapier of LLM orchestration.</div>
+          <div class="field"><div class="label">Good At</div><div>Drag and drop interface. Incredibly easy to prototype.</div></div>
+          <div class="field bad-at"><div class="label">Bad At</div><div>Hard to version control the JSON graphs. Debugging complex logic visually is a nightmare.</div></div>
+          <div class="field"><div class="label">Pricing & Hosting</div><div>Free (Open source). Cloud hosting available.</div></div>
+          <div class="meta">
+            <span>Verified: 2024-02-15</span>
+
+          </div>
+        </div>
+
+        <div class="card entry-card is-stale" data-name="bentoml" data-date="2024-05-01">
+          <span class="badge">Stale</span>
+          <div class="card-title"><a href="https://www.bentoml.com/" target="_blank">BentoML</a></div>
+          <div class="note">Best for orchestrating the actual models, not the prompts.</div>
+          <div class="field"><div class="label">Good At</div><div>Great for composing multiple custom models (e.g., YOLO + Whisper + LLM) into one API.</div></div>
+          <div class="field bad-at"><div class="label">Bad At</div><div>Heavy infrastructure requirement. Not focused on 'agent' logic.</div></div>
+          <div class="field"><div class="label">Pricing & Hosting</div><div>Free (Open source). Cloud pricing available.</div></div>
+          <div class="meta">
+            <span>Verified: 2024-05-01</span>
+
+          </div>
+        </div>
+
+        <div class="card entry-card is-stale" data-name="promptflow (microsoft)" data-date="2023-11-20">
+          <span class="badge">Stale</span>
+          <div class="card-title"><a href="https://microsoft.github.io/promptflow/" target="_blank">Promptflow (Microsoft)</a></div>
+          <div class="note">Enterprise grade flow orchestration.</div>
+          <div class="field"><div class="label">Good At</div><div>Excellent integration with VS Code. Strong focus on evaluation and testing flows.</div></div>
+          <div class="field bad-at"><div class="label">Bad At</div><div>Tied heavily to Azure ecosystem mentally, even if it can run locally. Verbose.</div></div>
+          <div class="field"><div class="label">Pricing & Hosting</div><div>Free (Open source).</div></div>
+          <div class="meta">
+            <span>Verified: 2023-11-20</span>
+
+          </div>
+        </div>
+
+        <div class="card entry-card is-stale" data-name="controlflow" data-date="2024-05-22">
+          <span class="badge">Stale</span>
+          <div class="card-title"><a href="https://controlflow.ai/" target="_blank">ControlFlow</a></div>
+          <div class="note">Task-oriented orchestration by the Prefect team.</div>
+          <div class="field"><div class="label">Good At</div><div>Treats AI tasks like engineering pipelines. Highly structured and typed.</div></div>
+          <div class="field bad-at"><div class="label">Bad At</div><div>Newer framework, smaller community. Python only.</div></div>
+          <div class="field"><div class="label">Pricing & Hosting</div><div>Free (Open source).</div></div>
+          <div class="meta">
+            <span>Verified: 2024-05-22</span>
+
+          </div>
+        </div>
+      </div>
+        <div class="comparison">
+          <table>
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th class="td-good">Good At</th>
+                <th class="td-bad">Bad At</th>
+                <th>Price Reality</th>
+              </tr>
+            </thead>
+            <tbody>
+
+        <tr class="entry-row" data-name="langgraph" data-date="2024-05-10">
+          <td><a href="https://langchain-ai.github.io/langgraph/" style="color:white;font-weight:bold;">LangGraph</a> <span style="color:var(--stale)">(Stale)</span></td>
+          <td class="td-good">Cyclic graphs allow true agent loops. State management is explicit and clear.</td>
+          <td class="td-bad">Documentation is dense. Overkill for simple linear chains.</td>
+          <td>Free (Open source). LangSmith is paid.</td>
+        </tr>
+
+        <tr class="entry-row" data-name="autogen" data-date="2024-04-20">
+          <td><a href="https://microsoft.github.io/autogen/" style="color:white;font-weight:bold;">Autogen</a> <span style="color:var(--stale)">(Stale)</span></td>
+          <td class="td-good">Agents talking to agents works surprisingly well out of the box. Good code execution sandbox.</td>
+          <td class="td-bad">Highly unpredictable. Agents often get stuck in infinite loops agreeing with each other.</td>
+          <td>Free (Open source).</td>
+        </tr>
+
+        <tr class="entry-row" data-name="crewai" data-date="2024-05-15">
+          <td><a href="https://www.crewai.com/" style="color:white;font-weight:bold;">CrewAI</a> <span style="color:var(--stale)">(Stale)</span></td>
+          <td class="td-good">Very readable syntax. Delegating tasks between agents feels natural.</td>
+          <td class="td-bad">Under the hood it's just heavy prompt engineering on LangChain. Can be slow and tokens-expensive.</td>
+          <td>Free (Open source).</td>
+        </tr>
+
+        <tr class="entry-row" data-name="rivet" data-date="2024-03-10">
+          <td><a href="https://rivet.ironcladapp.com/" style="color:white;font-weight:bold;">Rivet</a> <span style="color:var(--stale)">(Stale)</span></td>
+          <td class="td-good">Excellent visual debugger. The node graph translates directly to a deployable TS package.</td>
+          <td class="td-bad">Visual programming eventually hits a complexity wall. Not ideal for highly dynamic cycles.</td>
+          <td>Free (Open source).</td>
+        </tr>
+
+        <tr class="entry-row" data-name="flowise" data-date="2024-02-15">
+          <td><a href="https://flowiseai.com/" style="color:white;font-weight:bold;">Flowise</a> <span style="color:var(--stale)">(Stale)</span></td>
+          <td class="td-good">Drag and drop interface. Incredibly easy to prototype.</td>
+          <td class="td-bad">Hard to version control the JSON graphs. Debugging complex logic visually is a nightmare.</td>
+          <td>Free (Open source). Cloud hosting available.</td>
+        </tr>
+
+        <tr class="entry-row" data-name="bentoml" data-date="2024-05-01">
+          <td><a href="https://www.bentoml.com/" style="color:white;font-weight:bold;">BentoML</a> <span style="color:var(--stale)">(Stale)</span></td>
+          <td class="td-good">Great for composing multiple custom models (e.g., YOLO + Whisper + LLM) into one API.</td>
+          <td class="td-bad">Heavy infrastructure requirement. Not focused on 'agent' logic.</td>
+          <td>Free (Open source). Cloud pricing available.</td>
+        </tr>
+
+        <tr class="entry-row" data-name="promptflow (microsoft)" data-date="2023-11-20">
+          <td><a href="https://microsoft.github.io/promptflow/" style="color:white;font-weight:bold;">Promptflow (Microsoft)</a> <span style="color:var(--stale)">(Stale)</span></td>
+          <td class="td-good">Excellent integration with VS Code. Strong focus on evaluation and testing flows.</td>
+          <td class="td-bad">Tied heavily to Azure ecosystem mentally, even if it can run locally. Verbose.</td>
+          <td>Free (Open source).</td>
+        </tr>
+
+        <tr class="entry-row" data-name="controlflow" data-date="2024-05-22">
+          <td><a href="https://controlflow.ai/" style="color:white;font-weight:bold;">ControlFlow</a> <span style="color:var(--stale)">(Stale)</span></td>
+          <td class="td-good">Treats AI tasks like engineering pipelines. Highly structured and typed.</td>
+          <td class="td-bad">Newer framework, smaller community. Python only.</td>
+          <td>Free (Open source).</td>
+        </tr>
+
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section id="autonomy" class="section-container">
+        <input type="checkbox" id="compare-autonomy" class="compare-toggle">
+        <div class="section-header">
+          <h2>Agent autonomy</h2>
+          <label for="compare-autonomy" class="compare-label"></label>
+        </div>
+
+        <div class="grid">
+
+        <div class="card entry-card is-stale" data-name="devin" data-date="2024-05-15">
+          <span class="badge">Stale</span>
+          <div class="card-title"><a href="https://www.cognition-labs.com/blog" target="_blank">Devin</a></div>
+          <div class="note">The gold standard for autonomous SWE agents right now.</div>
+          <div class="field"><div class="label">Good At</div><div>Actually completes complex multi-step coding tasks. Sandbox environment is flawless.</div></div>
+          <div class="field bad-at"><div class="label">Bad At</div><div>Closed beta. Extremely expensive compute. Prone to rabbit holes if the initial prompt is vague.</div></div>
+          <div class="field"><div class="label">Pricing & Hosting</div><div>UNKNOWN. Private beta.</div></div>
+          <div class="meta">
+            <span>Verified: 2024-05-15</span>
+
+          </div>
+        </div>
+
+        <div class="card entry-card is-stale" data-name="opendevin" data-date="2024-05-20">
+          <span class="badge">Stale</span>
+          <div class="card-title"><a href="https://github.com/OpenDevin/OpenDevin" target="_blank">OpenDevin</a></div>
+          <div class="note">The open-source community's response.</div>
+          <div class="field"><div class="label">Good At</div><div>Fast moving. Pluggable models (works with Claude 3 Opus well).</div></div>
+          <div class="field bad-at"><div class="label">Bad At</div><div>UI is still rough. Requires Docker and significant local setup. Less reliable than closed alternatives.</div></div>
+          <div class="field"><div class="label">Pricing & Hosting</div><div>Free (Open source). BYO API keys.</div></div>
+          <div class="meta">
+            <span>Verified: 2024-05-20</span>
+
+          </div>
+        </div>
+
+        <div class="card entry-card is-stale" data-name="autogpt" data-date="2024-04-10">
+          <span class="badge">Stale</span>
+          <div class="card-title"><a href="https://github.com/Significant-Gravitas/AutoGPT" target="_blank">AutoGPT</a></div>
+          <div class="note">The hype machine from 2023 that is trying to become a platform.</div>
+          <div class="field"><div class="label">Good At</div><div>Huge community. Modular architecture in v2.</div></div>
+          <div class="field bad-at"><div class="label">Bad At</div><div>Infamous for infinite loops and never actually finishing tasks. Mostly a toy for complex real-world work.</div></div>
+          <div class="field"><div class="label">Pricing & Hosting</div><div>Free (Open source).</div></div>
+          <div class="meta">
+            <span>Verified: 2024-04-10</span>
+
+          </div>
+        </div>
+
+        <div class="card entry-card is-stale" data-name="babyagi" data-date="2023-10-01">
+          <span class="badge">Stale</span>
+          <div class="card-title"><a href="https://github.com/yoheinakajima/babyagi" target="_blank">BabyAGI</a></div>
+          <div class="note">A minimalist blueprint for autonomy.</div>
+          <div class="field"><div class="label">Good At</div><div>The code is short enough to read and understand in an afternoon. Great learning tool.</div></div>
+          <div class="field bad-at"><div class="label">Bad At</div><div>Not a production framework. Struggles with context windows on long tasks.</div></div>
+          <div class="field"><div class="label">Pricing & Hosting</div><div>Free (Open source).</div></div>
+          <div class="meta">
+            <span>Verified: 2023-10-01</span>
+
+          </div>
+        </div>
+
+        <div class="card entry-card is-stale" data-name="multion" data-date="2024-03-20">
+          <span class="badge">Stale</span>
+          <div class="card-title"><a href="https://www.multion.ai/" target="_blank">MultiOn</a></div>
+          <div class="note">The best agent for autonomous web browsing.</div>
+          <div class="field"><div class="label">Good At</div><div>Actually interacts with standard web UIs (clicks, types) reliably.</div></div>
+          <div class="field bad-at"><div class="label">Bad At</div><div>Feels invasive as a browser extension. Can break on sites with heavy canvas/custom implementations.</div></div>
+          <div class="field"><div class="label">Pricing & Hosting</div><div>UNKNOWN.</div></div>
+          <div class="meta">
+            <span>Verified: 2024-03-20</span>
+
+          </div>
+        </div>
+
+        <div class="card entry-card is-stale" data-name="aider" data-date="2024-05-22">
+          <span class="badge">Stale</span>
+          <div class="card-title"><a href="https://aider.chat/" target="_blank">Aider</a></div>
+          <div class="note">My daily driver. Not 'autonomous' in the background, but the best terminal copilot.</div>
+          <div class="field"><div class="label">Good At</div><div>Reads the whole repo via ctags. Actually commits working code. Fast.</div></div>
+          <div class="field bad-at"><div class="label">Bad At</div><div>Requires you to be in the loop. Not a 'fire and forget' agent.</div></div>
+          <div class="field"><div class="label">Pricing & Hosting</div><div>Free (Open source). BYO API keys.</div></div>
+          <div class="meta">
+            <span>Verified: 2024-05-22</span>
+
+          </div>
+        </div>
+
+        <div class="card entry-card is-stale" data-name="superagi" data-date="2024-02-15">
+          <span class="badge">Stale</span>
+          <div class="card-title"><a href="https://superagi.com/" target="_blank">SuperAGI</a></div>
+          <div class="note">Aiming to be the enterprise AutoGPT.</div>
+          <div class="field"><div class="label">Good At</div><div>Good GUI. Built-in tool marketplace.</div></div>
+          <div class="field bad-at"><div class="label">Bad At</div><div>Suffers from the same underlying reliability issues as all prompt-loop agents.</div></div>
+          <div class="field"><div class="label">Pricing & Hosting</div><div>Open source free. Cloud managed available.</div></div>
+          <div class="meta">
+            <span>Verified: 2024-02-15</span>
+
+          </div>
+        </div>
+
+        <div class="card entry-card is-stale" data-name="ferris" data-date="2024-01-10">
+          <span class="badge">Stale</span>
+          <div class="card-title"><a href="https://github.com/lucia-ai/ferris" target="_blank">Ferris</a></div>
+          <div class="note">An interesting Rust-based approach.</div>
+          <div class="field"><div class="label">Good At</div><div>Memory safe and incredibly fast execution.</div></div>
+          <div class="field bad-at"><div class="label">Bad At</div><div>Ecosystem is tiny compared to Python. Very experimental.</div></div>
+          <div class="field"><div class="label">Pricing & Hosting</div><div>Free (Open source).</div></div>
+          <div class="meta">
+            <span>Verified: 2024-01-10</span>
+
+          </div>
+        </div>
+      </div>
+        <div class="comparison">
+          <table>
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th class="td-good">Good At</th>
+                <th class="td-bad">Bad At</th>
+                <th>Price Reality</th>
+              </tr>
+            </thead>
+            <tbody>
+
+        <tr class="entry-row" data-name="devin" data-date="2024-05-15">
+          <td><a href="https://www.cognition-labs.com/blog" style="color:white;font-weight:bold;">Devin</a> <span style="color:var(--stale)">(Stale)</span></td>
+          <td class="td-good">Actually completes complex multi-step coding tasks. Sandbox environment is flawless.</td>
+          <td class="td-bad">Closed beta. Extremely expensive compute. Prone to rabbit holes if the initial prompt is vague.</td>
+          <td>UNKNOWN. Private beta.</td>
+        </tr>
+
+        <tr class="entry-row" data-name="opendevin" data-date="2024-05-20">
+          <td><a href="https://github.com/OpenDevin/OpenDevin" style="color:white;font-weight:bold;">OpenDevin</a> <span style="color:var(--stale)">(Stale)</span></td>
+          <td class="td-good">Fast moving. Pluggable models (works with Claude 3 Opus well).</td>
+          <td class="td-bad">UI is still rough. Requires Docker and significant local setup. Less reliable than closed alternatives.</td>
+          <td>Free (Open source). BYO API keys.</td>
+        </tr>
+
+        <tr class="entry-row" data-name="autogpt" data-date="2024-04-10">
+          <td><a href="https://github.com/Significant-Gravitas/AutoGPT" style="color:white;font-weight:bold;">AutoGPT</a> <span style="color:var(--stale)">(Stale)</span></td>
+          <td class="td-good">Huge community. Modular architecture in v2.</td>
+          <td class="td-bad">Infamous for infinite loops and never actually finishing tasks. Mostly a toy for complex real-world work.</td>
+          <td>Free (Open source).</td>
+        </tr>
+
+        <tr class="entry-row" data-name="babyagi" data-date="2023-10-01">
+          <td><a href="https://github.com/yoheinakajima/babyagi" style="color:white;font-weight:bold;">BabyAGI</a> <span style="color:var(--stale)">(Stale)</span></td>
+          <td class="td-good">The code is short enough to read and understand in an afternoon. Great learning tool.</td>
+          <td class="td-bad">Not a production framework. Struggles with context windows on long tasks.</td>
+          <td>Free (Open source).</td>
+        </tr>
+
+        <tr class="entry-row" data-name="multion" data-date="2024-03-20">
+          <td><a href="https://www.multion.ai/" style="color:white;font-weight:bold;">MultiOn</a> <span style="color:var(--stale)">(Stale)</span></td>
+          <td class="td-good">Actually interacts with standard web UIs (clicks, types) reliably.</td>
+          <td class="td-bad">Feels invasive as a browser extension. Can break on sites with heavy canvas/custom implementations.</td>
+          <td>UNKNOWN.</td>
+        </tr>
+
+        <tr class="entry-row" data-name="aider" data-date="2024-05-22">
+          <td><a href="https://aider.chat/" style="color:white;font-weight:bold;">Aider</a> <span style="color:var(--stale)">(Stale)</span></td>
+          <td class="td-good">Reads the whole repo via ctags. Actually commits working code. Fast.</td>
+          <td class="td-bad">Requires you to be in the loop. Not a 'fire and forget' agent.</td>
+          <td>Free (Open source). BYO API keys.</td>
+        </tr>
+
+        <tr class="entry-row" data-name="superagi" data-date="2024-02-15">
+          <td><a href="https://superagi.com/" style="color:white;font-weight:bold;">SuperAGI</a> <span style="color:var(--stale)">(Stale)</span></td>
+          <td class="td-good">Good GUI. Built-in tool marketplace.</td>
+          <td class="td-bad">Suffers from the same underlying reliability issues as all prompt-loop agents.</td>
+          <td>Open source free. Cloud managed available.</td>
+        </tr>
+
+        <tr class="entry-row" data-name="ferris" data-date="2024-01-10">
+          <td><a href="https://github.com/lucia-ai/ferris" style="color:white;font-weight:bold;">Ferris</a> <span style="color:var(--stale)">(Stale)</span></td>
+          <td class="td-good">Memory safe and incredibly fast execution.</td>
+          <td class="td-bad">Ecosystem is tiny compared to Python. Very experimental.</td>
+          <td>Free (Open source).</td>
+        </tr>
+
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section id="speech" class="section-container">
+        <input type="checkbox" id="compare-speech" class="compare-toggle">
+        <div class="section-header">
+          <h2>Speech (TTS and STT)</h2>
+          <label for="compare-speech" class="compare-label"></label>
+        </div>
+
+        <div class="grid">
+
+        <div class="card entry-card is-stale" data-name="elevenlabs" data-date="2023-01-01">
+          <span class="badge">Stale</span>
+          <div class="card-title"><a href="https://elevenlabs.io" target="_blank">ElevenLabs</a></div>
+          <div class="note">The default choice for a reason. Still unmatched for emotional range in TTS.</div>
+          <div class="field"><div class="label">Good At</div><div>Incredible prosody, emotion control, and voice cloning accuracy. Low latency model is actually usable for real-time.</div></div>
+          <div class="field bad-at"><div class="label">Bad At</div><div>Aggressive pricing that scales poorly. Hard cutoffs when you run out of credits mid-generation. API goes down more often than competitors.</div></div>
+          <div class="field"><div class="label">Pricing & Hosting</div><div>Free tier gives 10k chars (useless). $22/mo for 100k chars. Enterprise required for real volume.</div></div>
+          <div class="meta">
+            <span>Verified: 2023-01-01</span>
+
+          </div>
+        </div>
+
+        <div class="card entry-card is-stale" data-name="deepgram" data-date="2024-05-12">
+          <span class="badge">Stale</span>
+          <div class="card-title"><a href="https://deepgram.com" target="_blank">Deepgram</a></div>
+          <div class="note">My go-to for STT. The speed to cost ratio is unbeatable for streaming.</div>
+          <div class="field"><div class="label">Good At</div><div>Sub-200ms latency for streaming speech-to-text. Incredible pricing. Nova-2 model handles accents flawlessly.</div></div>
+          <div class="field bad-at"><div class="label">Bad At</div><div>Their TTS offering (Aura) sounds robotic compared to ElevenLabs. STT sometimes hallucinates filler words in complete silence.</div></div>
+          <div class="field"><div class="label">Pricing & Hosting</div><div>$0.0043/min for STT. Free tier gives $200 credit which lasts practically forever for dev.</div></div>
+          <div class="meta">
+            <span>Verified: 2024-05-12</span>
+
+          </div>
+        </div>
+
+        <div class="card entry-card is-stale" data-name="whisper (openai api)" data-date="2024-01-10">
+          <span class="badge">Stale</span>
+          <div class="card-title"><a href="https://platform.openai.com/docs/models/whisper" target="_blank">Whisper (OpenAI API)</a></div>
+          <div class="note">Great for batch transcription, terrible for real-time.</div>
+          <div class="field"><div class="label">Good At</div><div>Zero setup, high accuracy, handles multiple languages seamlessly.</div></div>
+          <div class="field bad-at"><div class="label">Bad At</div><div>High latency. No native streaming support via API. Cannot distinguish multiple speakers (no diarization).</div></div>
+          <div class="field"><div class="label">Pricing & Hosting</div><div>$0.006 / minute. No free tier.</div></div>
+          <div class="meta">
+            <span>Verified: 2024-01-10</span>
+
+          </div>
+        </div>
+
+        <div class="card entry-card is-stale" data-name="whisper.cpp (self-hosted)" data-date="2023-12-01">
+          <span class="badge">Stale</span>
+          <div class="card-title"><a href="https://github.com/ggerganov/whisper.cpp" target="_blank">Whisper.cpp (Self-hosted)</a></div>
+          <div class="note">The only way Whisper should actually be used in production if you have compute.</div>
+          <div class="field"><div class="label">Good At</div><div>Runs on Apple Silicon natively. Zero marginal cost. Private.</div></div>
+          <div class="field bad-at"><div class="label">Bad At</div><div>You are managing infrastructure. Requires significant RAM for the large-v3 model. Cold starts are brutal if not kept in memory.</div></div>
+          <div class="field"><div class="label">Pricing & Hosting</div><div>Free (Open source). Cost of your own compute.</div></div>
+          <div class="meta">
+            <span>Verified: 2023-12-01</span>
+
+          </div>
+        </div>
+
+        <div class="card entry-card is-stale" data-name="playht" data-date="2024-04-20">
+          <span class="badge">Stale</span>
+          <div class="card-title"><a href="https://play.ht" target="_blank">PlayHT</a></div>
+          <div class="note">Often considered the ElevenLabs alternative, but I find their API clunky.</div>
+          <div class="field"><div class="label">Good At</div><div>Voice cloning is solid. Often faster generation times than ElevenLabs on standard models.</div></div>
+          <div class="field bad-at"><div class="label">Bad At</div><div>Documentation is a mess. Voices often sound overly breathy. The UI is confusing and upsells constantly.</div></div>
+          <div class="field"><div class="label">Pricing & Hosting</div><div>$39/mo for unlimited generation (with rate limits).</div></div>
+          <div class="meta">
+            <span>Verified: 2024-04-20</span>
+
+          </div>
+        </div>
+
+        <div class="card entry-card is-stale" data-name="speechmatics" data-date="2024-05-01">
+          <span class="badge">Stale</span>
+          <div class="card-title"><a href="https://www.speechmatics.com/" target="_blank">Speechmatics</a></div>
+          <div class="note">The enterprise STT that nobody talks about because it isn't flashy.</div>
+          <div class="field"><div class="label">Good At</div><div>Best-in-class accuracy for thick accents and noisy environments. Excellent real-time diarization.</div></div>
+          <div class="field bad-at"><div class="label">Bad At</div><div>Enterprise sales motion. Hard to just sign up and use. Pricing is opaque until you talk to sales.</div></div>
+          <div class="field"><div class="label">Pricing & Hosting</div><div>UNKNOWN. Requires sales call.</div></div>
+          <div class="meta">
+            <span>Verified: 2024-05-01</span>
+
+          </div>
+        </div>
+
+        <div class="card entry-card is-stale" data-name="rime labs" data-date="2024-05-18">
+          <span class="badge">Stale</span>
+          <div class="card-title"><a href="https://rime.ai" target="_blank">Rime Labs</a></div>
+          <div class="note">Specialized in fast, gaming-focused TTS.</div>
+          <div class="field"><div class="label">Good At</div><div>Incredibly low latency. Voices are distinct and non-generic.</div></div>
+          <div class="field bad-at"><div class="label">Bad At</div><div>Smaller selection of voices. Lacks the nuanced emotional control of ElevenLabs.</div></div>
+          <div class="field"><div class="label">Pricing & Hosting</div><div>UNKNOWN.</div></div>
+          <div class="meta">
+            <span>Verified: 2024-05-18</span>
+
+          </div>
+        </div>
+
+        <div class="card entry-card is-stale" data-name="lmnt" data-date="2024-02-15">
+          <span class="badge">Stale</span>
+          <div class="card-title"><a href="https://www.lmnt.com/" target="_blank">LMNT</a></div>
+          <div class="note">Promising low-latency TTS, but struggling to stand out.</div>
+          <div class="field"><div class="label">Good At</div><div>Very fast API response times. Clean developer experience.</div></div>
+          <div class="field bad-at"><div class="label">Bad At</div><div>Voice quality can degrade into artifacts on longer generations. Support is slow to respond.</div></div>
+          <div class="field"><div class="label">Pricing & Hosting</div><div>$0.06 per 1000 characters.</div></div>
+          <div class="meta">
+            <span>Verified: 2024-02-15</span>
+
+          </div>
+        </div>
+      </div>
+        <div class="comparison">
+          <table>
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th class="td-good">Good At</th>
+                <th class="td-bad">Bad At</th>
+                <th>Price Reality</th>
+              </tr>
+            </thead>
+            <tbody>
+
+        <tr class="entry-row" data-name="elevenlabs" data-date="2023-01-01">
+          <td><a href="https://elevenlabs.io" style="color:white;font-weight:bold;">ElevenLabs</a> <span style="color:var(--stale)">(Stale)</span></td>
+          <td class="td-good">Incredible prosody, emotion control, and voice cloning accuracy. Low latency model is actually usable for real-time.</td>
+          <td class="td-bad">Aggressive pricing that scales poorly. Hard cutoffs when you run out of credits mid-generation. API goes down more often than competitors.</td>
+          <td>Free tier gives 10k chars (useless). $22/mo for 100k chars. Enterprise required for real volume.</td>
+        </tr>
+
+        <tr class="entry-row" data-name="deepgram" data-date="2024-05-12">
+          <td><a href="https://deepgram.com" style="color:white;font-weight:bold;">Deepgram</a> <span style="color:var(--stale)">(Stale)</span></td>
+          <td class="td-good">Sub-200ms latency for streaming speech-to-text. Incredible pricing. Nova-2 model handles accents flawlessly.</td>
+          <td class="td-bad">Their TTS offering (Aura) sounds robotic compared to ElevenLabs. STT sometimes hallucinates filler words in complete silence.</td>
+          <td>$0.0043/min for STT. Free tier gives $200 credit which lasts practically forever for dev.</td>
+        </tr>
+
+        <tr class="entry-row" data-name="whisper (openai api)" data-date="2024-01-10">
+          <td><a href="https://platform.openai.com/docs/models/whisper" style="color:white;font-weight:bold;">Whisper (OpenAI API)</a> <span style="color:var(--stale)">(Stale)</span></td>
+          <td class="td-good">Zero setup, high accuracy, handles multiple languages seamlessly.</td>
+          <td class="td-bad">High latency. No native streaming support via API. Cannot distinguish multiple speakers (no diarization).</td>
+          <td>$0.006 / minute. No free tier.</td>
+        </tr>
+
+        <tr class="entry-row" data-name="whisper.cpp (self-hosted)" data-date="2023-12-01">
+          <td><a href="https://github.com/ggerganov/whisper.cpp" style="color:white;font-weight:bold;">Whisper.cpp (Self-hosted)</a> <span style="color:var(--stale)">(Stale)</span></td>
+          <td class="td-good">Runs on Apple Silicon natively. Zero marginal cost. Private.</td>
+          <td class="td-bad">You are managing infrastructure. Requires significant RAM for the large-v3 model. Cold starts are brutal if not kept in memory.</td>
+          <td>Free (Open source). Cost of your own compute.</td>
+        </tr>
+
+        <tr class="entry-row" data-name="playht" data-date="2024-04-20">
+          <td><a href="https://play.ht" style="color:white;font-weight:bold;">PlayHT</a> <span style="color:var(--stale)">(Stale)</span></td>
+          <td class="td-good">Voice cloning is solid. Often faster generation times than ElevenLabs on standard models.</td>
+          <td class="td-bad">Documentation is a mess. Voices often sound overly breathy. The UI is confusing and upsells constantly.</td>
+          <td>$39/mo for unlimited generation (with rate limits).</td>
+        </tr>
+
+        <tr class="entry-row" data-name="speechmatics" data-date="2024-05-01">
+          <td><a href="https://www.speechmatics.com/" style="color:white;font-weight:bold;">Speechmatics</a> <span style="color:var(--stale)">(Stale)</span></td>
+          <td class="td-good">Best-in-class accuracy for thick accents and noisy environments. Excellent real-time diarization.</td>
+          <td class="td-bad">Enterprise sales motion. Hard to just sign up and use. Pricing is opaque until you talk to sales.</td>
+          <td>UNKNOWN. Requires sales call.</td>
+        </tr>
+
+        <tr class="entry-row" data-name="rime labs" data-date="2024-05-18">
+          <td><a href="https://rime.ai" style="color:white;font-weight:bold;">Rime Labs</a> <span style="color:var(--stale)">(Stale)</span></td>
+          <td class="td-good">Incredibly low latency. Voices are distinct and non-generic.</td>
+          <td class="td-bad">Smaller selection of voices. Lacks the nuanced emotional control of ElevenLabs.</td>
+          <td>UNKNOWN.</td>
+        </tr>
+
+        <tr class="entry-row" data-name="lmnt" data-date="2024-02-15">
+          <td><a href="https://www.lmnt.com/" style="color:white;font-weight:bold;">LMNT</a> <span style="color:var(--stale)">(Stale)</span></td>
+          <td class="td-good">Very fast API response times. Clean developer experience.</td>
+          <td class="td-bad">Voice quality can degrade into artifacts on longer generations. Support is slow to respond.</td>
+          <td>$0.06 per 1000 characters.</td>
+        </tr>
+
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+    </div>
+
+    <section class="submission-form" id="submit">
+      <h2>Suggest an Entry</h2>
+      <p style="color: var(--text-secondary); margin-bottom: 2rem;">Submissions require a personal note and the "bad at" field. It will queue for review as pending.</p>
+      <form id="add-form">
+        <div class="form-group">
+          <label>Name</label>
+          <input type="text" id="f-name" required>
+        </div>
+        <div class="form-group">
+          <label>URL</label>
+          <input type="url" id="f-url" required>
+        </div>
+        <div class="form-group">
+          <label>Section</label>
+          <select id="f-section">
+<option value="harnesses">Harnesses</option><option value="memory">Memory solutions and upgrades</option><option value="skills">Skills and plugins</option><option value="design">Design and graphics</option><option value="animation">Animation</option><option value="orchestration">Orchestration</option><option value="autonomy">Agent autonomy</option><option value="speech">Speech (TTS and STT)</option>
+          </select>
+        </div>
+        <div class="form-group" id="group-note">
+          <label>Personal Note (Why is it here?)</label>
+          <textarea id="f-note" required></textarea>
+          <div class="error-msg">A personal note is required.</div>
+        </div>
+        <div class="form-group">
+          <label>What it is good at (Be specific)</label>
+          <textarea id="f-good" required></textarea>
+        </div>
+        <div class="form-group" id="group-bad">
+          <label>What it is bad at (Required)</label>
+          <textarea id="f-bad" required></textarea>
+          <div class="error-msg">You must specify what this tool is bad at. A tool with no downsides is an ad.</div>
+        </div>
+        <div class="form-group">
+          <label>Price Reality</label>
+          <input type="text" id="f-price" required>
+        </div>
+        <button type="submit">Submit for Review</button>
+      </form>
+      <div id="submit-success" style="display:none; color: #6bd484; margin-top: 1rem; font-weight: bold;">
+        Submission queued for review (visible pending state).
+      </div>
+    </section>
+  </div>
+
+  <script>
+    // Interactivity: filtering and sorting
+    const searchInput = document.getElementById('search');
+    const sortSelect = document.getElementById('sort');
+
+    function updateView() {
+      const q = searchInput.value.toLowerCase();
+      const sort = sortSelect.value;
+
+      document.querySelectorAll('.section-container').forEach(sec => {
+        const cards = Array.from(sec.querySelectorAll('.entry-card'));
+        const rows = Array.from(sec.querySelectorAll('.entry-row'));
+
+        let visibleCount = 0;
+
+        cards.forEach((card, i) => {
+          const row = rows[i];
+          const name = card.dataset.name;
+          const match = name.includes(q);
+          card.style.display = match ? '' : 'none';
+          row.style.display = match ? '' : 'none';
+          if (match) visibleCount++;
+        });
+
+        sec.style.display = visibleCount > 0 ? 'block' : 'none';
+
+        // Sorting
+        if (sort !== 'default') {
+          const grid = sec.querySelector('.grid');
+          const tbody = sec.querySelector('tbody');
+
+          const sortedIndices = cards.map((c, i) => i).sort((a, b) => {
+            const dateA = new Date(cards[a].dataset.date);
+            const dateB = new Date(cards[b].dataset.date);
+            return sort === 'recent' ? dateB - dateA : dateA - dateB;
+          });
+
+          sortedIndices.forEach(idx => {
+            grid.appendChild(cards[idx]);
+            tbody.appendChild(rows[idx]);
+          });
+        }
+      });
+    }
+
+    searchInput.addEventListener('input', updateView);
+    sortSelect.addEventListener('change', updateView);
+
+    // Form submission
+    document.getElementById('add-form').addEventListener('submit', function(e) {
+      e.preventDefault();
+
+      const bad = document.getElementById('f-bad').value.trim();
+      const note = document.getElementById('f-note').value.trim();
+
+      let hasError = false;
+      if (!bad) { document.getElementById('group-bad').classList.add('has-error'); hasError = true; }
+      else { document.getElementById('group-bad').classList.remove('has-error'); }
+
+      if (!note) { document.getElementById('group-note').classList.add('has-error'); hasError = true; }
+      else { document.getElementById('group-note').classList.remove('has-error'); }
+
+      if (!hasError) {
+        document.getElementById('submit-success').style.display = 'block';
+        this.reset();
+        setTimeout(() => document.getElementById('submit-success').style.display = 'none', 3000);
+      }
+    });
+  </script>
+</body>
+</html>
