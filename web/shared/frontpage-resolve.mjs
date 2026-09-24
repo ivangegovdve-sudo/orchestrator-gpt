@@ -25,6 +25,8 @@ let elapsed = 0;
 let lastStamp = null;
 let lastPaint = -Infinity;
 const idleSampleMs = 900;
+const instrumentSampleMs = 1000 / 15;
+let lastInstrumentPaint = -Infinity;
 let onScreen = true;
 let paused = false;
 let running = false;
@@ -88,16 +90,16 @@ function tick(stamp) {
     // Hold time while paused/offscreen; a delayed frame cannot produce a gust jump.
     if (lastStamp !== null) elapsed += Math.min((stamp - lastStamp) / 1000,.8);
     lastStamp = stamp;
-    // Nine-second wind and <1.3px/sec motes need only ~1.1 visual samples/sec:
-    // even the nearest mote advances <1.2px. Input and scrub still run at frame rate.
+    // Slow air and fast instruments share one clock, at distinct sample rates.
     if (running && stamp - lastPaint >= idleSampleMs) {
       ambient.render(elapsed,strength);
+      lastPaint = stamp;
+    }
+    const instrumentCadence=workbench.engaged() ? 1000/30 : instrumentSampleMs;
+    if ((running && stamp - lastInstrumentPaint >= instrumentCadence) || interacting) {
       workbench.render(elapsed,strength,true);
       interactionDirty = false;
-      lastPaint = stamp;
-    } else if (interacting) {
-      workbench.render(elapsed,running ? strength : 0,true);
-      interactionDirty = false;
+      lastInstrumentPaint = stamp;
     }
     if (!frameId) frameId = requestAnimationFrame(tick);
   } else {
@@ -176,10 +178,16 @@ addEventListener('resize',() => { measureSettings(); onScroll(); });
 addEventListener('pageshow',event => { if (event.persisted || (!frame && scrollY > 0)) openStatic(); });
 reduced.addEventListener('change',event => { if (event.matches) openStatic(); else syncMotion(); });
 document.addEventListener('visibilitychange',syncMotion);
-new IntersectionObserver(entries => {
-  onScreen = entries[0].isIntersecting;
+const visibleSceneParts=new Set();
+const sceneObserver=new IntersectionObserver(entries => {
+  for(const entry of entries) {
+    if(entry.isIntersecting)visibleSceneParts.add(entry.target);
+    else visibleSceneParts.delete(entry.target);
+  }
+  onScreen = visibleSceneParts.size>0;
   syncMotion();
-}).observe(document.querySelector('.resolve-tree'));
+});
+[document.querySelector('.resolve-tree'),...directory.querySelectorAll('[data-pool-link]')].forEach(element=>sceneObserver.observe(element));
 motionButton.addEventListener('click',() => { paused = !paused; syncMotion(); });
 new MutationObserver(() => {
   const next = root.style.getPropertyValue('--ambient-strength');

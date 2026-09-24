@@ -6,12 +6,13 @@ const path = require('node:path');
 const { execFileSync } = require('node:child_process');
 const repo = path.resolve(__dirname, '..');
 const base = process.env.SDFOREST_BASE_URL || 'http://127.0.0.1:4176';
-const baseline = 'd0377dd18bb2b1f0134f1bc916c73a35fb488c95';
+const baseline = process.env.SDFOREST_PROFILE_BASELINE || 'd0377dd18bb2b1f0134f1bc916c73a35fb488c95';
 const trace = process.env.SDFOREST_PROFILE_TRACE === '1';
 const out = process.env.SDFOREST_PROFILE_OUT;
 const modes = (process.argv[2] || 'baseline,ambient,baseline,ambient,paused').split(',');
 if (modes.some(mode => !['baseline','ambient','paused'].includes(mode))) throw new Error('Expected baseline, ambient or paused');
 const oldFiles = ['index.html','web/shared/frontpage-resolve.css','web/shared/frontpage-resolve.mjs','web/shared/feedback.js'];
+if(process.env.SDFOREST_PROFILE_BASELINE)oldFiles.push('web/shared/frontpage-workbench.mjs','web/shared/frontpage-ambient.mjs');
 const originals = Object.fromEntries(oldFiles.map(file => ['/' + (file === 'index.html' ? '' : file),
   execFileSync('git',['show',`${baseline}:${file}`],{cwd:repo})]));
 const percentile = (values, p) => [...values].sort((a,b)=>a-b)[Math.floor((values.length-1)*p)] || 0;
