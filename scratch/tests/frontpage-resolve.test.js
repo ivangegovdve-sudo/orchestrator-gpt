@@ -74,6 +74,84 @@ test('phone landscape keeps the sunset behind the roots and branding contrasts w
   await page.close();
 });
 
+test('every visible heartbeat is a full-height stationary spike, never a scaled minor bump', async () => {
+  const page=await pageAt('?frame=opened');
+  const samples=await page.evaluate(async()=>{
+    const {createPoolEffects}=await import('/web/shared/frontpage-pool-effects.mjs');
+    const art=document.createElement('span');art.style.cssText='position:relative;display:block;width:550px;height:229px';
+    document.body.append(art);const fx=createPoolEffects('health',art),samples=[];
+    for(let t=0;t<3;t+=.01){
+      fx.render(t,0,false,false,true);
+      const paths=[...art.querySelectorAll('.ecg-deflection')].filter(e=>Number(getComputedStyle(e).opacity)>.1);
+      samples.push(paths.map(e=>({height:e.querySelector('path').getBoundingClientRect().height,x:e.getBoundingClientRect().x})));
+    }
+    art.remove();return samples;
+  });
+  assert.ok(samples.some(row=>row.length===0),'the full beat must rest on the baseline between pulses');
+  const visible=samples.flat();assert.ok(visible.length>0,'a real beat must be visible');
+  assert.ok(visible.every(p=>p.height>50),`no undersized bumps: min height ${Math.min(...visible.map(p=>p.height))}`);
+  assert.ok(Math.max(...visible.map(p=>p.x))-Math.min(...visible.map(p=>p.x))<.1);
+  await page.close();
+});
+
+test('whole neuron arbors light from the same passing circuit and return to quiet', async () => {
+  const page=await pageAt('?frame=opened');
+  const rows=await page.evaluate(async()=>{
+    const {createPoolEffects}=await import('/web/shared/frontpage-pool-effects.mjs');
+    const art=document.createElement('span'),fx=createPoolEffects('artificial-self',art);
+    return [0,.4/2.8,.8/2.8,.49].map(age=>{
+      fx.render(age,1,true,true,true,{age,held:false});
+      return [...art.querySelectorAll('[data-neural-arbor]')].map(e=>Number(e.style.opacity));
+    });
+  });
+  assert.equal(rows[0].length,3,'all three complete painted neurons need registered illumination');
+  assert.ok(rows[0][0]>.5&&rows[0][1]<.1&&rows[0][2]<.1);
+  assert.ok(rows[1][1]>.5&&rows[1][2]<.1);
+  assert.ok(rows[2][2]>.5);
+  assert.ok(rows[3].every(value=>value<.05),'the whole arbor illumination decays after the charge');
+  await page.close();
+});
+
+test('hover explanations open on opaque readable backing and remain open under the pointer', async () => {
+  const page=await pageAt('?frame=opened');
+  for(const link of await page.locator('[data-pool-link]').all()) {
+    await link.hover();await page.waitForTimeout(500);
+    const result=await link.evaluate(e=>{
+      const meta=e.querySelector('.portal-meta'),c=getComputedStyle(meta),b=meta.getBoundingClientRect(),p=e.getBoundingClientRect();
+      return {id:e.dataset.poolLink,background:c.backgroundColor,color:c.color,fontSize:parseFloat(c.fontSize),width:b.width,poolWidth:p.width,box:b.toJSON()};
+    });
+    assert.ok(result.width>=result.poolWidth*.75,`${result.id}: explanation cannot inherit the narrow nameplate width`);
+    assert.ok(!result.background.includes('rgba'),`${result.id}: solid readable backing required`);
+    assert.ok(result.fontSize>=16);
+    await page.mouse.move(result.box.x+result.box.width/2,result.box.y+result.box.height/2);await page.waitForTimeout(250);
+    assert.equal(await link.locator('.portal-meta').evaluate(e=>getComputedStyle(e).visibility),'visible','no gap-induced hover flicker');
+  }
+  await page.close();
+});
+
+test('explanation covers hinge away without scaling the readable lettering', async () => {
+  const page=await pageAt('?frame=opened');
+  const link=page.locator('[data-pool-link="health"]');
+  assert.equal(await link.locator('.portal-reveal-cover').count(),1,'an opening shutter, not just an opacity change');
+  await link.hover();await page.waitForTimeout(90);
+  const first=await link.locator('.portal-reveal-cover').getAttribute('style');
+  await page.waitForTimeout(300);
+  assert.notEqual(await link.locator('.portal-reveal-cover').getAttribute('style'),first);
+  assert.equal(await link.locator('.portal-meta').evaluate(e=>getComputedStyle(e).transform),'none');
+  assert.equal(await link.locator('.portal-reveal-cover').evaluate(e=>getComputedStyle(e).opacity),'0');
+  await page.close();
+});
+
+test('pointer preview does not leave a second explanation open at the old keyboard focus', async () => {
+  const page=await pageAt('?frame=opened');
+  await page.locator('[data-pool-link="artificial-self"]').focus();
+  await page.locator('[data-pool-link="health"]').hover();await page.waitForTimeout(400);
+  const open=await page.locator('.portal-reveal').evaluateAll(es=>es.filter(e=>getComputedStyle(e).visibility==='visible').map(e=>e.parentElement.dataset.poolLink));
+  assert.deepEqual(open,['health'],'one readable preview, without stealing keyboard focus');
+  assert.equal(await page.evaluate(()=>document.activeElement.dataset.poolLink),'artificial-self');
+  await page.close();
+});
+
 test('Health beats in place, returns to baseline, and goes flat when pressed', async () => {
   const page=await pageAt('?frame=opened');
   const health=page.locator('[data-pool-link="health"]');
@@ -85,7 +163,8 @@ test('Health beats in place, returns to baseline, and goes flat when pressed', a
     for(let i=0;i<40;i++) {
       const path=wave.querySelector('[data-ecg-qrs] path') || wave.querySelector('path');
       const b=path.getBoundingClientRect();
-      samples.push({x:b.x,width:b.width,height:b.height});
+      const visible=Number(getComputedStyle(path.parentElement.parentElement).opacity)>.1;
+      samples.push({x:b.x,width:b.width,height:visible?b.height:0});
       await new Promise(r=>setTimeout(r,40));
     }
     return samples;
@@ -116,9 +195,14 @@ test('pool housings stay planted while each local mechanism responds and has idl
     const link=page.locator(`[data-pool-link="${id}"]`);
     const art=link.locator('.portal-art');
     const before=await art.boundingBox();
-    const idle=await localStyles(link);
-    await page.waitForTimeout(330);
-    assert.notDeepEqual(await localStyles(link),idle,`${id} needs its own visible idle mechanism`);
+    await link.evaluate(e=>{
+      window.poolIdleChanged=false;
+      const observer=new MutationObserver(()=>{window.poolIdleChanged=true;observer.disconnect();});
+      observer.observe(e.querySelector('.portal-art'),{subtree:true,attributes:true,attributeFilter:['style']});
+    });
+    // Sparse beats and firing bursts have intentional rests; two 330ms stills
+    // can sample the same rest. Observe the cycle, not an arbitrary two frames.
+    await page.waitForFunction(()=>window.poolIdleChanged,{},{timeout:6500});
     await link.hover();await page.waitForTimeout(420);
     assert.deepEqual(await art.boundingBox(),before,`${id}: hover must not move the whole housing`);
     const hovered=await localStyles(link);
@@ -367,15 +451,17 @@ test('phone pool mechanisms fill their entries and names remain embedded rather 
   }
 });
 
-test('grass has visible filled blades overlapping the fixed trunk contact', async () => {
+test('illustrated ground is planted at the tree base without the old synthetic grass overlay', async () => {
   const page=await pageAt('?frame=opened');
-  const result=await page.locator('[data-wind-grass]').evaluateAll(es=>es.map(e=>({
-    fill:getComputedStyle(e).fill,opacity:Number(getComputedStyle(e).opacity),height:e.getBoundingClientRect().height
-  })));
-  assert.ok(result.every(e=>e.fill!=='none' && e.opacity>=.6 && e.height>=60),'grass must have visible body, not faint hairline strokes');
+  const loaded=await page.locator('.rooted-earth').evaluateAll(es=>es.map(e=>({loaded:e.complete&&e.naturalWidth>0,box:e.getBoundingClientRect().toJSON()})));
+  assert.equal(loaded.length,1,'the approved illustrated bed must be integrated, not preview-only');
+  assert.ok(loaded[0].loaded);
   const tree=await page.locator('.resolve-tree').boundingBox();
-  const grass=await page.locator('.ambient-ground').boundingBox();
-  assert.ok(grass.y<tree.y+tree.height && grass.y+grass.height>tree.y+tree.height,'foreground blades overlap the base');
+  const image=loaded[0].box,contactY=image.y+image.width*765/1672,contactX=image.x+image.width*819/1672;
+  assert.ok(Math.abs(contactX-(tree.x+tree.width/2))<2,'illustrated root collar aligns to the trunk centre');
+  assert.ok(Math.abs(contactY-(tree.y+tree.height))<16,'root collar meets the fixed tree base');
+  assert.ok(image.width<tree.width*2,'the bed cannot enlarge the roots to the full-screen preview scale');
+  assert.equal(await page.locator('[data-wind-grass]').evaluateAll(es=>es.some(e=>e.getBoundingClientRect().height>0)),false,'no mismatched synthetic blade overlay');
   await page.close();
 });
 
@@ -385,12 +471,13 @@ test('selected phone summaries sit below the whole mechanism, clear of its label
     for(const link of await page.locator('[data-pool-link]').all()) {
       await link.press('Enter');
       assert.equal(await link.getAttribute('data-armed'),'true');
+      await page.waitForTimeout(350);
       const boxes=await link.evaluate(e=>{
         const b=e.getBoundingClientRect(),m=e.querySelector('.portal-meta').getBoundingClientRect();
         const next=e.nextElementSibling?.getBoundingClientRect();
         return {bottom:b.bottom,meta:m.toJSON(),nextTop:next?.top,id:e.dataset.poolLink};
       });
-      assert.ok(boxes.meta.top>=boxes.bottom+24,`${width} ${boxes.id}: summary clears selection instruction`);
+      assert.ok(boxes.meta.top>=boxes.bottom+10,`${width} ${boxes.id}: drawer clears the mechanism`);
       assert.ok(boxes.meta.width>=width-26,`${width} ${boxes.id}: summary uses the whole entry`);
       if(boxes.nextTop)assert.ok(boxes.meta.bottom<=boxes.nextTop,`${width} ${boxes.id}: summary clears next mechanism ${JSON.stringify(boxes)}`);
       await page.keyboard.press('Escape');
@@ -446,6 +533,16 @@ test('TinkerBox releases a separate lid after its locking pins retract', async (
   const lid=link.locator('[data-workbench-lid]');
   assert.equal(await lid.count(),1);
   const before=await lid.getAttribute('style');
+  await page.evaluate(()=>{
+    const art=document.querySelector('[data-pool-link="tinkerbox"] .portal-art');window.hatchSamples=[];
+    new MutationObserver(()=>{const matrix=selector=>new DOMMatrix(getComputedStyle(art.querySelector(selector)).transform);
+      hatchSamples.push({left:Math.abs(matrix('[data-workbench-part="pin-left"]').m41),right:Math.abs(matrix('[data-workbench-part="pin-right"]').m41),lid:Math.abs(matrix('[data-workbench-lid]').m23)});
+    }).observe(art,{subtree:true,attributes:true,attributeFilter:['style']});
+  });
+  await link.hover();await page.waitForTimeout(600);
+  const samples=await page.evaluate(()=>hatchSamples);
+  assert.ok(samples.some(s=>s.lid>.14),'hover opens the unlocked hatch visibly, not a two-degree twitch');
+  assert.ok(samples.filter(s=>s.lid>.07).every(s=>s.left>=8&&s.right>=8),'the lid cannot move through its still-engaged locking pins');
   await link.click();await page.waitForTimeout(500);
   assert.notEqual(await lid.getAttribute('style'),before);
   await page.keyboard.press('Escape');await page.waitForTimeout(500);
@@ -453,14 +550,13 @@ test('TinkerBox releases a separate lid after its locking pins retract', async (
   await page.close();
 });
 
-test('the first-aid flag flips over and the grounded grass has several blade clumps', async () => {
+test('the first-aid flag flips over while the illustrated planted bed remains available', async () => {
   const page=await pageAt('?frame=opened');
   const link=page.locator('[data-pool-link="ai-d-kit"]');
   await link.click();await page.waitForTimeout(500);
   const flag=await link.locator('[data-workbench-part="flag"]').getAttribute('style');
   assert.match(flag,/rotateY\(180deg\)/,'the flag flips, not just tilts');
-  const blades=await page.locator('[data-wind-grass] path').evaluateAll(es=>es.reduce((n,e)=>n+(e.getAttribute('d').match(/Q/g)||[]).length,0));
-  assert.ok(blades>=32,'native grass joins the existing moss without replacing the tree');
+  assert.ok(await page.locator('.rooted-earth').evaluate(e=>e.complete&&e.naturalWidth>0),'the matching illustrated vegetation remains loaded during interaction');
   await page.close();
 });
 
@@ -470,7 +566,7 @@ test('heartbeat hover increases its measured regular rate without lateral travel
     return page.evaluate(async()=>{
       const wave=document.querySelector('[data-ecg-wave]');
       const path=wave.querySelector('[data-ecg-qrs] path') || wave.querySelector('path');
-      const read=()=>path.getBoundingClientRect().height>8;
+      const read=()=>Number(getComputedStyle(path.parentElement.parentElement).opacity)>.5 && path.getBoundingClientRect().height>8;
       let prior=read(),beats=0,start=performance.now();
       while(performance.now()-start<5000) {
         await new Promise(resolve=>setTimeout(resolve,30));
@@ -518,13 +614,12 @@ test('selected instructions and existing summaries never share the same desktop 
     const page=await pageAt('?frame=opened',{viewport:{width,height}});
     for(const link of await page.locator('[data-pool-link]').all()) {
       await link.click();
+      await page.waitForTimeout(350);
       const result=await link.evaluate(e=>{
-        const box=e.getBoundingClientRect(),meta=e.querySelector('.portal-meta').getBoundingClientRect();
-        const css=getComputedStyle(e,'::after'),height=parseFloat(css.height);
-        const top=css.top==='auto' ? box.bottom-parseFloat(css.bottom)-height : box.top+parseFloat(css.top);
-        return {id:e.dataset.poolLink,top,bottom:top+height,meta:meta.toJSON()};
+        const meta=e.querySelector('.portal-meta').getBoundingClientRect(),hint=e.querySelector('.portal-selection').getBoundingClientRect();
+        return {id:e.dataset.poolLink,top:hint.top,bottom:hint.bottom,meta:meta.toJSON()};
       });
-      assert.ok(result.bottom+2<=result.meta.top || result.top>=result.meta.bottom+2,
+      assert.ok(result.bottom<=result.meta.top || result.top>=result.meta.bottom,
         `${width}x${height}: ${JSON.stringify(result)}`);
       await page.keyboard.press('Escape');
     }
@@ -690,7 +785,7 @@ test('background parallax leaves the tree fixed and the seven name colours disti
   await page.close();
 });
 
-test('dragging the world moves distant planes less than near planes without moving the tree or its contact', async () => {
+test('dragging moves only the central depth planes; the bark, tree and contact stay anchored', async () => {
   const page=await pageAt('?frame=opened');
   await page.evaluate(()=>document.documentElement.style.setProperty('--ambient-strength','0'));
   const boxes=()=>page.locator('.resolve-tree,.ambient-soil-bridge').evaluateAll(es=>es.map(e=>e.getBoundingClientRect().toJSON()));
@@ -702,7 +797,8 @@ test('dragging the world moves distant planes less than near planes without movi
   await page.mouse.move(1210,740,{steps:12});await page.waitForTimeout(500);
   assert.equal(await page.locator('[data-resolve-stage]').getAttribute('data-world-dragging'),'true');
   const delta=(await offsets()).map((x,i)=>Math.abs(x-before[i]));
-  assert.ok(delta[0]>.2 && delta[0]<delta[1] && delta[1]<delta[2],`far < mist < foreground; observed ${delta}`);
+  assert.ok(delta[0]>.2 && delta[0]<delta[1],`far < mist; observed ${delta}`);
+  assert.equal(delta[2],0,'the foreground plate must never follow the pointer');
   assert.deepEqual(await boxes(),treeAndContact,'camera motion cannot detach the tree from its contact');
   await page.mouse.up();
   assert.equal(await page.locator('[data-resolve-stage]').getAttribute('data-world-dragging'),null);
@@ -810,7 +906,7 @@ test('ambient does not measure layout at rest, obscure navigation, or run offscr
 test('reduced motion, zero strength and no JS keep composed ground without moving air', async () => {
   for (const options of [{reducedMotion:'reduce'}, {javaScriptEnabled:false}]) {
     const page = await pageAt('?frame=opened',options);
-    assert.ok(await page.locator('.ambient-ground').isVisible());
+    assert.ok(await page.locator('.rooted-earth').isVisible());
     assert.equal(await opacity(page,'.resolve-ambient'),1);
     assert.equal(await page.locator('[data-ambient-mote]').evaluateAll(es=>es.every(e=>getComputedStyle(e).opacity==='0')),true);
     await page.close();
@@ -818,9 +914,9 @@ test('reduced motion, zero strength and no JS keep composed ground without movin
   const page = await ambientPage();
   await page.evaluate(()=>document.documentElement.style.setProperty('--ambient-strength','0'));
   await page.waitForFunction(()=>frameProbe.pending()===0);
-  const before = await page.locator('[data-wind-grass]').evaluateAll(es=>es.map(e=>e.style.transform));
+  const before = await page.locator('.rooted-earth,.workbench-horizon,.workbench-mist').evaluateAll(es=>es.map(e=>e.style.transform));
   await page.waitForTimeout(200);
-  assert.deepEqual(await page.locator('[data-wind-grass]').evaluateAll(es=>es.map(e=>e.style.transform)),before);
+  assert.deepEqual(await page.locator('.rooted-earth,.workbench-horizon,.workbench-mist').evaluateAll(es=>es.map(e=>e.style.transform)),before);
   await page.evaluate(()=>document.documentElement.style.setProperty('--ambient-strength','0.5'));
   await page.waitForFunction(()=>frameProbe.pending()===1);
   await page.close();

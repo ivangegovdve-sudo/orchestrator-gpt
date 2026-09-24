@@ -20,10 +20,19 @@ in `../sdforest-resolve/` and available for comparison.
 | tree.webp | 1254 × 1254 | genuine alpha, including branch gaps | fixed focal subject |
 | valley.webp | 1672 × 941 | opaque | far landscape/background |
 | mist.webp | 1672 × 941 | genuine alpha | independent middle-distance mist |
+| rooted-earth.webp | 1672 × 941 | genuine alpha | approved illustrated root bed and vegetation, replacing old turf |
 
 WebP encoding: quality 94, alpha quality 100, no resizing, cropping or colour
 adjustment after generation. PNG masters are supplied separately in Drive.
-The bark, contact ground and pool art are existing assets, not regenerated here.
+The bark and pool art are existing assets, not regenerated here. `rooted-earth.webp`
+was copied byte-for-byte from the approved [editable ground preview](../../../docs/frontpage-rooted-preview-2026-09-24.md).
+Its SHA256 is `184d2d9577278563452976bd01a4f8eb9e45cc8509a879160667b692bc7702d5`.
+The generation prompt and layered PSD/PNG handoff remain linked in that receipt.
+This integration does not regenerate or raster-edit any artwork. CSS places the
+ground's source contact (819,765) at the fixed tree base, using width 116vh on
+desktop and 1.88 times the tree width on mobile; the original full-width preview
+made the illustrated root collar too large. CSS edge masks blend the bank into
+the existing foreground without moving either plate.
 
 ## Generation prompts (built-in editor)
 
@@ -44,8 +53,10 @@ Use case: background-extraction. Asset: single transparent mist depth plane for 
 - The outer `.resolve-tree` box and its SVG viewBox stay unchanged. The square
   image is contained inside it, bottom aligned; it is not stretched to the box.
 - The tree and contact ground receive no viewpoint transform.
-- One normalized viewpoint drives far / mist / near translations at horizontal
-  limits 2 / 6 / 10 CSS px, vertical limits 1 / 3 / 5 px. Mist also receives the
+- One normalized viewpoint drives far / mist translations at horizontal
+  limits 2 / 6 CSS px, vertical limits 1 / 3 px. The foreground bark and every
+  control housing are fixed: the earlier 10/5px near translation is removed.
+  Mist also receives the
   existing wind field, at only 0.6px times gust strength.
 - Motion uses the existing pausable rAF; no new timer or clock. Reduced motion
   releases any drag and restores zero viewpoint translation.

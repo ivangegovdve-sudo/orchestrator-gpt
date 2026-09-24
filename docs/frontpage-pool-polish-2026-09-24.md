@@ -1,5 +1,9 @@
 # Pool instruments — local motion and depth, BUTCHER
 
+Historical receipt. The [subsequent approved correction](frontpage-refinement-2026-09-24.md)
+integrates the illustrated ground, freezes the bark plate, removes small ECG
+lobes and replaces the old summary treatment. Counts below belong to this pass.
+
 Approved animation pass, 2026-09-24. Existing draft orchestrator-gpt PR #627,
 against main. Do not merge or publish an approval event. This corrects the
 runtime at `e13788e29c86fd2c2f0599b29404d5953f471e3d`; the rooted-ground asset

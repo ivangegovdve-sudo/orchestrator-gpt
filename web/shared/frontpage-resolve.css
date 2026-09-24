@@ -45,6 +45,7 @@
 .ecg-instrument path { filter:drop-shadow(0 0 2px #41d2a6); }
 [data-ecg-flat] { opacity:0; }
 .neural-instrument { inset:0; width:100%; height:100%; }
+.portal-art .neural-arbor { opacity:0; object-fit:fill; filter:brightness(1.8) contrast(1.2) saturate(1.2); mix-blend-mode:screen; }
 .neural-wires { position:absolute; inset:0; width:100%; height:100%; }
 .neural-wire { fill:none; stroke:#aea1ed; stroke-width:1.5; opacity:.18; }
 .neural-wire:nth-of-type(2n) { stroke:#56b9ba; }
@@ -68,11 +69,11 @@ html[data-ambient-state="running"] :is(.pool-instrument,.ecg-deflection,.ecg-res
 .mechanism-light-ai-d-kit { left:27%; top:16%; width:48%; height:56%; background:radial-gradient(ellipse at 87% 16%,#c0a1f399,transparent 32%),linear-gradient(130deg,transparent 26%,#e7d3ff30 47%,transparent 61%); }
 .mechanism-light-tinkerbox { left:26%; top:21%; width:48%; height:58%; background:linear-gradient(110deg,transparent 10%,#dbaa6529 40%,transparent 64%); }
 .mechanism-light-growingapp { background:linear-gradient(125deg,transparent 15%,#d6e59230 38%,transparent 65%); }
-.ambient-soil-bridge { position:absolute; left:50vw; top:80.5vh; width:46vh; height:9vh; transform:translateX(-50%); background:radial-gradient(ellipse at 50% 40%,#172019 3%,#141b18 25%,transparent 68%); }
-.ambient-soil-bridge svg,.ambient-soil-bridge img { position:absolute; inset:0; width:100%; height:100%; }
-.ambient-soil-bridge img { object-fit:fill; opacity:.78; mask-image:radial-gradient(ellipse at 50% 38%,#000 35%,transparent 72%); }
-.ambient-soil-bridge svg { fill:#162019; opacity:.2; filter:blur(8px); }
-.ambient-soil-bridge .soil-shadow { fill:#090f10; opacity:.65; }
+.ambient-paint-defs { position:absolute; }
+/* Ground source contact: (819,765) on its 1672x941 canvas. Its scale is tied
+   to the tree, not the screen-wide foreground; painted roots cannot balloon. */
+.ambient-soil-bridge { --earth-width:116vh; position:absolute; left:50vw; top:calc(83vh - 10px); width:var(--earth-width); height:calc(var(--earth-width) * 176 / 1672); transform:translateX(-50%); }
+.ambient-soil-bridge .rooted-earth { position:absolute; left:calc(50% - var(--earth-width) * 819 / 1672); top:calc(var(--earth-width) * -765 / 1672); width:100%; height:auto; mask-image:linear-gradient(90deg,transparent,#000 17% 83%,transparent),linear-gradient(#000 88%,transparent); mask-composite:intersect; }
 .forest-vines { position:absolute; top:-2vh; left:30vw; right:30vw; height:60vh; pointer-events:none; z-index:3; }
 [data-wind-vine] { position:absolute; top:0; left:0; width:clamp(44px,5vw,84px); height:100%; transform-origin:50% 0; pointer-events:auto; border:0; padding:0; background:none; cursor:grab; touch-action:pan-y; -webkit-user-select:none; user-select:none; }
 [data-wind-vine]:disabled { cursor:default; pointer-events:none; }
@@ -92,8 +93,15 @@ html[data-ambient-state="running"] :is(.pool-instrument,.ecg-deflection,.ecg-res
 .workbench-part[data-workbench-part="pulse"],.workbench-part[data-workbench-part^="neuron"],.workbench-part[data-workbench-part="signal"],.workbench-part[data-workbench-part="seed"],.workbench-part[data-workbench-part="sapling"],.workbench-part[data-workbench-part="tree"] { filter:brightness(1.7); }
 .resolve-home .portal-copy { position:absolute; left:var(--label-left); top:var(--label-top); width:var(--label-width); text-align:center; min-width:0; overflow-wrap:anywhere; }
 .resolve-home .portal-name { display:block; font:600 clamp(22px,2.05vw,39px)/1.05 var(--theme-home-display); letter-spacing:-.015em; text-shadow:0 1px 3px #07070b,0 0 8px #07070b; }
-.resolve-home .portal-meta { display:block; position:absolute; top:calc(100% + 28px); left:-10%; width:120%; color:#a7a9b7; font:400 clamp(13px,.95vw,18px)/1.25 var(--theme-home-body); opacity:0; }
-.resolve-home .portal:hover .portal-meta,.resolve-home .portal:focus-visible .portal-meta,.resolve-home .portal.is-selected .portal-meta { opacity:1; }
+.portal-reveal { position:absolute; top:84%; left:8%; width:84%; padding-top:12px; visibility:hidden; pointer-events:none; z-index:6; }
+.portal-reveal::before { content:""; position:absolute; top:0; left:9%; right:9%; height:14px; border-inline:3px solid #877553; box-shadow:inset 1px 0 #d5ba7b; }
+.resolve-home .portal-meta { display:block; position:relative; width:100%; padding:12px 16px; color:#ecebdc; background:#101b1c; border:1px solid #89744e; border-top:2px solid var(--pool-accent); border-radius:3px; box-shadow:inset 0 2px 7px #0009,0 5px 9px #0006; font:400 clamp(16px,1vw,19px)/1.4 var(--theme-home-sans); text-align:left; overflow-wrap:anywhere; }
+.portal-selection { display:none; padding:6px 16px 8px; background:#101b1c; color:var(--pool-accent); font:500 12px/1.4 var(--theme-home-sans); border:1px solid #89744e; border-top:0; }
+.portal-reveal-cover { position:absolute; inset:12px 0 0; border:1px solid #968367; border-radius:3px; background:linear-gradient(100deg,#0b141be6,#403627b3),url('/web/assets/sdforest-workbench/bark.webp') 8% 40% / 600% auto; box-shadow:inset 0 1px #dac89a66,0 2px 6px #0008; transform-origin:50% 0; pointer-events:none; }
+.portal.is-selected .portal-selection { display:block; }
+.portal[data-peek-open] { z-index:6; }
+.portal[data-peek-open] .portal-reveal,
+html:not([data-resolve-motion]) .portal:is(:hover,:focus-visible) .portal-reveal { visibility:visible; pointer-events:auto; }
 .resolve-home .portal-tag,.workbench-status { position:absolute; width:1px; height:1px; margin:0; overflow:hidden; clip-path:inset(50%); white-space:nowrap; }
 .resolve-home .portal[data-pool-link="health"] { left:2vw; top:13vh; --pool-accent:#a4e8dc; --label-top:40%; --label-left:15%; --label-width:28%; --arrival-scale:.85; --arrival-y:0px; }
 .resolve-home .portal[data-pool-link="ai-d-kit"] { right:2vw; top:13vh; --label-left:25%; --label-width:39%; --label-top:62%; --arrival-x:34px; --arrival-y:0px; }
@@ -104,7 +112,12 @@ html[data-ambient-state="running"] :is(.pool-instrument,.ecg-deflection,.ecg-res
 .resolve-home .portal[data-pool-link="tinkerbox"] { left:2vw; --pool-accent:#e5b98b; --label-top:37%; --arrival-turn:-3deg; --arrival-x:-12px; }
 .resolve-home .portal[data-pool-link="my-story"] { left:50%; translate:-50% 0; --pool-accent:#eee0a7; --label-top:56%; --arrival-y:14px; }
 .resolve-home .portal[data-pool-link="design-gallery"] { right:2vw; --pool-accent:#c6bafa; --label-top:69%; --arrival-x:26px; --arrival-y:0px; }
-.resolve-home :is([data-pool-link="tinkerbox"],[data-pool-link="my-story"],[data-pool-link="design-gallery"]) .portal-meta { top:auto; bottom:calc(100% + 30px); background:rgb(7 7 11 / .92); }
+.resolve-home :is([data-pool-link="tinkerbox"],[data-pool-link="design-gallery"]) .portal-reveal { top:auto; bottom:100%; padding-top:0; padding-bottom:12px; }
+.resolve-home :is([data-pool-link="tinkerbox"],[data-pool-link="design-gallery"]) .portal-reveal::before { top:auto; bottom:0; }
+.resolve-home :is([data-pool-link="tinkerbox"],[data-pool-link="design-gallery"]) .portal-reveal-cover { inset:0 0 12px; }
+.resolve-home [data-pool-link="my-story"] .portal-reveal { top:0; left:auto; right:100%; width:100%; padding:0 14px 0 0; }
+.resolve-home [data-pool-link="my-story"] .portal-reveal::before { top:14px; left:auto; right:0; width:14px; height:24px; border:0; border-block:3px solid #877553; }
+.resolve-home [data-pool-link="my-story"] .portal-reveal-cover { inset:0 14px 0 0; }
 .resolve-home [data-pool-link="tinkerbox"] .portal-name { font-family:var(--theme-home-body); font-weight:650; font-size:clamp(21px,1.8vw,33px); }
 .resolve-home [data-pool-link="health"] .portal-name { font-family:var(--theme-home-body); font-weight:600; background:#0b1416; box-shadow:0 0 10px 8px #0b1416; }
 .resolve-home [data-pool-link="artificial-self"] .portal-name { font-weight:500; letter-spacing:.025em; }
@@ -113,8 +126,6 @@ html[data-ambient-state="running"] :is(.pool-instrument,.ecg-deflection,.ecg-res
 .resolve-home [data-pool-link="my-story"] .portal-name { font-style:italic; font-size:clamp(22px,1.6vw,31px); }
 .resolve-home [data-pool-link="design-gallery"] .portal-name { font-weight:500; font-size:clamp(21px,1.7vw,32px); }
 .resolve-home .portal.is-selected { outline:1px solid var(--pool-accent); outline-offset:3px; }
-.resolve-home .portal.is-selected::after { content:"Selected · press again to open"; position:absolute; top:100%; left:0; width:100%; text-align:center; font:500 12px/1.4 var(--theme-home-sans); color:var(--pool-accent); }
-.resolve-home :is([data-pool-link="tinkerbox"],[data-pool-link="design-gallery"]).is-selected::after { top:auto; bottom:100%; }
 .resolve-controls { position:absolute; left:2.5vw; bottom:6px; z-index:5; font-size:14px; letter-spacing:.04em; }
 .resolve-controls a { display:inline-flex; align-items:center; gap:12px; min-height:44px; border-bottom:1px solid var(--focus-ring); }
 .resolve-controls a::before { content:""; width:17px; height:17px; border:1px solid var(--focus-ring); background:linear-gradient(90deg,transparent 45%,var(--focus-ring) 45% 51%,transparent 51%),linear-gradient(transparent 45%,var(--focus-ring) 45% 51%,transparent 51%); }
@@ -123,16 +134,9 @@ html[data-ambient-state="running"] :is(.pool-instrument,.ecg-deflection,.ecg-res
 .resolve-motion-toggle:disabled { cursor:default; opacity:.65; }
 .resolve-ambient { position:absolute; inset:0; z-index:2; pointer-events:none; }
 .resolve-ambient * { pointer-events:none; }
-.ambient-ground { position:absolute; left:50vw; top:86vh; width:46vh; height:12vh; transform:translate(-50%,-100%); overflow:visible; }
-.ambient-ground::before { content:""; position:absolute; left:34%; bottom:16%; width:32%; height:17%; border-radius:50%; background:#080e0b; filter:blur(5px); opacity:.75; }
-.ambient-ground-image { position:absolute; bottom:0; left:-12%; width:124%; height:auto; opacity:.82; mask-image:radial-gradient(ellipse at 50% 45%,#000 35%,transparent 71%); }
-.ambient-ground svg { position:absolute; inset:0; width:100%; height:100%; }
-.ambient-grass { position:absolute; inset:0; fill:url(#grass-shading); stroke:none; opacity:.88; transform-origin:50% 88%; }
-.ambient-grass-far { opacity:.72; }
 .ambient-air { position:absolute; left:50vw; top:80vh; width:1px; height:1px; }
 [data-ambient-mote] { position:absolute; width:1.5px; height:1.5px; border-radius:50%; background:#b4c8ad; opacity:0; }
 [data-ambient-mote]:nth-child(3n) { width:2.5px; height:2.5px; filter:blur(.6px); }
-html[data-ambient-state="running"] .ambient-grass { will-change:transform; }
 html[data-ambient-state="running"] [data-ambient-mote] { will-change:transform,opacity; }
 .resolve-history { position:absolute; right:2.5vw; bottom:6px; z-index:5; display:flex; gap:16px; align-items:center; }
 .resolve-history button[aria-label="Send feedback"] { position:static !important; box-shadow:none !important; }
@@ -152,10 +156,6 @@ html[data-resolve-motion="scrub"] .resolve-scroll { height:225vh; }
 html[data-resolve-motion="scrub"] .resolve-stage { position:sticky; top:0; }
 html[data-resolve-motion="scrub"] .resolve-scroll-cue { display:block; opacity:var(--resolve-cue,1); visibility:var(--resolve-cue-visibility,visible); }
 /* Reserve the 50px utility strip plus 4px separation on short wide desktops. */
-@media (min-width:801px) and (min-aspect-ratio:3/2) {
-  .resolve-home .portal.is-selected:not([data-pool-link="my-story"])::after { top:auto; bottom:100%; }
-  .resolve-home :is([data-pool-link="tinkerbox"],[data-pool-link="design-gallery"]).is-selected .portal-meta { bottom:calc(100% + 25cqw + 24px); }
-}
 @media (min-width:801px) and (min-aspect-ratio:3/2) and (min-height:700px) and (max-height:850px) {
   .resolve-home .portal[data-pool-link="my-story"] { width:min(29vw,39vh,calc(68vh - 264px)); }
 }
@@ -169,6 +169,9 @@ html[data-resolve-motion="scrub"] .resolve-scroll-cue { display:block; opacity:v
   .resolve-directory nav { position:relative; inset:auto; display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px 24px; isolation:isolate; }
   .workbench-directory-bark { display:block; position:absolute; inset:-8px -16px; z-index:-1; background:#101312 url('/web/assets/sdforest-workbench/bark.webp') left top / auto 220%; filter:brightness(.28) saturate(.65); }
   .resolve-home .portal:nth-child(n) { position:relative; top:auto; left:auto; right:auto; translate:none; width:100%; min-height:100px; }
+  .resolve-home .portal:nth-child(n) .portal-reveal { top:100%; bottom:auto; left:0; right:auto; width:100%; padding:12px 0 0; }
+  .resolve-home .portal:nth-child(n) .portal-reveal-cover { inset:12px 0 0; }
+  .resolve-home .portal[data-peek-open],html:not([data-resolve-motion]) .portal:is(:hover,:focus-visible) { margin-bottom:var(--reveal-height,110px); }
   .resolve-controls { position:relative; left:auto; bottom:auto; margin:24px 3.7vw 0; }
   .resolve-history { position:relative; right:auto; bottom:auto; margin:12px 3.7vw 0; }
   html[data-resolve-motion="scrub"] .resolve-scroll { height:auto; padding-bottom:125vh; }
@@ -183,9 +186,8 @@ html[data-resolve-motion="scrub"] .resolve-scroll-cue { display:block; opacity:v
   .resolve-brand i { border-color:currentColor; }
   .resolve-field { height:48svh; }
   .workbench-bark { object-fit:cover; object-position:center; }
-  .ambient-ground { top:calc(28vh + min(68vw,32vh) * 214 / 226 / 2 + 14px); width:min(84vw,43vh); height:calc(min(84vw,43vh) * 65 / 240); }
   .ambient-air { top:calc(28vh + min(68vw,32vh) * 214 / 226 / 2 - 12px); }
-  .ambient-soil-bridge { top:calc(28vh + min(68vw,32vh) * 214 / 226 / 2 - 8px); width:min(70vw,40vh); height:8svh; }
+  .ambient-soil-bridge { --earth-width:calc(min(68vw,32vh) * 1.88); top:calc(28vh + min(68vw,32vh) * 214 / 226 / 2 - 5px); }
   .forest-vines { top:5svh; left:0; right:0; height:34svh; }
   [data-wind-vine] { width:44px; }
   [data-ambient-mote]:nth-child(n+4) { display:none; }
@@ -198,10 +200,11 @@ html[data-resolve-motion="scrub"] .resolve-scroll-cue { display:block; opacity:v
   .resolve-home .portal:nth-child(n) .portal-name { position:absolute; left:var(--label-left); top:var(--label-top); width:var(--label-width); font-size:clamp(18px,7cqw,32px); }
   .resolve-home .portal:is([data-pool-link="growingapp"],[data-pool-link="artificial-self"]) .portal-name { left:22%; top:59.5%; width:56%; height:18%; display:flex; align-items:center; justify-content:center; background:#0b0f12; border-radius:0 0 8px 8px; font-size:clamp(16px,5.7cqw,28px); }
   .resolve-home .portal[data-pool-link="design-gallery"] { --label-top:65%; }
-  .resolve-home .portal:nth-child(n) .portal-meta { top:calc(100% + 36px); bottom:auto; left:0; width:100%; font-size:15px; background:#0b0f12; opacity:0; }
-  .resolve-home .portal:is(:focus-visible,.is-selected) { margin-bottom:78px; }
-  .resolve-home .portal:is(:focus-visible,.is-selected) .portal-meta { opacity:1; }
-  .resolve-home .portal:nth-child(n).is-selected::after { top:100%; bottom:auto; padding:4px 0; text-align:center; }
+  .resolve-home .portal:nth-child(n) .portal-reveal { top:100%; bottom:auto; left:0; right:auto; width:100%; padding:12px 0 0; }
+  .resolve-home .portal:nth-child(n) .portal-reveal-cover { inset:12px 0 0; }
+  .resolve-home .portal:nth-child(n) .portal-reveal::before { top:0; bottom:auto; left:9%; right:9%; width:auto; height:14px; border:0; border-inline:3px solid #877553; }
+  .resolve-home .portal:nth-child(n) .portal-meta { font-size:16px; }
+  .resolve-home .portal[data-peek-open],html:not([data-resolve-motion]) .portal:is(:hover,:focus-visible) { margin-bottom:var(--reveal-height,110px); }
   .resolve-controls { position:relative; left:auto; bottom:auto; margin:24px 24px 0; font-size:12px; }
   .resolve-history { position:relative; right:auto; bottom:auto; margin:12px 24px 0; }
   .resolve-history .dh-launch { margin:0; }
@@ -216,8 +219,7 @@ html[data-resolve-motion="scrub"] .resolve-scroll-cue { display:block; opacity:v
   .resolve-field { height:calc(40vh + min(68vw,32vh) * 214 / 226 / 2 + 32px); mask-image:linear-gradient(#000 calc(100% - 40px),transparent); }
   .resolve-directory nav { grid-template-columns:repeat(2,minmax(0,1fr)); align-items:start; max-width:none; }
   .resolve-tree { top:40vh; }
-  .ambient-ground { top:calc(40vh + min(68vw,32vh) * 214 / 226 / 2 + 10px); }
-  .ambient-soil-bridge { top:calc(40vh + min(68vw,32vh) * 214 / 226 / 2 - 8px); height:10svh; }
+  .ambient-soil-bridge { top:calc(40vh + min(68vw,32vh) * 214 / 226 / 2 - 3px); }
   .ambient-air { top:calc(40vh + min(68vw,32vh) * 214 / 226 / 2 - 12px); }
   .resolve-directory { padding-top:max(58svh,calc(40vh + min(68vw,32vh) * 214 / 226 / 2 + 16px)); }
 }

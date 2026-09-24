@@ -1,5 +1,8 @@
 # Approved pool-motion pass — 2026-09-24
 
+Current follow-up: [fixed plate and readable instruments](frontpage-refinement-2026-09-24.md).
+The earlier synthetic-grass, moving-bark and small ECG-lobe descriptions are historical.
+
 Latest instrument behaviour: [local motion and depth pass](frontpage-pool-polish-2026-09-24.md).
 In particular, Health now goes flat only during a momentary press, not while selected.
 

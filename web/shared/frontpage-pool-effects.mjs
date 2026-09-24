@@ -33,6 +33,7 @@ export function sampleNeuralCircuit(age) {
   const starts=[0,.4,.04,.12,.43,.82,.88];
   return {
     cores:[0,.4,.8].map(start=>flash(age-start)),
+    arbors:[0,.4,.8].map(start=>age<start || age>start+.65 ? 0 : Math.exp(-(age-start)*5)*(1-(age-start)/.65)),
     travel:starts.map((start,i)=>clamp((age-start)/(i<2?.4:.24))),
     alive:starts.map((start,i)=>age>=start && age<start+(i<2?.48:.32))
   };
@@ -48,10 +49,18 @@ export function createPoolEffects(id,art) {
   if(id==='health') {
     element=document.createElement('span');element.className='pool-instrument ecg-instrument';
     const trace=d=>`<svg viewBox="0 0 300 100" preserveAspectRatio="none" aria-hidden="true" focusable="false"><path d="${d}"/></svg>`;
-    const lobes=[['p','M0 55H45L57 43L68 55H94','M0 55H94'],['qrs','M94 55H105L113 66L123 7L133 88L143 55H174','M94 55H174'],['t','M174 55H183L199 32L219 55H300','M174 55H300']];
+    const lobes=[['qrs','M0 55H111L123 7L133 88L145 55H300','M0 55H300']];
     element.innerHTML=`<span class="ecg-screen"><span class="ecg-grid"></span><span data-ecg-wave>${lobes.map(([name,d,line])=>`<span class="ecg-rest" data-ecg-rest="${name}">${trace(line)}</span><span class="ecg-deflection" data-ecg-${name}>${trace(d)}</span>`).join('')}</span><span data-ecg-flat>${trace('M0 55H300')}</span><i class="ecg-beat-led"></i></span><i class="instrument-glass"></i>`;
   } else if(id==='artificial-self') {
     element=document.createElement('span');element.className='pool-instrument neural-instrument';
+    // Light the actual painted arbor, registered to the unchanged instrument.
+    // Static masks isolate each cell; opacity follows the same signal as its soma.
+    for(const [i,x] of [297,568,838].entries()) {
+      const arbor=document.createElement('img');arbor.src='/web/assets/sdforest-workbench/artificial-self.webp';
+      arbor.alt='';arbor.className='neural-arbor';arbor.dataset.neuralArbor=i;
+      arbor.style.maskImage=`radial-gradient(ellipse 16% 28% at ${x/11}% 43%,#000 55%,transparent 100%)`;
+      element.append(arbor);
+    }
     element.append(svg('neural-wires',wires.map(p=>`<path class="neural-wire" d="M${p[0]}C${p[1]} ${p[2]} ${p[3]}"/>`).join('')));
     for(const [i,p] of wires.entries()) {
       const charge=document.createElement('span');charge.className='neural-charge';charge.dataset.neuralCharge=i;
@@ -69,14 +78,15 @@ export function createPoolEffects(id,art) {
   }
   if(element)art.append(element);
   const wave=element?.querySelector('[data-ecg-wave]');
-  const deflections=['p','qrs','t'].map(part=>wave?.querySelector(`[data-ecg-${part}]`));
-  const baselines=['p','qrs','t'].map(part=>wave?.querySelector(`[data-ecg-rest="${part}"]`));
+  const deflection=wave?.querySelector('[data-ecg-qrs]');
+  const baseline=wave?.querySelector('[data-ecg-rest]');
   const flat=element?.querySelector('[data-ecg-flat]');
   const impulses=[...element?.querySelectorAll('[data-neural-impulse]')||[]];
   const tails=[...element?.querySelectorAll('[data-neural-tail]')||[]];
   const charges=[...element?.querySelectorAll('[data-neural-charge]')||[]];
   const cores=[...element?.querySelectorAll('[data-neural-core]')||[]];
   const halos=[...element?.querySelectorAll('[data-neural-halo]')||[]];
+  const arbors=[...element?.querySelectorAll('[data-neural-arbor]')||[]];
   const signals=[...element?.querySelectorAll('[data-signal-node]')||[]];
   const head=element?.querySelector('[data-signal-head]');
   let phase=.17,previous=null,energy=0,wasEngaged=false;
@@ -92,15 +102,11 @@ export function createPoolEffects(id,art) {
       const age=animate?activation.age:Infinity;
       const hit=animate ? (activation.held?1:age<.62?smooth(age/.045)*(1-smooth((age-.10)/.52)):0) : 0;
       if(wave) {
-        // Fixed endpoints and fixed QRS location: deflect, then return to baseline.
-        // The three lobes share the beat phase; nothing is translated horizontally.
+        // One full-height beat, in place. Never squash it into a partial triangle.
         const beat=fract(phase);
-        [[.04,.14],[.20,.39],[.45,.62]].forEach(([start,end],i)=>{
-          const p=clamp((beat-start)/(end-start));
-          const amplitude=animate ? Math.min(clamp(p/.12),clamp((1-p)/.2)) : 0;
-          paint(deflections[i],'transform',`scaleY(${amplitude})`);
-          paint(baselines[i],'opacity',amplitude<.025?1:0);
-        });
+        const beating=animate && beat>=.20 && beat<.39;
+        paint(deflection,'opacity',beating?1:0);
+        paint(baseline,'opacity',beating?0:1);
         const flatNow=animate && (activation.held || age<.16);
         paint(wave,'opacity',flatNow?0:1);paint(flat,'opacity',flatNow?1:0);
         paint(element,'transform',`perspective(700px) rotateX(${hit*2.2}deg) translateY(${hit*.7}px)`);
@@ -125,6 +131,7 @@ export function createPoolEffects(id,art) {
         paint(core,'transform',`translate(-50%,-50%) scale(${.75+pulse*.65})`);
         paint(halos[i],'opacity',pulse*.75);
         paint(halos[i],'transform',`translate(-50%,-50%) scale(${1+(1-pulse)*.5})`);
+        paint(arbors[i],'opacity',animate?circuit.arbors[i]*.85:0);
       });
       signals.forEach((signal,i)=>{
         const p=age<.8?clamp(age/.8):fract(phase/8);

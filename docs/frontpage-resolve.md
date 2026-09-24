@@ -1,5 +1,9 @@
 # SD Forest — front-page resolve contract
 
+Current correction: [fixed plate, rooted contact and readable instruments](frontpage-refinement-2026-09-24.md).
+This supersedes the older grass/contact, moving-foreground and summary treatments.
+Historical test counts below are receipts for their named heads, not current results.
+
 Current artwork/environment: [approved tree and sunset correction](frontpage-tree-2026-09-24.md).
 It supersedes the opened-page night palette and thumbnail asset descriptions
 in the historical receipts below; numbered artwork-box geometry is unchanged.
@@ -28,12 +32,12 @@ For a landscape phone <=800 px wide, the centre is **50vw, 40vh**, with the same
 
 The artwork-box `vh` values above are deliberately unchanged. Mobile **layout**, not artwork, uses `svh`: the stage minimum, scroll runway, title, field, cue and directory's baseline offset. The directory also retains a `vh`-based clearance calculation against the protected artwork. A toolbar change must not replace those artwork numbers with a different video contract.
 
-Wide-desktop side entries use width `min(29vw,calc(47vw - 58vh * 226 / 214 / 2 - 24px))`, with a 2vw outside inset. At 1920×1080 this leaves 43.23px between each flank and the protected tree rectangle. Health and AI-d kit lead at 13vh; GrowingApp and Artificial Self sit at 40vh. TinkerBox, My Story and Design Gallery occupy the lower left, centre and right at `83vh + 12px`, width `min(29vw,39vh)`, aspect ratio 4:1. Selection never grows their desktop boxes. On desktop widths >800px with aspect ratio <=3:2, the same DOM flows into two columns **below** the unchanged tree (top = 83vh + 24px). Mobile uses one column below it. The existing catalog-sorted DOM order remains the arrival and keyboard order; CSS composition is not a new catalog ranking.
+Wide-desktop side entries use width `min(29vw,calc(47vw - 58vh * 226 / 214 / 2 - 24px))`, with a 2vw outside inset. At 1920×1080 this leaves 43.23px between each flank and the protected tree rectangle. Health and AI-d kit lead at 13vh; GrowingApp and Artificial Self sit at 40vh. TinkerBox and Design Gallery are at 67vh with the same width as the leading controls and aspect ratio 4:1. My Story remains centred at `83vh + 12px`, width `min(29vw,39vh)`, aspect ratio 4:1. Selection never grows their desktop boxes. On desktop widths >800px with aspect ratio <=3:2, the same DOM flows into two columns **below** the unchanged tree (top = 83vh + 24px). Mobile uses one column below it. Arrivals and keyboard order follow the existing final DOM; CSS composition is not a new catalog ranking.
 
-On wide desktops 700–850px high, the lower entries additionally cap width at
-`calc(68vh - 264px)` to clear the 50px footer strip by 4px. Their type scales
-with viewport height. Lower-flank selection instructions sit above the control
-to avoid covering site utilities.
+On wide desktops 700–850px high, My Story additionally caps width at
+`calc(68vh - 264px)` to clear the utility strip. Lower type scales with viewport
+height. Lower-flank drawers open above their controls; the My Story drawer opens
+to its left. Explanations and selection hints share the drawer, not the artwork.
 
 ### Asset boundary
 
@@ -45,11 +49,16 @@ The original Qwen tree contains only about 226×214 pixels of meaningful detail.
 
 The runtime has no playback timer. It samples a reversible time value. Opacity and transforms use smoothstep `p²(3−2p)`, where p is the clamped normalized interval. A reverse scrub uses the same function, never a restarted animation.
 
-The following named sequence reflects the unchanged catalog ranks after #615: Health 7, AI-d kit 6, GrowingApp 5, TinkerBox 4, Design Gallery 3, Artificial Self 2, My Story 1. The **existing `pool-directory.mjs` owns order**. Arrival start is `0.8 + 0.32 × current DOM index`, duration 0.72 seconds; it is not a second hand-maintained rank list. The native fallback contains all seven links even without that module.
+The existing directory reads catalog ranks, then the already-approved front-page
+controller appends the anchors marked `data-final-pool` to the end. The observed
+DOM order is Health, AI-d kit, GrowingApp, Artificial Self, My Story, TinkerBox,
+Design Gallery. This correction changes neither operation nor any rank. Arrival
+start remains `0.8 + 0.32 × current DOM index`, duration 0.72 seconds; the table is
+documentation, never another runtime list. The native fallback contains all seven.
 
 | Element | Start → end | Arrival / role |
 |---|---|---|
-| Five background planes | −1.00 → 0.00 | Fade 1→0 together, revealing the existing dark field. The tree never fades or moves. |
+| Four background planes | −1.00 → 0.00 | Fade 1→0 together, revealing the existing dark field. The tree never fades or moves. |
 | Tree illumination | −1.00 → 0.00 | Existing restrained edge glow reaches 30px / 8% opacity. The new tree is constant throughout the sequence; only filter changes. |
 | Sunset valley, subtle mist and connected bark | 0.05 → 0.60 | Fade in behind the tree and controls. The compact/mobile directory's dark bark backing follows this same interval. The earlier orbit ellipses and connecting paths remain removed. |
 | Forest HUB + existing subtitle | 0.18 → 0.95 | Fade in as one title plate. |
@@ -57,15 +66,15 @@ The following named sequence reflects the unchanged catalog ranks after #615: He
 | Health | 0.80 → 1.52 | Fade and scale 0.85→1; glass ECG with aqua lettering. Upper left. |
 | AI-d kit | 1.12 → 1.84 | Fade and translate x +34px→0; green first-aid flag, white cross and purple lever. Upper right. |
 | GrowingApp | 1.44 → 2.16 | Fade, rise 30px and scale 0.94→1; seed/sapling/tree triptych. Below Health. |
-| TinkerBox | 1.76 → 2.48 | Fade, translate (−12px,20px)→0 and rotate −3°→0; locking compartment. Bottom left. |
-| Design Gallery | 2.08 → 2.80 | Fade, x 26px→0 and horizontal reveal 0→100%; compact exhibit shutters. Bottom right. |
-| Artificial Self | 2.40 → 3.12 | Fade and blur 8px→0; connected violet/teal neurons. Below AI-d kit. |
-| My Story | 2.72 → 3.44 | Fade and gentle 14px rise; earliest signal faintest, latest brightest, no terminal cap. Bottom centre. No new story copy. |
-| Ground and sparse air | 3.60 → 4.40 | Original raster moss/soil contact patch and existing lagged grass fade in at the fixed trunk base. The independent decorative layer is absent at the resolve frame. Ambient time starts only once arrivals finish. |
+| Artificial Self | 1.76 → 2.48 | Fade and blur 8px→0; connected violet/teal neurons. Below AI-d kit. |
+| My Story | 2.08 → 2.80 | Fade and gentle 14px rise; existing signal unchanged. Bottom centre. No new story copy. |
+| TinkerBox | 2.40 → 3.12 | Fade, translate (−12px,20px)→0 and rotate −3°→0; locking compartment. Bottom left. |
+| Design Gallery | 2.72 → 3.44 | Fade, x 26px→0 and horizontal reveal 0→100%; compact exhibit shutters. Bottom right. |
+| Ground and sparse air | 3.60 → 4.40 | Approved illustrated root bed and vegetation fade in at the fixed trunk base. The previous turf and synthetic blades are replaced, not layered underneath. This decorative layer is absent at the resolve frame. Ambient time starts only once arrivals finish. |
 | Portfolio + Pause motion controls | 3.65 → 4.20 | Fade in at the lower-left edge. Existing external-tab warning and destination retained. Pause motion is a native button; no-JS omits it. |
 | Design history + Feedback controls | 3.85 → 4.40 | Fade in together at the lower-right edge; existing behaviours retained. |
 
-The slot positions above describe wide desktop. The compact-desktop and mobile flow layouts preserve the same DOM order and timing, not those flank coordinates. The opened-page sunset valley is a separate reference-derived asset, not the intro's warm-world plane kept partly visible. At t=0 both environments and the mobile bark backing are absent; reversing the shared seek restores that exact tree-only frame. On wide desktops, selected-state instructions sit above flank controls; lower-flank summaries sit above those instructions. The centred lower instruction stays below its control. No wording or idle placement changed.
+The slot positions above describe wide desktop. The compact-desktop and mobile flow layouts preserve the same DOM order and timing, not those flank coordinates. The opened-page sunset valley is a separate reference-derived asset, not the intro's warm-world plane kept partly visible. At t=0 both environments and the mobile bark backing are absent; reversing the shared seek restores that exact tree-only frame. Explanations retain their existing wording in full-width, high-contrast drawers; selection hints sit inside those drawers. Phone/tablet flow reserves measured drawer height. No pool wording or idle placement changed.
 
 The early **Explore the pools** cue fades out with the background (−1→0); activating it opens the complete page immediately. A keyboard skip link is available on focus at every stage. Existing homepage paragraphs are retained verbatim after the stage and enter through normal document scrolling, not the video sequence. There are no other arriving layers, hidden project lists or invented destinations.
 

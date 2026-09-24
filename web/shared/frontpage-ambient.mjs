@@ -12,7 +12,6 @@ export function windAt(seconds) {
 export function createAmbient(stage) {
   const layer = stage.querySelector('.resolve-ambient');
   const vines = stage.querySelector('.forest-vines');
-  const grass = [...layer.querySelectorAll('[data-wind-grass]')].map(element => ({element, lag:Number(element.dataset.windGrass)}));
   const motes = [...layer.querySelectorAll('[data-ambient-mote]')];
   let count = 6;
   let previousPhase = '';
@@ -26,9 +25,6 @@ export function createAmbient(stage) {
     },
     render(seconds, strength) {
       const gust = windAt(seconds) * strength;
-      for (const {element,lag} of grass) {
-        element.style.transform = `skewX(${windAt(seconds - lag) * strength * 3}deg)`;
-      }
       for (let i = 0; i < motes.length; i++) {
         const near = i % 3 === 2;
         const period = near ? 84 + i * 2.7 : 125 + i * 3.1;

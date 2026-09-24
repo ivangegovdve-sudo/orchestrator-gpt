@@ -21,10 +21,16 @@ const base=process.env.SDFOREST_BASE_URL||'http://127.0.0.1:4176';
       await link.screenshot({path:path.join(out,`${id}-idle.png`)});
       await link.hover();await page.waitForTimeout(id==='artificial-self'?140:650);
       await link.screenshot({path:path.join(out,`${id}-hover.png`)});
+      const drawerClip=await link.evaluate(e=>{
+        const a=e.getBoundingClientRect(),b=e.querySelector('.portal-reveal').getBoundingClientRect();
+        const x=Math.max(0,Math.min(a.left,b.left)-6),y=Math.max(0,Math.min(a.top,b.top)-6);
+        return {x,y,width:Math.min(innerWidth,Math.max(a.right,b.right)+6)-x,height:Math.min(innerHeight,Math.max(a.bottom,b.bottom)+6)-y};
+      });
+      await page.screenshot({path:path.join(out,`${id}-drawer.png`),clip:drawerClip});
       if(id==='health') {
         const clip=await link.boundingBox();
         const cdp=await page.context().newCDPSession(page);
-        await page.waitForFunction(()=>document.querySelector('[data-ecg-qrs]').style.transform==='scaleY(1)');
+        await page.waitForFunction(()=>document.querySelector('[data-ecg-qrs]').style.opacity==='1');
         await cdp.send('Emulation.setVirtualTimePolicy',{policy:'pause'});
         const shot=await cdp.send('Page.captureScreenshot',{format:'png',clip:{...clip,scale:1}});
         fs.writeFileSync(path.join(out,'health-sharp-beat.png'),Buffer.from(shot.data,'base64'));
