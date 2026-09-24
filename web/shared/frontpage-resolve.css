@@ -10,15 +10,16 @@
 .resolve-world { position:absolute; inset:0; opacity:0; pointer-events:none; z-index:-2; background:#bca88f; }
 .resolve-world img { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }
 .resolve-tree { position:absolute; left:50vw; top:54vh; height:58vh; width:calc(58vh * 226 / 214); transform:translate(-50%,-50%); overflow:hidden; pointer-events:none; z-index:1; filter:drop-shadow(0 0 30px rgb(34 197 94 / .08)); }
-.resolve-field { position:absolute; inset:0; pointer-events:none; }
+.resolve-field { position:absolute; inset:0; pointer-events:none; background:#aab7bb; }
 .resolve-field * { pointer-events:none; }
 .workbench-horizon { position:absolute; inset:-6px; width:calc(100% + 12px); height:calc(100% + 12px); object-fit:cover; }
-.workbench-mist { position:absolute; left:0; top:0; width:100%; height:100%; object-fit:cover; opacity:.12; }
-.workbench-bark { position:absolute; left:0; top:-1.3%; width:100%; height:101.3%; object-fit:fill; filter:brightness(.72) saturate(.8); }
+.workbench-mist { position:absolute; left:-12px; top:-8px; width:calc(100% + 24px); height:calc(100% + 16px); object-fit:cover; opacity:.12; }
+.workbench-bark { position:absolute; left:-12px; top:calc(-1.3% - 8px); width:calc(100% + 24px); height:calc(101.3% + 16px); object-fit:fill; filter:brightness(.9) saturate(.85); }
+.resolve-stage[data-world-dragging] { cursor:grabbing; user-select:none; }
 .resolve-brand { position:absolute; left:2.5vw; top:28px; display:flex; align-items:center; gap:12px; font-size:12px; letter-spacing:.3em; text-transform:uppercase; z-index:3; }
 .resolve-brand i { width:12px; height:12px; border:1px solid var(--focus-ring); border-radius:50%; }
-.resolve-title { position:absolute; top:4.8vh; left:50%; transform:translateX(-50%); margin:0; text-align:center; font:500 clamp(40px,min(5.3vw,10vh),102px)/.98 var(--theme-home-display); white-space:nowrap; letter-spacing:-.045em; z-index:2; }
-.resolve-title small { display:block; margin-top:12px; font:italic 400 clamp(14px,min(1.6vw,2.8vh),30px)/1.2 var(--theme-home-body); letter-spacing:.2em; background:linear-gradient(100deg,var(--focus-ring) 20%,var(--accent-green) 85%); color:transparent; background-clip:text; }
+.resolve-title { position:absolute; top:4.8vh; left:50%; transform:translateX(-50%); margin:0; text-align:center; font:500 clamp(40px,min(5.3vw,10vh),102px)/.98 var(--theme-home-display); white-space:nowrap; letter-spacing:-.045em; z-index:2; color:#293c45; }
+.resolve-title small { display:block; margin-top:12px; font:italic 400 clamp(14px,min(1.6vw,2.8vh),30px)/1.2 var(--theme-home-body); letter-spacing:.2em; color:#40534f; }
 .resolve-directory { position:absolute; inset:0; z-index:4; pointer-events:none; }
 .resolve-directory nav { position:absolute; inset:0; }
 .workbench-directory-bark { display:none; pointer-events:none; }
@@ -164,6 +165,8 @@ html[data-resolve-motion="scrub"] .resolve-scroll-cue { display:block; opacity:v
   .resolve-title { top:3.5svh; font-size:clamp(32px,min(11vw,5.5svh),76px); }
   .resolve-title small { margin-top:5px; font-size:16px; letter-spacing:.14em; }
   .resolve-tree { top:28vh; width:min(68vw,32vh); height:calc(min(68vw,32vh) * 214 / 226); }
+  .resolve-home .resolve-brand { color:#293c45; }
+  .resolve-brand i { border-color:currentColor; }
   .resolve-field { height:48svh; }
   .workbench-bark { object-fit:cover; object-position:center; }
   .ambient-ground { top:calc(28vh + min(68vw,32vh) * 214 / 226 / 2 + 14px); width:min(84vw,43vh); height:calc(min(84vw,43vh) * 65 / 240); }
@@ -194,6 +197,9 @@ html[data-resolve-motion="scrub"] .resolve-scroll-cue { display:block; opacity:v
   .resolve-existing-copy { font-size:16px; padding:24px; }
 }
 @media (max-width:800px) and (orientation:landscape) {
+  .resolve-home .resolve-brand { color:var(--theme-home-ink); }
+  .resolve-brand i { border-color:var(--focus-ring); }
+  .resolve-field { height:calc(40vh + min(68vw,32vh) * 214 / 226 / 2 + 32px); mask-image:linear-gradient(#000 calc(100% - 40px),transparent); }
   .resolve-directory nav { grid-template-columns:repeat(2,minmax(0,1fr)); align-items:start; max-width:none; }
   .resolve-tree { top:40vh; }
   .ambient-ground { top:calc(40vh + min(68vw,32vh) * 214 / 226 / 2 + 10px); }

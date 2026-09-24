@@ -62,6 +62,18 @@ async function opacity(page, selector) {
   return page.locator(selector).evaluate(el=>Number(getComputedStyle(el).opacity));
 }
 
+test('phone landscape keeps the sunset behind the roots and branding contrasts with its backing', async () => {
+  const page=await pageAt('?frame=opened',{viewport:{width:780,height:390}});
+  const tree=await page.locator('.resolve-tree').boundingBox();
+  const field=await page.locator('.resolve-field').boundingBox();
+  assert.ok(field.y+field.height>=tree.y+tree.height+10,'the background must continue beyond the tree contact, not cut through its trunk');
+  assert.notEqual(await page.locator('.resolve-field').evaluate(e=>getComputedStyle(e).maskImage),'none','the landscape edge must fade into the existing bark continuation');
+  assert.equal(await page.locator('.resolve-brand').evaluate(e=>getComputedStyle(e).color),'rgb(243, 244, 246)','landscape branding sits over dark bark');
+  await page.setViewportSize({width:390,height:844});
+  assert.equal(await page.locator('.resolve-brand').evaluate(e=>getComputedStyle(e).color),'rgb(41, 60, 69)');
+  await page.close();
+});
+
 test('Health beats in place, returns to baseline, and goes flat when pressed', async () => {
   const page=await pageAt('?frame=opened');
   const health=page.locator('[data-pool-link="health"]');
@@ -548,7 +560,7 @@ test('reduced motion stops every mechanism and parallax while retaining selectio
   await page.close();
 });
 
-test('only the far background parallaxes and the seven name colours remain distinct and legible', async () => {
+test('background parallax leaves the tree fixed and the seven name colours distinct and legible', async () => {
   const page=await pageAt('?frame=opened');
   const tree=await page.locator('.resolve-tree').boundingBox();
   const far=page.locator('.workbench-horizon');
@@ -564,6 +576,53 @@ test('only the far background parallaxes and the seven name colours remain disti
     const ratio=(luminance(colour.match(/\d+/g).map(Number))+.05)/(luminance([15,15,21])+.05);
     assert.ok(ratio>=7,`${colour} needs at least 7:1 against the dark control surface, got ${ratio}`);
   }
+  await page.close();
+});
+
+test('dragging the world moves distant planes less than near planes without moving the tree or its contact', async () => {
+  const page=await pageAt('?frame=opened');
+  await page.evaluate(()=>document.documentElement.style.setProperty('--ambient-strength','0'));
+  const boxes=()=>page.locator('.resolve-tree,.ambient-soil-bridge').evaluateAll(es=>es.map(e=>e.getBoundingClientRect().toJSON()));
+  const treeAndContact=await boxes();
+  const offsets=()=>page.locator('.workbench-horizon,.workbench-mist,.workbench-bark').evaluateAll(es=>es.map(e=>new DOMMatrix(getComputedStyle(e).transform).m41));
+  await page.mouse.move(960,790);await page.waitForTimeout(500);
+  const before=await offsets();
+  await page.mouse.down();
+  await page.mouse.move(1210,740,{steps:12});await page.waitForTimeout(500);
+  assert.equal(await page.locator('[data-resolve-stage]').getAttribute('data-world-dragging'),'true');
+  const delta=(await offsets()).map((x,i)=>Math.abs(x-before[i]));
+  assert.ok(delta[0]>.2 && delta[0]<delta[1] && delta[1]<delta[2],`far < mist < foreground; observed ${delta}`);
+  assert.deepEqual(await boxes(),treeAndContact,'camera motion cannot detach the tree from its contact');
+  await page.mouse.up();
+  assert.equal(await page.locator('[data-resolve-stage]').getAttribute('data-world-dragging'),null);
+  await page.close();
+});
+
+test('reduced motion releases a world drag and leaves every depth plane still', async () => {
+  const page=await pageAt('?frame=opened');
+  await page.mouse.move(960,790);await page.mouse.down();
+  await page.mouse.move(1160,760,{steps:8});await page.waitForTimeout(150);
+  assert.equal(await page.locator('[data-resolve-stage]').getAttribute('data-world-dragging'),'true');
+  await page.emulateMedia({reducedMotion:'reduce'});await page.waitForTimeout(100);
+  assert.equal(await page.locator('[data-resolve-stage]').getAttribute('data-world-dragging'),null);
+  const styles=()=>page.locator('.workbench-horizon,.workbench-mist,.workbench-bark').evaluateAll(es=>es.map(e=>e.getAttribute('style')));
+  const still=await styles();
+  await page.mouse.move(1000,850);await page.mouse.up();await page.waitForTimeout(400);
+  assert.deepEqual(await styles(),still);
+  assert.equal(await page.locator('[data-pool-link]').evaluateAll(es=>es.every(e=>!e.inert)),true);
+  await page.close();
+});
+
+test('the tree supplies high-resolution transparent artwork rather than magnifying the thumbnail', async () => {
+  const page=await pageAt('?frame=opened');
+  const asset=await page.locator('.resolve-tree image').evaluate(async e=>{
+    const image=new Image();image.src=e.href.baseVal;await image.decode();
+    const canvas=document.createElement('canvas');canvas.width=canvas.height=1;
+    const context=canvas.getContext('2d');context.drawImage(image,0,0);
+    return {width:image.naturalWidth,height:image.naturalHeight,cornerAlpha:context.getImageData(0,0,1,1).data[3]};
+  });
+  assert.ok(asset.width>=1200 && asset.height>=1200,JSON.stringify(asset));
+  assert.equal(asset.cornerAlpha,0,'no opaque rectangular matte around the tree');
   await page.close();
 });
 
@@ -968,7 +1027,7 @@ test('pending or failed background planes cannot block the tree or opened naviga
     const page=await browser.newPage({viewport:{width:390,height:844}});
     const errors=[];page.on('pageerror',e=>errors.push(e.message));
     let release;const gate=new Promise(resolve=>release=resolve);
-    await page.route(/\/(sky|sunset|mist|landscape)\.png$/,async route=>{
+    await page.route(/\/(?:sky|sunset|mist|landscape)\.png$|\/sdforest-sunset\/(?:valley|mist)\.webp$/,async route=>{
       if(failure) await route.abort();
       else {await gate;await route.continue();}
     });
@@ -977,7 +1036,7 @@ test('pending or failed background planes cannot block the tree or opened naviga
     const decoded=await page.locator('.resolve-tree image').evaluate(async e=>{
       const image=new Image();image.src=e.href.baseVal;await image.decode();return image.naturalWidth;
     });
-    assert.equal(decoded,864);
+    assert.ok(decoded>=1200,'the high-resolution tree loads independently of background planes');
     await page.evaluate(()=>scrollTo(0,innerHeight*1.25));
     await page.waitForFunction(()=>document.documentElement.dataset.resolveState==='opened');
     assert.equal(await opacity(page,'.resolve-world'),0);

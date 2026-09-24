@@ -1,5 +1,9 @@
 # SD Forest — front-page resolve contract
 
+Current artwork/environment: [approved tree and sunset correction](frontpage-tree-2026-09-24.md).
+It supersedes the opened-page night palette and thumbnail asset descriptions
+in the historical receipts below; numbered artwork-box geometry is unchanged.
+
 Current interaction/layout supplement: [approved 2026-09-24 correction](frontpage-correction-2026-09-24.md).
 It supersedes earlier phone-thumbnail, lower-control placement and decorative-vine
 descriptions below. The numbered tree geometry and pure seek timing remain the
@@ -9,7 +13,7 @@ unchanged video hand-off contract; pool arrivals still follow the current DOM.
 
 ## The two frames
 
-The references supply colour, texture and mood, **not** final composition. The warm, illustrated world dissolves completely; the centred tree remains. The page then introduces the existing dark field, fine electric connections, serif display type and green/indigo accents. These are two deliberate lighting registers, not a blended new palette.
+The references supply colour, texture and mood, **not** final composition. The introductory world dissolves completely; the centred tree remains. Following Ivan's 2026-09-24 correction, the opened page introduces a lighter illustrated sunset valley, separate pale mist and the existing connected bark controls. The earlier night-blue opened environment is superseded. Time zero remains tree-only on the dark field.
 
 At time **0**, only the tree is visible on `#07070b`. At **4.4 seconds**, the page is fully opened. The tree's position and scale are identical in both frames. Decorative motion never supplies navigation structure.
 
@@ -33,9 +37,9 @@ to avoid covering site utilities.
 
 ### Asset boundary
 
-`[data-title-crown]` is the artwork-box anchor. Its current SVG `viewBox="93 158 226 214"` frames the meaningful alpha bounds of the unchanged 864×480 original layer. Do **not** align to the full mostly-transparent source canvas. An eventual higher-resolution render must preserve the artwork box, using its own corresponding tight alpha viewBox.
+`[data-title-crown]` is the artwork-box anchor. Its SVG `viewBox="93 158 226 214"` and every CSS geometry number remain unchanged. The new 1254×1254 alpha tree maps into x=93, y=158, width=226, height=214 with `preserveAspectRatio="xMidYMax meet"`. The square artwork is bottom-aligned and contained, not stretched. Align the video to the outer artwork-box contract, not to the source image's canvas.
 
-The supplied tree contains only about 226×214 pixels of meaningful detail; the desktop screenshot necessarily enlarges it. This implementation verifies geometry and interaction, not final-video sharpness. No tree was generated, retouched or upscaled into invented detail. All six shipped layers are byte-for-byte originals, with hashes in [asset provenance](../web/assets/sdforest-resolve/README.md). Background layers are composed as DOM images, not a second tree.
+The original Qwen tree contains only about 226×214 pixels of meaningful detail. Its six original layers remain byte-for-byte unchanged, with hashes in [original asset provenance](../web/assets/sdforest-resolve/README.md), but that thumbnail is no longer the displayed tree. The current tree is a reference-derived generative reconstruction with explicitly generated detail, documented in [current asset provenance](../web/assets/sdforest-sunset/README.md). Background layers remain separate DOM images, never a second tree.
 
 ## Arrival sheet — seconds relative to the resolve frame
 
@@ -46,8 +50,8 @@ The following named sequence reflects the unchanged catalog ranks after #615: He
 | Element | Start → end | Arrival / role |
 |---|---|---|
 | Five background planes | −1.00 → 0.00 | Fade 1→0 together, revealing the existing dark field. The tree never fades or moves. |
-| Tree illumination | −1.00 → 0.00 | A restrained green edge glow reaches 30px / 8% opacity as the warm surrounding light leaves. Original tree pixels remain unchanged. |
-| Distant woodland, subtle mist and connected bark | 0.05 → 0.60 | Fade in behind the tree and controls. The compact/mobile directory's dark bark backing follows this same interval. The earlier orbit ellipses and connecting paths remain removed. |
+| Tree illumination | −1.00 → 0.00 | Existing restrained edge glow reaches 30px / 8% opacity. The new tree is constant throughout the sequence; only filter changes. |
+| Sunset valley, subtle mist and connected bark | 0.05 → 0.60 | Fade in behind the tree and controls. The compact/mobile directory's dark bark backing follows this same interval. The earlier orbit ellipses and connecting paths remain removed. |
 | Forest HUB + existing subtitle | 0.18 → 0.95 | Fade in as one title plate. |
 | SDForest home control | 0.30 → 0.90 | Fade in at the upper-left edge. |
 | Health | 0.80 → 1.52 | Fade and scale 0.85→1; glass ECG with aqua lettering. Upper left. |
@@ -61,7 +65,7 @@ The following named sequence reflects the unchanged catalog ranks after #615: He
 | Portfolio + Pause motion controls | 3.65 → 4.20 | Fade in at the lower-left edge. Existing external-tab warning and destination retained. Pause motion is a native button; no-JS omits it. |
 | Design history + Feedback controls | 3.85 → 4.40 | Fade in together at the lower-right edge; existing behaviours retained. |
 
-The slot positions above describe wide desktop. The compact-desktop and mobile flow layouts preserve the same DOM order and timing, not those flank coordinates. The new woodland is a separate dark-page asset, not a warm-world plane kept partly visible. At t=0 both environments and the mobile bark backing are absent; reversing the shared seek restores that exact tree-only frame. On wide desktops, selected-state instructions sit above flank controls; lower-flank summaries sit above those instructions. The centred lower instruction stays below its control. No wording or idle placement changed.
+The slot positions above describe wide desktop. The compact-desktop and mobile flow layouts preserve the same DOM order and timing, not those flank coordinates. The opened-page sunset valley is a separate reference-derived asset, not the intro's warm-world plane kept partly visible. At t=0 both environments and the mobile bark backing are absent; reversing the shared seek restores that exact tree-only frame. On wide desktops, selected-state instructions sit above flank controls; lower-flank summaries sit above those instructions. The centred lower instruction stays below its control. No wording or idle placement changed.
 
 The early **Explore the pools** cue fades out with the background (−1→0); activating it opens the complete page immediately. A keyboard skip link is available on focus at every stage. Existing homepage paragraphs are retained verbatim after the stage and enter through normal document scrolling, not the video sequence. There are no other arriving layers, hidden project lists or invented destinations.
 

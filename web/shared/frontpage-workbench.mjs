@@ -69,16 +69,41 @@ export function createWorkbench(stage,invalidate,readClock) {
   nodes.forEach(node=>visiblePools.observe(node.link));
   const far=stage.querySelector('.workbench-horizon');
   const mist=stage.querySelector('.workbench-mist');
+  const near=stage.querySelector('.workbench-bark');
   const vines=createVines(stage,invalidate);
   let moving=false, pointerX=0, pointerY=0, x=0, y=0, lastEnvironment=-Infinity;
   let viewport={width:innerWidth,height:innerHeight};
+  let drag=null, enabled=false;
+  const bounded=value=>Math.max(-1,Math.min(1,value));
+  const interactive=target=>target.closest('a,button,input,select,textarea,[contenteditable]');
+  const release=()=>{
+    if(drag && stage.hasPointerCapture(drag.id))stage.releasePointerCapture(drag.id);
+    drag=null;delete stage.dataset.worldDragging;
+  };
+  stage.addEventListener('pointerdown',event=>{
+    if(!enabled || !event.isPrimary || event.button!==0 || interactive(event.target))return;
+    drag={id:event.pointerId,startX:event.clientX,startY:event.clientY,x:pointerX,y:pointerY};
+    // Touch remains browser-owned: vertical swipes scroll and cancel the gesture.
+    if(event.pointerType==='mouse')stage.setPointerCapture(event.pointerId);
+  });
   stage.addEventListener('pointermove',event=>{
+    if(!enabled)return;
+    if(drag && drag.id===event.pointerId) {
+      const dx=event.clientX-drag.startX,dy=event.clientY-drag.startY;
+      if(event.pointerType!=='mouse' && Math.abs(dy)>Math.abs(dx) && Math.abs(dy)>8){release();return;}
+      if(Math.abs(dx)+Math.abs(dy)>4)stage.dataset.worldDragging='true';
+      pointerX=bounded(drag.x+dx/300);pointerY=bounded(drag.y+dy/240);
+      invalidate();return;
+    }
     if(event.pointerType!=='mouse') return;
-    pointerX=(event.clientX/viewport.width-.5)*8;
-    pointerY=(event.clientY/viewport.height-.5)*4;
+    pointerX=bounded((event.clientX/viewport.width-.5)*2);
+    pointerY=bounded((event.clientY/viewport.height-.5)*2);
     invalidate();
   },{passive:true});
-  stage.addEventListener('pointerleave',()=>{pointerX=pointerY=0;invalidate();});
+  stage.addEventListener('pointerup',release);
+  stage.addEventListener('pointercancel',release);
+  stage.addEventListener('lostpointercapture',release);
+  stage.addEventListener('pointerleave',()=>{if(!drag){pointerX=pointerY=0;invalidate();}});
   return {
     resize() { viewport={width:innerWidth,height:innerHeight};nodes.forEach(node=>node.effects.resize());vines.resize(); },
     select(link) {
@@ -90,6 +115,8 @@ export function createWorkbench(stage,invalidate,readClock) {
     busy() { return moving || vines.busy(); },
     engaged() {return vines.busy() || nodes.some(node=>node.visible && (node.hover||node.focus));},
     render(seconds,strength,animate=true) {
+      enabled=animate;
+      if(!animate){release();pointerX=pointerY=0;}
       moving=false;
       vines.render(seconds,strength,animate);
       const gust=windAt(seconds)*strength;
@@ -128,9 +155,11 @@ export function createWorkbench(stage,invalidate,readClock) {
       if(Math.abs(x-targetX)>.05 || Math.abs(y-targetY)>.05)moving=true;
       if(animate && !moving && seconds-lastEnvironment<.9)return;
       lastEnvironment=seconds;
-      paint(far,'transform',`translate3d(${x+gust*.3}px,${y}px,0)`);
+      // One viewpoint, ascending depth response. Tree/contact are the fixed focal plane.
+      paint(far,'transform',`translate3d(${x*2}px,${y}px,0)`);
+      paint(near,'transform',`translate3d(${x*10}px,${y*5}px,0)`);
       if(mist) {
-        paint(mist,'transform',`translate3d(${x*.4+gust*2.5}px,${y*.3}px,0)`);
+        paint(mist,'transform',`translate3d(${x*6+gust*.6}px,${y*3}px,0)`);
         paint(mist,'opacity',.12+gust*.018);
       }
     }
