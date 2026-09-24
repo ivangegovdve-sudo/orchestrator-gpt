@@ -51,7 +51,7 @@ export function createWorkbench(stage,invalidate,readClock) {
     }
     if(holes.length) image.style.clipPath=`polygon(evenodd,0% 0%,100% 0%,100% 100%,0% 100%,0% 0%,${holes.join(',')})`;
     const effects=createPoolEffects(link.dataset.poolLink,art);
-    const node={link,art,effects,fragments,visible:true,hover:false,focus:false,selected:false,value:0,from:0,target:0,start:0};
+    const node={link,art,effects,fragments,visible:true,hover:false,focus:false,selected:false,held:false,hitStart:-Infinity,value:0,from:0,target:0,start:0};
     const update=()=>{
       node.from=node.value;node.target=node.selected ? 1 : node.hover || node.focus ? .28 : 0;
       node.start=readClock();invalidate();
@@ -61,6 +61,16 @@ export function createWorkbench(stage,invalidate,readClock) {
     link.addEventListener('pointerleave',()=>{node.hover=false;update();});
     link.addEventListener('focus',()=>{node.focus=true;update();});
     link.addEventListener('blur',()=>{node.focus=false;update();});
+    const release=()=>{if(node.held){node.held=false;invalidate();}};
+    link.addEventListener('pointerdown',event=>{
+      if(event.isPrimary && event.button===0){node.held=true;invalidate();}
+    });
+    link.addEventListener('pointercancel',()=>{node.hitStart=-Infinity;release();});
+    link.addEventListener('pointerleave',release);
+    document.addEventListener('pointerup',release);
+    link.addEventListener('keydown',event=>{if(event.key==='Enter'&&!event.repeat){node.held=true;invalidate();}});
+    link.addEventListener('keyup',release);
+    link.addEventListener('blur',release);
     node.update=update;return node;
   });
   const visiblePools=new IntersectionObserver(entries=>{
@@ -109,8 +119,12 @@ export function createWorkbench(stage,invalidate,readClock) {
     select(link) {
       for(const node of nodes) {
         const next=node.link===link;
-        if(next!==node.selected){node.selected=next;node.update();}
+        if(next!==node.selected){node.selected=next;if(!next)node.hitStart=-Infinity;node.update();}
       }
+    },
+    activate(link) {
+      const node=nodes.find(node=>node.link===link);
+      if(node){node.hitStart=readClock();invalidate();}
     },
     busy() { return moving || vines.busy(); },
     engaged() {return vines.busy() || nodes.some(node=>node.visible && (node.hover||node.focus));},
@@ -122,32 +136,37 @@ export function createWorkbench(stage,invalidate,readClock) {
       const gust=windAt(seconds)*strength;
       for(const node of nodes) {
         if(animate && !node.visible)continue;
+        if(!animate){node.held=false;node.hitStart=-Infinity;}
         const p=animate ? smooth((seconds-node.start)/.36) : 1;
         node.value=animate ? node.from+(node.target-node.from)*p : node.selected ? 1 : 0;
         if(p<1 && Math.abs(node.value-node.target)>.001) moving=true;
         const press=node.value, f=node.fragments;
-        const effect=node.effects.render(seconds,press,node.hover||node.focus,node.selected,animate);
-        paint(node.art,'transform',`translate3d(0,${press*3}px,0) scale(${1-press*.008})`);
+        const age=seconds-node.hitStart;
+        if(animate && (node.held||age<1.4))moving=true;
+        const effect=node.effects.render(seconds,press,node.hover||node.focus||node.selected,node.selected,animate,{age,held:node.held});
+        const ready=smooth(press/.28), hit=effect.hit;
+        const idle=animate?Math.sin(seconds*.8)*.35:0;
         const transform=(name,value)=>paint(f[name],'transform',value);
         const opacity=(name,value)=>paint(f[name],'opacity',value);
         switch(node.link.dataset.poolLink) {
           case 'ai-d-kit':
-            transform('lever',`perspective(450px) rotateX(${-press*32}deg) translateY(${press*3}px)`);
-            transform('flag',`perspective(500px) rotateY(${press<=.28 ? press*40 : 11.2+smooth((press-.28)/.72)*168.8}deg)`);break;
+            transform('lever',`perspective(450px) rotateX(${-ready*9-hit*27-idle}deg) translateY(${hit*1.8}px)`);
+            transform('flag',`perspective(500px) rotateY(${press<=.28 ? ready*12 : 12+smooth((press-.28)/.72)*168}deg) rotateZ(${hit*1.2}deg)`);break;
           case 'growingapp':
             ['seed','sapling','tree'].forEach((name,i)=>{
               const phase=(effect.phase/7-i*.21)%1;
-              const lift=animate?Math.max(0,Math.sin(phase*Math.PI*2))*.7:0;
-              opacity(name,.24+lift*.5+press*.25);
-              transform(name,`translateY(${-lift*(1+i)}px) scale(${1+lift*.012})`);
+              const grow=animate?Math.max(0,Math.sin(phase*Math.PI*2))*.55:0;
+              const step=animate?smooth((age-i*.13)/.06)*(1-smooth((age-i*.13-.15)/.35)):0;
+              opacity(name,.65+grow*.2+step*.15);
+              transform(name,`perspective(500px) rotateZ(${(grow-.2)*(i===0?3:i===1?-2:1.3)}deg) rotateY(${step*(i===0?12:5)}deg) translateY(${-grow*(1+i)-step*2}px) scale(${1+grow*.012+step*.035})`);
             });break;
           case 'tinkerbox':
-            transform('pin-left',`translateX(${-smooth(press*1.8)*12}px)`);
-            transform('pin-right',`translateX(${smooth((press-.12)*1.8)*12}px)`);
-            transform('lid',`perspective(500px) rotateX(${-smooth((press-.3)/.7)*12}deg) translateY(${smooth((press-.3)/.7)*3}px)`);break;
+            transform('pin-left',`translateX(${-ready*9-hit*2}px) rotateX(${ready*15+idle}deg)`);
+            transform('pin-right',`translateX(${smooth((press-.04)/.24)*9+hit*2}px) rotateX(${-ready*15-idle}deg)`);
+            transform('lid',`perspective(500px) rotateX(${-ready*2-smooth((press-.3)/.7)*8-hit*9}deg) translateY(${hit*.7}px)`);break;
           case 'design-gallery':
-            transform('shutter-left',`perspective(500px) rotateY(${-press*68}deg)`);
-            transform('shutter-right',`perspective(500px) rotateY(${press*68}deg)`);break;
+            transform('shutter-left',`perspective(500px) rotateY(${-ready*23-smooth((press-.28)/.72)*38-hit*7}deg)`);
+            transform('shutter-right',`perspective(500px) rotateY(${ready*20+smooth((press-.28)/.72)*41+hit*7}deg)`);break;
         }
       }
       const targetX=animate ? pointerX : 0,targetY=animate ? pointerY : 0;

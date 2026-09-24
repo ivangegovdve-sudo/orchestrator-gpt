@@ -1,5 +1,9 @@
 # Front-page interaction correction — BUTCHER, 2026-09-24
 
+Historical receipt. The [local motion and depth pass](frontpage-pool-polish-2026-09-24.md)
+supersedes this receipt's persistent selected flatline and shared housing press.
+Its vine, phone layout and tree-contact evidence remains historical evidence.
+
 ## Approved brief
 
 Ivan approved the correction in chat: stationary heartbeat deflections with a

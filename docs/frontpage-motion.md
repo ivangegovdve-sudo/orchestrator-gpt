@@ -1,5 +1,8 @@
 # Approved pool-motion pass — 2026-09-24
 
+Latest instrument behaviour: [local motion and depth pass](frontpage-pool-polish-2026-09-24.md).
+In particular, Health now goes flat only during a momentary press, not while selected.
+
 Historical receipt for merged #626. The [approved correction](frontpage-correction-2026-09-24.md)
 supersedes its scrolling ECG, decorative-only vines, ground treatment and phone
 thumbnail layout. Keep this record as evidence of that earlier pass, not the

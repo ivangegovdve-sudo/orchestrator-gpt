@@ -96,13 +96,113 @@ test('Health beats in place, returns to baseline, and goes flat when pressed', a
   await health.focus();
   await page.waitForTimeout(500);
   assert.equal(await health.getAttribute('data-effect-state'),'engaged');
-  await health.click();await page.waitForTimeout(500);
+  await health.hover();await page.mouse.down();await page.waitForTimeout(80);
   assert.equal(await opacity(page,'[data-ecg-wave]'),0);
   assert.equal(await opacity(page,'[data-ecg-flat]'),1);
-  const press=await health.locator('.portal-art').evaluate(e=>getComputedStyle(e).transform);
-  assert.notEqual(press,'none');
+  await page.mouse.up();await page.waitForTimeout(650);
+  assert.equal(await health.getAttribute('data-armed'),'true','selection survives the momentary click response');
+  assert.equal(await opacity(page,'[data-ecg-wave]'),1,'the selected instrument resumes beating instead of remaining flat');
+  assert.equal(await opacity(page,'[data-ecg-flat]'),0);
   await page.keyboard.press('Escape');await page.waitForTimeout(500);
   assert.equal(await opacity(page,'[data-ecg-flat]'),0);
+  await page.close();
+});
+
+test('pool housings stay planted while each local mechanism responds and has idle life', async () => {
+  const page=await pageAt('?frame=opened');
+  const ids=await page.locator('[data-pool-link]').evaluateAll(es=>es.map(e=>e.dataset.poolLink));
+  const localStyles=link=>link.locator('.workbench-part,.workbench-lid,.pool-instrument,.pool-instrument *').evaluateAll(es=>es.map(e=>e.getAttribute('style')));
+  for(const id of ids) {
+    const link=page.locator(`[data-pool-link="${id}"]`);
+    const art=link.locator('.portal-art');
+    const before=await art.boundingBox();
+    const idle=await localStyles(link);
+    await page.waitForTimeout(330);
+    assert.notDeepEqual(await localStyles(link),idle,`${id} needs its own visible idle mechanism`);
+    await link.hover();await page.waitForTimeout(420);
+    assert.deepEqual(await art.boundingBox(),before,`${id}: hover must not move the whole housing`);
+    const hovered=await localStyles(link);
+    await link.click();await page.waitForTimeout(90);
+    assert.notDeepEqual(await localStyles(link),hovered,`${id} must acknowledge the click inside the mechanism`);
+    assert.deepEqual(await art.boundingBox(),before,`${id}: click must not shrink or sink the whole housing`);
+    await page.keyboard.press('Escape');await page.mouse.move(960,100);await page.waitForTimeout(450);
+  }
+  await page.close();
+});
+
+test('a neuron receives an arriving impulse before passing activity to the next cell', async () => {
+  const page=await pageAt('?frame=opened');
+  const circuit=await page.evaluate(async()=>{
+    const module=await import('/web/shared/frontpage-pool-effects.mjs');
+    if(typeof module.sampleNeuralCircuit!=='function')return null;
+    return [0,.15,.4,.55,.8,1.3].map(age=>module.sampleNeuralCircuit(age));
+  });
+  assert.ok(circuit,'the rendered neural circuit must have a causal firing sample');
+  assert.ok(circuit[0].cores[0]>.7 && circuit[0].cores[1]<.1,'only the initiating cell fires first');
+  assert.ok(circuit[1].travel[0]>0 && circuit[1].travel[0]<1,'impulse travels before arrival');
+  assert.ok(circuit[2].cores[1]>.7 && circuit[2].cores[2]<.1,'middle cell receives before last cell');
+  assert.ok(circuit[3].travel[1]>0 && circuit[3].travel[1]<1);
+  assert.ok(circuit[4].cores[2]>.7,'last cell responds to its incoming impulse');
+  assert.ok(circuit[5].cores.every(value=>value<.1),'the firing event dissipates rather than holding every cell on');
+  await page.close();
+});
+
+test('the click cascade reaches the final neuron within the entry acknowledgement', async () => {
+  const page=await pageAt('?frame=opened');
+  const peaks=await page.evaluate(async()=>{
+    const {createPoolEffects}=await import('/web/shared/frontpage-pool-effects.mjs');
+    const art=document.createElement('span');
+    const effects=createPoolEffects('artificial-self',art);
+    const peaks=[0,0,0];
+    for(let age=0;age<=.35;age+=.01){
+      effects.render(age,1,true,true,true,{age,held:false});
+      [...art.querySelectorAll('[data-neural-core]')].forEach((e,i)=>peaks[i]=Math.max(peaks[i],Number(e.style.opacity)));
+    }
+    return peaks;
+  });
+  assert.ok(peaks.every(value=>value>.7),`the last cell must fire before navigation, peaks=${peaks}`);
+  await page.close();
+});
+
+test('reduced motion during confirmation opens the requested route without waiting on a stopped clock', async () => {
+  const page=await pageAt('?frame=opened');
+  const link=page.locator('[data-pool-link="ai-d-kit"]');
+  await link.click();await page.waitForTimeout(650);await link.click();
+  await page.emulateMedia({reducedMotion:'reduce'});
+  await page.waitForURL(base+'/web/pools/ai-d-kit/');
+  await page.close();
+});
+
+test('press cancellation never arms a pool and reduced motion cancels local click motion', async () => {
+  const page=await ambientPage();
+  const health=page.locator('[data-pool-link="health"]');
+  await health.hover();await page.mouse.down();await page.waitForTimeout(100);
+  assert.equal(await opacity(page,'[data-ecg-flat]'),1);
+  await health.dispatchEvent('pointercancel',{pointerId:1,pointerType:'mouse'});
+  await page.mouse.move(960,100);await page.mouse.up();await page.waitForTimeout(300);
+  assert.equal(await health.getAttribute('data-armed'),null);
+  assert.equal(await opacity(page,'[data-ecg-flat]'),0);
+  await health.click();await page.emulateMedia({reducedMotion:'reduce'});
+  await page.waitForTimeout(100);
+  const styles=()=>page.locator('.pool-instrument,.pool-instrument *, .workbench-part').evaluateAll(es=>es.map(e=>e.getAttribute('style')));
+  const still=await styles();await page.waitForTimeout(450);
+  assert.deepEqual(await styles(),still);
+  assert.equal(await page.evaluate(()=>frameProbe.pending()),0);
+  await page.close();
+});
+
+test('confirmed entry shows the local click response before navigation and Escape can cancel it', async () => {
+  const page=await pageAt('?frame=opened');
+  const link=page.locator('[data-pool-link="health"]');
+  await link.click();await page.waitForTimeout(650);
+  await link.click();
+  assert.ok(page.url().endsWith('?frame=opened'),'the confirmation must be visible before leaving');
+  await page.waitForTimeout(60);
+  assert.equal(await opacity(page,'[data-ecg-flat]'),1,'the second click also performs the instrument response');
+  await page.keyboard.press('Escape');await page.waitForTimeout(500);
+  assert.ok(page.url().endsWith('?frame=opened'),'Escape must cancel a pending entry');
+  await link.press('Enter');await link.press('Enter');
+  await page.waitForURL(base+'/web/pools/health/');
   await page.close();
 });
 
@@ -112,12 +212,19 @@ test('Artificial Self carries impulses along distinct wires instead of blinking 
   const impulses=link.locator('[data-neural-impulse]');
   assert.ok(await impulses.count()>=3,'independent wire-following impulse heads');
   await link.hover();await page.waitForTimeout(500);
+  await page.evaluate(()=>{
+    window.neuralPeaks=[];
+    const cores=[...document.querySelectorAll('[data-neural-core]')];
+    new MutationObserver(()=>neuralPeaks.push(cores.map(e=>Number(e.style.opacity))))
+      .observe(document.querySelector('.neural-instrument'),{subtree:true,attributes:true,attributeFilter:['style']});
+  });
+  await link.click();
   const start=await impulses.evaluateAll(es=>es.map(e=>e.style.transform));
   await page.waitForTimeout(180);
   assert.notDeepEqual(await impulses.evaluateAll(es=>es.map(e=>e.style.transform)),start);
-  await link.click();await page.waitForTimeout(100);
   assert.equal(await link.getAttribute('data-effect-state'),'selected');
-  assert.ok(await link.locator('[data-neural-core]').evaluateAll(es=>es.some(e=>Number(e.style.opacity)>.65)));
+  await page.waitForTimeout(750);
+  assert.ok(await page.evaluate(()=>neuralPeaks.some(row=>row.some(value=>value>.65))),'a real firing peak must occur, not a permanently bright selected state');
   await page.close();
 });
 
@@ -321,11 +428,15 @@ test('a visible phone pool keeps its idle life after the tree scrolls out of vie
   await link.scrollIntoViewIfNeeded();
   await page.waitForTimeout(500);
   assert.ok(await page.locator('.resolve-tree').evaluate(e=>e.getBoundingClientRect().bottom<0));
-  const signal=link.locator('[data-neural-impulse]').first();
-  const before=await signal.getAttribute('style');
-  const samples=[];
-  for(let i=0;i<8;i++){await page.waitForTimeout(500);samples.push(await signal.getAttribute('style'));}
-  assert.ok(samples.some(s=>s!==before),'visibility follows the scene, not only the tree; sparse impulses have a resting interval');
+  await link.locator('[data-neural-impulse]').first().evaluate(signal=>{
+    window.visibleIdleMotion=false;
+    const before=signal.getAttribute('style');
+    new MutationObserver(()=>{if(signal.getAttribute('style')!==before)window.visibleIdleMotion=true;})
+      .observe(signal,{attributes:true,attributeFilter:['style']});
+  });
+  // Observe the full sparse firing cycle: half-second snapshots can alias away
+  // a fast impulse even while it visibly travels between those snapshots.
+  await page.waitForFunction(()=>window.visibleIdleMotion===true,{},{timeout:6500});
   await page.close();
 });
 

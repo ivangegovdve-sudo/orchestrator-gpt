@@ -18,6 +18,7 @@ const timings = { field:[.05,.6], title:[.18,.95], brand:[.3,.9], portfolio:[3.6
 const feedback = document.querySelector('button[aria-label="Send feedback"]');
 if (feedback) document.querySelector('.resolve-history').append(feedback);
 let selected = null;
+let pendingEntry = null;
 let current = 5;
 let scrub = !reduced.matches && !frame && !location.hash && scrollY === 0;
 const ambient = createAmbient(stage);
@@ -47,6 +48,12 @@ function invalidateWorkbench() {
 function canInteract() {
   return current >= 4.4 && !reduced.matches && !paused && !document.hidden && onScreen;
 }
+function finishEntry() {
+  if(!pendingEntry)return;
+  const destination=pendingEntry.link.href;
+  pendingEntry=null;
+  location.assign(destination);
+}
 
 function measureSettings() {
   runway = parseFloat(getComputedStyle(stage.parentElement).paddingBottom) || innerHeight * 1.25;
@@ -70,8 +77,10 @@ function syncMotion() {
   if (!canInteract()) {
     workbench.render(elapsed,0,false);
     interactionDirty = false;
+    // A stopped clock must not strand an already-confirmed navigation.
+    finishEntry();
   }
-  const interacting = canInteract() && (interactionDirty || workbench.busy());
+  const interacting = canInteract() && (interactionDirty || workbench.busy() || pendingEntry);
   if (!running && !interacting) lastStamp = null;
   if (document.hidden || (!running && !dirtyScroll && !interacting)) {
     if (frameId) cancelAnimationFrame(frameId);
@@ -92,11 +101,12 @@ function tick(stamp) {
     ambient.reveal(current);
     syncMotion();
   }
-  const interacting = canInteract() && (interactionDirty || workbench.busy());
+  const interacting = canInteract() && (interactionDirty || workbench.busy() || pendingEntry);
   if (running || interacting) {
     // Hold time while paused/offscreen; a delayed frame cannot produce a gust jump.
     if (lastStamp !== null) elapsed += Math.min((stamp - lastStamp) / 1000,.8);
     lastStamp = stamp;
+    if(pendingEntry && elapsed-pendingEntry.start>=.36)finishEntry();
     // Slow air and fast instruments share one clock, at distinct sample rates.
     if (running && stamp - lastPaint >= idleSampleMs) {
       ambient.render(elapsed,strength);
@@ -125,6 +135,7 @@ function expose(element, progress) {
   element.inert = progress < 1;
 }
 function closeSelection() {
+  pendingEntry = null;
   selected?.classList.remove('is-selected');
   selected?.removeAttribute('aria-describedby');
   selected?.removeAttribute('data-armed');
@@ -213,7 +224,13 @@ directory.addEventListener('click',event => {
   event.preventDefault();
   // A physical double-click is one selection gesture, never a shortcut into a pool.
   if (event.detail > 1) return;
-  if (selected === link) { location.assign(link.href); return; }
+  if (selected === link) {
+    if(pendingEntry)return;
+    pendingEntry={link,start:elapsed};
+    workbench.activate(link);
+    syncMotion();
+    return;
+  }
   closeSelection();
   selected = link;
   selected.classList.add('is-selected');
@@ -221,6 +238,7 @@ directory.addEventListener('click',event => {
   selected.setAttribute('aria-describedby','workbench-status');
   status.textContent = `${link.querySelector('.portal-name').textContent} selected. Press again to open; Escape cancels.`;
   workbench.select(link);
+  workbench.activate(link);
 });
 directory.addEventListener('keydown',event => { if (event.key === 'Enter' && event.repeat) event.preventDefault(); });
 document.addEventListener('keydown',event => { if (event.key === 'Escape') { const prior = selected; closeSelection(); prior?.focus(); } });
