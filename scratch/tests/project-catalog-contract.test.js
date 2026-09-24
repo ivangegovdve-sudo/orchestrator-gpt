@@ -89,7 +89,7 @@ test('owners account for every copied HTML page independently of navigation', as
       }
     }
   }
-  assert.equal(files.length, 77, 'the inspected static HTML boundary includes seven canonical pool pages and two AI-d kit subpages');
+  assert.equal(files.length, 78, 'the inspected static HTML boundary includes seven canonical pool pages and two AI-d kit subpages');
   assert.equal(new Set(ROUTE_OWNERS.map(({ id }) => id)).size, ROUTE_OWNERS.length);
   for (const file of files) {
     const route = `/${file}`.replace(/index\.html$/, '');

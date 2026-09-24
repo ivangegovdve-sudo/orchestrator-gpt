@@ -285,6 +285,10 @@ const projectRecords = [
     relationships: [{ type: 'incorporates', route: '/web/code-search/' }, { type: 'incorporates', route: '/web/repos/' }],
     sources: ['web/explore/index.html', 'web/code-search/index.html', 'web/repos/index.html', MASTER],
   }),
+  project('platform-guide', 'Platform Guide', {
+    pool: 'AI-d kit', classification: 'assigned', status: 'Live', rank: { 'AI-d kit': 7 }, visibility: publicShell,
+    sources: ['web/platform-guide/index.html', MASTER],
+  }),
   project('kids-movie-library', 'Kids Library', {
     pool: 'GrowingApp', classification: 'assigned', status: 'In development', rank: { GrowingApp: 4 }, visibility: publicShell,
     sections: [{ id: 'movies', name: 'Movies' }, { id: 'books', name: 'Books' }],
@@ -357,6 +361,7 @@ export const ROUTE_OWNERS = deepFreeze([
   owner('c2c-self', ['/web/c2c-self/']),
   owner('fleet-board', ['/web/fleet/', '/web/board/'], { role: 'internal' }),
   owner('ai-research', ['/web/ai-research/']),
+  owner('platform-guide', ['/web/platform-guide/'], { visibility: { ...publicShell, publicSurface: 'public-reference-only' } }),
   owner('library', ['/web/library/', '/web/library/glossary/', '/web/library/platform/'], { visibility: { ...publicShell, publicSurface: 'public-reference-only' } }),
   owner('library-workspace', ['/web/library/rag.html'], { projectId: 'library', role: 'child' }),
   owner('library-repos', ['/web/library/repos/'], { projectId: 'library', role: 'child', visibility: internalDocumentation }),

@@ -25,6 +25,7 @@ export const ROUTE_INVENTORY = Object.freeze([
   // prerender stays false: the page is a thin shell that fetches a 225 KB
   // repos-data.json on load, so prerendering buys nothing and costs the payload.
   { id: 'explore', href: '/web/explore/', state: 'hub-trail', parent: 'forest-hub', placement: 'Signals & Systems', prefetch: true, prerender: false, label: 'Explore Repos', trailId: 'signals', connectionIds: ['library', 'open-dashboard', 'ai-research'] },
+  { id: 'platform-guide', href: '/web/platform-guide/', state: 'main-atlas', parent: 'forest-hub', placement: 'Signals & Systems', prefetch: true, prerender: false, label: 'Platform Guide', trailId: 'signals', connectionIds: ['library', 'open-dashboard', 'explore'] },
   { id: 'kids-movie-library', href: '/movies/', state: 'hub-trail', parent: 'kids', placement: 'Wonder Path', prefetch: true, prerender: false, label: 'Kids Movie Library', trailId: 'wonder', connectionIds: ['kids', 'math-mania', 'manifesto-newborn'] },
   { id: 'math-mania', href: '/web/math-mania/', state: 'hub-trail', parent: 'kids', placement: 'Wonder Path', prefetch: true, prerender: false, label: 'Math Mania', trailId: 'wonder', connectionIds: ['kids', 'kids-movie-library', 'power-law-odyssey'] },
   { id: 'upload', href: '/web/upload/', state: 'hub-trail', parent: 'forest-hub', placement: 'Signals & Systems', prefetch: true, prerender: false, label: 'Knowledge Ingest', trailId: 'signals', connectionIds: ['library', 'ai-research', 'council'] },
@@ -37,7 +38,7 @@ export const ROUTE_INVENTORY = Object.freeze([
 ]);
 
 export const FOREST_TRAIL_ROUTE_IDS = Object.freeze([
-  'morning-news', 'library', 'open-dashboard', 'explore', 'council', 'ai-research',
+  'morning-news', 'library', 'open-dashboard', 'explore', 'platform-guide', 'council', 'ai-research',
   'c2c-dolphin', 'c2c-self', 'avatar-playground', 'life-in-time',
   'womens-health-os', 'hypertrophyos', 'calendar', 'kids', 'math-mania',
   'kids-movie-library', 'math-forest', 'mendeleev-bg', 'vfx-portfolio',

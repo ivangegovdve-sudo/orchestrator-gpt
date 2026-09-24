@@ -1,0 +1,82 @@
+[
+  {
+    "name": "LangGraph",
+    "url": "https://langchain-ai.github.io/langgraph/",
+    "note": "The right way to build stateful multi-actor applications.",
+    "good": "Cyclic graphs allow true agent loops. State management is explicit and clear.",
+    "bad": "Documentation is dense. Overkill for simple linear chains.",
+    "price": "Free (Open source). LangSmith is paid.",
+    "last_verified": "2024-05-10",
+    "expiry": null
+  },
+  {
+    "name": "Autogen",
+    "url": "https://microsoft.github.io/autogen/",
+    "note": "Microsoft's multi-agent conversational framework.",
+    "good": "Agents talking to agents works surprisingly well out of the box. Good code execution sandbox.",
+    "bad": "Highly unpredictable. Agents often get stuck in infinite loops agreeing with each other.",
+    "price": "Free (Open source).",
+    "last_verified": "2024-04-20",
+    "expiry": null
+  },
+  {
+    "name": "CrewAI",
+    "url": "https://www.crewai.com/",
+    "note": "The easiest way to orchestrate role-playing agents.",
+    "good": "Very readable syntax. Delegating tasks between agents feels natural.",
+    "bad": "Under the hood it's just heavy prompt engineering on LangChain. Can be slow and tokens-expensive.",
+    "price": "Free (Open source).",
+    "last_verified": "2024-05-15",
+    "expiry": null
+  },
+  {
+    "name": "Rivet",
+    "url": "https://rivet.ironcladapp.com/",
+    "note": "Visual node-based orchestration that actually outputs usable code.",
+    "good": "Excellent visual debugger. The node graph translates directly to a deployable TS package.",
+    "bad": "Visual programming eventually hits a complexity wall. Not ideal for highly dynamic cycles.",
+    "price": "Free (Open source).",
+    "last_verified": "2024-03-10",
+    "expiry": null
+  },
+  {
+    "name": "Flowise",
+    "url": "https://flowiseai.com/",
+    "note": "The Zapier of LLM orchestration.",
+    "good": "Drag and drop interface. Incredibly easy to prototype.",
+    "bad": "Hard to version control the JSON graphs. Debugging complex logic visually is a nightmare.",
+    "price": "Free (Open source). Cloud hosting available.",
+    "last_verified": "2024-02-15",
+    "expiry": null
+  },
+  {
+    "name": "BentoML",
+    "url": "https://www.bentoml.com/",
+    "note": "Best for orchestrating the actual models, not the prompts.",
+    "good": "Great for composing multiple custom models (e.g., YOLO + Whisper + LLM) into one API.",
+    "bad": "Heavy infrastructure requirement. Not focused on 'agent' logic.",
+    "price": "Free (Open source). Cloud pricing available.",
+    "last_verified": "2024-05-01",
+    "expiry": null
+  },
+  {
+    "name": "Promptflow (Microsoft)",
+    "url": "https://microsoft.github.io/promptflow/",
+    "note": "Enterprise grade flow orchestration.",
+    "good": "Excellent integration with VS Code. Strong focus on evaluation and testing flows.",
+    "bad": "Tied heavily to Azure ecosystem mentally, even if it can run locally. Verbose.",
+    "price": "Free (Open source).",
+    "last_verified": "2023-11-20",
+    "expiry": null
+  },
+  {
+    "name": "ControlFlow",
+    "url": "https://controlflow.ai/",
+    "note": "Task-oriented orchestration by the Prefect team.",
+    "good": "Treats AI tasks like engineering pipelines. Highly structured and typed.",
+    "bad": "Newer framework, smaller community. Python only.",
+    "price": "Free (Open source).",
+    "last_verified": "2024-05-22",
+    "expiry": null
+  }
+]
