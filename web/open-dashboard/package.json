@@ -5,3 +5,4 @@
     "test": "node --test open-dashboard.test.js explorer-data.test.js evidence-charts.test.js chart-variants.test.js overview-data.test.js setup.test.js npm-releases.test.js mcp-package-agreement.test.js scripts/refresh-media.test.mjs scripts/refresh-public-catalogue.test.mjs github/projects.test.js"
   }
 }
+
