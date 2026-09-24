@@ -1,277 +1,508 @@
 /*
- * Pool shell — an extension of the homepage's dusk-forest system.
+ * Pool pages — clearings inside the homepage's night forest.
  *
- * The source of truth for the palette, typography, rhythm and motion tokens is
- * forest-design.css. This file only composes those existing tokens around the
- * catalog-backed pool content; it does not introduce a second design system.
+ * The homepage's discipline, not its layout: one type voice (Cormorant display,
+ * Alegreya reading text, Alegreya Sans only for small wayfinding labels), one
+ * palette (indigo woodland night, parchment ink, one lantern colour per pool),
+ * one rhythm (--pool-step). Tokens come from forest-design.css; the woodland
+ * and mist are the homepage's own artwork layers.
+ *
+ * Every pool shares the order threshold → pool prose → ledger → listing. What
+ * differs is the composition of the threshold and the shape of its "Start here"
+ * doors, keyed off data-pool-id at the bottom of this file.
  */
 
 *, *::before, *::after { box-sizing: border-box; }
 
-body.pool-page {
+:root:has(body.pool-page) {
   --pool-accent: var(--forest-moss);
   --pool-accent-2: var(--forest-amber);
-  --pool-enter-shift: 18px;
-  --pool-enter-tilt: 0deg;
-  --pool-enter-duration: var(--duration-hero);
+  --pool-glow-x: 50%;
+}
+
+body.pool-page {
+  --pool-ink: #f2efe4;
+  --pool-soft: #c9cfc2;
+  --pool-muted: #98a092;
+  --pool-line: rgba(226, 235, 209, .14);
+  --pool-night: #07070b;
+  --pool-panel: rgba(12, 14, 22, .74);
+  --pool-step: clamp(16px, 2.2vw, 24px);
+  --pool-measure: 40rem;
+  --pool-width: min(1120px, calc(100% - 32px));
   margin: 0;
   min-height: 100vh;
   overflow-x: hidden;
-  background:
-    radial-gradient(ellipse 75% 36% at 50% -4%, color-mix(in srgb, var(--pool-accent) 13%, transparent), transparent 72%),
-    radial-gradient(ellipse 55% 32% at 94% 24%, color-mix(in srgb, var(--pool-accent-2) 9%, transparent), transparent 74%),
-    var(--home-bg);
-  color: var(--home-ink);
-  font: 1rem/1.55 var(--home-body);
+  background: transparent;
+  color: var(--pool-ink);
+  font: 1.0625rem/1.6 var(--forest-body);
   -webkit-font-smoothing: antialiased;
 }
 
-/* The shared WebGL/point-field motif uses the existing Forest runtime. A pool
- * shell only adjusts its opacity; mode-specific geometry comes from
- * forest-themes.mjs. */
-.pool-page .forest-scene { opacity: .5; mix-blend-mode: screen; }
-.pool-page .forest-scrim {
+/* The woodland: the indigo valley behind the homepage tree, lit by the pool's
+ * lantern and fading into night before the listing begins. It is painted on the
+ * root because the forest skin already owns body::before (vignette) and
+ * body::after (grain). */
+:root:has(body.pool-page) {
+  --pool-woodland-h: max(118vh, 880px);
   background:
-    linear-gradient(180deg, rgba(5, 8, 6, .05), rgba(5, 8, 6, .5)),
-    radial-gradient(circle at 50% 24%, transparent 0 25%, rgba(5, 8, 6, .42) 78%);
+    radial-gradient(ellipse 58% 42% at var(--pool-glow-x) 6%, color-mix(in srgb, var(--pool-accent) 26%, transparent), transparent 72%) 0 0 / 100% var(--pool-woodland-h) no-repeat,
+    linear-gradient(180deg, rgba(7, 7, 11, .18) 0%, rgba(7, 7, 11, .42) 36%, rgba(7, 7, 11, .88) 74%, #07070b 100%) 0 0 / 100% var(--pool-woodland-h) no-repeat,
+    url('/web/assets/sdforest-workbench/woodland.webp') center 0 / auto var(--pool-woodland-h) no-repeat,
+    #07070b;
+}
+@media (min-aspect-ratio: 1672/1060) {
+  :root:has(body.pool-page) { background-size: 100% var(--pool-woodland-h), 100% var(--pool-woodland-h), 100% auto, auto; }
 }
 
+/* The shared Forest runtime point-field stays, quieter: it is air, not scenery. */
+.pool-page .forest-scene { opacity: .32; mix-blend-mode: screen; }
+
+/* Mist is the one ambient motion. Reduced motion rests it at a composed offset. */
+.pool-page .forest-scrim {
+  inset: -4% -8%;
+  background: url('/web/assets/sdforest-workbench/mist.webp') center / cover no-repeat;
+  opacity: .13;
+  mix-blend-mode: screen;
+  animation: pool-mist 96s var(--ease-in-out) infinite alternate;
+}
+@keyframes pool-mist {
+  from { transform: translate3d(-3.5%, 0, 0); }
+  to { transform: translate3d(3.5%, -1%, 0); }
+}
+
+/* ---------- Wayfinding ---------- */
 .pool-page > header {
-  position: relative;
-  z-index: 4;
-  width: min(1180px, calc(100% - 32px));
+  width: var(--pool-width);
   margin: 0 auto;
-  padding-top: 14px;
+  padding-top: 16px;
 }
 .pool-page > header a {
   display: inline-flex;
   align-items: center;
-  min-height: 42px;
-  gap: .55rem;
-  padding: 0 .9rem;
-  border: 1px solid var(--forest-line);
+  min-height: 44px;
+  gap: .6rem;
+  padding: 0 1rem;
+  border: 1px solid var(--pool-line);
   border-radius: 999px;
-  background: rgba(5, 10, 7, .7);
-  color: var(--forest-soft);
-  font: 500 11px/1 var(--forest-sans);
+  background: rgba(7, 7, 11, .55);
+  color: var(--pool-soft);
+  font: 500 .72rem/1 var(--forest-sans);
   letter-spacing: .16em;
   text-decoration: none;
   text-transform: uppercase;
-  backdrop-filter: blur(16px);
-  transition: color var(--duration-fast) var(--ease-out), border-color var(--duration-fast) var(--ease-out), background var(--duration-fast) var(--ease-out);
+  backdrop-filter: blur(14px);
+  transition: color var(--duration-fast) var(--ease-out), border-color var(--duration-fast) var(--ease-out);
 }
-.pool-page > header a::before { content: "↙"; color: var(--pool-accent); font-size: 15px; transform: rotate(45deg); }
-.pool-page > header a:hover {
-  border-color: color-mix(in srgb, var(--pool-accent) 55%, transparent);
-  background: color-mix(in srgb, var(--pool-accent) 11%, rgba(5, 10, 7, .7));
-  color: var(--forest-ink);
-}
+.pool-page > header a::before { content: "←"; color: var(--pool-accent); font-size: 1rem; letter-spacing: 0; }
+.pool-page > header a:hover { border-color: color-mix(in srgb, var(--pool-accent) 60%, transparent); color: var(--pool-ink); }
 
-.pool-page main {
-  position: relative;
-  z-index: 2;
-  width: min(1180px, calc(100% - 32px));
-  margin: 0 auto;
-  padding: clamp(18px, 3vw, 32px) 0 76px;
-}
-.pool-page main::before {
-  content: "";
-  position: absolute;
-  z-index: -1;
-  top: 0;
-  left: 12%;
-  width: 76%;
-  height: 270px;
-  pointer-events: none;
-  background: radial-gradient(ellipse at 50% 0, color-mix(in srgb, var(--pool-accent) 12%, transparent), transparent 70%);
-  filter: blur(16px);
-  opacity: .75;
-}
+.pool-page a { color: var(--pool-accent-2); text-decoration-thickness: 1px; text-underline-offset: .22em; }
+.pool-page a:hover { color: var(--pool-ink); }
+.pool-page :focus-visible { outline: 2px solid var(--pool-accent); outline-offset: 4px; border-radius: 4px; }
+.pool-page [hidden] { display: none !important; }
 
-.pool-page h1 {
-  max-width: 14ch;
-  margin: 0 0 .65rem;
-  color: var(--forest-ink);
-  font: 600 clamp(3rem, 5vw, 5rem)/.94 var(--forest-display);
-  letter-spacing: .005em;
-  text-wrap: balance;
-  text-shadow: 0 10px 42px color-mix(in srgb, var(--pool-accent) 22%, transparent);
-  animation: pool-title-enter var(--pool-enter-duration) var(--ease-out) both;
-}
-@keyframes pool-title-enter {
-  from { opacity: 0; transform: translate3d(0, var(--pool-enter-shift), 0) rotate(var(--pool-enter-tilt)) scale(.97); filter: blur(8px); }
-  to { opacity: 1; transform: none; filter: none; }
-}
-
-.pool-page main > section { margin-block: .85rem; }
-.pool-page main > section > h2 {
-  margin: 0 0 .45rem;
-  color: var(--forest-ink);
-  font: 600 clamp(1.35rem, 2.4vw, 1.9rem)/1.1 var(--forest-display);
-}
-.pool-page main > section > p { margin-block: .25rem; color: var(--forest-soft); }
-
-/* Semantic label retained for no-script and assistive-technology readers;
- * visual composition is led by the catalog summary rather than a form title. */
-.pool-page [data-pool-overview] > #pool-overview-title {
+/* Retained for assistive technology and no-script readers; the visible
+ * composition carries the same meaning without a form-like label. */
+.pool-page [data-pool-overview] > #pool-overview-title,
+.pool-page .pool-name,
+.pool-page .pool-guide-label,
+.pool-page .pool-door-sep {
   position: absolute;
   width: 1px;
   height: 1px;
-  padding: 0;
   margin: -1px;
+  padding: 0;
   overflow: hidden;
   clip: rect(0, 0, 0, 0);
   white-space: nowrap;
   border: 0;
 }
+
+/* ---------- Threshold: the first screen ---------- */
+.pool-page main {
+  width: var(--pool-width);
+  margin: 0 auto;
+  padding: calc(var(--pool-step) * 1.5) 0 calc(var(--pool-step) * 4);
+}
+
+.pool-page .pool-emblem {
+  display: block;
+  width: clamp(220px, 30vw, 400px);
+  height: auto;
+  margin: 0 0 calc(var(--pool-step) * .5) -2%;
+  filter: drop-shadow(0 18px 38px rgba(0, 0, 0, .55)) drop-shadow(0 0 42px color-mix(in srgb, var(--pool-accent) 22%, transparent));
+  animation: pool-arrive 1100ms var(--ease-out) both;
+}
+
+.pool-page h1 {
+  max-width: 12ch;
+  margin: 0;
+  color: var(--pool-ink);
+  font: 500 clamp(3.2rem, 7.4vw, 6.2rem)/.9 var(--forest-display);
+  letter-spacing: -.035em;
+  text-wrap: balance;
+  text-shadow: 0 12px 48px rgba(0, 0, 0, .6), 0 0 60px color-mix(in srgb, var(--pool-accent) 20%, transparent);
+  animation: pool-arrive 900ms var(--ease-out) 120ms both;
+}
+.pool-page [data-pool-overview] { animation: pool-arrive 900ms var(--ease-out) 260ms both; }
+@keyframes pool-arrive {
+  from { opacity: 0; transform: translate3d(0, 14px, 0); filter: blur(6px); }
+  to { opacity: 1; transform: none; filter: none; }
+}
+
 .pool-page .pool-state {
   display: inline-flex;
   align-items: center;
   gap: .55rem;
-  margin: 0 0 .15rem;
+  margin: var(--pool-step) 0 0;
   color: var(--pool-accent);
-  font: 500 11px/1 var(--forest-sans);
-  letter-spacing: .22em;
+  font: 500 .7rem/1 var(--forest-sans);
+  letter-spacing: .24em;
   text-transform: uppercase;
 }
-.pool-page .pool-state::before { content: ""; width: 7px; height: 7px; border: 1px solid currentColor; border-radius: 50%; box-shadow: 0 0 14px currentColor; }
+.pool-page .pool-state::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; box-shadow: 0 0 12px currentColor; }
 
-/* The h1 already carries the public pool name; keep the catalog assertion in
- * the DOM for contract tests and no-script readers without repeating it as a
- * second visible title. */
-.pool-page .pool-name {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
+.pool-page .pool-summary {
+  max-width: 34ch;
+  margin: calc(var(--pool-step) * .35) 0 0;
+  text-wrap: balance;
+  color: color-mix(in srgb, var(--pool-ink) 82%, var(--pool-accent));
+  font: italic 400 clamp(1.45rem, 2.6vw, 2rem)/1.2 var(--forest-display);
+  letter-spacing: .005em;
 }
-.pool-page .pool-summary { max-width: 44rem; margin: .25rem 0 1.15rem; color: var(--forest-soft); font-size: clamp(1.1rem, 2vw, 1.35rem); line-height: 1.35; }
 
-.pool-page .pool-guide {
+.pool-page .pool-guide { margin-top: calc(var(--pool-step) * 1.25); }
+.pool-page .pool-guide-block--purpose p,
+.pool-page .pool-guide-block--why p { max-width: var(--pool-measure); margin: 0; }
+.pool-page .pool-guide-block--purpose p { color: var(--pool-ink); font-size: clamp(1.1rem, 1.5vw, 1.22rem); line-height: 1.55; }
+.pool-page .pool-guide-block--why p { margin-top: .4rem; color: var(--pool-soft); }
+
+/* Start here: the pool's doors. */
+.pool-page .pool-guide-block--start { margin-top: calc(var(--pool-step) * 1.5); }
+.pool-page .pool-guide-block--start > h3 {
+  margin: 0 0 calc(var(--pool-step) * .6);
+  color: var(--pool-accent);
+  font: 500 .7rem/1 var(--forest-sans);
+  letter-spacing: .24em;
+  text-transform: uppercase;
+}
+.pool-page .pool-start-here {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: .9rem 1.6rem;
-  margin-block: .75rem .9rem;
-  padding: .8rem 0 .85rem;
-  border-block: 1px solid var(--forest-line);
-  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--pool-accent) 5%, transparent) 48%, transparent);
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr));
+  gap: calc(var(--pool-step) * .6);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: door;
 }
-.pool-page .pool-guide-block { min-width: 0; }
-.pool-page .pool-guide h3,
-.pool-page .pool-reality h4 { margin: 0 0 .35rem; color: var(--pool-accent); font: 500 10px/1.2 var(--forest-sans); letter-spacing: .18em; text-transform: uppercase; }
-.pool-page .pool-guide p { margin: 0; color: var(--forest-soft); line-height: 1.45; }
-.pool-page .pool-guide ul { margin: 0; padding-left: 1.1rem; }
-.pool-page .pool-guide-block--start,
-.pool-page .pool-reality-note,
-.pool-page .pool-reality-grid { grid-column: 1 / -1; }
-.pool-page .pool-start-here { display: flex; flex-wrap: wrap; gap: .15rem 1.4rem; }
-.pool-page .pool-start-here li { flex: 1 1 15rem; margin-block: .1rem; line-height: 1.35; }
-.pool-page .pool-reality-note { margin: 0; color: var(--forest-muted); font-size: .82rem; font-style: italic; }
-.pool-page .pool-reality-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .8rem; }
-.pool-page .pool-reality { min-width: 0; padding: .55rem .75rem; border-left: 2px solid color-mix(in srgb, var(--pool-accent) 65%, transparent); background: rgba(255, 255, 255, .025); }
-.pool-page .pool-reality ul { display: flex; flex-wrap: wrap; gap: .1rem .9rem; margin: 0; padding-left: 1.1rem; color: var(--forest-soft); }
-.pool-page .pool-reality li { flex: 1 1 11rem; margin-block: 0; line-height: 1.35; }
-.pool-page .pool-state,
-.pool-page .pool-name,
-.pool-page .pool-summary,
-.pool-page .pool-catalog-count,
-.pool-page .pool-readiness-summary { margin-block: .2rem; }
-
-.pool-page a { color: var(--pool-accent-2); text-underline-offset: .2em; }
-.pool-page a:hover { color: var(--pool-accent); }
-.pool-page :focus-visible { outline: 3px solid var(--focus-ring); outline-offset: 4px; }
-.pool-page [hidden] { display: none !important; }
-.pool-page .pool-catalog-count { color: var(--forest-muted); font-size: .85rem; }
-.pool-page .pool-readiness-summary { display: inline-block; padding-left: .7rem; border-left: 2px solid var(--pool-accent); color: var(--forest-soft); font: 500 .83rem/1.3 var(--forest-sans); }
-
-.pool-page .pool-project-group { margin-block: 1.5rem 1.7rem; }
-.pool-page .pool-project-group > h3 { margin: 0 0 .5rem; color: var(--forest-muted); font: 500 10px/1 var(--forest-sans); letter-spacing: .22em; text-transform: uppercase; }
-.pool-page .pool-project-list--featured { display: grid; grid-template-columns: 1fr; gap: .5rem; }
-.pool-page .pool-project--featured {
+.pool-page .pool-door {
+  position: relative;
   display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  column-gap: .8rem;
-  row-gap: .1rem;
-  padding: .65rem .8rem;
-  border: 1px solid color-mix(in srgb, var(--pool-accent) 48%, var(--forest-line));
-  border-left: 3px solid var(--pool-accent);
-  border-radius: var(--radius);
-  background: linear-gradient(105deg, color-mix(in srgb, var(--pool-accent) 9%, var(--forest-surface)), rgba(255,255,255,.025));
-  box-shadow: 0 12px 40px color-mix(in srgb, var(--pool-accent) 8%, transparent);
-  font-size: .84rem;
-  line-height: 1.35;
+  flex-direction: column;
+  gap: .3rem;
+  padding: 1rem 1.1rem 1.05rem;
+  border: 1px solid var(--pool-line);
+  border-radius: 10px;
+  background: var(--pool-panel);
+  backdrop-filter: blur(10px);
+  counter-increment: door;
+  transition: border-color var(--duration-normal) var(--ease-out), transform var(--duration-normal) var(--ease-out), background var(--duration-normal) var(--ease-out);
 }
-.pool-page .pool-project--featured > h3 { flex: 0 1 14rem; margin: 0; color: var(--forest-ink); font: 600 1.3rem/1.1 var(--forest-display); }
-.pool-page .pool-project--featured > :not(h3) { flex: 0 1 auto; margin-block: 0; }
-.pool-page .pool-project--featured > .pool-tier { flex-basis: 12rem; }
-.pool-page .pool-project--featured > .pool-readiness { flex: 1 1 16rem; }
-.pool-page .pool-project--featured > .pool-bindings { flex: 1 1 100%; }
-.pool-page .pool-project-list--ranked,
-.pool-page .pool-project-list--unranked { display: grid; gap: 0; }
-.pool-page .pool-project--ranked,
-.pool-page .pool-project--unranked { display: grid; grid-template-columns: minmax(12rem, .8fr) minmax(0, 2fr); column-gap: 1rem; padding-block: .55rem; border-top: 1px solid var(--forest-line); }
-.pool-page .pool-project--ranked > h3,
-.pool-page .pool-project--unranked > h3 { grid-row: 1 / span 12; margin-block: 0; }
-.pool-page .pool-project--ranked > p,
-.pool-page .pool-project--unranked > p,
-.pool-page .pool-project--ranked > ul,
-.pool-page .pool-project--unranked > ul { grid-column: 2; }
-.pool-page .pool-project--unranked { opacity: .78; }
-.pool-page .pool-project { padding-block: .55rem; }
-.pool-page .pool-project p { margin-block: .18rem; color: var(--forest-soft); }
-.pool-page .pool-project h3 { color: var(--forest-ink); font-family: var(--forest-display); }
-.pool-page .pool-tier { margin-block: 0 .25rem !important; color: var(--pool-accent); font: 500 .68rem/1.2 var(--forest-sans); letter-spacing: .1em; text-transform: uppercase; }
-.pool-page .pool-status { color: var(--forest-ink) !important; font-weight: 600; }
-.pool-page .pool-readiness { font-size: .92em; }
-.pool-page .pool-readiness[data-readiness-state="Shipped"] { color: var(--forest-moss) !important; font-weight: 600; }
-.pool-page .pool-readiness[data-readiness-state="In progress"] { color: var(--forest-amber) !important; font-weight: 600; }
-.pool-page .pool-readiness[data-readiness-state="UNKNOWN"] { color: var(--forest-rose) !important; font-weight: 600; }
-.pool-page .pool-bindings { overflow-wrap: anywhere; }
-.pool-page .pool-categories { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .55rem 1rem; margin: 0; padding: 0; list-style: none; }
-.pool-page .pool-categories li { margin: 0; padding: .65rem .75rem; border-left: 2px solid color-mix(in srgb, var(--pool-accent) 62%, transparent); background: rgba(255,255,255,.025); color: var(--forest-soft); }
-.pool-page [role="tablist"] { display: flex; gap: .55rem; flex-wrap: wrap; margin-block: .8rem; }
-.pool-page [role="tab"] { padding: .55rem .8rem; border: 1px solid var(--forest-line); border-radius: 999px; background: rgba(255,255,255,.03); color: var(--forest-soft); font: 500 .78rem/1 var(--forest-sans); cursor: pointer; }
-.pool-page [role="tab"][aria-selected="true"] { border-color: color-mix(in srgb, var(--pool-accent) 65%, transparent); background: color-mix(in srgb, var(--pool-accent) 14%, transparent); color: var(--forest-ink); }
-.pool-page [role="tabpanel"] { padding: .5rem 0; }
-.pool-page nav ul { display: flex; flex-wrap: wrap; gap: .55rem 1.1rem; padding: 0; list-style: none; }
-.pool-page nav [aria-current="page"] { color: var(--pool-accent); font-weight: 700; }
-.pool-page .narrative-spine { margin-block: .6rem; padding-block: .5rem; }
+.pool-page .pool-door > a {
+  color: var(--pool-ink);
+  font: 600 1.45rem/1.1 var(--forest-display);
+  text-decoration: none;
+}
+.pool-page .pool-door > a::after { content: ""; position: absolute; inset: 0; border-radius: inherit; }
+.pool-page .pool-door-reason { color: var(--pool-soft); font-size: .95rem; line-height: 1.45; }
+.pool-page .pool-door:hover,
+.pool-page .pool-door:focus-within {
+  border-color: color-mix(in srgb, var(--pool-accent) 62%, transparent);
+  background: color-mix(in srgb, var(--pool-accent) 8%, var(--pool-panel));
+  transform: translateY(-2px);
+}
 
-/* Existing Forest themes provide the per-pool accent pairing and geometry.
- * These variables select those established theme colours. */
-main[data-pool-id="growingapp"] { --pool-accent: #ffd15a; --pool-accent-2: #ff8fb4; --pool-enter-shift: 22px; --pool-enter-tilt: -1deg; --pool-enter-duration: 720ms; }
-main[data-pool-id="ai-d-kit"] { --pool-accent: #73e9ff; --pool-accent-2: #a9b2ff; --pool-enter-shift: 14px; --pool-enter-tilt: .5deg; --pool-enter-duration: 620ms; }
-main[data-pool-id="tinkerbox"] { --pool-accent: #ac90ff; --pool-accent-2: #8fe6ae; --pool-enter-shift: 18px; --pool-enter-tilt: 1deg; --pool-enter-duration: 680ms; }
-main[data-pool-id="health"] { --pool-accent: #ff7fb0; --pool-accent-2: #60ecc1; --pool-enter-shift: 26px; --pool-enter-tilt: -1.5deg; --pool-enter-duration: 760ms; }
-main[data-pool-id="design-gallery"] { --pool-accent: #e084ff; --pool-accent-2: #eedcb8; --pool-enter-shift: 12px; --pool-enter-tilt: 1.5deg; --pool-enter-duration: 640ms; }
-main[data-pool-id="artificial-self"] { --pool-accent: #a78bfa; --pool-accent-2: #51ebff; --pool-enter-shift: 20px; --pool-enter-tilt: -.75deg; --pool-enter-duration: 700ms; }
-main[data-pool-id="my-story"] { --pool-accent: #7ee2ff; --pool-accent-2: #a9b2ff; --pool-enter-shift: 24px; --pool-enter-tilt: 1deg; --pool-enter-duration: 820ms; }
+/* Pool-specific prose between the threshold and the listing. */
+.pool-page main > p,
+.pool-page main > section > p,
+.pool-page [data-pool-context] p { max-width: var(--pool-measure); color: var(--pool-soft); }
+.pool-page main > p { margin: calc(var(--pool-step) * 1.4) 0 0; font-size: 1.1rem; }
+.pool-page main > p + p { margin-top: .6rem; }
+.pool-page main > section:not([data-pool-overview]) { margin-top: calc(var(--pool-step) * 2.6); }
+.pool-page main > section > h2 {
+  margin: 0 0 .5rem;
+  color: var(--pool-ink);
+  font: 500 clamp(1.9rem, 3.4vw, 2.6rem)/1.05 var(--forest-display);
+  letter-spacing: -.02em;
+}
+.pool-page main > section > h2::before {
+  content: "";
+  display: block;
+  width: 44px;
+  height: 1px;
+  margin-bottom: calc(var(--pool-step) * .8);
+  background: linear-gradient(90deg, var(--pool-accent), transparent);
+}
+.pool-page main > section > p { margin: 0 0 .5rem; }
 
+/* ---------- Ledger: the catalog's own accounting ---------- */
+.pool-page .pool-ledger {
+  margin: calc(var(--pool-step) * 1.2) 0 calc(var(--pool-step) * 1.6);
+  padding: calc(var(--pool-step) * .8) 0;
+  border-block: 1px solid var(--pool-line);
+  font-family: var(--forest-sans);
+}
+.pool-page .pool-reality-note { margin: 0 0 .8rem; color: var(--pool-muted); font: italic .88rem/1.45 var(--forest-body); }
+.pool-page .pool-reality-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: calc(var(--pool-step) * .8); }
+.pool-page .pool-reality { min-width: 0; padding-left: .9rem; border-left: 2px solid color-mix(in srgb, var(--pool-accent) 55%, transparent); }
+.pool-page .pool-reality[data-pool-reality="forming"] { border-left-color: color-mix(in srgb, var(--forest-amber) 55%, transparent); }
+.pool-page .pool-reality h4 { margin: 0 0 .35rem; color: var(--pool-accent); font: 500 .68rem/1.2 var(--forest-sans); letter-spacing: .2em; text-transform: uppercase; }
+.pool-page .pool-reality[data-pool-reality="forming"] h4 { color: var(--forest-amber); }
+.pool-page .pool-reality ul { margin: 0; padding: 0; list-style: none; color: var(--pool-soft); font-size: .92rem; line-height: 1.5; }
+.pool-page .pool-reality strong { color: var(--pool-ink); font-weight: 500; }
+.pool-page .pool-catalog-count,
+.pool-page .pool-readiness-summary { display: inline-block; margin: .9rem 1.4rem 0 0; color: var(--pool-muted); font: .82rem/1.3 var(--forest-sans); letter-spacing: .02em; }
+
+/* ---------- Listing ---------- */
+.pool-page .pool-project-group { margin-top: calc(var(--pool-step) * 1.4); }
+.pool-page .pool-project-group > h3 {
+  margin: 0 0 calc(var(--pool-step) * .6);
+  color: var(--pool-muted);
+  font: 500 .68rem/1 var(--forest-sans);
+  letter-spacing: .24em;
+  text-transform: uppercase;
+}
+.pool-page .pool-project-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 20rem), 1fr));
+  gap: calc(var(--pool-step) * .7);
+}
+.pool-page .pool-project-list > div { display: flex; scroll-margin-top: 24px; }
+.pool-page .pool-project-list > div:target > .pool-project { border-color: var(--pool-accent); }
+
+.pool-page .pool-project {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  padding: 1.1rem 1.2rem 1rem;
+  border: 1px solid var(--pool-line);
+  border-radius: 10px;
+  background: rgba(14, 16, 24, .82);
+}
+.pool-page .pool-project--featured {
+  border-color: color-mix(in srgb, var(--pool-accent) 34%, var(--pool-line));
+  background:
+    radial-gradient(ellipse 90% 70% at 0 0, color-mix(in srgb, var(--pool-accent) 10%, transparent), transparent 70%),
+    rgba(14, 16, 24, .86);
+}
+.pool-page .pool-project > h3 { margin: 0; color: var(--pool-ink); font: 600 1.55rem/1.1 var(--forest-display); }
+.pool-page .pool-project--featured > h3 { font-size: 1.8rem; }
+.pool-page .pool-project p { margin: 0; }
+.pool-page .pool-status {
+  align-self: flex-start;
+  margin-top: .55rem !important;
+  padding: .28rem .6rem;
+  border: 1px solid color-mix(in srgb, var(--forest-moss) 45%, transparent);
+  border-radius: 999px;
+  color: var(--forest-moss);
+  font: 500 .72rem/1.2 var(--forest-sans);
+  letter-spacing: .06em;
+}
+.pool-page .pool-project[aria-disabled="true"] .pool-status { border-color: color-mix(in srgb, var(--forest-amber) 45%, transparent); color: var(--forest-amber); }
+
+.pool-page .pool-bindings { margin: .9rem 0 0; padding: 0; list-style: none; overflow-wrap: anywhere; }
+.pool-page .pool-bindings li { margin: 0 0 .35rem; color: var(--pool-muted); font-size: .88rem; line-height: 1.4; }
+.pool-page .pool-bindings a { color: var(--pool-accent-2); font: 500 .98rem/1.35 var(--forest-body); text-decoration: none; border-bottom: 1px solid color-mix(in srgb, var(--pool-accent-2) 40%, transparent); }
+.pool-page .pool-bindings a::after { content: " →"; }
+.pool-page .pool-bindings a[target="_blank"]::after { content: " ↗"; }
+.pool-page .pool-bindings a:hover { border-bottom-color: currentColor; color: var(--pool-ink); }
+
+/* Field notes: every catalog fact stays visible, set as a quiet record. */
+.pool-page .pool-fieldnotes { margin-top: auto; padding-top: .85rem; }
+.pool-page .pool-fieldnotes::before { content: ""; display: block; height: 1px; margin: .2rem 0 .7rem; background: var(--pool-line); }
+.pool-page .pool-fieldnotes p { color: var(--pool-muted); font: .8rem/1.5 var(--forest-sans); letter-spacing: .01em; }
+.pool-page .pool-fieldnotes .pool-tier { margin-bottom: .2rem; color: color-mix(in srgb, var(--pool-accent) 70%, var(--pool-muted)); font-size: .68rem; letter-spacing: .12em; text-transform: uppercase; }
+.pool-page .pool-readiness[data-readiness-state="Shipped"] { color: var(--forest-moss); }
+.pool-page .pool-readiness[data-readiness-state="In progress"] { color: var(--forest-amber); }
+.pool-page .pool-readiness[data-readiness-state="UNKNOWN"] { color: #e0a79e; }
+.pool-page .pool-project--unranked { opacity: .85; }
+
+/* ---------- Pool-specific furniture ---------- */
+.pool-page main nav[aria-label="AI-d kit field notes"] { display: flex; flex-wrap: wrap; gap: .6rem; margin-top: .8rem; }
+.pool-page main nav[aria-label="AI-d kit field notes"] a,
+.pool-page [role="tab"] {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 1rem;
+  border: 1px solid var(--pool-line);
+  border-radius: 999px;
+  background: rgba(14, 16, 24, .7);
+  color: var(--pool-ink);
+  font: 500 .88rem/1 var(--forest-sans);
+  text-decoration: none;
+}
+.pool-page main nav[aria-label="AI-d kit field notes"] a:hover { border-color: var(--pool-accent); }
+.pool-page [role="tablist"] { display: flex; flex-wrap: wrap; gap: .55rem; margin: 1rem 0; }
+.pool-page [role="tab"] { cursor: pointer; }
+.pool-page [role="tab"][aria-selected="true"] { border-color: var(--pool-accent); background: color-mix(in srgb, var(--pool-accent) 14%, rgba(14, 16, 24, .7)); }
+.pool-page [data-health-project] { margin-top: .6rem; }
+.pool-page [data-health-project] .pool-project { max-width: 40rem; }
+
+.pool-page .pool-categories { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: calc(var(--pool-step) * .7); margin: 1rem 0 0; padding: 0; list-style: none; }
+.pool-page .pool-categories li { padding: 1.1rem 1.1rem 1.2rem; border: 1px solid var(--pool-line); border-top: 2px solid var(--pool-accent-2); background: rgba(14, 16, 24, .72); color: var(--pool-soft); line-height: 1.5; }
+.pool-page .pool-categories strong { color: var(--pool-ink); font: 600 1.35rem/1.1 var(--forest-display); }
+
+.pool-page .narrative-spine { margin-block: calc(var(--pool-step) * 1.2) 0; }
+
+/* ---------- All pools ---------- */
+.pool-page > footer {
+  width: var(--pool-width);
+  margin: 0 auto;
+  padding: calc(var(--pool-step) * 1.5) 0 calc(var(--pool-step) * 3);
+  border-top: 1px solid var(--pool-line);
+}
+.pool-page > footer ul { display: flex; flex-wrap: wrap; justify-content: center; gap: .2rem 1.6rem; margin: 0; padding: 0; list-style: none; }
+.pool-page > footer a { display: inline-flex; min-height: 44px; align-items: center; color: var(--pool-soft); font: 500 1.15rem/1 var(--forest-display); text-decoration: none; }
+.pool-page > footer a:hover { color: var(--pool-ink); }
+.pool-page > footer [aria-current="page"] { color: var(--pool-accent); }
+.pool-page > footer [aria-current="page"]::before { content: "●"; margin-right: .45rem; font-size: .5em; }
+
+/* ---------- Seven lanterns (the homepage's per-pool theme colours) ---------- */
+:root:has(main[data-pool-id="growingapp"]) { --pool-accent: #ffd15a; --pool-accent-2: #ff9fc0; --pool-glow-x: 30%; }
+:root:has(main[data-pool-id="ai-d-kit"]) { --pool-accent: #73e9ff; --pool-accent-2: #b3baff; --pool-glow-x: 76%; }
+:root:has(main[data-pool-id="tinkerbox"]) { --pool-accent: #b9a2ff; --pool-accent-2: #8fe6ae; --pool-glow-x: 22%; }
+:root:has(main[data-pool-id="health"]) { --pool-accent: #ff8fba; --pool-accent-2: #60ecc1; }
+:root:has(main[data-pool-id="design-gallery"]) { --pool-accent: #e59bff; --pool-accent-2: #eedcb8; }
+:root:has(main[data-pool-id="artificial-self"]) { --pool-accent: #b39dfb; --pool-accent-2: #6aeeff; --pool-glow-x: 76%; }
+:root:has(main[data-pool-id="my-story"]) { --pool-accent: #7ee2ff; --pool-accent-2: #b3baff; --pool-glow-x: 18%; }
+body.pool-page:has(main[data-pool-id="my-story"]) { --pool-width: min(46rem, calc(100% - 32px)); }
+
+/* GrowingApp — a nursery path. Doors are growth stages on one root line. */
+main[data-pool-id="growingapp"] .pool-start-here { position: relative; padding-top: 1.6rem; }
+main[data-pool-id="growingapp"] .pool-start-here::before {
+  content: ""; position: absolute; top: .6rem; left: 1.1rem; right: 1.1rem; height: 1px;
+  background: linear-gradient(90deg, color-mix(in srgb, var(--pool-accent) 20%, transparent), var(--pool-accent));
+}
+main[data-pool-id="growingapp"] .pool-door { border-radius: 14px 14px 14px 4px; }
+main[data-pool-id="growingapp"] .pool-door::before {
+  content: counter(door); position: absolute; top: -1.6rem; left: 1rem;
+  display: grid; place-items: center; width: 1.3rem; height: 1.3rem;
+  border: 1px solid var(--pool-accent); border-radius: 50%; background: var(--pool-night);
+  color: var(--pool-accent); font: 600 .62rem/1 var(--forest-sans);
+}
+
+/* AI-d kit — a workbench. The instrument hangs beside the name; doors are tool drawers. */
+main[data-pool-id="ai-d-kit"] .pool-door { border-top: 2px solid var(--pool-accent); border-radius: 4px; }
+main[data-pool-id="ai-d-kit"] .pool-door::before {
+  content: "Tool " counter(door, decimal-leading-zero);
+  color: var(--pool-accent); font: 500 .62rem/1 var(--forest-sans); letter-spacing: .22em; text-transform: uppercase;
+}
+
+/* TinkerBox — a pinboard. Doors are pinned notes, never quite square. */
+main[data-pool-id="tinkerbox"] .pool-door { padding-top: 1.5rem; border-radius: 3px; background: rgba(22, 20, 32, .84); }
+main[data-pool-id="tinkerbox"] .pool-door::before {
+  content: ""; position: absolute; top: .6rem; left: 50%; width: 9px; height: 9px; margin-left: -4.5px;
+  border-radius: 50%; background: var(--pool-accent-2); box-shadow: 0 2px 6px rgba(0, 0, 0, .6);
+}
+main[data-pool-id="tinkerbox"] .pool-door:nth-child(3n+1) { transform: rotate(-1.1deg); }
+main[data-pool-id="tinkerbox"] .pool-door:nth-child(3n+2) { transform: rotate(.8deg); }
+main[data-pool-id="tinkerbox"] .pool-door:nth-child(3n) { transform: rotate(-.4deg); }
+main[data-pool-id="tinkerbox"] .pool-door:hover,
+main[data-pool-id="tinkerbox"] .pool-door:focus-within { transform: rotate(0) translateY(-2px); }
+
+/* Health and Design Gallery are symmetric rooms: the threshold is centred. */
+main:is([data-pool-id="health"], [data-pool-id="design-gallery"]) > :is(.pool-emblem, h1),
+main:is([data-pool-id="health"], [data-pool-id="design-gallery"]) [data-pool-overview],
+main:is([data-pool-id="health"], [data-pool-id="design-gallery"]) > section > h2 { text-align: center; margin-inline: auto; }
+main:is([data-pool-id="health"], [data-pool-id="design-gallery"]) :is(.pool-summary, .pool-guide-block p) { margin-inline: auto; }
+main:is([data-pool-id="health"], [data-pool-id="design-gallery"]) > p,
+main:is([data-pool-id="health"], [data-pool-id="design-gallery"]) > section > p { margin-inline: auto; text-align: center; }
+main:is([data-pool-id="health"], [data-pool-id="design-gallery"]) > section > h2::before { margin-inline: auto; background: linear-gradient(90deg, transparent, var(--pool-accent), transparent); }
+
+/* Health — a clinic. Calm, rounded, symmetric; the ECG plaque carries the pulse. */
+main[data-pool-id="health"] .pool-door { align-items: center; text-align: center; border-radius: 18px; }
+main[data-pool-id="health"] [role="tablist"] { justify-content: center; }
+main[data-pool-id="health"] [data-health-project] .pool-project { margin-inline: auto; }
+
+/* Design Gallery — a museum. Doors are framed exhibits. */
+main[data-pool-id="design-gallery"] .pool-start-here { max-width: 46rem; margin-inline: auto; }
+main[data-pool-id="design-gallery"] .pool-door {
+  align-items: center; padding: 1.6rem 1.2rem 1.3rem; text-align: center; border-radius: 2px;
+  border-color: color-mix(in srgb, var(--pool-accent-2) 45%, transparent);
+  outline: 1px solid color-mix(in srgb, var(--pool-accent-2) 18%, transparent); outline-offset: 5px;
+}
+main[data-pool-id="design-gallery"] .pool-door > a { font-style: italic; }
+
+/* Artificial Self — a lab. Doors are nodes on one signal, not boxes. */
+main[data-pool-id="artificial-self"] .pool-start-here { position: relative; gap: .6rem calc(var(--pool-step) * 1.2); padding-top: 1.4rem; }
+main[data-pool-id="artificial-self"] .pool-start-here::before {
+  content: ""; position: absolute; top: .45rem; left: .4rem; right: .4rem; height: 1px; opacity: .7;
+  background: linear-gradient(90deg, var(--pool-accent), var(--pool-accent-2), var(--pool-accent));
+}
+main[data-pool-id="artificial-self"] .pool-door { padding: .2rem 0 .4rem; border: 0; border-radius: 0; background: none; backdrop-filter: none; }
+main[data-pool-id="artificial-self"] .pool-door::before {
+  content: ""; position: absolute; top: -1.3rem; left: 0; width: 11px; height: 11px; border-radius: 50%;
+  background: var(--pool-accent-2); box-shadow: 0 0 0 3px var(--pool-night), 0 0 18px var(--pool-accent-2);
+}
+main[data-pool-id="artificial-self"] .pool-door:hover,
+main[data-pool-id="artificial-self"] .pool-door:focus-within { background: none; transform: none; }
+main[data-pool-id="artificial-self"] .pool-door:hover > a { color: var(--pool-accent-2); }
+
+/* My Story — a reading column. Doors are chapters along a rail that brightens. */
+main[data-pool-id="my-story"] .pool-start-here { position: relative; grid-template-columns: 1fr; gap: 0; padding-left: 2rem; }
+main[data-pool-id="my-story"] .pool-start-here::before {
+  content: ""; position: absolute; top: .6rem; bottom: .6rem; left: .45rem; width: 1px;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--pool-accent) 25%, transparent), var(--pool-accent));
+}
+main[data-pool-id="my-story"] .pool-door { padding: .8rem 0 1rem; border: 0; border-radius: 0; background: none; backdrop-filter: none; }
+main[data-pool-id="my-story"] .pool-door::before {
+  content: "Chapter " counter(door, lower-roman);
+  color: var(--pool-accent); font: 500 .62rem/1 var(--forest-sans); letter-spacing: .22em; text-transform: uppercase;
+}
+main[data-pool-id="my-story"] .pool-door > a::before {
+  content: ""; position: absolute; top: 1.05rem; left: calc(-2rem + .45rem - 4px); width: 9px; height: 9px;
+  border: 1px solid var(--pool-accent); border-radius: 50%; background: var(--pool-night);
+}
+main[data-pool-id="my-story"] .pool-door:last-child > a::before { background: var(--pool-accent); box-shadow: 0 0 14px var(--pool-accent); }
+main[data-pool-id="my-story"] .pool-door:hover,
+main[data-pool-id="my-story"] .pool-door:focus-within { background: none; transform: translateX(3px); }
+main[data-pool-id="my-story"] .pool-project-list { grid-template-columns: 1fr; }
+
+/* Split thresholds: the instrument hangs beside the name on wide screens. */
+@media (min-width: 60rem) {
+  main:is([data-pool-id="ai-d-kit"], [data-pool-id="artificial-self"]) {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 26rem);
+    column-gap: calc(var(--pool-step) * 2);
+    align-items: end;
+  }
+  main:is([data-pool-id="ai-d-kit"], [data-pool-id="artificial-self"]) > * { grid-column: 1 / -1; }
+  main:is([data-pool-id="ai-d-kit"], [data-pool-id="artificial-self"]) > .pool-emblem { grid-column: 2; grid-row: 1; width: 100%; margin: 0; }
+  main:is([data-pool-id="ai-d-kit"], [data-pool-id="artificial-self"]) > h1 { grid-column: 1; grid-row: 1; padding-bottom: .4rem; }
+}
+
+/* ---------- Narrow screens ---------- */
 @media (max-width: 42rem) {
-  .pool-page > header,
-  .pool-page main { width: min(100% - 24px, 1180px); }
-  .pool-page > header { padding-top: 10px; }
-  .pool-page main { padding-top: 16px; }
-  .pool-page h1 { font-size: clamp(2.8rem, 12vw, 4.2rem); }
-  .pool-page .pool-guide,
+  :root:has(body.pool-page) { --pool-woodland-h: max(100vh, 760px); }
+  .pool-page .pool-emblem { width: min(78vw, 320px); }
+  .pool-page h1 { font-size: clamp(2.9rem, 13vw, 4rem); }
   .pool-page .pool-reality-grid,
-  .pool-page .pool-categories { display: block; }
-  .pool-page .pool-guide-block,
-  .pool-page .pool-reality-note,
-  .pool-page .pool-reality-grid { margin-block: .75rem; }
-  .pool-page .pool-reality { margin-block: .5rem; }
-  .pool-page .pool-project-list--featured { grid-template-columns: 1fr; }
-  .pool-page .pool-project--featured { display: block; }
-  .pool-page .pool-project--ranked,
-  .pool-page .pool-project--unranked { display: block; }
-  .pool-page .pool-project--ranked > h3,
-  .pool-page .pool-project--unranked > h3 { margin-block: 0 .35rem; }
+  .pool-page .pool-categories { grid-template-columns: 1fr; }
+  main:is([data-pool-id="growingapp"], [data-pool-id="artificial-self"]) .pool-start-here { padding-top: 0; padding-left: 2rem; }
+  main:is([data-pool-id="growingapp"], [data-pool-id="artificial-self"]) .pool-start-here::before { top: .6rem; bottom: .6rem; left: .6rem; right: auto; width: 1px; height: auto; background: linear-gradient(180deg, color-mix(in srgb, var(--pool-accent) 25%, transparent), var(--pool-accent)); }
+  main[data-pool-id="growingapp"] .pool-door::before { top: 1rem; left: calc(-2rem + .6rem - .65rem); }
+  main[data-pool-id="artificial-self"] .pool-door::before { top: .5rem; left: calc(-2rem + .6rem - 5px); }
+  main[data-pool-id="tinkerbox"] .pool-door:nth-child(n) { transform: none; }
 }
 
+/* ---------- Reduced motion: a composed still, not a slower film ---------- */
 @media (prefers-reduced-motion: reduce) {
-  .pool-page h1 { animation: none; }
-  .pool-page .forest-scene { opacity: .26; }
+  .pool-page .forest-scrim { animation: none; transform: translate3d(-1.5%, -.4%, 0); }
+  .pool-page .pool-emblem,
+  .pool-page h1,
+  .pool-page [data-pool-overview] { animation: none; }
+  .pool-page .pool-door,
+  .pool-page > header a { transition: none; }
 }
