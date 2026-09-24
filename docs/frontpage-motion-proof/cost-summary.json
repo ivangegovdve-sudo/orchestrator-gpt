@@ -1,0 +1,46 @@
+{
+  "baseline": "c19d84e",
+  "trace": false,
+  "results": [
+    {
+      "mode": "baseline",
+      "seconds": 10.007124999989173,
+      "taskMsPer60HzFrame": 0.4672420900113729,
+      "scriptMsPer60HzFrame": 0.07554950431159313,
+      "layoutCount": 0,
+      "recalcCount": 11
+    },
+    {
+      "mode": "ambient",
+      "seconds": 10.015323999992688,
+      "taskMsPer60HzFrame": 1.014009465229557,
+      "scriptMsPer60HzFrame": 0.16922068622055939,
+      "layoutCount": 0,
+      "recalcCount": 143
+    },
+    {
+      "mode": "baseline",
+      "seconds": 10.005043999990448,
+      "taskMsPer60HzFrame": 0.4391634859381122,
+      "scriptMsPer60HzFrame": 0.06139070119704152,
+      "layoutCount": 0,
+      "recalcCount": 11
+    },
+    {
+      "mode": "ambient",
+      "seconds": 10.011226000002353,
+      "taskMsPer60HzFrame": 1.0454696890601485,
+      "scriptMsPer60HzFrame": 0.17864445373619373,
+      "layoutCount": 0,
+      "recalcCount": 144
+    },
+    {
+      "mode": "paused",
+      "seconds": 10.002505000011297,
+      "taskMsPer60HzFrame": 0.004215610656192582,
+      "scriptMsPer60HzFrame": 0,
+      "layoutCount": 0,
+      "recalcCount": 0
+    }
+  ]
+}

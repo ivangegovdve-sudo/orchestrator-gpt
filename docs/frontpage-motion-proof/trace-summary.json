@@ -1,0 +1,70 @@
+{
+  "baseline": "c19d84e",
+  "trace": true,
+  "results": [
+    {
+      "mode": "baseline",
+      "seconds": 10.01321900000039,
+      "taskMsPer60HzFrame": 0.7069155283630292,
+      "scriptMsPer60HzFrame": 0.1513432726611966,
+      "layoutCount": 0,
+      "recalcCount": 11,
+      "callbackCount": 601,
+      "callbackMedianMs": 0.09999999403953552,
+      "callbackP95Ms": 0.3999999910593033,
+      "callbackGapP95Ms": 16.800000000000182,
+      "callbackGapsOver25ms": 0,
+      "drawFrames": 11,
+      "paintEvents": 0,
+      "droppedFrameEvents": 0
+    },
+    {
+      "mode": "ambient",
+      "seconds": 10.01526699999522,
+      "taskMsPer60HzFrame": 1.2233589645360943,
+      "scriptMsPer60HzFrame": 0.22715154107568167,
+      "layoutCount": 0,
+      "recalcCount": 139,
+      "callbackCount": 601,
+      "callbackMedianMs": 0.19999998807907104,
+      "callbackP95Ms": 0.6000000089406967,
+      "callbackGapP95Ms": 16.800000000000182,
+      "callbackGapsOver25ms": 0,
+      "drawFrames": 139,
+      "paintEvents": 0,
+      "droppedFrameEvents": 0
+    },
+    {
+      "mode": "ambient",
+      "seconds": 10.012605999989319,
+      "taskMsPer60HzFrame": 1.2385503500966577,
+      "scriptMsPer60HzFrame": 0.23438619942392322,
+      "layoutCount": 0,
+      "recalcCount": 146,
+      "callbackCount": 601,
+      "callbackMedianMs": 0.19999998807907104,
+      "callbackP95Ms": 0.6000000089406967,
+      "callbackGapP95Ms": 16.800000000000182,
+      "callbackGapsOver25ms": 0,
+      "drawFrames": 146,
+      "paintEvents": 0,
+      "droppedFrameEvents": 0
+    },
+    {
+      "mode": "paused",
+      "seconds": 10.010615999999573,
+      "taskMsPer60HzFrame": 0.004476913974791307,
+      "scriptMsPer60HzFrame": 0,
+      "layoutCount": 0,
+      "recalcCount": 0,
+      "callbackCount": 0,
+      "callbackMedianMs": 0,
+      "callbackP95Ms": 0,
+      "callbackGapP95Ms": 0,
+      "callbackGapsOver25ms": 0,
+      "drawFrames": 0,
+      "paintEvents": 0,
+      "droppedFrameEvents": 0
+    }
+  ]
+}

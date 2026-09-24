@@ -62,6 +62,135 @@ async function opacity(page, selector) {
   return page.locator(selector).evaluate(el=>Number(getComputedStyle(el).opacity));
 }
 
+test('Health draws a moving regular trace, accelerates on focus, and goes flat when pressed', async () => {
+  const page=await pageAt('?frame=opened');
+  const health=page.locator('[data-pool-link="health"]');
+  const wave=health.locator('[data-ecg-wave]');
+  assert.equal(await wave.count(),1,'a real moving ECG trace replaces brightening the painted crop');
+  const first=await wave.getAttribute('style');
+  await page.waitForTimeout(180);
+  assert.notEqual(await wave.getAttribute('style'),first);
+  await health.focus();
+  await page.waitForTimeout(500);
+  assert.equal(await health.getAttribute('data-effect-state'),'engaged');
+  await health.click();await page.waitForTimeout(500);
+  assert.equal(await opacity(page,'[data-ecg-wave]'),0);
+  assert.equal(await opacity(page,'[data-ecg-flat]'),1);
+  const press=await health.locator('.portal-art').evaluate(e=>getComputedStyle(e).transform);
+  assert.notEqual(press,'none');
+  await page.keyboard.press('Escape');await page.waitForTimeout(500);
+  assert.equal(await opacity(page,'[data-ecg-flat]'),0);
+  await page.close();
+});
+
+test('Artificial Self carries impulses along distinct wires instead of blinking a rectangular crop', async () => {
+  const page=await pageAt('?frame=opened');
+  const link=page.locator('[data-pool-link="artificial-self"]');
+  const impulses=link.locator('[data-neural-impulse]');
+  assert.ok(await impulses.count()>=3,'independent wire-following impulse heads');
+  await link.hover();await page.waitForTimeout(500);
+  const start=await impulses.evaluateAll(es=>es.map(e=>e.style.transform));
+  await page.waitForTimeout(180);
+  assert.notDeepEqual(await impulses.evaluateAll(es=>es.map(e=>e.style.transform)),start);
+  await link.click();await page.waitForTimeout(100);
+  assert.equal(await link.getAttribute('data-effect-state'),'selected');
+  assert.ok(await link.locator('[data-neural-core]').evaluateAll(es=>es.some(e=>Number(e.style.opacity)>.65)));
+  await page.close();
+});
+
+test('soil bridges the trunk contact to the foreground and hanging vines respond without moving the tree', async () => {
+  const page=await pageAt('?frame=opened');
+  const tree=await page.locator('.resolve-tree').boundingBox();
+  assert.equal(await page.locator('.ambient-soil-bridge').count(),1);
+  const bridge=await page.locator('.ambient-soil-bridge').boundingBox();
+  assert.ok(bridge.y<=tree.y+tree.height && bridge.y+bridge.height>=.87*1080,'ground covers the contact and joins the foreground ledge');
+  const vines=page.locator('[data-wind-vine]');
+  assert.ok(await vines.count()>=2);
+  const before=await vines.evaluateAll(es=>es.map(e=>e.style.transform));
+  await page.mouse.move(1800,400);await page.waitForTimeout(500);
+  assert.notDeepEqual(await vines.evaluateAll(es=>es.map(e=>e.style.transform)),before);
+  assert.deepEqual(await page.locator('.resolve-tree').boundingBox(),tree);
+  assert.ok(await vines.evaluateAll(es=>es.every(e=>getComputedStyle(e).pointerEvents==='none')));
+  await page.close();
+});
+
+test('all new local effects freeze completely on pause and reduced motion, including hover', async () => {
+  const page=await ambientPage();
+  const effects='[data-ecg-wave],[data-neural-impulse],[data-wind-vine],.portal-art';
+  assert.ok(await page.locator('[data-ecg-wave]').count());
+  await page.getByRole('button',{name:'Pause motion',exact:true}).click();
+  const styles=()=>page.locator(effects).evaluateAll(es=>es.map(e=>e.getAttribute('style')));
+  const paused=await styles();
+  await page.mouse.move(1800,400);await page.waitForTimeout(400);
+  assert.deepEqual(await styles(),paused);
+  assert.equal(await page.evaluate(()=>frameProbe.pending()),0);
+  await page.emulateMedia({reducedMotion:'reduce'});
+  const still=await styles();
+  await page.waitForTimeout(400);assert.deepEqual(await styles(),still);
+  assert.equal(await page.evaluate(()=>frameProbe.max),1);
+  await page.close();
+});
+
+test('a visible phone pool keeps its idle life after the tree scrolls out of view', async () => {
+  const page=await pageAt('?frame=opened',{viewport:{width:390,height:600}});
+  const link=page.locator('[data-pool-link="artificial-self"]');
+  await link.scrollIntoViewIfNeeded();
+  await page.waitForTimeout(500);
+  assert.ok(await page.locator('.resolve-tree').evaluate(e=>e.getBoundingClientRect().bottom<0));
+  const signal=link.locator('[data-neural-impulse]').first();
+  const before=await signal.getAttribute('style');
+  const samples=[];
+  for(let i=0;i<8;i++){await page.waitForTimeout(500);samples.push(await signal.getAttribute('style'));}
+  assert.ok(samples.some(s=>s!==before),'visibility follows the scene, not only the tree; sparse impulses have a resting interval');
+  await page.close();
+});
+
+test('TinkerBox releases a separate lid after its locking pins retract', async () => {
+  const page=await pageAt('?frame=opened');
+  const link=page.locator('[data-pool-link="tinkerbox"]');
+  const lid=link.locator('[data-workbench-lid]');
+  assert.equal(await lid.count(),1);
+  const before=await lid.getAttribute('style');
+  await link.click();await page.waitForTimeout(500);
+  assert.notEqual(await lid.getAttribute('style'),before);
+  await page.keyboard.press('Escape');await page.waitForTimeout(500);
+  assert.equal(await link.getAttribute('data-armed'),null);
+  await page.close();
+});
+
+test('the first-aid flag flips over and the grounded grass has several blade clumps', async () => {
+  const page=await pageAt('?frame=opened');
+  const link=page.locator('[data-pool-link="ai-d-kit"]');
+  await link.click();await page.waitForTimeout(500);
+  const flag=await link.locator('[data-workbench-part="flag"]').getAttribute('style');
+  assert.match(flag,/rotateY\(180deg\)/,'the flag flips, not just tilts');
+  const blades=await page.locator('[data-wind-grass] path').evaluateAll(es=>es.reduce((n,e)=>n+(e.getAttribute('d').match(/Q/g)||[]).length,0));
+  assert.ok(blades>=32,'native grass joins the existing moss without replacing the tree');
+  await page.close();
+});
+
+test('heartbeat hover increases its measured regular rate instead of jumping phase', async () => {
+  const page=await pageAt('?frame=opened');
+  async function cyclesPerSecond() {
+    return page.evaluate(async()=>{
+      const wave=document.querySelector('[data-ecg-wave]');
+      const read=()=>-parseFloat(wave.style.transform.match(/translate3d\(([-.\d]+)/)[1])*3/100;
+      let prior=read(),distance=0,start=performance.now();
+      while(performance.now()-start<1200) {
+        await new Promise(resolve=>setTimeout(resolve,30));
+        const next=read();distance+=(next-prior+1)%1;prior=next;
+      }
+      return distance/((performance.now()-start)/1000);
+    });
+  }
+  const idle=await cyclesPerSecond();
+  await page.locator('[data-pool-link="health"]').hover();await page.waitForTimeout(650);
+  const engaged=await cyclesPerSecond();
+  assert.ok(idle>1 && idle<1.4,`rest ${idle*60} bpm`);
+  assert.ok(engaged>2 && engaged<2.5,`hover ${engaged*60} bpm`);
+  await page.close();
+});
+
 test('GrowingApp and Artificial Self titles stay inside their inset nameplates', async () => {
   // The native nameplates sit in the lower control recess, not on the bark.
   // Check both the actual text containment and the plate's artwork boundary.
@@ -316,7 +445,11 @@ test('ambient does not measure layout at rest, obscure navigation, or run offscr
   assert.equal(await page.locator('.resolve-ambient').evaluate(e=>getComputedStyle(e).pointerEvents),'none');
   await page.locator('[data-pool-link="health"]').click();
   assert.equal(await page.locator('[data-pool-link="health"]').getAttribute('data-armed'),'true');
-  await page.evaluate(()=>scrollTo(0,document.body.scrollHeight));
+  await page.evaluate(()=>{
+    // Move the whole scene offscreen, not merely the tree while pools remain visible.
+    const spacer=document.createElement('div');spacer.style.height='150vh';spacer.inert=true;
+    document.body.append(spacer);scrollTo(0,document.body.scrollHeight);
+  });
   await page.waitForFunction(()=>frameProbe.pending()===0);
   const calls = await page.evaluate(()=>frameProbe.calls);
   await page.waitForTimeout(150);

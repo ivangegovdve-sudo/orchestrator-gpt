@@ -23,9 +23,45 @@
 .resolve-directory nav { position:absolute; inset:0; }
 .workbench-directory-bark { display:none; pointer-events:none; }
 .resolve-home .portal { --pool-accent:#c3b9ff; --arrival-x:0px; --arrival-y:20px; --arrival-turn:0deg; --arrival-scale:1; --label-top:66%; --label-left:15%; --label-width:70%; position:absolute; display:block; width:min(29vw,calc(47vw - 58vh * 226 / 214 / 2 - 24px)); aspect-ratio:1100/458; border:0; padding:0; color:var(--pool-accent); pointer-events:auto; isolation:isolate; container-type:inline-size; }
-.portal-art { display:block; position:absolute; inset:0; pointer-events:none; }
+.portal-art { display:block; position:absolute; inset:0; pointer-events:none; contain:strict; }
 .portal-art img { position:absolute; inset:0; width:100%; height:100%; object-fit:contain; }
-.portal-art > img:first-child { mask-image:linear-gradient(90deg,transparent,#000 5% 95%,transparent),linear-gradient(transparent,#000 9% 88%,transparent); mask-composite:intersect; }
+.portal-art > img:not(.workbench-part) { mask-image:linear-gradient(90deg,transparent,#000 5% 95%,transparent),linear-gradient(transparent,#000 9% 88%,transparent); mask-composite:intersect; }
+.workbench-socket { position:absolute; background:linear-gradient(125deg,#05080a,#171921 60%,#030508); border-radius:6%; box-shadow:inset 0 3px 8px #000; }
+.workbench-lid,.workbench-lid-socket { position:absolute; left:26%; top:21%; width:48%; height:58%; overflow:hidden; transform-origin:50% 0; }
+.portal-art .workbench-lid img { left:-54.1667%; top:-36.2069%; width:208.3333%; height:172.4138%; object-fit:fill; }
+.portal-art { transform-origin:50% 55%; }
+.pool-instrument { position:absolute; pointer-events:none; contain:layout style paint; }
+.ecg-instrument { left:12%; top:24%; width:76%; height:41%; border-radius:35% / 45%; background:radial-gradient(ellipse at 65% 0%,#142429,#0b1416 75%); overflow:hidden; }
+.ecg-screen { position:absolute; left:38%; top:8%; width:59%; height:84%; overflow:hidden; mask-image:linear-gradient(90deg,transparent,#000 8% 96%,transparent); }
+.ecg-instrument svg { position:absolute; inset:0; width:100%; height:100%; fill:none; stroke:#9cedd3; stroke-width:2; }
+.ecg-screen > span { position:absolute; inset:0; }
+[data-ecg-wave] { width:150%; }
+.ecg-instrument path { filter:drop-shadow(0 0 2px #41d2a6); }
+[data-ecg-flat] { opacity:0; }
+.neural-instrument { inset:0; width:100%; height:100%; }
+.neural-wires { position:absolute; inset:0; width:100%; height:100%; }
+.neural-wire { fill:none; stroke:#aea1ed; stroke-width:1.5; opacity:.18; }
+.neural-wire:nth-of-type(2n) { stroke:#56b9ba; }
+[data-neural-impulse] { position:absolute; left:0; top:0; width:2px; height:2px; border-radius:50%; background:#f0eaff; box-shadow:0 0 5px 2px #b8a2f3; opacity:0; }
+[data-neural-impulse="1"],[data-neural-impulse="4"] { background:#bcffeb; box-shadow:0 0 5px 2px #68bcab; }
+[data-neural-core] { position:absolute; width:1.3%; aspect-ratio:1; border-radius:50%; background:#c9b7f4; box-shadow:0 0 10px 3px #a392d4; }
+[data-neural-core="1"] { background:#a6ead9; box-shadow:0 0 10px 3px #6bb2a4; }
+.signal-instrument { inset:0; width:100%; height:100%; }
+[data-signal-node] { position:absolute; top:42.5%; width:1.5%; aspect-ratio:1; border-radius:50%; background:#e6d294; transform:translate(-50%,-50%); box-shadow:0 0 7px #d7c896; }
+[data-signal-node="0"],[data-signal-node="1"] { background:#b5aaf1; box-shadow:0 0 7px #9991d6; }
+[data-signal-head] { position:absolute; top:42.5%; left:18.1%; width:2px; height:2px; border-radius:50%; background:#f1e3b0; opacity:0; }
+html[data-ambient-state="running"] :is([data-ecg-wave],[data-neural-impulse],[data-neural-core],[data-signal-head]) { will-change:transform,opacity; }
+.exhibit-light { left:24%; top:20%; width:52%; height:54%; background:radial-gradient(ellipse at top,#d9cee6,transparent 72%); opacity:.08; }
+.ambient-soil-bridge { position:absolute; left:50vw; top:80.5vh; width:46vh; height:9vh; transform:translateX(-50%); background:radial-gradient(ellipse at 50% 40%,#172019 3%,#141b18 25%,transparent 68%); }
+.ambient-soil-bridge svg,.ambient-soil-bridge img { position:absolute; inset:0; width:100%; height:100%; }
+.ambient-soil-bridge img { object-fit:fill; opacity:.78; mask-image:radial-gradient(ellipse at 50% 38%,#000 35%,transparent 72%); }
+.ambient-soil-bridge svg { fill:#162019; opacity:.2; filter:blur(8px); }
+.ambient-soil-bridge .soil-shadow { fill:#090f10; opacity:.65; }
+.forest-vines { position:absolute; top:9vh; left:28vw; right:28vw; height:54vh; pointer-events:none; opacity:.5; }
+[data-wind-vine] { position:absolute; top:0; left:0; width:2.6vw; height:100%; transform-origin:50% 0; pointer-events:none; }
+[data-wind-vine]:last-child { left:auto; right:0; }
+.vine-stem { fill:none; stroke:#5d5840; stroke-width:2.2; }
+.vine-leaf { fill:#414f37; stroke:#6b7952; stroke-width:.5; opacity:.8; }
 .workbench-part { pointer-events:none; }
 .portal-art .workbench-part { object-fit:fill; }
 .portal-art { clip-path:inset(12% 5% 14% round 10% / 24%); }
@@ -124,6 +160,9 @@ html[data-resolve-motion="scrub"] .resolve-scroll-cue { display:block; opacity:v
   .workbench-bark { object-fit:cover; object-position:center; }
   .ambient-ground { top:calc(28vh + min(68vw,32vh) * 214 / 226 / 2 + 6px); width:min(56vw,28vh); height:calc(min(56vw,28vh) * 54 / 240); }
   .ambient-air { top:calc(28vh + min(68vw,32vh) * 214 / 226 / 2 - 12px); }
+  .ambient-soil-bridge { top:calc(28vh + min(68vw,32vh) * 214 / 226 / 2 - 8px); width:min(70vw,40vh); height:8svh; }
+  .forest-vines { top:9svh; left:3vw; right:3vw; height:33svh; }
+  [data-wind-vine] { width:10vw; }
   [data-ambient-mote]:nth-child(n+4) { display:none; }
   .resolve-directory { position:relative; inset:auto; padding-top:max(46svh,calc(28vh + min(68vw,32vh) * 214 / 226 / 2 + 24px)); margin:0 20px; }
   .resolve-directory nav { position:relative; inset:auto; display:grid; gap:3px; isolation:isolate; }
@@ -149,6 +188,7 @@ html[data-resolve-motion="scrub"] .resolve-scroll-cue { display:block; opacity:v
 @media (max-width:800px) and (orientation:landscape) {
   .resolve-tree { top:40vh; }
   .ambient-ground { top:calc(40vh + min(68vw,32vh) * 214 / 226 / 2); }
+  .ambient-soil-bridge { top:calc(40vh + min(68vw,32vh) * 214 / 226 / 2 - 8px); height:10svh; }
   .ambient-air { top:calc(40vh + min(68vw,32vh) * 214 / 226 / 2 - 12px); }
   .resolve-directory { padding-top:max(58svh,calc(40vh + min(68vw,32vh) * 214 / 226 / 2 + 24px)); }
 }
