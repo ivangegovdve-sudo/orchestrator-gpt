@@ -34,6 +34,8 @@
     .offer-expired .offer-state { color: #d98a7f; }
     .offer-provider { min-width: 0; overflow: hidden; color: var(--text-muted, #b8b9c5); font-size: .74rem; text-overflow: ellipsis; white-space: nowrap; }
     .offer-title { min-width: 0; overflow: hidden; color: var(--text-primary, #f3f4f6); font-size: .84rem; font-weight: 650; text-overflow: ellipsis; white-space: nowrap; }
+    .offer-disclosure[open] .offer-provider,
+    .offer-disclosure[open] .offer-title { white-space: normal; word-break: break-word; }
     .offer-details { border-top: 1px solid rgba(255,255,255,.1); padding: .45rem .6rem .55rem 2rem; color: var(--text-muted, #b8b9c5); font-size: .78rem; line-height: 1.35; }
     .offer-details p { margin: 0 0 .3rem; }
     .offer-details p:last-child { margin-bottom: 0; }
