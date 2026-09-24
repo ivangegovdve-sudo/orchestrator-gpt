@@ -1,5 +1,10 @@
 # SD Forest — front-page resolve contract
 
+Current interaction/layout supplement: [approved 2026-09-24 correction](frontpage-correction-2026-09-24.md).
+It supersedes earlier phone-thumbnail, lower-control placement and decorative-vine
+descriptions below. The numbered tree geometry and pure seek timing remain the
+unchanged video hand-off contract; pool arrivals still follow the current DOM.
+
 2026-09-23 · BUTCHER · front page only. Updated for the approved embedded-forest revision. This is the terminal-sequence layout and timing contract for Ivan's animation, not a new tree or a completed seed-to-tree video. Earlier review and ambient receipts below are historical; the current environment and inset-title results are in [the embedded-forest receipt](frontpage-embedded.md). The unchanged mechanical interactions are documented in [the workbench receipt](frontpage-workbench.md).
 
 ## The two frames

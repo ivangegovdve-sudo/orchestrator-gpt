@@ -62,14 +62,25 @@ async function opacity(page, selector) {
   return page.locator(selector).evaluate(el=>Number(getComputedStyle(el).opacity));
 }
 
-test('Health draws a moving regular trace, accelerates on focus, and goes flat when pressed', async () => {
+test('Health beats in place, returns to baseline, and goes flat when pressed', async () => {
   const page=await pageAt('?frame=opened');
   const health=page.locator('[data-pool-link="health"]');
   const wave=health.locator('[data-ecg-wave]');
-  assert.equal(await wave.count(),1,'a real moving ECG trace replaces brightening the painted crop');
-  const first=await wave.getAttribute('style');
-  await page.waitForTimeout(180);
-  assert.notEqual(await wave.getAttribute('style'),first);
+  assert.equal(await wave.count(),1);
+  const samples=await page.evaluate(async()=>{
+    const wave=document.querySelector('[data-ecg-wave]');
+    const samples=[];
+    for(let i=0;i<40;i++) {
+      const path=wave.querySelector('[data-ecg-qrs] path') || wave.querySelector('path');
+      const b=path.getBoundingClientRect();
+      samples.push({x:b.x,width:b.width,height:b.height});
+      await new Promise(r=>setTimeout(r,40));
+    }
+    return samples;
+  });
+  assert.ok(Math.max(...samples.map(s=>s.x))-Math.min(...samples.map(s=>s.x))<.1,'the trace must not scroll sideways');
+  assert.ok(samples.some(s=>s.height>8),'a visible beat deflects from baseline');
+  assert.ok(samples.some(s=>s.height<.1),'the trace rests flat between beats');
   await health.focus();
   await page.waitForTimeout(500);
   assert.equal(await health.getAttribute('data-effect-state'),'engaged');
@@ -110,13 +121,13 @@ test('soil bridges the trunk contact to the foreground and hanging vines respond
   await page.mouse.move(1800,400);await page.waitForTimeout(500);
   assert.notDeepEqual(await vines.evaluateAll(es=>es.map(e=>e.style.transform)),before);
   assert.deepEqual(await page.locator('.resolve-tree').boundingBox(),tree);
-  assert.ok(await vines.evaluateAll(es=>es.every(e=>getComputedStyle(e).pointerEvents==='none')));
+  assert.equal(await page.locator('.resolve-ambient').evaluate(e=>getComputedStyle(e).pointerEvents),'none');
   await page.close();
 });
 
 test('all new local effects freeze completely on pause and reduced motion, including hover', async () => {
   const page=await ambientPage();
-  const effects='[data-ecg-wave],[data-neural-impulse],[data-wind-vine],.portal-art';
+  const effects='.ecg-deflection,.ecg-rest,[data-neural-impulse],[data-wind-vine],.portal-art';
   assert.ok(await page.locator('[data-ecg-wave]').count());
   await page.getByRole('button',{name:'Pause motion',exact:true}).click();
   const styles=()=>page.locator(effects).evaluateAll(es=>es.map(e=>e.getAttribute('style')));
@@ -128,6 +139,167 @@ test('all new local effects freeze completely on pause and reduced motion, inclu
   const still=await styles();
   await page.waitForTimeout(400);assert.deepEqual(await styles(),still);
   assert.equal(await page.evaluate(()=>frameProbe.max),1);
+  await page.close();
+});
+
+test('hanging vines capture a deliberate drag then swing freely without moving the tree', async () => {
+  const page=await ambientPage();
+  const vine=page.getByRole('button',{name:'Swing left vine',exact:true});
+  assert.equal(await vine.count(),1,'a hanging vine must be an actual interactive target');
+  const tree=await page.locator('.resolve-tree').boundingBox();
+  const before=await vine.getAttribute('style');
+  const box=await vine.boundingBox();
+  await page.mouse.move(box.x+box.width/2,box.y+box.height*.7);
+  await page.mouse.down();
+  await page.mouse.move(box.x+box.width/2+70,box.y+box.height*.7+15,{steps:10});
+  await page.waitForTimeout(100);
+  assert.equal(await vine.getAttribute('data-dragging'),'true');
+  assert.notEqual(await vine.getAttribute('style'),before);
+  await page.mouse.up();
+  assert.equal(await vine.getAttribute('data-dragging'),null);
+  const released=await vine.getAttribute('style');
+  await page.waitForTimeout(300);
+  assert.notEqual(await vine.getAttribute('style'),released,'release continues as a damped swing');
+  assert.deepEqual(await page.locator('.resolve-tree').boundingBox(),tree);
+  assert.equal(await page.evaluate(()=>frameProbe.max),1);
+  await page.getByRole('button',{name:'Pause motion',exact:true}).click();
+  const held=await vine.getAttribute('style');
+  await page.waitForTimeout(300);assert.equal(await vine.getAttribute('style'),held);
+  assert.equal(await page.evaluate(()=>frameProbe.pending()),0);
+  await page.close();
+});
+
+test('vines support keyboard nudges and become inert on rewind or reduced motion', async () => {
+  const page=await ambientPage();
+  const vine=page.locator('button[data-wind-vine="1"]');
+  assert.equal(await vine.count(),1);
+  await vine.focus();
+  const before=await vine.getAttribute('style');
+  await vine.press('Enter');await page.waitForTimeout(120);
+  assert.notEqual(await vine.getAttribute('style'),before);
+  await page.evaluate(()=>window.sdforestResolve.seek(0));
+  assert.ok(await vine.evaluate(e=>!!e.closest('[inert]')));
+  assert.equal(await vine.evaluate(e=>e===document.activeElement),false);
+  await page.evaluate(()=>window.sdforestResolve.seek(5));
+  await page.emulateMedia({reducedMotion:'reduce'});
+  const still=await vine.getAttribute('style');
+  await page.mouse.move(1700,700);await page.waitForTimeout(200);
+  assert.equal(await vine.getAttribute('style'),still);
+  assert.equal(await page.evaluate(()=>frameProbe.pending()),0);
+  await page.close();
+});
+
+test('a phone swipe on a vine yields to vertical scrolling and cancels its drag', async () => {
+  const page=await pageAt('?frame=opened',{viewport:{width:390,height:844},isMobile:true,hasTouch:true});
+  const vine=page.locator('button[data-wind-vine="0"]');
+  const box=await vine.boundingBox();
+  const cdp=await page.context().newCDPSession(page);
+  const x=box.x+box.width/2,y=box.y+box.height*.8;
+  await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x,y}]});
+  assert.equal(await vine.getAttribute('data-dragging'),'true');
+  for(let i=1;i<=5;i++) {
+    await cdp.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x,y:y-i*25}]});
+    await page.waitForTimeout(20);
+  }
+  await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
+  await page.waitForTimeout(150);
+  assert.equal(await vine.getAttribute('data-dragging'),null);
+  assert.ok(await page.evaluate(()=>scrollY>20),'a decorative strand must not trap the phone page');
+  await page.close();
+});
+
+test('pausing during a captured vine drag releases it and stops the only clock', async () => {
+  const page=await ambientPage();
+  const errors=[];page.on('pageerror',error=>errors.push(error.message));
+  const vine=page.locator('button[data-wind-vine="0"]');
+  const box=await vine.boundingBox();
+  await page.mouse.move(box.x+box.width/2,box.y+box.height*.7);await page.mouse.down();
+  await page.mouse.move(box.x+box.width/2+45,box.y+box.height*.7,{steps:4});
+  await page.emulateMedia({reducedMotion:'reduce'});
+  await page.waitForTimeout(100);
+  assert.deepEqual(errors,[]);
+  assert.equal(await page.evaluate(()=>matchMedia('(prefers-reduced-motion: reduce)').matches),true);
+  assert.equal(await page.locator('.resolve-motion-toggle').textContent(),'Motion off');
+  assert.equal(await vine.getAttribute('data-dragging'),null);
+  const held=await vine.getAttribute('style');
+  await page.mouse.up();await page.waitForTimeout(150);
+  assert.equal(await vine.getAttribute('style'),held);
+  assert.equal(await page.evaluate(()=>frameProbe.pending()),0);
+  assert.equal(await page.evaluate(()=>frameProbe.max),1);
+  await page.close();
+});
+
+test('phone pool mechanisms fill their entries and names remain embedded rather than beside thumbnails', async () => {
+  for(const [width,height] of [[390,844],[320,568],[780,390]]) {
+    const page=await pageAt('?frame=opened',{viewport:{width,height}});
+    assert.deepEqual(await page.locator('[data-pool-link]').evaluateAll(es=>es.slice(-2).map(e=>e.dataset.poolLink)),['tinkerbox','design-gallery']);
+    for(const link of await page.locator('[data-pool-link]').all()) {
+      const result=await link.evaluate(e=>{
+        const box=e.getBoundingClientRect(),art=e.querySelector('.portal-art').getBoundingClientRect();
+        const range=document.createRange();range.selectNodeContents(e.querySelector('.portal-name'));
+        const text=range.getBoundingClientRect();
+        return {id:e.dataset.poolLink,width:box.width,art:art.toJSON(),text:text.toJSON()};
+      });
+      assert.ok(result.art.width>=result.width*.95,`${width}px ${result.id}: not a thumbnail`);
+      assert.ok(result.text.left>=result.art.left && result.text.right<=result.art.right &&
+        result.text.top>=result.art.top && result.text.bottom<=result.art.bottom,`${width}px ${result.id}: embedded title ${JSON.stringify(result)}`);
+    }
+    await page.close();
+  }
+});
+
+test('grass has visible filled blades overlapping the fixed trunk contact', async () => {
+  const page=await pageAt('?frame=opened');
+  const result=await page.locator('[data-wind-grass]').evaluateAll(es=>es.map(e=>({
+    fill:getComputedStyle(e).fill,opacity:Number(getComputedStyle(e).opacity),height:e.getBoundingClientRect().height
+  })));
+  assert.ok(result.every(e=>e.fill!=='none' && e.opacity>=.6 && e.height>=60),'grass must have visible body, not faint hairline strokes');
+  const tree=await page.locator('.resolve-tree').boundingBox();
+  const grass=await page.locator('.ambient-ground').boundingBox();
+  assert.ok(grass.y<tree.y+tree.height && grass.y+grass.height>tree.y+tree.height,'foreground blades overlap the base');
+  await page.close();
+});
+
+test('selected phone summaries sit below the whole mechanism, clear of its label and next entry', async () => {
+  for(const width of [320,390]) {
+    const page=await pageAt('?frame=opened',{viewport:{width,height:844}});
+    for(const link of await page.locator('[data-pool-link]').all()) {
+      await link.press('Enter');
+      assert.equal(await link.getAttribute('data-armed'),'true');
+      const boxes=await link.evaluate(e=>{
+        const b=e.getBoundingClientRect(),m=e.querySelector('.portal-meta').getBoundingClientRect();
+        const next=e.nextElementSibling?.getBoundingClientRect();
+        return {bottom:b.bottom,meta:m.toJSON(),nextTop:next?.top,id:e.dataset.poolLink};
+      });
+      assert.ok(boxes.meta.top>=boxes.bottom+24,`${width} ${boxes.id}: summary clears selection instruction`);
+      assert.ok(boxes.meta.width>=width-26,`${width} ${boxes.id}: summary uses the whole entry`);
+      if(boxes.nextTop)assert.ok(boxes.meta.bottom<=boxes.nextTop,`${width} ${boxes.id}: summary clears next mechanism ${JSON.stringify(boxes)}`);
+      await page.keyboard.press('Escape');
+    }
+    await page.close();
+  }
+});
+
+test('landscape phones expose a complete first row without changing the fixed tree', async () => {
+  for(const [width,height] of [[780,390],[568,320]]) {
+    const page=await pageAt('?frame=opened',{viewport:{width,height}});
+    const entries=await page.locator('[data-pool-link]').evaluateAll(es=>es.map(e=>e.getBoundingClientRect().toJSON()));
+    assert.ok(entries.filter(e=>e.top>=0 && e.bottom<=height).length>=2,`${width}x${height}: two complete leading entries`);
+    assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth),width);
+    for(const link of await page.locator('[data-pool-link]').all()) {
+      assert.ok(await link.evaluate(e=>{const b=e.getBoundingClientRect(),r=document.createRange();r.selectNodeContents(e.querySelector('.portal-name'));return [...r.getClientRects()].every(t=>t.left>=b.left && t.right<=b.right && t.bottom<=b.bottom);}),await link.getAttribute('data-pool-link'));
+    }
+    await page.close();
+  }
+});
+
+test('stationary heartbeat and idle wind do not trigger repeated layout', async () => {
+  const page=await pageAt('?frame=opened',{viewport:{width:390,height:844}});
+  const cdp=await page.context().newCDPSession(page);
+  await cdp.send('Performance.enable');
+  const layouts=async()=>Object.fromEntries((await cdp.send('Performance.getMetrics')).metrics.map(m=>[m.name,m.value])).LayoutCount;
+  const before=await layouts();await page.waitForTimeout(1400);
+  assert.equal(await layouts()-before,0,'idle instruments should composite, not re-layout SVG paths');
   await page.close();
 });
 
@@ -169,25 +341,26 @@ test('the first-aid flag flips over and the grounded grass has several blade clu
   await page.close();
 });
 
-test('heartbeat hover increases its measured regular rate instead of jumping phase', async () => {
+test('heartbeat hover increases its measured regular rate without lateral travel', async () => {
   const page=await pageAt('?frame=opened');
   async function cyclesPerSecond() {
     return page.evaluate(async()=>{
       const wave=document.querySelector('[data-ecg-wave]');
-      const read=()=>-parseFloat(wave.style.transform.match(/translate3d\(([-.\d]+)/)[1])*3/100;
-      let prior=read(),distance=0,start=performance.now();
-      while(performance.now()-start<1200) {
+      const path=wave.querySelector('[data-ecg-qrs] path') || wave.querySelector('path');
+      const read=()=>path.getBoundingClientRect().height>8;
+      let prior=read(),beats=0,start=performance.now();
+      while(performance.now()-start<5000) {
         await new Promise(resolve=>setTimeout(resolve,30));
-        const next=read();distance+=(next-prior+1)%1;prior=next;
+        const next=read();if(next&&!prior)beats++;prior=next;
       }
-      return distance/((performance.now()-start)/1000);
+      return beats/((performance.now()-start)/1000);
     });
   }
   const idle=await cyclesPerSecond();
   await page.locator('[data-pool-link="health"]').hover();await page.waitForTimeout(650);
   const engaged=await cyclesPerSecond();
-  assert.ok(idle>1 && idle<1.4,`rest ${idle*60} bpm`);
-  assert.ok(engaged>2 && engaged<2.5,`hover ${engaged*60} bpm`);
+  assert.ok(idle>=.98 && idle<1.45,`rest ${idle*60} bpm`);
+  assert.ok(engaged>=1.98 && engaged<2.5,`hover ${engaged*60} bpm`);
   await page.close();
 });
 
@@ -290,7 +463,7 @@ test('mobile bark does not leak into the tree-only resolve frame', async () => {
   await page.close();
 });
 
-test('workbench leaders and compact lower entries respect the protected tree and approved hierarchy', async () => {
+test('lower flank pools keep the same width and cadence as leaders without entering the tree box', async () => {
   const page=await pageAt('?frame=opened');
   const boxes=await page.locator('[data-pool-link]').evaluateAll(es=>Object.fromEntries(es.map(e=>[e.dataset.poolLink,e.getBoundingClientRect().toJSON()])));
   assert.ok(boxes.health.x < 960 && boxes['ai-d-kit'].x > 960);
@@ -299,8 +472,13 @@ test('workbench leaders and compact lower entries respect the protected tree and
   assert.ok(boxes['artificial-self'].y > boxes['ai-d-kit'].bottom);
   const tree=await page.locator('.resolve-tree').boundingBox();
   for(const id of ['tinkerbox','my-story','design-gallery']) {
-    assert.ok(boxes[id].y >= tree.y+tree.height,`${id} must be below artwork`);
     assert.ok(boxes[id].bottom <= 1080,`${id} must remain above the fold`);
+  }
+  assert.ok(boxes['my-story'].y >= tree.y+tree.height);
+  for(const [last,middle] of [['tinkerbox','growingapp'],['design-gallery','artificial-self']]) {
+    assert.ok(Math.abs(boxes[last].width-boxes.health.width)<1,'last must not mean a shrunken control');
+    assert.ok(Math.abs((boxes[last].y-boxes[middle].y)-(boxes.growingapp.y-boxes.health.y))<1,'same vertical cadence, not a detached footer');
+    assert.ok(boxes[last].right<=tree.x || boxes[last].left>=tree.x+tree.width);
   }
   assert.ok(boxes['design-gallery'].height <= boxes.health.height);
   assert.ok(boxes.tinkerbox.x < boxes['my-story'].x && boxes['my-story'].x < boxes['design-gallery'].x);
@@ -340,12 +518,12 @@ test('failed workbench artwork never hides names, selection state or a usable ro
   await page.goto(base+'/?frame=opened',{waitUntil:'networkidle'});
   for(const link of await page.locator('[data-pool-link]').all()) {
     assert.ok(await link.locator('.portal-name').isVisible());
-    await link.click();
+    await link.press('Enter');
     assert.equal(await link.getAttribute('data-armed'),'true');
     await page.keyboard.press('Escape');
   }
   const link=page.locator('[data-pool-link="health"]');
-  await link.click();await link.click();
+  await link.press('Enter');await link.press('Enter');
   await page.waitForURL(base+'/web/pools/health/');
   await page.close();
 });
@@ -659,7 +837,11 @@ test('mobile scrub track grows with wrapped and selected entries instead of clip
     }));
     await page.locator('.dh-tab').click();
     await page.getByRole('button',{name:'Close design history',exact:true}).click();
+    // Wait for the existing drawer's 420ms exit before asking Playwright to
+    // scroll a covered portal into view. Otherwise its retry rewinds the scrub.
+    await page.locator('.dh-drawer').waitFor({state:'hidden'});
     await page.locator('[data-pool-link="my-story"]').click();
+    assert.equal(await page.locator('[data-pool-link="my-story"]').getAttribute('data-armed'),'true');
     const selected = await page.evaluate(()=>{
       const s=document.querySelector('.resolve-stage').getBoundingClientRect(),h=document.querySelector('.resolve-history').getBoundingClientRect();
       return h.bottom-s.top <= s.height;

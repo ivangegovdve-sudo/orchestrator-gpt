@@ -1,0 +1,26 @@
+{
+  "base": "07300bae116be0cbfbbebb48cc96aad182fc338d",
+  "treeCssRulesUnchanged": 3,
+  "treeMarkupUnchanged": true,
+  "pureSeekUnchanged": true,
+  "existingCopyUnchanged": true,
+  "deletedOrRenamedPaths": 0,
+  "catalogPoolPagesRegistryUnchanged": true,
+  "trackedChanges": [
+    "M\tdocs/frontpage-embedded.md",
+    "M\tdocs/frontpage-motion.md",
+    "M\tdocs/frontpage-resolve.md",
+    "M\tindex.html",
+    "M\tscratch/frontpage-ambient-profile.cjs",
+    "M\tscratch/frontpage-motion-proof.cjs",
+    "M\tscratch/tests/frontpage-resolve.test.js",
+    "M\tscratch/tests/route-inventory-contract.test.js",
+    "M\tscratch/tests/sdforest-foundation.test.js",
+    "M\tscratch/tests/sdforest-pool-structure.test.js",
+    "M\tweb/shared/frontpage-ambient.mjs",
+    "M\tweb/shared/frontpage-pool-effects.mjs",
+    "M\tweb/shared/frontpage-resolve.css",
+    "M\tweb/shared/frontpage-resolve.mjs",
+    "M\tweb/shared/frontpage-workbench.mjs"
+  ]
+}

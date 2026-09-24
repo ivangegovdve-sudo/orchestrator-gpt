@@ -2,6 +2,7 @@
 // This module has no clock: the resolve controller supplies every sample.
 import { windAt } from './frontpage-ambient.mjs';
 import { createPoolEffects, paint } from './frontpage-pool-effects.mjs';
+import { createVines } from './frontpage-vines.mjs';
 const smooth = value => { const p=Math.max(0,Math.min(1,value)); return p*p*(3-2*p); };
 export const artworkParts = {
   health:[['pulse',12,24,88,65]],
@@ -68,7 +69,7 @@ export function createWorkbench(stage,invalidate,readClock) {
   nodes.forEach(node=>visiblePools.observe(node.link));
   const far=stage.querySelector('.workbench-horizon');
   const mist=stage.querySelector('.workbench-mist');
-  const vines=[...stage.querySelectorAll('[data-wind-vine]')];
+  const vines=createVines(stage,invalidate);
   let moving=false, pointerX=0, pointerY=0, x=0, y=0, lastEnvironment=-Infinity;
   let viewport={width:innerWidth,height:innerHeight};
   stage.addEventListener('pointermove',event=>{
@@ -79,22 +80,23 @@ export function createWorkbench(stage,invalidate,readClock) {
   },{passive:true});
   stage.addEventListener('pointerleave',()=>{pointerX=pointerY=0;invalidate();});
   return {
-    resize() { viewport={width:innerWidth,height:innerHeight};nodes.forEach(node=>node.effects.resize()); },
+    resize() { viewport={width:innerWidth,height:innerHeight};nodes.forEach(node=>node.effects.resize());vines.resize(); },
     select(link) {
       for(const node of nodes) {
         const next=node.link===link;
         if(next!==node.selected){node.selected=next;node.update();}
       }
     },
-    busy() { return moving; },
-    engaged() {return nodes.some(node=>node.visible && (node.hover||node.focus));},
+    busy() { return moving || vines.busy(); },
+    engaged() {return vines.busy() || nodes.some(node=>node.visible && (node.hover||node.focus));},
     render(seconds,strength,animate=true) {
       moving=false;
+      vines.render(seconds,strength,animate);
       const gust=windAt(seconds)*strength;
       for(const node of nodes) {
         if(animate && !node.visible)continue;
         const p=animate ? smooth((seconds-node.start)/.36) : 1;
-        node.value=node.from+(node.target-node.from)*p;
+        node.value=animate ? node.from+(node.target-node.from)*p : node.selected ? 1 : 0;
         if(p<1 && Math.abs(node.value-node.target)>.001) moving=true;
         const press=node.value, f=node.fragments;
         const effect=node.effects.render(seconds,press,node.hover||node.focus,node.selected,animate);
@@ -131,7 +133,6 @@ export function createWorkbench(stage,invalidate,readClock) {
         paint(mist,'transform',`translate3d(${x*.4+gust*2.5}px,${y*.3}px,0)`);
         paint(mist,'opacity',.12+gust*.018);
       }
-      vines.forEach((vine,i)=>paint(vine,'transform',`rotate(${(x*.32+windAt(seconds-i*.8)*strength*1.2)*(i%2?-1:1)}deg)`));
     }
   };
 }

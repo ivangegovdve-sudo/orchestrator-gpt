@@ -11,13 +11,19 @@ export function windAt(seconds) {
 // No scheduler and no geometry reads here. The resolve controller owns time.
 export function createAmbient(stage) {
   const layer = stage.querySelector('.resolve-ambient');
+  const vines = stage.querySelector('.forest-vines');
   const grass = [...layer.querySelectorAll('[data-wind-grass]')].map(element => ({element, lag:Number(element.dataset.windGrass)}));
   const motes = [...layer.querySelectorAll('[data-ambient-mote]')];
   let count = 6;
   let previousPhase = '';
   return {
     compact(value) { count = value ? 3 : 6; },
-    reveal(time) { layer.style.opacity = String(smooth(Math.max(0,Math.min(1,(time - 3.6) / .8)))); },
+    reveal(time) {
+      const opacity=String(smooth(Math.max(0,Math.min(1,(time - 3.6) / .8))));
+      layer.style.opacity=opacity;vines.style.opacity=opacity;
+      vines.inert=time<4.4;
+      if(vines.inert && vines.contains(document.activeElement))document.activeElement.blur();
+    },
     render(seconds, strength) {
       const gust = windAt(seconds) * strength;
       for (const {element,lag} of grass) {

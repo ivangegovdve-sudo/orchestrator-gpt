@@ -1,9 +1,13 @@
 // Terminal-sequence clock. It never grows, replaces, or moves the supplied tree.
 import { createAmbient } from './frontpage-ambient.mjs';
 import { createWorkbench } from './frontpage-workbench.mjs';
+import './pool-directory.mjs';
 const root = document.documentElement;
 const stage = document.querySelector('[data-resolve-stage]');
 const directory = document.querySelector('[data-pool-directory]');
+// This front-page composition ends with the two approved lower-flank controls.
+// Mark the existing anchors, not a second rank list. Arrivals still follow DOM index.
+for (const link of directory.querySelectorAll('[data-final-pool]')) directory.append(link);
 const status = document.querySelector('#workbench-status');
 const reduced = matchMedia('(prefers-reduced-motion: reduce)');
 const frame = new URLSearchParams(location.search).get('frame');
@@ -41,7 +45,7 @@ function invalidateWorkbench() {
   syncMotion();
 }
 function canInteract() {
-  return current >= 4.4 && !reduced.matches && !paused && !document.hidden;
+  return current >= 4.4 && !reduced.matches && !paused && !document.hidden && onScreen;
 }
 
 function measureSettings() {
@@ -76,6 +80,9 @@ function syncMotion() {
 }
 function tick(stamp) {
   frameId = 0;
+  // Chromium can defer the media-query change event while a pointer is captured.
+  // Read the preference on the existing clock too; never keep dragging through it.
+  if (reduced.matches) { openStatic(); return; }
   if (dirtyScroll) {
     dirtyScroll = false;
     // The scroll track can change independently of viewport size. Read only on

@@ -35,12 +35,10 @@ function svg(className,markup) {
 export function createPoolEffects(id,art) {
   let element;
   if(id==='health') {
-    const wave=Array.from({length:5},(_,i)=>{
-      const x=i*300;
-      return `L${x+45} 55 Q${x+59} 42 ${x+69} 55 L${x+94} 55 L${x+106} 64 L${x+118} 12 L${x+130} 86 L${x+141} 46 L${x+152} 55 L${x+174} 55 Q${x+196} 34 ${x+216} 55 L${x+300} 55`;
-    }).join(' ');
     element=document.createElement('span');element.className='pool-instrument ecg-instrument';
-    element.innerHTML=`<span class="ecg-screen"><span data-ecg-wave><svg viewBox="0 0 900 100" preserveAspectRatio="none" aria-hidden="true" focusable="false"><path d="M0 55 ${wave}"/></svg></span><span data-ecg-flat><svg viewBox="0 0 600 100" preserveAspectRatio="none" aria-hidden="true" focusable="false"><path d="M0 55H600"/></svg></span></span>`;
+    const trace=d=>`<svg viewBox="0 0 300 100" preserveAspectRatio="none" aria-hidden="true" focusable="false"><path d="${d}"/></svg>`;
+    const lobes=[['p','M0 55H45Q59 30 73 55H94','M0 55H94'],['qrs','M94 55L106 64L118 12L130 86L141 46L152 55H174','M94 55H174'],['t','M174 55Q196 20 216 55H300','M174 55H300']];
+    element.innerHTML=`<span class="ecg-screen"><span data-ecg-wave>${lobes.map(([name,d,line])=>`<span class="ecg-rest" data-ecg-rest="${name}">${trace(line)}</span><span class="ecg-deflection" data-ecg-${name}>${trace(d)}</span>`).join('')}</span><span data-ecg-flat>${trace('M0 55H300')}</span></span>`;
   } else if(id==='artificial-self') {
     element=document.createElement('span');element.className='pool-instrument neural-instrument';
     element.append(svg('neural-wires',wires.map(p=>`<path class="neural-wire" d="M${p[0]}C${p[1]} ${p[2]} ${p[3]}"/>`).join('')));
@@ -54,6 +52,8 @@ export function createPoolEffects(id,art) {
   }
   if(element)art.append(element);
   const wave=element?.querySelector('[data-ecg-wave]');
+  const deflections=['p','qrs','t'].map(part=>wave?.querySelector(`[data-ecg-${part}]`));
+  const baselines=['p','qrs','t'].map(part=>wave?.querySelector(`[data-ecg-rest="${part}"]`));
   const flat=element?.querySelector('[data-ecg-flat]');
   const impulses=[...element?.querySelectorAll('[data-neural-impulse]')||[]];
   const cores=[...element?.querySelectorAll('[data-neural-core]')||[]];
@@ -68,7 +68,15 @@ export function createPoolEffects(id,art) {
       energy=animate ? energy+(Number(engaged)-energy)*Math.min(1,dt*7) : 0;
       phase=animate ? phase+dt*(1.2+energy*(id==='health'?1.05:3.6)) : .17;
       if(wave) {
-        paint(wave,'transform',`translate3d(${-fract(phase)*100/3}%,0,0)`);
+        // Fixed endpoints and fixed QRS location: deflect, then return to baseline.
+        // The three lobes share the beat phase; nothing is translated horizontally.
+        const beat=fract(phase);
+        [[.04,.20],[.23,.45],[.47,.69]].forEach(([start,end],i)=>{
+          const p=clamp((beat-start)/(end-start));
+          const amplitude=animate ? Math.sin(Math.PI*p)**2 : 0;
+          paint(deflections[i],'transform',`scaleY(${amplitude})`);
+          paint(baselines[i],'opacity',amplitude<.025?1:0);
+        });
         paint(wave,'opacity',selected?0:1);paint(flat,'opacity',selected?1:0);
       }
       impulses.forEach((impulse,i)=>{

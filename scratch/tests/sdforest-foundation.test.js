@@ -25,9 +25,9 @@ test('Forest HUB built artifact exposes seven live pool entries and the title cr
     'the built title must contain exactly one crown element',
   );
   const ids = ['growingapp', 'ai-d-kit', 'tinkerbox', 'health', 'design-gallery', 'artificial-self', 'my-story'];
-  const links = [...home.matchAll(/data-pool-link="([^"]+)" href="([^"]+)"/g)];
-  assert.deepEqual(links.map((match) => match[1]), ids);
-  assert.deepEqual(links.map((match) => match[2]), ids.map((id) => `/web/pools/${id}/`));
+  const links = [...home.matchAll(/data-pool-link="([^"]+)"[^>]* href="([^"]+)"/g)];
+  assert.deepEqual(links.map((match) => match[1]).sort(), [...ids].sort());
+  for (const link of links) assert.equal(link[2], `/web/pools/${link[1]}/`);
   assert.equal((home.match(/>Live pool</g) || []).length, 7);
   assert.doesNotMatch(home, /Kids Corner|data-project="/);
   assert.doesNotMatch(home, /Lovable experience/);
