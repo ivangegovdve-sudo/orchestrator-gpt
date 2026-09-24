@@ -1,0 +1,480 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="An axes-based map of agent memory systems, grouped by the problem they solve.">
+  <title>Memory Systems / Ivan's constraints</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --ink: #edf1eb;
+      --muted: #9ea9a4;
+      --faint: #64716d;
+      --canvas: #111618;
+      --panel: #171d1f;
+      --panel-2: #1b2325;
+      --line: #354143;
+      --line-soft: #263033;
+      --gold: #f1c76e;
+      --coral: #f08279;
+      --mint: #9bd49d;
+      --violet: #b7a7e8;
+      --max: 1420px;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      min-width: 320px;
+      background: var(--canvas);
+      color: var(--ink);
+      line-height: 1.48;
+      letter-spacing: .005em;
+    }
+
+    a { color: inherit; }
+    .wrap { width: min(calc(100% - 44px), var(--max)); margin: 0 auto; }
+
+    .masthead {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 315px;
+      gap: 48px;
+      align-items: end;
+      padding: 58px 0 34px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    h1, h2, h3, p { margin: 0; }
+    h1 {
+      max-width: 800px;
+      font-family: Georgia, "Times New Roman", serif;
+      font-weight: 500;
+      font-size: clamp(2.4rem, 5vw, 5.6rem);
+      line-height: .98;
+      letter-spacing: -.055em;
+    }
+    .dek {
+      max-width: 700px;
+      margin-top: 22px;
+      color: #c2cbc6;
+      font-size: clamp(1rem, 1.4vw, 1.25rem);
+    }
+    .method-note {
+      border-left: 1px solid var(--gold);
+      padding: 4px 0 4px 22px;
+    }
+    .method-note strong {
+      display: block;
+      color: var(--gold);
+      font: 600 .72rem/1.2 ui-monospace, SFMono-Regular, Consolas, monospace;
+      letter-spacing: .18em;
+      text-transform: uppercase;
+    }
+    .method-note p { margin-top: 11px; color: var(--muted); font-size: .92rem; }
+
+    .toolbar {
+      display: flex;
+      justify-content: space-between;
+      gap: 18px;
+      align-items: center;
+      padding: 18px 0 30px;
+    }
+    .jump-links { display: flex; gap: 22px; flex-wrap: wrap; }
+    .jump-links a {
+      color: var(--faint);
+      font: 600 .68rem/1.2 ui-monospace, SFMono-Regular, Consolas, monospace;
+      letter-spacing: .16em;
+      text-decoration: none;
+      text-transform: uppercase;
+    }
+    .jump-links a:hover, .jump-links a:focus-visible { color: var(--gold); }
+    .search {
+      width: min(100%, 270px);
+      border: 1px solid var(--line);
+      border-radius: 2px;
+      background: transparent;
+      color: var(--ink);
+      padding: 10px 12px;
+      font: .82rem ui-monospace, SFMono-Regular, Consolas, monospace;
+      outline: none;
+    }
+    .search:focus { border-color: var(--gold); }
+
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px 18px;
+      padding: 0 0 28px;
+      color: var(--muted);
+      font-size: .78rem;
+    }
+    .legend button {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      border: 0;
+      background: none;
+      color: inherit;
+      cursor: pointer;
+      padding: 0;
+      font: inherit;
+    }
+    .legend button:hover, .legend button:focus-visible { color: var(--ink); }
+    .dot { width: 9px; height: 9px; display: inline-block; border-radius: 50%; background: var(--faint); }
+    .dot.keep { background: var(--mint); }
+    .dot.sidecar { background: var(--gold); }
+    .dot.redundant { background: #aeb7ba; }
+    .dot.superseded { background: var(--coral); }
+    .dot.unknown { background: var(--violet); }
+
+    main { padding-bottom: 80px; }
+    .axis {
+      display: grid;
+      grid-template-columns: minmax(220px, .78fr) minmax(0, 1.8fr) minmax(210px, .74fr);
+      gap: 30px;
+      padding: 30px 0 34px;
+      border-top: 1px solid var(--line);
+    }
+    .axis:first-child { border-top: 2px solid var(--gold); }
+    .axis-kicker {
+      display: flex;
+      gap: 13px;
+      align-items: flex-start;
+    }
+    .axis-number {
+      color: var(--accent, var(--gold));
+      font: 600 1rem/1 ui-monospace, SFMono-Regular, Consolas, monospace;
+      letter-spacing: .05em;
+      padding-top: 4px;
+    }
+    .axis-rule { width: 33px; height: 3px; margin-top: 10px; background: var(--accent, var(--gold)); }
+    .axis h2 {
+      margin-top: 22px;
+      max-width: 300px;
+      font: 500 clamp(1.65rem, 2.7vw, 2.55rem)/1 Georgia, "Times New Roman", serif;
+      letter-spacing: -.035em;
+    }
+    .axis-problem { margin-top: 13px; max-width: 310px; color: var(--muted); font-size: .94rem; }
+
+    .systems { min-width: 0; }
+    .system {
+      display: grid;
+      grid-template-columns: minmax(160px, .72fr) minmax(220px, 1.15fr) minmax(175px, .82fr) 86px;
+      gap: 16px;
+      align-items: start;
+      padding: 15px 0;
+      border-bottom: 1px solid var(--line-soft);
+    }
+    .system:first-child { padding-top: 4px; }
+    .system:last-child { border-bottom: 0; }
+    .system-name {
+      color: var(--ink);
+      font: 600 .9rem/1.25 ui-monospace, SFMono-Regular, Consolas, monospace;
+    }
+    .system-name a { text-decoration: none; }
+    .system-name a:hover, .system-name a:focus-visible { color: var(--gold); text-decoration: underline; }
+    .system-source { display: block; margin-top: 5px; color: var(--faint); font-size: .7rem; }
+    .system-claim, .system-axis { color: #c0c9c5; font-size: .82rem; }
+    .system-axis { color: var(--muted); }
+    .status {
+      justify-self: end;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--muted);
+      font: 600 .62rem/1.2 ui-monospace, SFMono-Regular, Consolas, monospace;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+    .status .dot { width: 8px; height: 8px; }
+    .axis-callout {
+      align-self: stretch;
+      border-left: 1px solid var(--line);
+      padding: 5px 0 5px 22px;
+      color: #c0c9c5;
+      font: .9rem/1.55 Georgia, "Times New Roman", serif;
+    }
+    .axis-callout strong { display: block; margin-bottom: 8px; color: var(--accent, var(--gold)); font: 600 .67rem/1.2 ui-monospace, SFMono-Regular, Consolas, monospace; letter-spacing: .12em; text-transform: uppercase; }
+
+    .bottom-grid {
+      display: grid;
+      grid-template-columns: 1.1fr .9fr;
+      gap: 30px;
+      margin-top: 34px;
+      border-top: 1px solid var(--line);
+      padding-top: 30px;
+    }
+    .note-block { padding-right: 15px; }
+    .note-block h2 { font: 500 1.7rem/1 Georgia, "Times New Roman", serif; letter-spacing: -.035em; }
+    .note-block p { margin-top: 13px; color: var(--muted); font-size: .9rem; max-width: 620px; }
+    .survivor-line { display: grid; grid-template-columns: 145px 1fr; gap: 14px; padding: 11px 0; border-bottom: 1px solid var(--line-soft); font-size: .84rem; }
+    .survivor-line strong { color: var(--gold); font: 600 .69rem/1.4 ui-monospace, SFMono-Regular, Consolas, monospace; letter-spacing: .08em; text-transform: uppercase; }
+    .survivor-line span { color: #c5ceca; }
+    .handoff { border-left: 1px solid var(--coral); padding-left: 22px; }
+    .handoff h2 { color: var(--coral); }
+    .sources { margin-top: 25px; padding-top: 20px; border-top: 1px solid var(--line); color: var(--faint); font-size: .72rem; }
+    .sources a { color: var(--muted); text-decoration: none; }
+    .sources a:hover, .sources a:focus-visible { color: var(--gold); text-decoration: underline; }
+    footer { padding: 23px 0 34px; color: var(--faint); font: .68rem ui-monospace, SFMono-Regular, Consolas, monospace; }
+    .empty { display: none; padding: 20px 0; color: var(--muted); font-size: .9rem; }
+
+    @media (max-width: 1050px) {
+      .axis { grid-template-columns: minmax(210px, .7fr) minmax(0, 1.6fr); }
+      .axis-callout { grid-column: 2; border-left: 0; border-top: 1px solid var(--line); padding: 18px 0 0; }
+      .system { grid-template-columns: minmax(145px, .75fr) minmax(200px, 1.1fr) 85px; }
+      .system-axis { grid-column: 2; }
+      .status { grid-column: 3; grid-row: 1; }
+    }
+    @media (max-width: 720px) {
+      .wrap { width: min(calc(100% - 28px), var(--max)); }
+      .masthead { display: block; padding-top: 36px; }
+      .method-note { margin-top: 30px; }
+      .toolbar { display: block; }
+      .search { margin-top: 18px; width: 100%; }
+      .axis { display: block; padding: 27px 0; }
+      .axis h2 { margin-top: 17px; }
+      .axis-problem { margin-bottom: 21px; }
+      .system { grid-template-columns: 1fr 82px; gap: 8px 14px; padding: 16px 0; }
+      .system-name { grid-column: 1; }
+      .status { grid-column: 2; grid-row: 1; }
+      .system-claim { grid-column: 1 / -1; }
+      .system-axis { grid-column: 1 / -1; }
+      .axis-callout { margin-top: 18px; }
+      .bottom-grid { display: block; }
+      .handoff { margin-top: 34px; }
+      .survivor-line { grid-template-columns: 1fr; gap: 4px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header class="masthead" id="top">
+      <div>
+        <h1>Memory Systems /<br>Ivan’s constraints</h1>
+        <p class="dek">A research map for agent memory, organized by the problem each system solves rather than by product name.</p>
+      </div>
+      <aside class="method-note">
+        <strong>No benchmark ranking</strong>
+        <p>Compare on self-hosting, inspectability, no paid per-query inference, and the ability to sit beside 585,199 observations.</p>
+      </aside>
+    </header>
+
+    <div class="toolbar">
+      <nav class="jump-links" aria-label="Page sections">
+        <a href="#map">Problem map</a>
+        <a href="#survivors">Redundancy calls</a>
+        <a href="#handoff">Fleet handoff</a>
+      </nav>
+      <input class="search" id="search" type="search" placeholder="Filter systems or claims" aria-label="Filter systems or claims">
+    </div>
+
+    <div class="legend" aria-label="Map legend">
+      <button type="button" data-filter="all"><span class="dot"></span>All</button>
+      <button type="button" data-filter="keep"><span class="dot keep"></span>Keep / choose one</button>
+      <button type="button" data-filter="sidecar"><span class="dot sidecar"></span>Sidecar</button>
+      <button type="button" data-filter="redundant"><span class="dot redundant"></span>Redundant</button>
+      <button type="button" data-filter="superseded"><span class="dot superseded"></span>Superseded</button>
+      <button type="button" data-filter="unknown"><span class="dot unknown"></span>Unknown / verify</button>
+    </div>
+
+    <main id="map"></main>
+    <p class="empty" id="empty">No systems match that filter.</p>
+
+    <section class="bottom-grid" id="survivors">
+      <div class="note-block">
+        <h2>The redundancy calls</h2>
+        <p>The map is intentionally opinionated: one source of truth, a provenance layer, one structured retrieval sidecar, and only the adjuncts that solve a different problem.</p>
+        <div class="survivor-line"><strong>Canonical files</strong><span>Choose one of AI-Context-OS, Obsidian-Mind, or Knowledge Engine. The rest of the vault/wiki cluster is redundant as a second source of truth.</span></div>
+        <div class="survivor-line"><strong>Capture</strong><span>Keep Agent Beacon alongside the canonical layer for cross-harness traces and replay; it is not the observation database.</span></div>
+        <div class="survivor-line"><strong>Structured recall</strong><span>Test one of Agentmemory, MemPalace, Mnemosyne, or RetainDB Local. Running all four duplicates the same sidecar role.</span></div>
+        <div class="survivor-line"><strong>Adjuncts</strong><span>QMD for file search, one code graph, one context-window manager, and screenshot-memory only when those modalities are actually needed.</span></div>
+      </div>
+      <div class="note-block handoff" id="handoff">
+        <h2>Fleet handoff</h2>
+        <p>No candidate has been tested against the existing 585,199 observations from this machine. Before any replacement decision, measure bulk import, incremental append, lexical-only recall with inference disabled, local-model cost, restart/recovery, duplicate handling, and human edits.</p>
+        <p>The page renders the research map; it does not connect to a database, call an API, or claim that a candidate runs.</p>
+      </div>
+    </section>
+
+    <div class="sources">
+      Public evidence: <a href="https://github.com/mem0ai/mem0">Mem0</a> ·
+      <a href="https://github.com/vectorize-io/hindsight">Hindsight</a> ·
+      <a href="https://github.com/RetainDB/RetainDB">RetainDB</a> ·
+      <a href="https://github.com/mnemosyne-oss/mnemosyne">Mnemosyne</a> ·
+      <a href="https://github.com/MemPalace/mempalace">MemPalace</a> ·
+      <a href="https://github.com/NousResearch/hermes-agent/blob/main/plugins/memory/holographic/README.md">Holographic</a> ·
+      <a href="https://github.com/volcengine/OpenViking">OpenViking</a> ·
+      <a href="https://github.com/Asymptote-Labs/agent-beacon">Agent Beacon</a>
+    </div>
+    <footer>Forest HUB research surface · 2026-09-25 · static map, qualitative evidence, no benchmark leaderboard</footer>
+  </div>
+
+  <script>
+    const groups = [
+      {
+        number: '01', title: 'Canonical files', accent: 'gold',
+        problem: 'Maintain stable, human-readable source-of-truth memory that a person can inspect and edit.',
+        callout: 'Keep one canonical file or vault layer. Duplicating these systems creates competing truth.',
+        items: [
+          ['AI-Context-OS', 'account fork', 'Filesystem-first Markdown/YAML context OS; deterministic local loading.', 'Local file load · editable Markdown/YAML', 'keep', 'Best general canonical candidate; redundant with the vault/wiki cluster.'],
+          ['Knowledge Engine', 'account fork', 'Markdown wiki plus entities, links, grep-first lookup, optional Memvid.', 'Grep/local · editable Markdown', 'keep', 'Strong file-plus-index variant; redundant with AI-Context-OS.'],
+          ['Knowledge Forge', 'account fork', 'Compounding wiki from documents; prototype still lacks richer retrieval/maintainer.', 'Grep/local · editable Markdown', 'redundant', 'Superseded for a production canonical layer until missing pieces land.'],
+          ['Obsidian-Mind', 'account fork', 'Vault memory for Claude, Codex, and Gemini with hooks and QMD sidecar.', 'Grep/QMD local · editable Markdown', 'keep', 'Best Obsidian-shaped alternative; redundant with the vault cluster.'],
+          ['Obsidian Second Brain', 'account fork', 'Cross-CLI vault, scheduled agents, and write-time validation.', 'Local/QMD · editable Markdown', 'redundant', 'Workflow adapter, not a second source of truth.'],
+          ['Claude-Obsidian', 'account fork', 'Markdown, wikilinks, and AI-organized knowledge graph.', 'Files local · LLM for organization', 'redundant', 'Redundant with Obsidian-Mind; automation is not a storage advantage.'],
+          ['OpenAugi + plugin', 'account fork', 'Human-memory/knowledge-base idea plus an Obsidian adapter.', 'Unknown from snapshot · format verify', 'unknown', 'Plugin is an adapter; do not count it as another store.'],
+          ['LifeOS / Personal AI Infrastructure', 'account fork', 'Personal PKM/workflow corpus, not a focused memory engine.', 'Local files · editable', 'redundant', 'Adjacent vault material; redundant as canonical memory.'],
+          ['chloe-memory', 'account-owned', 'Live-looking canonical docs, cards, graphs, sessions, and sync workspace.', 'Retrieval unknown · files visible', 'unknown', 'Account-specific; needs source review before any superseder call.'],
+          ['Claude Memory Compiler', 'account fork', 'Transcript → daily Markdown → compiled, cross-referenced articles.', 'Grep local · LLM compilation', 'sidecar', 'Keep only for article compilation; storage overlaps the vault cluster.']
+        ]
+      },
+      {
+        number: '02', title: 'Verbatim / local memory', accent: 'coral',
+        problem: 'Preserve what actually happened—transcripts, facts, and artifacts—without making a model the only reader.',
+        callout: 'Choose one local structured sidecar if files alone are not enough. Keep raw observations authoritative.',
+        items: [
+          ['MemPalace', 'external', 'Verbatim conversations, semantic search, structured rooms, and zero API calls.', 'Local lexical/index · raw content readable', 'keep', 'Strongest “remember, do not summarize” option; index remains opaque.'],
+          ['Mnemosyne', 'external', 'Zero-cloud SQLite with FTS5/sqlite-vec and temporal graph.', 'FTS/graph/local vectors · structured SQL', 'keep', 'Strong simple offline sidecar; redundant with RetainDB/MemPalace.'],
+          ['RetainDB', 'external', 'One-process viewer/MCP runtime with BM25 + vector + graph and consolidation.', 'BM25/graph/local embeddings · API/viewer', 'sidecar', 'Richest routing/consolidation choice; server license and scale need checking.'],
+          ['Memvid', 'account fork', 'Portable append-only .mv2 Smart Frames, time travel, offline lexical/vector search.', 'BM25 no model · local embeddings optional', 'sidecar', 'Portable binary option; not human-editable in place.'],
+          ['Claude-Brain', 'account fork', 'Claude frontend over a local Memvid file.', 'Inherited from Memvid', 'redundant', 'Superseded by Memvid core except as a Claude adapter.'],
+          ['cavemem', 'account fork', 'Deterministic compression, SQLite/FTS5, local vectors, progressive MCP.', 'FTS/local vector · viewer/JSONL', 'superseded', 'Officially frozen; superseded by caveman.']
+        ]
+      },
+      {
+        number: '03', title: 'Cross-harness capture', accent: 'gold',
+        problem: 'Collect durable traces and knowledge across different agents, sessions, and interfaces.',
+        callout: 'Agent Beacon is the survivor here because provenance and replay are different from canonical storage.',
+        items: [
+          ['agent-beacon', 'account fork', '20+ harness adapters, exact session replay, review, and durable JSONL.', 'Raw trace search local · derived review may use LLM', 'keep', 'Unique provenance/replay layer; keep alongside a canonical store.'],
+          ['agentmemory', 'account fork', 'Coding-agent memory with confidence/lifecycle, graph, hooks, MCP, and keyless BM25.', 'BM25/local embeddings · structured viewer/API', 'keep', 'Best no-remote-inference structured candidate; overlaps Claude-Mem.'],
+          ['Claude-Mem', 'account fork', 'Session hooks, SQLite/FTS5 + Chroma, progressive three-layer retrieval.', 'FTS local · semantic/compression model-assisted', 'redundant', 'Claude-specific capture variant; redundant with Agentmemory.'],
+          ['Sugar', 'account fork', 'Persistent coding-agent memory, global knowledge, autonomous tasks.', 'Unknown from snapshot', 'unknown', 'No proven unique axis yet; verify before keeping.'],
+          ['Agent Second Brain', 'account fork', 'Voice notes, Ebbinghaus decay, vault health, graph, Telegram/Todoist.', 'Vault likely local · automation boundary verify', 'sidecar', 'Personal capture/decay adapter; overlaps the vault group, not Beacon provenance.']
+        ]
+      },
+      {
+        number: '04', title: 'General agent memory', accent: 'coral',
+        problem: 'Turn interactions into a model of users, peers, facts, contradictions, and learned behavior.',
+        callout: 'These overlap heavily and are model-mediated. They are not the first fit for a no-paid-inference, inspectable sidecar.',
+        items: [
+          ['Mem0', 'account fork', 'Adaptive fact/entity/semantic memory with temporal reasoning and graph options.', 'Intended function requires an LLM · DB/API', 'redundant', 'Real engine, but weaker fit for no per-query inference and editable truth.'],
+          ['Memori', 'external', 'Execution-trace memory rather than conversation-only memory; BYODB/framework agnostic.', 'Extraction/recall model-assisted · API', 'redundant', 'Distinct trace semantics; overlaps Beacon capture and Mem0 extraction.'],
+          ['Supermemory', 'account fork', 'Facts, profiles, contradictions, forgetting, connectors, and context layer.', 'Indexes local; extraction/profile model-assisted · graph/API', 'redundant', 'Broad overlap; local model path exists, but state is not plain-file editable.'],
+          ['Honcho', 'external', 'Peer-centric entities and changing people/agents/groups/projects over time.', 'Hybrid search local · reasoning/chat LLM-assisted', 'redundant', 'Keep only for peer semantics; overlaps the general group.'],
+          ['Hindsight', 'external', 'Retain/recall/reflect, typed networks, mental models, temporal learning.', 'Recall indexes local · reflect uses LLM', 'sidecar', 'Unique reflection axis; cost and derived-state burden remain.'],
+          ['Letta', 'account fork', 'Stateful-agent runtime with persistent blocks and archival memory.', 'Agent loop/model-mediated · DB/API', 'redundant', 'Platform/runtime choice, not an editable canonical sidecar.'],
+          ['TencentDB-Agent-Memory', 'account fork', 'Team hub for chat memory, skills, LLM wiki, and code graph.', 'Unknown from snapshot', 'unknown', 'Four-asset governance claim needs local/license verification.']
+        ]
+      },
+      {
+        number: '05', title: 'Context filesystem / binary', accent: 'gold',
+        problem: 'Route large or structured context without stuffing everything into a model window.',
+        callout: 'Keep this axis only when hierarchical context routing or a portable artifact is the actual problem.',
+        items: [
+          ['OpenViking', 'account fork', 'Virtual filesystem for memory, resources, and skills with hierarchical retrieval.', 'Tree/grep local; summaries/VLM model-assisted', 'sidecar', 'Readable context FS; broader than a small memory index.'],
+          ['Holographic', 'Hermes provider', 'SQLite facts, FTS5, trust/entity resolution, compositional HRR retrieval.', 'FTS/structured local · optional extraction', 'sidecar', 'Provider, not a standalone account repo; keep only inside Hermes.'],
+          ['screenshot-memory', 'account fork', 'Visual/screenshot observations and multimodal recall.', 'OCR/embedding path verify · images viewable', 'sidecar', 'Modality adjunct only; raw images readable, indexes opaque.'],
+          ['Lossless-Claw', 'account fork', 'Context compaction/expansion for OpenClaw sessions.', 'FTS local · compaction model-assisted', 'sidecar', 'Context-window complement, not long-term memory.'],
+          ['Volt', 'account-owned fork', 'Coding agent with lossless context management.', 'Context manager; model-assisted summaries', 'redundant', 'Same context-window axis as Lossless-Claw.']
+        ]
+      },
+      {
+        number: '06', title: 'Retrieval / code adjuncts', accent: 'coral',
+        problem: 'Find and navigate existing notes, code, graphs, and observations without changing the source of truth.',
+        callout: 'Use one retrieval sidecar per corpus. These are search/understanding tools, not memory policy.',
+        items: [
+          ['QMD', 'account fork', 'Local Markdown/notes search: BM25, vectors, optional LLM rerank.', 'BM25 no model · source files editable', 'sidecar', 'Good file-search sidecar; not a durable memory store.'],
+          ['codebase-memory-mcp', 'account fork', 'Persistent code index exposed to agents through MCP.', 'Local index/graph; semantic path verify', 'sidecar', 'Choose one code index; overlaps codegraph/GitNexus.'],
+          ['codegraph', 'account fork', 'Pre-indexed local code knowledge graph for many coding agents.', 'Graph/search local', 'sidecar', 'Strong account-side code-context candidate; redundant with the code group.'],
+          ['GitNexus / pi-gitnexus', 'account fork', 'Call chains and execution flows injected into Pi reads/searches.', 'Local graph', 'redundant', 'Pi-specific adapter, not a second code store.'],
+          ['Understand-Anything', 'account fork', 'Interactive graph for code or a knowledge base with agent integrations.', 'Graph/search local; ask path model-assisted', 'redundant', 'Overlaps codegraph for code context.'],
+          ['Claude Context', 'account fork', 'Codebase context tooling for Claude-style agents.', 'Index/search path verify', 'redundant', 'Adapter/sidecar; overlaps codebase-memory-mcp.'],
+          ['R2R / Memgraph / Qdrant / pgvector', 'primitives', 'RAG, graph, and vector infrastructure without memory policy.', 'Local retrieval can be non-inference', 'sidecar', 'Infrastructure choices, not competitors to a memory policy.']
+        ]
+      },
+      {
+        number: '07', title: 'Adjacent products', accent: 'gold',
+        problem: 'Applications that contain memory features but solve a broader notebook, research, or agent-runtime problem.',
+        callout: 'Do not let a product feature become a second canonical store by accident.',
+        items: [
+          ['Open Notebook / SurfSense', 'account forks', 'NotebookLM/research workspace products with retrieval and source handling.', 'Product-dependent', 'redundant', 'Adjacent application; not a memory engine survivor.'],
+          ['cerebro-skill', 'account fork', 'Strategic intelligence workflow over a Markdown vault.', 'Files/search local; agent synthesis model-assisted', 'redundant', 'Workflow over canonical files.'],
+          ['dreamgraph', 'account fork', 'Graph/dream-style agent memory/application concept.', 'Verify from source', 'unknown', 'Needs local source audit before claiming a unique axis.'],
+          ['SwarmClaw / TrustClaw / Warashi', 'account forks', 'Agent runtimes/companions with memory as one feature.', 'Product-dependent', 'redundant', 'Choose by runtime/channel needs, not memory duplication.']
+        ]
+      }
+    ];
+
+    const map = document.querySelector('#map');
+    const empty = document.querySelector('#empty');
+    const search = document.querySelector('#search');
+    let activeFilter = 'all';
+
+    function linkFor(name) {
+      const links = {
+        'AI-Context-OS': 'https://github.com/alexdcd/AI-Context-OS',
+        'Knowledge Engine': 'https://github.com/tashisleepy/knowledge-engine',
+        'Knowledge Forge': 'https://github.com/ESJavadex/knowledge-forge',
+        'Obsidian-Mind': 'https://github.com/breferrari/obsidian-mind',
+        'Obsidian Second Brain': 'https://github.com/eugeniughelbur/obsidian-second-brain',
+        'Claude-Obsidian': 'https://github.com/AgriciDaniel/claude-obsidian',
+        'MemPalace': 'https://github.com/MemPalace/mempalace',
+        'Mnemosyne': 'https://github.com/mnemosyne-oss/mnemosyne',
+        'RetainDB': 'https://github.com/RetainDB/RetainDB',
+        'Memvid': 'https://github.com/memvid/memvid',
+        'agent-beacon': 'https://github.com/Asymptote-Labs/agent-beacon',
+        'agentmemory': 'https://github.com/rohitg00/agentmemory',
+        'Mem0': 'https://github.com/mem0ai/mem0',
+        'Supermemory': 'https://github.com/supermemoryai/supermemory',
+        'Hindsight': 'https://github.com/vectorize-io/hindsight',
+        'OpenViking': 'https://github.com/volcengine/OpenViking',
+        'QMD': 'https://github.com/tobi/qmd',
+        'Holographic': 'https://github.com/NousResearch/hermes-agent/blob/main/plugins/memory/holographic/README.md'
+      };
+      return links[name] || null;
+    }
+
+    function render() {
+      const term = search.value.trim().toLowerCase();
+      let visibleGroups = 0;
+      map.innerHTML = groups.map((group) => {
+        const items = group.items.filter((item) => {
+          const matchesFilter = activeFilter === 'all' || item[4] === activeFilter;
+          const haystack = item.slice(0, 5).join(' ').toLowerCase();
+          return matchesFilter && (!term || haystack.includes(term));
+        });
+        if (!items.length) return '';
+        visibleGroups += 1;
+        const rows = items.map((item) => {
+          const [name, source, claim, axis, status, redundancy] = item;
+          const href = linkFor(name);
+          const label = href ? `<a href="${href}" target="_blank" rel="noreferrer">${name}</a>` : name;
+          return `<article class="system" data-status="${status}">
+            <div class="system-name">${label}<span class="system-source">${source}</span></div>
+            <div class="system-claim">${claim}</div>
+            <div class="system-axis"><strong>Retrieval / surface</strong><br>${axis}<br><br><strong>Redundancy</strong><br>${redundancy}</div>
+            <div class="status"><span class="dot ${status}"></span>${status}</div>
+          </article>`;
+        }).join('');
+        return `<section class="axis" style="--accent: var(--${group.accent})">
+          <div class="axis-intro"><div class="axis-kicker"><span class="axis-number">${group.number}</span><span class="axis-rule"></span></div><h2>${group.title}</h2><p class="axis-problem">${group.problem}</p></div>
+          <div class="systems">${rows}</div>
+          <aside class="axis-callout"><strong>Redundancy call</strong>${group.callout}</aside>
+        </section>`;
+      }).join('');
+      empty.style.display = visibleGroups ? 'none' : 'block';
+    }
+
+    document.querySelectorAll('[data-filter]').forEach((button) => {
+      button.addEventListener('click', () => { activeFilter = button.dataset.filter; render(); });
+    });
+    search.addEventListener('input', render);
+    render();
+  </script>
+</body>
+</html>
