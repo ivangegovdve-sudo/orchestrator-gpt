@@ -615,7 +615,7 @@ function build() {
   add(clean(mined.entries));
 
   const terms = [...byKey.values()].sort((a, b) =>
-    a.term.localeCompare(b.term, "en", { sensitivity: "base" })
+    (a.term < b.term ? -1 : a.term > b.term ? 1 : 0)
   );
 
   writeQuarantineReport(quarantined, weekly.failedFiles, infraDropped);
@@ -773,7 +773,7 @@ function writeMisuseReport(misuseIn) {
       "| term | correct (per source) | as the estate used it | where | source |",
       "|---|---|---|---|---|"
     );
-    for (const m of misuse.slice().sort((a, b) => a.term.localeCompare(b.term))) {
+    for (const m of misuse.slice().sort((a, b) => (a.term < b.term ? -1 : a.term > b.term ? 1 : 0))) {
       lines.push(
         "| `" + m.term + "` | " + (m.correct || "—") + " | " + (m.asUsed || "—") +
         " | " + m.origin + " | [" + (m.source || "source") + "](" + m.sourceUrl + ") |"
@@ -793,7 +793,7 @@ function dedupeByTerm(list) {
       seen.add(k);
       return true;
     })
-    .sort((a, b) => a.term.localeCompare(b.term, "en", { sensitivity: "base" }));
+    .sort((a, b) => (a.term < b.term ? -1 : a.term > b.term ? 1 : 0));
 }
 
 /** Writes the dropped entries to a reviewable file in the repo, so the fact that the
