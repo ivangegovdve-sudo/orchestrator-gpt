@@ -1,0 +1,82 @@
+[
+  {
+    "name": "Midjourney",
+    "url": "https://www.midjourney.com/",
+    "note": "Still the undisputed king of aesthetic quality.",
+    "good": "Incredible coherence, lighting, and artistic interpretation. V6 is unmatched.",
+    "bad": "Locked in Discord (though web alpha exists). No API for developers. Hard to get exact composition control.",
+    "price": "$10/mo basic, $30/mo standard.",
+    "last_verified": "2024-05-22",
+    "expiry": null
+  },
+  {
+    "name": "Stable Diffusion (Automatic1111/ComfyUI)",
+    "url": "https://github.com/comfyanonymous/ComfyUI",
+    "note": "The only choice if you need absolute control.",
+    "good": "ControlNet allows exact posing. Infinite fine-tunes (LoRAs). Free to run.",
+    "bad": "Steep learning curve. Requires a beefy GPU. Base models often look worse than Midjourney without heavy prompting.",
+    "price": "Free (Open source).",
+    "last_verified": "2024-05-10",
+    "expiry": null
+  },
+  {
+    "name": "Leonardo.ai",
+    "url": "https://leonardo.ai/",
+    "note": "The best UI for Stable Diffusion workflows.",
+    "good": "Great built-in models. Real-time generation canvas is magic. Good API.",
+    "bad": "Generations can sometimes feel overly 'smooth' or plastic. Credit system can be confusing.",
+    "price": "Free daily credits. Paid tiers start at $12/mo.",
+    "last_verified": "2024-04-15",
+    "expiry": null
+  },
+  {
+    "name": "DALL-E 3 (OpenAI)",
+    "url": "https://platform.openai.com/docs/models/dall-e",
+    "note": "Best for prompt adherence, worst for style.",
+    "good": "Actually follows complex prompts with multiple subjects. Spells text correctly.",
+    "bad": "Heavy censorship. The 'DALL-E look' is very obvious and often overly shiny/cartoony.",
+    "price": "$0.040 per standard 1024x1024 image via API.",
+    "last_verified": "2024-05-01",
+    "expiry": null
+  },
+  {
+    "name": "Krea",
+    "url": "https://www.krea.ai/",
+    "note": "Real-time generation and upscaling focus.",
+    "good": "The real-time canvas where you draw and it generates instantly is the best in class.",
+    "bad": "Final output quality for complex scenes isn't at Midjourney levels yet.",
+    "price": "Free tier available. Pro is $30/mo.",
+    "last_verified": "2024-05-18",
+    "expiry": null
+  },
+  {
+    "name": "Magnific",
+    "url": "https://magnific.ai/",
+    "note": "The absolute best upscaler/enhancer.",
+    "good": "Adds incredible detail to low-res images. 'Re-imagines' textures beautifully.",
+    "bad": "Extremely expensive. Can hallucinate weird details (extra fingers in backgrounds) if pushed too hard.",
+    "price": "$39/mo for basic (runs out fast).",
+    "last_verified": "2024-04-10",
+    "expiry": null
+  },
+  {
+    "name": "Fal.ai",
+    "url": "https://fal.ai/",
+    "note": "The developer API for fast image generation.",
+    "good": "Incredibly fast inference for SDXL and SD1.5. Great developer experience.",
+    "bad": "You need to bring your own UI. Not for consumers.",
+    "price": "Pay per compute millisecond.",
+    "last_verified": "2024-05-20",
+    "expiry": null
+  },
+  {
+    "name": "Ideogram",
+    "url": "https://ideogram.ai/",
+    "note": "The best for typography and posters.",
+    "good": "Spells words perfectly. Great at graphic design styles (logos, posters).",
+    "bad": "Photorealism isn't as good as Midjourney. Prompting can be finicky.",
+    "price": "Free tier available. Plus is $8/mo.",
+    "last_verified": "2024-05-05",
+    "expiry": null
+  }
+]

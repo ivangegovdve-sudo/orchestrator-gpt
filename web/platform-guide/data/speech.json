@@ -1,0 +1,82 @@
+[
+  {
+    "name": "ElevenLabs",
+    "url": "https://elevenlabs.io",
+    "note": "The default choice for a reason. Still unmatched for emotional range in TTS.",
+    "good": "Incredible prosody, emotion control, and voice cloning accuracy. Low latency model is actually usable for real-time.",
+    "bad": "Aggressive pricing that scales poorly. Hard cutoffs when you run out of credits mid-generation. API goes down more often than competitors.",
+    "price": "Free tier gives 10k chars (useless). $22/mo for 100k chars. Enterprise required for real volume.",
+    "last_verified": "2023-01-01",
+    "expiry": null
+  },
+  {
+    "name": "Deepgram",
+    "url": "https://deepgram.com",
+    "note": "My go-to for STT. The speed to cost ratio is unbeatable for streaming.",
+    "good": "Sub-200ms latency for streaming speech-to-text. Incredible pricing. Nova-2 model handles accents flawlessly.",
+    "bad": "Their TTS offering (Aura) sounds robotic compared to ElevenLabs. STT sometimes hallucinates filler words in complete silence.",
+    "price": "$0.0043/min for STT. Free tier gives $200 credit which lasts practically forever for dev.",
+    "last_verified": "2024-05-12",
+    "expiry": null
+  },
+  {
+    "name": "Whisper (OpenAI API)",
+    "url": "https://platform.openai.com/docs/models/whisper",
+    "note": "Great for batch transcription, terrible for real-time.",
+    "good": "Zero setup, high accuracy, handles multiple languages seamlessly.",
+    "bad": "High latency. No native streaming support via API. Cannot distinguish multiple speakers (no diarization).",
+    "price": "$0.006 / minute. No free tier.",
+    "last_verified": "2024-01-10",
+    "expiry": null
+  },
+  {
+    "name": "Whisper.cpp (Self-hosted)",
+    "url": "https://github.com/ggerganov/whisper.cpp",
+    "note": "The only way Whisper should actually be used in production if you have compute.",
+    "good": "Runs on Apple Silicon natively. Zero marginal cost. Private.",
+    "bad": "You are managing infrastructure. Requires significant RAM for the large-v3 model. Cold starts are brutal if not kept in memory.",
+    "price": "Free (Open source). Cost of your own compute.",
+    "last_verified": "2023-12-01",
+    "expiry": null
+  },
+  {
+    "name": "PlayHT",
+    "url": "https://play.ht",
+    "note": "Often considered the ElevenLabs alternative, but I find their API clunky.",
+    "good": "Voice cloning is solid. Often faster generation times than ElevenLabs on standard models.",
+    "bad": "Documentation is a mess. Voices often sound overly breathy. The UI is confusing and upsells constantly.",
+    "price": "$39/mo for unlimited generation (with rate limits).",
+    "last_verified": "2024-04-20",
+    "expiry": null
+  },
+  {
+    "name": "Speechmatics",
+    "url": "https://www.speechmatics.com/",
+    "note": "The enterprise STT that nobody talks about because it isn't flashy.",
+    "good": "Best-in-class accuracy for thick accents and noisy environments. Excellent real-time diarization.",
+    "bad": "Enterprise sales motion. Hard to just sign up and use. Pricing is opaque until you talk to sales.",
+    "price": "UNKNOWN. Requires sales call.",
+    "last_verified": "2024-05-01",
+    "expiry": null
+  },
+  {
+    "name": "Rime Labs",
+    "url": "https://rime.ai",
+    "note": "Specialized in fast, gaming-focused TTS.",
+    "good": "Incredibly low latency. Voices are distinct and non-generic.",
+    "bad": "Smaller selection of voices. Lacks the nuanced emotional control of ElevenLabs.",
+    "price": "UNKNOWN.",
+    "last_verified": "2024-05-18",
+    "expiry": null
+  },
+  {
+    "name": "LMNT",
+    "url": "https://www.lmnt.com/",
+    "note": "Promising low-latency TTS, but struggling to stand out.",
+    "good": "Very fast API response times. Clean developer experience.",
+    "bad": "Voice quality can degrade into artifacts on longer generations. Support is slow to respond.",
+    "price": "$0.06 per 1000 characters.",
+    "last_verified": "2024-02-15",
+    "expiry": null
+  }
+]
