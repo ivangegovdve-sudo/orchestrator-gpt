@@ -359,9 +359,7 @@ const sameFreshness = (actual, expected) => actual
 
 export const isSyntheticEvidenceRecord = (record) => {
   if (!record || typeof record !== "object") return false;
-  const reviewedGitHubSeed = record.sourceId === "github.seed-registry.v1" && record.transformVersion === "github-seed-materialization-v1";
-  if (reviewedGitHubSeed) return false;
-  const marker = /fixture|(?:^|[^a-z])test(?:[^a-z]|$)|seed|deterministic[-_ ]?preview/i;
+  const marker = /fixture|(?:^|[^a-z])test(?:[^a-z]|$)|deterministic[-_ ]?preview/i;
   return [record.sourceId, record.transformVersion, record.citation, record.citationUrl, record.id, record.sourceUrl].some((value) => typeof value === "string" && marker.test(value));
 };
 const hasFixtureMarker = (manifest, responses) => manifest.sources.some(isSyntheticEvidenceRecord)

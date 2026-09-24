@@ -1,0 +1,63 @@
+name: estate content checks
+
+on:
+  pull_request:
+    paths:
+      - 'scripts/estate-synthetics.mjs'
+      - 'scratch/tests/estate-synthetics.test.mjs'
+      - '.github/workflows/estate-synthetics.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/estate-synthetics.mjs'
+      - 'scratch/tests/estate-synthetics.test.mjs'
+      - '.github/workflows/estate-synthetics.yml'
+  schedule:
+    - cron: '17,47 * * * *'
+  workflow_dispatch:
+
+# Same hosted Actions infrastructure as free-roster.yml, independently scheduled.
+# No secrets, DB credentials, write token, package installation, or messaging step.
+permissions:
+  contents: read
+concurrency:
+  group: estate-content-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
+        with:
+          node-version: '22'
+      - run: node --test scratch/tests/estate-synthetics.test.mjs
+
+  monitor:
+    # Target failures are monitoring observations, not a PR's implementation tests.
+    # The real scheduled job stays red for BROKEN and COULD_NOT_CHECK alike; each
+    # target retains its distinct outcome and explanation in both artifacts.
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    needs: contract
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
+        with:
+          node-version: '22'
+      - name: Assert served content and published provider coverage
+        run: node scripts/estate-synthetics.mjs --output evidence/estate.json
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        if: always()
+        with:
+          name: estate-content-${{ github.run_id }}
+          path: evidence/estate.json*
+          retention-days: 14
+          if-no-files-found: error
