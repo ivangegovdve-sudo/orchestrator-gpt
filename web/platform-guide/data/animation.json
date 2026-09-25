@@ -1,0 +1,82 @@
+[
+  {
+    "name": "Runway (Gen-2)",
+    "url": "https://runwayml.com/",
+    "note": "The most production-ready video model.",
+    "good": "Motion brush gives excellent control over what moves. Good consistency.",
+    "bad": "Heavy watermarking on free tier. Complex motion still morphs terribly.",
+    "price": "Standard is $15/mo.",
+    "last_verified": "2024-05-15",
+    "expiry": null
+  },
+  {
+    "name": "Pika",
+    "url": "https://pika.art/",
+    "note": "Best for stylized animation and lip sync.",
+    "good": "Excellent at anime/3D styles. Built-in lip sync is a game changer.",
+    "bad": "Photorealism lags behind Runway. 3-second default limit is restrictive.",
+    "price": "Basic is $10/mo.",
+    "last_verified": "2024-05-10",
+    "expiry": null
+  },
+  {
+    "name": "Sora (OpenAI)",
+    "url": "https://openai.com/sora",
+    "note": "The future, but currently vaporware for most of us.",
+    "good": "Unprecedented temporal consistency and physics understanding.",
+    "bad": "Closed beta. Not actually available to use. Known to hallucinate physics on complex interactions.",
+    "price": "UNKNOWN.",
+    "last_verified": "2024-05-20",
+    "expiry": null
+  },
+  {
+    "name": "Luma Dream Machine",
+    "url": "https://lumalabs.ai/dream-machine",
+    "note": "The current best public alternative to Sora.",
+    "good": "Fast generation. Actually available to the public. Good camera motion.",
+    "bad": "Heavy artifacting on human faces during movement. Queue times can be brutal.",
+    "price": "Free tier (30 gens/mo). Standard is $29.99/mo.",
+    "last_verified": "2024-06-15",
+    "expiry": null
+  },
+  {
+    "name": "Haiper",
+    "url": "https://haiper.ai/",
+    "note": "Quietly building very good models.",
+    "good": "Excellent short clips. Good at understanding complex textual prompts for motion.",
+    "bad": "Lacks the fine-grained control (like motion brushes) of Runway.",
+    "price": "Free during beta.",
+    "last_verified": "2024-04-20",
+    "expiry": null
+  },
+  {
+    "name": "AnimateDiff",
+    "url": "https://github.com/guoyww/AnimateDiff",
+    "note": "The open-source hacker's choice.",
+    "good": "Total control. Works with existing Stable Diffusion models.",
+    "bad": "Requires immense technical setup in ComfyUI. Generation takes forever locally.",
+    "price": "Free (Open source).",
+    "last_verified": "2024-03-10",
+    "expiry": null
+  },
+  {
+    "name": "HeyGen",
+    "url": "https://www.heygen.com/",
+    "note": "The only avatar tool worth using for corporate/talking heads.",
+    "good": "Flawless lip sync and micro-expressions. Instant avatar cloning.",
+    "bad": "Not for creative/cinematic video. Strictly for talking heads. Very expensive for volume.",
+    "price": "Creator is $29/mo (15 mins of video).",
+    "last_verified": "2024-05-22",
+    "expiry": null
+  },
+  {
+    "name": "Kaiber",
+    "url": "https://kaiber.ai/",
+    "note": "Best for music videos and audio-reactive generation.",
+    "good": "Audio reactivity is built-in. Great for trippy, morphing aesthetics.",
+    "bad": "Terrible at consistency. It's an aesthetic tool, not a storytelling tool.",
+    "price": "Pro is $15/mo.",
+    "last_verified": "2024-02-15",
+    "expiry": null
+  }
+]

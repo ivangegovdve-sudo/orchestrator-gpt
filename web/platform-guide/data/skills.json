@@ -1,0 +1,82 @@
+[
+  {
+    "name": "Browserbase",
+    "url": "https://www.browserbase.com/",
+    "note": "Headless browsers designed specifically for AI agents.",
+    "good": "Handles captchas, proxies, and session management automatically. Great API.",
+    "bad": "Expensive for high-volume scraping. Can sometimes be slower than raw Puppeteer.",
+    "price": "Usage based. Starts around $20/mo for real usage.",
+    "last_verified": "2024-05-10",
+    "expiry": null
+  },
+  {
+    "name": "Tavily",
+    "url": "https://tavily.com/",
+    "note": "Search API built for LLMs.",
+    "good": "Returns clean text rather than just links. Reduces hallucination by grounding.",
+    "bad": "Sometimes misses niche queries that Google would catch. Latency can spike.",
+    "price": "1000 free searches/mo. $20/mo for 4000.",
+    "last_verified": "2024-05-15",
+    "expiry": null
+  },
+  {
+    "name": "Exa",
+    "url": "https://exa.ai/",
+    "note": "Semantic search API (formerly Metaphor).",
+    "good": "Finds content by meaning rather than keywords. Great for finding blog posts and papers.",
+    "bad": "Terrible for real-time news or 'what is the current stock price' queries.",
+    "price": "Usage based, approx $10/1000 requests.",
+    "last_verified": "2024-04-20",
+    "expiry": null
+  },
+  {
+    "name": "Composio",
+    "url": "https://composio.dev/",
+    "note": "Aggregator of tools/plugins for agents.",
+    "good": "One API key gives access to GitHub, Slack, Notion, etc.",
+    "bad": "You are trusting a middleman with OAuth tokens. Documentation can be spotty.",
+    "price": "UNKNOWN.",
+    "last_verified": "2024-03-10",
+    "expiry": null
+  },
+  {
+    "name": "E2B",
+    "url": "https://e2b.dev/",
+    "note": "Sandboxed cloud environments for AI to run code.",
+    "good": "Secure code execution. Let your agent write and test Python safely.",
+    "bad": "Startup time for the sandbox can add latency to the agent loop.",
+    "price": "Usage based per second of compute.",
+    "last_verified": "2024-05-01",
+    "expiry": null
+  },
+  {
+    "name": "Val Town",
+    "url": "https://www.val.town/",
+    "note": "Social programming environment, great for quick AI webhooks.",
+    "good": "Write a JS function, get an API endpoint instantly. Perfect for glue code.",
+    "bad": "Not built specifically for AI, so you have to wire up the tool definitions yourself.",
+    "price": "Free tier is great. Pro is $10/mo.",
+    "last_verified": "2024-05-20",
+    "expiry": null
+  },
+  {
+    "name": "Apify",
+    "url": "https://apify.com/",
+    "note": "The heavy lifter for web scraping.",
+    "good": "Pre-built actors for almost any site (Twitter, Instagram, Amazon).",
+    "bad": "Actors often break when sites change UI. Pricing can be confusing (compute units).",
+    "price": "$49/mo starter tier.",
+    "last_verified": "2024-02-15",
+    "expiry": null
+  },
+  {
+    "name": "Wolfram Alpha API",
+    "url": "https://products.wolframalpha.com/api/",
+    "note": "The OG tool for fixing LLM math capabilities.",
+    "good": "Flawless computation and factual data retrieval.",
+    "bad": "LLMs often struggle to format the queries perfectly for Wolfram's strict syntax.",
+    "price": "Non-commercial free tier. Commercial requires contact.",
+    "last_verified": "2023-11-01",
+    "expiry": null
+  }
+]

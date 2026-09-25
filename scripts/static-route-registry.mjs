@@ -88,6 +88,7 @@ export const ROUTE_REGISTRY = deepFreeze([
   route('library-workspace', 'library-workspace', '/web/library/rag.html', 'child', 'web/library/rag.html', MIXED),
   route('library-repos', 'library-repos', '/web/library/repos/', 'child', 'web/library/repos/index.html', INTERNAL_NOINDEX),
   route('life-in-time', 'life-in-time', '/web/life-in-time/', 'page', 'web/life-in-time/index.html', PUBLIC),
+  route('platform-guide', 'platform-guide', '/web/platform-guide/', 'page', 'web/platform-guide/index.html', PUBLIC),
   route('llm-db', 'llm-db', '/web/llm-db/', 'redirect', 'web/llm-db/index.html', NOINDEX, {
     destination: '/web/library/',
     expectedVercelRedirects: [
