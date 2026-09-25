@@ -1,82 +1,227 @@
 [
   {
-    "id": "example-promotion-live",
-    "name": "Example promotion — inside its window",
-    "url": "https://example.com/promotion-live",
-    "provider": "Example Provider",
-    "kind": "promotion",
-    "summary": "Seed row. Here so a reviewer can see what a verified, in-window promotion renders as.",
-    "expiresAt": "2027-06-30",
-    "example": true,
+    "id": "oracle-cloud-always-free",
+    "name": "Oracle Cloud Infrastructure — Always Free resources",
+    "url": "https://docs.oracle.com/en-us/iaas/Content/FreeTier/freetier_topic-Always_Free_Resources.htm",
+    "provider": "Oracle",
+    "kind": "standing_tier",
+    "summary": "Two small AMD VMs plus a 1,500 OCPU-hour/month Arm allowance, 200 GB block storage, 20 GB object storage and two autonomous databases, free for the life of the account — not a trial. Signup does ask for a card for identity verification.",
+    "lastVerifiedAt": "2026-09-25",
     "verification": {
       "status": "VERIFIED",
       "checkedAt": "2026-09-25",
-      "checkedBy": "Tank",
-      "observed": "Seed example, not a real check. Written to exercise the live-promotion render path."
+      "checkedBy": "Neo",
+      "observed": "Doc page states Always Free resources are free 'for the life of the account'. Enumerates 'up to two Always Free VM instances using the VM.Standard.E2.1.Micro shape', 'the first 1,500 OCPU hours and 9,000 GB hours per month' on VM.Standard.A1.Flex, 'a total of 200 GB of Block Volume storage', '20 GB' object storage, 'two Always Free Oracle Autonomous AI Databases', and one Flexible Load Balancer at 10 Mbps. Fence: the Arm allowance is 'equivalent to 2 OCPUs and 12 GB of memory' for Always Free tenancies. Checked the docs page, not the marketing page — oracle.com/cloud/free returned HTTP 403 to my fetch."
     }
   },
   {
-    "id": "example-promotion-expired",
-    "name": "Example promotion — past its expiry",
-    "url": "https://example.com/promotion-expired",
-    "provider": "Example Provider",
-    "kind": "promotion",
-    "summary": "Seed row with a past expiresAt. Proves render-time expiry: this must never appear in the live list.",
-    "expiresAt": "2026-08-31",
-    "example": true,
-    "verification": {
-      "status": "VERIFIED",
-      "checkedAt": "2026-08-01",
-      "checkedBy": "Tank",
-      "observed": "Seed example, not a real check. VERIFIED on purpose, so the only thing keeping it out of the live list is its date."
-    }
-  },
-  {
-    "id": "example-standing-tier-fresh",
-    "name": "Example standing tier — recently verified",
-    "url": "https://example.com/standing-tier",
-    "provider": "Example Provider",
+    "id": "cloudflare-workers-free-plan",
+    "name": "Cloudflare Workers — Free plan",
+    "url": "https://developers.cloudflare.com/workers/platform/pricing/",
+    "provider": "Cloudflare",
     "kind": "standing_tier",
-    "summary": "Seed row. A standing tier with no expiry, verified inside the 90-day recheck window.",
-    "lastVerifiedAt": "2026-09-20",
-    "example": true,
+    "summary": "100,000 Worker requests a day at 10 ms CPU each, plus free daily quotas on KV, D1, Queues and Hyperdrive. No card needed to deploy on the free plan.",
+    "lastVerifiedAt": "2026-09-25",
     "verification": {
       "status": "VERIFIED",
-      "checkedAt": "2026-09-20",
-      "checkedBy": "Tank",
-      "observed": "Seed example, not a real check. Written to exercise the live standing-tier render path."
-    }
-  },
-  {
-    "id": "example-standing-tier-stale",
-    "name": "Example standing tier — past the recheck window",
-    "url": "https://example.com/standing-tier-stale",
-    "provider": "Example Provider",
-    "kind": "standing_tier",
-    "summary": "Seed row. Verified more than 90 days ago, so it stays listed but carries a visible STALE marker.",
-    "lastVerifiedAt": "2026-03-01",
-    "example": true,
-    "verification": {
-      "status": "VERIFIED",
-      "checkedAt": "2026-03-01",
-      "checkedBy": "Tank",
-      "observed": "Seed example, not a real check. Written to exercise the stale-standing-tier marker."
-    }
-  },
-  {
-    "id": "example-unverified",
-    "name": "Example offer — nobody has checked it",
-    "url": "https://example.com/unverified",
-    "provider": "Example Provider",
-    "kind": "promotion",
-    "summary": "Seed row. Its dates are perfectly valid; it stays out of the live list purely because nobody has opened the page.",
-    "expiresAt": "2027-06-30",
-    "example": true,
-    "verification": {
-      "status": "UNVERIFIED",
       "checkedAt": "2026-09-25",
-      "checkedBy": "Tank",
-      "observed": "Not checked. Seeded UNVERIFIED so a reviewer can see that an in-date row still refuses to render as live."
+      "checkedBy": "Neo",
+      "observed": "Pricing page free-plan tables read '100,000 per day' requests and '10 milliseconds of CPU time per invocation'. Workers KV free row: '100,000 / day' keys read, '1,000 / day' written, '1 GB' stored. D1 free row: '5 million / day' rows read, '100,000 / day' rows written, '5 GB (total)' storage. Queues '10,000 operations/day included'. The page states no end date and does not mention a card requirement either way."
+    }
+  },
+  {
+    "id": "cloudflare-workers-ai-free-neurons",
+    "name": "Cloudflare Workers AI — 10,000 free Neurons per day",
+    "url": "https://developers.cloudflare.com/workers-ai/platform/pricing/",
+    "provider": "Cloudflare",
+    "kind": "standing_tier",
+    "summary": "A daily allowance of 10,000 Neurons of model inference (Llama, Whisper, embeddings and friends) at no charge, resetting every midnight UTC.",
+    "lastVerifiedAt": "2026-09-25",
+    "verification": {
+      "status": "VERIFIED",
+      "checkedAt": "2026-09-25",
+      "checkedBy": "Neo",
+      "observed": "Page reads 'Our free allocation allows anyone to use a total of 10,000 Neurons per day at no charge.' Pricing table row confirms 'Workers Paid | 10,000 Neurons per day | $0.011 / 1,000 Neurons', and 'All limits reset daily at 00:00 UTC.' Neurons are a normalised unit, so what 10,000 buys depends on the model you pick."
+    }
+  },
+  {
+    "id": "vercel-hobby-plan",
+    "name": "Vercel Hobby plan",
+    "url": "https://vercel.com/docs/plans/hobby",
+    "provider": "Vercel",
+    "kind": "standing_tier",
+    "summary": "Free hosting with 100 GB fast data transfer, 1M edge requests and 1M function invocations a month — but the terms restrict it to non-commercial, personal use.",
+    "lastVerifiedAt": "2026-09-25",
+    "verification": {
+      "status": "VERIFIED",
+      "checkedAt": "2026-09-25",
+      "checkedBy": "Neo",
+      "observed": "Docs page (last_updated 2026-09-14) opens 'The Hobby plan is free and aimed at developers with personal projects'. Included-usage table: 'Fast Data Transfer — First 100 GB', 'Edge Requests — First 1,000,000', 'Function Invocations — First 1,000,000', 'Active CPU — 4 CPU-hrs', 200 projects, 100 deployments per day. Fence, quoted: 'the Hobby plan restricts users to non-commercial, personal use only.' Also 'As the Hobby plan is a free tier there are no billing cycles.'"
+    }
+  },
+  {
+    "id": "github-copilot-free-plan",
+    "name": "GitHub Copilot Free",
+    "url": "https://github.com/features/copilot/plans",
+    "provider": "GitHub",
+    "kind": "standing_tier",
+    "summary": "A $0 Copilot tier for individual developers: a capped monthly allowance of code completions and chat requests, no card, no trial clock.",
+    "lastVerifiedAt": "2026-09-25",
+    "verification": {
+      "status": "VERIFIED",
+      "checkedAt": "2026-09-25",
+      "checkedBy": "Neo",
+      "observed": "Plans page lists 'Free: $0' and describes it as 'a new free pricing tier with limited functionality for individual developers'. Quotas quoted on the page: 'limited to 2000 completions and 50 chat requests (including Copilot Edits)' per month. Eligibility fence, quoted: 'Users assigned a Copilot Business or Copilot Enterprise seat are not eligible for access.'"
+    }
+  },
+  {
+    "id": "github-actions-free-minutes",
+    "name": "GitHub Actions — free minutes on GitHub Free",
+    "url": "https://docs.github.com/en/billing/concepts/product-billing/github-actions",
+    "provider": "GitHub",
+    "kind": "standing_tier",
+    "summary": "2,000 CI minutes and 500 MB of artifact storage a month on a free personal account — and unmetered on standard runners if the repository is public.",
+    "lastVerifiedAt": "2026-09-25",
+    "verification": {
+      "status": "VERIFIED",
+      "checkedAt": "2026-09-25",
+      "checkedBy": "Neo",
+      "observed": "Billing doc's included-quota table gives GitHub Free '500 MB' artifact storage and '2,000' minutes per month. Page also states 'GitHub Actions usage is free for self-hosted runners and for public repositories' and 'The use of standard GitHub-hosted runners is free: In public repositories.' The public-repo exemption is the larger of the two offers; the 2,000 minutes apply to private repos."
+    }
+  },
+  {
+    "id": "github-codespaces-free-hours",
+    "name": "GitHub Codespaces — free monthly core hours",
+    "url": "https://docs.github.com/en/billing/concepts/product-billing/github-codespaces",
+    "provider": "GitHub",
+    "kind": "standing_tier",
+    "summary": "A free personal account gets 120 core-hours and 15 GB-month of Codespaces every month — a real cloud dev box, not a trial.",
+    "lastVerifiedAt": "2026-09-25",
+    "verification": {
+      "status": "VERIFIED",
+      "checkedAt": "2026-09-25",
+      "checkedBy": "Neo",
+      "observed": "Billing doc's table 'Free and billed use by personal accounts' lists '120 hrs' compute time and '15 GB-month' storage for GitHub Free. Core-hours, not wall-clock hours: a 2-core machine burns the 120 in 60 hours, a 4-core in 30."
+    }
+  },
+  {
+    "id": "huggingface-spaces-free-hardware",
+    "name": "Hugging Face Spaces — free CPU and ZeroGPU hardware",
+    "url": "https://huggingface.co/pricing",
+    "provider": "Hugging Face",
+    "kind": "standing_tier",
+    "summary": "Host a demo app on free hardware: 2 vCPU / 16 GB always, and ZeroGPU dynamic GPU time at no cost. Free accounts get no inference credits — those are a PRO thing.",
+    "lastVerifiedAt": "2026-09-25",
+    "verification": {
+      "status": "VERIFIED",
+      "checkedAt": "2026-09-25",
+      "checkedBy": "Neo",
+      "observed": "Pricing page Spaces hardware table reads 'CPU Basic: 2 vCPU, 16 GB memory, FREE' and 'ZeroGPU: dynamic resources, Nvidia RTX Pro 6000 Blackwell up to 96 GB, FREE'. Qualifier: the page lists no free-account inference credits — inference credits appear only under PRO ($9/month, '20× included inference credits'), so do not read this row as free API inference."
+    }
+  },
+  {
+    "id": "supabase-free-plan",
+    "name": "Supabase Free plan",
+    "url": "https://supabase.com/pricing",
+    "provider": "Supabase",
+    "kind": "standing_tier",
+    "summary": "A free Postgres project with auth and storage: 500 MB database, 1 GB files, 50,000 monthly active users. Projects pause after a week of no traffic, so it suits side projects, not anything that must stay up.",
+    "lastVerifiedAt": "2026-09-25",
+    "verification": {
+      "status": "VERIFIED",
+      "checkedAt": "2026-09-25",
+      "checkedBy": "Neo",
+      "observed": "Pricing page Free column reads 'from $0/month', '500 MB database size (Shared CPU • 500 MB RAM)', '5 GB egress', '1 GB file storage', '50,000 monthly active users'. The fence is stated on the same card: 'Free projects are paused after 1 week of inactivity. Limit of 2 active projects.'"
+    }
+  },
+  {
+    "id": "neon-free-plan",
+    "name": "Neon Free plan (serverless Postgres)",
+    "url": "https://neon.com/pricing",
+    "provider": "Neon",
+    "kind": "standing_tier",
+    "summary": "Serverless Postgres with branching: 0.5 GB storage and 100 compute-hours per project, up to 100 projects. The page states outright that it is permanent and needs no card.",
+    "lastVerifiedAt": "2026-09-25",
+    "verification": {
+      "status": "VERIFIED",
+      "checkedAt": "2026-09-25",
+      "checkedBy": "Neo",
+      "observed": "Pricing page Free column: '$0/month', '0.5 GB/project' storage, '100 CU-hours/project', '100' projects, '10' branches per project. Quoted directly from the page: 'The Free plan is permanent (not a trial); no credit card required.'"
+    }
+  },
+  {
+    "id": "openrouter-free-model-variants",
+    "name": "OpenRouter — :free model variants",
+    "url": "https://openrouter.ai/docs/api-reference/limits",
+    "provider": "OpenRouter",
+    "kind": "standing_tier",
+    "summary": "Any model ID ending in :free costs nothing per token, but you get 50 requests a day until you have bought $10 of credit at some point, after which it is 1,000 a day. 20 requests/minute either way.",
+    "lastVerifiedAt": "2026-09-25",
+    "verification": {
+      "status": "VERIFIED",
+      "checkedAt": "2026-09-25",
+      "checkedBy": "Neo",
+      "observed": "Limits doc: free variants (IDs ending ':free') are capped at 50 requests per day for accounts with 'Less than 10' credits purchased all time, and 1,000 requests per day at 'At least 10'. A 20 requests-per-minute cap applies to free variants regardless. The page notes 'The limit tier is selected by all-time credits purchased, independently of is_free_tier.' Fence worth knowing: the 1,000/day tier is only reachable after a one-time $10 purchase, so the genuinely-free ceiling is 50/day."
+    }
+  },
+  {
+    "id": "cohere-trial-api-keys",
+    "name": "Cohere trial API keys",
+    "url": "https://docs.cohere.com/docs/rate-limits",
+    "provider": "Cohere",
+    "kind": "standing_tier",
+    "summary": "A free API key for Cohere's chat, embed and rerank endpoints, capped at 1,000 calls a month. Enough to prototype against, not enough to run anything on.",
+    "lastVerifiedAt": "2026-09-25",
+    "verification": {
+      "status": "VERIFIED",
+      "checkedAt": "2026-09-25",
+      "checkedBy": "Neo",
+      "observed": "Rate-limits doc states trial keys are 'free but limited in usage' and that 'Trial keys (and prod keys on newer Chat model variants) are limited to 1,000 API calls a month.' Per-endpoint trial rate limits listed range from '5 req / min' to '500 req / min', with Chat models at '20 req / min'. The page did not state a commercial-use restriction, so I am not claiming one."
+    }
+  },
+  {
+    "id": "upstash-redis-free-plan",
+    "name": "Upstash Redis — Free plan",
+    "url": "https://upstash.com/pricing",
+    "provider": "Upstash",
+    "kind": "standing_tier",
+    "summary": "A serverless Redis database at $0: 500K commands a month, 256 MB of data, 10 GB bandwidth. No card until you deliberately upgrade.",
+    "lastVerifiedAt": "2026-09-25",
+    "verification": {
+      "status": "VERIFIED",
+      "checkedAt": "2026-09-25",
+      "checkedBy": "Neo",
+      "observed": "Pricing page Free column: '$0', '500K' commands per month, '256 MB' max data size, '10 GB' bandwidth. Card behaviour is stated as a consequence, not a gate: 'Once you enter your credit card, your database will be upgraded to the pay-as-you-go plan.'"
+    }
+  },
+  {
+    "id": "netlify-free-plan",
+    "name": "Netlify Free plan",
+    "url": "https://www.netlify.com/pricing/",
+    "provider": "Netlify",
+    "kind": "standing_tier",
+    "summary": "Free static and functions hosting on a monthly credit allowance (300 credits), with custom domains, SSL, deploy previews and serverless functions included.",
+    "lastVerifiedAt": "2026-09-25",
+    "verification": {
+      "status": "VERIFIED",
+      "checkedAt": "2026-09-25",
+      "checkedBy": "Neo",
+      "observed": "Pricing page Free card reads '$0 forever' with a '300 credit limit', plus 'Unlimited deploy previews', 'Add Custom domains with SSL', 'Functions & AI models', 'Global CDN'. Note the shape change: Netlify now meters the free plan in credits rather than the old bandwidth/build-minute numbers, and this page does not state what 300 credits buys in GB or minutes."
+    }
+  },
+  {
+    "id": "mongodb-atlas-m0-cluster",
+    "name": "MongoDB Atlas — M0 free cluster",
+    "url": "https://www.mongodb.com/pricing",
+    "provider": "MongoDB",
+    "kind": "standing_tier",
+    "summary": "A free-forever shared MongoDB cluster with 512 MB of storage, capped at roughly 100 operations per second.",
+    "lastVerifiedAt": "2026-09-25",
+    "verification": {
+      "status": "VERIFIED",
+      "checkedAt": "2026-09-25",
+      "checkedBy": "Neo",
+      "observed": "Pricing page M0 card reads 'Free forever', '$0/hour', '512MB of storage', 'Shared RAM', 'Shared vCPU'. The page's own FAQ adds: 'Atlas's free tier includes 512 MB of storage, 32MB of sort memory, and up to 100 operations per second.' The page does not say whether a card is required at signup, so I am not claiming either way."
     }
   }
 ]
