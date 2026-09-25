@@ -185,24 +185,25 @@ test('Design Gallery categories are not projects, and archive uncertainty remain
 });
 
 test('pool overview is rendered from the catalog for every pool', async () => {
-  const [{ renderPoolOverview }, { POOL_CATALOG, getPoolProjects }] = await Promise.all([presenter, catalog]);
+  const [{ renderPoolOverview, renderPoolLedger }, { POOL_CATALOG, getPoolProjects }] = await Promise.all([presenter, catalog]);
   for (const pool of POOL_CATALOG) {
     const html = renderPoolOverview(pool.id);
     assert.match(html, new RegExp(`data-pool-state="Live"`));
     assert.match(html, new RegExp(`>${pool.publicName}<`));
     assert.match(html, new RegExp(pool.summary.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
-    assert.match(html, new RegExp(`Catalog: ${getPoolProjects(pool.publicName).length} project`));
+    assert.match(renderPoolLedger(pool.id), new RegExp(`Catalog: ${getPoolProjects(pool.publicName).length} project`));
+    assert.doesNotMatch(html, /Catalog: \d+ project/, 'the catalog ledger heads the listing, not the threshold');
   }
 });
 
 test('pool overview exposes catalog-derived readiness counts without changing lifecycle status', async () => {
-  const [{ renderPoolOverview, projectReadiness }, { POOL_CATALOG, getPoolProjects }] = await Promise.all([presenter, catalog]);
+  const [{ renderPoolLedger, projectReadiness }, { POOL_CATALOG, getPoolProjects }] = await Promise.all([presenter, catalog]);
   for (const pool of POOL_CATALOG) {
     const counts = getPoolProjects(pool.publicName).reduce((acc, project) => {
       acc[projectReadiness(project).state] += 1;
       return acc;
     }, { Shipped: 0, 'In progress': 0, UNKNOWN: 0 });
-    const html = renderPoolOverview(pool.id);
+    const html = renderPoolLedger(pool.id);
     assert.match(html, /data-readiness-summary/);
     assert.match(html, new RegExp(`Shipped: ${counts.Shipped}`));
     assert.match(html, new RegExp(`In progress: ${counts['In progress']}`));
@@ -211,7 +212,7 @@ test('pool overview exposes catalog-derived readiness counts without changing li
 });
 
 test('every pool overview carries a catalog-backed visitor guide and reality split', async () => {
-  const [{ renderPoolOverview }, { POOL_CATALOG, getPoolProjects }] = await Promise.all([presenter, catalog]);
+  const [{ renderPoolOverview, renderPoolLedger }, { POOL_CATALOG, getPoolProjects }] = await Promise.all([presenter, catalog]);
   for (const pool of POOL_CATALOG) {
     const guide = pool.visitorGuide;
     assert.ok(guide, `${pool.publicName} has a visitor guide`);
@@ -230,10 +231,11 @@ test('every pool overview carries a catalog-backed visitor guide and reality spl
     assert.match(html, /What this pool is for/);
     assert.match(html, /Why it exists/);
     assert.match(html, /Start here/);
-    assert.match(html, /What is real here/);
-    assert.match(html, /Still forming/);
+    const ledger = renderPoolLedger(pool.id);
+    assert.match(ledger, /What is real here/);
+    assert.match(ledger, /Still forming/);
     for (const project of projects) {
-      assert.match(html, new RegExp(`data-pool-reality-project="${project.id}"`));
+      assert.match(ledger, new RegExp(`data-pool-reality-project="${project.id}"`));
     }
   }
 });

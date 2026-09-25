@@ -72,3 +72,21 @@ Other originals retained their full canvas. Original PNG SHA-256 provenance:
 | Design Gallery | `63a1d203e66feb0255254286f9d29cf66d5d302677482204bb34f3c4d359074b` |
 | My Story | `de209b43b7796f21369c15f4eb9dc352c4336e9abdbfe3b844f4522ba50eab48` |
 | Horizon | `0eba1746debf58b7fa06aca4c577e9f35a3fcfda2212c1a20b5daf80d80b22a2` |
+
+## Pool-page emblems — 2026-09-24
+
+Pool pages hang each pool's own control above its title, as the door the visitor
+came through. GrowingApp, Design Gallery and My Story bases already carry alpha
+and are used as-is. Four bases are opaque RGB (the homepage hides their near-black
+surround against the bark), so `emblem/` holds alpha-keyed derivatives: the
+near-black region connected to the image edge (max channel ≤ 26) is flood-filled
+to transparent with a 1.2 px feathered edge. Interior screens and carving are not
+touched, no pixel is redrawn, and the homepage still requests only the originals.
+WebP quality 88, alpha quality 100, method 6.
+
+| Derivative | Bytes | Source base SHA-256 (prefix) |
+|---|---:|---|
+| emblem/ai-d-kit.webp | 101,248 | `ddc0ec6cb5419299…` |
+| emblem/artificial-self.webp | 88,064 | `cc392ff55ba18c37…` |
+| emblem/health.webp | 60,154 | `2e6592c2d35c80a7…` |
+| emblem/tinkerbox.webp | 73,920 | `a0e82cb51d62f5b4…` |

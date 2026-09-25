@@ -87,8 +87,10 @@ export function renderProject(project, { heading = 'h3' } = {}) {
   const metrics = (project.metrics || []).map(({ name, value, unit }) => `${name}: ${value}${unit ? ` ${unit}` : ''}`).join('; ');
   return `<article class="pool-project pool-project--${escape(poolTier)}" data-project-id="${escape(project.id)}" data-pool-tier="${escape(poolTier)}" data-pool-rank="${poolRank ?? 'unranked'}"${enabled ? '' : ' aria-disabled="true"'}>
     <${heading}>${escape(project.publicName)}</${heading}>
-    <p class="pool-tier">Tier: ${escape(poolTier === 'featured' ? `Featured · rank ${poolRank}` : poolTier === 'ranked' ? `Ranked · rank ${poolRank}` : 'Unranked')}</p>
     <p class="pool-status">Status: ${escape(status)}${comingSoon ? ' — Coming Soon' : ''}</p>
+    ${routes ? `<ul class="pool-bindings">${routes}</ul>` : ''}
+    <div class="pool-fieldnotes">
+    <p class="pool-tier">Tier: ${escape(poolTier === 'featured' ? `Featured · rank ${poolRank}` : poolTier === 'ranked' ? `Ranked · rank ${poolRank}` : 'Unranked')}</p>
     <p class="pool-readiness" data-readiness-state="${escape(readiness.state)}">Readiness: ${escape(readiness.state)} — ${escape(readiness.reason)}</p>
     <p class="pool-metrics">Metrics: ${escape(metrics || 'none published')}</p>
     <p class="pool-update">Last meaningful update: ${escape(update)}</p>
@@ -104,7 +106,8 @@ export function renderProject(project, { heading = 'h3' } = {}) {
     ${typeof project.evidenceLevel === 'object' && project.evidenceLevel?.review !== 'verified' ? '<p class="pool-evidence">Evidence review remains pending.</p>' : ''}
     ${project.evidenceLevel === 'rederivation-required' ? '<p class="pool-evidence">Archive interpretations require rederivation. Existing C2C outcome claims are not verified findings.</p>' : ''}
     ${project.relationship?.type === 'self-mirror-control' ? `<p>${escape(project.relationship.description)}</p>` : ''}
-    ${routes ? `<ul class="pool-bindings">${routes}</ul>` : !restricted ? '<p>This pool listing is the catalog entry; no separate implementation is bound for public entry.</p>' : ''}
+    ${!routes && !restricted ? '<p>This pool listing is the catalog entry; no separate implementation is bound for public entry.</p>' : ''}
+    </div>
   </article>`;
 }
 
@@ -115,11 +118,42 @@ export function renderPoolContext(pool) {
 }
 
 /**
- * Render the factual pool overview from the shared catalog. Static shells keep
- * only a generic no-script fallback; this is the runtime source of truth for
- * the pool name, lifecycle state, summary and assigned-project count.
+ * Render the pool's first screen from the shared catalog: what the pool is and
+ * where to walk in. Static shells keep only a generic no-script fallback; this
+ * is the runtime source of truth for the pool name, lifecycle state and summary.
+ * The catalog accounting lives in renderPoolLedger, beside the project listing
+ * it describes, so the threshold introduces a place rather than a report.
  */
 export function renderPoolOverview(poolId) {
+  const pool = POOL_CATALOG.find(({ id }) => id === poolId);
+  if (!pool) return '';
+  const projects = getPoolProjects(pool.publicName);
+  const guide = pool.visitorGuide;
+  return `<p class="pool-state" data-pool-state="${escape(pool.state)}">${escape(pool.state)} pool</p>
+    <p class="pool-name">Catalog: <span>${escape(pool.publicName)}</span></p>
+    <p class="pool-summary">${escape(pool.summary)}</p>
+    <section class="pool-guide" data-pool-guide data-pool-purpose="${escape(guide.purpose)}">
+      <div class="pool-guide-block pool-guide-block--purpose"><h3 class="pool-guide-label">What this pool is for</h3><p>${escape(guide.purpose)}</p></div>
+      <div class="pool-guide-block pool-guide-block--why"><h3 class="pool-guide-label">Why it exists</h3><p>${escape(guide.why)}</p></div>
+      <div class="pool-guide-block pool-guide-block--start"><h3>Start here</h3>
+      <ol class="pool-start-here">${[...guide.startHere].sort((left, right) => {
+        const leftProject = projects.find(({ id }) => id === left.projectId);
+        const rightProject = projects.find(({ id }) => id === right.projectId);
+        const leftRank = leftProject?.poolRank ?? -1;
+        const rightRank = rightProject?.poolRank ?? -1;
+        return rightRank - leftRank;
+      }).map(({ projectId, reason }) => {
+        const project = projects.find(({ id }) => id === projectId);
+        return `<li class="pool-door"><a href="#${escape(projectId)}">${escape(project?.publicName || projectId)}</a><span class="pool-door-sep"> — </span><span class="pool-door-reason">${escape(reason)}</span></li>`;
+      }).join('')}</ol></div>
+    </section>`;
+}
+
+/**
+ * The catalog's own accounting for a pool: the lifecycle split and readiness
+ * counts. It heads the project listing it summarises.
+ */
+export function renderPoolLedger(poolId) {
   const pool = POOL_CATALOG.find(({ id }) => id === poolId);
   if (!pool) return '';
   const projects = getPoolProjects(pool.publicName);
@@ -137,32 +171,15 @@ export function renderPoolOverview(poolId) {
       <h4>${label}</h4>
       <ul>${realityProjects.map((project) => `<li data-pool-reality-project="${escape(project.id)}"><strong>${escape(project.publicName)}</strong> — ${escape(project.status || 'status unresolved')}${project.visibility?.access === 'internal' ? '; internal' : ''}${project.visibility?.navigation === 'unlisted' ? '; unlisted' : ''}</li>`).join('') || '<li>None cataloged yet.</li>'}</ul>
     </section>`;
-  const guide = pool.visitorGuide;
-  return `<p class="pool-state" data-pool-state="${escape(pool.state)}">${escape(pool.state)} pool</p>
-    <p class="pool-name">Catalog: <span>${escape(pool.publicName)}</span></p>
-    <p class="pool-summary">${escape(pool.summary)}</p>
-    <section class="pool-guide" data-pool-guide data-pool-purpose="${escape(guide.purpose)}">
-      <div class="pool-guide-block pool-guide-block--purpose"><h3>What this pool is for</h3><p>${escape(guide.purpose)}</p></div>
-      <div class="pool-guide-block pool-guide-block--why"><h3>Why it exists</h3><p>${escape(guide.why)}</p></div>
-      <div class="pool-guide-block pool-guide-block--start"><h3>Start here</h3>
-      <ul class="pool-start-here">${[...guide.startHere].sort((left, right) => {
-        const leftProject = projects.find(({ id }) => id === left.projectId);
-        const rightProject = projects.find(({ id }) => id === right.projectId);
-        const leftRank = leftProject?.poolRank ?? -1;
-        const rightRank = rightProject?.poolRank ?? -1;
-        return rightRank - leftRank;
-      }).map(({ projectId, reason }) => {
-        const project = projects.find(({ id }) => id === projectId);
-        return `<li><a href="#${escape(projectId)}">${escape(project?.publicName || projectId)}</a> — ${escape(reason)}</li>`;
-      }).join('')}</ul></div>
+  return `<section class="pool-ledger" data-pool-ledger aria-label="Catalog reality for ${escape(pool.publicName)}">
       <p class="pool-reality-note">Catalog reality is shown below. Live is a lifecycle label, not a completion claim.</p>
       <div class="pool-reality-grid">
         ${renderReality('What is real here', currentProjects)}
         ${renderReality('Still forming', formingProjects)}
       </div>
-    </section>
-    <p class="pool-catalog-count">Catalog: ${projects.length} project${projects.length === 1 ? '' : 's'} assigned to this pool.</p>
-    <p class="pool-readiness-summary" data-readiness-summary="Shipped:${readinessCounts.Shipped};In progress:${readinessCounts['In progress']};UNKNOWN:${readinessCounts.UNKNOWN}">Readiness: Shipped: ${readinessCounts.Shipped} · In progress: ${readinessCounts['In progress']} · UNKNOWN: ${readinessCounts.UNKNOWN}</p>`;
+      <p class="pool-catalog-count">Catalog: ${projects.length} project${projects.length === 1 ? '' : 's'} assigned to this pool.</p>
+      <p class="pool-readiness-summary" data-readiness-summary="Shipped:${readinessCounts.Shipped};In progress:${readinessCounts['In progress']};UNKNOWN:${readinessCounts.UNKNOWN}">Readiness: Shipped: ${readinessCounts.Shipped} · In progress: ${readinessCounts['In progress']} · UNKNOWN: ${readinessCounts.UNKNOWN}</p>
+    </section>`;
 }
 
 export function renderPoolProjects(poolId) {
@@ -250,7 +267,7 @@ export function mountPoolPage(root) {
       listingProjects.push(project);
     }
   }
-  listing.innerHTML = renderProjectGroups(listingProjects);
+  listing.innerHTML = renderPoolLedger(pool.id) + renderProjectGroups(listingProjects);
   enhanceHealthTabs(root);
 }
 
