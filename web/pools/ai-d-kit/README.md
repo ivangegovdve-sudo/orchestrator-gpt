@@ -94,6 +94,20 @@ when there is something wrong — a row that vanishes quietly is a row nobody fi
   that was real in June is usually still real in October, and hiding it would trade a
   stale-but-useful row for an empty page.
 
+### Keeping the rows honest over time
+
+Expiry takes care of itself; staleness does not. A standing tier that quietly moved behind
+a login wall still renders as live until somebody opens the page again, so the rows are
+re-opened on a schedule — weekly Paperclip routine, per-row read windows of 14 days for
+promotions and 30 for standing tiers, and a script that will not write a `checkedAt` for a
+page it did not open. The procedure, the cadence and its reasoning, and how to tell whether
+a firing ran are in [REVERIFICATION.md](REVERIFICATION.md).
+
+```bash
+npm run reverify:ai-d-kit                                        # probe every row, write nothing
+node scripts/reverify-ai-d-kit-offers.mjs --apply --observations obs.json
+```
+
 ### The upstream candidate section
 
 The bottom of the offers page reads The Drop's promotion feed into a labelled candidate
@@ -134,6 +148,7 @@ also the no-JavaScript fallback for the page.
 ```bash
 npm run validate:ai-d-kit                       # schema
 node --test scratch/tests/ai-kit-data-contract.test.js   # expiry + verification rules
+node --test scratch/tests/ai-kit-reverification.test.js  # the demotion and refresh refusals
 node scratch/tools/preview-ai-d-kit.mjs         # print what each section will show
 ```
 
