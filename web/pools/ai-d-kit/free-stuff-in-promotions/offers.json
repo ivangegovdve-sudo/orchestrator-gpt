@@ -26,7 +26,7 @@
       "status": "VERIFIED",
       "checkedAt": "2026-09-25",
       "checkedBy": "Neo",
-      "observed": "Pricing page free-plan tables read '100,000 per day' requests and '10 milliseconds of CPU time per invocation'. Workers KV free row: '100,000 / day' keys read, '1,000 / day' written, '1 GB' stored. D1 free row: '5 million / day' rows read, '100,000 / day' rows written, '5 GB (total)' storage. Queues '10,000 operations/day included'. The page states no end date and does not mention a card requirement either way."
+      "observed": "Probe flagged an ended/withdrawn phrase; re-read and it is a false positive — the page carries no statement that any free plan or quota has ended, been withdrawn or deprecated. Free-plan figures are unchanged: '100,000 per day' requests and '10 milliseconds of CPU time per invocation'."
     }
   },
   {
@@ -41,7 +41,7 @@
       "status": "VERIFIED",
       "checkedAt": "2026-09-25",
       "checkedBy": "Neo",
-      "observed": "Page reads 'Our free allocation allows anyone to use a total of 10,000 Neurons per day at no charge.' Pricing table row confirms 'Workers Paid | 10,000 Neurons per day | $0.011 / 1,000 Neurons', and 'All limits reset daily at 00:00 UTC.' Neurons are a normalised unit, so what 10,000 buys depends on the model you pick."
+      "observed": "Probe flagged missing free-tier wording; re-read and the wording is there, just phrased as an allocation. Page still reads 'Our free allocation allows anyone to use a total of 10,000 Neurons per day at no charge' and 'All limits reset daily at 00:00 UTC.' Both Free and Paid Workers plans include the daily 10,000."
     }
   },
   {
@@ -86,7 +86,7 @@
       "status": "VERIFIED",
       "checkedAt": "2026-09-25",
       "checkedBy": "Neo",
-      "observed": "Billing doc's included-quota table gives GitHub Free '500 MB' artifact storage and '2,000' minutes per month. Page also states 'GitHub Actions usage is free for self-hosted runners and for public repositories' and 'The use of standard GitHub-hosted runners is free: In public repositories.' The public-repo exemption is the larger of the two offers; the 2,000 minutes apply to private repos."
+      "observed": "Probe flagged missing free-tier wording; re-read and the quotas are unchanged. GitHub Free still shows '2,000' minutes per month and '500 MB' artifact storage, and the page still states 'GitHub Actions usage is free for self-hosted runners and for public repositories that use standard GitHub-hosted runners' plus 'The use of standard GitHub-hosted runners is free: In public repositories.'"
     }
   },
   {
@@ -101,7 +101,7 @@
       "status": "VERIFIED",
       "checkedAt": "2026-09-25",
       "checkedBy": "Neo",
-      "observed": "Billing doc's table 'Free and billed use by personal accounts' lists '120 hrs' compute time and '15 GB-month' storage for GitHub Free. Core-hours, not wall-clock hours: a 2-core machine burns the 120 in 60 hours, a 4-core in 30."
+      "observed": "Probe flagged missing free-tier wording; re-read and the included-usage table for GitHub Free personal accounts still gives '120 hrs' compute time and '15 GB-month' storage per month. Still core-hours rather than wall-clock, so a 4-core machine spends the 120 in 30 hours."
     }
   },
   {
@@ -116,7 +116,7 @@
       "status": "VERIFIED",
       "checkedAt": "2026-09-25",
       "checkedBy": "Neo",
-      "observed": "Pricing page Spaces hardware table reads 'CPU Basic: 2 vCPU, 16 GB memory, FREE' and 'ZeroGPU: dynamic resources, Nvidia RTX Pro 6000 Blackwell up to 96 GB, FREE'. Qualifier: the page lists no free-account inference credits — inference credits appear only under PRO ($9/month, '20× included inference credits'), so do not read this row as free API inference."
+      "observed": "Probe flagged missing free-tier wording; re-read and the Spaces hardware table still prices 'CPU Basic: 2 vCPU, 16 GB' as FREE and 'ZeroGPU: dynamic, Nvidia RTX Pro 6000 Blackwell, up to 96 GB' as FREE. The qualifier holds too: included inference credits remain a PRO benefit ('20× included inference credits'), with no complimentary inference credits listed for free accounts."
     }
   },
   {
@@ -161,7 +161,7 @@
       "status": "VERIFIED",
       "checkedAt": "2026-09-25",
       "checkedBy": "Neo",
-      "observed": "Limits doc: free variants (IDs ending ':free') are capped at 50 requests per day for accounts with 'Less than 10' credits purchased all time, and 1,000 requests per day at 'At least 10'. A 20 requests-per-minute cap applies to free variants regardless. The page notes 'The limit tier is selected by all-time credits purchased, independently of is_free_tier.' Fence worth knowing: the 1,000/day tier is only reachable after a one-time $10 purchase, so the genuinely-free ceiling is 50/day."
+      "observed": "Probe flagged an ended/withdrawn phrase; re-read and nothing on the page says free model access has ended. The 'Free usage limits' table still reads 'Requests per day: 50' for accounts with less than 10 credits purchased all-time and 'Requests per day: 1000' at ten or more, with 'Requests per minute: 20' applying to both. The genuinely-free ceiling is still 50/day."
     }
   },
   {
@@ -176,7 +176,7 @@
       "status": "VERIFIED",
       "checkedAt": "2026-09-25",
       "checkedBy": "Neo",
-      "observed": "Rate-limits doc states trial keys are 'free but limited in usage' and that 'Trial keys (and prod keys on newer Chat model variants) are limited to 1,000 API calls a month.' Per-endpoint trial rate limits listed range from '5 req / min' to '500 req / min', with Chat models at '20 req / min'. The page did not state a commercial-use restriction, so I am not claiming one."
+      "observed": "Probe flagged missing free-tier wording; re-read and the page describes the free key as an evaluation key — 'evaluation keys (free but limited in usage)'. The cap is unchanged: 'Trial keys (and prod keys on newer Chat model variants) are limited to 1,000 API calls a month.' Chat models still list '20 req / min' on trial, with other endpoints ranging from Audio Transcriptions at '5 req / min' to Embed at '2,000 inputs / min'."
     }
   },
   {
@@ -191,7 +191,7 @@
       "status": "VERIFIED",
       "checkedAt": "2026-09-25",
       "checkedBy": "Neo",
-      "observed": "Pricing page Free column: '$0', '500K' commands per month, '256 MB' max data size, '10 GB' bandwidth. Card behaviour is stated as a consequence, not a gate: 'Once you enter your credit card, your database will be upgraded to the pay-as-you-go plan.'"
+      "observed": "Probe flagged an ended/withdrawn phrase; re-read of the redis pricing page (the /pricing URL redirects there) shows no such statement. Free column unchanged: '$0', '500K' commands a month, '256 MB' max data size, '10 GB' bandwidth."
     }
   },
   {
@@ -206,7 +206,7 @@
       "status": "VERIFIED",
       "checkedAt": "2026-09-25",
       "checkedBy": "Neo",
-      "observed": "Pricing page Free card reads '$0 forever' with a '300 credit limit', plus 'Unlimited deploy previews', 'Add Custom domains with SSL', 'Functions & AI models', 'Global CDN'. Note the shape change: Netlify now meters the free plan in credits rather than the old bandwidth/build-minute numbers, and this page does not state what 300 credits buys in GB or minutes."
+      "observed": "Probe flagged an ended/withdrawn phrase; re-read and it is a false positive — no free plan or feature is stated as ended or withdrawn. Free card still reads '$0 forever' with a '300 credit limit', so the credit-metering shape noted last time is unchanged."
     }
   },
   {
@@ -296,7 +296,7 @@
       "status": "VERIFIED",
       "checkedAt": "2026-09-25",
       "checkedBy": "Neo",
-      "observed": "Pack page lists partner offers including 'Free GitHub Pro while you are a student', 'GitHub Copilot Student is available to verified students', Microsoft Azure '$100 in Azure credit' (18+), JetBrains 'A free subscription for students, to be renewed annually', and Heroku '$13 USD per month credit for 24 months'. No end date is stated; benefits are framed as lasting 'while you are a student'. The page refers to 'verified students' throughout but does not spell out the verification criteria on this page."
+      "observed": "Probe flagged missing free-tier wording; re-read and the partner offers are unchanged: 'Free GitHub Pro while you are a student', 'GitHub Copilot Student is available to verified students' (unlimited code completions plus an allowance of GitHub AI Credits, limited chat/agent usage), Microsoft Azure 'Free access to 25+ Microsoft Azure cloud services plus $100 in Azure credit. For students aged 18+', JetBrains 'A free subscription for students, to be renewed annually', and Heroku 'Enjoy a credit of $13 USD per month for 24 months.' No end date is stated for the pack itself; individual partner offers carry their own durations."
     }
   },
   {
@@ -311,7 +311,7 @@
       "status": "VERIFIED",
       "checkedAt": "2026-09-25",
       "checkedBy": "Neo",
-      "observed": "Pricing page headline: 'Start building free of charge with generous limits, then scale up with prepaid then pay-as-you-go pricing.' The Free Tier cells for the Flash models (3.8, 3.7, 3.6, 3.5 Flash and Flash-Lite) read 'Free of charge' for both input and output. The fence is on the same page: free-tier content is 'used to improve our products', which flips to 'Content not used to improve our products' on the paid tier. Per-model rate-limit numbers are not on this page — it points you at AI Studio for your active limits."
+      "observed": "Probe flagged an ended/withdrawn phrase; re-read and no free tier is stated as ended. 'Free of charge' still appears in the Free Tier column for the Flash family — 3.8, 3.7, 3.6 and 3.5 Flash, 2.5 Flash and Flash-Lite, the Flash TTS variants and Gemini 3 Flash Preview. The data fence is unchanged and still on the same tables: free tier shows 'Yes' under 'Used to improve our products', against 'Content not used to improve our products' on the paid tier."
     }
   },
   {
@@ -356,7 +356,7 @@
       "status": "VERIFIED",
       "checkedAt": "2026-09-25",
       "checkedBy": "Neo",
-      "observed": "Pricing page Starter plan states '$30 / month free compute'. The page does not say whether a card is required to open a Starter account, so I am not claiming it is card-free. What $30 buys depends entirely on the GPU class you pick — the per-second rates are in the same table."
+      "observed": "Probe flagged missing free-tier wording; re-read and the Starter plan still states '$30 / month free compute'. The page still does not address whether a card is required to open a Starter account, so that remains unclaimed rather than assumed either way."
     }
   },
   {
@@ -371,7 +371,7 @@
       "status": "VERIFIED",
       "checkedAt": "2026-09-25",
       "checkedBy": "Neo",
-      "observed": "Pricing page Free column: '$0/mo' with '3,000' emails per month and '3 domains'. The limit that actually bites is stated separately: 'The Free plan is limited to 100 emails per day.' 3,000 a month therefore cannot be spent in a burst."
+      "observed": "Probe flagged missing free-tier wording; re-read and the Free column is unchanged: '$0/mo', '3,000' emails per month, '3 domains'. The daily cap that actually bites is still stated separately — the free plan is 'limited to 100 emails per day'."
     }
   },
   {
@@ -386,7 +386,7 @@
       "status": "VERIFIED",
       "checkedAt": "2026-09-25",
       "checkedBy": "Neo",
-      "observed": "FAQ answers 'Yes. Colab is free of charge to use.' The qualifiers are on the same page and matter more than the headline: 'Colab resources are not guaranteed and not unlimited, and usage limits sometimes fluctuate', 'access to expensive resources like GPUs is heavily restricted', notebooks 'can run for at most 12 hours, depending on availability and your usage patterns', and 'Virtual machines are deleted when idle for a while, and have a maximum lifetime enforced by the Colab service.'"
+      "observed": "Probe flagged an ended/withdrawn phrase; re-read and the FAQ does not say the free version has ended. Still reads 'Yes. Colab is free of charge to use', with the same qualifiers: 'Colab resources are not guaranteed and not unlimited, and usage limits sometimes fluctuate', 'In the version of Colab that is free of charge notebooks can run for at most 12 hours, depending on availability and your usage patterns', and 'Virtual machines are deleted when idle for a while, and have a maximum lifetime enforced by the Colab service.'"
     }
   },
   {
@@ -401,7 +401,7 @@
       "status": "VERIFIED",
       "checkedAt": "2026-09-25",
       "checkedBy": "Neo",
-      "observed": "Pricing page Developer column: '$0', '5k errors', '50 replays', '5M spans', '30-day lookback'. Described on the page as 'For solo devs working on small projects' and 'Limited to one user' — the single-seat cap is the fence, not the event quota."
+      "observed": "Probe flagged missing free-tier wording; re-read and the Developer column is unchanged: '$0' with '5k errors', '50 replays', '5M spans' and '30-day lookback'. The seat cap is still the real fence — the plan is 'Limited to one user'."
     }
   },
   {
@@ -431,7 +431,7 @@
       "status": "VERIFIED",
       "checkedAt": "2026-09-25",
       "checkedBy": "Neo",
-      "observed": "Google's own announcement states US students get 'one year of Google AI Pro for free', valued at '$19.99/mo', with a redemption deadline of 'December 31, 2026'. Two fences quoted from the same page: 'Valid form of payment required at sign-up' and, after the free year, 'Google AI Pro will automatically charge $19.99/month.' The expiresAt here is the claim deadline stated on the page, not the end of a redeemed subscription."
+      "observed": "Probe could not find '2026-12-31' in the page text; re-read and the date is there in prose, not ISO — the announcement reads 'Redeem until December 31, 2026'. So the stated end date is confirmed, not guessed. Also re-confirmed verbatim: 'one year of Google AI Pro for free' at '$19.99/mo', 'Eligible students in the U.S. only', 'Valid form of payment required at sign-up', and 'Unless cancelled earlier, Google AI Pro will automatically charge $19.99/month after the trial ends.'"
     }
   },
   {
@@ -446,7 +446,7 @@
       "status": "VERIFIED",
       "checkedAt": "2026-09-25",
       "checkedBy": "Neo",
-      "observed": "Claim page served me its Bulgarian locale and reads 'Възползвайте се до 31 декември 2026 г.' — claim by 31 December 2026 — for a '1-годишен план Google AI Plus за учащи без парично заплащане' (one-year Google AI Plus student plan at no charge), listing 2x higher usage limits, 400 GB cloud storage and Gemini Omni access, for 'учащи в колеж на възраст над 18 години' (college students over 18), with eligibility reconfirmed annually. Google's announcement post gives the market fence: 'over 140 markets where Google AI Plus is available, except for in the U.S., Bolivia, Albania, Canada, Macau, Hong Kong, and Tunisia', 'Valid form of payment required at sign-up', and auto-charge of '$4.99/month or local currency equivalent' afterwards. What you see on the page depends on your locale."
+      "observed": "Probe could not find '2026-12-31' in the page text; re-read and the date is present in prose in the served locale. The page again served Bulgarian and reads 'Възползвайте се до 31 декември 2026 г.' — claim by 31 December 2026 — for a 1-year student plan with 2x higher usage limits, 400 GB cloud storage, Gemini Omni access and unlimited uploads, for 'учащи в колеж на възраст над 18 години' (college students over 18). Payment fence re-confirmed: a valid payment method is required at registration and it auto-charges afterwards — the Bulgarian page quotes 4,99 €/месец, which is the local-currency form of the $4.99/month in Google's announcement. Google's post gives the market fence: over 140 markets, 'except for in the U.S., Bolivia, Albania, Canada, Macau, Hong Kong, and Tunisia'. What you see depends on your locale."
     }
   },
   {
@@ -461,7 +461,7 @@
       "status": "UNVERIFIED",
       "checkedAt": "2026-09-25",
       "checkedBy": "Neo",
-      "observed": "Re-read 2026-09-25 and still cannot see the numbers. The rate-limits doc keeps its 'Free Plan Limits' tab and the surrounding prose 'Upgrade to Developer plan to access higher limits, Batch and Flex processing, and more.', so a free plan plainly exists — but the tab's table did not render for me again; the only per-model rows I could read are the Developer/base tier ones (e.g. openai/gpt-oss-120b at RPM 30, TPM 8K, TPD 200K), which are not the free plan's. The page now points readers inward: 'view the current, exact rate limits for your organization on the limits page in your account settings', i.e. behind a login I will not create. groq.com/pricing shows no plan table at all this time, only a 'Start building' button through to the console. Staying UNVERIFIED rather than publishing limits I have not seen."
+      "observed": "Re-read 2026-09-25 and it failed the same way as the first read. The rate-limits doc still renders the limits as a tabbed table; the 'Free Plan Limits' tab label comes through but its rows do not, while the Developer Plan tab's rows (canopylabs/orpheus-arabic-saudi, whisper-large-v3) do. The only free-related prose on the page is the tab label itself plus 'Upgrade to Developer plan to access higher limits, Batch and Flex processing, and more', which implies a free plan below it but states no numbers. Still no per-model RPM/RPD/TPM I can quote, so this stays UNVERIFIED rather than becoming a guess."
     }
   },
   {
@@ -470,13 +470,13 @@
     "url": "https://www.akamai.com/lp/free-credit-100",
     "provider": "Akamai",
     "kind": "standing_tier",
-    "summary": "$100 of cloud credit for customers who have never taken the free trial before. It has to be spent within the trial period, and GPU plans are excluded.",
+    "summary": "$100 of cloud credit for customers who have never taken the free trial before. A payment method is required up front, it has to be spent within the trial period, and GPU plans are excluded.",
     "lastVerifiedAt": "2026-09-25",
     "verification": {
       "status": "VERIFIED",
       "checkedAt": "2026-09-25",
       "checkedBy": "Neo",
-      "observed": "Landing page headline reads 'Try Akamai Cloud with US$100 in credits'. Eligibility fence unchanged: 'Promotional credits are available only to new customers who have not yet signed up for a free trial.' On the clock: 'You must spend your service credits during the trial period. Unused service credits will automatically expire.' — and the page still never says how long that trial period is. 'GPU plans are excluded from this promotion'. No offer end date stated anywhere on the page, which is why this stays filed as a standing tier rather than a promotion with an invented deadline. (Page opened by hand on 2026-09-25; the automated probe did not get a usable response.)"
+      "observed": "Probe got HTTP 403, so I opened it by hand. Landing page still offers a 'US$100 credit', and 'Promotional credits are available only to new customers who have not yet signed up for a free trial'. 'GPU plans are excluded from this promotion'; eligible services are Compute (non-GPU), Object Storage, Block Storage and NodeBalancers. New this read and not in the old note: the page states a valid payment method is required, with charges applying only if you exceed the credits during the trial period. The trial period's length is still not defined on the page and no offer end date is stated, so it stays a standing tier with the duration unclaimed. (Page opened by hand on 2026-09-25; the automated probe did not get a usable response.)"
     }
   },
   {
