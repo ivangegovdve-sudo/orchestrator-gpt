@@ -32,7 +32,7 @@ async function routeFor(routePath) {
 
 test('every HTML route copied by the build has exactly one explicit source and owner', async () => {
   const { routes, discoveredHtmlRoutes } = await actualInput();
-  assert.equal(discoveredHtmlRoutes.length, 77, 'current copied HTML boundary including the two AI-d kit subpages');
+  assert.equal(discoveredHtmlRoutes.length, 78, 'current copied HTML boundary including the memory systems map and the two AI-d kit subpages');
   assert.equal(routes.filter(({ source }) => source).length, discoveredHtmlRoutes.length);
   for (const discovered of discoveredHtmlRoutes) {
     const entry = await routeFor(discovered.route);

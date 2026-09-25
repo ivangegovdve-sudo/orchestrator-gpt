@@ -227,7 +227,7 @@ const projectRecords = [
     pool: 'AI-d kit', classification: 'assigned', status: 'Live', rank: { 'AI-d kit': 6 },
     visibility: { ...publicShell, access: 'mixed', publicSurface: 'public-reference-only' },
     relationships: [{ type: 'folds-into', pool: 'AI-d kit', role: 'search' }],
-    sources: ['web/library/index.html', 'web/library/rag.html', MASTER],
+    sources: ['web/library/index.html', 'web/library/rag.html', 'web/memory-systems/index.html', MASTER],
   }),
   project('chair-or-ladder', 'Chair or a Ladder', {
     pool: 'My Story', classification: 'assigned', status: 'Live', rank: { 'My Story': 10 }, visibility: publicShell,
@@ -357,7 +357,7 @@ export const ROUTE_OWNERS = deepFreeze([
   owner('c2c-self', ['/web/c2c-self/']),
   owner('fleet-board', ['/web/fleet/', '/web/board/'], { role: 'internal' }),
   owner('ai-research', ['/web/ai-research/']),
-  owner('library', ['/web/library/', '/web/library/glossary/', '/web/library/platform/'], { visibility: { ...publicShell, publicSurface: 'public-reference-only' } }),
+  owner('library', ['/web/library/', '/web/library/glossary/', '/web/library/platform/', '/web/memory-systems/'], { visibility: { ...publicShell, publicSurface: 'public-reference-only' } }),
   owner('library-workspace', ['/web/library/rag.html'], { projectId: 'library', role: 'child' }),
   owner('library-repos', ['/web/library/repos/'], { projectId: 'library', role: 'child', visibility: internalDocumentation }),
   owner('library-memory', ['/web/library/general/', '/web/library/memory/'], { projectId: 'library', role: 'internal', visibility: internalDocumentation }),
