@@ -28,8 +28,9 @@ run did not open the page it describes.
 
 ## Cadence
 
-**Weekly, Mondays 07:00 UTC** — Paperclip routine `ai-d-kit-offer-reverification`,
-assigned to Neo.
+**Weekly, Mondays 07:00 UTC** — Paperclip routine "AI-d kit offer re-verification
+(weekly)" (`4a5dfeab-23f9-48c9-9fe2-dac0f4da8264`), assigned to Neo. Registered
+2026-09-25; first firing 2026-09-28 07:00 UTC.
 
 The routine fires weekly; the *rows* have their own windows, so a firing is small:
 
@@ -83,6 +84,11 @@ POST /api/companies/{companyId}/routines
 POST /api/routines/{routineId}/triggers
 { "kind": "schedule", "cronExpression": "0 7 * * 1", "timezone": "UTC" }
 ```
+
+As registered: routine `4a5dfeab-23f9-48c9-9fe2-dac0f4da8264`, schedule trigger
+`92a4178c-def8-4bd3-8eec-ba0ae04a0f6b`. The `description` field carries the procedure
+below in short form, so a firing is readable without opening this file — if the procedure
+here changes, change it there too.
 
 ## What a firing does
 
