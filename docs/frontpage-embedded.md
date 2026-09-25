@@ -1,5 +1,9 @@
 # Approved embedded forest — implementation receipt
 
+Layout update: the [2026-09-24 correction](frontpage-correction-2026-09-24.md)
+supersedes the phone thumbnails and footer-like lower controls described here.
+The original artwork and numbered tree hand-off geometry remain unchanged.
+
 BUTCHER · 2026-09-23 · orchestrator-gpt PR #619 · same branch, no merge.
 
 This implements the approved connected-bark composition and corrects the two

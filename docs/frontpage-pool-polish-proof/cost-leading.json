@@ -1,0 +1,30 @@
+{
+  "baseline": "e13788e29c86fd2c2f0599b29404d5953f471e3d",
+  "trace": false,
+  "results": [
+    {
+      "mode": "baseline",
+      "seconds": 10.010248999999021,
+      "taskMsPer60HzFrame": 1.2029520943985685,
+      "scriptMsPer60HzFrame": 0.19664679003824242,
+      "layoutCount": 0,
+      "recalcCount": 144
+    },
+    {
+      "mode": "ambient",
+      "seconds": 10.00923499999044,
+      "taskMsPer60HzFrame": 1.3755496798719533,
+      "scriptMsPer60HzFrame": 0.2143303992098679,
+      "layoutCount": 0,
+      "recalcCount": 144
+    },
+    {
+      "mode": "paused",
+      "seconds": 10.007909000007203,
+      "taskMsPer60HzFrame": 0.004378203945163271,
+      "scriptMsPer60HzFrame": 0,
+      "layoutCount": 0,
+      "recalcCount": 0
+    }
+  ]
+}

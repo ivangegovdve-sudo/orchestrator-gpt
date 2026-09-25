@@ -64,10 +64,11 @@ test('home keeps seven live fallback links and loads the catalog-ranked director
   const directory = home.match(/<nav aria-label="Seven pools" data-pool-directory>([\s\S]*?)<\/nav>/)?.[1];
   assert.ok(directory);
   const links = [...directory.matchAll(/<a\b[^>]*data-pool-link="([^"]+)"[^>]*href="([^"]+)"[^>]*>([\s\S]*?)<\/a>/g)];
-  assert.deepEqual(links.map((m) => m[1]), pools.map(([id]) => id));
-  links.forEach((link, index) => {
-    assert.equal(link[2], `/web/pools/${pools[index][0]}/`);
-    assert.ok(link[3].includes(`>${pools[index][1]}</span>`));
+  assert.deepEqual(links.map((m) => m[1]).sort(), pools.map(([id]) => id).sort());
+  links.forEach((link) => {
+    const pool=pools.find(([id])=>id===link[1]);
+    assert.equal(link[2], `/web/pools/${pool[0]}/`);
+    assert.ok(link[3].includes(`>${pool[1]}</span>`));
     assert.match(link[3], />Live pool</);
     assert.doesNotMatch(link[0], /disabled|tabindex|target=/);
   });

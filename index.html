@@ -170,6 +170,10 @@
 <a class="resolve-skip" href="#atlas">Explore the pools</a>
 <main class="resolve-scroll">
   <section class="resolve-stage" data-resolve-stage aria-labelledby="forest-title">
+    <div class="resolve-scene">
+    <div class="resolve-growth-intro" data-growth-intro aria-hidden="true" inert>
+      <video data-growth-film data-src="/web/assets/sdforest-intro/growth-scroll.mp4" poster="/web/assets/sdforest-intro/seed-poster.webp" preload="metadata" muted playsinline disablepictureinpicture></video>
+    </div>
     <div class="resolve-world" aria-hidden="true">
       <img src="/web/assets/sdforest-resolve/world.png" alt="" width="864" height="480" fetchpriority="high">
       <img src="/web/assets/sdforest-resolve/sky.png" alt="" width="864" height="480">
@@ -178,59 +182,58 @@
       <img src="/web/assets/sdforest-resolve/landscape.png" alt="" width="864" height="480">
     </div>
     <div class="resolve-ambient" aria-hidden="true" inert>
+      <svg class="ambient-paint-defs" width="0" height="0" focusable="false"><defs><linearGradient id="grass-shading" x1="0" y1="1" x2=".25" y2="0"><stop stop-color="#1a3022"/><stop offset=".6" stop-color="#486340"/><stop offset="1" stop-color="#94a475"/></linearGradient><linearGradient id="vine-shading" x1="0" y1=".6" x2="1" y2=".3"><stop stop-color="#263c29"/><stop offset=".52" stop-color="#77915c"/><stop offset=".57" stop-color="#405935"/><stop offset="1" stop-color="#5d7648"/></linearGradient></defs></svg>
       <div class="ambient-soil-bridge">
-        <svg viewBox="0 0 600 130" preserveAspectRatio="none" focusable="false"><path class="soil-shadow" d="M18 115Q70 50 200 28Q298 2 399 29Q530 55 587 115Z"/><path d="M8 124Q73 85 142 68Q225 31 300 24Q373 31 458 68Q534 92 596 124Z"/></svg>
-        <img src="/web/assets/sdforest-workbench/ground.webp" alt="" width="768" height="117">
-      </div>
-      <div class="forest-vines">
-        <svg data-wind-vine="0" viewBox="0 0 100 520" focusable="false"><path class="vine-stem" d="M35-20C22 42 61 77 39 149S62 267 45 337S62 415 47 481"/><path class="vine-leaf" d="M38 80Q12 67 21 51Q44 61 38 80M42 118Q66 94 73 110Q62 134 42 118M40 174Q15 151 17 177Q22 193 40 174M43 222Q73 209 66 189Q43 197 43 222M48 281Q22 258 26 284Q31 298 48 281M47 340Q75 318 73 342Q61 357 47 340M49 399Q30 373 27 398Q33 412 49 399M48 445Q70 429 67 449Q58 461 48 445"/></svg>
-        <svg data-wind-vine="1" viewBox="0 0 100 520" focusable="false"><path class="vine-stem" d="M68-10C85 50 39 86 61 154S41 250 53 322S42 386 57 447"/><path class="vine-leaf" d="M62 62Q85 43 87 62Q79 78 62 62M57 111Q28 83 32 112Q41 125 57 111M62 171Q89 149 84 176Q73 191 62 171M55 225Q29 205 35 233Q46 245 55 225M52 284Q75 262 78 285Q68 300 52 284M55 348Q33 325 32 348Q42 361 55 348M54 404Q80 386 76 409Q65 423 54 404"/></svg>
-      </div>
-      <div class="ambient-ground">
-      <img class="ambient-ground-image" src="/web/assets/sdforest-workbench/ground.webp" alt="" width="768" height="117">
-        <span data-wind-grass="1.7" class="ambient-grass ambient-grass-far"><svg viewBox="0 0 240 54" focusable="false"><path d="M51 45Q48 32 40 29M52 45Q52 34 57 32M60 44Q63 33 70 29M63 44Q64 38 61 35M43 45Q44 37 39 35M47 44Q45 36 46 31M67 43Q71 35 75 34M70 44Q70 39 73 37M57 43Q59 36 55 33"/></svg></span>
-        <span data-wind-grass="0.4" class="ambient-grass"><svg viewBox="0 0 240 54" focusable="false"><path d="M87 44Q88 30 80 22M89 43Q92 32 99 28M98 44Q99 34 96 30M105 44Q105 37 109 34M79 43Q81 35 77 30M84 44Q82 38 79 36M95 44Q91 35 95 27M109 43Q111 35 115 32M102 43Q105 33 103 29"/></svg></span>
-        <span data-wind-grass="0.6" class="ambient-grass"><svg viewBox="0 0 240 54" focusable="false"><path d="M141 44Q137 29 144 24M143 44Q147 33 155 30M150 44Q153 35 151 31M133 44Q130 36 125 33M128 44Q129 38 126 36M137 44Q135 36 138 30M148 44Q145 38 147 33M155 44Q158 36 163 34M160 44Q160 39 158 37"/></svg></span>
-        <span data-wind-grass="2.3" class="ambient-grass ambient-grass-far"><svg viewBox="0 0 240 54" focusable="false"><path d="M177 45Q178 34 187 29M175 45Q172 37 169 34M188 46Q193 37 201 36M186 45Q186 39 182 36M167 44Q167 39 162 36M172 45Q173 35 170 31M182 45Q181 38 183 33M194 46Q195 39 199 37M202 47Q203 42 207 40"/></svg></span>
+        <img class="rooted-earth" src="/web/assets/sdforest-sunset/rooted-earth.webp" alt="" width="1672" height="941" draggable="false">
       </div>
       <div class="ambient-air">
         <i data-ambient-mote></i><i data-ambient-mote></i><i data-ambient-mote></i>
         <i data-ambient-mote></i><i data-ambient-mote></i><i data-ambient-mote></i>
       </div>
     </div>
+    <div class="forest-vines" inert>
+      <button data-wind-vine="0" type="button" aria-label="Swing left vine" title="Drag to bend · release to swing" disabled>
+        <svg viewBox="0 0 100 520" preserveAspectRatio="none" aria-hidden="true" focusable="false"><path class="vine-stem" d="M50-20C22 42 61 77 39 149S62 267 45 337"/><path class="vine-leaf" d="M38 80Q6 62 18 41Q46 51 38 80M42 118Q76 85 79 110Q66 141 42 118M40 174Q6 143 12 179Q22 204 40 174M43 222Q81 207 70 181Q41 192 43 222M48 281Q14 250 21 287Q31 310 48 281M47 340Q83 309 79 344Q61 366 47 340"/><g class="vine-tip"><path class="vine-stem" d="M45 337C43 379 65 420 47 489"/><path class="vine-leaf" d="M49 399Q20 366 22 400Q33 422 49 399M48 445Q78 420 73 451Q58 471 48 445"/></g></svg>
+      </button>
+      <button data-wind-vine="1" type="button" aria-label="Swing right vine" title="Drag to bend · release to swing" disabled>
+        <svg viewBox="0 0 100 520" preserveAspectRatio="none" aria-hidden="true" focusable="false"><path class="vine-stem" d="M50-10C85 50 39 86 61 154S41 250 53 322"/><path class="vine-leaf" d="M62 62Q93 35 94 62Q79 88 62 62M57 111Q20 75 26 114Q41 136 57 111M62 171Q97 141 90 178Q73 202 62 171M55 225Q21 197 29 235Q46 256 55 225M52 284Q83 254 84 287Q68 311 52 284"/><g class="vine-tip"><path class="vine-stem" d="M53 322C61 350 42 386 57 458"/><path class="vine-leaf" d="M55 348Q25 317 26 350Q42 372 55 348M54 404Q88 378 82 411Q65 434 54 404"/></g></svg>
+      </button>
+    </div>
     <div class="resolve-field" data-arrival="field" aria-hidden="true" inert>
-      <img class="workbench-horizon workbench-woodland" src="/web/assets/sdforest-workbench/woodland.webp" alt="" width="1672" height="941">
-      <img class="workbench-mist" src="/web/assets/sdforest-workbench/mist.webp" alt="" width="1672" height="941">
+      <img class="workbench-horizon workbench-woodland" src="/web/assets/sdforest-sunset/valley.webp" alt="" width="1672" height="941" draggable="false">
+      <img class="workbench-mist" src="/web/assets/sdforest-sunset/mist.webp" alt="" width="1672" height="941" draggable="false">
       <img class="workbench-bark" src="/web/assets/sdforest-workbench/bark.webp" alt="" width="1672" height="941">
     </div>
     <svg class="resolve-tree" data-title-crown viewBox="93 158 226 214" aria-hidden="true" focusable="false">
-      <image href="/web/assets/sdforest-resolve/tree.png" width="864" height="480"/>
+      <image href="/web/assets/sdforest-sunset/tree.webp" x="93" y="158" width="226" height="214" preserveAspectRatio="xMidYMax meet"/>
     </svg>
     <a class="resolve-brand" data-arrival="brand" href="/" aria-label="SDForest home"><i aria-hidden="true"></i>SDForest</a>
     <h1 class="resolve-title" id="forest-title" data-arrival="title"><span>Forest HUB</span><small>projects in motion</small></h1>
+    </div>
+    <div class="resolve-growth-runway" aria-hidden="true"></div>
     <div id="atlas" class="resolve-directory">
       <nav aria-label="Seven pools" data-pool-directory>
 <span class="workbench-directory-bark" data-arrival="field" aria-hidden="true" inert></span>
-<a class="portal" data-arrival data-pool-link="growingapp" href="/web/pools/growingapp/">
-<span class="portal-art" aria-hidden="true"><img src="/web/assets/sdforest-workbench/growingapp.webp" alt="" width="1100" height="458"></span><span class="portal-copy"><span class="portal-name">GrowingApp</span><span class="portal-meta">Learning, family tools, and growing together</span></span><span class="portal-tag">Live pool</span>
+<a class="portal" data-arrival data-pool-link="health" href="/web/pools/health/">
+<span class="portal-art" aria-hidden="true"><img src="/web/assets/sdforest-workbench/health.webp" alt="" width="1100" height="458"></span><span class="portal-copy"><span class="portal-name">Health</span></span><span class="portal-reveal"><span class="portal-meta">Health, reading, movement, and wellbeing</span><span class="portal-selection">Selected · press again to open</span></span><span class="portal-tag">Live pool</span>
           </a>
 <a class="portal" data-arrival data-pool-link="ai-d-kit" href="/web/pools/ai-d-kit/">
-<span class="portal-art" aria-hidden="true"><img src="/web/assets/sdforest-workbench/ai-d-kit.webp" alt="" width="1100" height="458"></span><span class="portal-copy"><span class="portal-name">AI-d kit</span><span class="portal-meta">Tools for working with AI</span></span><span class="portal-tag">Live pool</span>
+<span class="portal-art" aria-hidden="true"><img src="/web/assets/sdforest-workbench/ai-d-kit.webp" alt="" width="1100" height="458"></span><span class="portal-copy"><span class="portal-name">AI-d kit</span></span><span class="portal-reveal"><span class="portal-meta">Tools for working with AI</span><span class="portal-selection">Selected · press again to open</span></span><span class="portal-tag">Live pool</span>
           </a>
-<a class="portal" data-arrival data-pool-link="tinkerbox" href="/web/pools/tinkerbox/">
-<span class="portal-art" aria-hidden="true"><img src="/web/assets/sdforest-workbench/tinkerbox.webp" alt="" width="1100" height="275"></span><span class="portal-copy"><span class="portal-name">TinkerBox</span><span class="portal-meta">Playgrounds and practical experiments</span></span><span class="portal-tag">Live pool</span>
-          </a>
-<a class="portal" data-arrival data-pool-link="health" href="/web/pools/health/">
-<span class="portal-art" aria-hidden="true"><img src="/web/assets/sdforest-workbench/health.webp" alt="" width="1100" height="458"></span><span class="portal-copy"><span class="portal-name">Health</span><span class="portal-meta">Health, reading, movement, and wellbeing</span></span><span class="portal-tag">Live pool</span>
-          </a>
-<a class="portal" data-arrival data-pool-link="design-gallery" href="/web/pools/design-gallery/">
-<span class="portal-art" aria-hidden="true"><img src="/web/assets/sdforest-workbench/design-gallery.webp" alt="" width="1100" height="275"></span><span class="portal-copy"><span class="portal-name">Design Gallery</span><span class="portal-meta">Game design, web design, and website history</span></span><span class="portal-tag">Live pool</span>
+<a class="portal" data-arrival data-pool-link="growingapp" href="/web/pools/growingapp/">
+<span class="portal-art" aria-hidden="true"><img src="/web/assets/sdforest-workbench/growingapp.webp" alt="" width="1100" height="458"></span><span class="portal-copy"><span class="portal-name">GrowingApp</span></span><span class="portal-reveal"><span class="portal-meta">Learning, family tools, and growing together</span><span class="portal-selection">Selected · press again to open</span></span><span class="portal-tag">Live pool</span>
           </a>
 <a class="portal" data-arrival data-pool-link="artificial-self" href="/web/pools/artificial-self/">
-<span class="portal-art" aria-hidden="true"><img src="/web/assets/sdforest-workbench/artificial-self.webp" alt="" width="1100" height="458"></span><span class="portal-copy"><span class="portal-name">Artificial Self</span><span class="portal-meta">AI research and conversation archives</span></span><span class="portal-tag">Live pool</span>
+<span class="portal-art" aria-hidden="true"><img src="/web/assets/sdforest-workbench/artificial-self.webp" alt="" width="1100" height="458"></span><span class="portal-copy"><span class="portal-name">Artificial Self</span></span><span class="portal-reveal"><span class="portal-meta">AI research and conversation archives</span><span class="portal-selection">Selected · press again to open</span></span><span class="portal-tag">Live pool</span>
           </a>
 <a class="portal" data-arrival data-pool-link="my-story" href="/web/pools/my-story/">
-<span class="portal-art" aria-hidden="true"><img src="/web/assets/sdforest-workbench/my-story.webp" alt="" width="1100" height="275"></span><span class="portal-copy"><span class="portal-name">My Story</span><span class="portal-meta">Stories, reflections, and creative work</span></span><span class="portal-tag">Live pool</span>
+<span class="portal-art" aria-hidden="true"><img src="/web/assets/sdforest-workbench/my-story.webp" alt="" width="1100" height="275"></span><span class="portal-copy"><span class="portal-name">My Story</span></span><span class="portal-reveal"><span class="portal-meta">Stories, reflections, and creative work</span><span class="portal-selection">Selected · press again to open</span></span><span class="portal-tag">Live pool</span>
+          </a>
+<a class="portal" data-arrival data-pool-link="tinkerbox" data-final-pool href="/web/pools/tinkerbox/">
+<span class="portal-art" aria-hidden="true"><img src="/web/assets/sdforest-workbench/tinkerbox.webp" alt="" width="1100" height="275"></span><span class="portal-copy"><span class="portal-name">TinkerBox</span></span><span class="portal-reveal"><span class="portal-meta">Playgrounds and practical experiments</span><span class="portal-selection">Selected · press again to open</span></span><span class="portal-tag">Live pool</span>
+          </a>
+<a class="portal" data-arrival data-pool-link="design-gallery" data-final-pool href="/web/pools/design-gallery/">
+<span class="portal-art" aria-hidden="true"><img src="/web/assets/sdforest-workbench/design-gallery.webp" alt="" width="1100" height="275"></span><span class="portal-copy"><span class="portal-name">Design Gallery</span></span><span class="portal-reveal"><span class="portal-meta">Game design, web design, and website history</span><span class="portal-selection">Selected · press again to open</span></span><span class="portal-tag">Live pool</span>
           </a>
       </nav>
       <p class="workbench-status" id="workbench-status" role="status" aria-live="polite"></p>

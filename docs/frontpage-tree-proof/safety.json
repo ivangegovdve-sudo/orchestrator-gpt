@@ -1,0 +1,128 @@
+{
+  "protectedTreeCSS": true,
+  "pureSeekAndSingleClock": true,
+  "portalMarkupAndCopyUnchanged": true,
+  "paragraphsUnchanged": true,
+  "renamedDeleted": [],
+  "fold": [
+    {
+      "viewport": [
+        1920,
+        1080
+      ],
+      "fullEntries": 7,
+      "tree": {
+        "x": 629.2421875,
+        "y": 269.9921875,
+        "width": 661.515625,
+        "height": 626.390625,
+        "top": 269.9921875,
+        "right": 1290.7578125,
+        "bottom": 896.3828125,
+        "left": 629.2421875
+      }
+    },
+    {
+      "viewport": [
+        1672,
+        941
+      ],
+      "fullEntries": 7,
+      "tree": {
+        "x": 547.8125,
+        "y": 235.2421875,
+        "width": 576.375,
+        "height": 545.765625,
+        "top": 235.2421875,
+        "right": 1124.1875,
+        "bottom": 781.0078125,
+        "left": 547.8125
+      }
+    },
+    {
+      "viewport": [
+        1366,
+        768
+      ],
+      "fullEntries": 7,
+      "tree": {
+        "x": 447.796875,
+        "y": 192,
+        "width": 470.40625,
+        "height": 445.4375,
+        "top": 192,
+        "right": 918.203125,
+        "bottom": 637.4375,
+        "left": 447.796875
+      }
+    },
+    {
+      "viewport": [
+        1920,
+        720
+      ],
+      "fullEntries": 7,
+      "tree": {
+        "x": 739.4921875,
+        "y": 180,
+        "width": 441.015625,
+        "height": 417.59375,
+        "top": 180,
+        "right": 1180.5078125,
+        "bottom": 597.59375,
+        "left": 739.4921875
+      }
+    },
+    {
+      "viewport": [
+        390,
+        844
+      ],
+      "fullEntries": 2,
+      "tree": {
+        "x": 62.40625,
+        "y": 110.7578125,
+        "width": 265.1875,
+        "height": 251.109375,
+        "top": 110.7578125,
+        "right": 327.59375,
+        "bottom": 361.8671875,
+        "left": 62.40625
+      }
+    },
+    {
+      "viewport": [
+        320,
+        568
+      ],
+      "fullEntries": 2,
+      "tree": {
+        "x": 69.125,
+        "y": 72.984375,
+        "width": 181.75,
+        "height": 172.09375,
+        "top": 72.984375,
+        "right": 250.875,
+        "bottom": 245.078125,
+        "left": 69.125
+      }
+    },
+    {
+      "viewport": [
+        780,
+        390
+      ],
+      "fullEntries": 2,
+      "tree": {
+        "x": 327.6015625,
+        "y": 96.9140625,
+        "width": 124.796875,
+        "height": 118.171875,
+        "top": 96.9140625,
+        "right": 452.3984375,
+        "bottom": 215.0859375,
+        "left": 327.6015625
+      }
+    }
+  ]
+}

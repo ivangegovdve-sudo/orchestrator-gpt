@@ -1,0 +1,46 @@
+{
+  "baseline": "9dd8426b6bc85c56dffae2fce6404028f0c847c3",
+  "trace": false,
+  "results": [
+    {
+      "mode": "baseline",
+      "seconds": 10.010980999999447,
+      "taskMsPer60HzFrame": 1.7904905290168518,
+      "scriptMsPer60HzFrame": 0.2591404378851726,
+      "layoutCount": 0,
+      "recalcCount": 142
+    },
+    {
+      "mode": "ambient",
+      "seconds": 10.006026999995811,
+      "taskMsPer60HzFrame": 1.7818843916112554,
+      "scriptMsPer60HzFrame": 0.2707701401699663,
+      "layoutCount": 0,
+      "recalcCount": 143
+    },
+    {
+      "mode": "baseline",
+      "seconds": 10.003010000000359,
+      "taskMsPer60HzFrame": 1.8105733507546913,
+      "scriptMsPer60HzFrame": 0.2708301467924724,
+      "layoutCount": 0,
+      "recalcCount": 139
+    },
+    {
+      "mode": "ambient",
+      "seconds": 10.004874000005657,
+      "taskMsPer60HzFrame": 1.7065432308283288,
+      "scriptMsPer60HzFrame": 0.25369968010910465,
+      "layoutCount": 0,
+      "recalcCount": 141
+    },
+    {
+      "mode": "paused",
+      "seconds": 10.009095000001253,
+      "taskMsPer60HzFrame": 0.004752344409425738,
+      "scriptMsPer60HzFrame": 0,
+      "layoutCount": 0,
+      "recalcCount": 0
+    }
+  ]
+}

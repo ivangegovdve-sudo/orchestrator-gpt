@@ -1,0 +1,38 @@
+{
+  "baseline": "same-page paused",
+  "trace": true,
+  "results": [
+    {
+      "mode": "ambient",
+      "seconds": 10.009017999997013,
+      "taskMsPer60HzFrame": 1.267397061330471,
+      "scriptMsPer60HzFrame": 0.2259146035439249,
+      "layoutCount": 0,
+      "recalcCount": 140,
+      "callbackCount": 601,
+      "callbackMedianMs": 0.19999998807907104,
+      "callbackP95Ms": 0.6000000089406967,
+      "callbackGapP95Ms": 16.800000000000182,
+      "callbackGapsOver25ms": 0,
+      "drawFrames": 140,
+      "paintEvents": 0,
+      "droppedFrameEvents": 1
+    },
+    {
+      "mode": "paused",
+      "seconds": 10.008140999998432,
+      "taskMsPer60HzFrame": 0.004179930451953074,
+      "scriptMsPer60HzFrame": 0,
+      "layoutCount": 0,
+      "recalcCount": 0,
+      "callbackCount": 0,
+      "callbackMedianMs": 0,
+      "callbackP95Ms": 0,
+      "callbackGapP95Ms": 0,
+      "callbackGapsOver25ms": 0,
+      "drawFrames": 0,
+      "paintEvents": 0,
+      "droppedFrameEvents": 0
+    }
+  ]
+}

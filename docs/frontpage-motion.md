@@ -1,5 +1,16 @@
 # Approved pool-motion pass — 2026-09-24
 
+Current follow-up: [fixed plate and readable instruments](frontpage-refinement-2026-09-24.md).
+The earlier synthetic-grass, moving-bark and small ECG-lobe descriptions are historical.
+
+Latest instrument behaviour: [local motion and depth pass](frontpage-pool-polish-2026-09-24.md).
+In particular, Health now goes flat only during a momentary press, not while selected.
+
+Historical receipt for merged #626. The [approved correction](frontpage-correction-2026-09-24.md)
+supersedes its scrolling ECG, decorative-only vines, ground treatment and phone
+thumbnail layout. Keep this record as evidence of that earlier pass, not the
+current interaction specification.
+
 Source: Ivan's approved behavior table in the task, following the asset-layer
 delivery. Branch starts at c19d84e (main); #619 is already merged. This is an
 implementation pass, not a new composition or tree asset.

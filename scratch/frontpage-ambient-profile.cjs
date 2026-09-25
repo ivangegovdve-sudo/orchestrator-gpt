@@ -12,7 +12,7 @@ const out = process.env.SDFOREST_PROFILE_OUT;
 const modes = (process.argv[2] || 'baseline,ambient,baseline,ambient,paused').split(',');
 if (modes.some(mode => !['baseline','ambient','paused'].includes(mode))) throw new Error('Expected baseline, ambient or paused');
 const oldFiles = ['index.html','web/shared/frontpage-resolve.css','web/shared/frontpage-resolve.mjs','web/shared/feedback.js'];
-if(process.env.SDFOREST_PROFILE_BASELINE)oldFiles.push('web/shared/frontpage-workbench.mjs','web/shared/frontpage-ambient.mjs');
+if(process.env.SDFOREST_PROFILE_BASELINE)oldFiles.push('web/shared/frontpage-workbench.mjs','web/shared/frontpage-ambient.mjs','web/shared/frontpage-pool-effects.mjs');
 const originals = Object.fromEntries(oldFiles.map(file => ['/' + (file === 'index.html' ? '' : file),
   execFileSync('git',['show',`${baseline}:${file}`],{cwd:repo})]));
 const percentile = (values, p) => [...values].sort((a,b)=>a-b)[Math.floor((values.length-1)*p)] || 0;
@@ -48,6 +48,7 @@ const percentile = (values, p) => [...values].sort((a,b)=>a-b)[Math.floor((value
       await cdp.send('Emulation.setCPUThrottlingRate',{rate:4});
       await cdp.send('Performance.enable');
       await page.goto(base+'/?frame=opened',{waitUntil:'networkidle'});
+      if(process.env.SDFOREST_PROFILE_POOL) await page.locator(`[data-pool-link="${process.env.SDFOREST_PROFILE_POOL}"]`).scrollIntoViewIfNeeded();
       if (mode === 'paused') await page.getByRole('button',{name:'Pause motion',exact:true}).click();
       await page.waitForTimeout(1500);
       const metrics = async () => Object.fromEntries((await cdp.send('Performance.getMetrics')).metrics.map(m=>[m.name,m.value]));

@@ -1,9 +1,14 @@
 // Terminal-sequence clock. It never grows, replaces, or moves the supplied tree.
 import { createAmbient } from './frontpage-ambient.mjs';
 import { createWorkbench } from './frontpage-workbench.mjs';
+import { createGrowthIntro } from './frontpage-growth.mjs';
+import './pool-directory.mjs';
 const root = document.documentElement;
 const stage = document.querySelector('[data-resolve-stage]');
 const directory = document.querySelector('[data-pool-directory]');
+// This front-page composition ends with the two approved lower-flank controls.
+// Mark the existing anchors, not a second rank list. Arrivals still follow DOM index.
+for (const link of directory.querySelectorAll('[data-final-pool]')) directory.append(link);
 const status = document.querySelector('#workbench-status');
 const reduced = matchMedia('(prefers-reduced-motion: reduce)');
 const frame = new URLSearchParams(location.search).get('frame');
@@ -14,11 +19,13 @@ const timings = { field:[.05,.6], title:[.18,.95], brand:[.3,.9], portfolio:[3.6
 const feedback = document.querySelector('button[aria-label="Send feedback"]');
 if (feedback) document.querySelector('.resolve-history').append(feedback);
 let selected = null;
+let pendingEntry = null;
 let current = 5;
 let scrub = !reduced.matches && !frame && !location.hash && scrollY === 0;
 const ambient = createAmbient(stage);
 const motionButton = document.querySelector('.resolve-motion-toggle');
 const compact = matchMedia('(max-width:800px)');
+const growthRunway = stage.querySelector('.resolve-growth-runway');
 let frameId = 0;
 let dirtyScroll = false;
 let elapsed = 0;
@@ -31,21 +38,29 @@ let onScreen = true;
 let paused = false;
 let running = false;
 let strength = .65;
-let runway = innerHeight * 1.25;
+let runway = innerHeight * 5.5;
 let inlineStrength = root.style.getPropertyValue('--ambient-strength');
 let interactionDirty = false;
 const workbench = createWorkbench(stage, invalidateWorkbench, () => elapsed);
+const growth = createGrowthIntro(stage,openStatic,scrub);
 
 function invalidateWorkbench() {
   interactionDirty = true;
   syncMotion();
 }
 function canInteract() {
-  return current >= 4.4 && !reduced.matches && !paused && !document.hidden;
+  return current >= 4.4 && !reduced.matches && !paused && !document.hidden && onScreen;
+}
+function finishEntry() {
+  if(!pendingEntry)return;
+  const destination=pendingEntry.link.href;
+  pendingEntry=null;
+  location.assign(destination);
 }
 
 function measureSettings() {
-  runway = parseFloat(getComputedStyle(stage.parentElement).paddingBottom) || innerHeight * 1.25;
+  const growthTrack = parseFloat(getComputedStyle(growthRunway).height) || 0;
+  runway = growthTrack ? growthTrack + innerHeight : Math.max(stage.parentElement.scrollHeight - innerHeight,innerHeight * 5.5);
   const configured = Number.parseFloat(getComputedStyle(root).getPropertyValue('--ambient-strength'));
   strength = Number.isFinite(configured) ? clamp(configured) : .65;
   ambient.compact(compact.matches);
@@ -66,8 +81,10 @@ function syncMotion() {
   if (!canInteract()) {
     workbench.render(elapsed,0,false);
     interactionDirty = false;
+    // A stopped clock must not strand an already-confirmed navigation.
+    finishEntry();
   }
-  const interacting = canInteract() && (interactionDirty || workbench.busy());
+  const interacting = canInteract() && (interactionDirty || workbench.busy() || pendingEntry);
   if (!running && !interacting) lastStamp = null;
   if (document.hidden || (!running && !dirtyScroll && !interacting)) {
     if (frameId) cancelAnimationFrame(frameId);
@@ -76,20 +93,25 @@ function syncMotion() {
 }
 function tick(stamp) {
   frameId = 0;
+  // Chromium can defer the media-query change event while a pointer is captured.
+  // Read the preference on the existing clock too; never keep dragging through it.
+  if (reduced.matches) { openStatic(); return; }
   if (dirtyScroll) {
     dirtyScroll = false;
     // The scroll track can change independently of viewport size. Read only on
     // a dirty scrub, never in the ambient-only path.
-    runway = parseFloat(getComputedStyle(stage.parentElement).paddingBottom) || innerHeight * 1.25;
-    seek(-1 + scrollY / runway * 6);
+    const growthTrack = parseFloat(getComputedStyle(growthRunway).height) || 0;
+    runway = growthTrack ? growthTrack + innerHeight : Math.max(stage.parentElement.scrollHeight - innerHeight,innerHeight * 5.5);
+    seek(-6 + scrollY / runway * 11);
     ambient.reveal(current);
     syncMotion();
   }
-  const interacting = canInteract() && (interactionDirty || workbench.busy());
+  const interacting = canInteract() && (interactionDirty || workbench.busy() || pendingEntry);
   if (running || interacting) {
     // Hold time while paused/offscreen; a delayed frame cannot produce a gust jump.
     if (lastStamp !== null) elapsed += Math.min((stamp - lastStamp) / 1000,.8);
     lastStamp = stamp;
+    if(pendingEntry && elapsed-pendingEntry.start>=.36)finishEntry();
     // Slow air and fast instruments share one clock, at distinct sample rates.
     if (running && stamp - lastPaint >= idleSampleMs) {
       ambient.render(elapsed,strength);
@@ -118,6 +140,7 @@ function expose(element, progress) {
   element.inert = progress < 1;
 }
 function closeSelection() {
+  pendingEntry = null;
   selected?.classList.remove('is-selected');
   selected?.removeAttribute('aria-describedby');
   selected?.removeAttribute('data-armed');
@@ -127,7 +150,8 @@ function closeSelection() {
 }
 function seek(seconds) {
   if (!Number.isFinite(seconds)) return;
-  current = Math.min(5, Math.max(-1, seconds));
+  current = Math.min(5, Math.max(-6, seconds));
+  growth.render(current);
   const world = 1 - ease(current + 1);
   document.querySelector('.resolve-world').style.opacity = String(world);
   const light = 1 - world;
@@ -166,12 +190,13 @@ function onScroll() {
 function openStatic() {
   scrub = false;
   root.dataset.resolveMotion = 'static';
+  growth.open();
   sample(5);
 }
 root.dataset.resolveMotion = scrub ? 'scrub' : 'static';
 measureSettings();
 motionButton.hidden = false;
-sample(reduced.matches ? 5 : frame === 'resolve' ? 0 : frame === 'hinge' ? -.5 : scrub ? -1 : 5);
+sample(reduced.matches ? 5 : frame === 'resolve' ? 0 : frame === 'hinge' ? -.5 : scrub ? -6 : 5);
 window.sdforestResolve = Object.freeze({ seek:sample, open:openStatic, get time() { return current; } });
 addEventListener('scroll',onScroll,{passive:true});
 addEventListener('resize',() => { measureSettings(); onScroll(); });
@@ -206,7 +231,13 @@ directory.addEventListener('click',event => {
   event.preventDefault();
   // A physical double-click is one selection gesture, never a shortcut into a pool.
   if (event.detail > 1) return;
-  if (selected === link) { location.assign(link.href); return; }
+  if (selected === link) {
+    if(pendingEntry)return;
+    pendingEntry={link,start:elapsed};
+    workbench.activate(link);
+    syncMotion();
+    return;
+  }
   closeSelection();
   selected = link;
   selected.classList.add('is-selected');
@@ -214,6 +245,7 @@ directory.addEventListener('click',event => {
   selected.setAttribute('aria-describedby','workbench-status');
   status.textContent = `${link.querySelector('.portal-name').textContent} selected. Press again to open; Escape cancels.`;
   workbench.select(link);
+  workbench.activate(link);
 });
 directory.addEventListener('keydown',event => { if (event.key === 'Enter' && event.repeat) event.preventDefault(); });
 document.addEventListener('keydown',event => { if (event.key === 'Escape') { const prior = selected; closeSelection(); prior?.focus(); } });

@@ -116,8 +116,8 @@ test('route ownership validates delivery and visibility without requiring page-s
 
 test('manually authored landing links enter all seven canonical pools', () => {
   const home = read('index.html');
-  const links = [...home.matchAll(/data-pool-link="([^"]+)" href="([^"]+)"/g)];
-  const ids = ['growingapp', 'ai-d-kit', 'tinkerbox', 'health', 'design-gallery', 'artificial-self', 'my-story'];
+  const links = [...home.matchAll(/data-pool-link="([^"]+)"[^>]*href="([^"]+)"/g)];
+  const ids = ['health', 'ai-d-kit', 'growingapp', 'artificial-self', 'my-story', 'tinkerbox', 'design-gallery'];
   assert.deepEqual(links.map((match) => match[1]), ids);
   assert.deepEqual(links.map((match) => match[2]), ids.map((id) => `/web/pools/${id}/`));
 });

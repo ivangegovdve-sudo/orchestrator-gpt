@@ -1,12 +1,36 @@
 # SD Forest — front-page resolve contract
 
+Current intro: the existing 25.208-second Drive growth master is now the
+full-screen, reversible scroll surface from seed to mature tree. Its browser
+derivative and exact provenance are recorded in
+[the growth-film README](../web/assets/sdforest-intro/README.md). It adds no
+second clock: the existing `seek()` sampler owns film time, the warm-to-dark
+handoff and the established 0→5 page arrivals.
+
+Current correction: [fixed plate, rooted contact and readable instruments](frontpage-refinement-2026-09-24.md).
+This supersedes the older grass/contact, moving-foreground and summary treatments.
+Historical test counts below are receipts for their named heads, not current results.
+
+Current artwork/environment: [approved tree and sunset correction](frontpage-tree-2026-09-24.md).
+It supersedes the opened-page night palette and thumbnail asset descriptions
+in the historical receipts below; numbered artwork-box geometry is unchanged.
+
+Current interaction/layout supplement: [approved 2026-09-24 correction](frontpage-correction-2026-09-24.md).
+It supersedes earlier phone-thumbnail, lower-control placement and decorative-vine
+descriptions below. The numbered tree geometry and pure seek timing remain the
+unchanged video hand-off contract; pool arrivals still follow the current DOM.
+
 2026-09-23 · BUTCHER · front page only. Updated for the approved embedded-forest revision. This is the terminal-sequence layout and timing contract for Ivan's animation, not a new tree or a completed seed-to-tree video. Earlier review and ambient receipts below are historical; the current environment and inset-title results are in [the embedded-forest receipt](frontpage-embedded.md). The unchanged mechanical interactions are documented in [the workbench receipt](frontpage-workbench.md).
 
 ## The two frames
 
-The references supply colour, texture and mood, **not** final composition. The warm, illustrated world dissolves completely; the centred tree remains. The page then introduces the existing dark field, fine electric connections, serif display type and green/indigo accents. These are two deliberate lighting registers, not a blended new palette.
+The references supply colour, texture and mood, **not** final composition. The introductory world dissolves completely; the centred tree remains. Following Ivan's 2026-09-24 correction, the opened page introduces a lighter illustrated sunset valley, separate pale mist and the existing connected bark controls. The earlier night-blue opened environment is superseded. Time zero remains tree-only on the dark field.
 
-At time **0**, only the tree is visible on `#07070b`. At **4.4 seconds**, the page is fully opened. The tree's position and scale are identical in both frames. Decorative motion never supplies navigation structure.
+At time **−6**, the film holds on its seed. Scroll maps the growth film through
+time **−0.5**, then the last half-second reframes and dissolves into time **0**:
+only the fixed page tree on `#07070b`. At **4.4 seconds**, the page is fully
+opened. The fixed page tree's position and scale are identical at time 0 and in
+the opened frame. Decorative motion never supplies navigation structure.
 
 | Contract | Desktop, width >800 CSS px | Portrait/mobile, width <=800 CSS px |
 |---|---|---|
@@ -19,44 +43,51 @@ For a landscape phone <=800 px wide, the centre is **50vw, 40vh**, with the same
 
 The artwork-box `vh` values above are deliberately unchanged. Mobile **layout**, not artwork, uses `svh`: the stage minimum, scroll runway, title, field, cue and directory's baseline offset. The directory also retains a `vh`-based clearance calculation against the protected artwork. A toolbar change must not replace those artwork numbers with a different video contract.
 
-Wide-desktop side entries use width `min(29vw,calc(47vw - 58vh * 226 / 214 / 2 - 24px))`, with a 2vw outside inset. At 1920×1080 this leaves 43.23px between each flank and the protected tree rectangle. Health and AI-d kit lead at 13vh; GrowingApp and Artificial Self sit at 40vh. TinkerBox, My Story and Design Gallery occupy the lower left, centre and right at `83vh + 12px`, width `min(29vw,39vh)`, aspect ratio 4:1. Selection never grows their desktop boxes. On desktop widths >800px with aspect ratio <=3:2, the same DOM flows into two columns **below** the unchanged tree (top = 83vh + 24px). Mobile uses one column below it. The existing catalog-sorted DOM order remains the arrival and keyboard order; CSS composition is not a new catalog ranking.
+Wide-desktop side entries use width `min(29vw,calc(47vw - 58vh * 226 / 214 / 2 - 24px))`, with a 2vw outside inset. At 1920×1080 this leaves 43.23px between each flank and the protected tree rectangle. Health and AI-d kit lead at 13vh; GrowingApp and Artificial Self sit at 40vh. TinkerBox and Design Gallery are at 67vh with the same width as the leading controls and aspect ratio 4:1. My Story remains centred at `83vh + 12px`, width `min(29vw,39vh)`, aspect ratio 4:1. Selection never grows their desktop boxes. On desktop widths >800px with aspect ratio <=3:2, the same DOM flows into two columns **below** the unchanged tree (top = 83vh + 24px). Mobile uses one column below it. Arrivals and keyboard order follow the existing final DOM; CSS composition is not a new catalog ranking.
 
-On wide desktops 700–850px high, the lower entries additionally cap width at
-`calc(68vh - 264px)` to clear the 50px footer strip by 4px. Their type scales
-with viewport height. Lower-flank selection instructions sit above the control
-to avoid covering site utilities.
+On wide desktops 700–850px high, My Story additionally caps width at
+`calc(68vh - 264px)` to clear the utility strip. Lower type scales with viewport
+height. Lower-flank drawers open above their controls; the My Story drawer opens
+to its left. Explanations and selection hints share the drawer, not the artwork.
 
 ### Asset boundary
 
-`[data-title-crown]` is the artwork-box anchor. Its current SVG `viewBox="93 158 226 214"` frames the meaningful alpha bounds of the unchanged 864×480 original layer. Do **not** align to the full mostly-transparent source canvas. An eventual higher-resolution render must preserve the artwork box, using its own corresponding tight alpha viewBox.
+`[data-title-crown]` is the artwork-box anchor. Its SVG `viewBox="93 158 226 214"` and every CSS geometry number remain unchanged. The new 1254×1254 alpha tree maps into x=93, y=158, width=226, height=214 with `preserveAspectRatio="xMidYMax meet"`. The square artwork is bottom-aligned and contained, not stretched. Align the video to the outer artwork-box contract, not to the source image's canvas.
 
-The supplied tree contains only about 226×214 pixels of meaningful detail; the desktop screenshot necessarily enlarges it. This implementation verifies geometry and interaction, not final-video sharpness. No tree was generated, retouched or upscaled into invented detail. All six shipped layers are byte-for-byte originals, with hashes in [asset provenance](../web/assets/sdforest-resolve/README.md). Background layers are composed as DOM images, not a second tree.
+The original Qwen tree contains only about 226×214 pixels of meaningful detail. Its six original layers remain byte-for-byte unchanged, with hashes in [original asset provenance](../web/assets/sdforest-resolve/README.md), but that thumbnail is no longer the displayed tree. The current tree is a reference-derived generative reconstruction with explicitly generated detail, documented in [current asset provenance](../web/assets/sdforest-sunset/README.md). Background layers remain separate DOM images, never a second tree.
 
 ## Arrival sheet — seconds relative to the resolve frame
 
 The runtime has no playback timer. It samples a reversible time value. Opacity and transforms use smoothstep `p²(3−2p)`, where p is the clamped normalized interval. A reverse scrub uses the same function, never a restarted animation.
 
-The following named sequence reflects the unchanged catalog ranks after #615: Health 7, AI-d kit 6, GrowingApp 5, TinkerBox 4, Design Gallery 3, Artificial Self 2, My Story 1. The **existing `pool-directory.mjs` owns order**. Arrival start is `0.8 + 0.32 × current DOM index`, duration 0.72 seconds; it is not a second hand-maintained rank list. The native fallback contains all seven links even without that module.
+The existing directory reads catalog ranks, then the already-approved front-page
+controller appends the anchors marked `data-final-pool` to the end. The observed
+DOM order is Health, AI-d kit, GrowingApp, Artificial Self, My Story, TinkerBox,
+Design Gallery. This correction changes neither operation nor any rank. Arrival
+start remains `0.8 + 0.32 × current DOM index`, duration 0.72 seconds; the table is
+documentation, never another runtime list. The native fallback contains all seven.
 
 | Element | Start → end | Arrival / role |
 |---|---|---|
-| Five background planes | −1.00 → 0.00 | Fade 1→0 together, revealing the existing dark field. The tree never fades or moves. |
-| Tree illumination | −1.00 → 0.00 | A restrained green edge glow reaches 30px / 8% opacity as the warm surrounding light leaves. Original tree pixels remain unchanged. |
-| Distant woodland, subtle mist and connected bark | 0.05 → 0.60 | Fade in behind the tree and controls. The compact/mobile directory's dark bark backing follows this same interval. The earlier orbit ellipses and connecting paths remain removed. |
+| Existing Drive growth film | −6.00 → −0.50 | Full-screen seed-to-mature growth. The media remains paused; scroll seeks the same timeline forward and backward. |
+| Film/page tree handoff | −0.50 → 0.00 | The final film frame reframes without exposing an edge, existing mist darkens the warm scene, the film fades, and the fixed tree reveals late in the dissolve. The fixed tree's box never moves or resizes. |
+| Four background planes | −1.00 → 0.00 | Fade 1→0 together behind the growth-film handoff, revealing the existing dark field. The fixed tree's box never moves. |
+| Tree illumination | −1.00 → 0.00 | Existing restrained edge glow reaches 30px / 8% opacity. The new tree is constant throughout the sequence; only filter changes. |
+| Sunset valley, subtle mist and connected bark | 0.05 → 0.60 | Fade in behind the tree and controls. The compact/mobile directory's dark bark backing follows this same interval. The earlier orbit ellipses and connecting paths remain removed. |
 | Forest HUB + existing subtitle | 0.18 → 0.95 | Fade in as one title plate. |
 | SDForest home control | 0.30 → 0.90 | Fade in at the upper-left edge. |
 | Health | 0.80 → 1.52 | Fade and scale 0.85→1; glass ECG with aqua lettering. Upper left. |
 | AI-d kit | 1.12 → 1.84 | Fade and translate x +34px→0; green first-aid flag, white cross and purple lever. Upper right. |
 | GrowingApp | 1.44 → 2.16 | Fade, rise 30px and scale 0.94→1; seed/sapling/tree triptych. Below Health. |
-| TinkerBox | 1.76 → 2.48 | Fade, translate (−12px,20px)→0 and rotate −3°→0; locking compartment. Bottom left. |
-| Design Gallery | 2.08 → 2.80 | Fade, x 26px→0 and horizontal reveal 0→100%; compact exhibit shutters. Bottom right. |
-| Artificial Self | 2.40 → 3.12 | Fade and blur 8px→0; connected violet/teal neurons. Below AI-d kit. |
-| My Story | 2.72 → 3.44 | Fade and gentle 14px rise; earliest signal faintest, latest brightest, no terminal cap. Bottom centre. No new story copy. |
-| Ground and sparse air | 3.60 → 4.40 | Original raster moss/soil contact patch and existing lagged grass fade in at the fixed trunk base. The independent decorative layer is absent at the resolve frame. Ambient time starts only once arrivals finish. |
+| Artificial Self | 1.76 → 2.48 | Fade and blur 8px→0; connected violet/teal neurons. Below AI-d kit. |
+| My Story | 2.08 → 2.80 | Fade and gentle 14px rise; existing signal unchanged. Bottom centre. No new story copy. |
+| TinkerBox | 2.40 → 3.12 | Fade, translate (−12px,20px)→0 and rotate −3°→0; locking compartment. Bottom left. |
+| Design Gallery | 2.72 → 3.44 | Fade, x 26px→0 and horizontal reveal 0→100%; compact exhibit shutters. Bottom right. |
+| Ground and sparse air | 3.60 → 4.40 | Approved illustrated root bed and vegetation fade in at the fixed trunk base. The previous turf and synthetic blades are replaced, not layered underneath. This decorative layer is absent at the resolve frame. Ambient time starts only once arrivals finish. |
 | Portfolio + Pause motion controls | 3.65 → 4.20 | Fade in at the lower-left edge. Existing external-tab warning and destination retained. Pause motion is a native button; no-JS omits it. |
 | Design history + Feedback controls | 3.85 → 4.40 | Fade in together at the lower-right edge; existing behaviours retained. |
 
-The slot positions above describe wide desktop. The compact-desktop and mobile flow layouts preserve the same DOM order and timing, not those flank coordinates. The new woodland is a separate dark-page asset, not a warm-world plane kept partly visible. At t=0 both environments and the mobile bark backing are absent; reversing the shared seek restores that exact tree-only frame. On wide desktops, selected-state instructions sit above flank controls; lower-flank summaries sit above those instructions. The centred lower instruction stays below its control. No wording or idle placement changed.
+The slot positions above describe wide desktop. The compact-desktop and mobile flow layouts preserve the same DOM order and timing, not those flank coordinates. The opened-page sunset valley is a separate reference-derived asset, not the intro's warm-world plane kept partly visible. At t=0 both environments and the mobile bark backing are absent; reversing the shared seek restores that exact tree-only frame. Explanations retain their existing wording in full-width, high-contrast drawers; selection hints sit inside those drawers. Phone/tablet flow reserves measured drawer height. No pool wording or idle placement changed.
 
 The early **Explore the pools** cue fades out with the background (−1→0); activating it opens the complete page immediately. A keyboard skip link is available on focus at every stage. Existing homepage paragraphs are retained verbatim after the stage and enter through normal document scrolling, not the video sequence. There are no other arriving layers, hidden project lists or invented destinations.
 
@@ -69,11 +100,28 @@ Serve the repository root with an ordinary static server, then open:
 - `/?frame=resolve` — held time 0, tree only.
 - `/?frame=opened` — held time 5, complete interface.
 - `/?frame=hinge` — held time −0.5, half-dissolved world.
-- `/` — terminal sequence scrubbed over a 125vh desktop / 125svh mobile runway: `t = −1 + 6 × scrollY / runway`, clamped to [−1,5]. Flow layouts put that runway in `.resolve-scroll` bottom padding, which the existing scroll sampler measures. Wide desktop retains the 1.25 × viewport-height fallback. There is still one clock and the same reversible `seek()` mathematics.
+- `/` — integrated growth and terminal sequence scrubbed over a 550vh desktop
+  / 550svh mobile growth runway: `t = −6 + 11 × scrollY / runway`, clamped
+  to [−6,5]. Compact and mobile layouts use a sticky viewport scene followed by
+  a separate in-flow runway; the directory then follows in ordinary document
+  flow. Wide desktop uses a 650vh stage, leaving the same 550vh scroll range.
+  There is still one clock and the same reversible `seek()` mathematics.
 
-Mobile `.resolve-stage` is content-height with `overflow-x:clip; overflow-y:visible`. In scrub mode `min-height:calc(100svh + 560px)` is a **floor, not a ceiling**; `.resolve-scroll` is height:auto with 125svh bottom padding. Wrapped descriptions, enlarged text, selection and utility rows cannot be cut off by a fixed 560px continuation allowance.
+Mobile `.resolve-stage` remains content-height with `overflow-x:clip;
+overflow-y:visible`. The sticky `.resolve-scene` occupies 100svh, the separate
+`.resolve-growth-runway` supplies 450svh below it, and the variable-height
+directory follows that runway. Wrapped descriptions, enlarged text, selection
+and utility rows therefore remain reachable without being placed inside a fixed
+continuation allowance.
 
-These are query views of the **same existing homepage**, not new routes. `window.sdforestResolve.seek(seconds)` is the handoff for an external scroll/video clock. `window.sdforestResolve.open()` supplies the complete static state and disables the local scroll sampler. An integrated video driver should call `open()` once to release that sampler, then `seek(t)` using the shared clock. It must honour reduced motion rather than reintroducing animation. This slice does **not** contain, replace, or claim to finish Ivan's six-stage animation.
+These are query views of the **same existing homepage**, not new routes.
+`window.sdforestResolve.seek(seconds)` remains the deterministic inspection
+handoff. `window.sdforestResolve.open()` supplies the complete static state and
+disables the local scroll sampler. Reduced motion, direct static frames and a
+failed media request never load or gate on the growth film; they open the
+navigable composition. The integrated film contains no narration or audio—the
+Drive master has no audio—and does not claim the filmed and page trees are
+pixel-identical.
 
 Reduced motion, an incoming fragment, restored navigation, and JavaScript disabled all get the opened composition. A no-JavaScript visitor follows ordinary native pool links; nothing is hidden awaiting an animation callback. With JavaScript, first click/tap or Enter selects; the next deliberate press on that same link navigates. Focus stays on the link, and Escape cancels selection. This is not an OS double-click interaction.
 

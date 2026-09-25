@@ -1,0 +1,117 @@
+{
+  "rows": [
+    {
+      "id": "health",
+      "armed": "true",
+      "treeUnchanged": true,
+      "housingTransform": "none"
+    },
+    {
+      "id": "ai-d-kit",
+      "armed": "true",
+      "treeUnchanged": true,
+      "housingTransform": "none"
+    },
+    {
+      "id": "growingapp",
+      "armed": "true",
+      "treeUnchanged": true,
+      "housingTransform": "none"
+    },
+    {
+      "id": "artificial-self",
+      "armed": "true",
+      "treeUnchanged": true,
+      "housingTransform": "none"
+    },
+    {
+      "id": "my-story",
+      "armed": "true",
+      "treeUnchanged": true,
+      "housingTransform": "none"
+    },
+    {
+      "id": "tinkerbox",
+      "armed": "true",
+      "treeUnchanged": true,
+      "housingTransform": "none"
+    },
+    {
+      "id": "design-gallery",
+      "armed": "true",
+      "treeUnchanged": true,
+      "housingTransform": "none"
+    }
+  ],
+  "views": [
+    {
+      "width": 1920,
+      "height": 1080,
+      "tree": {
+        "x": 629.2421875,
+        "y": 269.9921875,
+        "width": 661.515625,
+        "height": 626.390625,
+        "top": 269.9921875,
+        "right": 1290.7578125,
+        "bottom": 896.3828125,
+        "left": 629.2421875
+      },
+      "visible": 7,
+      "total": 7,
+      "overflow": false
+    },
+    {
+      "width": 390,
+      "height": 844,
+      "tree": {
+        "x": 62.40625,
+        "y": 110.7578125,
+        "width": 265.1875,
+        "height": 251.109375,
+        "top": 110.7578125,
+        "right": 327.59375,
+        "bottom": 361.8671875,
+        "left": 62.40625
+      },
+      "visible": 2,
+      "total": 7,
+      "overflow": false
+    },
+    {
+      "width": 320,
+      "height": 568,
+      "tree": {
+        "x": 69.125,
+        "y": 72.984375,
+        "width": 181.75,
+        "height": 172.09375,
+        "top": 72.984375,
+        "right": 250.875,
+        "bottom": 245.078125,
+        "left": 69.125
+      },
+      "visible": 2,
+      "total": 7,
+      "overflow": false
+    },
+    {
+      "width": 780,
+      "height": 390,
+      "tree": {
+        "x": 327.6015625,
+        "y": 96.9140625,
+        "width": 124.796875,
+        "height": 118.171875,
+        "top": 96.9140625,
+        "right": 452.3984375,
+        "bottom": 215.0859375,
+        "left": 327.6015625
+      },
+      "visible": 2,
+      "total": 7,
+      "overflow": false
+    }
+  ],
+  "errors": []
+}
