@@ -1,4 +1,4 @@
-export const PACKAGE_VERSION = "1.1.4";
+export const PACKAGE_VERSION = "1.1.7";
 export const PACKAGE_SPEC = "open-dashboard-mcp";
 export const SETUP_CHECKED_AT = "2026-09-10";
 export const NPM_URL = "https://www.npmjs.com/package/open-dashboard-mcp";
@@ -95,6 +95,15 @@ export const TOOLS = [
     description: "Turn capability requirements into model IDs and fallbacks.",
     prompt:
       "Use Open Dashboard to find an available text model with at least 128,000 tokens of context. Return the exact provider and model ID, a fallback, and the evidence date.",
+  },
+  {
+    id: "dashboard_capability_state",
+    name: "Evidence for model decisions",
+    group: "Models and prices",
+    description:
+      "Return freshness-aware candidate rows and explicit paid and functional decisions.",
+    prompt:
+      "Use Open Dashboard capability state to choose the literal cheapest paid model and the cheapest functional model. Keep UNKNOWN or EXPIRED evidence visible and include the measured-cost source.",
   },
   {
     id: "dashboard_free_models",
@@ -227,6 +236,7 @@ export const PRESETS = [
       "dashboard_catalogue",
       "dashboard_model_economics",
       "dashboard_resolve_model",
+      "dashboard_capability_state",
     ],
   },
   {

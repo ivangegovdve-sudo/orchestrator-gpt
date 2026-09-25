@@ -260,6 +260,80 @@
 .setup-proof-source a {
   white-space: nowrap;
 }
+.setup-decision-card {
+  margin: 0 0 26px;
+  padding: 20px 22px;
+  border: 1px solid color-mix(in srgb, var(--accent, #14796b) 28%, var(--line, #d9e1dd));
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--accent, #14796b) 5%, var(--surface, #fffefb));
+}
+.setup-decision-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 14px;
+}
+.setup-decision-head .setup-eyebrow {
+  margin: 0;
+  font-size: 9px;
+}
+.setup-decision-tag {
+  color: var(--accent, #14796b);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.setup-decision-card h2 {
+  margin: 10px 0 7px;
+  color: var(--ink, #0a302f);
+  font: 650 21px/1.2 Manrope, Arial, sans-serif;
+  letter-spacing: -0.04em;
+}
+.setup-decision-lede {
+  max-width: 880px;
+  margin: 0;
+  color: var(--muted, #657778);
+  font-size: 12px;
+}
+.setup-decision-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin: 16px 0 13px;
+}
+.setup-decision-grid article {
+  padding: 13px 14px;
+  border: 1px solid var(--line, #d9e1dd);
+  border-radius: 7px;
+  background: var(--surface, #fffefb);
+}
+.setup-decision-grid h3 {
+  margin: 0 0 6px;
+  color: var(--ink, #0a302f);
+  font-size: 12px;
+}
+.setup-decision-grid code,
+.setup-decision-note code {
+  color: var(--ink, #0a302f);
+  font-size: 10px;
+  overflow-wrap: anywhere;
+}
+.setup-decision-grid p,
+.setup-decision-note {
+  margin: 0;
+  color: var(--muted, #657778);
+  font-size: 11px;
+  line-height: 1.6;
+}
+.setup-decision-note + .setup-decision-note {
+  margin-top: 7px;
+}
+.setup-decision-note strong {
+  color: var(--ink, #0a302f);
+  font-weight: 700;
+}
 .setup-layout {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 285px;
@@ -1021,6 +1095,19 @@
     display: block;
     margin-top: 5px;
     text-align: left;
+  }
+  .setup-decision-card {
+    padding: 17px 16px;
+  }
+  .setup-decision-head {
+    display: block;
+  }
+  .setup-decision-tag {
+    display: block;
+    margin-top: 7px;
+  }
+  .setup-decision-grid {
+    grid-template-columns: minmax(0, 1fr);
   }
   .setup-steps {
     padding: 0 9px;

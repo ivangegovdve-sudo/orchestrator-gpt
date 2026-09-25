@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta
       name="description"
-      content="Give agents exact model IDs and provider-published prices with units, conditions and source dates across provider catalogues, covering text, image, video and audio models where sources publish them. Connect Open Dashboard to Hermes, OpenClaw, Codex, Claude or Cursor."
+      content="Give agents exact model IDs, provider-published prices and typed decision evidence with units, conditions and source dates across provider catalogues, covering text, image, video and audio models where sources publish them. Connect Open Dashboard to Hermes, OpenClaw, Codex, Claude or Cursor."
     />
     <meta name="theme-color" content="#faf9f6" />
     <title>Connect your agent — Open Dashboard</title>
@@ -145,6 +145,47 @@
           </p>
         </article>
       </div>
+      <section class="setup-decision-card" aria-labelledby="decision-evidence-title">
+        <div class="setup-decision-head">
+          <p class="setup-eyebrow">The contract behind the connection</p>
+          <span class="setup-decision-tag">typed · read-only evidence</span>
+        </div>
+        <h2 id="decision-evidence-title">Give your selector evidence, not a bare number.</h2>
+        <p class="setup-decision-lede">
+          The current MCP contract exposes freshness-aware model evidence and bounded
+          selections for a consuming decision layer. It does not forward inference
+          requests: your provider or agent still runs the model.
+        </p>
+        <div class="setup-decision-grid">
+          <article>
+            <h3><code>dashboard_capability_state</code></h3>
+            <p>
+              Returns one evidence-shaped row per available model, with explicit
+              public and private decision states and per-field freshness.
+            </p>
+          </article>
+          <article>
+            <h3><code>dashboard_resolve_model</code></h3>
+            <p>
+              Resolves requirements into a schema-validated ranked fallback list;
+              unknown values do not count as a favourable match.
+            </p>
+          </article>
+        </div>
+        <p class="setup-decision-note">
+          Every cost keeps its origin in <code>measurement_origin</code>:
+          <strong>fixture</strong> is deterministic evidence,
+          <strong>live_provider_read</strong> is a provider observation, and
+          <strong>unknown</strong> means no authoritative source was established.
+          Unknown evidence cannot produce a decidable selection, and a cost from one
+          routed provider never appears beside another.
+        </p>
+        <p class="setup-decision-note">
+          Designed to feed typed decision layers such as System One models. The MCP
+          supplies evidence and selection; it is not a tested integration with those
+          systems.
+        </p>
+      </section>
       <div class="setup-layout">
         <section
           class="setup-wizard"
@@ -525,6 +566,10 @@
             <div>
               <dt><code>dashboard_resolve_model</code></dt>
               <dd>Exact model IDs and fallbacks for a set of requirements.</dd>
+            </div>
+            <div>
+              <dt><code>dashboard_capability_state</code></dt>
+              <dd>Freshness-aware candidate rows and public/private decision states.</dd>
             </div>
             <div>
               <dt><code>dashboard_free_models</code></dt>
