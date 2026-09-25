@@ -16,8 +16,7 @@
 # be treated as running untrusted code.
 #
 # So the npx call is confined to `catalogue`, a job holding `contents: read` and checking
-# out with `persist-credentials: false`, and it produces exactly one thing: the list of
-# model ids the MCP believes are free. Nothing that decides what reaches a visitor is
+# out with `persist-credentials: false`, and it produces exactly one thing: the candidate list the MCP believes are free. Nothing that decides what reaches a visitor is
 # decided there.
 #
 # `publish` does the rest with first-party code from main — it cross-checks that list

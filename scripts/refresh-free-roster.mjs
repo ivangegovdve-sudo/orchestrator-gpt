@@ -630,7 +630,20 @@ export async function buildRoster({
 // which is what a local `npm run refresh-roster` wants.
 export async function emitCandidates(outPath, { catalogue = catalogueFromMcp } = {}) {
   const result = await catalogue();
-  await writeFile(outPath, `${JSON.stringify(result, null, 2)}\n`, "utf8");
+
+  const safeCandidates = Array.isArray(result?.candidates)
+    ? result.candidates.map((c, i) => projectCandidate(c, i))
+    : [];
+
+  const safeResult = {
+    candidates: safeCandidates,
+    status: projectEnvelopeStatus(result?.status),
+    warnings: projectEnvelopeWarnings(result?.warnings),
+    stale: result?.stale === true
+  };
+
+  await writeFile(outPath, `${JSON.stringify(safeResult, null, 2)}
+`, "utf8");
   return result;
 }
 
