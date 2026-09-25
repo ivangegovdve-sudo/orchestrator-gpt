@@ -14,6 +14,7 @@ const files = [
   'scratch/tests/prose-drift.test.js',
   'scratch/tests/rubiks-teacher-contract.test.js',
   'scratch/tests/ai-kit-offers.test.js',
+  'scratch/tests/api-council.test.js',
 ];
 
 for (const [name, stageFiles] of [

@@ -126,145 +126,7 @@
     },
   ];
 
-  // ── The free roster ──────────────────────────────────────────────────────
-  // Free slugs get retired without notice — a dead roster reads to the visitor as a
-  // broken page, and hand-editing this list is exactly the chore nobody performs. It is
-  // therefore generated: `scripts/refresh-free-roster.mjs` verifies every candidate
-  // with a real call through OPEN_RELAY and writes ROSTER_URL, which is loaded below.
-  //
-  // Hardcoding it here is what failed. On 2026-08-28 the previous literal still named
-  // `openai/gpt-oss-20b:free` and `nvidia/nemotron-3-nano-30b-a3b:free`, both withdrawn
-  // from OpenRouter, leaving the critic tier two-thirds dead.
-  const ROSTER_URL = '/web/council/free-roster.json';
-  // How old a verification may be before the page says so out loud. The generator runs
-  // daily, so a roster past this has missed several runs and the refresh is broken.
-  const ROSTER_STALE_AFTER_DAYS = 3;
 
-  // Last-resort seed, used only if ROSTER_URL cannot be fetched or fails validation.
-  // These five answered on every one of three spaced verification rounds on 2026-08-28,
-  // so a fetch failure degrades to a working council rather than a dead one. It is a
-  // floor, not the source of truth — the generated file supersedes it whenever it loads.
-  const FALLBACK_ROSTERS = {
-    proposer: [
-      'nvidia/nemotron-3-super-120b-a12b:free',
-      'minimax/minimax-m3:free',
-      'cohere/north-mini-code:free',
-    ],
-    critic: [
-      'cohere/north-mini-code:free',
-      'nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free',
-      'minimax/minimax-m3:free',
-    ],
-    synthesis: [
-      'nvidia/nemotron-3-ultra-550b-a55b:free',
-      'nvidia/nemotron-3-super-120b-a12b:free',
-      'minimax/minimax-m3:free',
-    ],
-  };
-
-  const ROSTER_TIERS = ['proposer', 'critic', 'synthesis'];
-
-  // Mutated in place by applyRoster so the run path can keep reading FREE_ROSTERS.<tier>
-  // without threading roster state through every call site.
-  const FREE_ROSTERS = {
-    proposer: [...FALLBACK_ROSTERS.proposer],
-    critic: [...FALLBACK_ROSTERS.critic],
-    synthesis: [...FALLBACK_ROSTERS.synthesis],
-  };
-
-  // What the page currently believes about its own roster, rendered by paintRosterStatus.
-  const rosterState = { source: 'fallback', verifiedAt: null, freshlyVerified: null, error: null };
-  // Resolves once the generated roster has been fetched (or definitively failed).
-  let rosterLoad = null;
-
-  // The same guarantee line 496 enforces per call, applied to the file as a whole. A
-  // generated artifact is still remote input: if anything in it is not a `:free` slug,
-  // the whole document is rejected and the baked-in fallback stands. Partial adoption
-  // would be the one outcome worse than not loading it at all.
-  function validateRosterDocument(document) {
-    if (!document || typeof document !== 'object') throw new Error('Roster is not an object.');
-    if (document.schemaVersion !== '1') throw new Error(`Unsupported roster schemaVersion ${document.schemaVersion}.`);
-    if (typeof document.verifiedAt !== 'string' || !Number.isFinite(Date.parse(document.verifiedAt))) {
-      throw new Error('Roster has no parseable verifiedAt.');
-    }
-    const rosters = document.rosters;
-    if (!rosters || typeof rosters !== 'object') throw new Error('Roster has no rosters block.');
-    for (const tier of ROSTER_TIERS) {
-      const models = rosters[tier];
-      if (!Array.isArray(models) || models.length === 0) throw new Error(`Roster tier ${tier} is empty.`);
-      for (const model of models) {
-        if (typeof model !== 'string' || !model.endsWith(':free')) {
-          throw new Error(`Roster tier ${tier} carries a non-free slug: ${model}`);
-        }
-      }
-    }
-    return rosters;
-  }
-
-  function rosterAgeDays(verifiedAt, now = Date.now()) {
-    const verified = Date.parse(verifiedAt);
-    if (!Number.isFinite(verified)) return Infinity;
-    return (now - verified) / 86_400_000;
-  }
-
-  // Staleness is stated, never inferred by silence. A refresh that quietly stopped
-  // would otherwise leave the page serving an ageing list that still looks authoritative.
-  function rosterStatusText(state, now = Date.now()) {
-    if (state.source === 'fallback') {
-      return 'Roster unverified — running a built-in fallback list. Models may be unavailable.';
-    }
-    const ageDays = rosterAgeDays(state.verifiedAt, now);
-    const whole = Math.floor(ageDays);
-    const when = whole < 1 ? 'today' : whole === 1 ? 'yesterday' : `${whole} days ago`;
-    if (ageDays > ROSTER_STALE_AFTER_DAYS) {
-      return `Roster last verified ${when} — overdue, so some models may no longer answer.`;
-    }
-    // verifiedAt is the newest real success, so this age is never advanced by a refresh
-    // that ran and confirmed nothing. When the most recent run confirmed nothing at all,
-    // say so rather than letting a recent-but-unconfirmed roster read as freshly checked.
-    if (state.freshlyVerified === 0) {
-      return `Roster last verified ${when}; the most recent check confirmed no models.`;
-    }
-    return `Roster verified ${when} against the live free-model relay.`;
-  }
-
-  function paintRosterStatus(now = Date.now()) {
-    const node = query('#openrouter-roster-status');
-    if (!node) return;
-    const stale = rosterState.source === 'fallback'
-      || rosterAgeDays(rosterState.verifiedAt, now) > ROSTER_STALE_AFTER_DAYS;
-    node.textContent = rosterStatusText(rosterState, now);
-    node.classList.toggle('stale', stale);
-    node.setAttribute('data-roster-source', rosterState.source);
-  }
-
-  function applyRoster(rosters) {
-    for (const tier of ROSTER_TIERS) FREE_ROSTERS[tier] = [...rosters[tier]];
-  }
-
-  async function loadFreeRoster({ fetchImpl = fetch, url = ROSTER_URL } = {}) {
-    try {
-      const response = await fetchImpl(url, { cache: 'no-cache' });
-      if (!response.ok) throw new Error(`HTTP ${response.status}`);
-      const document = await response.json();
-      const rosters = validateRosterDocument(document);
-      applyRoster(rosters);
-      rosterState.source = 'generated';
-      rosterState.verifiedAt = document.verifiedAt;
-      rosterState.freshlyVerified = typeof document.freshlyVerified === 'number'
-        ? document.freshlyVerified
-        : null;
-      rosterState.error = null;
-    } catch (error) {
-      // A failed load is never fatal: the fallback roster is already installed.
-      rosterState.source = 'fallback';
-      rosterState.verifiedAt = null;
-      rosterState.freshlyVerified = null;
-      rosterState.error = error?.message || String(error);
-    }
-    paintRosterStatus();
-    return rosterState;
-  }
 
   const query = (selector) => document.querySelector(selector);
   const NULL_NODE = { textContent: '', classList: { add() {}, remove() {} }, replaceChildren() {}, setAttribute() {} };
@@ -754,7 +616,7 @@
       outerSignal,
       temperature,
       onAttempt(model, index, count) {
-        stream = beginStage(key, `Model ${index + 1}/${count}`, model);
+        stream = beginStage(key, 'Connecting', model);
         hint.textContent = `Trying ${model.split('/').pop()} — free-tier queues can vary.`;
       },
       onToken(token) {
@@ -912,23 +774,26 @@
 
     const runButton = query('#openrouter-run');
     const hint = query('#openrouter-hint');
-    // A run started before the generated roster lands would otherwise use the fallback
-    // list unnecessarily. Awaiting the in-flight load costs nothing once it has settled.
+
+
     if (rosterLoad) await rosterLoad.catch(() => {});
     resetStages(FREE_STAGE_KEYS);
     openController = new AbortController();
     const { signal } = openController;
-    runButton.textContent = 'Stop free council';
+    runButton.textContent = 'Stop public council';
     runButton.classList.add('running');
 
     const runState = {};
-    // Resolved once per run so a mid-run selector change cannot split the council
-    // across two treatments.
     const treatment = resolveMode(activeMode);
     try {
+      if (!rosterState.liveSeats) throw new Error(rosterState.error || 'Failed to resolve free models.');
+      const liveSeats = rosterState.liveSeats;
+
       const proposer = await runFreeSeat(
         'openrouter-proposer',
-        FREE_ROSTERS.proposer,
+        [liveSeats.proposer],
+
+
         [
           { role: 'system', content: `You are the Proposer in a stateless public model council. Give a direct position, its reasoning, and the most important trade-off. ${treatment.propose} ${NO_CLAIMS}` },
           { role: 'user', content: question },
@@ -947,7 +812,7 @@
 
       const critic = await runFreeSeat(
         'openrouter-critic',
-        FREE_ROSTERS.critic,
+        [liveSeats.critic],
         [
           { role: 'system', content: `You are the Critic in a stateless public model council. Stress-test the proposal fairly. Identify assumptions, failure modes, and the strongest opposing argument. ${treatment.critique} ${NO_CLAIMS}` },
           { role: 'user', content: `Question:\n${question}\n\nProposal:\n${proposer.text}` },
@@ -961,7 +826,7 @@
 
       const synthesis = await runFreeSeat(
         'openrouter-synthesis',
-        FREE_ROSTERS.synthesis,
+        [liveSeats.synthesis],
         [
           { role: 'system', content: `You are the Synthesizer in a stateless public model council. Weigh what survives the critique and produce one concise practical answer with a clear next step. ${treatment.synth} ${NO_CLAIMS}` },
           {
@@ -986,6 +851,8 @@
     } catch (error) {
       const stopped = error.name === 'AbortError';
       // A seat aborted mid-stream would otherwise keep its live "Streaming" badge.
+      // If a seat's model dies mid-session, we explicitly catch it and report it.
+
       for (const key of FREE_STAGE_KEYS) {
         if (stageView(key).card.classList?.contains?.('active')) {
           restStage(key, stopped ? 'Stopped' : 'Unavailable', stopped
@@ -993,12 +860,12 @@
             : 'This seat could not complete its turn.');
         }
       }
-      hint.textContent = stopped
-        ? 'Free council stopped. Nothing was saved by this page.'
-        : describeRunFailure(error, 'openrouter');
+      if (stopped) hint.textContent = 'Public council stopped. Nothing was saved by this page.';
+      else if (error.message.includes('Insufficient') || error.message.includes('Failed to resolve')) hint.textContent = error.message;
+      else hint.textContent = 'The public council could not finish this run. A seat failed mid-session or was unavailable.';
     } finally {
       openController = null;
-      runButton.textContent = 'Convene free council';
+      runButton.textContent = 'Convene public council';
       runButton.classList.remove('running');
     }
   }
@@ -1079,9 +946,30 @@
   // the page stays interactive while the generated one arrives. runOpenCouncil awaits
   // this same promise so a run that starts within the first moments still uses the
   // verified list rather than racing it.
+  // What the page currently believes about its own roster
+  const rosterState = { source: 'live', liveSeats: null, error: null };
+  let rosterLoad = null;
+
+  async function loadLiveRoster() {
+    try {
+      rosterState.liveSeats = await fetch('/api/council').then(async r => {
+        if (!r.ok) {
+          const e = await r.json().catch(() => ({}));
+          throw new Error(e.error || `Failed to resolve seats: ${r.status}`);
+        }
+        return r.json();
+      });
+      console.log("Resolved seats:", rosterState.liveSeats.seats.map(s => `${s.id} (family: ${s.id.split('/')[0]})`));
+      rosterState.error = null;
+    } catch (error) {
+      rosterState.liveSeats = null;
+      rosterState.error = error?.message || String(error);
+    }
+    return rosterState;
+  }
+
   bind('free roster', () => {
-    rosterLoad = loadFreeRoster();
-    paintRosterStatus();
+    rosterLoad = loadLiveRoster();
   });
 
   bind('hash navigation', () => {
