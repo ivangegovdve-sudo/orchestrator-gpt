@@ -1,0 +1,81 @@
+/* Shared styling for the two data-backed AI-d kit pages.
+ *
+ * These classes are labels. They are not the enforcement mechanism: `ai-kit-offers.mjs`
+ * decides which bucket a row lands in and calls a different function for live and
+ * not-live rows, so deleting a rule here makes a card ugly, not misleading. Nothing in
+ * this file should be read as the reason an unverified offer stays out of the live list.
+ */
+
+:root {
+  --bg: #07070b;
+  --surface: #0f0f15;
+  --border: rgba(255, 255, 255, 0.08);
+  --text-primary: #f3f4f6;
+  --text-muted: #9ca3af;
+  --accent: #4f46e5;
+  --accent-green: #22c55e;
+  --radius: 8px;
+}
+
+.offers-page { max-width: 1060px; margin: 0 auto; padding: 7rem 1.5rem 5rem; color: var(--text-primary); }
+.offers-page h1 { font-size: clamp(2.5rem, 8vw, 5.5rem); margin: 0 0 1rem; }
+.offers-page .lede { max-width: 54rem; color: var(--text-muted); font-size: 1.2rem; line-height: 1.6; }
+
+.subpage-nav { display: flex; flex-wrap: wrap; gap: .75rem; margin: 1.5rem 0 2rem; }
+.subpage-nav a { border: 1px solid var(--border); border-radius: 999px; padding: .55rem .85rem; }
+
+.offers-status { color: var(--text-muted); margin: 1rem 0 2rem; line-height: 1.6; }
+.offers-warning { border-left: 3px solid #e8b86b; padding: .75rem 1rem; background: rgba(232, 184, 107, .08); margin: 1rem 0 2rem; line-height: 1.6; border-radius: 0 var(--radius) var(--radius) 0; }
+.offers-warning strong { color: var(--text-primary); }
+
+.offer-section { margin: 2.5rem 0; }
+.offer-section > h2 { border-bottom: 1px solid var(--border); padding-bottom: .6rem; }
+.offer-section > p { color: var(--text-muted); line-height: 1.65; max-width: 62rem; }
+
+.offer-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1rem; }
+.offer-card { border: 1px solid var(--border); border-radius: var(--radius); padding: 1.15rem; background: var(--surface); }
+.offer-card-head { display: flex; justify-content: space-between; gap: .75rem; color: var(--text-muted); font-size: .85rem; }
+.offer-state { letter-spacing: .08em; font-size: .7rem; text-transform: uppercase; }
+.offer-card h3 { margin: .8rem 0 .45rem; color: var(--text-primary); font-size: 1.1rem; line-height: 1.35; }
+.offer-card p { line-height: 1.55; color: var(--text-muted); }
+.offer-detail { font-size: .9rem; }
+.offer-detail strong { color: var(--text-primary); }
+.offer-link { margin-bottom: 0; }
+.offer-empty { color: var(--text-muted); }
+
+/* One accent per state, so the four lists stay distinguishable at a glance. */
+.offer-live { border-left: 3px solid var(--accent-green); }
+.offer-live .offer-state { color: #91d6a5; }
+.offer-unverified { border-left: 3px solid #e8b86b; }
+.offer-unverified .offer-state { color: #e8b86b; }
+.offer-expired { border-left: 3px solid #d98a7f; opacity: .85; }
+.offer-expired .offer-state { color: #d98a7f; }
+.offer-candidate { border-left: 3px solid var(--accent); }
+.offer-candidate .offer-state { color: #a5b4fc; }
+
+/* A broken row should look broken from across the room. */
+.offer-invalid { border: 1px solid #d98a7f; border-left: 3px solid #d98a7f; background: rgba(217, 138, 127, .08); }
+.offer-invalid .offer-state { color: #d98a7f; }
+.offer-problems, .entry-problems { color: #d98a7f; font-size: .9rem; line-height: 1.5; margin: .5rem 0 0; padding-left: 1.1rem; }
+
+.offer-stale { border-left-style: dashed; }
+.offer-stale-note { color: #e8b86b; }
+.offer-example-note { color: #e8b86b; font-size: .8rem; letter-spacing: .04em; margin: 0 0 .5rem; }
+.offer-example { border-style: dashed; }
+
+/* Curated troubleshooting entries. The field blocks reuse the visual language of the
+ * static record further down the troubleshooting page so the two do not read as two
+ * different documents. */
+.entries-section { margin: 2.5rem 0 3.5rem; }
+.entry-badge { font-size: .78rem; letter-spacing: .08em; text-transform: uppercase; margin: .35rem 0 .75rem; }
+.entry-badge-fix { color: #91d6a5; }
+.entry-badge-workaround { color: #e8b86b; }
+.entry-applies-to { font-size: .9rem; color: var(--text-muted); margin: .75rem 0 0; }
+.entry-applies-to strong { color: var(--text-primary); }
+.entry-code { overflow: auto; padding: .85rem 1rem; border: 1px solid var(--border); border-radius: var(--radius); background: #08080d; color: #d1d5db; line-height: 1.5; font-size: .88rem; }
+.entry-invalid { border-color: #d98a7f; background: rgba(217, 138, 127, .08); }
+
+@media (max-width: 600px) {
+  .offers-page { padding: 5.5rem .9rem 3rem; }
+  .offer-card { padding: .95rem; }
+}
