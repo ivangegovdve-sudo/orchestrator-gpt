@@ -4951,3 +4951,79 @@ was missing.
 and the `chloe-android` `gradlew` instance that started this: mode `100644`,
 broken for as long as the repository existed, findable only by a Linux build, and
 found within minutes of one finally running.
+
+---
+
+## Part 15 — A store that is current and still blind
+
+**Two documents the operator pasted into a chat could not be recalled, from a memory store that was demonstrably up to date.** That combination is the whole diagnosis. A stalled ingest makes *everything* stale; a store whose newest row is minutes old while one source is missing has a **filter** in it somewhere, and counting rows will never find a filter.
+
+Every fault in this part is one defect wearing three costumes — **measuring the wrong layer**:
+
+- a **path string** compared instead of the **file** behind it;
+- a **row count** trusted instead of the **filter** that produced it;
+- an **ingest's success** trusted instead of the **consumer's ability to read the result**.
+
+Each costume passes its own check forever, because each check asks the layer that is not broken. The only probe that catches all three is to start from the thing the user actually asked for and walk it end to end: find it in the raw source, then find it in the store, then find it through the tool the user searches with.
+
+Worked case, 2026-09-25: a desktop chat assistant's transcripts are swept into a SQLite memory store (FTS5 over ~665,000 observations) by a scheduled job every 30 minutes. The operator reports that a documentation link and an Anthropic PDF he pasted "the other day" cannot be recalled.
+
+### 15.1 The store was current, so the gap was a filter
+
+**Symptom** — an exact search for the link returned nothing. The store's newest observation was **2026-09-25 20:54 UTC**, minutes old, across **665,161 rows**. The natural reading — "memory is fine, the link was never said" — was wrong.
+
+**Cause** — the store was fed by several independent ingesters, and only the one for this chat application had stopped. Global freshness (`MAX(ts)` over the whole table) was being kept current by the *other* sources. Grouped by source, the chat's newest row was **07:21 UTC** that morning — thirteen hours behind, while the table as a whole looked live.
+
+**Cost** — every message in that chat since 07:21 was unrecallable, including both documents; and the global freshness figure actively argued against looking for an ingest fault.
+
+**Check** — **freshness is per source, never per store.** `SELECT source, MAX(ts) FROM observations JOIN sessions … GROUP BY source`, and compare each against the modification time of that source's raw files. A current store with one stale source is a filter; find which source, then find its filter.
+
+**Related** — the same pass found that one of the two "missing" links had been recalled all along: the operator had pasted the Opus **5** guide (`…/prompting-claude-opus-5`), and the search was for the **5.5** URL (`…-5-5`) he later remembered. A negative on the exact string you *remember* is not a negative on the thing that was *said*. Search the raw transcript for a loose form first, then the index for what the transcript actually contains.
+
+### 15.2 One path string, two different files: MSIX filesystem redirection
+
+**Symptom** — the ingester's source directory, `%APPDATA%\Claude\local-agent-mode-sessions`, held **784** transcripts when inspected from a terminal. The scheduled job, reading the identical path, logged `candidates: 0` on every run.
+
+**Cause** — the desktop application is **MSIX-packaged**. A process running *inside* the package container — the app itself, and every shell or tool it spawns, including the terminal used to investigate — has reads of `%APPDATA%\<App>` silently redirected to `%LOCALAPPDATA%\Packages\<PackageFamily>\LocalCache\Roaming\<App>`. A process *outside* the container, such as a Task Scheduler job, reads the literal path, which on this machine was an **empty directory**. They are **two distinct directories on disk, not a link**.
+
+This fooled two earlier investigations of the same family, for three reasons that are worth knowing before you meet it:
+
+- **There is nothing to find with link tools.** `Get-Item`, `dir /AL` and `fsutil reparsepoint query` report no junction, symlink or reparse point **at any level** of either path. The redirect is done by a filesystem minifilter driver, below anything those tools inspect.
+- **Your probes are inside the container too.** From an app-spawned shell both spellings open the *same* file — same inode, same hash, same mtime — so every comparison you run "proves" they are one directory. Ground truth only exists from outside: register a one-shot scheduled task that writes its observations to a file, run it, read the file.
+- **The container's view is a union.** Files that exist only in the real directory are visible through the redirect; files that exist in both are shadowed by the private copy. So loss is **partial and silent**: some writes land, some reads see stale copies, and the symptom is "some things are in memory and some aren't" — which reads as flakiness, not as a path bug.
+
+**Cost** — every scheduled run was a no-op for as long as the job was enabled. The only reason the chat reached memory at all was that someone occasionally ran the script by hand from *inside* the container, where it worked. Two previous "fixes" addressed the same redirect for a different writer and were each declared done.
+
+**Check** — never compare paths; **compare file identity from each process that will actually use the path.** From the scheduled context, record for each candidate spelling: file count, and for one known file its size, mtime and a hash of its first megabyte. Different answers from inside and outside means two files. In code, probe every spelling for real content (package spelling first), dedupe by file identity (`st_dev, st_ino` / NTFS file index), and **refuse to report success when every spelling is empty**.
+
+### 15.3 "DONE files=0", exit 0 — a denominator nobody questioned
+
+**Symptom** — the ingest log was a column of identical, healthy-looking lines: `candidates: 0  to-ingest: 0` then `DONE files=0 new_obs=0 errors=0`. Task Scheduler recorded result `0`.
+
+**Cause** — zero was treated as "nothing new", which is a legitimate outcome, instead of "found no source at all", which is not. The script counted what survived its discovery step and never asked what the discovery step excluded. Separately, the task had been bulk-disabled a month earlier along with twenty others, so even a correct script would not have run — two independent faults, each sufficient.
+
+**Cost** — false green for as long as the job ran, then plain silence once it was disabled; neither was visible, because a result code in a scheduler is somewhere nobody looks.
+
+**Check** — two mechanical rules. (1) **Distinguish the empty source from the empty delta**: zero files discovered under every candidate root is an error with its own exit code; zero *new* files is fine. (2) **Verify from the consumer's side, independently of the producer**: a check that reads the newest message straight from the raw transcript and asks the store whether that exact text is present. Judge the newest message *older than the ingest budget*, not the newest message — a fresh message on top will otherwise mask an old one that never arrived. Surface the result where a person already looks (session start), not in a scheduler's history; and when it fails, trigger the backfill rather than only reporting.
+
+### 15.4 `user_prompt` is a transport slot, not an authorship claim
+
+**Symptom** — figures derived from the store's `kind` column ("the user asked about X N times", "share of conversation that is human input") were used in reports and looked plausible.
+
+**Cause** — in this store `kind = 'user_prompt'` records **which message slot a row arrived in**, not **who wrote it**. In the chat protocols being ingested, tool results are delivered back to the model inside *user*-role messages, and one of the ingesters stored them as user prompts with a `[tool_result: …]` prefix. Measured: **51,406 of 114,993** `user_prompt` rows — **44.7%** — are tool output, not anything a person typed. The share varies wildly by source (roughly 60% of one source's rows, 0% of several others), so it does not even cancel out in aggregate.
+
+**Cost** — every count, ranking or "what did the user ask" query built on `kind` silently inherited a near-half contamination, and several already had.
+
+**Check** — before trusting a categorical column, **sample it grouped by source** and read twenty rows of each class. A field's name is the author's intent, not a measurement. In queries, exclude the transport prefix explicitly (`content NOT LIKE '[tool_result:%'`) until the ingester stops writing it; in ingesters, skip records whose content is entirely tool results rather than relabelling them.
+
+### 15.5 What to take from this part
+
+**The pattern generalises well beyond one machine:** *a check that measures a neighbouring layer passes forever.* Freshness of the store instead of the source. The path instead of the file. The count instead of the filter. The write instead of the read. The field's name instead of its contents.
+
+**Symptom** — any pipeline that reports healthy while a user cannot find something they know they put in.
+
+**Cause** — the verification was attached to the component that was easiest to instrument, not to the edge the user depends on.
+
+**Cost** — here, two documents and thirteen hours of one chat; in general, the belief that "memory is fine" persists exactly as long as nobody walks one real item end to end.
+
+**Check** — pick one concrete item the user asked about and trace it: raw source (does it exist?) → store row (did it arrive, under which key?) → the consumer's own search tool (is it returned?). Stop at the first layer where it disappears; that layer, and only that layer, is the fault.
