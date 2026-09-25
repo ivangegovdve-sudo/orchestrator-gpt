@@ -1,0 +1,82 @@
+[
+  {
+    "id": "example-promotion-live",
+    "name": "Example promotion — inside its window",
+    "url": "https://example.com/promotion-live",
+    "provider": "Example Provider",
+    "kind": "promotion",
+    "summary": "Seed row. Here so a reviewer can see what a verified, in-window promotion renders as.",
+    "expiresAt": "2027-06-30",
+    "example": true,
+    "verification": {
+      "status": "VERIFIED",
+      "checkedAt": "2026-09-25",
+      "checkedBy": "Tank",
+      "observed": "Seed example, not a real check. Written to exercise the live-promotion render path."
+    }
+  },
+  {
+    "id": "example-promotion-expired",
+    "name": "Example promotion — past its expiry",
+    "url": "https://example.com/promotion-expired",
+    "provider": "Example Provider",
+    "kind": "promotion",
+    "summary": "Seed row with a past expiresAt. Proves render-time expiry: this must never appear in the live list.",
+    "expiresAt": "2026-08-31",
+    "example": true,
+    "verification": {
+      "status": "VERIFIED",
+      "checkedAt": "2026-08-01",
+      "checkedBy": "Tank",
+      "observed": "Seed example, not a real check. VERIFIED on purpose, so the only thing keeping it out of the live list is its date."
+    }
+  },
+  {
+    "id": "example-standing-tier-fresh",
+    "name": "Example standing tier — recently verified",
+    "url": "https://example.com/standing-tier",
+    "provider": "Example Provider",
+    "kind": "standing_tier",
+    "summary": "Seed row. A standing tier with no expiry, verified inside the 90-day recheck window.",
+    "lastVerifiedAt": "2026-09-20",
+    "example": true,
+    "verification": {
+      "status": "VERIFIED",
+      "checkedAt": "2026-09-20",
+      "checkedBy": "Tank",
+      "observed": "Seed example, not a real check. Written to exercise the live standing-tier render path."
+    }
+  },
+  {
+    "id": "example-standing-tier-stale",
+    "name": "Example standing tier — past the recheck window",
+    "url": "https://example.com/standing-tier-stale",
+    "provider": "Example Provider",
+    "kind": "standing_tier",
+    "summary": "Seed row. Verified more than 90 days ago, so it stays listed but carries a visible STALE marker.",
+    "lastVerifiedAt": "2026-03-01",
+    "example": true,
+    "verification": {
+      "status": "VERIFIED",
+      "checkedAt": "2026-03-01",
+      "checkedBy": "Tank",
+      "observed": "Seed example, not a real check. Written to exercise the stale-standing-tier marker."
+    }
+  },
+  {
+    "id": "example-unverified",
+    "name": "Example offer — nobody has checked it",
+    "url": "https://example.com/unverified",
+    "provider": "Example Provider",
+    "kind": "promotion",
+    "summary": "Seed row. Its dates are perfectly valid; it stays out of the live list purely because nobody has opened the page.",
+    "expiresAt": "2027-06-30",
+    "example": true,
+    "verification": {
+      "status": "UNVERIFIED",
+      "checkedAt": "2026-09-25",
+      "checkedBy": "Tank",
+      "observed": "Not checked. Seeded UNVERIFIED so a reviewer can see that an in-date row still refuses to render as live."
+    }
+  }
+]
