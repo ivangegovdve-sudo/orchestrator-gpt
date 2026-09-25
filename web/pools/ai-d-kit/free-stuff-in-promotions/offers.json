@@ -463,5 +463,50 @@
       "checkedBy": "Neo",
       "observed": "Could not confirm the offer. The rate-limits doc renders a tabbed table with a 'Free Plan Limits' tab, and the surrounding prose ('Upgrade to Developer plan to access higher limits') implies a free plan exists — but the tab's contents did not come through in my fetch, so I have no per-model RPM/RPD/TPM numbers. groq.com/pricing states nothing about a free tier at all. Marked UNVERIFIED rather than guessing at limits I did not see."
     }
+  },
+  {
+    "id": "akamai-cloud-100-credit",
+    "name": "Akamai Cloud (Linode) — $100 trial credit",
+    "url": "https://www.akamai.com/lp/free-credit-100",
+    "provider": "Akamai",
+    "kind": "standing_tier",
+    "summary": "$100 of cloud credit for customers who have never taken the free trial before. It has to be spent within the trial period, and GPU plans are excluded.",
+    "lastVerifiedAt": "2026-09-25",
+    "verification": {
+      "status": "VERIFIED",
+      "checkedAt": "2026-09-25",
+      "checkedBy": "Neo",
+      "observed": "Landing page offers a 'US$100 credit', 'available only to new customers who have not yet signed up for a free trial'. The FAQ says 'You must spend your service credits during the trial period' but the page does not define how long that period is, and it does not state an offer end date — so this is filed as a standing tier and the duration is left unclaimed rather than guessed. The page also excludes GPU plans from the promotion, and points at a separate 'Promotion Redemption Rules & Conditions' document I did not open."
+    }
+  },
+  {
+    "id": "claude-free-plan",
+    "name": "Claude — Free plan",
+    "url": "https://claude.com/pricing",
+    "provider": "Anthropic",
+    "kind": "standing_tier",
+    "summary": "Free Claude on web, desktop and mobile with web search, file creation, code execution and memory across conversations. The page does not publish the usage cap, so expect to hit one without warning.",
+    "lastVerifiedAt": "2026-09-25",
+    "verification": {
+      "status": "VERIFIED",
+      "checkedAt": "2026-09-25",
+      "checkedBy": "Neo",
+      "observed": "Pricing page Free column reads 'Free for everyone' and lists 'Chat on web, desktop, and mobile', 'Search the web, create files, and run code', 'Memory across conversations', 'Connect your apps and tools', 'Create Artifacts'. The only thing said about limits is the qualitative 'Free covers everyday questions' — no numeric cap is published on the page, so this row does not claim one. Note this is the Claude app, not API credits."
+    }
+  },
+  {
+    "id": "vercel-ai-gateway-free-tier",
+    "name": "Vercel AI Gateway — free credit tier",
+    "url": "https://vercel.com/docs/ai-gateway/pricing",
+    "provider": "Vercel",
+    "kind": "standing_tier",
+    "summary": "Every Vercel team gets monthly free AI Gateway credits usable on a subset of models, at provider list price with no markup. Buying any credit permanently ends the free monthly allowance.",
+    "lastVerifiedAt": "2026-09-25",
+    "verification": {
+      "status": "VERIFIED",
+      "checkedAt": "2026-09-25",
+      "checkedBy": "Neo",
+      "observed": "Docs page (last_updated 2026-09-08) states 'Every Vercel team account gets access to both a free tier and a paid tier for AI Gateway Credits' and 'The free tier includes a subset of models, not the full catalog', with free-tier requests 'rate limited per model, with lower limits than the paid tier' returning 429 on overage. The sharp edge, quoted: 'Once you purchase credits, your account transitions to the paid tier and the monthly free credit no longer applies.' Also 'Your free credits start when you make your first AI Gateway request.' The page never states the dollar value of the monthly free credit, so this row does not put a number on it."
+    }
   }
 ]
