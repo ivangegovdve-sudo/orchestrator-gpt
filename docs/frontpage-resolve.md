@@ -1,5 +1,12 @@
 # SD Forest — front-page resolve contract
 
+Current intro: the existing 25.208-second Drive growth master is now the
+full-screen, reversible scroll surface from seed to mature tree. Its browser
+derivative and exact provenance are recorded in
+[the growth-film README](../web/assets/sdforest-intro/README.md). It adds no
+second clock: the existing `seek()` sampler owns film time, the warm-to-dark
+handoff and the established 0→5 page arrivals.
+
 Current correction: [fixed plate, rooted contact and readable instruments](frontpage-refinement-2026-09-24.md).
 This supersedes the older grass/contact, moving-foreground and summary treatments.
 Historical test counts below are receipts for their named heads, not current results.
@@ -19,7 +26,11 @@ unchanged video hand-off contract; pool arrivals still follow the current DOM.
 
 The references supply colour, texture and mood, **not** final composition. The introductory world dissolves completely; the centred tree remains. Following Ivan's 2026-09-24 correction, the opened page introduces a lighter illustrated sunset valley, separate pale mist and the existing connected bark controls. The earlier night-blue opened environment is superseded. Time zero remains tree-only on the dark field.
 
-At time **0**, only the tree is visible on `#07070b`. At **4.4 seconds**, the page is fully opened. The tree's position and scale are identical in both frames. Decorative motion never supplies navigation structure.
+At time **−6**, the film holds on its seed. Scroll maps the growth film through
+time **−0.5**, then the last half-second reframes and dissolves into time **0**:
+only the fixed page tree on `#07070b`. At **4.4 seconds**, the page is fully
+opened. The fixed page tree's position and scale are identical at time 0 and in
+the opened frame. Decorative motion never supplies navigation structure.
 
 | Contract | Desktop, width >800 CSS px | Portrait/mobile, width <=800 CSS px |
 |---|---|---|
@@ -58,7 +69,9 @@ documentation, never another runtime list. The native fallback contains all seve
 
 | Element | Start → end | Arrival / role |
 |---|---|---|
-| Four background planes | −1.00 → 0.00 | Fade 1→0 together, revealing the existing dark field. The tree never fades or moves. |
+| Existing Drive growth film | −6.00 → −0.50 | Full-screen seed-to-mature growth. The media remains paused; scroll seeks the same timeline forward and backward. |
+| Film/page tree handoff | −0.50 → 0.00 | The final film frame reframes without exposing an edge, existing mist darkens the warm scene, the film fades, and the fixed tree reveals late in the dissolve. The fixed tree's box never moves or resizes. |
+| Four background planes | −1.00 → 0.00 | Fade 1→0 together behind the growth-film handoff, revealing the existing dark field. The fixed tree's box never moves. |
 | Tree illumination | −1.00 → 0.00 | Existing restrained edge glow reaches 30px / 8% opacity. The new tree is constant throughout the sequence; only filter changes. |
 | Sunset valley, subtle mist and connected bark | 0.05 → 0.60 | Fade in behind the tree and controls. The compact/mobile directory's dark bark backing follows this same interval. The earlier orbit ellipses and connecting paths remain removed. |
 | Forest HUB + existing subtitle | 0.18 → 0.95 | Fade in as one title plate. |
@@ -87,11 +100,28 @@ Serve the repository root with an ordinary static server, then open:
 - `/?frame=resolve` — held time 0, tree only.
 - `/?frame=opened` — held time 5, complete interface.
 - `/?frame=hinge` — held time −0.5, half-dissolved world.
-- `/` — terminal sequence scrubbed over a 125vh desktop / 125svh mobile runway: `t = −1 + 6 × scrollY / runway`, clamped to [−1,5]. Flow layouts put that runway in `.resolve-scroll` bottom padding, which the existing scroll sampler measures. Wide desktop retains the 1.25 × viewport-height fallback. There is still one clock and the same reversible `seek()` mathematics.
+- `/` — integrated growth and terminal sequence scrubbed over a 550vh desktop
+  / 550svh mobile growth runway: `t = −6 + 11 × scrollY / runway`, clamped
+  to [−6,5]. Compact and mobile layouts use a sticky viewport scene followed by
+  a separate in-flow runway; the directory then follows in ordinary document
+  flow. Wide desktop uses a 650vh stage, leaving the same 550vh scroll range.
+  There is still one clock and the same reversible `seek()` mathematics.
 
-Mobile `.resolve-stage` is content-height with `overflow-x:clip; overflow-y:visible`. In scrub mode `min-height:calc(100svh + 560px)` is a **floor, not a ceiling**; `.resolve-scroll` is height:auto with 125svh bottom padding. Wrapped descriptions, enlarged text, selection and utility rows cannot be cut off by a fixed 560px continuation allowance.
+Mobile `.resolve-stage` remains content-height with `overflow-x:clip;
+overflow-y:visible`. The sticky `.resolve-scene` occupies 100svh, the separate
+`.resolve-growth-runway` supplies 450svh below it, and the variable-height
+directory follows that runway. Wrapped descriptions, enlarged text, selection
+and utility rows therefore remain reachable without being placed inside a fixed
+continuation allowance.
 
-These are query views of the **same existing homepage**, not new routes. `window.sdforestResolve.seek(seconds)` is the handoff for an external scroll/video clock. `window.sdforestResolve.open()` supplies the complete static state and disables the local scroll sampler. An integrated video driver should call `open()` once to release that sampler, then `seek(t)` using the shared clock. It must honour reduced motion rather than reintroducing animation. This slice does **not** contain, replace, or claim to finish Ivan's six-stage animation.
+These are query views of the **same existing homepage**, not new routes.
+`window.sdforestResolve.seek(seconds)` remains the deterministic inspection
+handoff. `window.sdforestResolve.open()` supplies the complete static state and
+disables the local scroll sampler. Reduced motion, direct static frames and a
+failed media request never load or gate on the growth film; they open the
+navigable composition. The integrated film contains no narration or audio—the
+Drive master has no audio—and does not claim the filmed and page trees are
+pixel-identical.
 
 Reduced motion, an incoming fragment, restored navigation, and JavaScript disabled all get the opened composition. A no-JavaScript visitor follows ordinary native pool links; nothing is hidden awaiting an animation callback. With JavaScript, first click/tap or Enter selects; the next deliberate press on that same link navigates. Focus stays on the link, and Escape cancels selection. This is not an OS double-click interaction.
 

@@ -12,9 +12,18 @@ before(async () => {
     if (!file.startsWith(ROOT + path.sep) && file !== ROOT) return res.writeHead(403).end();
     if (fs.existsSync(file) && fs.statSync(file).isDirectory()) file = path.join(file, 'index.html');
     if (!fs.existsSync(file)) return res.writeHead(404).end();
-    const mime = { '.html':'text/html', '.mjs':'text/javascript', '.js':'text/javascript', '.css':'text/css', '.svg':'image/svg+xml', '.png':'image/png', '.woff2':'font/woff2' };
-    res.writeHead(200, { 'Content-Type': mime[path.extname(file)] || 'application/octet-stream' });
-    fs.createReadStream(file).pipe(res);
+    const mime = { '.html':'text/html', '.mjs':'text/javascript', '.js':'text/javascript', '.css':'text/css', '.svg':'image/svg+xml', '.png':'image/png', '.webp':'image/webp', '.mp4':'video/mp4', '.woff2':'font/woff2' };
+    const range=req.headers.range;
+    if(range&&path.extname(file)==='.mp4') {
+      const size=fs.statSync(file).size;
+      const [rawStart,rawEnd]=range.replace('bytes=','').split('-');
+      const start=Number(rawStart)||0,end=Math.min(rawEnd?Number(rawEnd):size-1,size-1);
+      res.writeHead(206,{'Content-Type':'video/mp4','Accept-Ranges':'bytes','Content-Range':`bytes ${start}-${end}/${size}`,'Content-Length':end-start+1});
+      fs.createReadStream(file,{start,end}).pipe(res);
+    } else {
+      res.writeHead(200, { 'Content-Type': mime[path.extname(file)] || 'application/octet-stream' });
+      fs.createReadStream(file).pipe(res);
+    }
   });
   await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
   base = `http://127.0.0.1:${server.address().port}`;
@@ -308,7 +317,8 @@ test('Artificial Self carries impulses along distinct wires instead of blinking 
   assert.notDeepEqual(await impulses.evaluateAll(es=>es.map(e=>e.style.transform)),start);
   assert.equal(await link.getAttribute('data-effect-state'),'selected');
   await page.waitForTimeout(750);
-  assert.ok(await page.evaluate(()=>neuralPeaks.some(row=>row.some(value=>value>.65))),'a real firing peak must occur, not a permanently bright selected state');
+  const peaks=await page.evaluate(()=>neuralPeaks);
+  assert.ok(peaks.some(row=>row.some(value=>value>.65)),`a real firing peak must occur, not a permanently bright selected state: ${JSON.stringify(peaks)}`);
   await page.close();
 });
 
@@ -982,7 +992,7 @@ test('warm-world dissolve is reversible and never restarts the tree or invents a
 test('scroll completes the actual arrival and keyboard can skip directly to usable pools', async () => {
   const page = await pageAt('');
   assert.equal(await opacity(page,'.resolve-world'),1);
-  await page.evaluate(()=>scrollTo(0, innerHeight * 1.25));
+  await page.evaluate(()=>scrollTo(0,document.documentElement.scrollHeight));
   await page.waitForFunction(()=>document.documentElement.dataset.resolveState === 'opened');
   assert.equal(await opacity(page,'[data-pool-link="my-story"]'),1);
   await page.goto(base, {waitUntil:'networkidle'});
@@ -1066,7 +1076,7 @@ test('short screens and portrait tablets keep the title clear of the tree', asyn
 });
 test('returning from a pool does not replay the terminal sequence', async () => {
   const page = await pageAt('');
-  await page.evaluate(()=>scrollTo(0,innerHeight * 1.25));
+  await page.evaluate(()=>scrollTo(0,document.documentElement.scrollHeight));
   await page.waitForFunction(()=>document.documentElement.dataset.resolveState === 'opened');
   await page.locator('[data-pool-link="health"]').click();
   await page.locator('[data-pool-link="health"]').click();
@@ -1080,7 +1090,7 @@ test('mobile scrub track grows with wrapped and selected entries instead of clip
   for (const [width,height] of [[320,390],[780,390],[390,844]]) {
     const page = await pageAt('',{viewport:{width,height}});
     await page.addStyleTag({content:'.resolve-home .portal-name{font-size:52px!important}.resolve-home .portal-meta{font-size:30px!important}'});
-    await page.evaluate(()=>scrollTo(0,innerHeight*1.25));
+    await page.evaluate(()=>scrollTo(0,document.documentElement.scrollHeight));
     await page.waitForFunction(()=>document.documentElement.dataset.resolveState==='opened');
     const bounds = await page.evaluate(()=>{
       const stage=document.querySelector('.resolve-stage').getBoundingClientRect();
@@ -1097,10 +1107,11 @@ test('mobile scrub track grows with wrapped and selected entries instead of clip
       const e=document.querySelector('.dh-tab'),b=e.getBoundingClientRect();
       return b.top>=0 && b.bottom<=innerHeight;
     });
-    assert.ok(await page.locator('.dh-tab').evaluate(e=>{
-      const b=e.getBoundingClientRect(),hit=document.elementFromPoint(b.left+b.width/2,b.top+b.height/2);
-      return hit===e || e.contains(hit);
-    }));
+    const hit=await page.locator('.dh-tab').evaluate(e=>{
+      const b=e.getBoundingClientRect(),target=document.elementFromPoint(b.left+b.width/2,b.top+b.height/2);
+      return {works:target===e||e.contains(target),box:b.toJSON(),target:target?.className||target?.tagName,scrollY,time:window.sdforestResolve.time,visibility:getComputedStyle(e).visibility};
+    });
+    assert.ok(hit.works,`${width}x${height}: design history hit target ${JSON.stringify(hit)}`);
     await page.locator('.dh-tab').click();
     await page.getByRole('button',{name:'Close design history',exact:true}).click();
     // Wait for the existing drawer's 420ms exit before asking Playwright to
@@ -1174,14 +1185,14 @@ test('all existing pool names fit the 320px layout and selection does not lose t
 test('mobile scroll clock uses its CSS runway rather than a separate changing viewport height', async () => {
   const page=await pageAt('',{viewport:{width:390,height:844}});
   // Exercise the measurement boundary with a deliberately shorter real layout track.
-  await page.addStyleTag({content:'html[data-resolve-motion="scrub"] .resolve-scroll{padding-bottom:500px}'});
-  await page.evaluate(()=>scrollTo(0,500));
+  await page.addStyleTag({content:'html[data-resolve-motion="scrub"] .resolve-growth-runway{height:156px}'});
+  await page.evaluate(()=>scrollTo(0,1000));
   await page.waitForFunction(()=>window.sdforestResolve.time > -1);
   assert.equal(await page.evaluate(()=>window.sdforestResolve.time),5);
   assert.equal(await opacity(page,'[data-pool-link="my-story"]'),1);
-  await page.evaluate(()=>scrollTo(0,250));
+  await page.evaluate(()=>scrollTo(0,500));
   await page.waitForFunction(()=>window.sdforestResolve.time<5);
-  assert.equal(await page.evaluate(()=>window.sdforestResolve.time),2);
+  assert.equal(await page.evaluate(()=>window.sdforestResolve.time),-.5);
   await page.close();
 });
 test('Tab reaches portals in DOM order and never focuses unrevealed controls', async () => {
@@ -1229,6 +1240,74 @@ test('reduced motion selected during a partial arrival opens every pool without 
   assert.equal(await page.evaluate(()=>document.getAnimations().filter(a=>a.playState==='running').length),0);
   await page.close();
 });
+
+test('the growth film is a paused fullscreen scroll surface that reverses and hands off to the fixed tree', async () => {
+  const page=await pageAt('');
+  const film=page.locator('[data-growth-film]');
+  assert.equal(await film.count(),1,'the seed-to-tree master must be the first visual surface');
+  await film.evaluate(video=>new Promise(resolve=>video.readyState>=1?resolve():video.addEventListener('loadedmetadata',resolve,{once:true})));
+  const start=await film.evaluate(video=>({paused:video.paused,time:video.currentTime,duration:video.duration,box:video.getBoundingClientRect().toJSON()}));
+  assert.equal(start.paused,true,'scroll owns the timeline; the media must never free-run');
+  assert.ok(start.time<.1,'first paint holds the seed');
+  assert.ok(start.duration>25&&start.duration<25.3,'the existing complete Drive master is used');
+  assert.deepEqual([start.box.x,start.box.y,start.box.width,start.box.height],[0,0,1920,1080]);
+  assert.equal(await page.locator('.resolve-tree').evaluate(tree=>getComputedStyle(tree).opacity),'1','the growth layer must cover the tree without mutating it');
+  const stacking=await page.evaluate(()=>({film:Number(getComputedStyle(document.querySelector('[data-growth-intro]')).zIndex),tree:Number(getComputedStyle(document.querySelector('.resolve-tree')).zIndex)}));
+  assert.ok(stacking.film>stacking.tree,`the opaque seed film must cover the fixed tree, got ${JSON.stringify(stacking)}`);
+
+  await page.evaluate(()=>window.sdforestResolve.seek(-3));
+  const forward=await film.evaluate(video=>video.currentTime);
+  assert.ok(forward>12&&forward<16,`middle scroll must reach middle growth, got ${forward}`);
+  assert.equal(await page.locator('.resolve-tree').evaluate(tree=>getComputedStyle(tree).opacity),'1','film growth must not alter the fixed tree');
+  await page.evaluate(()=>window.sdforestResolve.seek(-5));
+  const reverse=await film.evaluate(video=>video.currentTime);
+  assert.ok(reverse>2&&reverse<7&&reverse<forward,'reverse scroll must reverse the same footage');
+
+  const treeBefore=await page.locator('.resolve-tree').boundingBox();
+  await page.evaluate(()=>window.sdforestResolve.seek(-.25));
+  const handoffOpacity=Number(await page.locator('[data-growth-intro]').evaluate(intro=>getComputedStyle(intro).opacity));
+  assert.ok(handoffOpacity>.65&&handoffOpacity<.85,`the film must remain dominant at midpoint to avoid a double-tree overlay, got ${handoffOpacity}`);
+  const filmHandoff=await film.boundingBox();
+  assert.ok(filmHandoff.x<=0&&filmHandoff.y<=0&&filmHandoff.x+filmHandoff.width>=1920&&filmHandoff.y+filmHandoff.height>=1080,`the final film reframe must cover the viewport, got ${JSON.stringify(filmHandoff)}`);
+  await page.evaluate(()=>window.sdforestResolve.seek(0));
+  assert.equal(await film.evaluate(video=>getComputedStyle(video.closest('[data-growth-intro]')).visibility),'hidden');
+  assert.equal(await page.locator('.resolve-tree').evaluate(tree=>getComputedStyle(tree).opacity),'1');
+  assert.deepEqual(await page.locator('.resolve-tree').boundingBox(),treeBefore,'the film handoff must not alter the tree geometry contract');
+  await page.close();
+});
+
+test('the growth film keeps seed and mature subjects in frame on a portrait phone', async () => {
+  const page=await pageAt('',{viewport:{width:390,height:844},isMobile:true,hasTouch:true});
+  const film=page.locator('[data-growth-film]');
+  await film.evaluate(video=>new Promise(resolve=>video.readyState>=1?resolve():video.addEventListener('loadedmetadata',resolve,{once:true})));
+  assert.equal(await film.evaluate(video=>getComputedStyle(video).objectPosition),'50% 50%');
+  await page.evaluate(()=>window.sdforestResolve.seek(-.25));
+  const focus=await film.evaluate(video=>getComputedStyle(video).objectPosition);
+  assert.match(focus,/2[3-9]% 50%/,'the final left-side tree must be reframed into the portrait viewport');
+  assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);
+  await page.close();
+});
+
+test('failed growth media releases the intro and leaves native pool navigation usable', async () => {
+  const page=await browser.newPage({viewport:{width:390,height:844}});
+  await page.route('**/growth-scroll.mp4',route=>route.abort());
+  await page.goto(base+'/',{waitUntil:'domcontentloaded'});
+  await page.waitForFunction(()=>document.documentElement.dataset.resolveState==='opened');
+  assert.equal(await page.locator('[data-growth-intro]').evaluate(e=>getComputedStyle(e).visibility),'hidden');
+  assert.equal(await page.locator('[data-pool-link]').count(),7);
+  assert.ok(await page.locator('[data-pool-link="health"]').isVisible());
+  await page.close();
+});
+
+test('reduced motion and no JavaScript never gate the homepage behind the growth film', async () => {
+  for(const options of [{reducedMotion:'reduce'},{javaScriptEnabled:false}]) {
+    const page=await pageAt('',options);
+    assert.equal(await page.locator('[data-growth-intro]').evaluate(e=>getComputedStyle(e).display),'none');
+    assert.equal(await page.locator('[data-pool-link]').count(),7);
+    assert.ok(await page.locator('[data-pool-link="health"]').isVisible());
+    await page.close();
+  }
+});
 test('pending or failed background planes cannot block the tree or opened navigation', async () => {
   for (const failure of [false,true]) {
     const page=await browser.newPage({viewport:{width:390,height:844}});
@@ -1244,7 +1323,7 @@ test('pending or failed background planes cannot block the tree or opened naviga
       const image=new Image();image.src=e.href.baseVal;await image.decode();return image.naturalWidth;
     });
     assert.ok(decoded>=1200,'the high-resolution tree loads independently of background planes');
-    await page.evaluate(()=>scrollTo(0,innerHeight*1.25));
+    await page.evaluate(()=>scrollTo(0,document.documentElement.scrollHeight));
     await page.waitForFunction(()=>document.documentElement.dataset.resolveState==='opened');
     assert.equal(await opacity(page,'.resolve-world'),0);
     assert.equal(await page.locator('[data-pool-link]').evaluateAll(es=>es.every(e=>!e.inert && Number(getComputedStyle(e).opacity)===1)),true);

@@ -1,6 +1,7 @@
 // Terminal-sequence clock. It never grows, replaces, or moves the supplied tree.
 import { createAmbient } from './frontpage-ambient.mjs';
 import { createWorkbench } from './frontpage-workbench.mjs';
+import { createGrowthIntro } from './frontpage-growth.mjs';
 import './pool-directory.mjs';
 const root = document.documentElement;
 const stage = document.querySelector('[data-resolve-stage]');
@@ -24,6 +25,7 @@ let scrub = !reduced.matches && !frame && !location.hash && scrollY === 0;
 const ambient = createAmbient(stage);
 const motionButton = document.querySelector('.resolve-motion-toggle');
 const compact = matchMedia('(max-width:800px)');
+const growthRunway = stage.querySelector('.resolve-growth-runway');
 let frameId = 0;
 let dirtyScroll = false;
 let elapsed = 0;
@@ -36,10 +38,11 @@ let onScreen = true;
 let paused = false;
 let running = false;
 let strength = .65;
-let runway = innerHeight * 1.25;
+let runway = innerHeight * 5.5;
 let inlineStrength = root.style.getPropertyValue('--ambient-strength');
 let interactionDirty = false;
 const workbench = createWorkbench(stage, invalidateWorkbench, () => elapsed);
+const growth = createGrowthIntro(stage,openStatic,scrub);
 
 function invalidateWorkbench() {
   interactionDirty = true;
@@ -56,7 +59,8 @@ function finishEntry() {
 }
 
 function measureSettings() {
-  runway = parseFloat(getComputedStyle(stage.parentElement).paddingBottom) || innerHeight * 1.25;
+  const growthTrack = parseFloat(getComputedStyle(growthRunway).height) || 0;
+  runway = growthTrack ? growthTrack + innerHeight : Math.max(stage.parentElement.scrollHeight - innerHeight,innerHeight * 5.5);
   const configured = Number.parseFloat(getComputedStyle(root).getPropertyValue('--ambient-strength'));
   strength = Number.isFinite(configured) ? clamp(configured) : .65;
   ambient.compact(compact.matches);
@@ -96,8 +100,9 @@ function tick(stamp) {
     dirtyScroll = false;
     // The scroll track can change independently of viewport size. Read only on
     // a dirty scrub, never in the ambient-only path.
-    runway = parseFloat(getComputedStyle(stage.parentElement).paddingBottom) || innerHeight * 1.25;
-    seek(-1 + scrollY / runway * 6);
+    const growthTrack = parseFloat(getComputedStyle(growthRunway).height) || 0;
+    runway = growthTrack ? growthTrack + innerHeight : Math.max(stage.parentElement.scrollHeight - innerHeight,innerHeight * 5.5);
+    seek(-6 + scrollY / runway * 11);
     ambient.reveal(current);
     syncMotion();
   }
@@ -145,7 +150,8 @@ function closeSelection() {
 }
 function seek(seconds) {
   if (!Number.isFinite(seconds)) return;
-  current = Math.min(5, Math.max(-1, seconds));
+  current = Math.min(5, Math.max(-6, seconds));
+  growth.render(current);
   const world = 1 - ease(current + 1);
   document.querySelector('.resolve-world').style.opacity = String(world);
   const light = 1 - world;
@@ -184,12 +190,13 @@ function onScroll() {
 function openStatic() {
   scrub = false;
   root.dataset.resolveMotion = 'static';
+  growth.open();
   sample(5);
 }
 root.dataset.resolveMotion = scrub ? 'scrub' : 'static';
 measureSettings();
 motionButton.hidden = false;
-sample(reduced.matches ? 5 : frame === 'resolve' ? 0 : frame === 'hinge' ? -.5 : scrub ? -1 : 5);
+sample(reduced.matches ? 5 : frame === 'resolve' ? 0 : frame === 'hinge' ? -.5 : scrub ? -6 : 5);
 window.sdforestResolve = Object.freeze({ seek:sample, open:openStatic, get time() { return current; } });
 addEventListener('scroll',onScroll,{passive:true});
 addEventListener('resize',() => { measureSettings(); onScroll(); });
