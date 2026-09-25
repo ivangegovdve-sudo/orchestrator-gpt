@@ -31,8 +31,8 @@ const envelope = (data) => ({
 
 test("overview package labels derive current counts and version from loaded facts", () => {
   assert.equal(
-    packageToolLabel({ tools: Array.from({ length: 17 }) }),
-    "17 tools · enable only what you need",
+    packageToolLabel({ tools: Array.from({ length: 18 }) }),
+    "18 tools · enable only what you need",
   );
   assert.equal(
     packageToolLabel(null),
@@ -85,7 +85,7 @@ function momentum(category, data = []) {
   };
 }
 
-test("overview's 17 discovery entries and package evidence match the installed contract", () => {
+test("overview's 18 discovery entries and package evidence match the installed contract", () => {
   const facts = JSON.parse(
     fs.readFileSync(new URL("./package-facts.json", import.meta.url), "utf8"),
   );
@@ -93,7 +93,7 @@ test("overview's 17 discovery entries and package evidence match the installed c
     MCP_COVERAGE.map((row) => row.id).sort(),
     facts.tools.map((row) => row.name).sort(),
   );
-  assert.equal(MCP_COVERAGE.length, 17);
+  assert.equal(MCP_COVERAGE.length, 18);
   assert.equal(
     MCP_COVERAGE.find((row) => row.id === "dashboard_key_inventory")
       .agentWorkflow,

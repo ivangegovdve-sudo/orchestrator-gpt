@@ -13,6 +13,6 @@
     "refresh-roster": "node scripts/refresh-free-roster.mjs"
   },
   "devDependencies": {
-    "open-dashboard-mcp": "1.1.4"
+    "open-dashboard-mcp": "1.1.7"
   }
 }

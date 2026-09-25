@@ -1,6 +1,6 @@
 {
   "name": "open-dashboard-mcp",
-  "version": "1.1.4",
+  "version": "1.1.7",
   "node": ">=20",
   "providers": [
     {
@@ -236,7 +236,7 @@
         "lifecycle": "unknown"
       },
       "spendVisibility": "unknown",
-      "comparabilityNote": "Nous Research is registered as a named provider, but its published rate is not verifiable here: 15 checked paths across three hosts returned 404 and no balance, credits, usage, or per-generation cost endpoint was found. Generation cost is BLOCKED, not zero."
+      "comparabilityNote": "Nous Research's public /v1/models catalogue is readable and carries provider-published token rates, but no authenticated balance, usage, or per-generation charge is established here. The Hermes API server key is a separate credential from a Nous Portal key, so inference and generation cost remain BLOCKED, not zero."
     },
     {
       "id": "qwencloud",
@@ -585,6 +585,16 @@
       }
     },
     {
+      "name": "dashboard_capability_state",
+      "title": "Capability state for deterministic model selection",
+      "description": "Return one snake_case, evidence-shaped row per available live model slug and two decisions over that same table: literally cheapest paid for the public council and cheapest functional for the private council. Every field carries its own checked_at, observed_at, expires_at and age_seconds. Catalogue price is never substituted for actual per-generation cost; lineage, tool support, reachability, functionality, and semantic quality remain explicit UNKNOWN or EXPIRED values until their own evidence exists.",
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "openWorldHint": true
+      }
+    },
+    {
       "name": "dashboard_catalogue",
       "title": "Provider model catalogue and comparable media prices",
       "description": "List model identities including price_not_available rows, provider pitches and structured caveats. Image prices are USD/image; video prices USD/second, with native values, exact conversions and configuration conditions. Each source reports its population, exclusions and acquisition limits. Other prices retain their native billing axis. Paginate with offset/limit; filter providers, mediaKind or modelIds. modelIds also requests WaveSpeed price detail (20 IDs maximum). This never generates media or makes a paid inference call.",
@@ -755,6 +765,9 @@
       "megapixel",
       "video_second",
       "video",
+      "credit_image",
+      "credit_video",
+      "credit_audio",
       "request",
       "gpu_hour"
     ],
@@ -785,6 +798,8 @@
       "id",
       "amount",
       "unit",
+      "observed",
+      "measurement_origin",
       "condition",
       "source",
       "provenance",
@@ -829,6 +844,28 @@
       "unit",
       "assumption",
       "derived_from"
+    ],
+    "measuredCostFields": [
+      "id",
+      "provider",
+      "upstreamProvider",
+      "model",
+      "observedAt",
+      "provenanceDate",
+      "workload",
+      "vantagePoint",
+      "tokenCounts",
+      "costUsd",
+      "costState",
+      "provenance",
+      "measurementSource",
+      "httpStatus",
+      "errorBucket",
+      "balanceDeltaUsd",
+      "authoritativeField",
+      "sourceUrl",
+      "latency",
+      "note"
     ],
     "environmentVariables": [
       "OPEN_DASHBOARD_TOOLS",

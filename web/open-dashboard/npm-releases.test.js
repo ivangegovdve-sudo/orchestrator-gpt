@@ -32,8 +32,8 @@ function registryResponse(overrides = {}) {
     ok: true,
     json: async () => ({
       name: "open-dashboard-mcp",
-      "dist-tags": { latest: "1.1.4" },
-      versions: { "1.1.3": {}, "1.1.4": {} },
+      "dist-tags": { latest: "1.1.7" },
+      versions: { "1.1.6": {}, "1.1.7": {} },
       ...overrides,
     }),
   };
@@ -54,20 +54,20 @@ test("the registry parser requires both the requested published release and the 
   assert.deepEqual(
     parseNpmReleaseMetadata({
       name: "open-dashboard-mcp",
-      "dist-tags": { latest: "1.1.4" },
-      versions: { "1.1.3": {}, "1.1.4": {} },
+      "dist-tags": { latest: "1.1.7" },
+      versions: { "1.1.6": {}, "1.1.7": {} },
     }),
     {
       package: "open-dashboard-mcp",
-      latest: "1.1.4",
-      published: ["1.1.4"],
+      latest: "1.1.7",
+      published: ["1.1.7"],
       sourceUrl: NPM_RELEASES_URL,
     },
   );
   for (const invalid of [
-    { name: "other", "dist-tags": { latest: "1.1.4" }, versions: { "1.1.3": {}, "1.1.4": {} } },
-    { name: "open-dashboard-mcp", "dist-tags": { latest: "1.1.4" }, versions: { "1.1.3": {} } },
-    { name: "open-dashboard-mcp", "dist-tags": { latest: "1.1.3" }, versions: { "1.1.4": {} } },
+    { name: "other", "dist-tags": { latest: "1.1.7" }, versions: { "1.1.6": {}, "1.1.7": {} } },
+    { name: "open-dashboard-mcp", "dist-tags": { latest: "1.1.7" }, versions: { "1.1.6": {} } },
+    { name: "open-dashboard-mcp", "dist-tags": { latest: "1.1.6" }, versions: { "1.1.7": {} } },
   ])
     assert.equal(parseNpmReleaseMetadata(invalid), null);
 });
@@ -89,7 +89,7 @@ test("release lookup caches a valid registry result with visible age and rejects
     { storage, now: NOW + 5 * 60 * 1000 },
   );
   assert.equal(live.source, "live");
-  assert.deepEqual(live.facts.published, ["1.1.4"]);
+  assert.deepEqual(live.facts.published, ["1.1.7"]);
   assert.equal(cached.source, "cache");
   assert.equal(cached.ageMs, 5 * 60 * 1000);
   assert.equal(calls, 1);
@@ -140,8 +140,8 @@ test("the release mount visibly names only the current published release", async
   const root = releaseRoot();
   await mountNpmReleases(root, async () => registryResponse());
   assert.equal(root.container.dataset.npmReleasesState, "available");
-  assert.equal(root.value.textContent, "Published on npm: 1.1.4");
-  assert.match(root.note.textContent, /Current npm release: 1\.1\.4/);
+  assert.equal(root.value.textContent, "Published on npm: 1.1.7");
+  assert.match(root.note.textContent, /Current npm release: 1\.1\.7/);
 
   const unavailable = releaseRoot();
   await mountNpmReleases(unavailable, async () => ({ ok: false, status: 503 }));
