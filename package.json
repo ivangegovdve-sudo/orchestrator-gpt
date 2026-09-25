@@ -10,6 +10,7 @@
     "build": "node build-vercel-static.cjs",
     "check:prose-drift": "node scripts/prose-drift.mjs",
     "validate:ai-d-kit": "node scripts/validate-ai-d-kit-data.mjs",
+    "reverify:ai-d-kit": "node scripts/reverify-ai-d-kit-offers.mjs",
     "vercel-build": "node scripts/refresh-open-dashboard-for-build.mjs && npm run build",
     "refresh-roster": "node scripts/refresh-free-roster.mjs"
   },
