@@ -1,1 +1,2 @@
 {"ranAt":"2026-09-25T09:48:21.384Z","mode":"probe","offersFile":"web/pools/ai-d-kit/free-stuff-in-promotions/offers.json","rows":34,"probed":34,"reachable":33,"gone":0,"inconclusive":1,"dueForReading":1,"demoted":[],"refreshed":[],"refused":[],"wrote":false}
+{"ranAt":"2026-09-25T10:17:23.774Z","mode":"apply","offersFile":"web/pools/ai-d-kit/free-stuff-in-promotions/offers.json","rows":34,"probed":34,"reachable":33,"gone":0,"inconclusive":1,"dueForReading":1,"demoted":[],"refreshed":["groq-free-plan-limits","akamai-cloud-100-credit"],"refused":[],"wrote":true}

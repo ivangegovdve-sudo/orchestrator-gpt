@@ -461,7 +461,7 @@
       "status": "UNVERIFIED",
       "checkedAt": "2026-09-25",
       "checkedBy": "Neo",
-      "observed": "Could not confirm the offer. The rate-limits doc renders a tabbed table with a 'Free Plan Limits' tab, and the surrounding prose ('Upgrade to Developer plan to access higher limits') implies a free plan exists — but the tab's contents did not come through in my fetch, so I have no per-model RPM/RPD/TPM numbers. groq.com/pricing states nothing about a free tier at all. Marked UNVERIFIED rather than guessing at limits I did not see."
+      "observed": "Re-read 2026-09-25 and still cannot see the numbers. The rate-limits doc keeps its 'Free Plan Limits' tab and the surrounding prose 'Upgrade to Developer plan to access higher limits, Batch and Flex processing, and more.', so a free plan plainly exists — but the tab's table did not render for me again; the only per-model rows I could read are the Developer/base tier ones (e.g. openai/gpt-oss-120b at RPM 30, TPM 8K, TPD 200K), which are not the free plan's. The page now points readers inward: 'view the current, exact rate limits for your organization on the limits page in your account settings', i.e. behind a login I will not create. groq.com/pricing shows no plan table at all this time, only a 'Start building' button through to the console. Staying UNVERIFIED rather than publishing limits I have not seen."
     }
   },
   {
@@ -476,7 +476,7 @@
       "status": "VERIFIED",
       "checkedAt": "2026-09-25",
       "checkedBy": "Neo",
-      "observed": "Landing page offers a 'US$100 credit', 'available only to new customers who have not yet signed up for a free trial'. The FAQ says 'You must spend your service credits during the trial period' but the page does not define how long that period is, and it does not state an offer end date — so this is filed as a standing tier and the duration is left unclaimed rather than guessed. The page also excludes GPU plans from the promotion, and points at a separate 'Promotion Redemption Rules & Conditions' document I did not open."
+      "observed": "Landing page headline reads 'Try Akamai Cloud with US$100 in credits'. Eligibility fence unchanged: 'Promotional credits are available only to new customers who have not yet signed up for a free trial.' On the clock: 'You must spend your service credits during the trial period. Unused service credits will automatically expire.' — and the page still never says how long that trial period is. 'GPU plans are excluded from this promotion'. No offer end date stated anywhere on the page, which is why this stays filed as a standing tier rather than a promotion with an invented deadline. (Page opened by hand on 2026-09-25; the automated probe did not get a usable response.)"
     }
   },
   {
