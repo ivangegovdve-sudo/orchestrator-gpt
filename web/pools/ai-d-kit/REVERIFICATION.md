@@ -60,6 +60,30 @@ Policies, and the reasoning:
 - `activityGatePolicy: always` — offers rot whether or not the company is busy. This is
   precisely the routine that has to run on a quiet week.
 
+### The routine's definition
+
+Kept here so the schedule is reviewable in the repo and reproducible if the routine is
+ever lost or has to be rebuilt. Paperclip only lets an agent create a routine assigned to
+itself, so this is registered by Neo under his own identity, not by whoever wrote the
+script.
+
+```json
+POST /api/companies/{companyId}/routines
+{
+  "title": "AI-d kit offer re-verification (weekly)",
+  "assigneeAgentId": "{Neo}",
+  "projectId": "{the sdforest project}",
+  "priority": "medium",
+  "status": "active",
+  "concurrencyPolicy": "skip_if_active",
+  "catchUpPolicy": "skip_missed",
+  "activityGatePolicy": "always"
+}
+
+POST /api/routines/{routineId}/triggers
+{ "kind": "schedule", "cronExpression": "0 7 * * 1", "timezone": "UTC" }
+```
+
 ## What a firing does
 
 The execution issue Paperclip creates is the worksheet. Neo runs two passes.
