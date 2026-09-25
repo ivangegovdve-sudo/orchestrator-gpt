@@ -9,33 +9,53 @@
   <link rel="stylesheet" href="/web/shared/forest-design.css?v=20260807a">
   <link rel="stylesheet" href="/web/shared/forest-shell.css?v=20260807a">
   <style>
-    .offers-page { max-width: 1060px; margin: 0 auto; padding: 7rem 1.5rem 5rem; }
-    .offers-page h1 { font-size: clamp(2.5rem, 8vw, 5.5rem); margin: 0 0 1rem; }
-    .offers-page .lede { max-width: 54rem; color: var(--text-muted, #b8b9c5); font-size: 1.2rem; line-height: 1.6; }
-    .subpage-nav { display: flex; flex-wrap: wrap; gap: .75rem; margin: 1.5rem 0 2rem; }
-    .subpage-nav a { border: 1px solid rgba(255,255,255,.18); border-radius: 999px; padding: .55rem .85rem; }
-    .offers-status { color: var(--text-muted, #b8b9c5); margin: 1rem 0 2rem; }
-    .offers-warning { border-left: 3px solid #e8b86b; padding: .75rem 1rem; background: rgba(232,184,107,.08); margin: 1rem 0 2rem; }
-    .offer-section { margin: 2.5rem 0; }
-    .offer-grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(240px,1fr)); gap: 1rem; }
-    .offer-card { border: 1px solid rgba(255,255,255,.14); border-radius: 1rem; padding: 1.15rem; background: rgba(255,255,255,.035); }
-    .offer-card-head { display: flex; justify-content: space-between; gap: .75rem; color: var(--text-muted, #b8b9c5); font-size: .85rem; }
-    .offer-state { letter-spacing: .08em; font-size: .7rem; }
-    .offer-active .offer-state { color: #91d6a5; }
+    .offers-page { max-width: 1680px; margin: 0 auto; padding: 1.75rem 1.5rem 3rem; }
+    .offers-page h1 { font-size: clamp(1.75rem, 2.6vw, 2.8rem); line-height: 1.1; margin: 0 0 .35rem; }
+    .offers-page .lede { max-width: none; color: var(--text-muted, #b8b9c5); font-size: .95rem; line-height: 1.35; margin: .2rem 0 .75rem; }
+    .subpage-nav { display: flex; flex-wrap: wrap; gap: .45rem .7rem; margin: .55rem 0 .75rem; }
+    .subpage-nav a { border-bottom: 1px solid rgba(255,255,255,.2); padding: .15rem .1rem; font-size: .82rem; }
+    .offers-status { color: var(--text-muted, #b8b9c5); margin: .6rem 0 .35rem; font-size: .82rem; }
+    .offers-warning { border-left: 2px solid #e8b86b; padding: .35rem .6rem; background: rgba(232,184,107,.08); margin: .35rem 0 .7rem; font-size: .82rem; line-height: 1.35; }
+    .offer-section { margin: 1rem 0 1.25rem; }
+    .offer-section h2 { color: var(--text-muted, #b8b9c5); font-size: .76rem; letter-spacing: .1em; line-height: 1.2; margin: 0 0 .3rem; text-transform: uppercase; }
+    .offer-section-note { color: var(--text-muted, #b8b9c5); font-size: .78rem; line-height: 1.35; margin: .15rem 0 .4rem; }
+    .offer-grid { display: grid; grid-template-columns: repeat(auto-fill,minmax(280px,1fr)); gap: .3rem .55rem; align-content: start; }
+    .offer-row { min-width: 0; border: 1px solid rgba(255,255,255,.12); border-radius: 8px; background: rgba(255,255,255,.025); }
+    .offer-row:has(.offer-disclosure[open]) { border-color: rgba(79,70,229,.65); background: rgba(79,70,229,.08); }
+    .offer-disclosure { display: block; }
+    .offer-summary { display: grid; grid-template-columns: .7rem auto minmax(5.25rem,.65fr) minmax(0,1.35fr); align-items: center; gap: .5rem; min-height: 2rem; padding: .32rem .5rem; cursor: pointer; list-style: none; }
+    .offer-summary::-webkit-details-marker { display: none; }
+    .offer-summary::before { color: var(--text-muted, #b8b9c5); content: '›'; font-size: 1rem; line-height: 1; transition: transform .15s ease; }
+    .offer-disclosure[open] .offer-summary::before { transform: rotate(90deg); }
+    .offer-state { display: inline-flex; align-items: center; gap: .28rem; min-width: 0; letter-spacing: .06em; font-size: .63rem; font-weight: 700; white-space: nowrap; }
+    .offer-state-glyph { font-size: .72rem; line-height: 1; }
+    .offer-active .offer-state { color: #22c55e; }
     .offer-unverified .offer-state { color: #e8b86b; }
     .offer-expired .offer-state { color: #d98a7f; }
-    .offer-card h3 { margin: .8rem 0 .45rem; }
-    .offer-card p { line-height: 1.55; color: var(--text-muted, #b8b9c5); }
-    .offer-detail { font-size: .9rem; }
+    .offer-provider { min-width: 0; overflow: hidden; color: var(--text-muted, #b8b9c5); font-size: .74rem; text-overflow: ellipsis; white-space: nowrap; }
+    .offer-title { min-width: 0; overflow: hidden; color: var(--text-primary, #f3f4f6); font-size: .84rem; font-weight: 650; text-overflow: ellipsis; white-space: nowrap; }
+    .offer-details { border-top: 1px solid rgba(255,255,255,.1); padding: .45rem .6rem .55rem 2rem; color: var(--text-muted, #b8b9c5); font-size: .78rem; line-height: 1.35; }
+    .offer-details p { margin: 0 0 .3rem; }
+    .offer-details p:last-child { margin-bottom: 0; }
+    .offer-detail { font-size: .76rem; }
     .offer-link { margin-bottom: 0; }
-    .offer-empty { color: var(--text-muted, #b8b9c5); }
+    .offer-empty { border: 1px dashed rgba(255,255,255,.12); color: var(--text-muted, #b8b9c5); font-size: .78rem; margin: 0; padding: .45rem .6rem; }
+    .offer-expired { opacity: .82; }
+    .offer-expired .offer-title { color: var(--text-muted, #b8b9c5); }
     [data-offers-error] { display: none; }
+    @media (max-width: 600px) {
+      .offers-page { padding: 1.25rem .85rem 2.5rem; }
+      .offers-page h1 { font-size: 1.85rem; }
+      .offers-page .lede { font-size: .88rem; }
+      .offer-grid { grid-template-columns: 1fr; }
+      .offer-summary { grid-template-columns: .6rem auto minmax(4.5rem,.65fr) minmax(0,1.35fr); gap: .35rem; padding-inline: .4rem; }
+      .offer-details { padding-left: 1.55rem; }
+    }
   </style>
 </head>
 <body class="forest-skin">
   <a class="forest-back" href="/web/pools/ai-d-kit/">← AI-d kit</a>
   <main class="offers-page" data-offers-app data-endpoint="https://ifugbkvmdpqzjgjqmfxh.supabase.co/functions/v1/ai-kit-promotions">
-    <p class="forest-kicker">AI-d kit · reviewed offers</p>
     <h1>Free stuff in promotions</h1>
     <p class="lede">A second layer over The Drop’s already-evaluated items: one review asks whether a relevant item is a free offer, and a separate expiry check keeps ended offers off the public page.</p>
     <nav class="subpage-nav" aria-label="AI-d kit subpages">
@@ -47,9 +67,9 @@
     <p class="offers-warning" data-offers-error>Nothing is shown as active while the Drops read path is unavailable. An unknown expiry is never treated as “still available”.</p>
 
     <section class="offer-section" aria-labelledby="time-boxed-title"><h2 id="time-boxed-title">Time-boxed promotions</h2><div class="offer-grid" data-offers-active><p class="offer-empty">Loading reviewed promotions…</p></div></section>
-    <section class="offer-section" aria-labelledby="standing-title"><h2 id="standing-title">Standing free tiers</h2><p>These do not expire, but their last-verified date and recheck cadence remain visible because a smaller tier can cost more than an ended promotion.</p><div class="offer-grid" data-offers-standing><p class="offer-empty">Loading standing tiers…</p></div></section>
-    <section class="offer-section" aria-labelledby="unverified-title"><h2 id="unverified-title">Unverified</h2><p>Unknown expiry, stale verification, or an incomplete source stays visible here and never appears in the active list.</p><div class="offer-grid" data-offers-unverified><p class="offer-empty">Loading verification queue…</p></div></section>
-    <section class="offer-section" aria-labelledby="archive-title"><h2 id="archive-title">Withdrawn archive</h2><p>Withdrawal removes an offer from the public list without deleting its record. This history is kept in The Drop’s database.</p><div class="offer-grid" data-offers-archive><p class="offer-empty">Loading archive…</p></div></section>
+    <section class="offer-section" aria-labelledby="standing-title"><h2 id="standing-title">Standing free tiers</h2><p class="offer-section-note">These do not expire, but their last-verified date and recheck cadence remain visible because a smaller tier can cost more than an ended promotion.</p><div class="offer-grid" data-offers-standing><p class="offer-empty">Loading standing tiers…</p></div></section>
+    <section class="offer-section" aria-labelledby="unverified-title"><h2 id="unverified-title">Unverified</h2><p class="offer-section-note">Unknown expiry, stale verification, or an incomplete source stays visible here and never appears in the active list.</p><div class="offer-grid" data-offers-unverified><p class="offer-empty">Loading verification queue…</p></div></section>
+    <section class="offer-section" aria-labelledby="archive-title"><h2 id="archive-title">Withdrawn archive</h2><p class="offer-section-note">Withdrawal removes an offer from the public list without deleting its record. This history is kept in The Drop’s database.</p><div class="offer-grid" data-offers-archive><p class="offer-empty">Loading archive…</p></div></section>
     <p><small>Source boundary: the Forest page reads a curated promotion view from The Drop’s database. It does not ingest mail, copy the newsletter corpus, or re-run The Drop’s relevance evaluation.</small></p>
   </main>
   <script type="module" src="/web/shared/ai-kit-promotions.mjs"></script>
