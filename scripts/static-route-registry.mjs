@@ -84,6 +84,7 @@ export const ROUTE_REGISTRY = deepFreeze([
   route('library-glossary', 'library', '/web/library/glossary/', 'child', 'web/library/glossary/index.html', PUBLIC),
   route('library', 'library', '/web/library/', 'page', 'web/library/index.html', PUBLIC),
   route('library-memory', 'library-memory', '/web/library/memory/', 'child', 'web/library/memory/index.html', INTERNAL_NOINDEX),
+  route('memory-systems', 'library', '/web/memory-systems/', 'child', 'web/memory-systems/index.html', { ...PUBLIC, navigation: 'unlisted' }),
   route('library-platform', 'library', '/web/library/platform/', 'child', 'web/library/platform/index.html', PUBLIC),
   route('library-workspace', 'library-workspace', '/web/library/rag.html', 'child', 'web/library/rag.html', MIXED),
   route('library-repos', 'library-repos', '/web/library/repos/', 'child', 'web/library/repos/index.html', INTERNAL_NOINDEX),

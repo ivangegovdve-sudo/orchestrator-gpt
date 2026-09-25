@@ -135,7 +135,7 @@ test("selectable tools and version match the actual published package vocabulary
     TOOLS.map((tool) => tool.id).sort(),
     [...shipped.tools].sort(),
   );
-  assert.equal(new Set(TOOLS.map((tool) => tool.id)).size, 17);
+  assert.equal(new Set(TOOLS.map((tool) => tool.id)).size, 18);
 });
 
 test("the MCP entry page exposes sourced proof and the direct install path", async () => {
@@ -149,6 +149,13 @@ test("the MCP entry page exposes sourced proof and the direct install path", asy
   assert.match(page, /text, image, video and audio/);
   assert.match(page, /OpenClaw/);
   assert.match(page, /OpenClaw compatibility/);
+  assert.match(page, /dashboard_capability_state/);
+  assert.match(page, /measurement_origin/);
+  assert.match(page, /fixture/);
+  assert.match(page, /live_provider_read/);
+  assert.match(page, /Unknown evidence cannot produce a decidable selection/);
+  assert.match(page, /typed decision layers such as System One models/);
+  assert.match(page, /not a tested integration/);
   assert.match(page, /docs\.openclaw\.ai\/cli\/mcp/);
   assert.match(page, /docs\/help\/environment\.md/);
   assert.ok(page.includes("openclaw@2026.9.4"));
@@ -325,7 +332,7 @@ test("explorer deep links enable their exact capability and reject an invalid se
     "dashboard_benchmarks,,dashboard_contract",
     "dashboard_benchmarks,unknown_tool",
     "dashboard_benchmarks;echo injected",
-    Array(18).fill("dashboard_benchmarks").join(","),
+    Array(19).fill("dashboard_benchmarks").join(","),
     "x".repeat(1025),
   ]) {
     assert.equal(
@@ -336,7 +343,7 @@ test("explorer deep links enable their exact capability and reject an invalid se
   }
   assert.equal(
     toolsFromQuery(TOOLS.map((tool) => tool.id).join(",")).length,
-    17,
+    18,
   );
 });
 

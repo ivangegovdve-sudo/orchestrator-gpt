@@ -1,10 +1,10 @@
 {
   "schemaVersion": 2,
-  "collector": "open-dashboard-mcp@1.1.4",
+  "collector": "open-dashboard-mcp@1.1.7",
   "fetchedAt": "2026-09-17T21:27:54.785Z",
   "registry": {
     "package": "open-dashboard-mcp",
-    "version": "1.1.4",
+    "version": "1.1.7",
     "providers": [
       {
         "id": "openrouter",

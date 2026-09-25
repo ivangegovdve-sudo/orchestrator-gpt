@@ -320,11 +320,11 @@ export function projectSnapshot(
   }));
   const snapshot = {
     schemaVersion: 2,
-    collector: "open-dashboard-mcp@1.1.4",
+    collector: "open-dashboard-mcp@1.1.7",
     fetchedAt,
     registry: {
       package: "open-dashboard-mcp",
-      version: "1.1.4",
+      version: "1.1.7",
       providers: Object.values(PROVIDER_REGISTRY).map((provider) => ({
         id: provider.id,
         displayName: provider.displayName,
@@ -394,7 +394,7 @@ export async function refreshMediaCatalogue() {
       "utf8",
     ),
   );
-  if (pkg.version !== "1.1.4")
+  if (pkg.version !== "1.1.7")
     throw new Error("REVIEW_COLLECTOR_VERSION_BEFORE_REFRESH");
   const safeFetch = publicMetadataFetch(),
     nativeMetadata = new Map();

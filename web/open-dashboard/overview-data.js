@@ -41,6 +41,7 @@ const target = {
     modelChart: "prices",
     modality: "text",
   },
+  dashboard_capability_state: "./mcp/?tools=dashboard_capability_state",
   dashboard_free_models: {
     view: "models",
     modelChart: "catalogue",
@@ -71,13 +72,14 @@ export const MCP_COVERAGE = Object.freeze(
     target: target[tool.id] ?? `./mcp/?tools=${tool.id}`,
     agentWorkflow: [
       "dashboard_resolve_model",
+      "dashboard_capability_state",
       "dashboard_key_inventory",
       "dashboard_price_comparison",
     ].includes(tool.id),
   })),
 );
 
-// Reviewed against the installed 1.1.4 contract and speed tool.
+// Reviewed against the installed 1.1.7 contract and speed tool.
 // These package facts have their own version; the page load is not a new probe.
 export const PACKAGE_EVIDENCE = Object.freeze({
   version: PACKAGE_VERSION,
@@ -92,6 +94,9 @@ export const PACKAGE_EVIDENCE = Object.freeze({
     "megapixel",
     "video_second",
     "video",
+    "credit_image",
+    "credit_video",
+    "credit_audio",
     "request",
     "gpu_hour",
   ],

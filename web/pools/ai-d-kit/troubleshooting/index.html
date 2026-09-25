@@ -8,6 +8,7 @@
   <link rel="icon" href="/web/shared/favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="/web/shared/forest-design.css?v=20260807a">
   <link rel="stylesheet" href="/web/shared/forest-shell.css?v=20260807a">
+  <link rel="stylesheet" href="/web/shared/ai-kit-data.css?v=20260925a">
   <style>
     :root { --bg:#07070b; --surface:#0f0f15; --border:rgba(255,255,255,.08); --text-primary:#f3f4f6; --text-muted:#9ca3af; --accent:#4f46e5; --accent-green:#22c55e; --radius:8px; }
     .ai-kit-subpage { max-width:1100px; margin:0 auto; padding:7rem 1.25rem 5rem; color:var(--text-primary); }
@@ -51,6 +52,15 @@
     <section class="record-boundary" aria-label="Source provenance">
       <strong>Authoritative source.</strong> Published in full from <code>ivangegovdve-sudo/hermes-agent</code>, ref <code>docs/ivan-troubleshooting-20260921</code>. Snapshot <code>e19037333c1f</code> and spacing repair <code>89f0d1b50cba</code> are recorded so a future update can be traced. The source contains fourteen numbered parts, an inserted Part 4b, and 108 <code>###</code> sections.
       <div class="record-counts"><span>Four fields: Symptom · Cause · Cost · Check</span><span>The six-month stranger test is retained</span><span>Source blob c7d630ce8832</span></div>
+    </section>
+    <section class="entries-section" data-entries-app data-entries-src="entries.json" aria-labelledby="curated-entries-title">
+      <h2 id="curated-entries-title">Curated entries</h2>
+      <p>Entries written for this page rather than extracted from the record below: the problem in the reader's words, the verbatim error text, the mechanism that causes it, and steps specific enough to follow. Each one says whether it is a fix or a workaround, because a workaround presented as a fix is how you stop looking for the cause.</p>
+      <p class="offers-status" data-entries-status>These entries are built from <a href="entries.json">entries.json</a> in your browser. Nothing has been rendered yet — the complete record further down this page does not depend on it.</p>
+      <noscript>
+        <p class="offers-warning">JavaScript is off, so this section is empty. Nothing is missing from the page as a whole: the complete 108-entry record below is plain HTML and reads normally. These curated entries live in <a href="entries.json">entries.json</a> if you would rather read the source.</p>
+      </noscript>
+      <div data-entries-list></div>
     </section>
     <div class="record-intro"><p># Troubleshooting: failures that reported success, and failures that reported absence</p>
 <p>A living record of defects that cost real hours. Not a bug list — every entry</p>
@@ -2017,5 +2027,6 @@ gh pr list --head &quot;$(git branch --show-current)&quot; --state open</code></
 <p><strong>Related</strong> — 1.48 (which copy of the tool ran), 1.41 (guards verified by proxy), and the <code>chloe-android</code> <code>gradlew</code> instance that started this: mode <code>100644</code>, broken for as long as the repository existed, findable only by a Linux build, and found within minutes of one finally running.</p></section></article>
 </section>
   </main>
+  <script type="module" src="/web/shared/ai-kit-troubleshooting.mjs?v=20260925a"></script>
 </body>
 </html>

@@ -1,10 +1,24 @@
 /**
- * Renderer for the AI-d kit "Free stuff in promotions" surface.
+ * Renderer for the upstream candidate feed on the AI-d kit offers page.
  *
- * The source of truth is the read-only promotion endpoint owned by The Drop's
- * database. This module deliberately contains no mail, newsletter, or story
- * ingestion code. It only applies the safety rule that an unknown/expired offer
- * is never rendered as active, then renders the endpoint's reviewed output.
+ * The source is the read-only promotion endpoint owned by The Drop's database. This
+ * module deliberately contains no mail, newsletter, or story ingestion code. It only
+ * applies the safety rule that an unknown/expired offer is never rendered as active,
+ * then renders the endpoint's reviewed output.
+ *
+ * WHAT CHANGED, AND WHY IT IS NO LONGER THE PAGE'S SOURCE OF TRUTH
+ * ---------------------------------------------------------------
+ * This used to own the whole page. It now owns one labelled section near the bottom:
+ * candidates, not offers. The live lists come from `offers.json` in this repo, via
+ * `ai-kit-offers.mjs`, because a row in a repo file arrives with a verification record
+ * attached, gets read by a human in a pull request, and can be corrected by whoever
+ * spots the problem. A row from an endpoint has none of those properties — The Drop's
+ * editorial layer is not the same thing as someone opening the offer page and writing
+ * down what they saw, and this page's promise to the reader is the second thing.
+ *
+ * So these rows are a work queue: what to go and verify. Nothing here is presented as
+ * live. Its DOM hooks are `data-drop-*` so that it cannot paint into the live lists
+ * even by accident.
  */
 
 export const OFFER_STATES = Object.freeze(['active', 'expired', 'unverified']);
@@ -115,7 +129,7 @@ function dateLabel(value) {
   return date ? date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' }) : 'date not verified';
 }
 
-function renderOffer(offer, state) {
+function renderOffer(offer, state, stateLabel = state) {
   const url = safeUrl(offer.url);
   const title = escapeHtml(offer.title || 'Untitled offer');
   const summary = escapeHtml(offer.summary || 'No public description has been reviewed yet.');
@@ -127,26 +141,31 @@ function renderOffer(offer, state) {
   const reviewNote = offer.review_status === 'evidence_fixture'
     ? '<p class="offer-detail">Withdrawal evidence · not published as an active offer</p>'
     : '';
-  return `<article class="offer-card offer-${escapeHtml(state)}"><div class="offer-card-head"><span class="offer-state">${escapeHtml(state.toUpperCase())}</span><span>${provider}</span></div><h3>${title}</h3><p>${summary}</p><p class="offer-detail">${escapeHtml(detail)}</p>${reviewNote}<p class="offer-link">${link}</p></article>`;
+  return `<article class="offer-card offer-${escapeHtml(state)}"><div class="offer-card-head"><span class="offer-state">${escapeHtml(stateLabel.toUpperCase())}</span><span>${provider}</span></div><h3>${title}</h3><p>${summary}</p><p class="offer-detail">${escapeHtml(detail)}</p>${reviewNote}<p class="offer-link">${link}</p></article>`;
 }
 
-function renderSection(container, rows, state, emptyMessage) {
-  container.innerHTML = rows.length ? rows.map((offer) => renderOffer(offer, state)).join('') : `<p class="offer-empty">${escapeHtml(emptyMessage)}</p>`;
-}
-
-export function renderOfferPayload(payload, root, now = new Date()) {
-  if (!root) return normalizeOfferPayload(payload, now);
+/**
+ * Paint the upstream feed into the candidate section. Every row renders with the
+ * `candidate` class and a CANDIDATE badge regardless of what the endpoint says about
+ * it, because nothing that arrives here has been verified for this page. The `active`
+ * styling is not reachable from this function.
+ */
+export function renderCandidatePayload(payload, root, now = new Date()) {
   const normalized = normalizeOfferPayload(payload, now);
-  const status = root.querySelector('[data-offers-status]');
-  const active = root.querySelector('[data-offers-active]');
-  const standing = root.querySelector('[data-offers-standing]');
-  const unverified = root.querySelector('[data-offers-unverified]');
-  const archive = root.querySelector('[data-offers-archive]');
-  if (status) status.textContent = `Drops read path · ${normalized.active.length} active, ${normalized.unverified.length} unverified, ${normalized.archive.length} archived`;
-  if (active) renderSection(active, normalized.active.filter((offer) => offer.kind === 'time_boxed'), 'active', 'No reviewed time-boxed promotions are active right now.');
-  if (standing) renderSection(standing, normalized.active.filter((offer) => offer.kind === 'standing_tier'), 'active', 'No standing tiers have a current verification.');
-  if (unverified) renderSection(unverified, normalized.unverified, 'unverified', 'Nothing is waiting for verification.');
-  if (archive) renderSection(archive, normalized.archive, 'expired', 'The archive is empty.');
+  if (!root) return normalized;
+  // Upstream "active" rows are the ones worth checking first; expired upstream rows are
+  // not worth anyone's afternoon, so the queue is the active and unverified ones.
+  const queue = [...normalized.active, ...normalized.unverified];
+  const status = root.querySelector('[data-drop-status]');
+  if (status) {
+    status.textContent = `${queue.length} upstream candidate(s) from The Drop, none of them verified for this page. ${normalized.archive.length} upstream row(s) have already expired and are not listed.`;
+  }
+  const container = root.querySelector('[data-drop-candidates]');
+  if (container) {
+    container.innerHTML = queue.length
+      ? queue.map((offer) => renderOffer(offer, 'candidate', 'candidate · unverified here')).join('')
+      : '<p class="offer-empty">The upstream feed has nothing to check right now.</p>';
+  }
   return normalized;
 }
 
@@ -160,17 +179,19 @@ export async function fetchOfferPayload(endpoint, fetchImpl = globalThis.fetch) 
 }
 
 if (typeof document !== 'undefined') {
-  const root = document.querySelector('[data-offers-app]');
+  const root = document.querySelector('[data-drop-feed]');
   if (root) {
     const endpoint = root.getAttribute('data-endpoint');
-    const status = root.querySelector('[data-offers-status]');
     fetchOfferPayload(endpoint)
-      .then((payload) => renderOfferPayload(payload, root))
+      .then((payload) => renderCandidatePayload(payload, root))
       .catch((error) => {
-        if (status) status.textContent = 'Drops read path unavailable; no promotion is shown as active.';
-        const message = root.querySelector('[data-offers-error]');
-        if (message) message.hidden = false;
-        console.warn('AI-d kit promotion read path unavailable', error);
+        // The live lists come from offers.json, so this failing costs the reader a work
+        // queue and nothing else. Say so rather than implying the page is broken.
+        const status = root.querySelector('[data-drop-status]');
+        if (status) status.textContent = 'The upstream Drop feed is unavailable. The verified lists above are unaffected — they come from this repo, not from the feed.';
+        const container = root.querySelector('[data-drop-candidates]');
+        if (container) container.innerHTML = '<p class="offer-empty">Not loaded — the upstream feed could not be read.</p>';
+        console.warn('AI-d kit upstream candidate feed unavailable', error);
       });
   }
 }
