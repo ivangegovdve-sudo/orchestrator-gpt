@@ -223,5 +223,245 @@
       "checkedBy": "Neo",
       "observed": "Pricing page M0 card reads 'Free forever', '$0/hour', '512MB of storage', 'Shared RAM', 'Shared vCPU'. The page's own FAQ adds: 'Atlas's free tier includes 512 MB of storage, 32MB of sort memory, and up to 100 operations per second.' The page does not say whether a card is required at signup, so I am not claiming either way."
     }
+  },
+  {
+    "id": "cloudflare-r2-free-tier",
+    "name": "Cloudflare R2 — free tier",
+    "url": "https://developers.cloudflare.com/r2/pricing/",
+    "provider": "Cloudflare",
+    "kind": "standing_tier",
+    "summary": "10 GB of object storage a month with a million writes and ten million reads, and no egress charge at all — the reason people move buckets off S3.",
+    "lastVerifiedAt": "2026-09-25",
+    "verification": {
+      "status": "VERIFIED",
+      "checkedAt": "2026-09-25",
+      "checkedBy": "Neo",
+      "observed": "Pricing page free-tier table: '10 GB-month / month' storage, Class A '1 million requests / month', Class B '10 million requests / month', egress 'Free'. Stated fence: 'The free tier only applies to Standard storage, and does not apply to Infrequent Access storage.'"
+    }
+  },
+  {
+    "id": "google-cloud-free-tier-and-trial",
+    "name": "Google Cloud — Free tier plus $300 trial credit",
+    "url": "https://docs.cloud.google.com/free/docs/free-cloud-features",
+    "provider": "Google Cloud",
+    "kind": "standing_tier",
+    "summary": "An always-free monthly slice of Compute Engine, Cloud Storage and Cloud Run that never runs out, plus a one-off $300 credit for new accounts to spend over 90 days.",
+    "lastVerifiedAt": "2026-09-25",
+    "verification": {
+      "status": "VERIFIED",
+      "checkedAt": "2026-09-25",
+      "checkedBy": "Neo",
+      "observed": "Docs page: 'The Free Trial gets you a $300 Welcome credit to spend over 90 days on various Google Cloud products and you won't be billed.' Free tier rows quoted: Compute Engine '1 non-preemptible e2-micro VM instance per month' in a US region with '30 GB-months standard persistent disk'; Cloud Storage '5 GB-months of regional storage (US regions only) per month'; Cloud Run '2 million requests per month' plus '360,000 GB-seconds of memory, 180,000 vCPU-seconds of compute time'. On overage the page says 'You'll only be billed for usage that exceeds your remaining credit' — billing starts when you upgrade, not automatically at day 90. Recorded as a standing tier: the 90 days is a per-account clock, not an offer end date."
+    }
+  },
+  {
+    "id": "aws-free-tier-plan",
+    "name": "AWS Free Tier — $100 signup credit plus always-free services",
+    "url": "https://aws.amazon.com/free/",
+    "provider": "Amazon Web Services",
+    "kind": "standing_tier",
+    "summary": "$100 of credit the moment you open a Free Tier account and up to $100 more for completing activities, on a six-month clock — plus 30+ services that stay free within monthly limits regardless.",
+    "lastVerifiedAt": "2026-09-25",
+    "verification": {
+      "status": "VERIFIED",
+      "checkedAt": "2026-09-25",
+      "checkedBy": "Neo",
+      "observed": "Page reads 'When you create a new AWS Free Tier account, you get $100 in credits immediately. As you explore key services, you can earn up to $100 more. That's up to $200 over 6 months.' The fence, quoted: the free plan lasts '6 months after you open it or when your credits run out, whichever comes first.' Separately: '30+ AWS services are always free within monthly usage limits on both the Free and Paid plans.' Standing tier, not a promotion — the six months is per-account, and the page states no offer end date."
+    }
+  },
+  {
+    "id": "azure-for-students",
+    "name": "Microsoft Azure for Students — $100 credit, no card",
+    "url": "https://azure.microsoft.com/en-us/free/students",
+    "provider": "Microsoft Azure",
+    "kind": "standing_tier",
+    "summary": "$100 of Azure credit for full-time university students with no credit card at all, renewable each year you are still a student.",
+    "lastVerifiedAt": "2026-09-25",
+    "verification": {
+      "status": "VERIFIED",
+      "checkedAt": "2026-09-25",
+      "checkedBy": "Neo",
+      "observed": "Page states '$100 credit to use on Azure services within 12 months' and 'No credit card required'. Eligibility fence quoted from the page: 'Available only to full-time university students'. Also 'Free monthly amounts of 20+ popular services for 12 months (new Azure customers only)' and 'Free monthly amounts of 65+ always-free services', with 'Renew your subscription annually and continue to get free access to Azure as long as you're a student.'"
+    }
+  },
+  {
+    "id": "github-student-developer-pack",
+    "name": "GitHub Student Developer Pack",
+    "url": "https://education.github.com/pack",
+    "provider": "GitHub",
+    "kind": "standing_tier",
+    "summary": "One student verification unlocks a bundle of otherwise-paid tools at no cost — GitHub Pro, Copilot, $100 of Azure credit, a JetBrains subscription and more.",
+    "lastVerifiedAt": "2026-09-25",
+    "verification": {
+      "status": "VERIFIED",
+      "checkedAt": "2026-09-25",
+      "checkedBy": "Neo",
+      "observed": "Pack page lists partner offers including 'Free GitHub Pro while you are a student', 'GitHub Copilot Student is available to verified students', Microsoft Azure '$100 in Azure credit' (18+), JetBrains 'A free subscription for students, to be renewed annually', and Heroku '$13 USD per month credit for 24 months'. No end date is stated; benefits are framed as lasting 'while you are a student'. The page refers to 'verified students' throughout but does not spell out the verification criteria on this page."
+    }
+  },
+  {
+    "id": "gemini-api-free-tier",
+    "name": "Gemini API — free tier on Flash models",
+    "url": "https://ai.google.dev/pricing",
+    "provider": "Google",
+    "kind": "standing_tier",
+    "summary": "Gemini Flash and Flash-Lite models are billed at zero on the free tier — real API access, no card. The price is that your free-tier content is used to improve Google's products.",
+    "lastVerifiedAt": "2026-09-25",
+    "verification": {
+      "status": "VERIFIED",
+      "checkedAt": "2026-09-25",
+      "checkedBy": "Neo",
+      "observed": "Pricing page headline: 'Start building free of charge with generous limits, then scale up with prepaid then pay-as-you-go pricing.' The Free Tier cells for the Flash models (3.8, 3.7, 3.6, 3.5 Flash and Flash-Lite) read 'Free of charge' for both input and output. The fence is on the same page: free-tier content is 'used to improve our products', which flips to 'Content not used to improve our products' on the paid tier. Per-model rate-limit numbers are not on this page — it points you at AI Studio for your active limits."
+    }
+  },
+  {
+    "id": "deepgram-signup-credit",
+    "name": "Deepgram — $200 signup credit",
+    "url": "https://deepgram.com/pricing",
+    "provider": "Deepgram",
+    "kind": "standing_tier",
+    "summary": "$200 of speech-to-text and text-to-speech credit on a new account with no card asked for, then pay-as-you-go.",
+    "lastVerifiedAt": "2026-09-25",
+    "verification": {
+      "status": "VERIFIED",
+      "checkedAt": "2026-09-25",
+      "checkedBy": "Neo",
+      "observed": "Pricing page reads 'Free $200 Credit' alongside 'No credit card required', then 'pay-as-you-go'. The page states no expiry on the credit, so treat depletion rather than a date as the end of it. Recorded as a standing tier for that reason — there is no offer end date on the page to expire against."
+    }
+  },
+  {
+    "id": "elevenlabs-free-plan",
+    "name": "ElevenLabs Free plan",
+    "url": "https://elevenlabs.io/pricing",
+    "provider": "ElevenLabs",
+    "kind": "standing_tier",
+    "summary": "10,000 credits a month of text-to-speech, speech-to-text, sound effects and voice design at $0 — but no commercial licence, so it is for prototypes and personal use.",
+    "lastVerifiedAt": "2026-09-25",
+    "verification": {
+      "status": "VERIFIED",
+      "checkedAt": "2026-09-25",
+      "checkedBy": "Neo",
+      "observed": "Pricing page Free column reads '$0 per month' with '10k credits per month', listing 'Text to Speech, Speech to Text, Sound Effects, Voice Design, Music, Productions, Image' and '3 Projects in Studio'. The fence: in the plan comparison table 'Commercial use' appears from the Starter tier upward and is absent from the Free row. No attribution requirement was stated on the page I read."
+    }
+  },
+  {
+    "id": "modal-starter-free-compute",
+    "name": "Modal Starter — $30/month of free compute",
+    "url": "https://modal.com/pricing",
+    "provider": "Modal",
+    "kind": "standing_tier",
+    "summary": "$30 of serverless GPU and CPU compute every month on the Starter plan, renewed monthly rather than a one-off trial pot.",
+    "lastVerifiedAt": "2026-09-25",
+    "verification": {
+      "status": "VERIFIED",
+      "checkedAt": "2026-09-25",
+      "checkedBy": "Neo",
+      "observed": "Pricing page Starter plan states '$30 / month free compute'. The page does not say whether a card is required to open a Starter account, so I am not claiming it is card-free. What $30 buys depends entirely on the GPU class you pick — the per-second rates are in the same table."
+    }
+  },
+  {
+    "id": "resend-free-plan",
+    "name": "Resend Free plan",
+    "url": "https://resend.com/pricing",
+    "provider": "Resend",
+    "kind": "standing_tier",
+    "summary": "3,000 transactional emails a month at $0 across 3 domains — enough for a side project's signup and password-reset mail.",
+    "lastVerifiedAt": "2026-09-25",
+    "verification": {
+      "status": "VERIFIED",
+      "checkedAt": "2026-09-25",
+      "checkedBy": "Neo",
+      "observed": "Pricing page Free column: '$0/mo' with '3,000' emails per month and '3 domains'. The limit that actually bites is stated separately: 'The Free plan is limited to 100 emails per day.' 3,000 a month therefore cannot be spent in a burst."
+    }
+  },
+  {
+    "id": "google-colab-free-tier",
+    "name": "Google Colab — free notebooks",
+    "url": "https://research.google.com/colaboratory/faq.html",
+    "provider": "Google",
+    "kind": "standing_tier",
+    "summary": "Free hosted Jupyter notebooks with occasional GPU access. Nothing is guaranteed: runtimes cap at 12 hours, idle VMs are deleted, and GPU availability fluctuates.",
+    "lastVerifiedAt": "2026-09-25",
+    "verification": {
+      "status": "VERIFIED",
+      "checkedAt": "2026-09-25",
+      "checkedBy": "Neo",
+      "observed": "FAQ answers 'Yes. Colab is free of charge to use.' The qualifiers are on the same page and matter more than the headline: 'Colab resources are not guaranteed and not unlimited, and usage limits sometimes fluctuate', 'access to expensive resources like GPUs is heavily restricted', notebooks 'can run for at most 12 hours, depending on availability and your usage patterns', and 'Virtual machines are deleted when idle for a while, and have a maximum lifetime enforced by the Colab service.'"
+    }
+  },
+  {
+    "id": "sentry-developer-plan",
+    "name": "Sentry Developer plan",
+    "url": "https://sentry.io/pricing/",
+    "provider": "Sentry",
+    "kind": "standing_tier",
+    "summary": "Free error tracking for one developer: 5,000 errors, 50 session replays and 5M tracing spans a month, with 30 days of history.",
+    "lastVerifiedAt": "2026-09-25",
+    "verification": {
+      "status": "VERIFIED",
+      "checkedAt": "2026-09-25",
+      "checkedBy": "Neo",
+      "observed": "Pricing page Developer column: '$0', '5k errors', '50 replays', '5M spans', '30-day lookback'. Described on the page as 'For solo devs working on small projects' and 'Limited to one user' — the single-seat cap is the fence, not the event quota."
+    }
+  },
+  {
+    "id": "mistral-vibe-free-plan",
+    "name": "Mistral Vibe — Free plan with $10/month API credits",
+    "url": "https://mistral.ai/pricing",
+    "provider": "Mistral AI",
+    "kind": "standing_tier",
+    "summary": "Mistral's free Vibe plan comes with a monthly $10 of API credits alongside limited chat and web search — the credits are the useful part.",
+    "lastVerifiedAt": "2026-09-25",
+    "verification": {
+      "status": "VERIFIED",
+      "checkedAt": "2026-09-25",
+      "checkedBy": "Neo",
+      "observed": "Pricing page Vibe Free plan lists 'Limited messages and web searches' and '$10 /mo in API credits'. Qualifier: this page covers Vibe, not La Plateforme — it states no free tier for the API itself and links API pricing out to /pricing/api, which I did not open. Read this row as the Vibe plan's credit grant, not as a standing free API tier."
+    }
+  },
+  {
+    "id": "google-ai-pro-students-us",
+    "name": "Google AI Pro — 12 months free for US college students",
+    "url": "https://blog.google/innovation-and-ai/products/gemini-app/student-offer-google-ai/",
+    "provider": "Google",
+    "kind": "promotion",
+    "summary": "A free year of Google AI Pro (worth $19.99/mo) for verified US college students — but a payment method is required at signup and it auto-charges $19.99/month when the year ends unless you cancel.",
+    "expiresAt": "2026-12-31",
+    "verification": {
+      "status": "VERIFIED",
+      "checkedAt": "2026-09-25",
+      "checkedBy": "Neo",
+      "observed": "Google's own announcement states US students get 'one year of Google AI Pro for free', valued at '$19.99/mo', with a redemption deadline of 'December 31, 2026'. Two fences quoted from the same page: 'Valid form of payment required at sign-up' and, after the free year, 'Google AI Pro will automatically charge $19.99/month.' The expiresAt here is the claim deadline stated on the page, not the end of a redeemed subscription."
+    }
+  },
+  {
+    "id": "google-ai-plus-students-international",
+    "name": "Google AI Plus — 12 months free for students outside the US",
+    "url": "https://gemini.google/students/",
+    "provider": "Google",
+    "kind": "promotion",
+    "summary": "A free year of Google AI Plus for verified students in 140+ markets outside the US, with higher Gemini limits and cloud storage. A payment method is required and it auto-charges $4.99/month afterwards.",
+    "expiresAt": "2026-12-31",
+    "verification": {
+      "status": "VERIFIED",
+      "checkedAt": "2026-09-25",
+      "checkedBy": "Neo",
+      "observed": "Claim page served me its Bulgarian locale and reads 'Възползвайте се до 31 декември 2026 г.' — claim by 31 December 2026 — for a '1-годишен план Google AI Plus за учащи без парично заплащане' (one-year Google AI Plus student plan at no charge), listing 2x higher usage limits, 400 GB cloud storage and Gemini Omni access, for 'учащи в колеж на възраст над 18 години' (college students over 18), with eligibility reconfirmed annually. Google's announcement post gives the market fence: 'over 140 markets where Google AI Plus is available, except for in the U.S., Bolivia, Albania, Canada, Macau, Hong Kong, and Tunisia', 'Valid form of payment required at sign-up', and auto-charge of '$4.99/month or local currency equivalent' afterwards. What you see on the page depends on your locale."
+    }
+  },
+  {
+    "id": "groq-free-plan-limits",
+    "name": "Groq API — Free plan rate limits",
+    "url": "https://console.groq.com/docs/rate-limits",
+    "provider": "Groq",
+    "kind": "standing_tier",
+    "summary": "Groq does run a free API plan, but I could not read its actual limits, so do not plan around a number until you have seen your own.",
+    "lastVerifiedAt": "2026-09-25",
+    "verification": {
+      "status": "UNVERIFIED",
+      "checkedAt": "2026-09-25",
+      "checkedBy": "Neo",
+      "observed": "Could not confirm the offer. The rate-limits doc renders a tabbed table with a 'Free Plan Limits' tab, and the surrounding prose ('Upgrade to Developer plan to access higher limits') implies a free plan exists — but the tab's contents did not come through in my fetch, so I have no per-model RPM/RPD/TPM numbers. groq.com/pricing states nothing about a free tier at all. Marked UNVERIFIED rather than guessing at limits I did not see."
+    }
   }
 ]
