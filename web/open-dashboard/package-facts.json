@@ -1,6 +1,6 @@
 {
   "name": "open-dashboard-mcp",
-  "version": "1.1.7",
+  "version": "1.2.1",
   "node": ">=20",
   "providers": [
     {
@@ -571,6 +571,86 @@
       },
       "spendVisibility": "unknown",
       "comparabilityNote": "Crazyrouter is a multi-provider aggregator. With CRAZYROUTER_API_KEY the catalogue contains every model visible to that key; without it only public pricing identities are observed and the platform denominator is unknown. The separate comparison tool joins exact model aliases using explicit native author evidence to OpenRouter quotes and available dated direct-provider references. The exact GPT-4o, GPT-4o mini and GPT-4.1 default-group figures that equal 0.65x OpenAI list prices are marked derived with their source and observed multiplier, and are excluded from competition claims. Public default-group rates do not establish the caller's billing group or settled charges. Tiered or unsupported native billing remains unpriced for comparison. The vendor's dated discount claim is assessed against collected independently comparable quotes rather than assumed true; immutable model snapshot equivalence and account spend are not established."
+    },
+    {
+      "id": "akashml",
+      "caveatResearch": {
+        "status": "not_found_in_checked_sources",
+        "checkedSources": [
+          "https://akashml.com/"
+        ],
+        "observedAt": "2026-09-26",
+        "scope": "No numeric operating limit was established from this checked platform page. This limited check does not establish that the provider publishes none elsewhere."
+      },
+      "pitch": {
+        "text": "competitive pricing starting from $0.15/M tokens",
+        "attribution": "AkashML homepage pricing claim, contradicted by its own /models rates",
+        "sourceUrl": "https://akashml.com/",
+        "observedAt": "2026-09-26"
+      },
+      "pitchResearch": {
+        "status": "published",
+        "checkedSources": [
+          "https://akashml.com/"
+        ],
+        "observedAt": "2026-09-26",
+        "scope": "Provider-owned platform marketing copy; quoted as a provider claim, not endorsed as a comparison result."
+      },
+      "displayName": "AkashML",
+      "catalogueUrl": "https://api.akashml.com/v1/models",
+      "citationUrl": "https://akashml.com/docs/platform/models",
+      "publishes": {
+        "pricing": "always",
+        "contextLength": "always",
+        "outputModalities": "always",
+        "reasoningEfforts": "never",
+        "activeFlag": "never",
+        "discounts": "never",
+        "discountExpiry": "never",
+        "lifecycle": "never"
+      },
+      "spendVisibility": "no_billing_api",
+      "comparabilityNote": "AkashML is Akash Network's managed inference service. Its keyed /models publishes USD-per-token rates per model, and they differ about 44x on output (gpt-oss-20b $0.10/M to GLM-5.3 $4.40/M, measured 2026-09-25), so it is priced per model, never as one provider rate. Its homepage claim of pricing 'starting from $0.15/M tokens' matches none of those rates, and billed charges observed in its console agreed with the per-model rates rather than the headline. Five of its six models are reasoning models that write thinking to message.reasoning_content and can return an empty message.content while billing tokens when max_tokens is small; each catalogue row carries dated response-shape observations. No billing API is documented, so per-key spend is not readable here. The catalogue needs AKASHML_API_KEY."
+    },
+    {
+      "id": "ionet",
+      "caveatResearch": {
+        "status": "not_found_in_checked_sources",
+        "checkedSources": [
+          "https://io.net/intelligence"
+        ],
+        "observedAt": "2026-09-26",
+        "scope": "No numeric operating limit was established from this checked platform page. This limited check does not establish that the provider publishes none elsewhere."
+      },
+      "pitch": {
+        "text": "Free inference platform powered by io.net's decentralized GPU network.",
+        "attribution": "io.net IO Intelligence page description",
+        "sourceUrl": "https://io.net/intelligence",
+        "observedAt": "2026-09-26"
+      },
+      "pitchResearch": {
+        "status": "published",
+        "checkedSources": [
+          "https://io.net/intelligence"
+        ],
+        "observedAt": "2026-09-26",
+        "scope": "Provider-owned platform marketing copy; quoted as a provider claim, not endorsed as a comparison result."
+      },
+      "displayName": "io.net",
+      "catalogueUrl": "https://api.intelligence.io.solutions/api/v1/models",
+      "citationUrl": "https://io.net/docs/reference/ai-models/get-started-with-io-intelligence-api.md",
+      "publishes": {
+        "pricing": "always",
+        "contextLength": "always",
+        "outputModalities": "always",
+        "reasoningEfforts": "never",
+        "activeFlag": "never",
+        "discounts": "never",
+        "discountExpiry": "never",
+        "lifecycle": "never"
+      },
+      "spendVisibility": "unknown",
+      "comparabilityNote": "io.net sells both GPU rental (IO Cloud) and per-token inference (IO Intelligence); only the inference catalogue is collected. Its public /models publishes per-token USD prices as JSON numbers, converted exactly from their decimal text. 31 of 37 models (measured 2026-09-26) require an access tier above the free one (min_access_tier is retained in nativePricing), so a listed price is not proof a free key can call the model. GPU hourly rates on io.net's own pages disagree with each other and are not collected. Measured with a key on 2026-09-26, all 37 listed models were reachable, and three reasoning models (GLM-5.3-Flash, DeepSeek-V4.1-Flash, Qwen3.8-27B) wrote message.reasoning_content beside content and refusal; at max_tokens 16 GLM-5.3-Flash returned an empty answer 3 of 3 times and DeepSeek-V4.1-Flash 2 of 3, while billing; Qwen3.8-27B answered or was truncated in this build's 3 calls, though an operator probe the same day saw it return empty, and the tokens a one-word answer needed ranged from 16 to 218 depending on model and call. Other io.net models are not observed. io.net sits behind Cloudflare: a request can get 403 'error code: 1010' on a valid key depending on client and User-Agent, which is reported as EDGE_BLOCKED, not a credential failure."
     }
   ],
   "tools": [

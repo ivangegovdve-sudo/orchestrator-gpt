@@ -15,6 +15,8 @@ export const PROVIDERS = {
   wavespeed: "WaveSpeedAI",
   fal: "fal",
   crazyrouter: "Crazyrouter",
+  akashml: "AkashML",
+  ionet: "io.net",
 };
 export const DEFAULT_STATE = Object.freeze({
   provider: "all",
@@ -96,6 +98,8 @@ const PROVIDER_SOURCE = {
   wavespeed: "https://wavespeed.ai/api/models",
   fal: "https://api.fal.ai/v1/models",
   crazyrouter: "https://crazyrouter.com/api/pricing",
+  akashml: "https://akashml.com/docs/platform/models",
+  ionet: "https://io.net/docs/reference/ai-models/get-started-with-io-intelligence-api.md",
 };
 export const keyOf = (provider, id) => `${provider}:${id}`;
 export function finite(value) {
