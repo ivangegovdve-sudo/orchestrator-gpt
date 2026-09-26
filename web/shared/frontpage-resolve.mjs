@@ -21,7 +21,15 @@ if (feedback) document.querySelector('.resolve-history').append(feedback);
 let selected = null;
 let pendingEntry = null;
 let current = 5;
-let scrub = !reduced.matches && !frame && !location.hash && scrollY === 0;
+// Phones and touch screens never scroll-scrub the growth film. Seeking a 1080p video
+// on every touch scroll froze the first screens, left the plaques invisible behind a
+// runway, and remapped the timeline whenever the mobile toolbar resized innerHeight.
+// They get the finished page, with a CSS scroll-timeline reveal on phones
+// (frontpage-reveal.css) that the compositor runs and that cannot hold the scroll.
+const touchLayout = matchMedia('(max-width:800px), (pointer:coarse)');
+const phoneLayout = matchMedia('(max-width:800px)');
+let scrub = !reduced.matches && !frame && !location.hash && scrollY === 0 && !touchLayout.matches;
+if (phoneLayout.matches && !frame) root.dataset.resolveReveal = 'scroll';
 const ambient = createAmbient(stage);
 const motionButton = document.querySelector('.resolve-motion-toggle');
 const compact = matchMedia('(max-width:800px)');

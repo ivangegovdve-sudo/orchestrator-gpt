@@ -1,0 +1,44 @@
+/* Pool vines (frontpage-pool-vines.mjs): one vine per pool in the side root structure,
+ * ending at that pool's plaque. Behind the plaques, never interactive, never tied to
+ * scroll. Once the page has assembled they draw in; then a slow pulse climbs one vine
+ * at a time to show where each leads, and a hovered, focused or selected plaque lights
+ * its own vine. Reduced motion: the vines are simply drawn. */
+.resolve-directory nav > .pool-vines {
+  position:absolute;
+  inset:0;
+  width:100%;
+  height:100%;
+  overflow:visible;
+  pointer-events:none;
+  z-index:0;
+}
+.pool-vine path { fill:none; stroke-linecap:round; stroke-linejoin:round; vector-effect:non-scaling-stroke; }
+.pool-vine-stem { stroke:#4f6a41; stroke-width:2.6; stroke-dasharray:1; stroke-dashoffset:0; filter:drop-shadow(0 1px 1px #050805); }
+.pool-vine-leaf { fill:#5d7648; stroke:#263c29 !important; stroke-width:.8; }
+.pool-vine-pulse { stroke:#b8e6a0; stroke-width:3; stroke-dasharray:.07 1; stroke-dashoffset:.07; opacity:0; }
+.pool-vine.is-lit .pool-vine-stem { stroke:#8fbf6f; stroke-width:3.2; }
+.pool-vine.is-lit .pool-vine-pulse { opacity:1; }
+
+@media (prefers-reduced-motion:no-preference) {
+  /* Draw in once the page has assembled (scrub: at the end of the intro; static: at once). */
+  html:is([data-resolve-state="opened"]) .pool-vine-stem { animation:pool-vine-draw 1.6s cubic-bezier(.3,.7,.3,1) both; animation-delay:calc(var(--vine-index) * 140ms); }
+  html:is([data-resolve-state="opened"]) .pool-vine-leaf { animation:pool-vine-bud .6s ease-out both; animation-delay:calc(900ms + var(--vine-index) * 140ms); }
+  html[data-resolve-state="resolving"] .pool-vine,
+  html[data-resolve-state="dissolving"] .pool-vine { opacity:0; }
+  /* One pulse climbs one vine at a time, root to plaque, to lead the eye to each pool. */
+  html[data-resolve-state="opened"] .pool-vine-pulse {
+    animation:pool-vine-pulse 14s linear infinite;
+    animation-delay:calc(2.4s + var(--vine-index) * 2s);
+  }
+  .pool-vine.is-lit .pool-vine-pulse { animation:pool-vine-lit 1.6s linear infinite; }
+}
+@keyframes pool-vine-draw { from { stroke-dashoffset:1; } to { stroke-dashoffset:0; } }
+@keyframes pool-vine-bud { from { opacity:0; transform:scale(.4); } to { opacity:1; transform:none; } }
+@keyframes pool-vine-pulse {
+  0% { opacity:0; stroke-dashoffset:.07; }
+  1% { opacity:1; }
+  12% { opacity:1; stroke-dashoffset:-.93; }
+  13%, 100% { opacity:0; stroke-dashoffset:-.93; }
+}
+@keyframes pool-vine-lit { from { stroke-dashoffset:.07; } to { stroke-dashoffset:-.93; } }
+.pool-vine-leaf { transform-box:fill-box; transform-origin:center; }
