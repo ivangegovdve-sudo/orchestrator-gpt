@@ -30,7 +30,8 @@ main[data-pool-layout="designed"] .pool-try-item img {
   object-fit: cover;
   object-position: top center;
 }
-main[data-pool-layout="designed"] .pool-try-item--tall img { max-height: 520px; }
+main[data-pool-layout="designed"] .pool-try-item--tall { grid-template-rows: 1fr auto; }
+main[data-pool-layout="designed"] .pool-try-item--tall img { max-height: none; min-height: 320px; }
 main[data-pool-layout="designed"] .pool-try-item h3 { margin: 0; font: 500 1.6rem/1.15 var(--forest-display); }
 main[data-pool-layout="designed"] .pool-try-item h3 a { color: var(--pool-ink); text-decoration: none; }
 main[data-pool-layout="designed"] .pool-try-item h3 a:focus-visible { outline: none; }
@@ -53,5 +54,3 @@ main[data-pool-layout="designed"] .pool-letter-langs a { display: inline-block; 
   main[data-pool-layout="designed"] .pool-try-item--tall { grid-row: auto; }
   main[data-pool-layout="designed"] .pool-try-item--tall img { max-height: 320px; }
 }
-main[data-pool-layout="designed"] .pool-try-item--tall { grid-template-rows: 1fr auto; }
-main[data-pool-layout="designed"] .pool-try-item--tall img { max-height: none; min-height: 320px; }
