@@ -282,7 +282,7 @@ export function mountPoolPage(root) {
   for (const project of projects) {
     const tabPanel = root.querySelector(`[data-health-project="${project.id}"]`);
     if (tabPanel) {
-      tabPanel.querySelector('[data-project-details]').innerHTML = renderProject(project);
+      tabPanel.querySelector('[data-project-details]').innerHTML = renderProject(project, { designed });
     } else {
       listingProjects.push(project);
     }
