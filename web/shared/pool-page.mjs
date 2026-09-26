@@ -81,6 +81,7 @@ export function renderProject(project, { heading = 'h3', designed = false } = {}
     const external = binding.type === 'external';
     const destination = external ? binding.url : binding.route;
     const companion = !external && companions.find((entry) => entry.route === destination);
+    if (!enabled && designed) return `<li>Not open yet</li>`;
     if (!enabled) return `<li>Existing ${external ? 'external implementation' : 'page'}: <span>${escape(destination)}</span> (entry unavailable pending review)</li>`;
     // Designed pools name the destination for a reader; the raw route stays in the href.
     if (designed) {
@@ -93,7 +94,7 @@ export function renderProject(project, { heading = 'h3', designed = false } = {}
   const metrics = (project.metrics || []).map(({ name, value, unit }) => `${name}: ${value}${unit ? ` ${unit}` : ''}`).join('; ');
   return `<article class="pool-project pool-project--${escape(poolTier)}" data-project-id="${escape(project.id)}" data-pool-tier="${escape(poolTier)}" data-pool-rank="${poolRank ?? 'unranked'}"${enabled ? '' : ' aria-disabled="true"'}>
     <${heading}>${escape(project.publicName)}</${heading}>
-    <p class="pool-status">Status: ${escape(status)}${comingSoon ? ' — Coming Soon' : ''}</p>
+    <p class="pool-status">Status: ${escape(status)}${comingSoon && !designed ? ' — Coming Soon' : ''}</p>
     ${routes ? `<ul class="pool-bindings">${routes}</ul>` : ''}
     ${designed ? '<details class="pool-record"><summary>Catalog record</summary>' : ''}<div class="pool-fieldnotes">
     <p class="pool-tier">Tier: ${escape(poolTier === 'featured' ? `Featured · rank ${poolRank}` : poolTier === 'ranked' ? `Ranked · rank ${poolRank}` : 'Unranked')}</p>
