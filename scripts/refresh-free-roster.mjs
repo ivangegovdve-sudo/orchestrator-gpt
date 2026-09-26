@@ -57,7 +57,13 @@ const ROSTER_PATH = path.join(HERE, "..", "web", "council", "free-roster.json");
 
 export const RELAY = "https://chloe.blumenkraft.cloud/council/relay";
 export const OPENROUTER_CATALOGUE = "https://openrouter.ai/api/v1/models";
-export const MCP_PACKAGE = "open-dashboard-mcp@0.4.0";
+// Pinned to an exact published version. 0.4.0 stopped parsing the dashboard's payload
+// (status "error", kind "invalid_payload"), and because this script only read
+// liveCandidates it reported that as "no live candidates" for days while OpenRouter's
+// free tier was alive: 21 concrete_free candidates through the same call on 1.3.0
+// (measured 2026-09-26). The tool name, its arguments and the freeKind vocabulary are
+// unchanged across the rewrite; re-check them before moving this pin.
+export const MCP_PACKAGE = "open-dashboard-mcp@1.3.0";
 
 // A model must have answered at least once inside this window to keep its seat.
 export const VERIFY_WINDOW_DAYS = 7;
@@ -158,6 +164,12 @@ export async function catalogueFromMcp({ spawnClient = mcpClient } = {}) {
     });
     const structured = result.structuredContent
       ?? JSON.parse(result.content?.find((part) => part.type === "text")?.text ?? "{}");
+    // The tool reports its own failures as data. Say which one, rather than letting an
+    // unreadable payload masquerade as an empty free tier.
+    if (structured?.status === "error" || structured?.status === "unavailable") {
+      const kind = structured?.error?.kind ?? "unknown";
+      throw new Error(`dashboard_free_models returned status ${structured.status} (${kind}): ${String(structured?.summary ?? "").slice(0, 200)}`);
+    }
     const candidates = structured?.liveCandidates?.data ?? [];
     if (!Array.isArray(candidates) || candidates.length === 0) {
       throw new Error("dashboard_free_models returned no live candidates");
@@ -246,18 +258,41 @@ export async function probeModel(model, { fetchImpl = globalThis.fetch, relay = 
     let text = "";
     let buffer = "";
     let terminated = false;
+    let sawData = false;
+    // The first bytes, kept so a body that never became a stream can be named.
+    let head = "";
     for (;;) {
       const chunk = await reader.read();
       if (chunk.done) break;
-      buffer += decoder.decode(chunk.value, { stream: true });
+      const decoded = decoder.decode(chunk.value, { stream: true });
+      if (head.length < 2048) head += decoded;
+      buffer += decoded;
       const lines = buffer.split("\n");
       buffer = lines.pop() || "";
       for (const rawLine of lines) {
         const line = rawLine.trim();
         if (!line.startsWith("data:")) continue;
+        sawData = true;
         const payload = line.slice(5).trim();
         if (payload === "[DONE]") { terminated = true; continue; }
         try { text += JSON.parse(payload).choices?.[0]?.delta?.content ?? ""; } catch { /* partial frame */ }
+      }
+    }
+    // An upstream error forwarded under an event-stream content type: no data lines,
+    // just a JSON body. Measured 2026-09-26 -- the relay returned OpenRouter's
+    // {"error":{"message":"User not found.","code":401}} for every model because its
+    // key was dead, and this probe used to call that "empty-stream", which reads like
+    // eight models failing rather than one credential.
+    if (!sawData) {
+      let detail = null;
+      try { detail = JSON.parse(head.trim()); } catch { /* not JSON */ }
+      if (detail?.error) {
+        return {
+          ok: false,
+          reason: "relay-refused",
+          detail: String(detail.error.message ?? "").slice(0, 200),
+          ms: Date.now() - startedAt,
+        };
       }
     }
     const chars = text.trim().length;
