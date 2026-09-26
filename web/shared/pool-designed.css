@@ -276,3 +276,68 @@ main[data-pool-layout="designed"] details[open] > summary::before { transform: r
 @media (max-width: 820px) {
   main[data-pool-layout="designed"] .pool-flagship pre { white-space: pre-wrap; overflow-wrap: anywhere; }
 }
+
+/* Essay: the opening image set large, the essay beside it. */
+main[data-pool-layout="designed"] .pool-essay {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: calc(var(--pool-step) * 2);
+  align-items: end;
+  padding-top: calc(var(--pool-step) * 1.4);
+  border-top: 1px solid var(--pool-line);
+}
+main[data-pool-layout="designed"] .pool-essay-open {
+  max-width: none !important;
+  margin: 0;
+  color: var(--pool-ink) !important;
+  font: 500 clamp(2rem, 3.8vw, 3rem)/1.12 var(--forest-display);
+  letter-spacing: -.01em;
+}
+main[data-pool-layout="designed"] .pool-essay-body h2,
+main[data-pool-layout="designed"] .pool-time h2 { margin: 0; font: 500 clamp(1.8rem, 3vw, 2.3rem)/1.1 var(--forest-display); }
+main[data-pool-layout="designed"] .pool-essay-body h2 a,
+main[data-pool-layout="designed"] .pool-time h2 a {
+  color: var(--pool-accent);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: .18em;
+}
+main[data-pool-layout="designed"] .pool-essay-body p,
+main[data-pool-layout="designed"] .pool-time p { margin: .7rem 0 0; color: var(--pool-soft); }
+main[data-pool-layout="designed"] .pool-essay-meta { color: var(--pool-muted) !important; font: .95rem/1.4 var(--forest-sans); }
+
+/* Life in Time: a real screen of the tool, text to its right. */
+main[data-pool-layout="designed"] .pool-time {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+  gap: calc(var(--pool-step) * 1.6);
+  align-items: center;
+}
+main[data-pool-layout="designed"] .pool-time img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border: 1px solid var(--pool-line);
+  border-radius: 14px;
+}
+
+/* The narrative placeholder stays honest and quiet until Ivan writes it. */
+main[data-pool-layout="designed"] .pool-narrative p { margin: .2rem 0 0; color: var(--pool-muted) !important; font-size: .98rem; }
+
+@media (max-width: 820px) {
+  main[data-pool-layout="designed"] .pool-essay,
+  main[data-pool-layout="designed"] .pool-time { grid-template-columns: minmax(0, 1fr); gap: 1rem; }
+}
+
+/* Story links inside a designed pool: sentence case, real targets. */
+main[data-pool-layout="designed"] .narrative-spine {
+  margin: 1.4rem 0 0;
+  padding: .8rem 0;
+  color: var(--pool-soft);
+  font: 400 1rem/1.4 var(--forest-sans);
+  letter-spacing: 0;
+  text-transform: none;
+}
+main[data-pool-layout="designed"] .narrative-spine p { margin: 0 0 .2rem; color: var(--pool-muted); font-weight: 500; }
+main[data-pool-layout="designed"] .narrative-spine a { display: inline-block; padding: .3rem 0; color: var(--pool-accent-2); }
+main[data-pool-layout="designed"] .narrative-spine [aria-current="page"] { color: var(--pool-ink); font-weight: 600; }

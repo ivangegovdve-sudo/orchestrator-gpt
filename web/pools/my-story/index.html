@@ -3,13 +3,14 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Personal stories, reflections, and creative work.">
+  <meta name="description" content="Ivan Gegov's writing on what AI trains us to become, and a tool for seeing how much time is left.">
   <title>My Story</title>
   <link rel="icon" href="/web/shared/favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="/web/shared/forest-design.css?v=20260922a">
   <link rel="stylesheet" href="/web/shared/forest-shell.css?v=20260922a">
   <link rel="stylesheet" href="/web/shared/pool-page.css">
   <link rel="stylesheet" href="/web/shared/narrative-spine.css">
+  <link rel="stylesheet" href="/web/shared/pool-designed.css?v=20260926c">
   <script type="module" src="/web/shared/pool-page.mjs"></script>
   <script type="module" data-forest-runtime="motion" src="/web/shared/forest-runtime-boot.mjs?v=20260807a"></script>
 </head>
@@ -17,23 +18,56 @@
   <canvas class="forest-scene" data-forest-scene data-mode="time" aria-hidden="true"></canvas>
   <div class="forest-scrim" aria-hidden="true"></div>
   <header><a href="/">Back to SD Forest</a></header>
-  <main data-pool-id="my-story">
-    <img class="pool-emblem" src="/web/assets/sdforest-workbench/my-story.webp" alt="" width="1100" height="275" fetchpriority="high">
-    <h1>My Story</h1>
-    <section aria-labelledby="pool-overview-title" data-pool-overview>
-      <h2 id="pool-overview-title">About this pool</h2>
-      <div data-pool-overview-content><p>This pool overview is catalog-backed and loads with the shared catalog.</p></div>
-      <noscript><p>This pool overview is catalog-backed; enable JavaScript to read its current catalog summary and project count.</p></noscript>
+  <main data-pool-id="my-story" data-pool-layout="designed">
+    <div class="pool-threshold">
+      <h1>My Story</h1>
+      <section aria-labelledby="pool-overview-title" data-pool-overview>
+        <h2 id="pool-overview-title" class="pool-sr">About this pool</h2>
+        <div data-pool-overview-content>
+          <p class="pool-lede">Writing about what AI trains us to become, and a small tool for seeing how much time is left to spend.</p>
+        </div>
+        <noscript><p>This pool overview is catalog-backed; the full project listing below needs JavaScript, and everything above it does not.</p></noscript>
+      </section>
+      <img class="pool-emblem" src="/web/assets/sdforest-workbench/my-story.webp" alt="" width="1100" height="275" fetchpriority="high">
+    </div>
+
+    <section class="pool-essay" aria-labelledby="essay-title">
+      <p class="pool-essay-open">A chair holds you where you are. A ladder helps you reach a place you cannot yet stand.</p>
+      <div class="pool-essay-body">
+        <h2 id="essay-title"><a href="/web/chair-or-ladder/">Chair or Ladder?</a></h2>
+        <p>An essay on what AI trains us to become. It can take the drudgery away and hand ordinary people a specialist's reach, or it can quietly do the thinking for us. It ends with one question to ask before handing over the next decision.</p>
+        <p class="pool-essay-meta">By Ivan Gegov. A five-minute read.</p>
+      </div>
     </section>
-    <section aria-label="Personal narrative" data-pool-context>
+
+    <section class="pool-time" aria-labelledby="time-title">
+      <img src="/web/assets/pools/my-story/life-in-time.jpg" alt="Life in Time's year card: how much of the current year is gone, the days left and the week number, on a bar from January to December." width="740" height="350" loading="lazy" decoding="async">
+      <div>
+        <h2 id="time-title"><a href="/web/life-in-time/">Life in Time</a></h2>
+        <p>Enter a birth year and see what remains in summers, Christmases with your parents, and summers with the kids still at home. Then turn it over to the late achievers and what is still possible.</p>
+        <p class="pool-essay-meta">A perspective tool, built on EU averages. Not a medical prediction.</p>
+      </div>
+    </section>
+
+    <section class="pool-forming" aria-labelledby="forming-title">
+      <h2 id="forming-title">In development</h2>
+      <p>Drafts that are public enough to exist, not finished enough to point you at.</p>
+      <dl>
+        <div><dt>We Are the Training Data</dt><dd>A spoken-word piece that picks up the chair and the ladder where the essay leaves them, with AI as an avalanche you are already standing in.</dd></div>
+        <div><dt>Power Law Odyssey</dt><dd>A scrolling essay asking whether life rewards steady, additive effort, or follows the power laws where rare outliers decide the outcome.</dd></div>
+      </dl>
+    </section>
+
+    <section class="pool-narrative" aria-label="Personal narrative" data-pool-context>
       <p>A short personal narrative carries this page, with timeline fragments and selected project or evidence windows.</p>
       <p>The personal narrative has not yet been provided for this page.</p>
       <p><a href="/web/manifesto-newborn/">Manifesto for a Newborn</a> — Ivan-authored content.</p>
     </section>
     <div data-narrative-spine-root data-narrative-spine-id="my-story"></div>
+
     <section aria-labelledby="projects-title">
-      <h2 id="projects-title">Projects in My Story</h2>
-      <p>This listing includes work at different stages. Project status, metrics, update dates, and entry readiness are separate facts.</p>
+      <h2 id="projects-title">Everything in My Story</h2>
+      <p>The full catalog for this pool. Each entry's status and review record sit under its own "Catalog record".</p>
       <noscript><p>Project details load from the shared catalog when JavaScript is available. The pool description and all-pools navigation remain available here.</p></noscript>
       <div data-pool-projects><p>Project details load from the shared catalog. If they do not appear, you can still explore the other pools below.</p></div>
     </section>
@@ -54,4 +88,3 @@
   <script type="module" src="/web/shared/narrative-spine.mjs"></script>
 </body>
 </html>
-
