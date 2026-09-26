@@ -1,0 +1,48 @@
+/* Artificial Self pool sections for the designed layout (see web/shared/pool-designed.css). */
+
+/* The setup: the real opening line is the page's artefact. */
+main[data-pool-layout="designed"] .pool-setup figure {
+  margin: 1.4rem 0 0;
+  padding: calc(var(--pool-step) * 1.4) calc(var(--pool-step) * 1.6);
+  border: 1px solid color-mix(in srgb, var(--pool-accent) 28%, transparent);
+  border-radius: 14px;
+  background:
+    radial-gradient(ellipse 60% 100% at 50% 0%, color-mix(in srgb, var(--pool-accent) 10%, transparent), transparent 70%),
+    rgba(10, 12, 20, .78);
+}
+main[data-pool-layout="designed"] .pool-setup blockquote { margin: 0; }
+main[data-pool-layout="designed"] .pool-setup blockquote p {
+  margin: 0;
+  color: var(--pool-ink);
+  font: 500 clamp(1.8rem, 3.6vw, 2.8rem)/1.15 var(--forest-display);
+}
+main[data-pool-layout="designed"] .pool-setup figcaption { margin-top: .8rem; color: var(--pool-muted); font: .95rem/1.4 var(--forest-sans); }
+
+main[data-pool-layout="designed"] .pool-experiments {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: calc(var(--pool-step) * 1.6);
+  margin-top: calc(var(--pool-step) * 1.4);
+}
+main[data-pool-layout="designed"] .pool-experiments article {
+  padding-top: .9rem;
+  border-top: 2px solid color-mix(in srgb, var(--pool-accent) 50%, transparent);
+}
+main[data-pool-layout="designed"] .pool-experiments h3 { margin: 0; font: 500 1.6rem/1.15 var(--forest-display); }
+main[data-pool-layout="designed"] .pool-experiments h3 a { display: inline-block; padding: .15rem 0; color: var(--pool-accent); text-decoration: underline; text-underline-offset: .2em; }
+main[data-pool-layout="designed"] .pool-experiments p { margin: .45rem 0 0; color: var(--pool-soft); }
+
+/* The boundary: stated once, plainly, where it cannot be missed. */
+main[data-pool-layout="designed"] .pool-boundary {
+  padding: calc(var(--pool-step) * 1.2) calc(var(--pool-step) * 1.4);
+  border-left: 2px solid color-mix(in srgb, var(--forest-amber) 60%, transparent);
+  border-radius: 0 14px 14px 0;
+  background: linear-gradient(90deg, color-mix(in srgb, var(--forest-amber) 7%, transparent), transparent 75%);
+}
+main[data-pool-layout="designed"] .pool-boundary > h2 { color: var(--forest-amber); font-size: 1.7rem; }
+main[data-pool-layout="designed"] .pool-boundary p + p { margin-top: .7rem; }
+
+@media (max-width: 820px) {
+  main[data-pool-layout="designed"] .pool-experiments { grid-template-columns: minmax(0, 1fr); gap: 1.1rem; }
+  main[data-pool-layout="designed"] .pool-setup figure { padding: 1.1rem; }
+}
