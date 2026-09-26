@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "collector": "open-dashboard-mcp@1.2.1 + Nous Research catalogue",
+  "collector": "open-dashboard-mcp@1.1.7 + Nous Research catalogue",
   "provider": "nous",
   "displayName": "Nous Research",
   "sourceUrl": "https://inference-api.nousresearch.com/v1/models",
