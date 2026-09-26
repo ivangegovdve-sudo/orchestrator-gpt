@@ -3,12 +3,14 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Learning, family tools, and growing together.">
+  <meta name="description" content="Parenting grounded in the research literature: what studies say about how children grow, turned into things a family can use.">
   <title>GrowingApp</title>
   <link rel="icon" href="/web/shared/favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="/web/shared/forest-design.css?v=20260922a">
   <link rel="stylesheet" href="/web/shared/forest-shell.css?v=20260922a">
   <link rel="stylesheet" href="/web/shared/pool-page.css">
+  <link rel="stylesheet" href="/web/shared/pool-designed.css?v=20260926b">
+  <link rel="stylesheet" href="/web/pools/growingapp/pool.css?v=20260926a">
   <script type="module" src="/web/shared/pool-page.mjs"></script>
   <script type="module" data-forest-runtime="motion" src="/web/shared/forest-runtime-boot.mjs?v=20260807a"></script>
 </head>
@@ -16,21 +18,73 @@
   <canvas class="forest-scene" data-forest-scene data-mode="kids" aria-hidden="true"></canvas>
   <div class="forest-scrim" aria-hidden="true"></div>
   <header><a href="/">Back to SD Forest</a></header>
-  <main data-pool-id="growingapp">
-    <img class="pool-emblem" src="/web/assets/sdforest-workbench/growingapp.webp" alt="" width="1100" height="458" fetchpriority="high">
-    <h1>GrowingApp</h1>
-    <section aria-labelledby="pool-overview-title" data-pool-overview>
-      <h2 id="pool-overview-title">About this pool</h2>
-      <div data-pool-overview-content><p>This pool overview is catalog-backed and loads with the shared catalog.</p></div>
-      <noscript><p>This pool overview is catalog-backed; enable JavaScript to read its current catalog summary and project count.</p></noscript>
+  <main data-pool-id="growingapp" data-pool-layout="designed">
+    <div class="pool-threshold">
+      <h1>GrowingApp</h1>
+      <section aria-labelledby="pool-overview-title" data-pool-overview>
+        <h2 id="pool-overview-title" class="pool-sr">About this pool</h2>
+        <div data-pool-overview-content>
+          <p class="pool-lede">Raising children with the research at hand. This pool is where what studies say about how children grow becomes something a family can use.</p>
+        </div>
+        <noscript><p>This pool overview is catalog-backed; the full project listing below needs JavaScript, and everything above it does not.</p></noscript>
+      </section>
+      <img class="pool-emblem" src="/web/assets/sdforest-workbench/growingapp.webp" alt="" width="1100" height="458" fetchpriority="high">
+    </div>
+
+    <section class="pool-thesis" aria-labelledby="thesis-title">
+      <h2 id="thesis-title" class="pool-sr">What this pool is for</h2>
+      <p class="pool-thesis-lead">Parents get advice from every direction, and most of it arrives without a source.</p>
+      <p>GrowingApp starts from the other end. Each piece of guidance should name the specific studies behind it, say what those studies let a parent actually do, and say plainly where the evidence stops. The app is how that reaches a family.</p>
+      <p class="pool-thesis-next">The studies come first, chosen one at a time. Choosing them is the next step.</p>
     </section>
-    <section aria-labelledby="growingapp-intro-title">
+
+    <section class="pool-letter" aria-labelledby="growingapp-intro-title">
       <h2 id="growingapp-intro-title">An optional way in</h2>
-      <p><a href="/web/manifesto-newborn/">Manifesto for a Newborn</a> is an optional entry, never a gate. Skipping it leads to the same short sense-making introduction, research hub, and project windows.</p>
+      <blockquote><p>You belong here.</p></blockquote>
+      <p><a href="/web/manifesto-newborn/">Manifesto for a Newborn</a> is the welcome to this pool: a short letter to someone who has just arrived. It is an optional entry, never a gate: skip it and everything below is still one click away.</p>
+      <p class="pool-letter-langs">Also in
+        <a href="/web/manifesto-newborn/bg/" hreflang="bg" lang="bg">български</a>,
+        <a href="/web/manifesto-newborn/de/" hreflang="de" lang="de">Deutsch</a>,
+        <a href="/web/manifesto-newborn/es/" hreflang="es" lang="es">español</a>,
+        <a href="/web/manifesto-newborn/fr/" hreflang="fr" lang="fr">français</a>,
+        <a href="/web/manifesto-newborn/it/" hreflang="it" lang="it">italiano</a>,
+        <a href="/web/manifesto-newborn/mk/" hreflang="mk" lang="mk">македонски</a>,
+        <a href="/web/manifesto-newborn/pt/" hreflang="pt" lang="pt">português</a>,
+        <a href="/web/manifesto-newborn/ru/" hreflang="ru" lang="ru">русский</a> and
+        <a href="/web/manifesto-newborn/zh/" hreflang="zh" lang="zh">中文</a>.</p>
     </section>
+
+    <section class="pool-try" aria-labelledby="try-title">
+      <h2 id="try-title">Learning side by side</h2>
+      <p>The first things here are for a parent and child to do together.</p>
+      <div class="pool-try-grid">
+        <article class="pool-try-item pool-try-item--tall">
+          <img src="/web/assets/pools/growingapp/cubeflow.jpg" alt="Cubeflow's scan screen: a hand holds a Rubik's cube inside a framing guide, ready to read the white face." width="608" height="585" loading="lazy" decoding="async">
+          <div>
+            <h3><a href="/web/rubiks-teacher/">Cubeflow</a></h3>
+            <p>Show it your cube one face at a time. It checks the scan makes a real cube, finds a solution, and teaches every turn.</p>
+          </div>
+        </article>
+        <article class="pool-try-item">
+          <img src="/web/assets/pools/growingapp/periodic-table.jpg" alt="The full periodic table in Bulgarian, each element coloured by its group." width="954" height="537" loading="lazy" decoding="async">
+          <div>
+            <h3><a href="/web/mendeleev-bg/">Interactive Periodic Table</a></h3>
+            <p>Bulgarian and English, pitched at about age eleven. Tap an element for its compounds, or highlight everything inside a battery, a banana or a smartphone.</p>
+          </div>
+        </article>
+        <article class="pool-try-item">
+          <img src="/web/assets/pools/growingapp/math-mania.jpg" alt="Math Quest's four ways in: a challenge trail, free practice, step-by-step lessons and guessing puzzles." width="1168" height="620" loading="lazy" decoding="async">
+          <div>
+            <h3><a href="/web/math-mania/">Math Mania</a></h3>
+            <p>A trail of stages that starts easy and grows with the player, free practice with no score pressure, and puzzles where guessing wrong is the fun part.</p>
+          </div>
+        </article>
+      </div>
+    </section>
+
     <section aria-labelledby="projects-title">
-      <h2 id="projects-title">Projects in GrowingApp</h2>
-      <p>This listing includes work at different stages. Project status, metrics, update dates, and entry readiness are separate facts.</p>
+      <h2 id="projects-title">The GrowingApp catalog</h2>
+      <p>Every project the site catalog lists for this pool, each with its status and review record under "Catalog record".</p>
       <noscript><p>Project details load from the shared catalog when JavaScript is available. The pool description and all-pools navigation remain available here.</p></noscript>
       <div data-pool-projects><p>Project details load from the shared catalog. If they do not appear, you can still explore the other pools below.</p></div>
     </section>
@@ -50,4 +104,3 @@
   </footer>
 </body>
 </html>
-

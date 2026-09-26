@@ -56,7 +56,7 @@ export function projectReadiness(project) {
   return { state: 'UNKNOWN', reason: 'Completion evidence is not verified.' };
 }
 
-export function renderProject(project, { heading = 'h3' } = {}) {
+export function renderProject(project, { heading = 'h3', designed = false } = {}) {
   if (project.visibility?.publicSurface === 'excluded') return '';
   const poolName = project.poolContext || project.pools?.[0] || project.pool;
   const poolRank = Number.isInteger(project.poolRank) ? project.poolRank : getProjectRank(project, poolName);
@@ -81,15 +81,22 @@ export function renderProject(project, { heading = 'h3' } = {}) {
     const external = binding.type === 'external';
     const destination = external ? binding.url : binding.route;
     const companion = !external && companions.find((entry) => entry.route === destination);
+    if (!enabled && designed) return project.status === 'Research' ? `<li>Research archive, not a finding</li>` : `<li>Not open yet</li>`;
     if (!enabled) return `<li>Existing ${external ? 'external implementation' : 'page'}: <span>${escape(destination)}</span> (entry unavailable pending review)</li>`;
+    // Designed pools name the destination for a reader; the raw route stays in the href.
+    if (designed) {
+      const label = companion?.name || (external ? `Visit ${new URL(destination).host}` : 'Open page');
+      const named = companion ? '' : `<span class="pool-sr">: ${escape(project.publicName)}</span>`;
+      return `<li><a href="${escape(destination)}"${external ? ' rel="noopener"' : ''}>${escape(label)}${external ? '' : named}${external ? '<span class="pool-sr"> (external site)</span>' : ''}</a>${companion?.presentationNote ? ` <span>${escape(companion.presentationNote)}</span>` : ''}</li>`;
+    }
     return `<li><a href="${escape(destination)}"${external ? ' target="_blank" rel="noopener"' : ''}>${escape(companion?.name || destination)}${external ? ' — External; opens in a new tab' : ' — Open existing page'}</a>${companion?.presentationNote ? ` <span>${escape(companion.presentationNote)}</span>` : ''}</li>`;
   }).join('');
   const metrics = (project.metrics || []).map(({ name, value, unit }) => `${name}: ${value}${unit ? ` ${unit}` : ''}`).join('; ');
   return `<article class="pool-project pool-project--${escape(poolTier)}" data-project-id="${escape(project.id)}" data-pool-tier="${escape(poolTier)}" data-pool-rank="${poolRank ?? 'unranked'}"${enabled ? '' : ' aria-disabled="true"'}>
     <${heading}>${escape(project.publicName)}</${heading}>
-    <p class="pool-status">Status: ${escape(status)}${comingSoon ? ' — Coming Soon' : ''}</p>
+    <p class="pool-status">Status: ${escape(status)}${comingSoon && !designed ? ' — Coming Soon' : ''}</p>
     ${routes ? `<ul class="pool-bindings">${routes}</ul>` : ''}
-    <div class="pool-fieldnotes">
+    ${designed ? '<details class="pool-record"><summary>Catalog record</summary>' : ''}<div class="pool-fieldnotes">
     <p class="pool-tier">Tier: ${escape(poolTier === 'featured' ? `Featured · rank ${poolRank}` : poolTier === 'ranked' ? `Ranked · rank ${poolRank}` : 'Unranked')}</p>
     <p class="pool-readiness" data-readiness-state="${escape(readiness.state)}">Readiness: ${escape(readiness.state)} — ${escape(readiness.reason)}</p>
     <p class="pool-metrics">Metrics: ${escape(metrics || 'none published')}</p>
@@ -107,7 +114,7 @@ export function renderProject(project, { heading = 'h3' } = {}) {
     ${project.evidenceLevel === 'rederivation-required' ? '<p class="pool-evidence">Archive interpretations require rederivation. Existing C2C outcome claims are not verified findings.</p>' : ''}
     ${project.relationship?.type === 'self-mirror-control' ? `<p>${escape(project.relationship.description)}</p>` : ''}
     ${!routes && !restricted ? '<p>This pool listing is the catalog entry; no separate implementation is bound for public entry.</p>' : ''}
-    </div>
+    </div>${designed ? '</details>' : ''}
   </article>`;
 }
 
@@ -194,6 +201,17 @@ const TIER_GROUPS = [
   ['unranked', 'Unranked entries'],
 ];
 
+/**
+ * Designed pools list every catalog project once, in rank order, as a compact
+ * index beneath the authored showcase. Tier and readiness stay in each
+ * project's "Catalog record" disclosure rather than on the card face.
+ */
+export function renderProjectIndex(projects) {
+  return `<div class="pool-index">${projects
+    .filter((project) => project.visibility?.publicSurface !== 'excluded')
+    .map((project) => `<div id="${escape(project.id)}" data-pool-project="${escape(project.id)}" data-pool-tier="${escape(project.poolTier)}" data-pool-rank="${project.poolRank ?? 'unranked'}">${renderProject(project, { designed: true })}</div>`).join('\n')}</div>`;
+}
+
 export function renderProjectGroups(projects) {
   return TIER_GROUPS.map(([tier, label]) => {
     const entries = projects.filter((project) => project.poolTier === tier);
@@ -252,8 +270,10 @@ export function mountPoolPage(root) {
   const pool = POOL_CATALOG.find(({ id }) => id === root.dataset.poolId);
   if (!pool) return;
   reorderPoolLinks(root.ownerDocument);
+  // A designed pool authors its own threshold; the catalog fills only the index.
+  const designed = root.dataset.poolLayout === 'designed';
   const overview = root.querySelector('[data-pool-overview-content]');
-  if (overview) overview.innerHTML = renderPoolOverview(pool.id);
+  if (overview && !designed) overview.innerHTML = renderPoolOverview(pool.id);
   const context = root.querySelector('[data-pool-context]');
   if (context) context.innerHTML = renderPoolContext(pool);
   const listing = root.querySelector('[data-pool-projects]');
@@ -262,12 +282,15 @@ export function mountPoolPage(root) {
   for (const project of projects) {
     const tabPanel = root.querySelector(`[data-health-project="${project.id}"]`);
     if (tabPanel) {
-      tabPanel.querySelector('[data-project-details]').innerHTML = renderProject(project);
+      tabPanel.querySelector('[data-project-details]').innerHTML = renderProject(project, { designed });
     } else {
       listingProjects.push(project);
     }
   }
-  listing.innerHTML = renderPoolLedger(pool.id) + renderProjectGroups(listingProjects);
+  listing.innerHTML = designed
+    ? renderProjectIndex(listingProjects)
+      + `<details class="pool-ledger-disclosure"><summary>How this listing is kept</summary>${renderPoolLedger(pool.id)}</details>`
+    : renderPoolLedger(pool.id) + renderProjectGroups(listingProjects);
   enhanceHealthTabs(root);
 }
 

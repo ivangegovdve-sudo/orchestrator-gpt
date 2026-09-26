@@ -3,12 +3,14 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Playgrounds, practical experiments, and personal tools.">
+  <meta name="description" content="A public workbench: the engine behind Chloé's avatar and a panel of models you can question, each showing its workings.">
   <title>TinkerBox</title>
   <link rel="icon" href="/web/shared/favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="/web/shared/forest-design.css?v=20260922a">
   <link rel="stylesheet" href="/web/shared/forest-shell.css?v=20260922a">
   <link rel="stylesheet" href="/web/shared/pool-page.css">
+  <link rel="stylesheet" href="/web/shared/pool-designed.css?v=20260926a">
+  <link rel="stylesheet" href="/web/pools/tinkerbox/pool.css?v=20260926a">
   <script type="module" src="/web/shared/pool-page.mjs"></script>
   <script type="module" data-forest-runtime="motion" src="/web/shared/forest-runtime-boot.mjs?v=20260807a"></script>
 </head>
@@ -16,18 +18,47 @@
   <canvas class="forest-scene" data-forest-scene data-mode="council" aria-hidden="true"></canvas>
   <div class="forest-scrim" aria-hidden="true"></div>
   <header><a href="/">Back to SD Forest</a></header>
-  <main data-pool-id="tinkerbox">
-    <img class="pool-emblem" src="/web/assets/sdforest-workbench/emblem/tinkerbox.webp" alt="" width="1100" height="275" fetchpriority="high">
-    <h1>TinkerBox</h1>
-    <section aria-labelledby="pool-overview-title" data-pool-overview>
-      <h2 id="pool-overview-title">About this pool</h2>
-      <div data-pool-overview-content><p>This pool overview is catalog-backed and loads with the shared catalog.</p></div>
-      <noscript><p>This pool overview is catalog-backed; enable JavaScript to read its current catalog summary and project count.</p></noscript>
+  <main data-pool-id="tinkerbox" data-pool-layout="designed">
+    <div class="pool-threshold">
+      <h1>TinkerBox</h1>
+      <section aria-labelledby="pool-overview-title" data-pool-overview>
+        <h2 id="pool-overview-title" class="pool-sr">About this pool</h2>
+        <div data-pool-overview-content>
+          <p class="pool-lede">A public workbench. Things get built here to find out how they work, and stay open while that is being figured out.</p>
+        </div>
+        <noscript><p>This pool overview is catalog-backed; the full project listing below needs JavaScript, and everything above it does not.</p></noscript>
+      </section>
+      <img class="pool-emblem" src="/web/assets/sdforest-workbench/emblem/tinkerbox.webp" alt="" width="1100" height="275" fetchpriority="high">
+    </div>
+
+    <section class="pool-thesis" aria-labelledby="thesis-title">
+      <h2 id="thesis-title" class="pool-sr">What this pool is for</h2>
+      <p class="pool-thesis-lead">The quickest way to understand a thing is to take it apart where others can watch.</p>
+      <p>TinkerBox holds the working parts behind the rest of the forest: the engine that draws Chloé's avatar, and a panel of models you can put a question to. Each one is live and usable, and each shows its workings rather than hiding them.</p>
+      <p class="pool-thesis-next">A printable calendar maker and a game-icon generator are next on the bench.</p>
     </section>
-    <p>The public round-table council is shared with AI-d kit and appears here as a practical tool.</p>
+
+    <section class="pool-avatar" aria-labelledby="avatar-title">
+      <img src="/web/assets/pools/tinkerbox/avatar-playground.jpg" alt="Chloé's avatar mid-speech: a loose cloud of points joined by thin, shifting lines on a dark stage." width="484" height="440" loading="lazy" decoding="async">
+      <div>
+        <h2 id="avatar-title"><a href="/web/avatar-playground/">Avatar Playground</a></h2>
+        <p>Chloé is a cloud of dots joined by a shifting web, not a face and not an orb. This is the real engine she runs on, with every state, expression and rule one click away: idle, listening, thinking, speaking.</p>
+        <p class="pool-avatar-note">Nothing runs until you press start. It drives the cloud from real sound and her own voice.</p>
+      </div>
+    </section>
+
+    <section class="pool-councils" aria-labelledby="councils-title">
+      <h2 id="councils-title"><a href="/web/council/">Model councils</a></h2>
+      <p>Ask one hard question under two very different conditions. Both are public and stateless: no fleet memory, no delegation, nothing saved. The same council is shared with AI-d kit.</p>
+      <dl>
+        <div><dt>TinyLLM Local Oracle</dt><dd>Five small local models on Oracle ARM hardware, each with a fixed role: proposer, analyst, critic, observer and synthesizer. Slow by design, and free.</dd></div>
+        <div><dt>OpenRouter Free</dt><dd>Free cloud models take distinct deliberation roles. A model keeps its seat only if it answered a real call within a week of the last check, and the council page shows how old that check is.</dd></div>
+      </dl>
+    </section>
+
     <section aria-labelledby="projects-title">
-      <h2 id="projects-title">Projects in TinkerBox</h2>
-      <p>This listing includes work at different stages. Project status, metrics, update dates, and entry readiness are separate facts.</p>
+      <h2 id="projects-title">The TinkerBox catalog</h2>
+      <p>Every project the site catalog lists for this pool, each with its status and review record under "Catalog record".</p>
       <noscript><p>Project details load from the shared catalog when JavaScript is available. The pool description and all-pools navigation remain available here.</p></noscript>
       <div data-pool-projects><p>Project details load from the shared catalog. If they do not appear, you can still explore the other pools below.</p></div>
     </section>
@@ -47,4 +78,3 @@
   </footer>
 </body>
 </html>
-

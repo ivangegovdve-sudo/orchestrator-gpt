@@ -3,12 +3,13 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Tools for finding, understanding, and working with AI.">
+  <meta name="description" content="Tools for choosing, pricing and debugging AI models: an MCP server for model prices, a troubleshooting record, free AI credits, and searchable indexes.">
   <title>AI-d kit</title>
   <link rel="icon" href="/web/shared/favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="/web/shared/forest-design.css?v=20260922a">
   <link rel="stylesheet" href="/web/shared/forest-shell.css?v=20260922a">
   <link rel="stylesheet" href="/web/shared/pool-page.css">
+  <link rel="stylesheet" href="/web/shared/pool-designed.css?v=20260926a">
   <script type="module" src="/web/shared/pool-page.mjs"></script>
   <script type="module" data-forest-runtime="motion" src="/web/shared/forest-runtime-boot.mjs?v=20260807a"></script>
 </head>
@@ -16,29 +17,80 @@
   <canvas class="forest-scene" data-forest-scene data-mode="open-dashboard" aria-hidden="true"></canvas>
   <div class="forest-scrim" aria-hidden="true"></div>
   <header><a href="/">Back to SD Forest</a></header>
-  <main data-pool-id="ai-d-kit">
-    <img class="pool-emblem" src="/web/assets/sdforest-workbench/emblem/ai-d-kit.webp" alt="" width="1100" height="458" fetchpriority="high">
-    <h1>AI-d kit</h1>
-    <section aria-labelledby="pool-overview-title" data-pool-overview>
-      <h2 id="pool-overview-title">About this pool</h2>
-      <div data-pool-overview-content><p>This pool overview is catalog-backed and loads with the shared catalog.</p></div>
-      <noscript><p>This pool overview is catalog-backed; enable JavaScript to read its current catalog summary and project count.</p></noscript>
+  <main data-pool-id="ai-d-kit" data-pool-layout="designed">
+    <div class="pool-threshold">
+      <h1>AI-d kit</h1>
+      <section aria-labelledby="pool-overview-title" data-pool-overview>
+        <h2 id="pool-overview-title" class="pool-sr">About this pool</h2>
+        <div data-pool-overview-content>
+          <p class="pool-lede">Tools for choosing, pricing and debugging AI models, built while running a fleet of agents. All of it is free and none of it needs an account.</p>
+        </div>
+        <noscript><p>This pool overview is catalog-backed; the full project listing below needs JavaScript, and everything above it does not.</p></noscript>
+      </section>
+      <img class="pool-emblem" src="/web/assets/sdforest-workbench/emblem/ai-d-kit.webp" alt="" width="1100" height="458" fetchpriority="high">
+    </div>
+
+    <section class="pool-flagship" aria-labelledby="flagship-title">
+      <div class="pool-flagship-copy">
+        <h2 id="flagship-title">Open Dashboard MCP</h2>
+        <p>Ask your agent which model to use and what it will cost, and get an answer built from live provider catalogues. It is read-only. A missing key or a blocked provider comes back as exactly that, never as an empty or free result.</p>
+        <p class="pool-flagship-install">Add it to Claude Code:</p>
+        <pre><code>claude mcp add open-dashboard -- npx -y open-dashboard-mcp</code></pre>
+        <p class="pool-flagship-links"><a href="https://www.npmjs.com/package/open-dashboard-mcp" rel="noopener">Version 1.4.0 on npm<span class="pool-sr"> (external site)</span></a><a href="/web/open-dashboard/">Browse the dashboard</a></p>
+      </div>
+      <dl class="pool-flagship-facts">
+        <div><dt>18</dt><dd>read-only tools, from price comparison to what changed this week</dd></div>
+        <div><dt>15</dt><dd>providers, each catalogue read live from the provider's own source on every call: OpenRouter, Groq, Cerebras, Sail, Nous Research, QwenCloud, DeepInfra, Novita, SambaNova, Chutes, WaveSpeedAI, fal, Crazyrouter, AkashML and io.net. Eleven need no key; AkashML, Groq, Sail and QwenCloud need their own.</dd></div>
+        <div><dt>Per model</dt><dd>prices with their source and read time, and a missing price reported as unknown, never zero. Measured 26 September 2026: AkashML 6 of 6 models priced, io.net 37 of 37, Groq 8 of 11, OpenRouter 452 of 458, Sail 12 of 12, Cerebras 2 of 3, Nous Research 417 of 417, marked as a reseller of OpenRouter's catalogue rather than an independent source.</dd></div>
+      </dl>
     </section>
-    <section aria-labelledby="search-first-title">
-      <h2 id="search-first-title">Search-first workbench</h2>
-      <p>The unified search and glossary are the main entry. Blocker-to-tool mapping is a guided mode inside the pool, not the only entry.</p>
+
+    <section class="pool-references" aria-labelledby="subpages-title">
+      <h2 id="subpages-title">Two references, both free</h2>
+      <div class="pool-reference-pair">
+        <article class="pool-reference">
+          <h3><a href="/web/pools/ai-d-kit/troubleshooting/">Troubleshooting</a></h3>
+          <p>108 failures that reported success, or reported absence when something was there. Every entry is written the same way:</p>
+          <dl class="pool-anatomy">
+            <div><dt>Symptom</dt><dd>what you saw</dd></div>
+            <div><dt>Cause</dt><dd>what was actually wrong</dd></div>
+            <div><dt>Cost</dt><dd>the hours it took</dd></div>
+            <div><dt>Check</dt><dd>the probe that would have caught it</dd></div>
+          </dl>
+        </article>
+        <article class="pool-reference">
+          <h3><a href="/web/pools/ai-d-kit/free-stuff-in-promotions/">Free stuff in promotions</a></h3>
+          <p>Genuinely free AI credits and standing free tiers. Each offer shows the day it was last checked against the provider's own page, and nothing unverified is shown as live.</p>
+        </article>
+      </div>
     </section>
-    <section aria-labelledby="subpages-title">
-      <h2 id="subpages-title">Field notes</h2>
-      <p>Two pages, both free and both ungated. <strong>Troubleshooting</strong> is a record of failures that reported success — 108 entries with the symptom, the cause, the cost and the probe that would have caught it, plus curated entries written for this page. <strong>Free stuff in promotions</strong> lists genuinely free AI credits and tiers, where every entry shows the date it was last checked and nothing unverified is shown as live.</p>
-      <nav aria-label="AI-d kit field notes">
-        <a href="/web/pools/ai-d-kit/troubleshooting/">Troubleshooting</a>
-        <a href="/web/pools/ai-d-kit/free-stuff-in-promotions/">Free stuff in promotions</a>
-      </nav>
+
+    <section class="pool-search" aria-labelledby="search-first-title">
+      <h2 id="search-first-title">Search first, then read</h2>
+      <p>The unified search and glossary are the main way in. Mapping a blocker to a tool is a guided mode inside the pool, not a gate in front of it.</p>
+      <ul class="pool-rows">
+        <li><a href="/web/library/">Library</a><span>AI terms, platforms, tools and research collections in one searchable index, glossary included.</span></li>
+        <li><a href="/web/explore/">Explore Repos</a><span>Every public repository on the fleet's GitHub account, originals and reference forks, searchable in one place.</span></li>
+        <li><a href="https://ivangegovdve-sudo.github.io/repo-shelf/" rel="noopener">Repo Shelf<span class="pool-sr"> (external site)</span></a><span>1,192 repositories, originals and forks, as books on a 3D shelf to browse rather than search.</span></li>
+        <li><a href="https://thedrop.sdforest.site" rel="noopener">The Drop<span class="pool-sr"> (external site)</span></a><span>A daily AI publication. Today's pick first, then what still matters from earlier drops.</span></li>
+        <li><a href="/web/council/">Model councils</a><span>Put one question to a panel of free models. Public and stateless: nothing you ask is remembered.</span></li>
+      </ul>
     </section>
+
+    <section class="pool-forming" aria-labelledby="forming-title">
+      <h2 id="forming-title">In development</h2>
+      <p>Built and under review, not public yet. These get links when they ship.</p>
+      <dl>
+        <div><dt>Model Router</dt><dd>An OpenAI-compatible proxy that picks the model for each request with a typed, readable decision, or refuses.</dd></div>
+        <div><dt>Glass PR Solver</dt><dd>Drains a pull-request backlog through four independent stages, with every fact and decision visible.</dd></div>
+        <div><dt>Glass Council</dt><dd>A private model council you install yourself, on Windows, Android or as an MCP server.</dd></div>
+        <div><dt>System One Bench</dt><dd>Measures per-decision latency and cost of typed decision models on your own machine, and says UNAVAILABLE rather than comparing when a provider is missing.</dd></div>
+      </dl>
+    </section>
+
     <section aria-labelledby="projects-title">
-      <h2 id="projects-title">Projects in AI-d kit</h2>
-      <p>This listing includes work at different stages. Project status, metrics, update dates, and entry readiness are separate facts.</p>
+      <h2 id="projects-title">The AI-d kit catalog</h2>
+      <p>Every project the site catalog lists for this pool, each with its status and review record under "Catalog record". The in-development projects above are not catalogued yet.</p>
       <noscript><p>Project details load from the shared catalog when JavaScript is available. The pool description and all-pools navigation remain available here.</p></noscript>
       <div data-pool-projects><p>Project details load from the shared catalog. If they do not appear, you can still explore the other pools below.</p></div>
     </section>
@@ -58,4 +110,3 @@
   </footer>
 </body>
 </html>
-
