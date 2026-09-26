@@ -19,7 +19,7 @@ const sourceUrl = "https://inference-api.nousresearch.com/v1/models";
 const observedAt = new Date().toISOString();
 const headers = {
   Accept: "application/json",
-  "User-Agent": "open-dashboard-site/1.1.7",
+  "User-Agent": "open-dashboard-site/1.2.1",
 };
 if (apiKey) headers.Authorization = `Bearer ${apiKey}`;
 const response = await fetch(sourceUrl, {
@@ -135,7 +135,7 @@ const inference = {
 };
 const snapshot = {
   schemaVersion: 1,
-  collector: "open-dashboard-mcp@1.1.7 + Nous Research catalogue",
+  collector: "open-dashboard-mcp@1.2.1 + Nous Research catalogue",
   provider: "nous",
   displayName: "Nous Research",
   sourceUrl,

@@ -1,4 +1,4 @@
-export const PACKAGE_VERSION = "1.1.7";
+export const PACKAGE_VERSION = "1.2.1";
 export const PACKAGE_SPEC = "open-dashboard-mcp";
 export const SETUP_CHECKED_AT = "2026-09-10";
 export const NPM_URL = "https://www.npmjs.com/package/open-dashboard-mcp";

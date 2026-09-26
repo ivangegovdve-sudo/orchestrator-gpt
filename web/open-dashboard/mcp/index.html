@@ -186,6 +186,50 @@
           systems.
         </p>
       </section>
+      <section class="setup-decision-card" aria-labelledby="release-120-title">
+        <div class="setup-decision-head">
+          <p class="setup-eyebrow">New in 1.2.0 and 1.2.1</p>
+          <span class="setup-decision-tag">AkashML · io.net · response shape</span>
+        </div>
+        <h2 id="release-120-title">Two more providers, and the call that bills you for nothing.</h2>
+        <p class="setup-decision-lede">
+          Reasoning models write their thinking to <code>message.reasoning_content</code>
+          and their answer to <code>message.content</code>. With a small
+          <code>max_tokens</code> the whole budget can go to thinking: HTTP 200, every
+          token billed, and an empty answer. Each catalogue row now carries a response-shape
+          record, so a selector can see this before it recommends a model.
+        </p>
+        <div class="setup-decision-grid">
+          <article>
+            <h3>AkashML</h3>
+            <p>
+              Priced per model from its own catalogue: $0.10 to $4.40 per million output
+              tokens across six models, so no single provider rate is used. Five of six were
+              observed returning empty answers at <code>max_tokens: 16</code>; GLM-5.3 spent
+              a 6,000-token budget on reasoning alone. Needs an AkashML API key.
+            </p>
+          </article>
+          <article>
+            <h3>io.net</h3>
+            <p>
+              37 models with per-token prices on a public catalogue, no key needed. 31 are
+              marked for an access tier above free, so a listed price is not proof a free key
+              can call the model. Measured with a key: GLM-5.3-Flash returned an empty answer
+              at <code>max_tokens</code> 16 three times out of three. io.net also rents GPUs;
+              that is not collected.
+            </p>
+          </article>
+        </div>
+        <p class="setup-decision-note">
+          A model this build has never called reports <strong>unknown</strong>, not safe.
+          The same model answered a one-word prompt in 3 tokens and failed on a long one,
+          so a single clean probe proves nothing. Since 1.2.1 each observed model also
+          reports the range of tokens a one-word answer took: GLM-5.3-Flash used 95 to 218
+          on identical calls, DeepSeek-V4.1-Flash 16 to 35, so one global token floor is
+          wrong in both directions. Measured 2026-09-25/26; ask
+          <code>dashboard_catalogue</code> for the current figures.
+        </p>
+      </section>
       <div class="setup-layout">
         <section
           class="setup-wizard"

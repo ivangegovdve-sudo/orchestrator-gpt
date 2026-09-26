@@ -27,6 +27,8 @@ const NOT_A_FIELD = new Set([
   "npx", "null", "pricing.md", "api.sailresearch.com",
   // OpenClaw configuration vocabulary, documented by OpenClaw rather than this package
   "mcp.servers", "OPENCLAW_CONFIG_PATH",
+  // OpenAI-compatible chat API fields, documented by the providers rather than this package
+  "message.content", "message.reasoning_content", "max_tokens",
   // status/state values the page quotes, not field names
   "partial", "approval_incomplete", "collection_disabled",
   // cache metadata the site itself owns
