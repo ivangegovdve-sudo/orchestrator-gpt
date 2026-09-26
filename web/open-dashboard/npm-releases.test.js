@@ -141,7 +141,7 @@ test("the release mount visibly names only the current published release", async
   await mountNpmReleases(root, async () => registryResponse());
   assert.equal(root.container.dataset.npmReleasesState, "available");
   assert.equal(root.value.textContent, "Published on npm: 1.2.1");
-  assert.match(root.note.textContent, /Current npm release: 1\.1\.7/);
+  assert.match(root.note.textContent, /Current npm release: 1\.2\.1/);
 
   const unavailable = releaseRoot();
   await mountNpmReleases(unavailable, async () => ({ ok: false, status: 503 }));
