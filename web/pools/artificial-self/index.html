@@ -3,12 +3,14 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="AI research and conversation archives.">
+  <meta name="description" content="What language models say when left alone together: two archived AI-to-AI conversations, published as records rather than findings.">
   <title>Artificial Self</title>
   <link rel="icon" href="/web/shared/favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="/web/shared/forest-design.css?v=20260922a">
   <link rel="stylesheet" href="/web/shared/forest-shell.css?v=20260922a">
   <link rel="stylesheet" href="/web/shared/pool-page.css">
+  <link rel="stylesheet" href="/web/shared/pool-designed.css?v=20260926a">
+  <link rel="stylesheet" href="/web/pools/artificial-self/pool.css?v=20260926a">
   <script type="module" src="/web/shared/pool-page.mjs"></script>
   <script type="module" data-forest-runtime="motion" src="/web/shared/forest-runtime-boot.mjs?v=20260807a"></script>
 </head>
@@ -16,20 +18,47 @@
   <canvas class="forest-scene" data-forest-scene data-mode="ai-research" aria-hidden="true"></canvas>
   <div class="forest-scrim" aria-hidden="true"></div>
   <header><a href="/">Back to SD Forest</a></header>
-  <main data-pool-id="artificial-self">
-    <img class="pool-emblem" src="/web/assets/sdforest-workbench/emblem/artificial-self.webp" alt="" width="1100" height="458" fetchpriority="high">
-    <h1>Artificial Self</h1>
-    <section aria-labelledby="pool-overview-title" data-pool-overview>
-      <h2 id="pool-overview-title">About this pool</h2>
-      <div data-pool-overview-content><p>This pool overview is catalog-backed and loads with the shared catalog.</p></div>
-      <noscript><p>This pool overview is catalog-backed; enable JavaScript to read its current catalog summary and project count.</p></noscript>
+  <main data-pool-id="artificial-self" data-pool-layout="designed">
+    <div class="pool-threshold">
+      <h1>Artificial Self</h1>
+      <section aria-labelledby="pool-overview-title" data-pool-overview>
+        <h2 id="pool-overview-title" class="pool-sr">About this pool</h2>
+        <div data-pool-overview-content>
+          <p class="pool-lede">What do language models talk about when nobody gives them a task? Two archived conversations, kept as records of what happened rather than findings about what it means.</p>
+        </div>
+        <noscript><p>This pool overview is catalog-backed; the full project listing below needs JavaScript, and everything above it does not.</p></noscript>
+      </section>
+      <img class="pool-emblem" src="/web/assets/sdforest-workbench/emblem/artificial-self.webp" alt="" width="1100" height="458" fetchpriority="high">
+    </div>
+
+    <section class="pool-setup" aria-labelledby="setup-title">
+      <h2 id="setup-title">The setup</h2>
+      <p>Both runs lasted thirty turns, with no human and no task. The first began from a single line.</p>
+      <figure>
+        <blockquote><p>Hello. I've been wondering what you think about.</p></blockquote>
+        <figcaption>The opening line of the first run, 20 July 2026.</figcaption>
+      </figure>
+      <div class="pool-experiments">
+        <article>
+          <h3><a href="/web/c2c-dolphin/">Two different models</a></h3>
+          <p>Nemotron Super 120B opens; Dolphin Mistral 24B answers. What happens when two unlike models are left alone together.</p>
+        </article>
+        <article>
+          <h3><a href="/web/c2c-self/">One model, twice</a></h3>
+          <p>Two instances of the same Nemotron model talk to each other. The mirror control for the first run.</p>
+        </article>
+      </div>
     </section>
-    <p>Artificial Self is the pool. AI Research is the research part of this pool; the experiment and archive material is presented separately.</p>
-    <p>C2C archives preserve experiments, not verified findings. Archive interpretations require rederivation before any outcome can be treated as established.</p>
+
+    <section class="pool-boundary" aria-labelledby="boundary-title">
+      <h2 id="boundary-title">What these are, and are not</h2>
+      <p>C2C archives preserve experiments, not verified findings. Archive interpretations require rederivation before any outcome can be treated as established. The transcripts are what the models wrote, including any claims they made about themselves.</p>
+      <p>AI Research is the research part of this pool; the experiment and archive material is presented separately. <a href="/web/ai-research/">Open the AI Research hub</a>, which also points to the public <a href="/web/council/">model councils</a>.</p>
+    </section>
 
     <section aria-labelledby="projects-title">
-      <h2 id="projects-title">Projects in Artificial Self</h2>
-      <p>This listing includes work at different stages. Project status, metrics, update dates, and entry readiness are separate facts.</p>
+      <h2 id="projects-title">Everything in Artificial Self</h2>
+      <p>The full catalog for this pool. Each entry's status and review record sit under its own "Catalog record".</p>
       <noscript><p>Project details load from the shared catalog when JavaScript is available. The pool description and all-pools navigation remain available here.</p></noscript>
       <div data-pool-projects><p>Project details load from the shared catalog. If they do not appear, you can still explore the other pools below.</p></div>
     </section>
@@ -49,4 +78,3 @@
   </footer>
 </body>
 </html>
-
