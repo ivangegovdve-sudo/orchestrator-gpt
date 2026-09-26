@@ -20,7 +20,11 @@ SOURCE_REPO = "ivangegovdve-sudo/hermes-agent"
 SOURCE_BRANCH = "docs/ivan-troubleshooting-20260921"
 SOURCE_SNAPSHOT = "e19037333c1f1e410c52ee4ef09d7484018fdf50"
 SOURCE_REPAIR = "89f0d1b50cba8ff6d067ef284e4fec79c0764f79"
-SOURCE_BLOB = "c7d630ce8832df253d07f8b4309e76bf64acc45a"
+SOURCE_BLOB = "95c9936f58c5f55aa725231395065ea16f9a3522"
+# The upstream branch above was deleted after the 2026-09-21 snapshot, so this committed
+# file is now the only live copy and is extended here. Record each extension so the
+# snapshot constants keep meaning "where Parts 1-14 came from", not "the current bytes".
+SOURCE_EXTENSIONS = "Part 15 appended 2026-09-26 (Dispatch memory diagnosis)"
 
 
 FIELD_RE = re.compile(
@@ -253,7 +257,7 @@ def render_document(source: str) -> str:
       <a href="/web/explore/">Explore Repos</a>
     </nav>
     <section class="record-boundary" aria-label="Source provenance">
-      <strong>Authoritative source.</strong> Published in full from <code>{SOURCE_REPO}</code>, ref <code>{SOURCE_BRANCH}</code>. Snapshot <code>{SOURCE_SNAPSHOT[:12]}</code> and spacing repair <code>{SOURCE_REPAIR[:12]}</code> are recorded so a future update can be traced. The source contains fourteen numbered parts, an inserted Part 4b, and {entry_count} <code>###</code> sections.
+      <strong>Authoritative source.</strong> Published in full from <code>{SOURCE_REPO}</code>, ref <code>{SOURCE_BRANCH}</code>. Snapshot <code>{SOURCE_SNAPSHOT[:12]}</code> and spacing repair <code>{SOURCE_REPAIR[:12]}</code> are recorded so a future update can be traced. Extended in place since: {SOURCE_EXTENSIONS}. The source contains {part_count} numbered parts, an inserted Part 4b, and {entry_count} <code>###</code> sections.
       <div class="record-counts"><span>Four fields: Symptom · Cause · Cost · Check</span><span>The six-month stranger test is retained</span><span>Source blob {SOURCE_BLOB[:12]}</span></div>
     </section>
     {body}

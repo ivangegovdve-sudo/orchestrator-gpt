@@ -17,3 +17,6 @@ web/library/glossary/glossary-bundle.json  text eol=lf
 # Same reasoning as the glossary bundle above: the generator writes LF, so without this
 # pin every local `npm run refresh-roster` on Windows leaves a phantom modification.
 web/council/free-roster.json               text eol=lf
+
+# The AI-d kit troubleshooting source is hashed byte-for-byte by its page test; CRLF on checkout broke it on Windows.
+web/pools/ai-d-kit/troubleshooting/TROUBLESHOOTING.md text eol=lf
