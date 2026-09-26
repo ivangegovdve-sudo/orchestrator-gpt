@@ -1,6 +1,6 @@
 # Open Dashboard
 
-The public explorer for `open-dashboard-mcp` 1.2.1, hosted as a static subsite of SD Forest. The site helps people explore model prices, catalogue identities, public usage and GitHub projects before connecting selected MCP tools to an agent.
+The public explorer for `open-dashboard-mcp` 1.4.0, hosted as a static subsite of SD Forest. The site helps people explore model prices, catalogue identities, public usage and GitHub projects before connecting selected MCP tools to an agent.
 
 ## Pages
 
@@ -15,7 +15,7 @@ The light and dark themes share local Manrope typography and generated forest ar
 
 `explorer-data.js` reads the public v2 API with bounded pagination. Source dates and incomplete/unavailable states remain visible. Text token prices, native media units, provider free-plan quotas, catalogue listing, and operational availability are distinct. Exact provider/model identities are never joined through fuzzy names. Benchmark prices belong to each original observation and evaluation group.
 
-The build is wired to the installed `open-dashboard-mcp` package: a real in-memory MCP handshake verifies its 1.2.1 tool contract, the package-backed collectors refresh the dated native snapshot, and the explorer combines those records with paginated public rows plus the authenticated Nous read-only snapshot. It also captures the public catalogue at build time so a hosted origin whose CORS policy blocks the live route still shows the complete dated set. Every row keeps its exact `provider:id` key, so the provider comparison can show overlap and prices without inventing aliases.
+The build is wired to the installed `open-dashboard-mcp` package: a real in-memory MCP handshake verifies its 1.4.0 tool contract, the package-backed collectors refresh the dated native snapshot, and the explorer combines those records with paginated public rows plus the authenticated Nous read-only snapshot. It also captures the public catalogue at build time so a hosted origin whose CORS policy blocks the live route still shows the complete dated set. Every row keeps its exact `provider:id` key, so the provider comparison can show overlap and prices without inventing aliases.
 
 The current contract also exposes typed, read-only decision evidence through `dashboard_capability_state` and `dashboard_resolve_model`. Capability rows keep freshness, `UNKNOWN` and `EXPIRED` states, and measured-cost provenance explicit; the tools return evidence and bounded selections for a consuming decision layer. They do not forward inference requests: the selected provider or agent still runs the model.
 

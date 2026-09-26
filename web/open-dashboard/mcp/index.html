@@ -188,7 +188,7 @@
       </section>
       <section class="setup-decision-card" aria-labelledby="release-120-title">
         <div class="setup-decision-head">
-          <p class="setup-eyebrow">New in 1.2.0 and 1.2.1</p>
+          <p class="setup-eyebrow">New in 1.2 to 1.4</p>
           <span class="setup-decision-tag">AkashML · io.net · response shape</span>
         </div>
         <h2 id="release-120-title">Two more providers, and the call that bills you for nothing.</h2>
@@ -228,6 +228,16 @@
           on identical calls, DeepSeek-V4.1-Flash 16 to 35, so one global token floor is
           wrong in both directions. Measured 2026-09-25/26; ask
           <code>dashboard_catalogue</code> for the current figures.
+        </p>
+        <p class="setup-decision-note">
+          Since 1.4.0 the catalogue reads all 15 providers' own catalogues live on every
+          call: eleven need no key, and AkashML, Groq, Sail and QwenCloud need their own.
+          Every price carries its source and read time, and a missing price is unknown,
+          never zero. Sail is priced from its verified rate card, per completion window, and
+          marked as the slow, cheap lane for batch work. Nous Research is marked as a
+          reseller of OpenRouter's catalogue, and each of its prices is compared with
+          OpenRouter's live price for the same model. Many of its advertised discounts cost
+          the same as OpenRouter; a few are genuinely cheaper.
         </p>
       </section>
       <div class="setup-layout">
