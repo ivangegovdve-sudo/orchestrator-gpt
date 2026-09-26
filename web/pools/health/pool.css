@@ -90,3 +90,9 @@ main[data-pool-id="health"][data-pool-layout="designed"] > section > p,
 main[data-pool-id="health"][data-pool-layout="designed"] > section > h2,
 main[data-pool-id="health"][data-pool-layout="designed"] .pool-lede { margin-inline: 0; }
 main[data-pool-id="health"][data-pool-layout="designed"] [role="tablist"] { justify-content: flex-start; }
+
+/* The thesis leads: what the pool is for, before anything it contains. */
+main[data-pool-layout="designed"] .pool-thesis { padding:calc(var(--pool-step) * 1.6) 0 calc(var(--pool-step) * 1.2); border-block:1px solid var(--pool-line); }
+main[data-pool-layout="designed"] .pool-thesis-lead { max-width:24ch !important; margin:.2rem 0 0 !important; color:var(--pool-ink) !important; font:500 clamp(1.9rem, 3.6vw, 2.8rem)/1.12 var(--forest-display); letter-spacing:-.01em; }
+main[data-pool-layout="designed"] .pool-thesis p + p { margin-top:1rem; max-width:40rem; font-size:1.08rem; }
+main[data-pool-layout="designed"] .pool-thesis-next { color:var(--pool-muted) !important; font:1rem/1.5 var(--forest-sans) !important; }
