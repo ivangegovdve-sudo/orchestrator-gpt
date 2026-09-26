@@ -63,3 +63,5 @@ main[data-pool-layout="designed"] .narrative-spine {
 main[data-pool-layout="designed"] .narrative-spine p { margin: 0 0 .2rem; color: var(--pool-muted); font-weight: 500; }
 main[data-pool-layout="designed"] .narrative-spine a { display: inline-block; padding: .3rem 0; color: var(--pool-accent-2); }
 main[data-pool-layout="designed"] .narrative-spine [aria-current="page"] { color: var(--pool-ink); font-weight: 600; }
+main[data-pool-layout="designed"] .pool-time-shot { margin: 0; }
+main[data-pool-layout="designed"] .pool-time-shot figcaption { margin-top: .5rem; color: var(--pool-muted); font: .9rem/1.4 var(--forest-sans); }
