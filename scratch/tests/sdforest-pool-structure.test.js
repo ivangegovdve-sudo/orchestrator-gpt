@@ -72,7 +72,11 @@ test('home keeps seven live fallback links and loads the catalog-ranked director
     assert.match(link[3], />Live pool</);
     assert.doesNotMatch(link[0], /disabled|tabindex|target=/);
   });
-  assert.equal((home.match(/href="\/web\/pools\//g) || []).length, 7);
+  assert.equal((directory.match(/href="\/web\/pools\//g) || []).length, 7);
+  // The grove (2026-09-26) surfaces work on the front page and ties each pool
+  // to a vine knot: exactly one knot per pool, each pointing at its pool root.
+  const knots = [...home.matchAll(/<a class="grove-knot" href="(\/web\/pools\/[^"]+)"/g)].map((m) => m[1]).sort();
+  assert.deepEqual(knots, pools.map(([id]) => `/web/pools/${id}/`).sort());
   assert.match(home, /pool-directory\.mjs/);
   assert.doesNotMatch(home, /project-catalog|ROUTE_REGISTRY|ROUTE_INVENTORY|static-route-registry/);
   assert.doesNotMatch(home, /data-(?:index-project|directory-section|index-section|project)="/);
