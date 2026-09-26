@@ -121,6 +121,19 @@ test('probeModel rejects a JSON error body served under HTTP 200', async () => {
   assert.match(result.detail, /Rate limit/);
 });
 
+// Observed 2026-09-26: the relay forwarded OpenRouter's dead-key error with an
+// event-stream content type, for every model. It must name the refusal, not look like
+// eight models each returning an empty stream.
+test('probeModel names an upstream JSON error forwarded under an event-stream content type', async () => {
+  const { probeModel } = await importGenerator();
+  const result = await probeModel('a/one:free', {
+    fetchImpl: async () => streamResponse('{"error":{"message":"User not found.","code":401}}'),
+  });
+  assert.equal(result.ok, false);
+  assert.equal(result.reason, 'relay-refused');
+  assert.match(result.detail, /User not found/);
+});
+
 test('probeModel reports a non-OK status rather than treating it as a pass', async () => {
   const { probeModel } = await importGenerator();
   const result = await probeModel('a/one:free', {
