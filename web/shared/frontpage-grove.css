@@ -328,3 +328,4 @@
   text-underline-offset: 5px;
 }
 .resolve-home .grove-jump { color: var(--theme-shell-moss, #8fe6ae); text-decoration: underline; }
+.grove { font-variant-numeric: lining-nums; }
