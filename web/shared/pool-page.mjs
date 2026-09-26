@@ -81,7 +81,7 @@ export function renderProject(project, { heading = 'h3', designed = false } = {}
     const external = binding.type === 'external';
     const destination = external ? binding.url : binding.route;
     const companion = !external && companions.find((entry) => entry.route === destination);
-    if (!enabled && designed) return `<li>Not open yet</li>`;
+    if (!enabled && designed) return project.status === 'Research' ? `<li>Research archive, not a finding</li>` : `<li>Not open yet</li>`;
     if (!enabled) return `<li>Existing ${external ? 'external implementation' : 'page'}: <span>${escape(destination)}</span> (entry unavailable pending review)</li>`;
     // Designed pools name the destination for a reader; the raw route stays in the href.
     if (designed) {
