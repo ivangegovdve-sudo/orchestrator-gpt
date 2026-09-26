@@ -165,10 +165,12 @@
   <link rel="stylesheet" href="/web/shared/forest-design.css?v=20260807a">
   <link rel="stylesheet" href="/web/shared/design-history.css?v=20260807a">
   <link rel="stylesheet" href="/web/shared/frontpage-resolve.css">
+  <link rel="stylesheet" href="/web/shared/frontpage-grove.css?v=20260926a">
 </head>
 <body class="resolve-home">
 <a class="resolve-skip" href="#atlas">Explore the pools</a>
-<main class="resolve-scroll">
+<main>
+<div class="resolve-scroll">
   <section class="resolve-stage" data-resolve-stage aria-labelledby="forest-title">
     <div class="resolve-scene">
     <div class="resolve-growth-intro" data-growth-intro aria-hidden="true" inert>
@@ -245,11 +247,131 @@
     <a class="resolve-scroll-cue" href="#atlas">Explore the pools<span aria-hidden="true">↓</span></a>
     <div class="resolve-history" data-arrival="history" data-design-history-slot data-feedback-slot></div>
   </section>
-</main>
+</div>
 <div class="resolve-existing-copy">
 <p class="landing-copy">SDForest is Ivan Gegov&rsquo;s living collection of writing, creative projects, practical web tools, and research experiments. It is for curious readers, makers, learners, and families&mdash;choose one of seven live pools below.</p>
 <p>SDForest is an evolving collection. Experimental and in-development work is labeled plainly; every live path should lead somewhere real.</p>
+<p><a class="grove-jump" href="#grove">Or skip the pools and start with the work</a></p>
 </div>
+<section class="grove" id="grove" aria-labelledby="grove-title">
+  <h2 id="grove-title">Start with the work</h2>
+  <p class="grove-intro">The strongest things in the forest, one click away. Each vine leads back to its pool when you want the rest.</p>
+  <div class="grove-vine">
+    <svg viewBox="0 0 60 1000" preserveAspectRatio="none" aria-hidden="true" focusable="false"><defs><linearGradient id="grove-vine-shading" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#77915c"/><stop offset=".5" stop-color="#4f6a41"/><stop offset="1" stop-color="#2c4230"/></linearGradient></defs><path pathLength="1" d="M30 0C8 70 52 110 30 190S6 300 30 380 54 500 30 580 8 700 30 780 52 900 30 1000"/></svg>
+
+    <div class="grove-branch is-right has-forming">
+      <h3 class="grove-knot-h"><a class="grove-knot" href="/web/pools/ai-d-kit/"><img src="/web/assets/sdforest-workbench/emblem/ai-d-kit.webp" alt="" width="1100" height="458" loading="lazy" decoding="async"><span class="grove-knot-text"><span class="grove-knot-name">AI-d kit</span><span class="grove-knot-go">Enter the pool</span></span></a></h3>
+      <ul class="grove-nodes">
+        <li class="grove-node is-lead">
+          <h4><a href="https://www.npmjs.com/package/open-dashboard-mcp" rel="noopener">Open Dashboard MCP<span class="grove-ext" aria-hidden="true">&#8599;</span><span class="grove-sr"> (npm package, external site)</span></a></h4>
+          <p>Ask an agent which AI model to use and what it will cost. Read-only and free to run. A missing key or a blocked provider is reported as exactly that, never as an empty answer.</p>
+          <ul class="grove-facts">
+            <li><strong>15</strong>providers</li>
+            <li><strong>18</strong>tools</li>
+            <li><strong>1.2.1</strong>on npm</li>
+          </ul>
+          <p class="grove-meta">Per-model pricing, including AkashML and io.net with measured response shapes.</p>
+          <div class="grove-links"><a href="/web/open-dashboard/">Browse the dashboard</a></div>
+        </li>
+        <li class="grove-node">
+          <h4><a href="/web/pools/ai-d-kit/troubleshooting/">Troubleshooting record</a></h4>
+          <p>108 failures that reported success, each with its symptom, its cause, what it cost, and the check that would have caught it.</p>
+        </li>
+        <li class="grove-node">
+          <h4><a href="https://ivangegovdve-sudo.github.io/repo-shelf/" rel="noopener">Repo Shelf<span class="grove-ext" aria-hidden="true">&#8599;</span><span class="grove-sr"> (external site)</span></a></h4>
+          <p>1,192 repositories, originals and forks, as books on a 3D shelf. Search them, browse by shelf, open any one.</p>
+        </li>
+        <li class="grove-node">
+          <h4><a href="https://thedrop.sdforest.site" rel="noopener">The Drop<span class="grove-ext" aria-hidden="true">&#8599;</span><span class="grove-sr"> (external site)</span></a></h4>
+          <p>A daily AI publication. Today&rsquo;s pick first, then what still matters from earlier drops.</p>
+        </li>
+      </ul>
+      <div class="grove-forming">
+        <h4>In development</h4>
+        <p>Built and under review, not public yet. Nothing here links out until it ships.</p>
+        <dl>
+          <div><dt>Model Router</dt><dd>An OpenAI-compatible proxy that picks the model for each request and says why, or refuses.</dd></div>
+          <div><dt>Glass PR Solver</dt><dd>Drains a pull-request backlog through four independent stages, with every fact and decision visible.</dd></div>
+          <div><dt>Glass Council</dt><dd>A private model council you install yourself, on Windows, Android or as an MCP server.</dd></div>
+          <div><dt>System One Bench</dt><dd>Measures the latency and cost of each decision a typed decision model makes, on your own machine.</dd></div>
+        </dl>
+      </div>
+    </div>
+
+    <div class="grove-branch is-left">
+      <h3 class="grove-knot-h"><a class="grove-knot" href="/web/pools/my-story/"><img src="/web/assets/sdforest-workbench/my-story.webp" alt="" width="1100" height="275" loading="lazy" decoding="async"><span class="grove-knot-text"><span class="grove-knot-name">My Story</span><span class="grove-knot-go">Enter the pool</span></span></a></h3>
+      <ul class="grove-nodes">
+        <li class="grove-node">
+          <h4><a href="/web/chair-or-ladder/">Chair or Ladder?</a></h4>
+          <p>An essay with a practical test: is AI extending your judgment, or quietly replacing it?</p>
+        </li>
+        <li class="grove-node">
+          <h4><a href="/web/life-in-time/">Life in Time</a></h4>
+          <p>Enter a birth year and see the time left in summers, heartbeats and Christmases. Then turn it over to what is still not too late.</p>
+        </li>
+      </ul>
+    </div>
+
+    <div class="grove-branch is-right">
+      <h3 class="grove-knot-h"><a class="grove-knot" href="/web/pools/growingapp/"><img src="/web/assets/sdforest-workbench/growingapp.webp" alt="" width="1100" height="458" loading="lazy" decoding="async"><span class="grove-knot-text"><span class="grove-knot-name">GrowingApp</span><span class="grove-knot-go">Enter the pool</span></span></a></h3>
+      <ul class="grove-nodes">
+        <li class="grove-node">
+          <h4><a href="/web/mendeleev-bg/">Interactive Periodic Table</a></h4>
+          <p>In Bulgarian and English. Open any element for its key compounds and where you meet them in everyday life.</p>
+        </li>
+      </ul>
+    </div>
+
+    <div class="grove-branch is-left">
+      <h3 class="grove-knot-h"><a class="grove-knot" href="/web/pools/health/"><img src="/web/assets/sdforest-workbench/emblem/health.webp" alt="" width="1100" height="458" loading="lazy" decoding="async"><span class="grove-knot-text"><span class="grove-knot-name">Health</span><span class="grove-knot-go">Enter the pool</span></span></a></h3>
+      <ul class="grove-nodes">
+        <li class="grove-node">
+          <h4><a href="https://chloe.blumenkraft.cloud/dyslexia/" rel="noopener">Dyslexia-friendly Reader<span class="grove-ext" aria-hidden="true">&#8599;</span><span class="grove-sr"> (external site)</span></a></h4>
+          <p>Read your own ebooks with typography, spacing, colour and narration controls that stay free.</p>
+        </li>
+        <li class="grove-node">
+          <h4><a href="https://chloe.blumenkraft.cloud/audiobook/" rel="noopener">Listen to your books<span class="grove-ext" aria-hidden="true">&#8599;</span><span class="grove-sr"> (external site)</span></a></h4>
+          <p>The reader&rsquo;s companion: accessible audio narration for the books you already have.</p>
+        </li>
+      </ul>
+    </div>
+
+    <div class="grove-branch is-right">
+      <h3 class="grove-knot-h"><a class="grove-knot" href="/web/pools/tinkerbox/"><img src="/web/assets/sdforest-workbench/emblem/tinkerbox.webp" alt="" width="1100" height="458" loading="lazy" decoding="async"><span class="grove-knot-text"><span class="grove-knot-name">TinkerBox</span><span class="grove-knot-go">Enter the pool</span></span></a></h3>
+      <ul class="grove-nodes">
+        <li class="grove-node">
+          <h4><a href="/web/avatar-playground/">Avatar Playground</a></h4>
+          <p>Chlo&eacute;&rsquo;s dot-cloud avatar on a stage. Every state, expression and rule one click away, driven by real sound and her own voice.</p>
+        </li>
+        <li class="grove-node">
+          <h4><a href="/web/council/">Model councils</a></h4>
+          <p>Put one question to a panel of models: small local ones on Oracle, or a free OpenRouter round. Public, and nothing is remembered.</p>
+        </li>
+      </ul>
+    </div>
+
+    <div class="grove-branch is-left">
+      <h3 class="grove-knot-h"><a class="grove-knot" href="/web/pools/artificial-self/"><img src="/web/assets/sdforest-workbench/emblem/artificial-self.webp" alt="" width="1100" height="458" loading="lazy" decoding="async"><span class="grove-knot-text"><span class="grove-knot-name">Artificial Self</span><span class="grove-knot-go">Enter the pool</span></span></a></h3>
+      <ul class="grove-nodes">
+        <li class="grove-node">
+          <h4><a href="/web/c2c-dolphin/">Two models, no human</a></h4>
+          <p>An unsupervised 30-turn conversation between two AI models, with no task. Published as a research record, not a conclusion.</p>
+        </li>
+      </ul>
+    </div>
+
+    <div class="grove-branch is-right">
+      <h3 class="grove-knot-h"><a class="grove-knot" href="/web/pools/design-gallery/"><img src="/web/assets/sdforest-workbench/design-gallery.webp" alt="" width="1100" height="275" loading="lazy" decoding="async"><span class="grove-knot-text"><span class="grove-knot-name">Design Gallery</span><span class="grove-knot-go">Enter the pool</span></span></a></h3>
+      <ul class="grove-nodes">
+        <li class="grove-node">
+          <h4><a href="/web/m-popova/">M. Popova, Poetry Space</a></h4>
+          <p>Five prose-poems on being here, on darkness, and on love. By Maria Popova, 2019 to 2021.</p>
+        </li>
+      </ul>
+    </div>
+  </div>
+</section>
+</main>
 <script type="module" src="/web/shared/pool-directory.mjs"></script>
 <script type="module" src="/web/shared/frontpage-resolve.mjs"></script>
 <script defer src="/web/shared/design-history.js?v=20260807a"></script>
