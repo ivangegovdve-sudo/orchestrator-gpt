@@ -1,0 +1,86 @@
+/* Phone intro: the world reveals as you scroll, then the page assembles over it.
+ *
+ * Replaces the scroll-scrubbed growth film on phones (see frontpage-resolve.mjs).
+ * Everything here is a CSS scroll-driven animation: the compositor runs it, it never
+ * intercepts touch, and there is no JS mapping from scrollY to a timeline, so the
+ * mobile toolbar resizing the viewport cannot make the page jump.
+ *
+ * The first screen of scroll reveals the forest from far to near. The plaques then
+ * assemble into place as each enters the viewport. Without scroll-timeline support,
+ * or with reduced motion, none of this applies and the finished static page shows.
+ */
+
+/* Plaque frames were drawn at different widths inside the same box, so on a phone the
+ * stack read as mismatched roots. Scale each to the widest frame (measured from the
+ * rendered page at 375px) and keep the rhythm between them even. */
+@media (max-width:800px) {
+  .resolve-home .resolve-directory nav { gap:18px; }
+  .resolve-home .portal[data-pool-link="health"] { scale:1.07; }
+  .resolve-home .portal[data-pool-link="ai-d-kit"] { scale:1.1; margin-block:4px; }
+  .resolve-home .portal[data-pool-link="growingapp"] { scale:1.28; margin-block:22px; }
+}
+
+@media (max-width:800px) and (prefers-reduced-motion:no-preference) {
+@supports (animation-timeline: scroll()) {
+  html[data-resolve-reveal="scroll"] .resolve-stage { height:auto; min-height:0; padding-bottom:80px; overflow:clip; }
+  html[data-resolve-reveal="scroll"] .resolve-scene { position:sticky; inset:auto 0; top:0; height:100svh; }
+  html[data-resolve-reveal="scroll"] .resolve-growth-runway { display:block; height:70svh; }
+  /* The ground under the tree is the same root bark the plaques sit on, so the pinned
+   * world has no black band below the field and the directory rises out of it. */
+  html[data-resolve-reveal="scroll"] .resolve-scene::before {
+    content:""; position:absolute; left:0; right:0; top:40svh; bottom:0; z-index:0;
+    background:#101312 url('/web/assets/sdforest-workbench/bark.webp') left top / auto 140%;
+    filter:brightness(.48) saturate(.75);
+    mask-image:linear-gradient(transparent,#000 8svh);
+    animation:reveal-ground linear both; animation-timeline:scroll(root); animation-range:0 50svh;
+  }
+  /* The field's hard lower edge dissolves into the ground instead of drawing a seam. */
+  html[data-resolve-reveal="scroll"] .resolve-field { mask-image:linear-gradient(#000 calc(100% - 7svh),transparent); }
+  html[data-resolve-reveal="scroll"] .resolve-directory { padding-top:40px; }
+  html[data-resolve-reveal="scroll"] .workbench-directory-bark { inset:-90px -12px -24px; mask-image:linear-gradient(transparent,#000 90px calc(100% - 24px),transparent); }
+
+  /* The world, far to near, over the first 70svh of scroll. */
+  html[data-resolve-reveal="scroll"] :is(.workbench-horizon,.workbench-mist,.workbench-bark,.ambient-soil-bridge,.resolve-tree,.forest-vines) {
+    animation-timeline:scroll(root);
+    animation-fill-mode:both;
+    animation-timing-function:linear;
+    animation-duration:1ms;
+  }
+  html[data-resolve-reveal="scroll"] .workbench-horizon { animation-name:reveal-distance; animation-range:0 70svh; transform-origin:50% 40%; }
+  html[data-resolve-reveal="scroll"] .workbench-mist { animation-name:reveal-mist; animation-range:0 42svh; }
+  html[data-resolve-reveal="scroll"] .workbench-bark { animation-name:reveal-trunks; animation-range:14svh 60svh; }
+  html[data-resolve-reveal="scroll"] .ambient-soil-bridge { animation-name:reveal-soil; animation-range:28svh 62svh; }
+  html[data-resolve-reveal="scroll"] .resolve-tree { animation-name:reveal-tree; animation-range:34svh 70svh; transform-origin:50% 100%; }
+  html[data-resolve-reveal="scroll"] .forest-vines { animation-name:reveal-fade; animation-range:48svh 70svh; }
+
+  /* The page assembles: each plaque swings in from the root on its side. */
+  html[data-resolve-reveal="scroll"] .resolve-home .portal:nth-child(n),
+  html[data-resolve-reveal="scroll"] .resolve-controls,
+  html[data-resolve-reveal="scroll"] .resolve-history {
+    animation:reveal-arrive-left linear both;
+    animation-timeline:view();
+    animation-range:entry 0% entry 85%;
+  }
+  html[data-resolve-reveal="scroll"] .resolve-home .portal:nth-child(even) { animation-name:reveal-arrive-right; }
+}
+}
+
+@keyframes reveal-distance {
+  from { transform:scale(1.32); filter:blur(7px) brightness(.62) saturate(.7); }
+  to { transform:none; filter:none; }
+}
+@keyframes reveal-mist { from { opacity:.95; } to { opacity:.12; } }
+@keyframes reveal-trunks {
+  from { opacity:0; transform:scale(1.22); filter:brightness(.4); }
+  to { opacity:1; transform:none; filter:brightness(.9) saturate(.85); }
+}
+@keyframes reveal-soil { from { opacity:0; translate:0 36px; } to { opacity:1; translate:0 0; } }
+@keyframes reveal-tree {
+  from { opacity:0; transform:translate(-50%,-50%) scale(.18); }
+  45% { opacity:1; }
+  to { opacity:1; transform:translate(-50%,-50%) scale(1); }
+}
+@keyframes reveal-fade { from { opacity:0; } to { opacity:1; } }
+@keyframes reveal-arrive-left { from { opacity:0; translate:-34px 14px; rotate:-2deg; } to { opacity:1; translate:0 0; rotate:0deg; } }
+@keyframes reveal-arrive-right { from { opacity:0; translate:34px 14px; rotate:2deg; } to { opacity:1; translate:0 0; rotate:0deg; } }
+@keyframes reveal-ground { from { opacity:.4; } to { opacity:1; } }
