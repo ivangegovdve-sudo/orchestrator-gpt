@@ -35,7 +35,8 @@ test('exactly seven static shells have independent accessible descriptions and a
     const html = read(`web/pools/${id}/index.html`);
     assert.ok(html.includes(`<title>${name}</title>`));
     assert.ok(html.includes(`<h1>${name}</h1>`));
-    assert.match(html, new RegExp(`<main data-pool-id="${id}">`));
+    // data-pool-layout="designed" opts a pool into the authored layout (pool-designed.css).
+    assert.match(html, new RegExp(`<main data-pool-id="${id}"(?: data-pool-layout="designed")?>`));
     assert.match(html, /<html lang="en" class="forest-skin forest-palette">/);
     assert.match(html, /name="viewport"/);
     assert.match(html, /<a href="\/">Back to SD Forest<\/a>/);
@@ -376,3 +377,24 @@ test('readiness surface has explicit shipped, in-progress and UNKNOWN states', a
   assert.deepEqual(projectReadiness(rederivation), { state: 'In progress', reason: 'Research rederivation remains required.' });
 });
 
+
+test('designed pools keep every catalog fact, behind a per-project disclosure', async () => {
+  const [{ renderProjectIndex, projectReadiness }, { getPoolProjects }] = await Promise.all([presenter, catalog]);
+  const projects = getPoolProjects('AI-d kit');
+  const html = renderProjectIndex(projects);
+  for (const project of projects) {
+    const entry = html.match(new RegExp(`<div id="${project.id}"[\\s\\S]*?</article>\\s*</div>`))?.[0];
+    assert.ok(entry, `${project.id} is listed`);
+    const record = entry.match(/<details class="pool-record"><summary>Catalog record<\/summary>([\s\S]*?)<\/details>/)?.[1];
+    assert.ok(record, `${project.id} has a catalog record`);
+    assert.match(record, new RegExp(`Readiness: ${projectReadiness(project).state}`));
+    assert.match(record, /Last meaningful update:/);
+    // Readers see named destinations, never a raw route as link text.
+    assert.doesNotMatch(entry, />\/web\/[^<]*<\/a>/);
+  }
+  const page = read('web/pools/ai-d-kit/index.html');
+  assert.match(page, /<main data-pool-id="ai-d-kit" data-pool-layout="designed">/);
+  assert.match(page, /pool-designed\.css/);
+  // Private repositories are described, never linked.
+  assert.doesNotMatch(page, /github\.com\/ivangegovdve-sudo\/(?:model-router|glass-pr-solver|council|system-one-bench)/);
+});
