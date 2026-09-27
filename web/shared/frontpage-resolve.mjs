@@ -110,7 +110,7 @@ function tick(stamp) {
     // a dirty scrub, never in the ambient-only path.
     const growthTrack = parseFloat(getComputedStyle(growthRunway).height) || 0;
     runway = growthTrack ? growthTrack + innerHeight : Math.max(stage.parentElement.scrollHeight - innerHeight,innerHeight * 5.5);
-    seek(-6 + scrollY / runway * 11);
+    seek(introTime(scrollY / runway));
     ambient.reveal(current);
     syncMotion();
   }
@@ -136,6 +136,20 @@ function tick(stamp) {
     syncMotion();
   }
 }
+// The intro is three acts on the same native scroll track (nothing is hijacked):
+//   0-30%  the forest is revealed: the clock holds on the first frame while
+//          --intro-reveal opens the view from a dark, misty close-up to the vista;
+//   30-80% the seed grows into the tree and the world and title settle in;
+//   80-100% the page assembles: plaques land and each pool's vine grows into its
+//          plaque from the root at the base of its side (frontpage-pool-vines.css).
+const REVEAL_END = .3, ASSEMBLY_START = .8, ASSEMBLY_TIME = .8;
+function introTime(progress) {
+  const p = clamp(progress);
+  root.style.setProperty('--intro-reveal', String(ease(p / REVEAL_END)));
+  if (p <= REVEAL_END) return -6;
+  if (p <= ASSEMBLY_START) return -6 + (p - REVEAL_END) / (ASSEMBLY_START - REVEAL_END) * (ASSEMBLY_TIME + 6);
+  return ASSEMBLY_TIME + (p - ASSEMBLY_START) / (1 - ASSEMBLY_START) * (5 - ASSEMBLY_TIME);
+}
 function sample(seconds) {
   seek(seconds);
   ambient.reveal(current);
@@ -159,6 +173,7 @@ function closeSelection() {
 function seek(seconds) {
   if (!Number.isFinite(seconds)) return;
   current = Math.min(5, Math.max(-6, seconds));
+  root.style.setProperty('--assembly-time', current.toFixed(3));
   growth.render(current);
   const world = 1 - ease(current + 1);
   document.querySelector('.resolve-world').style.opacity = String(world);
