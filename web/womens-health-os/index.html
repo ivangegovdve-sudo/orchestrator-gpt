@@ -223,6 +223,14 @@
     .tagline { margin: 0; color: var(--text-muted); font-size: 15px; line-height: 1.6; max-width: 66ch; }
 
     .stat-row { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 4px; }
+    .composition { margin-top: 18px; padding: 16px 18px; border: 1px solid var(--border); border-radius: 14px; background: rgba(255,255,255,.035); max-width: 780px; }
+    .composition h2 { margin: 0 0 6px; font-size: 15px; color: var(--text); }
+    .composition p { margin: 0; color: var(--text-muted); font-size: 13px; line-height: 1.55; }
+    .composition-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 9px; margin-top: 12px; }
+    .composition-card { padding: 10px 12px; border-radius: 10px; background: rgba(0,0,0,.16); }
+    .composition-card .num { font-size: 22px; font-weight: 750; color: var(--accent); }
+    .composition-card .lbl { margin-top: 2px; color: var(--text-muted); font-size: 11px; line-height: 1.35; }
+    .composition-meta { margin-top: 10px !important; font-size: 11px !important; color: var(--dim) !important; }
     .stat {
       background: var(--surface); border: 1px solid var(--border);
       border-radius: var(--radius); padding: 12px 18px; min-width: 96px;
@@ -372,7 +380,7 @@
     <header>
       <h1>&#127800; Women&#39;s Health<span class="accent"> OS</span></h1>
       <p class="tagline">
-        A research intelligence base distilled from peer-reviewed papers on women&#39;s health &mdash;
+        A research intelligence base for women&#39;s-health topics, distilled from a mixed evidence corpus &mdash;
         evidence-graded <strong>facts</strong>, synthesized <strong>rules</strong>, and verifiable
         <strong>claims</strong> across the menstrual cycle, hormones, fertility, PCOS, perimenopause,
         thyroid, and more. Built by Iris, the fleet&#39;s research agent.
@@ -385,6 +393,18 @@
       <div class="stat"><div class="num" id="stat-rules">–</div><div class="lbl">Rules</div></div>
       <div class="stat"><div class="num" id="stat-claims">–</div><div class="lbl">Claims</div></div>
     </div>
+
+    <section class="composition" id="composition" aria-labelledby="composition-title" hidden>
+      <h2 id="composition-title">What the indexed records say about participants</h2>
+      <p>These are measured row classifications, not a claim that every paper studies women. Records marked not applicable include reviews, animal, in-vitro, and other non-participant material.</p>
+      <div class="composition-grid">
+        <div class="composition-card"><div class="num" id="composition-female">–</div><div class="lbl">all-female participant records</div></div>
+        <div class="composition-card"><div class="num" id="composition-mixed">–</div><div class="lbl">mixed-sex participant records</div></div>
+        <div class="composition-card"><div class="num" id="composition-unknown">–</div><div class="lbl">unknown / not stated</div></div>
+        <div class="composition-card"><div class="num" id="composition-na">–</div><div class="lbl">not applicable</div></div>
+      </div>
+      <p class="composition-meta">Calculated from the live papers response on <time id="composition-checked"></time>.</p>
+    </section>
 
     <div class="tabs" id="tabs" role="tablist" aria-label="Evidence views">
       <button class="tab active" data-tab="facts" id="tab-facts" role="tab" aria-controls="view" aria-selected="true" tabindex="0">Facts</button>
@@ -600,6 +620,26 @@
     }
     function empty() { showViewMessage("No entries match."); }
 
+    function renderComposition(rows) {
+      var counts = { all_female: 0, mixed: 0, not_stated: 0, not_applicable: 0, unknown: 0 };
+      rows.forEach(function (row) {
+        var value = String(row.participant_sex || "").trim().toLowerCase();
+        if (Object.prototype.hasOwnProperty.call(counts, value) && value !== "unknown") counts[value] += 1;
+        else if (value === "unknown" || !value) counts.unknown += 1;
+      });
+      counts.unknown += counts.not_stated;
+      document.getElementById("composition-female").textContent = counts.all_female;
+      document.getElementById("composition-mixed").textContent = counts.mixed;
+      document.getElementById("composition-unknown").textContent = counts.unknown;
+      document.getElementById("composition-na").textContent = counts.not_applicable;
+      document.getElementById("composition-checked").textContent = new Date().toISOString().slice(0, 10);
+      document.getElementById("composition").hidden = false;
+    }
+
+    function loadComposition() {
+      return api("/papers?limit=1000").then(function (d) { renderComposition(d.papers || []); });
+    }
+
     function load() {
       if (!state.online) return;
       var q = encodeURIComponent(searchEl.value.trim());
@@ -659,6 +699,8 @@
           document.getElementById("stat-claims").textContent = c.count != null ? c.count : "–";
           if (window.forestReveal) forestReveal.countUp(document.getElementById("stat-claims"));
         }).catch(function () {});
+      }).then(function () {
+        return loadComposition().catch(function () {});
       }).then(function () {
         return api("/topics").then(function (d) {
           state.topics = d.topics || [];
@@ -944,3 +986,4 @@
   <script src="/web/shared/design-history.js?v=20260807a"></script>
 </body>
 </html>
+

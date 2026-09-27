@@ -71,7 +71,12 @@ async function researchContext(mode) {
       json: { rules: [{ rule: hostile('RULE'), applies_to: hostile('RULE-SCOPE'), evidence_count: 3, confidence: 0.9 }] },
     });
     if (pathname.startsWith('/womens-health/papers')) return route.fulfill({
-      json: { papers: [{ title: hostile('PAPER'), topic_category: hostile('PAPER-TOPIC'), authors: hostile('PAPER-AUTHOR'), year: hostile('PAPER-YEAR'), doi: '10.1000/paper' }] },
+      json: { papers: [
+        { title: hostile('PAPER'), topic_category: hostile('PAPER-TOPIC'), authors: hostile('PAPER-AUTHOR'), year: hostile('PAPER-YEAR'), doi: '10.1000/paper', participant_sex: 'all_female' },
+        { title: 'Mixed paper', participant_sex: 'mixed' },
+        { title: 'Unknown paper', participant_sex: 'not_stated' },
+        { title: 'Not applicable paper', participant_sex: 'not_applicable' },
+      ] },
     });
     if (pathname === '/womens-health/cycle-phases') return route.fulfill({
       json: { phases: [{ phase: hostile('CYCLE'), days: hostile('CYCLE-DAYS'), facts: [{ fact: hostile('CYCLE-FACT') }] }] },
@@ -162,6 +167,8 @@ test('Women facts lead with a visually dominant evidence grade and counters only
     const stat = document.querySelector('#stat-papers');
     return stat.dataset.counted === 'true' && stat.textContent === '2';
   });
+  await page.locator('#composition').waitFor({ state: 'visible' });
+  assert.deepEqual(await page.locator('#composition .composition-grid .num').evaluateAll((numbers) => numbers.map((number) => number.textContent)), ['1', '1', '1', '1']);
   await context.close();
 });
 
@@ -290,3 +297,4 @@ test('a long hostile Women topic stays readable and contained at 375x812', async
   assert.ok(layout.selectedValue.length > 420);
   await context.close();
 });
+
