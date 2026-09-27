@@ -42,3 +42,6 @@
 }
 @keyframes pool-vine-lit { from { stroke-dashoffset:.07; } to { stroke-dashoffset:-.93; } }
 .pool-vine-leaf { transform-box:fill-box; transform-origin:center; }
+
+/* The Health plaque morphs into the Health pool's arrival (web/shared/pool-world.css). */
+.resolve-home .portal[data-pool-link="health"] .portal-art { view-transition-name: pool-plaque-health; }
