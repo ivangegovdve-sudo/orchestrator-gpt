@@ -466,64 +466,6 @@ body{background:var(--bg);color:var(--text);font-family:var(--forest-body,Alegre
     <p class="year-prog-note" id="yearProgNote"></p>
   </section>
 </div>
-<script>
-(function(){
-  var reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
-  var pctEl  = document.getElementById('yearProgPct');
-  var barEl  = document.getElementById('yearProgBar');
-  var track  = document.querySelector('.year-prog-track');
-  var countTimer = null;
-
-  function countUp(target){
-    if (countTimer) { clearInterval(countTimer); countTimer = null; }
-    if (reduced.matches) { pctEl.textContent = target; return; }
-    var v = 0, step = Math.max(1, Math.round(target / 34));
-    countTimer = setInterval(function(){
-      v += step;
-      if (v >= target) { v = target; clearInterval(countTimer); countTimer = null; }
-      pctEl.textContent = v;
-    }, 26);
-  }
-
-  function render(animate){
-    var now   = new Date(), yr = now.getFullYear();
-    var start = new Date(yr, 0, 1), end = new Date(yr + 1, 0, 1);
-    var pct   = Math.round((now - start) / (end - start) * 100);
-    var dLeft = Math.ceil((end - now) / 86400000);
-    var week  = Math.min(52, Math.floor((now - start) / 604800000) + 1);
-
-    document.getElementById('yearProgYear').textContent = yr;
-    document.getElementById('yearProgDays').textContent = dLeft.toLocaleString();
-    document.getElementById('yearProgWeek').textContent = week + '/52';
-    document.getElementById('yearProgNote').innerHTML =
-      'Every square below is a year. This bar is just <b>one</b> of them &mdash; and it is already ' + pct + '% spent.';
-    track.setAttribute('aria-valuenow', String(pct));
-    track.setAttribute('aria-valuetext', pct + '% of ' + yr + ' elapsed; ' + dLeft + ' days remain (week ' + week + ' of 52)');
-
-    if (animate) {
-      setTimeout(function(){ barEl.style.width = pct + '%'; countUp(pct); }, 140);
-    } else {
-      barEl.style.width = pct + '%';
-      pctEl.textContent = pct;
-    }
-  }
-
-  render(true);
-  // Keep the readout honest for long-lived tabs.
-  setInterval(function(){ render(false); }, 60000);
-})();
-</script>
-
-<div class="year-prog-wrap">
-  <div class="year-prog-labels">
-    <span id="yearProgLabel">Current year</span>
-    <span id="yearProgDays"></span>
-  </div>
-  <div class="year-prog-track" role="progressbar" aria-label="Current year elapsed" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-valuetext="0% of the current year elapsed">
-    <div class="year-prog-fill" id="yearProgBar"></div>
-  </div>
-</div>
-
 <div class="form-wrap">
   <div class="form-card">
     <h2>⏳ Your Time</h2>
@@ -564,8 +506,13 @@ body{background:var(--bg);color:var(--text);font-family:var(--forest-body,Alegre
   <section class="pivot-wrap" aria-labelledby="late-achiever-title">
     <span class="section-label">Perspective shift</span>
     <h2 id="late-achiever-title">The late-achiever pivot</h2>
+    <p class="pivot-teaser" id="pivotTeaser"></p>
+    <div class="pivot-figures" id="pivotFigures" aria-hidden="true"></div>
     <button class="btn-pivot" onclick="showPositive()">But you're nowhere near done ✨</button>
     <p class="pivot-hint">History says your best work may still be ahead</p>
+    <div class="share-row share-row--early">
+      <button class="btn-share" id="shareBtnTop" onclick="shareLink(this,false)">🔗 Copy a link to these numbers</button>
+    </div>
   </section>
 
   <!-- Kid summers (only shown if child year given) -->
@@ -593,19 +540,6 @@ body{background:var(--bg);color:var(--text);font-family:var(--forest-body,Alegre
     <div class="hb-val" id="heartTicker">0</div>
     <div class="hb-sub">at 70 bpm — counts down live</div>
   </div>
-
-  <!-- Pivot -->
-  <section class="pivot-wrap" aria-labelledby="late-achiever-title">
-    <span class="section-label">Perspective shift</span>
-    <h2 id="late-achiever-title">The late-achiever pivot</h2>
-    <p class="pivot-teaser" id="pivotTeaser"></p>
-    <div class="pivot-figures" id="pivotFigures" aria-hidden="true"></div>
-    <button class="btn-pivot" onclick="showPositive()">But you're nowhere near done ✨</button>
-    <p class="pivot-hint">History says your best work may still be ahead</p>
-    <div class="share-row share-row--early">
-      <button class="btn-share" id="shareBtnTop" onclick="shareLink(this,false)">🔗 Copy a link to these numbers</button>
-    </div>
-  </section>
 
   <!-- Part 2: hopeful -->
   <div id="positive">
@@ -695,21 +629,48 @@ function fmt(n) {
   return Math.max(0, Math.round(n)).toLocaleString();
 }
 
-function renderYearProgress() {
-  if (yearProgressRendered) return;
-  yearProgressRendered = true;
+// Writes every text and ARIA field of the year card; returns the elapsed percentage.
+function paintYearReadout() {
   var now = new Date();
   var year = now.getFullYear();
   var start = new Date(year, 0, 1);
   var end = new Date(year + 1, 0, 1);
   var pct = Math.round((now - start) / (end - start) * 100);
   var daysLeft = Math.ceil((end - now) / 86400000);
+  var week = Math.min(52, Math.floor((now - start) / 604800000) + 1);
   var meter = document.querySelector('.year-prog-track');
-  var bar = document.getElementById('yearProgBar');
-  document.getElementById('yearProgLabel').textContent = year + ' is ' + pct + '% gone';
-  document.getElementById('yearProgDays').textContent = daysLeft + ' days left';
+  document.getElementById('yearProgYear').textContent = year;
+  document.getElementById('yearProgDays').textContent = daysLeft.toLocaleString();
+  document.getElementById('yearProgWeek').textContent = week + '/52';
+  document.getElementById('yearProgNote').innerHTML =
+    'Every square below is a year. This bar is just <b>one</b> of them &mdash; and it is already ' + pct + '% spent.';
   meter.setAttribute('aria-valuenow', String(pct));
-  meter.setAttribute('aria-valuetext', pct + '% of ' + year + ' elapsed; ' + daysLeft + ' days remain');
+  meter.setAttribute('aria-valuetext', pct + '% of ' + year + ' elapsed; ' + daysLeft + ' days remain (week ' + week + ' of 52)');
+  return pct;
+}
+
+function countYearPct(target) {
+  var pctEl = document.getElementById('yearProgPct');
+  var v = 0, step = Math.max(1, Math.round(target / 34));
+  var timer = setInterval(function() {
+    v = Math.min(target, v + step);
+    pctEl.textContent = v;
+    if (v >= target) clearInterval(timer);
+  }, 26);
+}
+
+function renderYearProgress() {
+  if (yearProgressRendered) return;
+  yearProgressRendered = true;
+  var pct = paintYearReadout();
+  var bar = document.getElementById('yearProgBar');
+  // Keep the readout honest for long-lived tabs.
+  setInterval(function() {
+    var now = paintYearReadout();
+    bar.style.width = now + '%';
+    document.getElementById('yearProgPct').textContent = now;
+  }, 60000);
+  document.getElementById('yearProgPct').textContent = REDUCED_MOTION.matches ? pct : 0;
   bar.style.width = '0%';
   if (REDUCED_MOTION.matches) {
     bar.style.width = pct + '%';
@@ -718,6 +679,7 @@ function renderYearProgress() {
   requestAnimationFrame(function() {
     requestAnimationFrame(function() {
       bar.style.width = pct + '%';
+      countYearPct(pct);
     });
   });
 }

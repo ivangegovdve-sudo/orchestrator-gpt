@@ -57,14 +57,18 @@ test('publishes canonical tokens, an accessible year meter, and a prominent late
   assert.match(html, /id="late-achiever-title"[^>]*>The late-achiever pivot</);
   assert.match(html, /prefers-reduced-motion/);
   const header = html.indexOf('class="header"');
-  const meter = html.indexOf('class="year-prog-wrap"');
+  const meter = html.indexOf('class="year-prog"');
   const form = html.indexOf('class="form-wrap"');
   const wake = html.indexOf('class="wake-header"');
   const pivot = html.indexOf('class="pivot-wrap"', wake);
   const kid = html.indexOf('id="kidBlock"', wake);
   const stats = html.indexOf('id="statsGrid"', wake);
   assert.ok(header < meter && meter < form && form < wake && wake < pivot && pivot < kid && kid < stats);
-  assert.equal((html.match(/class="year-prog-wrap"/g) || []).length, 1);
+  assert.equal((html.match(/class="year-prog"/g) || []).length, 1);
+  assert.equal((html.match(/role="progressbar"/g) || []).length, 1);
+  assert.equal((html.match(/class="pivot-wrap"/g) || []).length, 1);
+  const ids = [...html.matchAll(/\sid="([^"]+)"/g)].map((match) => match[1]);
+  assert.deepEqual(ids.filter((id, index) => ids.indexOf(id) !== index), []);
   assert.match(html, /var yearProgressRendered = false;/);
   assert.match(html, /function renderYearProgress\(\) \{\s*if \(yearProgressRendered\) return;\s*yearProgressRendered = true;/);
   assert.match(html, /function renderYearProgress\(\)[\s\S]*requestAnimationFrame\(function\(\) \{\s*requestAnimationFrame/);
@@ -81,6 +85,14 @@ test('a shared URL restores all current inputs and results in a fresh context', 
           window.__copiedLifeUrl = value;
           return Promise.resolve();
         },
+      },
+    });
+    // Headless Chrome on Windows exposes Web Share, which shareLink() prefers.
+    Object.defineProperty(navigator, 'share', {
+      configurable: true,
+      value(data) {
+        window.__copiedLifeUrl = data.url;
+        return Promise.resolve();
       },
     });
   });
@@ -105,7 +117,8 @@ test('a shared URL restores all current inputs and results in a fresh context', 
     by: '1988',
     py: '1960',
     cy: '2018',
-    le: '83',
+    // le=83 is LIFE_EXP_DEFAULT, so it is omitted; v=1 reopens the hopeful half.
+    v: '1',
   });
 
   await context.close();
@@ -141,7 +154,7 @@ test('normal-motion year progress waits for two animation frames before arriving
     waitUntil: 'domcontentloaded',
   });
   assert.equal(await page.locator('#results').isVisible(), false);
-  assert.equal(await page.locator('.year-prog-wrap').isVisible(), true);
+  assert.equal(await page.locator('.year-prog').isVisible(), true);
 
   const readMeter = () => page.locator('#yearProgBar').evaluate((bar) => {
     const style = getComputedStyle(bar);
@@ -159,7 +172,7 @@ test('normal-motion year progress waits for two animation frames before arriving
   await page.evaluate(() => window.__flushLifeFrame());
   const arrived = await readMeter();
   assert.equal(arrived.width, arrived.target);
-  assert.equal(arrived.duration, '0.6s');
+  assert.equal(arrived.duration, '0.9s');
   assert.equal(arrived.easing, 'cubic-bezier(0.16, 1, 0.3, 1)');
   await context.close();
 });
