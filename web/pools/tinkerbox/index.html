@@ -10,7 +10,7 @@
   <link rel="stylesheet" href="/web/shared/forest-shell.css?v=20260922a">
   <link rel="stylesheet" href="/web/shared/pool-page.css">
   <link rel="stylesheet" href="/web/shared/pool-designed.css?v=20260926a">
-  <link rel="stylesheet" href="/web/pools/tinkerbox/pool.css?v=20260926a">
+  <link rel="stylesheet" href="/web/pools/tinkerbox/pool.css?v=20260927a">
   <script type="module" src="/web/shared/pool-page.mjs"></script>
   <script type="module" data-forest-runtime="motion" src="/web/shared/forest-runtime-boot.mjs?v=20260807a"></script>
 </head>
@@ -38,22 +38,35 @@
       <p class="pool-thesis-next">A printable calendar maker and a game-icon generator are next on the bench.</p>
     </section>
 
-    <section class="pool-avatar" aria-labelledby="avatar-title">
-      <img src="/web/assets/pools/tinkerbox/avatar-playground.jpg" alt="Chloé's avatar mid-speech: a loose cloud of points joined by thin, shifting lines on a dark stage." width="484" height="440" loading="lazy" decoding="async">
-      <div>
+    <section class="pool-bench pool-bench--avatar" aria-labelledby="avatar-title">
+      <div class="pool-bench-head">
         <h2 id="avatar-title"><a href="/web/avatar-playground/">Avatar Playground</a></h2>
-        <p>Chloé is a cloud of dots joined by a shifting web, not a face and not an orb. This is the real engine she runs on, with every state, expression and rule one click away: idle, listening, thinking, speaking.</p>
-        <p class="pool-avatar-note">Nothing runs until you press start. It drives the cloud from real sound and her own voice.</p>
+        <p>Chloé is a cloud of dots joined by a shifting web, not a face and not an orb. This is the real engine she runs on, with every state, expression and rule one click away.</p>
       </div>
+      <ol class="pool-bench-parts" aria-label="Three of the avatar's states, rendered by the engine">
+        <li><img src="/web/assets/pools/tinkerbox/avatar-idle.jpg" alt="Idle: a dense web of points and lines, resting." width="404" height="404" loading="lazy" decoding="async"><span>Idle</span></li>
+        <li><img src="/web/assets/pools/tinkerbox/avatar-thinking.jpg" alt="Thinking: the web draws in to a few bright points." width="404" height="404" loading="lazy" decoding="async"><span>Thinking</span></li>
+        <li><img src="/web/assets/pools/tinkerbox/avatar-speaking.jpg" alt="Speaking: the cloud brightens and spreads as her voice moves it." width="404" height="404" loading="lazy" decoding="async"><span>Speaking</span></li>
+      </ol>
+      <p class="pool-bench-note">Rendered by the engine itself. Nothing runs until you press start; then real sound and her own voice drive the cloud.</p>
     </section>
 
-    <section class="pool-councils" aria-labelledby="councils-title">
-      <h2 id="councils-title"><a href="/web/council/">Model councils</a></h2>
-      <p>Ask one hard question under two very different conditions. Both are public and stateless: no fleet memory, no delegation, nothing saved. The same council is shared with AI-d kit.</p>
-      <dl>
-        <div><dt>TinyLLM Local Oracle</dt><dd>Five small local models on Oracle ARM hardware, each with a fixed role: proposer, analyst, critic, observer and synthesizer. Slow by design, and free.</dd></div>
-        <div><dt>OpenRouter Free</dt><dd>Free cloud models take distinct deliberation roles. A model keeps its seat only if it answered a real call within a week of the last check, and the council page shows how old that check is.</dd></div>
-      </dl>
+    <section class="pool-bench pool-bench--council" aria-labelledby="councils-title">
+      <div class="pool-bench-head">
+        <h2 id="councils-title"><a href="/web/council/">Model councils</a></h2>
+        <p>Ask one hard question under two very different conditions. Both are public and stateless: no fleet memory, no delegation, nothing saved. The same council is shared with AI-d kit.</p>
+      </div>
+      <h3 class="pool-bench-sub">TinyLLM Local Oracle: five small local models, one fixed role each</h3>
+      <ol class="pool-bench-roles">
+        <li><strong>Proposer</strong><span>Tiny-Agent</span></li>
+        <li><strong>Analyst</strong><span>llama</span></li>
+        <li><strong>Critic</strong><span>qwen</span></li>
+        <li><strong>Observer</strong><span>EVE</span></li>
+        <li><strong>Synthesizer</strong><span>qwen</span></li>
+      </ol>
+      <p class="pool-bench-note">On Oracle ARM hardware. Slow by design, and free.</p>
+      <h3 class="pool-bench-sub">OpenRouter Free</h3>
+      <p>Free cloud models take distinct deliberation roles. A model keeps its seat only if it answered a real call within a week of the last check, and the council page shows how old that check is.</p>
     </section>
 
     <section aria-labelledby="projects-title">
