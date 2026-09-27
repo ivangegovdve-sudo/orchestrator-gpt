@@ -29,7 +29,7 @@ test('actual copied HTML routes have one registry entry and catalog owner indepe
     registryModule, catalogModule,
   ]);
   const discovered = discoverCopiedHtmlRoutes(ROOT);
-  assert.equal(discovered.length, 78, 'the current build copies 78 HTML routes including the memory systems map and the two AI-d kit subpages');
+  assert.equal(discovered.length, 77, 'the current build copies 77 HTML routes including the two AI-d kit subpages');
   for (const { route, source } of discovered) {
     const entries = ROUTE_REGISTRY.filter(({ paths }) => paths.includes(route));
     const owners = ROUTE_OWNERS.filter(({ routes }) => routes.includes(route));
@@ -116,8 +116,8 @@ test('route ownership validates delivery and visibility without requiring page-s
 
 test('manually authored landing links enter all seven canonical pools', () => {
   const home = read('index.html');
-  const links = [...home.matchAll(/data-pool-link="([^"]+)"[^>]*href="([^"]+)"/g)];
-  const ids = ['health', 'ai-d-kit', 'growingapp', 'artificial-self', 'my-story', 'tinkerbox', 'design-gallery'];
+  const links = [...home.matchAll(/data-pool-link="([^"]+)" href="([^"]+)"/g)];
+  const ids = ['growingapp', 'ai-d-kit', 'tinkerbox', 'health', 'design-gallery', 'artificial-self', 'my-story'];
   assert.deepEqual(links.map((match) => match[1]), ids);
   assert.deepEqual(links.map((match) => match[2]), ids.map((id) => `/web/pools/${id}/`));
 });

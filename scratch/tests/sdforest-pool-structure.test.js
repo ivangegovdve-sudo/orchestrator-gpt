@@ -35,8 +35,7 @@ test('exactly seven static shells have independent accessible descriptions and a
     const html = read(`web/pools/${id}/index.html`);
     assert.ok(html.includes(`<title>${name}</title>`));
     assert.ok(html.includes(`<h1>${name}</h1>`));
-    // data-pool-layout="designed" opts a pool into the authored layout (pool-designed.css).
-    assert.match(html, new RegExp(`<main data-pool-id="${id}"(?: data-pool-layout="designed")?>`));
+    assert.match(html, new RegExp(`<main data-pool-id="${id}">`));
     assert.match(html, /<html lang="en" class="forest-skin forest-palette">/);
     assert.match(html, /name="viewport"/);
     assert.match(html, /<a href="\/">Back to SD Forest<\/a>/);
@@ -65,19 +64,14 @@ test('home keeps seven live fallback links and loads the catalog-ranked director
   const directory = home.match(/<nav aria-label="Seven pools" data-pool-directory>([\s\S]*?)<\/nav>/)?.[1];
   assert.ok(directory);
   const links = [...directory.matchAll(/<a\b[^>]*data-pool-link="([^"]+)"[^>]*href="([^"]+)"[^>]*>([\s\S]*?)<\/a>/g)];
-  assert.deepEqual(links.map((m) => m[1]).sort(), pools.map(([id]) => id).sort());
-  links.forEach((link) => {
-    const pool=pools.find(([id])=>id===link[1]);
-    assert.equal(link[2], `/web/pools/${pool[0]}/`);
-    assert.ok(link[3].includes(`>${pool[1]}</span>`));
+  assert.deepEqual(links.map((m) => m[1]), pools.map(([id]) => id));
+  links.forEach((link, index) => {
+    assert.equal(link[2], `/web/pools/${pools[index][0]}/`);
+    assert.ok(link[3].includes(`>${pools[index][1]}</span>`));
     assert.match(link[3], />Live pool</);
     assert.doesNotMatch(link[0], /disabled|tabindex|target=/);
   });
-  assert.equal((directory.match(/href="\/web\/pools\//g) || []).length, 7);
-  // The grove (2026-09-26) surfaces work on the front page and ties each pool
-  // to a vine knot: exactly one knot per pool, each pointing at its pool root.
-  const knots = [...home.matchAll(/<a class="grove-knot" href="(\/web\/pools\/[^"]+)"/g)].map((m) => m[1]).sort();
-  assert.deepEqual(knots, pools.map(([id]) => `/web/pools/${id}/`).sort());
+  assert.equal((home.match(/href="\/web\/pools\//g) || []).length, 7);
   assert.match(home, /pool-directory\.mjs/);
   assert.doesNotMatch(home, /project-catalog|ROUTE_REGISTRY|ROUTE_INVENTORY|static-route-registry/);
   assert.doesNotMatch(home, /data-(?:index-project|directory-section|index-section|project)="/);
@@ -191,25 +185,24 @@ test('Design Gallery categories are not projects, and archive uncertainty remain
 });
 
 test('pool overview is rendered from the catalog for every pool', async () => {
-  const [{ renderPoolOverview, renderPoolLedger }, { POOL_CATALOG, getPoolProjects }] = await Promise.all([presenter, catalog]);
+  const [{ renderPoolOverview }, { POOL_CATALOG, getPoolProjects }] = await Promise.all([presenter, catalog]);
   for (const pool of POOL_CATALOG) {
     const html = renderPoolOverview(pool.id);
     assert.match(html, new RegExp(`data-pool-state="Live"`));
     assert.match(html, new RegExp(`>${pool.publicName}<`));
     assert.match(html, new RegExp(pool.summary.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
-    assert.match(renderPoolLedger(pool.id), new RegExp(`Catalog: ${getPoolProjects(pool.publicName).length} project`));
-    assert.doesNotMatch(html, /Catalog: \d+ project/, 'the catalog ledger heads the listing, not the threshold');
+    assert.match(html, new RegExp(`Catalog: ${getPoolProjects(pool.publicName).length} project`));
   }
 });
 
 test('pool overview exposes catalog-derived readiness counts without changing lifecycle status', async () => {
-  const [{ renderPoolLedger, projectReadiness }, { POOL_CATALOG, getPoolProjects }] = await Promise.all([presenter, catalog]);
+  const [{ renderPoolOverview, projectReadiness }, { POOL_CATALOG, getPoolProjects }] = await Promise.all([presenter, catalog]);
   for (const pool of POOL_CATALOG) {
     const counts = getPoolProjects(pool.publicName).reduce((acc, project) => {
       acc[projectReadiness(project).state] += 1;
       return acc;
     }, { Shipped: 0, 'In progress': 0, UNKNOWN: 0 });
-    const html = renderPoolLedger(pool.id);
+    const html = renderPoolOverview(pool.id);
     assert.match(html, /data-readiness-summary/);
     assert.match(html, new RegExp(`Shipped: ${counts.Shipped}`));
     assert.match(html, new RegExp(`In progress: ${counts['In progress']}`));
@@ -218,7 +211,7 @@ test('pool overview exposes catalog-derived readiness counts without changing li
 });
 
 test('every pool overview carries a catalog-backed visitor guide and reality split', async () => {
-  const [{ renderPoolOverview, renderPoolLedger }, { POOL_CATALOG, getPoolProjects }] = await Promise.all([presenter, catalog]);
+  const [{ renderPoolOverview }, { POOL_CATALOG, getPoolProjects }] = await Promise.all([presenter, catalog]);
   for (const pool of POOL_CATALOG) {
     const guide = pool.visitorGuide;
     assert.ok(guide, `${pool.publicName} has a visitor guide`);
@@ -237,11 +230,10 @@ test('every pool overview carries a catalog-backed visitor guide and reality spl
     assert.match(html, /What this pool is for/);
     assert.match(html, /Why it exists/);
     assert.match(html, /Start here/);
-    const ledger = renderPoolLedger(pool.id);
-    assert.match(ledger, /What is real here/);
-    assert.match(ledger, /Still forming/);
+    assert.match(html, /What is real here/);
+    assert.match(html, /Still forming/);
     for (const project of projects) {
-      assert.match(ledger, new RegExp(`data-pool-reality-project="${project.id}"`));
+      assert.match(html, new RegExp(`data-pool-reality-project="${project.id}"`));
     }
   }
 });
@@ -263,27 +255,6 @@ test('Rubik’s Teacher mounts a catalog-backed project context before its app s
   assert.match(context, /Status: Live/);
   assert.match(context, /Readiness: UNKNOWN/);
   assert.match(context, /lazy lesson bundles/);
-});
-
-test('the public council mounts catalog-backed context without changing its two-mode surface', async () => {
-  const [{ renderProjectContext }, { PROJECT_CATALOG }] = await Promise.all([projectContext, catalog]);
-  const project = PROJECT_CATALOG.find(({ id }) => id === 'council');
-  assert.ok(project?.projectPage);
-  const html = read('web/council/index.html');
-  assert.match(html, /data-project-context-root/);
-  assert.match(html, /data-project-id="council"/);
-  assert.match(html, /href="\/web\/shared\/project-page-context\.css\?v=20260807a"/);
-  assert.match(html, /src="\/web\/shared\/project-page-context\.mjs\?v=20260807a"/);
-  const context = renderProjectContext(project);
-  assert.match(context, /Public round-table council/);
-  assert.match(context, /What problem it addresses/);
-  assert.match(context, /What state it is in/);
-  assert.match(context, /What comes next/);
-  assert.match(context, /Status: Live/);
-  assert.match(context, /Readiness: UNKNOWN/);
-  assert.match(context, /stateless boundary/);
-  assert.equal((html.match(/data-council-mode=/g) || []).length, 2);
-  assert.equal((html.match(/data-council-workspace=/g) || []).length, 2);
 });
 
 test('the narrative spine links My Story, Manifesto and Website History without inventing an order', async () => {
@@ -402,24 +373,3 @@ test('readiness surface has explicit shipped, in-progress and UNKNOWN states', a
   assert.deepEqual(projectReadiness(rederivation), { state: 'In progress', reason: 'Research rederivation remains required.' });
 });
 
-
-test('designed pools keep every catalog fact, behind a per-project disclosure', async () => {
-  const [{ renderProjectIndex, projectReadiness }, { getPoolProjects }] = await Promise.all([presenter, catalog]);
-  const projects = getPoolProjects('AI-d kit');
-  const html = renderProjectIndex(projects);
-  for (const project of projects) {
-    const entry = html.match(new RegExp(`<div id="${project.id}"[\\s\\S]*?</article>\\s*</div>`))?.[0];
-    assert.ok(entry, `${project.id} is listed`);
-    const record = entry.match(/<details class="pool-record"><summary>Catalog record<\/summary>([\s\S]*?)<\/details>/)?.[1];
-    assert.ok(record, `${project.id} has a catalog record`);
-    assert.match(record, new RegExp(`Readiness: ${projectReadiness(project).state}`));
-    assert.match(record, /Last meaningful update:/);
-    // Readers see named destinations, never a raw route as link text.
-    assert.doesNotMatch(entry, />\/web\/[^<]*<\/a>/);
-  }
-  const page = read('web/pools/ai-d-kit/index.html');
-  assert.match(page, /<main data-pool-id="ai-d-kit" data-pool-layout="designed">/);
-  assert.match(page, /pool-designed\.css/);
-  // Private repositories are described, never linked.
-  assert.doesNotMatch(page, /github\.com\/ivangegovdve-sudo\/(?:model-router|glass-pr-solver|council|system-one-bench)/);
-});

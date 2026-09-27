@@ -227,7 +227,7 @@ const projectRecords = [
     pool: 'AI-d kit', classification: 'assigned', status: 'Live', rank: { 'AI-d kit': 6 },
     visibility: { ...publicShell, access: 'mixed', publicSurface: 'public-reference-only' },
     relationships: [{ type: 'folds-into', pool: 'AI-d kit', role: 'search' }],
-    sources: ['web/library/index.html', 'web/library/rag.html', 'web/memory-systems/index.html', MASTER],
+    sources: ['web/library/index.html', 'web/library/rag.html', MASTER],
   }),
   project('chair-or-ladder', 'Chair or a Ladder', {
     pool: 'My Story', classification: 'assigned', status: 'Live', rank: { 'My Story': 10 }, visibility: publicShell,
@@ -277,10 +277,6 @@ const projectRecords = [
     rank: { 'AI-d kit': 7, TinkerBox: 8 },
     aliases: ['Councils'], contentRole: 'council', visibility: publicShell,
     membershipNote: 'Shared member of AI-d kit and TinkerBox by settled decision on 2026-09-20.',
-    projectPage: {
-      problem: 'A public model council lets a visitor put one question through named proposer, analyst, critic, observer, and synthesizer roles under local-Oracle or free-cloud conditions.',
-      nextOrStopped: 'Keep both public modes truthful as infrastructure changes: preserve the stateless boundary, show relay outages and free-tier limits, and never substitute paid models or invent a completed deliberation.',
-    },
     sources: ['web/council/index.html', MASTER],
   }),
   project('explore', 'Explore Repos', {
@@ -361,7 +357,7 @@ export const ROUTE_OWNERS = deepFreeze([
   owner('c2c-self', ['/web/c2c-self/']),
   owner('fleet-board', ['/web/fleet/', '/web/board/'], { role: 'internal' }),
   owner('ai-research', ['/web/ai-research/']),
-  owner('library', ['/web/library/', '/web/library/glossary/', '/web/library/platform/', '/web/memory-systems/'], { visibility: { ...publicShell, publicSurface: 'public-reference-only' } }),
+  owner('library', ['/web/library/', '/web/library/glossary/', '/web/library/platform/'], { visibility: { ...publicShell, publicSurface: 'public-reference-only' } }),
   owner('library-workspace', ['/web/library/rag.html'], { projectId: 'library', role: 'child' }),
   owner('library-repos', ['/web/library/repos/'], { projectId: 'library', role: 'child', visibility: internalDocumentation }),
   owner('library-memory', ['/web/library/general/', '/web/library/memory/'], { projectId: 'library', role: 'internal', visibility: internalDocumentation }),

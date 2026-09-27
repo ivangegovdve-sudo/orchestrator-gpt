@@ -12,20 +12,8 @@ const fs = require('node:fs');
 const path = require('node:path');
 
 const ROOT = path.resolve(__dirname, '../..');
+const ROSTER_PATH = path.join(ROOT, 'web/council/free-roster.json');
 const COUNCIL_JS = path.join(ROOT, 'web/council/council.js');
-const { resolveLiveRoster } = require(path.join(ROOT, 'api/council.js'));
-
-const mcpResult = (resolved) => ({
-  stdout: Buffer.from(`${JSON.stringify({
-    jsonrpc: '2.0', id: 2, result: { content: [{ text: JSON.stringify({ resolved }) }] },
-  })}\n`),
-  stderr: Buffer.alloc(0),
-});
-
-const resolveStubbedLiveRoster = (resolved, now = '2026-09-27T06:00:00.000Z') => resolveLiveRoster({
-  spawnSyncImpl: () => mcpResult(resolved),
-  now: () => new Date(now),
-});
 
 const importGenerator = () => import(
   require('node:url').pathToFileURL(path.join(ROOT, 'scripts/refresh-free-roster.mjs')).href
@@ -131,19 +119,6 @@ test('probeModel rejects a JSON error body served under HTTP 200', async () => {
   assert.equal(result.ok, false);
   assert.equal(result.reason, 'relay-refused');
   assert.match(result.detail, /Rate limit/);
-});
-
-// Observed 2026-09-26: the relay forwarded OpenRouter's dead-key error with an
-// event-stream content type, for every model. It must name the refusal, not look like
-// eight models each returning an empty stream.
-test('probeModel names an upstream JSON error forwarded under an event-stream content type', async () => {
-  const { probeModel } = await importGenerator();
-  const result = await probeModel('a/one:free', {
-    fetchImpl: async () => streamResponse('{"error":{"message":"User not found.","code":401}}'),
-  });
-  assert.equal(result.ok, false);
-  assert.equal(result.reason, 'relay-refused');
-  assert.match(result.detail, /User not found/);
 });
 
 test('probeModel reports a non-OK status rather than treating it as a pass', async () => {
@@ -279,58 +254,48 @@ test('assignTiers never emits a duplicate seat within a tier', async () => {
   }
 });
 
-// ── The live resolution contract ────────────────────────────────────────────
+// ── The committed artifact ──────────────────────────────────────────────────
 
-test('live resolution only returns :free slugs', () => {
-  const resolved = resolveStubbedLiveRoster([
-    { id: 'paid/not-free', value: '0' },
-    { id: 'a/one:free', value: '0' },
-    { id: 'b/two:free', value: '0' },
-    { id: 'c/three:free', value: '0' },
-  ]);
-  for (const model of resolved.seats) {
-    assert.ok(model.id.endsWith(':free'), `live resolution returned a non-free slug: ${model.id}`);
+test('the committed roster only contains :free slugs', () => {
+  const roster = JSON.parse(fs.readFileSync(ROSTER_PATH, 'utf8'));
+  for (const [tier, models] of Object.entries(roster.rosters)) {
+    assert.ok(models.length > 0, `${tier} is empty`);
+    for (const model of models) {
+      assert.ok(model.endsWith(':free'), `${tier} carries a non-free slug: ${model}`);
+    }
   }
 });
 
-test('live resolution advertises MCP-resolved models, not merely listed ones', () => {
-  // The live path invokes the MCP resolver, not a catalogue/list endpoint. Its
-  // resolved result is the only evidence a seat may use.
-  let input;
-  const roster = resolveLiveRoster({
-    spawnSyncImpl: (_command, _args, options) => {
-      input = options.input;
-      return mcpResult([
-        { id: 'a/one:free', value: '0' },
-        { id: 'b/two:free', value: '0' },
-        { id: 'c/three:free', value: '0' },
-      ]);
-    },
-    now: () => new Date('2026-09-27T06:00:00.000Z'),
-  });
-  const call = JSON.parse(input.trim().split('\n')[1]);
-  assert.equal(call.params.name, 'dashboard_resolve_model');
-  assert.equal(call.params.arguments.constraints.free, true);
-  assert.deepEqual(roster.seats.map((seat) => seat.id), ['a/one:free', 'b/two:free', 'c/three:free']);
+test('every model on the committed roster was actually verified, not merely listed', () => {
+  // The point of the whole pipeline: nothing reaches a visitor on the strength of a
+  // catalogue entry alone.
+  const roster = JSON.parse(fs.readFileSync(ROSTER_PATH, 'utf8'));
+  const verified = new Set(roster.verified.map((entry) => entry.id));
+  for (const [tier, models] of Object.entries(roster.rosters)) {
+    for (const model of models) {
+      assert.ok(verified.has(model), `${tier} advertises unverified ${model}`);
+    }
+  }
 });
 
-test('a successful live resolution carries a parseable verification timestamp', () => {
-  const roster = resolveStubbedLiveRoster([
-    { id: 'a/one:free', value: '0' },
-    { id: 'b/two:free', value: '0' },
-    { id: 'c/three:free', value: '0' },
-  ]);
+test('the committed roster carries a parseable verification timestamp', () => {
+  const roster = JSON.parse(fs.readFileSync(ROSTER_PATH, 'utf8'));
+  assert.equal(roster.schemaVersion, '1');
   assert.ok(Number.isFinite(Date.parse(roster.verifiedAt)), 'verifiedAt is not a date');
+  assert.ok(Number.isFinite(Date.parse(roster.generatedAt)), 'generatedAt is not a date');
 });
 
-test('a live resolution that confirms no quorum has no verification timestamp', () => {
-  assert.throws(
-    () => resolveStubbedLiveRoster([
-      { id: 'a/one:free', value: '0' },
-      { id: 'b/two:free', value: '0' },
-      { id: 'catalogue-only/never-verified:free', value: null },
-    ]),
-    /latest live check confirmed no free-model quorum/,
+test('verifiedAt is a real success, never merely the moment the run happened', () => {
+  // A run whose probes all fail still publishes, because the health window is what keeps
+  // a throttled afternoon from gutting the roster. It must not also reset the staleness
+  // clock: stamping verifiedAt with the run time would let the page claim "verified
+  // today" with no live confirmation behind it.
+  const roster = JSON.parse(fs.readFileSync(ROSTER_PATH, 'utf8'));
+  const successes = roster.verified.map((entry) => Date.parse(entry.lastOkAt));
+  assert.equal(Date.parse(roster.verifiedAt), Math.max(...successes));
+  assert.ok(
+    Date.parse(roster.verifiedAt) <= Date.parse(roster.generatedAt),
+    'verifiedAt is later than the run that wrote it',
   );
 });
 
@@ -525,8 +490,8 @@ test('a model skipped by the budget still drops once its window lapses', async (
 
 test('the page tells the visitor when the latest check confirmed nothing', () => {
   const source = fs.readFileSync(COUNCIL_JS, 'utf8');
-  assert.match(source, /latest live check confirmed no free-model quorum/);
-  assert.match(source, /openrouter-hint/);
+  assert.match(source, /freshlyVerified === 0/);
+  assert.match(source, /confirmed no models/);
 });
 
 test('the refresh workflow never runs third-party code in a job that can write', () => {
@@ -585,9 +550,8 @@ test('every action is pinned to a commit SHA rather than a mutable tag', () => {
 });
 
 test('the committed roster does not carry the two slugs that were withdrawn', () => {
-  // Regression pin for the failure that prompted live resolution: neither old
-  // slug may reappear as a static fallback or roster literal.
-  const raw = fs.readFileSync(COUNCIL_JS, 'utf8');
+  // Regression pin for the failure that prompted this work.
+  const raw = fs.readFileSync(ROSTER_PATH, 'utf8');
   for (const dead of ['openai/gpt-oss-20b:free', 'nvidia/nemotron-3-nano-30b-a3b:free']) {
     assert.doesNotMatch(raw, new RegExp(dead.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')), `${dead} is back`);
   }
@@ -707,13 +671,11 @@ test('the validator fails loudly rather than rejecting everything when the catal
   );
 });
 
-test('the live resolver only publishes models returned by the live MCP result', () => {
-  const roster = resolveStubbedLiveRoster([
-    { id: 'a/one:free', value: '0' },
-    { id: 'b/two:free', value: '0' },
-    { id: 'c/three:free', value: '0' },
-  ]);
-  assert.deepEqual([roster.proposer, roster.critic, roster.synthesis], ['a/one:free', 'b/two:free', 'c/three:free']);
+test('the committed roster passes the independent validator against a live catalogue shape', async () => {
+  const { validateRoster } = await importValidator();
+  const roster = JSON.parse(fs.readFileSync(ROSTER_PATH, 'utf8'));
+  const catalogue = liveCatalogue(roster.verified.map((entry) => entry.id));
+  assert.deepEqual(validateRoster(roster, catalogue), []);
 });
 
 test('the publish job validates the artifact against OpenRouter, not against itself', () => {
@@ -815,26 +777,31 @@ test('council.js still refuses a non-free model at call time', () => {
   assert.match(source, /if \(!model\.endsWith\(':free'\)\) throw/);
 });
 
-test('the live resolver validates remote model data before returning it', () => {
-  const source = fs.readFileSync(path.join(ROOT, 'api/council.js'), 'utf8');
-  assert.match(source, /function isZeroPrice/);
-  assert.match(source, /endsWith\(':free'\)/);
+test('council.js validates the fetched roster before adopting any of it', () => {
+  const source = fs.readFileSync(COUNCIL_JS, 'utf8');
+  assert.match(source, /function validateRosterDocument/);
+  assert.match(source, /carries a non-free slug/);
 });
 
-test('the page has no built-in roster fallback to rot', () => {
-  // A literal fallback would recreate the design bug: the client may either use
-  // the startup result or state the live-resolution error, never a stale list.
+test('the built-in fallback roster is itself free-only and non-empty', () => {
+  // If the fetch fails, this list is what a visitor runs on. It must satisfy the same
+  // guarantee as the generated one.
   const source = fs.readFileSync(COUNCIL_JS, 'utf8');
-  assert.doesNotMatch(source, /FALLBACK_ROSTERS/);
-  assert.match(source, /fetch\('\/api\/council'\)/);
+  const block = source.match(/const FALLBACK_ROSTERS = \{[\s\S]*?\n  \};/);
+  assert.ok(block, 'FALLBACK_ROSTERS block not found');
+  const slugs = [...block[0].matchAll(/'([^']+)'/g)].map((match) => match[1]);
+  assert.ok(slugs.length >= 3, 'fallback roster is suspiciously small');
+  for (const slug of slugs) {
+    assert.ok(slug.endsWith(':free'), `fallback roster carries a non-free slug: ${slug}`);
+  }
 });
 
-test('the page reports a failed live resolution rather than serving an ageing list silently', () => {
+test('the page reports roster staleness rather than serving an ageing list silently', () => {
   const source = fs.readFileSync(COUNCIL_JS, 'utf8');
-  assert.match(source, /LIVE_NO_QUORUM_MESSAGE/);
-  assert.match(source, /hint\.textContent = rosterState\.error/);
+  assert.match(source, /ROSTER_STALE_AFTER_DAYS/);
+  assert.match(source, /function rosterStatusText/);
   const markup = fs.readFileSync(path.join(ROOT, 'web/council/index.html'), 'utf8');
-  assert.match(markup, /id="openrouter-hint"/);
+  assert.match(markup, /id="openrouter-roster-status"/);
 });
 
 // ── An unknown price is not a zero price ─────────────────────────────────────

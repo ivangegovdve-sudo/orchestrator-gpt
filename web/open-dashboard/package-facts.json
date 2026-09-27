@@ -1,6 +1,6 @@
 {
   "name": "open-dashboard-mcp",
-  "version": "1.4.0",
+  "version": "1.1.4",
   "node": ">=20",
   "providers": [
     {
@@ -186,7 +186,7 @@
       "citationUrl": "https://docs.sailresearch.com/pricing.md",
       "publishes": {
         "pricing": "partial",
-        "contextLength": "partial",
+        "contextLength": "never",
         "outputModalities": "never",
         "reasoningEfforts": "never",
         "activeFlag": "never",
@@ -195,7 +195,7 @@
         "lifecycle": "never"
       },
       "spendVisibility": "unknown",
-      "comparabilityNote": "Sail publishes prices and context information in public documents. Its keyed /models (SAIL_API_KEY) lists identities only; this MCP prices them solely from its pinned, digest-verified pricing document and carries the completion window with each price. Context sizes are read live from docs.sailresearch.com/models.md as the published rounded labels (contextLengthLabel, e.g. \"262K\"), not converted to integers; a failed read is reported as contextSourceState unavailable. Sail is the batch lane: slower per call than AkashML or io.net (operator-measured 0.95-2.37 s against 0.57-0.91 s) and cheaper on most shared models, so it suits work nobody waits on. Per-model response shapes, minimum viable budgets and latencies are measured (2026-09-26); Qwen3.6-35B-A3B accepts synchronous calls only in the flex window. The billing routes at https://docs.sailresearch.com/usage-endpoints.md are documented but not probed or read by this integration, so spend visibility is unknown here."
+      "comparabilityNote": "Sail publishes prices and context information in public documents. This MCP quotes prices only after checking its pinned pricing document and carries the chosen completion window; it does not yet collect the documented context values. The billing routes at https://docs.sailresearch.com/usage-endpoints.md are documented but not probed or read by this integration, so spend visibility is unknown here."
     },
     {
       "id": "nous",
@@ -223,7 +223,6 @@
       },
       "displayName": "Nous Research",
       "providerKind": "model_provider",
-      "correlatedWith": "openrouter",
       "catalogueUrl": "https://nousresearch.com/",
       "citationUrl": "https://nousresearch.com/",
       "publishes": {
@@ -237,7 +236,7 @@
         "lifecycle": "unknown"
       },
       "spendVisibility": "unknown",
-      "comparabilityNote": "Nous Research resells OpenRouter's catalogue: 372 of its 417 model ids are OpenRouter ids and none are Hermes models (measured 2026-09-26), so it is correlated with OpenRouter and must not be counted as an independent failover path. Its public /v1/models carries the prices Nous charges, including promotions, plus a pricing.original list price on discounted models; the portal page shows the same numbers. Nous's advertised discount is measured against its own original, which is often above OpenRouter's price, so each row also compares Nous's charged price with OpenRouter's live price for the same id (resale.versusOpenRouter): many 'up to 88% off' models cost the same as on OpenRouter, a few are genuinely cheaper, and some are dearer. No authenticated balance, usage or per-generation charge is established here, so generation cost remains BLOCKED, not zero."
+      "comparabilityNote": "Nous Research is registered as a named provider, but its published rate is not verifiable here: 15 checked paths across three hosts returned 404 and no balance, credits, usage, or per-generation cost endpoint was found. Generation cost is BLOCKED, not zero."
     },
     {
       "id": "qwencloud",
@@ -572,86 +571,6 @@
       },
       "spendVisibility": "unknown",
       "comparabilityNote": "Crazyrouter is a multi-provider aggregator. With CRAZYROUTER_API_KEY the catalogue contains every model visible to that key; without it only public pricing identities are observed and the platform denominator is unknown. The separate comparison tool joins exact model aliases using explicit native author evidence to OpenRouter quotes and available dated direct-provider references. The exact GPT-4o, GPT-4o mini and GPT-4.1 default-group figures that equal 0.65x OpenAI list prices are marked derived with their source and observed multiplier, and are excluded from competition claims. Public default-group rates do not establish the caller's billing group or settled charges. Tiered or unsupported native billing remains unpriced for comparison. The vendor's dated discount claim is assessed against collected independently comparable quotes rather than assumed true; immutable model snapshot equivalence and account spend are not established."
-    },
-    {
-      "id": "akashml",
-      "caveatResearch": {
-        "status": "not_found_in_checked_sources",
-        "checkedSources": [
-          "https://akashml.com/"
-        ],
-        "observedAt": "2026-09-26",
-        "scope": "No numeric operating limit was established from this checked platform page. This limited check does not establish that the provider publishes none elsewhere."
-      },
-      "pitch": {
-        "text": "competitive pricing starting from $0.15/M tokens",
-        "attribution": "AkashML homepage pricing claim, contradicted by its own /models rates",
-        "sourceUrl": "https://akashml.com/",
-        "observedAt": "2026-09-26"
-      },
-      "pitchResearch": {
-        "status": "published",
-        "checkedSources": [
-          "https://akashml.com/"
-        ],
-        "observedAt": "2026-09-26",
-        "scope": "Provider-owned platform marketing copy; quoted as a provider claim, not endorsed as a comparison result."
-      },
-      "displayName": "AkashML",
-      "catalogueUrl": "https://api.akashml.com/v1/models",
-      "citationUrl": "https://akashml.com/docs/platform/models",
-      "publishes": {
-        "pricing": "always",
-        "contextLength": "always",
-        "outputModalities": "always",
-        "reasoningEfforts": "never",
-        "activeFlag": "never",
-        "discounts": "never",
-        "discountExpiry": "never",
-        "lifecycle": "never"
-      },
-      "spendVisibility": "no_billing_api",
-      "comparabilityNote": "AkashML is Akash Network's managed inference service. Its keyed /models publishes USD-per-token rates per model, and they differ about 44x on output (gpt-oss-20b $0.10/M to GLM-5.3 $4.40/M, measured 2026-09-25), so it is priced per model, never as one provider rate. Its homepage claim of pricing 'starting from $0.15/M tokens' matches none of those rates, and billed charges observed in its console agreed with the per-model rates rather than the headline. Five of its six models are reasoning models that write thinking to message.reasoning_content and can return an empty message.content while billing tokens when max_tokens is small; each catalogue row carries dated response-shape observations. No billing API is documented, so per-key spend is not readable here. The catalogue needs AKASHML_API_KEY."
-    },
-    {
-      "id": "ionet",
-      "caveatResearch": {
-        "status": "not_found_in_checked_sources",
-        "checkedSources": [
-          "https://io.net/intelligence"
-        ],
-        "observedAt": "2026-09-26",
-        "scope": "No numeric operating limit was established from this checked platform page. This limited check does not establish that the provider publishes none elsewhere."
-      },
-      "pitch": {
-        "text": "Free inference platform powered by io.net's decentralized GPU network.",
-        "attribution": "io.net IO Intelligence page description",
-        "sourceUrl": "https://io.net/intelligence",
-        "observedAt": "2026-09-26"
-      },
-      "pitchResearch": {
-        "status": "published",
-        "checkedSources": [
-          "https://io.net/intelligence"
-        ],
-        "observedAt": "2026-09-26",
-        "scope": "Provider-owned platform marketing copy; quoted as a provider claim, not endorsed as a comparison result."
-      },
-      "displayName": "io.net",
-      "catalogueUrl": "https://api.intelligence.io.solutions/api/v1/models",
-      "citationUrl": "https://io.net/docs/reference/ai-models/get-started-with-io-intelligence-api.md",
-      "publishes": {
-        "pricing": "always",
-        "contextLength": "always",
-        "outputModalities": "always",
-        "reasoningEfforts": "never",
-        "activeFlag": "never",
-        "discounts": "never",
-        "discountExpiry": "never",
-        "lifecycle": "never"
-      },
-      "spendVisibility": "unknown",
-      "comparabilityNote": "io.net sells both GPU rental (IO Cloud) and per-token inference (IO Intelligence); only the inference catalogue is collected. Its public /models publishes per-token USD prices as JSON numbers, converted exactly from their decimal text. 31 of 37 models (measured 2026-09-26) require an access tier above the free one (min_access_tier is retained in nativePricing), so a listed price is not proof a free key can call the model. GPU hourly rates on io.net's own pages disagree with each other and are not collected. Measured with a key on 2026-09-26, all 37 listed models were reachable, and three reasoning models (GLM-5.3-Flash, DeepSeek-V4.1-Flash, Qwen3.8-27B) wrote message.reasoning_content beside content and refusal; at max_tokens 16 GLM-5.3-Flash returned an empty answer 3 of 3 times and DeepSeek-V4.1-Flash 2 of 3, while billing; Qwen3.8-27B answered or was truncated in this build's 3 calls, though an operator probe the same day saw it return empty, and the tokens a one-word answer needed ranged from 16 to 218 depending on model and call. Other io.net models are not observed. io.net sits behind Cloudflare: a request can get 403 'error code: 1010' on a valid key depending on client and User-Agent, which is reported as EDGE_BLOCKED, not a credential failure."
     }
   ],
   "tools": [
@@ -659,16 +578,6 @@
       "name": "dashboard_benchmarks",
       "title": "Dashboard benchmark observations",
       "description": "Read the published OpenRouter benchmark observations, including Artificial Analysis, Design Arena and OpenRouter's own benchmark variant. Upstream unavailability remains an explicit structured error.",
-      "annotations": {
-        "readOnlyHint": true,
-        "destructiveHint": false,
-        "openWorldHint": true
-      }
-    },
-    {
-      "name": "dashboard_capability_state",
-      "title": "Capability state for deterministic model selection",
-      "description": "Return one snake_case, evidence-shaped row per available live model slug and two decisions over that same table: literally cheapest paid for the public council and cheapest functional for the private council. Every field carries its own checked_at, observed_at, expires_at and age_seconds. Catalogue price is never substituted for actual per-generation cost; lineage, tool support, reachability, functionality, and semantic quality remain explicit UNKNOWN or EXPIRED values until their own evidence exists.",
       "annotations": {
         "readOnlyHint": true,
         "destructiveHint": false,
@@ -846,9 +755,6 @@
       "megapixel",
       "video_second",
       "video",
-      "credit_image",
-      "credit_video",
-      "credit_audio",
       "request",
       "gpu_hour"
     ],
@@ -879,8 +785,6 @@
       "id",
       "amount",
       "unit",
-      "observed",
-      "measurement_origin",
       "condition",
       "source",
       "provenance",
@@ -925,28 +829,6 @@
       "unit",
       "assumption",
       "derived_from"
-    ],
-    "measuredCostFields": [
-      "id",
-      "provider",
-      "upstreamProvider",
-      "model",
-      "observedAt",
-      "provenanceDate",
-      "workload",
-      "vantagePoint",
-      "tokenCounts",
-      "costUsd",
-      "costState",
-      "provenance",
-      "measurementSource",
-      "httpStatus",
-      "errorBucket",
-      "balanceDeltaUsd",
-      "authoritativeField",
-      "sourceUrl",
-      "latency",
-      "note"
     ],
     "environmentVariables": [
       "OPEN_DASHBOARD_TOOLS",

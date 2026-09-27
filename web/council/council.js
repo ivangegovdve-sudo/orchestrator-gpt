@@ -8,7 +8,6 @@
   const LOCAL_OUTAGE_MESSAGE = 'The Local Oracle is offline. This page can only listen while Ivan’s ARM64 Ollama host and relay are reachable; no reply has been invented.';
   const FREE_RATE_LIMIT_MESSAGE = 'The free OpenRouter roster is rate-limited right now. No paid model was substituted. Try again later.';
   const INCOMPLETE_MESSAGE = 'The answer ended incomplete.';
-  const LIVE_NO_QUORUM_MESSAGE = 'The latest live check confirmed no free-model quorum.';
 
   // Both councils are public surfaces. This sentence is the standing guardrail from
   // CLAUDE.md — it must survive every prompt change, so it lives in one place and is
@@ -965,12 +964,6 @@
     } catch (error) {
       rosterState.liveSeats = null;
       rosterState.error = error?.message || String(error);
-      // The startup request is the check. Say explicitly when it found no
-      // usable quorum instead of leaving the visitor to discover it on submit.
-      const hint = query('#openrouter-hint');
-      if (hint) hint.textContent = rosterState.error.includes('no free-model quorum')
-        ? LIVE_NO_QUORUM_MESSAGE
-        : rosterState.error;
     }
     return rosterState;
   }

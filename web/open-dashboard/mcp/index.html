@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta
       name="description"
-      content="Give agents exact model IDs, provider-published prices and typed decision evidence with units, conditions and source dates across provider catalogues, covering text, image, video and audio models where sources publish them. Connect Open Dashboard to Hermes, OpenClaw, Codex, Claude or Cursor."
+      content="Give agents exact model IDs and provider-published prices with units, conditions and source dates across provider catalogues, covering text, image, video and audio models where sources publish them. Connect Open Dashboard to Hermes, OpenClaw, Codex, Claude or Cursor."
     />
     <meta name="theme-color" content="#faf9f6" />
     <title>Connect your agent — Open Dashboard</title>
@@ -145,101 +145,6 @@
           </p>
         </article>
       </div>
-      <section class="setup-decision-card" aria-labelledby="decision-evidence-title">
-        <div class="setup-decision-head">
-          <p class="setup-eyebrow">The contract behind the connection</p>
-          <span class="setup-decision-tag">typed · read-only evidence</span>
-        </div>
-        <h2 id="decision-evidence-title">Give your selector evidence, not a bare number.</h2>
-        <p class="setup-decision-lede">
-          The current MCP contract exposes freshness-aware model evidence and bounded
-          selections for a consuming decision layer. It does not forward inference
-          requests: your provider or agent still runs the model.
-        </p>
-        <div class="setup-decision-grid">
-          <article>
-            <h3><code>dashboard_capability_state</code></h3>
-            <p>
-              Returns one evidence-shaped row per available model, with explicit
-              public and private decision states and per-field freshness.
-            </p>
-          </article>
-          <article>
-            <h3><code>dashboard_resolve_model</code></h3>
-            <p>
-              Resolves requirements into a schema-validated ranked fallback list;
-              unknown values do not count as a favourable match.
-            </p>
-          </article>
-        </div>
-        <p class="setup-decision-note">
-          Every cost keeps its origin in <code>measurement_origin</code>:
-          <strong>fixture</strong> is deterministic evidence,
-          <strong>live_provider_read</strong> is a provider observation, and
-          <strong>unknown</strong> means no authoritative source was established.
-          Unknown evidence cannot produce a decidable selection, and a cost from one
-          routed provider never appears beside another.
-        </p>
-        <p class="setup-decision-note">
-          Designed to feed typed decision layers such as System One models. The MCP
-          supplies evidence and selection; it is not a tested integration with those
-          systems.
-        </p>
-      </section>
-      <section class="setup-decision-card" aria-labelledby="release-120-title">
-        <div class="setup-decision-head">
-          <p class="setup-eyebrow">New in 1.2 to 1.4</p>
-          <span class="setup-decision-tag">AkashML · io.net · response shape</span>
-        </div>
-        <h2 id="release-120-title">Two more providers, and the call that bills you for nothing.</h2>
-        <p class="setup-decision-lede">
-          Reasoning models write their thinking to <code>message.reasoning_content</code>
-          and their answer to <code>message.content</code>. With a small
-          <code>max_tokens</code> the whole budget can go to thinking: HTTP 200, every
-          token billed, and an empty answer. Each catalogue row now carries a response-shape
-          record, so a selector can see this before it recommends a model.
-        </p>
-        <div class="setup-decision-grid">
-          <article>
-            <h3>AkashML</h3>
-            <p>
-              Priced per model from its own catalogue: $0.10 to $4.40 per million output
-              tokens across six models, so no single provider rate is used. Five of six were
-              observed returning empty answers at <code>max_tokens: 16</code>; GLM-5.3 spent
-              a 6,000-token budget on reasoning alone. Needs an AkashML API key.
-            </p>
-          </article>
-          <article>
-            <h3>io.net</h3>
-            <p>
-              37 models with per-token prices on a public catalogue, no key needed. 31 are
-              marked for an access tier above free, so a listed price is not proof a free key
-              can call the model. Measured with a key: GLM-5.3-Flash returned an empty answer
-              at <code>max_tokens</code> 16 three times out of three. io.net also rents GPUs;
-              that is not collected.
-            </p>
-          </article>
-        </div>
-        <p class="setup-decision-note">
-          A model this build has never called reports <strong>unknown</strong>, not safe.
-          The same model answered a one-word prompt in 3 tokens and failed on a long one,
-          so a single clean probe proves nothing. Since 1.2.1 each observed model also
-          reports the range of tokens a one-word answer took: GLM-5.3-Flash used 95 to 218
-          on identical calls, DeepSeek-V4.1-Flash 16 to 35, so one global token floor is
-          wrong in both directions. Measured 2026-09-25/26; ask
-          <code>dashboard_catalogue</code> for the current figures.
-        </p>
-        <p class="setup-decision-note">
-          Since 1.4.0 the catalogue reads all 15 providers' own catalogues live on every
-          call: eleven need no key, and AkashML, Groq, Sail and QwenCloud need their own.
-          Every price carries its source and read time, and a missing price is unknown,
-          never zero. Sail is priced from its verified rate card, per completion window, and
-          marked as the slow, cheap lane for batch work. Nous Research is marked as a
-          reseller of OpenRouter's catalogue, and each of its prices is compared with
-          OpenRouter's live price for the same model. Many of its advertised discounts cost
-          the same as OpenRouter; a few are genuinely cheaper.
-        </p>
-      </section>
       <div class="setup-layout">
         <section
           class="setup-wizard"
@@ -620,10 +525,6 @@
             <div>
               <dt><code>dashboard_resolve_model</code></dt>
               <dd>Exact model IDs and fallbacks for a set of requirements.</dd>
-            </div>
-            <div>
-              <dt><code>dashboard_capability_state</code></dt>
-              <dd>Freshness-aware candidate rows and public/private decision states.</dd>
             </div>
             <div>
               <dt><code>dashboard_free_models</code></dt>

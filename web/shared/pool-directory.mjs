@@ -14,13 +14,7 @@ export function reorderPoolLinks(root = document) {
     if (byId.size !== orderedPools.length || orderedPools.some(({ id }) => !byId.has(id))) {
       throw new Error('SD Forest pool directory contract: rendered links do not cover exactly the seven catalog pools');
     }
-    // Move the list item, not the bare link, so a <ul> keeps its <li> rows; a
-    // link that is a direct child (the homepage directory) moves exactly as before.
-    for (const pool of orderedPools) {
-      const link = byId.get(pool.id);
-      const item = link.parentElement?.tagName === 'LI' ? link.parentElement : link;
-      (item === link ? container : item.parentElement).append(item);
-    }
+    for (const pool of orderedPools) container.append(byId.get(pool.id));
   }
   return orderedPools.map(({ id }) => id);
 }
