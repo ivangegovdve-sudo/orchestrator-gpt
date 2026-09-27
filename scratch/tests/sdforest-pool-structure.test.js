@@ -35,8 +35,9 @@ test('exactly seven static shells have independent accessible descriptions and a
     const html = read(`web/pools/${id}/index.html`);
     assert.ok(html.includes(`<title>${name}</title>`));
     assert.ok(html.includes(`<h1>${name}</h1>`));
-    // data-pool-layout="designed" opts a pool into the authored layout (pool-designed.css).
-    assert.match(html, new RegExp(`<main data-pool-id="${id}"(?: data-pool-layout="designed")?>`));
+    // data-pool-layout="designed" opts a pool into the authored layout (pool-designed.css);
+    // data-pool-skin="world" additionally opts it into the homepage's world (pool-world.css).
+    assert.match(html, new RegExp(`<main data-pool-id="${id}"(?: data-pool-layout="designed"(?: data-pool-skin="world")?)?>`));
     assert.match(html, /<html lang="en" class="forest-skin forest-palette">/);
     assert.match(html, /name="viewport"/);
     assert.match(html, /<a href="\/">Back to SD Forest<\/a>/);
