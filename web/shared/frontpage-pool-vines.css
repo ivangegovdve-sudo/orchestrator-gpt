@@ -42,3 +42,18 @@
 }
 @keyframes pool-vine-lit { from { stroke-dashoffset:.07; } to { stroke-dashoffset:-.93; } }
 .pool-vine-leaf { transform-box:fill-box; transform-origin:center; }
+
+/* Intro, act three (desktop scrub): the page assembles over the last 20% of the intro
+ * scroll, and each pool's vine grows from its root into its plaque on the same clock,
+ * finishing as that plaque lands. --assembly-time is the intro clock (0.8 to 5). */
+html[data-resolve-motion="scrub"] .pool-vine { opacity: 1; }
+html[data-resolve-motion="scrub"] .pool-vine-stem {
+  animation: none;
+  --vine-progress: clamp(0, (var(--assembly-time, 5) - .45 - var(--vine-index) * .32) / .8, 1);
+  stroke-dashoffset: calc(1 - var(--vine-progress));
+  opacity: clamp(0, var(--vine-progress) * 30, 1);
+}
+html[data-resolve-motion="scrub"] .pool-vine-leaf {
+  animation: none;
+  opacity: clamp(0, (var(--assembly-time, 5) - 1.05 - var(--vine-index) * .32) / .3, 1);
+}
