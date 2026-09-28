@@ -1,0 +1,61 @@
+/* Design Gallery pool sections for the designed layout (see web/shared/pool-designed.css). */
+
+/* Poetry Space: its own title, set as the exhibit. */
+main[data-pool-layout="designed"] .pool-poetry {
+  display: grid;
+  grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
+  gap: calc(var(--pool-step) * 2);
+  align-items: end;
+  padding: calc(var(--pool-step) * 2) 0 calc(var(--pool-step) * 1.2);
+  border-block: 1px solid var(--pool-line);
+}
+main[data-pool-layout="designed"] .pool-poetry-title {
+  max-width: 14ch !important;
+  margin: 0;
+  color: var(--pool-ink) !important;
+  font: 500 clamp(2.4rem, 4.6vw, 3.8rem)/1.08 var(--forest-display);
+  letter-spacing: -.015em;
+}
+main[data-pool-layout="designed"] .pool-poetry h2 { margin: 0; font: 500 clamp(1.8rem, 3vw, 2.3rem)/1.1 var(--forest-display); }
+main[data-pool-layout="designed"] .pool-poetry h2 a { color: var(--pool-accent); text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: .18em; }
+main[data-pool-layout="designed"] .pool-poetry p:not(.pool-poetry-title) { margin: .7rem 0 0; color: var(--pool-soft); }
+
+/* The rooms: one image where there is something to see, honest notes where not. */
+main[data-pool-layout="designed"] .pool-rooms {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+  grid-template-rows: auto auto;
+  gap: calc(var(--pool-step) * 1.2) calc(var(--pool-step) * 1.8);
+  margin: 1.2rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+main[data-pool-layout="designed"] .pool-rooms > li {
+  padding-top: .9rem;
+  border-top: 2px solid color-mix(in srgb, var(--pool-accent) 50%, transparent);
+  color: var(--pool-soft);
+}
+main[data-pool-layout="designed"] .pool-rooms > li[data-category-id="game-design"] { grid-row: 1 / span 2; }
+main[data-pool-layout="designed"] .pool-rooms img {
+  display: block;
+  width: 100%;
+  height: auto;
+  margin-bottom: .9rem;
+  border-radius: 10px;
+}
+main[data-pool-layout="designed"] .pool-rooms p { margin: 0; }
+main[data-pool-layout="designed"] .pool-rooms strong { color: var(--pool-ink); font: 500 1.45rem/1.2 var(--forest-display); }
+main[data-pool-layout="designed"] .pool-rooms a { display: inline-block; padding: .15rem 0; color: var(--pool-accent); }
+main[data-pool-layout="designed"] .pool-room-note { margin-top: .5rem !important; color: var(--pool-muted); font-size: .98rem; }
+
+@media (max-width: 820px) {
+  main[data-pool-layout="designed"] .pool-poetry,
+  main[data-pool-layout="designed"] .pool-rooms { grid-template-columns: minmax(0, 1fr); gap: 1.1rem; }
+  main[data-pool-layout="designed"] .pool-rooms > li[data-category-id="game-design"] { grid-row: auto; }
+}
+
+/* The older gallery composition centred everything; the designed layout reads left. */
+main[data-pool-id="design-gallery"][data-pool-layout="designed"],
+main[data-pool-id="design-gallery"][data-pool-layout="designed"] * { text-align: start; }
+main[data-pool-id="design-gallery"][data-pool-layout="designed"] > section > p,
+main[data-pool-id="design-gallery"][data-pool-layout="designed"] .pool-lede { margin-inline: 0; }
