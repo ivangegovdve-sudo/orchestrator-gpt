@@ -43,3 +43,7 @@ data/gmail-inbox-index/gmail-auth.err.log
 .vercel_python_packages/
 .claude/
 docs/superpowers/
+
+# scroll-craft workspace: verification tooling and screenshot output stay local
+scrollcraft/node_modules/
+scrollcraft/lab/
