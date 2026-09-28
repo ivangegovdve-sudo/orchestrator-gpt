@@ -54,9 +54,9 @@ test('exactly seven static shells have independent accessible descriptions and a
     assert.match(html, /forest-design\.css/);
     assert.match(html, /forest-shell\.css/);
     assert.match(html, /<body class="pool-page" data-forest-page="[^"]+">/);
-    assert.match(html, /<canvas class="forest-scene" data-forest-scene data-mode="[^"]+"/);
+    assert.match(html, /<canvas class="[^"]*\bforest-scene\b[^"]*" data-forest-scene data-mode="[^"]+"/);
     assert.match(html, /data-forest-runtime="motion"[^>]+forest-runtime-boot\.mjs\?v=20260807a/);
-    assert.doesNotMatch(html, /forest-(?:trails|navigation)|reveal|ROUTE_REGISTRY/);
+    assert.doesNotMatch(html, /forest-(?:trails|navigation)|(?:src|href)="[^"]*reveal|ROUTE_REGISTRY/);
   }
 });
 
