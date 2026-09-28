@@ -92,10 +92,6 @@
   --sc-z-stage: 1; --sc-z-copy: 20; --sc-z-chrome: 60;
 }
 
-/* Health keeps catalog/runtime compatibility hooks out of the authored world. */
-.compat,
-.statement-copy [data-health-project] { display: none !important; }
-
 /* --------------------------------------------------------------- reset -- */
 *, *::before, *::after { box-sizing: border-box; }
 html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }

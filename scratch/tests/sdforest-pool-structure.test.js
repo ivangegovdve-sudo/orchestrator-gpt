@@ -34,7 +34,7 @@ test('exactly seven static shells have independent accessible descriptions and a
   for (const [id, name] of pools) {
     const html = read(`web/pools/${id}/index.html`);
     assert.ok(html.includes(`<title>${name}</title>`));
-    assert.match(html, /<h1(?:\s[^>]*)?>[\s\S]*?<\/h1>/, `${name} keeps one semantic page heading`);
+    assert.ok(html.includes(`<h1>${name}</h1>`));
     // data-pool-layout="designed" opts a pool into the authored layout (pool-designed.css).
     assert.match(html, new RegExp(`<main data-pool-id="${id}"(?: data-pool-layout="designed")?>`));
     assert.match(html, /<html lang="en" class="forest-skin forest-palette">/);
@@ -44,7 +44,7 @@ test('exactly seven static shells have independent accessible descriptions and a
     assert.match(html, /<div[^>]+data-pool-overview-content[^>]*>/);
     assert.match(html, /<noscript><p>This pool overview is catalog-backed/);
     assert.match(html, /<noscript><p>Project details load from the shared catalog/);
-    assert.match(html, /<section aria-labelledby="projects-title"[^>]*>/);
+    assert.match(html, /<section aria-labelledby="projects-title">/);
     assert.match(html, /<div data-pool-projects>/);
     assert.match(html, /type="module" src="\/web\/shared\/pool-page.mjs"/);
     const nav = html.match(/<nav aria-label="All pools">([\s\S]*?)<\/nav>/)?.[1];
@@ -54,9 +54,9 @@ test('exactly seven static shells have independent accessible descriptions and a
     assert.match(html, /forest-design\.css/);
     assert.match(html, /forest-shell\.css/);
     assert.match(html, /<body class="pool-page" data-forest-page="[^"]+">/);
-    assert.match(html, /<canvas class="[^"]*\bforest-scene\b[^"]*" data-forest-scene data-mode="[^"]+"/);
+    assert.match(html, /<canvas class="forest-scene" data-forest-scene data-mode="[^"]+"/);
     assert.match(html, /data-forest-runtime="motion"[^>]+forest-runtime-boot\.mjs\?v=20260807a/);
-    assert.doesNotMatch(html, /forest-(?:trails|navigation)|(?:src|href)="[^"]*reveal|ROUTE_REGISTRY/);
+    assert.doesNotMatch(html, /forest-(?:trails|navigation)|reveal|ROUTE_REGISTRY/);
   }
 });
 
