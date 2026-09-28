@@ -34,7 +34,7 @@ test('exactly seven static shells have independent accessible descriptions and a
   for (const [id, name] of pools) {
     const html = read(`web/pools/${id}/index.html`);
     assert.ok(html.includes(`<title>${name}</title>`));
-    assert.ok(html.includes(`<h1>${name}</h1>`));
+    assert.match(html, /<h1(?:\s[^>]*)?>[\s\S]*?<\/h1>/, `${name} keeps one semantic page heading`);
     // data-pool-layout="designed" opts a pool into the authored layout (pool-designed.css).
     assert.match(html, new RegExp(`<main data-pool-id="${id}"(?: data-pool-layout="designed")?>`));
     assert.match(html, /<html lang="en" class="forest-skin forest-palette">/);
@@ -44,7 +44,7 @@ test('exactly seven static shells have independent accessible descriptions and a
     assert.match(html, /<div[^>]+data-pool-overview-content[^>]*>/);
     assert.match(html, /<noscript><p>This pool overview is catalog-backed/);
     assert.match(html, /<noscript><p>Project details load from the shared catalog/);
-    assert.match(html, /<section aria-labelledby="projects-title">/);
+    assert.match(html, /<section aria-labelledby="projects-title"[^>]*>/);
     assert.match(html, /<div data-pool-projects>/);
     assert.match(html, /type="module" src="\/web\/shared\/pool-page.mjs"/);
     const nav = html.match(/<nav aria-label="All pools">([\s\S]*?)<\/nav>/)?.[1];

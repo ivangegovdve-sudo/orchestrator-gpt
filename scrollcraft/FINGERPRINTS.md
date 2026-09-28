@@ -28,6 +28,7 @@ changes only grammar and world will fail it.
 
 | Build | Grammar | Nav treatment | Hero device | Act-sequence shape | Close pattern | Signature move | World | Port |
 |---|---|---|---|---|---|---|---|---|
+| Health | working surface | membrane strip | procedural cutaway cell | pin / flow / pan / pin | held clinic spotlight | organelle-to-specimen alignment | biological research clinic | 4562 |
 
 *(empty: your first build has nothing to clear, so build whatever the interview
 points at. From the second onwards, this table is the constraint.)*
@@ -41,7 +42,7 @@ reusing: a grammar, a nav treatment, a close pattern, a signature move, an
 act-count-and-length band. The shared columns are what the next build inherits
 as a constraint, so writing them down is the whole point.
 
-Nothing is taken yet.
+- Health claims the working-surface grammar, membrane strip, held clinic close, procedural cell entrance, and organelle-to-specimen signature move. Its four-act, 12.2vh desktop band is also taken.
 
 ---
 

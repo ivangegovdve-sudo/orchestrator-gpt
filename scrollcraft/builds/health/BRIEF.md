@@ -1,95 +1,53 @@
 # Health pool world brief
 
-Status: interviewed source material is partial. This brief records only decisions present in the approved handoff. Creative decisions that were not answered remain explicitly open.
+Status: interviewed source material is partial. The board authorized provisional answers so work can proceed. Every authored choice below is **Provisional, pending Ivan**. The approved handoff remains authoritative.
 
-## 1. Vibe and references
+## Eight creative topics
 
-Known direction: a living, active eukaryotic cell, naturalistic or stylized biological motion, and a world with its own visual identity rather than a shared pool template.
+1. **Vibe.** Known: living eukaryotic cell and an independent visual identity. **Provisional, pending Ivan:** precise, alive, translucent, research-clinic, quietly strange. References: confocal microscopy, museum cutaway models, clean clinical instrument panels. The untranscribed section 15 screenshot is not represented.
+2. **Journey.** **Provisional, pending Ivan:** enter through the cutaway cell; cross into a concise clinic statement; pull a lateral rail of catalog-backed projects; resolve on opening a project or leaving project-specific feedback.
+3. **Energy.** **Provisional, pending Ivan:** calm observation, rising cellular activity, quiet orientation, exploratory breadth, settled agency.
+4. **Feeling and memory.** **Provisional, pending Ivan:** wonder, trust, curiosity, agency. Peak: “It’s the site where you scroll into a living cell and its organelles become the projects.” The cell-to-rail transition is the peak.
+5. **Signature seed.** **Provisional, pending Ivan:** continuously orbiting organelles align with project cards as the rail begins.
+6. **Aesthetic range.** **Provisional, pending Ivan:** editorial scientific with moderate density, one step from premium-minimal toward an instrument-panel clinic.
+7. **Structure.** **Provisional, pending Ivan:** distinct acts, not worldflight. The biological entrance should cut cleanly into a usable catalog.
+8. **Assets.** Known: zero-spend, no generated assets. **Provisional, pending Ivan:** procedural Canvas/CSS/SVG plus shared infrastructure. No unapproved Drive asset is assumed.
 
-Open: three to five vibe words, up to three references from any medium, and the untranscribed design-style screenshot from handoff section 15.
+## Feeling curve
 
-## 2. Scroll journey
+1. Wonder: an intact cell breathes while organelles circulate behind its cutaway.
+2. Trust: a precise clinic surface uses restrained, honest language.
+3. Curiosity: project specimens move laterally into view with lifecycle labels.
+4. Agency: the last frame holds on real exits and feedback.
 
-Known required content:
+Peak: **Provisional, pending Ivan:** the cell-to-project transition in act three, with the largest scroll span.
 
-1. Enter through a mostly intact eukaryotic cell with roughly one quarter cut away.
-2. See the nucleus, mitochondria, other organelles, and continuous interior motion.
-3. Reach the Health project world, led automatically by the most complete or ready project.
-4. Access Gym Scholar, Dyslexia Reading Platform, Audiobook Studio, FlowForm, and Women's Health OS from the shared project catalog.
-5. Retain a feedback option for every project.
+Tell-someone sentence: **Provisional, pending Ivan:** “It’s the site where you scroll into a living cell and its organelles become the projects.”
 
-Open: Ivan's preferred stage-by-stage sequence and the exact closing experience.
+Authored silence: the clinic statement is intentionally quieter than the entrance and rail.
 
-## 3. Energy curve
+## Product and score
 
-Known: the cell must feel continuously alive rather than like a static textbook model. The page must have one engineered peak and a resolved ending.
+Audience: people exploring practical Health projects and research tools. Belief: real reachable work can be presented experimentally without overstating readiness. Action: open a project or leave feedback.
 
-Open: where the experience should be calm, where it should intensify, and how much contrast the transitions should carry.
+Grammar: **working surface**. It supports a live instrument, direct project rail, and usable controls. Gallery, catalogue, editorial, spatial canvas, chaptered essay, dashboard, worldflight, and filmic one-shot lost because they subordinate utility, imply a continuous generated world, or turn the cell into decoration.
 
-## 4. Feeling curve and memorable moment
+| Beat | Device family | Why |
+|---|---|---|
+| Recognition | pin + procedural parallax | Holds the cell long enough to inspect depth. |
+| Trust | flow + iris reveal | A quiet cut from organism to clinic statement. |
+| Range / peak | pan + organelle alignment | Breadth becomes physical and order stays catalog-driven. |
+| Commitment | pin + pointer spotlight | Resolves on exits and feedback. |
 
-Not yet decided. The handoff does not specify the stage-by-stage emotions or the single remembered moment. These must be answered before act planning.
-
-### Intended feeling curve
-
-Pending Ivan's direction. No acts or devices have been assigned.
-
-### Peak
-
-Pending Ivan's sentence describing the one moment a visitor would tell a friend about, and the act in which it occurs.
-
-## 5. Signature-move seed
-
-Open: one thing this Health world should do that no site Ivan has seen does.
-
-## 6. Aesthetic range
-
-Known: the Health pool may independently change art style, colours, typography, layout, navigation, density, interaction, transitions, animation language, and atmosphere. It must not visibly reuse the shared pool-world design.
-
-Open: desired position on the range of brutalist, maximalist, playful, retro, dense, editorial, and premium-minimal.
-
-## 7. Structural grammar preference
-
-Open: one unbroken world versus distinct scenes or chapters. Neither has been selected.
-
-## 8. Existing assets
-
-Known: do not use KIE or incur generation spend. The cell may be built procedurally with SVG, Canvas, or WebGL, or use existing approved repository or Drive assets.
-
-Open: which approved assets, if any, should anchor this Health world. The section 15 design-style screenshot is required source material and has not been transcribed.
-
-## Product and content constraints
-
-- The final source lives under `web/`; `vercel-public/` is generated and must not be edited.
-- Project data and lifecycle labels come from `web/shared/project-catalog.mjs`.
-- Reachable projects labelled In development remain accessible.
-- Women's Health OS must state its women-specific research intent and honestly disclose that its corpus has not yet been verified as exclusively women-focused.
-- Do not make health claims without peer-reviewed grounding. Do not use invented numbers or counters.
-- Use the existing `web/shared/feedback.js` mechanism for every project. Its Formspree endpoint remains a known placeholder.
-- Provide a small, funny, non-blocking site-wide redesign notice.
-- Honor reduced motion and create a separately art-directed phone composition.
-
-## Visitor belief and action
-
-Known belief: the Health area is a living, designed world containing real, reachable projects whose lifecycle labels remain honest.
-
-Known action: open a Health project or leave feedback. The handoff does not choose a single canonical CTA label.
-
-## Tell-someone sentence
-
-Pending the memorable-moment decision: "It's the site where ___."
-
-## Authored silence
-
-None defined yet.
+Fingerprint gate: registry empty, so the first build clears every existing row. Planned fingerprint: working-surface grammar; membrane-strip nav; procedural cutaway hero; pin/flow/pan/pin sequence; held clinic close; organelle-to-card alignment signature.
 
 ## Questions for Ivan
 
-1. What three to five words should define the vibe, and what up to three film, game, album, magazine, place, or object references should guide it?
-2. Please attach the handoff section 15 design-style screenshot. Which qualities in it are essential?
-3. Should this feel like one unbroken living world, or distinct scenes or chapters?
-4. What is the one moment a visitor should remember and describe to a friend?
-5. Where should the scroll feel calm, where should it intensify, and what emotion should each stage create?
-6. How far from premium-minimal should it go: brutalist, maximalist, playful, retro, dense, editorial, premium-minimal, or a blend?
-7. What should this world do that no site you have seen does?
-8. Are there approved existing assets to use beyond the section 15 screenshot, or should the visual world be entirely procedural?
+1. What vibe words and non-site references should replace the provisional direction?
+2. Please attach the section 15 screenshot and identify its essential qualities.
+3. Keep distinct acts, or rebuild as one unbroken world?
+4. Is the cell-to-project alignment the remembered moment?
+5. Should the energy or feeling curve change?
+6. How far from premium-minimal should the world go?
+7. What behavior should replace or refine the signature move?
+8. Are there approved existing assets to incorporate?
