@@ -7,10 +7,49 @@ export const CATALOGUE_KINDS = Object.freeze([
   "unknown",
 ]);
 export const MEDIA_UNITS = Object.freeze({
-  image: Object.freeze(["image", "megapixel"]),
-  video: Object.freeze(["video_second", "video"]),
-  audio: Object.freeze(["audio_second", "audio_minute"]),
+  image: Object.freeze(["image", "megapixel", "credit_image"]),
+  video: Object.freeze(["video_second", "video", "credit_video"]),
+  audio: Object.freeze(["audio_second", "audio_minute", "credit_audio"]),
 });
+export const MEDIA_UNIT_LABELS = Object.freeze({
+  image: "USD / image",
+  megapixel: "USD / megapixel",
+  video_second: "USD / second",
+  video: "USD / video",
+  audio_second: "USD / second",
+  audio_minute: "USD / minute",
+  credit_image: "Higgsfield credits / image",
+  credit_video: "Higgsfield credits / reference video",
+  credit_audio: "Higgsfield credits / reference audio",
+});
+
+export function mediaUnitLabel(unit) {
+  return MEDIA_UNIT_LABELS[unit] || String(unit).replaceAll("_", " ");
+}
+
+export function formatMediaAmount(value, unit) {
+  const number = Number(value);
+  if (!Number.isFinite(number)) return "Not reported";
+  if (String(unit).startsWith("credit_")) {
+    return `${new Intl.NumberFormat("en", {
+      maximumFractionDigits: 4,
+    }).format(number)} credits`;
+  }
+  return new Intl.NumberFormat("en", {
+    style: "currency",
+    currency: "USD",
+    maximumFractionDigits: number > 0 && number < 0.01 ? 6 : number < 1 ? 4 : 2,
+  }).format(number);
+}
+
+export function formatMediaTick(value, unit) {
+  const number = Number(value);
+  if (!Number.isFinite(number)) return "";
+  return new Intl.NumberFormat("en", {
+    notation: "compact",
+    maximumFractionDigits: number < 10 ? 2 : 1,
+  }).format(number);
+}
 
 const canonicalDecimal = /^(0|[1-9]\d*)(?:\.\d+)?$/;
 const safeUrl = (value) => {

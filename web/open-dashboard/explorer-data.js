@@ -17,6 +17,7 @@ export const PROVIDERS = {
   crazyrouter: "Crazyrouter",
   akashml: "AkashML",
   ionet: "io.net",
+  higgsfield: "Higgsfield (web plans)",
 };
 export const DEFAULT_STATE = Object.freeze({
   provider: "all",
@@ -71,8 +72,11 @@ const CHART_CHOICES = {
   historyChart: ["lines", "bars"],
   historyDataset: ["modelUsage", "appRanks", "githubRanks"],
 };
+// Higgsfield is a web-plan credit source, not a direct MCP inference adapter.
+// Keep it in the provider label map so native rows are filterable without
+// inflating the package's direct-adapter count.
 export const DIRECT_PROVIDER_IDS = Object.freeze(
-  Object.keys(PROVIDERS),
+  Object.keys(PROVIDERS).filter((id) => id !== "higgsfield"),
 );
 
 /** Return exactly two known provider ids, preserving the user's order. */
@@ -100,6 +104,7 @@ const PROVIDER_SOURCE = {
   crazyrouter: "https://crazyrouter.com/api/pricing",
   akashml: "https://akashml.com/docs/platform/models",
   ionet: "https://io.net/docs/reference/ai-models/get-started-with-io-intelligence-api.md",
+  higgsfield: "https://higgsfield.ai/pricing",
 };
 export const keyOf = (provider, id) => `${provider}:${id}`;
 export function finite(value) {
