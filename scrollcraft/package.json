@@ -1,0 +1,8 @@
+{
+  "name": "sdforest-scrollcraft-workspace",
+  "private": true,
+  "description": "Verification tooling for scroll-craft builds (playwright-core only).",
+  "dependencies": {
+    "playwright-core": "^1.63.0"
+  }
+}
