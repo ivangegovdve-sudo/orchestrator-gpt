@@ -88,7 +88,7 @@ test('home keeps seven live fallback links and loads the catalog-ranked director
 });
 
 test('presenter consumes catalog membership and renders every assigned project including Coming Soon rows', async () => {
-  const [{ renderPoolProjects }, { getPoolProjects }] = await Promise.all([presenter, catalog]);
+  const [{ renderPoolProjects, projectPresentation }, { getPoolProjects }] = await Promise.all([presenter, catalog]);
   assert.match(read('web/shared/pool-page.mjs'), /POOL_CATALOG[\s\S]*getPoolProjects[\s\S]*from '\.\/project-catalog\.mjs'/);
   assert.doesNotMatch(read('web/shared/pool-page.mjs'), /PUBLIC_CARD_PROJECTS|ROUTE_REGISTRY|ROUTE_INVENTORY|forest-(?:trails|navigation|runtime|motion)/);
   for (const [id, name] of pools) {
@@ -102,8 +102,12 @@ test('presenter consumes catalog membership and renders every assigned project i
       assert.match(row, /class="pool-metrics">Metrics: none published/);
       if (project.status === 'In development') {
         assert.match(row, /Status: In development — Coming Soon/);
-        assert.match(row, /aria-disabled="true"/);
-        assert.doesNotMatch(row, /<a\b|<button\b|tabindex=/);
+        // Ivan 2026-09-28: an In development entry links when it has a real destination; the label stays.
+        if (projectPresentation(project).enabled) assert.match(row, /<a\b/);
+        else {
+          assert.match(row, /aria-disabled="true"/);
+          assert.doesNotMatch(row, /<a\b|<button\b|tabindex=/);
+        }
       }
       if (project.visibility?.access === 'internal') {
         assert.match(row, /Internal project; documentation is unpublished/);
@@ -371,7 +375,10 @@ test('route bindings, readiness, metrics and verified dates remain independent i
   assert.match(renderProject(dated), /Last meaningful update: 2026-09-15/);
   assert.match(renderProject({ ...dated, updateProvenance: null }), /Last meaningful update: awaiting verified date/);
   assert.match(renderProject({ ...dated, lastMeaningfullyUpdated: '2026-02-30' }), /Last meaningful update: awaiting verified date/);
-  assert.doesNotMatch(renderProject({ ...enabled, status: 'In development' }), /<a\b/);
+  const developing = renderProject({ ...enabled, status: 'In development' });
+  assert.match(developing, /<a\b/);
+  assert.match(developing, /Status: In development/);
+  assert.doesNotMatch(renderProject({ ...enabled, status: 'In development', routeBindings: [] }), /<a\b/);
   assert.doesNotMatch(renderProject({ ...enabled, visibility: { access: 'internal' } }), /<a\b|chloe.blumenkraft.cloud/);
   assert.doesNotMatch(renderProject({ ...enabled, visibility: { access: 'public', navigation: 'unlisted' } }), /<a\b|chloe.blumenkraft.cloud/);
   assert.doesNotMatch(renderProject({ ...enabled, routeBindings: [
