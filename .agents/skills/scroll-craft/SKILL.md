@@ -311,6 +311,9 @@ Checks before you build:
 ## Step 3: Generate the assets
 
 Full pipeline, prompt scaffolds and model notes: [references/assets.md](references/assets.md).
+Three generation providers share one interface (kie.ai, fal.ai, ComfyUI on
+RunPod); `scripts/asset.mjs` picks one via `SCROLLCRAFT_ASSET_PROVIDER`. See
+"Choosing a provider" in assets.md for the measured costs.
 
 Short version:
 

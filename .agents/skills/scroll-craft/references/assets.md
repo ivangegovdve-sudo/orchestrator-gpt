@@ -3,6 +3,36 @@
 Generation through kie.ai, then encoding for scrubbing. All of it via
 `scripts/kie.mjs` and `scripts/encode.sh`.
 
+## Choosing a provider
+
+Three adapters share one command interface (`probe`, `still`, `shot`), and
+`scripts/asset.mjs` switches between them. Every example below that says
+`kie.mjs` works unchanged with `asset.mjs`, `fal.mjs` or `comfyui-runpod.mjs`.
+
+| Provider | Script | Credentials | Still model | Clip model | Billing |
+|---|---|---|---|---|---|
+| kie.ai | `kie.mjs` | `KIE_AI_API_KEY` | seedream 5 pro | kling v2.1 pro | prepaid credits |
+| fal.ai | `fal.mjs` | `FAL_KEY` | seedream v4.5 | kling v2.1 pro | prepaid balance, pay per generation |
+| ComfyUI on RunPod serverless | `comfyui-runpod.mjs` | `RUNPOD_API_KEY`, `SCROLLCRAFT_COMFYUI_IMAGE_ENDPOINT`, `SCROLLCRAFT_COMFYUI_VIDEO_ENDPOINT` | Flux.1-dev fp8 | your own workflow (`--workflow`) | prepaid balance, per GPU-second incl. cold start |
+
+`SCROLLCRAFT_ASSET_PROVIDER=kie|fal|comfyui` forces one. Unset, `asset.mjs`
+takes the first configured provider in this order:
+
+- **still:** comfyui, then fal, then kie. ComfyUI is cheapest per image by an
+  order of magnitude, at the price of a cold start and a 1344x768 frame.
+- **shot:** fal, then comfyui (only when a video endpoint is set), then kie.
+
+**Measured costs, 2026-09-28** (balance read before and after one generation;
+the same prompt on each provider):
+
+| Provider | Still | 5s clip | How measured |
+|---|---|---|---|
+| fal.ai | **$0.040** (seedream v4.5, 4096x2304, 18s) | **$0.35** (kling v2.1 pro, 1920x1080, 76s) | balance delta. The clip debited below the pricing API's $0.098/s list rate |
+| ComfyUI on RunPod | **~$0.004** (Flux.1-dev fp8, 1344x768, 14s cold start + 64s run) | not measured: no video endpoint exists | balance delta on a scale-to-zero endpoint |
+| kie.ai | 28 credits = **$0.14** published | 160 credits = **$0.80** published | not measured: no key. kie.ai states 1 credit = $0.005; see the note below on observed debits |
+
+Costs move. Run `probe` before a build and plan from the live numbers.
+
 ```bash
 node <skill>/scripts/kie.mjs probe                     # credit check first
 node <skill>/scripts/kie.mjs still "<prompt>" out/01.png --ar 16:9 [--ref brand.png]
