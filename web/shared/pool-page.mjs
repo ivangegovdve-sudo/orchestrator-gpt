@@ -16,8 +16,10 @@ export function projectPresentation(project) {
   const restricted = project.visibility?.access === 'internal' || project.visibility?.access === 'private'
     || project.visibility?.navigation === 'unlisted';
   const comingSoon = project.status === 'In development';
-  const enabled = !comingSoon && !restricted
-    && (project.status === 'Live' || project.readiness?.entryEnabled === true);
+  // In development entries link when they have a real destination; the label stays.
+  const hasEntry = (project.routeBindings || []).some((binding) => binding.type === 'external' || binding.type === 'local');
+  const enabled = !restricted
+    && (project.status === 'Live' || project.readiness?.entryEnabled === true || (comingSoon && hasEntry));
   const reviewedDate = /^\d{4}-\d{2}-\d{2}$/.test(project.lastMeaningfullyUpdated ?? '')
     && Number.isFinite(Date.parse(project.lastMeaningfullyUpdated))
     && new Date(project.lastMeaningfullyUpdated).toISOString().slice(0, 10) === project.lastMeaningfullyUpdated
@@ -106,7 +108,7 @@ export function renderProject(project, { heading = 'h3', designed = false } = {}
       : '<p>Unlisted or private project. No public entry.</p>' : ''}
     ${enabled && project.readiness?.review !== 'verified' ? '<p>Existing project entry; readiness review remains pending.</p>' : ''}
     ${!enabled && !comingSoon && !restricted ? '<p>Entry awaiting review. A lifecycle label does not certify readiness.</p>' : ''}
-    ${comingSoon ? '<p>Coming Soon — this project is still in development; entry is unavailable.</p>' : ''}
+    ${comingSoon ? `<p>Coming Soon — this project is still in development${enabled ? '' : '; entry is unavailable'}.</p>` : ''}
     ${attribution ? `<p class="pool-attribution">${escape(attribution)}</p>` : ''}
     ${project.displayDiscrepancy ? `<p class="pool-title-discrepancy">Observed deployed title: ${escape(project.displayDiscrepancy.deployedName)}. Catalog/archive label: ${escape(project.displayDiscrepancy.canonicalName)}.</p>` : ''}
     ${project.pools?.length > 1 ? `<p class="pool-membership">Shared pool member: ${escape(project.pools.join(' · '))}.</p>` : ''}
