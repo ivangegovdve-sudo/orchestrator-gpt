@@ -141,7 +141,8 @@
   ],
   "git": {
     "deploymentEnabled": {
-      "board-live": false
+      "board-live": false,
+      "codex/opendashboard-plum-studio": false
     }
   }
 }

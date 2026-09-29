@@ -16,6 +16,7 @@ import {
   summarizeOverview,
 } from "./overview-data.js";
 import { packageToolLabel, packageVersionLabel } from "./overview.js";
+import * as overviewUI from "./overview.js";
 
 const envelope = (data) => ({
   data,
@@ -303,6 +304,158 @@ test("catalogue groups partition exact provider IDs without alias conflation or 
   assert.equal(summary.catalogue.freePrices, 0);
   assert.equal(summary.health.available, false);
   assert.equal(summarizeOverview().catalogue.available, false);
+});
+
+test("overview separates collected providers from packaged adapters and keeps source dates independent", () => {
+  const models = [
+    {
+      provider: "kie",
+      id: "image",
+      sourceFreshness: "live",
+      sourceAt: "2026-09-29T10:00:00Z",
+    },
+    {
+      provider: "fal",
+      id: "image",
+      sourceFreshness: "snapshot",
+      sourceAt: "2026-09-17T10:00:00Z",
+    },
+    {
+      provider: "fal",
+      id: "video",
+      sourceFreshness: "snapshot",
+      sourceAt: "2026-09-18T10:00:00Z",
+    },
+    { provider: "openrouter", id: "text", sourceAt: null },
+  ];
+  const summary = summarizeOverview({
+    models,
+    metadata: {
+      native: { fetchedAt: "2026-09-29T10:00:00Z" },
+      packageFacts: { version: "1.4.0", providers: Array.from({ length: 15 }) },
+    },
+  });
+  assert.equal(summary.catalogue.providers, 3);
+  assert.deepEqual(summary.catalogue.providerIds, ["fal", "kie", "openrouter"]);
+  assert.equal(Object.hasOwn(summary.catalogue, "nativeAt"), false);
+  assert.deepEqual(summary.catalogue.sources, [
+    {
+      provider: "fal",
+      label: "fal",
+      freshness: "snapshot",
+      from: "2026-09-17T10:00:00Z",
+      to: "2026-09-18T10:00:00Z",
+      undated: 0,
+    },
+    {
+      provider: "kie",
+      label: "KIE",
+      freshness: "live",
+      from: "2026-09-29T10:00:00Z",
+      to: "2026-09-29T10:00:00Z",
+      undated: 0,
+    },
+    {
+      provider: "openrouter",
+      label: "OpenRouter",
+      freshness: "unknown",
+      from: null,
+      to: null,
+      undated: 1,
+    },
+  ]);
+});
+
+test("overview preserves mixed collection modes and missing dates inside one provider", () => {
+  const summary = summarizeOverview({
+    models: [
+      {
+        provider: "kie",
+        id: "new",
+        sourceFreshness: "live",
+        sourceAt: "2026-09-29",
+      },
+      {
+        provider: "kie",
+        id: "old",
+        sourceFreshness: "snapshot",
+        sourceAt: "2026-09-17",
+      },
+      {
+        provider: "kie",
+        id: "undated",
+        sourceFreshness: "snapshot",
+        sourceAt: "invalid",
+      },
+    ],
+    metadata: { native: { fetchedAt: "2026-09-29" } },
+  });
+  assert.deepEqual(summary.catalogue.sources, [
+    {
+      provider: "kie",
+      label: "KIE",
+      freshness: "live",
+      from: "2026-09-29",
+      to: "2026-09-29",
+      undated: 0,
+    },
+    {
+      provider: "kie",
+      label: "KIE",
+      freshness: "snapshot",
+      from: "2026-09-17",
+      to: "2026-09-17",
+      undated: 1,
+    },
+  ]);
+});
+
+test("overview labels package adapters and per-provider collection modes without a global freshness claim", () => {
+  assert.equal(typeof overviewUI.packageProviderLabel, "function");
+  assert.equal(typeof overviewUI.catalogueSourceLabel, "function");
+  assert.equal(
+    overviewUI.packageProviderLabel({
+      version: "1.4.0",
+      providers: Array.from({ length: 15 }),
+    }),
+    "npm v1.4.0 contains 15 provider adapters. This package count is separate from the providers collected for this page.",
+  );
+  assert.equal(
+    overviewUI.packageProviderLabel({ version: "1.4.0" }),
+    "Published package adapter count unavailable.",
+  );
+  assert.match(
+    overviewUI.catalogueSourceLabel({
+      label: "KIE",
+      freshness: "live",
+      from: "2026-09-29",
+      to: "2026-09-29",
+      undated: 0,
+    }),
+    /^KIE · Live source read · /,
+  );
+  const snapshot = overviewUI.catalogueSourceLabel({
+    label: "fal",
+    freshness: "snapshot",
+    from: "2026-09-17",
+    to: "2026-09-18",
+    undated: 1,
+  });
+  assert.match(snapshot, /^fal · Dated snapshot · /);
+  assert.match(snapshot, /17/);
+  assert.match(snapshot, /18/);
+  assert.match(snapshot, /1 entry has no collection date/);
+  assert.doesNotMatch(snapshot, /29|built|live/i);
+  assert.equal(
+    overviewUI.catalogueSourceLabel({
+      label: "OpenRouter",
+      freshness: "unknown",
+      from: null,
+      to: null,
+      undated: 1,
+    }),
+    "OpenRouter · Collection mode not reported · Date not reported · 1 entry has no collection date.",
+  );
 });
 
 test("history preview keeps same-name variants and category identities separate with explicit day gaps", () => {
