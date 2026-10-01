@@ -1,0 +1,82 @@
+[
+  {
+    "name": "Mem0",
+    "url": "https://mem0.ai/",
+    "note": "A decent drop-in memory layer if you don't want to build it yourself.",
+    "good": "Handles entity extraction and temporal memory out of the box. Simple API.",
+    "bad": "Black box retrieval. You can't tune the embedding weights easily if it returns the wrong context.",
+    "price": "Free tier available. Usage based after.",
+    "last_verified": "2024-05-10",
+    "expiry": null
+  },
+  {
+    "name": "Zep",
+    "url": "https://www.getzep.com/",
+    "note": "Built specifically for chat history and agent memory.",
+    "good": "Fast. Handles summarization of older context windows automatically.",
+    "bad": "Self-hosting can be heavy. Their proprietary retrieval algorithms aren't always transparent.",
+    "price": "Free (Open source) or cloud pricing starting around $20/mo.",
+    "last_verified": "2024-04-15",
+    "expiry": null
+  },
+  {
+    "name": "Pinecone",
+    "url": "https://www.pinecone.io/",
+    "note": "The default vector database, but overkill for many.",
+    "good": "Fully managed, scales instantly. Serverless offering is great for intermittent loads.",
+    "bad": "Not a 'memory' solution, just a database. You have to write all the chunking, embedding, and retrieval logic.",
+    "price": "Serverless is pay-per-read/write. Pods start at $70/mo.",
+    "last_verified": "2024-05-01",
+    "expiry": null
+  },
+  {
+    "name": "Weaviate",
+    "url": "https://weaviate.io/",
+    "note": "My preferred vector DB if I need hybrid search.",
+    "good": "BM25 + Vector search works beautifully out of the box. Good self-hosting.",
+    "bad": "Cloud pricing can jump quickly. The API can feel over-engineered for simple tasks.",
+    "price": "Open source free. Cloud starts around $25/mo.",
+    "last_verified": "2024-03-20",
+    "expiry": null
+  },
+  {
+    "name": "Chroma",
+    "url": "https://www.trychroma.com/",
+    "note": "Best for local development and small apps.",
+    "good": "Runs locally with zero setup. Integrates with everything.",
+    "bad": "Distributed/cloud offering has been 'coming soon' forever. Not for large scale production.",
+    "price": "Free (Open source).",
+    "last_verified": "2024-05-18",
+    "expiry": null
+  },
+  {
+    "name": "Motorhead",
+    "url": "https://getmetal.io/motorhead",
+    "note": "Rust-based memory server.",
+    "good": "Very fast. Good built-in summarization.",
+    "bad": "Development seems to have slowed down. Small community.",
+    "price": "Free (Open source).",
+    "last_verified": "2023-10-15",
+    "expiry": null
+  },
+  {
+    "name": "Qdrant",
+    "url": "https://qdrant.tech/",
+    "note": "The rising star of vector databases. Rust-based and fast.",
+    "good": "Incredible performance. Great filtering capabilities alongside vector search.",
+    "bad": "Complex configuration options can be daunting for beginners.",
+    "price": "Open source free. Cloud free tier is generous.",
+    "last_verified": "2024-05-12",
+    "expiry": null
+  },
+  {
+    "name": "Postgres (pgvector)",
+    "url": "https://github.com/pgvector/pgvector",
+    "note": "What you should probably actually use if you already have a database.",
+    "good": "You don't need a new database. Joins relational data with vectors effortlessly.",
+    "bad": "Performance at extreme scale (100M+ vectors) requires tuning. Not a 'memory' API, just raw storage.",
+    "price": "Free (Open source).",
+    "last_verified": "2024-05-22",
+    "expiry": null
+  }
+]
