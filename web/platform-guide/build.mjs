@@ -45,6 +45,38 @@ export async function readSectionEntries(dataDir, id) {
   return entries;
 }
 
+const ESCAPES = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
+
+/** Escape contributor-supplied text for HTML text and quoted attribute values. */
+export function escapeHtml(value) {
+  return String(value ?? '').replace(/[&<>"']/g, (c) => ESCAPES[c]);
+}
+
+/** Only http(s) links are rendered; anything else (javascript:, data:, relative) becomes inert. */
+export function safeUrl(value) {
+  try {
+    const u = new URL(String(value ?? ''));
+    return u.protocol === 'http:' || u.protocol === 'https:' ? u.href : '#';
+  } catch {
+    return '#';
+  }
+}
+
+/**
+ * Lifecycle of one entry at a given moment. A suggestion that is still pending, or that has no
+ * valid verification date, is never shown as current. Expiry wins over staleness; more than 90
+ * days since verification is stale. The browser runs this same function on load, so badges stay
+ * correct between rebuilds.
+ */
+export function entryState(entry, now) {
+  const verified = Date.parse(entry && entry.last_verified);
+  if ((entry && entry.status === 'pending') || !Number.isFinite(verified)) return 'is-pending';
+  const expiry = Date.parse(entry.expiry);
+  if (Number.isFinite(expiry) && expiry < now) return 'is-expired';
+  if ((now - verified) / 86400000 > 90) return 'is-stale';
+  return 'active';
+}
+
 export async function build() {
   let html = `<!DOCTYPE html>
 <html lang="en">
@@ -131,6 +163,9 @@ export async function build() {
     }
     .card.is-stale .badge { color: var(--stale); border: 1px solid var(--stale); }
     .card.is-expired .badge { color: var(--danger); border: 1px solid var(--danger); }
+    .card.is-pending { border-style: dashed; }
+    .card.is-pending .badge { color: var(--text-secondary); border: 1px dashed var(--text-secondary); }
+    [data-badge][hidden] { display: none; }
 
     .card-title a { color: white; text-decoration: none; font-size: 1.25rem; font-weight: bold; }
     .card-title a:hover { text-decoration: underline; }
@@ -213,30 +248,28 @@ export async function build() {
         <div class="grid">
     `;
 
-    const getStatus = (entry) => {
-      if (entry.expiry && new Date(entry.expiry) < now) return 'is-expired';
-      const days = (now - new Date(entry.last_verified)) / (1000 * 60 * 60 * 24);
-      if (days > 90) return 'is-stale';
-      return 'active';
-    };
+    const getStatus = (entry) => entryState(entry, now.getTime());
+    const dateAttrs = (entry) =>
+      `data-verified="${escapeHtml(entry.last_verified)}" data-expiry="${escapeHtml(entry.expiry)}" data-pending="${entry.status === 'pending' ? '1' : ''}"`;
+    const badges = (status) => [['is-stale', 'Stale'], ['is-expired', 'Expired'], ['is-pending', 'Unverified']]
+      .map(([state, label]) => `<span class="badge" data-badge="${state}"${status === state ? '' : ' hidden'}>${label}</span>`).join('');
 
     const renderCard = (entry) => {
       const status = getStatus(entry);
-      const staleBadge = status === 'is-stale' ? '<span class="badge">Stale</span>' : '';
-      const expBadge = status === 'is-expired' ? '<span class="badge">Expired</span>' : '';
       const classes = `card entry-card ${status}`;
+      const verified = Number.isFinite(Date.parse(entry.last_verified)) ? escapeHtml(entry.last_verified) : 'not yet';
 
       return `
-        <div class="${classes}" data-name="${entry.name.toLowerCase()}" data-date="${entry.last_verified}">
-          ${staleBadge}${expBadge}
-          <div class="card-title"><a href="${entry.url}" target="_blank">${entry.name}</a></div>
-          <div class="note">${entry.note}</div>
-          <div class="field"><div class="label">Good At</div><div>${entry.good}</div></div>
-          <div class="field bad-at"><div class="label">Bad At</div><div>${entry.bad}</div></div>
-          <div class="field"><div class="label">Pricing & Hosting</div><div>${entry.price}</div></div>
+        <div class="${classes}" data-name="${escapeHtml(String(entry.name ?? '').toLowerCase())}" data-date="${escapeHtml(entry.last_verified)}" ${dateAttrs(entry)}>
+          ${badges(status)}
+          <div class="card-title"><a href="${safeUrl(entry.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(entry.name)}</a></div>
+          <div class="note">${escapeHtml(entry.note)}</div>
+          <div class="field"><div class="label">Good At</div><div>${escapeHtml(entry.good)}</div></div>
+          <div class="field bad-at"><div class="label">Bad At</div><div>${escapeHtml(entry.bad)}</div></div>
+          <div class="field"><div class="label">Pricing & Hosting</div><div>${escapeHtml(entry.price)}</div></div>
           <div class="meta">
-            <span>Verified: ${entry.last_verified}</span>
-            ${entry.expiry ? `<span>Expires: ${entry.expiry}</span>` : ''}
+            <span>Verified: ${verified}</span>
+            ${entry.expiry ? `<span>Expires: ${escapeHtml(entry.expiry)}</span>` : ''}
           </div>
         </div>
       `;
@@ -260,16 +293,15 @@ export async function build() {
     `;
     html += entries.map(entry => {
       const status = getStatus(entry);
-      let statusStr = '';
-      if (status === 'is-stale') statusStr = ' <span style="color:var(--stale)">(Stale)</span>';
-      if (status === 'is-expired') statusStr = ' <span style="color:var(--danger)">(Expired)</span>';
+      const label = { 'is-stale': '(Stale)', 'is-expired': '(Expired)', 'is-pending': '(Unverified)' }[status] || '';
+      const statusStr = ` <span class="row-status" data-row-status>${label}</span>`;
 
       return `
-        <tr class="entry-row" data-name="${entry.name.toLowerCase()}" data-date="${entry.last_verified}">
-          <td><a href="${entry.url}" style="color:white;font-weight:bold;">${entry.name}</a>${statusStr}</td>
-          <td class="td-good">${entry.good}</td>
-          <td class="td-bad">${entry.bad}</td>
-          <td>${entry.price}</td>
+        <tr class="entry-row ${status}" data-name="${escapeHtml(String(entry.name ?? '').toLowerCase())}" data-date="${escapeHtml(entry.last_verified)}" ${dateAttrs(entry)}>
+          <td><a href="${safeUrl(entry.url)}" rel="noopener noreferrer" style="color:white;font-weight:bold;">${escapeHtml(entry.name)}</a>${statusStr}</td>
+          <td class="td-good">${escapeHtml(entry.good)}</td>
+          <td class="td-bad">${escapeHtml(entry.bad)}</td>
+          <td>${escapeHtml(entry.price)}</td>
         </tr>
       `;
     }).join('');
@@ -333,6 +365,22 @@ export async function build() {
   </div>
 
   <script>
+    // Freshness is recomputed on every load with the same rules the build uses,
+    // so an entry that expires or goes stale updates without a rebuild.
+    const entryState = ${entryState.toString()};
+    function refreshStatuses() {
+      const now = Date.now();
+      document.querySelectorAll('.entry-card, .entry-row').forEach((el) => {
+        const state = entryState({ last_verified: el.dataset.verified, expiry: el.dataset.expiry, status: el.dataset.pending ? 'pending' : '' }, now);
+        el.classList.remove('active', 'is-stale', 'is-expired', 'is-pending');
+        el.classList.add(state);
+        el.querySelectorAll('[data-badge]').forEach((b) => { b.hidden = b.dataset.badge !== state; });
+        const rowStatus = el.querySelector('[data-row-status]');
+        if (rowStatus) rowStatus.textContent = { 'is-stale': '(Stale)', 'is-expired': '(Expired)', 'is-pending': '(Unverified)' }[state] || '';
+      });
+    }
+    refreshStatuses();
+
     // Interactivity: filtering and sorting
     const searchInput = document.getElementById('search');
     const sortSelect = document.getElementById('sort');
