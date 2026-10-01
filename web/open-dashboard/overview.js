@@ -1,4 +1,4 @@
-import { dateLabel } from "./explorer-data.js";
+import { dateLabel, PROVIDERS } from "./explorer-data.js";
 import { OPENROUTER_FREE_LIMITS as OR } from "./provider-limits.js";
 import {
   FRONTIER_VIEWS,
@@ -39,6 +39,27 @@ export const packageVersionLabel = (packageFacts) =>
   typeof packageFacts?.version === "string" && packageFacts.version
     ? `Published package ${packageFacts.version}`
     : "Published package version unavailable";
+export const packageProviderLabel = (packageFacts) =>
+  typeof packageFacts?.version === "string" &&
+  packageFacts.version &&
+  Array.isArray(packageFacts.providers)
+    ? `npm v${packageFacts.version} contains ${format(packageFacts.providers.length)} provider adapters. This package count is separate from the providers collected for this page.`
+    : "Published package adapter count unavailable.";
+export function catalogueSourceLabel(source) {
+  const mode =
+    {
+      live: "Live source read",
+      snapshot: "Dated snapshot",
+      unavailable: "Source unavailable",
+    }[source.freshness] || "Collection mode not reported";
+  const from = dateLabel(source.from),
+    to = dateLabel(source.to);
+  const period = from === to ? from : `${from}–${to}`;
+  const undated = source.undated
+    ? ` · ${format(source.undated)} ${source.undated === 1 ? "entry has" : "entries have"} no collection date`
+    : "";
+  return `${source.label} · ${mode} · ${period}${undated}.`;
+}
 const urlLink = (href, text, className = "text-link") => {
   const link = el("a", className, text);
   link.href = href;
@@ -820,8 +841,12 @@ export function renderOverview(
     catalogue.append(
       stat(
         summary.catalogue.entries,
-        `entries across ${summary.catalogue.providers} direct catalogues`,
+        `entries from ${summary.catalogue.providers} collected providers`,
       ),
+      note(
+        `Collected providers: ${summary.catalogue.providerIds.map((id) => PROVIDERS[id] || id).join(", ")}.`,
+      ),
+      note(packageProviderLabel(metadata.packageFacts)),
     );
     const distribution = el("div", "overview-choice-list");
     for (const part of summary.catalogue.partitions)
@@ -841,6 +866,17 @@ export function renderOverview(
             }),
         ),
       );
+    const sourceDates = el("details", "source-details");
+    const sourceList = el("ul", "overview-note");
+    for (const source of summary.catalogue.sources)
+      sourceList.append(el("li", "", catalogueSourceLabel(source)));
+    sourceDates.append(
+      el("summary", "", "Per-provider collection dates"),
+      note(
+        "Live reads and dated snapshots retain their own dates. A newer read does not refresh older records.",
+      ),
+      sourceList,
+    );
     catalogue.append(
       distribution,
       note(
@@ -849,9 +885,8 @@ export function renderOverview(
       note(
         `${format(summary.catalogue.tokenQuotes)} entries have comparable input/output token quotes. ${format(summary.catalogue.nativePrices)} have native price points; this can overlap token pricing. Unpriced entries stay in the catalogue.`,
       ),
-      note(
-        `${sourceNote(summary.catalogue.source, "Archive source")} Native snapshot built ${dateLabel(summary.catalogue.nativeAt)}.`,
-      ),
+      note(sourceNote(summary.catalogue.source, "Archive source")),
+      sourceDates,
       actionRow(
         navButton(
           "Explore all models →",

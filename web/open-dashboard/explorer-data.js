@@ -1,4 +1,5 @@
 import { getFreeTierOffer } from "./provider-limits.js";
+import { nativeSourceFreshness } from "./media-data.js";
 export const API_BASE =
   "https://openrouter-github-dashboard.vercel.app/api/public/v2";
 export const PROVIDERS = {
@@ -14,6 +15,7 @@ export const PROVIDERS = {
   chutes: "Chutes",
   wavespeed: "WaveSpeedAI",
   fal: "fal",
+  kie: "KIE",
   crazyrouter: "Crazyrouter",
   akashml: "AkashML",
   ionet: "io.net",
@@ -33,7 +35,7 @@ export const DEFAULT_STATE = Object.freeze({
   y: "output",
   scale: "symlog",
   view: "models",
-  modelChart: "catalogue",
+  modelChart: "atlas",
   modelGroup: "provider",
   appChart: "flow",
   historyChart: "lines",
@@ -66,7 +68,7 @@ export const AXES = {
 };
 const MODALITIES = ["text", "video", "image", "audio", "unknown", "all"];
 const CHART_CHOICES = {
-  modelChart: ["prices", "catalogue", "bars", "donut", "compare"],
+  modelChart: ["atlas", "prices", "catalogue", "bars", "donut", "compare"],
   modelGroup: ["provider", "modality"],
   appChart: ["flow", "bars", "donut"],
   historyChart: ["lines", "bars"],
@@ -83,10 +85,14 @@ export const DIRECT_PROVIDER_IDS = Object.freeze(
 export function parseProviderPair(value) {
   if (Array.isArray(value)) value = value.join(",");
   if (typeof value !== "string") return [];
-  const ids = [...new Set(value
-    .split(",")
-    .map((item) => item.trim().toLowerCase())
-    .filter((item) => Object.hasOwn(PROVIDERS, item)))];
+  const ids = [
+    ...new Set(
+      value
+        .split(",")
+        .map((item) => item.trim().toLowerCase())
+        .filter((item) => Object.hasOwn(PROVIDERS, item)),
+    ),
+  ];
   return ids.length === 2 ? ids : [];
 }
 const PROVIDER_SOURCE = {
@@ -101,9 +107,11 @@ const PROVIDER_SOURCE = {
   chutes: "https://chutes.ai/app/api",
   wavespeed: "https://wavespeed.ai/api/models",
   fal: "https://api.fal.ai/v1/models",
+  kie: "https://kie.ai/pricing",
   crazyrouter: "https://crazyrouter.com/api/pricing",
   akashml: "https://akashml.com/docs/platform/models",
-  ionet: "https://io.net/docs/reference/ai-models/get-started-with-io-intelligence-api.md",
+  ionet:
+    "https://io.net/docs/reference/ai-models/get-started-with-io-intelligence-api.md",
   higgsfield: "https://higgsfield.ai/pricing",
 };
 export const keyOf = (provider, id) => `${provider}:${id}`;
@@ -163,7 +171,9 @@ export function isPriceOutlier(value, peerValues, multiplier = 3) {
   const q1 = quantile(0.25),
     q3 = quantile(0.75),
     spread = q3 - q1;
-  return candidate < q1 - multiplier * spread || candidate > q3 + multiplier * spread;
+  return (
+    candidate < q1 - multiplier * spread || candidate > q3 + multiplier * spread
+  );
 }
 export const dateLabel = (value) =>
   !value || !Number.isFinite(Date.parse(value))
@@ -217,9 +227,15 @@ export function readState(search = "") {
     s.provider = "all";
   }
   if (
-    ["overview", "models", "apps", "history", "benchmarks", "changes", "state"].includes(
-      q.get("view"),
-    )
+    [
+      "overview",
+      "models",
+      "apps",
+      "history",
+      "benchmarks",
+      "changes",
+      "state",
+    ].includes(q.get("view"))
   )
     s.view = q.get("view");
   for (const [key, choices] of Object.entries(CHART_CHOICES))
@@ -492,6 +508,12 @@ export function providerCoverage(models, snapshot, sourceStatus, live) {
             tokenComparable(m)),
       ).length,
       sourceAt: native?.observedAt || source?.lastSuccessAt || null,
+      sourceFreshness: entries.length
+        ? nativeSourceFreshness(
+            native,
+            native?.observedAt || source?.lastSuccessAt,
+          )
+        : "unavailable",
       sourceUrl:
         native?.sourceUrl ||
         source?.citationUrl ||
@@ -693,6 +715,11 @@ export function mergeMedia(models, media) {
       quota,
       catalogueSourceAt: existing?.sourceAt ?? null,
       sourceAt: m.fetchedAt ?? null,
+      sourceFreshness: ["live", "snapshot", "unavailable"].includes(
+        m.sourceFreshness,
+      )
+        ? m.sourceFreshness
+        : "snapshot",
       availability: existing?.availability ?? "listed",
       providerActive:
         existing?.providerActive ??
@@ -707,41 +734,68 @@ export function mergeMedia(models, media) {
 
 /** Merge dated native snapshots by provider/id while preserving their reports. */
 export function combineNativeSnapshots(...snapshots) {
-  const usable = snapshots.filter((snapshot) => snapshot && typeof snapshot === "object");
+  const usable = snapshots.filter(
+    (snapshot) => snapshot && typeof snapshot === "object",
+  );
   const modelMap = new Map();
   const providerMap = new Map();
   for (const snapshot of usable) {
     for (const model of Array.isArray(snapshot.models) ? snapshot.models : []) {
-      if (!model || typeof model.provider !== "string" || typeof model.id !== "string")
+      if (
+        !model ||
+        typeof model.provider !== "string" ||
+        typeof model.id !== "string"
+      )
         continue;
       const key = keyOf(model.provider, model.id);
       if (!modelMap.has(key)) modelMap.set(key, model);
     }
-    for (const provider of Array.isArray(snapshot.providers) ? snapshot.providers : []) {
+    for (const provider of Array.isArray(snapshot.providers)
+      ? snapshot.providers
+      : []) {
       if (provider?.provider && !providerMap.has(provider.provider))
         providerMap.set(provider.provider, provider);
     }
   }
-  const fetchedAt = usable
-    .map((snapshot) => snapshot.fetchedAt)
-    .filter((value) => typeof value === "string" && Number.isFinite(Date.parse(value)))
-    .sort()
-    .at(-1) ?? null;
-  const registry = usable.find((snapshot) => Array.isArray(snapshot.registry?.providers))?.registry;
+  const fetchedAt =
+    usable
+      .map((snapshot) => snapshot.fetchedAt)
+      .filter(
+        (value) =>
+          typeof value === "string" && Number.isFinite(Date.parse(value)),
+      )
+      .sort()
+      .at(-1) ?? null;
+  const registry = usable.find((snapshot) =>
+    Array.isArray(snapshot.registry?.providers),
+  )?.registry;
   return {
     schemaVersion: 2,
-    collector: usable.map((snapshot) => snapshot.collector).filter(Boolean).join(" + "),
+    collector: usable
+      .map((snapshot) => snapshot.collector)
+      .filter(Boolean)
+      .join(" + "),
     fetchedAt,
     ...(registry ? { registry } : {}),
     providers: [...providerMap.values()],
     population: {
       sourceModelsReceived: [...modelMap.values()].length,
       catalogueModels: [...modelMap.values()].length,
-      mediaModels: [...modelMap.values()].filter((model) => ["image", "video", "audio"].includes(model.mediaKind)).length,
-      modelsWithPricePoints: [...modelMap.values()].filter((model) => Array.isArray(model.pricePoints) && model.pricePoints.length).length,
-      completeness: usable.every((snapshot) => snapshot.population?.completeness === "full") ? "full" : "partial_or_unknown",
+      mediaModels: [...modelMap.values()].filter((model) =>
+        ["image", "video", "audio"].includes(model.mediaKind),
+      ).length,
+      modelsWithPricePoints: [...modelMap.values()].filter(
+        (model) => Array.isArray(model.pricePoints) && model.pricePoints.length,
+      ).length,
+      completeness: usable.every(
+        (snapshot) => snapshot.population?.completeness === "full",
+      )
+        ? "full"
+        : "partial_or_unknown",
     },
-    notes: usable.flatMap((snapshot) => Array.isArray(snapshot.notes) ? snapshot.notes : []),
+    notes: usable.flatMap((snapshot) =>
+      Array.isArray(snapshot.notes) ? snapshot.notes : [],
+    ),
     models: [...modelMap.values()],
   };
 }

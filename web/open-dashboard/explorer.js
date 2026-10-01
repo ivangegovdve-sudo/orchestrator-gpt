@@ -72,6 +72,8 @@ import {
   CHANGE_RANGES,
 } from "./evidence-charts.js";
 import { validateAppModelMatrix } from "./open-dashboard-schema.js";
+import { renderAtlas, disposeAtlas } from "./atlas.js";
+import { loadKieCatalogue } from "./claim-data.js";
 
 initShell();
 const $ = (id) => document.getElementById(id),
@@ -227,15 +229,16 @@ function renderInspector(m) {
       : "requests/minute unavailable";
     const dailyTiers = Array.isArray(quota.dailyTiers)
       ? quota.dailyTiers
-          .filter((tier) => tier && Number.isFinite(Number(tier.requestsPerDay)))
+          .filter(
+            (tier) => tier && Number.isFinite(Number(tier.requestsPerDay)),
+          )
           .map(
             (tier) =>
               `${escape(tier.label)}: ${Number(tier.requestsPerDay).toLocaleString()}/day`,
           )
           .join("; ")
       : "";
-    quotaText =
-      `<strong>OpenRouter free limits</strong>${requestsPerMinute}. ${dailyTiers || "Daily tiers unavailable"}. Policy checked ${dateLabel(quota.checkedAt)}. Quota exhaustion does not switch this model to paid inference.`;
+    quotaText = `<strong>OpenRouter free limits</strong>${requestsPerMinute}. ${dailyTiers || "Daily tiers unavailable"}. Policy checked ${dateLabel(quota.checkedAt)}. Quota exhaustion does not switch this model to paid inference.`;
   }
   if (quota?.kind === "free_plan_quota") {
     const units = {
@@ -273,7 +276,7 @@ function renderInspector(m) {
         ["Availability", available],
         ["Observed", dateLabel(m.sourceAt)],
       ],
-    )}<div class="tag-row">${freeLabel ? `<span class="tag">${freeLabel}</span>` : ""}${m.modalities.map((v) => `<span class="tag">${escape(v)}</span>`).join("")}</div>${quotaText ? `<div class="quota-note">${quotaText}<button class="inline-button" id="selected-limits">All free-tier details ↗</button></div>` : ""}${media ? `<small>${escape(m.pricingNote || "Native quotes can have different resolutions, durations or other conditions. Compare those conditions before choosing.")}</small>${(m.sourceNotes || []).map((n) => `<small>${escape(typeof n === "string" ? n : JSON.stringify(n))}</small>`).join("")}` : ""}<div id="model-comparison"></div><a class="button primary" href="./mcp/?preset=${media ? "prices" : "models"}">Ask your agent about this ↗</a>${link(m.sourceUrl, "Open provider source")}<small>Catalogue listing does not guarantee that a request will succeed. ${m.kind === "media" ? "Media snapshot" : "Published catalogue"} · ${dateLabel(m.sourceAt)}.</small>`;
+    )}<div class="tag-row">${freeLabel ? `<span class="tag">${freeLabel}</span>` : ""}${m.modalities.map((v) => `<span class="tag">${escape(v)}</span>`).join("")}</div>${quotaText ? `<div class="quota-note">${quotaText}<button class="inline-button" id="selected-limits">All free-tier details ↗</button></div>` : ""}${media ? `<small>${escape(m.pricingNote || "Native quotes can have different resolutions, durations or other conditions. Compare those conditions before choosing.")}</small>${(m.sourceNotes || []).map((n) => `<small>${escape(typeof n === "string" ? n : JSON.stringify(n))}</small>`).join("")}` : ""}<div id="model-comparison"></div><a class="button primary" href="./mcp/?preset=${media ? "prices" : "models"}">Ask your agent about this ↗</a>${link(m.sourceUrl, "Open provider source")}<small>Catalogue listing does not guarantee that a request will succeed. ${m.sourceFreshness === "live" ? "Live source read" : m.kind === "media" ? "Dated snapshot" : "Published catalogue"} · ${dateLabel(m.sourceAt)}.</small>`;
   $("copy-model-id").onclick = async () => {
     if (!(await copyText(m.id, $("copy-model-id"))))
       toast(
@@ -445,9 +448,10 @@ function syncProviderPairControls() {
     second = $("compare-b");
   if (!first || !second) return;
   const current = parseProviderPair(state.compare),
-    draft = current.length === 2
-      ? current
-      : [first.value, second.value].filter((value) => value),
+    draft =
+      current.length === 2
+        ? current
+        : [first.value, second.value].filter((value) => value),
     options = [...new Set(providerOptions)].sort((a, b) =>
       (PROVIDERS[a] || a).localeCompare(PROVIDERS[b] || b),
     );
@@ -466,7 +470,8 @@ function syncProviderPairControls() {
       `${PROVIDERS[current[0]] || current[0]} ↔ ${PROVIDERS[current[1]] || current[1]} · exact IDs stay separate`;
     $("clear-compare").hidden = false;
   } else {
-    $("compare-help").textContent = "Choose two providers to compare their catalogues side by side.";
+    $("compare-help").textContent =
+      "Choose two providers to compare their catalogues side by side.";
     $("clear-compare").hidden = true;
   }
 }
@@ -548,11 +553,15 @@ function updateOverview() {
 }
 function render() {
   if (!loaded) return;
+  if (state.view !== "models" || state.modelChart !== "atlas" || mediaMode())
+    disposeAtlas($("chart"));
   syncControls();
   filtered = filterModels(models, state);
   $("model-controls").hidden = state.view !== "models";
   $("alternate-controls").hidden =
-    state.view === "models" || state.view === "overview" || state.view === "state";
+    state.view === "models" ||
+    state.view === "overview" ||
+    state.view === "state";
   $("overview-panel").hidden = state.view !== "overview";
   $("model-panel").hidden = state.view === "overview";
   for (const b of document.querySelectorAll("[data-view]")) {
@@ -569,8 +578,9 @@ function render() {
   if (state.view === "models") {
     showFilterSummary();
     const prices = state.modelChart === "prices";
+    const nativeAtlas = state.modelChart === "atlas" && mediaMode();
     $("text-axes").hidden = !prices || mediaMode();
-    $("media-axes").hidden = !prices || !mediaMode();
+    $("media-axes").hidden = !(prices || nativeAtlas) || !mediaMode();
     $("scale-control").hidden = !prices;
     $("model-group-control").hidden = !["bars", "donut"].includes(
       state.modelChart,
@@ -584,9 +594,7 @@ function render() {
       ...units.map((u) =>
         option(
           u,
-          u === "catalogue"
-            ? "All entries · catalogue map"
-            : mediaUnitLabel(u),
+          u === "catalogue" ? "All entries · catalogue map" : mediaUnitLabel(u),
         ),
       ),
     );
@@ -594,7 +602,7 @@ function render() {
       state.unit = state.modality === "audio" ? "catalogue" : units[0];
     $("media-unit").value = state.unit;
     $("scale-control").hidden =
-      !prices || (mediaMode() && state.unit === "catalogue");
+      !(prices || nativeAtlas) || (mediaMode() && state.unit === "catalogue");
     const chooser = $("inspect-model");
     chooser.replaceChildren(
       option("", "Select a model"),
@@ -676,7 +684,11 @@ function capabilityStateLabel(observation) {
   return "Unknown";
 }
 function capabilityStateValue(observation, format = (value) => value) {
-  if (!observation || observation.state !== "known" || observation.value == null)
+  if (
+    !observation ||
+    observation.state !== "known" ||
+    observation.value == null
+  )
     return capabilityStateLabel(observation);
   return format(observation.value);
 }
@@ -686,8 +698,10 @@ function renderCapabilityState() {
   if (!data) {
     $("chart-title").textContent = "Loading decision state";
     $("chart-subtitle").textContent = "Reading the dated capability export";
-    $("chart").innerHTML = '<p class="loading-overview">Loading one state row per live model…</p>';
-    $("plot-summary").textContent = "Unknown values remain blocked until the export is read.";
+    $("chart").innerHTML =
+      '<p class="loading-overview">Loading one state row per live model…</p>';
+    $("plot-summary").textContent =
+      "Unknown values remain blocked until the export is read.";
     return;
   }
   if (!data || data.status !== "ok") {
@@ -697,53 +711,98 @@ function renderCapabilityState() {
       "The dated export could not be read. The model landscape remains available.",
     );
     $("chart-title").textContent = "Decision state needs a complete source";
-    $("chart-subtitle").textContent = "No rows are silently treated as selectable";
-    $("plot-summary").textContent = data?.message || data?.summary || "Capability state export unavailable.";
-    $("inspector").innerHTML = '<p class="eyebrow">Decision state</p><h3>Evidence is missing.</h3><p>Unknown values stay unknown until a real probe publishes them.</p>';
+    $("chart-subtitle").textContent =
+      "No rows are silently treated as selectable";
+    $("plot-summary").textContent =
+      data?.message || data?.summary || "Capability state export unavailable.";
+    $("inspector").innerHTML =
+      '<p class="eyebrow">Decision state</p><h3>Evidence is missing.</h3><p>Unknown values stay unknown until a real probe publishes them.</p>';
     return;
   }
   const rows = Array.isArray(data.rows) ? data.rows : [];
   const providers = new Set(rows.map((row) => row.provider));
-  const directProviders = Array.isArray(data.providers) ? data.providers.filter((provider) => provider.directAdapter).length : providers.size;
-  const unknowns = rows.reduce((count, row) => count + (row.selection?.publicCouncil?.state === "unknown" ? 1 : 0), 0);
+  const directProviders = Array.isArray(data.providers)
+    ? data.providers.filter((provider) => provider.directAdapter).length
+    : providers.size;
+  const unknowns = rows.reduce(
+    (count, row) =>
+      count + (row.selection?.publicCouncil?.state === "unknown" ? 1 : 0),
+    0,
+  );
   const publicQuery = data.queries?.publicCouncil;
   const privateQuery = data.queries?.innerObserver;
   const measurement = data.measurement;
   $("chart-title").textContent = "One state object, two honest decisions";
-  $("chart-subtitle").textContent = `${rows.length.toLocaleString()} live model rows · ${directProviders} direct adapters · ${providers.size} with rows · dated ${dateLabel(data.generatedAt)}`;
+  $("chart-subtitle").textContent =
+    `${rows.length.toLocaleString()} live model rows · ${directProviders} direct adapters · ${providers.size} with rows · dated ${dateLabel(data.generatedAt)}`;
   $("chart-hint").textContent = "Every unknown is named";
-  $("plot-summary").textContent = `${data.scope.completeness === "full" ? "Full" : "Partial"} live-slug coverage. ${unknowns.toLocaleString()} rows cannot be selected for the public council because required evidence is unknown or expired.`;
-  const formatList = (values) => Array.isArray(values) && values.length ? values.map((value) => `<code>${escape(value)}</code>`).join(" ") : "None";
-  const queryCard = (label, query) => `<article class="state-query-card"><p class="eyebrow">${escape(label)}</p><h4>${query?.decisionState === "decidable" ? "Decision available" : "Blocked by missing evidence"}</h4><p>${escape(query?.basis || "No decision rule published.")}</p><dl class="state-query-meta"><div><dt>Rows considered</dt><dd>${Number(query?.consideredRows || 0).toLocaleString()}</dd></div><div><dt>Missing fields</dt><dd>${formatList(query?.missingFields)}</dd></div></dl></article>`;
-  const vantageSummary = (measurement?.vantagePoints || []).map((point) => `<span class="state-vantage"><strong>${escape(point.label)}</strong><small>${escape(point.state.toUpperCase())}</small></span>`).join("");
-  const measurementCard = measurement ? `<article class="state-measurement-card"><div><p class="eyebrow">Weekly measured workload · ${escape(measurement.version)}</p><h4>${escape(measurement.workload.prompt)} <span>n=${escape(measurement.workload.sampleSize)}</span></h4><p>${escape(measurement.workload.note)}</p><p class="state-measurement-cost"><strong>PUBLISHED estimate</strong> · $${escape(measurement.weeklyCost.estimateUsd)}/week lower bound · ${Number(measurement.weeklyCost.callsPerWeek).toLocaleString()} calls · ${escape(measurement.weeklyCost.measuredReplacement)}</p></div><div class="state-vantage-list" aria-label="Measurement vantage points">${vantageSummary}</div><p class="state-measurement-foot">p50 and max-of-8 are publishable; p95 is withheld at n=8. Result snapshots: <strong>${escape(measurement.resultSnapshots.state)}</strong> until each vantage point supplies signed JSON.</p></article>` : "";
+  $("plot-summary").textContent =
+    `${data.scope.completeness === "full" ? "Full" : "Partial"} live-slug coverage. ${unknowns.toLocaleString()} rows cannot be selected for the public council because required evidence is unknown or expired.`;
+  const formatList = (values) =>
+    Array.isArray(values) && values.length
+      ? values.map((value) => `<code>${escape(value)}</code>`).join(" ")
+      : "None";
+  const queryCard = (label, query) =>
+    `<article class="state-query-card"><p class="eyebrow">${escape(label)}</p><h4>${query?.decisionState === "decidable" ? "Decision available" : "Blocked by missing evidence"}</h4><p>${escape(query?.basis || "No decision rule published.")}</p><dl class="state-query-meta"><div><dt>Rows considered</dt><dd>${Number(query?.consideredRows || 0).toLocaleString()}</dd></div><div><dt>Missing fields</dt><dd>${formatList(query?.missingFields)}</dd></div></dl></article>`;
+  const vantageSummary = (measurement?.vantagePoints || [])
+    .map(
+      (point) =>
+        `<span class="state-vantage"><strong>${escape(point.label)}</strong><small>${escape(point.state.toUpperCase())}</small></span>`,
+    )
+    .join("");
+  const measurementCard = measurement
+    ? `<article class="state-measurement-card"><div><p class="eyebrow">Weekly measured workload · ${escape(measurement.version)}</p><h4>${escape(measurement.workload.prompt)} <span>n=${escape(measurement.workload.sampleSize)}</span></h4><p>${escape(measurement.workload.note)}</p><p class="state-measurement-cost"><strong>PUBLISHED estimate</strong> · $${escape(measurement.weeklyCost.estimateUsd)}/week lower bound · ${Number(measurement.weeklyCost.callsPerWeek).toLocaleString()} calls · ${escape(measurement.weeklyCost.measuredReplacement)}</p></div><div class="state-vantage-list" aria-label="Measurement vantage points">${vantageSummary}</div><p class="state-measurement-foot">p50 and max-of-8 are publishable; p95 is withheld at n=8. Result snapshots: <strong>${escape(measurement.resultSnapshots.state)}</strong> until each vantage point supplies signed JSON.</p></article>`
+    : "";
   const visibleRows = rows;
-  const rowTable = visibleRows.map((row) => `<tr><th scope="row"><code>${escape(row.id)}</code><small>${escape(PROVIDERS[row.provider] || row.provider)}</small></th><td><span class="state-pill state-${escape(row.reachability?.state || "unknown")}">${escape(row.reachability?.state || "unknown")}</span></td><td>${escape(capabilityStateValue(row.costPerGeneration))}</td><td>${escape(capabilityStateValue(row.toolCalling, (value) => value ? "Yes" : "No"))}</td><td>${escape(capabilityStateValue(row.functionality?.p50Latency, (value) => `${value} ms`))}</td><td>${escape(capabilityStateValue(row.contextWindow, (value) => String(value)))}</td></tr>`).join("");
-  const providerSummary = (data.providers || []).map((provider) => `<span class="state-provider-chip"><strong>${escape(PROVIDERS[provider.id] || provider.id)}</strong><small>${Number(provider.liveRows || 0).toLocaleString()} live rows${provider.state === "no_live_rows" ? " · no live row in this snapshot" : ""}</small></span>`).join("");
-  $("chart").innerHTML = `<div class="capability-state-view"><div class="state-provider-summary" aria-label="Provider coverage">${providerSummary}</div><div class="state-query-grid">${queryCard("PUBLIC · literal cheapest paid", publicQuery)}${queryCard("PRIVATE · cheapest functional", privateQuery)}</div>${measurementCard}<div class="state-ledger-heading"><div><p class="eyebrow">Shared ledger</p><h4>Evidence per live slug</h4></div><a class="text-link" href="./capability-state.json" target="_blank" rel="noopener">Open full JSON export ↗</a></div><div class="state-table-wrap"><table class="state-table"><caption class="sr-only">Capability state rows</caption><thead><tr><th scope="col">Model</th><th scope="col">Reachability</th><th scope="col">Measured cost</th><th scope="col">Tool calling</th><th scope="col">p50 latency</th><th scope="col">Context</th></tr></thead><tbody>${rowTable}</tbody></table></div><p class="state-table-note">Showing all ${visibleRows.length.toLocaleString()} rows here. The JSON export contains every available live slug and every field, including UNKNOWN and EXPIRED observations.</p></div>`;
-  $("inspector").innerHTML = `<p class="eyebrow">How to read this</p><h3>Unknown is a real state.</h3><p>Catalogue price is published rate-card evidence. It never stands in for a measured generation charge. A model becomes selectable only when the required cost, reachability and functionality fields are current.</p><p>Export generated ${escape(dateLabel(data.generatedAt))} from <code>${escape(data.sourceEndpoint)}</code>.</p>`;
+  const rowTable = visibleRows
+    .map(
+      (row) =>
+        `<tr><th scope="row"><code>${escape(row.id)}</code><small>${escape(PROVIDERS[row.provider] || row.provider)}</small></th><td><span class="state-pill state-${escape(row.reachability?.state || "unknown")}">${escape(row.reachability?.state || "unknown")}</span></td><td>${escape(capabilityStateValue(row.costPerGeneration))}</td><td>${escape(capabilityStateValue(row.toolCalling, (value) => (value ? "Yes" : "No")))}</td><td>${escape(capabilityStateValue(row.functionality?.p50Latency, (value) => `${value} ms`))}</td><td>${escape(capabilityStateValue(row.contextWindow, (value) => String(value)))}</td></tr>`,
+    )
+    .join("");
+  const providerSummary = (data.providers || [])
+    .map(
+      (provider) =>
+        `<span class="state-provider-chip"><strong>${escape(PROVIDERS[provider.id] || provider.id)}</strong><small>${Number(provider.liveRows || 0).toLocaleString()} live rows${provider.state === "no_live_rows" ? " · no live row in this snapshot" : ""}</small></span>`,
+    )
+    .join("");
+  $("chart").innerHTML =
+    `<div class="capability-state-view"><div class="state-provider-summary" aria-label="Provider coverage">${providerSummary}</div><div class="state-query-grid">${queryCard("PUBLIC · literal cheapest paid", publicQuery)}${queryCard("PRIVATE · cheapest functional", privateQuery)}</div>${measurementCard}<div class="state-ledger-heading"><div><p class="eyebrow">Shared ledger</p><h4>Evidence per live slug</h4></div><a class="text-link" href="./capability-state.json" target="_blank" rel="noopener">Open full JSON export ↗</a></div><div class="state-table-wrap"><table class="state-table"><caption class="sr-only">Capability state rows</caption><thead><tr><th scope="col">Model</th><th scope="col">Reachability</th><th scope="col">Measured cost</th><th scope="col">Tool calling</th><th scope="col">p50 latency</th><th scope="col">Context</th></tr></thead><tbody>${rowTable}</tbody></table></div><p class="state-table-note">Showing all ${visibleRows.length.toLocaleString()} rows here. The JSON export contains every available live slug and every field, including UNKNOWN and EXPIRED observations.</p></div>`;
+  $("inspector").innerHTML =
+    `<p class="eyebrow">How to read this</p><h3>Unknown is a real state.</h3><p>Catalogue price is published rate-card evidence. It never stands in for a measured generation charge. A model becomes selectable only when the required cost, reachability and functionality fields are current.</p><p>Export generated ${escape(dateLabel(data.generatedAt))} from <code>${escape(data.sourceEndpoint)}</code>.</p>`;
 }
 function ensureCapabilityState() {
   if (capabilityStatePromise) return capabilityStatePromise;
   capabilityStatePromise = fetch("./capability-state.json", {
     cache: "no-store",
     signal: AbortSignal.timeout(15000),
-  }).then(async (response) => {
-    if (!response.ok) throw new Error("Capability state export unavailable");
-    const result = await response.json();
-    if (result?.status !== "ok" || result?.schemaVersion !== "1.0" || !Array.isArray(result.rows)) throw new Error("Capability state export did not match the expected shape");
-    metadata.capabilityState = result;
-    if (state.view === "state") renderMainChart();
-    return result;
-  }).catch((error) => {
-    metadata.capabilityState = { status: "error", summary: error.message };
-    if (state.view === "state") renderMainChart();
-    return metadata.capabilityState;
-  });
+  })
+    .then(async (response) => {
+      if (!response.ok) throw new Error("Capability state export unavailable");
+      const result = await response.json();
+      if (
+        result?.status !== "ok" ||
+        result?.schemaVersion !== "1.0" ||
+        !Array.isArray(result.rows)
+      )
+        throw new Error(
+          "Capability state export did not match the expected shape",
+        );
+      metadata.capabilityState = result;
+      if (state.view === "state") renderMainChart();
+      return result;
+    })
+    .catch((error) => {
+      metadata.capabilityState = { status: "error", summary: error.message };
+      if (state.view === "state") renderMainChart();
+      return metadata.capabilityState;
+    });
   return capabilityStatePromise;
 }
 function renderMainChart() {
   if (!loaded) return;
+  if (state.view !== "models" || state.modelChart !== "atlas" || mediaMode())
+    disposeAtlas($("chart"));
   if (state.view === "overview") return;
   $("chart-legend").replaceChildren();
   renderProviderPairDetails(null);
@@ -753,6 +812,21 @@ function renderMainChart() {
   }
   if (state.view === "models") {
     let rows = [];
+    if (state.modelChart === "atlas" && !mediaMode()) {
+      const atlas = renderAtlas($("chart"), filtered, {
+        selected: state.selected,
+        onSelect: selectModel,
+      });
+      $("chart-title").textContent = "A model atlas, grounded in price";
+      $("chart-subtitle").textContent =
+        "Input USD per million tokens × context window · positive values use log axes";
+      $("chart-hint").textContent = "Tap, hover or use the keyboard";
+      $("plot-summary").textContent =
+        `${atlas.plotted.toLocaleString()} of ${atlas.total.toLocaleString()} matching provider entries have these dimensions. ${atlas.zeroInput.toLocaleString()} publish $0 input and occupy a separate lane; that does not mean free output or a free request. ${atlas.excluded.toLocaleString()} entries are outside this plot, including native media and unknown fields. All remain inspectable in the table. Coordinates are exact; overlapping listings remain separate.`;
+      $("filter-results").textContent =
+        `${filtered.length.toLocaleString()} matching of ${models.length.toLocaleString()} catalogue entries · ${atlas.plotted.toLocaleString()} in the token price/context atlas${state.inactive ? "" : " · current listings only"}`;
+      return;
+    }
     if (state.modelChart === "compare") {
       const comparison = compareProviders(filtered, state.compare);
       providerCompareChart($("chart"), comparison, {
@@ -778,7 +852,8 @@ function renderMainChart() {
         pair.length === 2
           ? `${comparison.counts[pair[0]].toLocaleString()} ${PROVIDERS[pair[0]] || pair[0]} entries and ${comparison.counts[pair[1]].toLocaleString()} ${PROVIDERS[pair[1]] || pair[1]} entries match the current filters. ${comparison.pricedCounts[pair[0]].toLocaleString()} and ${comparison.pricedCounts[pair[1]].toLocaleString()} have both token legs. Shared IDs are joined exactly, never by alias.`
           : "Select two distinct providers to compare catalogue size, price coverage and exact shared IDs.";
-      $("chart-hint").textContent = "Select a provider bar to inspect its catalogue";
+      $("chart-hint").textContent =
+        "Select a provider bar to inspect its catalogue";
       $("filter-results").textContent =
         `${filtered.length.toLocaleString()} matching of ${models.length.toLocaleString()} catalogue entries · two-provider scope`;
       return;
@@ -921,6 +996,30 @@ function renderMainChart() {
       $("inspector").innerHTML =
         '<p class="eyebrow">App usage</p><h3>No published app totals available.</h3><p>Other explorer views and the setup guide remain available.</p>';
   } else if (state.view === "history") {
+    if (
+      history?.status === "unavailable" ||
+      !Array.isArray(history?.data?.[state.historyDataset])
+    ) {
+      const title =
+        state.historyDataset === "modelUsage"
+          ? "Model usage history"
+          : state.historyDataset === "appRanks"
+            ? "App rank history"
+            : "GitHub rank history";
+      emptyChart(
+        $("chart"),
+        `${title} unavailable.`,
+        "The history source could not be read. Try refreshing the page.",
+      );
+      $("chart-title").textContent = title;
+      $("chart-subtitle").textContent =
+        "Source unavailable · observation count unknown";
+      $("plot-summary").textContent =
+        `${title} could not be read. The observation count is unknown. Other explorer views remain available.`;
+      $("inspector").innerHTML =
+        '<p class="eyebrow">History source unavailable</p><h3>Observation count unknown.</h3><p>A missing response does not establish zero observations. Other explorer views and the setup guide remain available.</p>';
+      return;
+    }
     if (state.historyDataset !== "modelUsage") {
       const days = history?.data?.[state.historyDataset] || [];
       const view = renderRankHistory($("chart"), days, {
@@ -1205,7 +1304,9 @@ function higgsfieldPlanCard(provider) {
 function renderSources() {
   const live = metadata.live;
   const native = metadata.native || metadata.media;
-  const higgsfield = native?.providers?.find((provider) => provider.provider === "higgsfield");
+  const higgsfield = native?.providers?.find(
+    (provider) => provider.provider === "higgsfield",
+  );
   const dates = [
     ...new Set(
       (live?.pages || [])
@@ -1231,8 +1332,8 @@ function renderSources() {
       `${API_BASE}/live-models?limit=500`,
     ) +
     sourceCard(
-      "MCP-backed native catalogues",
-      `${native ? native.models.length.toLocaleString() + " acquired native records" : "Native source unavailable; entry count unknown"} · snapshot ${dateLabel(native?.fetchedAt)}. Text, image, video, audio, other and unclassified entries are retained. Price coverage is partial; exact IDs, billing units and conditions remain separate.`,
+      "Native price sources",
+      `${native ? native.models.length.toLocaleString() + " acquired native records" : "Native source unavailable; entry count unknown"}. Live provider reads and dated snapshots retain their own dates below. Text, image, video, audio, other and unclassified entries are retained. Price coverage is partial; exact IDs, billing units and conditions remain separate.`,
       native?.providers?.[0]?.sourceUrl,
     ) +
     sourceCard(
@@ -1309,7 +1410,7 @@ function renderSources() {
             : "";
     $("sources").innerHTML += sourceCard(
       `${provider.label} · ${provider.status}`,
-      `${status} Population coverage: ${provider.population.replaceAll("_", " ")}. Observed ${dateLabel(provider.sourceAt)}.${provider.stale === true ? " Published source is stale." : ""}${special}`,
+      `${status} Population coverage: ${provider.population.replaceAll("_", " ")}. ${provider.sourceFreshness === "live" ? "Live source read" : "Observed"} ${dateLabel(provider.sourceAt)}.${provider.stale === true ? " Published source is stale." : ""}${special}`,
       provider.sourceUrl,
     );
   }
@@ -1426,7 +1527,8 @@ function updateProviderPair() {
     $("compare-b").value = "";
     state.compare = "";
     state.modelChart = DEFAULT_STATE.modelChart;
-    $("compare-help").textContent = "Choose two different providers to compare.";
+    $("compare-help").textContent =
+      "Choose two different providers to compare.";
     render();
     return;
   }
@@ -1538,7 +1640,14 @@ new ResizeObserver(() => {
   clearTimeout(resizeTimer);
   resizeTimer = setTimeout(() => {
     if (loaded) {
-      renderMainChart();
+      if (
+        !(
+          state.view === "models" &&
+          state.modelChart === "atlas" &&
+          !mediaMode()
+        )
+      )
+        renderMainChart();
       renderFlow();
     }
   }, 160);
@@ -1554,6 +1663,7 @@ for (const tab of document.querySelectorAll("[data-view]")) {
 
 async function boot() {
   const jobs = {
+    kie: () => loadKieCatalogue(),
     live: () => loadCollection("/live-models?limit=500", 40),
     details: () => loadCollection("/models?limit=100&rank_source=none", 64),
     sourceStatus: () => request("/source-status"),
@@ -1571,7 +1681,9 @@ async function boot() {
         !Array.isArray(snapshot.data) ||
         !Array.isArray(snapshot.pages)
       )
-        throw new Error("Public catalogue snapshot did not match the expected shape");
+        throw new Error(
+          "Public catalogue snapshot did not match the expected shape",
+        );
       return snapshot;
     },
     packageFacts: async () => {
@@ -1608,7 +1720,9 @@ async function boot() {
         !Array.isArray(snapshot.models) ||
         !Array.isArray(snapshot.providers)
       )
-        throw new Error("Nous catalogue snapshot did not match the expected shape");
+        throw new Error(
+          "Nous catalogue snapshot did not match the expected shape",
+        );
       return snapshot;
     },
     matrix: async () =>
@@ -1637,7 +1751,11 @@ async function boot() {
     };
     failures = failures.filter((failure) => failure.name !== "live");
   }
-  metadata.native = combineNativeSnapshots(metadata.media, metadata.nous);
+  metadata.native = combineNativeSnapshots(
+    metadata.media,
+    metadata.nous,
+    metadata.kie,
+  );
   models = mergeMedia(
     normalizeModels(
       metadata.live || { data: [] },
@@ -1680,14 +1798,16 @@ async function boot() {
     if (!matrix.modelIds.includes(state.flowModel)) state.flowModel = "all";
   }
   $("model-count").textContent = models.length.toLocaleString();
-  $("provider-count").textContent = Array.isArray(metadata.packageFacts?.providers)
+  $("provider-count").textContent = Array.isArray(
+    metadata.packageFacts?.providers,
+  )
     ? metadata.packageFacts.providers.length.toLocaleString()
     : "Unknown";
   $("tool-count").textContent = Array.isArray(metadata.packageFacts?.tools)
     ? metadata.packageFacts.tools.length.toLocaleString()
     : "Unknown";
   $("coverage-note").textContent =
-    `${metadata.packageFacts?.providers?.length ?? "Unknown"} direct adapters · ${metadata.routingProviders?.data.length ?? "Unknown"} OpenRouter routing providers. See source coverage below.`;
+    `${metadata.packageFacts?.providers?.length ?? "Unknown"} direct adapters in npm v${metadata.packageFacts?.version ?? "unknown"} · ${metadata.routingProviders?.data.length ?? "Unknown"} OpenRouter routing providers. See source coverage below.`;
   $("data-status").textContent = failures.length
     ? "Some sources unavailable"
     : metadata.live?.snapshot
@@ -1715,6 +1835,7 @@ async function boot() {
     });
   ensureEvidence();
   if (!models.length && state.view === "models") {
+    disposeAtlas($("chart"));
     emptyChart(
       $("chart"),
       "The catalogues could not be loaded.",
@@ -1723,6 +1844,7 @@ async function boot() {
   }
 }
 boot().catch((error) => {
+  disposeAtlas($("chart"));
   console.error("Open Dashboard:", error);
   $("data-status").textContent = "Data could not be loaded";
   emptyChart(

@@ -52,6 +52,20 @@ export function formatMediaTick(value, unit) {
 }
 
 const canonicalDecimal = /^(0|[1-9]\d*)(?:\.\d+)?$/;
+const hasDate = (value) =>
+  typeof value === "string" && Number.isFinite(Date.parse(value));
+
+/** Only a successful browser source read explicitly marked live earns that label. */
+export function nativeSourceFreshness(report, observedAt = report?.observedAt) {
+  if (["unavailable", "error", "failed"].includes(report?.status))
+    return "unavailable";
+  return report?.freshness === "live" &&
+    ["available", "partial"].includes(report?.status) &&
+    hasDate(report.observedAt) &&
+    hasDate(observedAt)
+    ? "live"
+    : "snapshot";
+}
 const safeUrl = (value) => {
   try {
     const url = new URL(value);
@@ -66,6 +80,11 @@ const safeUrl = (value) => {
 /** Retain unknown prices as unknown, even if legacy token-price fields say zero. */
 export function normalizeMediaCatalogue(snapshot) {
   const unique = new Map();
+  const reports = new Map(
+    (Array.isArray(snapshot?.providers) ? snapshot.providers : []).map(
+      (report) => [report.provider, report],
+    ),
+  );
   for (const model of Array.isArray(snapshot?.models) ? snapshot.models : []) {
     if (
       !CATALOGUE_KINDS.includes(model.mediaKind) ||
@@ -76,6 +95,10 @@ export function normalizeMediaCatalogue(snapshot) {
     )
       continue;
     const key = JSON.stringify([model.provider, model.id]);
+    const report = reports.get(model.provider);
+    const fetchedAt =
+      [model.fetchedAt, report?.observedAt, snapshot.fetchedAt].find(hasDate) ??
+      null;
     // Ambiguous duplicate source identities must not become two plotted models.
     if (unique.has(key)) {
       unique.set(key, null);
@@ -113,7 +136,8 @@ export function normalizeMediaCatalogue(snapshot) {
           : "unknown",
       pricingNote: model.pricingNote ?? null,
       sourceUrl: safeUrl(model.sourceUrl),
-      fetchedAt: model.fetchedAt ?? snapshot.fetchedAt ?? null,
+      fetchedAt,
+      sourceFreshness: nativeSourceFreshness(report, fetchedAt),
     });
   }
   return [...unique.values()].filter(Boolean);
@@ -173,6 +197,7 @@ export function mediaPriceSeries(
           unit: point.unit,
           condition: point.condition,
           source: point.source,
+          sourceFreshness: model.sourceFreshness ?? "snapshot",
           provenance: point.provenance,
           sourceNotes: model.sourceNotes ?? [],
           pricingNote: model.pricingNote ?? null,

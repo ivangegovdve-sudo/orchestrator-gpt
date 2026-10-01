@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80">
+  <title>openDashboard Interlock</title>
+  <path fill="#352c40" d="M0 0h80v80H0z" />
+  <path
+    fill="#f4f0f6"
+    fill-rule="evenodd"
+    d="M28 27a19 19 0 1 0 0 38 19 19 0 0 0 0-38zm0 10a9 9 0 1 1 0 18 9 9 0 0 1 0-18z"
+  />
+  <path
+    fill="#a8e5c9"
+    fill-rule="evenodd"
+    d="M57 14h11v32a19 19 0 1 1-11-17V14zm-8 23a9 9 0 1 0 0 18 9 9 0 0 0 0-18z"
+  />
+  <path fill="#3b244c" d="M0 73h80v7H0z" />
+</svg>

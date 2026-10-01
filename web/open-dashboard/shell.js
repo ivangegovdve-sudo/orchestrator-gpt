@@ -1,4 +1,6 @@
 export function initShell() {
+  // The comparison studio has one selected palette. Other pages retain themes.
+  if (document.documentElement.hasAttribute("data-studio")) return;
   const buttons = document.querySelectorAll("[data-theme-toggle]");
   const update = () => {
     const dark = document.documentElement.dataset.theme === "dark";

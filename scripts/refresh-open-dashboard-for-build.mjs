@@ -34,13 +34,19 @@ function runScript(script, timeout = 90000, env = process.env) {
 
 // Package facts come from a real in-memory MCP handshake (tools/list), so a
 // deployment cannot silently describe a different installed contract.
-const factsResult = runScript("scripts/refresh-open-dashboard-package-facts.mjs");
+const factsResult = runScript(
+  "scripts/refresh-open-dashboard-package-facts.mjs",
+);
 if (factsResult.error || factsResult.status !== 0)
-  throw new Error("The installed open-dashboard-mcp contract could not be verified.");
+  throw new Error(
+    "The installed open-dashboard-mcp contract could not be verified.",
+  );
 console.log(factsResult.stdout.trim());
 
 try {
-  const result = runScript("web/open-dashboard/scripts/refresh-public-catalogue.mjs");
+  const result = runScript(
+    "web/open-dashboard/scripts/refresh-public-catalogue.mjs",
+  );
   if (result.error || result.status !== 0)
     throw new Error("The public catalogue snapshot did not complete.");
   console.log(result.stdout.trim());
@@ -85,14 +91,28 @@ try {
   );
 }
 
+// The claim feed supplements the pinned MCP with direct public KIE support.
+// It retains whole acquired populations and original dates on provider failure.
+const claimsResult = runScript(
+  "web/open-dashboard/scripts/refresh-claim-catalogue.mjs",
+);
+if (claimsResult.error || claimsResult.status !== 0) {
+  console.warn(
+    "Open Dashboard: claim-source refresh unavailable; using explicitly dated checked-in observations.",
+  );
+} else {
+  console.log(claimsResult.stdout.trim());
+}
+
 // Nous is a read-only catalogue supplement. A Portal key is optional because
 // /v1/models is publicly readable; never treat a Hermes API_SERVER_KEY as a
 // Nous credential and never make a deployment depend on a secret being present.
 if (process.env.NOUS_PORTAL_API_KEY?.trim()) {
-  const result = runScript("web/open-dashboard/scripts/refresh-nous-catalogue.mjs");
+  const result = runScript(
+    "web/open-dashboard/scripts/refresh-nous-catalogue.mjs",
+  );
   if (result.error || result.status !== 0) {
-    if (previousNousBytes)
-      await writeFile(nousSnapshotUrl, previousNousBytes);
+    if (previousNousBytes) await writeFile(nousSnapshotUrl, previousNousBytes);
     console.warn(
       "Open Dashboard: Nous catalogue refresh unavailable; retaining the checked-in snapshot.",
     );
@@ -104,7 +124,9 @@ if (process.env.NOUS_PORTAL_API_KEY?.trim()) {
 // Keep the Jev capability export tied to the same dated live-model snapshot as
 // the explorer. The export is explicit about UNKNOWN cost/functionality fields;
 // it never derives paid cost from the catalogue rate card.
-const capabilityResult = runScript("web/open-dashboard/scripts/build-capability-state.mjs");
+const capabilityResult = runScript(
+  "web/open-dashboard/scripts/build-capability-state.mjs",
+);
 if (capabilityResult.error || capabilityResult.status !== 0)
   throw new Error("The capability state export did not complete.");
 console.log(capabilityResult.stdout.trim());

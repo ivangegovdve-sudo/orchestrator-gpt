@@ -1,6 +1,7 @@
 import {
   API_BASE,
   DEFAULT_STATE,
+  PROVIDERS,
   finite,
   request,
   tokenPoints,
@@ -579,6 +580,45 @@ export function overviewHistorySeries(summary) {
   };
 }
 
+/** A new provider read must not refresh the dates of older acquired records. */
+function catalogueSources(entries) {
+  const groups = new Map();
+  for (const model of entries) {
+    const freshness = ["live", "snapshot", "unavailable"].includes(
+      model.sourceFreshness,
+    )
+      ? model.sourceFreshness
+      : "unknown";
+    const key = JSON.stringify([model.provider, freshness]);
+    if (!groups.has(key))
+      groups.set(key, {
+        provider: model.provider,
+        label: PROVIDERS[model.provider] || model.provider,
+        freshness,
+        dates: [],
+        undated: 0,
+      });
+    const group = groups.get(key),
+      date = stamp(model.sourceAt);
+    if (date) group.dates.push(date);
+    else group.undated++;
+  }
+  return [...groups.values()]
+    .sort(
+      (a, b) =>
+        a.provider.localeCompare(b.provider) ||
+        a.freshness.localeCompare(b.freshness),
+    )
+    .map(({ dates, ...group }) => {
+      dates.sort((a, b) => Date.parse(a) - Date.parse(b));
+      return {
+        ...group,
+        from: dates[0] ?? null,
+        to: dates.at(-1) ?? null,
+      };
+    });
+}
+
 export function summarizeOverview({
   models = [],
   apps = [],
@@ -619,6 +659,9 @@ export function summarizeOverview({
   entries.forEach(
     (model) => partitions.find((part) => part.id === output(model)).count++,
   );
+  const providerIds = [
+    ...new Set(entries.map((model) => model.provider)),
+  ].sort();
   const nativePrices = entries.filter((model) =>
     array(model.pricePoints).some((point) => finite(point.amount) !== null),
   );
@@ -639,9 +682,14 @@ export function summarizeOverview({
   const cells = observedCells(matrix);
   return {
     catalogue: {
-      available: !!metadata.live || !!metadata.native || !!metadata.media || entries.length > 0,
+      available:
+        !!metadata.live ||
+        !!metadata.native ||
+        !!metadata.media ||
+        entries.length > 0,
       entries: entries.length,
-      providers: new Set(entries.map((model) => model.provider)).size,
+      providers: providerIds.length,
+      providerIds,
       partitions,
       tokenQuotes: tokenQuotes.length,
       nativePrices: nativePrices.length,
@@ -650,7 +698,7 @@ export function summarizeOverview({
       freePlans: entries.filter((model) => model.freeOffer === "free_plan")
         .length,
       source: sourceSummary(metadata.live),
-      nativeAt: stamp((metadata.native || metadata.media)?.fetchedAt),
+      sources: catalogueSources(entries),
     },
     apps: {
       available: !!metadata.apps || apps.length > 0,
