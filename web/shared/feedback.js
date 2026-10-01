@@ -73,7 +73,8 @@ const FORMSPREE_ENDPOINT = 'https://formspree.io/f/PLACEHOLDER';
     (opener || button).focus();
   }
 
-  function open() {
+  function open(project) {
+    if (backdrop) return;
     opener = document.activeElement;
     backdrop = document.createElement('div');
     backdrop.dataset.feedbackBackdrop = '';
@@ -96,7 +97,7 @@ const FORMSPREE_ENDPOINT = 'https://formspree.io/f/PLACEHOLDER';
       const message = textarea.value.trim();
       if (!message) return textarea.focus();
       try {
-        const response = await fetch(FORMSPREE_ENDPOINT, { method: 'POST', headers: { 'Content-Type': 'application/json', Accept: 'application/json' }, body: JSON.stringify({ message, url: window.location.href }) });
+        const response = await fetch(FORMSPREE_ENDPOINT, { method: 'POST', headers: { 'Content-Type': 'application/json', Accept: 'application/json' }, body: JSON.stringify({ message, url: window.location.href, ...(project ? { project } : {}) }) });
         if (!response.ok) throw new Error('feedback request failed');
         const thanks = document.createElement('p');
         thanks.setAttribute('role', 'status');
@@ -111,7 +112,12 @@ const FORMSPREE_ENDPOINT = 'https://formspree.io/f/PLACEHOLDER';
     textarea.focus();
   }
 
-  button.addEventListener('click', open);
+  button.addEventListener('click', () => open());
+  // Any element marked data-feedback-open (a project card's button) opens the same dialog.
+  document.addEventListener('click', (event) => {
+    const trigger = event.target.closest?.('[data-feedback-open]');
+    if (trigger) open(trigger.getAttribute('data-feedback-project') || '');
+  });
   document.addEventListener('keydown', (event) => { if (event.key === 'Escape') close(); });
   const inlineSlot = document.querySelector('[data-feedback-slot]');
   (inlineSlot || document.body || document.documentElement).append(button);
