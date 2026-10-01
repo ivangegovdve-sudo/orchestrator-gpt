@@ -57,8 +57,13 @@ function envFile() {
 }
 const FILE = envFile();
 const has = (name) => Boolean((process.env[name] || FILE[name] || "").trim());
+// The ComfyUI adapter has no --ref (text-to-image only), needs --workflow for shots and
+// cannot pin an end frame (--tail), so it is never auto-selected for those invocations.
+const comfyUnsupported = (cmd, args) => (cmd === "still" && args.includes("--ref"))
+  || (cmd === "shot" && (args.includes("--tail") || !args.includes("--workflow")));
 const configured = (p, cmd) => ADAPTERS[p].needs.every(has)
-  && !(p === "comfyui" && cmd === "shot" && !has("SCROLLCRAFT_COMFYUI_VIDEO_ENDPOINT"));
+  && !(p === "comfyui" && cmd === "shot" && !has("SCROLLCRAFT_COMFYUI_VIDEO_ENDPOINT"))
+  && !(p === "comfyui" && comfyUnsupported(cmd, rest));
 
 const [cmd, ...rest] = process.argv.slice(2);
 const explicit = (process.env.SCROLLCRAFT_ASSET_PROVIDER || FILE.SCROLLCRAFT_ASSET_PROVIDER || "").trim().toLowerCase();

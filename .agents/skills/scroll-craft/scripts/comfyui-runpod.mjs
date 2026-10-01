@@ -186,6 +186,7 @@ try {
   } else if (cmd === "shot") {
     const [prompt, head, out] = rest;
     const wfPath = flag(rest, "--workflow");
+    if (rest.includes("--tail")) throw new Error("--tail is not supported by the ComfyUI adapter: the workflow pins no end frame (use kie.mjs or fal.mjs for --tail)");
     if (!prompt || !head || !out || !wfPath) {
       throw new Error('usage: comfyui-runpod.mjs shot "<prompt>" <head.png> <out.mp4> --workflow wf.json [--dur 5]');
     }

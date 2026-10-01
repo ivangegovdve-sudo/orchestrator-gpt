@@ -7,7 +7,17 @@ Generation through kie.ai, then encoding for scrubbing. All of it via
 
 Three adapters share one command interface (`probe`, `still`, `shot`), and
 `scripts/asset.mjs` switches between them. Every example below that says
-`kie.mjs` works unchanged with `asset.mjs`, `fal.mjs` or `comfyui-runpod.mjs`.
+`kie.mjs` works unchanged with `asset.mjs` or `fal.mjs`. `comfyui-runpod.mjs`
+is narrower:
+
+- no `--ref` on `still` (Flux text-to-image only; it errors),
+- `shot` requires `--workflow wf.json` (your own workflow) and a video endpoint,
+- no `--tail` on `shot` (it errors rather than dropping the end frame).
+
+`asset.mjs` never auto-selects ComfyUI for a command that uses `--ref` or
+`--tail`, or for a `shot` without `--workflow`; it falls through to the next
+provider. Setting `SCROLLCRAFT_ASSET_PROVIDER=comfyui` forces it and you get the
+adapter's error.
 
 | Provider | Script | Credentials | Still model | Clip model | Billing |
 |---|---|---|---|---|---|
