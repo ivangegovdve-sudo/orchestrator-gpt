@@ -321,6 +321,10 @@ const projectRecords = [
     pool: 'TinkerBox', classification: 'assigned', status: 'Live', rank: { TinkerBox: 9 }, visibility: publicShell,
     attribution: { type: 'fork', names: ['nikhilvishwakarma00'], changeDescription: 'Ivan’s audio-only YouTube path with no video.' },
   }),
+  project('alternate-self', 'Alternate Self', {
+    pool: 'TinkerBox', classification: 'assigned', status: 'Live', rank: { TinkerBox: 5 }, visibility: publicShell,
+    canonicalUrl: 'https://alternate-self-sdforest.onhercules.app/', sources: [MASTER],
+  }),
   // Settled exclusion: retain the catalog record and pool relationship for
   // reconciliation, but publish it on no public surface until ready.
   project('anycloudllm', 'AnyCloudLLM', { pool: 'AI-d kit', classification: 'assigned', status: 'In development', visibility: compatibility }),
