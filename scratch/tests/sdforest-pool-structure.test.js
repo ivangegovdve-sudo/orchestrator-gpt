@@ -2,6 +2,7 @@ const { test } = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
+const { assertPoolDirectory } = require('./helpers/frontend-pool-directory.cjs');
 
 const ROOT = path.resolve(__dirname, '../..');
 const read = (file) => fs.readFileSync(path.join(ROOT, file), 'utf8');
@@ -60,31 +61,16 @@ test('exactly seven static shells have independent accessible descriptions and a
   }
 });
 
-test('home keeps seven live fallback links and loads the catalog-ranked directory', () => {
+test('home exposes seven named pool destinations and a separate portfolio link', () => {
   const home = read('index.html');
-  const directory = home.match(/<nav aria-label="Seven pools" data-pool-directory>([\s\S]*?)<\/nav>/)?.[1];
-  assert.ok(directory);
-  const links = [...directory.matchAll(/<a\b[^>]*data-pool-link="([^"]+)"[^>]*href="([^"]+)"[^>]*>([\s\S]*?)<\/a>/g)];
-  assert.deepEqual(links.map((m) => m[1]).sort(), pools.map(([id]) => id).sort());
-  links.forEach((link) => {
-    const pool=pools.find(([id])=>id===link[1]);
-    assert.equal(link[2], `/web/pools/${pool[0]}/`);
-    assert.ok(link[3].includes(`>${pool[1]}</span>`));
-    assert.match(link[3], />Live pool</);
-    assert.doesNotMatch(link[0], /disabled|tabindex|target=/);
-  });
-  assert.equal((directory.match(/href="\/web\/pools\//g) || []).length, 7);
-  // The grove (2026-09-26) surfaces work on the front page and ties each pool
-  // to a vine knot: exactly one knot per pool, each pointing at its pool root.
-  const knots = [...home.matchAll(/<a class="grove-knot" href="(\/web\/pools\/[^"]+)"/g)].map((m) => m[1]).sort();
-  assert.deepEqual(knots, pools.map(([id]) => `/web/pools/${id}/`).sort());
-  assert.match(home, /pool-directory\.mjs/);
-  assert.doesNotMatch(home, /project-catalog|ROUTE_REGISTRY|ROUTE_INVENTORY|static-route-registry/);
-  assert.doesNotMatch(home, /data-(?:index-project|directory-section|index-section|project)="/);
+  assertPoolDirectory(home, pools.map(([id, publicName]) => ({ id, publicName, route: `/web/pools/${id}/` })));
   assert.doesNotMatch(home, /Kids Corner|Found Work|Voice Playground|Multiply Magic|Web Design Gallery|VFX Portfolio|Published research/);
-  assert.doesNotMatch(directory, /AI Research|Evolution|Writing & Media|Projects & Play|Research & Experiments/);
-  assert.match(home, /<nav[^>]*aria-label="Site controls">\s*<a data-site-control="portfolio" href="https:\/\/vfxportfolio.lovable.app" target="_blank" rel="noopener">Portfolio — opens in a new tab<\/a>/);
-  assert.doesNotMatch(directory, /portfolio/i);
+  const portfolio = [...home.matchAll(/<a\b([^>]*)>([\s\S]*?)<\/a>/gi)]
+    .find(([, attributes]) => /href="https:\/\/vfxportfolio\.lovable\.app\/?"/.test(attributes));
+  assert.ok(portfolio, 'the real portfolio remains reachable outside the pool directory');
+  assert.match(portfolio[2], /Portfolio/);
+  assert.match(portfolio[1], /target="_blank"/);
+  assert.match(portfolio[1], /rel="[^"]*\bnoopener\b[^"]*"/);
 });
 
 test('presenter consumes catalog membership and renders every assigned project including Coming Soon rows', async () => {

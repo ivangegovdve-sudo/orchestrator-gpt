@@ -2,6 +2,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 const test = require('node:test');
+const { assertPoolDirectory } = require('./helpers/frontend-pool-directory.cjs');
 
 const ROOT = path.resolve(__dirname, '../..');
 const catalog = import('../../web/shared/project-catalog.mjs');
@@ -71,11 +72,11 @@ test('ordering validation rejects rank references that would silently disappear'
   }), /missing its explicit rank field/);
 });
 
-test('ordering rule is documented and the home directory keeps a complete fallback', () => {
+test('pool ordering remains documented and the home directory keeps every destination', async () => {
   const doc = fs.readFileSync(path.join(ROOT, 'docs/sdforest-pool-ordering.md'), 'utf8');
   assert.match(doc, /completeness and interest/);
   assert.match(doc, /UNRANKED/);
   const home = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
-  assert.equal((home.match(/data-pool-link="/g) || []).length, 7);
-  assert.match(home, /pool-directory\.mjs/);
+  const { POOL_CATALOG } = await catalog;
+  assertPoolDirectory(home, POOL_CATALOG);
 });

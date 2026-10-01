@@ -1,383 +1,155 @@
-<!-- index.html -->
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<link rel="icon" href="/web/shared/favicon.svg?v=20260807a" type="image/svg+xml">
-<script defer src="/web/shared/feedback.js?v=20260807a"></script>
-<link rel="preload" href="/web/shared/forest-design.css?v=20260807a" as="style">
-<link rel="preload" href="/web/vendor/fonts/cormorant-garamond-normal-500-latin.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="preload" href="/web/vendor/fonts/alegreya-normal-400-900-latin.woff2" as="font" type="font/woff2" crossorigin>
-<script type="speculationrules">
-{
-  "prerender": [
-    {
-      "source": "document",
-      "where": {
-        "and": [
-          {
-            "href_matches": "/web/*"
-          },
-          {
-            "or": [
-              {
-                "href_matches": "/web/ai-research/*"
-              },
-              {
-                "href_matches": "/web/c2c-dolphin/*"
-              },
-              {
-                "href_matches": "/web/c2c-self/*"
-              },
-              {
-                "href_matches": "/web/calendar/*"
-              },
-              {
-                "href_matches": "/web/council/"
-              },
-              {
-                "href_matches": "/web/council/index.html"
-              },
-              {
-                "href_matches": "/web/hypertrophyos/*"
-              },
-              {
-                "href_matches": "/web/kids/*"
-              },
-              {
-                "href_matches": "/movies/*"
-              },
-              {
-                "href_matches": "/web/library/"
-              },
-              {
-                "href_matches": "/web/library/index.html"
-              },
-              {
-                "href_matches": "/web/library/general/*"
-              },
-              {
-                "href_matches": "/web/library/glossary/*"
-              },
-              {
-                "href_matches": "/web/library/memory/*"
-              },
-              {
-                "href_matches": "/web/library/platform/*"
-              },
-              {
-                "href_matches": "/web/library/rag.html"
-              },
-              {
-                "href_matches": "/web/library/repos/*"
-              },
-              {
-                "href_matches": "/web/life-in-time/*"
-              },
-              {
-                "href_matches": "/web/m-popova/*"
-              },
-              {
-                "href_matches": "/web/math-mania/*"
-              },
-              {
-                "href_matches": "/web/mendeleev-bg/*"
-              },
-              {
-                "href_matches": "/web/morning-news/*"
-              },
-              {
-                "href_matches": "/web/upload/*"
-              },
-              {
-                "href_matches": "/web/vfx-portfolio/*"
-              }
-            ]
-          },
-          {
-            "not": {
-              "or": [
-                {
-                  "href_matches": "/web/ai-init/*"
-                },
-                {
-                  "href_matches": "/web/avatar-playground/*"
-                },
-                {
-                  "href_matches": "/web/chloe-pwa/*"
-                },
-                {
-                  "href_matches": "/web/council/byok/*"
-                },
-                {
-                  "href_matches": "/web/council/inner/*"
-                },
-                {
-                  "href_matches": "/web/council/tinylm/*"
-                },
-                {
-                  "href_matches": "/web/evolution/*"
-                },
-                {
-                  "href_matches": "/web/library/chloe/*"
-                },
-                {
-                  "href_matches": "/web/llm-db/*"
-                },
-                {
-                  "href_matches": "/web/manifesto-newborn/*"
-                },
-                {
-                  "href_matches": "/web/math-forest/*"
-                },
-                {
-                  "href_matches": "/web/open-dashboard/*"
-                },
-                {
-                  "href_matches": "/web/power-law-odyssey/*"
-                },
-                {
-                  "href_matches": "/web/replicator-void/*"
-                },
-                {
-                  "href_matches": "/web/tinylm/*"
-                },
-                {
-                  "href_matches": "/web/womens-health-os/*"
-                }
-              ]
-            }
-          }
-        ]
-      },
-      "eagerness": "moderate"
-    }
-  ]
-}
-</script>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="SDForest — an interactive portal into Ivan Gegov's tools, experiments, writing, research, animation, and visual effects work.">
-  <meta name="theme-color" content="#07070b">
-  <meta property="og:title" content="SDForest">
-  <meta property="og:description" content="A living, interactive forest of projects.">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#f0f1b7">
+  <title>SD Forest · Good things grow wild.</title>
+  <meta name="description" content="Ivan Gegov’s living collection of ideas, practical tools, writing and experiments. A little structure. A lot of curiosity.">
+  <meta property="og:title" content="SD Forest · Good things grow wild.">
+  <meta property="og:description" content="A living collection of ideas, tools and stories. Made by Ivan Gegov. Open to the curious.">
   <meta property="og:type" content="website">
-  <title>SDForest — projects in motion</title>
-  <link rel="stylesheet" href="/web/shared/forest-design.css?v=20260807a">
-  <link rel="stylesheet" href="/web/shared/design-history.css?v=20260807a">
-  <link rel="stylesheet" href="/web/shared/frontpage-resolve.css">
-  <link rel="stylesheet" href="/web/shared/frontpage-grove.css?v=20260926a">
-  <link rel="stylesheet" href="/web/shared/frontpage-reveal.css?v=20260926a">
-  <link rel="stylesheet" href="/web/shared/frontpage-pool-vines.css?v=20260927a">
-  <link rel="stylesheet" href="/web/shared/frontpage-intro-reveal.css?v=20260927a">
+  <link rel="icon" href="/web/field-atlas/favicon.svg" type="image/svg+xml">
+  <link rel="preload" href="/web/field-atlas/assets/manrope-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="/web/field-atlas/assets/pine-specimen.webp" as="image">
+  <link rel="stylesheet" href="/web/field-atlas/scrollcraft.css">
+  <link rel="stylesheet" href="/web/field-atlas/main.css">
+  <link rel="stylesheet" href="/web/field-atlas/atlas.css">
 </head>
-<body class="resolve-home">
-<a class="resolve-skip" href="#atlas">Explore the pools</a>
-<main>
-<div class="resolve-scroll">
-  <section class="resolve-stage" data-resolve-stage aria-labelledby="forest-title">
-    <div class="resolve-scene">
-    <div class="resolve-growth-intro" data-growth-intro aria-hidden="true" inert>
-      <video data-growth-film data-src="/web/assets/sdforest-intro/growth-scroll.mp4" poster="/web/assets/sdforest-intro/seed-poster.webp" preload="metadata" muted playsinline disablepictureinpicture></video>
-    </div>
-    <div class="resolve-world" aria-hidden="true">
-      <img src="/web/assets/sdforest-resolve/world.png" alt="" width="864" height="480" fetchpriority="high">
-      <img src="/web/assets/sdforest-resolve/sky.png" alt="" width="864" height="480">
-      <img src="/web/assets/sdforest-resolve/sunset.png" alt="" width="864" height="480">
-      <img src="/web/assets/sdforest-resolve/mist.png" alt="" width="864" height="480">
-      <img src="/web/assets/sdforest-resolve/landscape.png" alt="" width="864" height="480">
-    </div>
-    <div class="resolve-ambient" aria-hidden="true" inert>
-      <svg class="ambient-paint-defs" width="0" height="0" focusable="false"><defs><linearGradient id="grass-shading" x1="0" y1="1" x2=".25" y2="0"><stop stop-color="#1a3022"/><stop offset=".6" stop-color="#486340"/><stop offset="1" stop-color="#94a475"/></linearGradient><linearGradient id="vine-shading" x1="0" y1=".6" x2="1" y2=".3"><stop stop-color="#263c29"/><stop offset=".52" stop-color="#77915c"/><stop offset=".57" stop-color="#405935"/><stop offset="1" stop-color="#5d7648"/></linearGradient></defs></svg>
-      <div class="ambient-soil-bridge">
-        <img class="rooted-earth" src="/web/assets/sdforest-sunset/rooted-earth.webp" alt="" width="1672" height="941" draggable="false">
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <svg class="icon-definitions" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><defs>
+    <symbol id="arrow-right" viewBox="0 0 24 24"><path d="M3 12h17m-6-6 6 6-6 6" fill="none" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="arrow-out" viewBox="0 0 24 24"><path d="M5 19 19 5M5 5h14v14" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  </defs></svg>
+  <header class="masthead" id="top">
+    <a class="wordmark" href="#top" aria-label="SD Forest home">SD Forest<span class="wordmark-dot" aria-hidden="true"></span></a>
+    <nav class="desktop-nav" aria-label="Main navigation"><a href="#work">Selected work</a><a href="#atlas">The atlas</a><a href="#about">About</a></nav>
+    <details class="mobile-menu"><summary>Menu<span aria-hidden="true"></span></summary><nav aria-label="Mobile navigation"><a href="#work">Selected work</a><a href="#atlas">The atlas</a><a href="#about">About</a></nav></details>
+  </header>
+  <main id="main">
+    <section class="cover" data-sc-act="flow" aria-labelledby="cover-title">
+      <div class="cover-type"><h1 id="cover-title">Good things<br>grow wild.</h1></div>
+      <div class="specimen-shadow" data-sc-parallax="-0.45" aria-hidden="true"><img src="/web/field-atlas/assets/pine-specimen.webp" width="1536" height="1024" alt=""></div>
+      <div class="specimen-plane" data-sc-parallax="-1.35" aria-hidden="true"><img class="specimen" src="/web/field-atlas/assets/pine-specimen.webp" width="1536" height="1024" alt="" fetchpriority="high"></div>
+      <div class="cover-intro"><p>A living collection of ideas, tools and stories.<br>Made by Ivan Gegov. Open to the curious.</p><a class="button" href="#atlas">Explore the atlas<svg aria-hidden="true"><use href="#arrow-right"/></svg></a></div>
+      <div class="cover-baseline"><p>A little structure. A lot of curiosity.</p><button class="motion-control" type="button" hidden aria-pressed="false" data-motion-toggle><span class="motion-control-icon" aria-hidden="true"></span><span data-motion-label>Pause motion</span></button></div>
+    </section>
+    <section class="purpose spread" data-sc-act="flow" aria-labelledby="purpose-title">
+      <p class="purpose-label">An open collection</p>
+      <h2 id="purpose-title" data-sc-in>Not one thing.<br>A growing world.</h2>
+      <div class="purpose-body" data-sc-in><p>Some ideas become tools. Some become stories. Others stay questions for a while. SD Forest is a place to follow all three.</p></div>
+      <p class="purpose-foot">For readers. For makers. For the curious.</p>
+    </section>
+    <section class="work spread" id="work" data-sc-act="flow" aria-labelledby="work-title">
+      <div class="work-copy"><h2 id="work-title" data-sc-in>Things worth<br>getting lost in.</h2><p class="work-intro">Practical tools, unfinished questions, and the occasional beautiful detour.</p>
+        <div class="work-index" data-sc-reveal="up" data-sc-reveal-at="0.12 0.42">
+          <a class="work-row" href="/web/open-dashboard/"><span class="work-kind">Tools</span><h3>Open Dashboard</h3><p>An open window into AI models, pricing and tools.</p><svg aria-hidden="true"><use href="#arrow-out"/></svg></a>
+          <a class="work-row" href="/web/mendeleev-bg/"><span class="work-kind">Learning</span><h3>Periodic Table</h3><p>Elements, compounds and the chemistry of everyday life.</p><svg aria-hidden="true"><use href="#arrow-out"/></svg></a>
+          <a class="work-row" href="/web/life-in-time/"><span class="work-kind">Life</span><h3>Life in Time</h3><p>A different way to see the time you have.</p><svg aria-hidden="true"><use href="#arrow-out"/></svg></a>
+        </div>
       </div>
-      <div class="ambient-air">
-        <i data-ambient-mote></i><i data-ambient-mote></i><i data-ambient-mote></i>
-        <i data-ambient-mote></i><i data-ambient-mote></i><i data-ambient-mote></i>
-      </div>
-    </div>
-    <div class="forest-vines" inert>
-      <button data-wind-vine="0" type="button" aria-label="Swing left vine" title="Drag to bend · release to swing" disabled>
-        <svg viewBox="0 0 100 520" preserveAspectRatio="none" aria-hidden="true" focusable="false"><path class="vine-stem" d="M50-20C22 42 61 77 39 149S62 267 45 337"/><path class="vine-leaf" d="M38 80Q6 62 18 41Q46 51 38 80M42 118Q76 85 79 110Q66 141 42 118M40 174Q6 143 12 179Q22 204 40 174M43 222Q81 207 70 181Q41 192 43 222M48 281Q14 250 21 287Q31 310 48 281M47 340Q83 309 79 344Q61 366 47 340"/><g class="vine-tip"><path class="vine-stem" d="M45 337C43 379 65 420 47 489"/><path class="vine-leaf" d="M49 399Q20 366 22 400Q33 422 49 399M48 445Q78 420 73 451Q58 471 48 445"/></g></svg>
-      </button>
-      <button data-wind-vine="1" type="button" aria-label="Swing right vine" title="Drag to bend · release to swing" disabled>
-        <svg viewBox="0 0 100 520" preserveAspectRatio="none" aria-hidden="true" focusable="false"><path class="vine-stem" d="M50-10C85 50 39 86 61 154S41 250 53 322"/><path class="vine-leaf" d="M62 62Q93 35 94 62Q79 88 62 62M57 111Q20 75 26 114Q41 136 57 111M62 171Q97 141 90 178Q73 202 62 171M55 225Q21 197 29 235Q46 256 55 225M52 284Q83 254 84 287Q68 311 52 284"/><g class="vine-tip"><path class="vine-stem" d="M53 322C61 350 42 386 57 458"/><path class="vine-leaf" d="M55 348Q25 317 26 350Q42 372 55 348M54 404Q88 378 82 411Q65 434 54 404"/></g></svg>
-      </button>
-    </div>
-    <div class="resolve-field" data-arrival="field" aria-hidden="true" inert>
-      <img class="workbench-horizon workbench-woodland" src="/web/assets/sdforest-sunset/valley.webp" alt="" width="1672" height="941" draggable="false">
-      <img class="workbench-mist" src="/web/assets/sdforest-sunset/mist.webp" alt="" width="1672" height="941" draggable="false">
-      <img class="workbench-bark" src="/web/assets/sdforest-workbench/bark.webp" alt="" width="1672" height="941">
-    </div>
-    <svg class="resolve-tree" data-title-crown viewBox="93 158 226 214" aria-hidden="true" focusable="false">
-      <image href="/web/assets/sdforest-sunset/tree.webp" x="93" y="158" width="226" height="214" preserveAspectRatio="xMidYMax meet"/>
+      <figure class="work-photo"><div class="work-photo-frame" data-sc-reveal="left" data-sc-reveal-at="0.06 0.36"><img src="/web/field-atlas/assets/pine-macro.webp" width="800" height="1200" alt="Morning dew resting on the needles of a pine branch" loading="lazy" decoding="async" data-sc-parallax="-0.65"></div><figcaption>Small things. A larger world.</figcaption></figure>
+    </section>
+    <section class="atlas-act" id="atlas" data-atlas data-sc-act="pin" data-sc-span="2.4" aria-labelledby="atlas-title">
+  <div class="atlas-stage" data-sc-stage data-sc-verify-state="resolved" data-sc-verify-hold="true">
+    <header class="atlas-heading">
+      <h2 id="atlas-title">Follow your<br>curiosity.</h2>
+      <p>Seven ways into the forest. Choose a path.</p>
+    </header>
+
+    <svg class="atlas-growth" viewBox="0 0 1440 900" preserveAspectRatio="none" fill="none" aria-hidden="true">
+      <g class="atlas-branch" data-atlas-branch="my-story" data-atlas-start="0.02" data-atlas-end="0.58">
+        <path class="atlas-stem" pathLength="1" d="M720 778 C701 725 654 696 595 693 C535 689 477 710 427 690 C372 668 365 624 306 617 C245 611 204 613 167 581" />
+        <path class="atlas-leaf" pathLength="1" d="M290 615 C270 611 253 603 248 582 C272 585 280 599 290 615" />
+      </g>
+      <g class="atlas-branch" data-atlas-branch="ai-d-kit" data-atlas-start="0.06" data-atlas-end="0.66">
+        <path class="atlas-stem" pathLength="1" d="M720 778 C683 703 660 657 578 640 C511 626 457 640 399 613 C345 588 340 540 302 497 C259 449 184 454 145 401" />
+        <path class="atlas-leaf" pathLength="1" d="M289 483 C272 470 264 454 264 435 C285 447 288 465 289 483" />
+      </g>
+      <g class="atlas-branch" data-atlas-branch="growingapp" data-atlas-start="0.13" data-atlas-end="0.73">
+        <path class="atlas-stem" pathLength="1" d="M720 778 C712 704 681 700 677 658 C669 594 632 570 574 546 C524 525 498 506 495 466 C491 432 486 411 463 385" />
+        <path class="atlas-leaf" pathLength="1" d="M495 466 C495 446 503 432 516 419 C519 439 507 454 495 466" />
+      </g>
+      <g class="atlas-branch" data-atlas-branch="health" data-atlas-start="0.09" data-atlas-end="0.70">
+        <path class="atlas-stem" pathLength="1" d="M720 778 C718 721 698 684 708 638 C716 596 752 577 750 534 C749 492 716 466 718 427" />
+        <path class="atlas-leaf" pathLength="1" d="M746 513 C743 495 746 484 756 470 C762 489 753 501 746 513" />
+      </g>
+      <g class="atlas-branch" data-atlas-branch="tinkerbox" data-atlas-start="0.21" data-atlas-end="0.80">
+        <path class="atlas-stem" pathLength="1" d="M720 778 C722 710 737 656 775 620 C815 581 863 574 893 541 C919 513 916 475 945 423" />
+        <path class="atlas-leaf" pathLength="1" d="M925 488 C937 472 948 468 961 466 C953 482 940 489 925 488" />
+      </g>
+      <g class="atlas-branch" data-atlas-branch="artificial-self" data-atlas-start="0.18" data-atlas-end="0.84">
+        <path class="atlas-stem" pathLength="1" d="M720 778 C743 685 787 655 873 640 C946 627 1009 606 1035 565 C1055 533 1059 506 1086 482 C1120 451 1143 441 1164 414 C1181 392 1179 371 1198 351" />
+        <path class="atlas-leaf" pathLength="1" d="M1140 442 C1137 423 1141 411 1154 397 C1156 417 1146 432 1140 442" />
+      </g>
+      <g class="atlas-branch" data-atlas-branch="design-gallery" data-atlas-start="0.28" data-atlas-end="0.88">
+        <path class="atlas-stem" pathLength="1" d="M720 778 C739 707 804 667 885 667 C971 666 1029 691 1092 665 C1132 649 1149 626 1181 614 C1220 600 1251 599 1273 564" />
+        <path class="atlas-leaf" pathLength="1" d="M1161 624 C1163 604 1176 589 1198 583 C1193 603 1179 614 1161 624" />
+      </g>
+      <path class="atlas-seed" d="M720 772 C705 772 706 792 712 801 C718 811 730 803 730 790 C730 780 726 772 720 772Z" />
     </svg>
-    <a class="resolve-brand" data-arrival="brand" href="/" aria-label="SDForest home"><i aria-hidden="true"></i>SDForest</a>
-    <h1 class="resolve-title" id="forest-title" data-arrival="title"><span>Forest HUB</span><small>projects in motion</small></h1>
-    </div>
-    <div class="resolve-growth-runway" aria-hidden="true"></div>
-    <div id="atlas" class="resolve-directory">
-      <nav aria-label="Seven pools" data-pool-directory>
-<span class="workbench-directory-bark" data-arrival="field" aria-hidden="true" inert></span>
-<a class="portal" data-arrival data-pool-link="health" href="/web/pools/health/">
-<span class="portal-art" aria-hidden="true"><img src="/web/assets/sdforest-workbench/health.webp" alt="" width="1100" height="458"></span><span class="portal-copy"><span class="portal-name">Health</span></span><span class="portal-reveal"><span class="portal-meta">Health, reading, movement, and wellbeing</span><span class="portal-selection">Selected · press again to open</span></span><span class="portal-tag">Live pool</span>
+
+    <nav class="atlas-paths" aria-label="Explore the seven collections">
+      <ul>
+        <li class="atlas-path atlas-path--ai" data-atlas-path="ai-d-kit">
+          <a href="/web/pools/ai-d-kit/" data-atlas-detail="AI-d kit brings together tools for finding, understanding, and working with AI.">
+            <span class="atlas-path-title">AI-d kit <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M4 16 16 4M4 4h12v12" /></svg></span>
+            <span class="atlas-path-description">Find, understand,<br> and work with AI.</span>
           </a>
-<a class="portal" data-arrival data-pool-link="ai-d-kit" href="/web/pools/ai-d-kit/">
-<span class="portal-art" aria-hidden="true"><img src="/web/assets/sdforest-workbench/ai-d-kit.webp" alt="" width="1100" height="458"></span><span class="portal-copy"><span class="portal-name">AI-d kit</span></span><span class="portal-reveal"><span class="portal-meta">Tools for working with AI</span><span class="portal-selection">Selected · press again to open</span></span><span class="portal-tag">Live pool</span>
+        </li>
+        <li class="atlas-path atlas-path--growing" data-atlas-path="growingapp">
+          <a href="/web/pools/growingapp/" data-atlas-detail="GrowingApp gathers learning and family tools, from maths practice to science.">
+            <span class="atlas-path-title">GrowingApp <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M4 16 16 4M4 4h12v12" /></svg></span>
+            <span class="atlas-path-description">Learning, family tools,<br> and growing together.</span>
           </a>
-<a class="portal" data-arrival data-pool-link="growingapp" href="/web/pools/growingapp/">
-<span class="portal-art" aria-hidden="true"><img src="/web/assets/sdforest-workbench/growingapp.webp" alt="" width="1100" height="458"></span><span class="portal-copy"><span class="portal-name">GrowingApp</span></span><span class="portal-reveal"><span class="portal-meta">Learning, family tools, and growing together</span><span class="portal-selection">Selected · press again to open</span></span><span class="portal-tag">Live pool</span>
+        </li>
+        <li class="atlas-path atlas-path--health" data-atlas-path="health">
+          <a href="/web/pools/health/" data-atlas-detail="Health collects projects for movement, reading, listening, and wellbeing.">
+            <span class="atlas-path-title">Health <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M4 16 16 4M4 4h12v12" /></svg></span>
+            <span class="atlas-path-description">Movement, reading,<br> and wellbeing.</span>
           </a>
-<a class="portal" data-arrival data-pool-link="artificial-self" href="/web/pools/artificial-self/">
-<span class="portal-art" aria-hidden="true"><img src="/web/assets/sdforest-workbench/artificial-self.webp" alt="" width="1100" height="458"></span><span class="portal-copy"><span class="portal-name">Artificial Self</span></span><span class="portal-reveal"><span class="portal-meta">AI research and conversation archives</span><span class="portal-selection">Selected · press again to open</span></span><span class="portal-tag">Live pool</span>
+        </li>
+        <li class="atlas-path atlas-path--tinker" data-atlas-path="tinkerbox">
+          <a href="/web/pools/tinkerbox/" data-atlas-detail="TinkerBox is a collection of personal tools, playgrounds, and practical experiments.">
+            <span class="atlas-path-title">TinkerBox <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M4 16 16 4M4 4h12v12" /></svg></span>
+            <span class="atlas-path-description">Personal tools and<br> useful experiments.</span>
           </a>
-<a class="portal" data-arrival data-pool-link="my-story" href="/web/pools/my-story/">
-<span class="portal-art" aria-hidden="true"><img src="/web/assets/sdforest-workbench/my-story.webp" alt="" width="1100" height="275"></span><span class="portal-copy"><span class="portal-name">My Story</span></span><span class="portal-reveal"><span class="portal-meta">Stories, reflections, and creative work</span><span class="portal-selection">Selected · press again to open</span></span><span class="portal-tag">Live pool</span>
+        </li>
+        <li class="atlas-path atlas-path--self" data-atlas-path="artificial-self">
+          <a href="/web/pools/artificial-self/" data-atlas-detail="Artificial Self contains AI research and model-conversation archives.">
+            <span class="atlas-path-title">Artificial Self <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M4 16 16 4M4 4h12v12" /></svg></span>
+            <span class="atlas-path-description">AI research and<br> conversation archives.</span>
           </a>
-<a class="portal" data-arrival data-pool-link="tinkerbox" data-final-pool href="/web/pools/tinkerbox/">
-<span class="portal-art" aria-hidden="true"><img src="/web/assets/sdforest-workbench/tinkerbox.webp" alt="" width="1100" height="275"></span><span class="portal-copy"><span class="portal-name">TinkerBox</span></span><span class="portal-reveal"><span class="portal-meta">Playgrounds and practical experiments</span><span class="portal-selection">Selected · press again to open</span></span><span class="portal-tag">Live pool</span>
+        </li>
+        <li class="atlas-path atlas-path--story" data-atlas-path="my-story">
+          <a href="/web/pools/my-story/" data-atlas-detail="My Story connects personal reflections, creative work, and the choices behind it.">
+            <span class="atlas-path-title">My Story <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M4 16 16 4M4 4h12v12" /></svg></span>
+            <span class="atlas-path-description">Personal stories<br> and creative work.</span>
           </a>
-<a class="portal" data-arrival data-pool-link="design-gallery" data-final-pool href="/web/pools/design-gallery/">
-<span class="portal-art" aria-hidden="true"><img src="/web/assets/sdforest-workbench/design-gallery.webp" alt="" width="1100" height="275"></span><span class="portal-copy"><span class="portal-name">Design Gallery</span></span><span class="portal-reveal"><span class="portal-meta">Game design, web design, and website history</span><span class="portal-selection">Selected · press again to open</span></span><span class="portal-tag">Live pool</span>
+        </li>
+        <li class="atlas-path atlas-path--gallery" data-atlas-path="design-gallery">
+          <a href="/web/pools/design-gallery/" data-atlas-detail="Design Gallery collects game design, web design, and the website’s history.">
+            <span class="atlas-path-title">Design Gallery <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M4 16 16 4M4 4h12v12" /></svg></span>
+            <span class="atlas-path-description">Games, web design,<br> and website history.</span>
           </a>
-      </nav>
-      <p class="workbench-status" id="workbench-status" role="status" aria-live="polite"></p>
-    </div>
-    <nav class="resolve-controls" data-arrival="portfolio" aria-label="Site controls">
-      <a data-site-control="portfolio" href="https://vfxportfolio.lovable.app" target="_blank" rel="noopener">Portfolio — opens in a new tab</a>
-      <button class="resolve-motion-toggle" type="button" hidden>Pause motion</button>
+        </li>
+      </ul>
     </nav>
-    <a class="resolve-scroll-cue" href="#atlas">Explore the pools<span aria-hidden="true">↓</span></a>
-    <div class="resolve-history" data-arrival="history" data-design-history-slot data-feedback-slot></div>
-  </section>
-</div>
-<div class="resolve-existing-copy">
-<p class="landing-copy">SDForest is Ivan Gegov&rsquo;s living collection of writing, creative projects, practical web tools, and research experiments. It is for curious readers, makers, learners, and families&mdash;choose one of seven live pools below.</p>
-<p>SDForest is an evolving collection. Experimental and in-development work is labeled plainly; every live path should lead somewhere real.</p>
-<p><a class="grove-jump" href="#grove">Or skip the pools and start with the work</a></p>
-</div>
-<section class="grove" id="grove" aria-labelledby="grove-title">
-  <h2 id="grove-title">Start with the work</h2>
-  <p class="grove-intro">The strongest things in the forest, one click away. Each vine leads back to its pool when you want the rest.</p>
-  <div class="grove-vine">
-    <svg viewBox="0 0 60 1000" preserveAspectRatio="none" aria-hidden="true" focusable="false"><defs><linearGradient id="grove-vine-shading" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#77915c"/><stop offset=".5" stop-color="#4f6a41"/><stop offset="1" stop-color="#2c4230"/></linearGradient></defs><path pathLength="1" d="M30 0C8 70 52 110 30 190S6 300 30 380 54 500 30 580 8 700 30 780 52 900 30 1000"/></svg>
 
-    <div class="grove-branch is-right has-forming">
-      <h3 class="grove-knot-h"><a class="grove-knot" href="/web/pools/ai-d-kit/"><img src="/web/assets/sdforest-workbench/emblem/ai-d-kit.webp" alt="" width="1100" height="458" loading="lazy" decoding="async"><span class="grove-knot-text"><span class="grove-knot-name">AI-d kit</span><span class="grove-knot-go">Enter the pool</span></span></a></h3>
-      <ul class="grove-nodes">
-        <li class="grove-node is-lead">
-          <h4><a href="https://www.npmjs.com/package/open-dashboard-mcp" rel="noopener">Open Dashboard MCP<span class="grove-ext" aria-hidden="true">&#8599;</span><span class="grove-sr"> (npm package, external site)</span></a></h4>
-          <p>Ask an agent which AI model to use and what it will cost. Read-only and free to run. A missing key or a blocked provider is reported as exactly that, never as an empty answer.</p>
-          <ul class="grove-facts">
-            <li><strong>15</strong>providers</li>
-            <li><strong>18</strong>tools</li>
-            <li><strong>1.2.1</strong>on npm</li>
-          </ul>
-          <p class="grove-meta">Per-model pricing, including AkashML and io.net with measured response shapes.</p>
-          <div class="grove-links"><a href="/web/open-dashboard/">Browse the dashboard</a></div>
-        </li>
-        <li class="grove-node">
-          <h4><a href="/web/pools/ai-d-kit/troubleshooting/">Troubleshooting record</a></h4>
-          <p>108 failures that reported success, each with its symptom, its cause, what it cost, and the check that would have caught it.</p>
-        </li>
-        <li class="grove-node">
-          <h4><a href="https://ivangegovdve-sudo.github.io/repo-shelf/" rel="noopener">Repo Shelf<span class="grove-ext" aria-hidden="true">&#8599;</span><span class="grove-sr"> (external site)</span></a></h4>
-          <p>1,192 repositories, originals and forks, as books on a 3D shelf. Search them, browse by shelf, open any one.</p>
-        </li>
-        <li class="grove-node">
-          <h4><a href="https://thedrop.sdforest.site" rel="noopener">The Drop<span class="grove-ext" aria-hidden="true">&#8599;</span><span class="grove-sr"> (external site)</span></a></h4>
-          <p>A daily AI publication. Today&rsquo;s pick first, then what still matters from earlier drops.</p>
-        </li>
-      </ul>
-      <div class="grove-forming">
-        <h4>In development</h4>
-        <p>Built and under review, not public yet. Nothing here links out until it ships.</p>
-        <dl>
-          <div><dt>Model Router</dt><dd>An OpenAI-compatible proxy that picks the model for each request and says why, or refuses.</dd></div>
-          <div><dt>Glass PR Solver</dt><dd>Drains a pull-request backlog through four independent stages, with every fact and decision visible.</dd></div>
-          <div><dt>Glass Council</dt><dd>A private model council you install yourself, on Windows, Android or as an MCP server.</dd></div>
-          <div><dt>System One Bench</dt><dd>Measures the latency and cost of each decision a typed decision model makes, on your own machine.</dd></div>
-        </dl>
-      </div>
-    </div>
-
-    <div class="grove-branch is-left">
-      <h3 class="grove-knot-h"><a class="grove-knot" href="/web/pools/my-story/"><img src="/web/assets/sdforest-workbench/my-story.webp" alt="" width="1100" height="275" loading="lazy" decoding="async"><span class="grove-knot-text"><span class="grove-knot-name">My Story</span><span class="grove-knot-go">Enter the pool</span></span></a></h3>
-      <ul class="grove-nodes">
-        <li class="grove-node">
-          <h4><a href="/web/chair-or-ladder/">Chair or Ladder?</a></h4>
-          <p>An essay with a practical test: is AI extending your judgment, or quietly replacing it?</p>
-        </li>
-        <li class="grove-node">
-          <h4><a href="/web/life-in-time/">Life in Time</a></h4>
-          <p>Enter a birth year and see the time left in summers, heartbeats and Christmases. Then turn it over to what is still not too late.</p>
-        </li>
-      </ul>
-    </div>
-
-    <div class="grove-branch is-right">
-      <h3 class="grove-knot-h"><a class="grove-knot" href="/web/pools/growingapp/"><img src="/web/assets/sdforest-workbench/growingapp.webp" alt="" width="1100" height="458" loading="lazy" decoding="async"><span class="grove-knot-text"><span class="grove-knot-name">GrowingApp</span><span class="grove-knot-go">Enter the pool</span></span></a></h3>
-      <ul class="grove-nodes">
-        <li class="grove-node">
-          <h4><a href="/web/mendeleev-bg/">Interactive Periodic Table</a></h4>
-          <p>In Bulgarian and English. Open any element for its key compounds and where you meet them in everyday life.</p>
-        </li>
-      </ul>
-    </div>
-
-    <div class="grove-branch is-left">
-      <h3 class="grove-knot-h"><a class="grove-knot" href="/web/pools/health/"><img src="/web/assets/sdforest-workbench/emblem/health.webp" alt="" width="1100" height="458" loading="lazy" decoding="async"><span class="grove-knot-text"><span class="grove-knot-name">Health</span><span class="grove-knot-go">Enter the pool</span></span></a></h3>
-      <ul class="grove-nodes">
-        <li class="grove-node">
-          <h4><a href="https://chloe.blumenkraft.cloud/dyslexia/" rel="noopener">Dyslexia-friendly Reader<span class="grove-ext" aria-hidden="true">&#8599;</span><span class="grove-sr"> (external site)</span></a></h4>
-          <p>Read your own ebooks with typography, spacing, colour and narration controls that stay free.</p>
-        </li>
-        <li class="grove-node">
-          <h4><a href="https://chloe.blumenkraft.cloud/audiobook/" rel="noopener">Listen to your books<span class="grove-ext" aria-hidden="true">&#8599;</span><span class="grove-sr"> (external site)</span></a></h4>
-          <p>The reader&rsquo;s companion: accessible audio narration for the books you already have.</p>
-        </li>
-      </ul>
-    </div>
-
-    <div class="grove-branch is-right">
-      <h3 class="grove-knot-h"><a class="grove-knot" href="/web/pools/tinkerbox/"><img src="/web/assets/sdforest-workbench/emblem/tinkerbox.webp" alt="" width="1100" height="458" loading="lazy" decoding="async"><span class="grove-knot-text"><span class="grove-knot-name">TinkerBox</span><span class="grove-knot-go">Enter the pool</span></span></a></h3>
-      <ul class="grove-nodes">
-        <li class="grove-node">
-          <h4><a href="/web/avatar-playground/">Avatar Playground</a></h4>
-          <p>Chlo&eacute;&rsquo;s dot-cloud avatar on a stage. Every state, expression and rule one click away, driven by real sound and her own voice.</p>
-        </li>
-        <li class="grove-node">
-          <h4><a href="/web/council/">Model councils</a></h4>
-          <p>Put one question to a panel of models: small local ones on Oracle, or a free OpenRouter round. Public, and nothing is remembered.</p>
-        </li>
-      </ul>
-    </div>
-
-    <div class="grove-branch is-left">
-      <h3 class="grove-knot-h"><a class="grove-knot" href="/web/pools/artificial-self/"><img src="/web/assets/sdforest-workbench/emblem/artificial-self.webp" alt="" width="1100" height="458" loading="lazy" decoding="async"><span class="grove-knot-text"><span class="grove-knot-name">Artificial Self</span><span class="grove-knot-go">Enter the pool</span></span></a></h3>
-      <ul class="grove-nodes">
-        <li class="grove-node">
-          <h4><a href="/web/c2c-dolphin/">Two models, no human</a></h4>
-          <p>An unsupervised 30-turn conversation between two AI models, with no task. Published as a research record, not a conclusion.</p>
-        </li>
-      </ul>
-    </div>
-
-    <div class="grove-branch is-right">
-      <h3 class="grove-knot-h"><a class="grove-knot" href="/web/pools/design-gallery/"><img src="/web/assets/sdforest-workbench/design-gallery.webp" alt="" width="1100" height="275" loading="lazy" decoding="async"><span class="grove-knot-text"><span class="grove-knot-name">Design Gallery</span><span class="grove-knot-go">Enter the pool</span></span></a></h3>
-      <ul class="grove-nodes">
-        <li class="grove-node">
-          <h4><a href="/web/m-popova/">M. Popova, Poetry Space</a></h4>
-          <p>Five prose-poems on being here, on darkness, and on love. By Maria Popova, 2019 to 2021.</p>
-        </li>
-      </ul>
-    </div>
+    <p class="atlas-fieldnote" data-atlas-fieldnote>One forest. Many ways in.</p>
   </div>
 </section>
-</main>
-<script type="module" src="/web/shared/pool-directory.mjs"></script>
-<script type="module" src="/web/shared/frontpage-resolve.mjs?v=20260927a"></script>
-<script type="module" src="/web/shared/frontpage-pool-vines.mjs?v=20260926a"></script>
-<script defer src="/web/shared/design-history.js?v=20260807a"></script>
+
+
+    <section class="colophon spread" id="about" data-sc-act="flow" aria-labelledby="close-title">
+      <p class="colophon-label">A note from the maker</p>
+      <div class="colophon-inner"><h2 id="close-title" class="closing-title" data-sc-in><span class="closing-line"><span>Take the</span></span> <span class="closing-line"><span>scenic route.</span></span></h2><div class="colophon-note"><p>I’m Ivan Gegov. This is where my interests take root: writing, design, useful tools, and questions about life with AI.</p><a class="text-link" href="#atlas">Explore the atlas<svg aria-hidden="true"><use href="#arrow-right"/></svg></a></div></div>
+      <footer class="footer"><a class="wordmark" href="#top">SD Forest</a><nav aria-label="Elsewhere"><a href="https://github.com/ivangegovdve-sudo" target="_blank" rel="noopener noreferrer">GitHub<svg aria-hidden="true"><use href="#arrow-out"/></svg></a><a href="https://vfxportfolio.lovable.app/" target="_blank" rel="noopener noreferrer">Portfolio<svg aria-hidden="true"><use href="#arrow-out"/></svg></a><a href="#top">Back to top</a></nav></footer>
+      <p class="end-landscape" aria-hidden="true">FOREST</p>
+    </section>
+  </main>
+  <script src="/web/field-atlas/scrollcraft.js" defer></script>
+  <script src="/web/field-atlas/main.mjs" type="module"></script>
 </body>
 </html>

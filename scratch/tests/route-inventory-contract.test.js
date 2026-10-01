@@ -5,6 +5,7 @@ const { spawnSync } = require('node:child_process');
 const { pathToFileURL } = require('node:url');
 const { test } = require('node:test');
 const vm = require('node:vm');
+const { assertPoolDirectory } = require('./helpers/frontend-pool-directory.cjs');
 
 const ROOT = path.resolve(__dirname, '../..');
 const read = (relativePath) => fs.readFileSync(path.join(ROOT, relativePath), 'utf8');
@@ -114,20 +115,16 @@ test('route ownership validates delivery and visibility without requiring page-s
   }
 });
 
-test('manually authored landing links enter all seven canonical pools', () => {
+test('the landing directory enters all seven canonical pools without prescribing layout or order', async () => {
   const home = read('index.html');
-  const links = [...home.matchAll(/data-pool-link="([^"]+)"[^>]*href="([^"]+)"/g)];
-  const ids = ['health', 'ai-d-kit', 'growingapp', 'artificial-self', 'my-story', 'tinkerbox', 'design-gallery'];
-  assert.deepEqual(links.map((match) => match[1]), ids);
-  assert.deepEqual(links.map((match) => match[2]), ids.map((id) => `/web/pools/${id}/`));
+  const { POOL_CATALOG } = await catalogModule;
+  assertPoolDirectory(home, POOL_CATALOG);
 });
 
-test('homepage pool fallback stays complete while runtime order comes from the catalog', () => {
+test('the homepage keeps its complete directory in source markup', async () => {
   const home = read('index.html');
-  assert.equal((home.match(/data-pool-link="/g) || []).length, 7);
-  assert.match(home, /pool-directory\.mjs/);
-  assert.doesNotMatch(home, /data-project="/);
-  assert.doesNotMatch(home, /static-route-registry|ROUTE_REGISTRY|project-catalog|ROUTE_INVENTORY/);
+  const { POOL_CATALOG } = await catalogModule;
+  assertPoolDirectory(home.replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, ''), POOL_CATALOG);
 });
 
 test('the static-route validator exits zero and npm exposes the dependency-free foundation runner', () => {

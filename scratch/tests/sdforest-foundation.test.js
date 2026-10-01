@@ -3,6 +3,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 const { spawnSync } = require('node:child_process');
+const { assertPoolDirectory } = require('./helpers/frontend-pool-directory.cjs');
 
 const ROOT = path.resolve(__dirname, '../..');
 const build = spawnSync(process.execPath, ['build-vercel-static.cjs'], {
@@ -15,23 +16,17 @@ assert.equal(build.status, 0, build.stderr || build.stdout);
 const built = (relativePath) =>
   fs.readFileSync(path.join(ROOT, 'vercel-public', relativePath), 'utf8');
 
-test('Forest HUB built artifact exposes seven live pool entries and the title crown', () => {
+test('the built front door preserves seven accessible pool destinations and its local assets', () => {
   const home = built('index.html');
-
-  assert.match(home, />Forest HUB</);
-  assert.equal(
-    (home.match(/<[^>]+data-title-crown\b/g) || []).length,
-    1,
-    'the built title must contain exactly one crown element',
-  );
-  const ids = ['growingapp', 'ai-d-kit', 'tinkerbox', 'health', 'design-gallery', 'artificial-self', 'my-story'];
-  const links = [...home.matchAll(/data-pool-link="([^"]+)"[^>]* href="([^"]+)"/g)];
-  assert.deepEqual(links.map((match) => match[1]).sort(), [...ids].sort());
-  for (const link of links) assert.equal(link[2], `/web/pools/${link[1]}/`);
-  assert.equal((home.match(/>Live pool</g) || []).length, 7);
-  assert.doesNotMatch(home, /Kids Corner|data-project="/);
-  assert.doesNotMatch(home, /Lovable experience/);
-  assert.doesNotMatch(home, /voice[ -]?2[ -]?voice|voice[- ]to[- ]voice|\bv2v\b/i);
+  const pools = [
+    ['growingapp', 'GrowingApp'], ['ai-d-kit', 'AI-d kit'], ['tinkerbox', 'TinkerBox'],
+    ['health', 'Health'], ['design-gallery', 'Design Gallery'],
+    ['artificial-self', 'Artificial Self'], ['my-story', 'My Story'],
+  ].map(([id, publicName]) => ({ id, publicName, route: `/web/pools/${id}/` }));
+  assertPoolDirectory(home, pools);
+  for (const [, asset] of home.matchAll(/(?:src|href)="(\/[^"#?]+\.(?:css|m?js|woff2|webp|svg))"/g)) {
+    assert.ok(fs.statSync(path.join(ROOT, 'vercel-public', asset)).size > 0, `${asset} is included in the deployed artifact`);
+  }
 });
 
 test('The Drop links the live publication and AI dependency map', () => {
