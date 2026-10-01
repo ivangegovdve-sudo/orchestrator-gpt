@@ -1636,7 +1636,7 @@
 
     <section class="submission-form" id="submit">
       <h2>Suggest an Entry</h2>
-      <p style="color: var(--text-secondary); margin-bottom: 2rem;">Submissions require a personal note and the "bad at" field. It will queue for review as pending.</p>
+      <p style="color: var(--text-secondary); margin-bottom: 2rem;">Submissions require a personal note and the "bad at" field. This page is static and has no submission backend: nothing is sent or stored. Submitting produces a pending entry for you to copy into the matching file under <code>web/platform-guide/data/</code> in a pull request.</p>
       <form id="add-form">
         <div class="form-group">
           <label>Name</label>
@@ -1672,8 +1672,9 @@
         </div>
         <button type="submit">Submit for Review</button>
       </form>
-      <div id="submit-success" style="display:none; color: #6bd484; margin-top: 1rem; font-weight: bold;">
-        Submission queued for review (visible pending state).
+      <div id="submit-result" role="status" style="display:none; margin-top: 1rem;">
+        <p style="font-weight: bold;">Not submitted &mdash; nothing was sent or saved. Copy this pending entry into <code id="submit-target"></code> via a pull request:</p>
+        <pre id="submit-json" style="white-space: pre-wrap; overflow-wrap: anywhere;"></pre>
       </div>
     </section>
   </div>
@@ -1741,9 +1742,22 @@
       else { document.getElementById('group-note').classList.remove('has-error'); }
 
       if (!hasError) {
-        document.getElementById('submit-success').style.display = 'block';
-        this.reset();
-        setTimeout(() => document.getElementById('submit-success').style.display = 'none', 3000);
+        // No backend exists, so do not claim the entry was queued. Hand the
+        // reader the pending entry instead, and keep the form filled in.
+        const value = (id) => document.getElementById(id).value.trim();
+        const pending = {
+          name: value('f-name'),
+          url: value('f-url'),
+          note: note,
+          good: value('f-good'),
+          bad: bad,
+          price: value('f-price'),
+          status: 'pending'
+        };
+        document.getElementById('submit-target').textContent =
+          'web/platform-guide/data/' + value('f-section') + '.json';
+        document.getElementById('submit-json').textContent = JSON.stringify(pending, null, 2);
+        document.getElementById('submit-result').style.display = 'block';
       }
     });
   </script>
