@@ -269,6 +269,7 @@ const projectRecords = [
   project('hypertrophyos', 'Hyper Trophy OS', { visibility: publicShell, sources: ['web/hypertrophyos/index.html', PLAN] }),
   project('gym-scholar', 'Gym Scholar', {
     pool: 'Health', classification: 'assigned', status: 'Live', rank: { Health: 10 }, visibility: publicShell, sources: [MASTER],
+    canonicalUrl: 'https://gymscholar.lovable.app',
   }),
   project('avatar-playground', 'Avatar Playground', { pool: 'TinkerBox', classification: 'assigned', status: 'Live', rank: { TinkerBox: 10 }, aliases: ['Voice Playground'], visibility: publicShell, sources: ['web/avatar-playground/index.html', MASTER] }),
   project('calendar', 'Calendar Generator', { pool: 'TinkerBox', classification: 'assigned', status: 'In development', rank: { TinkerBox: 7 }, visibility: publicShell, sources: ['web/calendar/index.html', MASTER] }),
