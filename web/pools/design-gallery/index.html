@@ -6,64 +6,87 @@
   <meta name="description" content="Maria Popova's Poetry Space, the six design eras of this website, and an artificial-life study in progress.">
   <title>Design Gallery</title>
   <link rel="icon" href="/web/shared/favicon.svg" type="image/svg+xml">
+  <link rel="preload" href="/web/pools/design-gallery/fonts/instrument-serif-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="/web/shared/forest-design.css?v=20260922a">
   <link rel="stylesheet" href="/web/shared/forest-shell.css?v=20260922a">
-  <link rel="stylesheet" href="/web/shared/pool-page.css">
-  <link rel="stylesheet" href="/web/shared/pool-designed.css?v=20260926a">
-  <link rel="stylesheet" href="/web/pools/design-gallery/pool.css?v=20260926a">
-  <script type="module" src="/web/shared/pool-page.mjs"></script>
+  <link rel="stylesheet" href="/web/shared/pool-entry/pool-entry.css">
+  <link rel="stylesheet" href="/web/pools/design-gallery/pool.css?v=20261001a">
   <script type="module" data-forest-runtime="motion" src="/web/shared/forest-runtime-boot.mjs?v=20260807a"></script>
+  <script src="/web/shared/pool-entry/scrollcraft.js" defer></script>
+  <script type="module">
+    import { mount } from '/web/shared/pool-entry/pool-entry.mjs';
+    import scene from '/web/pools/design-gallery/entry.mjs';
+    mount(scene);
+    // Wall text and works are hung into place as they come into view.
+    if ('IntersectionObserver' in window && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      document.documentElement.classList.add('hang-ready');
+      const io = new IntersectionObserver((list) => {
+        for (const item of list) if (item.isIntersecting) { item.target.classList.add('is-hung'); io.unobserve(item.target); }
+      }, { rootMargin: '0px 0px -8% 0px' });
+      document.querySelectorAll('[data-hang]').forEach((el) => io.observe(el));
+    }
+  </script>
+  <script type="module" src="/web/shared/pool-page.mjs"></script>
+  <script src="/web/shared/feedback.js" defer></script>
 </head>
 <body class="pool-page" data-forest-page="poetry">
   <canvas class="forest-scene" data-forest-scene data-mode="poetry" aria-hidden="true"></canvas>
   <div class="forest-scrim" aria-hidden="true"></div>
   <header><a href="/">Back to SD Forest</a></header>
-  <main data-pool-id="design-gallery" data-pool-layout="designed">
-    <div class="pool-threshold">
-      <h1>Design Gallery</h1>
-      <section aria-labelledby="pool-overview-title" data-pool-overview>
-        <h2 id="pool-overview-title" class="pool-sr">About this pool</h2>
-        <div data-pool-overview-content>
-          <p class="pool-lede">A small gallery with three rooms. One holds poems and the history of this website, one is waiting for its first web-design piece, and one has a study of artificial life on the workbench.</p>
+  <main data-pool-id="design-gallery" data-pool-layout="designed" data-pool-feedback>
+    <section class="entry" data-pool-entry data-sc-act="pin" data-sc-span="1.5">
+      <div data-sc-stage>
+        <canvas class="entry-canvas" data-entry-canvas aria-hidden="true"></canvas>
+        <div class="entry-copy" data-sc-cue="0 0.7 0">
+          <h1>Design Gallery</h1>
+          <section aria-labelledby="pool-overview-title" data-pool-overview>
+            <h2 id="pool-overview-title" class="pool-sr">About this pool</h2>
+            <div data-pool-overview-content>
+              <p class="pool-lede">A small gallery with three rooms. One holds poems and the history of this website, one is waiting for its first web-design piece, and one has a study of artificial life on the workbench.</p>
+            </div>
+            <noscript><p>This pool overview is catalog-backed; the full project listing below needs JavaScript, and everything above it does not.</p></noscript>
+          </section>
+          <p class="entry-notice">Gallery being rehung. Please mind the wet paint, again.</p>
+          <a class="entry-go" href="#pool-world">Step through</a>
         </div>
-        <noscript><p>This pool overview is catalog-backed; the full project listing below needs JavaScript, and everything above it does not.</p></noscript>
-      </section>
-      <img class="pool-emblem" src="/web/assets/sdforest-workbench/design-gallery.webp" alt="" width="1100" height="275" fetchpriority="high">
-    </div>
-
-    <section class="pool-poetry" aria-labelledby="poetry-title">
-      <p class="pool-poetry-title">On being here, on darkness, and on love.</p>
-      <div>
-        <h2 id="poetry-title"><a href="/web/m-popova/">Poetry Space</a></h2>
-        <p>Five prose-poems by Maria Popova, written between 2019 and 2021, set one after another for slow reading.</p>
       </div>
     </section>
 
-    <section aria-labelledby="categories-title">
-      <h2 id="categories-title">The three rooms</h2>
-      <ul class="pool-rooms">
-        <li data-category-id="game-design">
-          <img src="/web/assets/pools/design-gallery/replicator-void.jpg" alt="Replicator Void mid-run: a cluster of glowing cyan organisms drifting on black, a few blue ones straying further out." width="700" height="440" loading="lazy" decoding="async">
-          <p><strong>Game Design</strong> — game concepts and interactive work.</p>
-          <p class="pool-room-note">On the workbench: Replicator Void, an artificial-life study where organisms seek light, eat, mutate and divide. In development, not open yet.</p>
-        </li>
-        <li data-category-id="web-design">
-          <p><strong>Web Design</strong> — interface and website design.</p>
-          <p class="pool-room-note">No exhibit yet. This room opens with its first finished piece.</p>
-        </li>
-        <li data-category-id="website-history">
-          <p><strong>Website History</strong> — Live category. Poetry Space is an example; Evolution is Website History material. <a href="/web/evolution/">View the history exhibit</a>.</p>
-          <p class="pool-room-note">How the forest grew: six design eras of this site, from a single Stable Diffusion prompt tool to the atlas it is now, each shown in its own colours.</p>
-        </li>
-      </ul>
-    </section>
+    <div id="pool-world">
+      <section class="pool-poetry" aria-labelledby="poetry-title">
+        <p class="pool-poetry-title" data-hang>On being here, on darkness, and on love.</p>
+        <div class="pool-poetry-label" data-hang>
+          <h2 id="poetry-title"><a href="/web/m-popova/">Poetry Space</a></h2>
+          <p>Five prose-poems by Maria Popova, written between 2019 and 2021, set one after another for slow reading.</p>
+        </div>
+      </section>
 
-    <section aria-labelledby="projects-title">
-      <h2 id="projects-title">Everything in Design Gallery</h2>
-      <p>The full catalog for this pool. Each entry's status and review record sit under its own "Catalog record".</p>
-      <noscript><p>Project details load from the shared catalog when JavaScript is available. The pool description and all-pools navigation remain available here.</p></noscript>
-      <div data-pool-projects><p>Project details load from the shared catalog. If they do not appear, you can still explore the other pools below.</p></div>
-    </section>
+      <section class="pool-rooms-section" aria-labelledby="categories-title">
+        <h2 id="categories-title">The three rooms</h2>
+        <ul class="pool-rooms">
+          <li data-category-id="game-design" data-hang>
+            <img src="/web/assets/pools/design-gallery/replicator-void.jpg" alt="Replicator Void mid-run: a cluster of glowing cyan organisms drifting on black, a few blue ones straying further out." width="700" height="440" loading="lazy" decoding="async">
+            <p><strong>Game Design</strong> — game concepts and interactive work.</p>
+            <p class="pool-room-note">On the workbench: Replicator Void, an artificial-life study where organisms seek light, eat, mutate and divide. In development, not open yet.</p>
+          </li>
+          <li data-category-id="web-design" data-hang>
+            <p><strong>Web Design</strong> — interface and website design.</p>
+            <p class="pool-room-note">No exhibit yet. This room opens with its first finished piece.</p>
+          </li>
+          <li data-category-id="website-history" data-hang>
+            <p><strong>Website History</strong> — Live category. Poetry Space is an example; Evolution is Website History material. <a href="/web/evolution/">View the history exhibit</a>.</p>
+            <p class="pool-room-note">How the forest grew: six design eras of this site, from a single Stable Diffusion prompt tool to the atlas it is now, each shown in its own colours.</p>
+          </li>
+        </ul>
+      </section>
+
+      <section aria-labelledby="projects-title">
+        <h2 id="projects-title">Everything in Design Gallery</h2>
+        <p>The full catalog for this pool. Each entry's status and review record sit under its own "Catalog record".</p>
+        <noscript><p>Project details load from the shared catalog when JavaScript is available. The pool description and all-pools navigation remain available here.</p></noscript>
+        <div data-pool-projects><p>Project details load from the shared catalog. If they do not appear, you can still explore the other pools below.</p></div>
+      </section>
+    </div>
   </main>
   <footer>
     <nav aria-label="All pools">
