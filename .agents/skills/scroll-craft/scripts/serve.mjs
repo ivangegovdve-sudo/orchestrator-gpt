@@ -19,9 +19,13 @@ const arg = (n, d) => { const i = argv.indexOf(n); return i > -1 && argv[i + 1] 
 const ROOT = path.resolve(arg("--root", "."));
 const PORT = parseInt(arg("--port", "4500"), 10);
 
+// .mjs must be served as JavaScript: browsers refuse module scripts sent as
+// application/octet-stream, so a page built from ES modules never boots, the
+// engine never sets html.sc-ready, and shoot.mjs times out with no frames.
 const TYPES = {
   ".html": "text/html; charset=utf-8", ".css": "text/css; charset=utf-8",
-  ".js": "text/javascript; charset=utf-8", ".json": "application/json",
+  ".js": "text/javascript; charset=utf-8", ".mjs": "text/javascript; charset=utf-8",
+  ".json": "application/json",
   ".mp4": "video/mp4", ".webm": "video/webm",
   ".webp": "image/webp", ".png": "image/png", ".jpg": "image/jpeg",
   ".svg": "image/svg+xml", ".woff2": "font/woff2",
