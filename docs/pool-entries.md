@@ -89,3 +89,48 @@ gradients and layered depth instead of flat clip-art; deterministic randomness
 Settled by Ivan: Artificial Self, My Story. **Proposed, pending Ivan**: the
 other four.
 
+### Artificial Self (settled)
+
+- **Feeling:** uncanny, intimate, scientific, quiet. A specimen plate in a violet-black night. The page keeps the archive boundary plain: C2C conversations are records, not findings.
+- **Palette / type:** ground `#0a0712`, bio teal `#7fd8e0`, copper `#e8a15a`, hybrid lilac `#cdb5f5`. Instrument Serif and IBM Plex Mono (OFL, self-hosted).
+- **Entry:** a neuron (growing dendrites) on the left and a die with a transistor and traces on the right grow, approach and touch at about 3.3 s. The seam opens as a teal-lilac-copper lens and signals cross in both directions through it. Scroll descends into the seam and the page ground grows out of the junction. Portrait stacks neuron over circuit.
+- **Motion language:** growth, approach, contact, crossing.
+
+### My Story (settled)
+
+- **Feeling:** a self-ironic sketchbook, warm and crafted.
+- **Palette / type:** paper `#f1ecdf`, graphite `#2b2a27`, ink blue `#2b4a93`, correction red `#d2501d`. Alegreya and Alegreya Sans (already vendored); no handwriting font.
+- **Entry:** a 10 s loop. Construction lines, a chair drawn stroke by stroke, the last leg goes too long, the pencil hovers in a beat of silence, a red pencil scribbles a correction and a short note, a ladder gains a rung, an eraser wipes the sheet and a subtly different chair begins. On a phone the tools fade out as they rise into the copy.
+- **Motion language:** hand-paced strokes, tools that lift and cast offset shadows, no glow.
+
+### GrowingApp (Proposed, pending Ivan)
+
+- **Feeling:** tender, trustworthy, bright, unhurried. The only sunlit pool.
+- **Palette / type:** wall `#f9e9d3` to `#e9c9a3`, ground `#f6ead9`, terracotta, apple green, graphite. Fraunces and Nunito Sans (OFL, self-hosted).
+- **Entry:** "Height marks on the doorframe". Window light slides in while a pencil marks nine heights up a door casing and a seedling grows to meet each one. Some marks get a tiny footnote asterisk (guidance names its source). No text, ages or numbers are drawn. Scroll lifts the camera up the frame.
+- **Motion language:** slow, domestic: pencil strokes, drifting light, leaf sway, dust.
+
+### AI-d kit (Proposed, pending Ivan)
+
+- **Feeling:** exacting, dry, dense. Anodised graphite rack, one amber accent.
+- **Palette / type:** ground `#121417`, amber `#f5a524`. Barlow Condensed and JetBrains Mono (OFL, self-hosted).
+- **Entry:** "The patch bay". A request pulse enters, a cable is drawn, the plug lifts and seats with a mechanical click, and the readout resolves. Every price slot shows a hollow `?` ("price unknown, never zero"); no provider, price or count is invented. Scroll slides the panel away like a rack drawer.
+- **Motion language:** mechanical and quick: eased draws, damped settle, crisp pulse.
+
+### TinkerBox (Proposed, pending Ivan)
+
+- **Feeling:** curious, hands-on, slightly mischievous.
+- **Palette / type:** cutting-mat green `#10261d`, chalk, safety orange `#ff6a1f`, restrained brass. Zilla Slab and Public Sans (OFL, self-hosted).
+- **Entry:** "Exploded view, then it runs". An axonometric gear train floats apart on dotted axes with lettered callouts, assembles with small rebounds, then runs with solved gear ratios and a cam-driven lever. One spare screw is left over. It lifts apart and re-seats every 12 s; scroll tilts the bench flat into the ground.
+- **Motion language:** slides along axes, snap and rebound, chalk ticks, slow turning.
+
+### Design Gallery (Proposed, pending Ivan)
+
+- **Feeling:** hushed, deliberate, expensive-quiet.
+- **Palette / type:** limestone `#ebe7dd`, charcoal, one vermilion `#b3321b`. Instrument Serif and Hanken Grotesk (OFL, self-hosted).
+- **Entry:** "Three doorways". A white-cube gallery in one-point perspective lights wall by wall. Three arched doorways (warm lamp, daylight, an in-progress blue) match the pool's three rooms. Abstract works and a museum plate appear and the camera steps forward. Pointer gives parallax; scroll walks through the central doorway.
+- **Motion language:** slow breathing light, still camera, one deliberate walk.
+
+## Verification
+
+Evidence is in `docs/pool-entries-review/` (desktop and mobile contact sheets per pool). `scripts/shoot.mjs` ran on the built site at 1440x900, 390x844 and `--reduced-motion` for every pool: no dead scroll, all cues at or above 4.5:1, no console errors. The entry canvas differs between captures 1.5 s apart and is identical under reduced motion. Every local card link returns 200 and every card's Feedback button opens the shared dialog.

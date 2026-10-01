@@ -119,7 +119,7 @@ function layout(s) {
     L = {
       portrait, u, cx: w * 0.46, fy: h * 0.775, reg: [0, h * 0.34, w, h * 0.66],
       lad: { x: w * 0.9, top: h * 0.5, bot: h * 0.9, hw: w * 0.045, lean: w * 0.02 },
-      len: Math.min(w * 0.5, 190),
+      len: Math.min(w * 0.4, 150),
       rest: { pencil: [w * 0.05, h * 0.915, -0.04], blue: [w * 0.09, h * 0.975, 0.02], red: [w * 0.07, h * 0.945, -0.03], eraser: [w * 0.56, h * 0.955, 0.1] },
     };
   } else {
@@ -356,6 +356,23 @@ function toolPose(list, rest, c) {
   POSE.x = lerp(rx, ax, e); POSE.y = lerp(ry, ay, e); POSE.m = e; POSE.lift = Math.sin(clamp(m) * Math.PI) * 0.8; return POSE;
 }
 
+let maskC = null, maskG = null;
+/** Portrait: the copy owns the top of the sheet, so a tool fades out as it rises into it. */
+function drawToolMasked(g, sp, x, y, ang, lift, dpr, alpha, top, soft) {
+  const W = g.canvas.width, H = g.canvas.height;
+  if (!maskC || maskC.width !== W || maskC.height !== H) { maskC = mk(W, H); maskG = maskC.getContext('2d'); }
+  maskG.setTransform(1, 0, 0, 1, 0, 0); maskG.clearRect(0, 0, W, H);
+  maskG.setTransform(g.getTransform());
+  drawTool(maskG, sp, x, y, ang, lift, dpr, alpha);
+  maskG.setTransform(1, 0, 0, 1, 0, 0);
+  maskG.globalCompositeOperation = 'destination-in';
+  const gr = maskG.createLinearGradient(0, top * dpr, 0, (top + soft) * dpr);
+  gr.addColorStop(0, 'rgba(0,0,0,0)'); gr.addColorStop(1, 'rgba(0,0,0,1)');
+  maskG.fillStyle = gr; maskG.fillRect(0, 0, W, H);
+  maskG.globalCompositeOperation = 'source-over';
+  g.save(); g.setTransform(1, 0, 0, 1, 0, 0); g.drawImage(maskC, 0, 0); g.restore();
+}
+
 function drawTool(g, sp, x, y, ang, lift, dpr, alpha) {
   g.save();
   g.globalAlpha = alpha;
@@ -486,9 +503,10 @@ export default {
     for (const [name, list, ] of lists) {
       const rest = L.rest[name];
       toolPose(list, rest, c);
-      const use = -1.02 + Math.sin(c * 1.3 + (name === 'red' ? 1 : 0)) * 0.015;
+      const use = (L.portrait ? -0.62 : -1.02) + Math.sin(c * 1.3 + (name === 'red' ? 1 : 0)) * 0.015;
       const ang = lerp(rest[2], use, POSE.m);
-      drawTool(g, sprites[name], POSE.x, POSE.y, ang, POSE.lift + POSE.m * 0.12, dpr, toolA);
+      if (L.portrait) drawToolMasked(g, sprites[name], POSE.x, POSE.y, ang, POSE.lift + POSE.m * 0.12, dpr, toolA, s.h * 0.4, s.h * 0.07);
+      else drawTool(g, sprites[name], POSE.x, POSE.y, ang, POSE.lift + POSE.m * 0.12, dpr, toolA);
     }
     // eraser
     {

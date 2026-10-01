@@ -214,7 +214,7 @@ body.pool-page > header a:hover { color: var(--entry-accent); background-image: 
   content: ""; flex: none; width: .72rem; height: .72rem; background: var(--entry-ink); box-shadow: inset 0 0 0 2px var(--entry-ground);
   border: 1px solid var(--entry-ink);
 }
-.pool-project[aria-disabled="true"] .pool-status::before { background: transparent; border-style: dashed; border-color: var(--entry-soft); box-shadow: none; }
+.pool-project:is([aria-disabled="true"], [data-entry-closed]) .pool-status::before { background: transparent; border-style: dashed; border-color: var(--entry-soft); box-shadow: none; }
 .pool-bindings {
   grid-column: 3; grid-row: 1 / span 2; margin: 0; padding: 0; list-style: none; display: grid; gap: .45rem; justify-items: end; align-self: start;
   font: 400 .9rem/1.4 var(--g-sans); color: var(--entry-soft);

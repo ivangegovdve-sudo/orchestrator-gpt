@@ -180,8 +180,8 @@ body.pool-page > header a:hover { color: var(--clay); text-decoration-color: cur
   display: inline-flex; align-items: center; gap: .55em; white-space: nowrap;
 }
 .pool-status::before { content: ""; width: .85em; height: .85em; background: #8cbd4f; border-radius: 0 100% 0 100%; transform: rotate(-8deg); box-shadow: inset -2px -2px 0 rgba(40, 80, 20, .25); }
-.pool-project[aria-disabled="true"] .pool-status { color: var(--entry-soft); }
-.pool-project[aria-disabled="true"] .pool-status::before { background: #cdb99d; box-shadow: none; }
+.pool-project:is([aria-disabled="true"], [data-entry-closed]) .pool-status { color: var(--entry-soft); }
+.pool-project:is([aria-disabled="true"], [data-entry-closed]) .pool-status::before { background: #cdb99d; box-shadow: none; }
 .pool-bindings { grid-column: 1; margin: .35rem 0 0; padding: 0; list-style: none; display: flex; flex-wrap: wrap; gap: .1rem 1.4rem; }
 .pool-bindings li { font-size: 1rem; }
 .pool-bindings a { font-weight: 700; }

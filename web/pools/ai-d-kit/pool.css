@@ -207,7 +207,7 @@ body.pool-page > header a:hover { color: var(--entry-ink); }
 .pool-feedback-row { margin: 0; justify-self: end; }
 .pool-project .pool-feedback { font: 600 .8rem/1 var(--sans); letter-spacing: .2em; text-transform: uppercase; text-underline-offset: .35em; text-decoration-color: rgba(245, 165, 36, 0.55); color: var(--entry-soft); padding: 0 .3rem; }
 .pool-project .pool-feedback:hover { color: var(--amber); }
-.pool-project[aria-disabled="true"] h3, .pool-project[aria-disabled="true"] .pool-bindings { color: #8b8d88; }
+.pool-project:is([aria-disabled="true"], [data-entry-closed]) h3, .pool-project:is([aria-disabled="true"], [data-entry-closed]) .pool-bindings { color: #8b8d88; }
 .pool-record { grid-column: 1 / -1; padding-bottom: .35rem; }
 .pool-record > summary { display: inline-flex; align-items: center; min-height: 40px; font: 600 .76rem/1 var(--sans); letter-spacing: .2em; text-transform: uppercase; color: var(--entry-soft); }
 .pool-record > summary:hover { color: var(--entry-ink); }

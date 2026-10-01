@@ -58,6 +58,8 @@ export function projectReadiness(project) {
   return { state: 'UNKNOWN', reason: 'Completion evidence is not verified.' };
 }
 
+// With feedback on, a closed card must not be aria-disabled: its Feedback button stays usable, and the
+// "Not open yet" row already says the destination is closed.
 export function renderProject(project, { heading = 'h3', designed = false, feedback = false } = {}) {
   if (project.visibility?.publicSurface === 'excluded') return '';
   const poolName = project.poolContext || project.pools?.[0] || project.pool;
@@ -94,7 +96,7 @@ export function renderProject(project, { heading = 'h3', designed = false, feedb
     return `<li><a href="${escape(destination)}"${external ? ' target="_blank" rel="noopener"' : ''}>${escape(companion?.name || destination)}${external ? ' — External; opens in a new tab' : ' — Open existing page'}</a>${companion?.presentationNote ? ` <span>${escape(companion.presentationNote)}</span>` : ''}</li>`;
   }).join('');
   const metrics = (project.metrics || []).map(({ name, value, unit }) => `${name}: ${value}${unit ? ` ${unit}` : ''}`).join('; ');
-  return `<article class="pool-project pool-project--${escape(poolTier)}" data-project-id="${escape(project.id)}" data-pool-tier="${escape(poolTier)}" data-pool-rank="${poolRank ?? 'unranked'}"${enabled ? '' : ' aria-disabled="true"'}>
+  return `<article class="pool-project pool-project--${escape(poolTier)}" data-project-id="${escape(project.id)}" data-pool-tier="${escape(poolTier)}" data-pool-rank="${poolRank ?? 'unranked'}"${enabled ? '' : feedback ? ' data-entry-closed' : ' aria-disabled="true"'}>
     <${heading}>${escape(project.publicName)}</${heading}>
     <p class="pool-status">Status: ${escape(status)}${comingSoon && !designed ? ' — Coming Soon' : ''}</p>
     ${routes ? `<ul class="pool-bindings">${routes}</ul>` : ''}
@@ -275,8 +277,8 @@ export function mountPoolPage(root) {
   reorderPoolLinks(root.ownerDocument);
   // A designed pool authors its own threshold; the catalog fills only the index.
   const designed = root.dataset.poolLayout === 'designed';
-  // Pools that load the shared feedback dialog opt in; every card then keeps a Feedback button.
-  const feedback = root.hasAttribute('data-pool-feedback');
+  // Pools that load the shared feedback script opt in; every card then keeps a Feedback button.
+  const feedback = !!root.ownerDocument.querySelector('script[src*="shared/feedback.js"]');
   const overview = root.querySelector('[data-pool-overview-content]');
   if (overview && !designed) overview.innerHTML = renderPoolOverview(pool.id);
   const context = root.querySelector('[data-pool-context]');
