@@ -1,5 +1,8 @@
 import fs from 'fs/promises';
 import path from 'path';
+import { fileURLToPath } from 'url';
+
+const DATA_DIR = 'web/platform-guide/data';
 
 const SECTIONS = [
   { id: 'harnesses', title: 'Harnesses' },
@@ -12,7 +15,37 @@ const SECTIONS = [
   { id: 'speech', title: 'Speech (TTS and STT)' }
 ];
 
-async function build() {
+/**
+ * Read one section's entries. Only a MISSING file is treated as an empty
+ * section (and created as `[]`). Any other read error, or JSON that does not
+ * parse to an array, fails the build: overwriting the file with `[]` there
+ * would destroy the existing source data.
+ */
+export async function readSectionEntries(dataDir, id) {
+  const file = path.join(dataDir, `${id}.json`);
+  let data;
+  try {
+    data = await fs.readFile(file, 'utf-8');
+  } catch (e) {
+    if (e && e.code === 'ENOENT') {
+      await fs.writeFile(file, '[]', { flag: 'wx' });
+      return [];
+    }
+    throw e;
+  }
+  let entries;
+  try {
+    entries = JSON.parse(data);
+  } catch (e) {
+    throw new Error(`${file}: invalid JSON (${e.message}); refusing to build over it`);
+  }
+  if (!Array.isArray(entries)) {
+    throw new Error(`${file}: expected a JSON array of entries`);
+  }
+  return entries;
+}
+
+export async function build() {
   let html = `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -165,14 +198,7 @@ async function build() {
   const now = new Date();
 
   for (const sec of SECTIONS) {
-    let entries = [];
-    try {
-      const data = await fs.readFile(path.join('web/platform-guide/data', `${sec.id}.json`), 'utf-8');
-      entries = JSON.parse(data);
-    } catch (e) {
-      // Create empty if missing
-      await fs.writeFile(path.join('web/platform-guide/data', `${sec.id}.json`), '[]');
-    }
+    const entries = await readSectionEntries(DATA_DIR, sec.id);
 
     if (entries.length === 0) continue;
 
@@ -261,7 +287,7 @@ async function build() {
 
     <section class="submission-form" id="submit">
       <h2>Suggest an Entry</h2>
-      <p style="color: var(--text-secondary); margin-bottom: 2rem;">Submissions require a personal note and the "bad at" field. It will queue for review as pending.</p>
+      <p style="color: var(--text-secondary); margin-bottom: 2rem;">Submissions require a personal note and the "bad at" field. This page is static and has no submission backend: nothing is sent or stored. Submitting produces a pending entry for you to copy into the matching file under <code>web/platform-guide/data/</code> in a pull request.</p>
       <form id="add-form">
         <div class="form-group">
           <label>Name</label>
@@ -299,8 +325,9 @@ async function build() {
         </div>
         <button type="submit">Submit for Review</button>
       </form>
-      <div id="submit-success" style="display:none; color: #6bd484; margin-top: 1rem; font-weight: bold;">
-        Submission queued for review (visible pending state).
+      <div id="submit-result" role="status" style="display:none; margin-top: 1rem;">
+        <p style="font-weight: bold;">Not submitted &mdash; nothing was sent or saved. Copy this pending entry into <code id="submit-target"></code> via a pull request:</p>
+        <pre id="submit-json" style="white-space: pre-wrap; overflow-wrap: anywhere;"></pre>
       </div>
     </section>
   </div>
@@ -368,9 +395,22 @@ async function build() {
       else { document.getElementById('group-note').classList.remove('has-error'); }
 
       if (!hasError) {
-        document.getElementById('submit-success').style.display = 'block';
-        this.reset();
-        setTimeout(() => document.getElementById('submit-success').style.display = 'none', 3000);
+        // No backend exists, so do not claim the entry was queued. Hand the
+        // reader the pending entry instead, and keep the form filled in.
+        const value = (id) => document.getElementById(id).value.trim();
+        const pending = {
+          name: value('f-name'),
+          url: value('f-url'),
+          note: note,
+          good: value('f-good'),
+          bad: bad,
+          price: value('f-price'),
+          status: 'pending'
+        };
+        document.getElementById('submit-target').textContent =
+          'web/platform-guide/data/' + value('f-section') + '.json';
+        document.getElementById('submit-json').textContent = JSON.stringify(pending, null, 2);
+        document.getElementById('submit-result').style.display = 'block';
       }
     });
   </script>
@@ -382,4 +422,6 @@ async function build() {
   console.log('Build complete.');
 }
 
-build();
+if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+  await build();
+}
