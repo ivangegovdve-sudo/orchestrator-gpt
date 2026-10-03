@@ -1,0 +1,291 @@
+{
+  "version": 1,
+  "style": "Option A: UI-first forest skin",
+  "phase": "opened; phase-zero instruments; controls and promoted symbols present",
+  "rasterNormalization": "paint .5, .99, then 1; capture restored live DOM",
+  "sourceHashing": "SHA256; UTF-8 source text normalized to LF; binary bytes unchanged",
+  "frames": [
+    {
+      "name": "desktop",
+      "width": 1920,
+      "height": 1080,
+      "file": "final-frame-desktop.png",
+      "sha256": "91ef831004975b286a524ac6ac8c094388c896ad43462e4ce6a05b3cd3b2109f",
+      "state": {
+        "poolCount": 7,
+        "pools": [
+          {
+            "id": "health",
+            "box": {
+              "x": 38.390625,
+              "y": 140.390625,
+              "width": 547.625,
+              "height": 228,
+              "top": 140.390625,
+              "right": 586.015625,
+              "bottom": 368.390625,
+              "left": 38.390625
+            }
+          },
+          {
+            "id": "ai-d-kit",
+            "box": {
+              "x": 1333.984375,
+              "y": 140.390625,
+              "width": 547.625,
+              "height": 228,
+              "top": 140.390625,
+              "right": 1881.609375,
+              "bottom": 368.390625,
+              "left": 1333.984375
+            }
+          },
+          {
+            "id": "growingapp",
+            "box": {
+              "x": 38.390625,
+              "y": 432,
+              "width": 547.625,
+              "height": 228,
+              "top": 432,
+              "right": 586.015625,
+              "bottom": 660,
+              "left": 38.390625
+            }
+          },
+          {
+            "id": "artificial-self",
+            "box": {
+              "x": 1333.984375,
+              "y": 432,
+              "width": 547.625,
+              "height": 228,
+              "top": 432,
+              "right": 1881.609375,
+              "bottom": 660,
+              "left": 1333.984375
+            }
+          },
+          {
+            "id": "my-story",
+            "box": {
+              "x": 749.40625,
+              "y": 908.390625,
+              "width": 421.1875,
+              "height": 105.296875,
+              "top": 908.390625,
+              "right": 1170.59375,
+              "bottom": 1013.6875,
+              "left": 749.40625
+            }
+          },
+          {
+            "id": "tinkerbox",
+            "box": {
+              "x": 38.390625,
+              "y": 723.59375,
+              "width": 547.625,
+              "height": 136.90625,
+              "top": 723.59375,
+              "right": 586.015625,
+              "bottom": 860.5,
+              "left": 38.390625
+            }
+          },
+          {
+            "id": "design-gallery",
+            "box": {
+              "x": 1333.984375,
+              "y": 723.59375,
+              "width": 547.625,
+              "height": 136.90625,
+              "top": 723.59375,
+              "right": 1881.609375,
+              "bottom": 860.5,
+              "left": 1333.984375
+            }
+          }
+        ],
+        "overflow": false,
+        "tree": {
+          "x": 629.2421875,
+          "y": 269.9921875,
+          "width": 661.515625,
+          "height": 626.390625,
+          "top": 269.9921875,
+          "right": 1290.7578125,
+          "bottom": 896.3828125,
+          "left": 629.2421875
+        }
+      }
+    },
+    {
+      "name": "phone",
+      "width": 390,
+      "height": 844,
+      "file": "final-frame-phone.png",
+      "sha256": "834cc1f4de6a1aba3639d37e0aff2230ce8770c9343614e0ffbb8004eb97b8cd",
+      "state": {
+        "poolCount": 7,
+        "pools": [
+          {
+            "id": "health",
+            "box": {
+              "x": 27,
+              "y": 370.296875,
+              "width": 162,
+              "height": 67.4375,
+              "top": 370.296875,
+              "right": 189,
+              "bottom": 437.734375,
+              "left": 27
+            }
+          },
+          {
+            "id": "ai-d-kit",
+            "box": {
+              "x": 201,
+              "y": 370.296875,
+              "width": 162,
+              "height": 67.4375,
+              "top": 370.296875,
+              "right": 363,
+              "bottom": 437.734375,
+              "left": 201
+            }
+          },
+          {
+            "id": "growingapp",
+            "box": {
+              "x": 27,
+              "y": 484.4375,
+              "width": 162,
+              "height": 67.4375,
+              "top": 484.4375,
+              "right": 189,
+              "bottom": 551.875,
+              "left": 27
+            }
+          },
+          {
+            "id": "artificial-self",
+            "box": {
+              "x": 201,
+              "y": 484.4375,
+              "width": 162,
+              "height": 67.4375,
+              "top": 484.4375,
+              "right": 363,
+              "bottom": 551.875,
+              "left": 201
+            }
+          },
+          {
+            "id": "my-story",
+            "box": {
+              "x": 104.28125,
+              "y": 598.578125,
+              "width": 181.4375,
+              "height": 48,
+              "top": 598.578125,
+              "right": 285.71875,
+              "bottom": 646.578125,
+              "left": 104.28125
+            }
+          },
+          {
+            "id": "tinkerbox",
+            "box": {
+              "x": 27,
+              "y": 693.28125,
+              "width": 162,
+              "height": 50,
+              "top": 693.28125,
+              "right": 189,
+              "bottom": 743.28125,
+              "left": 27
+            }
+          },
+          {
+            "id": "design-gallery",
+            "box": {
+              "x": 201,
+              "y": 693.28125,
+              "width": 162,
+              "height": 50,
+              "top": 693.28125,
+              "right": 363,
+              "bottom": 743.28125,
+              "left": 201
+            }
+          }
+        ],
+        "overflow": false,
+        "tree": {
+          "x": 72.625,
+          "y": 95.125,
+          "width": 244.75,
+          "height": 231.75,
+          "top": 95.125,
+          "right": 317.375,
+          "bottom": 326.875,
+          "left": 72.625
+        }
+      }
+    }
+  ],
+  "compositionSources": {
+    "index.html": "33306f16aa1f4d5a64e37c7fb1aba40696370aadfd96fd10fd0d2b17f5a80d21",
+    "web/shared/feedback.js": "2782b31b002f9ece884cefa7cd0582caba87d2cd1c5260d764db731df24f9d30",
+    "web/shared/pool-directory.mjs": "9a8dc55a9fe11111da81c0ba8c28b327a579f0649b09190561592007e7a77fc7",
+    "web/shared/frontpage-finish.css": "03daa38a0a9843c15bf8a0600f176ad906bbdb3caab59bb03f8db1c5bade38af",
+    "web/shared/frontpage-finish.mjs": "cd523788c2ce823aca90f6b6cb853ab9aba5d778a8efabb6279491be1a328ea7",
+    "web/shared/frontpage-resolve.css": "69c3add8c43c1e4a7ec34ef37cf66ca3ae717a38e4d00af0a89e6a14f88e6bb2",
+    "web/shared/frontpage-resolve.mjs": "be3b4e1e315a1f99529441f6ddaabb2e97ad92aef5d42f657720769ba7560286",
+    "web/shared/frontpage-growth.mjs": "cee6812f9ef3aa1954f24f1f8fb415636da7209b17d7af9cf7fbae0d90d237a6",
+    "web/shared/frontpage-grove.css": "dc5785b24fe581e2dafe5f48146c6487e5e5c59b66715cd49e4e939c748cb31a",
+    "web/shared/frontpage-reveal.css": "6789ff66b4ae8d770a0f92762c378eba281289ec47ecab611d0fe5f7094ed76d",
+    "web/shared/frontpage-pool-vines.css": "6b7c4790ec373803b53dd653640bb8af881f45797ef28df8cfa4691d63d9fe6e",
+    "web/shared/frontpage-pool-vines.mjs": "10646d69a933b97d79ef29931702c80069cbbc426342f04a9d59d844b586ecd7",
+    "web/shared/frontpage-workbench.mjs": "63e8a9d39d43d44096c7cebbed0e6534e550ea6b15ddd383286510e0b5b7d59b",
+    "web/shared/frontpage-ambient.mjs": "016af42e590dbe81a23ad3e4151568ef6baf27826f598daa714d1cbe36015fb1",
+    "web/shared/frontpage-pool-effects.mjs": "12f3f3dbd86b05b60488f8c21e630fc4c3ed4bfae23d0fb93d9fb1927efb7a41",
+    "web/shared/frontpage-vines.mjs": "49eb51844138973d753649f05c73c171ab4d49919a0cd19446564749e574b3fc",
+    "web/shared/frontpage-intro-reveal.css": "2d85de3f9a8155861d84bb3aa5da511e29dd56bb24f7d026fff39a8beaf9f02f",
+    "web/shared/frontpage-intro-scene.mjs": "8496430cd7fc467d39092031248b09dcf2763ad081cdb429d999cd105687aef3",
+    "web/shared/forest-design.css": "930866641670a227faff2d208d044c6d1fc94addbb1aefd16e410d1fa049012b",
+    "web/shared/design-history.css": "0a9d3d073a2a72edf4f80408875dd6c0cf8a3f8796022c2653daa8c605af80d6",
+    "web/shared/design-history.js": "f17d4e36c2fc4ae62f2f064e3db40c9a3e94d9929b4a1149df4d06b3b72c9ff9",
+    "web/vendor/fonts/cormorant-garamond-normal-500-latin.woff2": "d80df8ff5aecd299a61549f9e29ab1ed0b9b05f4ea71d50fe978e07d5240b235",
+    "web/vendor/fonts/alegreya-normal-400-900-latin.woff2": "2431eca3ed8ed66e713cf7093d170d77a083a793a5f19a615506d63770abd973",
+    "web/assets/sdforest-sunset/mist.webp": "e26ad011a535242082132f03f951428c5ba126a088f4ca72715671461e9c8ad9",
+    "web/assets/sdforest-sunset/rooted-earth.webp": "184d2d9577278563452976bd01a4f8eb9e45cc8509a879160667b692bc7702d5",
+    "web/assets/sdforest-sunset/tree.webp": "73a37ebb96ffbef137c81f44d7fd023e822450b84b8c8bab9680c53e06563481",
+    "web/assets/sdforest-sunset/valley.webp": "dd09d622f4e9d8d48e15ca2f49a1fbad06d480d302ef5e5ca646eff07cfb9551",
+    "web/assets/sdforest-workbench/ai-d-kit-flag.webp": "39beff6917d24ea3a8f1f883e9de0841b8fd5c83f896d6a4558f9d2dcc384797",
+    "web/assets/sdforest-workbench/ai-d-kit-lever.webp": "8f1dcf2d6cb865de9f09ad8446bb9942f3bbe18e62f1b21c9ef92bae7224c1a1",
+    "web/assets/sdforest-workbench/ai-d-kit.webp": "ddc0ec6cb5419299e75310e40c5372130803f64425b77be5dfbd9bf856b53a42",
+    "web/assets/sdforest-workbench/artificial-self-neuron-left.webp": "a388b72f44811b748cb8e4ee265d4db1112142149487efd93fa5e220c3f07bae",
+    "web/assets/sdforest-workbench/artificial-self-neuron-right.webp": "d85d288a5f75d459759dd369e0b0996cedafa87aa946c7cc6a9fa0cebc5ad0db",
+    "web/assets/sdforest-workbench/artificial-self.webp": "cc392ff55ba18c3709e9f843b4984bfc5eecfeba38f795e047d3ac5998d6bb1c",
+    "web/assets/sdforest-workbench/bark.webp": "348f6f7eae26dd17d551404d34968c175f14b40895db56359d74269d524d2118",
+    "web/assets/sdforest-workbench/design-gallery-shutter-left.webp": "77fbcf8ece5a530f996b4c431427b89daabebe6407c858977101a69fce3e770b",
+    "web/assets/sdforest-workbench/design-gallery-shutter-right.webp": "40bb94d17d7a260fea3334536daab4b005bb5cb1e34aab4e4e6c305b2d17acb3",
+    "web/assets/sdforest-workbench/design-gallery.webp": "02cf5593f4a7ac4876e97a71ceaa7e4175b5b2bc1474cd2b6641e2d881caede5",
+    "web/assets/sdforest-workbench/ground.webp": "feef326b8d1b3d3ff3ab2c0ae0006ad15d6272d57626ce358070d6e52f0a9ca3",
+    "web/assets/sdforest-workbench/growingapp-sapling.webp": "f00b18ef482e8864d69b0cb506fb4d1798585ff7af8fb6aee461e9d7cf7d0009",
+    "web/assets/sdforest-workbench/growingapp-seed.webp": "40ec82b477f2a33fed3b6dc146ca910cec015be4fc5c5fbdab12daf54c8b45eb",
+    "web/assets/sdforest-workbench/growingapp-tree.webp": "f28a5fefb5ea2eebeebfee7c3c0156ef6c56ddf259606b46128e7398cf2c6bc8",
+    "web/assets/sdforest-workbench/growingapp.webp": "d75e356802a5f40b61816245d14136e92fd0768c806da50dc9ef4064dbc2f789",
+    "web/assets/sdforest-workbench/health-pulse.webp": "79178a07332445c488896ad562a89183f089fea0378fd3d2e61adcd67dc2e164",
+    "web/assets/sdforest-workbench/health.webp": "2e6592c2d35c80a716e35b0b50418c5b550a6e2bcc28c953b486d44df99376fb",
+    "web/assets/sdforest-workbench/horizon.webp": "b9e2ba94949720454ee301822c8b180a7458e9e3744aa0da935843d368b43b60",
+    "web/assets/sdforest-workbench/mist.webp": "a267c046e94205b11afdb7efb1ce06c7c4dd655b8b99004b3e8c298a0d08e8c0",
+    "web/assets/sdforest-workbench/my-story-signal.webp": "2d2a75c8e80868856416243aba0636e76b1b81506e68332362301f8e5f469167",
+    "web/assets/sdforest-workbench/my-story.webp": "2855604a98eff5b9e83eab87a36a9482df04934a52061f40039a2f045f4127e6",
+    "web/assets/sdforest-workbench/tinkerbox-pin-left.webp": "95ff172e4e008acb1a20a3bac1afcc2ba74c94f7ec12a8669872aa95398f6adb",
+    "web/assets/sdforest-workbench/tinkerbox-pin-right.webp": "fec26a06140144451c763ceb5e37dbe0acd97eccf0283331cdce6e38b709e9b7",
+    "web/assets/sdforest-workbench/tinkerbox.webp": "a0e82cb51d62f5b4f468d566237e09e8ed10964fde41328c48bfecc8e0c33de0",
+    "web/assets/sdforest-workbench/woodland.webp": "73c9fec084ce6983fdf73496c85638246f817940549302879ec78826763fb1a3"
+  }
+}

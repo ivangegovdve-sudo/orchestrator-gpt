@@ -1,0 +1,314 @@
+{
+  "base": "http://127.0.0.1:4580",
+  "report": [
+    {
+      "check": "native-frame",
+      "requested": 0,
+      "time": -6,
+      "p": 0,
+      "y": 0,
+      "runway": 4050,
+      "phase": "seed",
+      "locked": true,
+      "overflow": false
+    },
+    {
+      "check": "native-frame",
+      "requested": 0.3,
+      "time": -2.7,
+      "p": 0.3,
+      "y": 0,
+      "runway": 4050,
+      "phase": "growing",
+      "locked": true,
+      "overflow": false
+    },
+    {
+      "check": "native-frame",
+      "requested": 0.6,
+      "time": 0.5999999999999996,
+      "p": 0.6,
+      "y": 0,
+      "runway": 4050,
+      "phase": "growing",
+      "locked": true,
+      "overflow": false
+    },
+    {
+      "check": "native-frame",
+      "requested": 0.9,
+      "time": 3.9000000000000004,
+      "p": 0.9,
+      "y": 0,
+      "runway": 4050,
+      "phase": "growing",
+      "locked": true,
+      "overflow": false
+    },
+    {
+      "check": "native-frame",
+      "requested": 1,
+      "time": 5,
+      "p": 1,
+      "y": 0,
+      "runway": 4050,
+      "phase": "complete",
+      "locked": false,
+      "overflow": false
+    },
+    {
+      "check": "native-resize",
+      "time": 0.5999999999999996,
+      "p": 0.6,
+      "y": 2160,
+      "runway": 3600,
+      "phase": "growing",
+      "locked": true,
+      "overflow": false
+    },
+    {
+      "check": "takeover",
+      "gesture": "wheel",
+      "before": {
+        "time": -4.716614285714286,
+        "p": 0.11667142857142855,
+        "y": 0,
+        "runway": 4050,
+        "phase": "growing",
+        "locked": true,
+        "overflow": false
+      },
+      "after": {
+        "time": -4.677283950617284,
+        "p": 0.12024691358024694,
+        "y": 487,
+        "runway": 4050,
+        "phase": "growing",
+        "locked": true,
+        "overflow": false
+      },
+      "later": {
+        "time": -4.677283950617284,
+        "p": 0.12024691358024694,
+        "y": 487,
+        "runway": 4050,
+        "phase": "growing",
+        "locked": true,
+        "overflow": false
+      }
+    },
+    {
+      "check": "takeover",
+      "gesture": "focused-PageDown",
+      "before": {
+        "time": -4.664285714285715,
+        "p": 0.1214285714285714,
+        "y": 0,
+        "runway": 4050,
+        "phase": "growing",
+        "locked": true,
+        "overflow": false
+      },
+      "after": {
+        "time": -2.5125925925925925,
+        "p": 0.31703703703703706,
+        "y": 1284,
+        "runway": 4050,
+        "phase": "growing",
+        "locked": true,
+        "overflow": false
+      },
+      "later": {
+        "time": -2.5125925925925925,
+        "p": 0.31703703703703706,
+        "y": 1284,
+        "runway": 4050,
+        "phase": "growing",
+        "locked": true,
+        "overflow": false
+      }
+    },
+    {
+      "check": "takeover",
+      "gesture": "raw-scroll",
+      "before": {
+        "time": -4.729814285714285,
+        "p": 0.11547142857142861,
+        "y": 0,
+        "runway": 4050,
+        "phase": "growing",
+        "locked": true,
+        "overflow": false
+      },
+      "after": {
+        "time": -3.555555555555556,
+        "p": 0.2222222222222222,
+        "y": 900,
+        "runway": 4050,
+        "phase": "growing",
+        "locked": true,
+        "overflow": false
+      },
+      "later": {
+        "time": -3.555555555555556,
+        "p": 0.2222222222222222,
+        "y": 900,
+        "runway": 4050,
+        "phase": "growing",
+        "locked": true,
+        "overflow": false
+      }
+    },
+    {
+      "check": "takeover",
+      "gesture": "touchmove",
+      "before": {
+        "time": -4.742935714285714,
+        "p": 0.11427857142857144,
+        "y": 0,
+        "runway": 4050,
+        "phase": "growing",
+        "locked": true,
+        "overflow": false
+      },
+      "after": {
+        "time": -4.7424691358024695,
+        "p": 0.11432098765432096,
+        "y": 463,
+        "runway": 4050,
+        "phase": "growing",
+        "locked": true,
+        "overflow": false
+      },
+      "later": {
+        "time": -4.7424691358024695,
+        "p": 0.11432098765432096,
+        "y": 463,
+        "runway": 4050,
+        "phase": "growing",
+        "locked": true,
+        "overflow": false
+      }
+    },
+    {
+      "check": "focus",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "focus": [
+        {
+          "name": "resolve-skip",
+          "hidden": false,
+          "inBlockedIntroControl": false,
+          "phase": "growing"
+        },
+        {
+          "name": "resolve-scroll-cue",
+          "hidden": false,
+          "inBlockedIntroControl": false,
+          "phase": "growing"
+        },
+        {
+          "name": "grove-jump",
+          "hidden": false,
+          "inBlockedIntroControl": false,
+          "phase": "complete"
+        },
+        {
+          "name": "grove-knot",
+          "hidden": false,
+          "inBlockedIntroControl": false,
+          "phase": "complete"
+        }
+      ]
+    },
+    {
+      "check": "focus",
+      "viewport": {
+        "width": 1920,
+        "height": 1080
+      },
+      "focus": [
+        {
+          "name": "resolve-skip",
+          "hidden": false,
+          "inBlockedIntroControl": false,
+          "phase": "growing"
+        },
+        {
+          "name": "resolve-scroll-cue",
+          "hidden": false,
+          "inBlockedIntroControl": false,
+          "phase": "growing"
+        },
+        {
+          "name": "grove-jump",
+          "hidden": false,
+          "inBlockedIntroControl": false,
+          "phase": "complete"
+        },
+        {
+          "name": "grove-knot",
+          "hidden": false,
+          "inBlockedIntroControl": false,
+          "phase": "complete"
+        }
+      ]
+    },
+    {
+      "check": "guide-completion-and-reverse",
+      "complete": {
+        "time": 5,
+        "p": 1,
+        "y": 4050,
+        "runway": 4050,
+        "phase": "complete",
+        "locked": false,
+        "overflow": false
+      },
+      "forward": {
+        "time": 5,
+        "p": 1,
+        "y": 4350,
+        "runway": 4050,
+        "phase": "complete",
+        "locked": false,
+        "overflow": false
+      },
+      "reverse": {
+        "time": -0.7851851851851848,
+        "p": 0.4740740740740741,
+        "y": 1920,
+        "runway": 4050,
+        "phase": "growing",
+        "locked": true,
+        "overflow": false
+      },
+      "later": {
+        "time": -0.7851851851851848,
+        "p": 0.4740740740740741,
+        "y": 1920,
+        "runway": 4050,
+        "phase": "growing",
+        "locked": true,
+        "overflow": false
+      }
+    },
+    {
+      "check": "reduced-motion",
+      "time": 5,
+      "p": 1,
+      "y": 0,
+      "runway": 844,
+      "phase": "complete",
+      "locked": false,
+      "overflow": false,
+      "screenshotStable": true
+    },
+    {
+      "check": "pause-motion",
+      "machineStable": true
+    }
+  ]
+}

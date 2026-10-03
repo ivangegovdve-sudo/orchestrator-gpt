@@ -1,0 +1,76 @@
+{
+  "base": "http://127.0.0.1:4580",
+  "method": "RGB24 equality, FFmpeg decoder and Chrome screenshot at final video sample",
+  "evidence": [
+    {
+      "name": "desktop",
+      "video": "growth-scroll.mp4",
+      "decodedDifferentPixels": 0,
+      "browserDifferentPixels": 0,
+      "width": 1920,
+      "height": 1080,
+      "seeks": [
+        {
+          "time": 3,
+          "elapsedMs": 110,
+          "readyState": 4
+        },
+        {
+          "time": 8,
+          "elapsedMs": 66.8,
+          "readyState": 4
+        },
+        {
+          "time": 5,
+          "elapsedMs": 149.4,
+          "readyState": 4
+        },
+        {
+          "time": 11.958333333333334,
+          "elapsedMs": 383.3,
+          "readyState": 4
+        },
+        {
+          "time": 12.000000333333334,
+          "elapsedMs": 68,
+          "readyState": 4
+        }
+      ]
+    },
+    {
+      "name": "phone",
+      "video": "growth-scroll-phone.mp4",
+      "decodedDifferentPixels": 0,
+      "browserDifferentPixels": 0,
+      "width": 390,
+      "height": 844,
+      "seeks": [
+        {
+          "time": 3,
+          "elapsedMs": 48.7,
+          "readyState": 4
+        },
+        {
+          "time": 8,
+          "elapsedMs": 50.2,
+          "readyState": 4
+        },
+        {
+          "time": 5,
+          "elapsedMs": 82.8,
+          "readyState": 4
+        },
+        {
+          "time": 11.958333333333334,
+          "elapsedMs": 251,
+          "readyState": 4
+        },
+        {
+          "time": 12.000000333333334,
+          "elapsedMs": 32.8,
+          "readyState": 4
+        }
+      ]
+    }
+  ]
+}

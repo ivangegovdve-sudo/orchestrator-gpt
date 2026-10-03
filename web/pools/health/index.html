@@ -10,14 +10,26 @@
   <link rel="stylesheet" href="/web/shared/forest-shell.css?v=20260922a">
   <link rel="stylesheet" href="/web/shared/pool-page.css">
   <link rel="stylesheet" href="/web/shared/pool-designed.css?v=20260926a">
-  <link rel="stylesheet" href="/web/pools/health/pool.css?v=20260927a">
+  <link rel="stylesheet" href="/web/pools/health/pool.css?v=20261003a">
+  <link rel="stylesheet" href="/web/pools/health/cell.css?v=20261003a">
   <script type="module" src="/web/shared/pool-page.mjs"></script>
   <script type="module" data-forest-runtime="motion" src="/web/shared/forest-runtime-boot.mjs?v=20260807a"></script>
 </head>
 <body class="pool-page" data-forest-page="health">
   <canvas class="forest-scene" data-forest-scene data-mode="health" aria-hidden="true"></canvas>
   <div class="forest-scrim" aria-hidden="true"></div>
-  <header><a href="/">Back to SD Forest</a></header>
+  <header><a href="/">Back to SD Forest</a><a class="health-project-skip" href="#projects-title">Skip to projects</a></header>
+  <section class="cell-act" aria-labelledby="cell-entry-title">
+    <div class="cell-stage">
+      <div class="cell-slot cell-slot--static" data-cell-slot aria-hidden="true"></div>
+      <div class="cell-copy">
+        <p class="cell-kicker">Health · living systems</p>
+        <h2 id="cell-entry-title">A world<br>within.</h2>
+        <p>Small systems, working together.<br>Practical tools for reading, movement and wellbeing.</p>
+      </div>
+      <p class="cell-redesign-note">The clinic is growing a new skin. Even the cell is in on it.</p>
+    </div>
+  </section>
   <main data-pool-id="health" data-pool-layout="designed">
     <div class="pool-threshold">
       <h1>Health</h1>
@@ -101,5 +113,7 @@
       </ul>
     </nav>
   </footer>
+  <script type="module" src="/web/pools/health/cell.js?v=20261003a"></script>
+  <script src="/web/shared/feedback.js"></script>
 </body>
 </html>

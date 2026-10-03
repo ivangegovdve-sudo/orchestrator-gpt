@@ -25,16 +25,30 @@ const FORMSPREE_ENDPOINT = 'https://formspree.io/f/PLACEHOLDER';
   button.textContent = 'Feedback';
   button.style.cssText = `position:fixed;right:18px;bottom:18px;z-index:2147483646;min-width:44px;min-height:44px;border:1px solid ${line};border-radius:999px;background:${surface};color:${ink};font:600 13px/1 ${font};letter-spacing:.02em;padding:12px 16px;box-shadow:0 10px 30px rgba(0,0,0,.28);cursor:pointer`;
 
+  // The brief reserves this control, but its destination is still unresolved.
+  const support = document.createElement('button');
+  support.type = 'button';
+  support.disabled = true;
+  support.dataset.supportControl = '';
+  support.title = 'The coffee link is still brewing.';
+  support.setAttribute('aria-label', 'Buy Me a Coffee. The coffee link is still brewing.');
+  support.textContent = '☕ Buy Me a Coffee';
+  support.style.cssText = `position:fixed;left:18px;bottom:18px;z-index:2147483645;min-height:44px;border:1px solid ${line};border-radius:999px;background:${surface};color:${ink};font:500 12px/1 ${font};padding:11px 14px;opacity:.78;cursor:default`;
+
   function clearFixedControls() {
-    button.style.bottom = '18px';
+    for (const control of [support, button]) placeControl(control);
+  }
+
+  function placeControl(control) {
+    control.style.bottom = '18px';
     const viewportHeight = document.documentElement.clientHeight;
 
     for (let attempt = 0; attempt < 8; attempt += 1) {
-      const buttonRect = button.getBoundingClientRect();
+      const buttonRect = control.getBoundingClientRect();
       const blockers = [...document.body.querySelectorAll('*')].filter((element) => {
-        if (element === button || element.contains(button) || button.contains(element)) return false;
+        if (element === control || element.contains(control) || control.contains(element)) return false;
         const style = getComputedStyle(element);
-        if (style.position !== 'fixed' || style.pointerEvents === 'none'
+        if ((style.position !== 'fixed' && !element.matches('.entry-go, .resolve-scroll-cue, .resolve-skip')) || style.pointerEvents === 'none'
           || style.display === 'none' || style.visibility === 'hidden') return false;
         const rect = element.getBoundingClientRect();
         if (!rect.width || !rect.height
@@ -49,7 +63,7 @@ const FORMSPREE_ENDPOINT = 'https://formspree.io/f/PLACEHOLDER';
           viewportHeight - element.getBoundingClientRect().top + 12),
       );
       if (nextBottom + buttonRect.height > viewportHeight - 8) return;
-      button.style.bottom = `${nextBottom}px`;
+      control.style.bottom = `${nextBottom}px`;
     }
   }
 
@@ -73,7 +87,8 @@ const FORMSPREE_ENDPOINT = 'https://formspree.io/f/PLACEHOLDER';
     (opener || button).focus();
   }
 
-  function open() {
+  function open(project) {
+    if (backdrop) return;
     opener = document.activeElement;
     backdrop = document.createElement('div');
     backdrop.dataset.feedbackBackdrop = '';
@@ -96,7 +111,7 @@ const FORMSPREE_ENDPOINT = 'https://formspree.io/f/PLACEHOLDER';
       const message = textarea.value.trim();
       if (!message) return textarea.focus();
       try {
-        const response = await fetch(FORMSPREE_ENDPOINT, { method: 'POST', headers: { 'Content-Type': 'application/json', Accept: 'application/json' }, body: JSON.stringify({ message, url: window.location.href }) });
+        const response = await fetch(FORMSPREE_ENDPOINT, { method: 'POST', headers: { 'Content-Type': 'application/json', Accept: 'application/json' }, body: JSON.stringify({ message, url: window.location.href, ...(project ? { project } : {}) }) });
         if (!response.ok) throw new Error('feedback request failed');
         const thanks = document.createElement('p');
         thanks.setAttribute('role', 'status');
@@ -111,12 +126,16 @@ const FORMSPREE_ENDPOINT = 'https://formspree.io/f/PLACEHOLDER';
     textarea.focus();
   }
 
-  button.addEventListener('click', open);
+  button.addEventListener('click', () => open());
+  // Any element marked data-feedback-open (a project card's button) opens the same dialog.
+  document.addEventListener('click', (event) => {
+    const trigger = event.target.closest?.('[data-feedback-open]');
+    if (trigger) open(trigger.getAttribute('data-feedback-project') || '');
+  });
   document.addEventListener('keydown', (event) => { if (event.key === 'Escape') close(); });
   const inlineSlot = document.querySelector('[data-feedback-slot]');
   (inlineSlot || document.body || document.documentElement).append(button);
-  // A flow-mounted utility has no fixed-position collision to schedule.
-  if (inlineSlot) return;
+  (document.body || document.documentElement).append(support);
   requestAnimationFrame(() => requestAnimationFrame(scheduleClearFixedControls));
   window.addEventListener('load', scheduleClearFixedControls, { once: true });
   window.addEventListener('resize', scheduleClearFixedControls);

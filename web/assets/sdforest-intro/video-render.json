@@ -1,0 +1,51 @@
+{
+  "method": "code-rendered locked live-page DOM; no generated footage or paid service",
+  "fps": 24,
+  "frames": 289,
+  "videos": [
+    {
+      "file": "growth-scroll.mp4",
+      "width": 1920,
+      "height": 1080,
+      "fps": 24,
+      "frames": 289,
+      "duration": 12.041666666666666,
+      "bytes": 47299450,
+      "codec": "VP9 RGB Profile 1: CRF 24 growth; lossless final frame",
+      "compression": {
+        "profile": 1,
+        "pixelFormat": "gbrp",
+        "growthFrames": 288,
+        "growthCrf": 24,
+        "growthGop": 48,
+        "growthLossless": false,
+        "finalFrame": 288,
+        "finalLossless": true
+      },
+      "sha256": "cb5601d9f486a8242620898bd1adf1d44e3fddbbf161a0e5b639d9e3ea0b028a",
+      "reference": "final-frame-desktop.png"
+    },
+    {
+      "file": "growth-scroll-phone.mp4",
+      "width": 390,
+      "height": 844,
+      "fps": 24,
+      "frames": 289,
+      "duration": 12.041666666666666,
+      "bytes": 9168439,
+      "codec": "VP9 RGB Profile 1: CRF 24 growth; lossless final frame",
+      "compression": {
+        "profile": 1,
+        "pixelFormat": "gbrp",
+        "growthFrames": 288,
+        "growthCrf": 24,
+        "growthGop": 48,
+        "growthLossless": false,
+        "finalFrame": 288,
+        "finalLossless": true
+      },
+      "sha256": "e0ac994eef7874f600ffca01eb06beae6bf4701f4d55ee84245db44617978291",
+      "reference": "final-frame-phone.png"
+    }
+  ]
+}

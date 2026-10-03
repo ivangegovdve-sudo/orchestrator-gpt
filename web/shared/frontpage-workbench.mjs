@@ -164,7 +164,16 @@ export function createWorkbench(stage,invalidate,readClock) {
         const press=node.value, f=node.fragments;
         const age=seconds-node.hitStart;
         if(animate && (node.held||age<1.4))moving=true;
-        const effect=node.effects.render(seconds,press,node.hover||node.focus||node.selected,node.selected,animate,{age,held:node.held});
+        const engaged=node.hover||node.focus||node.selected;
+        const innerActive=animate&&(viewport.width<=800||matchMedia('(pointer:coarse)').matches||engaged);
+        const effect=node.effects.render(seconds,press,engaged,node.selected,innerActive,{age,held:node.held});
+        if(!innerActive) {
+          for(const [name,part] of Object.entries(f)) {
+            paint(part,'transform','none');
+            if(['seed','sapling','tree'].includes(name))paint(part,'opacity',.65);
+          }
+          continue;
+        }
         const ready=smooth(press/.28), hit=effect.hit;
         const idle=animate?Math.sin(seconds*.8)*.35:0;
         const detent=animate && age>=.10 && age<.65 ? Math.sin((age-.10)*23)*Math.exp(-(age-.10)*8) : 0;
