@@ -1,14 +1,4 @@
-<!doctype html>
-<html lang="en" data-palette="plum" data-theme="light" data-studio>
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Model explorer — Open Dashboard</title>
-    <meta name="robots" content="noindex" />
-    <link rel="stylesheet" href="../explorer.css" />
-    <script src="../theme.js"></script>
-  <link rel="stylesheet" href="../studio.css"><link rel="stylesheet" href="../companion.css"><script type="module" src="../companion-shell.js"></script></head>
-  <body class="od-page studio-page">    <aside class="sidebar" aria-label="Site navigation">
+<!doctype html><html lang="en" data-palette="plum" data-theme="light" data-studio><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Jev Council · openDashboard</title><link rel="stylesheet" href="../explorer.css"><link rel="stylesheet" href="../studio.css"><link rel="stylesheet" href="../companion.css"><script type="module" src="../companion-shell.js"></script><script type="module" src="../council-status.js"></script></head><body class="od-page studio-page">    <aside class="sidebar" aria-label="Site navigation">
       <a class="brand" href="/web/open-dashboard/" aria-label="openDashboard home"
         ><img src="/web/open-dashboard/assets/interlock.svg" width="80" height="80" alt="" /><span
           >open<span>Dashboard</span></span
@@ -68,19 +58,4 @@
         <span class="read-only-dot"></span
         ><span>Read-only by design.<br />Evidence in the open.</span>
       </div>
-    </aside><div class="page companion-content">
-    <main class="page-width">
-      <h1>Model explorer</h1>
-      <p>Open Dashboard’s explorer has a new home.</p>
-      <a class="button primary" href="/web/open-dashboard/#explore"
-        >Open the explorer →</a
-      >
-    </main>
-    <script>
-      const next = new URL("/web/open-dashboard/", location.origin);
-      next.search = location.search || "";
-      next.hash = "explore";
-      location.replace(next.href);
-    </script>
-  </div></body>
-</html>
+    </aside><div class="page companion-content"><main id="main"><p class="editorial-kicker">LIVE STATUS · READ ONLY</p><h1>Jev Council</h1><p>Seats and status come from the council's status endpoint.</p><div data-council-status role="status"></div><button class="button primary" data-refresh-council>Refresh status</button></main></div></body></html>
