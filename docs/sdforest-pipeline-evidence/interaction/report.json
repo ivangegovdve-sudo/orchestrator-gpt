@@ -1,0 +1,906 @@
+{
+  "base": "http://127.0.0.1:4580",
+  "capturedAt": "2026-10-03T15:35:09.543Z",
+  "evidence": [
+    {
+      "name": "intro-code-growing",
+      "url": "http://127.0.0.1:4580/",
+      "screenshot": "intro-code-growing.png",
+      "details": {
+        "progress": 0.5464197530864198,
+        "audio": {
+          "src": "http://127.0.0.1:4580/web/assets/sdforest-intro/seed-to-forest.mp3",
+          "paused": true,
+          "volume": 0
+        },
+        "compositor": {
+          "transform": "translateY(-24.4933px) scale(1.72573)",
+          "tree": "translate(-50%, -50%) scale(0.740339)"
+        }
+      }
+    },
+    {
+      "name": "intro-code-finished",
+      "url": "http://127.0.0.1:4580/",
+      "screenshot": "intro-code-finished.png",
+      "details": {
+        "progress": 1,
+        "pools": [
+          {
+            "id": "health",
+            "x": 28.796875,
+            "y": 117,
+            "width": 377.15625,
+            "height": 157.03125,
+            "opacity": 1,
+            "visible": true,
+            "inert": false,
+            "withinViewport": true
+          },
+          {
+            "id": "ai-d-kit",
+            "x": 1034.046875,
+            "y": 117,
+            "width": 377.15625,
+            "height": 157.03125,
+            "opacity": 1,
+            "visible": true,
+            "inert": false,
+            "withinViewport": true
+          },
+          {
+            "id": "growingapp",
+            "x": 28.796875,
+            "y": 360,
+            "width": 377.15625,
+            "height": 157.03125,
+            "opacity": 1,
+            "visible": true,
+            "inert": false,
+            "withinViewport": true
+          },
+          {
+            "id": "artificial-self",
+            "x": 1034.046875,
+            "y": 360,
+            "width": 377.15625,
+            "height": 157.03125,
+            "opacity": 1,
+            "visible": true,
+            "inert": false,
+            "withinViewport": true
+          },
+          {
+            "id": "my-story",
+            "x": 544.5,
+            "y": 759,
+            "width": 351,
+            "height": 87.75,
+            "opacity": 1,
+            "visible": true,
+            "inert": false,
+            "withinViewport": true
+          },
+          {
+            "id": "tinkerbox",
+            "x": 28.796875,
+            "y": 603,
+            "width": 377.15625,
+            "height": 94.28125,
+            "opacity": 1,
+            "visible": true,
+            "inert": false,
+            "withinViewport": true
+          },
+          {
+            "id": "design-gallery",
+            "x": 1034.046875,
+            "y": 603,
+            "width": 377.15625,
+            "height": 94.28125,
+            "opacity": 1,
+            "visible": true,
+            "inert": false,
+            "withinViewport": true
+          }
+        ]
+      }
+    },
+    {
+      "name": "intro-late-listen-arrival",
+      "url": "http://127.0.0.1:4580/",
+      "screenshot": "intro-late-listen-arrival.png",
+      "details": {
+        "blocked": {
+          "progress": 0.052371428571428555,
+          "currentTime": 0,
+          "duration": null,
+          "paused": true,
+          "ended": false,
+          "volume": 1,
+          "phase": "growing"
+        },
+        "beforeClick": {
+          "progress": 0.4297428571428559,
+          "currentTime": 0,
+          "duration": null,
+          "paused": true,
+          "ended": false,
+          "volume": 1,
+          "phase": "growing"
+        },
+        "aligned": {
+          "progress": 0.47379285714285546,
+          "currentTime": 6.133858,
+          "duration": 13.027896,
+          "paused": false,
+          "ended": false,
+          "volume": 1,
+          "phase": "growing"
+        },
+        "arrival": {
+          "progress": 1,
+          "currentTime": 13.027896,
+          "duration": 13.027896,
+          "paused": true,
+          "ended": true,
+          "volume": 0,
+          "phase": "complete"
+        },
+        "events": [
+          {
+            "event": "loadedmetadata",
+            "progress": 0.46545714285714124,
+            "currentTime": 6.063927,
+            "duration": 13.027896,
+            "paused": false,
+            "volume": 1,
+            "phase": "growing"
+          },
+          {
+            "event": "seeked",
+            "progress": 0.46545714285714124,
+            "currentTime": 6.063927,
+            "duration": 13.027896,
+            "paused": false,
+            "volume": 1,
+            "phase": "growing"
+          },
+          {
+            "event": "playing",
+            "progress": 0.46545714285714124,
+            "currentTime": 6.063927,
+            "duration": 13.027896,
+            "paused": false,
+            "volume": 1,
+            "phase": "growing"
+          },
+          {
+            "event": "pause",
+            "progress": 0.9678214285714369,
+            "currentTime": 13.027896,
+            "duration": 13.027896,
+            "paused": true,
+            "volume": 1,
+            "phase": "growing"
+          },
+          {
+            "event": "ended",
+            "progress": 0.9678214285714369,
+            "currentTime": 13.027896,
+            "duration": 13.027896,
+            "paused": true,
+            "volume": 1,
+            "phase": "growing"
+          }
+        ]
+      }
+    },
+    {
+      "name": "intro-touch-takeover",
+      "url": "http://127.0.0.1:4580/",
+      "screenshot": "intro-touch-takeover.png",
+      "details": {
+        "before": 0.040471428571428596,
+        "after": 0.07003686150605581,
+        "audio": {
+          "paused": true,
+          "volume": 0
+        }
+      }
+    },
+    {
+      "name": "fresh-reduced-desktop",
+      "url": "http://127.0.0.1:4580/",
+      "screenshot": "fresh-reduced-desktop.png",
+      "details": [
+        {
+          "id": "health",
+          "x": 38.390625,
+          "y": 140.390625,
+          "width": 547.625,
+          "height": 228,
+          "opacity": 1,
+          "visible": true,
+          "inert": false,
+          "withinViewport": true
+        },
+        {
+          "id": "ai-d-kit",
+          "x": 1333.984375,
+          "y": 140.390625,
+          "width": 547.625,
+          "height": 228,
+          "opacity": 1,
+          "visible": true,
+          "inert": false,
+          "withinViewport": true
+        },
+        {
+          "id": "growingapp",
+          "x": 38.390625,
+          "y": 432,
+          "width": 547.625,
+          "height": 228,
+          "opacity": 1,
+          "visible": true,
+          "inert": false,
+          "withinViewport": true
+        },
+        {
+          "id": "artificial-self",
+          "x": 1333.984375,
+          "y": 432,
+          "width": 547.625,
+          "height": 228,
+          "opacity": 1,
+          "visible": true,
+          "inert": false,
+          "withinViewport": true
+        },
+        {
+          "id": "my-story",
+          "x": 749.40625,
+          "y": 908.390625,
+          "width": 421.1875,
+          "height": 105.296875,
+          "opacity": 1,
+          "visible": true,
+          "inert": false,
+          "withinViewport": true
+        },
+        {
+          "id": "tinkerbox",
+          "x": 38.390625,
+          "y": 723.59375,
+          "width": 547.625,
+          "height": 136.90625,
+          "opacity": 1,
+          "visible": true,
+          "inert": false,
+          "withinViewport": true
+        },
+        {
+          "id": "design-gallery",
+          "x": 1333.984375,
+          "y": 723.59375,
+          "width": 547.625,
+          "height": 136.90625,
+          "opacity": 1,
+          "visible": true,
+          "inert": false,
+          "withinViewport": true
+        }
+      ]
+    },
+    {
+      "name": "fresh-reduced-phone",
+      "url": "http://127.0.0.1:4580/",
+      "screenshot": "fresh-reduced-phone.png",
+      "details": [
+        {
+          "id": "health",
+          "x": 27,
+          "y": 370.296875,
+          "width": 162,
+          "height": 67.4375,
+          "opacity": 1,
+          "visible": true,
+          "inert": false,
+          "withinViewport": true
+        },
+        {
+          "id": "ai-d-kit",
+          "x": 201,
+          "y": 370.296875,
+          "width": 162,
+          "height": 67.4375,
+          "opacity": 1,
+          "visible": true,
+          "inert": false,
+          "withinViewport": true
+        },
+        {
+          "id": "growingapp",
+          "x": 27,
+          "y": 484.4375,
+          "width": 162,
+          "height": 67.4375,
+          "opacity": 1,
+          "visible": true,
+          "inert": false,
+          "withinViewport": true
+        },
+        {
+          "id": "artificial-self",
+          "x": 201,
+          "y": 484.4375,
+          "width": 162,
+          "height": 67.4375,
+          "opacity": 1,
+          "visible": true,
+          "inert": false,
+          "withinViewport": true
+        },
+        {
+          "id": "my-story",
+          "x": 104.28125,
+          "y": 598.578125,
+          "width": 181.4375,
+          "height": 48,
+          "opacity": 1,
+          "visible": true,
+          "inert": false,
+          "withinViewport": true
+        },
+        {
+          "id": "tinkerbox",
+          "x": 27,
+          "y": 693.28125,
+          "width": 162,
+          "height": 50,
+          "opacity": 1,
+          "visible": true,
+          "inert": false,
+          "withinViewport": true
+        },
+        {
+          "id": "design-gallery",
+          "x": 201,
+          "y": 693.28125,
+          "width": 162,
+          "height": 50,
+          "opacity": 1,
+          "visible": true,
+          "inert": false,
+          "withinViewport": true
+        }
+      ]
+    },
+    {
+      "name": "encoded-final-frame-proof",
+      "details": [
+        {
+          "video": "growth-scroll.mp4",
+          "reference": "final-frame-desktop.png",
+          "width": 1920,
+          "height": 1080,
+          "codec": "vp9",
+          "frames": 289,
+          "fps": 24,
+          "differentRgbChannels": 0,
+          "decodedRgbSha256": "601ea3d97341e36829258cc490076ad8f0889b6f30371767a2c6efb25401b03e"
+        },
+        {
+          "video": "growth-scroll-phone.mp4",
+          "reference": "final-frame-phone.png",
+          "width": 390,
+          "height": 844,
+          "codec": "vp9",
+          "frames": 289,
+          "fps": 24,
+          "differentRgbChannels": 0,
+          "decodedRgbSha256": "c0020467060083d925cf068aac1fdfeff23985fc4e64a41cb02add20ff1f8f8c"
+        }
+      ]
+    },
+    {
+      "name": "windows-desktop",
+      "url": "http://127.0.0.1:4580/?frame=opened",
+      "screenshot": "windows-desktop.png",
+      "details": {
+        "pools": [
+          {
+            "id": "health",
+            "x": 38.390625,
+            "y": 140.390625,
+            "width": 547.625,
+            "height": 228,
+            "opacity": 1,
+            "visible": true,
+            "inert": false,
+            "withinViewport": true
+          },
+          {
+            "id": "ai-d-kit",
+            "x": 1333.984375,
+            "y": 140.390625,
+            "width": 547.625,
+            "height": 228,
+            "opacity": 1,
+            "visible": true,
+            "inert": false,
+            "withinViewport": true
+          },
+          {
+            "id": "growingapp",
+            "x": 38.390625,
+            "y": 432,
+            "width": 547.625,
+            "height": 228,
+            "opacity": 1,
+            "visible": true,
+            "inert": false,
+            "withinViewport": true
+          },
+          {
+            "id": "artificial-self",
+            "x": 1333.984375,
+            "y": 432,
+            "width": 547.625,
+            "height": 228,
+            "opacity": 1,
+            "visible": true,
+            "inert": false,
+            "withinViewport": true
+          },
+          {
+            "id": "my-story",
+            "x": 749.40625,
+            "y": 908.390625,
+            "width": 421.1875,
+            "height": 105.296875,
+            "opacity": 1,
+            "visible": true,
+            "inert": false,
+            "withinViewport": true
+          },
+          {
+            "id": "tinkerbox",
+            "x": 38.390625,
+            "y": 723.59375,
+            "width": 547.625,
+            "height": 136.90625,
+            "opacity": 1,
+            "visible": true,
+            "inert": false,
+            "withinViewport": true
+          },
+          {
+            "id": "design-gallery",
+            "x": 1333.984375,
+            "y": 723.59375,
+            "width": 547.625,
+            "height": 136.90625,
+            "opacity": 1,
+            "visible": true,
+            "inert": false,
+            "withinViewport": true
+          }
+        ],
+        "overflow": false
+      }
+    },
+    {
+      "name": "selected-desktop",
+      "url": "http://127.0.0.1:4580/?frame=opened",
+      "screenshot": "selected-desktop.png",
+      "details": {
+        "enlarged": true,
+        "explicitRoundEnter": {
+          "width": 52,
+          "height": 52,
+          "radius": "50%"
+        }
+      }
+    },
+    {
+      "name": "windows-phone",
+      "url": "http://127.0.0.1:4580/?frame=opened",
+      "screenshot": "windows-phone.png",
+      "details": {
+        "pools": [
+          {
+            "id": "health",
+            "x": 27,
+            "y": 370.296875,
+            "width": 162,
+            "height": 67.4375,
+            "opacity": 1,
+            "visible": true,
+            "inert": false,
+            "withinViewport": true
+          },
+          {
+            "id": "ai-d-kit",
+            "x": 201,
+            "y": 370.296875,
+            "width": 162,
+            "height": 67.4375,
+            "opacity": 1,
+            "visible": true,
+            "inert": false,
+            "withinViewport": true
+          },
+          {
+            "id": "growingapp",
+            "x": 27,
+            "y": 484.4375,
+            "width": 162,
+            "height": 67.4375,
+            "opacity": 1,
+            "visible": true,
+            "inert": false,
+            "withinViewport": true
+          },
+          {
+            "id": "artificial-self",
+            "x": 201,
+            "y": 484.4375,
+            "width": 162,
+            "height": 67.4375,
+            "opacity": 1,
+            "visible": true,
+            "inert": false,
+            "withinViewport": true
+          },
+          {
+            "id": "my-story",
+            "x": 104.28125,
+            "y": 598.578125,
+            "width": 181.4375,
+            "height": 48,
+            "opacity": 1,
+            "visible": true,
+            "inert": false,
+            "withinViewport": true
+          },
+          {
+            "id": "tinkerbox",
+            "x": 27,
+            "y": 693.28125,
+            "width": 162,
+            "height": 50,
+            "opacity": 1,
+            "visible": true,
+            "inert": false,
+            "withinViewport": true
+          },
+          {
+            "id": "design-gallery",
+            "x": 201,
+            "y": 693.28125,
+            "width": 162,
+            "height": 50,
+            "opacity": 1,
+            "visible": true,
+            "inert": false,
+            "withinViewport": true
+          }
+        ],
+        "overflow": false
+      }
+    },
+    {
+      "name": "selected-phone",
+      "url": "http://127.0.0.1:4580/?frame=opened",
+      "screenshot": "selected-phone.png",
+      "details": {
+        "enlarged": true,
+        "explicitRoundEnter": {
+          "width": 46,
+          "height": 46,
+          "radius": "50%"
+        }
+      }
+    },
+    {
+      "name": "promoted-desktop",
+      "url": "http://127.0.0.1:4580/?frame=opened",
+      "screenshot": "promoted-desktop.png",
+      "details": [
+        {
+          "name": "Gym Scholar",
+          "href": "https://gymscholar.lovable.app",
+          "pool": "health"
+        },
+        {
+          "name": "Open Dashboard MCP",
+          "href": "/web/open-dashboard/",
+          "pool": "ai-d-kit"
+        },
+        {
+          "name": "Explore Repos",
+          "href": "/web/explore/",
+          "pool": "ai-d-kit"
+        },
+        {
+          "name": "The Drop",
+          "href": "/web/morning-news/",
+          "pool": "ai-d-kit"
+        },
+        {
+          "name": "Forest Math",
+          "href": "/web/math-mania/",
+          "pool": "growingapp"
+        }
+      ]
+    },
+    {
+      "name": "promoted-phone-disclosed",
+      "url": "http://127.0.0.1:4580/?frame=opened",
+      "screenshot": "promoted-phone-disclosed.png",
+      "details": {
+        "firstTapDiscloses": true,
+        "caption": {
+          "x": 86.3125,
+          "y": 572.5625,
+          "width": 190,
+          "height": 63.6875
+        }
+      }
+    },
+    {
+      "name": "reduced-desktop",
+      "url": "http://127.0.0.1:4580/?frame=opened",
+      "screenshot": "reduced-desktop.png",
+      "details": [
+        {
+          "id": "health",
+          "x": 38.390625,
+          "y": 140.390625,
+          "width": 547.625,
+          "height": 228,
+          "opacity": 1,
+          "visible": true,
+          "inert": false,
+          "withinViewport": true
+        },
+        {
+          "id": "ai-d-kit",
+          "x": 1333.984375,
+          "y": 140.390625,
+          "width": 547.625,
+          "height": 228,
+          "opacity": 1,
+          "visible": true,
+          "inert": false,
+          "withinViewport": true
+        },
+        {
+          "id": "growingapp",
+          "x": 38.390625,
+          "y": 432,
+          "width": 547.625,
+          "height": 228,
+          "opacity": 1,
+          "visible": true,
+          "inert": false,
+          "withinViewport": true
+        },
+        {
+          "id": "artificial-self",
+          "x": 1333.984375,
+          "y": 432,
+          "width": 547.625,
+          "height": 228,
+          "opacity": 1,
+          "visible": true,
+          "inert": false,
+          "withinViewport": true
+        },
+        {
+          "id": "my-story",
+          "x": 749.40625,
+          "y": 908.390625,
+          "width": 421.1875,
+          "height": 105.296875,
+          "opacity": 1,
+          "visible": true,
+          "inert": false,
+          "withinViewport": true
+        },
+        {
+          "id": "tinkerbox",
+          "x": 38.390625,
+          "y": 723.59375,
+          "width": 547.625,
+          "height": 136.90625,
+          "opacity": 1,
+          "visible": true,
+          "inert": false,
+          "withinViewport": true
+        },
+        {
+          "id": "design-gallery",
+          "x": 1333.984375,
+          "y": 723.59375,
+          "width": 547.625,
+          "height": 136.90625,
+          "opacity": 1,
+          "visible": true,
+          "inert": false,
+          "withinViewport": true
+        }
+      ]
+    },
+    {
+      "name": "reduced-phone",
+      "url": "http://127.0.0.1:4580/?frame=opened",
+      "screenshot": "reduced-phone.png",
+      "details": [
+        {
+          "id": "health",
+          "x": 27,
+          "y": 370.296875,
+          "width": 162,
+          "height": 67.4375,
+          "opacity": 1,
+          "visible": true,
+          "inert": false,
+          "withinViewport": true
+        },
+        {
+          "id": "ai-d-kit",
+          "x": 201,
+          "y": 370.296875,
+          "width": 162,
+          "height": 67.4375,
+          "opacity": 1,
+          "visible": true,
+          "inert": false,
+          "withinViewport": true
+        },
+        {
+          "id": "growingapp",
+          "x": 27,
+          "y": 484.4375,
+          "width": 162,
+          "height": 67.4375,
+          "opacity": 1,
+          "visible": true,
+          "inert": false,
+          "withinViewport": true
+        },
+        {
+          "id": "artificial-self",
+          "x": 201,
+          "y": 484.4375,
+          "width": 162,
+          "height": 67.4375,
+          "opacity": 1,
+          "visible": true,
+          "inert": false,
+          "withinViewport": true
+        },
+        {
+          "id": "my-story",
+          "x": 104.28125,
+          "y": 598.578125,
+          "width": 181.4375,
+          "height": 48,
+          "opacity": 1,
+          "visible": true,
+          "inert": false,
+          "withinViewport": true
+        },
+        {
+          "id": "tinkerbox",
+          "x": 27,
+          "y": 693.28125,
+          "width": 162,
+          "height": 50,
+          "opacity": 1,
+          "visible": true,
+          "inert": false,
+          "withinViewport": true
+        },
+        {
+          "id": "design-gallery",
+          "x": 201,
+          "y": 693.28125,
+          "width": 162,
+          "height": 50,
+          "opacity": 1,
+          "visible": true,
+          "inert": false,
+          "withinViewport": true
+        }
+      ]
+    },
+    {
+      "name": "noscript-phone",
+      "url": "http://127.0.0.1:4580/?frame=opened",
+      "screenshot": "noscript-phone.png",
+      "details": [
+        {
+          "id": "health",
+          "x": 27,
+          "y": 370.296875,
+          "width": 162,
+          "height": 67.4375,
+          "opacity": 1,
+          "visible": true,
+          "inert": false,
+          "withinViewport": true
+        },
+        {
+          "id": "ai-d-kit",
+          "x": 201,
+          "y": 370.296875,
+          "width": 162,
+          "height": 67.4375,
+          "opacity": 1,
+          "visible": true,
+          "inert": false,
+          "withinViewport": true
+        },
+        {
+          "id": "growingapp",
+          "x": 27,
+          "y": 484.4375,
+          "width": 162,
+          "height": 67.4375,
+          "opacity": 1,
+          "visible": true,
+          "inert": false,
+          "withinViewport": true
+        },
+        {
+          "id": "artificial-self",
+          "x": 201,
+          "y": 484.4375,
+          "width": 162,
+          "height": 67.4375,
+          "opacity": 1,
+          "visible": true,
+          "inert": false,
+          "withinViewport": true
+        },
+        {
+          "id": "my-story",
+          "x": 104.28125,
+          "y": 598.578125,
+          "width": 181.4375,
+          "height": 48,
+          "opacity": 1,
+          "visible": true,
+          "inert": false,
+          "withinViewport": true
+        },
+        {
+          "id": "tinkerbox",
+          "x": 27,
+          "y": 693.28125,
+          "width": 162,
+          "height": 50,
+          "opacity": 1,
+          "visible": true,
+          "inert": false,
+          "withinViewport": true
+        },
+        {
+          "id": "design-gallery",
+          "x": 201,
+          "y": 693.28125,
+          "width": 162,
+          "height": 50,
+          "opacity": 1,
+          "visible": true,
+          "inert": false,
+          "withinViewport": true
+        }
+      ]
+    }
+  ]
+}

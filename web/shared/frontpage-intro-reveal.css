@@ -1,25 +1,13 @@
-/* Intro, act one (frontpage-resolve.mjs introTime): over the first 30% of the intro
- * scroll the forest is revealed. The film holds its first frame while the view opens
- * from a dark, misty close-up on the seed to the full vista. --intro-reveal runs 0 to 1
- * and is set from native scroll; nothing here listens to or holds the scroll. */
-html[data-resolve-motion="scrub"] { --intro-reveal: 0; }
-html[data-resolve-motion="scrub"] .resolve-growth-intro {
-  transform: scale(calc(1 + (1 - var(--intro-reveal)) * .42));
-  transform-origin: 50% 80%;
-  filter: brightness(calc(.28 + .72 * var(--intro-reveal))) saturate(calc(.5 + .5 * var(--intro-reveal)));
-}
-html[data-resolve-motion="scrub"] .resolve-growth-intro::before {
-  content: "";
-  position: absolute;
-  inset: -6%;
-  z-index: 1;
-  pointer-events: none;
-  background:
-    radial-gradient(ellipse 60% 55% at 50% 72%, transparent 0 18%, rgb(6 9 12 / .82) 78%),
-    url('/web/assets/sdforest-sunset/mist.webp') center / cover no-repeat;
-  opacity: calc(1 - var(--intro-reveal));
-}
-@media (prefers-reduced-motion: reduce) {
-  html .resolve-growth-intro { transform: none; filter: none; }
-  html .resolve-growth-intro::before { display: none; }
-}
+/* No reframe, mist veil, colour filter, opacity ramp or crossfade at handoff. */
+.resolve-stage > .resolve-growth-intro { position:absolute; inset:0; z-index:20; pointer-events:none; background:#aab7bb; transform:none; filter:none; }
+.resolve-growth-intro video { width:100%; height:100%; object-fit:fill; object-position:center; transform:none; }
+.resolve-growth-intro::before,.resolve-growth-intro::after { display:none; }
+.resolve-scroll-cue { z-index:30; color:#f5ebcd !important; background:#172723dd; border:1px solid #839273; border-radius:22px; padding:10px 18px; font-size:14px; }
+.intro-voice-control { position:absolute; z-index:30; left:50%; bottom:128px; translate:-50% 0; min-height:44px; padding:8px 20px; border-radius:24px; border:1px solid #a4b291; color:#eee8d5; background:#1d302b; cursor:pointer; font:15px/1.2 var(--theme-home-sans); }
+html[data-growth-phase="complete"] :is(.resolve-scroll-cue,.intro-voice-control) { display:none !important; }
+html[data-resolve-motion="scrub"] .resolve-scroll-cue { opacity:1; visibility:visible; top:auto; bottom:32px; }
+html[data-resolve-motion="scrub"] .resolve-scroll { height:550svh; }
+html[data-resolve-motion="scrub"] .resolve-stage { position:sticky; top:0; }
+html[data-resolve-motion="scrub"] .resolve-scene { position:absolute; inset:0; height:100%; }
+html[data-resolve-motion="scrub"] .resolve-growth-runway { display:none; }
+@media (prefers-reduced-motion:reduce) { .resolve-growth-intro,.intro-voice-control,.resolve-scroll-cue { display:none !important; } }

@@ -8,11 +8,19 @@
   <link rel="icon" href="/web/shared/favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="/web/shared/forest-design.css?v=20260922a">
   <link rel="stylesheet" href="/web/shared/forest-shell.css?v=20260922a">
-  <link rel="stylesheet" href="/web/shared/pool-page.css">
+  <link rel="preload" href="/web/vendor/fonts/alegreya-italic-400-900-latin.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="/web/shared/narrative-spine.css">
-  <link rel="stylesheet" href="/web/shared/pool-designed.css?v=20260926c">
-  <link rel="stylesheet" href="/web/pools/my-story/pool.css?v=20260926a">
+  <link rel="stylesheet" href="/web/shared/pool-entry/pool-entry.css">
+  <link rel="stylesheet" href="/web/pools/my-story/pool.css?v=20261001a">
+  <script src="/web/shared/pool-entry/scrollcraft.js" defer></script>
   <script type="module" src="/web/shared/pool-page.mjs"></script>
+  <script type="module" src="/web/pools/my-story/world.mjs"></script>
+  <script type="module">
+    import { mount } from '/web/shared/pool-entry/pool-entry.mjs';
+    import scene from '/web/pools/my-story/entry.mjs';
+    mount(scene);
+  </script>
+  <script src="/web/shared/feedback.js" defer></script>
   <script type="module" data-forest-runtime="motion" src="/web/shared/forest-runtime-boot.mjs?v=20260807a"></script>
 </head>
 <body class="pool-page" data-forest-page="time">
@@ -20,34 +28,61 @@
   <div class="forest-scrim" aria-hidden="true"></div>
   <header><a href="/">Back to SD Forest</a></header>
   <main data-pool-id="my-story" data-pool-layout="designed">
-    <div class="pool-threshold">
-      <h1>My Story</h1>
-      <section aria-labelledby="pool-overview-title" data-pool-overview>
-        <h2 id="pool-overview-title" class="pool-sr">About this pool</h2>
-        <div data-pool-overview-content>
-          <p class="pool-lede">Writing about what AI trains us to become, and a small tool for seeing how much time is left to spend.</p>
+    <section class="entry" data-pool-entry data-sc-act="pin" data-sc-span="1.5">
+      <div data-sc-stage>
+        <canvas class="entry-canvas" data-entry-canvas aria-hidden="true"></canvas>
+        <div class="entry-copy" data-sc-cue="0 0.7 0 0.12">
+          <h1>My Story</h1>
+          <section aria-labelledby="pool-overview-title" data-pool-overview>
+            <h2 id="pool-overview-title" class="pool-sr">About this pool</h2>
+            <div data-pool-overview-content>
+              <p class="pool-lede">Writing about what AI trains us to become, and a small tool for seeing how much time is left to spend.</p>
+            </div>
+            <noscript><p>This pool overview is catalog-backed; the full project listing below needs JavaScript, and everything above it does not.</p></noscript>
+          </section>
+          <p class="entry-notice">This page is being redrawn, again. The chair is not the only thing that needs a second pass.</p>
+          <a class="entry-go" href="#pool-world">Turn the page</a>
         </div>
-        <noscript><p>This pool overview is catalog-backed; the full project listing below needs JavaScript, and everything above it does not.</p></noscript>
-      </section>
-      <img class="pool-emblem" src="/web/assets/sdforest-workbench/my-story.webp" alt="" width="1100" height="275" fetchpriority="high">
-    </div>
+      </div>
+    </section>
 
+    <div id="pool-world">
+    <div class="notebook">
     <section class="pool-essay" aria-labelledby="essay-title">
+      <svg class="doodle doodle-chair" viewBox="0 0 120 150" aria-hidden="true" focusable="false" data-draw>
+        <path pathLength="1" d="M30 10 C44 6 62 6 76 11"/>
+        <path pathLength="1" d="M30 10 L33 78"/>
+        <path pathLength="1" d="M74 11 L77 66"/>
+        <path pathLength="1" d="M44 9 L45 74M58 8 L59 72"/>
+        <path pathLength="1" d="M22 78 L96 80 L104 70 L40 69 Z"/>
+        <path pathLength="1" d="M33 80 L27 141"/>
+        <path pathLength="1" d="M92 82 L96 141"/>
+        <path pathLength="1" d="M30 112 L94 113"/>
+        <path pathLength="1" class="rough" d="M14 142 L112 144"/>
+      </svg>
       <p class="pool-essay-open">A chair holds you where you are. A ladder helps you reach a place you cannot yet stand.</p>
       <div class="pool-essay-body">
         <h2 id="essay-title"><a href="/web/chair-or-ladder/">Chair or Ladder?</a></h2>
+        <svg class="underline" viewBox="0 0 300 12" preserveAspectRatio="none" aria-hidden="true" focusable="false" data-draw><path pathLength="1" d="M2 7 C40 2 70 10 110 5 S190 3 230 7 S280 5 298 4"/></svg>
         <p>An essay on what AI trains us to become. It can take the drudgery away and hand ordinary people a specialist's reach, or it can quietly do the thinking for us. It ends with one question to ask before handing over the next decision.</p>
         <p class="pool-essay-meta">By Ivan Gegov. A five-minute read.</p>
       </div>
+      <svg class="doodle doodle-ladder" viewBox="0 0 60 160" aria-hidden="true" focusable="false" data-draw>
+        <path pathLength="1" d="M13 4 L6 156"/>
+        <path pathLength="1" d="M48 4 L55 156"/>
+        <path pathLength="1" d="M11 30 L50 30M9.5 56 L51.5 56M8.2 82 L52.8 82M7.2 108 L53.8 108M6.4 134 L54.6 134"/>
+      </svg>
     </section>
 
     <section class="pool-time" aria-labelledby="time-title">
       <figure class="pool-time-shot">
+        <span class="tape tape-a" aria-hidden="true"></span><span class="tape tape-b" aria-hidden="true"></span>
         <img src="/web/assets/pools/my-story/life-in-time.jpg" alt="Life in Time's year card as it looked on 26 September 2026: the share of the year gone, the days left and the week number, on a bar from January to December." width="740" height="350" loading="lazy" decoding="async">
         <figcaption>As it looked on 26 September 2026. The live card counts from today.</figcaption>
       </figure>
-      <div>
+      <div class="pool-time-body">
         <h2 id="time-title"><a href="/web/life-in-time/">Life in Time</a></h2>
+        <svg class="underline" viewBox="0 0 300 12" preserveAspectRatio="none" aria-hidden="true" focusable="false" data-draw><path pathLength="1" d="M2 5 C50 9 80 2 130 6 S210 9 250 4 S285 6 298 7"/></svg>
         <p>Enter a birth year and see what remains in summers, Christmases with your parents, and summers with the kids still at home. Then turn it over to the late achievers and what is still possible.</p>
         <p class="pool-essay-meta">A perspective tool, built on EU averages. Not a medical prediction.</p>
       </div>
@@ -68,6 +103,7 @@
       <p><a href="/web/manifesto-newborn/">Manifesto for a Newborn</a> — Ivan-authored content.</p>
     </section>
     <div data-narrative-spine-root data-narrative-spine-id="my-story"></div>
+    </div>
 
     <section aria-labelledby="projects-title">
       <h2 id="projects-title">Everything in My Story</h2>
@@ -75,6 +111,7 @@
       <noscript><p>Project details load from the shared catalog when JavaScript is available. The pool description and all-pools navigation remain available here.</p></noscript>
       <div data-pool-projects><p>Project details load from the shared catalog. If they do not appear, you can still explore the other pools below.</p></div>
     </section>
+    </div>
   </main>
   <footer>
     <nav aria-label="All pools">

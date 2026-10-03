@@ -83,7 +83,7 @@ test('home keeps seven live fallback links and loads the catalog-ranked director
   assert.doesNotMatch(home, /data-(?:index-project|directory-section|index-section|project)="/);
   assert.doesNotMatch(home, /Kids Corner|Found Work|Voice Playground|Multiply Magic|Web Design Gallery|VFX Portfolio|Published research/);
   assert.doesNotMatch(directory, /AI Research|Evolution|Writing & Media|Projects & Play|Research & Experiments/);
-  assert.match(home, /<nav[^>]*aria-label="Site controls">\s*<a data-site-control="portfolio" href="https:\/\/vfxportfolio.lovable.app" target="_blank" rel="noopener">Portfolio — opens in a new tab<\/a>/);
+  assert.match(home, /<nav[^>]*aria-label="Site controls">\s*<a data-site-control="portfolio" href="https:\/\/vfxportfolio.lovable.app" target="_blank" rel="noopener" aria-label="Portfolio \(opens in a new tab\)"><span aria-hidden="true">▣<\/span> Portfolio<\/a>/);
   assert.doesNotMatch(directory, /portfolio/i);
 });
 
@@ -426,7 +426,7 @@ test('designed pools keep every catalog fact, behind a per-project disclosure', 
   }
   const page = read('web/pools/ai-d-kit/index.html');
   assert.match(page, /<main data-pool-id="ai-d-kit" data-pool-layout="designed">/);
-  assert.match(page, /pool-designed\.css/);
+  assert.match(page, /pool-entry\/pool-entry\.css/);
   // Private repositories are described, never linked.
   assert.doesNotMatch(page, /github\.com\/ivangegovdve-sudo\/(?:model-router|glass-pr-solver|council|system-one-bench)/);
 });

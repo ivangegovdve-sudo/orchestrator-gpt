@@ -1,0 +1,155 @@
+[
+  {
+    "name": "phone-small",
+    "bounds": {
+      "overflow": false,
+      "copy": {
+        "x": 24,
+        "y": 279.078125,
+        "width": 312,
+        "height": 225.71875,
+        "top": 279.078125,
+        "right": 336,
+        "bottom": 504.796875,
+        "left": 24
+      },
+      "note": {
+        "x": 24,
+        "y": 536.6875,
+        "width": 312,
+        "height": 16.109375,
+        "top": 536.6875,
+        "right": 336,
+        "bottom": 552.796875,
+        "left": 24
+      },
+      "support": {
+        "x": 18,
+        "y": 578,
+        "width": 139.203125,
+        "height": 44,
+        "top": 578,
+        "right": 157.203125,
+        "bottom": 622,
+        "left": 18
+      },
+      "feedbackCount": 5,
+      "links": [
+        "https://gymscholar.lovable.app/",
+        "https://flowform.sdforest.site/",
+        "http://127.0.0.1:4592/web/womens-health-os/"
+      ]
+    },
+    "feedback": {
+      "visible": true,
+      "focused": true,
+      "closed": true,
+      "focusReturned": true
+    },
+    "errors": []
+  },
+  {
+    "name": "phone",
+    "bounds": {
+      "overflow": false,
+      "copy": {
+        "x": 24,
+        "y": 461.78125,
+        "width": 342,
+        "height": 230.6875,
+        "top": 461.78125,
+        "right": 366,
+        "bottom": 692.46875,
+        "left": 24
+      },
+      "note": {
+        "x": 24,
+        "y": 724.359375,
+        "width": 342,
+        "height": 16.109375,
+        "top": 724.359375,
+        "right": 366,
+        "bottom": 740.46875,
+        "left": 24
+      },
+      "support": {
+        "x": 18,
+        "y": 782,
+        "width": 139.203125,
+        "height": 44,
+        "top": 782,
+        "right": 157.203125,
+        "bottom": 826,
+        "left": 18
+      },
+      "feedbackCount": 5,
+      "links": [
+        "https://gymscholar.lovable.app/",
+        "https://flowform.sdforest.site/",
+        "http://127.0.0.1:4592/web/womens-health-os/"
+      ]
+    },
+    "feedback": {
+      "visible": true,
+      "focused": true,
+      "closed": true,
+      "focusReturned": true
+    },
+    "errors": []
+  },
+  {
+    "name": "desktop",
+    "bounds": {
+      "overflow": false,
+      "copy": {
+        "x": 72,
+        "y": 340.953125,
+        "width": 384.1875,
+        "height": 299.046875,
+        "top": 340.953125,
+        "right": 456.1875,
+        "bottom": 640,
+        "left": 72
+      },
+      "note": {
+        "x": 72,
+        "y": 805.625,
+        "width": 275.125,
+        "height": 18.375,
+        "top": 805.625,
+        "right": 347.125,
+        "bottom": 824,
+        "left": 72
+      },
+      "support": {
+        "x": 18,
+        "y": 838,
+        "width": 139.203125,
+        "height": 44,
+        "top": 838,
+        "right": 157.203125,
+        "bottom": 882,
+        "left": 18
+      },
+      "feedbackCount": 5,
+      "links": [
+        "https://gymscholar.lovable.app/",
+        "https://flowform.sdforest.site/",
+        "http://127.0.0.1:4592/web/womens-health-os/"
+      ]
+    },
+    "feedback": {
+      "visible": true,
+      "focused": true,
+      "closed": true,
+      "focusReturned": true
+    },
+    "errors": []
+  },
+  {
+    "name": "no-js",
+    "noCanvas": true,
+    "otherPools": 7,
+    "errors": []
+  }
+]

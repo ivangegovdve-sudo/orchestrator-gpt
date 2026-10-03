@@ -1,0 +1,23 @@
+[
+  {
+    "name": "no-js-final",
+    "canvasVisible": false,
+    "height": 776,
+    "fallback": 1,
+    "poolLinks": 7
+  },
+  {
+    "name": "no-js-small",
+    "canvasVisible": false,
+    "height": 589,
+    "fallback": 1,
+    "poolLinks": 7
+  },
+  {
+    "name": "context-loss",
+    "canvasVisible": false,
+    "height": 776,
+    "fallback": 1,
+    "poolLinks": 7
+  }
+]

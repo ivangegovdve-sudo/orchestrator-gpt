@@ -1,0 +1,96 @@
+{
+  "base": "http://127.0.0.1:4580",
+  "capturedAt": "2026-10-03T15:26:45.729Z",
+  "evidence": [
+    {
+      "name": "intro-late-listen-arrival",
+      "url": "http://127.0.0.1:4580/",
+      "screenshot": "intro-late-listen-arrival.png",
+      "details": {
+        "blocked": {
+          "progress": 0.11071428571428577,
+          "currentTime": 0,
+          "duration": null,
+          "paused": true,
+          "ended": false,
+          "volume": 1,
+          "phase": "growing"
+        },
+        "beforeClick": {
+          "progress": 0.4297428571428546,
+          "currentTime": 0,
+          "duration": null,
+          "paused": true,
+          "ended": false,
+          "volume": 1,
+          "phase": "growing"
+        },
+        "aligned": {
+          "progress": 0.4749785714285686,
+          "currentTime": 6.10922,
+          "duration": 13.027896,
+          "paused": false,
+          "ended": false,
+          "volume": 1,
+          "phase": "growing"
+        },
+        "arrival": {
+          "progress": 1,
+          "currentTime": 13.027896,
+          "duration": 13.027896,
+          "paused": true,
+          "ended": true,
+          "volume": 0,
+          "phase": "complete"
+        },
+        "events": [
+          {
+            "event": "loadedmetadata",
+            "progress": 0.4666428571428543,
+            "currentTime": 6.079374,
+            "duration": 13.027896,
+            "paused": false,
+            "volume": 1,
+            "phase": "growing"
+          },
+          {
+            "event": "seeked",
+            "progress": 0.4690214285714258,
+            "currentTime": 6.079374,
+            "duration": 13.027896,
+            "paused": false,
+            "volume": 1,
+            "phase": "growing"
+          },
+          {
+            "event": "playing",
+            "progress": 0.4690214285714258,
+            "currentTime": 6.079374,
+            "duration": 13.027896,
+            "paused": false,
+            "volume": 1,
+            "phase": "growing"
+          },
+          {
+            "event": "pause",
+            "progress": 0.9713857142857241,
+            "currentTime": 13.027896,
+            "duration": 13.027896,
+            "paused": true,
+            "volume": 1,
+            "phase": "growing"
+          },
+          {
+            "event": "ended",
+            "progress": 0.9713857142857241,
+            "currentTime": 13.027896,
+            "duration": 13.027896,
+            "paused": true,
+            "volume": 1,
+            "phase": "growing"
+          }
+        ]
+      }
+    }
+  ]
+}
