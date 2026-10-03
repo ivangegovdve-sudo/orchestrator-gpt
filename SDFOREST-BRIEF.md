@@ -1,6 +1,6 @@
 # SD Forest brief
 
-Compiled 2026-10-03 from the sources listed at the end. One document covering the rebuild, the locked style decision, the front-page interaction model, every pool and its animation, what is in flight, and what is still open. Nothing here starts work; it describes the state.
+Compiled 2026-10-03 from the sources listed at the end. One document covering the rebuild, the work order, the locked style decision, the front-page interaction model, every pool and its animation, what is in flight, and what is still open. Nothing here starts work; it describes the state.
 
 Site: https://www.sdforest.site · Repo: `ivangegovdve-sudo/orchestrator-gpt` (static HTML/CSS/JS on Vercel; `web/` is the source).
 
@@ -15,7 +15,7 @@ Site: https://www.sdforest.site · Repo: `ivangegovdve-sudo/orchestrator-gpt` (s
 | Front page | Liked. The tree and the 2019 Make Me Pulse-style look stay. | Polish and finish only. No redesign. |
 | Pools and pool entries | All seven pool pages share one template (dark forest backdrop, serif title, a plaque, cards). Ivan: the entries are "very, very inadequate". | The real redesign target. Each pool becomes its own designed world with a finished entry animation, set in higher-quality imagery, optionally framed by a subtle tree trunk at the side. |
 | Health entry (the eukaryotic cell) | A code-rendered cell exists in PR #679. Ivan: "glossy and basic". | A proper render pass: accurate organelles, quality light and motion. |
-| Content and wiring | Counts, links and several tools are stale or broken (section 6). | Fix as separate small jobs. |
+| Content and wiring | Counts, links and several tools are stale or broken (section 7). | Fix as separate small jobs. |
 
 **Pace.** Ivan wants to take time and make it nice. Heavy new work waits for his explicit go.
 
@@ -28,7 +28,33 @@ Site: https://www.sdforest.site · Repo: `ivangegovdve-sudo/orchestrator-gpt` (s
 - The site stays live during the redesign, with a small, funny redesign notice.
 - Code-rendered animation only on the free path: no generated media and no paid APIs unless Ivan approves spend.
 
-## 2. Style decision (locked: Option A, the UI-first "forest skin")
+## 2. Work order: the page first, then the intro video
+
+This is the order Ivan works in. It is a pipeline with one hard dependency.
+
+**The dependency.** The intro video's final frame is the shipped tree-and-pools front end. The intro resolves into the real, live page, so its last frame must match that page exactly. The front end therefore has to be locked before the video can be finalized. Any later change to the tree, the pool positions or the framing reopens the video.
+
+| Step | What | Done when | Blocks |
+|---|---|---|---|
+| 1 | **Build the front end: the tree plus the pools integrated into it.** This is the real page (section 4): the central tree, its roots, the pool windows in fixed positions, the foreground. | The page is finished and frozen: final tree art, final pool positions and sizes, final framing at desktop and phone. | Step 2 |
+| 2 | **Freeze that page as the intro's final frame.** Capture the finished front end as the reference frame the video must end on. | A reference still of the locked page exists for each aspect ratio the video ships in. | Step 3 |
+| 3 | **Fix the intro video** so it lands on that final frame. | The last frame of the video and the live page are the same picture; the hand-off needs no crossfade to hide a mismatch. | Nothing; this is the end of the pipeline. |
+
+**Step 3: current state of the intro video (verified 2026-10-03).**
+
+- *Where it lives.* `web/assets/sdforest-intro/growth-scroll.mp4` (1920x1080, H.264, 24 fps, 25.2 s, 21.6 MB, no audio), with `seed-poster.webp` as its first frame. It is a browser-seeking re-encode of Ivan's master `06-sdforest-growth-master.mp4` in the Drive folder "sdforest tree animation / Make pulse images". Provenance and the re-encode command are in `web/assets/sdforest-intro/README.md`.
+- *How the page uses it.* `index.html` holds the film in `.resolve-growth-intro`; `web/shared/frontpage-resolve.mjs` scrubs it with the scroll position (seed at the start, mature tree at the end, reversible), over a 450vh scroll runway; `frontpage-intro-reveal.css` adds the opening reveal. The timing contract is `docs/frontpage-resolve.md`. The intro sample (PR #663) is merged, so this is what is live.
+- *What is wrong.*
+  1. **The last frame does not match the page.** The filmed tree and the page tree are related art, not the same pixels. The page hides this by reframing the film, darkening it through a mist layer and crossfading to the page tree in the final half-second. This is the defect the pipeline exists to remove.
+  2. The tree's growth retracts its branches, goes bare, then regrows. It should grow naturally.
+  3. There is no continuous zoom-out across the whole growth that lands precisely on the final composition.
+  4. The foreground is still the bulky roots. It should be sleeker technical structures (machinery, gears, mossy and weathered) that physically animate into place during the zoom-out, never fading in.
+  5. The central tree and its root connections are not finished, which is why step 1 comes first.
+  6. One 16:9 file serves every screen; there is no phone framing.
+  7. The narrated word poem and its "scroll down to skip" hand-off are specified but not built. "We Are The Training Data" will not be narrated.
+- *Not decided.* How the corrected video is produced (re-edit of the master, new footage, or generated) is Ivan's call; no generation or spend is approved.
+
+## 3. Style decision (locked: Option A, the UI-first "forest skin")
 
 Decided by Ivan on 2026-09-12 and confirmed since. Not to be re-litigated.
 
@@ -37,7 +63,7 @@ Decided by Ivan on 2026-09-12 and confirmed since. Not to be re-litigated.
 - His reason: the site must stay "visible, clear and easy to work with"; with A he never has to hunt for a pool that moved into a bush or a cave.
 - 2026-10-01 addition: the scenery must recede behind the UI. Imagery supports the UI and never crowds it.
 
-## 3. Front-page interaction model
+## 4. Front-page interaction model
 
 **The tree intro.**
 - A seed bursts through the ground of a lush boreal forest and grows into the central tree. When the tree is grown, you are on the front page.
@@ -65,7 +91,7 @@ Decided by Ivan on 2026-09-12 and confirmed since. Not to be re-litigated.
 - Support: a small, persistent Buy Me a Coffee control in a lower corner, visible but secondary, on every page.
 - Ordering inside a pool is by how finished a project is. Unfinished ones sit lower, greyed and tilted, marked Coming Soon.
 
-## 4. Pools, projects and animations
+## 5. Pools, projects and animations
 
 **Pool count.** The 2026-09-16 handoff lists eight pools, with AI Research separate from Artificial Self. The repo's later settled decision (2026-09-20) makes AI Research the research part of Artificial Self, and the live site has seven pool pages. Both are recorded here; see open question 1.
 
@@ -96,7 +122,7 @@ Each pool has two animations: its front-page window (live today) and its entry a
 
 Not projects: Site Home (the home page), Portfolio (site-level control), Open Design (external, not Ivan's), Knowledge Ingest (private Fleet utility), Found Work (removed), Kids Corner (retired name).
 
-## 5. Current changes in flight (2026-10-03)
+## 6. Current changes in flight (2026-10-03)
 
 | Item | Where | State |
 |---|---|---|
@@ -109,7 +135,7 @@ Not projects: Site Home (the home page), Portfolio (site-level control), Open De
 | Repo index and shelf | Paperclip SDM-1096 to SDM-1101 | SDM-1096 (catalog sync to 1,336 repos) done. Cards, upstream-first forks, shelf refresh and site counts queued. Graphify continuation held for Ivan's go. |
 | Merged this week | #674, #677, #692, #693 | Health card links; scroll-craft skill; Alternate Self in TinkerBox; the `.mjs` content-type fix. |
 
-## 6. Open questions
+## 7. Open questions
 
 1. **Seven pools or eight?** Is AI Research its own pool (2026-09-16) or the research part of Artificial Self (2026-09-20, and how the site is built today)?
 2. **Entry concepts** for GrowingApp, AI-d kit, TinkerBox and Design Gallery are proposals. Approve or replace each.
@@ -125,8 +151,9 @@ Not projects: Site Home (the home page), Portfolio (site-level control), Open De
 12. **The combined open-source path** (capability cards, repo shelf, Graphify, platforms, tools, free stuff): no written spec was found.
 13. **Explore Repos** still lacks the embedded shelf, "Ask a question", graph search and capability cards.
 14. **Portfolio default skin** waits for Ivan, once variants exist.
+15. **The corrected intro video:** how it is produced (re-edit of the master, new footage, or generated), and when the front end counts as locked.
 
-## 7. How to run and build
+## 8. How to run and build
 
 ```bash
 git clone https://github.com/ivangegovdve-sudo/orchestrator-gpt
@@ -169,7 +196,13 @@ Drive documents consolidated here (Ivan's Drive): `SDFOREST-VISUAL-DESIGN-VERBAT
     { "id": "ai-research", "entry": null, "entry_status": "open question: separate pool or part of artificial-self" }
   ],
   "statuses": ["Live", "Research", "Experimental", "In development"],
-  "open_questions": 14,
+  "pipeline": [
+    { "step": 1, "do": "build the tree + pools front end (the real page)", "blocks": 2 },
+    { "step": 2, "do": "freeze the finished page as the intro video's final frame", "blocks": 3 },
+    { "step": 3, "do": "fix the intro video so it lands on that frame", "asset": "web/assets/sdforest-intro/growth-scroll.mp4" }
+  ],
+  "hard_dependency": "intro final frame = shipped tree+pools front end; lock the front end before finalizing the video",
+  "open_questions": 15,
   "catalog": "web/shared/project-catalog.mjs"
 }
 ```
