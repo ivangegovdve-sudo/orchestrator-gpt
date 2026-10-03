@@ -12,22 +12,22 @@
       "seeks": [
         {
           "time": 3,
-          "elapsedMs": 110,
+          "elapsedMs": 133,
           "readyState": 4
         },
         {
           "time": 8,
-          "elapsedMs": 66.8,
+          "elapsedMs": 183.1,
           "readyState": 4
         },
         {
           "time": 5,
-          "elapsedMs": 149.4,
+          "elapsedMs": 166.7,
           "readyState": 4
         },
         {
           "time": 11.958333333333334,
-          "elapsedMs": 383.3,
+          "elapsedMs": 433.5,
           "readyState": 4
         },
         {
@@ -47,27 +47,27 @@
       "seeks": [
         {
           "time": 3,
-          "elapsedMs": 48.7,
+          "elapsedMs": 59,
           "readyState": 4
         },
         {
           "time": 8,
-          "elapsedMs": 50.2,
+          "elapsedMs": 54.6,
           "readyState": 4
         },
         {
           "time": 5,
-          "elapsedMs": 82.8,
+          "elapsedMs": 79.6,
           "readyState": 4
         },
         {
           "time": 11.958333333333334,
-          "elapsedMs": 251,
+          "elapsedMs": 249.3,
           "readyState": 4
         },
         {
           "time": 12.000000333333334,
-          "elapsedMs": 32.8,
+          "elapsedMs": 33.1,
           "readyState": 4
         }
       ]

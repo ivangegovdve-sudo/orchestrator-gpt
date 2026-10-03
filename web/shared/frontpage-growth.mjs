@@ -8,7 +8,7 @@ export function createGrowthIntro(stage,onProgress,onComplete,onTakeover) {
   stage.append(intro);
   const narration=new Audio('/web/assets/sdforest-intro/seed-to-forest.mp3');
   narration.preload='none';
-  let scene=null,p=0,guide=false,id=0,last=null,ready=false,useFilm=false,enabled=false,fading=0;
+  let scene=null,p=0,guide=false,id=0,last=null,ready=false,useFilm=false,enabled=false,fading=0,narrationAlignment=false;
   const voice=document.createElement('button');
   voice.type='button';voice.className='intro-voice-control';voice.textContent='Listen';voice.hidden=true;
   voice.setAttribute('aria-label','Play the intro word poem');stage.append(voice);
@@ -46,7 +46,7 @@ export function createGrowthIntro(stage,onProgress,onComplete,onTakeover) {
     }else scene.render(p);
     if(p===1){voice.hidden=true;root.removeAttribute('data-frame-locked');onComplete();}
   }
-  function stopGuide(){guide=false;if(id)cancelAnimationFrame(id);id=0;last=null;}
+  function stopGuide(){guide=false;narrationAlignment=false;if(id)cancelAnimationFrame(id);id=0;last=null;}
   function fadeNarration(){
     cancelAnimationFrame(fading);
     const start=performance.now(),volume=narration.volume;
@@ -65,8 +65,18 @@ export function createGrowthIntro(stage,onProgress,onComplete,onTakeover) {
     if(!document.hidden&&ready){if(last!==null)p=clamp(p+Math.min((stamp-last)/1000,.1)/guideSeconds);display(p);}last=stamp;
     if(p<1)id=requestAnimationFrame(tick);else stopGuide();
   }
-  function listen(){narration.volume=1;narration.play().then(()=>{if(!guide||!enabled)narration.pause();voice.hidden=true;}).catch(()=>{if(guide)voice.hidden=false;});}
-  voice.addEventListener('click',listen);
+  function alignNarration(){
+    if(!narrationAlignment||!guide||!enabled||!Number.isFinite(narration.duration))return;
+    narration.currentTime=p*narration.duration;narrationAlignment=false;
+  }
+  function listen(align=false){
+    // An explicit late Listen joins the current guide. Visibility resumes keep
+    // the existing audio position, including any pending metadata alignment.
+    if(align){narrationAlignment=true;alignNarration();}
+    narration.volume=1;narration.play().then(()=>{if(!guide||!enabled)narration.pause();voice.hidden=true;}).catch(()=>{if(guide)voice.hidden=false;});
+  }
+  voice.addEventListener('click',()=>listen(true));
+  narration.addEventListener('loadedmetadata',alignNarration);
   film.addEventListener('loadedmetadata',()=>display(p));
   film.addEventListener('error',()=>{useFilm=false;intro.style.display='none';display(p);});
   document.addEventListener('visibilitychange',()=>{last=null;if(document.hidden)narration.pause();else if(guide)listen();});

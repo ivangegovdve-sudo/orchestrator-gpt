@@ -15,7 +15,7 @@ const evidence = [];
 
 before(async () => {
   fs.mkdirSync(out, { recursive: true });
-  browser = await chromium.launch({ executablePath: process.env.CHROME_PATH || 'C:/Program Files/Google/Chrome/Application/chrome.exe', headless: true, args: ['--disable-gpu', '--force-color-profile=srgb'] });
+  browser = await chromium.launch({ executablePath: process.env.CHROME_PATH || 'C:/Program Files/Google/Chrome/Application/chrome.exe', headless: true, args: ['--disable-gpu', '--force-color-profile=srgb', '--mute-audio', '--autoplay-policy=user-gesture-required'] });
 });
 after(async () => {
   await browser?.close();
@@ -122,6 +122,57 @@ test('intro: a free guided start hands its exact position to wheel scroll, fades
     assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);
     assert.deepEqual(page.runtimeErrors, []);
     await prove(page, 'intro-code-finished', { progress: await introProgress(page), pools: await poolBounds(page) });
+  } finally { await page.context().close(); }
+});
+
+test('intro: late Listen aligns the real poem after delayed metadata and finishes it by page arrival', async () => {
+  const page = await freshIntroPage();
+  const audioState = () => page.evaluate(() => {
+    const audio = window.introAudioEvidence.find(audio => audio.src.endsWith('/seed-to-forest.mp3'));
+    return { progress: (window.sdforestResolve.time + 6) / 11, currentTime: audio.currentTime,
+      duration: Number.isFinite(audio.duration) ? audio.duration : null, paused: audio.paused,
+      ended: audio.ended, volume: audio.volume, phase: document.documentElement.dataset.growthPhase };
+  });
+  try {
+    const blocked = await audioState();
+    assert.equal(blocked.paused, true, 'the fresh guide cannot autoplay audible narration');
+    assert.equal(blocked.currentTime, 0);
+    assert.equal(blocked.duration, null, 'metadata is still unknown before the explicit gesture');
+    assert.equal(await page.getByRole('button', { name: 'Play the intro word poem' }).isVisible(), true);
+    await page.route('**/seed-to-forest.mp3', async route => {
+      await new Promise(resolve => setTimeout(resolve, 450));
+      await route.continue();
+    });
+    await page.evaluate(() => {
+      const audio = window.introAudioEvidence.find(audio => audio.src.endsWith('/seed-to-forest.mp3'));
+      window.lateListenEvents = [];
+      for (const event of ['loadedmetadata', 'seeked', 'playing', 'pause', 'ended']) {
+        audio.addEventListener(event, () => window.lateListenEvents.push({ event,
+          progress: (window.sdforestResolve.time + 6) / 11, currentTime: audio.currentTime,
+          duration: audio.duration, paused: audio.paused, volume: audio.volume,
+          phase: document.documentElement.dataset.growthPhase }));
+      }
+    });
+    await page.waitForFunction(() => (window.sdforestResolve.time + 6) / 11 >= 6 / 14);
+    const beforeClick = await audioState();
+    await page.getByRole('button', { name: 'Play the intro word poem' }).click();
+    await page.waitForFunction(() => window.introAudioEvidence.some(audio => Number.isFinite(audio.duration) && !audio.paused));
+    await page.waitForTimeout(100);
+    const aligned = await audioState();
+    assert.ok(Math.abs(aligned.currentTime - aligned.progress * aligned.duration) < .25,
+      `late narration follows the guide instead of restarting: ${JSON.stringify(aligned)}`);
+    assert.ok(aligned.currentTime > 5, 'the mid-guide gesture skips the already elapsed poem');
+    await page.waitForFunction(() => document.documentElement.dataset.growthPhase === 'complete', null, { timeout: 20000 });
+    await page.waitForTimeout(550);
+    const arrival = await audioState();
+    assert.equal(arrival.paused, true, 'narration is quiet on the arrived page');
+    assert.equal(arrival.ended, true, 'the aligned poem reaches its end rather than being cut off');
+    assert.ok(arrival.currentTime >= arrival.duration - .05);
+    assert.equal(arrival.volume, 0);
+    assert.equal(await page.getByRole('button', { name: 'Play the intro word poem' }).isVisible(), false);
+    assert.deepEqual(page.runtimeErrors, []);
+    await prove(page, 'intro-late-listen-arrival', { blocked, beforeClick, aligned, arrival,
+      events: await page.evaluate(() => window.lateListenEvents) });
   } finally { await page.context().close(); }
 });
 

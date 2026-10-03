@@ -27,6 +27,8 @@ The default guide runs for 14 seconds. Wheel, touch, scrolling keys and native s
 
 The original working poem is: “One seed. A root finds its way. A branch reaches into light. Small worlds connect. A forest opens. A place to begin.” No approved poem text was supplied. This working copy uses local Windows speech synthesis, not paid generation or a subscription. WAT Training Data is not narrated.
 
+When autoplay is blocked, a later **Listen** gesture aligns the poem to the current guide frame, including delayed audio metadata. Ordinary visibility resume retains its playback position. The [native-audio regression](sdforest-pipeline-evidence/late-listen/report.json) checks the alignment and confirms that the poem ends before arrival.
+
 The MP4 containers carry RGB VP9 because ordinary H.264 chroma conversion changes the reference pixels. Moving frames are compressed; the final keyframe is lossless and stays exactly equal to the locked page. `scripts/verify-sdforest-video.cjs` checks the decoded last sample and Chromium's actual video display against the PNG with literal RGB equality. Unsupported video decoders fall back to the native compositor. The video metadata and hashes are in `video-render.json` alongside the assets.
 
 ## Reproduction and evidence
@@ -56,7 +58,7 @@ Final built-page verification on 2026-10-03:
 
 | Check | Result |
 |---|---|
-| Front page, pointer/touch/keyboard, guide/scroll, audio fade, return/reload, resize, inner idle/phone loops, codec | 19/19 passed |
+| Front page, pointer/touch/keyboard, guide/scroll, audio fade and late Listen, return/reload, resize, inner idle/phone loops, codec | 20/20 passed |
 | Six pool entries, desktop/phone/reduced motion | 18/18 passed |
 | Intro behavior, reverse, focus, resize and reduced motion | Passed |
 | Final video RGB against reference, decoder and Chrome | 0 different pixels, desktop and phone |
@@ -65,4 +67,4 @@ Final built-page verification on 2026-10-03:
 
 The final desktop movie is 47,299,450 bytes and the phone movie is 9,168,439 bytes, both 289 frames at 24 fps. Growth samples use CRF 24; final samples are lossless. Video contact sheets in the evidence directory show samples 0, 72, 144, 216, 287 and 288.
 
-This work is on a feature branch and a draft PR. The cross-family review uses a live zero-price fleet provider, excludes OpenAI author-family models and publishes a pinned-head comment. It does not use Claude subscriptions. Secret values are resolved in memory only by their GCP Secret Manager names. A draft and comment-only review keep production merging under human control.
+This work is on a feature branch and a draft PR. Cross-family review is required on the pinned PR head. Its free local Qwen2.5-Coder 14B route uses canonical qualification checks, complete file-boundary coverage and a comment-only GitHub App publisher. It does not use Claude subscriptions. Secret values are resolved in memory only by their GCP Secret Manager names. A draft and comment-only review keep production merging under human control.

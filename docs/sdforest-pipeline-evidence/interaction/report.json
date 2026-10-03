@@ -1,6 +1,6 @@
 {
   "base": "http://127.0.0.1:4580",
-  "capturedAt": "2026-10-03T13:42:42.993Z",
+  "capturedAt": "2026-10-03T15:35:09.543Z",
   "evidence": [
     {
       "name": "intro-code-growing",
@@ -102,6 +102,96 @@
             "visible": true,
             "inert": false,
             "withinViewport": true
+          }
+        ]
+      }
+    },
+    {
+      "name": "intro-late-listen-arrival",
+      "url": "http://127.0.0.1:4580/",
+      "screenshot": "intro-late-listen-arrival.png",
+      "details": {
+        "blocked": {
+          "progress": 0.052371428571428555,
+          "currentTime": 0,
+          "duration": null,
+          "paused": true,
+          "ended": false,
+          "volume": 1,
+          "phase": "growing"
+        },
+        "beforeClick": {
+          "progress": 0.4297428571428559,
+          "currentTime": 0,
+          "duration": null,
+          "paused": true,
+          "ended": false,
+          "volume": 1,
+          "phase": "growing"
+        },
+        "aligned": {
+          "progress": 0.47379285714285546,
+          "currentTime": 6.133858,
+          "duration": 13.027896,
+          "paused": false,
+          "ended": false,
+          "volume": 1,
+          "phase": "growing"
+        },
+        "arrival": {
+          "progress": 1,
+          "currentTime": 13.027896,
+          "duration": 13.027896,
+          "paused": true,
+          "ended": true,
+          "volume": 0,
+          "phase": "complete"
+        },
+        "events": [
+          {
+            "event": "loadedmetadata",
+            "progress": 0.46545714285714124,
+            "currentTime": 6.063927,
+            "duration": 13.027896,
+            "paused": false,
+            "volume": 1,
+            "phase": "growing"
+          },
+          {
+            "event": "seeked",
+            "progress": 0.46545714285714124,
+            "currentTime": 6.063927,
+            "duration": 13.027896,
+            "paused": false,
+            "volume": 1,
+            "phase": "growing"
+          },
+          {
+            "event": "playing",
+            "progress": 0.46545714285714124,
+            "currentTime": 6.063927,
+            "duration": 13.027896,
+            "paused": false,
+            "volume": 1,
+            "phase": "growing"
+          },
+          {
+            "event": "pause",
+            "progress": 0.9678214285714369,
+            "currentTime": 13.027896,
+            "duration": 13.027896,
+            "paused": true,
+            "volume": 1,
+            "phase": "growing"
+          },
+          {
+            "event": "ended",
+            "progress": 0.9678214285714369,
+            "currentTime": 13.027896,
+            "duration": 13.027896,
+            "paused": true,
+            "volume": 1,
+            "phase": "growing"
           }
         ]
       }
