@@ -1,0 +1,13 @@
+/* The comparison studio shell shared by setup, ecosystem and council routes. */
+.studio-page .companion-content { margin: 0 0 0 var(--sidebar); width: calc(100% - var(--sidebar)); padding: 30px clamp(18px,4vw,64px); color: var(--ink); background: var(--paper); min-height: 100vh; }
+.studio-page .companion-content .site-header { background: var(--paper); color: var(--ink); border-bottom: 1px solid var(--rule); }
+.studio-page .companion-content main { padding-top: 28px; }
+.studio-page .companion-content h1 { letter-spacing: -.055em; color: var(--ink); }
+.studio-page .companion-content .button.primary { background: var(--canvas); color: var(--on-canvas); }
+.studio-page .companion-content a { color: var(--link); }
+.studio-page .companion-content .sidebar a { color: var(--on-canvas); }
+.live-price-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.live-price-table th,.live-price-table td { padding: 12px; text-align: left; border-bottom: 1px solid var(--rule); vertical-align: top; }
+.live-price-table code { overflow-wrap: anywhere; }
+.live-price-table td small { display: block; color: var(--muted); }
+.live-source-note { color: var(--muted); line-height: 1.6; }

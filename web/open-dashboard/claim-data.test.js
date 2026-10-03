@@ -311,53 +311,14 @@ test(
   },
 );
 
-test(
-  "a stalled KIE response body times out into the original dated fallback",
-  { timeout: 1000 },
-  async () => {
-    const old = normalizeKiePrices([kie()], at);
-    let signal;
-    const result = await loadKieCatalogue({
-      timeoutMs: 15,
-      fetchImpl: async (url, options) => {
-        if (url === CLAIM_SOURCES.kie) {
-          signal = options.signal;
-          return { ok: true, text: () => new Promise(() => {}) };
-        }
-        return response(old);
-      },
-    });
-    assert.equal(signal.aborted, true);
-    assert.equal(result.providers[0].freshness, "snapshot");
-    assert.equal(result.providers[0].observedAt, at);
-    assert.equal(result.providers[0].refreshError, "Source read timed out.");
-    assert.equal(result.models[0].fetchedAt, at);
-  },
-);
+test("an unavailable live source never substitutes a baked price", async () => {
+ const result=await loadKieCatalogue({ force:true, fetchImpl:async()=>{throw Error('offline');} });
+ assert.equal(result.providers[0].freshness,'unavailable'); assert.deepEqual(result.models,[]);
+});
 
-test("failed browser read uses dated fallback without relabelling its source time as live", async () => {
-  const old = normalizeKiePrices([kie()], at);
-  const result = await loadKieCatalogue({
-    fetchImpl: async (url) => {
-      if (url === CLAIM_SOURCES.kie)
-        throw new TypeError("CORS or network unavailable");
-      return response(old);
-    },
-  });
-  assert.equal(result.providers[0].freshness, "snapshot");
-  assert.equal(result.providers[0].observedAt, at);
-  assert.equal(result.models[0].fetchedAt, at);
-  assert.match(result.providers[0].refreshError, /did not complete/);
-  const merged = mergeMedia([], normalizeMediaCatalogue(result));
-  assert.equal(merged[0].sourceFreshness, "snapshot");
-  assert.equal(merged[0].sourceAt, at);
-  assert.equal(
-    datedProvider(
-      { ...old, providers: [{ ...old.providers[0], observedAt: null }] },
-      "kie",
-    ),
-    null,
-  );
+test("live loader rejects an old snapshot response", async () => {
+ const result=await loadKieCatalogue({ force:true, fetchImpl:async()=>response(normalizeKiePrices([kie()],at)) });
+ assert.equal(result.providers[0].freshness,'unavailable'); assert.deepEqual(result.models,[]);
 });
 
 test("provider freshness reaches native model inspectors and coverage without promoting dated neighbours", () => {

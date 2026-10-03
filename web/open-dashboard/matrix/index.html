@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-palette="plum" data-theme="light" data-studio>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -7,8 +7,68 @@
     <meta name="robots" content="noindex" />
     <link rel="stylesheet" href="../explorer.css" />
     <script src="../theme.js"></script>
-  </head>
-  <body class="od-page">
+  <link rel="stylesheet" href="../studio.css"><link rel="stylesheet" href="../companion.css"><script type="module" src="../companion-shell.js"></script></head>
+  <body class="od-page studio-page">    <aside class="sidebar" aria-label="Site navigation">
+      <a class="brand" href="/web/open-dashboard/" aria-label="openDashboard home"
+        ><img src="/web/open-dashboard/assets/interlock.svg" width="80" height="80" alt="" /><span
+          >open<span>Dashboard</span></span
+        ></a
+      >
+      <button
+        class="menu-toggle"
+        aria-label="Expand navigation"
+        aria-expanded="false"
+      >
+        <span aria-hidden="true">☰</span>
+      </button>
+      <p class="nav-label">THE OPEN TOOLKIT</p>
+      <nav aria-label="Dashboard navigation">
+        <a href="/web/open-dashboard/"  title="Compare claims"
+          ><span aria-hidden="true">◫</span><b>Compare claims</b></a
+        >
+        <a href="/web/open-dashboard/?view=models#explore" title="Model explorer"
+          ><span aria-hidden="true">◇</span><b>Model explorer</b></a
+        >
+        <a href="/web/open-dashboard/?view=apps#explore" title="Apps and models"
+          ><span aria-hidden="true">▦</span><b>Apps &amp; models</b></a
+        >
+        <a href="/web/open-dashboard/?view=history#explore" title="History"
+          ><span aria-hidden="true">◷</span><b>History</b></a
+        >
+        <a href="/web/open-dashboard/?view=benchmarks#explore" title="Benchmarks"
+          ><span aria-hidden="true">≋</span><b>Benchmarks</b></a
+        >
+        <a href="/web/open-dashboard/?view=changes#explore" title="Changes and lifecycle"
+          ><span aria-hidden="true">↺</span><b>Changes</b></a
+        >
+        <a href="/web/open-dashboard/?view=state#explore" title="Live prices"
+          ><span aria-hidden="true">⊞</span><b>Live prices</b></a
+        >
+      </nav>
+      <div class="nav-divider"></div>
+      <nav aria-label="Connected projects"><a href="/web/open-dashboard/council/"><span aria-hidden="true">◎</span><b>Jev Council</b></a>
+        <a
+          href="https://github.com/ivangegovdve-sudo/model-router"
+          target="_blank"
+          rel="noopener"
+          title="Model Router repository"
+          ><span aria-hidden="true">⇢</span><b>Model Router <i>↗</i></b></a
+        >
+        <a href="/web/open-dashboard/mcp/" title="MCP setup"
+          ><span aria-hidden="true">⌘</span><b>Connect an agent</b></a
+        >
+        <a href="/web/open-dashboard/github/" title="GitHub projects"
+          ><span aria-hidden="true">⊡</span><b>GitHub projects</b></a
+        >
+        <a href="/" title="SD Forest home"
+          ><span aria-hidden="true">⌂</span><b>SD Forest <i>↗</i></b></a
+        >
+      </nav>
+      <div class="sidebar-foot">
+        <span class="read-only-dot"></span
+        ><span>Read-only by design.<br />Evidence in the open.</span>
+      </div>
+    </aside><div class="page companion-content">
     <main class="page-width">
       <h1>App–model connections</h1>
       <p>Open Dashboard’s explorer has a new home.</p>
@@ -22,5 +82,5 @@
       next.hash = "connections";
       location.replace(next.href);
     </script>
-  </body>
+  </div></body>
 </html>

@@ -1,3 +1,4 @@
+import { readProviderCatalogue } from "./live-source.js";
 /** Public price evidence only. No credentials, inference, or model-equivalence claims. */
 export const CLAIM_SOURCES = Object.freeze({
   openrouter: "https://openrouter.ai/api/v1/models",
@@ -650,56 +651,15 @@ export function datedProvider(snapshotValue, provider, error = null) {
 }
 
 const pending = new Map();
-async function loadProvider(
-  provider,
-  { fetchImpl = fetch, force = false, timeoutMs = 12000 } = {},
-) {
-  const key = provider;
-  if (!force && fetchImpl === globalThis.fetch && pending.has(key))
-    return pending.get(key);
-  const work = (async () => {
-    let reason = null;
-    // fal's HTML summary does not grant browser CORS; do not issue a doomed request.
-    if (provider !== "fal") {
-      try {
-        return await collectClaimSource(provider, { fetchImpl, timeoutMs });
-      } catch (error) {
-        reason =
-          error.name === "AbortError"
-            ? "Source read timed out."
-            : "The public provider read did not complete.";
-      }
-    }
-    const historical = datedProvider(
-      await fallback(fetchImpl, force),
-      provider,
-      reason,
-    );
-    if (historical) return historical;
-    return {
-      schemaVersion: 2,
-      fetchedAt: null,
-      models: [],
-      population: { completeness: "unavailable" },
-      notes: [],
-      providers: [
-        {
-          provider,
-          status: "unavailable",
-          freshness: "unavailable",
-          observedAt: null,
-          sourceUrl: CLAIM_SOURCES[provider],
-          error: reason || "No dated public summary available.",
-        },
-      ],
-    };
-  })();
-  if (fetchImpl === globalThis.fetch) pending.set(key, work);
+async function loadProvider(provider, { fetchImpl = fetch, force = false } = {}) {
+  if (!force && fetchImpl === globalThis.fetch && pending.has(provider)) return pending.get(provider);
+  const work = readProviderCatalogue(provider, { fetchImpl }).then(current => ({ ...current, notes: ['Live MCP provider catalogue read.'] })).catch(() => ({
+    schemaVersion: '1.0', fetchedAt: null, models: [], notes: [], providers: [{ provider, status: 'unavailable', freshness: 'unavailable', observedAt: null, sourceUrl: CLAIM_SOURCES[provider], error: 'Live provider source unavailable.' }]
+  }));
+  if (fetchImpl === globalThis.fetch) pending.set(provider, work);
   return work;
 }
-export function loadKieCatalogue(options = {}) {
-  return loadProvider("kie", options);
-}
+export function loadKieCatalogue(options = {}) { return loadProvider('kie', options); }
 
 export function selectClaimRows(
   source,

@@ -73,7 +73,8 @@ import {
 } from "./evidence-charts.js";
 import { validateAppModelMatrix } from "./open-dashboard-schema.js";
 import { renderAtlas, disposeAtlas } from "./atlas.js";
-import { loadKieCatalogue } from "./claim-data.js";
+import { readAllCatalogues } from "./live-source.js";
+import { formatPriceCondition } from "./price-condition.js";
 
 initShell();
 const $ = (id) => document.getElementById(id),
@@ -92,6 +93,15 @@ const $ = (id) => document.getElementById(id),
 let evidence = null,
   evidencePromise = null;
 const endpointCache = new Map();
+const requestedLocation = new URLSearchParams(location.search).get('readLocation');
+const readLocation = ['bulgaria-desktop', 'kvm2-europe', 'oracle-us'].includes(requestedLocation) ? requestedLocation : null;
+$("read-location").value = readLocation || 'source';
+$("read-location").addEventListener('change', event => {
+  const url = new URL(location.href);
+  if (event.target.value === 'source') url.searchParams.delete('readLocation');
+  else url.searchParams.set('readLocation', event.target.value);
+  location.assign(url);
+});
 let endpointTimer;
 function initialState() {
   const result = readState(location.search);
@@ -115,7 +125,7 @@ let state = initialState(),
   resizeTimer,
   toastTimer;
 let supplemental = null;
-let capabilityStatePromise = null;
+
 const mediaMode = () =>
   ["video", "image", "audio", "unknown"].includes(state.modality);
 function toast(message) {
@@ -127,6 +137,7 @@ function toast(message) {
 function persist() {
   const params = new URLSearchParams(stateQuery(state));
   params.set("view", state.view);
+  if (readLocation) params.set('readLocation', readLocation);
   const query = params.toString();
   window.history.replaceState(
     null,
@@ -677,127 +688,18 @@ function renderProviderPairDetails(comparison) {
   table.append(body);
   container.append(table);
 }
-function capabilityStateLabel(observation) {
-  const state = String(observation?.state || "unknown").toUpperCase();
-  if (state === "KNOWN") return "Known";
-  if (state === "EXPIRED") return "Expired";
-  return "Unknown";
-}
-function capabilityStateValue(observation, format = (value) => value) {
-  if (
-    !observation ||
-    observation.state !== "known" ||
-    observation.value == null
-  )
-    return capabilityStateLabel(observation);
-  return format(observation.value);
-}
 function renderCapabilityState() {
-  const data = metadata.capabilityState;
-  if (!data && !capabilityStatePromise) ensureCapabilityState();
-  if (!data) {
-    $("chart-title").textContent = "Loading decision state";
-    $("chart-subtitle").textContent = "Reading the dated capability export";
-    $("chart").innerHTML =
-      '<p class="loading-overview">Loading one state row per live model…</p>';
-    $("plot-summary").textContent =
-      "Unknown values remain blocked until the export is read.";
-    return;
-  }
-  if (!data || data.status !== "ok") {
-    emptyChart(
-      $("chart"),
-      "The decision state is unavailable.",
-      "The dated export could not be read. The model landscape remains available.",
-    );
-    $("chart-title").textContent = "Decision state needs a complete source";
-    $("chart-subtitle").textContent =
-      "No rows are silently treated as selectable";
-    $("plot-summary").textContent =
-      data?.message || data?.summary || "Capability state export unavailable.";
-    $("inspector").innerHTML =
-      '<p class="eyebrow">Decision state</p><h3>Evidence is missing.</h3><p>Unknown values stay unknown until a real probe publishes them.</p>';
-    return;
-  }
-  const rows = Array.isArray(data.rows) ? data.rows : [];
-  const providers = new Set(rows.map((row) => row.provider));
-  const directProviders = Array.isArray(data.providers)
-    ? data.providers.filter((provider) => provider.directAdapter).length
-    : providers.size;
-  const unknowns = rows.reduce(
-    (count, row) =>
-      count + (row.selection?.publicCouncil?.state === "unknown" ? 1 : 0),
-    0,
-  );
-  const publicQuery = data.queries?.publicCouncil;
-  const privateQuery = data.queries?.innerObserver;
-  const measurement = data.measurement;
-  $("chart-title").textContent = "One state object, two honest decisions";
-  $("chart-subtitle").textContent =
-    `${rows.length.toLocaleString()} live model rows · ${directProviders} direct adapters · ${providers.size} with rows · dated ${dateLabel(data.generatedAt)}`;
-  $("chart-hint").textContent = "Every unknown is named";
-  $("plot-summary").textContent =
-    `${data.scope.completeness === "full" ? "Full" : "Partial"} live-slug coverage. ${unknowns.toLocaleString()} rows cannot be selected for the public council because required evidence is unknown or expired.`;
-  const formatList = (values) =>
-    Array.isArray(values) && values.length
-      ? values.map((value) => `<code>${escape(value)}</code>`).join(" ")
-      : "None";
-  const queryCard = (label, query) =>
-    `<article class="state-query-card"><p class="eyebrow">${escape(label)}</p><h4>${query?.decisionState === "decidable" ? "Decision available" : "Blocked by missing evidence"}</h4><p>${escape(query?.basis || "No decision rule published.")}</p><dl class="state-query-meta"><div><dt>Rows considered</dt><dd>${Number(query?.consideredRows || 0).toLocaleString()}</dd></div><div><dt>Missing fields</dt><dd>${formatList(query?.missingFields)}</dd></div></dl></article>`;
-  const vantageSummary = (measurement?.vantagePoints || [])
-    .map(
-      (point) =>
-        `<span class="state-vantage"><strong>${escape(point.label)}</strong><small>${escape(point.state.toUpperCase())}</small></span>`,
-    )
-    .join("");
-  const measurementCard = measurement
-    ? `<article class="state-measurement-card"><div><p class="eyebrow">Weekly measured workload · ${escape(measurement.version)}</p><h4>${escape(measurement.workload.prompt)} <span>n=${escape(measurement.workload.sampleSize)}</span></h4><p>${escape(measurement.workload.note)}</p><p class="state-measurement-cost"><strong>PUBLISHED estimate</strong> · $${escape(measurement.weeklyCost.estimateUsd)}/week lower bound · ${Number(measurement.weeklyCost.callsPerWeek).toLocaleString()} calls · ${escape(measurement.weeklyCost.measuredReplacement)}</p></div><div class="state-vantage-list" aria-label="Measurement vantage points">${vantageSummary}</div><p class="state-measurement-foot">p50 and max-of-8 are publishable; p95 is withheld at n=8. Result snapshots: <strong>${escape(measurement.resultSnapshots.state)}</strong> until each vantage point supplies signed JSON.</p></article>`
-    : "";
-  const visibleRows = rows;
-  const rowTable = visibleRows
-    .map(
-      (row) =>
-        `<tr><th scope="row"><code>${escape(row.id)}</code><small>${escape(PROVIDERS[row.provider] || row.provider)}</small></th><td><span class="state-pill state-${escape(row.reachability?.state || "unknown")}">${escape(row.reachability?.state || "unknown")}</span></td><td>${escape(capabilityStateValue(row.costPerGeneration))}</td><td>${escape(capabilityStateValue(row.toolCalling, (value) => (value ? "Yes" : "No")))}</td><td>${escape(capabilityStateValue(row.functionality?.p50Latency, (value) => `${value} ms`))}</td><td>${escape(capabilityStateValue(row.contextWindow, (value) => String(value)))}</td></tr>`,
-    )
-    .join("");
-  const providerSummary = (data.providers || [])
-    .map(
-      (provider) =>
-        `<span class="state-provider-chip"><strong>${escape(PROVIDERS[provider.id] || provider.id)}</strong><small>${Number(provider.liveRows || 0).toLocaleString()} live rows${provider.state === "no_live_rows" ? " · no live row in this snapshot" : ""}</small></span>`,
-    )
-    .join("");
-  $("chart").innerHTML =
-    `<div class="capability-state-view"><div class="state-provider-summary" aria-label="Provider coverage">${providerSummary}</div><div class="state-query-grid">${queryCard("PUBLIC · literal cheapest paid", publicQuery)}${queryCard("PRIVATE · cheapest functional", privateQuery)}</div>${measurementCard}<div class="state-ledger-heading"><div><p class="eyebrow">Shared ledger</p><h4>Evidence per live slug</h4></div><a class="text-link" href="./capability-state.json" target="_blank" rel="noopener">Open full JSON export ↗</a></div><div class="state-table-wrap"><table class="state-table"><caption class="sr-only">Capability state rows</caption><thead><tr><th scope="col">Model</th><th scope="col">Reachability</th><th scope="col">Measured cost</th><th scope="col">Tool calling</th><th scope="col">p50 latency</th><th scope="col">Context</th></tr></thead><tbody>${rowTable}</tbody></table></div><p class="state-table-note">Showing all ${visibleRows.length.toLocaleString()} rows here. The JSON export contains every available live slug and every field, including UNKNOWN and EXPIRED observations.</p></div>`;
-  $("inspector").innerHTML =
-    `<p class="eyebrow">How to read this</p><h3>Unknown is a real state.</h3><p>Catalogue price is published rate-card evidence. It never stands in for a measured generation charge. A model becomes selectable only when the required cost, reachability and functionality fields are current.</p><p>Export generated ${escape(dateLabel(data.generatedAt))} from <code>${escape(data.sourceEndpoint)}</code>.</p>`;
-}
-function ensureCapabilityState() {
-  if (capabilityStatePromise) return capabilityStatePromise;
-  capabilityStatePromise = fetch("./capability-state.json", {
-    cache: "no-store",
-    signal: AbortSignal.timeout(15000),
-  })
-    .then(async (response) => {
-      if (!response.ok) throw new Error("Capability state export unavailable");
-      const result = await response.json();
-      if (
-        result?.status !== "ok" ||
-        result?.schemaVersion !== "1.0" ||
-        !Array.isArray(result.rows)
-      )
-        throw new Error(
-          "Capability state export did not match the expected shape",
-        );
-      metadata.capabilityState = result;
-      if (state.view === "state") renderMainChart();
-      return result;
-    })
-    .catch((error) => {
-      metadata.capabilityState = { status: "error", summary: error.message };
-      if (state.view === "state") renderMainChart();
-      return metadata.capabilityState;
-    });
-  return capabilityStatePromise;
+  const rows = filterModels(models, state);
+  $("chart-title").textContent = "Live published prices";
+  $("chart-subtitle").textContent = "Exact provider identities and billing units · read at page load";
+  $("chart-hint").textContent = "Published rates; measured request costs are separate";
+  const body = rows.map(row => {
+    const prices = (row.pricePoints || []).map(point => '<div>$' + escape(point.amount) + ' / ' + escape(point.unit) + '<small>' + escape(formatPriceCondition(point.condition)) + '</small></div>').join('') || 'unknown';
+    return '<tr><th scope="row"><code>' + escape(row.id) + '</code><small>' + escape(PROVIDERS[row.provider] || row.provider) + '</small></th><td>' + prices + '</td><td>' + escape(row.availability || 'listed') + '</td><td>' + escape(dateLabel(row.sourceAt)) + '</td><td>' + link(row.sourceUrl, 'Provider source') + '</td></tr>';
+  }).join('');
+  $("chart").innerHTML = '<div class="state-table-wrap"><table class="live-price-table"><caption>Live catalogue rates</caption><thead><tr><th>Model / provider</th><th>Published price and unit</th><th>Catalogue availability</th><th>Observed</th><th>Source</th></tr></thead><tbody>' + body + '</tbody></table></div>';
+  $("plot-summary").textContent = rows.length.toLocaleString() + ' current catalogue rows. Missing source prices stay unknown. Listing does not establish inference reachability.';
+  $("inspector").innerHTML = '<p class="eyebrow">Price provenance</p><h3>Read the unit and conditions.</h3><p>Token, image, video and audio prices retain the units supplied by each source. Catalogue rates are not measured generation charges.</p>';
 }
 function renderMainChart() {
   if (!loaded) return;
@@ -1663,68 +1565,13 @@ for (const tab of document.querySelectorAll("[data-view]")) {
 
 async function boot() {
   const jobs = {
-    kie: () => loadKieCatalogue(),
+    native: () => readAllCatalogues({ location: readLocation }),
     live: () => loadCollection("/live-models?limit=500", 40),
     details: () => loadCollection("/models?limit=100&rank_source=none", 64),
     sourceStatus: () => request("/source-status"),
     endpointArchive: () => loadCollection("/providers?limit=100", 64),
     routingProviders: () => loadRoutingProviders(),
-    publicCatalogue: async () => {
-      const r = await fetch("./public-catalogue.json", {
-        cache: "no-store",
-        signal: AbortSignal.timeout(15000),
-      });
-      if (!r.ok) throw new Error("Public catalogue snapshot unavailable");
-      const snapshot = await r.json();
-      if (
-        snapshot?.snapshot !== true ||
-        !Array.isArray(snapshot.data) ||
-        !Array.isArray(snapshot.pages)
-      )
-        throw new Error(
-          "Public catalogue snapshot did not match the expected shape",
-        );
-      return snapshot;
-    },
-    packageFacts: async () => {
-      const r = await fetch("./package-facts.json", {
-        cache: "no-store",
-        signal: AbortSignal.timeout(15000),
-      });
-      if (!r.ok) throw new Error("Package facts unavailable");
-      const facts = await r.json();
-      if (
-        facts?.name !== "open-dashboard-mcp" ||
-        typeof facts.version !== "string" ||
-        !Array.isArray(facts.providers) ||
-        !Array.isArray(facts.tools)
-      )
-        throw new Error("Package facts did not match the expected shape");
-      return facts;
-    },
-    media: async () => {
-      const r = await fetch("./media-catalogue.json", {
-        signal: AbortSignal.timeout(15000),
-      });
-      if (!r.ok) throw new Error("Media snapshot unavailable");
-      return r.json();
-    },
-    nous: async () => {
-      const r = await fetch("./nous-catalogue.json", {
-        signal: AbortSignal.timeout(15000),
-      });
-      if (!r.ok) throw new Error("Nous catalogue snapshot unavailable");
-      const snapshot = await r.json();
-      if (
-        snapshot?.provider !== "nous" ||
-        !Array.isArray(snapshot.models) ||
-        !Array.isArray(snapshot.providers)
-      )
-        throw new Error(
-          "Nous catalogue snapshot did not match the expected shape",
-        );
-      return snapshot;
-    },
+    packageFacts: async () => { const r = await fetch("./package-facts.json", { cache: "no-store" }); if (!r.ok) throw new Error("Package facts unavailable"); return r.json(); },
     matrix: async () =>
       validateAppModelMatrix(
         await request(
@@ -1741,28 +1588,7 @@ async function boot() {
       ? (metadata[keys[i]] = r.value)
       : failures.push({ name: keys[i], message: r.reason.message }),
   );
-  if (
-    (!metadata.live?.data?.length || metadata.live.hasMore === true) &&
-    metadata.publicCatalogue?.data?.length
-  ) {
-    metadata.live = {
-      ...metadata.publicCatalogue,
-      snapshot: true,
-    };
-    failures = failures.filter((failure) => failure.name !== "live");
-  }
-  metadata.native = combineNativeSnapshots(
-    metadata.media,
-    metadata.nous,
-    metadata.kie,
-  );
-  models = mergeMedia(
-    normalizeModels(
-      metadata.live || { data: [] },
-      metadata.details || { data: [] },
-    ),
-    normalizeMediaCatalogue(metadata.native),
-  );
+  models = mergeMedia([], normalizeMediaCatalogue(metadata.native));
   matrix = metadata.matrix;
   apps = metadata.apps?.data || [];
   history = metadata.history;

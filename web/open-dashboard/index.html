@@ -45,7 +45,7 @@
     />
     <link rel="stylesheet" href="./explorer.css" />
     <link rel="stylesheet" href="./studio.css" />
-    <link rel="stylesheet" href="./atlas.css" />
+    <link rel="stylesheet" href="./atlas.css" /><link rel="stylesheet" href="./companion.css" />
     <script type="module" src="./studio.js"></script>
     <script type="module" src="./claim-evidence.js"></script>
     <script defer src="./vendor/d3.v7.min.js"></script>
@@ -87,12 +87,12 @@
         <a href="?view=changes#explore" title="Changes and lifecycle"
           ><span aria-hidden="true">↺</span><b>Changes</b></a
         >
-        <a href="?view=state#explore" title="Decision evidence"
-          ><span aria-hidden="true">⊞</span><b>Decision evidence</b></a
+        <a href="?view=state#explore" title="Live prices"
+          ><span aria-hidden="true">⊞</span><b>Live prices</b></a
         >
       </nav>
       <div class="nav-divider"></div>
-      <nav aria-label="Connected projects">
+      <nav aria-label="Connected projects"><a href="./council/"><span aria-hidden="true">◎</span><b>Jev Council</b></a>
         <a
           href="https://github.com/ivangegovdve-sudo/model-router"
           target="_blank"
@@ -382,6 +382,7 @@
             </div>
             <div id="model-panel" role="tabpanel" aria-labelledby="tab-models">
               <div id="model-controls">
+                <label class="control"><span>Catalogue read location</span><select id="read-location"><option value="source">Dashboard server</option><option value="bulgaria-desktop">Local PC · Bulgaria</option><option value="kvm2-europe">KVM2 · Europe</option><option value="oracle-us">Oracle · US</option></select></label>
                 <div class="filter-bar">
                   <label class="search-control"
                     ><span>Search models</span

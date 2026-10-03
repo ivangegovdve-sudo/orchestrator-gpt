@@ -161,15 +161,12 @@ test("the MCP entry page exposes sourced proof and the direct install path", asy
   assert.ok(page.includes("openclaw@2026.9.4"));
   assert.ok(page.includes("No live"));
   assert.ok(page.includes("%USERPROFILE%\\.openclaw\\openclaw.json"));
-  assert.match(page, /Verdict: Crazyrouter is cheaper on both token legs/);
+  assert.match(page, /data-setup-live-prices/);
+  assert.match(page, /setup-prices.js/);
+  assert.doesNotMatch(page, /Verdict: Crazyrouter is cheaper|Reported savings: 35%|\$0.10 to \$4.40/);
   assert.match(page, /data-npm-downloads-value>Checking npm downloads/);
   assert.match(page, new RegExp(`npx -y ${PACKAGE_SPEC.replace(/[.*+?^${}()|[\\]\\\\]/g, "\\\\$&")}`));
   assert.match(page, /data-npm-downloads-note>Reading the latest complete weekly window from npm/);
-  assert.match(page, new RegExp(MCP_EXCHANGE_FACTS.tool));
-  assert.match(page, new RegExp(MCP_EXCHANGE_FACTS.crazyrouterModelId));
-  assert.match(page, new RegExp(MCP_EXCHANGE_FACTS.openrouterModelId.replace("/", "\\/")));
-  assert.match(page, new RegExp(MCP_EXCHANGE_FACTS.crazyrouterInput));
-  assert.match(page, new RegExp(MCP_EXCHANGE_FACTS.openrouterOutput));
   assert.doesNotMatch(page, /Public usage and project trends|app insights/);
 });
 

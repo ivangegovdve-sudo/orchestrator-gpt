@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-palette="plum" data-theme="light" data-studio>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -21,8 +21,68 @@
     <link rel="stylesheet" href="../explorer.css" />
     <link rel="stylesheet" href="../setup.css" />
     <script type="module" src="../setup.js"></script>
-  </head>
-  <body class="od-page">
+  <link rel="stylesheet" href="../studio.css"><link rel="stylesheet" href="../companion.css"><script type="module" src="../companion-shell.js"></script><script type="module" src="../setup-prices.js"></script></head>
+  <body class="od-page studio-page">    <aside class="sidebar" aria-label="Site navigation">
+      <a class="brand" href="/web/open-dashboard/" aria-label="openDashboard home"
+        ><img src="/web/open-dashboard/assets/interlock.svg" width="80" height="80" alt="" /><span
+          >open<span>Dashboard</span></span
+        ></a
+      >
+      <button
+        class="menu-toggle"
+        aria-label="Expand navigation"
+        aria-expanded="false"
+      >
+        <span aria-hidden="true">☰</span>
+      </button>
+      <p class="nav-label">THE OPEN TOOLKIT</p>
+      <nav aria-label="Dashboard navigation">
+        <a href="/web/open-dashboard/"  title="Compare claims"
+          ><span aria-hidden="true">◫</span><b>Compare claims</b></a
+        >
+        <a href="/web/open-dashboard/?view=models#explore" title="Model explorer"
+          ><span aria-hidden="true">◇</span><b>Model explorer</b></a
+        >
+        <a href="/web/open-dashboard/?view=apps#explore" title="Apps and models"
+          ><span aria-hidden="true">▦</span><b>Apps &amp; models</b></a
+        >
+        <a href="/web/open-dashboard/?view=history#explore" title="History"
+          ><span aria-hidden="true">◷</span><b>History</b></a
+        >
+        <a href="/web/open-dashboard/?view=benchmarks#explore" title="Benchmarks"
+          ><span aria-hidden="true">≋</span><b>Benchmarks</b></a
+        >
+        <a href="/web/open-dashboard/?view=changes#explore" title="Changes and lifecycle"
+          ><span aria-hidden="true">↺</span><b>Changes</b></a
+        >
+        <a href="/web/open-dashboard/?view=state#explore" title="Live prices"
+          ><span aria-hidden="true">⊞</span><b>Live prices</b></a
+        >
+      </nav>
+      <div class="nav-divider"></div>
+      <nav aria-label="Connected projects"><a href="/web/open-dashboard/council/"><span aria-hidden="true">◎</span><b>Jev Council</b></a>
+        <a
+          href="https://github.com/ivangegovdve-sudo/model-router"
+          target="_blank"
+          rel="noopener"
+          title="Model Router repository"
+          ><span aria-hidden="true">⇢</span><b>Model Router <i>↗</i></b></a
+        >
+        <a href="/web/open-dashboard/mcp/" title="MCP setup"
+          ><span aria-hidden="true">⌘</span><b>Connect an agent</b></a
+        >
+        <a href="/web/open-dashboard/github/" title="GitHub projects"
+          ><span aria-hidden="true">⊡</span><b>GitHub projects</b></a
+        >
+        <a href="/" title="SD Forest home"
+          ><span aria-hidden="true">⌂</span><b>SD Forest <i>↗</i></b></a
+        >
+      </nav>
+      <div class="sidebar-foot">
+        <span class="read-only-dot"></span
+        ><span>Read-only by design.<br />Evidence in the open.</span>
+      </div>
+    </aside><div class="page companion-content">
     <a class="setup-skip" href="#main">Skip to setup</a>
     <header class="site-header">
       <a
@@ -102,48 +162,7 @@
             <a href="https://api.npmjs.org/downloads/point/last-week/open-dashboard-mcp">Verify on npm ↗</a>
           </p>
         </section>
-        <article class="setup-proof" aria-labelledby="proof-title">
-          <div class="setup-proof-head">
-            <p class="setup-eyebrow" id="proof-title">A real exchange · observed 11 September 2026</p>
-            <span class="setup-proof-meta">Providers touched: Crazyrouter · OpenRouter</span>
-          </div>
-          <div class="setup-proof-turn">
-            <span>User</span>
-            <p>Is <code>GPT-5 Nano</code> cheaper through Crazyrouter or OpenRouter?</p>
-          </div>
-          <div class="setup-proof-turn setup-proof-agent">
-            <span>Agent</span>
-            <div>
-              <p class="setup-proof-verdict">
-                <strong>Verdict: Crazyrouter is cheaper on both token legs.</strong>
-                <span>Reported savings: 35%.</span>
-              </p>
-              <p>
-                The comparison returned <code>gpt-5-nano</code> for Crazyrouter
-                and <code>openai/gpt-5-nano</code> for OpenRouter.
-              </p>
-              <p>
-                <code>token_in</code>: Crazyrouter <code>0.0000000325</code> ·
-                OpenRouter <code>0.00000005</code>;
-                <code>token_out</code>: Crazyrouter <code>0.00000026</code> ·
-                OpenRouter <code>0.0000004</code>.
-              </p>
-              <p>
-                Crazyrouter is returned as cheaper on both legs:
-                <code>direction: "cheaper"</code> and
-                <code>savingsPercent.value: "35"</code>.
-              </p>
-            </div>
-          </div>
-          <p class="setup-proof-source">
-            Captured from <code>dashboard_price_comparison</code>. Crazyrouter
-            is marked <code>provenance: "derived"</code> from its discount
-            badge; OpenRouter is marked <code>provenance: "published"</code>.
-            <a href="https://crazyrouter.com/api/pricing">Crazyrouter source ↗</a>
-            ·
-            <a href="https://openrouter.ai/api/v1/models?output_modalities=all">OpenRouter source ↗</a>
-          </p>
-        </article>
+        <article class="setup-proof" aria-labelledby="proof-title"><p class="setup-eyebrow" id="proof-title">Current source evidence</p><h2>Read a model’s live rate.</h2><p>These rows are read now from the MCP adapters. Missing source prices stay unknown. Catalogue listing does not establish inference reachability.</p><div data-setup-live-prices aria-live="polite">Reading current prices…</div><button type="button" data-refresh-setup-prices>Refresh prices</button></article>
       </div>
       <section class="setup-decision-card" aria-labelledby="decision-evidence-title">
         <div class="setup-decision-head">
@@ -186,60 +205,7 @@
           systems.
         </p>
       </section>
-      <section class="setup-decision-card" aria-labelledby="release-120-title">
-        <div class="setup-decision-head">
-          <p class="setup-eyebrow">New in 1.2 to 1.4</p>
-          <span class="setup-decision-tag">AkashML · io.net · response shape</span>
-        </div>
-        <h2 id="release-120-title">Two more providers, and the call that bills you for nothing.</h2>
-        <p class="setup-decision-lede">
-          Reasoning models write their thinking to <code>message.reasoning_content</code>
-          and their answer to <code>message.content</code>. With a small
-          <code>max_tokens</code> the whole budget can go to thinking: HTTP 200, every
-          token billed, and an empty answer. Each catalogue row now carries a response-shape
-          record, so a selector can see this before it recommends a model.
-        </p>
-        <div class="setup-decision-grid">
-          <article>
-            <h3>AkashML</h3>
-            <p>
-              Priced per model from its own catalogue: $0.10 to $4.40 per million output
-              tokens across six models, so no single provider rate is used. Five of six were
-              observed returning empty answers at <code>max_tokens: 16</code>; GLM-5.3 spent
-              a 6,000-token budget on reasoning alone. Needs an AkashML API key.
-            </p>
-          </article>
-          <article>
-            <h3>io.net</h3>
-            <p>
-              37 models with per-token prices on a public catalogue, no key needed. 31 are
-              marked for an access tier above free, so a listed price is not proof a free key
-              can call the model. Measured with a key: GLM-5.3-Flash returned an empty answer
-              at <code>max_tokens</code> 16 three times out of three. io.net also rents GPUs;
-              that is not collected.
-            </p>
-          </article>
-        </div>
-        <p class="setup-decision-note">
-          A model this build has never called reports <strong>unknown</strong>, not safe.
-          The same model answered a one-word prompt in 3 tokens and failed on a long one,
-          so a single clean probe proves nothing. Since 1.2.1 each observed model also
-          reports the range of tokens a one-word answer took: GLM-5.3-Flash used 95 to 218
-          on identical calls, DeepSeek-V4.1-Flash 16 to 35, so one global token floor is
-          wrong in both directions. Measured 2026-09-25/26; ask
-          <code>dashboard_catalogue</code> for the current figures.
-        </p>
-        <p class="setup-decision-note">
-          Since 1.4.0 the catalogue reads all 15 providers' own catalogues live on every
-          call: eleven need no key, and AkashML, Groq, Sail and QwenCloud need their own.
-          Every price carries its source and read time, and a missing price is unknown,
-          never zero. Sail is priced from its verified rate card, per completion window, and
-          marked as the slow, cheap lane for batch work. Nous Research is marked as a
-          reseller of OpenRouter's catalogue, and each of its prices is compared with
-          OpenRouter's live price for the same model. Many of its advertised discounts cost
-          the same as OpenRouter; a few are genuinely cheaper.
-        </p>
-      </section>
+      <section class="setup-decision-card" aria-labelledby="release-120-title"><p class="setup-eyebrow">Current provider catalogue</p><h2 id="release-120-title">Sixteen sources, with provenance.</h2><p>The live website reads all sixteen MCP provider adapters, including KIE, AkashML and io.net. Provider catalogues, rendered price tables and authenticated listings retain their exact amounts, units, conditions and observation time.</p><p>Missing or stale authoritative prices stay unknown. A listing is separate from successful inference and a published rate is separate from a settled generation charge.</p><a href="../?view=state#explore">Read current rates and source status ↗</a></section>
       <div class="setup-layout">
         <section
           class="setup-wizard"
@@ -697,5 +663,5 @@
         >
       </footer>
     </main>
-  </body>
+  </div></body>
 </html>

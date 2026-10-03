@@ -135,7 +135,7 @@ export function normalizeMediaCatalogue(snapshot) {
           ? "not_published"
           : "unknown",
       pricingNote: model.pricingNote ?? null,
-      sourceUrl: safeUrl(model.sourceUrl),
+      sourceUrl: safeUrl(model.sourceUrl ?? model.provenance?.sourceUrl),
       fetchedAt,
       sourceFreshness: nativeSourceFreshness(report, fetchedAt),
     });
