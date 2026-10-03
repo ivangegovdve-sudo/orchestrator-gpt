@@ -11,3 +11,9 @@
 .live-price-table code { overflow-wrap: anywhere; }
 .live-price-table td small { display: block; color: var(--muted); }
 .live-source-note { color: var(--muted); line-height: 1.6; }
+
+/* Package discovery shares the studio's mint / ink palette. */
+.npm-install-callout { margin: 22px 0; padding: 18px; border: 1px solid #3b244c; background: #b8e0c5; color: #3b244c; min-width: 0; }
+.npm-install-callout a { display: inline-block; font-weight: 800; color: inherit; text-decoration: underline; text-underline-offset: 4px; font-size: 18px; }
+.npm-install-callout p { margin: 10px 0; font-size: 14px; line-height: 1.5; }
+.npm-install-callout code { display: block; font-size: 13px; overflow-wrap: anywhere; }
