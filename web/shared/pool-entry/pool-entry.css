@@ -1,0 +1,92 @@
+/*
+ * Pool entry: the invisible common floor under six different worlds.
+ * Structure, accessibility and reduced-motion behaviour live here; palette,
+ * type, composition and motion language live in each pool's own pool.css.
+ *
+ * A pool sets these on :root (all optional, shown with defaults):
+ *   --entry-ground   the colour the stage dissolves into and the page sits on
+ *   --entry-ink      primary text
+ *   --entry-soft     secondary text (must clear 4.5:1 on --entry-ground)
+ *   --entry-accent   links and the focus ring
+ */
+:root {
+  --entry-ground: #0b0c10;
+  --entry-ink: #f3f1ea;
+  --entry-soft: #b9b8b0;
+  --entry-accent: #8fb4ff;
+  --entry-focus: var(--entry-accent);
+}
+
+.pool-sr {
+  position: absolute; width: 1px; height: 1px; overflow: hidden;
+  clip-path: inset(50%); white-space: nowrap;
+}
+
+html { background: var(--entry-ground); }
+body.pool-page {
+  margin: 0; min-height: 100vh; overflow-x: hidden;
+  background: var(--entry-ground); color: var(--entry-ink);
+  -webkit-font-smoothing: antialiased;
+}
+/* Every pool is its own world: the forest's ambient scene and scrim stay out of it. */
+body.pool-page > .forest-scene, body.pool-page > .forest-scrim { display: none; }
+body.pool-page *, body.pool-page *::before, body.pool-page *::after { box-sizing: border-box; }
+
+/* The entry: one pinned stage. The scroll engine sticks .sc-stage and owns its height. */
+.entry { position: relative; }
+.entry .sc-stage, .entry [data-sc-stage] {
+  position: sticky; top: 0; width: 100%;
+  height: 100vh; height: 100svh; overflow: hidden; isolation: isolate;
+}
+.entry[data-entry-motion="still"] [data-sc-stage] { position: relative; }
+.entry-canvas {
+  position: absolute; inset: 0; width: 100%; height: 100%; display: block; z-index: 0;
+}
+.entry-copy { position: absolute; z-index: 2; }
+.entry-copy h1 { margin: 0; }
+.entry-copy [data-pool-overview] { margin: 0; }
+.entry-copy [data-pool-overview] p { margin: 0; }
+
+/* Back link sits over the stage on every pool; each world restyles it. */
+body.pool-page > header {
+  position: absolute; top: 0; left: 0; right: 0; z-index: 20; padding: 10px 16px;
+}
+body.pool-page > header a {
+  display: inline-flex; align-items: center; min-height: 44px; color: var(--entry-ink);
+  text-decoration: none;
+}
+
+/* A small, honest note that the redesign is mid-move. */
+.entry-notice { position: absolute; z-index: 3; margin: 0; max-width: 34ch; }
+
+/* The way in for keyboard and pointer users who will not scroll through a pin. */
+.entry-go { position: absolute; z-index: 3; display: inline-flex; align-items: center; min-height: 44px; }
+
+:where(a, button, summary, textarea, input):focus-visible {
+  outline: 2px solid var(--entry-focus); outline-offset: 3px; border-radius: 2px;
+}
+
+/* Per-card feedback: present on every card whatever its lifecycle. */
+.pool-feedback {
+  appearance: none; display: inline-flex; align-items: center; min-height: 44px; min-width: 44px;
+  padding: 0 .1rem; margin: 0; border: 0; background: none; cursor: pointer;
+  color: var(--entry-soft); font: inherit; text-decoration: underline; text-underline-offset: .25em;
+}
+.pool-feedback:hover { color: var(--entry-ink); }
+.pool-feedback:active { transform: translateY(1px); }
+
+main[data-pool-layout="designed"] details > summary { list-style: none; cursor: pointer; }
+main[data-pool-layout="designed"] details > summary::-webkit-details-marker { display: none; }
+main[data-pool-layout="designed"] details > summary::before {
+  content: ""; display: inline-block; width: .45em; height: .45em; margin-right: .5em;
+  border-right: 1.5px solid currentColor; border-bottom: 1.5px solid currentColor;
+  transform: rotate(-45deg); transition: transform .2s ease;
+}
+main[data-pool-layout="designed"] details[open] > summary::before { transform: rotate(45deg); }
+
+@media (prefers-reduced-motion: reduce) {
+  body.pool-page *, body.pool-page *::before, body.pool-page *::after {
+    animation-duration: .001ms !important; animation-iteration-count: 1 !important;
+    transition-duration: .001ms !important; scroll-behavior: auto !important;
+  }
+}
