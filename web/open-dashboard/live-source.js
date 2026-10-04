@@ -1,5 +1,25 @@
 import { API_BASE, DIRECT_PROVIDER_IDS } from './explorer-data.js';
 export const LIVE_API_BASE = API_BASE.replace('/public/v2', '/live');
+export const STATIC_MEDIA_CATALOGUE_URL = './media-catalogue.json';
+
+async function readStaticMediaCatalogue({ fetchImpl = fetch } = {}) {
+  const response = await fetchImpl(STATIC_MEDIA_CATALOGUE_URL, {
+    cache: 'no-store',
+    credentials: 'omit',
+  });
+  if (!response.ok) throw new Error('Static media catalogue unavailable');
+  const raw = await response.json();
+  if (raw.schemaVersion !== 2 || !Array.isArray(raw.models) || !Array.isArray(raw.providers))
+    throw new Error('Static media catalogue contract changed');
+  return {
+    models: raw.models,
+    providers: raw.providers.map(row => ({
+      ...row,
+      freshness: row.status === 'unavailable' ? 'unavailable' : 'snapshot',
+    })),
+  };
+}
+
 export async function readProviderCatalogue(provider, { fetchImpl = fetch, location = null, timeoutMs = 20000 } = {}) {
   const path = location ? `/regional-catalogue?location=${encodeURIComponent(location)}&provider=${encodeURIComponent(provider)}` : `/catalogue?provider=${encodeURIComponent(provider)}`;
   const response = await fetchImpl(`${LIVE_API_BASE}${path}`, { cache: 'no-store', credentials: 'omit', signal: AbortSignal.timeout(timeoutMs) });
@@ -11,15 +31,22 @@ export async function readProviderCatalogue(provider, { fetchImpl = fetch, locat
   return { schemaVersion: '1.0', fetchedAt: raw.fetchedAt, models: raw.models, providers: raw.providers.map(row => ({ ...row, freshness: row.status === 'unavailable' ? 'unavailable' : 'live', catalogueModels: row.population?.retained })), inferenceSpendUsd: '0' };
 }
 export async function readAllCatalogues(options = {}) {
-  const models = [], providers = [];
+  const staticSnapshot = await readStaticMediaCatalogue(options).catch(() => ({ models: [], providers: [] }));
+  const modelsByKey = new Map(staticSnapshot.models.map(row => [`${row.provider}:${row.id}`, row]));
+  const providersById = new Map(staticSnapshot.providers.map(row => [row.provider, row]));
   const deadline = Date.now() + 60000;
   for (let index = 0; index < DIRECT_PROVIDER_IDS.length; index += 2) {
     const remaining = deadline - Date.now();
     const results = await Promise.allSettled(DIRECT_PROVIDER_IDS.slice(index, index + 2).map(provider => remaining > 0 ? readProviderCatalogue(provider, { ...options, timeoutMs: Math.min(20000, remaining) }) : Promise.reject(new Error('ACQUISITION_DEADLINE'))));
     results.forEach((result, offset) => {
-      if (result.status === 'fulfilled') { models.push(...result.value.models); providers.push(...result.value.providers); }
-      else providers.push({ provider: DIRECT_PROVIDER_IDS[index + offset], status: 'unavailable', freshness: 'unavailable', error: 'LIVE_SOURCE_UNAVAILABLE' });
+      const provider = DIRECT_PROVIDER_IDS[index + offset];
+      if (result.status === 'fulfilled') {
+        result.value.models.forEach(row => modelsByKey.set(`${row.provider}:${row.id}`, row));
+        result.value.providers.forEach(row => providersById.set(row.provider, row));
+      } else if (!providersById.has(provider)) {
+        providersById.set(provider, { provider, status: 'unavailable', freshness: 'unavailable', error: 'LIVE_SOURCE_UNAVAILABLE' });
+      }
     });
   }
-  return { fetchedAt: new Date().toISOString(), models, providers };
+  return { fetchedAt: new Date().toISOString(), models: [...modelsByKey.values()], providers: [...providersById.values()] };
 }

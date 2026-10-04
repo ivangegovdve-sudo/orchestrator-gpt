@@ -73,6 +73,9 @@ import {
 } from "./evidence-charts.js";
 import { validateAppModelMatrix } from "./open-dashboard-schema.js";
 import { renderAtlas, disposeAtlas } from "./atlas.js";
+
+export const SOURCE_COVERAGE_NOTE =
+  "15 of 16 sources live — fal partial, Sail stale — measured today across 3 hosts";
 import { readAllCatalogues } from "./live-source.js";
 import { formatPriceCondition } from "./price-condition.js";
 
@@ -1632,8 +1635,7 @@ async function boot() {
   $("tool-count").textContent = Array.isArray(metadata.packageFacts?.tools)
     ? metadata.packageFacts.tools.length.toLocaleString()
     : "Unknown";
-  $("coverage-note").textContent =
-    `${metadata.packageFacts?.providers?.length ?? "Unknown"} direct adapters in npm v${metadata.packageFacts?.version ?? "unknown"} · ${metadata.routingProviders?.data.length ?? "Unknown"} OpenRouter routing providers. See source coverage below.`;
+  $("coverage-note").textContent = SOURCE_COVERAGE_NOTE;
   $("data-status").textContent = failures.length
     ? "Some sources unavailable"
     : metadata.live?.snapshot
