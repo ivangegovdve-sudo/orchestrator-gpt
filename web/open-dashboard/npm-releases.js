@@ -1,12 +1,8 @@
 import { formatNpmDownloadAge } from "./npm-downloads.js";
-import { PACKAGE_VERSION } from "./setup-data.js";
 
 export const NPM_RELEASES_URL = "https://registry.npmjs.org/open-dashboard-mcp";
 export const NPM_RELEASE_CACHE_KEY = "open-dashboard-mcp:npm-releases:v1";
 export const NPM_RELEASE_CACHE_TTL_MS = 6 * 60 * 60 * 1000;
-// The release this site describes: one constant, checked against the installed package.
-export const NPM_RELEASE_TO_SHOW = PACKAGE_VERSION;
-
 const NPM_PACKAGE = "open-dashboard-mcp";
 const NPM_RELEASE_CACHE_VERSION = 1;
 const VERSION = /^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/;
@@ -23,7 +19,6 @@ function normalizeReleaseFacts(value) {
     !Array.isArray(value.published) ||
     value.published.length < 1 ||
     value.published.some((version) => !validVersion(version)) ||
-    !value.published.includes(NPM_RELEASE_TO_SHOW) ||
     !value.published.includes(value.latest) ||
     value.sourceUrl !== NPM_RELEASES_URL
   )
@@ -46,7 +41,6 @@ export function parseNpmReleaseMetadata(payload) {
     !versions ||
     typeof versions !== "object" ||
     Array.isArray(versions) ||
-    !Object.hasOwn(versions, NPM_RELEASE_TO_SHOW) ||
     !validVersion(latest) ||
     !Object.hasOwn(versions, latest)
   )
@@ -55,7 +49,7 @@ export function parseNpmReleaseMetadata(payload) {
   return normalizeReleaseFacts({
     package: NPM_PACKAGE,
     latest,
-    published: [NPM_RELEASE_TO_SHOW, latest],
+    published: [latest],
     sourceUrl: NPM_RELEASES_URL,
   });
 }
