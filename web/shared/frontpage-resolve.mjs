@@ -255,7 +255,7 @@ document.querySelector('.resolve-brand')?.addEventListener('click',event => {
   try { localStorage.removeItem(INTRO_KEY); } catch {}
   history.scrollRestoration = 'manual';
   scrollTo(0,0);
-  location.reload();
+  location.assign(location.pathname);
 });
 document.querySelectorAll('a[href="#atlas"]').forEach(link => link.addEventListener('click',() => {
   openStatic();
