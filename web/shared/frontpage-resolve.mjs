@@ -28,7 +28,20 @@ let current = 5;
 // (frontpage-reveal.css) that the compositor runs and that cannot hold the scroll.
 const touchLayout = matchMedia('(max-width:800px), (pointer:coarse)');
 const phoneLayout = matchMedia('(max-width:800px)');
-let scrub = !reduced.matches && !frame && !location.hash && scrollY === 0 && !touchLayout.matches;
+// Return visitors skip the growth intro. The flag is written the moment the intro
+// first plays; the brand mark clears it and replays. Storage can throw (private mode).
+const INTRO_KEY = 'sdforest_intro_seen';
+const introSeen = (() => { try { return localStorage.getItem(INTRO_KEY) === '1'; } catch { return false; } })();
+let scrub = !reduced.matches && !frame && !location.hash && scrollY === 0 && !touchLayout.matches && !introSeen;
+// Only once the film has decoded a frame: a failed, aborted or undecodable load never
+// burns the intro, and a late error clears the flag again.
+const markIntroSeen = () => { if (!scrub) return; try { localStorage.setItem(INTRO_KEY, '1'); } catch {} };
+if (scrub) {
+  const film = stage.querySelector('[data-growth-film]');
+  if (film.readyState >= 2) markIntroSeen();
+  else film.addEventListener('loadeddata', markIntroSeen, { once: true });
+  film.addEventListener('error', () => { try { localStorage.removeItem(INTRO_KEY); } catch {} });
+}
 if (phoneLayout.matches && !frame) root.dataset.resolveReveal = 'scroll';
 const ambient = createAmbient(stage);
 const motionButton = document.querySelector('.resolve-motion-toggle');
@@ -244,6 +257,14 @@ new MutationObserver(() => {
   measureSettings();
   syncMotion();
 }).observe(root,{attributes:true,attributeFilter:['style']});
+document.querySelector('.resolve-brand')?.addEventListener('click',event => {
+  if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+  event.preventDefault();
+  try { localStorage.removeItem(INTRO_KEY); } catch {}
+  history.scrollRestoration = 'manual';
+  scrollTo(0,0);
+  location.assign(location.pathname);
+});
 document.querySelectorAll('a[href="#atlas"]').forEach(link => link.addEventListener('click',() => {
   openStatic();
   directory.querySelector('a').focus({preventScroll:true});

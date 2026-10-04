@@ -1332,3 +1332,29 @@ test('pending or failed background planes cannot block the tree or opened naviga
     await page.close();
   }
 });
+
+test('growth intro plays once per visitor, replays from the brand mark, and never for reduced motion', async () => {
+  const context = await browser.newContext({viewport:{width:1920,height:1080}});
+  const page = await context.newPage();
+  const mode = () => page.evaluate(() => document.documentElement.dataset.resolveMotion);
+  await page.goto(base + '/', {waitUntil:'networkidle'});
+  assert.equal(await mode(), 'scrub', 'first visit shows the intro');
+  assert.equal(await page.evaluate(() => localStorage.getItem('sdforest_intro_seen')), '1');
+  await page.reload({waitUntil:'networkidle'});
+  assert.equal(await mode(), 'static', 'return visit skips the intro');
+  assert.equal(await page.evaluate(() => document.documentElement.dataset.growthPhase), 'complete');
+  await Promise.all([page.waitForNavigation({waitUntil:'networkidle'}), page.locator('.resolve-brand').click()]);
+  assert.equal(await mode(), 'scrub', 'brand click replays the intro');
+  await page.goto('about:blank');
+  await page.goto(base + '/#atlas', {waitUntil:'networkidle'});
+  assert.equal(await mode(), 'static', 'return visit via a fragment link stays skipped');
+  await Promise.all([page.waitForNavigation({waitUntil:'networkidle'}), page.locator('.resolve-brand').click()]);
+  assert.equal(await mode(), 'scrub', 'brand click replays even from a #atlas URL');
+  await context.close();
+  const calm = await browser.newContext({viewport:{width:1920,height:1080}, reducedMotion:'reduce'});
+  const calmPage = await calm.newPage();
+  await calmPage.goto(base + '/', {waitUntil:'networkidle'});
+  assert.equal(await calmPage.evaluate(() => document.documentElement.dataset.resolveMotion), 'static');
+  assert.equal(await calmPage.evaluate(() => localStorage.getItem('sdforest_intro_seen')), null);
+  await calm.close();
+});
