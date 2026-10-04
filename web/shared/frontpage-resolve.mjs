@@ -33,7 +33,13 @@ const phoneLayout = matchMedia('(max-width:800px)');
 const INTRO_KEY = 'sdforest_intro_seen';
 const introSeen = (() => { try { return localStorage.getItem(INTRO_KEY) === '1'; } catch { return false; } })();
 let scrub = !reduced.matches && !frame && !location.hash && scrollY === 0 && !touchLayout.matches && !introSeen;
-if (scrub) { try { localStorage.setItem(INTRO_KEY, '1'); } catch {} }
+// Only once the film is actually playable: a failed or aborted load never burns the intro.
+const markIntroSeen = () => { try { localStorage.setItem(INTRO_KEY, '1'); } catch {} };
+if (scrub) {
+  const film = stage.querySelector('[data-growth-film]');
+  if (film.readyState >= 1) markIntroSeen();
+  else film.addEventListener('loadedmetadata', markIntroSeen, { once: true });
+}
 if (phoneLayout.matches && !frame) root.dataset.resolveReveal = 'scroll';
 const ambient = createAmbient(stage);
 const motionButton = document.querySelector('.resolve-motion-toggle');
