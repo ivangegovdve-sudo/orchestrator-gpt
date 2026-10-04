@@ -105,6 +105,24 @@ test("the package facts the page is checked against are the version being descri
   );
 });
 
+test("no static page freezes a package version other than the installed one", async () => {
+  // These pages state the npm release in plain HTML, with no script to correct them. They
+  // read "1.4.0" for a day after 1.5.0 shipped, so the installed package is the only
+  // version they may name.
+  const facts = JSON.parse(await readFile(factsUrl, "utf8"));
+  const pages = {
+    "index.html": /npm <b>v(\d+\.\d+\.\d+)<\/b>|npm v(\d+\.\d+\.\d+)\./g,
+    "../pools/ai-d-kit/index.html": /Version (\d+\.\d+\.\d+) on npm/g,
+    "README.md": /`open-dashboard-mcp` (\d+\.\d+\.\d+)|its (\d+\.\d+\.\d+) tool contract/g,
+  };
+  for (const [file, pattern] of Object.entries(pages)) {
+    const text = await readFile(new URL(`./${file}`, import.meta.url), "utf8");
+    const named = [...text.matchAll(pattern)].map((m) => m.slice(1).find(Boolean));
+    assert.ok(named.length > 0, `${file} no longer names the npm release where this test looks`);
+    assert.deepEqual([...new Set(named)], [facts.version], `${file} names a release that is not installed`);
+  }
+});
+
 test("the page's 1.0 content only uses vocabulary the package actually defines", async () => {
   // mcp-1.0-content.json is the substrate the page renders and the next task reads. It is
   // hand-authored, so it is exactly the kind of file that drifts from the package while
