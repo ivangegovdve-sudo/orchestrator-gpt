@@ -73,11 +73,12 @@ import {
 } from "./evidence-charts.js";
 import { validateAppModelMatrix } from "./open-dashboard-schema.js";
 import { renderAtlas, disposeAtlas } from "./atlas.js";
-
-export const SOURCE_COVERAGE_NOTE =
-  "15 of 16 sources live — fal partial, Sail stale — measured today across 3 hosts";
 import { readAllCatalogues } from "./live-source.js";
 import { formatPriceCondition } from "./price-condition.js";
+import {
+  higgsfieldProvider,
+  renderFrontPageFacts,
+} from "./front-page-facts.js";
 
 initShell();
 const $ = (id) => document.getElementById(id),
@@ -1180,35 +1181,9 @@ function inspectFlow(cell) {
 function sourceCard(title, description, url) {
   return `<div class="source-item"><strong>${escape(title)}</strong><p>${escape(description)}</p>${link(url, "Source", "text-link")}</div>`;
 }
-function higgsfieldPlanPrice(value, currency) {
-  const minor = Number(value);
-  if (!Number.isFinite(minor) || !currency) return "Not reported";
-  try {
-    return new Intl.NumberFormat("en", {
-      style: "currency",
-      currency: String(currency).toUpperCase(),
-      maximumFractionDigits: 2,
-    }).format(minor / 100);
-  } catch {
-    return "Not reported";
-  }
-}
-function higgsfieldPlanCard(provider) {
-  const plans = Array.isArray(provider?.plans) ? provider.plans : [];
-  if (!plans.length) return "";
-  const rows = plans
-    .map((plan) => {
-      const discount = plan.discount?.percentOff
-        ? `${plan.discount.percentOff}% off${plan.discount.duration === "forever" ? " ongoing" : " introductory"}`
-        : "—";
-      return `<tr><th scope="row">${escape(plan.name || "Unknown")}</th><td>${escape(plan.billingPeriod || "Unknown")}</td><td>${escape(plan.credits == null ? "Not reported" : Number(plan.credits).toLocaleString())}</td><td>${escape(higgsfieldPlanPrice(plan.priceMinor, plan.currency))}</td><td>${escape(higgsfieldPlanPrice(plan.monthlyPriceMinor, plan.currency))}</td><td>${escape(discount)}</td></tr>`;
-    })
-    .join("");
-  return `<details class="source-item higgsfield-plan-card"><summary><strong>Higgsfield plan prices</strong><span>${plans.length.toLocaleString()} published options</span></summary><p>Monthly comparison response observed ${dateLabel(provider.observedAt)}. Prices are the plan currency returned by Higgsfield; credits remain a separate native unit from generation rates.</p><div class="pair-comparison-table-wrap"><table class="pair-comparison-table"><caption>Higgsfield web plans</caption><thead><tr><th scope="col">Plan</th><th scope="col">Billing</th><th scope="col">Credits</th><th scope="col">Price</th><th scope="col">Monthly equivalent</th><th scope="col">Discount</th></tr></thead><tbody>${rows}</tbody></table></div>${link(provider.sourceUrl || "https://higgsfield.ai/pricing", "Open Higgsfield pricing", "text-link")}</details>`;
-}
 function renderSources() {
   const live = metadata.live;
-  const native = metadata.native || metadata.media;
+  const native = metadata.explorerCatalogue || metadata.native || metadata.media;
   const higgsfield = native?.providers?.find(
     (provider) => provider.provider === "higgsfield",
   );
@@ -1248,7 +1223,6 @@ function renderSources() {
         : "Higgsfield web-plan comparison unavailable; no model credit rates are shown.",
       higgsfield?.sourceUrl || "https://higgsfield.ai/pricing",
     ) +
-    higgsfieldPlanCard(higgsfield) +
     sourceCard(
       "Nous Research catalogue",
       metadata.nous
@@ -1321,6 +1295,39 @@ function renderSources() {
   }
   for (const error of failures)
     $("sources").innerHTML += sourceCard(error.name, error.message, null);
+}
+
+async function loadHiggsfieldSnapshot() {
+  const response = await fetch("./media-catalogue.json", {
+    cache: "no-store",
+  });
+  if (!response.ok) throw new Error("Higgsfield plan data is unavailable");
+  const snapshot = await response.json();
+  const provider = higgsfieldProvider(snapshot);
+  if (!provider || !Array.isArray(provider.plans))
+    throw new Error("Higgsfield plan data has an invalid shape");
+  return {
+    schemaVersion: snapshot.schemaVersion,
+    fetchedAt: snapshot.fetchedAt,
+    providers: [provider],
+    models: (Array.isArray(snapshot.models) ? snapshot.models : []).filter(
+      (model) => model?.provider === "higgsfield",
+    ),
+  };
+}
+
+async function loadHostObservation() {
+  const response = await fetch("./host-observations.json", {
+    cache: "no-store",
+  });
+  if (!response.ok) throw new Error("Host observation data is unavailable");
+  const observation = await response.json();
+  if (
+    !Number.isFinite(Date.parse(observation?.observedAt || "")) ||
+    !Array.isArray(observation?.hosts)
+  )
+    throw new Error("Host observation data has an invalid shape");
+  return observation;
 }
 function openLimits() {
   $("limits-dialog").showModal();
@@ -1569,6 +1576,8 @@ for (const tab of document.querySelectorAll("[data-view]")) {
 async function boot() {
   const jobs = {
     native: () => readAllCatalogues({ location: readLocation }),
+    higgsfieldSnapshot: () => loadHiggsfieldSnapshot(),
+    hostObservation: () => loadHostObservation(),
     live: () => loadCollection("/live-models?limit=500", 40),
     details: () => loadCollection("/models?limit=100&rank_source=none", 64),
     sourceStatus: () => request("/source-status"),
@@ -1591,7 +1600,20 @@ async function boot() {
       ? (metadata[keys[i]] = r.value)
       : failures.push({ name: keys[i], message: r.reason.message }),
   );
-  models = mergeMedia([], normalizeMediaCatalogue(metadata.native));
+  metadata.explorerCatalogue = combineNativeSnapshots(
+    metadata.native,
+    metadata.higgsfieldSnapshot,
+  );
+  const frontPageFacts = renderFrontPageFacts({
+    catalogue: metadata.native,
+    higgsfield: higgsfieldProvider(metadata.higgsfieldSnapshot),
+    hostObservation: metadata.hostObservation,
+    labelFor: (provider) => PROVIDERS[provider] || provider,
+  });
+  models = mergeMedia(
+    [],
+    normalizeMediaCatalogue(metadata.explorerCatalogue),
+  );
   matrix = metadata.matrix;
   apps = metadata.apps?.data || [];
   history = metadata.history;
@@ -1626,7 +1648,12 @@ async function boot() {
     if (!matrix.appIds.includes(state.app)) state.app = "all";
     if (!matrix.modelIds.includes(state.flowModel)) state.flowModel = "all";
   }
-  $("model-count").textContent = models.length.toLocaleString();
+  $("model-count").textContent = frontPageFacts.modelCount
+    ? frontPageFacts.modelCount.toLocaleString()
+    : "Unknown";
+  $("price-count").textContent = frontPageFacts.priceCount
+    ? frontPageFacts.priceCount.toLocaleString()
+    : "Unknown";
   $("provider-count").textContent = Array.isArray(
     metadata.packageFacts?.providers,
   )
@@ -1635,7 +1662,6 @@ async function boot() {
   $("tool-count").textContent = Array.isArray(metadata.packageFacts?.tools)
     ? metadata.packageFacts.tools.length.toLocaleString()
     : "Unknown";
-  $("coverage-note").textContent = SOURCE_COVERAGE_NOTE;
   $("data-status").textContent = failures.length
     ? "Some sources unavailable"
     : metadata.live?.snapshot

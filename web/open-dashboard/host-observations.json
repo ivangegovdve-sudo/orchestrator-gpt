@@ -1,0 +1,93 @@
+{
+  "schemaVersion": "1.1",
+  "observedAt": "2026-10-04T15:21:21.452Z",
+  "hosts": [
+    {
+      "id": "bulgaria-desktop",
+      "label": "Bulgaria desktop",
+      "observedAt": "2026-10-04T15:21:13.045Z",
+      "modelCount": 5603,
+      "pricedModelCount": 2712,
+      "latencyMs": {
+        "publicCatalogue": 17805.3,
+        "mediaCatalogue": 7676.1,
+        "higgsfieldCatalogue": 140.6,
+        "capabilityState": 608.3,
+        "higgsfieldWebPlans": 117.3,
+        "page": 123.7
+      },
+      "sourceSummary": {
+        "directSourceCount": 16,
+        "liveSourceCount": 15,
+        "partialSources": ["fal"],
+        "staleSources": ["sail"],
+        "failedSources": []
+      },
+      "higgsfield": {
+        "status": "available",
+        "priceRowCount": 108,
+        "planRecordCount": 16,
+        "planCurrency": "EUR"
+      },
+      "errors": []
+    },
+    {
+      "id": "kvm2-europe",
+      "label": "KVM2 Europe",
+      "observedAt": "2026-10-04T15:21:11.677Z",
+      "modelCount": 5600,
+      "pricedModelCount": 2709,
+      "latencyMs": {
+        "publicCatalogue": 18321.8,
+        "mediaCatalogue": 10781.2,
+        "higgsfieldCatalogue": 599.9,
+        "capabilityState": 1481.4,
+        "higgsfieldWebPlans": 152.8,
+        "page": 41.8
+      },
+      "sourceSummary": {
+        "directSourceCount": 16,
+        "liveSourceCount": 15,
+        "partialSources": ["fal"],
+        "staleSources": ["sail"],
+        "failedSources": []
+      },
+      "higgsfield": {
+        "status": "available",
+        "priceRowCount": 108,
+        "planRecordCount": 16,
+        "planCurrency": "EUR"
+      },
+      "errors": []
+    },
+    {
+      "id": "oracle-us",
+      "label": "Oracle US",
+      "observedAt": "2026-10-04T15:21:21.452Z",
+      "modelCount": 5600,
+      "pricedModelCount": 2709,
+      "latencyMs": {
+        "publicCatalogue": 13779.8,
+        "mediaCatalogue": 4873.2,
+        "higgsfieldCatalogue": 298.5,
+        "capabilityState": 1513.0,
+        "higgsfieldWebPlans": 294.0,
+        "page": 274.5
+      },
+      "sourceSummary": {
+        "directSourceCount": 16,
+        "liveSourceCount": 15,
+        "partialSources": ["fal"],
+        "staleSources": ["sail"],
+        "failedSources": []
+      },
+      "higgsfield": {
+        "status": "available",
+        "priceRowCount": 108,
+        "planRecordCount": 16,
+        "planCurrency": "USD"
+      },
+      "errors": []
+    }
+  ]
+}

@@ -1,6 +1,6 @@
 {
   "name": "open-dashboard-mcp",
-  "version": "1.5.0",
+  "version": "1.6.0",
   "node": ">=20",
   "providers": [
     {
@@ -574,6 +574,47 @@
       "comparabilityNote": "KIE resells image, video, music and chat models and publishes one public price table, read without a key. Each row is one priced variant (resolution, duration, input/output leg) and is kept as its own identity. KIE bills in credits at a stated $0.005 per credit; USD prices are used only where KIE's listed USD equals that conversion and the unit label is exact. Bonus credits on larger top-ups can make the effective rate lower. Its 'provider' column is a model-family label and is not always right, so it is kept natively and not trusted. Account spend is not read by this integration."
     },
     {
+      "id": "higgsfield",
+      "caveatResearch": {
+        "status": "not_found_in_checked_sources",
+        "checkedSources": [
+          "https://higgsfield.ai/pricing"
+        ],
+        "observedAt": "2026-09-08",
+        "scope": "No numeric operating limit was established from this checked platform page. This limited check does not establish that the provider publishes none elsewhere."
+      },
+      "pitch": {
+        "text": "Pricing plans for Higgsfield's image, video and audio tools.",
+        "attribution": "Higgsfield public pricing page",
+        "sourceUrl": "https://higgsfield.ai/pricing",
+        "observedAt": "2026-09-08"
+      },
+      "pitchResearch": {
+        "status": "published",
+        "checkedSources": [
+          "https://higgsfield.ai/pricing"
+        ],
+        "observedAt": "2026-09-08",
+        "scope": "Provider-owned platform marketing copy; quoted as a provider claim, not endorsed as a comparison result."
+      },
+      "displayName": "Higgsfield",
+      "providerKind": "media",
+      "catalogueUrl": "https://fnf-api-gw.higgsfield.ai/fnf/subscriptions/v2/compare?plan_set_key=ps_a3&billing_period=monthly&with_localization=true",
+      "citationUrl": "https://higgsfield.ai/pricing",
+      "publishes": {
+        "pricing": "partial",
+        "contextLength": "never",
+        "outputModalities": "partial",
+        "reasoningEfforts": "never",
+        "activeFlag": "never",
+        "discounts": "never",
+        "discountExpiry": "never",
+        "lifecycle": "never"
+      },
+      "spendVisibility": "unknown",
+      "comparabilityNote": "Higgsfield's public comparison source publishes native web-plan credit rates for video, image and lipsync features. Credits are retained in their native units; no USD/EUR conversion or price-paid claim is made, and web-plan access does not establish MCP or CLI inference availability."
+    },
+    {
       "id": "crazyrouter",
       "caveatResearch": {
         "status": "not_found_in_checked_sources",
@@ -719,7 +760,7 @@
     {
       "name": "dashboard_catalogue",
       "title": "Provider model catalogue and comparable media prices",
-      "description": "List model identities including price_not_available rows, provider pitches and structured caveats. Image prices are USD/image; video prices USD/second, with native values, exact conversions and configuration conditions. Each source reports its population, exclusions and acquisition limits. Other prices retain their native billing axis. Paginate with offset/limit; filter providers, mediaKind or modelIds. modelIds also requests WaveSpeed price detail (20 IDs maximum). This never generates media or makes a paid inference call.",
+      "description": "List model identities including price_not_available rows, provider pitches and structured caveats. Comparable image prices are USD/image and video prices USD/second where the source establishes those units; native-only rates such as Higgsfield web-plan credits remain in their native billing axis. Each source reports its population, exclusions and acquisition limits. Paginate with offset/limit; filter providers, mediaKind or modelIds. modelIds also requests WaveSpeed price detail (20 IDs maximum). This never generates media or makes a paid inference call.",
       "annotations": {
         "readOnlyHint": true,
         "destructiveHint": false,
@@ -908,7 +949,8 @@
       "time_band",
       "tier",
       "rate_class",
-      "price_scope"
+      "price_scope",
+      "generation"
     ],
     "provenance": [
       "published",

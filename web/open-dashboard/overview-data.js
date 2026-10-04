@@ -107,6 +107,7 @@ export const PACKAGE_EVIDENCE = Object.freeze({
     "tier",
     "rate_class",
     "price_scope",
+    "generation",
   ],
   provenance: ["published", "derived", "parsed_from_prose", "unknown"],
   speed: {

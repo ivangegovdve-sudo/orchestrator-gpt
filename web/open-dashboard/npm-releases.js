@@ -1,10 +1,11 @@
 import { formatNpmDownloadAge } from "./npm-downloads.js";
 
 export const NPM_RELEASES_URL = "https://registry.npmjs.org/open-dashboard-mcp";
-export const NPM_RELEASE_CACHE_KEY = "open-dashboard-mcp:npm-releases:v1";
+export const NPM_RELEASE_CACHE_KEY = "open-dashboard-mcp:npm-releases:v2";
 export const NPM_RELEASE_CACHE_TTL_MS = 6 * 60 * 60 * 1000;
+
 const NPM_PACKAGE = "open-dashboard-mcp";
-const NPM_RELEASE_CACHE_VERSION = 1;
+const NPM_RELEASE_CACHE_VERSION = 2;
 const VERSION = /^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/;
 
 function validVersion(value) {

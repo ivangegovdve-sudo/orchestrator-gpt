@@ -1,6 +1,6 @@
 {
   "$comment": "STRUCTURED DATA, NOT PROSE IN MARKUP. The page renders this; it does not restate it. Every field name used here must exist in package-facts.json, which is generated from the package's own zod schemas -- mcp-package-agreement.test.js enforces that. A later interactive pass should read THIS file rather than re-deriving anything from HTML.",
-  "packageVersion": "1.5.0",
+  "packageVersion": "1.6.0",
 
   "priceSet": {
     "claim": "A model does not have a price. It has a set of price points, each valid only under one stated condition.",
@@ -46,6 +46,12 @@
       "addedIn": "1.0.0",
       "instance": { "provider": "fal", "detail": "authenticated_account on every price read from the authenticated pricing endpoint" },
       "note": "Added because account-scoped prices previously carried condition null, which asserts that no condition applies. Two prices under different scopes then compared as though they were the same quantity."
+    },
+    {
+      "kind": "generation",
+      "meaning": "Which generation duration a media price covers, and whether the provider marks it approximate.",
+      "emitted": true,
+      "instance": { "provider": "Higgsfield", "detail": "a published web-plan rate can state 5 credits per 5-second generation, preserving its duration and approximation flag" }
     },
     {
       "kind": "tier",

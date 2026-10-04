@@ -45,12 +45,14 @@ test("both public pages reserve a live npm release line without freezing either 
     assert.match(page, /data-npm-releases/);
     assert.match(page, /data-npm-releases-value/);
     assert.match(page, /data-npm-releases-note/);
+    if (url === frontPageUrl) assert.match(page, /data-npm-latest/);
     assert.match(page, /Checking npm releases/);
-    assert.doesNotMatch(page, /1\.1\.2|1\.1\.3/);
+    if (url === frontPageUrl)
+      assert.doesNotMatch(page, /data-npm-latest>\s*v?\d+\.\d+\.\d+/);
   }
 });
 
-test("the registry parser requires a valid package and latest dist-tag", () => {
+test("the registry parser requires the latest dist-tag to name a published release", () => {
   assert.deepEqual(
     parseNpmReleaseMetadata({
       name: "open-dashboard-mcp",
@@ -120,6 +122,7 @@ test("release lookup does not invent a release list when npm fails", async () =>
 function releaseRoot() {
   const value = { textContent: "" };
   const note = { textContent: "" };
+  const latest = [{ textContent: "" }, { textContent: "" }];
   const container = {
     dataset: {},
     querySelector(selector) {
@@ -130,8 +133,12 @@ function releaseRoot() {
     container,
     value,
     note,
+    latest,
     querySelector(selector) {
       return selector === "[data-npm-releases]" ? container : null;
+    },
+    querySelectorAll(selector) {
+      return selector === "[data-npm-latest]" ? latest : [];
     },
   };
 }
@@ -142,6 +149,10 @@ test("the release mount visibly names only the current published release", async
   assert.equal(root.container.dataset.npmReleasesState, "available");
   assert.equal(root.value.textContent, "Published on npm: 1.6.0");
   assert.match(root.note.textContent, /Current npm release: 1\.6\.0/);
+  assert.deepEqual(root.latest.map((element) => element.textContent), [
+    "v1.6.0",
+    "v1.6.0",
+  ]);
 
   const unavailable = releaseRoot();
   await mountNpmReleases(unavailable, async () => ({ ok: false, status: 503 }));

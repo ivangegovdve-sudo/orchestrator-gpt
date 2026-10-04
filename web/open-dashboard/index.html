@@ -3,10 +3,10 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>openDashboard — Put the pitch to the test</title>
+    <title>openDashboard — Live model and price evidence</title>
     <meta
       name="description"
-      content="Explore AI model prices, free tiers and the models behind popular apps. Connect Open Dashboard to Hermes, Codex, Claude Code or your own MCP agent."
+      content="Give your agent live model and price evidence in a Jev-compatible way."
     />
     <meta name="theme-color" content="#3b244c" />
     <link
@@ -16,11 +16,11 @@
     <meta property="og:type" content="website" />
     <meta
       property="og:title"
-      content="openDashboard — Put the pitch to the test"
+      content="openDashboard — Live model and price evidence"
     />
     <meta
       property="og:description"
-      content="Explore model prices, free tiers and the models behind popular apps. Bring the knowledge to Hermes, Codex, Claude Code or your own MCP agent."
+      content="Live model and price evidence for a Jev-compatible decision layer."
     />
     <meta
       property="og:url"
@@ -47,7 +47,6 @@
     <link rel="stylesheet" href="./studio.css" />
     <link rel="stylesheet" href="./atlas.css" /><link rel="stylesheet" href="./companion.css" />
     <script type="module" src="./studio.js"></script>
-    <script type="module" src="./claim-evidence.js"></script>
     <script defer src="./vendor/d3.v7.min.js"></script>
     <script type="module" src="./explorer.js"></script>
     <script type="module" src="./setup.js"></script>
@@ -69,8 +68,8 @@
       </button>
       <p class="nav-label">THE OPEN TOOLKIT</p>
       <nav aria-label="Dashboard navigation">
-        <a href="#main" class="active" title="Compare claims"
-          ><span aria-hidden="true">◫</span><b>Compare claims</b></a
+        <a href="#main" class="active" title="Live evidence"
+          ><span aria-hidden="true">◫</span><b>Live evidence</b></a
         >
         <a href="?view=models#explore" title="Model explorer"
           ><span aria-hidden="true">◇</span><b>Model explorer</b></a
@@ -92,8 +91,8 @@
         >
       </nav>
       <div class="nav-divider"></div>
-      <nav aria-label="Connected projects"><a href="#router" title="Model Router"
-          ><span aria-hidden="true">⇢</span><b>Model Router</b></a
+      <nav aria-label="Connected projects"><a href="#router" title="Jev-compatible evidence"
+          ><span aria-hidden="true">⇢</span><b>Jev-compatible evidence</b></a
         >
         <a href="./mcp/" title="MCP setup"
           ><span aria-hidden="true">⌘</span><b>Connect an agent</b></a
@@ -113,64 +112,40 @@
     <div class="page">
       <header class="masthead">
         <span class="site-title"
-          >openDashboard <small>COMPARISON STUDIO</small></span
+          >openDashboard <small>LIVE EVIDENCE</small></span
         >
         <div class="versions">
           <span>npm <b data-npm-latest>latest</b></span>
         </div>
         <a href="#router" class="router-jump"
-          >Meet the Model Router <span>↘</span></a
+          >Jev-compatible evidence <span>↘</span></a
         >
       </header>
       <main id="main">
         <section class="studio" aria-labelledby="title">
           <div class="print-grid" aria-hidden="true"></div>
-          <div class="argument">
+          <div class="argument front-page-intro">
             <div class="editorial-kicker">
-              <span class="tiny-cross" aria-hidden="true">✳</span> PUBLIC
-              PRICES. OPEN QUESTIONS.
+              <span class="tiny-cross" aria-hidden="true">✳</span> LIVE
+              CATALOGUE. READ-ONLY EVIDENCE.
             </div>
             <h1 id="title">
-              Put the<br />pitch to<br /><em
-                >the test<span class="period">.</span></em
-              >
+              Give your agent <span data-live-model-count>loading</span> live
+              models and <span data-live-price-count>loading</span> model
+              prices, in a <em>Jev-compatible</em> way.
             </h1>
             <p class="intro">
-              Providers make the promises.<br />You get to read the prices.
+              Typed, read-only decision evidence a Jev-compatible layer
+              consumes. It does not route requests or make inference calls.
             </p>
+            <p class="source-health" data-source-health role="status">
+              Reading live source health…
+            </p>
+            <p class="host-observation" data-host-observation hidden></p>
             <div class="npm-install-callout">
               <a href="https://www.npmjs.com/package/open-dashboard-mcp">Install from npm <span aria-hidden="true">↗</span></a>
               <p>Bring live model and price evidence to your MCP agent.</p>
               <code>npx -y open-dashboard-mcp</code>
-            </div>
-            <div class="claim-select" aria-label="Choose a provider claim">
-              <button
-                class="claim active"
-                data-pair="media"
-                aria-pressed="true"
-              >
-                <span class="claim-top"
-                  ><b>MEDIA GENERATION</b
-                  ><span class="claim-arrow" aria-hidden="true">↗</span></span
-                ><strong
-                  >KIE — pitched as undercutting fal.ai on media
-                  generation.</strong
-                ><span class="claim-bottom"
-                  ><span>Provider claim · KIE</span
-                  ><span class="claim-state">Inspecting ↗</span></span
-                >
-              </button>
-              <button class="claim" data-pair="text" aria-pressed="false">
-                <span class="claim-top"
-                  ><b>LANGUAGE MODELS</b
-                  ><span class="claim-arrow" aria-hidden="true">↗</span></span
-                ><strong
-                  >Crazyrouter — pitched as the cheaper OpenRouter.</strong
-                ><span class="claim-bottom"
-                  ><span>Provider claim · Crazyrouter</span
-                  ><span class="claim-state">Inspect claim</span></span
-                >
-              </button>
             </div>
             <p class="principle">
               <span aria-hidden="true">↳</span> Read-only. No inference
@@ -181,70 +156,18 @@
               ><span>THE SOURCE<br />IS THE POINT.</span>
             </div>
           </div>
-          <div class="receipt-wrap">
+          <div class="receipt-wrap higgsfield-receipt">
             <div class="receipt-index">
-              <span>THE EVIDENCE FILE</span
-              ><span class="file-tab">KIE / fal</span>
+              <span>WEB-PLAN EVIDENCE</span
+              ><span class="file-tab">HIGGSFIELD</span>
             </div>
             <article
               class="evidence"
-              id="evidence"
-              aria-label="Live price evidence"
+              data-higgsfield-plans
+              aria-label="Higgsfield web-plan prices"
             >
-              <div class="evidence-top">
-                <span class="source-signal"
-                  ><i aria-hidden="true"></i
-                  ><span data-feed-status>Reading provider sources…</span></span
-                ><button
-                  id="refresh"
-                  class="refresh"
-                  type="button"
-                  aria-label="Refresh public prices"
-                >
-                  ↻ <span>Refresh</span>
-                </button>
-              </div>
-              <div class="workspace-heading">
-                <div>
-                  <h2>Read the receipt.</h2>
-                  <p>Current source observations, with the fine print.</p>
-                </div>
-                <span class="evidence-seal" aria-hidden="true"
-                  >SOURCE<br />ATTACHED<span>↗</span></span
-                >
-              </div>
-              <div class="scope-note">
-                <span aria-hidden="true">≠</span>
-                <p>
-                  <b>Samples, not a like-for-like ranking.</b> Match model,
-                  settings and billing unit before comparing.
-                  <span id="claim-scope"
-                    >KIE’s linked comparison focuses on Veo 3.</span
-                  >
-                </p>
-              </div>
-              <div class="comparison" id="comparison" aria-live="polite">
-                <p class="waiting">
-                  Reading the public pricing sources. Missing values will stay
-                  unknown.
-                </p>
-              </div>
-              <div class="source-foot">
-                <a
-                  id="claim-source"
-                  href="https://kie.ai/v3-api-pricing"
-                  target="_blank"
-                  rel="noopener"
-                  >Read KIE’s own claim ↗</a
-                ><span id="read-time">Source read pending</span>
-              </div>
-              <div class="receipt-end">
-                <span class="receipt-bars" aria-hidden="true"></span
-                ><span>READ THE UNIT. FOLLOW THE SOURCE.</span
-                ><button id="all-records" type="button" aria-expanded="false">
-                  Show more observations +
-                </button>
-              </div>
+              <h2>Higgsfield web plans</h2>
+              <p>Reading published plan prices…</p>
             </article>
           </div>
         </section>
@@ -253,15 +176,15 @@
           <p>
             OpenRouter · Groq · Cerebras · Sail · Nous Research · QwenCloud ·
             DeepInfra · Novita · SambaNova · Chutes · WaveSpeedAI · fal ·
-            Crazyrouter · AkashML · io.net · <strong>KIE</strong>
+            Crazyrouter · AkashML · io.net · KIE · <strong>Higgsfield web plans</strong>
           </p>
-          <span class="coverage-note"
-            >15 of 16 sources live — fal partial, Sail stale — measured today
-            across 3 hosts.</span
+          <span class="coverage-note" data-source-health
+            >Reading live source health…</span
           >
         </div>
         <div class="proof-strip page-width" aria-label="Catalogue coverage">
-          <span><strong id="model-count">—</strong> model entries</span
+          <span><strong id="model-count">—</strong> live models</span
+          ><span><strong id="price-count">—</strong> model prices</span
           ><span><strong id="provider-count">—</strong> npm adapters</span
           ><span><strong id="tool-count">—</strong> optional MCP tools</span
           ><span
@@ -756,32 +679,24 @@
           <div class="router-copy">
             <span class="section-flag">THE CONNECTED TOOLKIT</span>
             <h2 id="router-title">
-              Evidence in.<br /><em
-                >A decision<br />
-                you can read.</em
+              Jev-compatible<br /><em
+                >evidence for<br />
+                your agent.</em
               >
             </h2>
             <p>
-              <strong>Model Router</strong> is an OpenAI-compatible proxy that
-              selects a model per request, records why, and abstains when no
-              model qualifies.
+              This page exposes typed, read-only decision evidence a
+              Jev-compatible layer consumes.
             </p>
-            <a
-              class="primary-link"
-              href="https://github.com/ivangegovdve-sudo/model-router"
-              target="_blank"
-              rel="noopener"
-              >Model Router repository <span>↗</span></a
-            >
             <p class="router-boundary">
-              A separate project. This dashboard reads evidence; it does not
-              route your requests.
+              It does not route requests, execute inference, or choose a
+              model for you.
             </p>
           </div>
           <div class="router-diagram">
             <div class="diagram-head">
-              <span>MODEL ROUTER</span
-              ><span class="schematic-label">ANATOMY OF A DECISION</span>
+              <span>DECISION EVIDENCE</span
+              ><span class="schematic-label">READ-ONLY INPUTS</span>
             </div>
             <div class="router-flow" aria-label="Illustrative routing flow">
               <button
@@ -798,11 +713,11 @@
                 aria-pressed="false"
               >
                 <span class="stage-icon" aria-hidden="true">⇄</span><b>Decide</b
-                ><small>Qualify or abstain</small></button
+                ><small>Interpret externally</small></button
               ><span class="connector" aria-hidden="true">⟶</span
               ><button class="flow-stage" data-stage="act" aria-pressed="false">
                 <span class="stage-icon" aria-hidden="true">↗</span><b>Act</b
-                ><small>Forward + record</small>
+                ><small>Keep an audit trail</small>
               </button>
             </div>
             <div class="flow-detail" aria-live="polite">
@@ -810,13 +725,13 @@
               <div>
                 <h3 id="stage-title">Start with what is known.</h3>
                 <p id="stage-copy">
-                  The router gathers current catalogue prices, measured model
-                  behavior and provider quota or budget state.
+                  Typed evidence keeps source, condition and unknown state
+                  visible for a compatible decision layer.
                 </p>
               </div>
             </div>
             <p class="diagram-note">
-              Illustrative routing flow. No request executed.
+              Illustrative evidence flow. No request executed.
             </p>
           </div>
         </section>
@@ -829,12 +744,6 @@
             </div>
           </div>
           <div class="repo-list">
-            <a
-              href="https://github.com/ivangegovdve-sudo/model-router"
-              target="_blank"
-              rel="noopener"
-              ><b>Model Router</b><span>Public repository ↗</span></a
-            >
             <a
               href="https://github.com/ivangegovdve-sudo/openrouter-dashboard-mcp"
               target="_blank"

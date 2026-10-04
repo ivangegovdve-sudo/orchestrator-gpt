@@ -68,15 +68,15 @@ markView(
 const stages = {
   gather: [
     "Start with what is known.",
-    "The router gathers current catalogue prices, measured model behavior and provider quota or budget state.",
+    "Typed evidence keeps current catalogue prices, measured model behavior and provider conditions visible.",
   ],
   decide: [
-    "A choice, with its reasons.",
-    "The router qualifies candidates against the request. If no model qualifies, it abstains and records the reasons.",
+    "A compatible layer interprets the evidence.",
+    "openDashboard exposes source-aware facts; it does not choose a model or make a request.",
   ],
   act: [
-    "Forward the call. Keep the record.",
-    "The proxy forwards the request and records the result. The MCP interface provides routing advice. This dashboard does not execute routing requests.",
+    "Keep the decision record outside this page.",
+    "A Jev-compatible layer can preserve its own decision record. This dashboard remains read-only evidence.",
   ],
 };
 document.querySelectorAll("[data-stage]").forEach((button) =>

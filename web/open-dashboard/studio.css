@@ -2281,6 +2281,85 @@ h1 em:after {
 .claim-unit-control[hidden] {
   display: none;
 }
+.studio-page .front-page-intro h1 {
+  max-width: 15ch;
+  font-size: clamp(44px, 4.8vw, 76px);
+  line-height: 1.01;
+  letter-spacing: -0.062em;
+}
+.studio-page .front-page-intro h1 [data-live-model-count],
+.studio-page .front-page-intro h1 [data-live-price-count] {
+  color: var(--highlight);
+}
+.studio-page .front-page-intro .intro {
+  max-width: 48ch;
+  margin-bottom: 16px;
+}
+.studio-page .source-health,
+.studio-page .host-observation {
+  font: 11px/1.55 Consolas, monospace;
+  margin: 0 0 12px;
+}
+.studio-page .source-health {
+  color: var(--highlight);
+}
+.studio-page .host-observation {
+  color: var(--soft);
+}
+.studio-page .higgsfield-receipt .evidence {
+  padding: 24px 26px 20px;
+}
+.studio-page .higgsfield-receipt .evidence h2 {
+  margin: 0;
+  font-size: clamp(28px, 2.5vw, 42px);
+  letter-spacing: -0.05em;
+  line-height: 1;
+}
+.studio-page .higgsfield-receipt .evidence > p {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.55;
+  margin: 12px 0;
+}
+.studio-page .higgsfield-table-wrap {
+  max-height: 430px;
+  overflow: auto;
+  border: 1px solid var(--rule);
+  margin: 16px 0;
+}
+.studio-page .higgsfield-plan-table {
+  border-collapse: collapse;
+  min-width: 610px;
+  width: 100%;
+  font-size: 11px;
+}
+.studio-page .higgsfield-plan-table caption {
+  caption-side: top;
+  padding: 10px 12px;
+  color: var(--muted);
+  text-align: left;
+}
+.studio-page .higgsfield-plan-table th,
+.studio-page .higgsfield-plan-table td {
+  border-top: 1px solid var(--rule);
+  padding: 8px 10px;
+  text-align: left;
+  vertical-align: top;
+}
+.studio-page .higgsfield-plan-table thead th {
+  background: var(--surface-soft);
+  color: var(--ink);
+  font-size: 9px;
+  letter-spacing: 0.05em;
+  position: sticky;
+  text-transform: uppercase;
+  top: 0;
+}
+.studio-page .higgsfield-receipt .evidence > a {
+  color: var(--link);
+  font-size: 12px;
+  text-decoration: underline;
+}
 @media (max-width: 1250px) {
   .studio-page .page-width {
     margin-left: 27px;
@@ -2291,6 +2370,19 @@ h1 em:after {
   .studio-page .lower-links {
     margin: 0;
     padding: 42px 27px;
+  }
+}
+@media (max-width: 800px) {
+  .studio-page .front-page-intro {
+    display: block;
+  }
+  .studio-page .front-page-intro h1 {
+    font-size: clamp(42px, 9vw, 65px);
+    max-width: 17ch;
+  }
+  .studio-page .front-page-intro .intro {
+    font-size: 14px;
+    margin-top: 20px;
   }
 }
 @media (max-width: 560px) {
@@ -2329,5 +2421,8 @@ h1 em:after {
   }
   .studio-page .source-grid {
     grid-template-columns: 1fr;
+  }
+  .studio-page .higgsfield-receipt .evidence {
+    padding: 20px 18px 18px;
   }
 }

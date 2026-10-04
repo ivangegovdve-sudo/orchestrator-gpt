@@ -12,6 +12,28 @@ test("does not mount an unexplained relationship canvas on the overview page", a
   assert.doesNotMatch(html, /id="oo-network-region"/);
 });
 
+test("front page presents live Jev-compatible evidence rather than the retired pitch comparison", async () => {
+  const html = await readFile(new URL("./index.html", import.meta.url), "utf8");
+  assert.match(
+    html,
+    /Give your agent <span data-live-model-count>loading<\/span> live[\s\S]*data-live-price-count>loading<\/span> model[\s\S]*Jev-compatible/,
+  );
+  assert.match(
+    html,
+    /typed, read-only decision evidence a Jev-compatible layer[\s\S]*consumes/i,
+  );
+  assert.match(html, /data-source-health/);
+  assert.match(html, /data-higgsfield-plans/);
+  assert.match(html, /data-npm-latest/);
+  assert.match(html, /id="price-count"/);
+  assert.match(html, /src="\.\/explorer\.js"/);
+  assert.match(html, /src="\.\/setup\.js"/);
+  assert.doesNotMatch(
+    html,
+    /put the pitch|pitch to|comparison studio|provider claim|claim-evidence\.js|no price observation acquired|private\s*[·.]?\s*awaiting approval/i,
+  );
+});
+
 const source = (overrides = {}) => ({
   sourceId: "models_current",
   sourceTier: "stable",
