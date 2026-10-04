@@ -1,6 +1,6 @@
 {
   "name": "open-dashboard-mcp",
-  "version": "1.4.0",
+  "version": "1.5.0",
   "node": ">=20",
   "providers": [
     {
@@ -533,6 +533,47 @@
       "comparabilityNote": "fal is a media generation platform. With FAL_API_KEY, the collector reads its full key-visible catalogue and bounded authenticated pricing batches; account-specific rates can apply. Without a key it reads the public catalogue and summary pricing table. Every acquired identity is retained. Only explicit supported output units become USD/image or USD/video-second; compute time, unobserved batches and unsupported prices remain unavailable with distinct reasons. Catalogue coverage and price coverage are reported separately. Account spend is not read by this integration."
     },
     {
+      "id": "kie",
+      "caveatResearch": {
+        "status": "not_found_in_checked_sources",
+        "checkedSources": [
+          "https://kie.ai/"
+        ],
+        "observedAt": "2026-09-29",
+        "scope": "No numeric operating limit was established from this checked platform page. This limited check does not establish that the provider publishes none elsewhere."
+      },
+      "pitch": {
+        "text": "Access the best AI models for AI chat, video, image, and music in one API.",
+        "attribution": "Kie.ai homepage description",
+        "sourceUrl": "https://kie.ai/",
+        "observedAt": "2026-09-29"
+      },
+      "pitchResearch": {
+        "status": "published",
+        "checkedSources": [
+          "https://kie.ai/"
+        ],
+        "observedAt": "2026-09-29",
+        "scope": "Provider-owned platform marketing copy; quoted as a provider claim, not endorsed as a comparison result."
+      },
+      "displayName": "KIE",
+      "providerKind": "aggregator",
+      "catalogueUrl": "https://api.kie.ai/client/v1/model-pricing/page",
+      "citationUrl": "https://kie.ai/pricing",
+      "publishes": {
+        "pricing": "always",
+        "contextLength": "never",
+        "outputModalities": "partial",
+        "reasoningEfforts": "never",
+        "activeFlag": "never",
+        "discounts": "partial",
+        "discountExpiry": "never",
+        "lifecycle": "never"
+      },
+      "spendVisibility": "unknown",
+      "comparabilityNote": "KIE resells image, video, music and chat models and publishes one public price table, read without a key. Each row is one priced variant (resolution, duration, input/output leg) and is kept as its own identity. KIE bills in credits at a stated $0.005 per credit; USD prices are used only where KIE's listed USD equals that conversion and the unit label is exact. Bonus credits on larger top-ups can make the effective rate lower. Its 'provider' column is a model-family label and is not always right, so it is kept natively and not trusted. Account spend is not read by this integration."
+    },
+    {
       "id": "crazyrouter",
       "caveatResearch": {
         "status": "not_found_in_checked_sources",
@@ -789,6 +830,16 @@
       "name": "dashboard_resolve_model",
       "title": "Dashboard resolve model",
       "description": "Resolve a durable model-selection intent into a bounded ranked fallback list. Every result satisfies every explicit constraint in both required catalogue snapshots; unknown values never count favourably and no near miss is returned.",
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "openWorldHint": true
+      }
+    },
+    {
+      "name": "dashboard_resolve_seat",
+      "title": "Resolve the provider seat for a role",
+      "description": "Ask the model-router which provider/seat should fill a role (review, fix, rebase, council) under a consumer policy and a cross-family constraint. Pool order: Sail, Codex, Antigravity, local GPU, OpenRouter last; cheapest live seat within a tier. Policy 'cheapest' serves the Glass solver and private council; 'free-only' serves the public council and returns status 'unavailable' rather than any paid seat. Claude and Cerebras are never selected. A Jev layer picks the cheapest sufficient seat among eligible ones. Advisory and read-only: no inference or spend on the returned seat. If the router is unreachable the status is 'router_unreachable'; nothing is guessed.",
       "annotations": {
         "readOnlyHint": true,
         "destructiveHint": false,

@@ -105,6 +105,34 @@ test("the package facts the page is checked against are the version being descri
   );
 });
 
+test("no static page states the npm release as a literal", async () => {
+  // Release numbers are filled from the npm registry at load (data-npm-latest), or the
+  // page links to npm without a number. A literal read "1.4.0" for a day after 1.5.0
+  // shipped, so none may come back.
+  const facts = JSON.parse(await readFile(factsUrl, "utf8"));
+  for (const file of ["index.html", "mcp/index.html", "../pools/ai-d-kit/index.html", "README.md"]) {
+    const text = await readFile(new URL(`./${file}`, import.meta.url), "utf8");
+    assert.doesNotMatch(
+      text,
+      /(?:npm|Source|Version|MCP version|open-dashboard-mcp`?)(?:\s|<[^>]+>)*v?\d+\.\d+\.\d+/,
+      `${file} states a release number instead of reading it from npm`,
+    );
+  }
+  const front = await readFile(new URL("./index.html", import.meta.url), "utf8");
+  assert.ok((front.match(/data-npm-latest/g) || []).length >= 2);
+  assert.match(
+    await readFile(new URL("./setup.js", import.meta.url), "utf8"),
+    /\[data-npm-latest\][\s\S]*state\.facts\.latest/,
+    "version mentions must be filled from the npm registry response",
+  );
+  // The pool card also states the counts and the provider roll in plain HTML.
+  const pool = await readFile(new URL("../pools/ai-d-kit/index.html", import.meta.url), "utf8");
+  assert.equal(pool.match(/<dt>(\d+)<\/dt><dd>read-only tools/)?.[1], String(facts.tools.length));
+  assert.equal(pool.match(/<dt>(\d+)<\/dt><dd>providers/)?.[1], String(facts.providers.length));
+  for (const provider of facts.providers)
+    assert.ok(pool.includes(provider.displayName), `the pool card omits ${provider.displayName}`);
+});
+
 test("the page's 1.0 content only uses vocabulary the package actually defines", async () => {
   // mcp-1.0-content.json is the substrate the page renders and the next task reads. It is
   // hand-authored, so it is exactly the kind of file that drifts from the package while

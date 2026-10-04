@@ -400,7 +400,7 @@ export const ROUTE_OWNERS = deepFreeze([
   owner('kids', ['/web/kids/']),
   owner('kids-movie-library', ['/web/kids-movie-library/', '/movies/']),
   owner('m-popova', ['/web/m-popova/']),
-  owner('open-dashboard', ['/web/open-dashboard/', '/web/open-dashboard/github/', '/web/open-dashboard/mcp/', '/web/open-dashboard/council/']),
+  owner('open-dashboard', ['/web/open-dashboard/', '/web/open-dashboard/github/', '/web/open-dashboard/mcp/']),
   owner('open-dashboard-notices', ['/web/open-dashboard/openrouter/', '/web/open-dashboard/catalogues/', '/web/open-dashboard/matrix/'], { projectId: 'open-dashboard', role: 'child', visibility: compatibility }),
   owner('open-overview', ['/web/open-overview/'], {
     projectId: 'open-dashboard', role: 'legacy', visibility: compatibility,

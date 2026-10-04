@@ -7,7 +7,19 @@ if (host) {
     pair = "media",
     expanded = false,
     selectedUnit = "image",
-    unitChosen = false;
+    unitChosen = false,
+    pairChosen = false;
+  const PAIRS = { media: ["kie", "fal"], text: ["crazyrouter", "openrouter"] };
+  const priced = (name) =>
+    PAIRS[name].every((id) =>
+      evidence?.providers?.find((p) => p.id === id)?.rows?.length,
+    );
+  // A catalogue can be read while its price table is not; say which happened.
+  const missingPrice = (provider, name) =>
+    Number.isSafeInteger(provider?.population?.listed) &&
+    provider.population.listed > 0
+      ? `${name}’s catalogue was read (${provider.population.listed.toLocaleString("en")} models), but its public price table was not, so no ${name} price is shown. Unknown does not mean free.`
+      : "No price observation acquired. Unknown does not mean free.";
   const names = {
     kie: "KIE",
     fal: "fal",
@@ -189,7 +201,7 @@ if (host) {
               ? "Reading public pricing evidence…"
               : provider?.rows?.length
                 ? "No observation in this native unit. Choose another unit; no conversion is assumed."
-                : "No price observation acquired. Unknown does not mean free.",
+                : missingPrice(provider, names[id]),
             "missing",
           ),
         );
@@ -240,6 +252,9 @@ if (host) {
     render();
     try {
       evidence = await loadClaimEvidence({ force });
+      // Open on a claim both sides of which were actually priced today.
+      const other = pair === "media" ? "text" : "media";
+      if (!pairChosen && !priced(pair) && priced(other)) selectPair(other);
       if (!unitChosen) {
         const media = evidence.providers.filter((p) =>
           ["kie", "fal"].includes(p.id),
@@ -260,18 +275,22 @@ if (host) {
       render();
     }
   }
+  function selectPair(next) {
+    pair = next === "text" ? "text" : "media";
+    expanded = false;
+    document.querySelectorAll("[data-pair]").forEach((other) => {
+      const selected = other.dataset.pair === pair;
+      other.classList.toggle("active", selected);
+      other.setAttribute("aria-pressed", String(selected));
+      const state = other.querySelector(".claim-state");
+      if (state)
+        state.textContent = selected ? "Inspecting ↗" : "Inspect claim";
+    });
+  }
   document.querySelectorAll("[data-pair]").forEach((button) =>
     button.addEventListener("click", () => {
-      pair = button.dataset.pair === "text" ? "text" : "media";
-      expanded = false;
-      document.querySelectorAll("[data-pair]").forEach((other) => {
-        const selected = other.dataset.pair === pair;
-        other.classList.toggle("active", selected);
-        other.setAttribute("aria-pressed", String(selected));
-        const state = other.querySelector(".claim-state");
-        if (state)
-          state.textContent = selected ? "Inspecting ↗" : "Inspect claim";
-      });
+      pairChosen = true;
+      selectPair(button.dataset.pair);
       render();
     }),
   );

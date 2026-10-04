@@ -1,4 +1,4 @@
-export const PACKAGE_VERSION = "1.4.0";
+export const PACKAGE_VERSION = "1.5.0";
 export const PACKAGE_SPEC = "open-dashboard-mcp";
 export const SETUP_CHECKED_AT = "2026-09-10";
 export const NPM_URL = "https://www.npmjs.com/package/open-dashboard-mcp";
@@ -224,6 +224,15 @@ export const TOOLS = [
       "Optional: inspect explicitly configured keys; requires extra local setup.",
     prompt:
       "Use Open Dashboard to report whether key inventory is configured. Do not reveal secret values or assume unconfigured keys have zero usage.",
+  },
+  {
+    id: "dashboard_resolve_seat",
+    name: "Router seat for a role",
+    group: "Checks and diagnostics",
+    description:
+      "Optional: ask a configured model-router which seat fills a role; advisory and read-only.",
+    prompt:
+      "Use Open Dashboard to resolve a seat with consumer public-council and role review. Report the returned status exactly, including unavailable or router_unreachable, and do not guess a seat.",
   },
 ];
 
