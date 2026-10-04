@@ -35,7 +35,7 @@ const introSeen = (() => { try { return localStorage.getItem(INTRO_KEY) === '1';
 let scrub = !reduced.matches && !frame && !location.hash && scrollY === 0 && !touchLayout.matches && !introSeen;
 // Only once the film has decoded a frame: a failed, aborted or undecodable load never
 // burns the intro, and a late error clears the flag again.
-const markIntroSeen = () => { try { localStorage.setItem(INTRO_KEY, '1'); } catch {} };
+const markIntroSeen = () => { if (!scrub) return; try { localStorage.setItem(INTRO_KEY, '1'); } catch {} };
 if (scrub) {
   const film = stage.querySelector('[data-growth-film]');
   if (film.readyState >= 2) markIntroSeen();
