@@ -1,0 +1,30 @@
+/* An authored entrance ahead of the unchanged, catalog-backed clinic. */
+.pool-page > header { display: flex; justify-content: space-between; }
+.pool-page > header .health-project-skip::before { content: none; }
+.cell-act { position: relative; min-height: 100svh; margin-top: 16px; }
+.cell-act[data-cell-live] { min-height: 250svh; }
+.cell-stage { position: sticky; top: 0; height: 100svh; overflow: hidden; background: #07100e; }
+.cell-slot { position: absolute; inset: 0; }
+.cell-canvas { display: block; width: 100%; height: 100%; }
+.cell-canvas[hidden] { display: none; }
+.cell-copy { position: absolute; z-index: 1; left: max(5vw, 24px); top: 32%; max-width: 34vw; color: var(--pool-ink); }
+.cell-copy .cell-kicker { margin: 0 0 1rem; color: #c8d5bb; font: 500 .8rem/1.3 var(--forest-sans); letter-spacing: .08em; }
+.cell-copy h2 { margin: 0; font: 500 clamp(3.5rem, 6.5vw, 7rem)/.92 var(--forest-display); letter-spacing: -.025em; }
+.cell-copy > p:last-child { margin-top: 1.3rem; max-width: 26rem; color: #c9cfc2; font: 1.12rem/1.55 var(--forest-body); }
+.cell-redesign-note { position: absolute; bottom: 5rem; left: max(5vw, 24px); z-index: 1; margin: 0; max-width: 27rem; color: #a8b9a6; font: .82rem/1.4 var(--forest-sans); }
+.cell-slot--static { background: #07100e url('/web/assets/pools/health/cell-still-desktop.jpg') center / cover no-repeat; }
+#projects-title { scroll-margin-top: 24px; }
+main[data-pool-id="health"] .pool-feedback { appearance: none; min-height: 44px; padding: .2rem 0; border: 0; background: none; color: var(--pool-accent-2); font: 500 1rem/1.4 var(--forest-body); text-decoration: underline; text-underline-offset: .22em; cursor: pointer; }
+main[data-pool-id="health"] .pool-feedback:hover { color: var(--pool-ink); }
+@media (max-width: 699px) {
+  .cell-copy { left: 24px; right: 24px; top: auto; bottom: max(160px, 16%); max-width: none; }
+  .cell-copy h2 { font-size: clamp(3rem, 13vw, 4.5rem); }
+  .cell-copy > p:last-child { margin-top: .9rem; font-size: 1rem; max-width: 23rem; }
+  .cell-redesign-note { left: 24px; right: 24px; bottom: 7rem; max-width: none; font-size: .72rem; }
+  .cell-slot--static { background-image: none; }
+  .cell-slot--static::after { content: ""; position: absolute; top: 8px; left: 50%; width: min(31.3svh, 271px); height: min(30svh, 260px); transform: translateX(-50%); background: url('/web/assets/pools/health/cell-still-phone.jpg') center / cover no-repeat; mask-image: linear-gradient(90deg, transparent, #000 14%, #000 86%, transparent), linear-gradient(180deg, transparent, #000 12%, #000 87%, transparent); mask-composite: intersect; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cell-act, .cell-act[data-cell-live] { min-height: 92svh; }
+  .cell-stage { position: relative; height: 92svh; }
+}

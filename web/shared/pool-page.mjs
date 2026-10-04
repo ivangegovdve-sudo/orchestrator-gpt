@@ -58,7 +58,9 @@ export function projectReadiness(project) {
   return { state: 'UNKNOWN', reason: 'Completion evidence is not verified.' };
 }
 
-export function renderProject(project, { heading = 'h3', designed = false } = {}) {
+// With feedback on, a closed card must not be aria-disabled: its Feedback button stays usable, and the
+// "Not open yet" row already says the destination is closed.
+export function renderProject(project, { heading = 'h3', designed = false, feedback = false } = {}) {
   if (project.visibility?.publicSurface === 'excluded') return '';
   const poolName = project.poolContext || project.pools?.[0] || project.pool;
   const poolRank = Number.isInteger(project.poolRank) ? project.poolRank : getProjectRank(project, poolName);
@@ -94,10 +96,11 @@ export function renderProject(project, { heading = 'h3', designed = false } = {}
     return `<li><a href="${escape(destination)}"${external ? ' target="_blank" rel="noopener"' : ''}>${escape(companion?.name || destination)}${external ? ' — External; opens in a new tab' : ' — Open existing page'}</a>${companion?.presentationNote ? ` <span>${escape(companion.presentationNote)}</span>` : ''}</li>`;
   }).join('');
   const metrics = (project.metrics || []).map(({ name, value, unit }) => `${name}: ${value}${unit ? ` ${unit}` : ''}`).join('; ');
-  return `<article class="pool-project pool-project--${escape(poolTier)}" data-project-id="${escape(project.id)}" data-pool-tier="${escape(poolTier)}" data-pool-rank="${poolRank ?? 'unranked'}"${enabled ? '' : ' aria-disabled="true"'}>
+  return `<article class="pool-project pool-project--${escape(poolTier)}" data-project-id="${escape(project.id)}" data-pool-tier="${escape(poolTier)}" data-pool-rank="${poolRank ?? 'unranked'}"${enabled ? '' : feedback ? ' data-entry-closed' : ' aria-disabled="true"'}>
     <${heading}>${escape(project.publicName)}</${heading}>
     <p class="pool-status">Status: ${escape(status)}${comingSoon && !designed ? ' — Coming Soon' : ''}</p>
     ${routes ? `<ul class="pool-bindings">${routes}</ul>` : ''}
+    ${feedback ? `<p class="pool-feedback-row"><button type="button" class="pool-feedback" data-feedback-open data-feedback-project="${escape(project.id)}">Feedback<span class="pool-sr"> on ${escape(project.publicName)}</span></button></p>` : ''}
     ${designed ? '<details class="pool-record"><summary>Catalog record</summary>' : ''}<div class="pool-fieldnotes">
     <p class="pool-tier">Tier: ${escape(poolTier === 'featured' ? `Featured · rank ${poolRank}` : poolTier === 'ranked' ? `Ranked · rank ${poolRank}` : 'Unranked')}</p>
     <p class="pool-readiness" data-readiness-state="${escape(readiness.state)}">Readiness: ${escape(readiness.state)} — ${escape(readiness.reason)}</p>
@@ -208,10 +211,10 @@ const TIER_GROUPS = [
  * index beneath the authored showcase. Tier and readiness stay in each
  * project's "Catalog record" disclosure rather than on the card face.
  */
-export function renderProjectIndex(projects) {
+export function renderProjectIndex(projects, { feedback = false } = {}) {
   return `<div class="pool-index">${projects
     .filter((project) => project.visibility?.publicSurface !== 'excluded')
-    .map((project) => `<div id="${escape(project.id)}" data-pool-project="${escape(project.id)}" data-pool-tier="${escape(project.poolTier)}" data-pool-rank="${project.poolRank ?? 'unranked'}">${renderProject(project, { designed: true })}</div>`).join('\n')}</div>`;
+    .map((project) => `<div id="${escape(project.id)}" data-pool-project="${escape(project.id)}" data-pool-tier="${escape(project.poolTier)}" data-pool-rank="${project.poolRank ?? 'unranked'}">${renderProject(project, { designed: true, feedback })}</div>`).join('\n')}</div>`;
 }
 
 export function renderProjectGroups(projects) {
@@ -274,6 +277,8 @@ export function mountPoolPage(root) {
   reorderPoolLinks(root.ownerDocument);
   // A designed pool authors its own threshold; the catalog fills only the index.
   const designed = root.dataset.poolLayout === 'designed';
+  // Pools that load the shared feedback script opt in; every card then keeps a Feedback button.
+  const feedback = !!root.ownerDocument.querySelector('script[src*="shared/feedback.js"]');
   const overview = root.querySelector('[data-pool-overview-content]');
   if (overview && !designed) overview.innerHTML = renderPoolOverview(pool.id);
   const context = root.querySelector('[data-pool-context]');
@@ -284,13 +289,13 @@ export function mountPoolPage(root) {
   for (const project of projects) {
     const tabPanel = root.querySelector(`[data-health-project="${project.id}"]`);
     if (tabPanel) {
-      tabPanel.querySelector('[data-project-details]').innerHTML = renderProject(project, { designed });
+      tabPanel.querySelector('[data-project-details]').innerHTML = renderProject(project, { designed, feedback });
     } else {
       listingProjects.push(project);
     }
   }
   listing.innerHTML = designed
-    ? renderProjectIndex(listingProjects)
+    ? renderProjectIndex(listingProjects, { feedback })
       + `<details class="pool-ledger-disclosure"><summary>How this listing is kept</summary>${renderPoolLedger(pool.id)}</details>`
     : renderPoolLedger(pool.id) + renderProjectGroups(listingProjects);
   enhanceHealthTabs(root);

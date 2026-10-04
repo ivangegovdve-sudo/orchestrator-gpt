@@ -169,6 +169,7 @@
   <link rel="stylesheet" href="/web/shared/frontpage-reveal.css?v=20260926a">
   <link rel="stylesheet" href="/web/shared/frontpage-pool-vines.css?v=20260927a">
   <link rel="stylesheet" href="/web/shared/frontpage-intro-reveal.css?v=20260927a">
+  <link rel="stylesheet" href="/web/shared/frontpage-finish.css">
 </head>
 <body class="resolve-home">
 <a class="resolve-skip" href="#atlas">Explore the pools</a>
@@ -177,7 +178,7 @@
   <section class="resolve-stage" data-resolve-stage aria-labelledby="forest-title">
     <div class="resolve-scene">
     <div class="resolve-growth-intro" data-growth-intro aria-hidden="true" inert>
-      <video data-growth-film data-src="/web/assets/sdforest-intro/growth-scroll.mp4" poster="/web/assets/sdforest-intro/seed-poster.webp" preload="metadata" muted playsinline disablepictureinpicture></video>
+      <video data-growth-film data-src="/web/assets/sdforest-intro/growth-scroll.mp4" poster="/web/assets/sdforest-intro/seed-poster-desktop.png" preload="metadata" muted playsinline disablepictureinpicture></video>
     </div>
     <div class="resolve-world" aria-hidden="true">
       <img src="/web/assets/sdforest-resolve/world.png" alt="" width="864" height="480" fetchpriority="high">
@@ -244,13 +245,14 @@
       <p class="workbench-status" id="workbench-status" role="status" aria-live="polite"></p>
     </div>
     <nav class="resolve-controls" data-arrival="portfolio" aria-label="Site controls">
-      <a data-site-control="portfolio" href="https://vfxportfolio.lovable.app" target="_blank" rel="noopener">Portfolio — opens in a new tab</a>
+      <a data-site-control="portfolio" href="https://vfxportfolio.lovable.app" target="_blank" rel="noopener" aria-label="Portfolio (opens in a new tab)"><span aria-hidden="true">▣</span> Portfolio</a>
       <button class="resolve-motion-toggle" type="button" hidden>Pause motion</button>
     </nav>
-    <a class="resolve-scroll-cue" href="#atlas">Explore the pools<span aria-hidden="true">↓</span></a>
+    <a class="resolve-scroll-cue" href="#atlas">Scroll down to skip<span aria-hidden="true">↓</span></a>
     <div class="resolve-history" data-arrival="history" data-design-history-slot data-feedback-slot></div>
   </section>
 </div>
+<p class="forest-redesign-note">A little renovation. Please mind the spare screw.</p>
 <div class="resolve-existing-copy">
 <p class="landing-copy">SDForest is Ivan Gegov&rsquo;s living collection of writing, creative projects, practical web tools, and research experiments. It is for curious readers, makers, learners, and families&mdash;choose one of seven live pools below.</p>
 <p>SDForest is an evolving collection. Experimental and in-development work is labeled plainly; every live path should lead somewhere real.</p>
@@ -378,6 +380,7 @@
 <script type="module" src="/web/shared/pool-directory.mjs"></script>
 <script type="module" src="/web/shared/frontpage-resolve.mjs?v=20260927a"></script>
 <script type="module" src="/web/shared/frontpage-pool-vines.mjs?v=20260926a"></script>
+<script type="module" src="/web/shared/frontpage-finish.mjs"></script>
 <script defer src="/web/shared/design-history.js?v=20260807a"></script>
 </body>
 </html>
