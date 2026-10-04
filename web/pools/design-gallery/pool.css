@@ -50,7 +50,7 @@ body.pool-page > header { padding: 12px var(--g-gutter); }
 body.pool-page > header a {
   font: 500 .72rem/1 var(--g-sans); letter-spacing: .16em; text-transform: uppercase;
   color: var(--entry-ink); padding: 0 0 .35rem; min-height: 44px; align-items: flex-end;
-  background: linear-gradient(var(--g-rule), var(--g-rule)) left calc(100% - 12px) / 100% 1px no-repeat;
+  background: linear-gradient(var(--g-rule), var(--g-rule)) left 100% / 100% 1px no-repeat;
   transition: background-size .3s ease, color .2s ease;
 }
 body.pool-page > header a::before { content: "\2190"; margin-right: .7em; letter-spacing: 0; }

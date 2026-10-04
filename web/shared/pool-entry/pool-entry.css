@@ -90,3 +90,10 @@ main[data-pool-layout="designed"] details[open] > summary::before { transform: r
     transition-duration: .001ms !important; scroll-behavior: auto !important;
   }
 }
+
+/* The shared dialog's Submit falls back to the forest amber with white text, which fails contrast on
+   pool pages (they set --entry-*, not --accent). Invert the dialog's own ink and surface instead. */
+body.pool-page [data-feedback-backdrop] button[type="submit"] {
+  background: var(--text-primary, var(--forest-ink, #f3f4f6)) !important;
+  color: var(--surface, var(--forest-surface, #0f0f15)) !important;
+}

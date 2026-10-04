@@ -100,7 +100,7 @@ export function renderProject(project, { heading = 'h3', designed = false, feedb
     <${heading}>${escape(project.publicName)}</${heading}>
     <p class="pool-status">Status: ${escape(status)}${comingSoon && !designed ? ' — Coming Soon' : ''}</p>
     ${routes ? `<ul class="pool-bindings">${routes}</ul>` : ''}
-    ${feedback ? `<p class="pool-feedback-row"><button type="button" class="pool-feedback" data-feedback-open data-feedback-project="${escape(project.id)}">Feedback<span class="pool-sr"> on ${escape(project.publicName)}</span></button></p>` : ''}
+    ${feedback ? `<p class="pool-feedback-row"><button type="button" class="pool-feedback" data-feedback-open data-feedback-project="${escape(project.id)}" data-feedback-name="${escape(project.publicName)}">Feedback<span class="pool-sr"> on ${escape(project.publicName)}</span></button></p>` : ''}
     ${designed ? '<details class="pool-record"><summary>Catalog record</summary>' : ''}<div class="pool-fieldnotes">
     <p class="pool-tier">Tier: ${escape(poolTier === 'featured' ? `Featured · rank ${poolRank}` : poolTier === 'ranked' ? `Ranked · rank ${poolRank}` : 'Unranked')}</p>
     <p class="pool-readiness" data-readiness-state="${escape(readiness.state)}">Readiness: ${escape(readiness.state)} — ${escape(readiness.reason)}</p>
