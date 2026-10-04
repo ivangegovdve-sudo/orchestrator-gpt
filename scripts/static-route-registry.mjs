@@ -121,7 +121,6 @@ export const ROUTE_REGISTRY = deepFreeze([
   }),
   route('open-dashboard-catalogues', 'open-dashboard-notices', '/web/open-dashboard/catalogues/', 'html-shim', 'web/open-dashboard/catalogues/index.html', NOINDEX, { destination: '/web/open-dashboard/#explore', preservesQuery: true }),
   route('open-dashboard-github', 'open-dashboard', '/web/open-dashboard/github/', 'child', 'web/open-dashboard/github/index.html', PUBLIC),
-  route('open-dashboard-council', 'open-dashboard', '/web/open-dashboard/council/', 'child', 'web/open-dashboard/council/index.html', PUBLIC),
   route('open-dashboard', 'open-dashboard', '/web/open-dashboard/', 'page', 'web/open-dashboard/index.html', PUBLIC),
   route('open-dashboard-matrix', 'open-dashboard-notices', '/web/open-dashboard/matrix/', 'html-shim', 'web/open-dashboard/matrix/index.html', NOINDEX, { destination: '/web/open-dashboard/#connections', preservesQuery: true }),
   route('open-dashboard-mcp', 'open-dashboard', '/web/open-dashboard/mcp/', 'child', 'web/open-dashboard/mcp/index.html', PUBLIC),

@@ -32,7 +32,7 @@ async function routeFor(routePath) {
 
 test('every HTML route copied by the build has exactly one explicit source and owner', async () => {
   const { routes, discoveredHtmlRoutes } = await actualInput();
-  assert.equal(discoveredHtmlRoutes.length, 79, 'current copied HTML boundary including the openDashboard council status page');
+  assert.equal(discoveredHtmlRoutes.length, 78, 'current copied HTML boundary');
   assert.equal(routes.filter(({ source }) => source).length, discoveredHtmlRoutes.length);
   for (const discovered of discoveredHtmlRoutes) {
     const entry = await routeFor(discovered.route);
@@ -289,7 +289,7 @@ test('the CLI reports all declared host redirects when configuration omits them'
       'PROJECT_ROUTE_BINDING_INVALID: catalog project council binding 4: local route /web/tinylm/ has no copied HTML or configured host redirect evidence',
       'PROJECT_ROUTE_BINDING_INVALID: catalog project morning-news binding 2: local route /series/ has no copied HTML or configured host redirect evidence',
       'PROJECT_ROUTE_BINDING_INVALID: catalog project morning-news binding 3: local route /series/dependency-map/ has no copied HTML or configured host redirect evidence',
-      'PROJECT_ROUTE_BINDING_INVALID: catalog project open-dashboard binding 7: local route /web/open-overview/ has no copied HTML or configured host redirect evidence',
+      'PROJECT_ROUTE_BINDING_INVALID: catalog project open-dashboard binding 6: local route /web/open-overview/ has no copied HTML or configured host redirect evidence',
     ].sort());
   });
 });
