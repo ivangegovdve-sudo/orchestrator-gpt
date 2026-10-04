@@ -33,12 +33,14 @@ const phoneLayout = matchMedia('(max-width:800px)');
 const INTRO_KEY = 'sdforest_intro_seen';
 const introSeen = (() => { try { return localStorage.getItem(INTRO_KEY) === '1'; } catch { return false; } })();
 let scrub = !reduced.matches && !frame && !location.hash && scrollY === 0 && !touchLayout.matches && !introSeen;
-// Only once the film is actually playable: a failed or aborted load never burns the intro.
+// Only once the film has decoded a frame: a failed, aborted or undecodable load never
+// burns the intro, and a late error clears the flag again.
 const markIntroSeen = () => { try { localStorage.setItem(INTRO_KEY, '1'); } catch {} };
 if (scrub) {
   const film = stage.querySelector('[data-growth-film]');
-  if (film.readyState >= 1) markIntroSeen();
-  else film.addEventListener('loadedmetadata', markIntroSeen, { once: true });
+  if (film.readyState >= 2) markIntroSeen();
+  else film.addEventListener('loadeddata', markIntroSeen, { once: true });
+  film.addEventListener('error', () => { try { localStorage.removeItem(INTRO_KEY); } catch {} });
 }
 if (phoneLayout.matches && !frame) root.dataset.resolveReveal = 'scroll';
 const ambient = createAmbient(stage);
