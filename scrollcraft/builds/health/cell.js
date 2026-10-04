@@ -118,14 +118,14 @@ async function boot() {
     return mat;
   };
   const satin = (color, extra = {}, rim = null) => {
-    const m = new THREE.MeshPhysicalMaterial({ color, roughness: 0.5, clearcoat: 0.25, clearcoatRoughness: 0.45, sheen: 0.5, sheenRoughness: 0.5, sheenColor: new THREE.Color(color).lerp(new THREE.Color(0xffffff), 0.5), ...extra });
+    const m = new THREE.MeshPhysicalMaterial({ color, roughness: 0.55, clearcoat: 0.1, clearcoatRoughness: 0.5, sheen: 0.55, sheenRoughness: 0.5, sheenColor: new THREE.Color(color).lerp(new THREE.Color(0xffffff), 0.5), ...extra });
     return rim ? rimGlow(m, rim.color, rim.power, rim.strength, rim.color) : m;
   };
 
   // ---------- membrane: textured skin + a bilayer lip along the cut ----------
   const skin = canvasTex(1024, 512, (g, w, h) => {
     const gr = g.createLinearGradient(0, 0, 0, h);
-    gr.addColorStop(0, '#6fd3f6'); gr.addColorStop(0.55, '#3aa0dc'); gr.addColorStop(1, '#2477c0');
+    gr.addColorStop(0, '#a6d8cf'); gr.addColorStop(0.55, '#5f9f98'); gr.addColorStop(1, '#2f6a6a');
     g.fillStyle = gr; g.fillRect(0, 0, w, h);
     const im = g.getImageData(0, 0, w, h), d = im.data;
     for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
@@ -137,7 +137,7 @@ async function boot() {
     for (let i = 0; i < 70; i++) {
       const x = rnd() * w, y = 50 + rnd() * (h - 100), r = 10 + rnd() * 26;
       const p = g.createRadialGradient(x, y, r * 0.2, x, y, r * 1.5);
-      p.addColorStop(0, `rgba(10,52,128,${0.7 + rnd() * 0.3})`); p.addColorStop(0.7, 'rgba(24,90,165,0.35)'); p.addColorStop(1, 'rgba(24,90,165,0)');
+      p.addColorStop(0, `rgba(18,62,64,${0.45 + rnd() * 0.25})`); p.addColorStop(0.7, 'rgba(34,88,88,0.25)'); p.addColorStop(1, 'rgba(34,88,88,0)');
       g.fillStyle = p; g.beginPath(); g.ellipse(x, y, r * 1.7, r, rnd() * 3, 0, 6.3); g.fill();
     }
   }, { repeat: true, aniso });
@@ -149,23 +149,23 @@ async function boot() {
   }, { srgb: false, repeat: true, aniso });
   const membrane = new THREE.Mesh(
     new THREE.SphereGeometry(1, 160, 112),
-    rimGlow(new THREE.MeshPhysicalMaterial({ map: skin, bumpMap: bump, bumpScale: 2.2, roughness: 0.42, clearcoat: 0.45, clearcoatRoughness: 0.32, sheen: 0.7, sheenRoughness: 0.4, sheenColor: new THREE.Color(0xbfefff), emissiveMap: skin, emissive: new THREE.Color(0x1a6aa0), emissiveIntensity: 0.22, clippingPlanes: cut(), clipIntersection: true }), 0x9ff2ff, 2.4, 0.85, 'skin'),
+    rimGlow(new THREE.MeshPhysicalMaterial({ map: skin, bumpMap: bump, bumpScale: 2.2, roughness: 0.5, clearcoat: 0.2, clearcoatRoughness: 0.4, sheen: 0.8, sheenRoughness: 0.45, sheenColor: new THREE.Color(0xd2efe6), emissiveMap: skin, emissive: new THREE.Color(0x1f5552), emissiveIntensity: 0.16, clippingPlanes: cut(), clipIntersection: true }), 0xc4f2e2, 2.6, 0.7, 'skin'),
   );
   cell.add(membrane);
 
   // Cytoplasm: warm satin, fine granules, an ink-blue cortex under the membrane, cavity shading at the crease.
   const cytoTex = pixelTex(1024, 512, (px, py) => {
     const x = px / 512 - 1, y = 1 - py / 512, r = Math.hypot(x, y);
-    const warm = mix3([1.0, 0.95, 0.80], [0.96, 0.84, 0.64], sstep(0.15, 0.95, r));
+    const warm = mix3([0.93, 0.85, 0.69], [0.78, 0.66, 0.50], sstep(0.15, 0.95, r));
     const m = fbm(px / 60, py / 60, 4) - 0.5, g = hash(px, py) - 0.5, g2 = fbm(px / 5, py / 5, 2) - 0.5;
     let k = 1 + m * 0.3 + g * 0.06 + g2 * 0.1;
     k *= 1 - 0.34 * Math.exp(-y / 0.1);             // cavity shading along the crease where the two faces meet
     k *= 1 - 0.18 * sstep(0.72, 0.945, r);          // darker towards the membrane
     let c = warm.map((v) => v * k);
     const cortex = sstep(0.925, 0.945, r) * (1 - sstep(0.958, 0.97, r));
-    c = mix3(c, [0.42, 0.62, 0.74], cortex * 0.85);
+    c = mix3(c, [0.36, 0.55, 0.52], cortex * 0.85);
     const inner = sstep(0.958, 0.966, r);           // pale outer lip line
-    c = mix3(c, [0.82, 0.9, 0.95], inner * 0.9);
+    c = mix3(c, [0.80, 0.90, 0.86], inner * 0.9);
     return [Math.min(255, c[0] * 255), Math.min(255, c[1] * 255), Math.min(255, c[2] * 255), 255];
   }, { aniso });
   const grains = (scale, a) => pixelTex(256, 256, (px, py) => {
@@ -175,15 +175,15 @@ async function boot() {
   }, { repeat: true, aniso });
   const grainA = grains(14, 1), grainB = grains(6, 0.8);
   grainA.repeat.set(4, 2); grainB.repeat.set(7, 3.5);
-  const cytoMat = new THREE.MeshStandardMaterial({ map: cytoTex, roughness: 0.72, metalness: 0, emissive: 0xffffff, emissiveMap: cytoTex, emissiveIntensity: 0.3, side: THREE.DoubleSide, polygonOffset: true, polygonOffsetFactor: 2, polygonOffsetUnits: 2 });
+  const cytoMat = new THREE.MeshStandardMaterial({ map: cytoTex, roughness: 0.72, metalness: 0, emissive: 0xffffff, emissiveMap: cytoTex, emissiveIntensity: 0.14, side: THREE.DoubleSide, polygonOffset: true, polygonOffsetFactor: 2, polygonOffsetUnits: 2 });
   const grainMat = (t) => new THREE.MeshBasicMaterial({ map: t, transparent: true, depthWrite: false, polygonOffset: true, polygonOffsetFactor: 1, polygonOffsetUnits: 1, fog: false });
   const halfDisc = (r) => {
     const g = new THREE.CircleGeometry(r, 128, 0, Math.PI), p = g.attributes.position, uv = g.attributes.uv;
     for (let i = 0; i < p.count; i++) uv.setXY(i, (p.getX(i) / 0.955 + 1) / 2, p.getY(i) / 0.955);
     return g;
   };
-  const lipMat = satin(0xd7eef7, { roughness: 0.3, clearcoat: 0.6 }, { color: 0xa6f0ff, power: 2.2, strength: 0.7 });
-  const lip2Mat = satin(0x6fb4dc, { roughness: 0.4 });
+  const lipMat = satin(0xd3e9e2, { roughness: 0.38, clearcoat: 0.3 }, { color: 0xc4f2e2, power: 2.2, strength: 0.55 });
+  const lip2Mat = satin(0x5e9e98, { roughness: 0.45 });
 
   // Face frame: local x = u, local y = v along the face, local z = outward normal, for both cut faces.
   const mkFrame = (face) => { const g = new THREE.Group(); if (face === 'floor') { g.rotation.x = Math.PI / 2; g.scale.z = -1; } return g; };
@@ -223,7 +223,7 @@ async function boot() {
     g.putImageData(im, 0, 0);
   }, { srgb: false, repeat: true, aniso });
   const nucShell = new THREE.Mesh(new THREE.SphereGeometry(NR, 128, 88),
-    satin(0xe0407a, { roughness: 0.46, bumpMap: nucBump, bumpScale: 0.9, sheen: 0.8, sheenColor: new THREE.Color(0xff9fc2), clippingPlanes: cut(NC), clipIntersection: true }, { color: 0xff8fb8, power: 2.2, strength: 0.75 }));
+    satin(0x8a3a5c, { roughness: 0.5, bumpMap: nucBump, bumpScale: 1.1, sheen: 0.9, sheenColor: new THREE.Color(0xe2a9bf), clippingPlanes: cut(NC), clipIntersection: true }, { color: 0xe7aec4, power: 2.4, strength: 0.55 }));
   nucleus.add(nucShell);
   // Nuclear pores: small rings on the outer envelope, placed on a golden spiral and kept off the removed quarter.
   {
@@ -235,7 +235,7 @@ async function boot() {
       pores.push(n);
     }
     const geo = new THREE.TorusGeometry(0.0125, 0.0042, 8, 20);
-    const pm = new THREE.InstancedMesh(geo, satin(0x8b1646, { roughness: 0.55, clearcoat: 0 }), pores.length);
+    const pm = new THREE.InstancedMesh(geo, satin(0x4a1a31, { roughness: 0.6, clearcoat: 0 }), pores.length);
     const o = new THREE.Object3D(), up = new THREE.Vector3(0, 0, 1);
     pores.forEach((n, i) => { o.position.copy(n).multiplyScalar(NR + 0.001); o.quaternion.setFromUnitVectors(up, n); o.scale.setScalar(rr(0.8, 1.25)); o.updateMatrix(); pm.setMatrixAt(i, o.matrix); });
     nucleus.add(pm);
@@ -243,17 +243,17 @@ async function boot() {
   const Rn = Math.sqrt(NR * NR - NC * NC);
   const chroTex = pixelTex(512, 512, (px, py) => {
     const x = px / 256 - 1, y = py / 256 - 1, r = Math.hypot(x, y);
-    const n = fbm(px / 26 + 3, py / 26, 5), n2 = fbm(px / 7, py / 7, 2);
+    const n = fbm(px / 15 + 3, py / 15, 5), n2 = fbm(px / 4, py / 4, 2);
     const hetero = sstep(0.5, 0.72, n) * (0.35 + 0.65 * sstep(0.35, 0.95, r)); // dense clumps hug the envelope
-    let c = mix3([0.97, 0.62, 0.74], [0.80, 0.30, 0.52], hetero);
+    let c = mix3([0.82, 0.62, 0.66], [0.50, 0.22, 0.34], hetero);
     c = c.map((v) => v * (0.94 + n2 * 0.1));
     const env1 = sstep(0.925, 0.945, r), gap = sstep(0.955, 0.965, r), env2 = sstep(0.975, 0.985, r);
-    c = mix3(c, [0.58, 0.15, 0.36], env1 * (1 - gap));        // inner envelope
-    c = mix3(c, [1.0, 0.82, 0.88], gap * (1 - env2) * 0.9);   // perinuclear space
-    c = mix3(c, [0.62, 0.17, 0.40], env2);                    // outer envelope
+    c = mix3(c, [0.40, 0.14, 0.26], env1 * (1 - gap));        // inner envelope
+    c = mix3(c, [0.90, 0.78, 0.80], gap * (1 - env2) * 0.9);   // perinuclear space
+    c = mix3(c, [0.48, 0.16, 0.30], env2);                    // outer envelope
     return [c[0] * 255, c[1] * 255, c[2] * 255, 255];
   }, { aniso });
-  const nucInner = new THREE.MeshStandardMaterial({ map: chroTex, roughness: 0.6, emissive: 0xffffff, emissiveMap: chroTex, emissiveIntensity: 0.3, side: THREE.DoubleSide });
+  const nucInner = new THREE.MeshStandardMaterial({ map: chroTex, roughness: 0.6, emissive: 0xffffff, emissiveMap: chroTex, emissiveIntensity: 0.16, side: THREE.DoubleSide });
   const segment = () => {
     const a0 = Math.asin(Math.min(1, NC / Rn)); const s = new THREE.Shape(); const n = 80;
     for (let i = 0; i <= n; i++) { const a = a0 + (Math.PI - 2 * a0) * (i / n); const p = [Math.cos(a) * Rn, Math.sin(a) * Rn]; i ? s.lineTo(...p) : s.moveTo(...p); }
@@ -266,10 +266,10 @@ async function boot() {
   nucleus.add(nFloor, nWall);
   const nucleolusTex = pixelTex(256, 256, (px, py) => {
     const n = fbm(px / 9, py / 9, 4), s = hash(px, py);
-    const c = mix3([0.46, 0.08, 0.24], [0.74, 0.2, 0.42], n);
+    const c = mix3([0.30, 0.08, 0.17], [0.52, 0.18, 0.30], n);
     return [c[0] * 255 * (0.9 + s * 0.14), c[1] * 255, c[2] * 255, 255];
   }, { repeat: true, aniso });
-  const nucleolus = new THREE.Mesh(new THREE.SphereGeometry(0.115, 64, 48), satin(0xffffff, { map: nucleolusTex, roughness: 0.6, clearcoat: 0.1 }, { color: 0xc4457a, power: 2.4, strength: 0.4 }));
+  const nucleolus = new THREE.Mesh(new THREE.SphereGeometry(0.115, 64, 48), satin(0xffffff, { map: nucleolusTex, roughness: 0.6, clearcoat: 0.1 }, { color: 0xb06a88, power: 2.4, strength: 0.35 }));
   nucleolus.position.set(0.02, NC, NC);
   nucleus.add(nucleolus);
   cell.add(nucleus);
@@ -287,9 +287,9 @@ async function boot() {
 
   // Mitochondrion: outer membrane, inner membrane, and cristae folds that reach in alternately from each side.
   const sphereG = new THREE.SphereGeometry(1, 40, 28);
-  const outerM = satin(0x6ed14f, { transparent: true, opacity: 0.58, depthWrite: false, roughness: 0.3, clearcoat: 0.5 }, { color: 0xd8ff9a, power: 2.0, strength: 0.7 });
-  const innerM = satin(0x2f9a3d, { transparent: true, opacity: 0.8, depthWrite: false, roughness: 0.5, clearcoat: 0 }, { color: 0x9be86a, power: 2.2, strength: 0.45 });
-  const cristaM = satin(0xbdf06a, { roughness: 0.5, clearcoat: 0, emissive: 0x2e6a14, emissiveIntensity: 0.5, side: THREE.DoubleSide });
+  const outerM = satin(0xe0927a, { transparent: true, opacity: 0.55, depthWrite: false, roughness: 0.4, clearcoat: 0.2 }, { color: 0xffd6c2, power: 2.0, strength: 0.55 });
+  const innerM = satin(0xa8483a, { transparent: true, opacity: 0.8, depthWrite: false, roughness: 0.5, clearcoat: 0 }, { color: 0xf0a28a, power: 2.2, strength: 0.4 });
+  const cristaM = satin(0xf2c4a2, { roughness: 0.5, clearcoat: 0, emissive: 0x5a2414, emissiveIntensity: 0.4, side: THREE.DoubleSide });
   const cristaG = new THREE.CylinderGeometry(1, 1, 0.005, 20);
   const mito = (len, rad) => {
     const g = new THREE.Group();
@@ -316,7 +316,7 @@ async function boot() {
       s.absarc(0, 0, r0 + t, -th, th, false); s.absarc(0, 0, r0 - t, th, -th, true); s.closePath();
       const geo = new THREE.ExtrudeGeometry(s, { depth: 0.05, bevelEnabled: true, bevelSize: 0.0045, bevelThickness: 0.006, bevelSegments: 3, curveSegments: 28 });
       geo.translate(0, 0, -0.012);
-      const k = i / (n - 1), col = new THREE.Color(0xf0c878).lerp(new THREE.Color(0xd9792f), k);
+      const k = i / (n - 1), col = new THREE.Color(0xe6d3a6).lerp(new THREE.Color(0xc49a5c), k);
       g.add(new THREE.Mesh(geo, satin(col, { roughness: 0.42, clearcoat: 0.35 }, { color: 0xffe3a8, power: 2.4, strength: 0.4 })));
     }
     const vs = [];
@@ -327,8 +327,8 @@ async function boot() {
   golgi('floor', 0.5, 0.62); golgi('wall', -0.42, 0.68);
 
   // Rough ER: pleated, stacked cisternae wrapping the nucleus, studded with ribosomes.
-  const erM = satin(0xd9a67e, { roughness: 0.55, clearcoat: 0.2, side: THREE.DoubleSide }, { color: 0xffd0a8, power: 2.2, strength: 0.4 });
-  const riboM = new THREE.MeshStandardMaterial({ color: 0xf1a43c, roughness: 0.55, emissive: 0x6a3208, emissiveIntensity: 0.4 });
+  const erM = satin(0xc9a48a, { roughness: 0.6, clearcoat: 0.08, side: THREE.DoubleSide }, { color: 0xf0d2bc, power: 2.2, strength: 0.35 });
+  const riboM = new THREE.MeshStandardMaterial({ color: 0xc68a5a, roughness: 0.6, emissive: 0x3a1c08, emissiveIntensity: 0.3 });
   const riboG = new THREE.SphereGeometry(0.0048, 8, 6);
   const NCX = 0.02;
   const erGroups = [];
@@ -360,7 +360,7 @@ async function boot() {
   erBundle('wall', 0.62 * Math.PI, 0.94 * Math.PI, 0.53, 3);
 
   // Vesicles, peroxisomes, lysosomes and a centriole pair.
-  const vesM = [satin(0xb9e6f6, { transparent: true, opacity: 0.8, roughness: 0.25, clearcoat: 0.6 }, { color: 0xffffff, power: 2, strength: 0.6 }), satin(0x8fd16c, { roughness: 0.4 }, { color: 0xe0ffb8, power: 2, strength: 0.5 })];
+  const vesM = [satin(0xc6e2dc, { transparent: true, opacity: 0.78, roughness: 0.3, clearcoat: 0.3 }, { color: 0xffffff, power: 2, strength: 0.6 }), satin(0xb9c9a0, { roughness: 0.45 }, { color: 0xe6f0d4, power: 2, strength: 0.4 })];
   [['floor', -0.25, 0.8], ['floor', 0.45, 0.78], ['wall', -0.72, 0.3], ['wall', 0.35, 0.68], ['floor', 0.8, 0.14], ['wall', 0.8, 0.62], ['floor', -0.76, 0.5], ['wall', -0.18, 0.5]].forEach(([f, u, v], i) => {
     const m = new THREE.Mesh(sphereG, vesM[i % 2]); m.scale.setScalar(rr(0.022, 0.044)); addOrg(m, f, u, v, { amp: 0.045, shadow: 0.12, morph: 0.12 });
   });
@@ -369,7 +369,7 @@ async function boot() {
     const g = new THREE.Group(); const a = new THREE.Mesh(sphereG, perox); a.scale.set(0.052, 0.046, 0.04); const b = new THREE.Mesh(sphereG, crystal); b.scale.set(0.02, 0.016, 0.012); b.position.z = 0.006; g.add(a, b);
     addOrg(g, f, u, v, { shadow: 0.16, morph: 0.08 });
   });
-  const lyso = satin(0x7a2c58, { roughness: 0.4 }, { color: 0xe08ab8, power: 2, strength: 0.5 });
+  const lyso = satin(0x5e2a44, { roughness: 0.45 }, { color: 0xc98aa6, power: 2, strength: 0.4 });
   [['floor', -0.1, 0.9], ['wall', -0.25, 0.85], ['wall', 0.75, 0.2], ['floor', 0.72, 0.52]].forEach(([f, u, v]) => {
     const m = new THREE.Mesh(sphereG, lyso); m.scale.set(0.045, 0.045, 0.04); addOrg(m, f, u, v, { shadow: 0.13, morph: 0.1 });
   });
@@ -383,8 +383,8 @@ async function boot() {
 
   // Cytoplasmic streaming: free ribosomes in three sizes follow lanes around the nucleus, inner lanes faster.
   const RIBO = 420;
-  const ribo = new THREE.InstancedMesh(new THREE.SphereGeometry(0.0058, 8, 6), new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.5, emissive: 0x3a2006, emissiveIntensity: 0.25 }), RIBO);
-  const palette = [0xf5a93c, 0xe58a2a, 0xffc368, 0xd96f2f].map((c) => new THREE.Color(c));
+  const ribo = new THREE.InstancedMesh(new THREE.SphereGeometry(0.0048, 8, 6), new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.55, emissive: 0x2a1806, emissiveIntensity: 0.2 }), RIBO);
+  const palette = [0xd6a272, 0xc58a5c, 0xe4c294, 0xb47a52].map((c) => new THREE.Color(c));
   const riboData = Array.from({ length: RIBO }, (_, i) => { const r = 0.46 + Math.pow(rnd(), 0.8) * 0.46; ribo.setColorAt(i, palette[i % 4]); return { face: faceFor(i), r, a: rnd() * Math.PI, w: (0.1 / (0.6 + r)) * rr(0.6, 1.3) * (i % 7 ? 1 : -0.6), s: rr(0.5, 1.5), ph: rnd() * 6.28, lift: rr(0.003, 0.014) }; });
   ribo.instanceColor.needsUpdate = true;
   cell.add(ribo);

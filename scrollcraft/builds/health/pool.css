@@ -28,3 +28,6 @@
 .cell-copy>p:last-child{max-width:24rem}
 .cell-slot{position:absolute;inset:0}.cell-copy .hero-title{font-size:clamp(2.35rem,10.5vw,2.9rem);line-height:.88;margin-bottom:1rem}.cell-copy>p:last-child{max-width:18rem}.clinic-statement{grid-template-columns:1fr;padding:15vh 1.2rem 10vh}.statement-copy h2{font-size:3.3rem}.iris{width:68vw;justify-self:end}.project-rail{padding:15vh 1rem 10vh}.rail-intro,.rail-end,.project-card{flex-basis:82vw}.close-copy{left:1.2rem;right:1.2rem;top:20%}.close-copy h2{font-size:3.8rem}}@media(prefers-reduced-motion:reduce){.redesign-note{transform:none}.project-act{height:auto!important;min-height:100vh}.project-act [data-sc-stage]{position:relative!important;height:auto!important}.project-rail{width:auto;display:grid;grid-template-columns:repeat(auto-fit,minmax(17rem,1fr));height:auto}.cards-status{display:contents}}
 
+/* The bone statement rises over the pinned cell: dissolve the seam instead of a hard horizontal cut. */
+.clinic-statement{position:relative}
+.clinic-statement::before{content:"";position:absolute;left:0;right:0;bottom:100%;height:24vh;background:linear-gradient(to bottom,#eef1e900,#eef1e9b3 60%,#eef1e9);pointer-events:none;z-index:2}
