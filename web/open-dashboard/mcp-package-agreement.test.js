@@ -121,6 +121,12 @@ test("no static page freezes a package version other than the installed one", as
     assert.ok(named.length > 0, `${file} no longer names the npm release where this test looks`);
     assert.deepEqual([...new Set(named)], [facts.version], `${file} names a release that is not installed`);
   }
+  // The pool card also states the counts and the provider roll in plain HTML.
+  const pool = await readFile(new URL("../pools/ai-d-kit/index.html", import.meta.url), "utf8");
+  assert.equal(pool.match(/<dt>(\d+)<\/dt><dd>read-only tools/)?.[1], String(facts.tools.length));
+  assert.equal(pool.match(/<dt>(\d+)<\/dt><dd>providers/)?.[1], String(facts.providers.length));
+  for (const provider of facts.providers)
+    assert.ok(pool.includes(provider.displayName), `the pool card omits ${provider.displayName}`);
 });
 
 test("the page's 1.0 content only uses vocabulary the package actually defines", async () => {

@@ -232,7 +232,7 @@ export const TOOLS = [
     description:
       "Optional: ask a configured model-router which seat fills a role; advisory and read-only.",
     prompt:
-      "Use Open Dashboard to resolve the seat for the review role under the free-only policy. Report the returned status exactly, including unavailable or router_unreachable, and do not guess a seat.",
+      "Use Open Dashboard to resolve a seat with consumer public-council and role review. Report the returned status exactly, including unavailable or router_unreachable, and do not guess a seat.",
   },
 ];
 
