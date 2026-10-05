@@ -262,7 +262,7 @@ export async function build() {
       return `
         <div class="${classes}" data-name="${escapeHtml(String(entry.name ?? '').toLowerCase())}" data-date="${escapeHtml(entry.last_verified)}" ${dateAttrs(entry)}>
           ${badges(status)}
-          <div class="card-title"><a href="${safeUrl(entry.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(entry.name)}</a></div>
+           <div class="card-title"><a href="${escapeHtml(safeUrl(entry.url))}" target="_blank" rel="noopener noreferrer">${escapeHtml(entry.name)}</a></div>
           <div class="note">${escapeHtml(entry.note)}</div>
           <div class="field"><div class="label">Good At</div><div>${escapeHtml(entry.good)}</div></div>
           <div class="field bad-at"><div class="label">Bad At</div><div>${escapeHtml(entry.bad)}</div></div>
@@ -297,8 +297,8 @@ export async function build() {
       const statusStr = ` <span class="row-status" data-row-status>${label}</span>`;
 
       return `
-        <tr class="entry-row ${status}" data-name="${escapeHtml(String(entry.name ?? '').toLowerCase())}" data-date="${escapeHtml(entry.last_verified)}" ${dateAttrs(entry)}>
-          <td><a href="${safeUrl(entry.url)}" rel="noopener noreferrer" style="color:white;font-weight:bold;">${escapeHtml(entry.name)}</a>${statusStr}</td>
+         <tr class="entry-row ${status}" data-name="${escapeHtml(String(entry.name ?? '').toLowerCase())}" data-date="${escapeHtml(entry.last_verified)}" ${dateAttrs(entry)}>
+           <td><a href="${escapeHtml(safeUrl(entry.url))}" rel="noopener noreferrer" style="color:white;font-weight:bold;">${escapeHtml(entry.name)}</a>${statusStr}</td>
           <td class="td-good">${escapeHtml(entry.good)}</td>
           <td class="td-bad">${escapeHtml(entry.bad)}</td>
           <td>${escapeHtml(entry.price)}</td>
@@ -407,9 +407,19 @@ export async function build() {
         sec.style.display = visibleCount > 0 ? 'block' : 'none';
 
         // Sorting
-        if (sort !== 'default') {
-          const grid = sec.querySelector('.grid');
-          const tbody = sec.querySelector('tbody');
+        const grid = sec.querySelector('.grid');
+        const tbody = sec.querySelector('tbody');
+
+        if (sort === 'default') {
+          const cards = Array.from(sec.querySelectorAll('.entry-card'));
+          const rows = Array.from(sec.querySelectorAll('.entry-row'));
+          cards.forEach((card, i) => {
+            grid.appendChild(card);
+            tbody.appendChild(rows[i]);
+          });
+        } else {
+          const cards = Array.from(sec.querySelectorAll('.entry-card'));
+          const rows = Array.from(sec.querySelectorAll('.entry-row'));
 
           const sortedIndices = cards.map((c, i) => i).sort((a, b) => {
             const dateA = new Date(cards[a].dataset.date);
