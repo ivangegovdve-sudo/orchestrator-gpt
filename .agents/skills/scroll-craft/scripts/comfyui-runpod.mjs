@@ -100,8 +100,9 @@ async function run(endpoint, input, { label = "job", timeoutMs = 20 * 60 * 1000 
   for (;;) {
     if (Date.now() - t0 > timeoutMs) {
       // A stuck job keeps a worker (and the bill) running; cancel it on the way out.
-      await fetch(`${API}/${endpoint}/cancel/${sub.id}`, { method: "POST", headers: H }).catch(() => {});
-      throw new Error(`${label}: timed out after ${Math.round((Date.now() - t0) / 1000)}s (job cancelled)`);
+      const canRes = await fetch(`${API}/${endpoint}/cancel/${sub.id}`, { method: "POST", headers: H }).catch(() => null);
+      const cancelOk = canRes && canRes.ok;
+      throw new Error(`${label}: timed out after ${Math.round((Date.now() - t0) / 1000)}s (job ${cancelOk ? "cancelled" : "cancellation unconfirmed"})`);
     }
     const st = await json(await fetch(`${API}/${endpoint}/status/${sub.id}`, { headers: H }), `${label} status`);
     if (st.status === "COMPLETED") return st;
@@ -116,12 +117,16 @@ async function run(endpoint, input, { label = "job", timeoutMs = 20 * 60 * 1000 
 
 // worker-comfyui returns outputs as base64 or as bucket URLs, depending on
 // whether the endpoint has S3 upload configured. Handle both.
-async function saveFirst(output, out, kinds) {
+async function saveFirst(output, out, kinds, requiredKind = null) {
   const list = kinds.flatMap((k) => output?.[k] || []);
   const item = list[0];
   if (!item) throw new Error(`no ${kinds.join("/")} in output: ${JSON.stringify(output).slice(0, 400)}`);
-  fs.mkdirSync(path.dirname(path.resolve(out)), { recursive: true });
+  if (requiredKind && !output?.[requiredKind]?.length) {
+    throw new Error(`required output kind ${requiredKind} missing: ${JSON.stringify(output).slice(0, 400)}`);
+  }
   const data = item.data ?? item.image ?? item.url;
+  if (!data) throw new Error(`output item is empty: ${JSON.stringify(item).slice(0, 400)}`);
+  fs.mkdirSync(path.dirname(path.resolve(out)), { recursive: true });
   if (item.type === "s3_url" || /^https?:/.test(data)) {
     const res = await fetch(data);
     if (!res.ok) throw new Error(`download ${res.status}`);
@@ -162,14 +167,17 @@ const [cmd, ...rest] = process.argv.slice(2);
 try {
   if (cmd === "probe") {
     const a = await account();
-    console.log("balance:", a ? `$${a.clientBalance.toFixed(4)} prepaid, current spend $${a.currentSpendPerHr}/h` : "unavailable");
+    console.log("balance:", a ? `$${a.clientBalance.toFixed(4)} prepaid, current spend $${a.currentSpendPerH}/h` : "unavailable");
+    let failed = false;
     for (const [label, name] of [["image", "SCROLLCRAFT_COMFYUI_IMAGE_ENDPOINT"], ["video", "SCROLLCRAFT_COMFYUI_VIDEO_ENDPOINT"]]) {
       const id = env(name);
       if (!id) { console.log(`${label} endpoint: ${name} not set`); continue; }
       const res = await fetch(`${API}/${id}/health`, { headers: H });
       const t = await res.text();
+      if (!res.ok) failed = true;
       console.log(`${label} endpoint: ${res.ok ? t : `HTTP ${res.status} ${t.slice(0, 160)}`}`);
     }
+    if (failed) process.exit(1);
 
   } else if (cmd === "still") {
     const [prompt, out] = rest;
@@ -205,7 +213,7 @@ try {
     };
     const st = await run(need("SCROLLCRAFT_COMFYUI_VIDEO_ENDPOINT"), input, { label: path.basename(out) });
     report(path.basename(out), st);
-    await saveFirst(st.output, out, ["videos", "gifs", "images"]);
+    await saveFirst(st.output, out, ["videos"], "videos");
     console.log(out);
 
   } else {
