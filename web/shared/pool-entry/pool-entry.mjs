@@ -135,16 +135,25 @@ export function mount(scene, { root = document } = {}) {
       }, { passive: true });
     }
     let visible = true;
-    new IntersectionObserver(([e]) => { visible = e.isIntersecting; }).observe(stage);
+    let raf = 0;
+    new IntersectionObserver(([e]) => {
+      visible = e.isIntersecting;
+      if (visible && !raf) {
+        raf = requestAnimationFrame(frame);
+      }
+    }).observe(stage);
     const clock = createEntryClock(performance.now());
     document.addEventListener('visibilitychange', () => {
       clock(performance.now(), !document.hidden && visible);
     });
     const frame = (now) => {
-      requestAnimationFrame(frame);
       const active = !document.hidden && visible;
+      if (!active) {
+        raf = 0;
+        return;
+      }
+      raf = requestAnimationFrame(frame);
       const elapsed = clock(now, active);
-      if (!active) return;
       s.t = freezeT ?? elapsed;
       s.p = progress();
       s.px += (tx - s.px) * 0.06;
@@ -152,7 +161,7 @@ export function mount(scene, { root = document } = {}) {
       entry.dataset.entryPhase = s.t < scene.duration ? 'arrive' : 'rest';
       paint();
     };
-    requestAnimationFrame(frame);
+    raf = requestAnimationFrame(frame);
   }
 
   document.documentElement.classList.add('entry-ready');

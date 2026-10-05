@@ -81,6 +81,7 @@ async function boot() {
     contextLost = true;
     canvas.hidden = true;
     slot.classList.add('cell-slot--static');
+    act.removeAttribute('data-cell-live');
   });
   const maxPR = Math.min(devicePixelRatio || 1, 1.5);
   let pr = lite ? 0.5 : maxPR;

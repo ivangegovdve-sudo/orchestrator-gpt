@@ -24,11 +24,21 @@ let browser;
     await normalizeFinalRaster(page);
     const state = await page.evaluate(() => ({
       poolCount:document.querySelectorAll('[data-pool-link]').length,
-      pools:[...document.querySelectorAll('[data-pool-link]')].map(node => ({id:node.dataset.poolLink,box:node.getBoundingClientRect().toJSON()})),
+      pools:[...document.querySelectorAll('[data-pool-link]')].map(node => {
+        const box = node.getBoundingClientRect();
+        const style = window.getComputedStyle(node);
+        return {
+          id:node.dataset.poolLink,
+          box:box.toJSON(),
+          visible: style.visibility !== 'hidden' && style.display !== 'none' && style.opacity !== '0',
+          width: box.width,
+          height: box.height
+        };
+      }),
       overflow:document.documentElement.scrollWidth > innerWidth,
       tree:document.querySelector('.resolve-tree').getBoundingClientRect().toJSON(),
     }));
-    if (errors.length || state.overflow || state.poolCount !== 7 || state.pools.some(({box})=>box.bottom>height || box.left<0 || box.right>width)) throw new Error(`Frame is not ready: ${JSON.stringify({errors,state})}`);
+    if (errors.length || state.overflow || state.poolCount !== 7 || state.pools.some(({box,visible,width,height})=>!visible || width<=0 || height<=0 || box.top<0 || box.bottom>height || box.left<0 || box.right>width)) throw new Error(`Frame is not ready: ${JSON.stringify({errors,state})}`);
     const file = `final-frame-${name}.png`;
     await page.screenshot({path:path.join(out,file)});
     frames.push({name,width,height,file,sha256:sha(path.join(out,file)),state});
