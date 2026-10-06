@@ -1,0 +1,297 @@
+{
+  "scope": "Date-stamped supporting examples for the coverage pitch; no provider-wide cheapest guarantee.",
+  "catalogueRequestWindow": {
+    "requestedFrom": "2026-10-06T10:39:08.904160+00:00",
+    "requestedTo": "2026-10-06T10:39:12.545802+00:00",
+    "providers": [
+      {
+        "provider": "crazyrouter",
+        "endpoint": "https://openrouter-github-dashboard.vercel.app/api/live/catalogue?provider=crazyrouter",
+        "fetchedAt": "2026-10-06T10:39:12.435Z",
+        "status": "available"
+      },
+      {
+        "provider": "openrouter",
+        "endpoint": "https://openrouter-github-dashboard.vercel.app/api/live/catalogue?provider=openrouter",
+        "fetchedAt": "2026-10-06T10:39:11.571Z",
+        "status": "available"
+      },
+      {
+        "provider": "kie",
+        "endpoint": "https://openrouter-github-dashboard.vercel.app/api/live/catalogue?provider=kie",
+        "fetchedAt": "2026-10-06T10:39:12.098Z",
+        "status": "available"
+      },
+      {
+        "provider": "fal",
+        "endpoint": "https://openrouter-github-dashboard.vercel.app/api/live/catalogue?provider=fal",
+        "fetchedAt": "2026-10-06T10:39:11.984Z",
+        "status": "partial"
+      }
+    ]
+  },
+  "measuredAt": "2026-10-06T10:41:15.689415+00:00",
+  "sources": [
+    {
+      "url": "https://openrouter-github-dashboard.vercel.app/api/live/catalogue?provider=crazyrouter",
+      "retrievedAt": "2026-10-06T10:39:12.544437+00:00",
+      "sha256": "4fd1de258f3ed14018dab5f602afd893452dfdd62024d3268c3c1b55f6364db0",
+      "rawFile": "/tmp/open-dashboard-comparison-followup/crazyrouter.json",
+      "method": "GET"
+    },
+    {
+      "url": "https://openrouter-github-dashboard.vercel.app/api/live/catalogue?provider=openrouter",
+      "retrievedAt": "2026-10-06T10:39:11.741873+00:00",
+      "sha256": "281877e0b55da8e1ab42a9b7291fbcc9b2265c93a971a72da0f731a280d35450",
+      "rawFile": "/tmp/open-dashboard-comparison-followup/openrouter.json",
+      "method": "GET"
+    },
+    {
+      "url": "https://openrouter-github-dashboard.vercel.app/api/live/catalogue?provider=kie",
+      "retrievedAt": "2026-10-06T10:39:12.258396+00:00",
+      "sha256": "f2618cd3ae9328467058bc4958349ec6ccdd12827294b596bef8079a04c90a7a",
+      "rawFile": "/tmp/open-dashboard-comparison-followup/kie.json",
+      "method": "GET"
+    },
+    {
+      "url": "https://openrouter-github-dashboard.vercel.app/api/live/catalogue?provider=fal",
+      "retrievedAt": "2026-10-06T10:39:12.196225+00:00",
+      "sha256": "5be84cba6fae87665cc5fafe0e6f0c32a567b12b94faa38b593824acb3e7dab3",
+      "rawFile": "/tmp/open-dashboard-comparison-followup/fal.json",
+      "method": "GET"
+    },
+    {
+      "url": "https://crazyrouter.com/api/pricing",
+      "retrievedAt": "2026-10-06T10:40:05.766174+00:00",
+      "sha256": "96c03a5636946bc5dc8aae19fb05ebbb63e1499fcc20816c2ac54337addb1928",
+      "rawFile": "/tmp/open-dashboard-comparison-followup/crazyrouter-pricing-native.json",
+      "method": "GET"
+    },
+    {
+      "url": "https://fal.ai/models/fal-ai/bytedance/seedream/v4.5/text-to-image",
+      "retrievedAt": "2026-10-06T10:39:37.494482+00:00",
+      "sha256": "fe5840784cec3d9132994404624901184eb28629b4c5a38582fe24ae43a90977",
+      "rawFile": "/tmp/open-dashboard-comparison-followup/fal-seedream45.html",
+      "method": "GET"
+    },
+    {
+      "url": "https://api.kie.ai/client/v1/model-pricing/page",
+      "retrievedAt": "2026-10-06T10:40:21.141939+00:00",
+      "sha256": "8560ffe185fac879a372a00b058a5fa2ab5eb8cb6e504856f5a1a1046fb9e60f",
+      "rawFile": "/tmp/open-dashboard-comparison-followup/kie-seedream45-native.json",
+      "method": "POST, read-only pricing lookup",
+      "body": {
+        "pageNum": 1,
+        "pageSize": 100,
+        "modelDescription": "seedream 4.5",
+        "interfaceType": "image"
+      }
+    },
+    {
+      "url": "https://kie.ai/seedream-4-5?model=seedream%2F4.5-text-to-image",
+      "retrievedAt": "2026-10-06T10:41:15.689415+00:00",
+      "sha256": "e92a77def87ba6833f5e27a978f7e06886700680269c6713edb73946cf178b3b",
+      "rawFile": "/tmp/open-dashboard-comparison-followup/kie-seedream45-text-to-image.html",
+      "method": "GET"
+    },
+    {
+      "url": "https://kie.ai/pricing",
+      "retrievedAt": "2026-10-06T10:39:37.282485+00:00",
+      "sha256": "f40abd6602a68cb6782c3f712046071d1a45d3c667d484d7bdd771c4c5f3e335",
+      "rawFile": "/tmp/open-dashboard-comparison-followup/kie-pricing.html",
+      "method": "GET"
+    }
+  ],
+  "crazyrouterVsOpenRouter": {
+    "supported": true,
+    "model": "OpenAI GPT-4o mini",
+    "crazyrouterId": "gpt-4o-mini",
+    "openRouterId": "openai/gpt-4o-mini",
+    "identityBasis": "Exact gpt-4o-mini API alias plus explicit OpenAI vendor/author namespace. Crazyrouter pricing native vendor_id 4 maps to OpenAI; OpenRouter has author namespace openai. Literal provider ids differ by namespace.",
+    "literalCatalogueIdIntersectionCount": 0,
+    "nativeVendor": {
+      "id": 4,
+      "name": "OpenAI",
+      "icon": "OpenAI"
+    },
+    "crazyrouterNativePriceRow": {
+      "model_name": "gpt-4o-mini",
+      "vendor_id": 4,
+      "quota_type": 0,
+      "model_ratio": 0.075,
+      "model_price": 0,
+      "owner_by": "",
+      "completion_ratio": 4,
+      "image_ratio": 1,
+      "cache_ratio": 0.5333333333333333,
+      "cache_creation_ratio": 1,
+      "image_ratio_configured": false,
+      "cache_ratio_configured": true,
+      "cache_creation_priced": false,
+      "discount": 0.65,
+      "group_discounts": {
+        "default": 0.65
+      },
+      "enable_groups": [
+        "default"
+      ],
+      "supported_endpoint_types": [
+        "openai"
+      ],
+      "public_endpoint_types": [
+        "openai"
+      ],
+      "release_date": "2024-07-18",
+      "series": "gpt-4o"
+    },
+    "crazyrouterDefaultGroupRatio": 1,
+    "formula": "USD/M input = model_ratio (0.075) \u00d7 2 \u00d7 default group ratio (1) \u00d7 discount (0.65) = 0.0975; output = input \u00d7 completion_ratio (4) = 0.39.",
+    "legs": [
+      {
+        "unit": "token_in",
+        "comparisonUnit": "USD per 1,000,000 tokens",
+        "crazyrouterAmount": "0.0975000000",
+        "openRouterAmount": "0.15000000",
+        "savingsPercent": "35.00",
+        "crazyrouterPricePoint": {
+          "id": "crazyrouter:gpt-4o-mini:input",
+          "amount": "0.0000000975",
+          "unit": "token_in",
+          "observed": null,
+          "measurement_origin": "catalogue",
+          "condition": null,
+          "source": {
+            "url": "https://crazyrouter.com/api/pricing",
+            "readAt": "2026-10-06T10:39:11.192Z"
+          },
+          "provenance": "derived",
+          "derivedFrom": "https://developers.openai.com/api/docs/models/gpt-4o-mini",
+          "sourceText": "Crazyrouter model discount badge: 0.65"
+        },
+        "openRouterPricePoint": {
+          "id": "openrouter:openai/gpt-4o-mini:prompt",
+          "amount": "0.00000015",
+          "unit": "token_in",
+          "observed": null,
+          "measurement_origin": "catalogue",
+          "condition": null,
+          "source": {
+            "url": "https://openrouter.ai/api/v1/models",
+            "readAt": "2026-10-06T10:39:11.265Z"
+          },
+          "provenance": "published"
+        }
+      },
+      {
+        "unit": "token_out",
+        "comparisonUnit": "USD per 1,000,000 tokens",
+        "crazyrouterAmount": "0.39000000",
+        "openRouterAmount": "0.6000000",
+        "savingsPercent": "35.00",
+        "crazyrouterPricePoint": {
+          "id": "crazyrouter:gpt-4o-mini:output",
+          "amount": "0.00000039",
+          "unit": "token_out",
+          "observed": null,
+          "measurement_origin": "catalogue",
+          "condition": null,
+          "source": {
+            "url": "https://crazyrouter.com/api/pricing",
+            "readAt": "2026-10-06T10:39:11.192Z"
+          },
+          "provenance": "derived",
+          "derivedFrom": "https://developers.openai.com/api/docs/models/gpt-4o-mini",
+          "sourceText": "Crazyrouter model discount badge: 0.65"
+        },
+        "openRouterPricePoint": {
+          "id": "openrouter:openai/gpt-4o-mini:completion",
+          "amount": "0.0000006",
+          "unit": "token_out",
+          "observed": null,
+          "measurement_origin": "catalogue",
+          "condition": null,
+          "source": {
+            "url": "https://openrouter.ai/api/v1/models",
+            "readAt": "2026-10-06T10:39:11.265Z"
+          },
+          "provenance": "published"
+        }
+      }
+    ],
+    "conditions": "Uncached standard input and output token quotes only; both pricePoints.condition=null. Crazyrouter default group, published 0.65 discount badge; account-specific routing/tiers, caching and extra charges excluded.",
+    "caveats": [
+      "Crazyrouter amounts are derived from current public coefficients and the model discount badge, not settled per-call charges.",
+      "Exact immutable model snapshot, hosted deployment, availability, quality and latency equivalence are not established.",
+      "Crazyrouter catalogue completeness is unknown. This verifies these listed aliases only."
+    ],
+    "recommendedCopy": "For GPT-4o mini, Crazyrouter\u2019s listed net token rates are 35% lower than OpenRouter\u2019s: $0.0975/$0.39 versus $0.15/$0.60 per million input/output tokens (6 Oct 2026; Crazyrouter rates derived from published coefficients)."
+  },
+  "kieVsFal": {
+    "supported": true,
+    "model": "ByteDance Seedream 4.5, text-to-image",
+    "kieCatalogueId": "seedream 4.5, text-to-image",
+    "kieCallableSlug": "seedream/4.5-text-to-image",
+    "falCallableSlug": "fal-ai/bytedance/seedream/v4.5/text-to-image",
+    "identityBasis": "Both official model pages name ByteDance Seedream 4.5 text-to-image. KIE native pricing row names this same direction and links the callable slug; fal official model metadata gives modelFamily Seedream 4.5 and the text-to-image endpoint.",
+    "comparisonUnit": "USD per generated image",
+    "kieAmount": "0.0325",
+    "falAmount": "0.04",
+    "savingsPercent": "18.75",
+    "kieCreditsPerImage": "6.5",
+    "kieStandardUsdPerCredit": "0.005",
+    "kiePricePoint": {
+      "id": "kie:seedream 4.5, text-to-image:image",
+      "amount": "0.0325",
+      "unit": "image",
+      "observed": null,
+      "measurement_origin": "catalogue",
+      "condition": null,
+      "source": {
+        "url": "https://api.kie.ai/client/v1/model-pricing/page",
+        "readAt": "2026-10-06T10:39:11.203Z"
+      },
+      "provenance": "published"
+    },
+    "kieNativePriceRow": {
+      "modelDescription": "seedream 4.5, text-to-image",
+      "interfaceType": "image",
+      "provider": "ByteDance",
+      "creditPrice": "6.5",
+      "creditUnit": "per image",
+      "usdPrice": "0.0325",
+      "falPrice": "0.04",
+      "discountRate": 18.75,
+      "anchor": "https://kie.ai/seedream-4-5?model=seedream%2F4.5-text-to-image",
+      "discountPrice": false
+    },
+    "falPriceEvidence": {
+      "sourceUrl": "https://fal.ai/models/fal-ai/bytedance/seedream/v4.5/text-to-image",
+      "field": "publicEndpointBilling",
+      "endpoint": "fal-ai/bytedance/seedream/v4.5/text-to-image",
+      "billing_unit": "images",
+      "price": 0.04,
+      "visibleText": "Your request will cost $0.04 per image."
+    },
+    "comparableSettings": {
+      "operation": "text-to-image",
+      "outputCount": 1,
+      "resolution": "2K",
+      "kie": "quality=basic, aspect_ratio=1:1 (official model page says Basic outputs 2K images; default basic)",
+      "fal": "image_size=auto_2K or 2048\u00d72048, num_images=1, max_images=1 (official input schema and metadata)"
+    },
+    "falDashboardCataloguePricedEntries": 0,
+    "conditions": "Standard public quotes for a single image; no top-up bonus, enterprise/account discount, bundle savings or tax adjustment. KIE credits converted only at its documented standard rate and checked against its own USD column.",
+    "caveats": [
+      "The dashboard fal catalogue returned no pricePoints today; the fal comparison price was read independently from the official fal model page, not from KIE\u2019s unverified falPrice field.",
+      "The example compares published per-image quotes for the named model/configuration, not measured output quality, SLA, latency, availability or settled bills.",
+      "KIE effective credit cost can vary with top-up bonuses; those are excluded."
+    ],
+    "recommendedCopy": "For Seedream 4.5 text-to-image, KIE lists $0.0325 per image versus fal.ai\u2019s $0.04 \u2014 18.75% lower (6 Oct 2026; standard credit rate; fal\u2019s official model page)."
+  },
+  "excludedExample": {
+    "model": "Nano Banana",
+    "reason": "Official fal visible price prose says $0.039/image while publicEndpointBilling says 0.0398. Use Seedream 4.5, whose visible prose and billing metadata agree, for an unambiguous comparison."
+  },
+  "inferenceCalls": 0,
+  "inferenceSpendUsd": "0"
+}

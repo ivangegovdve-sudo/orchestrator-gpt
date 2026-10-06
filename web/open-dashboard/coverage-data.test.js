@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { aggregateCoverage, COVERAGE_PROVIDER_IDS, isReportedPrice, readLiveCoverage } from './coverage-data.js';
 import { readProviderCatalogue } from './live-source.js';
-import { renderCoverage } from './coverage.js';
+import { catalogueScopeText, renderCoverage } from './coverage.js';
 
 const price = (amount, unit, provenance = 'published') => ({ amount, unit, provenance });
 const model = (provider, id, mediaKind = 'other', pricePoints = []) => ({ provider, id, mediaKind, pricePoints });
@@ -88,6 +88,21 @@ test('a partial source cannot produce a complete headline even if every endpoint
   assert.equal(snapshot.state, 'partial');
   assert.equal(snapshot.readProviders, 1);
   assert.match(snapshot.warnings[0], /partial source or pricing/);
+});
+
+test('catalogue scope compares observed entries only with a complete, error-free OpenRouter denominator', () => {
+  const snapshot = aggregateCoverage([
+    read('openrouter', [model('openrouter', 'one'), model('openrouter', 'one')]),
+    read('groq', [model('groq', 'one'), model('groq', 'two')], { status: 'partial' }),
+  ], { providerIds: ['openrouter', 'groq'] });
+  assert.equal(catalogueScopeText(snapshot), 'This read returned 3 provider/ID entries across catalogues, versus 1 from OpenRouter alone — about 3.00× as many catalogue entries.');
+  for (const report of [
+    { status: 'unavailable' }, { status: 'partial' },
+    { population: { completeness: 'unknown' } }, { error: 'PRICING_STALE' },
+  ]) {
+    assert.equal(catalogueScopeText(aggregateCoverage([read('openrouter', [model('openrouter', 'one')], report)], { providerIds: ['openrouter'] })), 'A current catalogue comparison with OpenRouter alone is unavailable.');
+  }
+  assert.equal(catalogueScopeText(aggregateCoverage([read('openrouter', [])], { providerIds: ['openrouter'] })), 'A current catalogue comparison with OpenRouter alone is unavailable.');
 });
 
 test('partial rendering keeps registered providers separate, gives a bounded pitch, and scopes free-model uncertainty', () => {

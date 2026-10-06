@@ -12,6 +12,14 @@ const formatDate = value => {
   return value && Number.isFinite(date.getTime()) ? date.toISOString().replace('T', ' ').replace(/\.\d{3}Z$/, ' UTC') : 'Date not reported';
 };
 
+export function catalogueScopeText(snapshot) {
+  const source = snapshot.providers.find(provider => provider.provider === 'openrouter');
+  const denominator = source?.counts?.total;
+  if (source?.status !== 'available' || source.completeness !== 'full' || source.error || !denominator || !snapshot.counts.total)
+    return 'A current catalogue comparison with OpenRouter alone is unavailable.';
+  return `This read returned ${number.format(snapshot.counts.total)} provider/ID entries across catalogues, versus ${number.format(denominator)} from OpenRouter alone — about ${(snapshot.counts.total / denominator).toFixed(2)}× as many catalogue entries.`;
+}
+
 export function renderCoverage(root, snapshot) {
   const headline = root.querySelector('[data-coverage-headline]');
   if (headline) headline.textContent = snapshot.state === 'complete'
@@ -26,6 +34,7 @@ export function renderCoverage(root, snapshot) {
     setText(root, id, value == null ? 'Unavailable' : `${snapshot.state === 'partial' && (key !== 'free' || freePartial) ? '≥ ' : ''}${number.format(value)}`);
   }
   setText(root, 'coverage-providers', number.format(snapshot.requestedProviders));
+  setText(root, 'coverage-openrouter-scope', catalogueScopeText(snapshot));
   const missing = snapshot.providers.filter(provider => !provider.counts).map(provider => provider.label);
   const status = snapshot.state === 'complete'
     ? `Live read complete · ${snapshot.readProviders} / ${snapshot.requestedProviders} providers returned`
@@ -75,6 +84,7 @@ export function initializeCoverage(root = document) {
     setText(root, 'coverage-timestamp', `Read started ${formatDate(new Date().toISOString())}`);
     setText(root, 'coverage-status', `Reading all ${COVERAGE_PROVIDER_IDS.length} provider catalogues…`);
     setText(root, 'coverage-read-note', 'Fetching current catalogue responses. These counts use no dated fallback.');
+    setText(root, 'coverage-openrouter-scope', 'Reading current catalogue breadth across providers, including OpenRouter…');
     root.getElementById('coverage-details')?.replaceChildren();
     try {
       const snapshot = await readLiveCoverage({

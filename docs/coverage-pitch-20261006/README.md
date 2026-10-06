@@ -1,13 +1,13 @@
 # Public catalogue coverage measurement
 
-Request window: **2026-10-06T06:04:27.273Z – 2026-10-06T06:04:34.673Z**.
+Request window: **2026-10-06T10:44:21.626Z – 2026-10-06T10:44:30.829Z**.
 
 Source: https://openrouter-github-dashboard.vercel.app/api/live/catalogue?provider={provider}, one request for every registered provider. No inference calls or inference spend.
 
 - **5,222 model entries**, deduplicated by (provider,id), across **16 registered providers**; **15** returned entries in this read.
-- **2,443 entries with published numeric prices**, from **13 providers**. Of these, **2,399** have direct/prose quotes and **44** have derived quotes only.
+- **2,442 entries with published numeric prices**, from **13 providers**. Of these, **2,398** have direct/prose quotes and **44** have derived quotes only.
 - **1,104 image entries**, **159** with native output prices.
-- **1,317 video entries**, **274** with native output prices.
+- **1,318 video entries**, **274** with native output prices.
 - **16 OpenRouter :free entries**.
 
 | Provider | Entries | Priced | Image / output-priced | Video / output-priced | Source status / population |
@@ -22,11 +22,11 @@ Source: https://openrouter-github-dashboard.vercel.app/api/live/catalogue?provid
 | novita | 121 | 117 | 0 / 0 | 0 / 0 | available; full |
 | sambanova | 6 | 6 | 0 / 0 | 0 / 0 | available; full |
 | chutes | 491 | 476 | 0 / 0 | 0 / 0 | available; full |
-| wavespeed | 1054 | 4 | 316 / 0 | 425 / 4 | available; full |
+| wavespeed | 1055 | 4 | 316 / 0 | 426 / 4 | available; full |
 | fal | 1505 | 0 | 603 / 0 | 559 / 0 | partial; full |
 | kie | 524 | 468 | 119 / 112 | 269 / 248 | available; full |
 | crazyrouter | 175 | 98 | 11 / 0 | 35 / 0 | available; unknown |
-| akashml | 7 | 7 | 0 / 0 | 0 / 0 | available; full |
+| akashml | 6 | 6 | 0 / 0 | 0 / 0 | available; full |
 | ionet | 39 | 39 | 0 / 0 | 0 / 0 | available; full |
 
 ## Definitions and limits
@@ -46,7 +46,7 @@ Source: https://openrouter-github-dashboard.vercel.app/api/live/catalogue?provid
 - fal: partial; population full.
 - crazyrouter: available; population unknown.
 
-The response SHA-256 hashes, source timestamps, retained populations, price-coverage states and per-provider counts are in [measurement.json](./measurement.json). Raw public API responses were retained locally in /tmp/open-dashboard-coverage-20261006; they are not committed.
+The response SHA-256 hashes, source timestamps, retained populations, price-coverage states and per-provider counts are in [measurement.json](./measurement.json). Raw public API responses were retained locally in /tmp/open-dashboard-coverage-followup-20261006; they are not committed.
 
 Re-run from the repository root with Node.js and curl available:
 

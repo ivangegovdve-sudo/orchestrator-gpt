@@ -221,6 +221,35 @@
           >
         </div>
 
+        <section class="page-width catalogue-extras" id="price-examples" aria-labelledby="price-examples-title">
+          <p class="eyebrow">Let your agent compare</p>
+          <h2 id="price-examples-title">Prices worth comparing.</h2>
+          <p class="catalogue-extras-note">Listed-price examples checked <time datetime="2026-10-06T10:41:15Z">6 Oct 2026, 10:39–10:41 UTC</time>. Quotes and account conditions can change.</p>
+          <div class="catalogue-extras-grid">
+            <article>
+              <p class="eyebrow">GPT-4o mini · Text</p>
+              <h3>Crazyrouter: 35% lower listed token rates.</h3>
+              <p><strong>$0.0975 input / $0.39 output</strong> per million uncached tokens, versus OpenRouter’s <strong>$0.15 / $0.60</strong>.</p>
+              <p class="catalogue-extras-note">Crazyrouter rates are derived from published coefficients and its 0.65 discount. The same model alias does not establish identical deployments or bills.</p>
+              <div class="catalogue-extras-links"><a href="https://crazyrouter.com/api/pricing">Crazyrouter source <svg class="coverage-link-arrow" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 13 13 3M4 3h9v9" /></svg></a><a href="https://openrouter.ai/openai/gpt-4o-mini">OpenRouter source <svg class="coverage-link-arrow" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 13 13 3M4 3h9v9" /></svg></a></div>
+            </article>
+            <article>
+              <p class="eyebrow">Seedream 4.5 · Image</p>
+              <h3>KIE: 18.75% lower listed image price.</h3>
+              <p><strong>$0.0325 per image</strong> on KIE, versus <strong>$0.04</strong> on fal.ai, for text-to-image with single-image 2K settings.</p>
+              <p class="catalogue-extras-note">KIE: 6.5 credits at the standard $0.005 credit rate, excluding bonuses. The fal.ai quote comes from its official model page.</p>
+              <div class="catalogue-extras-links"><a href="https://kie.ai/seedream-4-5?model=seedream%2F4.5-text-to-image">KIE source <svg class="coverage-link-arrow" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 13 13 3M4 3h9v9" /></svg></a><a href="https://fal.ai/models/fal-ai/bytedance/seedream/v4.5/text-to-image">fal.ai source <svg class="coverage-link-arrow" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 13 13 3M4 3h9v9" /></svg></a></div>
+            </article>
+            <article>
+              <p class="eyebrow">Groq · Fast inference</p>
+              <h3>Start on a limited Free tier.</h3>
+              <p>Try fast inference with Groq’s Free tier. Limits apply per organization and model; check your account’s current quota.</p>
+              <p class="catalogue-extras-note">Higher limits are available on Groq’s pay-as-you-go Developer plan.</p>
+              <div class="catalogue-extras-links"><a href="https://console.groq.com/docs/rate-limits">Free-tier limits <svg class="coverage-link-arrow" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 13 13 3M4 3h9v9" /></svg></a><a href="https://console.groq.com/docs/billing-faqs">Plan details <svg class="coverage-link-arrow" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 13 13 3M4 3h9v9" /></svg></a></div>
+            </article>
+          </div>
+        </section>
+
         <section id="explore" class="explore-section page-width section-anchor">
           <div class="section-heading">
             <div>
@@ -655,12 +684,12 @@
         <section class="page-width lower-links">
           <div>
             <p class="eyebrow">There’s more in the ecosystem</p>
-            <h3>Find the tools to build with.</h3>
+            <h3>What’s trending on GitHub?</h3>
             <p>
-              Explore AI projects on GitHub. Pick the projects you need<br />
-              and install each one from its own repository.
+              Browse trending repositories and curated AI projects.<br />
+              Find Ivan’s GitHub profile and 3D repository library on the projects page.
             </p>
-            <a class="text-link" href="./github/">Explore the projects ↗</a>
+            <a class="text-link" href="./github/#trending">Explore GitHub trending &amp; projects ↗</a>
           </div>
           <div>
             <p class="eyebrow">A small part of a larger forest</p>
@@ -688,15 +717,17 @@
             </h2>
             <p>
               <strong>Model Router</strong> is an OpenAI-compatible proxy that
-              selects a model per request, records why, and abstains when no
+              compares measured candidates per request, records why, and abstains when no
               model qualifies.
             </p>
+            <p id="coverage-openrouter-scope">The live read above measures catalogue breadth across providers, including OpenRouter.</p>
+            <p class="router-boundary">Entries include variants and pricing configurations. Catalogue entries are not a count of qualified router candidates.</p>
             <a
               class="primary-link"
               href="https://github.com/ivangegovdve-sudo/model-router"
               target="_blank"
               rel="noopener"
-              >Model Router repository <span>↗</span></a
+              >Model Router repository <svg class="coverage-link-arrow" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 13 13 3M4 3h9v9" /></svg></a
             >
             <p class="router-boundary">
               A separate project. This dashboard reads evidence; it does not
