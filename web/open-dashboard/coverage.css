@@ -1,0 +1,44 @@
+/* Extend the existing plum, paper and mint system for catalogue coverage. */
+.coverage-studio { grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr); gap: clamp(24px, 4vw, 60px); }
+.coverage-studio h1 { font-size: clamp(40px, 4.3vw, 66px); line-height: 1.05; letter-spacing: -.055em; max-width: 13ch; overflow-wrap: normal; }
+.coverage-studio .intro { font-size: 16px; margin: 24px 0; max-width: 44ch; }
+.coverage-benefits { list-style: none; margin: 0 0 26px; padding: 0; color: var(--soft); }
+.coverage-benefits li { margin: 16px 0; padding-left: 15px; border-left: 2px solid var(--highlight); max-width: 45ch; font-size: 13px; }
+.coverage-benefits strong { color: var(--on-canvas); }
+.coverage-explore { display: inline-flex; align-items: center; gap: 18px; font-size: 14px; font-weight: 750; text-decoration: none; padding-bottom: 5px; border-bottom: 1px solid var(--highlight); }
+.coverage-studio .principle { font: 11px/1.65 Manrope, Arial, sans-serif; max-width: 49ch; }
+.coverage-studio .receipt-wrap { margin-top: 0; }
+.coverage-evidence .workspace-heading { padding: 21px 0 12px; }
+.coverage-evidence .workspace-heading h2 { font-size: clamp(25px, 2.6vw, 34px); }
+.coverage-evidence .source-signal { max-width: 75%; }
+.coverage-evidence .refresh { flex: none; }
+.coverage-evidence .refresh:disabled { cursor: wait; opacity: .55; }
+.coverage-metrics { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); margin: 0; }
+.coverage-metrics > div { border-bottom: 1px solid var(--rule); padding: 15px 12px 15px 0; min-width: 0; }
+.coverage-metrics > div:nth-child(2n + 1):not(:first-child) { padding-left: 18px; border-left: 1px solid var(--rule); }
+.coverage-metrics .coverage-metric-wide { grid-column: 1 / -1; }
+.coverage-metrics dt { font-size: 11px; font-weight: 700; }
+.coverage-metrics dd { margin: 4px 0; font-size: clamp(29px, 3vw, 42px); font-weight: 800; line-height: 1.1; letter-spacing: -.055em; overflow-wrap: anywhere; }
+.coverage-metrics .coverage-metric-wide dd { font-size: clamp(48px, 5vw, 64px); }
+.coverage-metrics p { font-size: 10px; color: var(--muted); margin: 5px 0 0; }
+.coverage-method { font-size: 10px; line-height: 1.6; color: var(--muted); margin: 17px 0 10px; }
+.coverage-timestamp { font: 10px/1.5 Consolas, monospace; color: var(--muted); overflow-wrap: anywhere; }
+.coverage-source-details { margin-top: 15px; font-size: 11px; }
+.coverage-source-details summary { cursor: pointer; font-weight: 700; }
+.coverage-table-wrap { overflow: auto; margin: 15px 0; }
+.coverage-source-details table { border-collapse: collapse; width: 100%; font-size: 10px; }
+.coverage-source-details th,.coverage-source-details td { padding: 8px; border-bottom: 1px solid var(--rule); vertical-align: top; text-align: left; }
+.coverage-source-details th { min-width: 60px; }
+.coverage-feedback { position: relative; margin-top: 25px; padding: 16px 18px; border: 1px solid var(--canvas-line); background: var(--canvas); }
+.coverage-feedback summary { cursor: pointer; font-size: 12px; font-weight: 700; }
+.coverage-feedback form { display: grid; gap: 10px; margin-top: 18px; }
+.coverage-feedback label { font-size: 12px; }
+.coverage-feedback textarea { width: 100%; min-width: 0; resize: vertical; padding: 12px; border: 1px solid var(--rule); border-radius: 0; background: var(--paper); color: var(--ink); font: 13px/1.5 Manrope, Arial, sans-serif; }
+.coverage-feedback p { margin: 0; font-size: 11px; color: var(--soft); }
+.coverage-feedback button { justify-self: start; padding: 10px 15px; font: 700 12px/1.5 Manrope, Arial, sans-serif; border: 0; background: var(--highlight); color: var(--ink); }
+@media(max-width: 800px) { .coverage-studio { grid-template-columns: minmax(0, 1fr); } .coverage-studio h1 { max-width: 18ch; font-size: clamp(38px, 7vw, 58px); } .coverage-studio .receipt-wrap { max-width: 620px; width: 100%; } }
+@media(max-width: 480px) { .coverage-studio { padding: 32px 20px 48px; } .coverage-studio h1 { font-size: 37px; } .coverage-studio .intro { font-size: 14px; } .coverage-evidence { padding: 0 16px 18px; } .coverage-metrics dt { font-size: 10px; } .coverage-metrics dd { font-size: 30px; } .coverage-metrics > div:nth-child(2n + 1):not(:first-child) { padding-left: 12px; } .coverage-evidence .refresh span { display: none; } }
+
+.coverage-link-arrow { display: inline-block; width: 15px; height: 15px; vertical-align: -.1em; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+
+.coverage-evidence .coverage-method { font-size: 11px; }

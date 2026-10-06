@@ -7,6 +7,7 @@
   },
   "scripts": {
     "test": "node scripts/run-contract-tests.mjs",
+    "test:open-dashboard-coverage": "node --test web/open-dashboard/coverage-data.test.js web/open-dashboard/live-source.test.js",
     "build": "node build-vercel-static.cjs",
     "check:prose-drift": "node scripts/prose-drift.mjs",
     "validate:ai-d-kit": "node scripts/validate-ai-d-kit-data.mjs",

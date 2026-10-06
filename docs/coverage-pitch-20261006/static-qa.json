@@ -1,0 +1,40 @@
+{
+  "mode": "direct production API reads",
+  "headline": "Give your agent at least 5,222 model entries.",
+  "metrics": {
+    "coverage-total": "≥ 5,222",
+    "coverage-priced": "≥ 2,443",
+    "coverage-priced-providers": "≥ 13",
+    "coverage-free": "16",
+    "coverage-image": "≥ 1,104",
+    "coverage-image-priced": "≥ 159",
+    "coverage-video": "≥ 1,317",
+    "coverage-video-priced": "≥ 274",
+    "coverage-providers": "16"
+  },
+  "sourceStatus": "Partial live read · 15 / 16 providers returned",
+  "requests": [
+    "openrouter",
+    "groq",
+    "cerebras",
+    "sail",
+    "nous",
+    "qwencloud",
+    "deepinfra",
+    "novita",
+    "sambanova",
+    "chutes",
+    "wavespeed",
+    "fal",
+    "kie",
+    "crazyrouter",
+    "akashml",
+    "ionet"
+  ],
+  "errors": [],
+  "networkFailures": [],
+  "desktopOverflow": false,
+  "mobileOverflow": false,
+  "draftUrl": "https://github.com/ivangegovdve-sudo/orchestrator-gpt/issues/new?title=openDashboard%3A+model+or+provider+suggestion&body=Add+provider+%26+model+%2F+flux%3F+image+%2B+video+%E2%80%94+https%3A%2F%2Fexample.com%2Fmodel",
+  "screenshot": "/workspace/artifacts/coverage-pitch/open-dashboard-desktop.png"
+}

@@ -3,10 +3,10 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>openDashboard — Put the pitch to the test</title>
+    <title>openDashboard — More model choices for your agent</title>
     <meta
       name="description"
-      content="Explore AI model prices, free tiers and the models behind popular apps. Connect Open Dashboard to Hermes, Codex, Claude Code or your own MCP agent."
+      content="Give your agent model entries across providers, published price coverage, OpenRouter free options, and image and video generation catalogues."
     />
     <meta name="theme-color" content="#3b244c" />
     <link
@@ -16,11 +16,11 @@
     <meta property="og:type" content="website" />
     <meta
       property="og:title"
-      content="openDashboard — Put the pitch to the test"
+      content="openDashboard — More model choices for your agent"
     />
     <meta
       property="og:description"
-      content="Explore model prices, free tiers and the models behind popular apps. Bring the knowledge to Hermes, Codex, Claude Code or your own MCP agent."
+      content="Explore model entries, published prices, OpenRouter free options, and image and video generation. Connect the catalogue to your MCP agent."
     />
     <meta
       property="og:url"
@@ -45,15 +45,16 @@
     />
     <link rel="stylesheet" href="./explorer.css" />
     <link rel="stylesheet" href="./studio.css" />
+    <link rel="stylesheet" href="./coverage.css" />
     <link rel="stylesheet" href="./atlas.css" /><link rel="stylesheet" href="./companion.css" />
     <script type="module" src="./studio.js"></script>
-    <script type="module" src="./claim-evidence.js"></script>
+    <script type="module" src="./coverage.js"></script>
     <script defer src="./vendor/d3.v7.min.js"></script>
     <script type="module" src="./explorer.js"></script>
     <script type="module" src="./setup.js"></script>
   </head>
   <body class="od-page studio-page">
-    <a class="skip" href="#main">Skip to evidence</a>
+    <a class="skip" href="#main">Skip to catalogue coverage</a>
     <aside class="sidebar" aria-label="Site navigation">
       <a class="brand" href="#main" aria-label="openDashboard home"
         ><img src="./assets/interlock.svg" width="80" height="80" alt="" /><span
@@ -69,8 +70,8 @@
       </button>
       <p class="nav-label">THE OPEN TOOLKIT</p>
       <nav aria-label="Dashboard navigation">
-        <a href="#main" class="active" title="Compare claims"
-          ><span aria-hidden="true">◫</span><b>Compare claims</b></a
+        <a href="#main" class="active" title="Catalogue coverage"
+          ><span aria-hidden="true">◫</span><b>Catalogue coverage</b></a
         >
         <a href="?view=models#explore" title="Model explorer"
           ><span aria-hidden="true">◇</span><b>Model explorer</b></a
@@ -113,7 +114,7 @@
     <div class="page">
       <header class="masthead">
         <span class="site-title"
-          >openDashboard <small>COMPARISON STUDIO</small></span
+          >openDashboard <small>MODEL CATALOGUE</small></span
         >
         <div class="versions">
           <span>npm <b data-npm-latest>latest</b></span>
@@ -123,129 +124,56 @@
         >
       </header>
       <main id="main">
-        <section class="studio" aria-labelledby="title">
+        <section class="studio coverage-studio" aria-labelledby="title">
           <div class="print-grid" aria-hidden="true"></div>
           <div class="argument">
             <div class="editorial-kicker">
-              <span class="tiny-cross" aria-hidden="true">✳</span> PUBLIC
-              PRICES. OPEN QUESTIONS.
+              <span class="tiny-cross" aria-hidden="true">✳</span> YOUR AGENT. MORE POSSIBILITIES.
             </div>
-            <h1 id="title">
-              Put the<br />pitch to<br /><em
-                >the test<span class="period">.</span></em
-              >
-            </h1>
-            <p class="intro">
-              Providers make the promises.<br />You get to read the prices.
-            </p>
+            <h1 id="title" data-coverage-headline>Give your agent more model choices.</h1>
+            <p class="intro">Find model entries and exact provider slugs, with published prices wherever available. Bring the catalogue to the agent you already use.</p>
+            <ul class="coverage-benefits">
+              <li><strong>Choose with prices.</strong> Read published rates across providers, with their units and conditions.</li>
+              <li><strong>Start with free.</strong> Surface OpenRouter <code>:free</code> entries so your agent can pick zero-cost options, subject to provider limits.</li>
+              <li><strong>Go beyond text.</strong> Discover image and video generation entries alongside language models.</li>
+            </ul>
             <div class="npm-install-callout">
-              <a href="https://www.npmjs.com/package/open-dashboard-mcp">Install from npm <span aria-hidden="true">↗</span></a>
-              <p>Bring live model and price evidence to your MCP agent.</p>
+              <a href="https://www.npmjs.com/package/open-dashboard-mcp">Install from npm <svg class="coverage-link-arrow" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 13 13 3M4 3h9v9" /></svg></a>
+              <p>Connect model and price coverage to your MCP agent.</p>
               <code>npx -y open-dashboard-mcp</code>
             </div>
-            <div class="claim-select" aria-label="Choose a provider claim">
-              <button
-                class="claim active"
-                data-pair="media"
-                aria-pressed="true"
-              >
-                <span class="claim-top"
-                  ><b>MEDIA GENERATION</b
-                  ><span class="claim-arrow" aria-hidden="true">↗</span></span
-                ><strong
-                  >KIE — pitched as undercutting fal.ai on media
-                  generation.</strong
-                ><span class="claim-bottom"
-                  ><span>Provider claim · KIE</span
-                  ><span class="claim-state">Inspecting ↗</span></span
-                >
-              </button>
-              <button class="claim" data-pair="text" aria-pressed="false">
-                <span class="claim-top"
-                  ><b>LANGUAGE MODELS</b
-                  ><span class="claim-arrow" aria-hidden="true">↗</span></span
-                ><strong
-                  >Crazyrouter — pitched as the cheaper OpenRouter.</strong
-                ><span class="claim-bottom"
-                  ><span>Provider claim · Crazyrouter</span
-                  ><span class="claim-state">Inspect claim</span></span
-                >
-              </button>
-            </div>
-            <p class="principle">
-              <span aria-hidden="true">↳</span> Read-only. No inference
-              calls.<br /><span class="indent">Unknown stays unknown.</span>
-            </p>
-            <div class="marginalia" aria-hidden="true">
-              <span class="asterisk">✳</span
-              ><span>THE SOURCE<br />IS THE POINT.</span>
-            </div>
+            <a class="coverage-explore" href="?view=models#explore">Explore the catalogue <svg class="coverage-link-arrow" viewBox="0 0 16 16" aria-hidden="true"><path d="m3 3 10 10M4 13h9V4" /></svg></a>
+            <p class="principle">Entries include variants and pricing configurations. Some are not API-ready. A catalogue listing does not guarantee a successful call.</p>
           </div>
           <div class="receipt-wrap">
-            <div class="receipt-index">
-              <span>THE EVIDENCE FILE</span
-              ><span class="file-tab">KIE / fal</span>
-            </div>
-            <article
-              class="evidence"
-              id="evidence"
-              aria-label="Live price evidence"
-            >
+            <div class="receipt-index"><span>THE CATALOGUE, COUNTED</span><span class="file-tab">LIVE READ</span></div>
+            <article class="evidence coverage-evidence" aria-labelledby="coverage-title">
               <div class="evidence-top">
-                <span class="source-signal"
-                  ><i aria-hidden="true"></i
-                  ><span data-feed-status>Reading provider sources…</span></span
-                ><button
-                  id="refresh"
-                  class="refresh"
-                  type="button"
-                  aria-label="Refresh public prices"
-                >
-                  ↻ <span>Refresh</span>
-                </button>
+                <span class="source-signal"><i aria-hidden="true"></i><span id="coverage-status" role="status">Reading all registered providers…</span></span>
+                <button id="coverage-refresh" class="refresh" type="button" aria-label="Refresh catalogue coverage">↻ <span>Refresh</span></button>
               </div>
-              <div class="workspace-heading">
-                <div>
-                  <h2>Read the receipt.</h2>
-                  <p>Current source observations, with the fine print.</p>
-                </div>
-                <span class="evidence-seal" aria-hidden="true"
-                  >SOURCE<br />ATTACHED<span>↗</span></span
-                >
-              </div>
-              <div class="scope-note">
-                <span aria-hidden="true">≠</span>
-                <p>
-                  <b>Samples, not a like-for-like ranking.</b> Match model,
-                  settings and billing unit before comparing.
-                  <span id="claim-scope"
-                    >KIE’s linked comparison focuses on Veo 3.</span
-                  >
-                </p>
-              </div>
-              <div class="comparison" id="comparison" aria-live="polite">
-                <p class="waiting">
-                  Reading the public pricing sources. Missing values will stay
-                  unknown.
-                </p>
-              </div>
-              <div class="source-foot">
-                <a
-                  id="claim-source"
-                  href="https://kie.ai/v3-api-pricing"
-                  target="_blank"
-                  rel="noopener"
-                  >Read KIE’s own claim ↗</a
-                ><span id="read-time">Source read pending</span>
-              </div>
-              <div class="receipt-end">
-                <span class="receipt-bars" aria-hidden="true"></span
-                ><span>READ THE UNIT. FOLLOW THE SOURCE.</span
-                ><button id="all-records" type="button" aria-expanded="false">
-                  Show more observations +
-                </button>
-              </div>
+              <div class="workspace-heading"><div><h2 id="coverage-title">More ways to build.</h2><p>Fresh catalogue reads. Actual coverage.</p></div></div>
+              <dl class="coverage-metrics">
+                <div class="coverage-metric-wide"><dt>Model entries</dt><dd id="coverage-total">—</dd><p>Distinct provider + ID pairs across <strong id="coverage-providers">—</strong> registered providers.</p></div>
+                <div><dt>Entries with prices</dt><dd id="coverage-priced">—</dd><p>Across <strong id="coverage-priced-providers">—</strong> providers with prices.</p></div>
+                <div><dt>OpenRouter free entries</dt><dd id="coverage-free">—</dd><p>Exact slugs ending in <code>:free</code>.</p></div>
+                <div><dt>Image entries</dt><dd id="coverage-image">—</dd><p><strong id="coverage-image-priced">—</strong> with native output prices.</p></div>
+                <div><dt>Video entries</dt><dd id="coverage-video">—</dd><p><strong id="coverage-video-priced">—</strong> with native output prices.</p></div>
+              </dl>
+              <p id="coverage-read-note" class="coverage-method" role="status">Counts will describe the entries returned by this live read.</p>
+              <p class="coverage-method">Counts include variants and pricing configurations. Prices can be derived from published coefficients or depend on conditions. Native output rates retain image, video, duration, pixel or credit units; token-only rates do not count as native output prices. Unknown prices stay unknown.</p>
+              <p id="coverage-timestamp" class="coverage-timestamp">Live read timestamp pending.</p>
+              <details class="coverage-source-details"><summary>Provider counts and read status</summary><div class="coverage-table-wrap"><table><thead><tr><th scope="col">Provider</th><th scope="col">Model entries</th><th scope="col">Priced entries</th><th scope="col">Read status</th></tr></thead><tbody id="coverage-details"></tbody></table></div><a href="https://openrouter-github-dashboard.vercel.app/api/live/catalogue?provider=openrouter" target="_blank" rel="noopener">Inspect the live API ↗</a></details>
             </article>
+            <details class="coverage-feedback" id="feedback"><summary>What model or provider should I add next?</summary>
+              <form id="feedback-form" action="https://github.com/ivangegovdve-sudo/orchestrator-gpt/issues/new" method="get" target="_blank" rel="noopener">
+                <input type="hidden" name="title" value="openDashboard: model or provider suggestion" />
+                <label for="feedback-suggestion">Your suggestion</label>
+                <textarea id="feedback-suggestion" name="body" rows="3" maxlength="2000" required placeholder="Model or provider name, a link, and what you would use it for…"></textarea>
+                <p>Opens a prefilled issue in the public SD Forest repository. Submit on GitHub to send your suggestion; sign-in is required and issues are public.</p>
+                <button type="submit">Continue on GitHub <svg class="coverage-link-arrow" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 13 13 3M4 3h9v9" /></svg></button>
+              </form>
+            </details>
           </div>
         </section>
         <div class="coverage-ribbon">
@@ -253,15 +181,14 @@
           <p>
             OpenRouter · Groq · Cerebras · Sail · Nous Research · QwenCloud ·
             DeepInfra · Novita · SambaNova · Chutes · WaveSpeedAI · fal ·
-            Crazyrouter · AkashML · io.net · <strong>KIE</strong>
+            Crazyrouter · AkashML · io.net · KIE
           </p>
           <span class="coverage-note"
-            >15 of 16 sources live — fal partial, Sail stale — measured today
-            across 3 hosts.</span
+            >Fresh counts and provider read status appear above. Catalogue coverage can change.</span
           >
         </div>
-        <div class="proof-strip page-width" aria-label="Catalogue coverage">
-          <span><strong id="model-count">—</strong> model entries</span
+        <div class="proof-strip page-width" aria-label="Explorer and MCP package facts">
+          <span><strong id="model-count">—</strong> explorer entries (live + snapshots)</span
           ><span><strong id="provider-count">—</strong> npm adapters</span
           ><span><strong id="tool-count">—</strong> optional MCP tools</span
           ><span
@@ -290,8 +217,7 @@
               >Verify releases on npm ↗</a
             > </span
           ><span class="proof-note" id="coverage-note"
-            >15 of 16 sources live — fal partial, Sail stale — measured today
-            across 3 hosts.</span
+            >Fresh counts and provider read status appear above. Catalogue coverage can change.</span
           >
         </div>
 
@@ -299,7 +225,7 @@
           <div class="section-heading">
             <div>
               <p class="eyebrow">THE MODEL ATLAS</p>
-              <h2>Every model. Its own coordinates.</h2>
+              <h2>Find the entry that fits.</h2>
             </div>
             <p>
               Find a price, follow a source, inspect a possibility.<br />
@@ -712,9 +638,8 @@
               Your agent can look up model IDs, compare prices and check<br
                 class="desktop-break"
               />
-              what changed. It can resolve a model from explicit requirements
-              while keeping unknown evidence visible for a typed decision layer.
-              Connect the tools you need, and keep exploring.
+              what changed. Explore free options, image generation and video generation
+              alongside language models. Connect the tools you need, and keep exploring.
             </p>
             <a class="button primary" href="./mcp/">Connect your agent ↗</a>
             <div class="client-row">
