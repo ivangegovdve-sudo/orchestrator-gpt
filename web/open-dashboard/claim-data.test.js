@@ -64,7 +64,7 @@ test("TTS evidence retains native prices, dated UTMOS MOS, and unknown fields", 
     ["elevenlabs", "cartesia"],
   );
   const eleven = normalized.providers[0].rows[0];
-  assert.equal(eleven.priceLabel, "$0.10 / 1K characters");
+  assert.equal(eleven.priceLabel, "$0.08 / 1K characters");
   assert.equal(eleven.quality.value, 4.273);
   assert.equal(eleven.quality.method, "UTMOS predicted MOS");
   assert.equal(eleven.quality.checkedAt, catalogue.checkedAt);

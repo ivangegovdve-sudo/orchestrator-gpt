@@ -17,7 +17,7 @@
           "id": "eleven-v3",
           "name": "Eleven v3",
           "price": {
-            "label": "$0.10 / 1K characters",
+            "label": "$0.08 / 1K characters",
             "unit": "USD / 1K characters",
             "scope": "Text to Speech v3 published API rate",
             "sourceUrl": "https://elevenlabs.io/pricing/api",
