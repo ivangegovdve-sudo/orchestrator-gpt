@@ -83,6 +83,17 @@ test('failed providers and partial source reports remain distinct and never beco
   assert.ok(Object.values(unavailable.counts).every(value => value === null));
 });
 
+test('read-level errors remain authoritative when an adapter also returns a catalogue shell', () => {
+  const snapshot = aggregateCoverage([{
+    provider: 'sail',
+    error: 'Live catalogue unavailable',
+    catalogue: catalogue('sail', [model('sail', 'stale')]),
+  }], { providerIds: ['sail'] });
+  assert.equal(snapshot.providers[0].status, 'unavailable');
+  assert.equal(snapshot.providers[0].error, 'Live catalogue unavailable');
+  assert.equal(snapshot.providers[0].counts, null);
+});
+
 test('a partial source cannot produce a complete headline even if every endpoint returned', () => {
   const snapshot = aggregateCoverage([read('fal', [model('fal', 'listed')], { status: 'partial' })], { providerIds: ['fal'] });
   assert.equal(snapshot.state, 'partial');

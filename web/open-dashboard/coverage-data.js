@@ -41,19 +41,24 @@ export function aggregateCoverage(reads, { providerIds = COVERAGE_PROVIDER_IDS, 
   const byProvider = new Map(reads.map(read => [read.provider, read]));
   const providers = providerIds.map(provider => {
     const read = byProvider.get(provider);
-    if (!read?.catalogue || read.error) return { provider, label: PROVIDERS[provider] ?? provider, status: 'unavailable', error: read?.error ?? null, observedAt: null, completeness: 'unknown', counts: null };
-    const report = read.catalogue.providers?.find(row => row.provider === provider);
+    const readError = read?.error ?? null;
+    const report = read?.catalogue?.providers?.find(row => row.provider === provider);
+    // A read-level failure is authoritative even when an adapter returned a catalogue
+    // shell. Keep it separate from a structured report error so partial source states
+    // remain visible instead of being flattened into unavailable.
+    if (!read?.catalogue || readError) return { provider, label: PROVIDERS[provider] ?? provider, status: 'unavailable', error: readError, observedAt: null, completeness: 'unknown', counts: null };
+    const error = readError ?? report?.error ?? null;
     if (report?.status === 'unavailable' || report?.status === 'unconfigured')
-      return { provider, label: PROVIDERS[provider] ?? provider, status: report.status, error: report.error ?? null, observedAt: report.observedAt ?? read.catalogue.fetchedAt ?? null, completeness: report.population?.completeness ?? 'unknown', counts: null };
+      return { provider, label: PROVIDERS[provider] ?? provider, status: report.status, error, observedAt: report.observedAt ?? read.catalogue.fetchedAt ?? null, completeness: report.population?.completeness ?? 'unknown', counts: null };
     return {
       provider,
       label: PROVIDERS[provider] ?? provider,
       status: report?.status ?? 'available',
-      error: report?.error ?? null,
+      error,
       observedAt: report?.observedAt ?? read.catalogue.fetchedAt ?? null,
       completeness: report?.population?.completeness ?? 'unknown',
-      warning: report?.error === 'PRICING_STALE' ? 'Pricing stale'
-        : report?.error ? 'Source reported an error'
+      warning: error === 'PRICING_STALE' ? 'Pricing stale'
+        : error ? 'Source reported an error'
           : report?.status === 'partial' ? 'Partial source or pricing read'
           : report?.population?.completeness !== 'full' ? 'Source completeness not established' : null,
       counts: countEntries(read.catalogue.models, provider),
