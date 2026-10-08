@@ -186,6 +186,7 @@ test('HTTP failures, upstream unavailable states, and malformed identities remai
   assert.equal(snapshot.readProviders, 1);
   assert.equal(snapshot.counts.total, 1);
   assert.equal(snapshot.counts.free, null);
+  assert.equal(snapshot.providers.find(provider => provider.provider === 'openrouter').error, 'Live catalogue unavailable');
   assert.deepEqual(snapshot.providers.filter(provider => !provider.counts).map(provider => provider.provider), ['openrouter', 'sail', 'fal']);
   assert.equal(snapshot.providers.find(provider => provider.provider === 'sail').error, 'UPSTREAM_UNAVAILABLE');
   assert.equal(snapshot.providers.find(provider => provider.provider === 'sail').observedAt, '2026-10-06T04:59:00Z');
