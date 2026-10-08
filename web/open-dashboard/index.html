@@ -152,8 +152,9 @@
               <div class="evidence-top">
                 <span class="source-signal"><i aria-hidden="true"></i><span id="coverage-status" role="status">Reading all registered providers…</span></span>
                 <button id="coverage-refresh" class="refresh" type="button" aria-label="Refresh catalogue coverage">↻ <span>Refresh</span></button>
+              </div>
               <div class="workspace-heading"><div><h2 id="coverage-title">More ways to build.</h2><p>Fresh catalogue reads. Actual coverage.</p></div></div>
-              <dl class="coverage-metrics">
+              <dl class="coverage-metrics" aria-busy="true">
                 <div class="coverage-metric-wide"><dt>Model entries</dt><dd id="coverage-total">—</dd><p>Distinct provider + ID pairs across <strong id="coverage-providers">—</strong> registered providers.</p></div>
                 <div><dt>Entries with prices</dt><dd id="coverage-priced">—</dd><p>Across <strong id="coverage-priced-providers">—</strong> providers with prices.</p></div>
                 <div><dt>OpenRouter free entries</dt><dd id="coverage-free">—</dd><p>Exact slugs ending in <code>:free</code>.</p></div>
