@@ -150,26 +150,26 @@
       "permanent": false
     }
   ],
-  "rewrites": [
+  "routes": [
     {
-      "source": "/",
+      "src": "^/$",
       "has": [
         {
           "type": "host",
           "value": "opendashboard.sdforest.site"
         }
       ],
-      "destination": "/web/open-dashboard/"
+      "dest": "/web/open-dashboard/"
     },
     {
-      "source": "/:path((?!web/).*)",
+      "src": "^/(?!web(?:/|$))(.*)$",
       "has": [
         {
           "type": "host",
           "value": "opendashboard.sdforest.site"
         }
       ],
-      "destination": "/web/open-dashboard/:path*"
+      "dest": "/web/open-dashboard/$1"
     }
   ],
   "headers": [
