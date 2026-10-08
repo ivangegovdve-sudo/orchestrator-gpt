@@ -7,6 +7,11 @@ const metricIds = {
   videoPriced: 'coverage-video-priced', free: 'coverage-free',
 };
 const setText = (root, id, text) => { const node = root.getElementById(id); if (node) node.textContent = text; };
+const setMetricLoading = (root, loading) => {
+  const metrics = root.querySelector('.coverage-metrics');
+  if (metrics?.classList) metrics.classList.toggle('is-loading', loading);
+  if (metrics?.setAttribute) metrics.setAttribute('aria-busy', String(loading));
+};
 const formatDate = value => {
   const date = new Date(value);
   return value && Number.isFinite(date.getTime()) ? date.toISOString().replace('T', ' ').replace(/\.\d{3}Z$/, ' UTC') : 'Date not reported';
@@ -21,6 +26,7 @@ export function catalogueScopeText(snapshot) {
 }
 
 export function renderCoverage(root, snapshot) {
+  setMetricLoading(root, false);
   const headline = root.querySelector('[data-coverage-headline]');
   if (headline) headline.textContent = snapshot.state === 'complete'
     ? `Give your agent ${number.format(snapshot.counts.total)} model entries across ${number.format(snapshot.readProviders)} providers.`
@@ -77,7 +83,8 @@ export function initializeCoverage(root = document) {
     if (reading) return;
     reading = true;
     if (refresh) refresh.disabled = true;
-    for (const id of Object.values(metricIds)) setText(root, id, 'Reading…');
+    setMetricLoading(root, true);
+    for (const id of Object.values(metricIds)) setText(root, id, '…');
     setText(root, 'coverage-providers', number.format(COVERAGE_PROVIDER_IDS.length));
     const headline = root.querySelector('[data-coverage-headline]');
     if (headline) headline.textContent = 'Explore model entries across providers.';
@@ -92,6 +99,7 @@ export function initializeCoverage(root = document) {
       });
       renderCoverage(root, snapshot);
     } finally {
+      setMetricLoading(root, false);
       reading = false;
       if (refresh) refresh.disabled = false;
     }
