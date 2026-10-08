@@ -11,7 +11,9 @@ import {
   normalizeFalSummary,
   collectKieCatalogue,
   loadKieCatalogue,
+  loadAudioClaimEvidence,
   loadClaimEvidence,
+  normalizeTtsCatalogue,
   datedProvider,
   selectClaimRows,
 } from "./claim-data.js";
@@ -50,6 +52,44 @@ test("source coefficients keep decimal lexemes without binary rounding or changi
   assert.equal(multiplyDecimals(parsed.value, "2"), "0.246913578024691357802");
   assert.equal(multiplyDecimals("0.1", "0.005"), "0.0005");
   assert.throws(() => multiplyDecimals("-1", "0.005"));
+});
+
+test("TTS evidence retains native prices, dated UTMOS MOS, and unknown fields", async () => {
+  const catalogue = JSON.parse(
+    await readFile(new URL("./tts-catalogue.json", import.meta.url), "utf8"),
+  );
+  const normalized = normalizeTtsCatalogue(catalogue);
+  assert.deepEqual(
+    normalized.providers.map((provider) => provider.id),
+    ["elevenlabs", "cartesia"],
+  );
+  const eleven = normalized.providers[0].rows[0];
+  assert.equal(eleven.priceLabel, "$0.10 / 1K characters");
+  assert.equal(eleven.quality.value, 4.273);
+  assert.equal(eleven.quality.method, "UTMOS predicted MOS");
+  assert.equal(eleven.quality.checkedAt, catalogue.checkedAt);
+
+  const unknown = normalizeTtsCatalogue({
+    ...catalogue,
+    providers: [
+      {
+        ...catalogue.providers[0],
+        voices: [{ id: "unread", name: "Unread voice" }],
+      },
+    ],
+  }).providers[0].rows[0];
+  assert.equal(unknown.priceLabel, "Unknown");
+  assert.equal(unknown.quality, null);
+
+  let requested;
+  const loaded = await loadAudioClaimEvidence({
+    fetchImpl: async (url) => {
+      requested = url;
+      return response(catalogue);
+    },
+  });
+  assert.match(requested, /tts-catalogue\.json$/);
+  assert.equal(loaded.providers[1].rows[0].quality.value, 4.019);
 });
 
 test("KIE keeps full variants, unknown units and disagreeing credits without importing competitor prices", () => {

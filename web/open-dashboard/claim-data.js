@@ -9,7 +9,10 @@ export const CLAIM_SOURCES = Object.freeze({
 export const CLAIM_LINKS = Object.freeze({
   media: "https://kie.ai/v3-api-pricing",
   text: "https://crazyrouter.com/en/blog/openrouter-vs-crazyrouter-ai-api-router-comparison-2026",
+  audio: "https://huggingface.co/datasets/Trelis/tricky-tts-public",
 });
+export const TTS_CATALOGUE_URL = new URL("./tts-catalogue.json", import.meta.url).href;
+export const TTS_PROVIDER_IDS = Object.freeze(["elevenlabs", "cartesia"]);
 const LABELS = {
   openrouter: "OpenRouter",
   crazyrouter: "Crazyrouter",
@@ -35,6 +38,105 @@ export function evidenceUrl(value) {
   } catch {
     return null;
   }
+}
+
+export function normalizeTtsCatalogue(payload) {
+  if (
+    !payload ||
+    payload.schemaVersion !== 1 ||
+    !validDate(payload.checkedAt) ||
+    !Array.isArray(payload.providers) ||
+    !payload.providers.length
+  )
+    throw new Error("TTS_CATALOGUE_SHAPE_CHANGED");
+
+  const providers = payload.providers.map((provider) => {
+    const id = text(provider?.id),
+      label = text(provider?.label),
+      sourceUrl = evidenceUrl(provider?.sourceUrl),
+      observedAt = validDate(provider?.observedAt)
+        ? provider.observedAt
+        : payload.checkedAt,
+      voices = Array.isArray(provider?.voices) ? provider.voices : [];
+    if (!id || !label || !sourceUrl || !voices.length)
+      throw new Error("TTS_PROVIDER_SHAPE_CHANGED");
+
+    const rows = voices.map((voice) => {
+      const price = voice?.price && typeof voice.price === "object"
+          ? voice.price
+          : null,
+        quality = voice?.quality && typeof voice.quality === "object"
+          ? voice.quality
+          : null,
+        priceSourceUrl = evidenceUrl(price?.sourceUrl),
+        qualitySourceUrl = evidenceUrl(quality?.sourceUrl),
+        priceCheckedAt = validDate(price?.checkedAt)
+          ? price.checkedAt
+          : null,
+        qualityCheckedAt = validDate(quality?.checkedAt)
+          ? quality.checkedAt
+          : null,
+        qualityValue = Number.isFinite(quality?.value)
+          ? quality.value
+          : null;
+      return {
+        id: `${id}:${text(voice?.id) || "unknown"}`,
+        name: text(voice?.name) || "Voice/model unknown",
+        priceLabel: text(price?.label) || "Unknown",
+        priceUnit: text(price?.unit) || "Published price unknown",
+        priceScope: text(price?.scope) || "Price conditions not reported.",
+        priceSourceUrl,
+        priceCheckedAt,
+        quality:
+          qualityValue !== null && qualitySourceUrl
+            ? {
+                metric: text(quality.metric) || "MOS",
+                value: qualityValue,
+                method: text(quality.method) || "Method not reported",
+                scope: text(quality.scope) || "Benchmark scope not reported.",
+                sourceUrl: qualitySourceUrl,
+                checkedAt: qualityCheckedAt,
+              }
+            : null,
+        readAt: priceCheckedAt || qualityCheckedAt || observedAt,
+        sourceUrl: priceSourceUrl || sourceUrl,
+        condition: {
+          kind: "published_scope",
+          details: text(price?.scope) || "Price conditions not reported.",
+        },
+        note: qualityValue === null || !qualitySourceUrl
+          ? "Voice-quality MOS is unknown; no usable public score was retained."
+          : `${text(quality.method) || "Public quality score"}; benchmark scope is shown below.`,
+      };
+    });
+
+    return {
+      provider: id,
+      id,
+      label,
+      status: "available",
+      freshness: "snapshot",
+      sourceUrl,
+      observedAt,
+      readAt: observedAt,
+      population: {
+        listed: voices.length,
+        received: voices.length,
+        retained: voices.length,
+        completeness: "full",
+      },
+      rows,
+      notes: Array.isArray(payload.notes) ? payload.notes : [],
+    };
+  });
+
+  return {
+    schemaVersion: 1,
+    collector: text(payload.collector) || "Public TTS evidence snapshot",
+    fetchedAt: payload.checkedAt,
+    checkedAt: payload.checkedAt,
+    providers,
+  };
 }
 
 /** Preserve JSON numeric lexemes before arithmetic, including long source coefficients. */
@@ -661,6 +763,37 @@ async function loadProvider(provider, { fetchImpl = fetch, force = false } = {})
 }
 export function loadKieCatalogue(options = {}) { return loadProvider('kie', options); }
 
+function unavailableAudioEvidence() {
+  return {
+    checkedAt: new Date().toISOString(),
+    providers: TTS_PROVIDER_IDS.map((provider) => ({
+      provider,
+      id: provider,
+      label: provider === "elevenlabs" ? "ElevenLabs" : "Cartesia",
+      status: "unavailable",
+      freshness: "unavailable",
+      sourceUrl: null,
+      observedAt: null,
+      readAt: null,
+      population: { listed: 0, received: 0, retained: 0, completeness: "unknown" },
+      rows: [],
+      notes: [],
+    })),
+  };
+}
+
+export async function loadAudioClaimEvidence(options = {}) {
+  try {
+    const result = await readSource(TTS_CATALOGUE_URL, {
+      fetchImpl: options.fetchImpl || fetch,
+      local: true,
+    });
+    return normalizeTtsCatalogue(result.data);
+  } catch {
+    return unavailableAudioEvidence();
+  }
+}
+
 export function selectClaimRows(
   source,
   provider,
@@ -727,27 +860,31 @@ export function selectClaimRows(
   return rows;
 }
 export async function loadClaimEvidence(options = {}) {
-  const sources = await Promise.all(
-    Object.keys(LABELS).map((id) => loadProvider(id, options)),
-  );
+  const [sources, audio] = await Promise.all([
+    Promise.all(Object.keys(LABELS).map((id) => loadProvider(id, options))),
+    loadAudioClaimEvidence(options),
+  ]);
   return {
     checkedAt: new Date().toISOString(),
-    providers: sources.map((source) => {
-      const report = source.providers[0];
-      return {
-        ...report,
-        id: report.provider,
-        label: LABELS[report.provider],
-        readAt: report.observedAt,
-        rows: ["kie", "fal"].includes(report.provider)
-          ? ["image", "megapixel", "video_second", "video"].flatMap((unit) =>
-              selectClaimRows(source, report.provider, 6, unit),
-            )
-          : selectClaimRows(source, report.provider),
-        selection:
-          "Up to six illustrative observations per native unit; no like-for-like ranking.",
-        notes: source.notes,
-      };
-    }),
+    providers: [
+      ...sources.map((source) => {
+        const report = source.providers[0];
+        return {
+          ...report,
+          id: report.provider,
+          label: LABELS[report.provider],
+          readAt: report.observedAt,
+          rows: ["kie", "fal"].includes(report.provider)
+            ? ["image", "megapixel", "video_second", "video"].flatMap((unit) =>
+                selectClaimRows(source, report.provider, 6, unit),
+              )
+            : selectClaimRows(source, report.provider),
+          selection:
+            "Up to six illustrative observations per native unit; no like-for-like ranking.",
+          notes: source.notes,
+        };
+      }),
+      ...audio.providers,
+    ],
   };
 }
