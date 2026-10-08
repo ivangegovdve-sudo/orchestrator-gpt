@@ -12,7 +12,7 @@ import { mountNpmDownloads } from "./setup.js";
 
 const frontPageUrl = new URL("./index.html", import.meta.url);
 const pageUrl = new URL("./mcp/index.html", import.meta.url);
-const NPM_DOWNLOAD_CACHE_KEY = "open-dashboard-mcp:npm-downloads:last-week:v1";
+const NPM_DOWNLOAD_CACHE_KEY = "open-dashboard-mcp:npm-downloads:last-week:v2";
 const NPM_DOWNLOAD_CACHE_TTL_MS = 6 * 60 * 60 * 1000;
 
 function memoryStorage(initial = {}) {
@@ -155,6 +155,29 @@ test("NPM facts use a session cache within its TTL and expose cache age", async 
   assert.equal(cached.ageMs, 5 * 60 * 1000);
   assert.equal(cached.cachedAt, NOW);
   assert.equal(networkCalls, 1);
+});
+
+test("NPM facts can bypass a browser cache for the live dashboard", async () => {
+  const storage = memoryStorage();
+  let calls = 0;
+  const first = await readNpmDownloadState(
+    async () => {
+      calls += 1;
+      return npmResponse({ downloads: 12 });
+    },
+    { storage, now: NOW },
+  );
+  const fresh = await readNpmDownloadState(
+    async () => {
+      calls += 1;
+      return npmResponse({ downloads: 13 });
+    },
+    { storage, now: NOW + 5 * 60 * 1000, bypassCache: true },
+  );
+  assert.equal(first.facts.downloads, 12);
+  assert.equal(fresh.facts.downloads, 13);
+  assert.equal(fresh.source, "live");
+  assert.equal(calls, 2);
 });
 
 test("expired or malformed cached facts are rejected and a failed refetch stays unavailable", async () => {

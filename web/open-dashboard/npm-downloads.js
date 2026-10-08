@@ -1,13 +1,13 @@
 export const NPM_DOWNLOADS_URL =
   "https://api.npmjs.org/downloads/point/last-week/open-dashboard-mcp";
 export const NPM_DOWNLOAD_CACHE_KEY =
-  "open-dashboard-mcp:npm-downloads:last-week:v1";
+  "open-dashboard-mcp:npm-downloads:last-week:v2";
 // A weekly point changes slowly; six hours limits npm traffic without allowing a
 // browser tab to carry a cached count across a meaningful part of a day.
 export const NPM_DOWNLOAD_CACHE_TTL_MS = 6 * 60 * 60 * 1000;
 
 const NPM_PACKAGE = "open-dashboard-mcp";
-const NPM_DOWNLOAD_CACHE_VERSION = 1;
+const NPM_DOWNLOAD_CACHE_VERSION = 2;
 
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
 
@@ -52,6 +52,7 @@ function resolveOptions(options = {}) {
   return {
     storage: options.storage === undefined ? defaultStorage() : options.storage,
     now: Number.isFinite(options.now) ? options.now : Date.now(),
+    bypassCache: options.bypassCache === true,
   };
 }
 
@@ -108,8 +109,8 @@ export async function fetchNpmDownloadFacts(
 ) {
   if (typeof fetchImpl !== "function")
     throw new Error("NPM downloads fetch is unavailable");
-  const { storage, now } = resolveOptions(options);
-  const cached = readCachedNpmDownloadFacts(storage, now);
+  const { storage, now, bypassCache } = resolveOptions(options);
+  const cached = bypassCache ? null : readCachedNpmDownloadFacts(storage, now);
   if (cached) return cached.facts;
 
   const response = await fetchImpl(NPM_DOWNLOADS_URL, {
@@ -131,7 +132,7 @@ export async function fetchNpmDownloadFacts(
     error.code = "invalid";
     throw error;
   }
-  writeCachedNpmDownloadFacts(storage, facts, now);
+  if (!bypassCache) writeCachedNpmDownloadFacts(storage, facts, now);
   return facts;
 }
 
@@ -140,7 +141,9 @@ export async function readNpmDownloadState(
   options = {},
 ) {
   const resolved = resolveOptions(options);
-  const cached = readCachedNpmDownloadFacts(resolved.storage, resolved.now);
+  const cached = resolved.bypassCache
+    ? null
+    : readCachedNpmDownloadFacts(resolved.storage, resolved.now);
   if (cached) {
     return {
       status: "available",

@@ -102,6 +102,29 @@ test("release lookup caches a valid registry result with visible age and rejects
   assert.equal(expired.facts, undefined);
 });
 
+test("release lookup can bypass a browser cache for the live dashboard", async () => {
+  const storage = memoryStorage();
+  let calls = 0;
+  const first = await readNpmReleaseState(
+    async () => {
+      calls += 1;
+      return registryResponse();
+    },
+    { storage, now: NOW },
+  );
+  const fresh = await readNpmReleaseState(
+    async () => {
+      calls += 1;
+      return registryResponse({ "dist-tags": { latest: "1.6.1" }, versions: { "1.6.1": {} } });
+    },
+    { storage, now: NOW + 5 * 60 * 1000, bypassCache: true },
+  );
+  assert.equal(first.facts.latest, "1.6.0");
+  assert.equal(fresh.facts.latest, "1.6.1");
+  assert.equal(fresh.source, "live");
+  assert.equal(calls, 2);
+});
+
 test("release lookup does not invent a release list when npm fails", async () => {
   await assert.rejects(
     fetchNpmReleaseFacts(async () => ({ ok: false, status: 503 })),
