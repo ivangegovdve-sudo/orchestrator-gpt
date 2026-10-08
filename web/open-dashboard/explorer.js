@@ -75,7 +75,7 @@ import { validateAppModelMatrix } from "./open-dashboard-schema.js";
 import { renderAtlas, disposeAtlas } from "./atlas.js";
 
 export const SOURCE_COVERAGE_NOTE =
-  "15 of 16 sources live — fal partial, Sail stale — measured today across 3 hosts";
+  "Explorer entries may include dated snapshots; fresh-only catalogue counts and read status appear above.";
 import { readAllCatalogues } from "./live-source.js";
 import { formatPriceCondition } from "./price-condition.js";
 

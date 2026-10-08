@@ -20,7 +20,26 @@ async function readStaticMediaCatalogue({ fetchImpl = fetch } = {}) {
   };
 }
 
-export async function readProviderCatalogue(provider, { fetchImpl = fetch, location = null, timeoutMs = 20000 } = {}) {
+const providerReadsInFlight = new Map();
+
+// Share simultaneous browser reads with the coverage panel and explorer. These
+// promises are removed as soon as they settle; a refresh performs a new read.
+// Different timeout budgets stay independent so one consumer cannot shorten
+// another consumer’s acquisition or keep it waiting past its own deadline.
+export function readProviderCatalogue(provider, { fetchImpl = fetch, location = null, timeoutMs = 20000 } = {}) {
+  const key = JSON.stringify([provider, location, timeoutMs]);
+  const share = fetchImpl === globalThis.fetch;
+  if (share && providerReadsInFlight.has(key)) return providerReadsInFlight.get(key);
+  const work = fetchProviderCatalogue(provider, { fetchImpl, location, timeoutMs });
+  if (share) {
+    providerReadsInFlight.set(key, work);
+    const forget = () => { if (providerReadsInFlight.get(key) === work) providerReadsInFlight.delete(key); };
+    work.then(forget, forget);
+  }
+  return work;
+}
+
+async function fetchProviderCatalogue(provider, { fetchImpl, location, timeoutMs }) {
   const path = location ? `/regional-catalogue?location=${encodeURIComponent(location)}&provider=${encodeURIComponent(provider)}` : `/catalogue?provider=${encodeURIComponent(provider)}`;
   const response = await fetchImpl(`${LIVE_API_BASE}${path}`, { cache: 'no-store', credentials: 'omit', signal: AbortSignal.timeout(timeoutMs) });
   if (!response.ok) throw new Error('Live catalogue unavailable');
