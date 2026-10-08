@@ -1,0 +1,65 @@
+{
+  "schemaVersion": 1,
+  "collector": "Open Dashboard public TTS evidence snapshot",
+  "checkedAt": "2026-10-08T00:00:00.000Z",
+  "notes": [
+    "Prices are published provider list or plan prices; no account or synthesis call was made.",
+    "MOS is the public UTMOS-predicted benchmark value for the named provider/model row. It is not an Open Dashboard measurement."
+  ],
+  "providers": [
+    {
+      "id": "elevenlabs",
+      "label": "ElevenLabs",
+      "sourceUrl": "https://elevenlabs.io/pricing/api",
+      "observedAt": "2026-10-08T00:00:00.000Z",
+      "voices": [
+        {
+          "id": "eleven-v3",
+          "name": "Eleven v3",
+          "price": {
+            "label": "$0.10 / 1K characters",
+            "unit": "USD / 1K characters",
+            "scope": "Text to Speech v3 published API rate",
+            "sourceUrl": "https://elevenlabs.io/pricing/api",
+            "checkedAt": "2026-10-08T00:00:00.000Z"
+          },
+          "quality": {
+            "metric": "MOS",
+            "value": 4.273,
+            "method": "UTMOS predicted MOS",
+            "scope": "ElevenLabs row in the Trelis Tricky TTS public benchmark",
+            "sourceUrl": "https://huggingface.co/datasets/Trelis/tricky-tts-public",
+            "checkedAt": "2026-10-08T00:00:00.000Z"
+          }
+        }
+      ]
+    },
+    {
+      "id": "cartesia",
+      "label": "Cartesia",
+      "sourceUrl": "https://www.cartesia.ai/pricing",
+      "observedAt": "2026-10-08T00:00:00.000Z",
+      "voices": [
+        {
+          "id": "sonic-3-6",
+          "name": "Sonic-3.6 plan / Sonic-3 benchmark",
+          "price": {
+            "label": "$49 / month · 1.25M credits",
+            "unit": "USD / month + included credits",
+            "scope": "Startup plan; public text-to-speech credits",
+            "sourceUrl": "https://www.cartesia.ai/pricing",
+            "checkedAt": "2026-10-08T00:00:00.000Z"
+          },
+          "quality": {
+            "metric": "MOS",
+            "value": 4.019,
+            "method": "UTMOS predicted MOS",
+            "scope": "Cartesia Sonic-3 row in the Trelis Tricky TTS public benchmark; not a Sonic-3.6 measurement",
+            "sourceUrl": "https://huggingface.co/datasets/Trelis/tricky-tts-public",
+            "checkedAt": "2026-10-08T00:00:00.000Z"
+          }
+        }
+      ]
+    }
+  ]
+}

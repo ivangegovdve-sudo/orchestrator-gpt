@@ -1,8 +1,19 @@
 {
+  "$schema": "https://openapi.vercel.sh/vercel.json",
   "buildCommand": "npm run vercel-build",
   "outputDirectory": "vercel-public",
   "framework": null,
   "redirects": [
+    {
+      "source": "/web/open-dashboard",
+      "destination": "https://opendashboard.sdforest.site/",
+      "statusCode": 301
+    },
+    {
+      "source": "/web/open-dashboard/",
+      "destination": "https://opendashboard.sdforest.site/",
+      "statusCode": 301
+    },
     {
       "source": "/web/morning-news",
       "destination": "https://thedrop.sdforest.site",
@@ -137,6 +148,54 @@
       "source": "/series/dependency-map",
       "destination": "https://thedrop.sdforest.site/series/dependency-map",
       "permanent": false
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/",
+      "has": [
+        {
+          "type": "host",
+          "value": "opendashboard.sdforest.site"
+        }
+      ],
+      "destination": "/web/open-dashboard/"
+    },
+    {
+      "source": "/:path((?!web/).*)",
+      "has": [
+        {
+          "type": "host",
+          "value": "opendashboard.sdforest.site"
+        }
+      ],
+      "destination": "/web/open-dashboard/:path*"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/web/open-dashboard/:path*",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-store, max-age=0"
+        }
+      ]
+    },
+    {
+      "source": "/:path*",
+      "has": [
+        {
+          "type": "host",
+          "value": "opendashboard.sdforest.site"
+        }
+      ],
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-store, max-age=0"
+        }
+      ]
     }
   ],
   "git": {

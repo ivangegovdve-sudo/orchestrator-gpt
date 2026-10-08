@@ -65,7 +65,11 @@ export function mountNpmDownloads(
   value.textContent = "Checking npm downloads…";
   note.textContent = "Reading the latest complete weekly window from npm.";
 
-  return readNpmDownloadState(fetchImpl, options).then((state) => {
+  const liveOptions = {
+    ...options,
+    bypassCache: options.bypassCache ?? options.storage === undefined,
+  };
+  return readNpmDownloadState(fetchImpl, liveOptions).then((state) => {
     container.dataset.npmDownloadsState = state.status;
     if (state.source) container.dataset.npmDownloadsSource = state.source;
     else delete container.dataset.npmDownloadsSource;
@@ -97,7 +101,11 @@ export function mountNpmReleases(
   value.textContent = "Checking npm releases…";
   note.textContent = "Reading published package versions from npm.";
 
-  return readNpmReleaseState(fetchImpl, options).then((state) => {
+  const liveOptions = {
+    ...options,
+    bypassCache: options.bypassCache ?? options.storage === undefined,
+  };
+  return readNpmReleaseState(fetchImpl, liveOptions).then((state) => {
     container.dataset.npmReleasesState = state.status;
     if (state.source) container.dataset.npmReleasesSource = state.source;
     else delete container.dataset.npmReleasesSource;

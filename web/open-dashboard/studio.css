@@ -1502,6 +1502,13 @@ h1 em:after {
   .output-rate {
     font-size: 12px;
   }
+  .quality-score {
+    color: var(--link);
+    font-size: 11px;
+    font-weight: 650;
+    line-height: 1.45;
+    margin: 6px 0;
+  }
   .rate > span {
     font-size: 11px;
   }
