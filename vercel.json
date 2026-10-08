@@ -5,6 +5,16 @@
   "framework": null,
   "redirects": [
     {
+      "source": "/web/open-dashboard",
+      "destination": "https://opendashboard.sdforest.site/",
+      "statusCode": 301
+    },
+    {
+      "source": "/web/open-dashboard/",
+      "destination": "https://opendashboard.sdforest.site/",
+      "statusCode": 301
+    },
+    {
       "source": "/web/morning-news",
       "destination": "https://thedrop.sdforest.site",
       "permanent": true
