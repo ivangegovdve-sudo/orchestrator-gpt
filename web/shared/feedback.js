@@ -73,7 +73,8 @@ const FORMSPREE_ENDPOINT = 'https://formspree.io/f/PLACEHOLDER';
     (opener || button).focus();
   }
 
-  function open() {
+  function open(project, name = project) {
+    if (backdrop) return;
     opener = document.activeElement;
     backdrop = document.createElement('div');
     backdrop.dataset.feedbackBackdrop = '';
@@ -84,6 +85,14 @@ const FORMSPREE_ENDPOINT = 'https://formspree.io/f/PLACEHOLDER';
     dialog.setAttribute('aria-label', 'Site feedback');
     dialog.style.cssText = `width:min(100%,460px);border:1px solid ${line};border-radius:14px;background:${surface};color:${ink};font-family:${font};padding:22px;box-shadow:0 24px 70px rgba(0,0,0,.45);transition:${transition}`;
     dialog.innerHTML = `<form><label for="sdforest-feedback-message" style="display:block;font-weight:650;line-height:1.35">What's wrong, missing, or could be better?</label><textarea id="sdforest-feedback-message" required rows="6" style="display:block;box-sizing:border-box;width:100%;margin-top:12px;border:1px solid ${line};border-radius:8px;background:rgba(0,0,0,.14);color:${ink};font:inherit;padding:10px;resize:vertical"></textarea><p data-feedback-status aria-live="polite" style="min-height:1.25em;margin:10px 0 0;font-size:13px"></p><div style="display:flex;justify-content:flex-end;gap:10px;margin-top:14px"><button type="button" data-feedback-close style="min-width:44px;min-height:44px;border:0;background:transparent;color:${ink};font:inherit;padding:9px;cursor:pointer">Cancel</button><button type="submit" style="min-width:44px;min-height:44px;border:0;border-radius:8px;background:${color};color:#fff;font:650 14px/1 ${font};padding:11px 15px;cursor:pointer">Submit</button></div></form>`;
+    if (project) {
+      // A card's Feedback names its project, so the reader can see what the note will be filed against.
+      const about = document.createElement('p');
+      about.style.cssText = 'margin:0 0 8px;font-size:13px;opacity:.75';
+      about.textContent = `About: ${name}`;
+      dialog.querySelector('form').prepend(about);
+      dialog.setAttribute('aria-label', `Feedback on ${name}`);
+    }
     backdrop.append(dialog);
     document.body.append(backdrop);
     const form = dialog.querySelector('form');
@@ -96,7 +105,7 @@ const FORMSPREE_ENDPOINT = 'https://formspree.io/f/PLACEHOLDER';
       const message = textarea.value.trim();
       if (!message) return textarea.focus();
       try {
-        const response = await fetch(FORMSPREE_ENDPOINT, { method: 'POST', headers: { 'Content-Type': 'application/json', Accept: 'application/json' }, body: JSON.stringify({ message, url: window.location.href }) });
+        const response = await fetch(FORMSPREE_ENDPOINT, { method: 'POST', headers: { 'Content-Type': 'application/json', Accept: 'application/json' }, body: JSON.stringify({ message, url: window.location.href, ...(project ? { project } : {}) }) });
         if (!response.ok) throw new Error('feedback request failed');
         const thanks = document.createElement('p');
         thanks.setAttribute('role', 'status');
@@ -111,7 +120,12 @@ const FORMSPREE_ENDPOINT = 'https://formspree.io/f/PLACEHOLDER';
     textarea.focus();
   }
 
-  button.addEventListener('click', open);
+  button.addEventListener('click', () => open());
+  // Any element marked data-feedback-open (a project card's button) opens the same dialog.
+  document.addEventListener('click', (event) => {
+    const trigger = event.target.closest?.('[data-feedback-open]');
+    if (trigger) open(trigger.getAttribute('data-feedback-project') || '', trigger.getAttribute('data-feedback-name') || undefined);
+  });
   document.addEventListener('keydown', (event) => { if (event.key === 'Escape') close(); });
   const inlineSlot = document.querySelector('[data-feedback-slot]');
   (inlineSlot || document.body || document.documentElement).append(button);

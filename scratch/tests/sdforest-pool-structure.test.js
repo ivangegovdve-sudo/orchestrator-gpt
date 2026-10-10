@@ -426,7 +426,7 @@ test('designed pools keep every catalog fact, behind a per-project disclosure', 
   }
   const page = read('web/pools/ai-d-kit/index.html');
   assert.match(page, /<main data-pool-id="ai-d-kit" data-pool-layout="designed">/);
-  assert.match(page, /pool-designed\.css/);
+  assert.match(page, /pool-entry\.css/); // Pool entries (feat/pool-entries) replaced the shared designed template with the pool-entry system.
   // Private repositories are described, never linked.
   assert.doesNotMatch(page, /github\.com\/ivangegovdve-sudo\/(?:model-router|glass-pr-solver|council|system-one-bench)/);
 });
