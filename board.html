@@ -1,0 +1,905 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Fleet Board</title>
+<style>
+:root{--bg:#fbfbfa;--fg:#1c1c1a;--muted:#6b6b66;--line:#e2e2dd;--card:#fff;
+--accent:#2f5fd0;--warn:#b45309;--bad:#b42318;--ok:#15803d;--chip:#f1f1ee;}
+@media (prefers-color-scheme:dark){:root{--bg:#141414;--fg:#e8e8e4;--muted:#9a9a93;
+--line:#2c2c29;--card:#1b1b1a;--accent:#7ea6ff;--warn:#f59e0b;--bad:#f87171;--ok:#4ade80;--chip:#232322;}}
+*{box-sizing:border-box}
+body{margin:0;padding:0 0 4rem;background:var(--bg);color:var(--fg);
+font:15px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;}
+.wrap{max-width:1080px;margin:0 auto;padding:0 1.25rem}
+h1{font-size:1.35rem;margin:1.5rem 0 .25rem;letter-spacing:-.01em}
+h2{font-size:.8rem;text-transform:uppercase;letter-spacing:.09em;color:var(--muted);
+margin:2.25rem 0 .6rem;font-weight:600}
+.freshness{font:12px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace;color:var(--muted);
+border-bottom:1px solid var(--line);padding:.6rem 0 .7rem;margin-bottom:.25rem}
+.wip{display:flex;flex-wrap:wrap;gap:.5rem;margin:.9rem 0 .25rem}
+.wip .n{background:var(--chip);border:1px solid var(--line);border-radius:6px;
+padding:.4rem .7rem;font:13px/1.2 ui-monospace,SFMono-Regular,Menlo,monospace}
+.wip .n b{font-size:1.05rem;font-weight:650}
+.note{color:var(--muted);font-size:12.5px;margin:.35rem 0 0}
+table{width:100%;border-collapse:collapse;margin:.2rem 0 .4rem}
+th{text-align:left;font-size:11.5px;text-transform:uppercase;letter-spacing:.06em;
+color:var(--muted);font-weight:600;padding:.35rem .6rem;border-bottom:1px solid var(--line)}
+td{padding:.5rem .6rem;border-bottom:1px solid var(--line);vertical-align:top}
+tr:last-child td{border-bottom:none}
+.t{font-weight:500}
+.sub{color:var(--muted);font-size:12.5px}
+.chip{display:inline-block;background:var(--chip);border:1px solid var(--line);
+border-radius:4px;padding:.05rem .4rem;font:11.5px/1.5 ui-monospace,Menlo,monospace;color:var(--muted)}
+.goal{color:var(--accent);font:11.5px/1.5 ui-monospace,Menlo,monospace}
+.age{font:12px/1.5 ui-monospace,Menlo,monospace;white-space:nowrap}
+.age.hot{color:var(--warn);font-weight:600}
+.bad{color:var(--bad)} .ok{color:var(--ok)} .warn{color:var(--warn)}
+a{color:var(--accent)}
+.empty{color:var(--muted);font-size:13px;padding:.5rem .6rem}
+details{border-top:1px solid var(--line);margin-top:2.5rem;padding-top:.5rem}
+h3{font-size:.72rem;text-transform:uppercase;letter-spacing:.09em;color:var(--muted);
+font-weight:600;margin:1.6rem 0 .4rem}
+summary{cursor:pointer;font-size:.8rem;text-transform:uppercase;letter-spacing:.09em;
+color:var(--muted);font-weight:600;padding:.5rem 0}
+pre{background:var(--chip);border:1px solid var(--line);border-radius:6px;padding:.7rem .8rem;
+overflow-x:auto;font:12px/1.5 ui-monospace,Menlo,monospace;margin:.4rem 0}
+#stalebar{display:none;position:sticky;top:0;z-index:50;background:var(--bad);color:#fff;
+padding:.85rem 1.25rem;font:13px/1.5 ui-monospace,Menlo,monospace;font-weight:600}
+body.stale #stalebar{display:block}
+body.stale .wrap{opacity:.38;filter:grayscale(.85)}
+.banner{border:1px solid var(--warn);border-left-width:4px;border-radius:6px;
+padding:.7rem .85rem;margin:1rem 0;font-size:13px}
+.banner.err{border-color:var(--bad)}
+
+/* Phone. Ivan reads this one-handed, so the multi-column tables stop being tables and
+   become stacked records: title first, metadata under it. Column headers carry no
+   information once the cells are stacked, so they are hidden -- except where the value
+   alone is ambiguous (a bare "0" under a goal), where data-l reinstates the label. */
+@media (max-width:640px){
+  .wrap{padding:0 .85rem}
+  body{font-size:15.5px}
+  h1{font-size:1.2rem}
+  h2{margin:1.9rem 0 .5rem}
+  .freshness{font-size:11.5px;word-break:break-word}
+  table,tbody,tr,td{display:block;width:100%}
+  tr:has(th){display:none}
+  th{display:none}
+  tr{border-bottom:1px solid var(--line);padding:.6rem 0}
+  tr:last-child{border-bottom:none}
+  td{border:none;padding:.06rem 0}
+  td:empty{display:none}
+  td.t{font-weight:550;line-height:1.4}
+  td.t a{display:inline-block;padding:.15rem 0;min-height:24px}
+  .sub,.age{font-size:12.5px}
+  td[data-l]::before{content:attr(data-l) ": ";color:var(--muted);
+    font-size:11px;text-transform:uppercase;letter-spacing:.05em}
+  .wip .n{flex:1 1 45%}
+  #stalebar{padding:.8rem .85rem;font-size:12.5px}
+  pre{font-size:11.5px}
+}
+</style>
+<body data-generated="2026-10-10T19:58:08Z" data-validminutes="30">
+<div id="stalebar"></div>
+<div class="wrap">
+<h1>Fleet Board</h1>
+<div class="freshness">generated <span id="age">just now</span> &middot; 2026-10-10T19:58:08Z &middot; run 2a55 &middot; sources 12/14 ok, 1 skipped, 1 FAILED &middot; scope: this machine only</div>
+<div class="banner err"><b>SOURCE FAILED</b> &mdash; fleet-jobs: no fleet host answered - oracle: ssh to 100.109.5.44 failed: ssh: connect to host 100.109.5.44 port 22: Connection timed out; kvm2: ssh to 100.77.50.41 failed: ssh: connect to host 100.77.50.41 port 22: Connection timed out<br><span class="sub">Counts fed by this source are UNKNOWN, not zero.</span></div>
+<div class="wip">
+<div class="n"><b>1</b> in flight</div>
+<div class="n"><b>0</b> goals touched</div>
+<div class="n"><b>1</b> serving no stated goal</div>
+<div class="n"><b>14</b> waiting on you</div>
+</div>
+<p class="note">Work serving no stated goal may be a distraction, or a goal that was never written down. The board does not decide which.</p>
+<h2>Waiting on you</h2>
+<table><tr><th>Task</th><th>Waiting</th><th>Why</th></tr>
+<tr><td class="t">Mint the replacement OpenRouter key — agents can't, minting needs an emailed verification code <span class="goal">G1</span></td><td class="age hot">&gt;= 46d</td><td class="sub">flagged !waiting in tasks.md</td></tr>
+<tr><td class="t">style: give Chloé one visual system, light and dark  (PR #21 in chloe-desktop)</td><td class="age hot">17d</td><td class="sub">your open PR, no movement - merge or close</td></tr>
+<tr><td class="t">fix(ci): run on the self-hosted runner this repo already has  (PR #107 in morning-news-anchor)</td><td class="age hot">15d</td><td class="sub">your open PR, no movement - merge or close</td></tr>
+<tr><td class="t">Draft: evidence-first memory and knowledge-base survey  (PR #1 in glass-mem)</td><td class="age hot">15d</td><td class="sub">your open PR, no movement - merge or close</td></tr>
+<tr><td class="t">feat(pwa): multi-agent conversation tabs  (PR #6 in chloe-chat-pwa)</td><td class="age hot">13d</td><td class="sub">your open PR, no movement - merge or close</td></tr>
+<tr><td class="t">SAMPLE for approval: pools as places in the homepage's world (Health first)  (PR #670 in orchestrator-gpt)</td><td class="age hot">13d</td><td class="sub">your open PR, no movement - merge or close</td></tr>
+<tr><td class="t">Publish the repository capability catalog as static files  (PR #8 in repoindex)</td><td class="age hot">12d</td><td class="sub">your open PR, no movement - merge or close</td></tr>
+<tr><td class="t">ci: deliver approved pull requests automatically  (PR #97 in morning-news-anchor)</td><td class="age hot">11d</td><td class="sub">your open PR, no movement - merge or close</td></tr>
+<tr><td class="t">fix(forest): deterministic layout tie-breaking and first-person Burke stories  (PR #101 in morning-news-anchor)</td><td class="age hot">9d</td><td class="sub">your open PR, no movement - merge or close</td></tr>
+<tr><td class="t">Docs for the fixer lanes (#7): OS boundary, config keys, self-check  (PR #11 in glass-pr-solver)</td><td class="age hot">8d</td><td class="sub">your open PR, no movement - merge or close</td></tr>
+<tr><td class="t">chore: align Node.js runtime and upgrade dependencies  (PR #19 in chloe-desktop)</td><td class="age hot">8d</td><td class="sub">your open PR, no movement - merge or close</td></tr>
+<tr><td class="t">feat: add bounded fleet health runtime panel (F24)  (PR #49 in chloe-desktop)</td><td class="age hot">7d</td><td class="sub">your open PR, no movement - merge or close</td></tr>
+<tr><td class="t">feat: add LiveKit identity and token seam (F16)  (PR #50 in chloe-desktop)</td><td class="age hot">7d</td><td class="sub">your open PR, no movement - merge or close</td></tr>
+<tr><td class="t">feat: add explicit RUN/STOP fleet controls (F21)  (PR #53 in chloe-desktop)</td><td class="age hot">7d</td><td class="sub">your open PR, no movement - merge or close</td></tr>
+</table>
+<h2>In flight</h2>
+<table><tr><th>Work</th><th>Who</th><th>Held</th><th>Last heard</th></tr>
+<tr><td class="t">codex session working <span class="chip">lease</span></td><td class="sub" data-l="who">codex:01a12042-f9a4-7ca1-92d1-55c1c02ec485</td><td class="age" data-l="held">10m</td><td class="sub" data-l="last heard">last tool: Bash <span class="sub">(10m ago)</span></td></tr>
+</table>
+<p class="note">1 of these are held on a <b>lease</b>: the holder runs somewhere this board cannot see, so &ldquo;in flight&rdquo; there means <i>the lease is being renewed</i>, not that anything was checked. They decay on their own if renewal stops.</p>
+<h2>Finished elsewhere</h2>
+<p class="note">Delegated work that reached a terminal state in the system that owns it. Verified against that system, not assumed.</p>
+<table><tr><th>Work</th><th>Who</th><th>Outcome</th></tr>
+<tr><td class="t"><a href="https://jules.google.com/task/5154082900871017774">add unit tests for the pure functions of tools/consult_memory.py</a></td><td class="sub" data-l="who">jules</td><td class="sub" data-l="outcome">Jules session reached COMPLETED</td></tr>
+<tr><td class="t"><a href="https://jules.google.com/task/1761388121948242767">add unit tests for the pure functions of tools/call_ivan_live.py</a></td><td class="sub" data-l="who">jules</td><td class="sub" data-l="outcome">Jules session reached COMPLETED</td></tr>
+<tr><td class="t"><a href="https://jules.google.com/task/7156473559401709048">add unit tests for the pure functions of tools/chloe_ptt.py</a></td><td class="sub" data-l="who">jules</td><td class="sub" data-l="outcome">Jules session reached FAILED</td></tr>
+<tr><td class="t"><a href="https://jules.google.com/task/10598008379214824771">add unit tests for the pure functions of tools/decisions/backfill_until_dry.py</a></td><td class="sub" data-l="who">jules</td><td class="sub" data-l="outcome">Jules session reached FAILED</td></tr>
+<tr><td class="t"><a href="https://jules.google.com/task/300495515795667915">add unit tests for the pure functions of tools/cavemem_add.py</a></td><td class="sub" data-l="who">jules</td><td class="sub" data-l="outcome">Jules session reached COMPLETED</td></tr>
+<tr><td class="t"><a href="https://jules.google.com/task/7493669177015799764">add unit tests for the pure functions of tools/decisions/decay.py</a></td><td class="sub" data-l="who">jules</td><td class="sub" data-l="outcome">Jules session reached COMPLETED</td></tr>
+<tr><td class="t"><a href="https://jules.google.com/task/7354352135944430338">add unit tests for the pure functions of tools/decisions/derive_types.py</a></td><td class="sub" data-l="who">jules</td><td class="sub" data-l="outcome">Jules session reached COMPLETED</td></tr>
+<tr><td class="t"><a href="https://jules.google.com/task/4270003069183953078">add unit tests for the pure functions of tools/cavemem_digest.py</a></td><td class="sub" data-l="who">jules</td><td class="sub" data-l="outcome">Jules session reached COMPLETED</td></tr>
+<tr><td class="t"><a href="https://jules.google.com/task/4945325902706409271">add unit tests for the pure functions of tools/decisions/e2e_deepseek.py</a></td><td class="sub" data-l="who">jules</td><td class="sub" data-l="outcome">Jules session reached COMPLETED</td></tr>
+<tr><td class="t"><a href="https://jules.google.com/task/13074331841970093851">add unit tests for the pure functions of tools/decisions/registry.py</a></td><td class="sub" data-l="who">jules</td><td class="sub" data-l="outcome">Jules session reached COMPLETED</td></tr>
+</table>
+<p class="note">Showing 10 of 24.</p>
+<h2>Lease lapsed</h2>
+<p class="note">Nobody renewed these. The board cannot see these holders, so it does <b>not</b> know they stopped &mdash; only that it stopped hearing from them.</p>
+<table><tr><th>Work</th><th>Who</th><th>Silent for</th></tr>
+<tr><td class="t">PRIORITY (Ivan, 2026-09-23): make the board actually report - exposed over Tailscale, now wiring session participation</td><td class="sub warn" data-l="who">dispatch</td><td class="age hot" data-l="silent for">17d</td></tr>
+<tr><td class="t">Windows-MCP: DiskSpace tool on top of the existing filesystem index</td><td class="sub warn" data-l="who">jules:8695473997822579025</td><td class="age hot" data-l="silent for">17d</td></tr>
+<tr><td class="t">kalo-canon private repo created; Jules dispatch BLOCKED - Jules GitHub app has no access to the new repo</td><td class="sub warn" data-l="who">dispatch</td><td class="age hot" data-l="silent for">17d</td></tr>
+<tr><td class="t">codex session started; task not yet declared</td><td class="sub warn" data-l="who">codex:direct-current</td><td class="age hot" data-l="silent for">17d</td></tr>
+<tr><td class="t">codex session started; task not yet declared</td><td class="sub warn" data-l="who">codex:shim-diagnostic-20260924</td><td class="age hot" data-l="silent for">17d</td></tr>
+<tr><td class="t">unit stop release</td><td class="sub warn" data-l="who">codex:codex-stop-unit-20260924</td><td class="age hot" data-l="silent for">16d</td></tr>
+<tr><td class="t">Reply exactly BOARD_SHIM_SMOKE_OK and do not use tools.</td><td class="sub warn" data-l="who">codex:01a0d255-b997-7a20-adc5-fdb1dc724b36</td><td class="age hot" data-l="silent for">16d</td></tr>
+<tr><td class="t">Reply exactly BOARD_GRACEFUL_EXIT_TEST and do not use tools.</td><td class="sub warn" data-l="who">codex:01a0d258-6a69-7a32-a7ca-00d4905f67fd</td><td class="age hot" data-l="silent for">16d</td></tr>
+<tr><td class="t">codex session started; task not yet declared</td><td class="sub warn" data-l="who">codex:01a0d367-b966-79c1-83ef-21ea75677b7c</td><td class="age hot" data-l="silent for">16d</td></tr>
+<tr><td class="t">codex session started; task not yet declared</td><td class="sub warn" data-l="who">codex:01a0d57f-953d-7143-9d96-ba350f5eb7af</td><td class="age hot" data-l="silent for">16d</td></tr>
+<tr><td class="t">agent-beacon regression test: does it surface the Windows-MCP filesystem index that a confidently-wrong session never asked for</td><td class="sub warn" data-l="who">dispatch</td><td class="age hot" data-l="silent for">16d</td></tr>
+<tr><td class="t">Board freshness: sessions must write claims AS THEY WORK, not when asked - the board alarms on silence and nothing answers</td><td class="sub warn" data-l="who">dispatch</td><td class="age hot" data-l="silent for">16d</td></tr>
+<tr><td class="t">1,236 VERIFIED capability cards - four verdicts per card, council card is the broken-checker test case</td><td class="sub warn" data-l="who">dispatch</td><td class="age hot" data-l="silent for">16d</td></tr>
+<tr><td class="t">Fork sync: classify 913 forks CLEAN/DIVERGED/UNKNOWN, dry run first, weekly schedule</td><td class="sub warn" data-l="who">dispatch</td><td class="age hot" data-l="silent for">16d</td></tr>
+<tr><td class="t">21 fleet automations dark since 2026-08-20 - restore poller + delivery, classify the other 18</td><td class="sub warn" data-l="who">dispatch</td><td class="age hot" data-l="silent for">16d</td></tr>
+<tr><td class="t">Voden: local structuring pass scored against 1,055 verified ground-truth records</td><td class="sub warn" data-l="who">dispatch</td><td class="age hot" data-l="silent for">16d</td></tr>
+<tr><td class="t">Kalo: three-lane diff between two independent chapter-1 extractions - the artifact that decides the method</td><td class="sub warn" data-l="who">dispatch</td><td class="age hot" data-l="silent for">16d</td></tr>
+<tr><td class="t">AnyCloudLLM 4.0: land typed contract path on master</td><td class="sub warn" data-l="who">dispatch</td><td class="age hot" data-l="silent for">16d</td></tr>
+<tr><td class="t">Academy: make one learning track completable end to end</td><td class="sub warn" data-l="who">dispatch</td><td class="age hot" data-l="silent for">16d</td></tr>
+<tr><td class="t">PR solver: shadow-mode Jev comparison over existing PR history</td><td class="sub warn" data-l="who">dispatch</td><td class="age hot" data-l="silent for">16d</td></tr>
+<tr><td class="t">Chloe desktop: PR #21 visual system + PR #20 build - designed, not yet runnable</td><td class="sub warn" data-l="who">dispatch</td><td class="age hot" data-l="silent for">16d</td></tr>
+<tr><td class="t">Kuma: redeploy on 2.5.5, real monitors, proven Telegram alert</td><td class="sub warn" data-l="who">dispatch</td><td class="age hot" data-l="silent for">16d</td></tr>
+<tr><td class="t">Hermes desktop 0.18.2 -&gt; 0.21.4 - needs Ivan to click the in-app update</td><td class="sub warn" data-l="who">dispatch</td><td class="age hot" data-l="silent for">16d</td></tr>
+<tr><td class="t">Platform guide page: sections, user-addable entries with URL + personal note + pros/cons</td><td class="sub warn" data-l="who">dispatch</td><td class="age hot" data-l="silent for">16d</td></tr>
+<tr><td class="t">Swarm harness bake-off: Open Swarm, paperclip, Ruflow - claim vs reality on local compute</td><td class="sub warn" data-l="who">dispatch</td><td class="age hot" data-l="silent for">16d</td></tr>
+<tr><td class="t">Repo shelf: visualised repo library, categorised by capability from the cards</td><td class="sub warn" data-l="who">dispatch</td><td class="age hot" data-l="silent for">16d</td></tr>
+<tr><td class="t">Reply with the single word OK.</td><td class="sub warn" data-l="who">codex:01a0dae0-484b-75f0-a77a-b631b7f5513b</td><td class="age hot" data-l="silent for">15d</td></tr>
+<tr><td class="t">Reply with the single word OK.</td><td class="sub warn" data-l="who">codex:01a0dae1-8a10-7242-b37a-2e703a28b8a6</td><td class="age hot" data-l="silent for">15d</td></tr>
+<tr><td class="t">You are fixing a pull request whose CI checks fail. The working tree is the PR</td><td class="sub warn" data-l="who">codex:01a0e193-f064-7fe0-8364-537844cfb320</td><td class="age hot" data-l="silent for">13d</td></tr>
+<tr><td class="t">You are resolving ONE stop of a git rebase for the PR solver. PR ivangegovdve-sudo/hermes_agents#684:</td><td class="sub warn" data-l="who">codex:01a0e1b8-98ac-7491-8013-c24f1591505b</td><td class="age hot" data-l="silent for">13d</td></tr>
+<tr><td class="t">You are resolving ONE stop of a git rebase for the PR solver. PR ivangegovdve-sudo/hermes_agents#579:</td><td class="sub warn" data-l="who">codex:01a0e1d3-1805-71c0-b38d-bd39ed1dbcce</td><td class="age hot" data-l="silent for">13d</td></tr>
+<tr><td class="t">You are resolving ONE stop of a git rebase for the PR solver. PR ivangegovdve-sudo/hermes_agents#591:</td><td class="sub warn" data-l="who">codex:01a0e1d7-be7d-7ab0-a645-c185e4372976</td><td class="age hot" data-l="silent for">13d</td></tr>
+<tr><td class="t">You are resolving ONE stop of a git rebase for the PR solver. PR ivangegovdve-sudo/hypertrophyos-40f826ee#5:</td><td class="sub warn" data-l="who">codex:01a0e3dc-b777-7870-be9b-aabee15881c1</td><td class="age hot" data-l="silent for">13d</td></tr>
+<tr><td class="t">You are reviewing a pull request as an independent reviewer. You did not</td><td class="sub warn" data-l="who">codex:01a0ecfc-919a-7eb2-9baa-153002f28948</td><td class="age hot" data-l="silent for">11d</td></tr>
+<tr><td class="t">codex session working</td><td class="sub warn" data-l="who">codex:01a0ece6-95ef-7eb0-9d8d-31cd5ab2cf23</td><td class="age hot" data-l="silent for">11d</td></tr>
+<tr><td class="t">You are reviewing a pull request as an independent reviewer. You did not</td><td class="sub warn" data-l="who">codex:01a0f0e4-daf5-7a42-b86f-cdb0297e4703</td><td class="age hot" data-l="silent for">11d</td></tr>
+<tr><td class="t">You are reviewing a pull request as an independent reviewer. You did not</td><td class="sub warn" data-l="who">codex:01a0f6d0-0ae2-7951-b402-ea91e1daab9a</td><td class="age hot" data-l="silent for">9d</td></tr>
+<tr><td class="t">Codex session. Work on the fleet DESKTOP APP (the ChloÃ©/fleet desktop app with per-agent tabs). First LOCATE </td><td class="sub warn" data-l="who">codex:01a0f7f6-e130-7ec1-8f8c-c214e8f8f239</td><td class="age hot" data-l="silent for">9d</td></tr>
+<tr><td class="t">Memory Writing Agent: Phase 2 (Consolidation)</td><td class="sub warn" data-l="who">codex:01a0f8b0-5fbb-79f3-93d3-1ff4a7dce0a4</td><td class="age hot" data-l="silent for">9d</td></tr>
+<tr><td class="t">codex session started; task not yet declared</td><td class="sub warn" data-l="who">codex:01a0fb37-0645-76e0-833b-1eb2ce0e0c8f</td><td class="age hot" data-l="silent for">9d</td></tr>
+<tr><td class="t">You are reviewing a pull request as an independent reviewer. You did not</td><td class="sub warn" data-l="who">codex:01a0fb84-52ca-7431-a989-37912922b916</td><td class="age hot" data-l="silent for">8d</td></tr>
+<tr><td class="t">You are reviewing a pull request as an independent reviewer. You did not</td><td class="sub warn" data-l="who">codex:01a0fbde-23e1-73d3-94f0-79feb4cf6444</td><td class="age hot" data-l="silent for">8d</td></tr>
+<tr><td class="t">Memory Writing Agent: Phase 2 (Consolidation)</td><td class="sub warn" data-l="who">codex:01a0fdd3-610f-7303-9043-4bff1b33f70d</td><td class="age hot" data-l="silent for">8d</td></tr>
+<tr><td class="t">New work from Ivan â€” &quot;Lore Keeper 2.0&quot;. The gated Lore Keeper currently only answers keyword-matched specifi</td><td class="sub warn" data-l="who">codex:01a0fb13-a823-7c52-b301-67afc4193bdd</td><td class="age hot" data-l="silent for">8d</td></tr>
+<tr><td class="t">Read-only code review. Do not modify anything. Review `git diff origin/main...HEAD` in this repo (PR #116: add</td><td class="sub warn" data-l="who">codex:01a100a2-cdff-72c2-b72c-542ef97f319c</td><td class="age hot" data-l="silent for">7d</td></tr>
+<tr><td class="t">Work on the repo-shelf 3D library: ivangegovdve-sudo/repo-shelf, deployed on GitHub Pages at https://ivangegov</td><td class="sub warn" data-l="who">codex:01a1031e-1877-72e0-a422-4603e24a6617</td><td class="age hot" data-l="silent for">7d</td></tr>
+<tr><td class="t">You are reviewing a pull request as an independent reviewer. You did not</td><td class="sub warn" data-l="who">codex:01a10352-e143-7ae0-8b9a-69ed3eed3222</td><td class="age hot" data-l="silent for">7d</td></tr>
+<tr><td class="t">codex session working</td><td class="sub warn" data-l="who">codex:01a10250-9436-7523-9d29-f8fad6253fdd</td><td class="age hot" data-l="silent for">7d</td></tr>
+<tr><td class="t">You are reviewing a pull request as an independent reviewer. You did not</td><td class="sub warn" data-l="who">codex:01a10598-0c29-74e0-845e-eac95dab3c78</td><td class="age hot" data-l="silent for">7d</td></tr>
+<tr><td class="t">Memory Writing Agent: Phase 2 (Consolidation)</td><td class="sub warn" data-l="who">codex:01a1059e-dbde-7ed2-9b3c-57c7055a5d85</td><td class="age hot" data-l="silent for">6d</td></tr>
+<tr><td class="t">You are reviewing a pull request as an independent reviewer. You did not</td><td class="sub warn" data-l="who">codex:01a105e1-262a-7303-b346-8cb0878cf78e</td><td class="age hot" data-l="silent for">6d</td></tr>
+<tr><td class="t">Memory Writing Agent: Phase 2 (Consolidation)</td><td class="sub warn" data-l="who">codex:01a106fb-e135-7b73-b651-aedda7effa7e</td><td class="age hot" data-l="silent for">6d</td></tr>
+<tr><td class="t">codex session working</td><td class="sub warn" data-l="who">codex:01a10c5b-9712-7f30-9c27-b8f4d33d491e</td><td class="age hot" data-l="silent for">5d</td></tr>
+<tr><td class="t">Continue the Glass PR solver work in N:\projects\hermes-prsolver. The reviewer-lane fix (canonical order Antig</td><td class="sub warn" data-l="who">codex:01a10c77-2d36-7ec3-9d2e-831c2de4dd48</td><td class="age hot" data-l="silent for">5d</td></tr>
+<tr><td class="t">Update the README for the repo github.com/ivangegovdve-sudo/openrouter-dashboard-mcp (this is the openDashboar</td><td class="sub warn" data-l="who">codex:01a10c79-b864-7a02-a39c-69fbf7308dcb</td><td class="age hot" data-l="silent for">5d</td></tr>
+<tr><td class="t">Memory Writing Agent: Phase 2 (Consolidation)</td><td class="sub warn" data-l="who">codex:01a10d06-9cc6-79a0-9f9b-c8877b16d63d</td><td class="age hot" data-l="silent for">5d</td></tr>
+<tr><td class="t">Task: find Ivan's recently-FORKED &quot;AI video studio&quot; MCP repo, inspect it, and write a concrete Jellyfish Consp</td><td class="sub warn" data-l="who">codex:01a10dad-83a3-7f43-9ba4-d188b4d35334</td><td class="age hot" data-l="silent for">5d</td></tr>
+<tr><td class="t">You are reviewing a pull request as an independent reviewer. You did not</td><td class="sub warn" data-l="who">codex:01a11120-bc2c-7230-b7a8-1387ef392014</td><td class="age hot" data-l="silent for">4d</td></tr>
+<tr><td class="t">codex session working</td><td class="sub warn" data-l="who">codex:01a11180-ea3b-7e62-a69a-37dc4621e154</td><td class="age hot" data-l="silent for">4d</td></tr>
+<tr><td class="t">codex session working</td><td class="sub warn" data-l="who">codex:01a1113e-58c6-7f61-ab0c-2fb62c78c438</td><td class="age hot" data-l="silent for">4d</td></tr>
+<tr><td class="t">codex session working</td><td class="sub warn" data-l="who">codex:01a111b6-5d48-78a3-97b5-ee9c679aeb6a</td><td class="age hot" data-l="silent for">4d</td></tr>
+<tr><td class="t">codex session started; task not yet declared</td><td class="sub warn" data-l="who">codex:01a11255-8a0e-78e3-a6d5-460b0afc7b86</td><td class="age hot" data-l="silent for">4d</td></tr>
+<tr><td class="t">Memory Writing Agent: Phase 2 (Consolidation)</td><td class="sub warn" data-l="who">codex:01a1162a-afbc-7fe2-837c-0500c01316fd</td><td class="age hot" data-l="silent for">3d</td></tr>
+<tr><td class="t">Return exactly {&quot;probe&quot;:&quot;ok&quot;}; do not use tools.</td><td class="sub warn" data-l="who">codex:01a11aa0-b6d0-76e2-9995-f808ecd8a1d4</td><td class="age hot" data-l="silent for">2d</td></tr>
+<tr><td class="t">Memory Writing Agent: Phase 2 (Consolidation)</td><td class="sub warn" data-l="who">codex:01a11af4-2c58-7bb3-a354-471bf44a7265</td><td class="age hot" data-l="silent for">2d</td></tr>
+<tr><td class="t">codex session working</td><td class="sub warn" data-l="who">codex:01a11a98-fc55-7521-84fa-305c233284dd</td><td class="age hot" data-l="silent for">2d</td></tr>
+<tr><td class="t">We need advise on a planning-only ChloÃƒÂ© orchestration/delegation design. Ground it in existing Ivan records</td><td class="sub warn" data-l="who">codex:01a11d73-d3b3-7b42-b909-0a7305c2dd95</td><td class="age hot" data-l="silent for">45h</td></tr>
+<tr><td class="t">codex session started; task not yet declared</td><td class="sub warn" data-l="who">codex:01a11f4b-6c31-7c80-9a3e-6941f1363731</td><td class="age hot" data-l="silent for">37h</td></tr>
+<tr><td class="t">PLANNING ONLY â€” no app code, no scaffolding, no service wiring. CLOSE the spec holes identified in docs/buil</td><td class="sub warn" data-l="who">codex:01a11f57-376d-7243-b7c9-df96ba25e5f3</td><td class="age hot" data-l="silent for">36h</td></tr>
+<tr><td class="t">codex session working</td><td class="sub warn" data-l="who">codex:01a11fa6-758a-7502-9e3b-6db196f90ed3</td><td class="age hot" data-l="silent for">33h</td></tr>
+<tr><td class="t">Unblock and complete the books gap-fill. The prior resume verified the r2 Stanza cache (provenance SHA abebâ€¦</td><td class="sub warn" data-l="who">codex:01a1203a-784a-7ca3-903b-ab9013d1bda2</td><td class="age hot" data-l="silent for">32h</td></tr>
+<tr><td class="t">One correction on the single remaining PR, system-one-bench #4: it's a &quot;Leia/Laya contract&quot; question (a decisi</td><td class="sub warn" data-l="who">codex:01a1200d-8c02-7981-835f-459226db14d6</td><td class="age hot" data-l="silent for">32h</td></tr>
+<tr><td class="t">Install and run Codeburn as a SEPARATE spend monitor for the Anthropic API key, and wire its outputs so the Sh</td><td class="sub warn" data-l="who">codex:01a1203f-67ac-72f1-9969-58a6e56e1482</td><td class="age hot" data-l="silent for">32h</td></tr>
+<tr><td class="t">Small, precise task. Create a NEW empty private GitHub repo so a separate cloud session can build in it (the c</td><td class="sub warn" data-l="who">codex:01a120bc-bba3-7c60-8860-608f9346fae4</td><td class="age hot" data-l="silent for">30h</td></tr>
+<tr><td class="t">Memory Writing Agent: Phase 2 (Consolidation)</td><td class="sub warn" data-l="who">codex:01a122e5-6f41-7340-8ff3-41e410182222</td><td class="age hot" data-l="silent for">19h</td></tr>
+<tr><td class="t">codex session working</td><td class="sub warn" data-l="who">codex:01a1230f-4192-7943-9830-6bdb79373d81</td><td class="age hot" data-l="silent for">7h</td></tr>
+<tr><td class="t">codex session working</td><td class="sub warn" data-l="who">codex:01a1253a-a02f-7c10-8dda-d60b1c0cc570</td><td class="age hot" data-l="silent for">7h</td></tr>
+<tr><td class="t">codex session working</td><td class="sub warn" data-l="who">codex:01a12492-323d-7da2-8e04-1404f982e05f</td><td class="age hot" data-l="silent for">7h</td></tr>
+</table>
+<h2>Abandoned</h2>
+<table><tr><th>Task</th><th>Was held by</th><th>Owner died</th></tr>
+<tr><td class="t">designing and building the fleet coordination board</td><td class="sub bad" data-l="was held by">output-23</td><td class="age" data-l="owner died">46d</td></tr>
+<tr><td class="t">redesign the board into an operable task table (design phase)</td><td class="sub bad" data-l="was held by">claude-code:aa79bbe3-a863-489c-b47b-6e799431b783</td><td class="age" data-l="owner died">45d</td></tr>
+<tr><td class="t">wiring memory: stop hook, board claims, age-decay</td><td class="sub bad" data-l="was held by">claude-code:16087679-009f-45fc-84a8-d43431541993</td><td class="age" data-l="owner died">43d</td></tr>
+<tr><td class="t">Wire session participation so working sessions claim what they are doing</td><td class="sub bad" data-l="was held by">claude-code:16087679-009f-45fc-84a8-d43431541993</td><td class="age" data-l="owner died">43d</td></tr>
+<tr><td class="t">Ivan's three novels about a protagonist named **Kalo** need to become a canonical knowledge base â€” events, l</td><td class="sub bad" data-l="was held by">claude-code:3dcd3911-2abc-4062-9d44-91c8bb6c12f1</td><td class="age" data-l="owner died">43d</td></tr>
+<tr><td class="t">Ivan approved: give ChloÃ© the drop task.** Go.</td><td class="sub bad" data-l="was held by">claude-code:88182be7-e687-4b44-a92a-12d92e9d4cac</td><td class="age" data-l="owner died">43d</td></tr>
+<tr><td class="t">&lt;task-notification&gt; &lt;task-id&gt;b2x7fbb2m&lt;/task-id&gt; &lt;tool-use-id&gt;toolu_016kGKQuc8KD9hnXZtMWozYz&lt;/tool-use-id&gt; &lt;ou</td><td class="sub bad" data-l="was held by">claude-code:8bc7ffb3-a0a2-47b8-aae4-59ab0be82fc8</td><td class="age" data-l="owner died">43d</td></tr>
+<tr><td class="t">Ivan approved: lift the score filter.** *&quot;yes lift it.&quot;</td><td class="sub bad" data-l="was held by">claude-code:6fe915b4-f52a-4e5d-af50-96466478262f</td><td class="age" data-l="owner died">42d</td></tr>
+<tr><td class="t">&lt;task-notification&gt; &lt;task-id&gt;bv9vq4f1c&lt;/task-id&gt; &lt;tool-use-id&gt;toolu_018syhS8Fx19YQRfXuyZ9min&lt;/tool-use-id&gt; &lt;ou</td><td class="sub bad" data-l="was held by">claude-code:ef0435a9-4a87-4b4b-a98a-586672b9aed8</td><td class="age" data-l="owner died">43d</td></tr>
+<tr><td class="t">Ivan wants PR #364 fixed â€” the review requested changes and it has not merged.** Pick it back up.</td><td class="sub bad" data-l="was held by">claude-code:b466ca39-9516-460d-8a2d-32f6c2384d82</td><td class="age" data-l="owner died">43d</td></tr>
+<tr><td class="t">Good work, and the guard diagnosis is better than mine â€” I had blamed `EnumerateFiles` truncation and it was</td><td class="sub bad" data-l="was held by">claude-code:d7462721-aba6-40db-9716-d8649bcc928f</td><td class="age" data-l="owner died">43d</td></tr>
+<tr><td class="t">Ivan wants to see what is actually running in `/opt/soul-server/main.py` on Oracle versus what is in the repo,</td><td class="sub bad" data-l="was held by">claude-code:a3ab2476-ff2f-4191-9a6c-1c5052ffc98c</td><td class="age" data-l="owner died">43d</td></tr>
+<tr><td class="t">&lt;task-notification&gt; &lt;task-id&gt;b4yiu8o09&lt;/task-id&gt; &lt;tool-use-id&gt;toolu_013ZBqCgc19TqYnMMwASMygg&lt;/tool-use-id&gt; &lt;ou</td><td class="sub bad" data-l="was held by">claude-code:6500b59a-e23c-416d-b0ad-9d78dbd22863</td><td class="age" data-l="owner died">43d</td></tr>
+<tr><td class="t">Ivan wants the fleet to become visible and audible in Discord. His words:</td><td class="sub bad" data-l="was held by">claude-code:892b6c4f-9445-48eb-bd44-4f1b8f782fdb</td><td class="age" data-l="owner died">43d</td></tr>
+<tr><td class="t">âš **The upload has regressed to the slow path you already diagnosed and fixed. Measured just now:</td><td class="sub bad" data-l="was held by">claude-code:1bed4d24-9b3e-4b6f-81dd-8137742aa832</td><td class="age" data-l="owner died">43d</td></tr>
+<tr><td class="t">&lt;task-notification&gt; &lt;task-id&gt;btis2v6it&lt;/task-id&gt; &lt;tool-use-id&gt;toolu_0161UCKYwhTwECjwvkYKHu8z&lt;/tool-use-id&gt; &lt;ou</td><td class="sub bad" data-l="was held by">claude-code:53e008dc-a232-4721-97e7-5a3b764bf8fd</td><td class="age" data-l="owner died">43d</td></tr>
+<tr><td class="t">Ivan's morning instruction, verbatim: *&quot;Land them. Have the fleet land them. I don't want to review anything.&quot;</td><td class="sub bad" data-l="was held by">claude-code:85802be5-42c9-4dd3-bc2c-8b563eaac6e3</td><td class="age" data-l="owner died">43d</td></tr>
+<tr><td class="t">&lt;task-notification&gt; &lt;task-id&gt;b7n6sh732&lt;/task-id&gt; &lt;tool-use-id&gt;toolu_013ewyUhFTH7qprvnjxTB5f9&lt;/tool-use-id&gt; &lt;ou</td><td class="sub bad" data-l="was held by">claude-code:740c315e-3bfe-45d3-946a-52a62d3dfbf6</td><td class="age" data-l="owner died">43d</td></tr>
+<tr><td class="t">&lt;task-notification&gt; &lt;task-id&gt;b9v4vhal0&lt;/task-id&gt; &lt;tool-use-id&gt;toolu_01PyNSbtriqRckiQ9tUptedu&lt;/tool-use-id&gt; &lt;ou</td><td class="sub bad" data-l="was held by">claude-code:09539b6c-e91e-4f50-9078-68f2589b9591</td><td class="age" data-l="owner died">43d</td></tr>
+<tr><td class="t">&lt;task-notification&gt; &lt;task-id&gt;bauc7dhmu&lt;/task-id&gt; &lt;tool-use-id&gt;toolu_018ZLKEFKiFN66fM1C7QGMkk&lt;/tool-use-id&gt; &lt;ou</td><td class="sub bad" data-l="was held by">claude-code:dc9efb88-9c2e-4bc6-a3fd-ee8127521d20</td><td class="age" data-l="owner died">42d</td></tr>
+<tr><td class="t">Priority change from Ivan. He asked directly: &quot;are buddy rooms ready, is the voice chat room ready?&quot; The answe</td><td class="sub bad" data-l="was held by">claude-code:8645197f-ba9e-42f1-9c27-3d55bc2d17d1</td><td class="age" data-l="owner died">42d</td></tr>
+<tr><td class="t">Ivan: &quot;can we finish Chloe's proactivity and the discord voice chat&quot;</td><td class="sub bad" data-l="was held by">claude-code:5e28b7e7-e9f0-4022-906f-80c26beadec6</td><td class="age" data-l="owner died">40d</td></tr>
+<tr><td class="t">Ivan: &quot;let's start with proactivity and the voice daemon&quot; â€” and he has now asked twice, so build it, don't p</td><td class="sub bad" data-l="was held by">claude-code:1e6e4db3-a684-40d1-b91c-d48b57b70d10</td><td class="age" data-l="owner died">40d</td></tr>
+<tr><td class="t">Ivan: &quot;I know I said merge, but in this case I meant rebase. Obviously, you know what I mean. You have my say </td><td class="sub bad" data-l="was held by">claude-code:a38344cc-8a4c-4ca9-83a0-ecd4fe82515b</td><td class="age" data-l="owner died">40d</td></tr>
+<tr><td class="t">In D:\projects\hermes_agents, the file `tests/test_disk_guard_truncation.py` is UNTRACKED (never git-added) an</td><td class="sub bad" data-l="was held by">claude-code:18f56113-5b84-47db-bb29-3f72a0a94652</td><td class="age" data-l="owner died">40d</td></tr>
+<tr><td class="t">Ivan approved this. Another session planned it and stopped to ask; I looked at the tree and it never implement</td><td class="sub bad" data-l="was held by">claude-code:2e946ea0-c694-4129-ab4f-5738edb5f95e</td><td class="age" data-l="owner died">40d</td></tr>
+<tr><td class="t">merge 380 first, then 379</td><td class="sub bad" data-l="was held by">claude-code:9a63fd3e-5c30-4be8-ba73-fcd23baaf848</td><td class="age" data-l="owner died">40d</td></tr>
+<tr><td class="t">Ivan has answered on the stashes, verbatim:</td><td class="sub bad" data-l="was held by">claude-code:8a27cecb-c68b-4761-8aaa-764232601206</td><td class="age" data-l="owner died">39d</td></tr>
+<tr><td class="t">&lt;task-notification&gt; &lt;task-id&gt;bhvvz4l39&lt;/task-id&gt; &lt;tool-use-id&gt;toolu_01KxPSewbqSdn8VFfUGVw7NN&lt;/tool-use-id&gt; &lt;ou</td><td class="sub bad" data-l="was held by">claude-code:8a3175aa-0f72-4ac2-aa16-0194df005c77</td><td class="age" data-l="owner died">37d</td></tr>
+<tr><td class="t">Resume, and build the thing rather than scope it further. Ivan asked directly and the honest answer was no:</td><td class="sub bad" data-l="was held by">claude-code:e30d9e1a-e8a9-4427-9470-1918e90341d4</td><td class="age" data-l="owner died">39d</td></tr>
+<tr><td class="t">I hit my usage limit while you were working, but it has reset now. Please continue from where you left off.</td><td class="sub bad" data-l="was held by">claude-code:270e8b20-4eb9-4d59-8d11-3167a105b4a1</td><td class="age" data-l="owner died">27d</td></tr>
+<tr><td class="t">ðŸ”´ðŸ”´ **STOP THE TOOLCHAIN INSTALL NOW. Cancel session `20260902T162710-rhpl7xjq` immediately.** Ivan:</td><td class="sub bad" data-l="was held by">claude-code:8b0a0406-ca3a-40c1-b51b-5eabfb156dcf</td><td class="age" data-l="owner died">38d</td></tr>
+<tr><td class="t">Green light on the accuracy benchmark â€” and it is now the **gating measurement for the voice room**, not a c</td><td class="sub bad" data-l="was held by">claude-code:7d8ce1e1-444e-4e43-9023-c8bb63df0149</td><td class="age" data-l="owner died">38d</td></tr>
+<tr><td class="t">&lt;task-notification&gt; &lt;task-id&gt;bmpowbmmo&lt;/task-id&gt; &lt;tool-use-id&gt;toolu_01NyBuZM4S8rZVaJ975sVQt8&lt;/tool-use-id&gt; &lt;ou</td><td class="sub bad" data-l="was held by">claude-code:0a9e7e2a-d76e-46ec-9e58-c1116869c665</td><td class="age" data-l="owner died">31d</td></tr>
+<tr><td class="t">go ahead with a and b, then finish the audit</td><td class="sub bad" data-l="was held by">claude-code:9df26f41-c56f-409f-8514-411a6aa7f657</td><td class="age" data-l="owner died">39d</td></tr>
+<tr><td class="t">Resuming â€” Ivan asked directly: &quot;How about the voice room that Fable was supposed to finish? 421, did that m</td><td class="sub bad" data-l="was held by">claude-code:92657342-847b-447f-96fb-51c8a4d2c568</td><td class="age" data-l="owner died">32d</td></tr>
+<tr><td class="t">do 2 open it as its own PR</td><td class="sub bad" data-l="was held by">claude-code:9c2af81b-d7eb-4e95-87ae-e11d3b556470</td><td class="age" data-l="owner died">37d</td></tr>
+<tr><td class="t">In D:\projects\hermes_agents (or a worktree of it), tests/test_video_kb.py::test_genuine_short_video_is_kept c</td><td class="sub bad" data-l="was held by">claude-code:a93d3602-ee04-40cb-a632-c2195491a4bf</td><td class="age" data-l="owner died">34d</td></tr>
+<tr><td class="t">settle the credential_service question, then do the landscape</td><td class="sub bad" data-l="was held by">claude-code:7c47fd48-273c-404e-bc8d-d2b19852cf76</td><td class="age" data-l="owner died">31d</td></tr>
+<tr><td class="t">Ivan wants the council failure diagnosed and fixed. His words: &quot;Why is the council review failing? First, that</td><td class="sub bad" data-l="was held by">claude-code:3da21c91-a611-4c58-ac54-2fa1ed81410e</td><td class="age" data-l="owner died">30d</td></tr>
+<tr><td class="t">New job, and Ivan has proposed a hypothesis worth testing properly rather than dismissing.</td><td class="sub bad" data-l="was held by">claude-code:c3147acc-5559-4a34-a4fb-de821b12ad6b</td><td class="age" data-l="owner died">31d</td></tr>
+<tr><td class="t">One narrow question, answer it fast and stop. Ivan has asked three times today and I have failed to answer thr</td><td class="sub bad" data-l="was held by">claude-code:20d6cbe5-6dec-483f-afd8-bb2505df80a4</td><td class="age" data-l="owner died">29d</td></tr>
+<tr><td class="t">Small, urgent, and narrow. Ivan is waiting at his desk. Answer only this, then stop.</td><td class="sub bad" data-l="was held by">claude-code:11081dab-a4ba-4409-997f-79c27184ae47</td><td class="age" data-l="owner died">29d</td></tr>
+<tr><td class="t">Ivan approved candidate #2 â€” remove the ten worktrees. His exact condition: *&quot;sure, you can delete them if t</td><td class="sub bad" data-l="was held by">claude-code:112b1f1e-a25d-43a6-b498-77b2353dad29</td><td class="age" data-l="owner died">27d</td></tr>
+<tr><td class="t">Use the session-kb MCP search tool now. Search exactly for SessionKbContinuous with limit 1. Do not answer fro</td><td class="sub bad" data-l="was held by">claude-code:b32acb65-ccf8-47d5-a9fd-a053040e74ef</td><td class="age" data-l="owner died">28d</td></tr>
+<tr><td class="t">Use the session-kb MCP search tool now. Search exactly for SessionKbContinuous with limit 1. Do not answer fro</td><td class="sub bad" data-l="was held by">claude-code:79180fab-466c-4628-9d71-14f81292b1dc</td><td class="age" data-l="owner died">28d</td></tr>
+<tr><td class="t">Use only the session-kb MCP search tool. Call search with query SessionKbContinuous and limit 1. Return the to</td><td class="sub bad" data-l="was held by">claude-code:35858e3d-8cca-4ecd-801b-41d3470b5c30</td><td class="age" data-l="owner died">28d</td></tr>
+<tr><td class="t">There are 98 open PRs in this repo. 24 are APPROVED and have never merged. Merge them.</td><td class="sub bad" data-l="was held by">claude-code:173f5830-873e-45bf-a152-61e7f445f1e6</td><td class="age" data-l="owner died">16d</td></tr>
+<tr><td class="t">If this event is something the user would act on now, send a PushNotification. Routine or benign output doesn'</td><td class="sub bad" data-l="was held by">claude-code:1c876606-14fb-461b-b430-aa236a53cc47</td><td class="age" data-l="owner died">15d</td></tr>
+<tr><td class="t">Ivan needs the current open-PR count now. Reading a specific merge LOG got classifier-blocked, but a plain `gh</td><td class="sub bad" data-l="was held by">claude-code:fb9bc61e-a9d6-40e2-ae71-32fcb2a62a92</td><td class="age" data-l="owner died">11d</td></tr>
+<tr><td class="t">Follow-up on the AI Kit write-up: check orchestrator-gpt PR #644 (troubleshooting Part 15). If MERGED: confirm</td><td class="sub bad" data-l="was held by">claude-code:1c8f4b2f-eee0-4637-8577-f66a1a52a749</td><td class="age" data-l="owner died">14d</td></tr>
+<tr><td class="t">&lt;task-notification&gt; &lt;task-id&gt;barj93io2&lt;/task-id&gt; &lt;tool-use-id&gt;toolu_01ByUccWGNcQFVwbCyDm9XSb&lt;/tool-use-id&gt; &lt;ou</td><td class="sub bad" data-l="was held by">claude-code:6998ddd4-f69b-4b1d-a95b-75138e6539eb</td><td class="age" data-l="owner died">7d</td></tr>
+<tr><td class="t">Get the Oracle Spoke SDM agent running so all 6 agents work. It's the only idle one (Morpheus, Neo, Trinity, T</td><td class="sub bad" data-l="was held by">claude-code:80243667-f2d5-417f-b6a6-f1391f66f9fb</td><td class="age" data-l="owner died">7d</td></tr>
+</table>
+<h2>What happened</h2>
+<h3 class="sub">Delegation</h3>
+<p class="note">delegation fatal: jules-sessions: pwsh exceeded 180s and was killed</p>
+<div class="banner err">Delegation job reported <b>FAILED</b> 0m ago.</div>
+<p class="note">Slots, as the delegation job saw them 0m ago: <b>0 of 15 active</b> &middot; 15 free &middot; 5 held in reserve &middot; 10 available to it. Concurrency, not a daily budget &mdash; a slot only comes back when a session reaches COMPLETED or FAILED.</p>
+<p class="note">Full reasoning: <a href="jules-queue.md">which items it held, and why</a>.</p>
+<p class="note">330 tasks on this machine, 174 non-Microsoft</p>
+<p class="note">Scheduled jobs on this machine: 174 examined &middot; 30 ok &middot; 23 running &middot; <b>3 could not run</b> &middot; 56 exited non-zero &middot; 36 switched off. A job that is running, whose trigger was skipped because an instance was already up, or that is disabled, is not counted as broken.</p>
+<p class="note">Switched off, so their last result is a fossil rather than news: AILocalGeminiPRReview, AIProjectSnapshotRefresh, AndersonInboxDigest, BankerBurnLoop, cavemem-transcript-ingest, Chloe-MorningNewsletter.</p>
+<p class="note"><b>Windows could not run these.</b> The error is Windows&rsquo; own rather than the script&rsquo;s exit code, so these are unambiguous.</p>
+<table><tr><th>Job</th><th>Last run</th><th>Error</th></tr>
+<tr><td class="t">FleetBoard-Serve</td><td class="age hot" data-l="last run">0m ago</td><td class="sub bad" data-l="error">0x80070002 the system cannot find the file specified</td></tr>
+<tr><td class="t">ChloePcAgent</td><td class="age hot" data-l="last run">34h ago</td><td class="sub bad" data-l="error">0x80070002 the system cannot find the file specified</td></tr>
+<tr><td class="t">PreResetShutdown-OneTime</td><td class="age" data-l="last run">111d ago</td><td class="sub bad" data-l="error">0xFFFD0000 (Windows error)</td></tr>
+</table>
+<p class="note"><b>56 job(s) exited non-zero.</b> That number is the script&rsquo;s own and the board does not know what it means &mdash; <span class="chip">DiskSpaceMonitor</span> returns 1 to say <i>the disk is critical</i>, which is it working, not failing. Listed so you can judge; deliberately not graded.</p>
+<table><tr><th>Job</th><th>Last run</th><th>Exit</th></tr>
+<tr><td class="t">HermesConnectorAuditCapture</td><td class="age" data-l="last run">-6m ago</td><td class="sub warn" data-l="exit">exited 1</td></tr>
+<tr><td class="t">CodexJobPoll</td><td class="age" data-l="last run">-6m ago</td><td class="sub warn" data-l="exit">exited 1</td></tr>
+<tr><td class="t">Fleet-JulesHarvest</td><td class="age" data-l="last run">0m ago</td><td class="sub warn" data-l="exit">exited 2</td></tr>
+<tr><td class="t">DiskSpaceMonitor</td><td class="age" data-l="last run">0m ago</td><td class="sub warn" data-l="exit">exited 1</td></tr>
+<tr><td class="t">CodexReleaseReview-ead77ea-run2-diagnostic-plaintext</td><td class="age" data-l="last run">0m ago</td><td class="sub warn" data-l="exit">exited 1</td></tr>
+<tr><td class="t">OpsDesk-PrWallTracker</td><td class="age" data-l="last run">0m ago</td><td class="sub warn" data-l="exit">exited 1</td></tr>
+<tr><td class="t">CavememDispatchIngest</td><td class="age" data-l="last run">0m ago</td><td class="sub warn" data-l="exit">exited 1</td></tr>
+<tr><td class="t">SessionKbContinuous</td><td class="age" data-l="last run">0m ago</td><td class="sub warn" data-l="exit">exited 1</td></tr>
+</table>
+<p class="note">Showing 8 of 56.</p>
+<h2>Agent jobs</h2>
+<div class="banner err">SOURCE FAILED - no fleet host answered - oracle: ssh to 100.109.5.44 failed: ssh: connect to host 100.109.5.44 port 22: Connection timed out; kvm2: ssh to 100.77.50.41 failed: ssh: connect to host 100.77.50.41 port 22: Connection timed out</div>
+<p class="note">Jobs on the fleet hosts are UNKNOWN this run, not absent.</p>
+<h2>Jules</h2>
+<p class="note">Jules capacity: <b>1 running</b> &middot; 3 paused &middot; <b>14 waiting on an answer from you</b> &middot; 18 of 1502 sessions still holding a slot. The concurrency cap is <b>15</b> &mdash; that figure is <i>stated</i>, not measured by this board; the occupancy beside it is measured.</p>
+<div class="banner">14 Jules sessions asked you a question and are waiting. A parked session does not fail and does not time out &mdash; it waits forever, holding its slot and its repo. They are not failures; they are unanswered questions.</div>
+<p class="note"><b>1 session(s) have been running for over a day</b> and are still holding a slot:</p>
+<table><tr><th>Session</th><th>Running for</th></tr>
+<tr><td class="t">Palette: Micro-UX &amp; Accessibility Agent</td><td class="age hot" data-l="running for">200d</td></tr>
+</table>
+<p class="note">Session states from cache, fetched 89m ago.</p>
+<h2>Jules dispatches</h2>
+<p class="note">the log records dispatch attempts, not outcomes - a line here is not a completion</p>
+<p class="note">0 dispatched in the last 72h &middot; <b>0 waiting on your answer</b> &middot; 0 failed &middot; 0 finished &middot; 0 still running &middot; 0 unknown.</p>
+<div class="empty">Nothing dispatched to Jules in that window.</div>
+<h2>Codex delegations</h2>
+<div class="banner">SOURCE SKIPPED - no codex inbox at D:\output\codex_inbox.jsonl - dependent counts are UNKNOWN, not zero</div>
+<h2>Your open PRs</h2>
+<p class="note">62 open, authored by you, across 13 repo(s). Filtered by authorship: an unfiltered count here is 67, mostly upstream PRs in forks.</p>
+<table><tr><th>PR</th><th>Repo</th><th>Idle</th></tr>
+<tr><td class="t"><a href="https://github.com/ivangegovdve-sudo/chloe-desktop/pull/21">style: give Chloé one visual system, light and dark</a> <span class="chip">#21</span></td><td class="sub" data-l="repo">chloe-desktop</td><td class="age hot" data-l="idle">17d</td></tr>
+<tr><td class="t"><a href="https://github.com/ivangegovdve-sudo/morning-news-anchor/pull/107">fix(ci): run on the self-hosted runner this repo already has</a> <span class="chip">#107</span></td><td class="sub" data-l="repo">morning-news-anchor</td><td class="age hot" data-l="idle">15d</td></tr>
+<tr><td class="t"><a href="https://github.com/ivangegovdve-sudo/glass-mem/pull/1">Draft: evidence-first memory and knowledge-base survey</a> <span class="chip">#1</span></td><td class="sub" data-l="repo">glass-mem</td><td class="age hot" data-l="idle">15d</td></tr>
+<tr><td class="t"><a href="https://github.com/ivangegovdve-sudo/chloe-chat-pwa/pull/6">feat(pwa): multi-agent conversation tabs</a> <span class="chip">#6</span></td><td class="sub" data-l="repo">chloe-chat-pwa</td><td class="age hot" data-l="idle">13d</td></tr>
+<tr><td class="t"><a href="https://github.com/ivangegovdve-sudo/orchestrator-gpt/pull/670">SAMPLE for approval: pools as places in the homepage's world (Health first)</a> <span class="chip">#670</span></td><td class="sub" data-l="repo">orchestrator-gpt</td><td class="age hot" data-l="idle">13d</td></tr>
+<tr><td class="t"><a href="https://github.com/ivangegovdve-sudo/repoindex/pull/8">Publish the repository capability catalog as static files</a> <span class="chip">#8</span></td><td class="sub" data-l="repo">repoindex</td><td class="age hot" data-l="idle">12d</td></tr>
+<tr><td class="t"><a href="https://github.com/ivangegovdve-sudo/morning-news-anchor/pull/97">ci: deliver approved pull requests automatically</a> <span class="chip">#97</span></td><td class="sub" data-l="repo">morning-news-anchor</td><td class="age hot" data-l="idle">11d</td></tr>
+<tr><td class="t"><a href="https://github.com/ivangegovdve-sudo/morning-news-anchor/pull/101">fix(forest): deterministic layout tie-breaking and first-person Burke stories</a> <span class="chip">#101</span></td><td class="sub" data-l="repo">morning-news-anchor</td><td class="age hot" data-l="idle">9d</td></tr>
+<tr><td class="t"><a href="https://github.com/ivangegovdve-sudo/glass-pr-solver/pull/11">Docs for the fixer lanes (#7): OS boundary, config keys, self-check</a> <span class="chip">#11</span></td><td class="sub" data-l="repo">glass-pr-solver</td><td class="age hot" data-l="idle">8d</td></tr>
+<tr><td class="t"><a href="https://github.com/ivangegovdve-sudo/chloe-desktop/pull/19">chore: align Node.js runtime and upgrade dependencies</a> <span class="chip">#19</span></td><td class="sub" data-l="repo">chloe-desktop</td><td class="age hot" data-l="idle">8d</td></tr>
+<tr><td class="t"><a href="https://github.com/ivangegovdve-sudo/chloe-desktop/pull/49">feat: add bounded fleet health runtime panel (F24)</a> <span class="chip">#49</span></td><td class="sub" data-l="repo">chloe-desktop</td><td class="age hot" data-l="idle">7d</td></tr>
+<tr><td class="t"><a href="https://github.com/ivangegovdve-sudo/chloe-desktop/pull/50">feat: add LiveKit identity and token seam (F16)</a> <span class="chip">#50</span></td><td class="sub" data-l="repo">chloe-desktop</td><td class="age hot" data-l="idle">7d</td></tr>
+<tr><td class="t"><a href="https://github.com/ivangegovdve-sudo/chloe-desktop/pull/53">feat: add explicit RUN/STOP fleet controls (F21)</a> <span class="chip">#53</span></td><td class="sub" data-l="repo">chloe-desktop</td><td class="age hot" data-l="idle">7d</td></tr>
+<tr><td class="t"><a href="https://github.com/ivangegovdve-sudo/chloe-desktop/pull/61">feat: add bounded fleet health runtime panel (F24)</a> <span class="chip">#61</span></td><td class="sub" data-l="repo">chloe-desktop</td><td class="age" data-l="idle">6d</td></tr>
+<tr><td class="t"><a href="https://github.com/ivangegovdve-sudo/chloe-desktop/pull/59">feat: package offline fleet install assets (F27)</a> <span class="chip">#59</span></td><td class="sub" data-l="repo">chloe-desktop</td><td class="age" data-l="idle">6d</td></tr>
+<tr><td class="t"><a href="https://github.com/ivangegovdve-sudo/chloe-desktop/pull/58">feat: add gated fleet RUN and STOP controls (F21)</a> <span class="chip">#58</span></td><td class="sub" data-l="repo">chloe-desktop</td><td class="age" data-l="idle">6d</td></tr>
+<tr><td class="t"><a href="https://github.com/ivangegovdve-sudo/chloe-desktop/pull/54">CHLOE-FLEET F27: package offline install assets</a> <span class="chip">#54</span></td><td class="sub" data-l="repo">chloe-desktop</td><td class="age" data-l="idle">6d</td></tr>
+<tr><td class="t"><a href="https://github.com/ivangegovdve-sudo/chloe-desktop/pull/64">feat: add Bulgarian ElevenLabs voice lane (F13)</a> <span class="chip">#64</span></td><td class="sub" data-l="repo">chloe-desktop</td><td class="age" data-l="idle">6d</td></tr>
+<tr><td class="t"><a href="https://github.com/ivangegovdve-sudo/chloe-desktop/pull/52">feat: add runtime/provider switcher (F23)</a> <span class="chip">#52</span></td><td class="sub" data-l="repo">chloe-desktop</td><td class="age" data-l="idle">6d</td></tr>
+<tr><td class="t"><a href="https://github.com/ivangegovdve-sudo/chloe-desktop/pull/51">feat: add task lifecycle adapter (F18)</a> <span class="chip">#51</span></td><td class="sub" data-l="repo">chloe-desktop</td><td class="age" data-l="idle">6d</td></tr>
+<tr><td class="t"><a href="https://github.com/ivangegovdve-sudo/orchestrator-gpt/pull/694">Pool entries: six finished exterior entries and designed pool worlds</a> <span class="chip">#694</span></td><td class="sub" data-l="repo">orchestrator-gpt</td><td class="age" data-l="idle">6d</td></tr>
+<tr><td class="t"><a href="https://github.com/ivangegovdve-sudo/chloe-desktop/pull/44">feat: add session lifecycle adapter (F17)</a> <span class="chip">#44</span></td><td class="sub" data-l="repo">chloe-desktop</td><td class="age" data-l="idle">6d</td></tr>
+<tr><td class="t"><a href="https://github.com/ivangegovdve-sudo/orchestrator-gpt/pull/703">SD Forest: finish seven pools and land intros on locked page frames</a> <span class="chip">#703</span></td><td class="sub" data-l="repo">orchestrator-gpt</td><td class="age" data-l="idle">5d</td></tr>
+<tr><td class="t"><a href="https://github.com/ivangegovdve-sudo/orchestrator-gpt/pull/678">feat(scroll-craft): fal.ai + ComfyUI-on-RunPod asset providers and switch</a> <span class="chip">#678</span></td><td class="sub" data-l="repo">orchestrator-gpt</td><td class="age" data-l="idle">5d</td></tr>
+<tr><td class="t"><a href="https://github.com/ivangegovdve-sudo/orchestrator-gpt/pull/635">feat: add platform guide directory</a> <span class="chip">#635</span></td><td class="sub" data-l="repo">orchestrator-gpt</td><td class="age" data-l="idle">5d</td></tr>
+</table>
+<p class="note">Showing 25 of 62.</p>
+<h2>Landed</h2>
+<div class="empty">Nothing recorded as landed.</div>
+<h2>Goals</h2>
+<table><tr><th>Goal</th><th>In flight</th><th>Queued</th><th>Landed</th></tr>
+<tr><td class="t"><span class="goal">G0</span> Publish &quot;A Chair or a Ladder&quot; essay publicly.</td><td class="age" data-l="in flight">0</td><td class="age" data-l="queued">0</td><td class="age" data-l="landed">0</td></tr>
+<tr><td class="t"><span class="goal">G1</span> Shift the fleet's inference stack toward free/open-source models — reduce paid API dependency for non-frontier tasks.</td><td class="age" data-l="in flight">0</td><td class="age" data-l="queued">1</td><td class="age" data-l="landed">0</td></tr>
+<tr><td class="t"><span class="goal">G2</span> Produce and release the spoken-word piece inspired by Koyczan's &quot;Shoulders&quot; (companion to the essay — arc: personal → collective → call to action).</td><td class="age" data-l="in flight">0</td><td class="age" data-l="queued">0</td><td class="age" data-l="landed">0</td></tr>
+<tr><td class="t"><span class="goal">G3</span> Hypertrophy OS + Women's Health OS each reach 100 active users.</td><td class="age" data-l="in flight">0</td><td class="age" data-l="queued">0</td><td class="age" data-l="landed">0</td></tr>
+<tr><td class="t"><span class="goal">G4</span> Complete the Chloe system to a state ready for selective sharing (core stays private until commercialization is decided).</td><td class="age" data-l="in flight">0</td><td class="age" data-l="queued">0</td><td class="age" data-l="landed">0</td></tr>
+<tr><td class="t"><span class="goal">G5</span> Publish one independent AI research finding (J-Space, CKA, or TinyLM Council output).</td><td class="age" data-l="in flight">0</td><td class="age" data-l="queued">0</td><td class="age" data-l="landed">0</td></tr>
+<tr><td class="t"><span class="goal">G6</span> TinyLM Council produces one citable result about small model cognition.</td><td class="age" data-l="in flight">0</td><td class="age" data-l="queued">0</td><td class="age" data-l="landed">0</td></tr>
+<tr><td class="t"><span class="goal">G7</span> Publish the fleet orchestration + memory efficiency guide as a $2–5 &quot;buy me a coffee&quot; product.</td><td class="age" data-l="in flight">0</td><td class="age" data-l="queued">0</td><td class="age" data-l="landed">0</td></tr>
+<tr><td class="t"><span class="goal">G8</span> SDForest becomes the public showcase hub (conditional: after fleet delegation and automated orchestration are working satisfactorily).</td><td class="age" data-l="in flight">0</td><td class="age" data-l="queued">0</td><td class="age" data-l="landed">0</td></tr>
+<tr><td class="t"><span class="goal">G9</span> Products cover their own infrastructure costs.</td><td class="age" data-l="in flight">0</td><td class="age" data-l="queued">0</td><td class="age" data-l="landed">0</td></tr>
+<tr><td class="t"><span class="goal">G10</span> First $500/month recurring revenue from any product.</td><td class="age" data-l="in flight">0</td><td class="age" data-l="queued">0</td><td class="age" data-l="landed">0</td></tr>
+</table>
+<h2>Queue</h2>
+<div class="empty">Nothing queued. Add what you want done to <span class="chip">D:\output\board\tasks.md</span> &mdash; one line each.</div>
+<div class="banner"><b>18 claim(s) reference a task id that no longer exists.</b> Usually a task was reworded in tasks.md. Shown rather than discarded.</div>
+<details><summary>Diagnostics &mdash; fleet plumbing</summary>
+<pre>
+GENERATED 2026-10-10T19:58:08Z - age 0m - run 2a55 - 312965ms total - sources 12/14 ok, 1 skipped, 1 FAILED - scope: this machine only
+VALID UNTIL 2026-10-10T20:28:08Z  (2 x 15 m interval). A reader MUST reject this board past that time.
+GENERATED BY reconcile.ps1. Do not hand-edit. Declared state goes in claims.jsonl.
+
+```
+############  DEGRADED - ONE OR MORE SOURCES FAILED  ############
+  fleet-jobs       SOURCE FAILED - no fleet host answered - oracle: ssh to 100.109.5.44 failed: ssh: connect to host 100.109.5.44 port 22: Connection timed out; kvm2: ssh to 100.77.50.41 failed: ssh: connect to host 100.77.50.41 port 22: Connection timed out
+  Sections fed by these sources report SOURCE FAILED, not zero.
+#################################################################
+```
+
+```
+------------  SOURCES SKIPPED BY REQUEST  ------------
+  codex            SKIPPED - no codex inbox at D:\output\codex_inbox.jsonl
+  Counts fed by these sources are UNKNOWN, not zero, and not clean.
+------------------------------------------------------
+```
+
+## Work
+
+WIP  **1 in flight** across 0 goal(s) - 1 serving no stated goal - 14 waiting on Ivan
+goals  11 read from TELOS.md - 0 refused as sample-template content
+tasks  1 declared - 1 in flight, 0 blocked, 53 abandoned, 0 queued, 0 landed
+
+Waiting on Ivan:
+- **Mint the replacement OpenRouter key — agents can't, minting needs an emailed verification code** - waiting &gt;= 46d - flagged !waiting in tasks.md
+- **style: give Chloé one visual system, light and dark  (PR #21 in chloe-desktop)** - waiting 17d - your open PR, no movement - merge or close
+- **fix(ci): run on the self-hosted runner this repo already has  (PR #107 in morning-news-anchor)** - waiting 15d - your open PR, no movement - merge or close
+- **Draft: evidence-first memory and knowledge-base survey  (PR #1 in glass-mem)** - waiting 15d - your open PR, no movement - merge or close
+- **feat(pwa): multi-agent conversation tabs  (PR #6 in chloe-chat-pwa)** - waiting 13d - your open PR, no movement - merge or close
+- **SAMPLE for approval: pools as places in the homepage's world (Health first)  (PR #670 in orchestrator-gpt)** - waiting 13d - your open PR, no movement - merge or close
+- **Publish the repository capability catalog as static files  (PR #8 in repoindex)** - waiting 12d - your open PR, no movement - merge or close
+- **ci: deliver approved pull requests automatically  (PR #97 in morning-news-anchor)** - waiting 11d - your open PR, no movement - merge or close
+- **fix(forest): deterministic layout tie-breaking and first-person Burke stories  (PR #101 in morning-news-anchor)** - waiting 9d - your open PR, no movement - merge or close
+- **Docs for the fixer lanes (#7): OS boundary, config keys, self-check  (PR #11 in glass-pr-solver)** - waiting 8d - your open PR, no movement - merge or close
+- **chore: align Node.js runtime and upgrade dependencies  (PR #19 in chloe-desktop)** - waiting 8d - your open PR, no movement - merge or close
+- **feat: add bounded fleet health runtime panel (F24)  (PR #49 in chloe-desktop)** - waiting 7d - your open PR, no movement - merge or close
+- **feat: add LiveKit identity and token seam (F16)  (PR #50 in chloe-desktop)** - waiting 7d - your open PR, no movement - merge or close
+- **feat: add explicit RUN/STOP fleet controls (F21)  (PR #53 in chloe-desktop)** - waiting 7d - your open PR, no movement - merge or close
+
+Abandoned (the owning process was looked for and is gone - NOT in progress):
+- **designing and building the fleet coordination board** - was held by output-23
+- **redesign the board into an operable task table (design phase)** - was held by claude-code:aa79bbe3-a863-489c-b47b-6e799431b783
+- **wiring memory: stop hook, board claims, age-decay** - was held by claude-code:16087679-009f-45fc-84a8-d43431541993
+- **Wire session participation so working sessions claim what they are doing** - was held by claude-code:16087679-009f-45fc-84a8-d43431541993
+- **Ivan's three novels about a protagonist named **Kalo** need to become a canonical knowledge base â€” events, l** - was held by claude-code:3dcd3911-2abc-4062-9d44-91c8bb6c12f1
+- **Ivan approved: give ChloÃ© the drop task.** Go.** - was held by claude-code:88182be7-e687-4b44-a92a-12d92e9d4cac
+- **&lt;task-notification&gt; &lt;task-id&gt;b2x7fbb2m&lt;/task-id&gt; &lt;tool-use-id&gt;toolu_016kGKQuc8KD9hnXZtMWozYz&lt;/tool-use-id&gt; &lt;ou** - was held by claude-code:8bc7ffb3-a0a2-47b8-aae4-59ab0be82fc8
+- **Ivan approved: lift the score filter.** *&quot;yes lift it.&quot;** - was held by claude-code:6fe915b4-f52a-4e5d-af50-96466478262f
+- **&lt;task-notification&gt; &lt;task-id&gt;bv9vq4f1c&lt;/task-id&gt; &lt;tool-use-id&gt;toolu_018syhS8Fx19YQRfXuyZ9min&lt;/tool-use-id&gt; &lt;ou** - was held by claude-code:ef0435a9-4a87-4b4b-a98a-586672b9aed8
+- **Ivan wants PR #364 fixed â€” the review requested changes and it has not merged.** Pick it back up.** - was held by claude-code:b466ca39-9516-460d-8a2d-32f6c2384d82
+- **Good work, and the guard diagnosis is better than mine â€” I had blamed `EnumerateFiles` truncation and it was** - was held by claude-code:d7462721-aba6-40db-9716-d8649bcc928f
+- **Ivan wants to see what is actually running in `/opt/soul-server/main.py` on Oracle versus what is in the repo,** - was held by claude-code:a3ab2476-ff2f-4191-9a6c-1c5052ffc98c
+- **&lt;task-notification&gt; &lt;task-id&gt;b4yiu8o09&lt;/task-id&gt; &lt;tool-use-id&gt;toolu_013ZBqCgc19TqYnMMwASMygg&lt;/tool-use-id&gt; &lt;ou** - was held by claude-code:6500b59a-e23c-416d-b0ad-9d78dbd22863
+- **Ivan wants the fleet to become visible and audible in Discord. His words:** - was held by claude-code:892b6c4f-9445-48eb-bd44-4f1b8f782fdb
+- **âš **The upload has regressed to the slow path you already diagnosed and fixed. Measured just now:** - was held by claude-code:1bed4d24-9b3e-4b6f-81dd-8137742aa832
+- **&lt;task-notification&gt; &lt;task-id&gt;btis2v6it&lt;/task-id&gt; &lt;tool-use-id&gt;toolu_0161UCKYwhTwECjwvkYKHu8z&lt;/tool-use-id&gt; &lt;ou** - was held by claude-code:53e008dc-a232-4721-97e7-5a3b764bf8fd
+- **Ivan's morning instruction, verbatim: *&quot;Land them. Have the fleet land them. I don't want to review anything.&quot;** - was held by claude-code:85802be5-42c9-4dd3-bc2c-8b563eaac6e3
+- **&lt;task-notification&gt; &lt;task-id&gt;b7n6sh732&lt;/task-id&gt; &lt;tool-use-id&gt;toolu_013ewyUhFTH7qprvnjxTB5f9&lt;/tool-use-id&gt; &lt;ou** - was held by claude-code:740c315e-3bfe-45d3-946a-52a62d3dfbf6
+- **&lt;task-notification&gt; &lt;task-id&gt;b9v4vhal0&lt;/task-id&gt; &lt;tool-use-id&gt;toolu_01PyNSbtriqRckiQ9tUptedu&lt;/tool-use-id&gt; &lt;ou** - was held by claude-code:09539b6c-e91e-4f50-9078-68f2589b9591
+- **&lt;task-notification&gt; &lt;task-id&gt;bauc7dhmu&lt;/task-id&gt; &lt;tool-use-id&gt;toolu_018ZLKEFKiFN66fM1C7QGMkk&lt;/tool-use-id&gt; &lt;ou** - was held by claude-code:dc9efb88-9c2e-4bc6-a3fd-ee8127521d20
+- **Priority change from Ivan. He asked directly: &quot;are buddy rooms ready, is the voice chat room ready?&quot; The answe** - was held by claude-code:8645197f-ba9e-42f1-9c27-3d55bc2d17d1
+- **Ivan: &quot;can we finish Chloe's proactivity and the discord voice chat&quot;** - was held by claude-code:5e28b7e7-e9f0-4022-906f-80c26beadec6
+- **Ivan: &quot;let's start with proactivity and the voice daemon&quot; â€” and he has now asked twice, so build it, don't p** - was held by claude-code:1e6e4db3-a684-40d1-b91c-d48b57b70d10
+- **Ivan: &quot;I know I said merge, but in this case I meant rebase. Obviously, you know what I mean. You have my say ** - was held by claude-code:a38344cc-8a4c-4ca9-83a0-ecd4fe82515b
+- **In D:\projects\hermes_agents, the file `tests/test_disk_guard_truncation.py` is UNTRACKED (never git-added) an** - was held by claude-code:18f56113-5b84-47db-bb29-3f72a0a94652
+- **Ivan approved this. Another session planned it and stopped to ask; I looked at the tree and it never implement** - was held by claude-code:2e946ea0-c694-4129-ab4f-5738edb5f95e
+- **merge 380 first, then 379** - was held by claude-code:9a63fd3e-5c30-4be8-ba73-fcd23baaf848
+- **Ivan has answered on the stashes, verbatim:** - was held by claude-code:8a27cecb-c68b-4761-8aaa-764232601206
+- **&lt;task-notification&gt; &lt;task-id&gt;bhvvz4l39&lt;/task-id&gt; &lt;tool-use-id&gt;toolu_01KxPSewbqSdn8VFfUGVw7NN&lt;/tool-use-id&gt; &lt;ou** - was held by claude-code:8a3175aa-0f72-4ac2-aa16-0194df005c77
+- **Resume, and build the thing rather than scope it further. Ivan asked directly and the honest answer was no:** - was held by claude-code:e30d9e1a-e8a9-4427-9470-1918e90341d4
+- **I hit my usage limit while you were working, but it has reset now. Please continue from where you left off.** - was held by claude-code:270e8b20-4eb9-4d59-8d11-3167a105b4a1
+- **ðŸ”´ðŸ”´ **STOP THE TOOLCHAIN INSTALL NOW. Cancel session `20260902T162710-rhpl7xjq` immediately.** Ivan:** - was held by claude-code:8b0a0406-ca3a-40c1-b51b-5eabfb156dcf
+- **Green light on the accuracy benchmark â€” and it is now the **gating measurement for the voice room**, not a c** - was held by claude-code:7d8ce1e1-444e-4e43-9023-c8bb63df0149
+- **&lt;task-notification&gt; &lt;task-id&gt;bmpowbmmo&lt;/task-id&gt; &lt;tool-use-id&gt;toolu_01NyBuZM4S8rZVaJ975sVQt8&lt;/tool-use-id&gt; &lt;ou** - was held by claude-code:0a9e7e2a-d76e-46ec-9e58-c1116869c665
+- **go ahead with a and b, then finish the audit** - was held by claude-code:9df26f41-c56f-409f-8514-411a6aa7f657
+- **Resuming â€” Ivan asked directly: &quot;How about the voice room that Fable was supposed to finish? 421, did that m** - was held by claude-code:92657342-847b-447f-96fb-51c8a4d2c568
+- **do 2 open it as its own PR** - was held by claude-code:9c2af81b-d7eb-4e95-87ae-e11d3b556470
+- **In D:\projects\hermes_agents (or a worktree of it), tests/test_video_kb.py::test_genuine_short_video_is_kept c** - was held by claude-code:a93d3602-ee04-40cb-a632-c2195491a4bf
+- **settle the credential_service question, then do the landscape** - was held by claude-code:7c47fd48-273c-404e-bc8d-d2b19852cf76
+- **Ivan wants the council failure diagnosed and fixed. His words: &quot;Why is the council review failing? First, that** - was held by claude-code:3da21c91-a611-4c58-ac54-2fa1ed81410e
+- **New job, and Ivan has proposed a hypothesis worth testing properly rather than dismissing.** - was held by claude-code:c3147acc-5559-4a34-a4fb-de821b12ad6b
+- **One narrow question, answer it fast and stop. Ivan has asked three times today and I have failed to answer thr** - was held by claude-code:20d6cbe5-6dec-483f-afd8-bb2505df80a4
+- **Small, urgent, and narrow. Ivan is waiting at his desk. Answer only this, then stop.** - was held by claude-code:11081dab-a4ba-4409-997f-79c27184ae47
+- **Ivan approved candidate #2 â€” remove the ten worktrees. His exact condition: *&quot;sure, you can delete them if t** - was held by claude-code:112b1f1e-a25d-43a6-b498-77b2353dad29
+- **Use the session-kb MCP search tool now. Search exactly for SessionKbContinuous with limit 1. Do not answer fro** - was held by claude-code:b32acb65-ccf8-47d5-a9fd-a053040e74ef
+- **Use the session-kb MCP search tool now. Search exactly for SessionKbContinuous with limit 1. Do not answer fro** - was held by claude-code:79180fab-466c-4628-9d71-14f81292b1dc
+- **Use only the session-kb MCP search tool. Call search with query SessionKbContinuous and limit 1. Return the to** - was held by claude-code:35858e3d-8cca-4ecd-801b-41d3470b5c30
+- **There are 98 open PRs in this repo. 24 are APPROVED and have never merged. Merge them.** - was held by claude-code:173f5830-873e-45bf-a152-61e7f445f1e6
+- **If this event is something the user would act on now, send a PushNotification. Routine or benign output doesn'** - was held by claude-code:1c876606-14fb-461b-b430-aa236a53cc47
+- **Ivan needs the current open-PR count now. Reading a specific merge LOG got classifier-blocked, but a plain `gh** - was held by claude-code:fb9bc61e-a9d6-40e2-ae71-32fcb2a62a92
+- **Follow-up on the AI Kit write-up: check orchestrator-gpt PR #644 (troubleshooting Part 15). If MERGED: confirm** - was held by claude-code:1c8f4b2f-eee0-4637-8577-f66a1a52a749
+- **&lt;task-notification&gt; &lt;task-id&gt;barj93io2&lt;/task-id&gt; &lt;tool-use-id&gt;toolu_01ByUccWGNcQFVwbCyDm9XSb&lt;/tool-use-id&gt; &lt;ou** - was held by claude-code:6998ddd4-f69b-4b1d-a95b-75138e6539eb
+- **Get the Oracle Spoke SDM agent running so all 6 agents work. It's the only idle one (Morpheus, Neo, Trinity, T** - was held by claude-code:80243667-f2d5-417f-b6a6-f1391f66f9fb
+
+Lease lapsed (nobody renewed; the board cannot see these holders, so it does NOT know they stopped):
+- **PRIORITY (Ivan, 2026-09-23): make the board actually report - exposed over Tailscale, now wiring session participation** - dispatch, silent 17d
+- **Windows-MCP: DiskSpace tool on top of the existing filesystem index** - jules:8695473997822579025, silent 17d
+- **kalo-canon private repo created; Jules dispatch BLOCKED - Jules GitHub app has no access to the new repo** - dispatch, silent 17d
+- **codex session started; task not yet declared** - codex:direct-current, silent 17d
+- **codex session started; task not yet declared** - codex:shim-diagnostic-20260924, silent 17d
+- **unit stop release** - codex:codex-stop-unit-20260924, silent 16d
+- **Reply exactly BOARD_SHIM_SMOKE_OK and do not use tools.** - codex:01a0d255-b997-7a20-adc5-fdb1dc724b36, silent 16d
+- **Reply exactly BOARD_GRACEFUL_EXIT_TEST and do not use tools.** - codex:01a0d258-6a69-7a32-a7ca-00d4905f67fd, silent 16d
+- **codex session started; task not yet declared** - codex:01a0d367-b966-79c1-83ef-21ea75677b7c, silent 16d
+- **codex session started; task not yet declared** - codex:01a0d57f-953d-7143-9d96-ba350f5eb7af, silent 16d
+- **agent-beacon regression test: does it surface the Windows-MCP filesystem index that a confidently-wrong session never asked for** - dispatch, silent 16d
+- **Board freshness: sessions must write claims AS THEY WORK, not when asked - the board alarms on silence and nothing answers** - dispatch, silent 16d
+- **1,236 VERIFIED capability cards - four verdicts per card, council card is the broken-checker test case** - dispatch, silent 16d
+- **Fork sync: classify 913 forks CLEAN/DIVERGED/UNKNOWN, dry run first, weekly schedule** - dispatch, silent 16d
+- **21 fleet automations dark since 2026-08-20 - restore poller + delivery, classify the other 18** - dispatch, silent 16d
+- **Voden: local structuring pass scored against 1,055 verified ground-truth records** - dispatch, silent 16d
+- **Kalo: three-lane diff between two independent chapter-1 extractions - the artifact that decides the method** - dispatch, silent 16d
+- **AnyCloudLLM 4.0: land typed contract path on master** - dispatch, silent 16d
+- **Academy: make one learning track completable end to end** - dispatch, silent 16d
+- **PR solver: shadow-mode Jev comparison over existing PR history** - dispatch, silent 16d
+- **Chloe desktop: PR #21 visual system + PR #20 build - designed, not yet runnable** - dispatch, silent 16d
+- **Kuma: redeploy on 2.5.5, real monitors, proven Telegram alert** - dispatch, silent 16d
+- **Hermes desktop 0.18.2 -&gt; 0.21.4 - needs Ivan to click the in-app update** - dispatch, silent 16d
+- **Platform guide page: sections, user-addable entries with URL + personal note + pros/cons** - dispatch, silent 16d
+- **Swarm harness bake-off: Open Swarm, paperclip, Ruflow - claim vs reality on local compute** - dispatch, silent 16d
+- **Repo shelf: visualised repo library, categorised by capability from the cards** - dispatch, silent 16d
+- **Reply with the single word OK.** - codex:01a0dae0-484b-75f0-a77a-b631b7f5513b, silent 15d
+- **Reply with the single word OK.** - codex:01a0dae1-8a10-7242-b37a-2e703a28b8a6, silent 15d
+- **You are fixing a pull request whose CI checks fail. The working tree is the PR** - codex:01a0e193-f064-7fe0-8364-537844cfb320, silent 13d
+- **You are resolving ONE stop of a git rebase for the PR solver. PR ivangegovdve-sudo/hermes_agents#684:** - codex:01a0e1b8-98ac-7491-8013-c24f1591505b, silent 13d
+- **You are resolving ONE stop of a git rebase for the PR solver. PR ivangegovdve-sudo/hermes_agents#579:** - codex:01a0e1d3-1805-71c0-b38d-bd39ed1dbcce, silent 13d
+- **You are resolving ONE stop of a git rebase for the PR solver. PR ivangegovdve-sudo/hermes_agents#591:** - codex:01a0e1d7-be7d-7ab0-a645-c185e4372976, silent 13d
+- **You are resolving ONE stop of a git rebase for the PR solver. PR ivangegovdve-sudo/hypertrophyos-40f826ee#5:** - codex:01a0e3dc-b777-7870-be9b-aabee15881c1, silent 13d
+- **You are reviewing a pull request as an independent reviewer. You did not** - codex:01a0ecfc-919a-7eb2-9baa-153002f28948, silent 11d
+- **codex session working** - codex:01a0ece6-95ef-7eb0-9d8d-31cd5ab2cf23, silent 11d
+- **You are reviewing a pull request as an independent reviewer. You did not** - codex:01a0f0e4-daf5-7a42-b86f-cdb0297e4703, silent 11d
+- **You are reviewing a pull request as an independent reviewer. You did not** - codex:01a0f6d0-0ae2-7951-b402-ea91e1daab9a, silent 9d
+- **Codex session. Work on the fleet DESKTOP APP (the ChloÃ©/fleet desktop app with per-agent tabs). First LOCATE ** - codex:01a0f7f6-e130-7ec1-8f8c-c214e8f8f239, silent 9d
+- **Memory Writing Agent: Phase 2 (Consolidation)** - codex:01a0f8b0-5fbb-79f3-93d3-1ff4a7dce0a4, silent 9d
+- **codex session started; task not yet declared** - codex:01a0fb37-0645-76e0-833b-1eb2ce0e0c8f, silent 9d
+- **You are reviewing a pull request as an independent reviewer. You did not** - codex:01a0fb84-52ca-7431-a989-37912922b916, silent 8d
+- **You are reviewing a pull request as an independent reviewer. You did not** - codex:01a0fbde-23e1-73d3-94f0-79feb4cf6444, silent 8d
+- **Memory Writing Agent: Phase 2 (Consolidation)** - codex:01a0fdd3-610f-7303-9043-4bff1b33f70d, silent 8d
+- **New work from Ivan â€” &quot;Lore Keeper 2.0&quot;. The gated Lore Keeper currently only answers keyword-matched specifi** - codex:01a0fb13-a823-7c52-b301-67afc4193bdd, silent 8d
+- **Read-only code review. Do not modify anything. Review `git diff origin/main...HEAD` in this repo (PR #116: add** - codex:01a100a2-cdff-72c2-b72c-542ef97f319c, silent 7d
+- **Work on the repo-shelf 3D library: ivangegovdve-sudo/repo-shelf, deployed on GitHub Pages at https://ivangegov** - codex:01a1031e-1877-72e0-a422-4603e24a6617, silent 7d
+- **You are reviewing a pull request as an independent reviewer. You did not** - codex:01a10352-e143-7ae0-8b9a-69ed3eed3222, silent 7d
+- **codex session working** - codex:01a10250-9436-7523-9d29-f8fad6253fdd, silent 7d
+- **You are reviewing a pull request as an independent reviewer. You did not** - codex:01a10598-0c29-74e0-845e-eac95dab3c78, silent 7d
+- **Memory Writing Agent: Phase 2 (Consolidation)** - codex:01a1059e-dbde-7ed2-9b3c-57c7055a5d85, silent 6d
+- **You are reviewing a pull request as an independent reviewer. You did not** - codex:01a105e1-262a-7303-b346-8cb0878cf78e, silent 6d
+- **Memory Writing Agent: Phase 2 (Consolidation)** - codex:01a106fb-e135-7b73-b651-aedda7effa7e, silent 6d
+- **codex session working** - codex:01a10c5b-9712-7f30-9c27-b8f4d33d491e, silent 5d
+- **Continue the Glass PR solver work in N:\projects\hermes-prsolver. The reviewer-lane fix (canonical order Antig** - codex:01a10c77-2d36-7ec3-9d2e-831c2de4dd48, silent 5d
+- **Update the README for the repo github.com/ivangegovdve-sudo/openrouter-dashboard-mcp (this is the openDashboar** - codex:01a10c79-b864-7a02-a39c-69fbf7308dcb, silent 5d
+- **Memory Writing Agent: Phase 2 (Consolidation)** - codex:01a10d06-9cc6-79a0-9f9b-c8877b16d63d, silent 5d
+- **Task: find Ivan's recently-FORKED &quot;AI video studio&quot; MCP repo, inspect it, and write a concrete Jellyfish Consp** - codex:01a10dad-83a3-7f43-9ba4-d188b4d35334, silent 5d
+- **You are reviewing a pull request as an independent reviewer. You did not** - codex:01a11120-bc2c-7230-b7a8-1387ef392014, silent 4d
+- **codex session working** - codex:01a11180-ea3b-7e62-a69a-37dc4621e154, silent 4d
+- **codex session working** - codex:01a1113e-58c6-7f61-ab0c-2fb62c78c438, silent 4d
+- **codex session working** - codex:01a111b6-5d48-78a3-97b5-ee9c679aeb6a, silent 4d
+- **codex session started; task not yet declared** - codex:01a11255-8a0e-78e3-a6d5-460b0afc7b86, silent 4d
+- **Memory Writing Agent: Phase 2 (Consolidation)** - codex:01a1162a-afbc-7fe2-837c-0500c01316fd, silent 3d
+- **Return exactly {&quot;probe&quot;:&quot;ok&quot;}; do not use tools.** - codex:01a11aa0-b6d0-76e2-9995-f808ecd8a1d4, silent 2d
+- **Memory Writing Agent: Phase 2 (Consolidation)** - codex:01a11af4-2c58-7bb3-a354-471bf44a7265, silent 2d
+- **codex session working** - codex:01a11a98-fc55-7521-84fa-305c233284dd, silent 2d
+- **We need advise on a planning-only ChloÃƒÂ© orchestration/delegation design. Ground it in existing Ivan records** - codex:01a11d73-d3b3-7b42-b909-0a7305c2dd95, silent 45h
+- **codex session started; task not yet declared** - codex:01a11f4b-6c31-7c80-9a3e-6941f1363731, silent 37h
+- **PLANNING ONLY â€” no app code, no scaffolding, no service wiring. CLOSE the spec holes identified in docs/buil** - codex:01a11f57-376d-7243-b7c9-df96ba25e5f3, silent 36h
+- **codex session working** - codex:01a11fa6-758a-7502-9e3b-6db196f90ed3, silent 33h
+- **Unblock and complete the books gap-fill. The prior resume verified the r2 Stanza cache (provenance SHA abebâ€¦** - codex:01a1203a-784a-7ca3-903b-ab9013d1bda2, silent 32h
+- **One correction on the single remaining PR, system-one-bench #4: it's a &quot;Leia/Laya contract&quot; question (a decisi** - codex:01a1200d-8c02-7981-835f-459226db14d6, silent 32h
+- **Install and run Codeburn as a SEPARATE spend monitor for the Anthropic API key, and wire its outputs so the Sh** - codex:01a1203f-67ac-72f1-9969-58a6e56e1482, silent 32h
+- **Small, precise task. Create a NEW empty private GitHub repo so a separate cloud session can build in it (the c** - codex:01a120bc-bba3-7c60-8860-608f9346fae4, silent 30h
+- **Memory Writing Agent: Phase 2 (Consolidation)** - codex:01a122e5-6f41-7340-8ff3-41e410182222, silent 19h
+- **codex session working** - codex:01a1230f-4192-7943-9830-6bdb79373d81, silent 7h
+- **codex session working** - codex:01a1253a-a02f-7c10-8dda-d60b1c0cc570, silent 7h
+- **codex session working** - codex:01a12492-323d-7da2-8e04-1404f982e05f, silent 7h
+
+## Delegation
+
+Status `FAILED` as of 0m ago - 0 dispatched, 0 eligible, 0/15 slots active (10 available to it).
+Provenance: hold-threshold **unmeasured**, merge rate **measured**; the 0 open PRs are counted.
+- the hold-threshold is not a derived figure; do not treat it as one.
+- delegation fatal: jules-sessions: pwsh exceeded 180s and was killed
+
+## Participation
+
+```
+PARTICIPATION  0 / 4 live sessions have written to the board in the last 60 m
+               ALARM: sessions are alive and none is reporting. This is silence, not health.
+```
+
+The denominator is derived from process state (PID + procStart), not from who checked in.
+That is why `0/4` and `0/0` are different strings from one code path: a fleet-wide
+failure to check in renders as an alarm, not as an empty healthy board.
+
+Silent sessions:
+- output-04 pid 13596 - D:\output (up 0m)
+- output-df pid 41180 - D:\output (up 0m)
+- Gemma-2 bake-off + keeper gate pid 45248 - D:\output (up 7h 50m)
+- Durable Kalo relation extraction pid 7624 - D:\projects\kalo-canon (up 2h 11m)
+
+## Write path
+
+Reconciler heartbeat in `claims.jsonl`: last 15m. Ledger: 9514 line(s) read, 0 note(s).
+The heartbeat is a **test fixture**. It proves the append path works and nothing else.
+It is excluded from the participation numerator above, permanently and by design.
+
+## Conflicts
+
+**1 conflict(s)** from 4 live session(s) and 29 repo(s) examined.
+
+- **REPO CONTENTION** `D:\output` held by 3 live sessions:
+    - output-04 pid 13596 (up 0m)
+    - output-df pid 41180 (up 0m)
+    - Gemma-2 bake-off + keeper gate pid 45248 (up 7h 50m)
+
+## Wrong
+
+sessions   4 record(s) examined - 4 live - 0 dead pid - **0 PID REUSED**
+worktrees  532 examined across 29 repo(s) - 0 held - **6 orphaned** - 526 unknown owner
+branches   1157 examined - **771 unlanded** - 0 stalled &gt;24h
+
+Orphaned worktrees (owner session is dead). **Reported, never deleted** - they may hold uncommitted work:
+- `C:/Users/ivang/AppData/Local/Temp/claude/D--projects-hermes-agents/a38344cc-8a4c-4ca9-83a0-ecd4fe82515b/scratchpad/wt-soul` branch `rb/s10` owner a38344cc-8a4c-4ca9-83a0-ecd4fe82515b
+- `D:/claude-temp/D--projects-hermes-agents/8b0a0406-ca3a-40c1-b51b-5eabfb156dcf/scratchpad/wt-ss10` branch `rb/ss10` owner 8b0a0406-ca3a-40c1-b51b-5eabfb156dcf
+- `D:/claude-temp/D--projects-hermes-agents/8b0a0406-ca3a-40c1-b51b-5eabfb156dcf/scratchpad/wt-ss29` branch `` owner 8b0a0406-ca3a-40c1-b51b-5eabfb156dcf
+- `C:/Users/ivang/AppData/Local/Temp/claude/D--projects-hermes-agents/a38344cc-8a4c-4ca9-83a0-ecd4fe82515b/scratchpad/wt-org` branch `rb/o6` owner a38344cc-8a4c-4ca9-83a0-ecd4fe82515b
+- `D:/claude-temp/D--projects-morning-news-anchor-platform/d91e6c3f-4623-4125-b389-2b55e9433b8a/scratchpad/main-deploy` branch `main` owner d91e6c3f-4623-4125-b389-2b55e9433b8a
+- `C:/Users/ivang/AppData/Local/Temp/claude/D--projects-hermes-agents/a38344cc-8a4c-4ca9-83a0-ecd4fe82515b/scratchpad/wt-hyp` branch `rb/h7` owner a38344cc-8a4c-4ca9-83a0-ecd4fe82515b
+
+Unlanded branches (not merged into base, no open PR):
+- `codex/mna-112-corpus-compressed` in morning-news-anchor - last commit 9h 3m ago
+- `codex/mna-112-code-split` in morning-news-anchor - last commit 10h 32m ago
+- `feat/opendashboard-mcp2-tts` in openrouter-dashboard-mcp - last commit 11h 55m ago
+- `docs/opendashboard-voice-pricing-design` in openrouter-dashboard-mcp - last commit 12h 49m ago
+- `feat/opendashboard-mcp2-cutover` in hermes-prsolver - last commit 12h 56m ago
+- `feat/opendashboard-tts-upstream-v3` in openrouter-github-dashboard - last commit 12h 9m ago
+- `feat/live-lore-sqlite` in kalo-canon - last commit 21h 17m ago
+- `fix/live-review-unverified-comment-20261009` in hermes-prsolver - last commit 36h 54m ago
+- `fix/drain-refill-checkpoint-20261009` in hermes-prsolver - last commit 37h 33m ago
+- `fix/review-unverified-truncated-comment-20261009` in hermes-prsolver - last commit 37h 44m ago
+- `codex/books-corpus-gap-fill` in kalo-canon - last commit 37h 48m ago
+- `docs/chloe-editable-ui-review-20261008` in chloe-desktop - last commit 37h 51m ago
+- `docs/whole-corpus-ratios-landing-main` in kalo-canon - last commit 38h 23m ago
+- `docs/whole-corpus-ratios-landing-plan` in kalo-canon - last commit 38h 23m ago
+- `fix/open-dashboard-coverage-layout-20261009` in orchestrator-gpt - last commit 48h 52m ago
+- ... showing 15 of 771
+
+## Missing
+
+unknown-owner worktrees  **526** of 532 examined - owner is UNKNOWN, not 'free'
+expired claims           131 of 287 active claim(s)
+undeclared activity      0 repo(s) of 29 examined
+- 131 of 152 repo(s) under roots not scanned: no ref activity in 7 d
+- repo unreadable: 8 candidate dir(s) merged into their canonical repo (linked worktrees); 32 distinct repo(s) scanned
+- repo unreadable: D:\: git worktree list --porcelain exit 128 -- fatal: not a git repository (or any of the parent directories): .git
+- repo unreadable: D:\projects: git worktree list --porcelain exit 128 -- fatal: not a git repository (or any of the parent directories): .git
+- repo unreadable: D:\output: git worktree list --porcelain exit 128 -- fatal: not a git repository (or any of the parent directories): .git
+
+Expired claims (presumed stale, not presumed true):
+- `c-designing-and-building-the-fleet-coordin` - designing and building the fleet coordination board (expired 46d ago)
+- `c-redesign-the-board-into-an-operable-task` - redesign the board into an operable task table (design phase) (expired 44d ago)
+- `c-wiring-memory-stop-hook-board-claims-age` - wiring memory: stop hook, board claims, age-decay (expired 43d ago)
+- `c-sess-16087679` - Wire session participation so working sessions claim what they are doing (expired 43d ago)
+- `c-sess-3dcd3911` - Ivan's three novels about a protagonist named **Kalo** need to become a canonical knowledge base â€” events, l (expired 43d ago)
+- `c-sess-88182be7` - Ivan approved: give ChloÃ© the drop task.** Go. (expired 43d ago)
+- `c-sess-8bc7ffb3` - &lt;task-notification&gt; &lt;task-id&gt;b2x7fbb2m&lt;/task-id&gt; &lt;tool-use-id&gt;toolu_016kGKQuc8KD9hnXZtMWozYz&lt;/tool-use-id&gt; &lt;ou (expired 43d ago)
+- `c-sess-6fe915b4` - Ivan approved: lift the score filter.** *&quot;yes lift it.&quot; (expired 42d ago)
+- `c-sess-ef0435a9` - &lt;task-notification&gt; &lt;task-id&gt;bv9vq4f1c&lt;/task-id&gt; &lt;tool-use-id&gt;toolu_018syhS8Fx19YQRfXuyZ9min&lt;/tool-use-id&gt; &lt;ou (expired 43d ago)
+- `c-sess-b466ca39` - Ivan wants PR #364 fixed â€” the review requested changes and it has not merged.** Pick it back up. (expired 43d ago)
+- `c-sess-d7462721` - Good work, and the guard diagnosis is better than mine â€” I had blamed `EnumerateFiles` truncation and it was (expired 43d ago)
+- `c-sess-a3ab2476` - Ivan wants to see what is actually running in `/opt/soul-server/main.py` on Oracle versus what is in the repo, (expired 43d ago)
+- `c-sess-6500b59a` - &lt;task-notification&gt; &lt;task-id&gt;b4yiu8o09&lt;/task-id&gt; &lt;tool-use-id&gt;toolu_013ZBqCgc19TqYnMMwASMygg&lt;/tool-use-id&gt; &lt;ou (expired 43d ago)
+- `c-sess-892b6c4f` - Ivan wants the fleet to become visible and audible in Discord. His words: (expired 43d ago)
+- `c-sess-1bed4d24` - âš **The upload has regressed to the slow path you already diagnosed and fixed. Measured just now: (expired 43d ago)
+- `c-sess-53e008dc` - &lt;task-notification&gt; &lt;task-id&gt;btis2v6it&lt;/task-id&gt; &lt;tool-use-id&gt;toolu_0161UCKYwhTwECjwvkYKHu8z&lt;/tool-use-id&gt; &lt;ou (expired 43d ago)
+- `c-sess-85802be5` - Ivan's morning instruction, verbatim: *&quot;Land them. Have the fleet land them. I don't want to review anything.&quot; (expired 43d ago)
+- `c-sess-740c315e` - &lt;task-notification&gt; &lt;task-id&gt;b7n6sh732&lt;/task-id&gt; &lt;tool-use-id&gt;toolu_013ewyUhFTH7qprvnjxTB5f9&lt;/tool-use-id&gt; &lt;ou (expired 43d ago)
+- `c-sess-09539b6c` - &lt;task-notification&gt; &lt;task-id&gt;b9v4vhal0&lt;/task-id&gt; &lt;tool-use-id&gt;toolu_01PyNSbtriqRckiQ9tUptedu&lt;/tool-use-id&gt; &lt;ou (expired 42d ago)
+- `c-sess-dc9efb88` - &lt;task-notification&gt; &lt;task-id&gt;bauc7dhmu&lt;/task-id&gt; &lt;tool-use-id&gt;toolu_018ZLKEFKiFN66fM1C7QGMkk&lt;/tool-use-id&gt; &lt;ou (expired 42d ago)
+- `c-sess-8645197f` - Priority change from Ivan. He asked directly: &quot;are buddy rooms ready, is the voice chat room ready?&quot; The answe (expired 42d ago)
+- `c-sess-5e28b7e7` - Ivan: &quot;can we finish Chloe's proactivity and the discord voice chat&quot; (expired 40d ago)
+- `c-sess-1e6e4db3` - Ivan: &quot;let's start with proactivity and the voice daemon&quot; â€” and he has now asked twice, so build it, don't p (expired 40d ago)
+- `c-sess-a38344cc` - Ivan: &quot;I know I said merge, but in this case I meant rebase. Obviously, you know what I mean. You have my say  (expired 40d ago)
+- `c-sess-18f56113` - In D:\projects\hermes_agents, the file `tests/test_disk_guard_truncation.py` is UNTRACKED (never git-added) an (expired 40d ago)
+- `c-sess-2e946ea0` - Ivan approved this. Another session planned it and stopped to ask; I looked at the tree and it never implement (expired 40d ago)
+- `c-sess-9a63fd3e` - merge 380 first, then 379 (expired 39d ago)
+- `c-sess-8a27cecb` - Ivan has answered on the stashes, verbatim: (expired 39d ago)
+- `c-sess-8a3175aa` - &lt;task-notification&gt; &lt;task-id&gt;bhvvz4l39&lt;/task-id&gt; &lt;tool-use-id&gt;toolu_01KxPSewbqSdn8VFfUGVw7NN&lt;/tool-use-id&gt; &lt;ou (expired 37d ago)
+- `c-sess-e30d9e1a` - Resume, and build the thing rather than scope it further. Ivan asked directly and the honest answer was no: (expired 39d ago)
+- `c-sess-270e8b20` - I hit my usage limit while you were working, but it has reset now. Please continue from where you left off. (expired 27d ago)
+- `c-sess-8b0a0406` - ðŸ”´ðŸ”´ **STOP THE TOOLCHAIN INSTALL NOW. Cancel session `20260902T162710-rhpl7xjq` immediately.** Ivan: (expired 38d ago)
+- `c-sess-7d8ce1e1` - Green light on the accuracy benchmark â€” and it is now the **gating measurement for the voice room**, not a c (expired 38d ago)
+- `c-sess-0a9e7e2a` - &lt;task-notification&gt; &lt;task-id&gt;bmpowbmmo&lt;/task-id&gt; &lt;tool-use-id&gt;toolu_01NyBuZM4S8rZVaJ975sVQt8&lt;/tool-use-id&gt; &lt;ou (expired 31d ago)
+- `c-sess-9df26f41` - go ahead with a and b, then finish the audit (expired 39d ago)
+- `c-sess-92657342` - Resuming â€” Ivan asked directly: &quot;How about the voice room that Fable was supposed to finish? 421, did that m (expired 32d ago)
+- `c-sess-9c2af81b` - do 2 open it as its own PR (expired 37d ago)
+- `c-sess-a93d3602` - In D:\projects\hermes_agents (or a worktree of it), tests/test_video_kb.py::test_genuine_short_video_is_kept c (expired 34d ago)
+- `c-sess-7c47fd48` - settle the credential_service question, then do the landscape (expired 31d ago)
+- `c-sess-3da21c91` - Ivan wants the council failure diagnosed and fixed. His words: &quot;Why is the council review failing? First, that (expired 30d ago)
+- `c-sess-c3147acc` - New job, and Ivan has proposed a hypothesis worth testing properly rather than dismissing. (expired 31d ago)
+- `c-sess-20d6cbe5` - One narrow question, answer it fast and stop. Ivan has asked three times today and I have failed to answer thr (expired 29d ago)
+- `c-sess-11081dab` - Small, urgent, and narrow. Ivan is waiting at his desk. Answer only this, then stop. (expired 29d ago)
+- `c-sess-112b1f1e` - Ivan approved candidate #2 â€” remove the ten worktrees. His exact condition: *&quot;sure, you can delete them if t (expired 27d ago)
+- `c-sess-b32acb65` - Use the session-kb MCP search tool now. Search exactly for SessionKbContinuous with limit 1. Do not answer fro (expired 28d ago)
+- `c-sess-79180fab` - Use the session-kb MCP search tool now. Search exactly for SessionKbContinuous with limit 1. Do not answer fro (expired 28d ago)
+- `c-sess-35858e3d` - Use only the session-kb MCP search tool. Call search with query SessionKbContinuous and limit 1. Return the to (expired 28d ago)
+- `c-priority-ivan-2026-09-23-make-the-board` - PRIORITY (Ivan, 2026-09-23): make the board actually report - exposed over Tailscale, now wiring session participation (expired 17d ago)
+- `c-windows-mcp-diskspace-tool-on-top-of-the` - Windows-MCP: DiskSpace tool on top of the existing filesystem index (expired 17d ago)
+- `c-kalo-canon-private-repo-created-jules-di` - kalo-canon private repo created; Jules dispatch BLOCKED - Jules GitHub app has no access to the new repo (expired 17d ago)
+- `c-agent-beacon-regression-test-does-it-sur` - agent-beacon regression test: does it surface the Windows-MCP filesystem index that a confidently-wrong session never asked for (expired 16d ago)
+- `c-board-freshness-sessions-must-write-clai` - Board freshness: sessions must write claims AS THEY WORK, not when asked - the board alarms on silence and nothing answers (expired 16d ago)
+- `c-1-236-verified-capability-cards-four-ver` - 1,236 VERIFIED capability cards - four verdicts per card, council card is the broken-checker test case (expired 16d ago)
+- `c-fork-sync-classify-913-forks-clean-diver` - Fork sync: classify 913 forks CLEAN/DIVERGED/UNKNOWN, dry run first, weekly schedule (expired 16d ago)
+- `c-21-fleet-automations-dark-since-2026-08` - 21 fleet automations dark since 2026-08-20 - restore poller + delivery, classify the other 18 (expired 16d ago)
+- `c-voden-local-structuring-pass-scored-agai` - Voden: local structuring pass scored against 1,055 verified ground-truth records (expired 16d ago)
+- `c-kalo-three-lane-diff-between-two-indepen` - Kalo: three-lane diff between two independent chapter-1 extractions - the artifact that decides the method (expired 16d ago)
+- `c-anycloudllm-4-0-land-typed-contract-path` - AnyCloudLLM 4.0: land typed contract path on master (expired 16d ago)
+- `c-academy-make-one-learning-track-completa` - Academy: make one learning track completable end to end (expired 16d ago)
+- `c-pr-solver-shadow-mode-jev-comparison-ove` - PR solver: shadow-mode Jev comparison over existing PR history (expired 16d ago)
+- `c-chloe-desktop-pr-21-visual-system-pr-20` - Chloe desktop: PR #21 visual system + PR #20 build - designed, not yet runnable (expired 16d ago)
+- `c-hermes-desktop-0-18-2-0-21-4-needs-ivan` - Hermes desktop 0.18.2 -&gt; 0.21.4 - needs Ivan to click the in-app update (expired 16d ago)
+- `c-kuma-redeploy-on-2-5-5-real-monitors-pro` - Kuma: redeploy on 2.5.5, real monitors, proven Telegram alert (expired 16d ago)
+- `c-platform-guide-page-sections-user-addabl` - Platform guide page: sections, user-addable entries with URL + personal note + pros/cons (expired 16d ago)
+- `c-repo-shelf-visualised-repo-library-categ` - Repo shelf: visualised repo library, categorised by capability from the cards (expired 16d ago)
+- `c-swarm-harness-bake-off-open-swarm-paperc` - Swarm harness bake-off: Open Swarm, paperclip, Ruflow - claim vs reality on local compute (expired 16d ago)
+- `c-codex-sess-direct-c` - codex session started; task not yet declared (expired 17d ago)
+- `c-codex-sess-01a0d255` - Reply exactly BOARD_SHIM_SMOKE_OK and do not use tools. (expired 16d ago)
+- `c-codex-sess-shim-dia` - codex session started; task not yet declared (expired 17d ago)
+- `c-codex-sess-01a0d258` - Reply exactly BOARD_GRACEFUL_EXIT_TEST and do not use tools. (expired 16d ago)
+- `c-codex-sess-unit-st` - unit stop release (expired 16d ago)
+- `c-sess-173f5830` - There are 98 open PRs in this repo. 24 are APPROVED and have never merged. Merge them. (expired 16d ago)
+- `c-codex-sess-01a0d367` - codex session started; task not yet declared (expired 16d ago)
+- `c-codex-sess-01a0d57f` - codex session started; task not yet declared (expired 16d ago)
+- `c-sess-1c876606` - If this event is something the user would act on now, send a PushNotification. Routine or benign output doesn' (expired 15d ago)
+- `c-sess-fb9bc61e` - Ivan needs the current open-PR count now. Reading a specific merge LOG got classifier-blocked, but a plain `gh (expired 10d ago)
+- `c-sess-1c8f4b2f` - Follow-up on the AI Kit write-up: check orchestrator-gpt PR #644 (troubleshooting Part 15). If MERGED: confirm (expired 14d ago)
+- `c-codex-sess-01a0dae0` - Reply with the single word OK. (expired 15d ago)
+- `c-codex-sess-01a0dae1` - Reply with the single word OK. (expired 15d ago)
+- `c-codex-sess-01a0e193` - You are fixing a pull request whose CI checks fail. The working tree is the PR (expired 13d ago)
+- `c-codex-sess-01a0e1b8` - You are resolving ONE stop of a git rebase for the PR solver. PR ivangegovdve-sudo/hermes_agents#684: (expired 13d ago)
+- `c-codex-sess-01a0e1d3` - You are resolving ONE stop of a git rebase for the PR solver. PR ivangegovdve-sudo/hermes_agents#579: (expired 13d ago)
+- `c-codex-sess-01a0e1d7` - You are resolving ONE stop of a git rebase for the PR solver. PR ivangegovdve-sudo/hermes_agents#591: (expired 13d ago)
+- `c-codex-sess-01a0e3dc` - You are resolving ONE stop of a git rebase for the PR solver. PR ivangegovdve-sudo/hypertrophyos-40f826ee#5: (expired 13d ago)
+- `c-codex-sess-01a0ecfc` - You are reviewing a pull request as an independent reviewer. You did not (expired 11d ago)
+- `c-codex-sess-01a0ece6` - codex session working (expired 11d ago)
+- `c-codex-sess-01a0f0e4` - You are reviewing a pull request as an independent reviewer. You did not (expired 11d ago)
+- `c-sess-6998ddd4` - &lt;task-notification&gt; &lt;task-id&gt;barj93io2&lt;/task-id&gt; &lt;tool-use-id&gt;toolu_01ByUccWGNcQFVwbCyDm9XSb&lt;/tool-use-id&gt; &lt;ou (expired 7d ago)
+- `c-codex-sess-01a0f6d0` - You are reviewing a pull request as an independent reviewer. You did not (expired 9d ago)
+- `c-codex-sess-01a0f7f6` - Codex session. Work on the fleet DESKTOP APP (the ChloÃ©/fleet desktop app with per-agent tabs). First LOCATE  (expired 9d ago)
+- `c-codex-sess-01a0f8b0` - Memory Writing Agent: Phase 2 (Consolidation) (expired 9d ago)
+- `c-codex-sess-01a0fb37` - codex session started; task not yet declared (expired 9d ago)
+- `c-codex-sess-01a0fb84` - You are reviewing a pull request as an independent reviewer. You did not (expired 8d ago)
+- `c-codex-sess-01a0fbde` - You are reviewing a pull request as an independent reviewer. You did not (expired 8d ago)
+- `c-codex-sess-01a0fdd3` - Memory Writing Agent: Phase 2 (Consolidation) (expired 8d ago)
+- `c-codex-sess-01a0fb13` - New work from Ivan â€” &quot;Lore Keeper 2.0&quot;. The gated Lore Keeper currently only answers keyword-matched specifi (expired 8d ago)
+- `c-codex-sess-01a100a2` - Read-only code review. Do not modify anything. Review `git diff origin/main...HEAD` in this repo (PR #116: add (expired 7d ago)
+- `c-codex-sess-01a10250` - codex session working (expired 7d ago)
+- `c-codex-sess-01a1031e` - Work on the repo-shelf 3D library: ivangegovdve-sudo/repo-shelf, deployed on GitHub Pages at https://ivangegov (expired 7d ago)
+- `c-codex-sess-01a10352` - You are reviewing a pull request as an independent reviewer. You did not (expired 7d ago)
+- `c-sess-80243667` - Get the Oracle Spoke SDM agent running so all 6 agents work. It's the only idle one (Morpheus, Neo, Trinity, T (expired 7d ago)
+- `c-codex-sess-01a10598` - You are reviewing a pull request as an independent reviewer. You did not (expired 7d ago)
+- `c-codex-sess-01a1059e` - Memory Writing Agent: Phase 2 (Consolidation) (expired 6d ago)
+- `c-codex-sess-01a105e1` - You are reviewing a pull request as an independent reviewer. You did not (expired 6d ago)
+- `c-codex-sess-01a106fb` - Memory Writing Agent: Phase 2 (Consolidation) (expired 6d ago)
+- `c-codex-sess-01a10c5b` - codex session working (expired 5d ago)
+- `c-codex-sess-01a10c77` - Continue the Glass PR solver work in N:\projects\hermes-prsolver. The reviewer-lane fix (canonical order Antig (expired 5d ago)
+- `c-codex-sess-01a10c79` - Update the README for the repo github.com/ivangegovdve-sudo/openrouter-dashboard-mcp (this is the openDashboar (expired 5d ago)
+- `c-codex-sess-01a10d06` - Memory Writing Agent: Phase 2 (Consolidation) (expired 5d ago)
+- `c-codex-sess-01a10dad` - Task: find Ivan's recently-FORKED &quot;AI video studio&quot; MCP repo, inspect it, and write a concrete Jellyfish Consp (expired 5d ago)
+- `c-codex-sess-01a11120` - You are reviewing a pull request as an independent reviewer. You did not (expired 4d ago)
+- `c-codex-sess-01a11180` - codex session working (expired 4d ago)
+- `c-codex-sess-01a1113e` - codex session working (expired 4d ago)
+- `c-codex-sess-01a111b6` - codex session working (expired 4d ago)
+- `c-codex-sess-01a11255` - codex session started; task not yet declared (expired 4d ago)
+- `c-codex-sess-01a1162a` - Memory Writing Agent: Phase 2 (Consolidation) (expired 3d ago)
+- `c-codex-sess-01a11a98` - codex session working (expired 2d ago)
+- `c-codex-sess-01a11aa0` - Return exactly {&quot;probe&quot;:&quot;ok&quot;}; do not use tools. (expired 2d ago)
+- `c-codex-sess-01a11af4` - Memory Writing Agent: Phase 2 (Consolidation) (expired 2d ago)
+- `c-codex-sess-01a11d73` - We need advise on a planning-only ChloÃƒÂ© orchestration/delegation design. Ground it in existing Ivan records (expired 45h 50m ago)
+- `c-codex-sess-01a11f4b` - codex session started; task not yet declared (expired 37h 16m ago)
+- `c-codex-sess-01a11f57` - PLANNING ONLY â€” no app code, no scaffolding, no service wiring. CLOSE the spec holes identified in docs/buil (expired 36h 2m ago)
+- `c-codex-sess-01a11fa6` - codex session working (expired 33h 17m ago)
+- `c-codex-sess-01a1203a` - Unblock and complete the books gap-fill. The prior resume verified the r2 Stanza cache (provenance SHA abebâ€¦ (expired 32h 53m ago)
+- `c-codex-sess-01a1200d` - One correction on the single remaining PR, system-one-bench #4: it's a &quot;Leia/Laya contract&quot; question (a decisi (expired 32h 51m ago)
+- `c-codex-sess-01a1203f` - Install and run Codeburn as a SEPARATE spend monitor for the Anthropic API key, and wire its outputs so the Sh (expired 32h 48m ago)
+- `c-codex-sess-01a120bc` - Small, precise task. Create a NEW empty private GitHub repo so a separate cloud session can build in it (the c (expired 30h 31m ago)
+- `c-codex-sess-01a122e5` - Memory Writing Agent: Phase 2 (Consolidation) (expired 19h 28m ago)
+- `c-codex-sess-01a1230f` - codex session working (expired 7h 15m ago)
+- `c-codex-sess-01a12492` - codex session working (expired 7h 10m ago)
+- `c-codex-sess-01a1253a` - codex session working (expired 7h 14m ago)
+
+## Findings
+
+Findings are facts about the world, not about a session. **They do not expire** - a true
+fact does not rot when its author dies. They are checked by supersession (a later record
+with the same id wins) and by the SHA they were learned at.
+
+**6 active finding(s)** from 9514 ledger line(s).
+
+- **git rev-parse --git-common-dir returns 'D' instead of a path in PowerShell**
+    - cause: PowerShell unrolls a one-element array on return, so (Invoke-Git ...)[0] indexes the returned STRING and yields its first character. It never throws.
+    - resolution: Return the array with a leading comma (,@($out)) and read single lines via Invoke-GitLine, which flattens through a pipe. The same trap silently renders a 12-commit rev-list --count as 1.
+    - _id `f-git-rev-parse-git-common-dir-returns-d-i`_
+- **worktree and branch counts roughly double; phantom 'N live worktrees on one branch' conflicts**
+    - cause: A linked worktree under a scanned root has a .git FILE pointing at its parent, and 'git worktree list' inside it returns the PARENT's whole set, so the same repo is scanned once per alias directory.
+    - resolution: Group candidate dirs by 'git rev-parse --path-format=absolute --git-common-dir' before counting anything. On D:\projects this is 79 dirs -&gt; 72 real repos (hermes_agents x3, anycloudllm x6).
+    - _id `f-worktree-and-branch-counts-roughly-doubl`_
+- **Get-Item on .git fails with 'Could not find item' though Test-Path says it exists**
+    - cause: A linked worktree's .git is a hidden FILE. Get-Item and Get-ChildItem omit hidden items without -Force.
+    - resolution: Use Get-Item -Force / Get-ChildItem -Force when stat-ing .git.
+    - _id `f-get-item-on-git-fails-with-could-not-fin`_
+- **Filtering repos by .git mtime does not narrow anything - nearly every repo looks active**
+    - cause: A fetch, a ref update, or any gc touches .git, so the mtime is not a proxy for someone working in the repo. Measured 2026-08-25: RepoActivityDays of 7 and of 1 both selected 74 of 79 dirs under D:\projects.
+    - resolution: Treat .git mtime as a weak filter that only excludes long-dead repos. For a genuinely narrow scan, select repos by live-session cwd and active claims instead (reconcile.ps1 -Fast: 4 repos, 1.7s vs 74 repos, 22s).
+    - _id `f-filtering-repos-by-git-mtime-does-not-na`_
+- **task assumes a new OpenRouter key must be minted**
+    - cause: vault inventory not checked at task-writing time
+    - resolution: openrouter-spare in GCP SM is ALIVE (HTTP 200 on /auth/key), PAID tier, ~USD 4.29 used, no hard limit - pointing consumers at it may close this task without minting; Ivan decides
+    - _id `f-task-assumes-a-new-openrouter-key-must-b`, learned at `49e8f58` - **281 commit(s) to that path since**_
+- **openrouter key mint needs an emailed verification code**
+    - cause: The board task #openrouter-key-mint records that minting needs an emailed code and lists Ivan as the blocker. That is the WEB UI path, not the provisioning API.
+    - resolution: The provisioning API mints unattended. Read vault secret openrouter-management-key, POST /api/v1/keys with name and limit. Done 2026-09-02: minted openrouter-github-dashboard 2026-09-02, hash 133a7e6698bf, capped 10 USD, vaulted as openrouter-github-dashboard, verified by 200 from /benchmarks, /datasets/app-rankings, /datasets/rankings-daily and /classifications/task. No email step. The task no longer needs Ivan.
+    - _id `f-openrouter-key-mint-needs-an-emailed-ver`, learned at `d483a01` - **23 commit(s) to that path since**_
+
+## Live sessions
+
+4 live of 4 record(s) examined.
+
+| session | pid | cwd | up | claim |
+|---|---|---|---|---|
+| `output-04` | 13596 | `D:\output` | 0m | - |
+| `output-df` | 41180 | `D:\output` | 0m | - |
+| `Durable Kalo relation extraction` | 7624 | `D:\projects\kalo-canon` | 2h 11m | - |
+| `Gemma-2 bake-off + keeper gate` | 45248 | `D:\output` | 7h 50m | - |
+
+---
+
+_This board reports. It does not lock, assign, or delete. Scope: this machine only:_
+_Oracle and KVM2 agents use a systemd liveness model and are deliberately not represented here._
+
+_Source timings: sessions 208ms, ledger 2991ms, repo-discovery 485ms, repos 13461ms, github 58280ms, telos 25ms, tasks 16ms, jules 592ms, jules-api 202639ms, scheduled-jobs 5403ms, fleet-jobs 16092ms, codex 6ms, serve-log 77ms, delegation 37ms._
+</pre>
+</details>
+</div>
+<script>
+(function(){
+  // Freshness is decided at VIEW time, so a dead reconciler paints a loud page rather
+  // than a quiet one. On a phone that check has two extra ways to lie, and both are
+  // handled here rather than assumed away:
+  //
+  //   1. THE READER'S CLOCK. Age was computed purely from Date.now(). A phone whose
+  //      clock runs slow makes a stale board read fresh -- the honesty feature becomes
+  //      the liar. When served over http(s) we read the server's clock from the Date
+  //      response header of a same-origin request and measure the skew.
+  //   2. A CACHED PAGE. The generation time is baked into the HTML, so a browser
+  //      serving this page from cache also serves a stale timestamp. state.json is
+  //      re-fetched with no-store, and its generatedAt overrides the baked value.
+  //
+  // Over file:// neither is possible; the page falls back to the baked value and the
+  // local clock, which is what it always did, and says so rather than implying it
+  // checked something it could not.
+  var bakedGen = new Date(document.body.dataset.generated);
+  var validMin = parseInt(document.body.dataset.validminutes,10);
+  var gen      = bakedGen;
+  var skewMs   = 0;        // server clock minus this device's clock
+  var verified = false;    // did we reach the server this load?
+  var offline  = false;    // we tried to verify and could not
+  var offlineWhy = '';     // WHY. Never collapse 'no network' into 'the server is down'.
+  var isHttp   = /^https?:$/.test(location.protocol);
+
+  function fmt(m){
+    m = Math.abs(m);
+    if (m < 90)   return Math.round(m) + 'm';
+    if (m < 2880) return Math.round(m/60) + 'h';
+    return Math.round(m/1440) + 'd';
+  }
+
+  function paint(){
+    var ageMin = ((Date.now() + skewMs) - gen.getTime())/60000;
+    var bar = document.getElementById('stalebar');
+    var note = [];
+    if (offline)                      note.push('could not verify against the server: ' + offlineWhy);
+    if (Math.abs(skewMs) > 120000)    note.push('your device clock is off by ' + fmt(skewMs/60000) + '; corrected against the server');
+    var suffix = note.length ? ' (' + note.join('; ') + ')' : '';
+
+    if (ageMin > validMin){
+      var missed = Math.max(1, Math.floor(ageMin/(validMin/2)) - 1);
+      document.body.classList.add('stale');
+      bar.textContent =
+        'STALE - DO NOT TRUST. Last generated ' + fmt(ageMin) + ' ago; expected every ' +
+        (validMin/2) + ' min. Approximately ' + missed + ' run(s) missed. Nothing below has ' +
+        'been checked against reality since then.' + suffix;
+    } else if (offline){
+      // Not stale, but not confirmed either. A cached copy that happens to be inside
+      // the window is not the same as a board just checked against reality.
+      document.body.classList.remove('stale');
+      bar.style.display = 'block';
+      bar.style.background = 'var(--warn)';
+      bar.textContent =
+        'UNVERIFIED - ' + offlineWhy + '. Falling back to the timestamp baked into this ' +
+        'page and your device clock: generated ' + fmt(ageMin) + ' ago. That is inside the ' +
+        'freshness window, but it has not been confirmed against the server.';
+      var e0 = document.getElementById('age');
+      if (e0) e0.textContent = fmt(ageMin) + ' ago (cached)';
+    } else {
+      document.body.classList.remove('stale');
+      var el = document.getElementById('age');
+      if (el) el.textContent = fmt(ageMin) + ' ago' +
+        (verified ? '' : (isHttp ? '' : ' (local clock)')) + suffix;
+    }
+  }
+
+  function check(){
+    if (!isHttp) { paint(); return; }
+    fetch('state.json?_=' + Date.now(), {cache:'no-store'}).then(function(r){
+      if (!r.ok) throw new Error('the server answered HTTP ' + r.status + ' for state.json');
+      var d = r.headers.get('Date');
+      // Same-origin: every response header is readable. Date is the server's clock at
+      // the moment it answered, which is the only clock here that is not the phone's.
+      if (d) { var sv = new Date(d).getTime(); if (!isNaN(sv)) skewMs = sv - Date.now(); }
+      return r.json();
+    }).then(function(j){
+      if (j && j.generatedAt) {
+        var g = new Date(j.generatedAt);
+        if (!isNaN(g.getTime())) gen = g;   // beats the baked value if the HTML is cached
+      }
+      verified = true; offline = false; offlineWhy = ''; paint();
+    }).catch(function(e){
+      // A request that never left the device (no network, or a content blocker) is NOT
+      // evidence that the board server is down. Say what was observed, not a diagnosis.
+      offline = true;
+      offlineWhy = (e && e.message && e.message.indexOf('HTTP') !== -1)
+        ? e.message
+        : 'the request for state.json failed - no network, or blocked by this browser';
+      paint();
+    });
+  }
+
+  paint();
+  check();
+  setInterval(check, 30000);
+})();
+</script>
+</body>

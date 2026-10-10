@@ -1,0 +1,147 @@
+{
+  "generatedAt": "2026-10-10T19:58:08Z",
+  "runId": "2a55",
+  "durationMs": 312965,
+  "scope": "this machine only",
+  "fast": false,
+  "prState": {
+    "available": true,
+    "fetchedAt": "2026-10-10T19:58:08Z",
+    "fromCache": false
+  },
+  "sources": [
+    {
+      "ok": true,
+      "name": "sessions",
+      "population": 4,
+      "state": "OK",
+      "error": null
+    },
+    {
+      "ok": true,
+      "name": "ledger",
+      "population": 9514,
+      "state": "OK",
+      "error": null
+    },
+    {
+      "ok": true,
+      "name": "repo-discovery",
+      "population": 152,
+      "state": "OK",
+      "error": null
+    },
+    {
+      "ok": true,
+      "name": "repos",
+      "population": 32,
+      "state": "OK",
+      "error": null
+    },
+    {
+      "ok": true,
+      "name": "github",
+      "population": 28,
+      "state": "OK",
+      "error": null
+    },
+    {
+      "ok": true,
+      "name": "telos",
+      "population": 11,
+      "state": "OK",
+      "error": null
+    },
+    {
+      "ok": true,
+      "name": "tasks",
+      "population": 1,
+      "state": "OK",
+      "error": null
+    },
+    {
+      "ok": true,
+      "name": "jules",
+      "population": 103,
+      "state": "OK",
+      "error": null
+    },
+    {
+      "ok": true,
+      "name": "jules-api",
+      "population": 1502,
+      "state": "OK",
+      "error": null
+    },
+    {
+      "ok": true,
+      "name": "scheduled-jobs",
+      "population": 174,
+      "state": "OK",
+      "error": null
+    },
+    {
+      "ok": false,
+      "name": "fleet-jobs",
+      "population": 0,
+      "state": "FAILED",
+      "error": "no fleet host answered - oracle: ssh to 100.109.5.44 failed: ssh: connect to host 100.109.5.44 port 22: Connection timed out; kvm2: ssh to 100.77.50.41 failed: ssh: connect to host 100.77.50.41 port 22: Connection timed out"
+    },
+    {
+      "ok": false,
+      "name": "codex",
+      "population": 0,
+      "state": "SKIPPED",
+      "error": "no codex inbox at D:\\output\\codex_inbox.jsonl"
+    },
+    {
+      "ok": true,
+      "name": "serve-log",
+      "population": 0,
+      "state": "OK",
+      "error": null
+    },
+    {
+      "ok": true,
+      "name": "delegation",
+      "population": 1,
+      "state": "OK",
+      "error": null
+    }
+  ],
+  "runBudget": {
+    "seconds": 660,
+    "droppedForTime": []
+  },
+  "liveSessions": 4,
+  "participation": {
+    "windowMinutes": 60,
+    "denominator": 4,
+    "numerator": 0
+  },
+  "counts": {
+    "undeclaredActivity": 0,
+    "waitingOnIvan": 14,
+    "unlanded": 771,
+    "unknownOwnerWorktrees": 526,
+    "activeFindings": 6,
+    "wipGoalsTouched": 0,
+    "queuedTasks": 0,
+    "goalsRefused": 0,
+    "untriaged": 0,
+    "stalled": 0,
+    "goalsRead": 11,
+    "boardVsGit": 0,
+    "repoContention": 1,
+    "pidReused": 0,
+    "unparsedTaskLines": 0,
+    "wipInFlight": 1,
+    "branchContention": 0,
+    "wipNoGoal": 1,
+    "orphanedWorktrees": 6,
+    "expiredClaims": 131,
+    "orphanedClaims": 0,
+    "abandonedTasks": 53,
+    "blockedTasks": 0
+  }
+}
