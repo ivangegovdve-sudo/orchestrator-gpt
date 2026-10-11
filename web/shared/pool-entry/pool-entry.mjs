@@ -94,9 +94,12 @@ export function mount(scene, { root = document } = {}) {
     if (reduced) stage.setAttribute('data-sc-verify-hold', 'true');
   }
 
+  // Resizing a canvas clears it, and a reduced-motion page has no frame loop to repaint it.
+  // The observer fires once on observe(), so it must redraw the still itself.
+  const relayout = () => { resize(); if (reduced) { s.t = freezeT ?? scene.still; paint(); } };
   resize();
-  new ResizeObserver(resize).observe(stage);
-  addEventListener('resize', () => { resize(); if (reduced) { s.t = scene.still; paint(); } });
+  new ResizeObserver(relayout).observe(stage);
+  addEventListener('resize', relayout);
 
   if (reduced) {
     s.t = freezeT ?? scene.still;

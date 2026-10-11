@@ -48,3 +48,17 @@ test('feedback mode adds a Feedback button to every card, including closed ones,
     }
   }
 });
+
+test('reduced motion repaints the still after every canvas resize, since resizing clears it', () => {
+  const runtime = read('web/shared/pool-entry/pool-entry.mjs');
+  // The ResizeObserver fires once on observe(); with no frame loop a blank canvas would stay blank.
+  assert.match(runtime, /const relayout = \(\) => \{ resize\(\); if \(reduced\) \{[^}]*paint\(\);/);
+  assert.match(runtime, /new ResizeObserver\(relayout\)/);
+  assert.match(runtime, /addEventListener\('resize', relayout\)/);
+});
+
+test('the scene clock excludes hidden and off-screen time', () => {
+  const runtime = read('web/shared/pool-entry/pool-entry.mjs');
+  assert.match(runtime, /pausedFor \+= now - pausedAt/);
+  assert.match(runtime, /document\.hidden \|\| !visible\) \{ pausedAt \?\?= now; return; \}/);
+});
