@@ -111,17 +111,19 @@ export function mount(scene, { root = document } = {}) {
     }
     let visible = true;
     new IntersectionObserver(([e]) => { visible = e.isIntersecting; }).observe(stage);
-    let t0 = performance.now();
-    let last = t0;
-    let hiddenFor = 0;
+    const t0 = performance.now();
+    // Time spent hidden or scrolled off screen does not count toward the arrival,
+    // so landing mid-page or scrolling away never lets the animation finish unseen.
+    let pausedAt = null;
+    let pausedFor = 0;
     document.addEventListener('visibilitychange', () => {
-      if (!document.hidden) hiddenFor += performance.now() - last;
+      if (document.hidden) pausedAt ??= performance.now();
     });
     const frame = (now) => {
       requestAnimationFrame(frame);
-      last = now;
-      if (document.hidden || !visible) return;
-      s.t = freezeT ?? Math.max(0, (now - t0 - hiddenFor) / 1000);
+      if (document.hidden || !visible) { pausedAt ??= now; return; }
+      if (pausedAt !== null) { pausedFor += now - pausedAt; pausedAt = null; }
+      s.t = freezeT ?? Math.max(0, (now - t0 - pausedFor) / 1000);
       s.p = progress();
       s.px += (tx - s.px) * 0.06;
       s.py += (ty - s.py) * 0.06;
