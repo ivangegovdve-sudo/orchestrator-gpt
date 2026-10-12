@@ -25,7 +25,14 @@
 }
 
 .lovable-project-meta .forest-kicker { margin: 0; }
-.lovable-project-meta a { color: inherit; text-decoration: none; }
+.lovable-project-meta a {
+  display: inline-flex;
+  align-items: center;
+  min-width: 44px;
+  min-height: 44px;
+  color: inherit;
+  text-decoration: none;
+}
 .lovable-project-meta a:hover { text-decoration: underline; }
 
 .lovable-project-meta .forest-status { gap: 7px; }
@@ -118,7 +125,13 @@
 }
 
 .lovable-project-footer { margin-top: 28px; }
-.lovable-project-footer a { color: var(--forest-soft); }
+.lovable-project-footer a {
+  display: inline-flex;
+  align-items: center;
+  min-width: 44px;
+  min-height: 44px;
+  color: var(--forest-soft);
+}
 
 @media (max-width: 800px) {
   .lovable-project-card { grid-template-columns: 1fr; }
