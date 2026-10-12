@@ -159,6 +159,8 @@
   <title>Math Mania</title>
   <link rel="stylesheet" href="/web/shared/forest-design.css?v=20260807a">
   <link rel="stylesheet" href="/web/shared/forest-shell.css?v=20260807a">
+  <link rel="stylesheet" href="/web/shared/lovable-project.css?v=20261012a">
+  <meta name="description" content="Playful multiplication practice with trail challenges, visual tutorials, and guessing puzzles.">
   <style>
     :root {
       --grove-bg: #100d0a;
@@ -177,182 +179,15 @@
       --accent-green: var(--grove-moss);
       --radius: 18px;
       --font: var(--forest-body, Alegreya, Georgia, serif);
-      --panel: var(--surface);
-      --panel-soft: color-mix(in srgb, var(--grove-surface) 76%, var(--grove-bg));
-      --text: var(--text-primary);
-      --muted: var(--text-muted);
-      --math-accent: var(--grove-sky);
-      --math-accent-2: var(--grove-yellow);
-      --ok: var(--accent-green);
+      --forest-bg: var(--grove-bg);
+      --forest-panel: var(--grove-surface);
+      --forest-ink: var(--grove-ink);
+      --forest-soft: #d4caae;
+      --forest-muted: #b9ad94;
+      --forest-line: var(--border);
+      --forest-accent: var(--grove-moss);
+      --forest-accent-rgb: 143,230,174;
     }
-
-    * { box-sizing: border-box; }
-
-    body {
-      margin: 0;
-      min-height: 100vh;
-      color: var(--text);
-      background:
-        radial-gradient(760px circle at 8% 4%, color-mix(in srgb, var(--grove-sky) 14%, transparent), transparent 54%),
-        radial-gradient(760px circle at 92% 10%, color-mix(in srgb, var(--grove-yellow) 13%, transparent), transparent 58%),
-        var(--bg);
-      font-family: var(--forest-body, Alegreya, Georgia, serif);
-    }
-
-    main {
-      width: min(1180px, calc(100vw - 32px));
-      margin: 0 auto;
-      padding: 32px 0 48px;
-    }
-
-    .top {
-      display: flex;
-      justify-content: space-between;
-      gap: 16px;
-      align-items: center;
-      margin-bottom: 28px;
-    }
-
-    a { color: var(--math-accent); text-decoration: none; }
-    .top > a {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      min-width: 44px;
-      min-height: 44px;
-      padding: 9px 15px;
-      border: 2px solid var(--border);
-      border-radius: 16px 16px 5px 16px;
-      background: color-mix(in srgb, var(--grove-surface) 86%, transparent);
-      font-family: var(--forest-sans, "Alegreya Sans", sans-serif);
-      font-weight: 700;
-    }
-
-    h1 {
-      margin: 0;
-      font-family: var(--forest-display, "Cormorant Garamond", Georgia, serif);
-      font-weight: 700;
-      font-size: clamp(40px, 6.6vw, 75px);
-      line-height: 0.95;
-      letter-spacing: 0;
-    }
-
-    .lead {
-      max-width: 680px;
-      margin: 18px 0 28px;
-      color: var(--muted);
-      font-size: 18px;
-      line-height: 1.6;
-    }
-
-    .panel {
-      border: 2px solid var(--border);
-      background: color-mix(in srgb, var(--surface) 90%, transparent);
-      border-radius: 28px 28px 9px 28px;
-      padding: 22px;
-      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.28);
-    }
-
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 14px;
-      margin-top: 18px;
-    }
-
-    .tile {
-      min-height: 120px;
-      border: 2px solid var(--border);
-      background: var(--panel-soft);
-      border-radius: 20px 20px 7px 20px;
-      padding: 16px;
-      display: grid;
-      align-content: space-between;
-    }
-
-    .tile strong {
-      display: block;
-      font-size: 28px;
-      color: var(--math-accent-2);
-    }
-
-    .tile span {
-      color: var(--muted);
-      font-size: 14px;
-      line-height: 1.4;
-    }
-
-    .status {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      color: var(--ok);
-      font-family: var(--forest-sans, "Alegreya Sans", sans-serif);
-      font-size: 13px;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-    }
-
-    .status::before {
-      content: "";
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background: currentColor;
-      box-shadow: 0 0 16px currentColor;
-    }
-
-    .app-frame {
-      width: 100%;
-      min-height: 720px;
-      border: 2px solid var(--border);
-      border-radius: 22px 22px 7px 22px;
-      background: #020617;
-      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.28);
-    }
-
-    .actions {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      margin: 18px 0 22px;
-    }
-
-    .button {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      border: 2px solid color-mix(in srgb, var(--grove-sky) 56%, transparent);
-      background: color-mix(in srgb, var(--grove-sky) 13%, transparent);
-      color: var(--text);
-      border-radius: 16px 16px 5px 16px;
-      min-height: 44px;
-      padding: 10px 14px;
-      font-family: var(--forest-sans, "Alegreya Sans", sans-serif);
-      font-weight: 700;
-    }
-
-    .button.secondary {
-      border-color: color-mix(in srgb, var(--grove-yellow) 56%, transparent);
-      background: color-mix(in srgb, var(--grove-yellow) 12%, transparent);
-    }
-
-    .note {
-      margin-top: 18px;
-      padding: 14px 16px;
-      border: 2px solid color-mix(in srgb, var(--grove-yellow) 42%, transparent);
-      background: color-mix(in srgb, var(--grove-yellow) 9%, transparent);
-      color: var(--grove-ink);
-      border-radius: 18px 18px 6px 18px;
-      line-height: 1.5;
-    }
-
-    .top > a:focus-visible,
-    .button:focus-visible {
-      outline: 3px solid var(--grove-yellow);
-      outline-offset: 4px;
-    }
-
     body[data-forest-page="math"] .dh-tab { min-width: 44px; }
     body[data-forest-page="math"] .dh-close { width: 44px; height: 44px; }
     body[data-forest-page="math"] .dh-era,
@@ -362,74 +197,53 @@
       min-width: 44px;
       min-height: 44px;
     }
-    body[data-forest-page="math"] .dh-archive {
-      display: inline-flex;
-      align-items: center;
-    }
-
-    @media (hover: hover) {
-      .top > a:hover,
-      .button:hover {
-        text-decoration: none;
-        transform: translateY(-1px);
-        box-shadow: 0 9px 24px rgba(0,0,0,.28);
-      }
-    }
-
-    @media (prefers-reduced-motion: reduce) {
-      .top > a,
-      .button { transition: none; transform: none; }
-    }
-
-    @media (max-width: 720px) {
-      .top { align-items: flex-start; flex-direction: column; }
-      .grid { grid-template-columns: 1fr; }
-      .app-frame { min-height: 640px; }
-    }
+    body[data-forest-page="math"] .dh-archive { display: inline-flex; align-items: center; }
   </style>
   <link rel="stylesheet" href="/web/shared/design-history.css?v=20260807a">
 </head>
 <body data-forest-page="math">
-  <a class="forest-back" href="/web/pools/growingapp/">← GrowingApp</a>
-  <main>
-    <div class="top">
-      <a href="/web/pools/growingapp/">&larr; GrowingApp</a>
-      <span class="status">Live Lovable app</span>
-    </div>
-
-    <h1>Math Mania</h1>
-    <p class="lead">
-      Playable Math Mania app from Lovable, hosted here as a Forest HUB subpage.
-    </p>
-
-    <div class="actions">
-      <a class="button" href="https://forest-math-plus.lovable.app" target="_blank" rel="noopener noreferrer">Open full screen</a>
-      <a class="button secondary" href="/web/pools/growingapp/">Back to GrowingApp</a>
-    </div>
-
-    <iframe
-      class="app-frame"
-      title="Math Mania Lovable app"
-      src="https://forest-math-plus.lovable.app"
-      loading="eager"
-      referrerpolicy="no-referrer-when-downgrade"
-      allow="fullscreen; clipboard-write"
-    ></iframe>
-
-    <section class="panel">
-      <h2>Learning Modes</h2>
-      <div class="grid">
-        <div class="tile"><strong>+</strong><span>Fast arithmetic rounds for young learners.</span></div>
-        <div class="tile"><strong>x</strong><span>Multiplication practice with streak feedback.</span></div>
-        <div class="tile"><strong>=</strong><span>Score, progress, and replay loop.</span></div>
+  <nav class="forest-topbar" aria-label="Back to pool">
+    <a class="forest-back" href="/web/pools/growingapp/">GrowingApp</a>
+  </nav>
+  <main class="forest-page lovable-project-page">
+    <article class="forest-panel lovable-project-card" data-feature-card="math-mania" aria-labelledby="project-title">
+      <div class="lovable-project-copy">
+        <div class="lovable-project-meta">
+          <p class="forest-kicker"><a href="/web/pools/growingapp/">GrowingApp</a> · Lovable</p>
+          <span class="forest-status">Live</span>
+        </div>
+        <h1 class="forest-title" id="project-title">Math Mania</h1>
+        <p class="forest-lede">Playful multiplication practice with trail challenges, visual tutorials, and guessing puzzles.</p>
+        <div class="lovable-project-actions">
+          <a class="button" href="https://forest-math-plus.lovable.app" target="_blank" rel="noopener noreferrer">Open Math Mania</a>
+          <a class="button secondary" href="#play">Play here <span aria-hidden="true">↓</span></a>
+        </div>
       </div>
-      <div class="note">
-        Source: https://forest-math-plus.lovable.app. Exported source can replace this iframe later if full in-repo hosting becomes preferable.
-      </div>
+      <figure class="lovable-project-screen">
+        <a href="https://forest-math-plus.lovable.app" target="_blank" rel="noopener noreferrer" aria-label="Open Math Mania live app">
+          <img src="/web/assets/lovable-projects/math-mania.png" width="1280" height="720" alt="Math Mania’s live Math Quest home screen with trail challenges, free practice, tutorials, and guessing puzzles." fetchpriority="high">
+        </a>
+        <figcaption>Actual app screen · captured <time datetime="2026-10-12">12 October 2026</time></figcaption>
+      </figure>
+    </article>
+
+    <section class="lovable-project-play" id="play" aria-labelledby="play-title">
+      <header>
+        <h2 id="play-title">Play Math Mania</h2>
+        <a class="button secondary" href="https://forest-math-plus.lovable.app" target="_blank" rel="noopener noreferrer">Open full screen</a>
+      </header>
+      <iframe
+        class="app-frame"
+        title="Math Mania Lovable app"
+        src="https://forest-math-plus.lovable.app"
+        loading="lazy"
+        referrerpolicy="no-referrer-when-downgrade"
+        allow="fullscreen; clipboard-write"
+      ></iframe>
     </section>
+    <footer class="lovable-project-footer"><a href="/web/pools/growingapp/">← Back to GrowingApp</a></footer>
   </main>
   <script type="module" data-forest-runtime="motion" src="/web/shared/forest-runtime-boot.mjs?v=20260807a"></script>
   <script src="/web/shared/design-history.js?v=20260807a"></script>
 </body>
 </html>
-
