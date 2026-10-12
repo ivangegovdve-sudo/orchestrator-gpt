@@ -59,6 +59,7 @@ export const ROUTE_REGISTRY = deepFreeze([
       redirect('/web/ai-init/', '/web/library/glossary/'),
     ],
   }),
+  route('academy', 'academy', '/web/academy/', 'page', 'web/academy/index.html', PUBLIC),
   route('ai-research', 'ai-research', '/web/ai-research/', 'page', 'web/ai-research/index.html', PUBLIC),
   route('avatar-playground', 'avatar-playground', '/web/avatar-playground/', 'page', 'web/avatar-playground/index.html', PUBLIC),
   route('fleet-board-board', 'fleet-board', '/web/board/', 'page', 'web/board/index.html', INTERNAL_NOINDEX),

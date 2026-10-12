@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="en" class="forest-skin">
+<head>
+<meta charset="UTF-8" />
+<link rel="icon" href="/web/shared/favicon.svg?v=20260807a" type="image/svg+xml">
+<script defer src="/web/shared/feedback.js?v=20260807a"></script>
+<script type="module" src="/web/shared/forest-navigation.mjs?v=20260807a"></script>
+<link rel="preload" href="/web/shared/forest-design.css?v=20260807a" as="style">
+<link rel="preload" href="/web/vendor/fonts/cormorant-garamond-normal-600-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/web/vendor/fonts/alegreya-normal-400-900-latin.woff2" as="font" type="font/woff2" crossorigin>
+<script type="speculationrules">
+{
+  "prerender": [
+    {
+      "source": "document",
+      "where": {
+        "and": [
+          {
+            "href_matches": "/web/*"
+          },
+          {
+            "or": [
+              {
+                "href_matches": "/web/ai-research/*"
+              },
+              {
+                "href_matches": "/web/c2c-dolphin/*"
+              },
+              {
+                "href_matches": "/web/c2c-self/*"
+              },
+              {
+                "href_matches": "/web/calendar/*"
+              },
+              {
+                "href_matches": "/web/council/"
+              },
+              {
+                "href_matches": "/web/council/index.html"
+              },
+              {
+                "href_matches": "/web/hypertrophyos/*"
+              },
+              {
+                "href_matches": "/web/kids/*"
+              },
+              {
+                "href_matches": "/web/kids-movie-library/*"
+              },
+              {
+                "href_matches": "/web/library/"
+              },
+              {
+                "href_matches": "/web/library/index.html"
+              },
+              {
+                "href_matches": "/web/library/general/*"
+              },
+              {
+                "href_matches": "/web/library/glossary/*"
+              },
+              {
+                "href_matches": "/web/library/memory/*"
+              },
+              {
+                "href_matches": "/web/library/platform/*"
+              },
+              {
+                "href_matches": "/web/library/rag.html"
+              },
+              {
+                "href_matches": "/web/library/repos/*"
+              },
+              {
+                "href_matches": "/web/life-in-time/*"
+              },
+              {
+                "href_matches": "/web/m-popova/*"
+              },
+              {
+                "href_matches": "/web/math-mania/*"
+              },
+              {
+                "href_matches": "/web/mendeleev-bg/*"
+              },
+              {
+                "href_matches": "/web/morning-news/*"
+              },
+              {
+                "href_matches": "/web/upload/*"
+              },
+              {
+                "href_matches": "/web/vfx-portfolio/*"
+              }
+            ]
+          },
+          {
+            "not": {
+              "or": [
+                {
+                  "href_matches": "/web/ai-init/*"
+                },
+                {
+                  "href_matches": "/web/avatar-playground/*"
+                },
+                {
+                  "href_matches": "/web/chloe-pwa/*"
+                },
+                {
+                  "href_matches": "/web/council/byok/*"
+                },
+                {
+                  "href_matches": "/web/council/inner/*"
+                },
+                {
+                  "href_matches": "/web/council/tinylm/*"
+                },
+                {
+                  "href_matches": "/web/evolution/*"
+                },
+                {
+                  "href_matches": "/web/library/chloe/*"
+                },
+                {
+                  "href_matches": "/web/llm-db/*"
+                },
+                {
+                  "href_matches": "/web/manifesto-newborn/*"
+                },
+                {
+                  "href_matches": "/web/math-forest/*"
+                },
+                {
+                  "href_matches": "/web/open-dashboard/*"
+                },
+                {
+                  "href_matches": "/web/power-law-odyssey/*"
+                },
+                {
+                  "href_matches": "/web/replicator-void/*"
+                },
+                {
+                  "href_matches": "/web/tinylm/*"
+                },
+                {
+                  "href_matches": "/web/womens-health-os/*"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "eagerness": "moderate"
+    }
+  ]
+}
+</script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Academy: a curated shelf of free AI courses, credited to the people who wrote them. Every link goes to the author's own repository." />
+  <meta property="og:title" content="Academy — free AI lessons, credited to their authors" />
+  <meta property="og:description" content="Curated free AI courses and cookbooks. Nothing is rehosted; every entry links to the author's repository first." />
+  <meta property="og:type" content="website" />
+  <meta name="theme-color" content="#07070b" />
+  <title>Academy — free AI lessons, credited to their authors</title>
+
+  <link rel="stylesheet" href="/web/shared/forest-design.css?v=20260807a">
+  <link rel="stylesheet" href="/web/shared/forest-shell.css?v=20260807a">
+  <style>
+    :root {
+      --bg: #07070b;
+      --surface: #0f0f15;
+      --border: rgba(255,255,255,0.08);
+      --text-primary: #f3f4f6;
+      --text-muted: #9ca3af;
+      --accent: #4f46e5;
+      --accent-green: #22c55e;
+      --radius: 8px;
+      --display: var(--forest-display, "Cormorant Garamond", Georgia, serif);
+      --body: var(--forest-body, Alegreya, Georgia, serif);
+      --sans: var(--forest-sans, "Alegreya Sans", system-ui, sans-serif);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background-color: var(--bg);
+      color: var(--text-primary);
+      font-family: var(--body);
+      -webkit-font-smoothing: antialiased;
+      padding: clamp(24px, 5vw, 56px) 16px 96px;
+      overflow-x: hidden;
+    }
+
+    .page { max-width: 1080px; margin: 0 auto; }
+
+    .back-link {
+      display: inline-flex; align-items: center; gap: 7px;
+      color: var(--text-muted); text-decoration: none;
+      font-size: 13.5px; font-weight: 500;
+      padding: 7px 14px;
+      border: 1px solid var(--border); border-radius: 999px;
+    }
+    .back-link:hover, .back-link:focus-visible { color: var(--text-primary); border-color: rgba(255,255,255,.22); }
+
+    .hero { padding: clamp(32px, 6vw, 56px) 0 clamp(20px, 4vw, 32px); max-width: 68ch; }
+    .eyebrow {
+      margin: 0 0 14px;
+      font-family: var(--sans); font-size: 11px; font-weight: 600;
+      letter-spacing: .22em; text-transform: uppercase; color: var(--text-muted);
+    }
+    h1 {
+      margin: 0;
+      font-family: var(--display); font-weight: 700;
+      font-size: clamp(42px, 9vw, 76px); line-height: 1;
+    }
+    .hero p { color: var(--text-muted); font-size: clamp(15px, 2.1vw, 17px); line-height: 1.6; margin: 16px 0 0; }
+    .hero strong { color: var(--text-primary); font-weight: 600; }
+
+    .filters {
+      display: flex; flex-wrap: wrap; gap: 8px 18px; align-items: center;
+      margin: 8px 0 24px; padding: 14px 0;
+      border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);
+    }
+    .filters[hidden] { display: none; }
+    .filter-group { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; border: 0; margin: 0; padding: 0; }
+    .filter-group legend { float: left; margin-right: 6px; font-family: var(--sans); font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--text-muted); }
+    .chip {
+      font: 600 13px/1 var(--sans);
+      color: var(--text-muted); background: transparent;
+      border: 1px solid var(--border); border-radius: 999px;
+      padding: 8px 12px; min-height: 32px; cursor: pointer;
+    }
+    .chip[aria-pressed="true"] { color: var(--text-primary); border-color: var(--accent); background: color-mix(in srgb, var(--accent) 22%, transparent); }
+    .chip:focus-visible, .course a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+    .filter-count { margin-left: auto; font-family: var(--sans); font-size: 13px; color: var(--text-muted); }
+
+    .shelf {
+      display: grid; gap: 16px;
+      grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr));
+    }
+
+    .course {
+      display: flex; flex-direction: column; gap: 10px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: calc(var(--radius) * 1.5);
+      padding: 22px;
+      min-width: 0;
+    }
+    .course[hidden] { display: none; }
+    .course--lead {
+      grid-column: 1 / -1;
+      border-color: color-mix(in srgb, var(--accent-green) 40%, transparent);
+      background: linear-gradient(135deg, color-mix(in srgb, var(--accent-green) 7%, var(--surface)), var(--surface) 60%);
+      padding: clamp(22px, 4vw, 34px);
+    }
+    .course-flag {
+      margin: 0; align-self: flex-start;
+      font: 700 11px/1 var(--sans); letter-spacing: .14em; text-transform: uppercase;
+      color: var(--accent-green);
+      border: 1px solid color-mix(in srgb, var(--accent-green) 45%, transparent);
+      border-radius: 999px; padding: 6px 10px;
+    }
+    .course-title { margin: 0; font-family: var(--display); font-size: 26px; font-weight: 600; line-height: 1.1; }
+    .course--lead .course-title { font-size: clamp(30px, 5vw, 40px); }
+    .course-author { margin: 0; font-family: var(--sans); font-size: 14px; color: var(--text-muted); }
+    .course-author a { color: var(--text-primary); }
+    .course-outcome { margin: 4px 0 0; font-size: 16px; line-height: 1.5; }
+    .course-outcome span { display: block; font: 600 11px/1.4 var(--sans); letter-spacing: .14em; text-transform: uppercase; color: var(--accent-green); }
+    .course-summary { margin: 0; color: var(--text-muted); font-size: 14.5px; line-height: 1.55; }
+    .course-facts { margin: 4px 0 0; display: grid; gap: 6px; font-family: var(--sans); font-size: 13px; }
+    .course--lead .course-facts { grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr)); }
+    .course-facts div { display: grid; grid-template-columns: 64px 1fr; gap: 8px; }
+    .course-facts dt { color: var(--text-muted); text-transform: uppercase; letter-spacing: .1em; font-size: 10.5px; padding-top: 2px; }
+    .course-facts dd { margin: 0; overflow-wrap: anywhere; }
+    .course-links { margin-top: auto; padding-top: 10px; display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; font-family: var(--sans); font-size: 14px; }
+    .course-primary {
+      color: var(--text-primary); font-weight: 600; text-decoration: none;
+      background: color-mix(in srgb, var(--accent) 30%, transparent);
+      border: 1px solid color-mix(in srgb, var(--accent) 65%, transparent);
+      border-radius: var(--radius); padding: 8px 12px;
+      overflow-wrap: anywhere;
+    }
+    .course-primary:hover { background: color-mix(in srgb, var(--accent) 45%, transparent); }
+    .course-site { color: var(--text-primary); }
+    .course-fork { color: var(--text-muted); font-size: 13px; }
+
+    .note { margin-top: 40px; color: var(--text-muted); font-size: 14px; line-height: 1.6; max-width: 72ch; }
+    .note h2 { font-family: var(--display); font-size: 24px; color: var(--text-primary); margin: 0 0 8px; }
+    .note a { color: var(--text-primary); }
+  </style>
+</head>
+<body data-forest-page="academy">
+  <main class="page">
+    <a class="back-link" href="/">← Forest HUB</a>
+    <header class="hero">
+      <p class="eyebrow">SD Forest · Academy</p>
+      <h1>Academy</h1>
+      <p>A shelf of <strong>free AI lessons written by other people</strong>. None of this is Ivan’s work and none of it is copied here: every entry links to the author’s own repository first, and Ivan’s fork — a bookmark, kept where one exists — comes second.</p>
+      <p>Start with <a href="#ai-engineering-from-scratch">AI Engineering from Scratch</a>, then pick by level or format.</p>
+    </header>
+
+    <div class="filters" id="filters" hidden>
+      <fieldset class="filter-group" data-filter="level">
+        <legend>Level</legend>
+        <button type="button" class="chip" data-value="any" aria-pressed="true">Any</button>
+        <button type="button" class="chip" data-value="beginner" aria-pressed="false">Beginner</button>
+        <button type="button" class="chip" data-value="intermediate" aria-pressed="false">Intermediate</button>
+      </fieldset>
+      <fieldset class="filter-group" data-filter="kind">
+        <legend>Type</legend>
+        <button type="button" class="chip" data-value="any" aria-pressed="true">Any</button>
+        <button type="button" class="chip" data-value="course" aria-pressed="false">Courses</button>
+        <button type="button" class="chip" data-value="cookbook" aria-pressed="false">Cookbooks</button>
+        <button type="button" class="chip" data-value="guide" aria-pressed="false">Guides</button>
+      </fieldset>
+      <p class="filter-count" id="filter-count" aria-live="polite"></p>
+    </div>
+
+    <section class="shelf" aria-label="Courses">
+      <article class="course course--lead" id="ai-engineering-from-scratch" data-level="all" data-kind="course">
+        <p class="course-flag">Start here</p>
+        <h3 class="course-title">AI Engineering from Scratch</h3>
+        <p class="course-author">by <a href="https://github.com/rohitg00" rel="noopener">Rohit Ghumare</a></p>
+        <p class="course-outcome"><span>After this you can</span> build model internals, retrieval pipelines and agent runtimes yourself — then test and evaluate them like production code.</p>
+        <p class="course-summary">528 lessons in 20 phases, from “new to programming and AI” up to senior-engineer material, with graded projects.</p>
+        <dl class="course-facts">
+          <div><dt>Level</dt><dd>Beginner → advanced</dd></div>
+          <div><dt>Format</dt><dd>Markdown lessons + code (Python, TypeScript, Rust, Julia)</dd></div>
+          <div><dt>Licence</dt><dd>MIT</dd></div>
+          <div><dt>Cost</dt><dd>Free; no paid API required to start.</dd></div>
+        </dl>
+        <div class="course-links">
+          <a class="course-primary" href="https://github.com/rohitg00/ai-engineering-from-scratch" rel="noopener">rohitg00/ai-engineering-from-scratch ↗</a>
+          <a class="course-site" href="https://aiengineeringfromscratch.com" rel="noopener">Course site ↗</a>
+          <a class="course-fork" href="https://github.com/ivangegovdve-sudo/ai-engineering-from-scratch" rel="noopener">Ivan’s fork</a>
+        </div>
+      </article>
+      <article class="course" id="ai-agents-for-beginners" data-level="beginner" data-kind="course">
+        <h3 class="course-title">AI Agents for Beginners</h3>
+        <p class="course-author">by <a href="https://github.com/microsoft" rel="noopener">Microsoft</a></p>
+        <p class="course-outcome"><span>After this you can</span> build agents with tool use, RAG, planning, memory, multi-agent patterns and MCP — and know how to secure them.</p>
+        <p class="course-summary">18 lessons, each a written lesson with Python samples; most come with a short video.</p>
+        <dl class="course-facts">
+          <div><dt>Level</dt><dd>Beginner</dd></div>
+          <div><dt>Format</dt><dd>Written lessons + videos + Python samples</dd></div>
+          <div><dt>Licence</dt><dd>MIT</dd></div>
+          <div><dt>Cost</dt><dd>Free course; most samples expect an Azure account (a local-agents lesson is included).</dd></div>
+        </dl>
+        <div class="course-links">
+          <a class="course-primary" href="https://github.com/microsoft/ai-agents-for-beginners" rel="noopener">microsoft/ai-agents-for-beginners ↗</a>
+          <a class="course-fork" href="https://github.com/ivangegovdve-sudo/ai-agents-for-beginners" rel="noopener">Ivan’s fork</a>
+        </div>
+      </article>
+      <article class="course" id="generative-ai-for-beginners" data-level="beginner" data-kind="course">
+        <h3 class="course-title">Generative AI for Beginners</h3>
+        <p class="course-author">by <a href="https://github.com/microsoft" rel="noopener">Microsoft</a></p>
+        <p class="course-outcome"><span>After this you can</span> understand LLMs and prompting well enough to build your first chat, search and image-generation apps.</p>
+        <p class="course-summary">21 lessons; Microsoft recommends it before AI Agents for Beginners.</p>
+        <dl class="course-facts">
+          <div><dt>Level</dt><dd>Beginner</dd></div>
+          <div><dt>Format</dt><dd>Written lessons + videos + code samples</dd></div>
+          <div><dt>Licence</dt><dd>MIT</dd></div>
+          <div><dt>Cost</dt><dd>Free course; samples call hosted model APIs.</dd></div>
+        </dl>
+        <div class="course-links">
+          <a class="course-primary" href="https://github.com/microsoft/generative-ai-for-beginners" rel="noopener">microsoft/generative-ai-for-beginners ↗</a>
+        </div>
+      </article>
+      <article class="course" id="llm-course" data-level="intermediate" data-kind="course">
+        <h3 class="course-title">LLM Course</h3>
+        <p class="course-author">by <a href="https://github.com/mlabonne" rel="noopener">Maxime Labonne</a></p>
+        <p class="course-outcome"><span>After this you can</span> fine-tune, quantize, evaluate and deploy LLMs, and build RAG and agent apps on top of them.</p>
+        <p class="course-summary">Three tracks — fundamentals, “LLM Scientist”, “LLM Engineer” — as a roadmap with Colab notebooks.</p>
+        <dl class="course-facts">
+          <div><dt>Level</dt><dd>Intermediate → advanced</dd></div>
+          <div><dt>Format</dt><dd>Roadmap + Colab notebooks + articles</dd></div>
+          <div><dt>Licence</dt><dd>Apache-2.0</dd></div>
+          <div><dt>Cost</dt><dd>Free; notebooks target free-tier Colab.</dd></div>
+        </dl>
+        <div class="course-links">
+          <a class="course-primary" href="https://github.com/mlabonne/llm-course" rel="noopener">mlabonne/llm-course ↗</a>
+          <a class="course-fork" href="https://github.com/ivangegovdve-sudo/llm-course" rel="noopener">Ivan’s fork</a>
+        </div>
+      </article>
+      <article class="course" id="llms-from-scratch" data-level="intermediate" data-kind="course">
+        <h3 class="course-title">Build a Large Language Model (From Scratch) — code</h3>
+        <p class="course-author">by <a href="https://github.com/rasbt" rel="noopener">Sebastian Raschka</a></p>
+        <p class="course-outcome"><span>After this you can</span> implement a GPT-style model in PyTorch step by step — tokenizer, attention, pretraining and fine-tuning.</p>
+        <p class="course-summary">The official code repository for the book; the notebooks are free, the book itself is sold separately.</p>
+        <dl class="course-facts">
+          <div><dt>Level</dt><dd>Intermediate</dd></div>
+          <div><dt>Format</dt><dd>Jupyter notebooks (PyTorch)</dd></div>
+          <div><dt>Licence</dt><dd>Apache-2.0</dd></div>
+          <div><dt>Cost</dt><dd>Code free; runs on a laptop.</dd></div>
+        </dl>
+        <div class="course-links">
+          <a class="course-primary" href="https://github.com/rasbt/LLMs-from-scratch" rel="noopener">rasbt/LLMs-from-scratch ↗</a>
+        </div>
+      </article>
+      <article class="course" id="nn-zero-to-hero" data-level="intermediate" data-kind="course">
+        <h3 class="course-title">Neural Networks: Zero to Hero</h3>
+        <p class="course-author">by <a href="https://github.com/karpathy" rel="noopener">Andrej Karpathy</a></p>
+        <p class="course-outcome"><span>After this you can</span> write backpropagation, language models and a small GPT from first principles.</p>
+        <p class="course-summary">Lecture notebooks accompanying the YouTube video series.</p>
+        <dl class="course-facts">
+          <div><dt>Level</dt><dd>Intermediate</dd></div>
+          <div><dt>Format</dt><dd>Video lectures + Jupyter notebooks</dd></div>
+          <div><dt>Licence</dt><dd>MIT</dd></div>
+          <div><dt>Cost</dt><dd>Free; runs on a laptop.</dd></div>
+        </dl>
+        <div class="course-links">
+          <a class="course-primary" href="https://github.com/karpathy/nn-zero-to-hero" rel="noopener">karpathy/nn-zero-to-hero ↗</a>
+        </div>
+      </article>
+      <article class="course" id="agents-course" data-level="beginner" data-kind="course">
+        <h3 class="course-title">Hugging Face Agents Course</h3>
+        <p class="course-author">by <a href="https://github.com/huggingface" rel="noopener">Hugging Face</a></p>
+        <p class="course-outcome"><span>After this you can</span> build and evaluate agents with smolagents, LangGraph and LlamaIndex.</p>
+        <p class="course-summary">Units with hands-on notebooks and a final agent challenge.</p>
+        <dl class="course-facts">
+          <div><dt>Level</dt><dd>Beginner → intermediate</dd></div>
+          <div><dt>Format</dt><dd>Written units + notebooks</dd></div>
+          <div><dt>Licence</dt><dd>Apache-2.0</dd></div>
+          <div><dt>Cost</dt><dd>Free.</dd></div>
+        </dl>
+        <div class="course-links">
+          <a class="course-primary" href="https://github.com/huggingface/agents-course" rel="noopener">huggingface/agents-course ↗</a>
+        </div>
+      </article>
+      <article class="course" id="made-with-ml" data-level="intermediate" data-kind="course">
+        <h3 class="course-title">Made With ML</h3>
+        <p class="course-author">by <a href="https://github.com/GokuMohandas" rel="noopener">Goku Mohandas</a></p>
+        <p class="course-outcome"><span>After this you can</span> take an ML model from experiment to a tested, served, CI/CD-deployed production system.</p>
+        <p class="course-summary">End-to-end production ML: design, develop, deploy, iterate.</p>
+        <dl class="course-facts">
+          <div><dt>Level</dt><dd>Intermediate</dd></div>
+          <div><dt>Format</dt><dd>Web lessons + code repository</dd></div>
+          <div><dt>Licence</dt><dd>MIT</dd></div>
+          <div><dt>Cost</dt><dd>Free; runs on a laptop.</dd></div>
+        </dl>
+        <div class="course-links">
+          <a class="course-primary" href="https://github.com/GokuMohandas/Made-With-ML" rel="noopener">GokuMohandas/Made-With-ML ↗</a>
+          <a class="course-site" href="https://madewithml.com" rel="noopener">Course site ↗</a>
+          <a class="course-fork" href="https://github.com/ivangegovdve-sudo/Made-With-ML" rel="noopener">Ivan’s fork</a>
+        </div>
+      </article>
+      <article class="course" id="langgraph-101" data-level="intermediate" data-kind="course">
+        <h3 class="course-title">LangGraph 101</h3>
+        <p class="course-author">by <a href="https://github.com/langchain-ai" rel="noopener">LangChain</a></p>
+        <p class="course-outcome"><span>After this you can</span> build stateful, human-in-the-loop, multi-agent and deep-research agents with LangGraph.</p>
+        <p class="course-summary">Six notebooks in a 101 (fundamentals) and 201 (advanced patterns) track.</p>
+        <dl class="course-facts">
+          <div><dt>Level</dt><dd>Fundamentals → advanced</dd></div>
+          <div><dt>Format</dt><dd>Jupyter notebooks</dd></div>
+          <div><dt>Licence</dt><dd>MIT</dd></div>
+          <div><dt>Cost</dt><dd>Free code; needs a paid model API key.</dd></div>
+        </dl>
+        <div class="course-links">
+          <a class="course-primary" href="https://github.com/langchain-ai/langgraph-101" rel="noopener">langchain-ai/langgraph-101 ↗</a>
+          <a class="course-fork" href="https://github.com/ivangegovdve-sudo/langgraph-101" rel="noopener">Ivan’s fork</a>
+        </div>
+      </article>
+      <article class="course" id="learn-harness-engineering" data-level="intermediate" data-kind="course">
+        <h3 class="course-title">Learn Harness Engineering</h3>
+        <p class="course-author">by <a href="https://github.com/walkinglabs" rel="noopener">WalkingLabs</a></p>
+        <p class="course-outcome"><span>After this you can</span> build the harness — agent instructions, verification, observability, loops — that makes coding agents reliable on real repos.</p>
+        <p class="course-summary">14 lectures and 8 projects, in 15 languages.</p>
+        <dl class="course-facts">
+          <div><dt>Level</dt><dd>Intermediate</dd></div>
+          <div><dt>Format</dt><dd>Docs site + PDF + projects</dd></div>
+          <div><dt>Licence</dt><dd>MIT</dd></div>
+          <div><dt>Cost</dt><dd>Free to read; projects need a coding agent such as Claude Code or Codex.</dd></div>
+        </dl>
+        <div class="course-links">
+          <a class="course-primary" href="https://github.com/walkinglabs/learn-harness-engineering" rel="noopener">walkinglabs/learn-harness-engineering ↗</a>
+          <a class="course-site" href="https://walkinglabs.github.io/learn-harness-engineering/" rel="noopener">Course site ↗</a>
+          <a class="course-fork" href="https://github.com/ivangegovdve-sudo/learn-harness-engineering" rel="noopener">Ivan’s fork</a>
+        </div>
+      </article>
+      <article class="course" id="anthropic-courses" data-level="beginner" data-kind="course">
+        <h3 class="course-title">Anthropic Courses</h3>
+        <p class="course-author">by <a href="https://github.com/anthropics" rel="noopener">Anthropic</a></p>
+        <p class="course-outcome"><span>After this you can</span> use the Claude API, engineer and evaluate prompts, and add tool use.</p>
+        <p class="course-summary">Five notebook courses: API fundamentals, prompt engineering, real-world prompting, prompt evaluations, tool use. Archived by Anthropic — still readable, model names are dated.</p>
+        <dl class="course-facts">
+          <div><dt>Level</dt><dd>Beginner → intermediate</dd></div>
+          <div><dt>Format</dt><dd>Jupyter notebooks</dd></div>
+          <div><dt>Licence</dt><dd>CC BY-NC 4.0 · archived</dd></div>
+          <div><dt>Cost</dt><dd>Free material; needs a paid Anthropic API key.</dd></div>
+        </dl>
+        <div class="course-links">
+          <a class="course-primary" href="https://github.com/anthropics/courses" rel="noopener">anthropics/courses ↗</a>
+          <a class="course-fork" href="https://github.com/ivangegovdve-sudo/courses" rel="noopener">Ivan’s fork</a>
+        </div>
+      </article>
+      <article class="course" id="claude-cookbooks" data-level="intermediate" data-kind="cookbook">
+        <h3 class="course-title">Claude Cookbooks</h3>
+        <p class="course-author">by <a href="https://github.com/anthropics" rel="noopener">Anthropic</a></p>
+        <p class="course-outcome"><span>After this you can</span> copy working patterns — RAG, tool use, vision, sub-agents, caching, evals — into your own Claude apps.</p>
+        <p class="course-summary">A recipe collection rather than a sequenced course.</p>
+        <dl class="course-facts">
+          <div><dt>Level</dt><dd>Intermediate</dd></div>
+          <div><dt>Format</dt><dd>Jupyter notebooks</dd></div>
+          <div><dt>Licence</dt><dd>MIT</dd></div>
+          <div><dt>Cost</dt><dd>Free code; needs a paid Claude API key.</dd></div>
+        </dl>
+        <div class="course-links">
+          <a class="course-primary" href="https://github.com/anthropics/claude-cookbooks" rel="noopener">anthropics/claude-cookbooks ↗</a>
+          <a class="course-fork" href="https://github.com/ivangegovdve-sudo/claude-cookbooks" rel="noopener">Ivan’s fork</a>
+        </div>
+      </article>
+      <article class="course" id="openai-cookbook" data-level="intermediate" data-kind="cookbook">
+        <h3 class="course-title">OpenAI Cookbook</h3>
+        <p class="course-author">by <a href="https://github.com/openai" rel="noopener">OpenAI</a></p>
+        <p class="course-outcome"><span>After this you can</span> accomplish common tasks with the OpenAI API by following tested examples.</p>
+        <p class="course-summary">Example code and guides, mostly Python notebooks.</p>
+        <dl class="course-facts">
+          <div><dt>Level</dt><dd>Intermediate</dd></div>
+          <div><dt>Format</dt><dd>Jupyter notebooks + guides</dd></div>
+          <div><dt>Licence</dt><dd>MIT</dd></div>
+          <div><dt>Cost</dt><dd>Free code; needs a paid OpenAI API key.</dd></div>
+        </dl>
+        <div class="course-links">
+          <a class="course-primary" href="https://github.com/openai/openai-cookbook" rel="noopener">openai/openai-cookbook ↗</a>
+          <a class="course-site" href="https://cookbook.openai.com" rel="noopener">Course site ↗</a>
+          <a class="course-fork" href="https://github.com/ivangegovdve-sudo/openai-cookbook" rel="noopener">Ivan’s fork</a>
+        </div>
+      </article>
+      <article class="course" id="claude-code-ultimate-guide" data-level="all" data-kind="guide">
+        <h3 class="course-title">Claude Code Ultimate Guide</h3>
+        <p class="course-author">by <a href="https://github.com/FlorianBruniaux" rel="noopener">Florian Bruniaux</a></p>
+        <p class="course-outcome"><span>After this you can</span> use Claude Code productively and design agent workflows, security boundaries and team adoption.</p>
+        <p class="course-summary">Role-based learning paths, quizzes and cheat sheets.</p>
+        <dl class="course-facts">
+          <div><dt>Level</dt><dd>Quick start → enterprise</dd></div>
+          <div><dt>Format</dt><dd>Guide site + Markdown</dd></div>
+          <div><dt>Licence</dt><dd>CC BY-SA 4.0</dd></div>
+          <div><dt>Cost</dt><dd>Free guide; Claude Code itself needs a paid plan or API.</dd></div>
+        </dl>
+        <div class="course-links">
+          <a class="course-primary" href="https://github.com/FlorianBruniaux/claude-code-ultimate-guide" rel="noopener">FlorianBruniaux/claude-code-ultimate-guide ↗</a>
+          <a class="course-site" href="https://cc.bruniaux.com" rel="noopener">Course site ↗</a>
+          <a class="course-fork" href="https://github.com/ivangegovdve-sudo/claude-code-ultimate-guide" rel="noopener">Ivan’s fork</a>
+        </div>
+      </article>
+      <article class="course" id="learn-low-code-agentic-ai" data-level="beginner" data-kind="course">
+        <h3 class="course-title">Learn Low-Code Agentic AI</h3>
+        <p class="course-author">by <a href="https://github.com/panaversity" rel="noopener">Panaversity</a></p>
+        <p class="course-outcome"><span>After this you can</span> build agents and full-stack apps with n8n, Lovable, Supabase and MCP without writing much code.</p>
+        <p class="course-summary">29 numbered modules with class videos on YouTube. Last updated October 2025.</p>
+        <dl class="course-facts">
+          <div><dt>Level</dt><dd>Beginner</dd></div>
+          <div><dt>Format</dt><dd>Markdown modules + video classes</dd></div>
+          <div><dt>Licence</dt><dd>MIT</dd></div>
+          <div><dt>Cost</dt><dd>Free material; tools have free tiers, paid for real use.</dd></div>
+        </dl>
+        <div class="course-links">
+          <a class="course-primary" href="https://github.com/panaversity/learn-low-code-agentic-ai" rel="noopener">panaversity/learn-low-code-agentic-ai ↗</a>
+          <a class="course-fork" href="https://github.com/ivangegovdve-sudo/learn-low-code-agentic-ai" rel="noopener">Ivan’s fork</a>
+        </div>
+      </article>
+    </section>
+
+    <section class="note" aria-labelledby="about-heading">
+      <h2 id="about-heading">How this shelf is kept</h2>
+      <p>Licences, levels and formats were read from each author’s README and LICENSE file on 12 October 2026. “Free” means the lessons cost nothing to read; where the exercises call a paid model API, the card says so. Licences belong to the authors — follow the terms in their repository, not this page.</p>
+      <p>Spotted something out of date? The author’s repository is the source of truth; this page only points at it.</p>
+    </section>
+  </main>
+  <script>
+    (() => {
+      const filters = document.getElementById('filters');
+      const cards = [...document.querySelectorAll('.course')];
+      const count = document.getElementById('filter-count');
+      const state = { level: 'any', kind: 'any' };
+      const matches = (card, key) => state[key] === 'any'
+        || card.dataset[key] === state[key]
+        || (key === 'level' && card.dataset.level === 'all');
+      const apply = () => {
+        let shown = 0;
+        for (const card of cards) {
+          const visible = matches(card, 'level') && matches(card, 'kind');
+          card.hidden = !visible;
+          if (visible) shown += 1;
+        }
+        count.textContent = `${shown} of ${cards.length}`;
+      };
+      filters.addEventListener('click', (event) => {
+        const chip = event.target.closest('.chip');
+        if (!chip) return;
+        const group = chip.closest('[data-filter]');
+        state[group.dataset.filter] = chip.dataset.value;
+        for (const other of group.querySelectorAll('.chip')) other.setAttribute('aria-pressed', String(other === chip));
+        apply();
+      });
+      filters.hidden = false;
+      apply();
+    })();
+  </script>
+  <script type="module" data-forest-runtime="motion" src="/web/shared/forest-runtime-boot.mjs?v=20260807a"></script>
+</body>
+</html>
