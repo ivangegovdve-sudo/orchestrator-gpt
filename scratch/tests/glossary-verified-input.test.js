@@ -20,7 +20,7 @@ function copyPath(source, destination) {
 
 function createGlossaryFixture(t) {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'glossary-verified-'));
-  t.after(() => fs.rmSync(root, { recursive: true, force: true }));
+  t.afterEach(() => fs.rmSync(root, { recursive: true, force: true }));
   copyPath(path.join(REPO_ROOT, 'glossary'), path.join(root, 'glossary'));
   copyPath(path.join(REPO_ROOT, 'web', 'ai-init'), path.join(root, 'web', 'ai-init'));
   copyPath(
