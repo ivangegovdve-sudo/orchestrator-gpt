@@ -102,6 +102,7 @@ import argparse
 import time
 import json
 import os
+import re
 import sys
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
@@ -134,7 +135,64 @@ class Decision:
         return self
 
 
-def deny_self_approval(login: str, committers: set[str], author_fams: set[str]) -> str | None:
+# Formal served-model receipts come from the independent reviewer App, read
+# from GitHub review records, never from caller flags. Ported from the reviewed
+# family-resolution fix in hermes_agents PR #802, commit 1535bc4f8497403dafc24123c3d58aaf4ad5fa15.
+_SERVED_MODEL = re.compile(
+    r"_Rung: \*\*[^*\r\n\v\f\x85\u2028\u2029]+\*\* — served by "
+    r"`([A-Za-z0-9][A-Za-z0-9._:/+-]*)`; [^\r\n\v\f\x85\u2028\u2029]+_"
+)
+_METERED_SERVED_MODEL = re.compile(
+    r"_Rung: \*\*[^*\r\n\v\f\x85\u2028\u2029]+\*\* \(requested\), served by "
+    r"`([A-Za-z0-9][A-Za-z0-9._:/+-]*)` — a \*\*[^*\r\n\v\f\x85\u2028\u2029]+\*\* "
+    r"model at \$[0-9]+\.[0-9]{9}/token, read from live pricing at review time\._"
+)
+_REVIEWED_BY = re.compile(
+    r"_Reviewed by \*\*[^*\r\n\v\f\x85\u2028\u2029]+\*\*, driven through "
+    r"the `ivan-codex-reviewer` GitHub App\.[^\r\n\v\f\x85\u2028\u2029]+_"
+)
+_MODEL_FAMILY_MARKERS = (
+    ("anthropic", "anthropic"), ("claude", "anthropic"),
+    ("openai", "openai"), ("codex", "openai"), ("gpt-", "openai"),
+    ("qwen", "qwen"), ("deepseek", "deepseek"),
+    ("gemma", "google"), ("google/", "google"), ("gemini", "google"),
+    ("nemotron", "nvidia"), ("llama", "meta"),
+    ("mistral", "mistral"), ("sail", "sail"),
+)
+
+
+def reviewer_model_family(review: dict) -> str | None:
+    """Resolve one unambiguous formal receipt from the known publishing App."""
+    login = (review.get("login") or "").strip().lower()
+    if (review.get("is_bot") is not True or not login.endswith("[bot]")
+            or normalise_login(login) != "ivan-codex-reviewer"):
+        return None
+
+    # The publisher's render() emits Verdict, Reviewed-by, and Rung paragraphs
+    # in this fixed order, before any assessment text. Read only that header
+    # slot; quoted examples and Markdown in the assessment are not receipts.
+    paragraphs = (review.get("body") or "").replace("\r\n", "\n").split("\n\n", 3)
+    if (len(paragraphs) < 3
+            or paragraphs[0] not in {"Verdict: APPROVE", "Verdict: REQUEST_CHANGES", "Verdict: COMMENT"}
+            or not _REVIEWED_BY.fullmatch(paragraphs[1])):
+        return None
+    served = (_SERVED_MODEL.fullmatch(paragraphs[2])
+              or _METERED_SERVED_MODEL.fullmatch(paragraphs[2]))
+    if (not served or (len(paragraphs) == 4 and paragraphs[3].startswith("_Rung:"))):
+        return None
+    slug = served[1].casefold()
+    families = {family for marker, family in _MODEL_FAMILY_MARKERS if marker in slug}
+    return next(iter(families)) if len(families) == 1 else None
+
+
+def reviewer_family(review: dict) -> str | None:
+    """The App publishes multiple model families; retain its declared fallback."""
+    return reviewer_model_family(review) or FAMILY_BY_LOGIN.get(
+        normalise_login(review.get("login") or ""))
+
+
+def deny_self_approval(login: str, committers: set[str], author_fams: set[str],
+                       family: str | None = None) -> str | None:
     """Refusal reason if the approver could have authored the diff, else None.
 
     THIS IS THE GATE. Everything else here is hygiene; this is the property.
@@ -171,7 +229,7 @@ def deny_self_approval(login: str, committers: set[str], author_fams: set[str]) 
     if key in committers:
         return (f"`{login}` committed to this pull request. A principal may not "
                 f"approve its own work - that is the whole point of the rule")
-    fam = FAMILY_BY_LOGIN.get(key)
+    fam = family if family is not None else FAMILY_BY_LOGIN.get(key)
     if fam and fam in author_fams:
         return (f"`{login}` is of the {fam} family and the commit trailers say the "
                 f"{fam} family co-authored this diff. Same lineage reviewing itself "
@@ -300,6 +358,7 @@ def evaluate(
     ci: str,
     reviewer_families: set[str],
     author_fams: set[str],
+    approver_family: str | None = None,
     committers: set[str] | None = None,
     changes_requested_by: set[str] | None = None,
 ) -> Decision:
@@ -319,7 +378,7 @@ def evaluate(
             f"CHANGES_REQUESTED is outstanding from {', '.join(sorted(changes_requested_by))}. "
             f"A later approval does not dismiss an unresolved objection")
 
-    self_reason = deny_self_approval(approver, committers, author_fams)
+    self_reason = deny_self_approval(approver, committers, author_fams, approver_family)
     if self_reason:
         return d.refuse(f"THE APPROVER IS NOT INDEPENDENT - {self_reason}")
 
@@ -518,7 +577,9 @@ def main(argv: list[str] | None = None) -> int:
         {"state": r.get("state"),
          "commit": {"oid": r.get("commit_id")},
          "id": r.get("id"),
-         "login": ((r.get("user") or {}).get("login") or "")}
+         "login": ((r.get("user") or {}).get("login") or ""),
+         "body": r.get("body") or "",
+         "is_bot": (r.get("user") or {}).get("type") == "Bot"}
         for r in rest_reviews
     ]
     head_oid = pr.get("headRefOid") or ""
@@ -538,7 +599,8 @@ def main(argv: list[str] | None = None) -> int:
     def _qualifies(r):
         """Prefer an approval that would actually pass the gate, over the newest."""
         lg = normalise_login(r.get("login") or "")
-        return bool(lg) and lg in allow and not deny_self_approval(lg, committers, fams)
+        return bool(lg) and lg in allow and not deny_self_approval(
+            lg, committers, fams, reviewer_family(r))
 
     approval, approval_problem = approving_review(reviews_for_gate, head_oid, _qualifies)
     # The APPROVER IS READ OFF THE APPROVAL, not taken from the caller. This tool is
@@ -555,14 +617,13 @@ def main(argv: list[str] | None = None) -> int:
     elif approval_problem:
         args.review_state = "NONE"
 
+    approval_family = reviewer_family(approval) if approval else None
     reviewer_families = set()
-    for rv in pr.get("reviews") or []:
-        a = rv.get("author") or {}
-        login = a.get("login", "")
+    for rv in reviews_for_gate:
+        login = rv.get("login", "")
         if login:
-            reviewer_families.add(
-                classify_reviewer(login, bool(a.get("is_bot"))
-                                  or normalise_login(login) in FAMILY_BY_LOGIN))
+            reviewer_families.add(reviewer_family(rv) or classify_reviewer(
+                login, bool(rv.get("is_bot")) or normalise_login(login) in FAMILY_BY_LOGIN))
 
     ci = ci_for(pr)
     decision = evaluate(
@@ -577,6 +638,7 @@ def main(argv: list[str] | None = None) -> int:
         ci=ci,
         reviewer_families=reviewer_families,
         author_fams=fams,
+        approver_family=approval_family,
         committers=committers,
         changes_requested_by=changes_requested_by,
     )
@@ -590,8 +652,7 @@ def main(argv: list[str] | None = None) -> int:
                          evidence={
                              "review_id": (approval or {}).get("id"),
                              "approved_sha": args.approved_sha or head_oid,
-                             "approver_family": FAMILY_BY_LOGIN.get(
-                                 normalise_login(args.approver)),
+                             "approver_family": approval_family,
                              "author_families": fams,
                              "committers": committers,
                          })

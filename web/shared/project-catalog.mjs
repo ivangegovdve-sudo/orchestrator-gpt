@@ -268,7 +268,7 @@ const projectRecords = [
   project('womens-health-os', 'Women’s Health OS', { pool: 'Health', classification: 'assigned', status: 'In development', rank: { Health: 6 }, aliases: ['Women’s Health'], visibility: publicShell, sources: ['web/womens-health-os/index.html', SETTLED] }),
   project('hypertrophyos', 'Hyper Trophy OS', { visibility: publicShell, sources: ['web/hypertrophyos/index.html', PLAN] }),
   project('gym-scholar', 'Gym Scholar', {
-    pool: 'Health', classification: 'assigned', status: 'Live', rank: { Health: 10 }, visibility: publicShell, sources: [MASTER],
+    pool: 'Health', classification: 'assigned', status: 'Live', rank: { Health: 10 }, visibility: publicShell, sources: ['web/gym-scholar/index.html', MASTER],
     canonicalUrl: 'https://gymscholar.lovable.app',
   }),
   project('avatar-playground', 'Avatar Playground', { pool: 'TinkerBox', classification: 'assigned', status: 'Live', rank: { TinkerBox: 10 }, aliases: ['Voice Playground'], visibility: publicShell, sources: ['web/avatar-playground/index.html', MASTER] }),
@@ -361,6 +361,7 @@ export const ROUTE_OWNERS = deepFreeze([
   }),
   owner('mendeleev', ['/web/mendeleev-bg/']),
   owner('math-forest', ['/web/math-forest/', '/web/math-mania/']),
+  owner('gym-scholar', ['/web/gym-scholar/']),
   owner('replicator-void', ['/web/replicator-void/']),
   owner('c2c-dolphin', ['/web/c2c-dolphin/']),
   owner('c2c-self', ['/web/c2c-self/']),
