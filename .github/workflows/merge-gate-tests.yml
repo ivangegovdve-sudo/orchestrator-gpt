@@ -1,0 +1,29 @@
+name: Merge gate contracts
+
+on:
+  pull_request:
+    paths:
+      - tools/pr_merge_gate.py
+      - tools/pr_backlog_report.py
+      - tools/tests/**
+      - .github/workflows/merge-gate-tests.yml
+  push:
+    branches: [main]
+    paths:
+      - tools/pr_merge_gate.py
+      - tools/pr_backlog_report.py
+      - tools/tests/**
+      - .github/workflows/merge-gate-tests.yml
+
+permissions:
+  contents: read
+
+jobs:
+  gate-contracts:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m unittest discover -s tools/tests -v
