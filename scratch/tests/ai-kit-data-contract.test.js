@@ -350,8 +350,8 @@ test('both pages are wired to their data files and degrade without JavaScript', 
   assert.match(troubleshooting, /data-entries-app/);
   assert.match(troubleshooting, /data-entries-src="entries\.json"/);
   assert.match(troubleshooting, /ai-kit-troubleshooting\.mjs/);
-  // The 108-entry static record is the JS-off fallback, so it must stay in the markup.
-  assert.equal((troubleshooting.match(/class="troubleshooting-entry"/g) || []).length, 108);
+  // The 113-entry static record is the JS-off fallback, so it must stay in the markup.
+  assert.equal((troubleshooting.match(/class="troubleshooting-entry"/g) || []).length, 113);
 
   const pool = read('web/pools/ai-d-kit/index.html');
   assert.match(pool, /href="\/web\/pools\/ai-d-kit\/troubleshooting\/"/);

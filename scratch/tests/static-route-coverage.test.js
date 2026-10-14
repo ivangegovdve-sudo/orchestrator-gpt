@@ -79,7 +79,7 @@ test('seven canonical pool pages have explicit public pool owners and sources', 
 test('every configured Vercel source has exactly one explicit expected rule and catalog owner', async () => {
   const { routes, routeOwners } = await actualInput();
   const expected = routes.flatMap((entry) => (entry.expectedVercelRedirects || []).map((rule) => ({ entry, rule })));
-  assert.equal(vercelRedirects.length, 27);
+  assert.equal(vercelRedirects.length, 29);
   assert.equal(expected.length, vercelRedirects.length);
   for (const configured of vercelRedirects) {
     const matches = expected.filter(({ rule }) => rule.source === configured.source);
@@ -198,7 +198,7 @@ test('named HTML, language children, internal pages, and HTML-only shims keep ex
     assert.equal(entry.delivery, delivery);
   }
   assert.equal((await routeFor('/web/library/memory/')).visibility.access, 'internal');
-  assert.equal((await routeFor('/web/we-are-the-training-data/')).visibility.indexing, 'noindex');
+  assert.equal((await routeFor('/web/we-are-the-training-data/')).visibility.indexing, 'unspecified');
 });
 
 test('the registry remains validation-only with no homepage or Forest Trails consumer', async () => {
@@ -281,7 +281,7 @@ test('the CLI reports all declared host redirects when configuration omits them'
     assert.equal(result.status, 1);
     assert.equal(result.stdout, '');
     const messages = result.stderr.trim().split(/\r?\n/);
-    assert.equal(messages.length, 31);
+    assert.equal(messages.length, 33);
     assert.deepEqual(messages.sort(), [
       ...expected.map(({ source, destination }) =>
         `VERCEL_REDIRECT_MISSING: ${source} to ${destination} is not configured`,

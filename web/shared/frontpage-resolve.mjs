@@ -265,9 +265,12 @@ document.querySelector('.resolve-brand')?.addEventListener('click',event => {
   scrollTo(0,0);
   location.assign(location.pathname);
 });
-document.querySelectorAll('a[href="#atlas"]').forEach(link => link.addEventListener('click',() => {
+document.querySelectorAll('a[href="#atlas"], a[href="#featured"]').forEach(link => link.addEventListener('click',() => {
   openStatic();
-  directory.querySelector('a').focus({preventScroll:true});
+  const target = link.getAttribute('href') === '#featured'
+    ? document.querySelector('.forest-index__card a')
+    : directory.querySelector('a');
+  target?.focus({preventScroll:true});
 }));
 directory.addEventListener('click',event => {
   const link = event.target.closest('[data-pool-link]');
