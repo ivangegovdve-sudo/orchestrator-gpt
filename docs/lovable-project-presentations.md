@@ -14,7 +14,7 @@ layout in `web/shared/lovable-project.css`.
 Math Mania retains its playable Lovable embed and a direct full-screen fallback
 at https://forest-math-plus.lovable.app. Gym Scholar launches
 https://gymscholar.lovable.app directly. Both apps and sampled public interactions
-were verified on 12 October 2026; screenshot provenance is in
+were verified again on 14 October 2026; screenshot provenance is in
 `web/assets/lovable-projects/README.md`.
 
 This handoff does not select homepage placement, change the front-page index or

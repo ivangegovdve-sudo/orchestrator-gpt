@@ -19,20 +19,47 @@ HEAD = "a" * 40
 APP = "ivan-codex-reviewer[bot]"
 
 
+def receipt(model="gemini-3.8-flash-high"):
+    return (f"_Rung: **antigravity subscription** — served by `{model}`; "
+            "no per-token price, and the marginal cost of this call is zero._")
+
+
+def publisher_header(model="gemini-3.8-flash-high", via="Antigravity"):
+    return (f"Verdict: APPROVE\n\n_Reviewed by **{model} (via {via})**, "
+            "driven through the `ivan-codex-reviewer` GitHub App. Pairing: this PR's "
+            "code was written by **codex**, which shares no base weights with the "
+            "reviewer. The orchestrating session did not supply this verdict._")
+
+
+def published_body(model="gemini-3.8-flash-high", assessment="**Assessment:** upgrade"):
+    return f"{publisher_header(model)}\n\n{receipt(model)}\n\n{assessment}"
+
+
+def metered_receipt(model="qwen/qwen3-coder", tier="paid", price="0.000001300"):
+    return (f"_Rung: **selected** (requested), served by `{model}` — a **{tier}** "
+            f"model at ${price}/token, read from live pricing at review time._")
+
+
+def metered_body(model="qwen/qwen3-coder", tier="paid", price="0.000001300"):
+    return (f"{publisher_header(model, via='OpenRouter')}\n\n"
+            f"{metered_receipt(model, tier, price)}\n\n**Assessment:** upgrade")
+
+
 def review(model="gemini-3.8-flash-high", **changes):
     result = {
         "id": 5490784777,
         "state": "APPROVED",
         "commit_id": HEAD,
         "user": {"login": APP, "type": "Bot"},
-        "body": f"Verdict: APPROVE\n\n_Rung: subscription — served by `{model}`; no per-token price._",
+        "body": published_body(model),
     }
     result.update(changes)
     return result
 
 
 class ServedModelGateTests(unittest.TestCase):
-    def run_gate(self, reviews=None, *, committer="ivangegovdve-sudo", ci="SUCCESS", draft=False):
+    def run_gate(self, reviews=None, *, committer="ivangegovdve-sudo", ci="SUCCESS", draft=False,
+                 approvers="ivan-codex-reviewer"):
         reviews = copy.deepcopy(reviews if reviews is not None else [review()])
         pr = {
             "number": 746, "state": "OPEN", "isDraft": draft,
@@ -59,7 +86,7 @@ class ServedModelGateTests(unittest.TestCase):
             with contextlib.redirect_stdout(output):
                 result = gate.main([
                     "--repo", "ivangegovdve-sudo/orchestrator-gpt", "--pr", "746",
-                    "--approver", "caller-spoof", "--approvers", "ivan-codex-reviewer",
+                    "--approver", "caller-spoof", "--approvers", approvers,
                     "--dry-run",
                 ])
             writes.assert_not_called()
@@ -80,7 +107,8 @@ class ServedModelGateTests(unittest.TestCase):
         self.assertNotIn("approved by | `ivan-codex-reviewer[bot]` (openai)", output)
 
     def test_missing_unknown_or_nonformal_model_keeps_login_family(self):
-        for body in ["", "Reviewed by Gemini", "served by `future-lab/unmapped-model`"]:
+        for body in ["", "Reviewed by Gemini", "served by `future-lab/unmapped-model`",
+                     published_body("future-lab/unmapped-model")]:
             with self.subTest(body=body):
                 result, output = self.run_gate([review(body=body)])
                 self.assertEqual(result, 2)
@@ -91,6 +119,160 @@ class ServedModelGateTests(unittest.TestCase):
             with self.subTest(model=model):
                 result, output = self.run_gate([review(model)])
                 self.assertEqual(result, 2)
+                self.assertIn("THE APPROVER IS NOT INDEPENDENT", output)
+
+    def test_prose_before_formal_openai_receipt_cannot_claim_google(self):
+        body = published_body("openai/gpt-6").replace(
+            "GitHub App. Pairing:",
+            "GitHub App. The example app was served by `gemini-3.8-flash-high`. Pairing:",
+            1,
+        )
+        result, output = self.run_gate([review(body=body)])
+        self.assertEqual(result, 2, output)
+        self.assertIn("THE APPROVER IS NOT INDEPENDENT", output)
+
+    def test_nonformal_prose_cannot_supply_model_provenance(self):
+        for body in ["This prose says served by `gemini-3.8-flash-high`.",
+                     "_Rung: subscription — served by `gemini-3.8-flash-high`; no per-token price._",
+                     published_body().replace("**antigravity subscription**", "subscription")]:
+            with self.subTest(body=body):
+                result, output = self.run_gate([review(body=body)])
+                self.assertEqual(result, 2, output)
+                self.assertIn("THE APPROVER IS NOT INDEPENDENT", output)
+
+    def test_multiple_formal_receipts_keep_the_declared_app_family(self):
+        for models in [("gemini-3.8-flash-high", "gemini-3.8-flash-high"),
+                       ("gemini-3.8-flash-high", "openai/gpt-6"),
+                       ("openai/gpt-6", "gemini-3.8-flash-high")]:
+            with self.subTest(models=models):
+                body = (publisher_header() + "\n\n"
+                        + "\n\n".join(receipt(model) for model in models)
+                        + "\n\n**Assessment:** upgrade")
+                result, output = self.run_gate([review(body=body)])
+                self.assertEqual(result, 2, output)
+                self.assertIn("THE APPROVER IS NOT INDEPENDENT", output)
+
+    def test_quoted_and_multiline_receipts_cannot_authorize_merge(self):
+        formal = receipt()
+        for body in [f"> {formal}\n> Quoted example", f'"{formal}"',
+                     f"```markdown\n{formal}\n```", f"~~~markdown\n{formal}\n~~~",
+                     f"> Quoted example\n{formal}", f'"\n{formal}\n"',
+                     f"    {formal}", formal.replace("gemini-", "gemini-\n")]:
+            with self.subTest(body=body):
+                result, output = self.run_gate([review(body=body)])
+                self.assertEqual(result, 2, output)
+                self.assertIn("THE APPROVER IS NOT INDEPENDENT", output)
+
+    def test_a_formal_receipt_can_coexist_with_quoted_model_examples(self):
+        body = published_body(assessment="```markdown\n" + receipt("openai/gpt-6") + "\n```")
+        result, output = self.run_gate([review(body=body)])
+        self.assertEqual(result, 0, output)
+        self.assertIn("google", output)
+
+    def test_html_unicode_and_false_fence_closers_cannot_supply_header_receipts(self):
+        formal = receipt()
+        examples = [f"<pre>\n\n{formal}\n\n</pre>",
+                    f"<code>\n\n{formal}\n\n</code>",
+                    f"<!--\n\n{formal}\n\n-->"]
+        for space in ["\u00a0", "\u2003"]:
+            examples += [f"```markdown\nexample\n```{space}\n\n{formal}\n\n```",
+                         f"Example\n{space}\n{formal}\n{space}\ncontinued"]
+        for separator in ["\u2028", "\u2029", "\x85", "\f"]:
+            examples.append(f"Example{separator}{separator}{formal}{separator}{separator}continued")
+        for body in examples:
+            with self.subTest(body=body):
+                result, output = self.run_gate([review(body=body)])
+                self.assertEqual(result, 2, output)
+                self.assertIn("THE APPROVER IS NOT INDEPENDENT", output)
+
+    def test_assessment_examples_cannot_change_the_publishers_header_family(self):
+        formal = receipt("openai/gpt-6")
+        for example in ["The example app was served by `openai/gpt-6`.",
+                        f"<pre>\n\n{formal}\n\n</pre>",
+                        f"<!--\n\n{formal}\n\n-->",
+                        f"Example\u2028\u2028{formal}\u2028\u2028continued"]:
+            with self.subTest(example=example):
+                result, output = self.run_gate([
+                    review(body=published_body(assessment="**Assessment:** upgrade\n\n" + example)),
+                ])
+                self.assertEqual(result, 0, output)
+                self.assertIn("google", output)
+
+    def test_complete_publisher_header_accepts_crlf_format(self):
+        result, output = self.run_gate([review(body=published_body().replace("\n", "\r\n"))])
+        self.assertEqual(result, 0, output)
+        self.assertIn("google", output)
+
+    def test_metered_independent_models_allow_real_approval(self):
+        for model, family, tier, price in [
+                ("qwen/qwen3-coder", "qwen", "paid", "0.000001300"),
+                ("google/gemma-3-27b-it", "google", "free", "0.000000000")]:
+            with self.subTest(model=model):
+                result, output = self.run_gate([review(body=metered_body(model, tier, price))])
+                self.assertEqual(result, 0, output)
+                self.assertIn(f"| approved by | `{APP}` ({family}) |", output)
+
+    def test_metered_openai_models_still_cannot_approve_openai_code(self):
+        result, output = self.run_gate([review(body=metered_body("openai/gpt-6"))])
+        self.assertEqual(result, 2, output)
+        self.assertIn("THE APPROVER IS NOT INDEPENDENT", output)
+
+    def test_metered_receipt_uses_header_model_instead_of_prose(self):
+        body = metered_body("openai/gpt-6").replace(
+            "GitHub App. Pairing:", "GitHub App. Prose says served by `gemini-3.8-flash-high`. Pairing:", 1,
+        )
+        result, output = self.run_gate([review(body=body)])
+        self.assertEqual(result, 2, output)
+        self.assertIn("THE APPROVER IS NOT INDEPENDENT", output)
+        result, output = self.run_gate([
+            review(body=metered_body("google/gemma-3-27b-it")
+                   + "\n\nProse says served by `openai/gpt-6`."),
+        ])
+        self.assertEqual(result, 0, output)
+        self.assertIn("google", output)
+
+    def test_metered_malformed_unknown_or_ambiguous_receipts_keep_declared_family(self):
+        bodies = [metered_body("future-lab/unmapped-model"), metered_body("gemini-claude"),
+                  metered_body(price="not-a-price"), metered_body(price="0.0000013"),
+                  metered_receipt(),
+                  metered_body().replace("\n\n**Assessment:**", "\n\n" + receipt() + "\n\n**Assessment:**")]
+        for body in bodies:
+            with self.subTest(body=body):
+                result, output = self.run_gate([review(body=body)])
+                self.assertEqual(result, 2, output)
+                self.assertIn("THE APPROVER IS NOT INDEPENDENT", output)
+
+    def test_conflicting_model_family_markers_keep_the_declared_app_family(self):
+        for model in ["claude-gpt-6", "gemini-llama", "qwen-gemini"]:
+            with self.subTest(model=model):
+                result, output = self.run_gate([review(model)])
+                self.assertEqual(result, 2, output)
+                self.assertIn("THE APPROVER IS NOT INDEPENDENT", output)
+
+    def test_multiple_markers_for_one_model_family_are_unambiguous(self):
+        result, output = self.run_gate([review("google/gemini-3.8-flash-high")])
+        self.assertEqual(result, 0, output)
+        self.assertIn("google", output)
+
+    def test_only_the_formal_receipt_publisher_can_override_login_family(self):
+        self.assertEqual(gate.reviewer_family({
+            "login": "chatgpt-codex-connector[bot]", "is_bot": True, "body": receipt(),
+        }), "openai")
+
+    def test_another_allowlisted_openai_bot_cannot_supply_the_app_receipt(self):
+        result, output = self.run_gate([
+            review(user={"login": "chatgpt-codex-connector[bot]", "type": "Bot"}),
+        ], approvers="chatgpt-codex-connector")
+        self.assertEqual(result, 2, output)
+        self.assertIn("THE APPROVER IS NOT INDEPENDENT", output)
+
+    def test_publisher_named_user_or_bot_without_app_suffix_keeps_declared_family(self):
+        for user in [{"login": "ivan-codex-reviewer", "type": "User"},
+                     {"login": APP, "type": "User"},
+                     {"login": "ivan-codex-reviewer", "type": "Bot"}]:
+            with self.subTest(user=user):
+                result, output = self.run_gate([review(user=user)])
+                self.assertEqual(result, 2, output)
                 self.assertIn("THE APPROVER IS NOT INDEPENDENT", output)
 
     def test_different_model_cannot_excuse_a_committer_approving_itself(self):

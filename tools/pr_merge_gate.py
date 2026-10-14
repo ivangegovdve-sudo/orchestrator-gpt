@@ -138,7 +138,19 @@ class Decision:
 # Formal served-model receipts come from the independent reviewer App, read
 # from GitHub review records, never from caller flags. Ported from the reviewed
 # family-resolution fix in hermes_agents PR #802, commit 1535bc4f8497403dafc24123c3d58aaf4ad5fa15.
-_SERVED_MODEL = re.compile(r"served by `([^`]+)`", re.I)
+_SERVED_MODEL = re.compile(
+    r"_Rung: \*\*[^*\r\n\v\f\x85\u2028\u2029]+\*\* — served by "
+    r"`([A-Za-z0-9][A-Za-z0-9._:/+-]*)`; [^\r\n\v\f\x85\u2028\u2029]+_"
+)
+_METERED_SERVED_MODEL = re.compile(
+    r"_Rung: \*\*[^*\r\n\v\f\x85\u2028\u2029]+\*\* \(requested\), served by "
+    r"`([A-Za-z0-9][A-Za-z0-9._:/+-]*)` — a \*\*[^*\r\n\v\f\x85\u2028\u2029]+\*\* "
+    r"model at \$[0-9]+\.[0-9]{9}/token, read from live pricing at review time\._"
+)
+_REVIEWED_BY = re.compile(
+    r"_Reviewed by \*\*[^*\r\n\v\f\x85\u2028\u2029]+\*\*, driven through "
+    r"the `ivan-codex-reviewer` GitHub App\.[^\r\n\v\f\x85\u2028\u2029]+_"
+)
 _MODEL_FAMILY_MARKERS = (
     ("anthropic", "anthropic"), ("claude", "anthropic"),
     ("openai", "openai"), ("codex", "openai"), ("gpt-", "openai"),
@@ -150,15 +162,27 @@ _MODEL_FAMILY_MARKERS = (
 
 
 def reviewer_model_family(review: dict) -> str | None:
-    """Resolve a known served model; unknown or absent receipts stay unknown."""
-    served = _SERVED_MODEL.search(review.get("body") or "")
-    if not served:
+    """Resolve one unambiguous formal receipt from the known publishing App."""
+    login = (review.get("login") or "").strip().lower()
+    if (review.get("is_bot") is not True or not login.endswith("[bot]")
+            or normalise_login(login) != "ivan-codex-reviewer"):
         return None
-    slug = served.group(1).strip().casefold()
-    for marker, family in _MODEL_FAMILY_MARKERS:
-        if marker in slug:
-            return family
-    return None
+
+    # The publisher's render() emits Verdict, Reviewed-by, and Rung paragraphs
+    # in this fixed order, before any assessment text. Read only that header
+    # slot; quoted examples and Markdown in the assessment are not receipts.
+    paragraphs = (review.get("body") or "").replace("\r\n", "\n").split("\n\n", 3)
+    if (len(paragraphs) < 3
+            or paragraphs[0] not in {"Verdict: APPROVE", "Verdict: REQUEST_CHANGES", "Verdict: COMMENT"}
+            or not _REVIEWED_BY.fullmatch(paragraphs[1])):
+        return None
+    served = (_SERVED_MODEL.fullmatch(paragraphs[2])
+              or _METERED_SERVED_MODEL.fullmatch(paragraphs[2]))
+    if (not served or (len(paragraphs) == 4 and paragraphs[3].startswith("_Rung:"))):
+        return None
+    slug = served[1].casefold()
+    families = {family for marker, family in _MODEL_FAMILY_MARKERS if marker in slug}
+    return next(iter(families)) if len(families) == 1 else None
 
 
 def reviewer_family(review: dict) -> str | None:
