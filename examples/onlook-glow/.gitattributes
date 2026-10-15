@@ -1,0 +1,2 @@
+# Keep the recovered scene's provenance hash stable on Windows checkouts.
+flow-background.json text eol=lf
