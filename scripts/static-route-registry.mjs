@@ -126,6 +126,7 @@ export const ROUTE_REGISTRY = deepFreeze([
   route('open-dashboard-matrix', 'open-dashboard-notices', '/web/open-dashboard/matrix/', 'html-shim', 'web/open-dashboard/matrix/index.html', NOINDEX, { destination: '/web/open-dashboard/#connections', preservesQuery: true }),
   route('open-dashboard-mcp', 'open-dashboard', '/web/open-dashboard/mcp/', 'child', 'web/open-dashboard/mcp/index.html', PUBLIC),
   route('open-dashboard-openrouter', 'open-dashboard-notices', '/web/open-dashboard/openrouter/', 'html-shim', 'web/open-dashboard/openrouter/index.html', NOINDEX, { destination: '/web/open-dashboard/?view=apps#explore', preservesQuery: true }),
+  route('parenting-platform', 'parenting-platform', '/web/parenting-platform/', 'page', 'web/parenting-platform/index.html', PUBLIC),
   route('power-law-odyssey', 'power-law-odyssey', '/web/power-law-odyssey/', 'page', 'web/power-law-odyssey/index.html', PUBLIC),
   route('replicator-void', 'replicator-void', '/web/replicator-void/', 'page', 'web/replicator-void/index.html', PUBLIC),
   route('repos', 'repos', '/web/repos/', 'page', 'web/repos/index.html', { ...PUBLIC, navigation: 'unlisted', indexing: 'noindex' }),

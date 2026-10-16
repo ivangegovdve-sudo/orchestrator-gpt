@@ -254,6 +254,11 @@ const projectRecords = [
     relationships: [{ type: 'optional-introduction', pool: 'GrowingApp' }, { type: 'reference', pool: 'My Story' }],
     sources: ['web/manifesto-newborn/index.html', MASTER],
   }),
+  project('parenting-platform', 'Steady Steps', {
+    pool: 'GrowingApp', classification: 'assigned', status: 'In development', rank: { GrowingApp: 5 },
+    visibility: publicShell,
+    sources: ['web/parenting-platform/index.html', MASTER],
+  }),
   project('dyslexia', 'Dyslexia Reading Platform', {
     pool: 'Health', classification: 'assigned', status: 'Live', rank: { Health: 9 }, visibility: publicShell, sources: ['index.html', PLAN],
     implementationUrl: 'https://chloe.blumenkraft.cloud/dyslexia/',
@@ -386,6 +391,7 @@ export const ROUTE_OWNERS = deepFreeze([
     '/web/manifesto-newborn/mk/', '/web/manifesto-newborn/pt/', '/web/manifesto-newborn/ru/',
     '/web/manifesto-newborn/zh/',
   ], { role: 'context' }),
+  owner('parenting-platform', ['/web/parenting-platform/']),
   owner('vfx-portfolio', ['/web/vfx-portfolio/'], { role: 'portfolio' }),
   owner('lobester-gym', ['/web/lobester-gym/']),
   owner('womens-health-os', ['/web/womens-health-os/']),

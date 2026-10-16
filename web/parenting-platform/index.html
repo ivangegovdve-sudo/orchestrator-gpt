@@ -1,0 +1,278 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="A private, research-grounded guide for navigating difficult parenting moments with safety, connection, and clear limits."
+    />
+    <title>Steady Steps — a difficult-moment guide</title>
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='18' fill='%2324543f'/%3E%3Cpath d='M42 20c-4-4-16-3-16 4 0 9 18 5 18 15 0 8-13 10-22 4' fill='none' stroke='white' stroke-width='6' stroke-linecap='round'/%3E%3C/svg%3E"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#main-content">Skip to main content</a>
+
+    <div class="app-shell">
+      <aside class="sidebar" aria-label="Steady Steps navigation">
+        <a class="brand" href="#guide" aria-label="Steady Steps home">
+          <span class="brand-mark" aria-hidden="true">S</span>
+          <span>Steady Steps</span>
+        </a>
+
+        <nav class="primary-nav" aria-label="Primary navigation">
+          <a class="nav-link" href="#guide" data-view-target="guide">
+            <svg aria-hidden="true" viewBox="0 0 24 24">
+              <path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H11v17H6.5A2.5 2.5 0 0 0 4 22V5.5Z" />
+              <path d="M20 5.5A2.5 2.5 0 0 0 17.5 3H13v17h4.5A2.5 2.5 0 0 1 20 22V5.5Z" />
+            </svg>
+            <span>Guide</span>
+          </a>
+          <a class="nav-link" href="#check-in" data-view-target="check-in">
+            <svg aria-hidden="true" viewBox="0 0 24 24">
+              <path d="M5 20V11M12 20V4M19 20v-7" />
+            </svg>
+            <span>4-week check-in</span>
+          </a>
+          <a class="nav-link" href="#evidence" data-view-target="evidence">
+            <svg aria-hidden="true" viewBox="0 0 24 24">
+              <path d="M6 3h12a2 2 0 0 1 2 2v16H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Z" />
+              <path d="M8 8h8M8 12h8M8 16h5" />
+            </svg>
+            <span>Evidence</span>
+          </a>
+          <a class="nav-link" href="#about" data-view-target="about">
+            <svg aria-hidden="true" viewBox="0 0 24 24">
+              <circle cx="12" cy="12" r="9" />
+              <path d="M12 11v6M12 7.5h.01" />
+            </svg>
+            <span>About</span>
+          </a>
+        </nav>
+
+        <div class="sidebar-support">
+          <p class="sidebar-support__title">Need more than a guide?</p>
+          <p>Some situations need immediate or professional support.</p>
+          <button class="text-button safety-trigger" type="button">See safeguarding guidance</button>
+        </div>
+
+        <p class="sidebar-disclaimer">Educational support only — not therapy, diagnosis, or crisis response.</p>
+      </aside>
+
+      <div class="page-shell">
+        <header class="topbar">
+          <a class="mobile-brand" href="#guide">Steady Steps</a>
+          <div class="privacy-note" title="Check-ins use this browser's local storage">
+            <svg aria-hidden="true" viewBox="0 0 24 24">
+              <rect x="3" y="5" width="18" height="12" rx="2" />
+              <path d="M8 21h8M12 17v4" />
+            </svg>
+            <span>Saved on this device</span>
+          </div>
+        </header>
+
+        <main id="main-content" tabindex="-1">
+          <section class="view" id="view-guide" data-view="guide" aria-labelledby="guide-title">
+            <div class="page-heading guide-heading">
+              <div>
+                <h1 id="guide-title">Meet the moment you’re in.</h1>
+                <p>Seven short steps for safety, connection, and a clear limit.</p>
+              </div>
+              <button class="urgent-link safety-trigger" type="button">
+                <span aria-hidden="true">!</span>
+                Immediate danger?
+              </button>
+            </div>
+
+            <div class="guide-controls" aria-label="Choose a difficult moment and age">
+              <label class="field situation-field">
+                <span>Situation</span>
+                <select id="scenario-select"></select>
+              </label>
+              <fieldset class="age-field">
+                <legend>Age</legend>
+                <div class="segmented-control" id="age-options"></div>
+              </fieldset>
+            </div>
+
+            <p class="selection-summary" id="selection-summary" aria-live="polite"></p>
+            <ol class="stepper" id="stepper" aria-label="Seven-step guide progress"></ol>
+
+            <div class="guide-workspace">
+              <article class="step-content" id="step-content" aria-live="polite"></article>
+              <aside class="step-aside" id="step-aside" aria-label="In-the-moment reminders"></aside>
+            </div>
+
+            <aside class="later-preview" id="later-preview" aria-label="Later repair preview"></aside>
+            <p class="protocol-note">
+              This guide combines research-backed practices. The seven-step sequence itself is a practical synthesis,
+              not a separately tested clinical program.
+            </p>
+          </section>
+
+          <section class="view" id="view-check-in" data-view="check-in" aria-labelledby="check-in-title" hidden>
+            <div class="page-heading">
+              <div>
+                <h1 id="check-in-title">Notice patterns, not perfection.</h1>
+                <p>A four-week personal check-in for seeing what is changing and what still needs support.</p>
+              </div>
+              <span class="local-label">Local to this browser</span>
+            </div>
+
+            <div class="measure-callout">
+              <strong>This is not a validated assessment.</strong>
+              <span>Use the same meaning for each rating from week to week. Missing weeks stay “Not recorded.”</span>
+            </div>
+
+            <div class="week-tabs" id="week-tabs" role="tablist" aria-label="Choose check-in week"></div>
+
+            <div class="tracker-layout">
+              <aside class="week-focus" id="week-focus"></aside>
+              <form class="check-in-form" id="check-in-form" novalidate>
+                <div class="form-heading">
+                  <div>
+                    <p class="section-label" id="form-week-label">Week 1 check-in</p>
+                    <h2>What did you observe?</h2>
+                  </div>
+                  <span>About the past 7 days</span>
+                </div>
+                <div class="metric-grid" id="metric-fields"></div>
+                <div class="form-actions">
+                  <button class="primary-button" type="submit">Save this week</button>
+                  <span class="save-status" id="save-status" role="status" aria-live="polite"></span>
+                </div>
+              </form>
+            </div>
+
+            <section class="comparison-section" aria-labelledby="comparison-title">
+              <div class="section-heading-row">
+                <div>
+                  <p class="section-label">Your four weeks</p>
+                  <h2 id="comparison-title">A descriptive view</h2>
+                </div>
+                <button class="text-button danger-text" id="clear-check-ins" type="button">Clear all check-ins</button>
+              </div>
+              <p id="comparison-summary" class="comparison-summary"></p>
+              <div class="table-scroll">
+                <table>
+                  <caption class="visually-hidden">Saved weekly check-in values</caption>
+                  <thead id="comparison-head"></thead>
+                  <tbody id="comparison-body"></tbody>
+                </table>
+              </div>
+            </section>
+          </section>
+
+          <section class="view" id="view-evidence" data-view="evidence" aria-labelledby="evidence-title" hidden>
+            <div class="page-heading evidence-heading">
+              <div>
+                <h1 id="evidence-title">Know what each approach can support.</h1>
+                <p>Different intervention families address different outcomes. They are not interchangeable.</p>
+              </div>
+            </div>
+
+            <div class="evidence-disclaimer">
+              <h2>One important distinction</h2>
+              <p>
+                “Gentle parenting” is not a standardized, independently validated clinical package. This app draws
+                on distinct literatures without treating the label as a proven program or elevating NVC to the evidence
+                status of structured clinical interventions.
+              </p>
+            </div>
+
+            <div class="evidence-list" id="evidence-list"></div>
+
+            <aside class="evidence-reading-note">
+              <h2>How to read these entries</h2>
+              <p>
+                The evidence descriptions name study design and strength in context; they are not a universal grade.
+                Outcomes, comparison groups, reporters, populations, and follow-up periods all matter.
+              </p>
+            </aside>
+          </section>
+
+          <section class="view" id="view-about" data-view="about" aria-labelledby="about-title" hidden>
+            <div class="page-heading">
+              <div>
+                <h1 id="about-title">A small guide with clear limits.</h1>
+                <p>Steady Steps supports a brief response now and reflection later. It does not assess your family.</p>
+              </div>
+            </div>
+
+            <div class="about-layout">
+              <section>
+                <p class="section-label">What this is</p>
+                <h2>Educational, research-grounded practice</h2>
+                <p>
+                  The guide turns a seven-step synthesis into short, age-aware prompts for five common difficult
+                  moments. The check-in helps you compare your own observations over four weeks.
+                </p>
+              </section>
+              <section>
+                <p class="section-label">What this is not</p>
+                <h2>Not therapy, diagnosis, or emergency care</h2>
+                <p>
+                  It does not deliver PMT, PCIT, VIPP-SD, mindful-parenting treatment, or any other clinical program.
+                  It should not delay professional assessment or safeguarding support.
+                </p>
+              </section>
+              <section>
+                <p class="section-label">Privacy</p>
+                <h2>No accounts. No recordings.</h2>
+                <p>
+                  The app does not request audio, video, names, or free-text incident details. Weekly check-ins are
+                  stored only in this browser and can be cleared at any time.
+                </p>
+              </section>
+              <section>
+                <p class="section-label">Evidence source</p>
+                <h2>One bounded research export</h2>
+                <p>
+                  Product claims and guidance are limited to
+                  <a href="research/evidence-based-parenting.md">research/evidence-based-parenting.md</a>. No external
+                  evidence was added to the product.
+                </p>
+              </section>
+            </div>
+
+            <div class="about-safety">
+              <div>
+                <h2>When self-help is not enough</h2>
+                <p>Open the safeguarding guide for danger signs and next-step guidance.</p>
+              </div>
+              <button class="secondary-button safety-trigger" type="button">Open safeguarding guidance</button>
+            </div>
+          </section>
+        </main>
+      </div>
+    </div>
+
+    <section class="print-summary" id="print-summary" aria-labelledby="print-summary-title"></section>
+
+    <dialog class="safety-dialog" id="safety-dialog" aria-labelledby="safety-dialog-title">
+      <form method="dialog" class="dialog-frame">
+        <div class="dialog-header">
+          <div>
+            <p class="section-label">Safeguarding</p>
+            <h2 id="safety-dialog-title">Safety comes before this guide.</h2>
+          </div>
+          <button class="icon-button" value="close" aria-label="Close safeguarding guidance" type="submit">
+            <svg aria-hidden="true" viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18" /></svg>
+          </button>
+        </div>
+        <div id="safety-dialog-content"></div>
+        <div class="dialog-footer">
+          <p>This app cannot contact services or assess risk.</p>
+          <button class="primary-button" value="close" type="submit">Close and return</button>
+        </div>
+      </form>
+    </dialog>
+
+    <div class="toast" id="toast" role="status" aria-live="polite" aria-atomic="true"></div>
+    <script type="module" src="src/app.js"></script>
+  </body>
+</html>
