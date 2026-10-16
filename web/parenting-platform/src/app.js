@@ -113,7 +113,7 @@ const state = {
   guideComplete: false,
   selectedWeek: 1,
   checkIns: loadCheckIns(browserStorage, TRACKER_METRICS),
-  unsavedWeek: null,
+  sessionOnlyWeeks: {},
 };
 
 const elements = {
@@ -523,10 +523,10 @@ function renderWeekTabs() {
   elements.weekTabs.innerHTML = PRACTICE_WEEKS.map((week) => {
     const isSelected = week.week === state.selectedWeek;
     const hasEntry = Boolean(state.checkIns[week.week]);
-    const isUnsaved = state.unsavedWeek === week.week;
+    const isSessionOnly = Boolean(state.sessionOnlyWeeks[week.week]);
     return `
       <button
-        class="week-tab ${hasEntry || isUnsaved ? 'has-entry' : ''}"
+        class="week-tab ${hasEntry ? 'has-entry' : ''}"
         id="week-tab-${week.week}"
         type="button"
         role="tab"
@@ -536,7 +536,7 @@ function renderWeekTabs() {
         data-week="${week.week}"
       >
         Week ${week.week}
-        <span>${hasEntry ? week.theme : isUnsaved ? 'Unsaved' : 'Not recorded'}</span>
+        <span>${isSessionOnly ? 'Session only' : hasEntry ? week.theme : 'Not recorded'}</span>
       </button>
     `;
   }).join('');
@@ -555,8 +555,7 @@ function renderWeekFocus() {
 
 function renderMetricFields() {
   const savedValues = state.checkIns[state.selectedWeek]?.values ?? state.checkIns[state.selectedWeek] ?? {};
-  const unsavedValues = state.unsavedWeek === state.selectedWeek ? state.unsavedWeekValues : {};
-  const currentValues = Object.keys(unsavedValues).length ? unsavedValues : savedValues;
+  const currentValues = savedValues;
   elements.formWeekLabel.textContent = `Week ${state.selectedWeek} check-in`;
 
   elements.metricFields.innerHTML = TRACKER_METRICS.map((metric) => {
@@ -599,9 +598,11 @@ function renderMetricFields() {
     `;
   }).join('');
 
-  const isSaved = Boolean(state.checkIns[state.selectedWeek]) && state.unsavedWeek !== state.selectedWeek;
-  elements.saveStatus.textContent = isSaved
-    ? `Week ${state.selectedWeek} is saved. Saving again will update it.`
+  const hasEntry = Boolean(state.checkIns[state.selectedWeek]);
+  elements.saveStatus.textContent = hasEntry
+    ? state.sessionOnlyWeeks[state.selectedWeek]
+      ? `Week ${state.selectedWeek} is available for this session only.`
+      : `Week ${state.selectedWeek} is saved. Saving again will update it.`
     : '';
 }
 
@@ -681,21 +682,15 @@ function saveSelectedWeek(event) {
 
   clearFieldErrors();
 
-  const currentStorage = loadCheckIns(browserStorage, TRACKER_METRICS);
   const updatedCheckIns = {
-    ...currentStorage,
+    ...state.checkIns,
     [state.selectedWeek]: { values: result.values },
   };
 
   const persisted = storeCheckIns(browserStorage, updatedCheckIns);
-  if (persisted) {
-    state.checkIns = updatedCheckIns;
-    state.unsavedWeek = null;
-    state.unsavedWeekValues = null;
-  } else {
-    state.unsavedWeek = state.selectedWeek;
-    state.unsavedWeekValues = result.values;
-  }
+  state.checkIns = updatedCheckIns;
+  if (persisted) delete state.sessionOnlyWeeks[state.selectedWeek];
+  else state.sessionOnlyWeeks[state.selectedWeek] = true;
 
   renderTracker();
   elements.saveStatus.textContent = persisted
@@ -719,6 +714,7 @@ function clearAllCheckIns() {
     return;
   }
   state.checkIns = {};
+  state.sessionOnlyWeeks = {};
   renderTracker();
   announce('All check-ins were cleared from this browser.');
 }
@@ -737,6 +733,7 @@ function bindEvents() {
   window.addEventListener('storage', (event) => {
     if (event.key === STORAGE_KEY) {
       state.checkIns = loadCheckIns(browserStorage, TRACKER_METRICS);
+      state.sessionOnlyWeeks = {};
       renderTracker();
     }
   });
