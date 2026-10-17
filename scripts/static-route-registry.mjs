@@ -79,6 +79,7 @@ export const ROUTE_REGISTRY = deepFreeze([
   route('gym-scholar', 'gym-scholar', '/web/gym-scholar/', 'page', 'web/gym-scholar/index.html', PUBLIC),
   route('hypertrophyos', 'hypertrophyos', '/web/hypertrophyos/', 'page', 'web/hypertrophyos/index.html', PUBLIC),
   route('kids', 'kids', '/web/kids/', 'page', 'web/kids/index.html', PUBLIC),
+  route('kids-library-preview', 'kids-library-preview', '/web/kids-library-preview/', 'page', 'web/kids-library-preview/index.html', NOINDEX),
   route('kids-movie-library', 'kids-movie-library', '/web/kids-movie-library/', 'page', 'web/kids-movie-library/index.html', PUBLIC),
   route('library-chloe', 'library-chloe', '/web/library/chloe/', 'child', 'web/library/chloe/index.html', INTERNAL_NOINDEX),
   route('library-general', 'library-memory', '/web/library/general/', 'child', 'web/library/general/index.html', INTERNAL_NOINDEX),

@@ -293,7 +293,7 @@ const projectRecords = [
   project('kids-movie-library', 'Kids Library', {
     pool: 'GrowingApp', classification: 'assigned', status: 'In development', rank: { GrowingApp: 4 }, visibility: publicShell,
     sections: [{ id: 'movies', name: 'Movies' }, { id: 'books', name: 'Books' }],
-    sources: ['movies/index.html', 'web/kids-movie-library/index.html', PLAN],
+    sources: ['movies/index.html', 'web/kids-movie-library/index.html', 'web/kids-library-preview/index.html', PLAN],
   }),
   project('m-popova', 'Poetry Space', {
     pool: 'Design Gallery', classification: 'assigned', status: 'Live', rank: { 'Design Gallery': 10 }, visibility: publicShell, attribution: 'Poetry by Maria Popova.', sources: ['web/m-popova/index.html', MASTER],
@@ -400,6 +400,7 @@ export const ROUTE_OWNERS = deepFreeze([
   owner('gallery', ['/web/gallery/']),
   owner('kids', ['/web/kids/']),
   owner('kids-movie-library', ['/web/kids-movie-library/', '/movies/']),
+  owner('kids-library-preview', ['/web/kids-library-preview/'], { projectId: 'kids-movie-library', role: 'preview', visibility: compatibility }),
   owner('m-popova', ['/web/m-popova/']),
   owner('open-dashboard', ['/web/open-dashboard/', '/web/open-dashboard/github/', '/web/open-dashboard/mcp/']),
   owner('open-dashboard-notices', ['/web/open-dashboard/openrouter/', '/web/open-dashboard/catalogues/', '/web/open-dashboard/matrix/'], { projectId: 'open-dashboard', role: 'child', visibility: compatibility }),
