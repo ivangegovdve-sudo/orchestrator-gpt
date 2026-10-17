@@ -1,11 +1,18 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const crypto = require('node:crypto');
 const fs = require('node:fs');
 const path = require('node:path');
 
 const ROOT = path.resolve(__dirname, '../..');
 const read = (relativePath) => fs.readFileSync(path.join(ROOT, relativePath), 'utf8');
+const FINAL_SHORT_BODY = [
+  "A chair and a ladder come from the same oak. A chair holds you where you are. A ladder gets you somewhere you couldn't reach — and stays for the next person. AI is both.",
+  "My confession, since this essay is the evidence: I didn't write it. I handed the writing to a machine — not to save time, but because writing scares me. Critiquing is easy; I can pick at a draft forever. Writing one is the exposed part, so I don't. That's what all the iterations are — me editing instead of making. Fumbling on stilts: upright, moving, never quite on my own feet.",
+  "That's the chair. It fills the blank page and quietly takes the one thing that was mine to practice. The danger isn't saved effort — a calculator saves effort. It's that the tool removes the repetition and the judgment together, until I can't tell which muscle I've stopped using.",
+  "The ladder costs more: decide what matters yourself, check the machine's work, write down where it failed, leave the method for the next person. It's slower, and a metric that counts output per hour punishes slower. So most people take the chair — and they're right to. The cost doesn't land on them. It lands later, on whoever can't reconstruct how the answer was made.",
+  "So the fix isn't willpower. It's keeping the work legible and portable — sources you can follow, records you can carry out, judgment you can still see. Borrow the capability; don't lose the ability to leave.",
+  "Use the tools. Let them make you faster. But keep enough friction to feel the weight of the thing, and now and then do the scary part yourself. I'm still learning to. I wrote this line. The machine wrote the rest. That's the whole problem, and I know it.",
+];
 
 function articleTextNodes(page) {
   const article = page.match(/<article\b[^>]*>([\s\S]*?)<\/article>/i)?.[1] || '';
@@ -18,33 +25,16 @@ function articleTextNodes(page) {
   return { article, text };
 }
 
-test('A Chair or a Ladder publishes Ivan-approved unslopped Revision C verbatim', () => {
+test('A Chair or a Ladder renders the approved short first-person essay verbatim', () => {
   const page = read('web/chair-or-ladder/index.html');
   const { article, text } = articleTextNodes(page);
   const words = text.join(' ').match(/[\p{L}\p{N}’'-]+/gu) || [];
-  const normalized = text.join(' ').replace(/\s+/g, ' ').trim();
 
   assert.match(page, /<title>A Chair or a Ladder — What AI trains us to become<\/title>/);
   assert.match(page, /<p class="byline">Ivan Gegov<\/p>/);
-  assert.equal(text.length, 30, 'all approved Revision C text blocks are present');
-  assert.equal(words.length, 1607, 'approved Revision C word count');
-  assert.equal(
-    crypto.createHash('sha256').update(normalized, 'utf8').digest('hex'),
-    'a30b3ac7c9820134e0216c270a8c9048a535f84b1273c7adfd192fa14473eac6',
-    'the rendered article text matches the approved unslopped manuscript',
-  );
-  for (const required of [
-    'The objection that should stop you',
-    'Making judgment legible',
-    'Where that leaves you',
-    'But they ask for opposite postures.',
-    'This essay is itself the example: Ivan Gegov supplied the governing image and the argument; AI drafted and revised the prose.',
-    "Judgment isn't being defeated by convenience. It's being outbid by a measurement that doesn't know it exists.",
-    'A ladder three people use is an argument.',
-    'Stand where the decision matters.',
-  ]) assert.match(article, new RegExp(required.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
-  assert.doesNotMatch(article, /Both support weight|invite opposite postures|don't mistake enforced sitting for comfort/);
-  assert.doesNotMatch(article, /Council review|Reference — the council prescription|Alternate revision|Working draft/i);
+  assert.deepEqual(text, FINAL_SHORT_BODY, 'the rendered article text matches the supplied short manuscript');
+  assert.equal(words.length, 299, 'the short manuscript lexical word count is preserved');
+  assert.match(article, /I wrote this line\. The machine wrote the rest\./);
   assert.doesNotMatch(page, /<audio\b/i);
 });
 
@@ -62,7 +52,7 @@ test('A Chair or a Ladder has the clean public route and readable essay structur
     { source: '/chair-or-ladder', destination: '/web/chair-or-ladder/' },
     { source: '/chair-or-ladder/', destination: '/web/chair-or-ladder/' },
   ]);
-  assert.equal((article.match(/<h2\b/g) || []).length, 3, 'the approved essay keeps its three section headings');
+  assert.equal((article.match(/<h2\b/g) || []).length, 0, 'the short essay does not add section headings');
   assert.equal((article.match(/<li>/g) || []).length, 0, 'the approved prose does not introduce list-only copy');
 });
 
