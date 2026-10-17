@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="A clean-room SD Forest front-door prototype: portal arrival and project-source pools.">
+    <title>SD Forest — Arrival Prototype</title>
+    <link rel="stylesheet" href="./styles.css">
+  </head>
+  <body>
+    <main id="forest-shell" data-scene="intro" data-intro-phase="dormant" data-renderer="booting">
+      <canvas id="forest-canvas" aria-label="Interactive SD Forest arrival and project-source landscape"></canvas>
+      <div class="film-grain" aria-hidden="true"></div>
+
+      <header class="site-chrome" aria-label="SD Forest prototype">
+        <a class="wordmark" href="../../index.html">SD<span>FOREST</span></a>
+        <p class="stage-label">front-door study · two linked scenes</p>
+      </header>
+
+      <section class="intro-panel panel" aria-labelledby="arrival-title">
+        <p class="eyebrow">Arrival / 01</p>
+        <h1 id="arrival-title">A field of stones remembers the way through.</h1>
+        <p class="panel-copy">Hover the field to let its pieces leave their resting shape and make a window into the forest.</p>
+        <button id="intro-activator" class="quiet-button" type="button">
+          Awaken the stones
+          <span aria-hidden="true">↗</span>
+        </button>
+        <button id="enter-forest" class="enter-button" type="button" hidden>
+          Step into SD Forest
+          <span aria-hidden="true">→</span>
+        </button>
+      </section>
+
+      <section id="front-panel" class="front-panel panel" aria-labelledby="front-title" hidden>
+        <p class="eyebrow">Forest sources / 02</p>
+        <h1 id="front-title">One embedded shape. A moat. Living project water.</h1>
+        <p class="panel-copy">Each luminous pool is a live source. Hover one to orient; select it to open its route.</p>
+        <button id="restart-intro" class="quiet-button restart-button" type="button">Replay arrival</button>
+      </section>
+
+      <aside id="pool-detail" class="pool-detail" aria-live="polite" aria-atomic="true" hidden>
+        <p class="eyebrow">Selected source</p>
+        <h2 id="pool-title">The Drop</h2>
+        <p id="pool-description"></p>
+        <a id="open-source" class="source-cta" href="../morning-news/">Open source <span aria-hidden="true">↗</span></a>
+      </aside>
+
+      <nav id="project-sources" class="source-nav" aria-label="Project sources" hidden>
+        <p class="source-nav-label">Project sources</p>
+        <div class="source-links">
+          <a class="source-link" data-source-id="the-drop" href="../morning-news/">The Drop</a>
+          <a class="source-link" data-source-id="mendeleev" href="../mendeleev-bg/">Mendeleev</a>
+          <a class="source-link" data-source-id="rubiks-teacher" href="../rubiks-teacher/">Rubik’s Teacher</a>
+          <a class="source-link" data-source-id="open-dashboard" href="../open-dashboard/">Open Dashboard</a>
+          <a class="source-link" data-source-id="artificial-self" href="../ai-research/">Artificial Self</a>
+          <a class="source-link" data-source-id="poetry-space" href="../m-popova/">Poetry Space</a>
+        </div>
+      </nav>
+
+      <p id="scene-status" class="visually-hidden" aria-live="polite">Arrival scene ready.</p>
+      <noscript>
+        <p class="noscript">This prototype needs JavaScript and WebGL. The project-source routes remain available from the Forest HUB.</p>
+      </noscript>
+    </main>
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>
