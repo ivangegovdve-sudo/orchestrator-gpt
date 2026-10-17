@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-17T12:19:01.142680+00:00",
+  "generated_at": "2026-10-17T18:19:01.990326+00:00",
   "generated_by": "pr_helper.py on Oracle (forest-a1-v3)",
   "services": {
     "soul-server": {
@@ -26,7 +26,7 @@
     },
     "librarian": {
       "status": "ok",
-      "uptime_s": 7718,
+      "uptime_s": 29318,
       "canons": [
         {
           "name": "whole-corpus",
