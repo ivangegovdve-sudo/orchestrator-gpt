@@ -245,7 +245,7 @@ const projectRecords = [
   }),
   project('we-are-the-training-data', 'We Are The Training Data', {
     pool: 'My Story', classification: 'assigned', status: 'In development', rank: { 'My Story': 6 },
-    visibility: { ...publicShell, navigation: 'unlisted', search: 'excluded', indexing: 'noindex' },
+    visibility: publicShell,
     relationships: [{ type: 'optional-tree-context', role: 'default-narrated-poem' }],
     sources: ['web/we-are-the-training-data/index.html', MASTER],
   }),
@@ -401,7 +401,9 @@ export const ROUTE_OWNERS = deepFreeze([
   owner('kids', ['/web/kids/']),
   owner('kids-movie-library', ['/web/kids-movie-library/', '/movies/']),
   owner('m-popova', ['/web/m-popova/']),
-  owner('open-dashboard', ['/web/open-dashboard/', '/web/open-dashboard/github/', '/web/open-dashboard/mcp/']),
+  owner('open-dashboard', ['/web/open-dashboard/', '/web/open-dashboard/github/', '/web/open-dashboard/mcp/'], {
+    redirectSources: ['/web/open-dashboard', '/web/open-dashboard/'],
+  }),
   owner('open-dashboard-notices', ['/web/open-dashboard/openrouter/', '/web/open-dashboard/catalogues/', '/web/open-dashboard/matrix/'], { projectId: 'open-dashboard', role: 'child', visibility: compatibility }),
   owner('open-overview', ['/web/open-overview/'], {
     projectId: 'open-dashboard', role: 'legacy', visibility: compatibility,

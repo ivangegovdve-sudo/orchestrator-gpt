@@ -7,12 +7,12 @@
     {
       "source": "/web/open-dashboard",
       "destination": "https://opendashboard.sdforest.site/",
-      "statusCode": 301
+      "permanent": true
     },
     {
       "source": "/web/open-dashboard/",
       "destination": "https://opendashboard.sdforest.site/",
-      "statusCode": 301
+      "permanent": true
     },
     {
       "source": "/web/morning-news",

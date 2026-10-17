@@ -78,6 +78,16 @@ test('Library is canonical and llm-db has deployment and static redirect coverag
   assert.match(moved, /location\.replace\(["']\/web\/library\/["']\)/);
   assert.deepEqual(vercel.redirects, [
     {
+      source: '/web/open-dashboard',
+      destination: 'https://opendashboard.sdforest.site/',
+      permanent: true,
+    },
+    {
+      source: '/web/open-dashboard/',
+      destination: 'https://opendashboard.sdforest.site/',
+      permanent: true,
+    },
+    {
       source: '/web/morning-news',
       destination: 'https://thedrop.sdforest.site',
       permanent: true,

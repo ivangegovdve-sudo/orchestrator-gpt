@@ -39,9 +39,6 @@
                 "href_matches": "/web/council/index.html"
               },
               {
-                "href_matches": "/web/hypertrophyos/*"
-              },
-              {
                 "href_matches": "/web/kids/*"
               },
               {
@@ -169,9 +166,10 @@
   <link rel="stylesheet" href="/web/shared/frontpage-reveal.css?v=20260926a">
   <link rel="stylesheet" href="/web/shared/frontpage-pool-vines.css?v=20260927a">
   <link rel="stylesheet" href="/web/shared/frontpage-intro-reveal.css?v=20260927a">
+  <link rel="stylesheet" href="/web/shared/frontpage-catalog.css">
 </head>
 <body class="resolve-home">
-<a class="resolve-skip" href="#atlas">Explore the pools</a>
+<a class="resolve-skip" href="#featured">Start with Featured work</a>
 <main>
 <div class="resolve-scroll">
   <section class="resolve-stage" data-resolve-stage aria-labelledby="forest-title">
@@ -247,131 +245,228 @@
       <a data-site-control="portfolio" href="https://vfxportfolio.lovable.app" target="_blank" rel="noopener">Portfolio — opens in a new tab</a>
       <button class="resolve-motion-toggle" type="button" hidden>Pause motion</button>
     </nav>
-    <a class="resolve-scroll-cue" href="#atlas">Explore the pools<span aria-hidden="true">↓</span></a>
+    <a class="resolve-scroll-cue" href="#featured">Start with Featured work<span aria-hidden="true">↓</span></a>
     <div class="resolve-history" data-arrival="history" data-design-history-slot data-feedback-slot></div>
   </section>
 </div>
 <div class="resolve-existing-copy">
-<p class="landing-copy">SDForest is Ivan Gegov&rsquo;s living collection of writing, creative projects, practical web tools, and research experiments. It is for curious readers, makers, learners, and families&mdash;choose one of seven live pools below.</p>
-<p>SDForest is an evolving collection. Experimental and in-development work is labeled plainly; every live path should lead somewhere real.</p>
-<p><a class="grove-jump" href="#grove">Or skip the pools and start with the work</a></p>
+<p class="landing-copy">SDForest is Ivan Gegov&rsquo;s living collection of writing, creative projects, practical web tools, and research experiments. Start with the Featured work, then browse in-development previews by theme.</p>
+<p>SDForest is an evolving collection. Experimental and in-development work is labeled plainly; every live path should lead somewhere real. The older pool paths remain reachable during this transition.</p>
+<p><a class="grove-jump" href="#featured">Start with Featured work</a></p>
 </div>
-<section class="grove" id="grove" aria-labelledby="grove-title">
-  <h2 id="grove-title">Start with the work</h2>
-  <p class="grove-intro">The strongest things in the forest, one click away. Each vine leads back to its pool when you want the rest.</p>
-  <div class="grove-vine">
-    <svg viewBox="0 0 60 1000" preserveAspectRatio="none" aria-hidden="true" focusable="false"><defs><linearGradient id="grove-vine-shading" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#77915c"/><stop offset=".5" stop-color="#4f6a41"/><stop offset="1" stop-color="#2c4230"/></linearGradient></defs><path pathLength="1" d="M30 0C8 70 52 110 30 190S6 300 30 380 54 500 30 580 8 700 30 780 52 900 30 1000"/></svg>
+<section class="forest-index" id="featured" aria-labelledby="featured-title">
+  <div class="forest-index__heading">
+    <h2 id="featured-title">Featured</h2>
+    <p class="forest-index__lede">A flat first view of the work that is ready to meet you. Each card goes straight to a real destination and says why it is here.</p>
+    <nav class="forest-index__nav" aria-label="Collection sections">
+      <a href="#featured">Featured</a>
+      <a href="#in-development">In development</a>
+      <a href="#themes">Explore by theme</a>
+    </nav>
+  </div>
 
-    <div class="grove-branch is-right has-forming">
-      <h3 class="grove-knot-h"><a class="grove-knot" href="/web/pools/ai-d-kit/"><img src="/web/assets/sdforest-workbench/emblem/ai-d-kit.webp" alt="" width="1100" height="458" loading="lazy" decoding="async"><span class="grove-knot-text"><span class="grove-knot-name">AI-d kit</span><span class="grove-knot-go">Enter the pool</span></span></a></h3>
-      <ul class="grove-nodes">
-        <li class="grove-node is-lead">
-          <h4><a href="https://www.npmjs.com/package/open-dashboard-mcp" rel="noopener">Open Dashboard MCP<span class="grove-ext" aria-hidden="true">&#8599;</span><span class="grove-sr"> (npm package, external site)</span></a></h4>
-          <p>Ask an agent which AI model to use and what it will cost. Read-only and free to run. A missing key or a blocked provider is reported as exactly that, never as an empty answer.</p>
-          <ul class="grove-facts">
-            <li><strong>15</strong>providers</li>
-            <li><strong>18</strong>tools</li>
-            <li><strong>1.2.1</strong>on npm</li>
-          </ul>
-          <p class="grove-meta">Per-model pricing, including AkashML and io.net with measured response shapes.</p>
-          <div class="grove-links"><a href="/web/open-dashboard/">Browse the dashboard</a></div>
-        </li>
-        <li class="grove-node">
-          <h4><a href="/web/pools/ai-d-kit/troubleshooting/">Troubleshooting record</a></h4>
-          <p>108 failures that reported success, each with its symptom, its cause, what it cost, and the check that would have caught it.</p>
-        </li>
-        <li class="grove-node">
-          <h4><a href="https://ivangegovdve-sudo.github.io/repo-shelf/" rel="noopener">Repo Shelf<span class="grove-ext" aria-hidden="true">&#8599;</span><span class="grove-sr"> (external site)</span></a></h4>
-          <p>1,192 repositories, originals and forks, as books on a 3D shelf. Search them, browse by shelf, open any one.</p>
-        </li>
-        <li class="grove-node">
-          <h4><a href="https://thedrop.sdforest.site" rel="noopener">The Drop<span class="grove-ext" aria-hidden="true">&#8599;</span><span class="grove-sr"> (external site)</span></a></h4>
-          <p>A daily AI publication. Today&rsquo;s pick first, then what still matters from earlier drops.</p>
-        </li>
-      </ul>
-      <div class="grove-forming">
-        <h4>In development</h4>
-        <p>Built and under review, not public yet. Nothing here links out until it ships.</p>
-        <dl>
-          <div><dt>Model Router</dt><dd>An OpenAI-compatible proxy that picks the model for each request and says why, or refuses.</dd></div>
-          <div><dt>Glass PR Solver</dt><dd>Drains a pull-request backlog through four independent stages, with every fact and decision visible.</dd></div>
-          <div><dt>Glass Council</dt><dd>A private model council you install yourself, on Windows, Android or as an MCP server.</dd></div>
-          <div><dt>System One Bench</dt><dd>Measures the latency and cost of each decision a typed decision model makes, on your own machine.</dd></div>
-        </dl>
-      </div>
-    </div>
+  <ul class="forest-index__featured" aria-label="Featured work">
+    <li class="forest-index__card forest-index__card--featured" data-featured-id="open-dashboard">
+      <span class="forest-index__status">Featured · SDForest · live canonical</span>
+      <h3><a href="https://opendashboard.sdforest.site/">Open Dashboard</a></h3>
+      <p class="forest-index__why"><strong>Why featured:</strong> A working front door for comparing AI models, tools, and their measured constraints.</p>
+      <a class="forest-index__secondary-link" href="https://www.npmjs.com/package/open-dashboard-mcp" rel="noopener">MCP companion · npm v2.0.0</a>
+    </li>
+    <li class="forest-index__card forest-index__card--featured" data-featured-id="platforms-guide">
+      <span class="forest-index__status">Featured · SDForest · reference guide</span>
+      <h3><a href="/web/library/">Platforms guide</a></h3>
+      <p class="forest-index__why"><strong>Why featured:</strong> A finished, searchable guide to AI platforms and credited learning links, kept together in the public Library.</p>
+    </li>
+    <li class="forest-index__card forest-index__card--featured" data-featured-id="moneywolf">
+      <span class="forest-index__status">Featured · external · paper only</span>
+      <h3><a href="https://moneywolf.sdforest.site/">MoneyWolf</a></h3>
+      <p class="forest-index__why"><strong>Why featured:</strong> A live, read-only paper-trading desk that keeps the boundary between planning and real orders visible.</p>
+    </li>
+    <li class="forest-index__card forest-index__card--featured" data-featured-id="repo-shelf">
+      <span class="forest-index__status">Featured · external · live snapshot</span>
+      <h3><a href="https://ivangegovdve-sudo.github.io/repo-shelf/" rel="noopener">Repo Shelf</a></h3>
+      <p class="forest-index__why"><strong>Why featured:</strong> A tactile browser for the published repository snapshot: 1,309 repositories across 6 shelves, published 2026-10-11.</p>
+    </li>
+    <li class="forest-index__card forest-index__card--featured" data-featured-id="the-drop">
+      <span class="forest-index__status">Featured · external · live publication</span>
+      <h3><a href="https://thedrop.sdforest.site/" rel="noopener">The Drop</a></h3>
+      <p class="forest-index__why"><strong>Why featured:</strong> A daily AI publication that gives the newest useful signal a clear place to land.</p>
+    </li>
+    <li class="forest-index__card forest-index__card--featured" data-featured-id="chair-or-ladder">
+      <span class="forest-index__status">Featured · SDForest · finished essay</span>
+      <h3><a href="/web/chair-or-ladder/">Chair or a Ladder?</a></h3>
+      <p class="forest-index__why"><strong>Why featured:</strong> A compact essay with a practical test for whether AI is extending judgment or quietly replacing it.</p>
+    </li>
+    <li class="forest-index__card forest-index__card--featured" data-featured-id="we-are-the-training-data">
+      <span class="forest-index__status">Featured · SDForest · public live spoken word</span>
+      <h3><a href="/web/we-are-the-training-data/">We Are The Training Data</a></h3>
+      <p class="forest-index__why"><strong>Why featured:</strong> A previously public spoken-word piece that gives the collection a direct, human voice about authorship and AI.</p>
+    </li>
+    <li class="forest-index__card forest-index__card--featured" data-featured-id="gym-scholar">
+      <span class="forest-index__status">Featured · external · live evidence-based training</span>
+      <h3><a href="https://gymscholar.lovable.app/" rel="noopener">Gym Scholar</a></h3>
+      <p class="forest-index__why"><strong>Why featured:</strong> The settled health-and-training product, presented as a live evidence-oriented companion for deliberate practice.</p>
+    </li>
+    <li class="forest-index__card forest-index__card--featured" data-featured-id="unified-reader">
+      <span class="forest-index__status">Featured · external · unified reading platform</span>
+      <h3><a href="https://chloe.blumenkraft.cloud/dyslexia/" rel="noopener">Unified Reader</a></h3>
+      <p class="forest-index__why"><strong>Why featured:</strong> One public reading product bringing dyslexia-friendly typography, spacing, colour, and audiobook support into the same reader experience.</p>
+    </li>
+    <li class="forest-index__card forest-index__card--featured" data-featured-id="mendeleev">
+      <span class="forest-index__status">Featured · SDForest · learning tool</span>
+      <h3><a href="/web/mendeleev-bg/">Mendeleev</a></h3>
+      <p class="forest-index__why"><strong>Why featured:</strong> A bilingual interactive periodic table that makes the elements and their everyday compounds approachable.</p>
+    </li>
+    <li class="forest-index__card forest-index__card--featured" data-featured-id="math-mania">
+      <span class="forest-index__status">Featured · external · Lovable live maths app</span>
+      <h3><a href="https://forest-math-plus.lovable.app/" rel="noopener">Math Mania</a></h3>
+      <p class="forest-index__why"><strong>Why featured:</strong> Ivan&rsquo;s only remaining Lovable project: the single current maths app for playful practice, linked directly to its live surface.</p>
+    </li>
+    <li class="forest-index__card forest-index__card--featured" data-featured-id="manifesto-newborn">
+      <span class="forest-index__status">Featured · SDForest · reading piece</span>
+      <h3><a href="/web/manifesto-newborn/">Manifesto for a Newborn</a></h3>
+      <p class="forest-index__why"><strong>Why featured:</strong> A finished authored reading surface that gives the collection a quiet, human beginning.</p>
+    </li>
+    <li class="forest-index__card forest-index__card--featured" data-featured-id="avatar-playground">
+      <span class="forest-index__status">Featured · SDForest · behaviour lab</span>
+      <h3><a href="/web/avatar-playground/">Avatar Playground</a></h3>
+      <p class="forest-index__why"><strong>Why featured:</strong> A public stage for seeing an avatar&rsquo;s states, expressions, and interaction rules in motion.</p>
+    </li>
+    <li class="forest-index__card forest-index__card--featured" data-featured-id="model-councils">
+      <span class="forest-index__status">Featured · SDForest · public stateless tool</span>
+      <h3><a href="/web/council/">Model councils</a></h3>
+      <p class="forest-index__why"><strong>Why featured:</strong> A public round-table interface for asking one question of several models without pretending the round is memory.</p>
+    </li>
+    <li class="forest-index__card forest-index__card--featured" data-featured-id="poetry-space">
+      <span class="forest-index__status">Featured · SDForest · attributed exhibit</span>
+      <h3><a href="/web/m-popova/">Poetry Space</a></h3>
+      <p class="forest-index__why"><strong>Why featured:</strong> A clearly attributed prose-poetry exhibit that preserves a distinct literary voice inside the forest.</p>
+    </li>
+    <li class="forest-index__card forest-index__card--featured" data-featured-id="alternate-self">
+      <span class="forest-index__status">Featured · external · live experiment</span>
+      <h3><a href="https://alternate-self-sdforest.onhercules.app/" rel="noopener">Alternate Self</a></h3>
+      <p class="forest-index__why"><strong>Why featured:</strong> A live external experiment that gives the collection a place to test a different kind of conversation.</p>
+    </li>
+  </ul>
 
-    <div class="grove-branch is-left">
-      <h3 class="grove-knot-h"><a class="grove-knot" href="/web/pools/my-story/"><img src="/web/assets/sdforest-workbench/my-story.webp" alt="" width="1100" height="275" loading="lazy" decoding="async"><span class="grove-knot-text"><span class="grove-knot-name">My Story</span><span class="grove-knot-go">Enter the pool</span></span></a></h3>
-      <ul class="grove-nodes">
-        <li class="grove-node">
-          <h4><a href="/web/chair-or-ladder/">Chair or Ladder?</a></h4>
-          <p>An essay with a practical test: is AI extending your judgment, or quietly replacing it?</p>
-        </li>
-        <li class="grove-node">
-          <h4><a href="/web/life-in-time/">Life in Time</a></h4>
-          <p>Enter a birth year and see the time left in summers, heartbeats and Christmases. Then turn it over to what is still not too late.</p>
-        </li>
-      </ul>
-    </div>
+  <section class="forest-index__section" id="in-development" aria-labelledby="in-development-title">
+    <h2 id="in-development-title">In development</h2>
+    <p class="forest-index__section-intro">Live previews and useful work still being shaped. The label is part of the promise: these links are real, while their next form is still in motion.</p>
+    <div class="forest-index__groups" id="themes">
+      <section class="forest-index__group" aria-labelledby="tools-systems-title">
+        <h3 id="tools-systems-title">Tools &amp; systems</h3>
+        <p>Practical surfaces for finding, planning, building, and checking.</p>
+        <ul class="forest-index__previews">
+          <li class="forest-index__preview">
+            <span class="forest-index__status">In progress · live reference index</span>
+            <h4><a href="/web/library/">Library</a></h4>
+            <p>A public index for the tools, platforms, and references that are useful enough to keep close.</p>
+          </li>
+          <li class="forest-index__preview">
+            <span class="forest-index__status">In progress · live preview</span>
+            <h4><a href="/web/calendar/">Calendar Generator</a></h4>
+            <p>A practical calendar surface for making a year visible, printable, and easier to hold.</p>
+          </li>
+          <li class="forest-index__preview">
+            <span class="forest-index__status">In progress · live preview</span>
+            <h4><a href="/frontend/">Item Icon Generator</a></h4>
+            <p>A working Runware-backed icon tool, with the provider boundary kept on the server.</p>
+          </li>
+        </ul>
+        <p class="forest-index__support"><strong>Supporting paths:</strong> <a href="/web/pools/ai-d-kit/troubleshooting/">Troubleshooting</a> · <a href="/web/pools/ai-d-kit/free-stuff-in-promotions/">Free stuff in promotions</a> · <a href="/web/library/glossary/">Glossary</a> · <a href="/web/code-search/">Code Search</a> · <a href="https://www.npmjs.com/package/open-dashboard-mcp" rel="noopener">Open Dashboard MCP companion</a></p>
+      </section>
 
-    <div class="grove-branch is-right">
-      <h3 class="grove-knot-h"><a class="grove-knot" href="/web/pools/growingapp/"><img src="/web/assets/sdforest-workbench/growingapp.webp" alt="" width="1100" height="458" loading="lazy" decoding="async"><span class="grove-knot-text"><span class="grove-knot-name">GrowingApp</span><span class="grove-knot-go">Enter the pool</span></span></a></h3>
-      <ul class="grove-nodes">
-        <li class="grove-node">
-          <h4><a href="/web/mendeleev-bg/">Interactive Periodic Table</a></h4>
-          <p>In Bulgarian and English. Open any element for its key compounds and where you meet them in everyday life.</p>
-        </li>
-      </ul>
-    </div>
+      <section class="forest-index__group" aria-labelledby="learning-wellbeing-title">
+        <h3 id="learning-wellbeing-title">Learning &amp; wellbeing</h3>
+        <p>Small, humane systems for practice, family life, and understanding the body.</p>
+        <ul class="forest-index__previews">
+          <li class="forest-index__preview">
+            <span class="forest-index__status">In progress · live preview</span>
+            <h4><a href="/web/rubiks-teacher/">Rubik&rsquo;s Teacher</a></h4>
+            <p>A scan-and-teach surface for turning a cube state into the next useful lesson.</p>
+          </li>
+          <li class="forest-index__preview">
+            <span class="forest-index__status">In progress · live preview</span>
+            <h4><a href="/web/lobester-gym/">Lobester Gym</a></h4>
+            <p>A playful learn, check, and practice flow for keeping attention moving.</p>
+          </li>
+          <li class="forest-index__preview">
+            <span class="forest-index__status">In progress · live preview</span>
+            <h4><a href="/movies/">Kids Library</a></h4>
+            <p>A family movie library with a public browsing route while the companion route is reconciled.</p>
+            <a class="forest-index__secondary-link" href="/web/kids-movie-library/">Open the companion route</a>
+          </li>
+          <li class="forest-index__preview">
+            <span class="forest-index__status">In progress · live preview</span>
+            <h4><a href="https://flowform.sdforest.site/" rel="noopener">FlowForm</a></h4>
+            <p>A live external wellbeing surface for shaping a calmer, more deliberate rhythm.</p>
+          </li>
+          <li class="forest-index__preview">
+            <span class="forest-index__status">In progress · research preview</span>
+            <h4><a href="/web/womens-health-os/">Women&rsquo;s Health OS</a></h4>
+            <p>An educational research preview with the boundary between information and medical advice kept explicit.</p>
+          </li>
+        </ul>
+      </section>
 
-    <div class="grove-branch is-left">
-      <h3 class="grove-knot-h"><a class="grove-knot" href="/web/pools/health/"><img src="/web/assets/sdforest-workbench/emblem/health.webp" alt="" width="1100" height="458" loading="lazy" decoding="async"><span class="grove-knot-text"><span class="grove-knot-name">Health</span><span class="grove-knot-go">Enter the pool</span></span></a></h3>
-      <ul class="grove-nodes">
-        <li class="grove-node">
-          <h4><a href="https://chloe.blumenkraft.cloud/dyslexia/" rel="noopener">Dyslexia-friendly Reader<span class="grove-ext" aria-hidden="true">&#8599;</span><span class="grove-sr"> (external site)</span></a></h4>
-          <p>Read your own ebooks with typography, spacing, colour and narration controls that stay free.</p>
-        </li>
-        <li class="grove-node">
-          <h4><a href="https://chloe.blumenkraft.cloud/audiobook/" rel="noopener">Listen to your books<span class="grove-ext" aria-hidden="true">&#8599;</span><span class="grove-sr"> (external site)</span></a></h4>
-          <p>The reader&rsquo;s companion: accessible audio narration for the books you already have.</p>
-        </li>
-      </ul>
+      <section class="forest-index__group" aria-labelledby="writing-research-title">
+        <h3 id="writing-research-title">Writing, research &amp; experiments</h3>
+        <p>Pieces and records that are allowed to stay exploratory without being vague about their status.</p>
+        <ul class="forest-index__previews">
+          <li class="forest-index__preview">
+            <span class="forest-index__status">In progress · live preview</span>
+            <h4><a href="/web/power-law-odyssey/">Power Law Odyssey</a></h4>
+            <p>A living research-and-writing surface for tracing how uneven systems shape attention and outcomes.</p>
+          </li>
+          <li class="forest-index__preview">
+            <span class="forest-index__status">In progress · live preview</span>
+            <h4><a href="/web/life-in-time/">Life in Time</a></h4>
+            <p>A reflective time-and-life surface that remains in development while its redesign is completed.</p>
+          </li>
+          <li class="forest-index__preview">
+            <span class="forest-index__status">In progress · live spoken-word piece</span>
+            <h4><a href="/web/we-are-the-training-data/">We Are The Training Data</a></h4>
+            <p>A previously public spoken-word work, listed here plainly as a live piece while its next form remains in progress.</p>
+          </li>
+          <li class="forest-index__preview">
+            <span class="forest-index__status">In progress · research archive</span>
+            <h4><a href="/web/ai-research/">AI Research</a></h4>
+            <p>A public archive for questions, source trails, and experiments that need room to develop.</p>
+          </li>
+          <li class="forest-index__preview">
+            <span class="forest-index__status">In progress · research archive</span>
+            <h4><a href="/web/c2c-dolphin/">C2C Dolphin</a></h4>
+            <p>An unsupervised model conversation presented as a record, never as a conclusion.</p>
+          </li>
+          <li class="forest-index__preview">
+            <span class="forest-index__status">In progress · research archive</span>
+            <h4><a href="/web/c2c-self/">C2C Self</a></h4>
+            <p>A companion experiment that keeps the questions visible while the interpretation stays open.</p>
+          </li>
+          <li class="forest-index__preview">
+            <span class="forest-index__status">In progress · live preview</span>
+            <h4><a href="/web/replicator-void/">Replicator Void</a></h4>
+            <p>A live experimental surface for looking at replication, absence, and the edges of a system.</p>
+          </li>
+        </ul>
+        <p class="forest-index__support"><strong>Also separate works:</strong> <a href="/web/evolution/">Website History &amp; Evolution</a> · <a href="https://thedrop.sdforest.site/series/dependency-map" rel="noopener">The Drop dependency map</a>. Each has its own page and status.</p>
+      </section>
     </div>
-
-    <div class="grove-branch is-right">
-      <h3 class="grove-knot-h"><a class="grove-knot" href="/web/pools/tinkerbox/"><img src="/web/assets/sdforest-workbench/emblem/tinkerbox.webp" alt="" width="1100" height="458" loading="lazy" decoding="async"><span class="grove-knot-text"><span class="grove-knot-name">TinkerBox</span><span class="grove-knot-go">Enter the pool</span></span></a></h3>
-      <ul class="grove-nodes">
-        <li class="grove-node">
-          <h4><a href="/web/avatar-playground/">Avatar Playground</a></h4>
-          <p>Chlo&eacute;&rsquo;s dot-cloud avatar on a stage. Every state, expression and rule one click away, driven by real sound and her own voice.</p>
-        </li>
-        <li class="grove-node">
-          <h4><a href="/web/council/">Model councils</a></h4>
-          <p>Put one question to a panel of models: small local ones on Oracle, or a free OpenRouter round. Public, and nothing is remembered.</p>
-        </li>
-      </ul>
-    </div>
-
-    <div class="grove-branch is-left">
-      <h3 class="grove-knot-h"><a class="grove-knot" href="/web/pools/artificial-self/"><img src="/web/assets/sdforest-workbench/emblem/artificial-self.webp" alt="" width="1100" height="458" loading="lazy" decoding="async"><span class="grove-knot-text"><span class="grove-knot-name">Artificial Self</span><span class="grove-knot-go">Enter the pool</span></span></a></h3>
-      <ul class="grove-nodes">
-        <li class="grove-node">
-          <h4><a href="/web/c2c-dolphin/">Two models, no human</a></h4>
-          <p>An unsupervised 30-turn conversation between two AI models, with no task. Published as a research record, not a conclusion.</p>
-        </li>
-      </ul>
-    </div>
-
-    <div class="grove-branch is-right">
-      <h3 class="grove-knot-h"><a class="grove-knot" href="/web/pools/design-gallery/"><img src="/web/assets/sdforest-workbench/design-gallery.webp" alt="" width="1100" height="275" loading="lazy" decoding="async"><span class="grove-knot-text"><span class="grove-knot-name">Design Gallery</span><span class="grove-knot-go">Enter the pool</span></span></a></h3>
-      <ul class="grove-nodes">
-        <li class="grove-node">
-          <h4><a href="/web/m-popova/">M. Popova, Poetry Space</a></h4>
-          <p>Five prose-poems on being here, on darkness, and on love. By Maria Popova, 2019 to 2021.</p>
-        </li>
-      </ul>
-    </div>
+  </section>
+</section>
+<section class="legacy-pool-index" id="legacy-pools" aria-labelledby="legacy-pools-title">
+  <div class="legacy-pool-index__heading">
+    <h2 id="legacy-pools-title">The seven pool paths</h2>
+    <p>These illustrated routes stay reachable during the transition. They are compatibility paths, not the primary way to choose work.</p>
+  </div>
+  <div class="legacy-pool-index__links" aria-label="Legacy pool paths">
+    <h3 class="grove-knot-h"><a class="grove-knot" href="/web/pools/health/"><img src="/web/assets/sdforest-workbench/health.webp" alt="" width="1100" height="458" loading="lazy" decoding="async"><span class="grove-knot-text"><span class="grove-knot-name">Health</span><span class="grove-knot-go">Open path</span></span></a></h3>
+    <h3 class="grove-knot-h"><a class="grove-knot" href="/web/pools/ai-d-kit/"><img src="/web/assets/sdforest-workbench/ai-d-kit.webp" alt="" width="1100" height="458" loading="lazy" decoding="async"><span class="grove-knot-text"><span class="grove-knot-name">AI-d kit</span><span class="grove-knot-go">Open path</span></span></a></h3>
+    <h3 class="grove-knot-h"><a class="grove-knot" href="/web/pools/growingapp/"><img src="/web/assets/sdforest-workbench/growingapp.webp" alt="" width="1100" height="458" loading="lazy" decoding="async"><span class="grove-knot-text"><span class="grove-knot-name">GrowingApp</span><span class="grove-knot-go">Open path</span></span></a></h3>
+    <h3 class="grove-knot-h"><a class="grove-knot" href="/web/pools/artificial-self/"><img src="/web/assets/sdforest-workbench/artificial-self.webp" alt="" width="1100" height="458" loading="lazy" decoding="async"><span class="grove-knot-text"><span class="grove-knot-name">Artificial Self</span><span class="grove-knot-go">Open path</span></span></a></h3>
+    <h3 class="grove-knot-h"><a class="grove-knot" href="/web/pools/my-story/"><img src="/web/assets/sdforest-workbench/my-story.webp" alt="" width="1100" height="275" loading="lazy" decoding="async"><span class="grove-knot-text"><span class="grove-knot-name">My Story</span><span class="grove-knot-go">Open path</span></span></a></h3>
+    <h3 class="grove-knot-h"><a class="grove-knot" href="/web/pools/tinkerbox/"><img src="/web/assets/sdforest-workbench/tinkerbox.webp" alt="" width="1100" height="458" loading="lazy" decoding="async"><span class="grove-knot-text"><span class="grove-knot-name">TinkerBox</span><span class="grove-knot-go">Open path</span></span></a></h3>
+    <h3 class="grove-knot-h"><a class="grove-knot" href="/web/pools/design-gallery/"><img src="/web/assets/sdforest-workbench/design-gallery.webp" alt="" width="1100" height="275" loading="lazy" decoding="async"><span class="grove-knot-text"><span class="grove-knot-name">Design Gallery</span><span class="grove-knot-go">Open path</span></span></a></h3>
   </div>
 </section>
 </main>

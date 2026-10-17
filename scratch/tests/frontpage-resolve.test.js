@@ -996,7 +996,7 @@ test('scroll completes the actual arrival and keyboard can skip directly to usab
   await page.waitForFunction(()=>document.documentElement.dataset.resolveState === 'opened');
   assert.equal(await opacity(page,'[data-pool-link="my-story"]'),1);
   await page.goto(base, {waitUntil:'networkidle'});
-  await page.getByRole('link',{name:'Explore the pools',exact:true}).first().focus();
+  await page.getByRole('link',{name:'Start with Featured work',exact:true}).first().focus();
   await page.keyboard.press('Enter');
   assert.equal(await opacity(page,'[data-pool-link="ai-d-kit"]'),1);
   await page.close();

@@ -122,7 +122,13 @@ export const ROUTE_REGISTRY = deepFreeze([
   }),
   route('open-dashboard-catalogues', 'open-dashboard-notices', '/web/open-dashboard/catalogues/', 'html-shim', 'web/open-dashboard/catalogues/index.html', NOINDEX, { destination: '/web/open-dashboard/#explore', preservesQuery: true }),
   route('open-dashboard-github', 'open-dashboard', '/web/open-dashboard/github/', 'child', 'web/open-dashboard/github/index.html', PUBLIC),
-  route('open-dashboard', 'open-dashboard', '/web/open-dashboard/', 'page', 'web/open-dashboard/index.html', PUBLIC),
+  route('open-dashboard', 'open-dashboard', '/web/open-dashboard/', 'external-redirect', 'web/open-dashboard/index.html', PUBLIC, {
+    destination: 'https://opendashboard.sdforest.site/',
+    expectedVercelRedirects: [
+      redirect('/web/open-dashboard', 'https://opendashboard.sdforest.site/'),
+      redirect('/web/open-dashboard/', 'https://opendashboard.sdforest.site/'),
+    ],
+  }),
   route('open-dashboard-matrix', 'open-dashboard-notices', '/web/open-dashboard/matrix/', 'html-shim', 'web/open-dashboard/matrix/index.html', NOINDEX, { destination: '/web/open-dashboard/#connections', preservesQuery: true }),
   route('open-dashboard-mcp', 'open-dashboard', '/web/open-dashboard/mcp/', 'child', 'web/open-dashboard/mcp/index.html', PUBLIC),
   route('open-dashboard-openrouter', 'open-dashboard-notices', '/web/open-dashboard/openrouter/', 'html-shim', 'web/open-dashboard/openrouter/index.html', NOINDEX, { destination: '/web/open-dashboard/?view=apps#explore', preservesQuery: true }),
@@ -133,7 +139,7 @@ export const ROUTE_REGISTRY = deepFreeze([
   route('upload', 'upload', '/web/upload/', 'page', 'web/upload/index.html', PRIVATE_NOINDEX),
   route('vfx-portfolio', 'vfx-portfolio', '/web/vfx-portfolio/', 'page', 'web/vfx-portfolio/index.html', PUBLIC),
   route('voice-playground', 'voice-playground', '/web/voice-playground/', 'page', 'web/voice-playground/index.html', NOINDEX),
-  route('we-are-the-training-data', 'we-are-the-training-data', '/web/we-are-the-training-data/', 'page', 'web/we-are-the-training-data/index.html', NOINDEX),
+  route('we-are-the-training-data', 'we-are-the-training-data', '/web/we-are-the-training-data/', 'page', 'web/we-are-the-training-data/index.html', PUBLIC),
   route('womens-health-os', 'womens-health-os', '/web/womens-health-os/', 'page', 'web/womens-health-os/index.html', PUBLIC),
   route('calendar-calendario', 'calendar', '/calendar/calendario.html', 'html-shim', 'calendar/calendario.html', UNLISTED, { destination: '/web/calendar/' }),
   route('calendar-legacy', 'calendar', '/calendar/', 'html-shim', 'calendar/index.html', UNLISTED, { destination: '/web/calendar/' }),
