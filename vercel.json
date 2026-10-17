@@ -3,6 +3,16 @@
   "buildCommand": "npm run vercel-build",
   "outputDirectory": "vercel-public",
   "framework": null,
+  "rewrites": [
+    {
+      "source": "/chair-or-ladder",
+      "destination": "/web/chair-or-ladder/"
+    },
+    {
+      "source": "/chair-or-ladder/",
+      "destination": "/web/chair-or-ladder/"
+    }
+  ],
   "redirects": [
     {
       "source": "/web/open-dashboard",
