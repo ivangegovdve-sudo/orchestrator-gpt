@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-17T00:19:01.505214+00:00",
+  "generated_at": "2026-10-17T06:19:01.369609+00:00",
   "generated_by": "pr_helper.py on Oracle (forest-a1-v3)",
   "services": {
     "soul-server": {
@@ -25,8 +25,20 @@
       "error": "<urlopen error [Errno 111] Connection refused>"
     },
     "librarian": {
-      "status": "down",
-      "error": "<urlopen error [Errno 111] Connection refused>"
+      "status": "ok",
+      "uptime_s": 19872,
+      "canons": [
+        {
+          "name": "whole-corpus",
+          "language": "bg",
+          "default": true
+        }
+      ],
+      "model_tiers": [],
+      "graph_backend": "neo4j-query-v2",
+      "backend": "whole-corpus-sqlite",
+      "package_manifest_sha256": "aa15c818d60495e9af405078a2da41f64464df4528ed79f87c779b9c7921920b",
+      "embedding_release_ready": false
     },
     "chloe-api": {
       "status": "ok",
