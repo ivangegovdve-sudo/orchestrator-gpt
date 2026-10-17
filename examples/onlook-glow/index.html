@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Onlook — mouse glow preview</title>
+  <style>
+    * { box-sizing: border-box; }
+    html, body { margin: 0; width: 100%; height: 100%; overflow: hidden; background: #151515; }
+    body { font-family: system-ui, sans-serif; color: #eee; user-select: none; }
+    #background { position: fixed; inset: 0; width: 100vw; height: 100vh; pointer-events: none; }
+    .hint { position: fixed; bottom: 32px; left: 24px; right: 24px; text-align: center; pointer-events: none; }
+    .hint p { font-size: 14px; letter-spacing: .02em; margin: 0 0 8px; }
+    .hint small { color: #888; font-size: 11px; }
+    #status { position: fixed; inset: 0; display: grid; place-items: center; font-size: 14px; pointer-events: none; }
+    #status[hidden] { display: none; }
+  </style>
+</head>
+<body>
+  <div id="background" aria-label="Interactive smoky mouse glow"></div>
+  <div id="status" role="status">Loading scene…</div>
+  <div class="hint"><p>Move your mouse through the darkness.</p><small>Original Onlook scene · local preview</small></div>
+  <script src="https://cdn.jsdelivr.net/gh/hiunicornstudio/unicornstudio.js@v1.5.2/dist/unicornStudio.umd.js"></script>
+  <script>
+    const status = document.getElementById('status');
+    async function start() {
+      try {
+        window.previewScene = await UnicornStudio.addScene({
+          elementId: 'background',
+          filePath: './flow-background.json',
+          scale: 1, dpi: 1, fps: 60,
+          lazyLoad: false, production: true
+        });
+        document.body.dataset.sceneReady = 'true';
+        status.hidden = true;
+      } catch (error) {
+        status.textContent = 'Scene could not load. Please use a browser with WebGL enabled.';
+        console.error(error);
+      }
+    }
+    start();
+  </script>
+</body>
+</html>
