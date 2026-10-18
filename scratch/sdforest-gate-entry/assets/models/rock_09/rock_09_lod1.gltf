@@ -1,0 +1,168 @@
+{
+ "asset": {
+  "version": "2.0",
+  "generator": "SD Forest decimate_seamlocked.py (seam-locked QEM half-edge collapse)",
+  "extras": {
+   "derived_from": "Poly Haven rock_09 (CC0), rock_09_2k.gltf + rock_09.bin",
+   "source_bin_sha256": "780c37d6fc11ca3a01c3763535ef883908b6007271a46bd446d2289ded820751",
+   "source_triangles": 12416,
+   "triangles": 2400,
+   "vertices": 1620
+  }
+ },
+ "scene": 0,
+ "scenes": [
+  {
+   "name": "Scene",
+   "nodes": [
+    0
+   ]
+  }
+ ],
+ "nodes": [
+  {
+   "mesh": 0,
+   "name": "rock_09_LOD1"
+  }
+ ],
+ "materials": [
+  {
+   "doubleSided": true,
+   "name": "rock_09",
+   "normalTexture": {
+    "index": 0
+   },
+   "pbrMetallicRoughness": {
+    "baseColorTexture": {
+     "index": 1
+    },
+    "metallicFactor": 0,
+    "metallicRoughnessTexture": {
+     "index": 2
+    }
+   }
+  }
+ ],
+ "meshes": [
+  {
+   "name": "rock_09_lod1",
+   "primitives": [
+    {
+     "attributes": {
+      "POSITION": 0,
+      "NORMAL": 1,
+      "TEXCOORD_0": 2
+     },
+     "indices": 3,
+     "material": 0,
+     "mode": 4
+    }
+   ]
+  }
+ ],
+ "textures": [
+  {
+   "sampler": 0,
+   "source": 0
+  },
+  {
+   "sampler": 0,
+   "source": 1
+  },
+  {
+   "sampler": 0,
+   "source": 2
+  }
+ ],
+ "images": [
+  {
+   "mimeType": "image/jpeg",
+   "name": "rock_09_nor_gl",
+   "uri": "textures/rock_09_nor_gl_2k.jpg"
+  },
+  {
+   "mimeType": "image/jpeg",
+   "name": "rock_09_diff",
+   "uri": "textures/rock_09_diff_2k.jpg"
+  },
+  {
+   "mimeType": "image/jpeg",
+   "name": "rock_09_rough",
+   "uri": "textures/rock_09_rough_2k.jpg"
+  }
+ ],
+ "samplers": [
+  {
+   "magFilter": 9729,
+   "minFilter": 9987
+  }
+ ],
+ "accessors": [
+  {
+   "bufferView": 0,
+   "componentType": 5126,
+   "count": 1620,
+   "type": "VEC3",
+   "min": [
+    -0.03659999743103981,
+    -0.0004962778184562922,
+    -0.061057448387145996
+   ],
+   "max": [
+    0.03715058043599129,
+    0.03197643160820007,
+    0.08356179296970367
+   ]
+  },
+  {
+   "bufferView": 1,
+   "componentType": 5126,
+   "count": 1620,
+   "type": "VEC3"
+  },
+  {
+   "bufferView": 2,
+   "componentType": 5126,
+   "count": 1620,
+   "type": "VEC2"
+  },
+  {
+   "bufferView": 3,
+   "componentType": 5123,
+   "count": 7200,
+   "type": "SCALAR"
+  }
+ ],
+ "bufferViews": [
+  {
+   "buffer": 0,
+   "byteOffset": 0,
+   "byteLength": 19440,
+   "target": 34962
+  },
+  {
+   "buffer": 0,
+   "byteOffset": 19440,
+   "byteLength": 19440,
+   "target": 34962
+  },
+  {
+   "buffer": 0,
+   "byteOffset": 38880,
+   "byteLength": 12960,
+   "target": 34962
+  },
+  {
+   "buffer": 0,
+   "byteOffset": 51840,
+   "byteLength": 14400,
+   "target": 34963
+  }
+ ],
+ "buffers": [
+  {
+   "uri": "rock_09_lod1.bin",
+   "byteLength": 66240
+  }
+ ]
+}
