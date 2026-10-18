@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-17T18:19:01.990326+00:00",
+  "generated_at": "2026-10-18T00:19:01.344959+00:00",
   "generated_by": "pr_helper.py on Oracle (forest-a1-v3)",
   "services": {
     "soul-server": {
@@ -26,19 +26,18 @@
     },
     "librarian": {
       "status": "ok",
-      "uptime_s": 29318,
-      "canons": [
-        {
-          "name": "whole-corpus",
-          "language": "bg",
-          "default": true
-        }
-      ],
-      "model_tiers": [],
-      "graph_backend": "neo4j-query-v2",
-      "backend": "whole-corpus-sqlite",
-      "package_manifest_sha256": "aa15c818d60495e9af405078a2da41f64464df4528ed79f87c779b9c7921920b",
-      "embedding_release_ready": false
+      "architecture": "single-vm-single-file-single-keeper",
+      "database": "/opt/lore-keeper/fable-20261018/lore.sqlite",
+      "retrieval": "fts5-trigram-plus-sqlite-vec-rrf",
+      "answering": "read-then-decide",
+      "neo4j": "build-time-only",
+      "tunnel": "none",
+      "restart_policy": "systemd:Restart=always",
+      "static_panes": [
+        "/lore/graph.json",
+        "/lore/stats.json",
+        "/lore/wiki/"
+      ]
     },
     "chloe-api": {
       "status": "ok",
