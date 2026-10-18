@@ -1,0 +1,246 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#05090f">
+    <meta name="description" content="SD Forest is a living overworld for Ivan's public tools, stories, and experiments.">
+    <title>SD Forest — enter the overworld</title>
+    <link rel="icon" href="./favicon.svg" type="image/svg+xml">
+    <link rel="stylesheet" href="./styles.css">
+    <script type="importmap">{"imports":{"three/webgpu":"/scratch/sdforest-overworld-preview/assets/three.webgpu.min.js"}}</script>
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="brand" href="#top" aria-label="SD Forest home">
+        <span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i></span>
+        <span>SD <em>FOREST</em></span>
+      </a>
+      <nav class="site-nav" aria-label="Page">
+        <a href="#catalog">Work</a>
+        <a href="#field-notes">Field notes</a>
+        <a href="#about">About</a>
+        <a href="../sdforest-gate-entry/intro/">Arrival</a>
+      </nav>
+      <button class="quiet-toggle" id="quiet-toggle" type="button" aria-pressed="false" aria-label="Quiet the forest field"><span aria-hidden="true"></span></button>
+    </header>
+
+    <main id="top">
+      <section class="entry-scene" id="entry" aria-labelledby="entry-title">
+        <div class="scene-sticky">
+          <canvas id="forest-canvas" role="img" aria-label="Interactive Three.js forest terrain with glowing project markers and a portal preview."></canvas>
+          <div class="scene-vignette" aria-hidden="true"></div>
+
+          <aside class="scene-fallback" aria-label="Text-first field guide">
+            <p class="scene-fallback__kicker">Text-first field guide</p>
+            <h2>Follow the work in order.</h2>
+            <p>The overworld is optional. The complete catalogue remains below as ordinary text and links, with row 00 naming the internal boundary without inventing a private doorway.</p>
+            <a class="text-link" href="#catalog">Skip to the catalogue <span aria-hidden="true">↓</span></a>
+          </aside>
+
+          <div class="scene-hud" aria-hidden="true">
+            <div class="scene-hud__left"><span class="scene-hud__dot"></span><span>SD Forest / overworld</span></div>
+            <div class="scene-hud__right"><span id="scene-phase">before the first signal</span><span class="scene-progress"><span id="scene-progress-bar"></span></span></div>
+          </div>
+
+          <div class="hero-copy">
+            <p class="eyebrow">Ivan Gegov <span>/</span> a living collection</p>
+            <h1 id="entry-title">Enter the forest. Follow the light to the work.</h1>
+            <p class="hero-lede">A real-time overworld for public tools, authored stories, and experiments that are already growing. Focus a marker to open its portal preview, then resolve into the ordered catalogue.</p>
+            <div class="hero-actions">
+              <a class="button" href="#catalog">Resolve into the catalogue <span aria-hidden="true">↓</span></a>
+              <a class="text-link" href="#field-notes">Read the field notes <span aria-hidden="true">↘</span></a>
+            </div>
+          </div>
+
+          <div class="portal-preview" id="portal-preview" hidden aria-live="polite">
+            <p class="portal-preview__label">Portal preview / selected marker</p>
+            <h2 id="portal-preview-title">Chloé / fleet app</h2>
+            <p class="portal-preview__meta" id="portal-preview-meta">00 / orchestration / internal</p>
+            <p class="portal-preview__copy" id="portal-preview-copy">The internal orchestration layer is named so the forest tells the truth without guessing a private route.</p>
+            <a class="portal-preview__link" id="portal-preview-link" href="#about">Internal boundary</a>
+          </div>
+
+          <div class="entry-veil" id="entry-veil" aria-label="Forest entry">
+            <p>Before the first signal</p>
+            <button class="enter-button" id="enter-forest" type="button">Enter the forest</button>
+          </div>
+
+          <div class="marker-list" id="marker-list" aria-label="Forest project markers"></div>
+          <p class="scene-status"><span id="engine-label">Preparing Three.js scene</span><strong id="scene-status">Loading terrain / fog / marker field</strong></p>
+          <p class="hero-hint">Drag or scroll to wander <span aria-hidden="true">↓</span></p>
+        </div>
+
+      </section>
+
+      <section class="catalog" id="catalog" aria-labelledby="catalog-title">
+        <div class="catalog-intro">
+          <div>
+            <p class="section-kicker">01 <span>/</span> public paths</p>
+            <h2 id="catalog-title">The work, in one clear line.</h2>
+          </div>
+          <p class="catalog-intro__copy">Each row is a doorway. The order is editorial, the status is explicit, and the overworld above is an orientation device — never the only way to navigate.</p>
+        </div>
+
+        <div class="catalog-rule" aria-hidden="true"><span>ordered catalogue / row 00 is internal</span><span>checked 15 Oct 2026</span><span>no private routes</span></div>
+
+        <ol class="project-list" aria-label="SD Forest project catalogue">
+          <li class="project-row" data-project="chloe" data-row="00">
+            <div class="project-link">
+              <span class="project-number">00</span>
+              <span class="project-copy"><b>Chloé / fleet app</b><small>Orchestration · internal boundary · explicitly unlisted</small></span>
+              <span class="project-origin">Internal / unlisted</span>
+              <span class="project-state">Boundary</span>
+              <span class="project-arrow" aria-hidden="true">·</span>
+            </div>
+            <button class="project-focus" type="button" data-focus-index="0" aria-label="Focus Chloé portal">◎</button>
+          </li>
+          <li class="project-row" data-project="opendashboard" data-row="01">
+            <a class="project-link" href="https://opendashboard.sdforest.site/" target="_blank" rel="noopener">
+              <span class="project-number">01</span>
+              <span class="project-copy"><b>openDashboard</b><small>AI tools · measured model catalogue</small></span>
+              <span class="project-origin">SDForest / live canonical</span>
+              <span class="project-state">Live</span>
+              <span class="project-arrow" aria-hidden="true">↗</span>
+            </a>
+            <button class="project-focus" type="button" data-focus-index="1" aria-label="Focus openDashboard portal">◎</button>
+          </li>
+          <li class="project-row" data-project="moneywolf" data-row="02">
+            <a class="project-link" href="https://moneywolf.sdforest.site/" target="_blank" rel="noopener">
+              <span class="project-number">02</span>
+              <span class="project-copy"><b>MoneyWolf</b><small>Finance · read-only paper desk</small></span>
+              <span class="project-origin">External / paper only</span>
+              <span class="project-state">Live</span>
+              <span class="project-arrow" aria-hidden="true">↗</span>
+            </a>
+            <button class="project-focus" type="button" data-focus-index="2" aria-label="Focus MoneyWolf portal">◎</button>
+          </li>
+          <li class="project-row" data-project="reposhelf" data-row="03">
+            <a class="project-link" href="https://ivangegovdve-sudo.github.io/repo-shelf/" target="_blank" rel="noopener">
+              <span class="project-number">03</span>
+              <span class="project-copy"><b>Repo Shelf</b><small>Repositories · published browser</small></span>
+              <span class="project-origin">External / live snapshot</span>
+              <span class="project-state">Live</span>
+              <span class="project-arrow" aria-hidden="true">↗</span>
+            </a>
+            <button class="project-focus" type="button" data-focus-index="3" aria-label="Focus Repo Shelf portal">◎</button>
+          </li>
+          <li class="project-row" data-project="reader" data-row="04">
+            <a class="project-link" href="https://chloe.blumenkraft.cloud/dyslexia/" target="_blank" rel="noopener">
+              <span class="project-number">04</span>
+              <span class="project-copy"><b>Unified Reader</b><small>Reading · dyslexia-friendly companion</small></span>
+              <span class="project-origin">External / reader + audiobook</span>
+              <span class="project-state">Live</span>
+              <span class="project-arrow" aria-hidden="true">↗</span>
+            </a>
+            <a class="project-companion" href="https://chloe.blumenkraft.cloud/audiobook/" target="_blank" rel="noopener">Listen <span aria-hidden="true">↗</span></a>
+            <button class="project-focus" type="button" data-focus-index="4" aria-label="Focus Unified Reader portal">◎</button>
+          </li>
+          <li class="project-row" data-project="alternate-self" data-row="05">
+            <a class="project-link" href="https://alternate-self-sdforest.onhercules.app/" target="_blank" rel="noopener">
+              <span class="project-number">05</span>
+              <span class="project-copy"><b>Alternate Self</b><small>Conversation · live experiment</small></span>
+              <span class="project-origin">External / experiment</span>
+              <span class="project-state">Live</span>
+              <span class="project-arrow" aria-hidden="true">↗</span>
+            </a>
+            <button class="project-focus" type="button" data-focus-index="5" aria-label="Focus Alternate Self portal">◎</button>
+          </li>
+          <li class="project-row" data-project="council" data-row="06">
+            <a class="project-link" href="https://sdforest.site/web/council/" target="_blank" rel="noopener">
+              <span class="project-number">06</span>
+              <span class="project-copy"><b>Council</b><small>Model panels · public tool</small></span>
+              <span class="project-origin">SDForest / live route</span>
+              <span class="project-state">Live</span>
+              <span class="project-arrow" aria-hidden="true">↗</span>
+            </a>
+            <button class="project-focus" type="button" data-focus-index="6" aria-label="Focus Council portal">◎</button>
+          </li>
+          <li class="project-row" data-project="gymscholar" data-row="07">
+            <a class="project-link" href="https://gymscholar.lovable.app/" target="_blank" rel="noopener">
+              <span class="project-number">07</span>
+              <span class="project-copy"><b>gymScholar</b><small>Training · evidence-based practice</small></span>
+              <span class="project-origin">External / live companion</span>
+              <span class="project-state">Live</span>
+              <span class="project-arrow" aria-hidden="true">↗</span>
+            </a>
+            <button class="project-focus" type="button" data-focus-index="7" aria-label="Focus gymScholar portal">◎</button>
+          </li>
+          <li class="project-row" data-project="math-mania" data-row="08">
+            <a class="project-link" href="https://forest-math-plus.lovable.app/" target="_blank" rel="noopener">
+              <span class="project-number">08</span>
+              <span class="project-copy"><b>Math Mania</b><small>Learning · playful multiplication</small></span>
+              <span class="project-origin">External / live companion</span>
+              <span class="project-state">Live</span>
+              <span class="project-arrow" aria-hidden="true">↗</span>
+            </a>
+            <button class="project-focus" type="button" data-focus-index="8" aria-label="Focus Math Mania portal">◎</button>
+          </li>
+          <li class="project-row" data-project="the-drop" data-row="09">
+            <a class="project-link" href="https://thedrop.sdforest.site/" target="_blank" rel="noopener">
+              <span class="project-number">09</span>
+              <span class="project-copy"><b>The Drop</b><small>Publication · daily AI signal</small></span>
+              <span class="project-origin">External / live publication</span>
+              <span class="project-state">Live</span>
+              <span class="project-arrow" aria-hidden="true">↗</span>
+            </a>
+            <button class="project-focus" type="button" data-focus-index="9" aria-label="Focus The Drop portal">◎</button>
+          </li>
+          <li class="project-row" data-project="chair-ladder" data-row="10">
+            <a class="project-link" href="https://sdforest.site/web/chair-or-ladder/" target="_blank" rel="noopener">
+              <span class="project-number">10</span>
+              <span class="project-copy"><b>A Chair or a Ladder?</b><small>Writing · authored essay</small></span>
+              <span class="project-origin">SDForest / live route</span>
+              <span class="project-state">Live</span>
+              <span class="project-arrow" aria-hidden="true">↗</span>
+            </a>
+            <button class="project-focus" type="button" data-focus-index="10" aria-label="Focus A Chair or a Ladder portal">◎</button>
+          </li>
+          <li class="project-row" data-project="training-data" data-row="11">
+            <a class="project-link" href="https://sdforest.site/web/we-are-the-training-data/" target="_blank" rel="noopener">
+              <span class="project-number">11</span>
+              <span class="project-copy"><b>We Are the Training Data</b><small>Spoken word · public piece</small></span>
+              <span class="project-origin">SDForest / live route</span>
+              <span class="project-state">Live</span>
+              <span class="project-arrow" aria-hidden="true">↗</span>
+            </a>
+            <button class="project-focus" type="button" data-focus-index="11" aria-label="Focus We Are the Training Data portal">◎</button>
+          </li>
+        </ol>
+      </section>
+
+      <section class="field-notes" id="field-notes" aria-labelledby="field-notes-title">
+        <div class="field-notes__header">
+          <div>
+            <p class="section-kicker">02 <span>/</span> field notes</p>
+            <h2 id="field-notes-title">The forest is a doorway, not a disguise.</h2>
+          </div>
+          <p class="field-notes__copy">The scene is an authored orientation layer: genuine terrain, PBR materials, bioluminescent markers, and a portal shader. The catalogue stays ordinary HTML so the work remains reachable when motion, GPU, or bandwidth are unavailable.</p>
+        </div>
+        <div class="note-grid">
+          <article class="note-card"><span class="note-card__index">01 / terrain</span><h3>Real ground, real depth.</h3><p>A dense Three.js mesh is displaced with a Poly Haven forest-ground material and a loaded rock GLTF, then placed inside exponential fog.</p></article>
+          <article class="note-card"><span class="note-card__index">02 / markers</span><h3>Light means a doorway.</h3><p>Each project is a point-sprite shader plus a live 3D beacon. Hover, focus, click, drag, and scroll all resolve into the same selection model.</p></article>
+          <article class="note-card"><span class="note-card__index">03 / entry</span><h3>Pass through, then read.</h3><p>The entry veil borrows the measured pass-through timing grammar of aengel.io, while the work itself remains SD Forest’s own content and brand.</p></article>
+        </div>
+      </section>
+
+      <section class="about" id="about" aria-labelledby="about-title">
+        <div class="about-mark" aria-hidden="true"><span></span><span></span><span></span></div>
+        <div>
+          <p class="section-kicker">03 <span>/</span> the rule of the forest</p>
+          <h2 id="about-title">A catalogue should tell the truth before it tells a story.</h2>
+          <p class="about__copy">The public set is mapped from measured routes. Chloé is named as row 00 because it matters to the ecosystem, but its internal route is not guessed or exposed. Every other row is a real public doorway from the local mapping note.</p>
+        </div>
+        <div class="evidence-note"><span class="evidence-note__label">Readback</span><b>12 markers / 11 public</b><small>Row 00 internal / unlisted<br>Public routes checked 15 Oct 2026</small></div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <a class="button button--quiet" href="#top">↑ Back to the top</a>
+      <span>SD Forest / local reconstruction</span>
+      <span>2026</span>
+    </footer>
+    <noscript><p>JavaScript is disabled. The complete SD Forest catalogue is available in the page sections below as text and ordinary links.</p></noscript>
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>
