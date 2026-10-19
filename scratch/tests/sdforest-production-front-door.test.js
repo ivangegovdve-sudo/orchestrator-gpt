@@ -6,20 +6,20 @@ const { test } = require('node:test');
 const ROOT = path.resolve(__dirname, '../..');
 const read = (source) => fs.readFileSync(path.join(ROOT, source), 'utf8');
 const config = JSON.parse(read('vercel.json'));
-const rewriteFor = (source) => config.rewrites.find((entry) => entry.source === source);
+const routeFor = (src) => config.routes.find((entry) => entry.src === src);
 
-test('production root is rewritten to the interactive overworld, with a canonical gate route', () => {
-  assert.deepEqual(rewriteFor('/'), {
-    source: '/',
-    destination: '/scratch/sdforest-overworld-preview/',
+test('production root takes precedence over the filesystem, with a canonical gate route', () => {
+  assert.deepEqual(config.routes.slice(0, 2), [
+    { src: '^/$', dest: '/scratch/sdforest-overworld-preview/' },
+    { src: '^/gate/?$', dest: '/scratch/sdforest-gate-entry/intro/' },
+  ]);
+  assert.deepEqual(routeFor('^/$'), {
+    src: '^/$',
+    dest: '/scratch/sdforest-overworld-preview/',
   });
-  assert.deepEqual(rewriteFor('/gate/'), {
-    source: '/gate/',
-    destination: '/scratch/sdforest-gate-entry/intro/',
-  });
-  assert.deepEqual(rewriteFor('/gate'), {
-    source: '/gate',
-    destination: '/scratch/sdforest-gate-entry/intro/',
+  assert.deepEqual(routeFor('^/gate/?$'), {
+    src: '^/gate/?$',
+    dest: '/scratch/sdforest-gate-entry/intro/',
   });
 });
 
