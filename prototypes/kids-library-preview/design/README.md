@@ -11,8 +11,8 @@ optimized images in the preview. Each film has its own scene, while the figures
 share a similar arrangement. These are independent images, not crops of the
 approved page screenshot.
 
-The preview contains three works from the
-[Cool Kids Animation Filmography](https://docs.google.com/document/d/1G4FN5wtDezSKEEbwGVFnaTn-ykpEKoeaQdeaAeokttM):
-*My Neighbor Totoro* (Studio Ghibli), *The Iron Giant* (American canon), and
-*Ernest & Celestine* (European animation). It does not yet contain the complete
-research catalog or a curated books collection.
+The preview contains the 63-title catalog with title/year/director/studio fields
+fed from the per-title Iris verification ledger in `src/researchVerification.js`.
+The former Cool Kids Animation Filmography is a candidate seed only; premise,
+audience, age, content, and visual-style fields remain unverified unless marked
+as editorial sample guidance. It does not yet contain a curated books collection.

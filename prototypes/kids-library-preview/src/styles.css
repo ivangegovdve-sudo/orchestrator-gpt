@@ -42,7 +42,7 @@ button svg, a svg { flex-shrink: 0; }
 
 .forest-hero { height: clamp(315px, 23.8vw, 420px); position: relative; isolation: isolate; overflow: hidden; background: var(--mint); }
 .hero-scene { position: absolute; inset: 0 0 0 51%; z-index: -2; }
-.hero-scene img { width: 100%; height: 100%; object-fit: cover; object-position: 45% 57%; animation: artwork-arrives 260ms ease-out; }
+.hero-scene .movie-art { width: 100%; height: 100%; }
 .forest-frame { position: absolute; inset: 0; width: 100%; height: 100%; z-index: -1; pointer-events: none; }
 .hero-copy { position: relative; width: 42%; padding-top: clamp(18px, 1.35vw, 28px); margin-left: var(--page-gutter); }
 .hero-copy h1 { font-family: 'Lilita One', sans-serif; font-size: clamp(64px, 6.3vw, 110px); line-height: .84; font-weight: 400; letter-spacing: -.025em; margin: 0 0 18px; }
@@ -80,10 +80,12 @@ button svg, a svg { flex-shrink: 0; }
 .film-strip { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 22px; margin-bottom: 16px; }
 .film-option { min-width: 0; background: transparent; padding: 0; text-align: left; border-radius: 5px; }
 .thumbnail-frame { display: block; border-radius: 6px; overflow: hidden; outline: 4px solid transparent; outline-offset: 0; transition: outline-color 160ms; }
-.thumbnail-frame img { width: 100%; height: auto; aspect-ratio: 2.2; object-fit: cover; object-position: center 62%; transform: scale(1.22); transform-origin: 40% 65%; transition: transform 220ms; }
+.thumbnail-frame .movie-art { aspect-ratio: 2.2; }
+.thumbnail-frame .movie-art__face--turned-away img { object-fit: cover; object-position: center 62%; transform: scale(1.22); transform-origin: 40% 65%; transition: transform 220ms; }
 .film-option.is-selected .thumbnail-frame { outline-color: var(--yellow); }
-.film-option:hover .thumbnail-frame img { transform: scale(1.245); }
-.film-option > span:last-child { display: block; font-size: clamp(16px, 1.5vw, 22px); font-weight: 900; padding-top: 8px; line-height: 1.2; }
+.film-option:hover .thumbnail-frame .movie-art__face--turned-away img { transform: scale(1.245); }
+.film-option__select { display: block; width: 100%; color: inherit; background: transparent; padding: 8px 0 0; text-align: left; font-size: clamp(16px, 1.5vw, 22px); font-weight: 900; line-height: 1.2; }
+.film-option__select:hover { text-decoration: underline; text-underline-offset: 4px; }
 .film-detail { background: var(--peach); border-radius: 16px; display: grid; grid-template-columns: 1.08fr 1fr; gap: 28px; min-height: 355px; padding: 24px 24px 16px 36px; margin-left: -10px; margin-right: -10px; align-items: stretch; }
 .film-copy { padding-top: 0; padding-bottom: 7px; }
 .film-detail h2 { font-family: 'Source Serif 4', Georgia, serif; font-size: clamp(30px, 3.05vw, 48px); letter-spacing: -.035em; line-height: 1.12; margin: 0 0 8px; font-weight: 700; }
@@ -94,10 +96,12 @@ button svg, a svg { flex-shrink: 0; }
 .detail-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 16px 22px; margin-top: 20px; }
 .primary-action { display: inline-flex; justify-content: center; align-items: center; gap: 20px; min-height: 58px; background: var(--yellow); font-weight: 900; border-radius: 32px; padding: 12px 30px; font-size: 20px; line-height: 1.2; text-decoration: none; }
 .primary-action:hover { background: #ffd524; }
+.secondary-action { display: inline-flex; justify-content: center; align-items: center; min-height: 54px; border: 2px solid var(--spruce); border-radius: 30px; padding: 10px 22px; background: transparent; font-size: 17px; font-weight: 900; }
+.secondary-action:hover, .secondary-action[aria-pressed="true"] { background: #fff1aa; }
 .research-link { display: inline-flex; align-items: center; gap: 6px; flex-wrap: wrap; color: #07529b; font-size: 14px; }
 .research-link strong { color: var(--spruce); }
 .detail-art { min-width: 0; display: flex; align-items: stretch; align-self: stretch; overflow: hidden; border-radius: 50% 50% 0 0; margin-top: -8px; }
-.detail-art img { width: 100%; height: 100%; min-height: 320px; object-fit: cover; object-position: 38% center; animation: artwork-arrives 260ms ease-out; }
+.detail-art .movie-art { width: 100%; height: 100%; min-height: 320px; }
 .screen-reader-status { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
 .empty-shelf { min-height: 350px; padding: 50px 26px; text-align: center; background: var(--peach); border-radius: 16px; }
 .empty-shelf h2 { font-family: 'Lilita One', sans-serif; font-size: 38px; font-weight: 400; margin: 0 0 16px; }
@@ -114,6 +118,26 @@ button svg, a svg { flex-shrink: 0; }
 .text-link { display: inline-flex; align-items: center; gap: 8px; font-weight: 700; margin-top: 10px; }
 .form-error { color: #82371f; font-weight: 700; }
 @keyframes artwork-arrives { from { opacity: .65; } to { opacity: 1; } }
+.movie-art { position: relative; width: 100%; height: 100%; }
+.movie-art__link, .movie-art__inner { display: block; width: 100%; height: 100%; }
+.movie-art__link { color: inherit; }
+.movie-art__inner { position: relative; }
+.movie-art__face { position: absolute; inset: 0; display: block; overflow: hidden; border-radius: inherit; background: #173d3b; }
+.movie-art__face img { width: 100%; height: 100%; object-fit: cover; object-position: center; animation: artwork-arrives 260ms ease-out; }
+.movie-art--hero .movie-art__face--turned-away img { object-position: 45% 57%; }
+.movie-art--detail .movie-art__face--turned-away img { object-position: 38% center; }
+.artwork-placeholder { display: grid; align-content: center; justify-items: center; gap: 8px; width: 100%; height: 100%; padding: 24px; text-align: center; color: #effbf2; background: radial-gradient(circle at 70% 18%, #478f7b 0, transparent 38%), linear-gradient(135deg, #154d49, #082b31); }
+.artwork-placeholder strong { max-width: 22ch; font-size: clamp(16px, 1.5vw, 22px); line-height: 1.05; }
+.artwork-placeholder span { max-width: 28ch; font-family: 'Source Serif 4', Georgia, serif; font-size: clamp(18px, 1.8vw, 28px); line-height: 1.1; }
+.artwork-placeholder small { max-width: 30ch; color: #c6e4d5; font-size: 13px; line-height: 1.35; }
+.movie-art--thumbnail .artwork-placeholder { gap: 4px; padding: 10px; }
+.movie-art--thumbnail .artwork-placeholder strong { font-size: 13px; }
+.movie-art--thumbnail .artwork-placeholder span { font-size: 16px; }
+.movie-art--thumbnail .artwork-placeholder small { display: none; }
+.movie-art--hero .artwork-placeholder { padding: 48px; }
+.movie-art--hero .artwork-placeholder strong { font-size: 26px; }
+.movie-art--hero .artwork-placeholder span { font-size: 32px; }
+.movie-art__link:focus-visible { outline: 3px solid #0b5e66; outline-offset: -5px; }
 @media (min-width: 1550px) { .library-content { max-width: 1800px; margin: 0 auto; } }
 @media (max-width: 1180px) {
   .site-header { gap: 28px; } .site-navigation { gap: 14px; } .media-tabs--header { gap: 20px; }
@@ -126,9 +150,9 @@ button svg, a svg { flex-shrink: 0; }
   .hero-copy { width: 51%; } .hero-copy h1 { font-size: clamp(54px, 7.3vw, 68px); } .hero-copy > p { font-size: 20px; }
   .search-control { gap: 10px; padding-left: 14px; margin-top: 20px; } .search-control input { font-size: 15px; }
   .theme-band { flex-direction: column; align-items: flex-start; gap: 5px; padding-block: 9px; } .theme-band > strong { font-size: 19px; } .theme-options { width: 100%; }
-  .film-strip { gap: 16px; } .film-option > span:last-child { font-size: 16px; }
+  .film-strip { gap: 16px; } .film-option__select { font-size: 16px; }
   .film-detail { grid-template-columns: 1.15fr 1fr; padding: 22px; margin-inline: 0; } .film-detail h2 { font-size: 31px; } .film-meta, .parent-guidance p { font-size: 16px; }
-  .detail-art img { object-position: 36% center; } .primary-action { font-size: 18px; padding-inline: 24px; }
+  .movie-art--detail .movie-art__face--turned-away img { object-position: 36% center; } .primary-action { font-size: 18px; padding-inline: 24px; }
 }
 @media (max-width: 650px) {
   :root { --page-gutter: 18px; }
@@ -138,16 +162,16 @@ button svg, a svg { flex-shrink: 0; }
   .forest-hero { height: 440px; } .hero-copy { width: calc(100% - 36px); padding-top: 24px; }
   .hero-copy h1 { font-size: clamp(53px, 12vw, 70px); line-height: .9; margin-bottom: 13px; } .hero-copy > p { font-size: 19px; }
   .search-control { height: 52px; margin-top: 19px; max-width: 490px; position: relative; } .search-control input { font-size: 16px; }
-  .forest-frame { top: 190px; height: 250px; width: 105%; left: -5%; } .hero-scene { inset: 202px 0 0 23%; } .hero-scene img { object-position: 0% 62%; }
+  .forest-frame { top: 190px; height: 250px; width: 105%; left: -5%; } .hero-scene { inset: 202px 0 0 23%; } .movie-art--hero .movie-art__face--turned-away img { object-position: 0% 62%; }
   .library-toolbar { min-height: 116px; flex-wrap: wrap; gap: 12px; padding-block: 12px; } .media-tabs--toolbar { width: 100%; } .media-tabs--toolbar button { width: 50%; min-height: 48px; font-size: 18px; }
   .country-control { width: 100%; justify-content: space-between; gap: 12px; font-size: 15px; } .country-control select { width: 205px; }
   .theme-band { min-height: 90px; } .theme-options button { min-height: 44px; font-size: 15px; padding-inline: 14px; }
   .age-row { gap: 14px; margin-bottom: 16px; } .age-row > div { flex: 1; justify-content: space-between; gap: 6px; } .age-row button { min-width: 0; min-height: 44px; padding-inline: 15px; }
   .film-strip { display: flex; overflow-x: auto; margin-inline: -5px; padding: 5px 5px 12px; gap: 14px; scroll-snap-type: x proximity; scrollbar-width: thin; scrollbar-color: #5f8d80 var(--mint); }
-  .film-option { flex: 0 0 70%; scroll-snap-align: start; } .thumbnail-frame img { aspect-ratio: 1.9; } .film-option > span:last-child { font-size: 17px; }
+  .film-option { flex: 0 0 70%; scroll-snap-align: start; } .thumbnail-frame .movie-art { aspect-ratio: 1.9; } .film-option__select { font-size: 17px; }
   .film-detail { display: flex; flex-direction: column; padding: 22px 20px 20px; gap: 22px; } .film-detail h2 { font-size: 32px; } .film-meta { font-size: 16px; line-height: 1.45; }
   .parent-guidance p { margin-bottom: 10px; font-size: 17px; line-height: 1.45; } .detail-actions { gap: 20px; margin-top: 22px; } .research-link { font-size: 14px; line-height: 1.5; }
-  .detail-art { width: 100%; margin-top: 0; aspect-ratio: 1.5; } .detail-art img { min-height: 0; object-position: 36% center; }
+  .detail-art { width: 100%; margin-top: 0; aspect-ratio: 1.5; } .detail-art .movie-art { min-height: 0; } .movie-art--detail .movie-art__face--turned-away img { object-position: 36% center; }
   .library-dialog { padding: 30px 24px; } .library-dialog h2 { font-size: 31px; } .empty-shelf { padding-inline: 20px; }
 }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; } }

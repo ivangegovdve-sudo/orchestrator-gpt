@@ -1,8 +1,8 @@
 # Kids’ Library design preview
 
-This is the approved interactive design preview, available at `/web/kids-library-preview/`. It contains three films from the **Cool Kids Animation Filmography** research: *My Neighbor Totoro* (Studio Ghibli), *The Iron Giant* (American animation), and *Ernest & Celestine* (European animation). The book shelf is intentionally empty pending its own curation. This preview is not the completed research-backed catalog, and it does not replace either existing movie-library route.
+This is the approved interactive Kids’ Library route, available at `/web/kids-library-preview/`. Its movie shelf contains 63 titles with an Iris verification ledger in `src/researchVerification.js`. The prior Cool Kids Animation Filmography remains only as an untrusted candidate seed; active title/year/director/studio fields come from the Iris ledger, and flagged or unverified fields stay labeled. The book shelf is intentionally empty pending its own curation. Every movie has a generated turned-away image; the three initial samples are retained as approved references. Official poster targets remain separate from the generated catalog artwork and require licensing review before public launch.
 
-The search, age and theme filters, movie selection, country lookup, and separate Movies and Books controls are usable. Availability opens a country-specific JustWatch search; the preview does not claim a particular service carries a film. Country choices are limited to the 18 shown in the prototype.
+The search, age and theme filters, movie selection, country lookup, watched state, turned-away-to-poster flip, and separate Movies and Books controls are usable. Availability opens a country-specific JustWatch search; the route does not claim a particular service carries a film. Country choices are limited to the 18 shown in the prototype. Research audience profiles and editorial parent notes remain explicitly separated from official ratings.
 
 To rebuild the checked-in, static preview from this directory:
 

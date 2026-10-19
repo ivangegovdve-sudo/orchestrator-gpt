@@ -4,10 +4,10 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "vite build && node scripts/prepare-sites-build.mjs",
-    "build:preview": "vite build --outDir ../../web/kids-library-preview --emptyOutDir",
-    "preview": "vite preview",
+    "dev": "node node_modules/vite/bin/vite.js",
+    "build": "node node_modules/vite/bin/vite.js build && node scripts/prepare-sites-build.mjs",
+    "build:preview": "node node_modules/vite/bin/vite.js build --outDir ../../web/kids-library-preview --emptyOutDir",
+    "preview": "node node_modules/vite/bin/vite.js preview",
     "test:sites": "node --test tests/sites-worker.test.mjs",
     "test:library": "node --test tests/library.test.mjs"
   },
