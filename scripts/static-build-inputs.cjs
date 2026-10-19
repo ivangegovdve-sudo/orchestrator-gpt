@@ -11,6 +11,7 @@ const STATIC_COPY_DIRECTORIES = Object.freeze([
   'public',
   'config',
   'scratch/sdforest-gate-entry',
+  'scratch/sdforest-overworld-preview',
 ]);
 
 const STATIC_DATA_COPIES = Object.freeze({
