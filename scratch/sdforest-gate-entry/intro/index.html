@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#05090f">
+    <meta name="description" content="SD Forest arrival: fallen stones that rebuild themselves into a gate and open a window into the forest.">
+    <title>SD Forest — arrival</title>
+    <link rel="icon" href="../shared/favicon.svg" type="image/svg+xml">
+    <link rel="stylesheet" href="../shared/base.css">
+    <link rel="stylesheet" href="./intro.css">
+    <script type="importmap">{"imports":{"three":"../assets/three/three.webgpu.min.js","three/webgpu":"../assets/three/three.webgpu.min.js","three/tsl":"../assets/three/three.tsl.min.js"}}</script>
+  </head>
+  <body data-page="intro">
+    <header class="site-header">
+      <a class="brand" href="../../sdforest-overworld-preview/" aria-label="SD Forest front page">
+        <span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i></span>
+        <span>SD <em>FOREST</em></span>
+      </a>
+      <nav class="site-nav" aria-label="Page">
+        <a href="../../sdforest-overworld-preview/">Front page</a>
+      </nav>
+      <button class="quiet-toggle" id="quiet-toggle" type="button" aria-pressed="false" aria-label="Quiet the forest scene"><span aria-hidden="true"></span></button>
+    </header>
+
+    <main id="main">
+      <div class="scroll-track" id="track">
+      <section class="stage" id="stage" aria-labelledby="intro-title">
+        <canvas id="intro-canvas" role="img" aria-label="Fallen blocks of rock lie on a dark island ringed by shallow water. As you scroll, those same stones lift, arc through the air and seat themselves, one by one, into an upright stone gate with a keystone, reflected in the water, which then opens a faint blue-violet window into the forest."></canvas>
+        <canvas id="reveal-canvas" aria-hidden="true"></canvas>
+        <div class="stage-backdrop" aria-hidden="true"><span class="stage-backdrop__ring"></span></div>
+        <div class="stage-vignette" aria-hidden="true"></div>
+
+        <div class="hero-copy">
+          <p class="eyebrow">Arrival / 01</p>
+          <h1 id="intro-title">A field of stones remembers the way through.</h1>
+          <p class="hero-lede">Scroll to let the fallen stones leave the ground and rebuild the gate, block by block, until it opens a window into the forest.</p>
+          <div class="hero-actions">
+            <button class="button" id="awaken" type="button" aria-pressed="false">Awaken the stones <span aria-hidden="true">↗</span></button>
+            <a class="button button--solid" id="step-in" href="../../sdforest-overworld-preview/">Step into SD Forest <span aria-hidden="true">→</span></a>
+          </div>
+        </div>
+
+        <p class="scroll-cue" aria-hidden="true"><span>Scroll</span><i></i></p>
+
+        <p class="stage-status"><span id="engine-label">Preparing the field</span><strong id="stage-state" aria-live="polite">Stones at rest</strong></p>
+      </section>
+      </div>
+    </main>
+
+    <div class="iris" id="iris" aria-hidden="true"></div>
+    <noscript><p class="noscript-note">JavaScript is off, so the stones stay at rest. <a href="../../sdforest-overworld-preview/">Step into SD Forest</a> works as an ordinary link.</p></noscript>
+    <script type="module" src="./intro.js"></script>
+  </body>
+</html>
