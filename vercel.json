@@ -5,6 +5,18 @@
   "framework": null,
   "rewrites": [
     {
+      "source": "/",
+      "destination": "/scratch/sdforest-overworld-preview/"
+    },
+    {
+      "source": "/gate",
+      "destination": "/scratch/sdforest-gate-entry/intro/"
+    },
+    {
+      "source": "/gate/",
+      "destination": "/scratch/sdforest-gate-entry/intro/"
+    },
+    {
       "source": "/chair-or-ladder",
       "destination": "/web/chair-or-ladder/"
     },

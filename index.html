@@ -4,12 +4,30 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="theme-color" content="#05090f">
-    <meta http-equiv="refresh" content="0; url=./scratch/sdforest-gate-entry/intro/">
+    <meta name="description" content="SD Forest is a living overworld for Ivan's public tools, stories, and experiments.">
+    <link rel="canonical" href="/">
     <title>SD Forest — enter the overworld</title>
+    <style>
+      :root { color-scheme: dark; background: #05090f; color: #e2efe8; font-family: Georgia, serif; }
+      body { min-height: 100svh; margin: 0; display: grid; place-items: center; background: radial-gradient(circle at 50% 20%, #14352f, #05090f 68%); }
+      main { width: min(42rem, calc(100% - 3rem)); padding: 3rem 0; }
+      p { color: #a9c2b7; font: 500 .78rem/1.6 system-ui, sans-serif; letter-spacing: .08em; text-transform: uppercase; }
+      h1 { max-width: 12ch; margin: .5rem 0 1.25rem; font-size: clamp(3rem, 9vw, 6.5rem); line-height: .9; font-weight: 400; }
+      .actions { display: flex; flex-wrap: wrap; gap: .75rem; margin-top: 2rem; }
+      a { display: inline-block; padding: .85rem 1.15rem; border: 1px solid #6f9e87; border-radius: 999px; color: #e2efe8; font: 600 .78rem/1 system-ui, sans-serif; letter-spacing: .08em; text-decoration: none; text-transform: uppercase; }
+      a:first-child { background: #b9e8ce; border-color: #b9e8ce; color: #07120d; }
+      a:hover, a:focus-visible { outline: 2px solid #b9e8ce; outline-offset: 3px; }
+    </style>
   </head>
   <body>
-    <p>Entering the SD Forest overworld…</p>
-    <p><a href="./scratch/sdforest-gate-entry/intro/">Enter through the stones gate</a></p>
-    <script>window.location.replace("./scratch/sdforest-gate-entry/intro/");</script>
+    <main>
+      <p>SD Forest / front door</p>
+      <h1>Enter the forest. Follow the light to the work.</h1>
+      <p>The interactive overworld is the production front page. If the visual layer is unavailable, these links keep the same public paths reachable.</p>
+      <div class="actions">
+        <a href="/gate/">Enter through the stones</a>
+        <a href="/scratch/sdforest-overworld-preview/">Open the overworld</a>
+      </div>
+    </main>
   </body>
 </html>
