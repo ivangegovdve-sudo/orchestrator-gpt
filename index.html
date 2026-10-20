@@ -9,6 +9,22 @@
 <link rel="preload" href="/web/shared/forest-design.css?v=20260807a" as="style">
 <link rel="preload" href="/web/vendor/fonts/cormorant-garamond-normal-500-latin.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="/web/vendor/fonts/alegreya-normal-400-900-latin.woff2" as="font" type="font/woff2" crossorigin>
+<style>
+  .landing-notice {
+    position: relative;
+    z-index: 3;
+    display: inline-flex;
+    margin: 0 0 clamp(16px, 2.5vh, 24px);
+    padding: 7px 13px;
+    border: 1px solid rgba(232, 184, 107, .48);
+    border-radius: 999px;
+    background: rgba(7, 7, 11, .82);
+    color: var(--forest-amber, #e8b86b);
+    font: 500 11px/1.1 var(--home-sans);
+    letter-spacing: .16em;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, .24);
+  }
+</style>
 <script type="speculationrules">
 {
   "prerender": [
