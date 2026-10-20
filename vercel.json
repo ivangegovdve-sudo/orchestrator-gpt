@@ -162,10 +162,6 @@
   ],
   "routes": [
     {
-      "src": "^/$",
-      "dest": "/scratch/sdforest-overworld-preview/"
-    },
-    {
       "src": "^/gate/?$",
       "dest": "/scratch/sdforest-gate-entry/intro/"
     },
