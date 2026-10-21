@@ -217,6 +217,7 @@
     }
     .hero p { color: var(--text-muted); font-size: clamp(15px, 2.1vw, 17px); line-height: 1.6; margin: 16px 0 0; }
     .hero strong { color: var(--text-primary); font-weight: 600; }
+    .hero a { color: var(--text-primary); text-decoration-color: var(--accent-green); text-underline-offset: 3px; }
 
     .filters {
       display: flex; flex-wrap: wrap; gap: 8px 18px; align-items: center;
@@ -266,7 +267,6 @@
     .course-title { margin: 0; font-family: var(--display); font-size: 26px; font-weight: 600; line-height: 1.1; }
     .course--lead .course-title { font-size: clamp(30px, 5vw, 40px); }
     .course-author { margin: 0; font-family: var(--sans); font-size: 14px; color: var(--text-muted); }
-    .course-author a { color: var(--text-primary); }
     .course-outcome { margin: 4px 0 0; font-size: 16px; line-height: 1.5; }
     .course-outcome span { display: block; font: 600 11px/1.4 var(--sans); letter-spacing: .14em; text-transform: uppercase; color: var(--accent-green); }
     .course-summary { margin: 0; color: var(--text-muted); font-size: 14.5px; line-height: 1.55; }
@@ -299,7 +299,7 @@
       <p class="eyebrow">SD Forest · Academy</p>
       <h1>Academy</h1>
       <p>A shelf of <strong>free AI lessons written by other people</strong>. None of this is Ivan’s work and none of it is copied here: every entry links to the author’s own repository first, and Ivan’s fork — a bookmark, kept where one exists — comes second.</p>
-      <p>Start with <a href="#ai-engineering-from-scratch">AI Engineering from Scratch</a>, then pick by level or format.</p>
+      <p>Start with <a href="https://github.com/rohitg00/ai-engineering-from-scratch" rel="noopener">AI Engineering from Scratch</a>, then pick by level or format.</p>
     </header>
 
     <div class="filters" id="filters" hidden>
@@ -308,6 +308,7 @@
         <button type="button" class="chip" data-value="any" aria-pressed="true">Any</button>
         <button type="button" class="chip" data-value="beginner" aria-pressed="false">Beginner</button>
         <button type="button" class="chip" data-value="intermediate" aria-pressed="false">Intermediate</button>
+        <button type="button" class="chip" data-value="advanced" aria-pressed="false">Advanced</button>
       </fieldset>
       <fieldset class="filter-group" data-filter="kind">
         <legend>Type</legend>
@@ -320,10 +321,10 @@
     </div>
 
     <section class="shelf" aria-label="Courses">
-      <article class="course course--lead" id="ai-engineering-from-scratch" data-level="beginner intermediate" data-kind="course">
+      <article class="course course--lead" id="ai-engineering-from-scratch" data-level="beginner intermediate advanced" data-kind="course">
         <p class="course-flag">Start here</p>
         <h3 class="course-title">AI Engineering from Scratch</h3>
-        <p class="course-author">by <a href="https://github.com/rohitg00" rel="noopener">Rohit Ghumare</a></p>
+        <p class="course-author">by Rohit Ghumare</p>
         <p class="course-outcome"><span>After this you can</span> build model internals, retrieval pipelines and agent runtimes yourself — then test and evaluate them like production code.</p>
         <p class="course-summary">528 lessons in 20 phases, from “new to programming and AI” up to senior-engineer material, with graded projects.</p>
         <dl class="course-facts">
@@ -340,7 +341,7 @@
       </article>
       <article class="course" id="ai-agents-for-beginners" data-level="beginner" data-kind="course">
         <h3 class="course-title">AI Agents for Beginners</h3>
-        <p class="course-author">by <a href="https://github.com/microsoft" rel="noopener">Microsoft</a></p>
+        <p class="course-author">by Microsoft</p>
         <p class="course-outcome"><span>After this you can</span> build agents with tool use, RAG, planning, memory, multi-agent patterns and MCP — and know how to secure them.</p>
         <p class="course-summary">18 lessons, each a written lesson with Python samples; most come with a short video.</p>
         <dl class="course-facts">
@@ -356,7 +357,7 @@
       </article>
       <article class="course" id="generative-ai-for-beginners" data-level="beginner" data-kind="course">
         <h3 class="course-title">Generative AI for Beginners</h3>
-        <p class="course-author">by <a href="https://github.com/microsoft" rel="noopener">Microsoft</a></p>
+        <p class="course-author">by Microsoft</p>
         <p class="course-outcome"><span>After this you can</span> understand LLMs and prompting well enough to build your first chat, search and image-generation apps.</p>
         <p class="course-summary">21 lessons; Microsoft recommends it before AI Agents for Beginners.</p>
         <dl class="course-facts">
@@ -369,9 +370,9 @@
           <a class="course-primary" href="https://github.com/microsoft/generative-ai-for-beginners" rel="noopener">microsoft/generative-ai-for-beginners ↗</a>
         </div>
       </article>
-      <article class="course" id="llm-course" data-level="intermediate" data-kind="course">
+      <article class="course" id="llm-course" data-level="intermediate advanced" data-kind="course">
         <h3 class="course-title">LLM Course</h3>
-        <p class="course-author">by <a href="https://github.com/mlabonne" rel="noopener">Maxime Labonne</a></p>
+        <p class="course-author">by Maxime Labonne</p>
         <p class="course-outcome"><span>After this you can</span> fine-tune, quantize, evaluate and deploy LLMs, and build RAG and agent apps on top of them.</p>
         <p class="course-summary">Three tracks — fundamentals, “LLM Scientist”, “LLM Engineer” — as a roadmap with Colab notebooks.</p>
         <dl class="course-facts">
@@ -387,7 +388,7 @@
       </article>
       <article class="course" id="llms-from-scratch" data-level="intermediate" data-kind="course">
         <h3 class="course-title">Build a Large Language Model (From Scratch) — code</h3>
-        <p class="course-author">by <a href="https://github.com/rasbt" rel="noopener">Sebastian Raschka</a></p>
+        <p class="course-author">by Sebastian Raschka</p>
         <p class="course-outcome"><span>After this you can</span> implement a GPT-style model in PyTorch step by step — tokenizer, attention, pretraining and fine-tuning.</p>
         <p class="course-summary">The official code repository for the book; the notebooks are free, the book itself is sold separately.</p>
         <dl class="course-facts">
@@ -402,7 +403,7 @@
       </article>
       <article class="course" id="nn-zero-to-hero" data-level="intermediate" data-kind="course">
         <h3 class="course-title">Neural Networks: Zero to Hero</h3>
-        <p class="course-author">by <a href="https://github.com/karpathy" rel="noopener">Andrej Karpathy</a></p>
+        <p class="course-author">by Andrej Karpathy</p>
         <p class="course-outcome"><span>After this you can</span> write backpropagation, language models and a small GPT from first principles.</p>
         <p class="course-summary">Lecture notebooks accompanying the YouTube video series.</p>
         <dl class="course-facts">
@@ -417,7 +418,7 @@
       </article>
       <article class="course" id="agents-course" data-level="beginner intermediate" data-kind="course">
         <h3 class="course-title">Hugging Face Agents Course</h3>
-        <p class="course-author">by <a href="https://github.com/huggingface" rel="noopener">Hugging Face</a></p>
+        <p class="course-author">by Hugging Face</p>
         <p class="course-outcome"><span>After this you can</span> build and evaluate agents with smolagents, LangGraph and LlamaIndex.</p>
         <p class="course-summary">Units with hands-on notebooks and a final agent challenge.</p>
         <dl class="course-facts">
@@ -432,7 +433,7 @@
       </article>
       <article class="course" id="made-with-ml" data-level="intermediate" data-kind="course">
         <h3 class="course-title">Made With ML</h3>
-        <p class="course-author">by <a href="https://github.com/GokuMohandas" rel="noopener">Goku Mohandas</a></p>
+        <p class="course-author">by Goku Mohandas</p>
         <p class="course-outcome"><span>After this you can</span> take an ML model from experiment to a tested, served, CI/CD-deployed production system.</p>
         <p class="course-summary">End-to-end production ML: design, develop, deploy, iterate.</p>
         <dl class="course-facts">
@@ -447,9 +448,9 @@
           <a class="course-fork" href="https://github.com/ivangegovdve-sudo/Made-With-ML" rel="noopener">Ivan’s fork</a>
         </div>
       </article>
-      <article class="course" id="langgraph-101" data-level="intermediate" data-kind="course">
+      <article class="course" id="langgraph-101" data-level="intermediate advanced" data-kind="course">
         <h3 class="course-title">LangGraph 101</h3>
-        <p class="course-author">by <a href="https://github.com/langchain-ai" rel="noopener">LangChain</a></p>
+        <p class="course-author">by LangChain</p>
         <p class="course-outcome"><span>After this you can</span> build stateful, human-in-the-loop, multi-agent and deep-research agents with LangGraph.</p>
         <p class="course-summary">Six notebooks in a 101 (fundamentals) and 201 (advanced patterns) track.</p>
         <dl class="course-facts">
@@ -465,7 +466,7 @@
       </article>
       <article class="course" id="learn-harness-engineering" data-level="intermediate" data-kind="course">
         <h3 class="course-title">Learn Harness Engineering</h3>
-        <p class="course-author">by <a href="https://github.com/walkinglabs" rel="noopener">WalkingLabs</a></p>
+        <p class="course-author">by WalkingLabs</p>
         <p class="course-outcome"><span>After this you can</span> build the harness — agent instructions, verification, observability, loops — that makes coding agents reliable on real repos.</p>
         <p class="course-summary">14 lectures and 8 projects, in 15 languages.</p>
         <dl class="course-facts">
@@ -482,7 +483,7 @@
       </article>
       <article class="course" id="anthropic-courses" data-level="beginner intermediate" data-kind="course">
         <h3 class="course-title">Anthropic Courses</h3>
-        <p class="course-author">by <a href="https://github.com/anthropics" rel="noopener">Anthropic</a></p>
+        <p class="course-author">by Anthropic</p>
         <p class="course-outcome"><span>After this you can</span> use the Claude API, engineer and evaluate prompts, and add tool use.</p>
         <p class="course-summary">Five notebook courses: API fundamentals, prompt engineering, real-world prompting, prompt evaluations, tool use. Archived by Anthropic — still readable, model names are dated.</p>
         <dl class="course-facts">
@@ -498,7 +499,7 @@
       </article>
       <article class="course" id="claude-cookbooks" data-level="intermediate" data-kind="cookbook">
         <h3 class="course-title">Claude Cookbooks</h3>
-        <p class="course-author">by <a href="https://github.com/anthropics" rel="noopener">Anthropic</a></p>
+        <p class="course-author">by Anthropic</p>
         <p class="course-outcome"><span>After this you can</span> copy working patterns — RAG, tool use, vision, sub-agents, caching, evals — into your own Claude apps.</p>
         <p class="course-summary">A recipe collection rather than a sequenced course.</p>
         <dl class="course-facts">
@@ -514,7 +515,7 @@
       </article>
       <article class="course" id="openai-cookbook" data-level="intermediate" data-kind="cookbook">
         <h3 class="course-title">OpenAI Cookbook</h3>
-        <p class="course-author">by <a href="https://github.com/openai" rel="noopener">OpenAI</a></p>
+        <p class="course-author">by OpenAI</p>
         <p class="course-outcome"><span>After this you can</span> accomplish common tasks with the OpenAI API by following tested examples.</p>
         <p class="course-summary">Example code and guides, mostly Python notebooks.</p>
         <dl class="course-facts">
@@ -531,7 +532,7 @@
       </article>
       <article class="course" id="claude-code-ultimate-guide" data-level="beginner intermediate" data-kind="guide">
         <h3 class="course-title">Claude Code Ultimate Guide</h3>
-        <p class="course-author">by <a href="https://github.com/FlorianBruniaux" rel="noopener">Florian Bruniaux</a></p>
+        <p class="course-author">by Florian Bruniaux</p>
         <p class="course-outcome"><span>After this you can</span> use Claude Code productively and design agent workflows, security boundaries and team adoption.</p>
         <p class="course-summary">Role-based learning paths, quizzes and cheat sheets.</p>
         <dl class="course-facts">
@@ -548,7 +549,7 @@
       </article>
       <article class="course" id="learn-low-code-agentic-ai" data-level="beginner" data-kind="course">
         <h3 class="course-title">Learn Low-Code Agentic AI</h3>
-        <p class="course-author">by <a href="https://github.com/panaversity" rel="noopener">Panaversity</a></p>
+        <p class="course-author">by Panaversity</p>
         <p class="course-outcome"><span>After this you can</span> build agents and full-stack apps with n8n, Lovable, Supabase and MCP without writing much code.</p>
         <p class="course-summary">29 numbered modules with class videos on YouTube. Last updated October 2025.</p>
         <dl class="course-facts">
