@@ -46,37 +46,77 @@ async function researchContext(mode) {
     if (mode === 'offline') return route.abort();
     if (pathname === '/hypertrophy/stats') return route.fulfill({ json: { papers: 43, facts: 254, rules: 45 } });
     if (pathname === '/hypertrophy/query') return route.fulfill({ json: { answer: '<safe answer>', sources: ['Corpus'] } });
-    if (pathname === '/womens-health/health') return route.fulfill({ json: { papers: 2, facts: 4, rules: 1 } });
+    if (pathname === '/womens-health/health') return route.fulfill({
+      json: mode === 'research-schema'
+        ? {
+            status: 'ok', corpus: 'womens-health', documents: 15, chunks: 401, claims: 418, failed: 0,
+            categories: { hormones: 117, fertility: 33 },
+          }
+        : { papers: 2, facts: 4, rules: 1 },
+    });
     if (pathname === '/womens-health/claims') return route.fulfill({
-      json: mode === 'hostile'
+      json: mode === 'research-schema'
+        ? {
+            corpus: 'womens-health',
+            claims: Array.from({ length: 20 }, (_, index) => ({
+              claim_id: `research:${index + 1}`,
+              claim: index === 0 ? 'A sourced research claim' : `Research claim ${index + 1}`,
+              claim_text: index === 0 ? 'A sourced research claim' : `Research claim ${index + 1}`,
+              confidence: 'HIGH', category: 'hormones',
+            })),
+          }
+        : mode === 'hostile'
         ? { count: 1, claims: [{ statement: hostile('CLAIM'), confidence: 'HIGH', category: hostile('CLAIM-CATEGORY'), contradictions: hostile('CLAIM-CONTRADICTION') }] }
         : { count: 1, claims: [] },
     });
     if (pathname === '/womens-health/topics') return route.fulfill({
-      json: { topics: [{ name: mode === 'hostile' ? hostile(`TOPIC-${'x'.repeat(420)}`) : 'hormones', facts: 4 }] },
+      json: mode === 'research-schema'
+        ? { corpus: 'womens-health', sources: [] }
+        : { topics: [{ name: mode === 'hostile' ? hostile(`TOPIC-${'x'.repeat(420)}`) : 'hormones', facts: 4 }] },
     });
     if (pathname.startsWith('/womens-health/facts')) return route.fulfill({
-      json: {
-        facts: [{
-          fact: mode === 'hostile' ? hostile('FACT') : '<supported fact>',
-          confidence_label: 'HIGH',
-          confidence: 0.94,
-          category: mode === 'hostile' ? hostile('FACT-CATEGORY') : 'Hormones',
-          paper_title: mode === 'hostile' ? hostile('FACT-PAPER') : 'A paper',
-          paper_doi: '10.1000/example',
-        }],
-      },
+      json: mode === 'research-schema'
+        ? {
+            corpus: 'womens-health',
+            claims: [{
+              claim_id: 'research:1',
+              claim: 'A sourced research fact',
+              claim_text: 'A sourced research fact',
+              quote: 'A supporting quote',
+              confidence: 'HIGH', category: 'hormones',
+              citation: { title: 'A real paper', year: 2021, doi: '10.1000/example', pmcid: 'PMC123' },
+            }],
+          }
+        : {
+            facts: [{
+              fact: mode === 'hostile' ? hostile('FACT') : '<supported fact>',
+              confidence_label: 'HIGH',
+              confidence: 0.94,
+              category: mode === 'hostile' ? hostile('FACT-CATEGORY') : 'Hormones',
+              paper_title: mode === 'hostile' ? hostile('FACT-PAPER') : 'A paper',
+              paper_doi: '10.1000/example',
+            }],
+          },
     });
-    if (pathname.startsWith('/womens-health/rules')) return route.fulfill({
-      json: { rules: [{ rule: hostile('RULE'), applies_to: hostile('RULE-SCOPE'), evidence_count: 3, confidence: 0.9 }] },
-    });
+    if (pathname.startsWith('/womens-health/rules')) {
+      if (mode === 'research-schema') return route.fulfill({ status: 404, contentType: 'application/json', body: JSON.stringify({ detail: 'Not Found' }) });
+      return route.fulfill({
+        json: { rules: [{ rule: hostile('RULE'), applies_to: hostile('RULE-SCOPE'), evidence_count: 3, confidence: 0.9 }] },
+      });
+    }
     if (pathname.startsWith('/womens-health/papers')) return route.fulfill({
-      json: { papers: [
-        { title: hostile('PAPER'), topic_category: hostile('PAPER-TOPIC'), authors: hostile('PAPER-AUTHOR'), year: hostile('PAPER-YEAR'), doi: '10.1000/paper', participant_sex: 'all_female' },
-        { title: 'Mixed paper', participant_sex: 'mixed' },
-        { title: 'Unknown paper', participant_sex: 'not_stated' },
-        { title: 'Not applicable paper', participant_sex: 'not_applicable' },
-      ] },
+      json: mode === 'research-schema'
+        ? { corpus: 'womens-health', sources: Array.from({ length: 15 }, (_, index) => ({
+            id: `PMC${index + 1}`, title: index === 0 ? 'A real paper' : `Research paper ${index + 1}`,
+            year: 2021, doi: '10.1000/example', pmcid: `PMC${index + 1}`, included: 1,
+            inclusion_reason: 'actual human female participants with verbatim sex evidence',
+          })) }
+        : { papers: [
+            { title: hostile('PAPER'), topic_category: hostile('PAPER-TOPIC'), authors: hostile('PAPER-AUTHOR'), year: hostile('PAPER-YEAR'), doi: '10.1000/paper', participant_sex: 'all_female' },
+            { title: 'Mixed paper', participant_sex: 'mixed' },
+            { title: 'Unknown paper', participant_sex: 'not_stated' },
+            { title: 'Not applicable paper', participant_sex: 'not_applicable' },
+          ] },
     });
     if (pathname === '/womens-health/cycle-phases') return route.fulfill({
       json: { phases: [{ phase: hostile('CYCLE'), days: hostile('CYCLE-DAYS'), facts: [{ fact: hostile('CYCLE-FACT') }] }] },
@@ -169,6 +209,32 @@ test('Women facts lead with a visually dominant evidence grade and counters only
   });
   await page.locator('#composition').waitFor({ state: 'visible' });
   assert.deepEqual(await page.locator('#composition .composition-grid .num').evaluateAll((numbers) => numbers.map((number) => number.textContent)), ['1', '1', '1', '1']);
+  await context.close();
+});
+
+test('Women adapts the populated research-corpus contract instead of showing empty legacy fields', async () => {
+  const context = await researchContext('research-schema');
+  const page = await context.newPage();
+  await page.goto(`${baseUrl}/web/womens-health-os/`, { waitUntil: 'domcontentloaded' });
+  await page.locator('#view .evidence-grade').waitFor();
+  await page.waitForFunction(() => (
+    document.querySelector('#stat-papers').textContent === '15' &&
+    document.querySelector('#stat-facts').textContent === '418' &&
+    document.querySelector('#stat-claims').textContent === '418'
+  ));
+  assert.equal(await page.locator('#stat-rules').textContent(), '–');
+  assert.equal(await page.locator('#view .body').first().textContent(), 'A sourced research fact');
+  assert.match(await page.locator('#topic option').nth(1).textContent(), /hormones \(117\)/);
+
+  await page.locator('[data-tab="papers"]').click();
+  await page.waitForFunction(() => document.querySelector('#view').textContent.includes('A real paper'));
+  await page.locator('[data-tab="claims"]').click();
+  await page.waitForFunction(() => document.querySelector('#view').textContent.includes('A sourced research claim'));
+  await page.locator('[data-tab="rules"]').click();
+  await page.waitForFunction(() => document.querySelector('#view').textContent.includes('Rules are not exposed'));
+  await page.locator('#composition').waitFor({ state: 'visible' });
+  assert.deepEqual(await page.locator('#composition .composition-grid .num').evaluateAll((numbers) => numbers.map((number) => number.textContent)), ['–', '–', '–', '–']);
+  assert.match(await page.locator('#composition-checked').textContent(), /not exposed/);
   await context.close();
 });
 

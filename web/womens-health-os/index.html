@@ -474,6 +474,54 @@
         .finally(function () { clearTimeout(t); });
     }
 
+    function payloadRows(data, keys) {
+      for (var i = 0; i < keys.length; i += 1) {
+        if (Array.isArray(data && data[keys[i]])) return data[keys[i]];
+      }
+      return [];
+    }
+    function payloadCount(data, keys) {
+      var raw = data && data.count;
+      var direct = raw == null || raw === "" ? null : Number(raw);
+      return direct != null && Number.isFinite(direct) ? direct : payloadRows(data, keys).length;
+    }
+    function healthCount(data, key) {
+      var raw = data && data[key];
+      var value = raw == null || raw === "" ? null : Number(raw);
+      return value != null && Number.isFinite(value) ? value : null;
+    }
+    function normalizeFact(row) {
+      var citation = row.citation || {};
+      return {
+        fact: row.fact || row.claim_text || row.claim || "",
+        confidence_label: row.confidence_label || row.confidence || "",
+        confidence: typeof row.confidence === "number" ? row.confidence : null,
+        category: row.category || "",
+        paper_title: row.paper_title || citation.title || "",
+        paper_doi: row.paper_doi || citation.doi || "",
+        paper_pmcid: row.paper_pmcid || citation.pmcid || "",
+      };
+    }
+    function normalizeClaim(row) {
+      return {
+        statement: row.statement || row.claim_text || row.claim || row.title || "",
+        confidence: row.confidence || "",
+        category: row.category || "",
+        contradictions: row.contradictions || "",
+      };
+    }
+    function normalizePaper(row) {
+      return {
+        title: row.title || "",
+        topic_category: row.topic_category || row.category || "",
+        authors: row.authors || "",
+        year: row.year || "",
+        doi: row.doi || "",
+        pmcid: row.pmcid || "",
+        participant_sex: row.participant_sex,
+      };
+    }
+
     function setStatus(online) {
       state.online = online;
       var el = document.getElementById("status");
@@ -536,7 +584,8 @@
       if (!rows.length) return empty();
       var list = document.createElement("div");
       list.className = "list";
-      rows.forEach(function (f) {
+      rows.forEach(function (raw) {
+        var f = normalizeFact(raw);
         var cc = confClass(f.confidence_label, f.confidence);
         var item = makeElement("div", "item " + cc);
         var grade = makeElement("span", "evidence-grade conf-" + cc, String(f.confidence_label || cc).toUpperCase() + " evidence"); item.appendChild(grade);
@@ -567,7 +616,8 @@
     function renderClaims(rows) {
       if (!rows.length) return empty();
       var list = makeElement("div", "list");
-      rows.forEach(function (c) {
+      rows.forEach(function (raw) {
+        var c = normalizeClaim(raw);
         var cc = confClass(String(c.confidence || "").toUpperCase());
         var item = makeElement("div", "item " + cc);
         item.appendChild(makeElement("div", "body", c.statement || c.title || ""));
@@ -585,7 +635,8 @@
     function renderPapers(rows) {
       if (!rows.length) return empty();
       var list = makeElement("div", "list");
-      rows.forEach(function (p) {
+      rows.forEach(function (raw) {
+        var p = normalizePaper(raw);
         var item = makeElement("div", "item");
         item.appendChild(makeElement("div", "body", p.title || ""));
         var meta = makeElement("div", "meta");
@@ -621,6 +672,17 @@
     function empty() { showViewMessage("No entries match."); }
 
     function renderComposition(rows) {
+      var hasParticipantMetadata = rows.some(function (row) {
+        return row.participant_sex != null && String(row.participant_sex).trim() !== "";
+      });
+      if (!hasParticipantMetadata) {
+        ["composition-female", "composition-mixed", "composition-unknown", "composition-na"].forEach(function (id) {
+          document.getElementById(id).textContent = "–";
+        });
+        document.getElementById("composition-checked").textContent = "Participant buckets are not exposed by the live papers response";
+        document.getElementById("composition").hidden = false;
+        return;
+      }
       var counts = { all_female: 0, mixed: 0, not_stated: 0, not_applicable: 0, unknown: 0 };
       rows.forEach(function (row) {
         var value = String(row.participant_sex || "").trim().toLowerCase();
@@ -637,7 +699,7 @@
     }
 
     function loadComposition() {
-      return api("/papers?limit=1000").then(function (d) { renderComposition(d.papers || []); });
+      return api("/papers?limit=1000").then(function (d) { renderComposition(payloadRows(d, ["papers", "sources"])); });
     }
 
     function load() {
@@ -648,10 +710,12 @@
       controlsEl.style.display = (tab === "cycle") ? "none" : "flex";
       showViewMessage("Loading…");
       var qs = "?limit=100" + (q ? "&search=" + q : "") + (topic ? "&topic=" + topic : "");
-      if (tab === "facts")  return api("/facts" + qs).then(function (d) { renderFacts(d.facts || []); }).catch(fail);
-      if (tab === "rules")  return api("/rules" + qs).then(function (d) { renderRules(d.rules || []); }).catch(fail);
-      if (tab === "claims") return api("/claims").then(function (d) { renderClaims(d.claims || []); }).catch(fail);
-      if (tab === "papers") return api("/papers" + qs).then(function (d) { renderPapers(d.papers || []); }).catch(fail);
+      if (tab === "facts")  return api("/facts" + qs).then(function (d) { renderFacts(payloadRows(d, ["facts", "claims"])); }).catch(fail);
+      if (tab === "rules")  return api("/rules" + qs).then(function (d) { renderRules(payloadRows(d, ["rules"])); }).catch(function () {
+        showViewMessage("Rules are not exposed by the live research API.");
+      });
+      if (tab === "claims") return api("/claims").then(function (d) { renderClaims(payloadRows(d, ["claims"])); }).catch(fail);
+      if (tab === "papers") return api("/papers" + qs).then(function (d) { renderPapers(payloadRows(d, ["papers", "sources"])); }).catch(fail);
       if (tab === "cycle")  return api("/cycle-phases").then(renderCycle).catch(fail);
     }
     function fail() { showViewMessage("Couldn't load this view from the API."); }
@@ -689,21 +753,28 @@
 
     function boot() {
       api("/health").then(function (h) {
+        state.health = h;
         setStatus(true);
         document.getElementById("stat-row").style.display = "flex";
-        document.getElementById("stat-papers").textContent = h.papers != null ? h.papers : "–";
-        document.getElementById("stat-facts").textContent = h.facts != null ? h.facts : "–";
-        document.getElementById("stat-rules").textContent = h.rules != null ? h.rules : "–";
+        document.getElementById("stat-papers").textContent = healthCount(h, "papers") != null ? healthCount(h, "papers") : (healthCount(h, "documents") != null ? healthCount(h, "documents") : "–");
+        document.getElementById("stat-facts").textContent = healthCount(h, "facts") != null ? healthCount(h, "facts") : (healthCount(h, "claims") != null ? healthCount(h, "claims") : "–");
+        document.getElementById("stat-rules").textContent = healthCount(h, "rules") != null ? healthCount(h, "rules") : "–";
         if (window.forestReveal) forestReveal.countUpAll(document.getElementById("stat-row"), ".num");
         return api("/claims").then(function (c) {
-          document.getElementById("stat-claims").textContent = c.count != null ? c.count : "–";
+          var totalClaims = healthCount(h, "claims");
+          document.getElementById("stat-claims").textContent = totalClaims != null ? totalClaims : payloadCount(c, ["claims"]);
           if (window.forestReveal) forestReveal.countUp(document.getElementById("stat-claims"));
         }).catch(function () {});
       }).then(function () {
         return loadComposition().catch(function () {});
       }).then(function () {
         return api("/topics").then(function (d) {
-          state.topics = d.topics || [];
+          state.topics = payloadRows(d, ["topics"]);
+          if (!state.topics.length && state.health && state.health.categories) {
+            state.topics = Object.keys(state.health.categories).map(function (name) {
+              return { name: name, facts: state.health.categories[name] };
+            });
+          }
           var options = [makeElement("option", null, "All topics")];
           options[0].value = "";
           state.topics.forEach(function (topic) {
