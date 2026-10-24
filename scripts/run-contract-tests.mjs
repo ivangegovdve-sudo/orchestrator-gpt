@@ -18,6 +18,7 @@ const files = [
   'scratch/tests/ai-kit-reverification.test.js',
   'scratch/tests/api-council.test.js',
   'scratch/tests/scrollcraft-serve-mime.test.js',
+  'scratch/tests/platform-guide-build.test.js',
 ];
 
 for (const [name, stageFiles] of [
