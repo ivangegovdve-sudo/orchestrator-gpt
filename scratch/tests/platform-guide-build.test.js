@@ -50,6 +50,18 @@ test('a pending or undated entry is never rendered as current', async () => {
   assert.equal(entryState({ last_verified: '2026-09-01', expiry: '2026-09-15' }, now), 'is-expired');
 });
 
+test('date-only expiry values remain active through their expiry date', async () => {
+  const { entryState } = await import(builder);
+  const today = '2026-10-24';
+  const midnight = Date.parse('2026-10-24T00:00:01Z');
+  const noon = Date.parse('2026-10-24T12:00:00Z');
+  const nextDay = Date.parse('2026-10-25T00:00:01Z');
+
+  assert.equal(entryState({ last_verified: '2026-10-01', expiry: today }, midnight), 'active');
+  assert.equal(entryState({ last_verified: '2026-10-01', expiry: today }, noon), 'active');
+  assert.equal(entryState({ last_verified: '2026-10-01', expiry: today }, nextDay), 'is-expired');
+});
+
 test('contributor fields cannot inject markup or unsafe links', async () => {
   const { escapeHtml, safeUrl } = await import(builder);
   assert.equal(escapeHtml('<img src=x onerror=alert(1)>'), '&lt;img src=x onerror=alert(1)&gt;');

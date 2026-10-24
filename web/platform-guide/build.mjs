@@ -71,7 +71,15 @@ export function safeUrl(value) {
 export function entryState(entry, now) {
   const verified = Date.parse(entry && entry.last_verified);
   if ((entry && entry.status === 'pending') || !Number.isFinite(verified)) return 'is-pending';
-  const expiry = Date.parse(entry.expiry);
+  let expiry = NaN;
+  if (entry && entry.expiry) {
+    const raw = String(entry.expiry).trim();
+    if (/^\d{4}-\d{2}-\d{2}$/.test(raw)) {
+      expiry = Date.parse(`${raw}T23:59:59.999Z`);
+    } else {
+      expiry = Date.parse(raw);
+    }
+  }
   if (Number.isFinite(expiry) && expiry < now) return 'is-expired';
   if ((now - verified) / 86400000 > 90) return 'is-stale';
   return 'active';
