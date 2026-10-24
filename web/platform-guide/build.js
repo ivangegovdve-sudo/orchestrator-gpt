@@ -1,4 +1,4 @@
-const fs = require('fs');
+const { execFileSync } = require('child_process');
 const path = require('path');
 
-console.log("Builder script placeholder.");
+execFileSync(process.execPath, [path.join(__dirname, 'build.mjs')], { stdio: 'inherit' });

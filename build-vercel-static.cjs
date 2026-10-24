@@ -31,6 +31,11 @@ function copyDir(from, to) {
 // publish themselves on the next deploy instead of needing a manual re-index.
 require("./scripts/build-glossary-bundle.cjs").build();
 
+// Regenerate the platform guide BEFORE copying web/, so the deploy always carries the
+// entries currently in web/platform-guide/data/*.json.
+const { execFileSync } = require("child_process");
+execFileSync(process.execPath, [path.join(root, "web/platform-guide/build.mjs")], { stdio: "inherit" });
+
 // On Vercel, the build runs twice (vercel build + npm run vercel-build).
 // Deleting outDir mid-stream causes ENOENT in @vercel/build-utils.
 // Skip the wipe on Vercel; overwrite-in-place is safe because it's a fresh clone.

@@ -108,6 +108,9 @@ export async function build() {
       --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
       --font-mono: ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", Menlo, monospace;
     }
+    *, *::before, *::after {
+      box-sizing: border-box;
+    }
     body {
       background: var(--bg-base);
       color: var(--text-primary);
@@ -142,7 +145,22 @@ export async function build() {
     }
     h2 { font-size: 2rem; margin: 0; }
 
-    .compare-toggle { display: none; }
+    .compare-toggle {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+    .compare-toggle:focus-visible + .section-header .compare-label {
+      outline: 2px solid var(--accent);
+      outline-offset: 4px;
+      border-radius: 4px;
+    }
     .compare-label {
       cursor: pointer; color: var(--accent); font-size: 0.875rem; user-select: none;
     }
@@ -150,7 +168,10 @@ export async function build() {
     input.compare-toggle:checked + .section-header .compare-label::before { content: "⊞ View Grid"; }
 
     .grid {
-      display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 2rem;
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr)); gap: 2rem;
+    }
+    @media (max-width: 480px) {
+      .container { padding: 2rem 1rem; }
     }
     .comparison { display: none; overflow-x: auto; }
 
@@ -247,7 +268,7 @@ export async function build() {
 
     html += `
       <section id="${sec.id}" class="section-container">
-        <input type="checkbox" id="compare-${sec.id}" class="compare-toggle">
+        <input type="checkbox" id="compare-${sec.id}" class="compare-toggle" aria-label="Toggle comparison view for ${escapeHtml(sec.title)}">
         <div class="section-header">
           <h2>${sec.title}</h2>
           <label for="compare-${sec.id}" class="compare-label"></label>
@@ -262,13 +283,13 @@ export async function build() {
     const badges = (status) => [['is-stale', 'Stale'], ['is-expired', 'Expired'], ['is-pending', 'Unverified']]
       .map(([state, label]) => `<span class="badge" data-badge="${state}"${status === state ? '' : ' hidden'}>${label}</span>`).join('');
 
-    const renderCard = (entry) => {
+    const renderCard = (entry, index) => {
       const status = getStatus(entry);
       const classes = `card entry-card ${status}`;
       const verified = Number.isFinite(Date.parse(entry.last_verified)) ? escapeHtml(entry.last_verified) : 'not yet';
 
       return `
-        <div class="${classes}" data-name="${escapeHtml(String(entry.name ?? '').toLowerCase())}" data-date="${escapeHtml(entry.last_verified)}" ${dateAttrs(entry)}>
+        <div class="${classes}" data-name="${escapeHtml(String(entry.name ?? '').toLowerCase())}" data-date="${escapeHtml(entry.last_verified)}" data-order="${index}" ${dateAttrs(entry)}>
           ${badges(status)}
            <div class="card-title"><a href="${escapeHtml(safeUrl(entry.url))}" target="_blank" rel="noopener noreferrer">${escapeHtml(entry.name)}</a></div>
           <div class="note">${escapeHtml(entry.note)}</div>
@@ -299,13 +320,13 @@ export async function build() {
             </thead>
             <tbody>
     `;
-    html += entries.map(entry => {
+    html += entries.map((entry, index) => {
       const status = getStatus(entry);
       const label = { 'is-stale': '(Stale)', 'is-expired': '(Expired)', 'is-pending': '(Unverified)' }[status] || '';
       const statusStr = ` <span class="row-status" data-row-status>${label}</span>`;
 
       return `
-         <tr class="entry-row ${status}" data-name="${escapeHtml(String(entry.name ?? '').toLowerCase())}" data-date="${escapeHtml(entry.last_verified)}" ${dateAttrs(entry)}>
+         <tr class="entry-row ${status}" data-name="${escapeHtml(String(entry.name ?? '').toLowerCase())}" data-date="${escapeHtml(entry.last_verified)}" data-order="${index}" ${dateAttrs(entry)}>
            <td><a href="${escapeHtml(safeUrl(entry.url))}" rel="noopener noreferrer" style="color:white;font-weight:bold;">${escapeHtml(entry.name)}</a>${statusStr}</td>
           <td class="td-good">${escapeHtml(entry.good)}</td>
           <td class="td-bad">${escapeHtml(entry.bad)}</td>
@@ -418,21 +439,24 @@ export async function build() {
         const grid = sec.querySelector('.grid');
         const tbody = sec.querySelector('tbody');
 
+        const cards = Array.from(sec.querySelectorAll('.entry-card'));
+        const rows = Array.from(sec.querySelectorAll('.entry-row'));
+
         if (sort === 'default') {
-          const cards = Array.from(sec.querySelectorAll('.entry-card'));
-          const rows = Array.from(sec.querySelectorAll('.entry-row'));
+          cards.sort((a, b) => Number(a.dataset.order) - Number(b.dataset.order));
+          rows.sort((a, b) => Number(a.dataset.order) - Number(b.dataset.order));
           cards.forEach((card, i) => {
             grid.appendChild(card);
             tbody.appendChild(rows[i]);
           });
         } else {
-          const cards = Array.from(sec.querySelectorAll('.entry-card'));
-          const rows = Array.from(sec.querySelectorAll('.entry-row'));
-
           const sortedIndices = cards.map((c, i) => i).sort((a, b) => {
             const dateA = new Date(cards[a].dataset.date);
             const dateB = new Date(cards[b].dataset.date);
-            return sort === 'recent' ? dateB - dateA : dateA - dateB;
+            const diff = sort === 'recent' ? dateB - dateA : dateA - dateB;
+            return Number.isNaN(diff) || diff === 0
+              ? Number(cards[a].dataset.order) - Number(cards[b].dataset.order)
+              : diff;
           });
 
           sortedIndices.forEach(idx => {

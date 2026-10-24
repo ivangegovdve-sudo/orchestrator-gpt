@@ -88,3 +88,61 @@ test('the suggestion form does not claim a submission was queued', () => {
   assert.doesNotMatch(html, /Submission queued for review/);
   assert.match(html, /nothing was sent or saved/);
 });
+
+test('cards and comparison rows preserve initial order via data-order', () => {
+  const html = fs.readFileSync(path.join(__dirname, '../../web/platform-guide/index.html'), 'utf8');
+  assert.match(html, /class="card entry-card[^"]*"[^>]*data-order="0"/);
+  assert.match(html, /class="entry-row[^"]*"[^>]*data-order="0"/);
+  assert.match(html, /cards\.sort\(\(a, b\) => Number\(a\.dataset\.order\) - Number\(b\.dataset\.order\)\)/);
+  assert.match(html, /rows\.sort\(\(a, b\) => Number\(a\.dataset\.order\) - Number\(b\.dataset\.order\)\)/);
+});
+
+test('sorting by recent and then default restores initial order', () => {
+  const el = (name, date, order) => ({
+    dataset: { name, date, order: String(order) }
+  });
+  const initial = [
+    el('Old Verified', '2023-01-01', 0),
+    el('New Verified', '2024-05-01', 1)
+  ];
+  const sortedRecent = [...initial].sort((a, b) => new Date(b.dataset.date) - new Date(a.dataset.date));
+  assert.equal(sortedRecent[0].dataset.name, 'New Verified');
+  assert.equal(sortedRecent[1].dataset.name, 'Old Verified');
+
+  const restored = [...sortedRecent].sort((a, b) => Number(a.dataset.order) - Number(b.dataset.order));
+  assert.equal(restored[0].dataset.name, 'Old Verified');
+  assert.equal(restored[1].dataset.name, 'New Verified');
+  assert.deepEqual(restored, initial);
+});
+
+test('comparison toggle checkbox remains keyboard-focusable and accessible', () => {
+  const html = fs.readFileSync(path.join(__dirname, '../../web/platform-guide/index.html'), 'utf8');
+  assert.doesNotMatch(html, /\.compare-toggle\s*\{\s*display:\s*none;?\s*\}/, 'toggle is not removed via display:none');
+  assert.match(html, /\.compare-toggle\s*\{[^}]*clip:\s*rect\(0,\s*0,\s*0,\s*0\)/);
+  assert.match(html, /\.compare-toggle:focus-visible/);
+  assert.match(html, /<input type="checkbox" id="compare-[^"]*" class="compare-toggle" aria-label="Toggle comparison view/);
+});
+
+test('grid tracks can shrink on narrow phone viewports', () => {
+  const html = fs.readFileSync(path.join(__dirname, '../../web/platform-guide/index.html'), 'utf8');
+  assert.match(html, /minmax\(min\(100%,\s*320px\),\s*1fr\)/);
+});
+
+test('harnesses data has no past fixture expiry dates', () => {
+  const harnesses = JSON.parse(fs.readFileSync(path.join(__dirname, '../../web/platform-guide/data/harnesses.json'), 'utf8'));
+  for (const entry of harnesses) {
+    assert.equal(entry.expiry, null, `${entry.name} should not have fixture expiry date`);
+  }
+});
+
+test('all entries in data files are rendered in the generated index.html', async () => {
+  const { readSectionEntries } = await import(builder);
+  const sections = ['harnesses', 'memory', 'skills', 'design', 'animation', 'orchestration', 'autonomy', 'speech'];
+  const html = fs.readFileSync(path.join(__dirname, '../../web/platform-guide/index.html'), 'utf8');
+  for (const s of sections) {
+    const entries = await readSectionEntries(path.join(__dirname, '../../web/platform-guide/data'), s);
+    for (const entry of entries) {
+      assert.ok(html.includes(entry.name), `index.html contains ${entry.name}`);
+    }
+  }
+});
