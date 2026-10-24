@@ -280,3 +280,4 @@ test("schema-major mismatch fails closed and all canonical assets stay direct", 
   for (const asset of ["/web/open-dashboard/index.html", "/web/open-dashboard/openrouter/index.html", "/web/open-dashboard/github/index.html", "/web/open-dashboard/open-dashboard.css", "/web/open-dashboard/open-dashboard.js", "/web/open-dashboard/fallback-data.json"]) expect((await request.get(asset)).status(), asset).toBe(200);
   await page.route("https://openrouter-github-dashboard.vercel.app/api/public/v2/**", async (route) => { const bad = { ...bundle.manifest, schemaVersion: "3.0" }; await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(bad) }); }); await page.goto("/web/open-dashboard/index.html"); await expect(page.locator("#oo-view-root")).toContainText("Expected schema major 2"); await expect(page.locator("#oo-source-status")).toContainText("unavailable");
 });
+

@@ -256,3 +256,4 @@ test("does not classify real Seedance provider provenance as fixture evidence", 
   assert.equal(isSyntheticEvidenceRecord({ sourceId: "fixture.models_current" }), true);
   assert.equal(isSyntheticEvidenceRecord({ transformVersion: "deterministic-preview-snapshot-v1" }), true);
 });
+

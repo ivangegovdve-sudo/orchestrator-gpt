@@ -491,3 +491,4 @@ export function renderUnavailable({ document, title, reason, code = null }) {
   if (described.code) region.appendChild(el(document, "p", "oo-reason-code", described.code));
   return region;
 }
+

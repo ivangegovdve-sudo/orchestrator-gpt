@@ -1003,3 +1003,4 @@ export async function bootOpenDashboard({ fetchImpl = globalThis.fetch.bind(glob
   }
 }
 if(hasDom)bootOpenDashboard();
+
