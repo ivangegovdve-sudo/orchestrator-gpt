@@ -83,6 +83,15 @@ test('freshness badges are recomputed in the browser, not frozen at build time',
   for (const card of cards) assert.match(card, /data-verified="[^"]*" data-expiry="[^"]*" data-pending="[^"]*"/);
 });
 
+test('inline browser script has valid syntax and parses without error', () => {
+  const html = fs.readFileSync(path.join(__dirname, '../../web/platform-guide/index.html'), 'utf8');
+  const match = html.match(/<script>([\s\S]*?)<\/script>/i);
+  assert.ok(match, 'index.html contains an inline script tag');
+  assert.doesNotThrow(() => {
+    new Function(match[1]);
+  });
+});
+
 test('the suggestion form does not claim a submission was queued', () => {
   const html = fs.readFileSync(path.join(__dirname, '../../web/platform-guide/index.html'), 'utf8');
   assert.doesNotMatch(html, /Submission queued for review/);

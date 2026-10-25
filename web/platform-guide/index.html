@@ -1764,9 +1764,6 @@
         const grid = sec.querySelector('.grid');
         const tbody = sec.querySelector('tbody');
 
-        const cards = Array.from(sec.querySelectorAll('.entry-card'));
-        const rows = Array.from(sec.querySelectorAll('.entry-row'));
-
         if (sort === 'default') {
           cards.sort((a, b) => Number(a.dataset.order) - Number(b.dataset.order));
           rows.sort((a, b) => Number(a.dataset.order) - Number(b.dataset.order));

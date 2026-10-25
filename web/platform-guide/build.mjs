@@ -2,7 +2,9 @@ import fs from 'fs/promises';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
-const DATA_DIR = 'web/platform-guide/data';
+const GUIDE_DIR = path.dirname(fileURLToPath(import.meta.url));
+const DATA_DIR = path.join(GUIDE_DIR, 'data');
+const OUT_FILE = path.join(GUIDE_DIR, 'index.html');
 
 const SECTIONS = [
   { id: 'harnesses', title: 'Harnesses' },
@@ -439,9 +441,6 @@ export async function build() {
         const grid = sec.querySelector('.grid');
         const tbody = sec.querySelector('tbody');
 
-        const cards = Array.from(sec.querySelectorAll('.entry-card'));
-        const rows = Array.from(sec.querySelectorAll('.entry-row'));
-
         if (sort === 'default') {
           cards.sort((a, b) => Number(a.dataset.order) - Number(b.dataset.order));
           rows.sort((a, b) => Number(a.dataset.order) - Number(b.dataset.order));
@@ -508,7 +507,7 @@ export async function build() {
 </html>
 `;
 
-  await fs.writeFile('web/platform-guide/index.html', html);
+  await fs.writeFile(OUT_FILE, html);
   console.log('Build complete.');
 }
 
