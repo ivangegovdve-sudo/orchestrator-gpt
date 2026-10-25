@@ -70,7 +70,10 @@ const FORMSPREE_ENDPOINT = 'https://formspree.io/f/PLACEHOLDER';
     clearTimeout(timer);
     backdrop.remove();
     backdrop = null;
-    (opener || button).focus();
+    try {
+      const target = (opener && opener.isConnected) ? opener : button;
+      if (target && target.isConnected) target.focus();
+    } catch {}
   }
 
   function open(project, name = project) {
@@ -104,6 +107,8 @@ const FORMSPREE_ENDPOINT = 'https://formspree.io/f/PLACEHOLDER';
       event.preventDefault();
       const message = textarea.value.trim();
       if (!message) return textarea.focus();
+      const submitBtn = form.querySelector('button[type="submit"]');
+      if (submitBtn) submitBtn.disabled = true;
       try {
         const response = await fetch(FORMSPREE_ENDPOINT, { method: 'POST', headers: { 'Content-Type': 'application/json', Accept: 'application/json' }, body: JSON.stringify({ message, url: window.location.href, ...(project ? { project } : {}) }) });
         if (!response.ok) throw new Error('feedback request failed');
@@ -114,6 +119,7 @@ const FORMSPREE_ENDPOINT = 'https://formspree.io/f/PLACEHOLDER';
         dialog.replaceChildren(thanks);
         timer = window.setTimeout(close, 2000);
       } catch {
+        if (submitBtn) submitBtn.disabled = false;
         status.textContent = "Couldn't send — try again later.";
       }
     });

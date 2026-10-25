@@ -19,9 +19,9 @@
  * Debug: ?entry-t=3.2 freezes the clock at 3.2 s, ?entry-p=0.5 freezes scroll
  * progress. Both only affect the canvas, never the page.
  */
-export const clamp = (x, a = 0, b = 1) => (x < a ? a : x > b ? b : x);
+export const clamp = (x, a = 0, b = 1) => (Number.isNaN(x) ? a : x < a ? a : x > b ? b : x);
 export const lerp = (a, b, t) => a + (b - a) * t;
-export const seg = (t, a, b) => clamp((t - a) / (b - a));
+export const seg = (t, a, b) => (b === a ? (t >= a ? 1 : 0) : clamp((t - a) / (b - a)));
 export const smooth = (x) => { x = clamp(x); return x * x * (3 - 2 * x); };
 export const easeOut = (x) => 1 - (1 - clamp(x)) ** 3;
 export const easeOutQuint = (x) => 1 - (1 - clamp(x)) ** 5;
@@ -41,7 +41,11 @@ export function rng(seed = 1) {
 }
 
 export const hex = (c, a = 1) => {
-  const n = parseInt(c.slice(1), 16);
+  if (typeof c !== 'string') return `rgba(0,0,0,${a})`;
+  let raw = c.startsWith('#') ? c.slice(1) : c;
+  if (raw.length === 3) raw = raw.split('').map((ch) => ch + ch).join('');
+  const n = parseInt(raw, 16);
+  if (Number.isNaN(n)) return `rgba(0,0,0,${a})`;
   return `rgba(${(n >> 16) & 255},${(n >> 8) & 255},${n & 255},${a})`;
 };
 
@@ -51,10 +55,15 @@ export function mount(scene, { root = document } = {}) {
   if (!entry || !canvas) return null;
   const stage = entry.querySelector('[data-sc-stage]') || entry;
   const g = canvas.getContext('2d');
+  if (!g) return null;
   const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const params = new URLSearchParams(location.search);
-  const freezeT = params.has('entry-t') ? parseFloat(params.get('entry-t')) : null;
-  const freezeP = params.has('entry-p') ? parseFloat(params.get('entry-p')) : null;
+  const params = typeof location !== 'undefined' && location.search ? new URLSearchParams(location.search) : new URLSearchParams();
+  const rawT = params.get('entry-t');
+  const parsedT = rawT !== null ? parseFloat(rawT) : null;
+  const freezeT = Number.isFinite(parsedT) ? parsedT : null;
+  const rawP = params.get('entry-p');
+  const parsedP = rawP !== null ? parseFloat(rawP) : null;
+  const freezeP = Number.isFinite(parsedP) ? clamp(parsedP) : null;
 
   // Reduced motion gets a composed still, not a pinned scroll with nothing in it.
   if (reduced) { entry.dataset.scAct = 'flow'; entry.removeAttribute('data-sc-span'); }
@@ -66,28 +75,38 @@ export function mount(scene, { root = document } = {}) {
   function resize() {
     const r = stage.getBoundingClientRect();
     const w = Math.max(1, Math.round(r.width));
-    const h = Math.max(1, Math.round(r.height || innerHeight));
-    s.dpr = Math.min(devicePixelRatio || 1, 2);
+    const h = Math.max(1, Math.round(r.height || (typeof innerHeight !== 'undefined' ? innerHeight : 0) || 600));
+    const dpr = typeof devicePixelRatio !== 'undefined' && Number.isFinite(devicePixelRatio) && devicePixelRatio > 0 ? devicePixelRatio : 1;
+    s.dpr = Math.min(dpr, 2);
     s.w = w; s.h = h;
     s.portrait = w < 700 || w / h < 0.9;
     canvas.width = Math.round(w * s.dpr);
     canvas.height = Math.round(h * s.dpr);
     entry.dataset.entryLayout = s.portrait ? 'portrait' : 'landscape';
     g.setTransform(s.dpr, 0, 0, s.dpr, 0, 0);
-    scene.setup?.(s);
+    try {
+      scene.setup?.(s);
+    } catch (err) {
+      console.error('[pool-entry] scene setup failed:', err);
+    }
   }
 
   function progress() {
     if (freezeP !== null) return clamp(freezeP);
     if (reduced) return 0;
     const r = entry.getBoundingClientRect();
-    return clamp(-r.top / Math.max(1, r.height - innerHeight));
+    const scrollSpan = Math.max(1, r.height - (typeof innerHeight !== 'undefined' ? innerHeight : 0));
+    return clamp(-r.top / scrollSpan);
   }
 
   function paint() {
     g.setTransform(s.dpr, 0, 0, s.dpr, 0, 0);
     g.clearRect(0, 0, s.w, s.h);
-    scene.draw(s);
+    try {
+      scene.draw(s);
+    } catch (err) {
+      console.error('[pool-entry] scene draw failed:', err);
+    }
     // The scroll harness reads this to tell a living stage from a dead one.
     stage.setAttribute('data-sc-verify-state',
       reduced ? 'still' : `${Math.round(s.t * 8)}|${Math.round(s.p * 60)}`);
@@ -98,22 +117,26 @@ export function mount(scene, { root = document } = {}) {
   // The observer fires once on observe(), so it must redraw the still itself.
   const relayout = () => { resize(); if (reduced) { s.t = freezeT ?? scene.still; paint(); } };
   resize();
-  new ResizeObserver(relayout).observe(stage);
+  if (typeof ResizeObserver !== 'undefined') new ResizeObserver(relayout).observe(stage);
   addEventListener('resize', relayout);
 
   if (reduced) {
     s.t = freezeT ?? scene.still;
     paint();
   } else {
-    if (matchMedia('(hover: hover) and (pointer: fine)').matches) {
+    if (typeof matchMedia === 'function' && matchMedia('(hover: hover) and (pointer: fine)').matches) {
       addEventListener('pointermove', (e) => {
         const r = stage.getBoundingClientRect();
-        tx = clamp((e.clientX - r.left) / r.width);
-        ty = clamp((e.clientY - r.top) / r.height);
+        if (r.width > 0 && r.height > 0) {
+          tx = clamp((e.clientX - r.left) / r.width);
+          ty = clamp((e.clientY - r.top) / r.height);
+        }
       }, { passive: true });
     }
     let visible = true;
-    new IntersectionObserver(([e]) => { visible = e.isIntersecting; }).observe(stage);
+    if (typeof IntersectionObserver !== 'undefined') {
+      new IntersectionObserver(([e]) => { visible = e ? e.isIntersecting : true; }).observe(stage);
+    }
     const t0 = performance.now();
     // Time spent hidden or scrolled off screen does not count toward the arrival,
     // so landing mid-page or scrolling away never lets the animation finish unseen.
@@ -138,6 +161,6 @@ export function mount(scene, { root = document } = {}) {
 
   document.documentElement.classList.add('entry-ready');
   // The scroll engine pins the stage and fades the copy; the scene never touches scroll.
-  window.ScrollCraft?.mount(document.body);
+  if (document.body) window.ScrollCraft?.mount(document.body);
   return s;
 }

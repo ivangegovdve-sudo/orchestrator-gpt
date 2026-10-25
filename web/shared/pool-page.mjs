@@ -89,14 +89,16 @@ export function renderProject(project, { heading = 'h3', designed = false, feedb
     if (!enabled) return `<li>Existing ${external ? 'external implementation' : 'page'}: <span>${escape(destination)}</span> (entry unavailable pending review)</li>`;
     // Designed pools name the destination for a reader; the raw route stays in the href.
     if (designed) {
-      const label = companion?.name || (external ? `Visit ${new URL(destination).host}` : 'Open page');
+      let host = destination;
+      try { host = new URL(destination).host; } catch {}
+      const label = companion?.name || (external ? `Visit ${host}` : 'Open page');
       const named = companion ? '' : `<span class="pool-sr">: ${escape(project.publicName)}</span>`;
       return `<li><a href="${escape(destination)}"${external ? ' rel="noopener"' : ''}>${escape(label)}${external ? '' : named}${external ? '<span class="pool-sr"> (external site)</span>' : ''}</a>${companion?.presentationNote ? ` <span>${escape(companion.presentationNote)}</span>` : ''}</li>`;
     }
     return `<li><a href="${escape(destination)}"${external ? ' target="_blank" rel="noopener"' : ''}>${escape(companion?.name || destination)}${external ? ' — External; opens in a new tab' : ' — Open existing page'}</a>${companion?.presentationNote ? ` <span>${escape(companion.presentationNote)}</span>` : ''}</li>`;
   }).join('');
   const metrics = (project.metrics || []).map(({ name, value, unit }) => `${name}: ${value}${unit ? ` ${unit}` : ''}`).join('; ');
-  return `<article class="pool-project pool-project--${escape(poolTier)}" data-project-id="${escape(project.id)}" data-pool-tier="${escape(poolTier)}" data-pool-rank="${poolRank ?? 'unranked'}"${enabled ? '' : feedback ? ' data-entry-closed' : ' aria-disabled="true"'}>
+  return `<article class="pool-project pool-project--${escape(poolTier)}" data-project-id="${escape(project.id)}" data-pool-tier="${escape(poolTier)}" data-pool-rank="${escape(poolRank ?? 'unranked')}"${enabled ? '' : feedback ? ' data-entry-closed' : ' aria-disabled="true"'}>
     <${heading}>${escape(project.publicName)}</${heading}>
     <p class="pool-status">Status: ${escape(status)}${comingSoon && !designed ? ' — Coming Soon' : ''}</p>
     ${routes ? `<ul class="pool-bindings">${routes}</ul>` : ''}
