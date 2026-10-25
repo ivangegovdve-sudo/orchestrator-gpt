@@ -428,7 +428,7 @@ function draw(s) {
     for (let i = 0; i < SP.motes.length; i++) {
       const m = SP.motes[i];
       const mx = (m.x + Math.sin(t * 0.17 + m.ph) * 0.018) * w - (s.px - 0.5) * m.par;
-      const my = (m.y + Math.sin(t * m.sp + m.ph * 2) * 0.03 - ((t * 0.003) % 0.0)) * h;
+      const my = (m.y + Math.sin(t * m.sp + m.ph * 2) * 0.03) * h;
       const tw = 0.3 + 0.7 * (0.5 + 0.5 * Math.sin(t * 0.7 + m.ph * 3));
       g.globalAlpha = 0.42 * tw * mt; g.fillStyle = '#8f8372';
       g.beginPath(); g.arc(mx, my, m.rad, 0, TAU); g.fill();
