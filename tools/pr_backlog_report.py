@@ -169,6 +169,7 @@ FAMILY_BY_LOGIN = {
     # records rather than mocks: a mock would have used a login that was in the table.
     # A vendor list rots; anything added here must be added to the test's cases too.
     "ivan-codex-reviewer": "openai",
+    "forest-fleet-reviewer": "openai",
     "copilot-pull-request-reviewer": "openai",
     "copilot": "openai",
     "copilot-swe-agent": "openai",
@@ -222,6 +223,7 @@ LOGIN_ALIASES = {
     "copilot": "copilot-pull-request-reviewer",
     "github-copilot": "copilot-pull-request-reviewer",
     "codex": "chatgpt-codex-connector",
+    "forest-fleet-reviewer": "ivan-codex-reviewer",
 }
 
 
