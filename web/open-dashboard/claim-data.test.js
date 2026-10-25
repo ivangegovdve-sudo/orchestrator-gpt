@@ -11,7 +11,9 @@ import {
   normalizeFalSummary,
   collectKieCatalogue,
   loadKieCatalogue,
+  loadAudioClaimEvidence,
   loadClaimEvidence,
+  normalizeTtsCatalogue,
   datedProvider,
   selectClaimRows,
 } from "./claim-data.js";
@@ -50,6 +52,44 @@ test("source coefficients keep decimal lexemes without binary rounding or changi
   assert.equal(multiplyDecimals(parsed.value, "2"), "0.246913578024691357802");
   assert.equal(multiplyDecimals("0.1", "0.005"), "0.0005");
   assert.throws(() => multiplyDecimals("-1", "0.005"));
+});
+
+test("TTS evidence retains native prices, dated UTMOS MOS, and unknown fields", async () => {
+  const catalogue = JSON.parse(
+    await readFile(new URL("./tts-catalogue.json", import.meta.url), "utf8"),
+  );
+  const normalized = normalizeTtsCatalogue(catalogue);
+  assert.deepEqual(
+    normalized.providers.map((provider) => provider.id),
+    ["elevenlabs", "cartesia"],
+  );
+  const eleven = normalized.providers[0].rows[0];
+  assert.equal(eleven.priceLabel, "$0.08 / 1K characters");
+  assert.equal(eleven.quality.value, 4.273);
+  assert.equal(eleven.quality.method, "UTMOS predicted MOS");
+  assert.equal(eleven.quality.checkedAt, catalogue.checkedAt);
+
+  const unknown = normalizeTtsCatalogue({
+    ...catalogue,
+    providers: [
+      {
+        ...catalogue.providers[0],
+        voices: [{ id: "unread", name: "Unread voice" }],
+      },
+    ],
+  }).providers[0].rows[0];
+  assert.equal(unknown.priceLabel, "Unknown");
+  assert.equal(unknown.quality, null);
+
+  let requested;
+  const loaded = await loadAudioClaimEvidence({
+    fetchImpl: async (url) => {
+      requested = url;
+      return response(catalogue);
+    },
+  });
+  assert.match(requested, /tts-catalogue\.json$/);
+  assert.equal(loaded.providers[1].rows[0].quality.value, 4.019);
 });
 
 test("KIE keeps full variants, unknown units and disagreeing credits without importing competitor prices", () => {
@@ -311,53 +351,14 @@ test(
   },
 );
 
-test(
-  "a stalled KIE response body times out into the original dated fallback",
-  { timeout: 1000 },
-  async () => {
-    const old = normalizeKiePrices([kie()], at);
-    let signal;
-    const result = await loadKieCatalogue({
-      timeoutMs: 15,
-      fetchImpl: async (url, options) => {
-        if (url === CLAIM_SOURCES.kie) {
-          signal = options.signal;
-          return { ok: true, text: () => new Promise(() => {}) };
-        }
-        return response(old);
-      },
-    });
-    assert.equal(signal.aborted, true);
-    assert.equal(result.providers[0].freshness, "snapshot");
-    assert.equal(result.providers[0].observedAt, at);
-    assert.equal(result.providers[0].refreshError, "Source read timed out.");
-    assert.equal(result.models[0].fetchedAt, at);
-  },
-);
+test("an unavailable live source never substitutes a baked price", async () => {
+ const result=await loadKieCatalogue({ force:true, fetchImpl:async()=>{throw Error('offline');} });
+ assert.equal(result.providers[0].freshness,'unavailable'); assert.deepEqual(result.models,[]);
+});
 
-test("failed browser read uses dated fallback without relabelling its source time as live", async () => {
-  const old = normalizeKiePrices([kie()], at);
-  const result = await loadKieCatalogue({
-    fetchImpl: async (url) => {
-      if (url === CLAIM_SOURCES.kie)
-        throw new TypeError("CORS or network unavailable");
-      return response(old);
-    },
-  });
-  assert.equal(result.providers[0].freshness, "snapshot");
-  assert.equal(result.providers[0].observedAt, at);
-  assert.equal(result.models[0].fetchedAt, at);
-  assert.match(result.providers[0].refreshError, /did not complete/);
-  const merged = mergeMedia([], normalizeMediaCatalogue(result));
-  assert.equal(merged[0].sourceFreshness, "snapshot");
-  assert.equal(merged[0].sourceAt, at);
-  assert.equal(
-    datedProvider(
-      { ...old, providers: [{ ...old.providers[0], observedAt: null }] },
-      "kie",
-    ),
-    null,
-  );
+test("live loader rejects an old snapshot response", async () => {
+ const result=await loadKieCatalogue({ force:true, fetchImpl:async()=>response(normalizeKiePrices([kie()],at)) });
+ assert.equal(result.providers[0].freshness,'unavailable'); assert.deepEqual(result.models,[]);
 });
 
 test("provider freshness reaches native model inspectors and coverage without promoting dated neighbours", () => {

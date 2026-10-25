@@ -1,8 +1,29 @@
 {
+  "$schema": "https://openapi.vercel.sh/vercel.json",
   "buildCommand": "npm run vercel-build",
   "outputDirectory": "vercel-public",
   "framework": null,
+  "rewrites": [
+    {
+      "source": "/chair-or-ladder",
+      "destination": "/web/chair-or-ladder/"
+    },
+    {
+      "source": "/chair-or-ladder/",
+      "destination": "/web/chair-or-ladder/"
+    }
+  ],
   "redirects": [
+    {
+      "source": "/web/open-dashboard",
+      "destination": "https://opendashboard.sdforest.site/",
+      "statusCode": 301
+    },
+    {
+      "source": "/web/open-dashboard/",
+      "destination": "https://opendashboard.sdforest.site/",
+      "statusCode": 301
+    },
     {
       "source": "/web/morning-news",
       "destination": "https://thedrop.sdforest.site",
@@ -137,6 +158,62 @@
       "source": "/series/dependency-map",
       "destination": "https://thedrop.sdforest.site/series/dependency-map",
       "permanent": false
+    }
+  ],
+  "routes": [
+    {
+      "src": "^/$",
+      "dest": "/scratch/sdforest-overworld-preview/"
+    },
+    {
+      "src": "^/gate/?$",
+      "dest": "/scratch/sdforest-gate-entry/intro/"
+    },
+    {
+      "src": "^/$",
+      "has": [
+        {
+          "type": "host",
+          "value": "opendashboard.sdforest.site"
+        }
+      ],
+      "dest": "/web/open-dashboard/"
+    },
+    {
+      "src": "^/(?!web(?:/|$))(.*)$",
+      "has": [
+        {
+          "type": "host",
+          "value": "opendashboard.sdforest.site"
+        }
+      ],
+      "dest": "/web/open-dashboard/$1"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/web/open-dashboard/:path*",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-store, max-age=0"
+        }
+      ]
+    },
+    {
+      "source": "/:path*",
+      "has": [
+        {
+          "type": "host",
+          "value": "opendashboard.sdforest.site"
+        }
+      ],
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-store, max-age=0"
+        }
+      ]
     }
   ],
   "git": {

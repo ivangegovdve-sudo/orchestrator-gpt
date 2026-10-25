@@ -1,12 +1,10 @@
 import { formatNpmDownloadAge } from "./npm-downloads.js";
 
 export const NPM_RELEASES_URL = "https://registry.npmjs.org/open-dashboard-mcp";
-export const NPM_RELEASE_CACHE_KEY = "open-dashboard-mcp:npm-releases:v1";
+export const NPM_RELEASE_CACHE_KEY = "open-dashboard-mcp:npm-releases:v2";
 export const NPM_RELEASE_CACHE_TTL_MS = 6 * 60 * 60 * 1000;
-export const NPM_RELEASE_TO_SHOW = "1.4.0";
-
 const NPM_PACKAGE = "open-dashboard-mcp";
-const NPM_RELEASE_CACHE_VERSION = 1;
+const NPM_RELEASE_CACHE_VERSION = 2;
 const VERSION = /^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/;
 
 function validVersion(value) {
@@ -21,7 +19,6 @@ function normalizeReleaseFacts(value) {
     !Array.isArray(value.published) ||
     value.published.length < 1 ||
     value.published.some((version) => !validVersion(version)) ||
-    !value.published.includes(NPM_RELEASE_TO_SHOW) ||
     !value.published.includes(value.latest) ||
     value.sourceUrl !== NPM_RELEASES_URL
   )
@@ -44,7 +41,6 @@ export function parseNpmReleaseMetadata(payload) {
     !versions ||
     typeof versions !== "object" ||
     Array.isArray(versions) ||
-    !Object.hasOwn(versions, NPM_RELEASE_TO_SHOW) ||
     !validVersion(latest) ||
     !Object.hasOwn(versions, latest)
   )
@@ -53,7 +49,7 @@ export function parseNpmReleaseMetadata(payload) {
   return normalizeReleaseFacts({
     package: NPM_PACKAGE,
     latest,
-    published: [NPM_RELEASE_TO_SHOW, latest],
+    published: [latest],
     sourceUrl: NPM_RELEASES_URL,
   });
 }
@@ -71,6 +67,7 @@ function resolveOptions(options = {}) {
   return {
     storage: options.storage === undefined ? defaultStorage() : options.storage,
     now: Number.isFinite(options.now) ? options.now : Date.now(),
+    bypassCache: options.bypassCache === true,
   };
 }
 
@@ -126,8 +123,8 @@ export async function fetchNpmReleaseFacts(
 ) {
   if (typeof fetchImpl !== "function")
     throw new Error("NPM release fetch is unavailable");
-  const { storage, now } = resolveOptions(options);
-  const cached = readCachedNpmReleaseFacts(storage, now);
+  const { storage, now, bypassCache } = resolveOptions(options);
+  const cached = bypassCache ? null : readCachedNpmReleaseFacts(storage, now);
   if (cached) return cached.facts;
 
   const response = await fetchImpl(NPM_RELEASES_URL, {
@@ -149,7 +146,7 @@ export async function fetchNpmReleaseFacts(
     error.code = "invalid";
     throw error;
   }
-  writeCachedNpmReleaseFacts(storage, facts, now);
+  if (!bypassCache) writeCachedNpmReleaseFacts(storage, facts, now);
   return facts;
 }
 
@@ -158,7 +155,9 @@ export async function readNpmReleaseState(
   options = {},
 ) {
   const resolved = resolveOptions(options);
-  const cached = readCachedNpmReleaseFacts(resolved.storage, resolved.now);
+  const cached = resolved.bypassCache
+    ? null
+    : readCachedNpmReleaseFacts(resolved.storage, resolved.now);
   if (cached) {
     return {
       status: "available",

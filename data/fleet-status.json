@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-01T12:19:01.553686+00:00",
+  "generated_at": "2026-10-23T18:19:02.007933+00:00",
   "generated_by": "pr_helper.py on Oracle (forest-a1-v3)",
   "services": {
     "soul-server": {
@@ -25,8 +25,19 @@
       "error": "<urlopen error [Errno 111] Connection refused>"
     },
     "librarian": {
-      "status": "down",
-      "error": "<urlopen error [Errno 111] Connection refused>"
+      "status": "ok",
+      "architecture": "single-vm-single-file-single-keeper",
+      "database": "/opt/lore-keeper/fable-20261018/lore.sqlite",
+      "retrieval": "fts5-trigram-plus-sqlite-vec-rrf",
+      "answering": "read-then-decide",
+      "neo4j": "build-time-only",
+      "tunnel": "none",
+      "restart_policy": "systemd:Restart=always",
+      "static_panes": [
+        "/lore/graph.json",
+        "/lore/stats.json",
+        "/lore/wiki/"
+      ]
     },
     "chloe-api": {
       "status": "ok",

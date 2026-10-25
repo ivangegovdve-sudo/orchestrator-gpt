@@ -4,15 +4,33 @@ const host = document.querySelector("#comparison");
 if (host) {
   let evidence = null,
     loading = false,
-    pair = "media",
+    pair = "audio",
     expanded = false,
     selectedUnit = "image",
-    unitChosen = false;
+    unitChosen = false,
+    pairChosen = false;
+  const PAIRS = {
+    audio: ["elevenlabs", "cartesia"],
+    media: ["kie", "fal"],
+    text: ["crazyrouter", "openrouter"],
+  };
+  const priced = (name) =>
+    PAIRS[name].every((id) =>
+      evidence?.providers?.find((p) => p.id === id)?.rows?.length,
+    );
+  // A catalogue can be read while its price table is not; say which happened.
+  const missingPrice = (provider, name) =>
+    Number.isSafeInteger(provider?.population?.listed) &&
+    provider.population.listed > 0
+      ? `${name}’s catalogue was read (${provider.population.listed.toLocaleString("en")} models), but its public price table was not, so no ${name} price is shown. Unknown does not mean free.`
+      : "No price observation acquired. Unknown does not mean free.";
   const names = {
     kie: "KIE",
     fal: "fal",
     crazyrouter: "Crazyrouter",
     openrouter: "OpenRouter",
+    elevenlabs: "ElevenLabs",
+    cartesia: "Cartesia",
   };
   const element = (tag, value, cls) => {
     const node = document.createElement(tag);
@@ -78,11 +96,10 @@ if (host) {
     render();
   });
   function render() {
-    const ids =
-      pair === "media" ? ["kie", "fal"] : ["crazyrouter", "openrouter"];
+    const ids = PAIRS[pair] || PAIRS.media;
     host.replaceChildren();
     unitControl.hidden = pair !== "media";
-    document.querySelector(".file-tab").textContent = ids
+    document.querySelector("[data-claim-file-tab]").textContent = ids
       .map((id) => names[id])
       .join(" / ");
     for (const id of ids) {
@@ -105,6 +122,7 @@ if (host) {
       column.append(element("p", caption, "provider-caption"));
       const available = (provider?.rows ?? []).filter(
         (row) =>
+          pair === "audio" ||
           pair === "text" ||
           selectedUnit === "all" ||
           row.unit === selectedUnit,
@@ -114,14 +132,31 @@ if (host) {
         const item = element("div", null, "price-row"),
           rate = element("div", null, "rate");
         item.append(element("h4", row.name || row.id));
-        rate.append(
-          element("strong", money(pair === "text" ? row.input : row.amount)),
-          element(
-            "span",
-            pair === "text" ? "input / 1M tokens" : `per ${unit(row.unit)}`,
-          ),
-        );
-        item.append(rate);
+        if (pair === "audio") {
+          rate.append(
+            element("strong", row.priceLabel || "Unknown"),
+            element("span", row.priceUnit || "Published price unknown"),
+          );
+          item.append(rate);
+          item.append(
+            element(
+              "p",
+              row.quality?.value != null
+                ? `${row.quality.metric || "MOS"} · ${row.quality.method || "public benchmark"}: ${row.quality.value}`
+                : "Voice-quality MOS: unknown",
+              "quality-score",
+            ),
+          );
+        } else {
+          rate.append(
+            element("strong", money(pair === "text" ? row.input : row.amount)),
+            element(
+              "span",
+              pair === "text" ? "input / 1M tokens" : `per ${unit(row.unit)}`,
+            ),
+          );
+          item.append(rate);
+        }
         if (pair === "text")
           item.append(
             element(
@@ -131,7 +166,9 @@ if (host) {
             ),
           );
         const short =
-          id === "crazyrouter"
+          pair === "audio"
+            ? row.note || "Published price and public quality evidence; conditions stay attached."
+            : id === "crazyrouter"
             ? "Derived · default group. Not settled charges."
             : id === "kie"
               ? "Listed variant. Top-up bonuses excluded."
@@ -145,6 +182,20 @@ if (host) {
           element("p", condition(row.condition)),
         );
         if (row.note) details.append(element("p", row.note));
+        if (pair === "audio") {
+          details.append(
+            element(
+              "p",
+              `Published price source: ${row.priceSourceUrl || "unknown"} · checked ${date(row.priceCheckedAt)}`,
+            ),
+            element(
+              "p",
+              row.quality
+                ? `${row.quality.metric} source: ${row.quality.sourceUrl} · checked ${date(row.quality.checkedAt)} · ${row.quality.scope}`
+                : "MOS source: unknown; no usable public score was retained.",
+            ),
+          );
+        }
         details.append(
           element("code", row.id),
           element(
@@ -169,15 +220,30 @@ if (host) {
             ),
           );
         item.append(details);
-        const url = evidenceUrl(
-          id === "kie" ? "https://kie.ai/pricing" : row.sourceUrl,
-        );
-        if (url) {
-          const link = element("a", "View pricing ↗");
-          link.href = url;
-          link.target = "_blank";
-          link.rel = "noopener";
-          item.append(link);
+        if (pair === "audio") {
+          for (const [source, label] of [
+            [row.priceSourceUrl, "View published price ↗"],
+            [row.quality?.sourceUrl, "View MOS source ↗"],
+          ]) {
+            const url = evidenceUrl(source);
+            if (!url) continue;
+            const link = element("a", label);
+            link.href = url;
+            link.target = "_blank";
+            link.rel = "noopener";
+            item.append(link);
+          }
+        } else {
+          const url = evidenceUrl(
+            id === "kie" ? "https://kie.ai/pricing" : row.sourceUrl,
+          );
+          if (url) {
+            const link = element("a", "View pricing ↗");
+            link.href = url;
+            link.target = "_blank";
+            link.rel = "noopener";
+            item.append(link);
+          }
         }
         column.append(item);
       }
@@ -189,7 +255,7 @@ if (host) {
               ? "Reading public pricing evidence…"
               : provider?.rows?.length
                 ? "No observation in this native unit. Choose another unit; no conversion is assumed."
-                : "No price observation acquired. Unknown does not mean free.",
+                : missingPrice(provider, names[id]),
             "missing",
           ),
         );
@@ -204,15 +270,19 @@ if (host) {
       host.append(column);
     }
     document.querySelector("#claim-scope").textContent =
-      pair === "media"
-        ? "KIE’s linked comparison focuses on Veo 3."
-        : "Crazyrouter’s comparison is provider-authored, not an independent verdict.";
+      pair === "audio"
+        ? "Prices are native provider units; MOS is a dated UTMOS-predicted public benchmark, not an Open Dashboard synthesis."
+        : pair === "media"
+          ? "KIE’s linked comparison focuses on Veo 3."
+          : "Crazyrouter’s comparison is provider-authored, not an independent verdict.";
     const claim = document.querySelector("#claim-source");
     claim.href = CLAIM_LINKS[pair];
     claim.textContent =
-      pair === "media"
-        ? "Read KIE’s own claim ↗"
-        : "Read Crazyrouter’s own claim ↗";
+      pair === "audio"
+        ? "Read the public TTS benchmark ↗"
+        : pair === "media"
+          ? "Read KIE’s own claim ↗"
+          : "Read Crazyrouter’s own claim ↗";
     const selected = (evidence?.providers ?? []).filter((p) =>
         ids.includes(p.id),
       ),
@@ -240,6 +310,11 @@ if (host) {
     render();
     try {
       evidence = await loadClaimEvidence({ force });
+      // Open on a claim both sides of which have retained observations.
+      const other = ["audio", "media", "text"].find((candidate) =>
+        priced(candidate),
+      );
+      if (!pairChosen && !priced(pair) && other) selectPair(other);
       if (!unitChosen) {
         const media = evidence.providers.filter((p) =>
           ["kie", "fal"].includes(p.id),
@@ -260,18 +335,22 @@ if (host) {
       render();
     }
   }
+  function selectPair(next) {
+    pair = Object.hasOwn(PAIRS, next) ? next : "media";
+    expanded = false;
+    document.querySelectorAll("[data-pair]").forEach((other) => {
+      const selected = other.dataset.pair === pair;
+      other.classList.toggle("active", selected);
+      other.setAttribute("aria-pressed", String(selected));
+      const state = other.querySelector(".claim-state");
+      if (state)
+        state.textContent = selected ? "Inspecting ↗" : "Inspect claim";
+    });
+  }
   document.querySelectorAll("[data-pair]").forEach((button) =>
     button.addEventListener("click", () => {
-      pair = button.dataset.pair === "text" ? "text" : "media";
-      expanded = false;
-      document.querySelectorAll("[data-pair]").forEach((other) => {
-        const selected = other.dataset.pair === pair;
-        other.classList.toggle("active", selected);
-        other.setAttribute("aria-pressed", String(selected));
-        const state = other.querySelector(".claim-state");
-        if (state)
-          state.textContent = selected ? "Inspecting ↗" : "Inspect claim";
-      });
+      pairChosen = true;
+      selectPair(button.dataset.pair);
       render();
     }),
   );

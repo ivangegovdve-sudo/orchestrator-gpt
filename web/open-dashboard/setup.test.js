@@ -135,7 +135,7 @@ test("selectable tools and version match the actual published package vocabulary
     TOOLS.map((tool) => tool.id).sort(),
     [...shipped.tools].sort(),
   );
-  assert.equal(new Set(TOOLS.map((tool) => tool.id)).size, 18);
+  assert.equal(new Set(TOOLS.map((tool) => tool.id)).size, shipped.tools.length);
 });
 
 test("the MCP entry page exposes sourced proof and the direct install path", async () => {
@@ -161,15 +161,12 @@ test("the MCP entry page exposes sourced proof and the direct install path", asy
   assert.ok(page.includes("openclaw@2026.9.4"));
   assert.ok(page.includes("No live"));
   assert.ok(page.includes("%USERPROFILE%\\.openclaw\\openclaw.json"));
-  assert.match(page, /Verdict: Crazyrouter is cheaper on both token legs/);
+  assert.match(page, /data-setup-live-prices/);
+  assert.match(page, /setup-prices.js/);
+  assert.doesNotMatch(page, /Verdict: Crazyrouter is cheaper|Reported savings: 35%|\$0.10 to \$4.40/);
   assert.match(page, /data-npm-downloads-value>Checking npm downloads/);
   assert.match(page, new RegExp(`npx -y ${PACKAGE_SPEC.replace(/[.*+?^${}()|[\\]\\\\]/g, "\\\\$&")}`));
   assert.match(page, /data-npm-downloads-note>Reading the latest complete weekly window from npm/);
-  assert.match(page, new RegExp(MCP_EXCHANGE_FACTS.tool));
-  assert.match(page, new RegExp(MCP_EXCHANGE_FACTS.crazyrouterModelId));
-  assert.match(page, new RegExp(MCP_EXCHANGE_FACTS.openrouterModelId.replace("/", "\\/")));
-  assert.match(page, new RegExp(MCP_EXCHANGE_FACTS.crazyrouterInput));
-  assert.match(page, new RegExp(MCP_EXCHANGE_FACTS.openrouterOutput));
   assert.doesNotMatch(page, /Public usage and project trends|app insights/);
 });
 
@@ -332,7 +329,7 @@ test("explorer deep links enable their exact capability and reject an invalid se
     "dashboard_benchmarks,,dashboard_contract",
     "dashboard_benchmarks,unknown_tool",
     "dashboard_benchmarks;echo injected",
-    Array(19).fill("dashboard_benchmarks").join(","),
+    Array(TOOLS.length + 1).fill("dashboard_benchmarks").join(","),
     "x".repeat(1025),
   ]) {
     assert.equal(
@@ -343,7 +340,7 @@ test("explorer deep links enable their exact capability and reject an invalid se
   }
   assert.equal(
     toolsFromQuery(TOOLS.map((tool) => tool.id).join(",")).length,
-    18,
+    TOOLS.length,
   );
 });
 

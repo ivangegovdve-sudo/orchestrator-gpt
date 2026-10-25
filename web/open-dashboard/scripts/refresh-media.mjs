@@ -11,6 +11,7 @@ import { collectMediaCatalogue } from "../../../node_modules/open-dashboard-mcp/
 import { collectCrazyrouterCatalogue } from "../../../node_modules/open-dashboard-mcp/build/catalogue/crazyrouter.js";
 import { PROVIDER_REGISTRY } from "../../../node_modules/open-dashboard-mcp/build/providers/registry.js";
 import { normalizeMediaCatalogue, mediaPricingStatus } from "../media-data.js";
+import { PACKAGE_VERSION } from "../setup-data.js";
 
 const directory = path.dirname(fileURLToPath(import.meta.url));
 const outputPath = path.resolve(directory, "../media-catalogue.json");
@@ -555,11 +556,11 @@ export function projectSnapshot(
   }));
   const snapshot = {
     schemaVersion: 2,
-    collector: "open-dashboard-mcp@1.4.0",
+    collector: `open-dashboard-mcp@${PACKAGE_VERSION}`,
     fetchedAt,
     registry: {
       package: "open-dashboard-mcp",
-      version: "1.4.0",
+      version: PACKAGE_VERSION,
       providers: Object.values(PROVIDER_REGISTRY).map((provider) => ({
         id: provider.id,
         displayName: provider.displayName,
@@ -639,7 +640,7 @@ export async function refreshMediaCatalogue() {
       "utf8",
     ),
   );
-  if (pkg.version !== "1.4.0")
+  if (pkg.version !== PACKAGE_VERSION)
     throw new Error("REVIEW_COLLECTOR_VERSION_BEFORE_REFRESH");
   const safeFetch = publicMetadataFetch(),
     nativeMetadata = new Map();

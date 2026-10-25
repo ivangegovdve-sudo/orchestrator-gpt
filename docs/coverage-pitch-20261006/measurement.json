@@ -1,0 +1,649 @@
+{
+  "measuredFrom": "2026-10-06T10:44:21.626Z",
+  "measuredAt": "2026-10-06T10:44:30.829Z",
+  "baseUrl": "https://openrouter-github-dashboard.vercel.app",
+  "endpoint": "/api/live/catalogue?provider={provider}",
+  "providerRegistrySource": "open-dashboard-mcp/public-catalogue PROVIDER_IDS (vendored 1.5.0)",
+  "registeredProviders": 16,
+  "respondingProviders": 16,
+  "populatedProviders": 15,
+  "providersWithPrices": 13,
+  "modelEntries": 5222,
+  "pricedEntries": 2442,
+  "directOrProsePricedEntries": 2398,
+  "derivedOnlyPricedEntries": 44,
+  "imageEntries": 1104,
+  "imageEntriesWithNativeOutputPrices": 159,
+  "videoEntries": 1318,
+  "videoEntriesWithNativeOutputPrices": 274,
+  "openRouterFreeEntries": 16,
+  "definitions": {
+    "modelEntries": "Distinct (provider,id) pairs returned by the 16 live endpoint reads. Variants and pricing configurations count separately; these are not unique underlying models or verified callable models.",
+    "pricedEntries": "At least one finite nonnegative numeric pricePoints.amount. This includes zero prices, native credit quotes, conditional/account-scoped quotes and values derived from published pricing coefficients. The directOrProsePricedEntries and derivedOnlyPricedEntries breakdowns preserve provenance. A quote is not a settled charge, a common currency across providers or proof of API readiness.",
+    "providersWithPrices": "Registered providers with at least one priced entry in this read.",
+    "imageEntries": "Distinct entries where mediaKind=image; native output-priced subset uses image, megapixel or credit_image price units.",
+    "videoEntries": "Distinct entries where mediaKind=video; native output-priced subset uses video, video_second or credit_video price units. Generic request/GPU-time/token prices are excluded from both output-priced subsets.",
+    "openRouterFreeEntries": "Distinct OpenRouter entries whose id ends with :free; this is a catalogue label, not a guarantee of availability or unlimited free use.",
+    "freshness": "Fresh endpoint reads within the measuredFrom/measuredAt request window; individual source observedAt and price readAt can be older. Partial or unavailable sources remain explicit."
+  },
+  "warnings": [
+    {
+      "provider": "sail",
+      "status": "partial",
+      "completeness": "full",
+      "error": "PRICING_STALE"
+    },
+    {
+      "provider": "qwencloud",
+      "status": "unavailable",
+      "completeness": "unavailable",
+      "error": "SOURCE_FETCH_FAILED"
+    },
+    {
+      "provider": "fal",
+      "status": "partial",
+      "completeness": "full",
+      "error": null
+    },
+    {
+      "provider": "crazyrouter",
+      "status": "available",
+      "completeness": "unknown",
+      "error": null
+    }
+  ],
+  "providers": [
+    {
+      "provider": "openrouter",
+      "requestedAt": "2026-10-06T10:44:21.627Z",
+      "receivedAt": "2026-10-06T10:44:22.304Z",
+      "fetchedAt": "2026-10-06T10:44:22.148Z",
+      "status": "available",
+      "sourceUrl": "https://openrouter.ai/api/v1/models",
+      "observedAt": "2026-10-06T10:44:21.975Z",
+      "population": {
+        "listed": 464,
+        "received": 464,
+        "retained": 464,
+        "excluded": 0,
+        "exclusionRules": [
+          "Rows without a stable provider model id are excluded."
+        ],
+        "completeness": "full"
+      },
+      "priceCoverage": {
+        "provider": "openrouter",
+        "priceRowCount": 1308,
+        "apiPriceObservation": "prices_found",
+        "state": "PUBLISHES_PRICES"
+      },
+      "returnedRows": 464,
+      "duplicateIdentityRows": 0,
+      "responseSha256": "fb58b2ef503f298ca93c9f5c89fa3fac9b56340b5669819d434dce22ba0530fa",
+      "modelEntries": 464,
+      "pricedEntries": 457,
+      "directOrProsePricedEntries": 457,
+      "derivedOnlyPricedEntries": 0,
+      "imageEntries": 0,
+      "imageEntriesWithNativeOutputPrices": 0,
+      "videoEntries": 0,
+      "videoEntriesWithNativeOutputPrices": 0,
+      "openRouterFreeEntries": 16
+    },
+    {
+      "provider": "groq",
+      "requestedAt": "2026-10-06T10:44:21.631Z",
+      "receivedAt": "2026-10-06T10:44:22.151Z",
+      "fetchedAt": "2026-10-06T10:44:22.109Z",
+      "status": "available",
+      "sourceUrl": "https://api.groq.com/openai/v1/models",
+      "observedAt": "2026-10-06T10:44:21.962Z",
+      "population": {
+        "listed": 11,
+        "received": 11,
+        "retained": 11,
+        "excluded": 0,
+        "exclusionRules": [
+          "Rows without a stable provider model id are excluded."
+        ],
+        "completeness": "full"
+      },
+      "priceCoverage": {
+        "provider": "groq",
+        "priceRowCount": 30,
+        "apiPriceObservation": "prices_found",
+        "state": "PUBLISHES_PRICES"
+      },
+      "returnedRows": 11,
+      "duplicateIdentityRows": 0,
+      "responseSha256": "95e1910994d2cda91e28186a9275e135bf01aa8395f35f84872c31e4ba6f5895",
+      "modelEntries": 11,
+      "pricedEntries": 8,
+      "directOrProsePricedEntries": 8,
+      "derivedOnlyPricedEntries": 0,
+      "imageEntries": 0,
+      "imageEntriesWithNativeOutputPrices": 0,
+      "videoEntries": 0,
+      "videoEntriesWithNativeOutputPrices": 0,
+      "openRouterFreeEntries": 0
+    },
+    {
+      "provider": "cerebras",
+      "requestedAt": "2026-10-06T10:44:21.632Z",
+      "receivedAt": "2026-10-06T10:44:29.047Z",
+      "fetchedAt": "2026-10-06T10:44:29.007Z",
+      "status": "available",
+      "sourceUrl": "https://www.cerebras.ai/pricing",
+      "observedAt": "2026-10-06T10:44:28.606Z",
+      "population": {
+        "listed": 2,
+        "received": 2,
+        "retained": 2,
+        "excluded": 0,
+        "exclusionRules": [
+          "The page's offering tier and price table are kept as separate observations; a model missing from one is not silently reconciled."
+        ],
+        "completeness": "full"
+      },
+      "priceCoverage": {
+        "provider": "cerebras",
+        "priceRowCount": 2,
+        "apiPriceObservation": "not_fetched",
+        "state": "PUBLISHES_PRICES",
+        "renderedPageEvidence": {
+          "url": "https://www.cerebras.ai/pricing",
+          "fetchedAt": "2026-10-06T10:44:28.606Z",
+          "javascriptExecuted": true,
+          "domSettled": true,
+          "tableCount": 2,
+          "priceTableCount": 1,
+          "priceTableObserved": true,
+          "priceRowCount": 2,
+          "explicitNoPrices": false,
+          "outcome": "rendered_prices_found"
+        }
+      },
+      "returnedRows": 2,
+      "duplicateIdentityRows": 0,
+      "responseSha256": "fa484b2d7711b598441d687091b9db45e5853b3c1bd58b2190769dfe0f19f309",
+      "modelEntries": 2,
+      "pricedEntries": 2,
+      "directOrProsePricedEntries": 2,
+      "derivedOnlyPricedEntries": 0,
+      "imageEntries": 0,
+      "imageEntriesWithNativeOutputPrices": 0,
+      "videoEntries": 0,
+      "videoEntriesWithNativeOutputPrices": 0,
+      "openRouterFreeEntries": 0
+    },
+    {
+      "provider": "sail",
+      "requestedAt": "2026-10-06T10:44:21.633Z",
+      "receivedAt": "2026-10-06T10:44:22.595Z",
+      "fetchedAt": "2026-10-06T10:44:22.553Z",
+      "status": "partial",
+      "sourceUrl": "https://api.sailresearch.com/v1/models",
+      "observedAt": "2026-10-06T10:44:22.028Z",
+      "population": {
+        "listed": 12,
+        "received": 12,
+        "retained": 12,
+        "excluded": 0,
+        "exclusionRules": [
+          "Rows without a stable provider model id are excluded."
+        ],
+        "completeness": "full"
+      },
+      "priceCoverage": {
+        "provider": "sail",
+        "priceRowCount": 0,
+        "apiPriceObservation": "no_prices",
+        "state": "UNKNOWN"
+      },
+      "error": "PRICING_STALE",
+      "returnedRows": 12,
+      "duplicateIdentityRows": 0,
+      "responseSha256": "d13ab19f4e181138fe5acd7586e68e211487036956a347ff5ae91288dee6aaea",
+      "modelEntries": 12,
+      "pricedEntries": 0,
+      "directOrProsePricedEntries": 0,
+      "derivedOnlyPricedEntries": 0,
+      "imageEntries": 0,
+      "imageEntriesWithNativeOutputPrices": 0,
+      "videoEntries": 0,
+      "videoEntriesWithNativeOutputPrices": 0,
+      "openRouterFreeEntries": 0
+    },
+    {
+      "provider": "nous",
+      "requestedAt": "2026-10-06T10:44:22.158Z",
+      "receivedAt": "2026-10-06T10:44:23.337Z",
+      "fetchedAt": "2026-10-06T10:44:23.183Z",
+      "status": "available",
+      "sourceUrl": "https://inference-api.nousresearch.com/v1/models",
+      "observedAt": "2026-10-06T10:44:22.434Z",
+      "population": {
+        "listed": 425,
+        "received": 425,
+        "retained": 425,
+        "excluded": 0,
+        "exclusionRules": [
+          "Rows without a stable provider model id are excluded."
+        ],
+        "completeness": "full"
+      },
+      "priceCoverage": {
+        "provider": "nous",
+        "priceRowCount": 1239,
+        "apiPriceObservation": "prices_found",
+        "state": "PUBLISHES_PRICES"
+      },
+      "returnedRows": 425,
+      "duplicateIdentityRows": 0,
+      "responseSha256": "84925a5d04947f8eb5ee6b30756cd657b8b0aaaadb33ff5b5e23f516df3283ab",
+      "modelEntries": 425,
+      "pricedEntries": 425,
+      "directOrProsePricedEntries": 425,
+      "derivedOnlyPricedEntries": 0,
+      "imageEntries": 0,
+      "imageEntriesWithNativeOutputPrices": 0,
+      "videoEntries": 0,
+      "videoEntriesWithNativeOutputPrices": 0,
+      "openRouterFreeEntries": 0
+    },
+    {
+      "provider": "qwencloud",
+      "requestedAt": "2026-10-06T10:44:22.322Z",
+      "receivedAt": "2026-10-06T10:44:22.636Z",
+      "fetchedAt": "2026-10-06T10:44:22.599Z",
+      "status": "unavailable",
+      "sourceUrl": "https://dashscope-intl.aliyuncs.com/api/v1/models",
+      "observedAt": "2026-10-06T10:44:22.597Z",
+      "population": {
+        "listed": null,
+        "received": null,
+        "retained": null,
+        "excluded": null,
+        "exclusionRules": [],
+        "completeness": "unavailable"
+      },
+      "priceCoverage": {
+        "provider": "qwencloud",
+        "priceRowCount": 0,
+        "apiPriceObservation": "unavailable",
+        "state": "UNREACHABLE"
+      },
+      "error": "SOURCE_FETCH_FAILED",
+      "returnedRows": 0,
+      "duplicateIdentityRows": 0,
+      "responseSha256": "93b53672d5d1e5740bfab2045c84b36ba16fd43e87561d4ecbee070e58981a24",
+      "modelEntries": 0,
+      "pricedEntries": 0,
+      "directOrProsePricedEntries": 0,
+      "derivedOnlyPricedEntries": 0,
+      "imageEntries": 0,
+      "imageEntriesWithNativeOutputPrices": 0,
+      "videoEntries": 0,
+      "videoEntriesWithNativeOutputPrices": 0,
+      "openRouterFreeEntries": 0
+    },
+    {
+      "provider": "deepinfra",
+      "requestedAt": "2026-10-06T10:44:22.600Z",
+      "receivedAt": "2026-10-06T10:44:23.429Z",
+      "fetchedAt": "2026-10-06T10:44:23.320Z",
+      "status": "available",
+      "sourceUrl": "https://api.deepinfra.com/models/list",
+      "observedAt": "2026-10-06T10:44:22.926Z",
+      "population": {
+        "listed": 386,
+        "received": 386,
+        "retained": 386,
+        "excluded": 0,
+        "exclusionRules": [],
+        "completeness": "full"
+      },
+      "priceCoverage": {
+        "provider": "deepinfra",
+        "priceRowCount": 562,
+        "apiPriceObservation": "prices_found",
+        "state": "PUBLISHES_PRICES"
+      },
+      "returnedRows": 386,
+      "duplicateIdentityRows": 0,
+      "responseSha256": "67c4f377b285e6ca76183fc9b354126b8ad9338814eaf8e64554f72505ca8918",
+      "modelEntries": 386,
+      "pricedEntries": 336,
+      "directOrProsePricedEntries": 336,
+      "derivedOnlyPricedEntries": 0,
+      "imageEntries": 55,
+      "imageEntriesWithNativeOutputPrices": 47,
+      "videoEntries": 29,
+      "videoEntriesWithNativeOutputPrices": 22,
+      "openRouterFreeEntries": 0
+    },
+    {
+      "provider": "novita",
+      "requestedAt": "2026-10-06T10:44:22.637Z",
+      "receivedAt": "2026-10-06T10:44:23.401Z",
+      "fetchedAt": "2026-10-06T10:44:23.321Z",
+      "status": "available",
+      "sourceUrl": "https://api.novita.ai/v3/openai/models",
+      "observedAt": "2026-10-06T10:44:22.898Z",
+      "population": {
+        "listed": 121,
+        "received": 121,
+        "retained": 121,
+        "excluded": 0,
+        "exclusionRules": [
+          "Rows without a stable provider model id are excluded."
+        ],
+        "completeness": "full"
+      },
+      "priceCoverage": {
+        "provider": "novita",
+        "priceRowCount": 290,
+        "apiPriceObservation": "prices_found",
+        "state": "PUBLISHES_PRICES"
+      },
+      "returnedRows": 121,
+      "duplicateIdentityRows": 0,
+      "responseSha256": "0ec6813a01cdcce9149a3c25ff629115704485052e26aab3c21a1e0f28292527",
+      "modelEntries": 121,
+      "pricedEntries": 117,
+      "directOrProsePricedEntries": 117,
+      "derivedOnlyPricedEntries": 0,
+      "imageEntries": 0,
+      "imageEntriesWithNativeOutputPrices": 0,
+      "videoEntries": 0,
+      "videoEntriesWithNativeOutputPrices": 0,
+      "openRouterFreeEntries": 0
+    },
+    {
+      "provider": "sambanova",
+      "requestedAt": "2026-10-06T10:44:23.352Z",
+      "receivedAt": "2026-10-06T10:44:23.888Z",
+      "fetchedAt": "2026-10-06T10:44:23.847Z",
+      "status": "available",
+      "sourceUrl": "https://api.sambanova.ai/v1/models",
+      "observedAt": "2026-10-06T10:44:23.657Z",
+      "population": {
+        "listed": 6,
+        "received": 6,
+        "retained": 6,
+        "excluded": 0,
+        "exclusionRules": [
+          "Rows without a stable provider model id are excluded."
+        ],
+        "completeness": "full"
+      },
+      "priceCoverage": {
+        "provider": "sambanova",
+        "priceRowCount": 14,
+        "apiPriceObservation": "prices_found",
+        "state": "PUBLISHES_PRICES"
+      },
+      "returnedRows": 6,
+      "duplicateIdentityRows": 0,
+      "responseSha256": "4722bb04d5bb935c540ad92a3bd5a28bd86c17fac6f8313835cdab18d6235d09",
+      "modelEntries": 6,
+      "pricedEntries": 6,
+      "directOrProsePricedEntries": 6,
+      "derivedOnlyPricedEntries": 0,
+      "imageEntries": 0,
+      "imageEntriesWithNativeOutputPrices": 0,
+      "videoEntries": 0,
+      "videoEntriesWithNativeOutputPrices": 0,
+      "openRouterFreeEntries": 0
+    },
+    {
+      "provider": "chutes",
+      "requestedAt": "2026-10-06T10:44:23.404Z",
+      "receivedAt": "2026-10-06T10:44:30.814Z",
+      "fetchedAt": "2026-10-06T10:44:30.671Z",
+      "status": "available",
+      "sourceUrl": "https://api.chutes.ai/chutes/",
+      "observedAt": "2026-10-06T10:44:23.644Z",
+      "population": {
+        "listed": 491,
+        "received": 491,
+        "retained": 491,
+        "excluded": 0,
+        "exclusionRules": [],
+        "completeness": "full"
+      },
+      "priceCoverage": {
+        "provider": "chutes",
+        "priceRowCount": 952,
+        "apiPriceObservation": "prices_found",
+        "state": "PUBLISHES_PRICES"
+      },
+      "returnedRows": 491,
+      "duplicateIdentityRows": 0,
+      "responseSha256": "6411ab2c85cce3218e2419a3c40a5b2a4a94c8fd8673d3145d89903d274af4dd",
+      "modelEntries": 491,
+      "pricedEntries": 476,
+      "directOrProsePricedEntries": 476,
+      "derivedOnlyPricedEntries": 0,
+      "imageEntries": 0,
+      "imageEntriesWithNativeOutputPrices": 0,
+      "videoEntries": 0,
+      "videoEntriesWithNativeOutputPrices": 0,
+      "openRouterFreeEntries": 0
+    },
+    {
+      "provider": "wavespeed",
+      "requestedAt": "2026-10-06T10:44:23.434Z",
+      "receivedAt": "2026-10-06T10:44:26.218Z",
+      "fetchedAt": "2026-10-06T10:44:26.085Z",
+      "status": "available",
+      "sourceUrl": "https://wavespeed.ai/api/models",
+      "observedAt": "2026-10-06T10:44:23.558Z",
+      "population": {
+        "listed": 1055,
+        "received": 1055,
+        "retained": 1055,
+        "excluded": 0,
+        "exclusionRules": [],
+        "completeness": "full"
+      },
+      "priceCoverage": {
+        "provider": "wavespeed",
+        "priceRowCount": 4,
+        "apiPriceObservation": "prices_found",
+        "state": "PUBLISHES_PRICES"
+      },
+      "returnedRows": 1055,
+      "duplicateIdentityRows": 0,
+      "responseSha256": "da1283be1e02b4af1a8299245ddc1de9a2864bd6d40f04e1bb59898110a53a1d",
+      "modelEntries": 1055,
+      "pricedEntries": 4,
+      "directOrProsePricedEntries": 4,
+      "derivedOnlyPricedEntries": 0,
+      "imageEntries": 316,
+      "imageEntriesWithNativeOutputPrices": 0,
+      "videoEntries": 426,
+      "videoEntriesWithNativeOutputPrices": 4,
+      "openRouterFreeEntries": 0
+    },
+    {
+      "provider": "fal",
+      "requestedAt": "2026-10-06T10:44:23.889Z",
+      "receivedAt": "2026-10-06T10:44:25.103Z",
+      "fetchedAt": "2026-10-06T10:44:24.934Z",
+      "status": "partial",
+      "sourceUrl": "https://api.fal.ai/v1/models",
+      "observedAt": "2026-10-06T10:44:24.118Z",
+      "population": {
+        "listed": 1505,
+        "received": 1505,
+        "retained": 1505,
+        "excluded": 0,
+        "exclusionRules": [],
+        "completeness": "full"
+      },
+      "priceCoverage": {
+        "provider": "fal",
+        "priceRowCount": 0,
+        "apiPriceObservation": "no_prices",
+        "state": "UNKNOWN"
+      },
+      "returnedRows": 1505,
+      "duplicateIdentityRows": 0,
+      "responseSha256": "c57a875c8b4f10ebd52ce7e12257de466cbea9b14a55aaec82764dcf2ad5fabb",
+      "modelEntries": 1505,
+      "pricedEntries": 0,
+      "directOrProsePricedEntries": 0,
+      "derivedOnlyPricedEntries": 0,
+      "imageEntries": 603,
+      "imageEntriesWithNativeOutputPrices": 0,
+      "videoEntries": 559,
+      "videoEntriesWithNativeOutputPrices": 0,
+      "openRouterFreeEntries": 0
+    },
+    {
+      "provider": "kie",
+      "requestedAt": "2026-10-06T10:44:25.120Z",
+      "receivedAt": "2026-10-06T10:44:26.034Z",
+      "fetchedAt": "2026-10-06T10:44:25.918Z",
+      "status": "available",
+      "sourceUrl": "https://api.kie.ai/client/v1/model-pricing/page",
+      "observedAt": "2026-10-06T10:44:25.330Z",
+      "population": {
+        "listed": 524,
+        "received": 524,
+        "retained": 524,
+        "excluded": 0,
+        "exclusionRules": [],
+        "completeness": "full"
+      },
+      "priceCoverage": {
+        "provider": "kie",
+        "priceRowCount": 468,
+        "apiPriceObservation": "prices_found",
+        "state": "PUBLISHES_PRICES"
+      },
+      "returnedRows": 524,
+      "duplicateIdentityRows": 0,
+      "responseSha256": "6737bbca15548d5aa3254c3a66e18aceaf6498311d91d3bb85747dec989016d2",
+      "modelEntries": 524,
+      "pricedEntries": 468,
+      "directOrProsePricedEntries": 468,
+      "derivedOnlyPricedEntries": 0,
+      "imageEntries": 119,
+      "imageEntriesWithNativeOutputPrices": 112,
+      "videoEntries": 269,
+      "videoEntriesWithNativeOutputPrices": 248,
+      "openRouterFreeEntries": 0
+    },
+    {
+      "provider": "crazyrouter",
+      "requestedAt": "2026-10-06T10:44:26.042Z",
+      "receivedAt": "2026-10-06T10:44:27.441Z",
+      "fetchedAt": "2026-10-06T10:44:27.358Z",
+      "status": "available",
+      "sourceUrl": "https://crazyrouter.com/api/pricing",
+      "observedAt": "2026-10-06T10:44:26.288Z",
+      "population": {
+        "listed": null,
+        "received": 175,
+        "retained": 175,
+        "excluded": 0,
+        "exclusionRules": [],
+        "completeness": "unknown"
+      },
+      "priceCoverage": {
+        "provider": "crazyrouter",
+        "priceRowCount": 196,
+        "apiPriceObservation": "prices_found",
+        "state": "PUBLISHES_PRICES"
+      },
+      "returnedRows": 175,
+      "duplicateIdentityRows": 0,
+      "responseSha256": "3c8b029eb919fa597c4d15beec1d0db502a6f83ec3aca75bbcbdd01c551b1d21",
+      "modelEntries": 175,
+      "pricedEntries": 98,
+      "directOrProsePricedEntries": 54,
+      "derivedOnlyPricedEntries": 44,
+      "imageEntries": 11,
+      "imageEntriesWithNativeOutputPrices": 0,
+      "videoEntries": 35,
+      "videoEntriesWithNativeOutputPrices": 0,
+      "openRouterFreeEntries": 0
+    },
+    {
+      "provider": "akashml",
+      "requestedAt": "2026-10-06T10:44:26.225Z",
+      "receivedAt": "2026-10-06T10:44:26.661Z",
+      "fetchedAt": "2026-10-06T10:44:26.620Z",
+      "status": "available",
+      "sourceUrl": "https://api.akashml.com/v1/models",
+      "observedAt": "2026-10-06T10:44:26.445Z",
+      "population": {
+        "listed": 6,
+        "received": 6,
+        "retained": 6,
+        "excluded": 0,
+        "exclusionRules": [
+          "Rows without a stable provider model id are excluded."
+        ],
+        "completeness": "full"
+      },
+      "priceCoverage": {
+        "provider": "akashml",
+        "priceRowCount": 17,
+        "apiPriceObservation": "prices_found",
+        "state": "PUBLISHES_PRICES"
+      },
+      "returnedRows": 6,
+      "duplicateIdentityRows": 0,
+      "responseSha256": "9ea3a5ae9f9e244699e442094cef219c7856ddb28c805aad1016a884232d224a",
+      "modelEntries": 6,
+      "pricedEntries": 6,
+      "directOrProsePricedEntries": 6,
+      "derivedOnlyPricedEntries": 0,
+      "imageEntries": 0,
+      "imageEntriesWithNativeOutputPrices": 0,
+      "videoEntries": 0,
+      "videoEntriesWithNativeOutputPrices": 0,
+      "openRouterFreeEntries": 0
+    },
+    {
+      "provider": "ionet",
+      "requestedAt": "2026-10-06T10:44:26.662Z",
+      "receivedAt": "2026-10-06T10:44:27.221Z",
+      "fetchedAt": "2026-10-06T10:44:27.156Z",
+      "status": "available",
+      "sourceUrl": "https://api.intelligence.io.solutions/api/v1/models",
+      "observedAt": "2026-10-06T10:44:26.886Z",
+      "population": {
+        "listed": 39,
+        "received": 39,
+        "retained": 39,
+        "excluded": 0,
+        "exclusionRules": [
+          "Rows without a stable provider model id are excluded."
+        ],
+        "completeness": "full"
+      },
+      "priceCoverage": {
+        "provider": "ionet",
+        "priceRowCount": 117,
+        "apiPriceObservation": "prices_found",
+        "state": "PUBLISHES_PRICES"
+      },
+      "returnedRows": 39,
+      "duplicateIdentityRows": 0,
+      "responseSha256": "88814e640cb19c6cdfcb3c98af04048d9eafd23ec485d05cc8f8960fd2689c70",
+      "modelEntries": 39,
+      "pricedEntries": 39,
+      "directOrProsePricedEntries": 39,
+      "derivedOnlyPricedEntries": 0,
+      "imageEntries": 0,
+      "imageEntriesWithNativeOutputPrices": 0,
+      "videoEntries": 0,
+      "videoEntriesWithNativeOutputPrices": 0,
+      "openRouterFreeEntries": 0
+    }
+  ]
+}

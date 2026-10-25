@@ -65,7 +65,11 @@ export function mountNpmDownloads(
   value.textContent = "Checking npm downloads…";
   note.textContent = "Reading the latest complete weekly window from npm.";
 
-  return readNpmDownloadState(fetchImpl, options).then((state) => {
+  const liveOptions = {
+    ...options,
+    bypassCache: options.bypassCache ?? options.storage === undefined,
+  };
+  return readNpmDownloadState(fetchImpl, liveOptions).then((state) => {
     container.dataset.npmDownloadsState = state.status;
     if (state.source) container.dataset.npmDownloadsSource = state.source;
     else delete container.dataset.npmDownloadsSource;
@@ -97,12 +101,24 @@ export function mountNpmReleases(
   value.textContent = "Checking npm releases…";
   note.textContent = "Reading published package versions from npm.";
 
-  return readNpmReleaseState(fetchImpl, options).then((state) => {
+  const liveOptions = {
+    ...options,
+    bypassCache: options.bypassCache ?? options.storage === undefined,
+  };
+  return readNpmReleaseState(fetchImpl, liveOptions).then((state) => {
     container.dataset.npmReleasesState = state.status;
     if (state.source) container.dataset.npmReleasesSource = state.source;
     else delete container.dataset.npmReleasesSource;
     if (state.status === "available") {
       value.textContent = `Published on npm: ${state.facts.latest}`;
+      // Every version mention on the page follows the registry, not a literal.
+      root.querySelectorAll?.("[data-npm-latest]")?.forEach((element) => {
+        element.textContent = `v${state.facts.latest}`;
+      });
+      root.querySelectorAll?.("[data-package-version]")?.forEach((element) => {
+        element.dataset.npmLatest = state.facts.latest;
+        renderPackageVersion(element);
+      });
       const source = state.source === "cache" ? "this browser session" : "npm";
       note.textContent = `Current npm release: ${state.facts.latest}. Registry checked ${formatNpmReleaseAge(state.ageMs)} ago from ${source}.`;
     } else {
@@ -112,6 +128,15 @@ export function mountNpmReleases(
         : "The npm registry release response was unavailable or malformed; no release claim is shown.";
     }
   });
+}
+
+function renderPackageVersion(element) {
+  const { npmLatest, checkedVersion } = element.dataset;
+  if (!npmLatest && !checkedVersion) return;
+  element.textContent =
+    npmLatest && checkedVersion && npmLatest !== checkedVersion
+      ? `MCP version ${npmLatest} · guide checked against ${checkedVersion}`
+      : `MCP version ${npmLatest || checkedVersion}`;
 }
 
 async function readPackageFacts(fetchImpl = globalThis.fetch) {
@@ -144,7 +169,8 @@ function applyPackageFacts(root, facts) {
     element.textContent = `${facts.tools.length} tools`;
   });
   root.querySelectorAll("[data-package-version]").forEach((element) => {
-    element.textContent = `MCP version ${facts.version}`;
+    element.dataset.checkedVersion = facts.version;
+    renderPackageVersion(element);
   });
   root.querySelectorAll("[data-package-node-requirement]").forEach((element) => {
     element.textContent = `Node.js ${nodeRequirement}`;

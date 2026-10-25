@@ -10,6 +10,7 @@
 import { readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { PACKAGE_VERSION } from "../setup-data.js";
 
 const apiKey = process.env.NOUS_PORTAL_API_KEY?.trim() || "";
 if (apiKey && !apiKey.startsWith("sk-nous-"))
@@ -19,7 +20,7 @@ const sourceUrl = "https://inference-api.nousresearch.com/v1/models";
 const observedAt = new Date().toISOString();
 const headers = {
   Accept: "application/json",
-  "User-Agent": "open-dashboard-site/1.4.0",
+  "User-Agent": `open-dashboard-site/${PACKAGE_VERSION}`,
 };
 if (apiKey) headers.Authorization = `Bearer ${apiKey}`;
 const response = await fetch(sourceUrl, {
@@ -135,7 +136,7 @@ const inference = {
 };
 const snapshot = {
   schemaVersion: 1,
-  collector: "open-dashboard-mcp@1.4.0 + Nous Research catalogue",
+  collector: `open-dashboard-mcp@${PACKAGE_VERSION} + Nous Research catalogue`,
   provider: "nous",
   displayName: "Nous Research",
   sourceUrl,

@@ -229,6 +229,13 @@ const projectRecords = [
     relationships: [{ type: 'folds-into', pool: 'AI-d kit', role: 'search' }],
     sources: ['web/library/index.html', 'web/library/rag.html', 'web/memory-systems/index.html', MASTER],
   }),
+  // Curated external material: every course is credited to and linked at its
+  // author's repository; nothing is rehosted and none of it is Ivan-authored.
+  project('academy', 'Academy', {
+    status: 'Live', visibility: publicShell,
+    attribution: { type: 'curated-external', description: 'Free AI courses credited to their authors; Ivan’s forks are secondary links.' },
+    sources: ['web/academy/index.html'],
+  }),
   project('chair-or-ladder', 'Chair or a Ladder', {
     pool: 'My Story', classification: 'assigned', status: 'Live', rank: { 'My Story': 10 }, visibility: publicShell,
     requiredWork: [{ type: 'recording', description: 'Ivan must make a proper recording for speech-to-speech with Chloé’s voice.' }],
@@ -268,7 +275,7 @@ const projectRecords = [
   project('womens-health-os', 'Women’s Health OS', { pool: 'Health', classification: 'assigned', status: 'In development', rank: { Health: 6 }, aliases: ['Women’s Health'], visibility: publicShell, sources: ['web/womens-health-os/index.html', SETTLED] }),
   project('hypertrophyos', 'Hyper Trophy OS', { visibility: publicShell, sources: ['web/hypertrophyos/index.html', PLAN] }),
   project('gym-scholar', 'Gym Scholar', {
-    pool: 'Health', classification: 'assigned', status: 'Live', rank: { Health: 10 }, visibility: publicShell, sources: [MASTER],
+    pool: 'Health', classification: 'assigned', status: 'Live', rank: { Health: 10 }, visibility: publicShell, sources: ['web/gym-scholar/index.html', MASTER],
     canonicalUrl: 'https://gymscholar.lovable.app',
   }),
   project('avatar-playground', 'Avatar Playground', { pool: 'TinkerBox', classification: 'assigned', status: 'Live', rank: { TinkerBox: 10 }, aliases: ['Voice Playground'], visibility: publicShell, sources: ['web/avatar-playground/index.html', MASTER] }),
@@ -293,7 +300,7 @@ const projectRecords = [
   project('kids-movie-library', 'Kids Library', {
     pool: 'GrowingApp', classification: 'assigned', status: 'In development', rank: { GrowingApp: 4 }, visibility: publicShell,
     sections: [{ id: 'movies', name: 'Movies' }, { id: 'books', name: 'Books' }],
-    sources: ['movies/index.html', 'web/kids-movie-library/index.html', PLAN],
+    sources: ['movies/index.html', 'web/kids-movie-library/index.html', 'web/kids-library-preview/index.html', PLAN],
   }),
   project('m-popova', 'Poetry Space', {
     pool: 'Design Gallery', classification: 'assigned', status: 'Live', rank: { 'Design Gallery': 10 }, visibility: publicShell, attribution: 'Poetry by Maria Popova.', sources: ['web/m-popova/index.html', MASTER],
@@ -361,10 +368,12 @@ export const ROUTE_OWNERS = deepFreeze([
   }),
   owner('mendeleev', ['/web/mendeleev-bg/']),
   owner('math-forest', ['/web/math-forest/', '/web/math-mania/']),
+  owner('gym-scholar', ['/web/gym-scholar/']),
   owner('replicator-void', ['/web/replicator-void/']),
   owner('c2c-dolphin', ['/web/c2c-dolphin/']),
   owner('c2c-self', ['/web/c2c-self/']),
   owner('fleet-board', ['/web/fleet/', '/web/board/'], { role: 'internal' }),
+  owner('academy', ['/web/academy/']),
   owner('ai-research', ['/web/ai-research/']),
   owner('library', ['/web/library/', '/web/library/glossary/', '/web/library/platform/', '/web/memory-systems/'], { visibility: { ...publicShell, publicSurface: 'public-reference-only' } }),
   owner('library-workspace', ['/web/library/rag.html'], { projectId: 'library', role: 'child' }),
@@ -399,6 +408,7 @@ export const ROUTE_OWNERS = deepFreeze([
   owner('gallery', ['/web/gallery/']),
   owner('kids', ['/web/kids/']),
   owner('kids-movie-library', ['/web/kids-movie-library/', '/movies/']),
+  owner('kids-library-preview', ['/web/kids-library-preview/'], { projectId: 'kids-movie-library', role: 'preview', visibility: compatibility }),
   owner('m-popova', ['/web/m-popova/']),
   owner('open-dashboard', ['/web/open-dashboard/', '/web/open-dashboard/github/', '/web/open-dashboard/mcp/']),
   owner('open-dashboard-notices', ['/web/open-dashboard/openrouter/', '/web/open-dashboard/catalogues/', '/web/open-dashboard/matrix/'], { projectId: 'open-dashboard', role: 'child', visibility: compatibility }),

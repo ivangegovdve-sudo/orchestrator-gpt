@@ -80,7 +80,7 @@ export const MCP_COVERAGE = Object.freeze(
   })),
 );
 
-// Reviewed against the installed 1.4.0 contract and speed tool.
+// Reviewed against the installed package contract and speed tool.
 // These package facts have their own version; the page load is not a new probe.
 export const PACKAGE_EVIDENCE = Object.freeze({
   version: PACKAGE_VERSION,

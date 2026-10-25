@@ -32,7 +32,7 @@ async function routeFor(routePath) {
 
 test('every HTML route copied by the build has exactly one explicit source and owner', async () => {
   const { routes, discoveredHtmlRoutes } = await actualInput();
-  assert.equal(discoveredHtmlRoutes.length, 78, 'current copied HTML boundary including the memory systems map and the two AI-d kit subpages');
+  assert.equal(discoveredHtmlRoutes.length, 80, 'current copied HTML boundary');
   assert.equal(routes.filter(({ source }) => source).length, discoveredHtmlRoutes.length);
   for (const discovered of discoveredHtmlRoutes) {
     const entry = await routeFor(discovered.route);
@@ -127,6 +127,19 @@ test('Fleet and Board share one internal owner while retaining both source pages
     assert.equal(entry.visibility.access, 'internal');
     assert.equal(entry.visibility.indexing, 'noindex');
   }
+});
+
+test('Kids Library preview is an unlisted, noindex page owned by the existing project', async () => {
+  const entry = await routeFor('/web/kids-library-preview/');
+  const { ROUTE_OWNERS } = await catalogModule;
+  const owner = ROUTE_OWNERS.find(({ id }) => id === entry.ownerId);
+  assert.equal(entry.source, 'web/kids-library-preview/index.html');
+  assert.equal(entry.delivery, 'page');
+  assert.deepEqual(entry.visibility, { navigation: 'unlisted', search: 'excluded', indexing: 'noindex', access: 'public' });
+  assert.equal(owner.projectId, 'kids-movie-library');
+  assert.equal(owner.role, 'preview');
+  assert.match(read(entry.source), /<meta\s+name=["']robots["']\s+content=["']noindex,\s*nofollow["']/i);
+  assert.equal((await routeFor('/web/kids-movie-library/')).ownerId, 'kids-movie-library');
 });
 
 test('private and legacy compatibility routes carry explicit noindex metadata', async () => {

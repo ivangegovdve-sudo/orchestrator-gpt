@@ -5,54 +5,64 @@ const path = require('node:path');
 
 const ROOT = path.resolve(__dirname, '../..');
 const read = (relativePath) => fs.readFileSync(path.join(ROOT, relativePath), 'utf8');
+const FINAL_SHORT_BODY = [
+  "A chair and a ladder come from the same oak. A chair holds you where you are. A ladder gets you somewhere you couldn't reach — and stays for the next person. AI is both.",
+  "My confession, since this essay is the evidence: I didn't write it. I handed the writing to a machine — not to save time, but because writing scares me. Critiquing is easy; I can pick at a draft forever. Writing one is the exposed part, so I don't. That's what all the iterations are — me editing instead of making. Fumbling on stilts: upright, moving, never quite on my own feet.",
+  "That's the chair. It fills the blank page and quietly takes the one thing that was mine to practice. The danger isn't saved effort — a calculator saves effort. It's that the tool removes the repetition and the judgment together, until I can't tell which muscle I've stopped using.",
+  "The ladder costs more: decide what matters yourself, check the machine's work, write down where it failed, leave the method for the next person. It's slower, and a metric that counts output per hour punishes slower. So most people take the chair — and they're right to. The cost doesn't land on them. It lands later, on whoever can't reconstruct how the answer was made.",
+  "So the fix isn't willpower. It's keeping the work legible and portable — sources you can follow, records you can carry out, judgment you can still see. Borrow the capability; don't lose the ability to leave.",
+  "Use the tools. Let them make you faster. But keep enough friction to feel the weight of the thing, and now and then do the scary part yourself. I'm still learning to. I wrote this line. The machine wrote the rest. That's the whole problem, and I know it.",
+];
 
-test('Chair or Ladder publishes the final concise essay and its decision test', () => {
-  const page = read('web/chair-or-ladder/index.html');
+function articleTextNodes(page) {
   const article = page.match(/<article\b[^>]*>([\s\S]*?)<\/article>/i)?.[1] || '';
-  const plain = article
-    .replace(/<style[\s\S]*?<\/style>/gi, ' ')
-    .replace(/<script[\s\S]*?<\/script>/gi, ' ')
-    .replace(/<[^>]+>/g, ' ')
-    .replace(/&(?:amp|mdash|ndash|rsquo|ldquo|rdquo);/g, ' ');
-  const words = plain.match(/[\p{L}\p{N}’'-]+/gu) || [];
+  const text = [...article.matchAll(/<(?:p|h2|h3|li)\b[^>]*>([\s\S]*?)<\/(?:p|h2|h3|li)>/gi)]
+    .map((match) => match[1]
+      .replace(/<[^>]+>/g, '')
+      .replace(/&quot;/g, '"')
+      .replace(/&amp;/g, '&')
+      .trim());
+  return { article, text };
+}
 
-  assert.match(page, /<title>Chair or Ladder\? — What AI trains us to become<\/title>/);
-  assert.match(page, /An essay by Ivan Gegov/);
-  assert.match(page, /am I more capable of judgment, or more dependent on judgment I cannot see\?/);
-  assert.match(page, /Defaults harden into infrastructure\./);
-  assert.match(page, /leave the ladder where someone else can reach it\./);
-  assert.ok(words.length >= 920 && words.length <= 1000, `essay body is ${words.length} words`);
-  assert.doesNotMatch(article, /Picture an avalanche|Not snow[—-]AI/i);
-});
-
-test('Chair or Ladder has a canonical URL, accessible object study, and real public feedback path', () => {
+test('A Chair or a Ladder renders the approved short first-person essay verbatim', () => {
   const page = read('web/chair-or-ladder/index.html');
-  const checklist = page.match(/<section class="checklist"[\s\S]*?<\/section>/)?.[0] || '';
+  const { article, text } = articleTextNodes(page);
+  const words = text.join(' ').match(/[\p{L}\p{N}’'-]+/gu) || [];
 
-  assert.match(page, /rel="canonical" href="https:\/\/www\.sdforest\.site\/web\/chair-or-ladder\/"/);
-  assert.match(page, /role="img" aria-labelledby="object-study-title object-study-desc"/);
-  assert.equal((checklist.match(/<li>/g) || []).length, 5);
-  assert.match(page, /data-feedback-link/);
-  assert.match(page, /data-feedback-email/);
-  assert.match(page, /mailto:ivangegov\.dve@gmail\.com\?subject=Chair%20or%20Ladder%20feedback/);
-  assert.match(page, /github\.com\/ivangegovdve-sudo\/orchestrator-gpt\/issues\/new\?/);
-  assert.match(page, /target="_blank"/);
-  assert.match(page, /rel="noopener"/);
-  assert.doesNotMatch(page, /PLACEHOLDER|formspree/i);
-  assert.match(page, /Companion piece in production/);
-  assert.match(page, /We Are The Training Data/);
+  assert.match(page, /<title>A Chair or a Ladder — What AI trains us to become<\/title>/);
+  assert.match(page, /<p class="byline">Ivan Gegov<\/p>/);
+  assert.deepEqual(text, FINAL_SHORT_BODY, 'the rendered article text matches the supplied short manuscript');
+  assert.equal(words.length, 299, 'the short manuscript lexical word count is preserved');
+  assert.match(article, /I wrote this line\. The machine wrote the rest\./);
+  assert.doesNotMatch(page, /<audio\b/i);
 });
 
-test('Forest HUB makes Chair or Ladder the first truthful atlas path', () => {
-  const home = read('index.html');
-  // The atlas is grouped into directory sections; Chair or Ladder leads the
-  // first one (Writing & Media), so the first featured grid is the guard.
-  const grid = home.match(/<div[^>]*\bdata-featured-projects\b[^>]*>([\s\S]*?)<\/div>/)?.[1] || '';
-  const firstProject = grid.match(/data-project="([^"]+)"/)?.[1];
+test('A Chair or a Ladder has the clean public route and readable essay structure', () => {
+  const page = read('web/chair-or-ladder/index.html');
+  const config = JSON.parse(read('vercel.json'));
+  const { article } = articleTextNodes(page);
 
-  assert.equal(firstProject, 'chair-ladder');
-  assert.equal((home.match(/data-project="chair-ladder"/g) || []).length, 1);
-  assert.match(home, /data-project="chair-ladder"[^>]+data-href="\/web\/chair-or-ladder\/"/);
-  assert.match(home, /<use href="#icon-chair-ladder"\/>/);
-  assert.match(home, /data-status="New essay"/);
+  assert.match(page, /rel="canonical" href="https:\/\/www\.sdforest\.site\/chair-or-ladder"/);
+  assert.match(page, /property="og:url" content="https:\/\/www\.sdforest\.site\/chair-or-ladder"/);
+  assert.match(page, /role="img" aria-labelledby="object-study-title object-study-desc"/);
+  assert.match(page, /font-size: clamp\(18px, 2\.15vw, 21px\)/);
+  assert.match(page, /line-height: 1\.76/);
+  assert.deepEqual(config.rewrites.filter(({ source }) => source.startsWith('/chair-or-ladder')), [
+    { source: '/chair-or-ladder', destination: '/web/chair-or-ladder/' },
+    { source: '/chair-or-ladder/', destination: '/web/chair-or-ladder/' },
+  ]);
+  assert.equal((article.match(/<h2\b/g) || []).length, 0, 'the short essay does not add section headings');
+  assert.equal((article.match(/<li>/g) || []).length, 0, 'the approved prose does not introduce list-only copy');
+});
+
+test('Forest HUB and My Story link to the clean essay URL', () => {
+  const home = read('index.html');
+  const myStory = read('web/pools/my-story/index.html');
+  const expected = /href="\/chair-or-ladder">A Chair or a Ladder<\/a>/;
+
+  assert.match(home, expected);
+  assert.match(myStory, expected);
+  assert.doesNotMatch(home, /href="\/web\/chair-or-ladder\//);
+  assert.doesNotMatch(myStory, /href="\/web\/chair-or-ladder\//);
 });

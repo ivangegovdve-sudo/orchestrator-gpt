@@ -697,7 +697,7 @@ export function mergeMedia(models, media) {
       modalities,
       kind: isMedia ? "media" : "catalogue",
       nativeCatalogue: true,
-      context: finite(nativeMeta.contextLength) ?? existing?.context ?? null,
+      context: finite(m.contextLength) ?? finite(nativeMeta.contextLength) ?? existing?.context ?? null,
       input: nativePair?.input ?? existing?.input ?? null,
       output: nativePair?.output ?? existing?.output ?? null,
       priceCondition: nativePair?.condition ?? null,

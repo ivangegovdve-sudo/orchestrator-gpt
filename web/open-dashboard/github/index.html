@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-palette="plum" data-theme="light" data-studio>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
@@ -16,8 +16,63 @@
     <script defer src="../vendor/d3.v7.min.js"></script>
     <script type="module" src="../shell.js"></script>
     <script type="module" src="./projects.js"></script>
-  </head>
-  <body class="od-page">
+  <link rel="stylesheet" href="../studio.css"><link rel="stylesheet" href="../companion.css"><script type="module" src="../companion-shell.js"></script></head>
+  <body class="od-page studio-page">    <aside class="sidebar" aria-label="Site navigation">
+      <a class="brand" href="/web/open-dashboard/" aria-label="openDashboard home"
+        ><img src="/web/open-dashboard/assets/interlock.svg" width="80" height="80" alt="" /><span
+          >open<span>Dashboard</span></span
+        ></a
+      >
+      <button
+        class="menu-toggle"
+        aria-label="Expand navigation"
+        aria-expanded="false"
+      >
+        <span aria-hidden="true">☰</span>
+      </button>
+      <p class="nav-label">THE OPEN TOOLKIT</p>
+      <nav aria-label="Dashboard navigation">
+        <a href="/web/open-dashboard/"  title="Catalogue coverage"
+          ><span aria-hidden="true">◫</span><b>Catalogue coverage</b></a
+        >
+        <a href="/web/open-dashboard/?view=models#explore" title="Model explorer"
+          ><span aria-hidden="true">◇</span><b>Model explorer</b></a
+        >
+        <a href="/web/open-dashboard/?view=apps#explore" title="Apps and models"
+          ><span aria-hidden="true">▦</span><b>Apps &amp; models</b></a
+        >
+        <a href="/web/open-dashboard/?view=history#explore" title="History"
+          ><span aria-hidden="true">◷</span><b>History</b></a
+        >
+        <a href="/web/open-dashboard/?view=benchmarks#explore" title="Benchmarks"
+          ><span aria-hidden="true">≋</span><b>Benchmarks</b></a
+        >
+        <a href="/web/open-dashboard/?view=changes#explore" title="Changes and lifecycle"
+          ><span aria-hidden="true">↺</span><b>Changes</b></a
+        >
+        <a href="/web/open-dashboard/?view=state#explore" title="Live prices"
+          ><span aria-hidden="true">⊞</span><b>Live prices</b></a
+        >
+      </nav>
+      <div class="nav-divider"></div>
+      <nav aria-label="Connected projects"><a href="/web/open-dashboard/#router" title="Model Router"
+          ><span aria-hidden="true">⇢</span><b>Model Router</b></a
+        >
+        <a href="/web/open-dashboard/mcp/" title="MCP setup"
+          ><span aria-hidden="true">⌘</span><b>Connect an agent</b></a
+        >
+        <a href="/web/open-dashboard/github/" title="GitHub projects"
+          ><span aria-hidden="true">⊡</span><b>GitHub projects</b></a
+        >
+        <a href="/" title="SD Forest home"
+          ><span aria-hidden="true">⌂</span><b>SD Forest <i>↗</i></b></a
+        >
+      </nav>
+      <div class="sidebar-foot">
+        <span class="read-only-dot"></span
+        ><span>Read-only by design.<br />Evidence in the open.</span>
+      </div>
+    </aside><div class="page companion-content">
     <a class="projects-skip" href="#projects-explorer">Skip to projects</a>
     <header class="site-header page-width">
       <a class="wordmark" href="../">Open Dashboard</a
@@ -57,6 +112,38 @@
           >
         </div>
         <div class="projects-hero-art" aria-hidden="true"></div>
+      </section>
+      <section
+        class="projects-discovery page-width"
+        id="trending"
+        aria-labelledby="projects-trending-title"
+      >
+        <p class="projects-eyebrow">GITHUB TRENDING</p>
+        <h2 id="projects-trending-title">Find the repositories gaining attention.</h2>
+        <p class="projects-discovery-intro">
+          Explore GitHub’s daily, weekly and monthly trending repositories.
+          The live dashboard shows its collection time and source.
+        </p>
+        <div class="projects-link-grid projects-trending-links">
+          <a
+            class="projects-link-card"
+            href="https://openrouter-github-dashboard.vercel.app/trending"
+            rel="noopener"
+          >
+            <span class="projects-link-label">LIVE DASHBOARD</span>
+            <strong>Browse trending repositories <svg class="projects-link-arrow" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 13 13 3M4 3h9v9" /></svg></strong>
+            <span>Choose a language and time window in the live GitHub trending view.</span>
+          </a>
+          <a class="projects-link-card" href="https://github.com/trending" rel="noopener">
+            <span class="projects-link-label">DIRECT SOURCE</span>
+            <strong>Open GitHub Trending <svg class="projects-link-arrow" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 13 13 3M4 3h9v9" /></svg></strong>
+            <span>Visit GitHub’s own trending page, including when the dashboard is unavailable.</span>
+          </a>
+        </div>
+        <p class="projects-caption">
+          The curated catalogue below has its own category-based activity and
+          momentum rankings. Those rankings are separate from GitHub Trending.
+        </p>
       </section>
       <section
         class="projects-section page-width"
@@ -226,6 +313,38 @@
           </details>
         </div>
       </section>
+      <section
+        class="projects-discovery projects-personal page-width"
+        aria-labelledby="projects-personal-title"
+      >
+        <p class="projects-eyebrow">PERSONAL LINKS</p>
+        <h2 id="projects-personal-title">Browse Ivan’s repository library.</h2>
+        <p class="projects-discovery-intro">
+          A GitHub profile, the shelf’s source, and its published 3D library.
+        </p>
+        <div class="projects-link-grid">
+          <a class="projects-link-card" href="https://github.com/ivangegovdve-sudo" rel="noopener">
+            <span class="projects-link-label">GITHUB PROFILE</span>
+            <strong>Ivan’s repositories <svg class="projects-link-arrow" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 13 13 3M4 3h9v9" /></svg></strong>
+            <span>Browse public repositories and forks on GitHub.</span>
+          </a>
+          <a class="projects-link-card" href="https://github.com/ivangegovdve-sudo/repo-shelf" rel="noopener">
+            <span class="projects-link-label">SHELF SOURCE</span>
+            <strong>Repo Shelf on GitHub <svg class="projects-link-arrow" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 13 13 3M4 3h9v9" /></svg></strong>
+            <span>The adapted bookshelf’s source code, README and project documentation.</span>
+          </a>
+          <a class="projects-link-card" href="https://ivangegovdve-sudo.github.io/repo-shelf/" rel="noopener">
+            <span class="projects-link-label">PUBLISHED ON GITHUB PAGES</span>
+            <strong>Open the 3D library <svg class="projects-link-arrow" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 13 13 3M4 3h9v9" /></svg></strong>
+            <span>Explore the published repository catalogue as books on a 3D shelf.</span>
+          </a>
+        </div>
+        <p class="projects-caption">
+          The source repository and published library are the same Repo Shelf
+          project, adapted from BkashJEE’s bookshelf application. These personal
+          links are separate from the activity rankings above.
+        </p>
+      </section>
       <section class="projects-connect page-width">
         <div>
           <p class="projects-eyebrow">YOUR TOOLS. YOUR CHOICE.</p>
@@ -246,5 +365,5 @@
       <p>Open knowledge for your next decision.</p>
       <a href="https://www.sdforest.site/">More from SD Forest ↗</a>
     </footer>
-  </body>
+  </div></body>
 </html>

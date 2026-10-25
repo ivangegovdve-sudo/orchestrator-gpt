@@ -32,8 +32,8 @@ function registryResponse(overrides = {}) {
     ok: true,
     json: async () => ({
       name: "open-dashboard-mcp",
-      "dist-tags": { latest: "1.4.0" },
-      versions: { "1.3.0": {}, "1.4.0": {} },
+      "dist-tags": { latest: "1.6.0" },
+      versions: { "1.5.0": {}, "1.6.0": {} },
       ...overrides,
     }),
   };
@@ -50,24 +50,24 @@ test("both public pages reserve a live npm release line without freezing either 
   }
 });
 
-test("the registry parser requires both the requested published release and the latest dist-tag", () => {
+test("the registry parser requires a valid package and latest dist-tag", () => {
   assert.deepEqual(
     parseNpmReleaseMetadata({
       name: "open-dashboard-mcp",
-      "dist-tags": { latest: "1.4.0" },
-      versions: { "1.3.0": {}, "1.4.0": {} },
+      "dist-tags": { latest: "1.6.0" },
+      versions: { "1.5.0": {}, "1.6.0": {} },
     }),
     {
       package: "open-dashboard-mcp",
-      latest: "1.4.0",
-      published: ["1.4.0"],
+      latest: "1.6.0",
+      published: ["1.6.0"],
       sourceUrl: NPM_RELEASES_URL,
     },
   );
   for (const invalid of [
-    { name: "other", "dist-tags": { latest: "1.4.0" }, versions: { "1.3.0": {}, "1.4.0": {} } },
-    { name: "open-dashboard-mcp", "dist-tags": { latest: "1.4.0" }, versions: { "1.3.0": {} } },
-    { name: "open-dashboard-mcp", "dist-tags": { latest: "1.3.0" }, versions: { "1.4.0": {} } },
+    { name: "other", "dist-tags": { latest: "1.6.0" }, versions: { "1.5.0": {}, "1.6.0": {} } },
+    { name: "open-dashboard-mcp", "dist-tags": { latest: "1.6.0" }, versions: { "1.5.0": {} } },
+    { name: "open-dashboard-mcp", "dist-tags": { latest: "1.5.0" }, versions: { "1.6.0": {} } },
   ])
     assert.equal(parseNpmReleaseMetadata(invalid), null);
 });
@@ -89,7 +89,7 @@ test("release lookup caches a valid registry result with visible age and rejects
     { storage, now: NOW + 5 * 60 * 1000 },
   );
   assert.equal(live.source, "live");
-  assert.deepEqual(live.facts.published, ["1.4.0"]);
+  assert.deepEqual(live.facts.published, ["1.6.0"]);
   assert.equal(cached.source, "cache");
   assert.equal(cached.ageMs, 5 * 60 * 1000);
   assert.equal(calls, 1);
@@ -100,6 +100,29 @@ test("release lookup caches a valid registry result with visible age and rejects
   );
   assert.equal(expired.status, "unavailable");
   assert.equal(expired.facts, undefined);
+});
+
+test("release lookup can bypass a browser cache for the live dashboard", async () => {
+  const storage = memoryStorage();
+  let calls = 0;
+  const first = await readNpmReleaseState(
+    async () => {
+      calls += 1;
+      return registryResponse();
+    },
+    { storage, now: NOW },
+  );
+  const fresh = await readNpmReleaseState(
+    async () => {
+      calls += 1;
+      return registryResponse({ "dist-tags": { latest: "1.6.1" }, versions: { "1.6.1": {} } });
+    },
+    { storage, now: NOW + 5 * 60 * 1000, bypassCache: true },
+  );
+  assert.equal(first.facts.latest, "1.6.0");
+  assert.equal(fresh.facts.latest, "1.6.1");
+  assert.equal(fresh.source, "live");
+  assert.equal(calls, 2);
 });
 
 test("release lookup does not invent a release list when npm fails", async () => {
@@ -140,8 +163,8 @@ test("the release mount visibly names only the current published release", async
   const root = releaseRoot();
   await mountNpmReleases(root, async () => registryResponse());
   assert.equal(root.container.dataset.npmReleasesState, "available");
-  assert.equal(root.value.textContent, "Published on npm: 1.4.0");
-  assert.match(root.note.textContent, /Current npm release: 1\.4\.0/);
+  assert.equal(root.value.textContent, "Published on npm: 1.6.0");
+  assert.match(root.note.textContent, /Current npm release: 1\.6\.0/);
 
   const unavailable = releaseRoot();
   await mountNpmReleases(unavailable, async () => ({ ok: false, status: 503 }));

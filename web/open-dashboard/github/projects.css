@@ -100,6 +100,97 @@
   padding-top: 38px;
   padding-bottom: 30px;
 }
+.projects-discovery {
+  padding-top: 36px;
+  padding-bottom: 30px;
+  border-bottom: 1px solid var(--rule);
+  scroll-margin-top: 24px;
+}
+.projects-discovery h2 {
+  margin: 0 0 12px;
+  color: var(--ink);
+  font-size: 28px;
+  letter-spacing: -0.04em;
+  line-height: 1.2;
+}
+.projects-discovery .projects-eyebrow {
+  margin-bottom: 10px;
+}
+.projects-discovery-intro {
+  max-width: 620px;
+  margin: 0 0 22px;
+  color: var(--muted);
+  line-height: 1.65;
+}
+.projects-link-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+.projects-trending-links {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.projects-link-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+  padding: 22px;
+  border: 1px solid var(--rule);
+  background: var(--paper);
+  text-decoration: none;
+  transition: background 150ms ease, border-color 150ms ease;
+}
+.projects-link-card:hover {
+  background: var(--soft);
+  border-color: var(--link);
+}
+.projects-link-card:focus-visible {
+  outline-color: var(--link);
+}
+.projects-link-card strong {
+  color: var(--ink);
+  font-size: 16px;
+  line-height: 1.4;
+}
+.projects-link-arrow {
+  display: inline-block;
+  width: 13px;
+  height: 13px;
+  margin-left: 3px;
+  vertical-align: baseline;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.projects-link-card > span:last-child {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.6;
+}
+.projects-link-label {
+  color: var(--link);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  line-height: 1.5;
+}
+.projects-discovery > .projects-caption {
+  margin: 18px 0 0;
+}
+@media (max-width: 740px) {
+  .projects-link-grid {
+    grid-template-columns: 1fr;
+  }
+  .projects-discovery h2 {
+    font-size: 24px;
+  }
+  .projects-link-card {
+    padding: 18px;
+  }
+}
 .projects-section h2,
 .projects-rank-section h2,
 .projects-connect h2 {
