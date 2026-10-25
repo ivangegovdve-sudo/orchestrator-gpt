@@ -1,0 +1,147 @@
+{
+  "generatedAt": "2026-10-25T20:44:36Z",
+  "runId": "d9f8",
+  "durationMs": 239608,
+  "scope": "this machine + 1 fleet host(s)",
+  "fast": false,
+  "prState": {
+    "fetchedAt": "2026-10-25T20:44:36Z",
+    "fromCache": false,
+    "available": true
+  },
+  "sources": [
+    {
+      "population": 6,
+      "name": "sessions",
+      "error": null,
+      "state": "OK",
+      "ok": true
+    },
+    {
+      "population": 18344,
+      "name": "ledger",
+      "error": null,
+      "state": "OK",
+      "ok": true
+    },
+    {
+      "population": 159,
+      "name": "repo-discovery",
+      "error": null,
+      "state": "OK",
+      "ok": true
+    },
+    {
+      "population": 79,
+      "name": "repos",
+      "error": null,
+      "state": "OK",
+      "ok": true
+    },
+    {
+      "population": 73,
+      "name": "github",
+      "error": null,
+      "state": "OK",
+      "ok": true
+    },
+    {
+      "population": 11,
+      "name": "telos",
+      "error": null,
+      "state": "OK",
+      "ok": true
+    },
+    {
+      "population": 1,
+      "name": "tasks",
+      "error": null,
+      "state": "OK",
+      "ok": true
+    },
+    {
+      "population": 103,
+      "name": "jules",
+      "error": null,
+      "state": "OK",
+      "ok": true
+    },
+    {
+      "population": 1501,
+      "name": "jules-api",
+      "error": null,
+      "state": "OK",
+      "ok": true
+    },
+    {
+      "population": 230,
+      "name": "scheduled-jobs",
+      "error": null,
+      "state": "OK",
+      "ok": true
+    },
+    {
+      "population": 26,
+      "name": "fleet-jobs",
+      "error": null,
+      "state": "OK",
+      "ok": true
+    },
+    {
+      "population": 24,
+      "name": "codex",
+      "error": null,
+      "state": "OK",
+      "ok": true
+    },
+    {
+      "population": 0,
+      "name": "serve-log",
+      "error": null,
+      "state": "OK",
+      "ok": true
+    },
+    {
+      "population": 1,
+      "name": "delegation",
+      "error": null,
+      "state": "OK",
+      "ok": true
+    }
+  ],
+  "runBudget": {
+    "droppedForTime": [],
+    "seconds": 660
+  },
+  "liveSessions": 6,
+  "participation": {
+    "denominator": 6,
+    "windowMinutes": 60,
+    "numerator": 0
+  },
+  "counts": {
+    "unparsedTaskLines": 0,
+    "wipGoalsTouched": 0,
+    "unlanded": 962,
+    "untriaged": 0,
+    "wipInFlight": 3,
+    "unknownOwnerWorktrees": 463,
+    "pidReused": 0,
+    "orphanedWorktrees": 2,
+    "waitingOnIvan": 22,
+    "abandonedTasks": 57,
+    "goalsRefused": 0,
+    "undeclaredActivity": 0,
+    "goalsRead": 11,
+    "wipNoGoal": 3,
+    "queuedTasks": 0,
+    "boardVsGit": 0,
+    "expiredClaims": 235,
+    "activeFindings": 6,
+    "stalled": 0,
+    "blockedTasks": 0,
+    "repoContention": 2,
+    "branchContention": 0,
+    "orphanedClaims": 0
+  }
+}
