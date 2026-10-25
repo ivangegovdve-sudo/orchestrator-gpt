@@ -308,6 +308,30 @@ class ServedModelGateTests(unittest.TestCase):
         self.assertEqual(result, 2)
         self.assertIn("CHANGES_REQUESTED is outstanding", output)
 
+    def test_legacy_reviewer_objection_superseded_by_current_app_approval(self):
+        objection = review(state="CHANGES_REQUESTED",
+                           user={"login": "forest-fleet-reviewer[bot]", "type": "Bot"})
+        result, output = self.run_gate([objection, review()])
+        self.assertEqual(result, 0, output)
+        self.assertIn("would MERGE", output)
+
+    def test_legacy_reviewer_objection_still_refuses_when_unresolved(self):
+        objection = review(state="CHANGES_REQUESTED",
+                           user={"login": "forest-fleet-reviewer[bot]", "type": "Bot"})
+        other_approval = review(user={"login": "second-approver", "type": "User"})
+        result, output = self.run_gate([objection, other_approval],
+                                       approvers="ivan-codex-reviewer,second-approver")
+        self.assertEqual(result, 2)
+        self.assertIn("CHANGES_REQUESTED is outstanding from ivan-codex-reviewer", output)
+
+    def test_legacy_reviewer_app_formal_receipt_is_identified(self):
+        body = published_body().replace("ivan-codex-reviewer", "forest-fleet-reviewer")
+        result, output = self.run_gate([
+            review(body=body, user={"login": "forest-fleet-reviewer[bot]", "type": "Bot"}),
+        ])
+        self.assertEqual(result, 0, output)
+        self.assertIn("google", output)
+
     def test_failed_pending_or_unknown_ci_still_refuses(self):
         for ci, reason in [("FAILURE", "CI is failing"), ("PENDING", "CI has not finished"),
                            (None, "CI state could not be read")]:

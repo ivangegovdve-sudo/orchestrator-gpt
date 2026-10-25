@@ -149,7 +149,7 @@ _METERED_SERVED_MODEL = re.compile(
 )
 _REVIEWED_BY = re.compile(
     r"_Reviewed by \*\*[^*\r\n\v\f\x85\u2028\u2029]+\*\*, driven through "
-    r"the `ivan-codex-reviewer` GitHub App\.[^\r\n\v\f\x85\u2028\u2029]+_"
+    r"the `(?:ivan-codex-reviewer|forest-fleet-reviewer)` GitHub App\.[^\r\n\v\f\x85\u2028\u2029]+_"
 )
 _MODEL_FAMILY_MARKERS = (
     ("anthropic", "anthropic"), ("claude", "anthropic"),
