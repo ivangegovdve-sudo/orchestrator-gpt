@@ -64,6 +64,10 @@ export const OPENROUTER_CATALOGUE = "https://openrouter.ai/api/v1/models";
 // (measured 2026-09-26). The tool name, its arguments and the freeKind vocabulary are
 // unchanged across the rewrite; re-check them before moving this pin.
 export const MCP_PACKAGE = "open-dashboard-mcp@1.3.0";
+// The dashboard catalogue is an external service. Retry transient HTTP failures and
+// timeouts, but still fail closed when the service remains unavailable.
+export const MCP_ATTEMPTS = 3;
+export const MCP_RETRY_DELAY_MS = 5_000;
 
 // A model must have answered at least once inside this window to keep its seat.
 export const VERIFY_WINDOW_DAYS = 7;
@@ -149,42 +153,67 @@ export function mcpClient(command, args, { env = {}, timeoutMs = 60_000 } = {}) 
   };
 }
 
-export async function catalogueFromMcp({ spawnClient = mcpClient } = {}) {
-  const client = spawnClient("npx", ["-y", MCP_PACKAGE]);
-  try {
-    await client.call("initialize", {
-      protocolVersion: "2025-06-18",
-      capabilities: {},
-      clientInfo: { name: "sdforest-council-roster", version: "1.0.0" },
-    });
-    client.notify("notifications/initialized", {});
-    const result = await client.call("tools/call", {
-      name: "dashboard_free_models",
-      arguments: { outputModality: "text", limit: 200 },
-    });
-    const structured = result.structuredContent
-      ?? JSON.parse(result.content?.find((part) => part.type === "text")?.text ?? "{}");
-    // The tool reports its own failures as data. Say which one, rather than letting an
-    // unreadable payload masquerade as an empty free tier.
-    if (structured?.status === "error" || structured?.status === "unavailable") {
-      const kind = structured?.error?.kind ?? "unknown";
-      throw new Error(`dashboard_free_models returned status ${structured.status} (${kind}): ${String(structured?.summary ?? "").slice(0, 200)}`);
-    }
-    const candidates = structured?.liveCandidates?.data ?? [];
-    if (!Array.isArray(candidates) || candidates.length === 0) {
-      throw new Error("dashboard_free_models returned no live candidates");
-    }
-    return {
-      candidates,
-      // Surfaced, not swallowed. The dashboard was itself `stale: true` on 2026-08-28,
-      // and a roster built from stale evidence should say so in its own record.
-      stale: structured?.stale === true,
-      status: structured?.status ?? "unknown",
-      warnings: projectEnvelopeWarnings(structured?.warnings),
-    };
-  } finally {
-    client.close();
+export function isRetryableMcpError(error) {
+  const message = String(error?.message ?? error);
+  return /\bHTTP\s+(?:408|425|429|5\d{2})\b/i.test(message) || /timed out/i.test(message);
+}
+
+async function catalogueFromMcpOnce(client) {
+  await client.call("initialize", {
+    protocolVersion: "2025-06-18",
+    capabilities: {},
+    clientInfo: { name: "sdforest-council-roster", version: "1.0.0" },
+  });
+  client.notify("notifications/initialized", {});
+  const result = await client.call("tools/call", {
+    name: "dashboard_free_models",
+    arguments: { outputModality: "text", limit: 200 },
+  });
+  const structured = result.structuredContent
+    ?? JSON.parse(result.content?.find((part) => part.type === "text")?.text ?? "{}");
+  // The tool reports its own failures as data. Say which one, rather than letting an
+  // unreadable payload masquerade as an empty free tier.
+  if (structured?.status === "error" || structured?.status === "unavailable") {
+    const kind = structured?.error?.kind ?? "unknown";
+    throw new Error(`dashboard_free_models returned status ${structured.status} (${kind}): ${String(structured?.summary ?? "").slice(0, 200)}`);
   }
+  const candidates = structured?.liveCandidates?.data ?? [];
+  if (!Array.isArray(candidates) || candidates.length === 0) {
+    throw new Error("dashboard_free_models returned no live candidates");
+  }
+  return {
+    candidates,
+    // Surfaced, not swallowed. The dashboard was itself `stale: true` on 2026-08-28,
+    // and a roster built from stale evidence should say so in its own record.
+    stale: structured?.stale === true,
+    status: structured?.status ?? "unknown",
+    warnings: projectEnvelopeWarnings(structured?.warnings),
+  };
+}
+
+export async function catalogueFromMcp({
+  spawnClient = mcpClient,
+  attempts = MCP_ATTEMPTS,
+  retryDelayMs = MCP_RETRY_DELAY_MS,
+  sleepImpl = sleep,
+} = {}) {
+  const maxAttempts = Math.max(1, Math.floor(Number(attempts)) || MCP_ATTEMPTS);
+  let lastError;
+  for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+    const client = spawnClient("npx", ["-y", MCP_PACKAGE]);
+    let retry = false;
+    try {
+      return await catalogueFromMcpOnce(client);
+    } catch (error) {
+      lastError = error;
+      retry = attempt < maxAttempts && isRetryableMcpError(error);
+    } finally {
+      client.close();
+    }
+    if (!retry) throw lastError;
+    await sleepImpl(retryDelayMs * (2 ** (attempt - 1)));
+  }
+  throw lastError;
 }
 
 // ── Gate 2: OpenRouter's live catalogue ──────────────────────────────────────

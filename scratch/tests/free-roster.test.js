@@ -31,6 +31,46 @@ const importGenerator = () => import(
   require('node:url').pathToFileURL(path.join(ROOT, 'scripts/refresh-free-roster.mjs')).href
 );
 
+test('catalogueFromMcp retries a transient dashboard 503 before returning candidates', async () => {
+  const { catalogueFromMcp } = await importGenerator();
+  let launches = 0;
+  const closed = [];
+
+  const result = await catalogueFromMcp({
+    spawnClient: () => {
+      const launch = ++launches;
+      return {
+        call: async (method) => {
+          if (method === 'initialize') return {};
+          if (launch < 3) {
+            return {
+              structuredContent: {
+                status: 'error',
+                error: { kind: 'http_error' },
+                summary: 'The dashboard catalogue returned HTTP 503.',
+              },
+            };
+          }
+          return {
+            structuredContent: {
+              status: 'ok',
+              liveCandidates: { data: [{ id: 'a/one:free' }] },
+            },
+          };
+        },
+        notify: () => {},
+        close: () => closed.push(launch),
+      };
+    },
+    retryDelayMs: 0,
+    sleepImpl: async () => {},
+  });
+
+  assert.equal(launches, 3);
+  assert.deepEqual(closed, [1, 2, 3]);
+  assert.deepEqual(result.candidates, [{ id: 'a/one:free' }]);
+});
+
 // A minimal stand-in for OpenRouter's catalogue map: id -> listing.
 const catalogueOf = (entries) => new Map(entries.map((entry) => [
   entry.id,
